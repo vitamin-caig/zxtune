@@ -206,13 +206,9 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     VfsObject resolve(Uri uri, List<String> path);
   }
 
-  private static class FindAuthorVisitor implements Catalog.AuthorsVisitor {
+  private static class FindAuthorVisitor extends Catalog.AuthorsVisitor {
 
     private Author result;
-
-    @Override
-    public void setCountHint(int size) {
-    }
 
     @Override
     public void accept(Author obj) {
@@ -246,13 +242,9 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     return null;
   }
 
-  private static class FindPartyVisitor implements Catalog.PartiesVisitor {
+  private static class FindPartyVisitor extends Catalog.PartiesVisitor {
 
     private Party result;
-
-    @Override
-    public void setCountHint(int size) {
-    }
 
     @Override
     public void accept(Party obj) {
@@ -286,13 +278,9 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     return null;
   }
   
-  private static class FindTrackVisitor implements Catalog.TracksVisitor {
+  private static class FindTrackVisitor extends Catalog.TracksVisitor {
 
     private Track result;
-
-    @Override
-    public void setCountHint(int size) {
-    }
 
     @Override
     public void accept(Track obj) {
@@ -491,10 +479,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       
       catalog.queryAuthorTracks(new Catalog.TracksVisitor() {
         @Override
-        public void setCountHint(int size) {
-        }
-
-        @Override
         public void accept(Track obj) {
           years.put(obj.year, 1 + years.get(obj.year));
         }
@@ -582,10 +566,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     public void enumerate(final Visitor visitor) throws IOException {
       final SparseIntArray years = new SparseIntArray();
       catalog.queryParties(new Catalog.PartiesVisitor() {
-        @Override
-        public void setCountHint(int hint) {
-        }
-
         @Override
         public void accept(Party obj) {
           years.put(obj.year, 1 + years.get(obj.year));
@@ -686,11 +666,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryParties(new Catalog.PartiesVisitor() {
-        
-        @Override
-        public void setCountHint(int size) {
-        }
-        
         @Override
         public void accept(Party obj) {
           if (obj.year == year) {
@@ -728,11 +703,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     public void enumerate(final Visitor visitor) throws IOException {
       final HashSet<String> compos = new HashSet<String>();
       catalog.queryPartyTracks(new Catalog.TracksVisitor() {
-        
-        @Override
-        public void setCountHint(int size) {
-        }
-        
         @Override
         public void accept(Track obj) {
           compos.add(obj.compo);
@@ -863,7 +833,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryTopTracks(new Catalog.TracksVisitor() {
-        
         @Override
         public void setCountHint(int size) {
           visitor.onItemsCount(size);

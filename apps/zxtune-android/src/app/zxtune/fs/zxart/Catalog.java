@@ -17,25 +17,25 @@ import android.content.Context;
 
 public abstract class Catalog {
   
-  public interface AuthorsVisitor {
+  public static abstract class AuthorsVisitor {
     
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
     
-    void accept(Author obj);
+    public abstract void accept(Author obj);
   }
   
-  public interface PartiesVisitor {
+  public static abstract class PartiesVisitor {
 
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
     
-    void accept(Party obj);
+    public abstract void accept(Party obj);
   }
   
-  public interface TracksVisitor {
+  public static abstract class TracksVisitor {
     
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
 
-    void accept(Track obj);
+    public abstract void accept(Track obj);
   }
 
   /**

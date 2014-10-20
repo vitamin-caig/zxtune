@@ -30,6 +30,7 @@ import android.view.ViewGroup;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
+import app.zxtune.Util;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.VfsFile;
@@ -266,22 +267,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     public final String getTitle() {
-      final String title = item.getTitle();
-      final String author = item.getAuthor();
-      final boolean noTitle = 0 == title.length();
-      final boolean noAuthor = 0 == author.length();
-      final StringBuilder result = new StringBuilder();
-      if (noTitle && noAuthor) {
-        final String filename = item.getDataId().getLastPathSegment();
-        result.append(filename);
-      } else {
-        result.append(title);
-        if (!noTitle && !noAuthor) {
-          result.append(" - ");
-        }
-        result.append(author);
-      }
-      return result.toString();
+      return Util.formatTrackTitle(item.getTitle(), item.getAuthor(), item.getDataId().getLastPathSegment());
     }
     
     public final String getSendText() {

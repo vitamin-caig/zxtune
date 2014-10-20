@@ -197,11 +197,7 @@ final class CachingCatalog extends Catalog {
     }
   }
 
-  private class CachingAuthorsVisitor implements AuthorsVisitor {
-
-    @Override
-    public void setCountHint(int hint) {
-    }
+  private class CachingAuthorsVisitor extends AuthorsVisitor {
 
     @Override
     public void accept(Author obj) {
@@ -213,11 +209,7 @@ final class CachingCatalog extends Catalog {
     }
   }
 
-  private class CachingPartiesVisitor implements PartiesVisitor {
-
-    @Override
-    public void setCountHint(int hint) {
-    }
+  private class CachingPartiesVisitor extends PartiesVisitor {
 
     @Override
     public void accept(Party obj) {
@@ -229,7 +221,7 @@ final class CachingCatalog extends Catalog {
     }
   }
 
-  private class CachingTracksVisitor implements TracksVisitor {
+  private class CachingTracksVisitor extends TracksVisitor {
 
     private final Integer author;
     private final Integer party;
@@ -247,10 +239,6 @@ final class CachingCatalog extends Catalog {
     CachingTracksVisitor() {
       this.author = null;
       this.party = null;
-    }
-
-    @Override
-    public void setCountHint(int hint) {
     }
 
     @Override

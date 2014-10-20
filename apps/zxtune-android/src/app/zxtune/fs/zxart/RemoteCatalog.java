@@ -26,6 +26,7 @@ import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.util.Log;
 import android.util.Xml;
+import app.zxtune.Util;
 import app.zxtune.fs.HttpProvider;
 
 final class RemoteCatalog extends Catalog {
@@ -328,6 +329,18 @@ final class RemoteCatalog extends Catalog {
         builder.setTitle(body);
       }
     });
+    item.getChild("internalAuthor").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setInternalAuthor(body);
+      }
+    });
+    item.getChild("internalTitle").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setInternalTitle(body);
+      }
+    });
     item.getChild("votes").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
@@ -366,11 +379,17 @@ final class RemoteCatalog extends Catalog {
     private Integer id;
     private String filename;
     private String title;
+    private String internalAuthor;
+    private String internalTitle;
     private String votes;
     private String duration;
     private int year;
     private String compo;
     private int partyplace;
+    
+    ModuleBuilder() {
+      reset();
+    }
 
     final void setId(String val) {
       id = Integer.valueOf(val);
@@ -385,6 +404,14 @@ final class RemoteCatalog extends Catalog {
 
     final void setTitle(String val) {
       title = val;
+    }
+    
+    final void setInternalAuthor(String val) {
+      internalAuthor = val;
+    }
+    
+    final void setInternalTitle(String val) {
+      internalTitle = val;
     }
     
     final void setVotes(String val) {
@@ -416,12 +443,17 @@ final class RemoteCatalog extends Catalog {
     }
 
     final Track captureResult() {
+      title = Util.formatTrackTitle(internalAuthor, internalTitle, title);
       final Track res = new Track(id, filename, title, votes, duration, year, compo, partyplace);
+      reset();
+      return res;
+    }
+    
+    private void reset() {
       id = null;
       year = partyplace = 0;
-      votes = duration = title = compo = "".intern();
+      votes = duration = title = internalAuthor = internalTitle = compo = "".intern();
       filename = null;
-      return res;
     }
   }
 
