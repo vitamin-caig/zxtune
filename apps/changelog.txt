@@ -5,6 +5,13 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3115 from 21.10.2014
+
+[+] zxtune-qt: added comment column in playlist
+[*] zxtune-android: fixed cache in www.zxart.ee catalogue
+[*] zxtune-android: support party compos information in www.zxart.ee catalogue
+[*] zxtune-android: detailed information about tracks in www.zxart.ee catalogue browser
+
 --- Rev3100 from 22.09.2014
 
 [+] Support unpacked YM files
