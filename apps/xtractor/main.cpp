@@ -1066,6 +1066,10 @@ namespace
 class MainApplication : public Platform::Application
 {
 public:
+  MainApplication()
+  {
+  }
+  
   virtual int Run(int argc, const char* argv[])
   {
     Strings::Array paths;
