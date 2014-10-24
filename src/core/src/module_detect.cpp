@@ -139,8 +139,7 @@ namespace Module
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      //???
-      return AYM::CreateRenderer(*this, params, target);
+      return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const

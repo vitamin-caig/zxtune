@@ -47,7 +47,7 @@ namespace AYM
       if (ClockFreq != clockFreq || SoundFreq != soundFreq)
       {
         Clock.SetFrequency(clockFreq, soundFreq);
-        HQ.SetFrequency(clockFreq, soundFreq);
+        HQ.SetClockFrequency(clockFreq);
         ClockFreq = clockFreq;
         SoundFreq = soundFreq;
       }

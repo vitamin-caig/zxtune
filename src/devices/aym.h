@@ -98,22 +98,6 @@ namespace Devices
         return Data[reg];
       }
 
-      void SetBeeper(bool val)
-      {
-        Mask |= val ? (MASK_BEEPER | MASK_BEEPER_VALUE) : MASK_BEEPER;
-      }
-
-      bool GetBeeper() const
-      {
-        assert(HasBeeper());
-        return 0 != (Mask & MASK_BEEPER_VALUE);
-      }
-
-      bool HasBeeper() const
-      {
-        return 0 != (Mask & MASK_BEEPER);
-      }
-
       class IndicesIterator
       {
       public:
@@ -168,12 +152,6 @@ namespace Devices
       private:
         uint_t Mask;
         uint_t Idx;
-      };
-    private:
-      enum
-      {
-        MASK_BEEPER = 1 << TOTAL,
-        MASK_BEEPER_VALUE = 1 << (TOTAL + 1),
       };
     private:
       uint16_t Mask;

@@ -22,6 +22,7 @@
 #include <core/plugins_parameters.h>
 #include <core/conversion/aym.h>
 #include <debug/log.h>
+#include <devices/beeper.h>
 #include <devices/z80.h>
 #include <devices/details/parameters_helper.h>
 #include <formats/chiptune/aym/ay.h>
@@ -41,21 +42,14 @@ namespace Module
 {
 namespace AY
 {
-  class DataChannel
+  class AyDataChannel
   {
   public:
-    typedef boost::shared_ptr<DataChannel> Ptr;
-
-    explicit DataChannel(Devices::AYM::Device::Ptr chip)
+    explicit AyDataChannel(Devices::AYM::Device::Ptr chip)
       : Chip(chip)
       , Register()
       , Blocked()
     {
-    }
-
-    static Ptr Create(Devices::AYM::Device::Ptr chip)
-    {
-      return boost::make_shared<DataChannel>(chip);
     }
 
     void Reset()
@@ -83,11 +77,9 @@ namespace AY
       if (IsRegisterSelected())
       {
         const Devices::AYM::Registers::Index idx = static_cast<Devices::AYM::Registers::Index>(Register);
-        if (!Blocked)
+        if (Devices::AYM::DataChunk* chunk = GetChunk(timeStamp))
         {
-          Devices::AYM::DataChunk& chunk = AllocateChunk();
-          chunk.TimeStamp = timeStamp;
-          chunk.Data[idx] = val;
+          chunk->Data[idx] = val;
         }
         State.Data[idx] = val;
         return true;
@@ -107,20 +99,9 @@ namespace AY
       }
     }
 
-    void SetBeeper(const Devices::AYM::Stamp& timeStamp, bool val)
-    {
-      if (!Blocked)
-      {
-        Devices::AYM::DataChunk& chunk = AllocateChunk();
-        chunk.TimeStamp = timeStamp;
-        chunk.Data.SetBeeper(val);
-      }
-    }
-
     void RenderFrame(const Devices::AYM::Stamp& till)
     {
-      Devices::AYM::DataChunk& stub = AllocateChunk();
-      stub.TimeStamp = till;
+      AllocateChunk(till);
       Chip->RenderData(Chunks);
       Chunks.clear();
     }
@@ -134,11 +115,20 @@ namespace AY
     {
       return Register < Devices::AYM::Registers::TOTAL;
     }
+    
+    Devices::AYM::DataChunk* GetChunk(const Devices::AYM::Stamp& timeStamp)
+    {
+      return Blocked
+        ? 0
+        : &AllocateChunk(timeStamp);
+    }
 
-    Devices::AYM::DataChunk& AllocateChunk()
+    Devices::AYM::DataChunk& AllocateChunk(const Devices::AYM::Stamp& timeStamp)
     {
       Chunks.resize(Chunks.size() + 1);          
-      return Chunks.back();
+      Devices::AYM::DataChunk& res = Chunks.back();
+      res.TimeStamp = timeStamp;
+      return res;
     }
   private:
     const Devices::AYM::Device::Ptr Chip;
@@ -147,55 +137,160 @@ namespace AY
     Devices::AYM::DataChunk State;
     bool Blocked;
   };
-
-  class SoundPort
+  
+  class BeeperDataChannel
   {
   public:
-    typedef boost::shared_ptr<SoundPort> Ptr;
+    explicit BeeperDataChannel(Devices::Beeper::Device::Ptr chip)
+      : Chip(chip)
+      , State(false)
+      , Blocked(false)
+    {
+    }
+    
+    void Reset()
+    {
+      Chip->Reset();
+      Chunks.clear();
+      State = false;
+      Blocked = false;
+    }
 
-    virtual ~SoundPort() {}
+    void SetBlocked(bool block)
+    {
+      Blocked = block;
+    }
 
-    virtual void Reset() = 0;
-    virtual uint8_t Read(uint16_t port) = 0;
-    virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data) = 0;
+    void SetLevel(const Devices::Beeper::Stamp& timeStamp, bool val)
+    {
+      if (val != State)
+      {
+        State = val;
+        if (!Blocked)
+        {
+          AllocateChunk(timeStamp);
+        }
+      }
+    }
+    
+    void RenderFrame(const Devices::Beeper::Stamp& till)
+    {
+      AllocateChunk(till);
+      Chip->RenderData(Chunks);
+      Chunks.clear();
+    }
+  private:
+    void AllocateChunk(const Devices::Beeper::Stamp& timeStamp)
+    {
+      Chunks.resize(Chunks.size() + 1);
+      Devices::Beeper::DataChunk& chunk = Chunks.back();
+      chunk.TimeStamp = timeStamp;
+      chunk.Level = State;
+    }
+  private:
+    const Devices::Beeper::Device::Ptr Chip;
+    std::vector<Devices::Beeper::DataChunk> Chunks;
+    bool State;
+    bool Blocked;
+  };
+  
+  class DataChannel
+  {
+  public:
+    typedef boost::shared_ptr<DataChannel> Ptr;
+    
+    DataChannel(Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep)
+      : Ay(ay)
+      , Beeper(beep)
+    {
+    }
+
+    static Ptr Create(Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep)
+    {
+      return boost::make_shared<DataChannel>(ay, beep);
+    }
+    
+    void Reset()
+    {
+      Ay.Reset();
+      Beeper.Reset();
+    }
+    
+    void SetBlocked(bool block)
+    {
+      Ay.SetBlocked(block);
+      Beeper.SetBlocked(block);
+    }
+
+    bool SelectAyRegister(uint_t reg)
+    {
+      return Ay.SelectRegister(reg);
+    }
+
+    bool SetAyValue(const Devices::Z80::Stamp& timeStamp, uint8_t val)
+    {
+      return Ay.SetValue(timeStamp, val);
+    }
+    
+    uint8_t GetAyValue() const
+    {
+      return Ay.GetValue();
+    }
+    
+    void SetBeeperValue(const Devices::Z80::Stamp& timeStamp, bool val)
+    {
+      Beeper.SetLevel(timeStamp, val);
+    }
+
+    void RenderFrame(const Devices::Z80::Stamp& till)
+    {
+      Ay.RenderFrame(till);
+      Beeper.RenderFrame(till);
+    }
+
+    Analyzer::Ptr GetAnalyzer() const
+    {
+      return Ay.GetAnalyzer();
+    }
+  private:
+    AyDataChannel Ay;
+    BeeperDataChannel Beeper;
   };
 
-  class ZXAYPort : public SoundPort
+  class ZXAYPort
   {
   public:
-    explicit ZXAYPort(DataChannel::Ptr ayData)
-      : AyData(ayData)
+    explicit ZXAYPort(DataChannel::Ptr chan)
+      : Channel(chan)
     {
     }
 
-    virtual void Reset()
+    void Reset()
     {
-      AyData->SelectRegister(0);
+      Channel->SelectAyRegister(0);
     }
 
-    virtual uint8_t Read(uint16_t port)
+    uint8_t Read(uint16_t port)
     {
       return IsSelRegPort(port)
-        ? AyData->GetValue()
+        ? Channel->GetAyValue()
         : 0xff;
     }
 
-    virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
+    void Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (IsSelRegPort(port))
       {
-        return AyData->SelectRegister(data);
+        Channel->SelectAyRegister(data);
       }
       else if (IsSetValPort(port))
       {
-        return AyData->SetValue(timeStamp.GetCurrentTime(), data);
+        Channel->SetAyValue(timeStamp.GetCurrentTime(), data);
       }
       else if (IsBeeperPort(port))
       {
-        AyData->SetBeeper(timeStamp.GetCurrentTime(), 0 != (data & 16));
-        //beeper means nothing
+        Channel->SetBeeperValue(timeStamp.GetCurrentTime(), 0 != (data & 16));
       }
-      return false;
     }
   private:
     static const uint16_t ZX_AY_PORT_MASK = 0xc002;
@@ -217,32 +312,32 @@ namespace AY
       return 0 == (port & 0x0001);
     }
   private:
-    const DataChannel::Ptr AyData;
+    const DataChannel::Ptr Channel;
   };
 
-  class CPCAYPort : public SoundPort
+  class CPCAYPort
   {
   public:
-    explicit CPCAYPort(DataChannel::Ptr ayData)
-      : AyData(ayData)
+    explicit CPCAYPort(DataChannel::Ptr channel)
+      : Channel(channel)
       , Data()
       , Selector()
     {
     }
 
-    virtual void Reset()
+    void Reset()
     {
-      AyData->SelectRegister(0);
+      Channel->SelectAyRegister(0);
       Data = 0;
       Selector = 0;
     }
 
-    virtual uint8_t Read(uint16_t /*port*/)
+    uint8_t Read(uint16_t /*port*/)
     {
       return 0xff;
     }
 
-    virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
+    bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (IsDataPort(port))
       {
@@ -262,10 +357,10 @@ namespace AY
           switch (Selector & 0xc0)
           {
           case 0xc0:
-            res = AyData->SelectRegister(Data);
+            res = Channel->SelectAyRegister(Data);
             break;
           case 0x80:
-            res = AyData->SetValue(timeStamp.GetCurrentTime(), Data);
+            res = Channel->SetAyValue(timeStamp.GetCurrentTime(), Data);
             break;
           }
           Selector = 0;
@@ -285,7 +380,7 @@ namespace AY
       return 0xf600 == (port & 0xff00); 
     }
   private:
-    const DataChannel::Ptr AyData;
+    const DataChannel::Ptr Channel;
     uint8_t Data;
     uint_t Selector;
   };
@@ -293,10 +388,10 @@ namespace AY
   class PortsPlexer : public Devices::Z80::ChipIO
   {
   public:
-    explicit PortsPlexer(DataChannel::Ptr ayData)
-      : Data(ayData)
-      , ZX(boost::make_shared<ZXAYPort>(ayData))
-      , CPC(boost::make_shared<CPCAYPort>(ayData))
+    explicit PortsPlexer(DataChannel::Ptr channel)
+      : Channel(channel)
+      , ZX(channel)
+      , CPC(channel)
       , Current()
     {
     }
@@ -309,13 +404,13 @@ namespace AY
 
     void Reset()
     {
-      ZX->Reset();
-      CPC->Reset();
+      ZX.Reset();
+      CPC.Reset();
     }
 
     void SetBlocked(bool blocked)
     {
-      Data->SetBlocked(blocked);
+      Channel->SetBlocked(blocked);
     }
 
     virtual uint8_t Read(uint16_t port)
@@ -326,7 +421,7 @@ namespace AY
       }
       else
       {
-        return ZX->Read(port);
+        return ZX.Read(port);
       }
     }
 
@@ -337,21 +432,21 @@ namespace AY
         Current->Write(timeStamp, port, data);
       }
       //check CPC first
-      else if (CPC->Write(timeStamp, port, data))
+      else if (CPC.Write(timeStamp, port, data))
       {
-        Current = CPC.get();
+        Current = &CPC;
       }
       else 
       {
         //ZX is fallback that will never become current :(
-        ZX->Write(timeStamp, port, data);
+        ZX.Write(timeStamp, port, data);
       }
     }
   private:
-    const DataChannel::Ptr Data;
-    const SoundPort::Ptr ZX;
-    const SoundPort::Ptr CPC;
-    SoundPort* Current;
+    const DataChannel::Ptr Channel;
+    ZXAYPort ZX;
+    CPCAYPort CPC;
+    CPCAYPort* Current;
   };
 
   class CPUParameters : public Devices::Z80::ChipParameters
@@ -364,7 +459,7 @@ namespace AY
 
     virtual uint_t Version() const
     {
-      return 1;
+      return Params->Version();
     }
     
     virtual uint_t IntTicks() const
@@ -613,6 +708,100 @@ namespace AY
     const boost::shared_ptr<ModuleData> Data;
     const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
   };
+  
+  class StubBeeper : public Devices::Beeper::Device
+  {
+  public:
+    virtual void RenderData(const std::vector<Devices::Beeper::DataChunk>& /*src*/)
+    {
+    }
+
+    virtual void Reset()
+    {
+    }
+  };
+  
+  class BeeperParams : public Devices::Beeper::ChipParameters
+  {
+  public:
+    explicit BeeperParams(Parameters::Accessor::Ptr params)
+      : Params(params)
+      , SoundParams(Sound::RenderParameters::Create(params))
+    {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Params->Version();
+    }
+
+    virtual uint64_t ClockFreq() const
+    {
+      const uint_t MIN_Z80_TICKS_PER_OUTPUT = 10;
+      using namespace Parameters::ZXTune::Core;
+      Parameters::IntType cpuClock = Z80::CLOCKRATE_DEFAULT;
+      Params->FindValue(Z80::CLOCKRATE, cpuClock);
+      return static_cast<uint_t>(cpuClock) / MIN_Z80_TICKS_PER_OUTPUT;
+    }
+
+    virtual uint_t SoundFreq() const
+    {
+      return SoundParams->SoundFreq();
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+    const Sound::RenderParameters::Ptr SoundParams;
+  };
+
+  Devices::Beeper::Device::Ptr CreateBeeper(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+  {
+    const Devices::Beeper::ChipParameters::Ptr beeperParams = boost::make_shared<BeeperParams>(params);
+    return Devices::Beeper::CreateChip(beeperParams, target);
+  }
+  
+  class MergedSoundReceiver : public Sound::Receiver
+  {
+  public:
+    explicit MergedSoundReceiver(Sound::Receiver::Ptr delegate)
+      : Delegate(delegate)
+    {
+    }
+    
+    virtual void ApplyData(const Sound::Chunk::Ptr& chunk)
+    {
+      if (Storage)
+      {
+        if (chunk->size() <= Storage->size())
+        {
+          std::transform(chunk->begin(), chunk->end(), Storage->begin(), Storage->begin(), &MaxSample);
+          Delegate->ApplyData(Storage);
+        }
+        else
+        {
+          std::transform(Storage->begin(), Storage->end(), chunk->begin(), chunk->begin(), &MaxSample);
+          Delegate->ApplyData(chunk);
+        }
+        Delegate->Flush();
+        Storage.reset();
+      }
+      else
+      {
+        Storage = chunk;
+      }
+    }
+    
+    virtual void Flush()
+    {
+    }
+  private:
+    static inline Sound::Sample MaxSample(Sound::Sample lh, Sound::Sample rh)
+    {
+      return Sound::Sample(std::max(lh.Left(), rh.Left()), std::max(lh.Right(), rh.Right()));
+    }
+  private:
+    const Sound::Receiver::Ptr Delegate;
+    Sound::Chunk::Ptr Storage;
+  };
 
   class Holder : public AYM::Holder
   {
@@ -636,23 +825,31 @@ namespace AY
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return AYM::CreateRenderer(*this, params, target);
+      const Sound::Receiver::Ptr mixer = boost::make_shared<MergedSoundReceiver>(target);
+      const Devices::AYM::Device::Ptr aym = AYM::CreateChip(params, mixer);
+      const Devices::Beeper::Device::Ptr beeper = CreateBeeper(params, mixer);
+      return CreateRenderer(params, aym, beeper);
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
     {
-      const StateIterator::Ptr iterator = CreateStreamStateIterator(Info);
-      const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(params);
-      const DataChannel::Ptr ayChannel = DataChannel::Create(chip);
-      const PortsPlexer::Ptr cpuPorts = PortsPlexer::Create(ayChannel);
-      const Computer::Ptr comp = boost::make_shared<Computer>(Data, cpuParams, cpuPorts);
-      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      return boost::make_shared<Renderer>(renderParams, iterator, comp, ayChannel);
+      return CreateRenderer(params, chip, boost::make_shared<StubBeeper>());
     }
 
     virtual AYM::Chiptune::Ptr GetChiptune() const
     {
       return AYM::Chiptune::Ptr();
+    }
+  private:
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep) const
+    {
+      const StateIterator::Ptr iterator = CreateStreamStateIterator(Info);
+      const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(params);
+      const DataChannel::Ptr channel = DataChannel::Create(ay, beep);
+      const PortsPlexer::Ptr cpuPorts = PortsPlexer::Create(channel);
+      const Computer::Ptr comp = boost::make_shared<Computer>(Data, cpuParams, cpuPorts);
+      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+      return boost::make_shared<Renderer>(renderParams, iterator, comp, channel);
     }
   private:
     const ModuleData::Ptr Data;

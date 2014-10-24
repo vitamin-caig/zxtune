@@ -245,14 +245,14 @@ namespace Module
     return boost::make_shared<FadeoutFilter>(startFadingFrame, fadeOutFrames, target);
   }
 
-  Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+  class StubAnalyzer : public Module::Analyzer
   {
-    typedef Sound::ThreeChannelsMatrixMixer MixerType;
-    const MixerType::Ptr mixer = MixerType::Create();
-    const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
-    const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(pollParams);
-    return Devices::AYM::CreateChip(chipParams, mixer, target);
-  }
+  public:
+    virtual void GetState(std::vector<Module::Analyzer::ChannelState>& channels) const
+    {
+      channels.clear();
+    }
+  };
 }
 
 namespace Module
@@ -270,12 +270,24 @@ namespace Module
       {
         return Module::CreateAnalyzer(src);
       }
-      return Analyzer::Ptr();
+      else
+      {
+        return boost::make_shared<StubAnalyzer>();
+      }
     }
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
     {
       return boost::make_shared<AYMRenderer>(params, iterator, device);
+    }
+    
+    Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+    {
+      typedef Sound::ThreeChannelsMatrixMixer MixerType;
+      const MixerType::Ptr mixer = MixerType::Create();
+      const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
+      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(pollParams);
+      return Devices::AYM::CreateChip(chipParams, mixer, target);
     }
 
     Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
