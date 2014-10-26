@@ -39,7 +39,8 @@ final class SoundOutputSamplesTarget implements SamplesTarget {
   }
   
   public static SamplesTarget create() {
-    final int freqRate = AudioTrack.getNativeOutputSampleRate(STREAM);
+    //xmp plugin limits max frequency
+    final int freqRate = Math.min(AudioTrack.getNativeOutputSampleRate(STREAM), 48000);
     final int minBufSize = AudioTrack.getMinBufferSize(freqRate, Channels.ENCODING, Sample.ENCODING);
     final int prefBufSize = Channels.COUNT * Sample.BYTES * (DEFAULT_LATENCY * freqRate / 1000);
     final int bufSize = Math.max(minBufSize, prefBufSize);
