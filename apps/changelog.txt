@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3120 from 27.10.2014
+
+[*] improved quality of beeper emulation
+[*] updated SID songs length database to #61
+[*] zxtune-android: fixed playback of some modules types at devices with 48000 Hz sample rate
+
 --- Rev3115 from 21.10.2014
 
 [+] zxtune-qt: added comment column in playlist
