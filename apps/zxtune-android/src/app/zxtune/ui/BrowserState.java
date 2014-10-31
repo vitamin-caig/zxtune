@@ -136,7 +136,7 @@ class BrowserState {
       editor.putString(getPathKey(), this.path.toString());
       editor.putInt(getPosKey(), this.position);
       editor.putInt(PREF_BROWSER_CURRENT, index);
-      editor.commit();
+      editor.apply();
     }
     
     private String getPathKey() {
