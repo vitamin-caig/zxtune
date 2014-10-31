@@ -22,7 +22,9 @@ import android.content.res.Resources;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
+import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackServiceLocal;
 import app.zxtune.rpc.PlaybackServiceServer;
@@ -88,8 +90,9 @@ public class MainService extends Service {
     settingsChangedHandler =
         new BroadcastReceiverConnection(this, new ChangedSettingsReceiver(), new IntentFilter(
             PreferencesActivity.ACTION_PREFERENCE_CHANGED));
+    setupServiceSessions();
   }
-
+  
   @Override
   public void onDestroy() {
     Log.d(TAG, "Destroying");
@@ -184,6 +187,26 @@ public class MainService extends Service {
         ? StatusNotification.Type.WITH_CONTROLS : StatusNotification.Type.DEFAULT; 
     final StatusNotification cb = new StatusNotification(this, type);
     notificationTypeHandler = new CallbackSubscription(service, cb);
+  }
+  
+  private void setupServiceSessions() {
+    service.restoreSession();
+    service.subscribe(new Callback() {
+      @Override
+      public void onStatusChanged(boolean isPlaying) {
+        if (!isPlaying) {
+          service.storeSession();
+        }
+      }
+
+      @Override
+      public void onItemChanged(Item item) {
+      }
+
+      @Override
+      public void onIOStatusChanged(boolean isActive) {
+      }
+    });
   }
 
   private class ChangedSettingsReceiver extends BroadcastReceiver {

@@ -33,6 +33,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   
   private static final String TAG = PlaybackServiceLocal.class.getName();
   
+  private final static String PREF_LAST_PLAYED_PATH = "last_played_path";
+  private final static String PREF_LAST_PLAYED_POSITION = "last_played_position";
+  
   private final Context context;
   private final ExecutorService executor;
   private final CompositeCallback callbacks;
@@ -56,6 +59,54 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   @Override
   public synchronized Item getNowPlaying() {
     return holder.item;
+  }
+  
+  public final void restoreSession() {
+    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
+    if (path != null) {
+      final long position = prefs.getLong(PREF_LAST_PLAYED_POSITION, 0);
+      Log.d(TAG, String.format("Restore last played item '%s' at %dms", path, position));
+      executeCommand(new RestoreSessionCommand(Uri.parse(path), TimeStamp.createFrom(position, TimeUnit.MILLISECONDS)));
+    }
+  }
+  
+  private class RestoreSessionCommand implements Command {
+
+    private final Uri[] uris;
+    private final TimeStamp position;
+    
+    RestoreSessionCommand(Uri uri, TimeStamp position) {
+      this.uris = new Uri[] {uri};
+      this.position = position;
+    }
+    
+    @Override
+    public void execute() throws IOException {
+      final Iterator iter = IteratorFactory.createIterator(context, uris);
+      setNewIterator(iter);
+      seek.setPosition(position);
+    }
+  }
+  
+  public final void storeSession() {
+    executeCommand(new StoreSessionCommand());
+  }
+  
+  private class StoreSessionCommand implements Command {
+    @Override
+    public void execute() throws IOException {
+      final Uri nowPlaying = getNowPlaying().getId();
+      if (!nowPlaying.equals(Uri.EMPTY)) {
+        final String path = nowPlaying.toString();
+        final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
+        Log.d(TAG, String.format("Save last played item '%s' at %dms", path, position));
+        final SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putString(PREF_LAST_PLAYED_PATH, path);
+        editor.putLong(PREF_LAST_PLAYED_POSITION, position);
+        editor.apply();
+      }
+    }
   }
   
   @Override
@@ -82,9 +133,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private void play(Iterator iter) throws IOException {
+  private void setNewIterator(Iterator iter) throws IOException {
     final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
     setNewHolder(new Holder(iter, events));
+  }
+  
+  private void play(Iterator iter) throws IOException {
+    setNewIterator(iter);
+    holder.player.startPlayback();
   }
   
   @Override
@@ -167,7 +223,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
     try {
       callbacks.onItemChanged(holder.item);
-      holder.player.startPlayback();
     } finally {
       oldHolder.release();
     }
