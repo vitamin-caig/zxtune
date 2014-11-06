@@ -2,4 +2,5 @@
 <resources>
   <string name="browser">Browser</string>
   <string name="browser_empty">Keine Dateien</string>
+  <string name="browser_search_hint">Suche</string>
 </resources>

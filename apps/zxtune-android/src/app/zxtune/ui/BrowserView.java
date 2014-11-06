@@ -13,6 +13,7 @@ package app.zxtune.ui;
 import java.util.Comparator;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -27,6 +28,7 @@ import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsIterator;
 import app.zxtune.fs.VfsObject;
 
 public class BrowserView extends ListViewCompat {
@@ -71,7 +73,22 @@ public class BrowserView extends ListViewCompat {
     final ModelLoaderCallback cb = new ModelLoaderCallback(dir, pos);
     manager.initLoader(LOADER_ID, null, cb).forceLoad();
   }
-
+  
+  final void loadSearch(LoaderManager manager, Uri dir, String query) {
+    manager.destroyLoader(LOADER_ID);
+    final SearchLoaderCallback cb = new SearchLoaderCallback(dir, query);
+    manager.initLoader(LOADER_ID, null, cb).forceLoad();
+  }
+  
+  final String getSearchQuery(LoaderManager manager) {
+    final Loader<BrowserViewModel> loader = manager.getLoader(LOADER_ID);
+    if (loader instanceof SearchLoader) {
+      return ((SearchLoader) loader).getQuery();
+    } else {
+      return null;
+    }
+  }
+  
   //load existing
   final boolean loadCurrent(LoaderManager manager) {
     final Loader<BrowserViewModel> loader = manager.getLoader(LOADER_ID);
@@ -181,7 +198,6 @@ public class BrowserView extends ListViewCompat {
     
     @Override
     public Loader<BrowserViewModel> onCreateLoader(int id, Bundle params) {
-      assert id == LOADER_ID;
       assert dir != null;
       showProgress();
       setModel(null);
@@ -195,6 +211,36 @@ public class BrowserView extends ListViewCompat {
       if (pos != null) {
         setSelection(pos);
       }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<BrowserViewModel> loader) {
+      hideProgress();
+    }
+  }
+
+  private class SearchLoaderCallback implements LoaderManager.LoaderCallbacks<BrowserViewModel> {
+    
+    private final Uri dir;
+    private final String query;
+    
+    SearchLoaderCallback(Uri dir, String query) {
+      this.dir = dir;
+      this.query = query;
+    }
+    
+    @Override
+    public Loader<BrowserViewModel> onCreateLoader(int id, Bundle params) {
+      assert dir != null;
+      showProgress();
+      setModel(null);
+      return new SearchLoader(getContext(), dir, query, BrowserView.this);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<BrowserViewModel> loader, BrowserViewModel model) {
+      hideProgress();
+      setModel(model);
     }
 
     @Override
@@ -304,6 +350,63 @@ public class BrowserView extends ListViewCompat {
         });
       }
       return null;
+    }
+  }
+
+  private static class SearchLoader extends AsyncTaskLoader<BrowserViewModel> {
+    
+    private final Uri dir;
+    private final String query;
+    private final BrowserView view;
+    private CancellationSignal signal;
+
+    SearchLoader(Context context, Uri dir, String query, BrowserView view) {
+      super(context);
+      this.dir = dir;
+      this.query = query.toLowerCase();
+      this.view = view;
+      this.signal = new CancellationSignal();
+      view.emptyView.setText(R.string.browser_empty);
+    }
+    
+    final String getQuery() {
+      return query;
+    }
+    
+    @Override
+    protected void onReset() {
+      super.onReset();
+      signal.cancel();
+      Log.d(TAG, "Reset loader");
+    }
+    
+    @Override
+    public BrowserViewModel loadInBackground() {
+      final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
+      try {
+        for (final VfsIterator iter = new VfsIterator(new Uri[] {dir}); iter.isValid(); iter.next()) {
+          signal.throwIfCanceled();
+          final VfsFile file = iter.getFile();
+          if (matchQuery(file.getName()) || matchQuery(file.getDescription())) {
+            model.add(file);
+          }
+        }
+        return model;
+      } catch (OperationCanceledException e) {
+        return model;
+      } catch (final Exception e) {
+        view.post(new Runnable() {
+          @Override
+          public void run() {
+            view.showError(e);
+          }
+        });
+      }
+      return null;
+    }
+    
+    private boolean matchQuery(String txt) {
+      return txt.toLowerCase().contains(query); 
     }
   }
 }

@@ -17,6 +17,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -25,7 +26,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
@@ -40,9 +43,13 @@ import app.zxtune.playback.PlaybackServiceStub;
 public class BrowserFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
   private static final String TAG = BrowserFragment.class.getName();
+  private static final String SEARCH_QUERY_KEY = "search_query";
+  private static final String SEARCH_FOCUSED_KEY = "search_focused";
+  
   private final VfsRoot root;
   private PlaybackService service;
   private BrowserState state;
+  private SearchView search;
   private View sources;
   private BreadCrumbsView position;
   private BrowserView listing;
@@ -73,6 +80,53 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     super.onViewCreated(view, savedInstanceState);
     
     sources = view.findViewById(R.id.browser_sources);
+    search = (SearchView) view.findViewById(R.id.browser_search);
+    search.setOnSearchClickListener(new SearchView.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) search.getLayoutParams();
+        params.width = LayoutParams.MATCH_PARENT;
+        search.setLayoutParams(params);
+      }
+    });
+    search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+      @Override
+      public boolean onQueryTextSubmit(String query) {
+        loadSearch(query);
+        search.clearFocus();
+        return true;
+      }
+      
+      @Override
+      public boolean onQueryTextChange(String query) {
+        return false;
+      }
+    });
+    search.setOnCloseListener(new SearchView.OnCloseListener() {
+      @Override
+      public boolean onClose() {
+        final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) search.getLayoutParams();
+        params.width = LayoutParams.WRAP_CONTENT;
+        search.setLayoutParams(params);
+        search.post(new Runnable() {
+          @Override
+          public void run() {
+            search.clearFocus();
+            reloadFileBrowser();
+          }
+        });
+        return false;
+      }
+    });
+    search.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+      @Override
+      public void onFocusChange(View v, boolean hasFocus) {
+        if (0 == search.getQuery().length()) {
+          search.setIconified(true);
+        }
+      }
+    });
+    
     final View roots = view.findViewById(R.id.browser_roots);
     roots.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -104,7 +158,43 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       }
     }
   }
+  
+  private void reloadFileBrowser() {
+    if (getSearchQuery() != null) {
+      loadBrowser(state.getCurrentPath());
+    }
+  }
+  
+  @Override
+  public void onSaveInstanceState(Bundle state) {
+      super.onSaveInstanceState(state);
+      final String query = search.getQuery().toString();
+      if (query.length() != 0) {
+        state.putString(SEARCH_QUERY_KEY, query);
+        state.putBoolean(SEARCH_FOCUSED_KEY, search.hasFocus());
+      }
+  }
 
+  @Override
+  public void onViewStateRestored(Bundle state) {
+      super.onViewStateRestored(state);
+      if (state == null || !state.containsKey(SEARCH_QUERY_KEY)) {
+        return;
+      }
+      final String query = state.getString(SEARCH_QUERY_KEY);
+      final boolean isFocused = state.getBoolean(SEARCH_FOCUSED_KEY);
+      search.post(new Runnable() {
+        @Override
+        public void run() {
+          search.setIconified(false);
+          search.setQuery(query, false);
+          if (!isFocused) {
+            search.clearFocus();
+          }
+        }
+      });
+  }  
+  
   @Override
   public synchronized void onDestroyView() {
     super.onDestroyView();
@@ -115,14 +205,18 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
   
   public final void moveUp() {
-    try {
-      final VfsDir curDir = (VfsDir) root.resolve(state.getCurrentPath());
-      if (curDir != root) {
-        final VfsDir parent = curDir != null ? curDir.getParent() : null;
-        setCurrentDir(parent != null ? parent : root);
+    if (!search.isIconified()) {
+      search.setIconified(true);
+    } else {
+      try {
+        final VfsDir curDir = (VfsDir) root.resolve(state.getCurrentPath());
+        if (curDir != root) {
+          final VfsDir parent = curDir != null ? curDir.getParent() : null;
+          setCurrentDir(parent != null ? parent : root);
+        }
+      } catch (IOException e) {
+        listing.showError(e);
       }
-    } catch (IOException e) {
-      listing.showError(e);
     }
   }
 
@@ -294,5 +388,13 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
 
   private void loadListing(VfsDir dir) {
     listing.loadNew(getLoaderManager(), dir, state.getCurrentViewPosition());
+  }
+  
+  private void loadSearch(String query) {
+    listing.loadSearch(getLoaderManager(), state.getCurrentPath(), query);
+  }
+  
+  private String getSearchQuery() {
+    return listing.getSearchQuery(getLoaderManager());
   }
 }
