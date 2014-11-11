@@ -1,8 +1,8 @@
 binary_name := formats_test_vt
 path_step := ../../../../..
-source_files := test
+source_dirs := .
 
-libraries.common = tools formats_chiptune binary debug
+libraries.common = binary binary_format debug formats_chiptune tools
 
 windows_libraries := advapi32
 
