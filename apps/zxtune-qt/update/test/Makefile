@@ -1,8 +1,8 @@
 binary_name := zxtune-qt_test_updates
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
-libraries.common = tools
+libraries.common = debug tools
 libraries.qt := Core
 
 libraries := check_update

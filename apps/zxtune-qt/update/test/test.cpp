@@ -46,10 +46,15 @@ namespace
       Stream << QString(
         "Entry %1\n"
         " Updated: %2\n"
-        " AlternateLink: %3\n"
-        " HtmlContent: %4\n"
+        " DirectLink: %3\n"
+        " AlternateLink: %4\n"
+        " HtmlContent: %5\n"
         "\n")
-      .arg(entry.Id).arg(entry.Updated.toString(Qt::ISODate)).arg(entry.AlternateLink.toString()).arg(entry.HtmlContent);
+      .arg(entry.Title)
+      .arg(entry.Updated.toString(Qt::ISODate))
+      .arg(entry.DirectLink.toString())
+      .arg(entry.AlternateLink.toString())
+      .arg(entry.HtmlContent);
     }
   private:
     QTextStream Stream;
@@ -63,7 +68,7 @@ namespace
     {
     }
 
-    virtual void OnDownload(const Product::Version& version, const Product::Platform& platform, const Product::Download& download)
+    virtual void OnDownload(Product::Update::Ptr update)
     {
       Stream << QString(
         "Download %1\n"
@@ -71,10 +76,10 @@ namespace
         " Platform: %4 %5\n"
         " Description: %6\n"
         "\n")
-      .arg(download.Package.toString())
-      .arg(version.Index).arg(version.ReleaseDate.toString(Qt::ISODate))
-      .arg(platform.OperatingSystem).arg(platform.Architecture)
-      .arg(download.Description.toString());
+      .arg(update->Package().toString())
+      .arg(update->Version()).arg(update->Date().toString(Qt::ISODate))
+      .arg(update->Platform()).arg(update->Architecture())
+      .arg(update->Description().toString());
     }
   private:
     QTextStream Stream;
