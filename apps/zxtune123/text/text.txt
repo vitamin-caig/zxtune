@@ -12,4 +12,4 @@ __cpp> "}//namespace Text\n"
 #aggregate text
 +cmdline.txt
 +messages.txt
-+config.txt
++configfile.txt

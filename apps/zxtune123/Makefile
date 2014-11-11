@@ -10,7 +10,7 @@ source_files.macos = $(source_files.linux)
 source_files.dingux = console_dingux.cpp
 
 text_files := text/text
-other_text_files := text/config text/cmdline text/messages text/conversion text/cmd_keys_local
+other_text_files := text/configfile text/cmdline text/messages text/conversion text/cmd_keys_local
 
 libraries.common = analysis async binary binary_format \
                   core core_conversion core_plugins_players core_plugins_archives core_plugins_containers core_properties \
