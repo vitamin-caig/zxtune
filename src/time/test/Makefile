@@ -1,6 +1,6 @@
 binary_name := time_test
 path_step := ../../..
-source_files := test
+source_dirs := .
 
 libraries.common = strings
 

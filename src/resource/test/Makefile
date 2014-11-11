@@ -1,6 +1,6 @@
 binary_name := resource_test
 path_step := ../../..
-source_files := test
+source_dirs := .
 embedded_files := resource.zip test.cpp
 
 libraries.common = binary binary_format debug formats_archived formats_packed l10n_stub platform resource tools

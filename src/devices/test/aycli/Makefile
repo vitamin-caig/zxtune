@@ -1,6 +1,6 @@
 binary_name := aycli
 path_step := ../../../..
-source_files := main
+source_dirs := .
 
 libraries.common = async core debug devices_aym l10n_stub parameters platform sound sound_backends strings tools
 

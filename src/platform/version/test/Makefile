@@ -1,6 +1,6 @@
 binary_name := platform_version_test
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 libraries.common := platform_version
 
