@@ -14,6 +14,6 @@ $(platform)_definitions += Z80EX_OPSTEP_FAST_AND_ROUGH\
  Z80EX_RELEASE_TYPE=${RELEASE_TYPE}
 
 include_dirs = . include
-source_files_cc := z80ex
+source_files := z80ex.c
 
 include $(path_step)/makefile.mak

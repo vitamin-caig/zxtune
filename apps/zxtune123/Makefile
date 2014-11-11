@@ -2,14 +2,12 @@ binary_name := zxtune123
 path_step := ../..
 include $(path_step)/make/default.mak
 
-source_files := information sound source display cli_app config
-ifneq ($(findstring $(platform),windows mingw),)
-source_files += console_windows
-else ifneq ($(findstring $(platform),linux macos),)
-source_files += console_linux
-else
-source_files += console_$(platform)
-endif
+source_files := $(addsuffix .cpp,information sound source display cli_app config)
+source_files.windows = console_windows.cpp zxtune123.rc
+source_files.mingw = $(source_files.windows)
+source_files.linux = console_linux.cpp
+source_files.macos = $(source_files.linux)
+source_files.dingux = console_dingux.cpp
 
 text_files := text/text
 other_text_files := text/config text/cmdline text/messages text/conversion text/cmd_keys_local
@@ -34,8 +32,6 @@ manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)
 
 #platform-specific resources
-windows_resources := zxtune123
-mingw_resources := zxtune123
 embedded_files = $(l10n_archive)
 
 include $(path_step)/makefile.mak

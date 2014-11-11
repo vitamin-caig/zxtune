@@ -6,7 +6,11 @@ ifeq ($(platform),dingux)
 embedded := 1
 endif
 
-source_files = qt_app supp/options
+source_dirs = . supp
+include_dirs = .
+
+source_files.windows = res/zxtune-qt.rc
+source_files.mingw = $(source_files.windows)
 
 #ui-related
 #gui_theme ?= default
@@ -15,8 +19,6 @@ have_gui = 1
 
 #other
 moc_files += supp/playback_supp
-
-include_dirs = .
 
 text_files := text/text
 
@@ -57,10 +59,6 @@ theme_resources = res/theme_$(gui_theme)
 
 #qt-based resources
 qrc_files := $(theme_resources)/theme
-
-#platform-specific resources
-windows_resources := res/zxtune-qt
-mingw_resources := res/zxtune-qt
 
 $(platform)_definitions += GUI_THEME=$(gui_theme)
 

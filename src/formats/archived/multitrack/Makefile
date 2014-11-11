@@ -1,6 +1,6 @@
 library_name := formats_archived_multitrack
 path_step := ../../../..
-source_files := ../multiay
+source_files := ../multiay.cpp
 
 include $(path_step)/make/default.mak
 

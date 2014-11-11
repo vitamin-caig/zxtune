@@ -2,7 +2,6 @@ makebin_name = $(1).exe
 makelib_name = lib$(1).a
 makedyn_name = $(1).dll
 makeobj_name = $(1).o
-makeres_name = $(1).res
 makeres_cmd = $(mingw.execprefix)windres -O coff --input $(1) --output $(2) $(addprefix -D,$(DEFINITIONS))
 ifeq ($(arch),x86_64)
 arch64 := 1

@@ -1,6 +1,9 @@
 binary_name := xtractor
 path_step := ../..
-source_files := main
+source_dirs := .
+
+source_files.windows := xtractor.rc
+source_files.mingw := $(source_files.windows)
 
 text_files := text/text
 
@@ -17,10 +20,6 @@ libraries.3rdparty = lhasa unrar zlib
 
 libraries.boost = filesystem program_options thread system
 windows_libraries := advapi32 oldnames
-
-#platform-specific resources
-windows_resources := xtractor
-mingw_resources := xtractor
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
