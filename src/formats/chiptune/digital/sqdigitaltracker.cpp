@@ -98,9 +98,15 @@ namespace Chiptune
           {
             //0 - no slide,
             //1 - -1
-            //2 - +1
-            const int_t val = NoteCmd >> 6;
-            return val ? (val - 1) : val;
+            //2,3 - +1
+            if (const int_t val = NoteCmd >> 6)
+            {
+              return val == 1 ? -1 : +1;
+            }
+            else
+            {
+              return val;
+            }
           }
 
           uint_t GetNote() const
@@ -175,7 +181,7 @@ namespace Chiptune
       //+0x211
       uint8_t Loop;
       //+0x212
-      uint8_t Length;
+      uint8_t LastPosition;
       //+0x213
       uint8_t Padding3[0xed];
       //+0x300
@@ -334,7 +340,7 @@ namespace Chiptune
 
       void ParsePositions(Builder& target) const
       {
-        const std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + Source.Length);
+        const std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + Source.LastPosition + 1);
         target.SetPositions(positions, Source.Loop);
         Dbg("Positions: %1%, loop to %2%", positions.size(), unsigned(Source.Loop));
       }

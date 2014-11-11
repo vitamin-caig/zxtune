@@ -160,12 +160,6 @@ namespace SQDigitalTracker
       }
       return false;
     }
-
-    void Reset()
-    {
-      SlideDirection = 0;
-      SlideCounter = 0;
-    }
   };
 
   class DataRenderer : public DAC::DataRenderer
@@ -206,7 +200,6 @@ namespace SQDigitalTracker
 
     void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
     {
-      std::for_each(Volumes.begin(), Volumes.end(), std::mem_fun_ref(&VolumeState::Reset));
       if (const Line::Ptr line = state.LineObject())
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
