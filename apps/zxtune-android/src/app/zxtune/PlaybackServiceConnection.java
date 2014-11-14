@@ -100,7 +100,7 @@ public class PlaybackServiceConnection extends Fragment {
   }
   
   private synchronized void disconnect() {
-    if (connection != null) {
+    if (connection != null && service != null) {
       Log.d(TAG, "Disconnecting from service");
       final Context context = getContext();
       context.unbindService(connection);
@@ -110,20 +110,22 @@ public class PlaybackServiceConnection extends Fragment {
   
   private synchronized void setCallback(Callback cb) {
     subscriber = cb;
+    notifySubscriber();
+  }
+  
+  private synchronized void setService(PlaybackService svc) {
+    service = svc;
+    notifySubscriber();
+  }
+  
+  private void notifySubscriber() {
     if (subscriber != null && service != null) {
       subscriber.onServiceConnected(service);
     }
   }
   
-  private synchronized void setService(PlaybackService svc) {
-    service = svc;
-    if (subscriber != null) {
-      subscriber.onServiceConnected(service);
-    }
-  }
-  
   private Context getContext() {
-    return getActivity();
+    return getActivity().getApplicationContext();
   }
   
   private class ServiceConnectionCallback implements ServiceConnection {
