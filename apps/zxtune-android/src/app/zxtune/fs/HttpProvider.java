@@ -43,8 +43,6 @@ public class HttpProvider {
     try {
       final URL url = new URL(uri);
       final HttpURLConnection result = (HttpURLConnection) url.openConnection();
-      //disable GZIP encoding
-      result.setRequestProperty("Accept-Encoding", "identity");
       Log.d(TAG, String.format("Fetch %d bytes via %s", result.getContentLength(), uri));
       return result;
     } catch (IOException e) {
@@ -58,12 +56,7 @@ public class HttpProvider {
       final HttpURLConnection connection = connect(uri);
       try {
         final InputStream stream = connection.getInputStream();
-        final int len = connection.getContentLength();
-        if (len > 0) {
-          return getContent(stream, len);
-        } else {
-          return getContent(stream);
-        }
+        return getContent(stream);
       } finally {
         connection.disconnect();
       }
@@ -73,22 +66,9 @@ public class HttpProvider {
     }
   }
 
-  private static ByteBuffer getContent(InputStream stream, int len) throws IOException {
-    final ByteBuffer result = ByteBuffer.allocateDirect(len);
-    if (result.hasArray()) {
-      readContent(stream, result.array());
-    } else {
-      final byte[] buffer = new byte[len];
-      readContent(stream, buffer);
-      result.put(buffer);
-      result.rewind();
-    }
-    return result;
-  }
-
   private static ByteBuffer getContent(InputStream stream) throws IOException {
     final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    final byte[] part = new byte[4096];
+    final byte[] part = new byte[16384];
     for (;;) {
       final int read = readPartialContent(stream, part);
       buffer.write(part, 0, read);
@@ -99,25 +79,16 @@ public class HttpProvider {
     if (0 == buffer.size()) {
       throw new IOException("Empty file specified");
     }
-    Log.d(TAG, String.format("Read %d bytes from unknown len source", buffer.size()));
+    Log.d(TAG, String.format("Got %d bytes", buffer.size()));
     return ByteBuffer.wrap(buffer.toByteArray());
-  }
-
-  private static void readContent(InputStream stream, byte[] buffer) throws IOException {
-    final int len = buffer.length;
-    final int received = readPartialContent(stream, buffer);
-    if (len != received) {
-      throw new IOException(String.format(
-              "Read content size mismatch (%d received, %d expected)", received, len));
-    }
   }
 
   private static int readPartialContent(InputStream stream, byte[] buffer) throws IOException {
     final int len = buffer.length;
     int received = 0;
-    for (;;) {
+    while (received < len) {
       final int chunk = stream.read(buffer, received, len - received);
-      if (chunk <= 0) {
+      if (chunk < 0) {
         break;
       }
       received += chunk;
