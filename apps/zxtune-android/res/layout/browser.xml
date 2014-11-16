@@ -29,6 +29,13 @@
         android:layout_height="wrap_content"
       />
     </LinearLayout>
+    <ProgressBar
+        android:id="@+id/browser_loading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        style="?android:attr/progressBarStyleHorizontal"
+    />
     <app.zxtune.ui.BrowserView
         android:id="@+id/browser_content"
         android:layout_width="match_parent"
@@ -36,33 +43,14 @@
         android:paddingLeft="@dimen/spacing_full"
         android:paddingRight="@dimen/spacing_full"
         android:fastScrollEnabled="true"
-     />
-    <FrameLayout
+    />
+    <TextView
         android:id="@+id/browser_stub"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingLeft="@dimen/spacing_full"
-        android:paddingRight="@dimen/spacing_full" 
+        android:layout_marginLeft="@dimen/spacing_full"
+        android:layout_marginRight="@dimen/spacing_full" 
         android:gravity="center"
-        >
-      <ProgressBar
-          android:id="@+id/browser_loading"
-          android:layout_width="@dimen/item_height"
-          android:layout_height="@dimen/item_height"
-          android:layout_marginLeft="@dimen/spacing_full"
-          android:layout_marginRight="@dimen/spacing_full" 
-          android:layout_gravity="center"
-          style="?android:attr/progressBarStyleHorizontal"
-          android:progressDrawable="@drawable/progress_determinate"
-          android:indeterminateDrawable="@drawable/progress_indeterminate"
-        />
-      <TextView
-          android:id="@+id/browser_loaded"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent"
-          android:layout_marginLeft="@dimen/spacing_full"
-          android:layout_marginRight="@dimen/spacing_full" 
-          android:gravity="center"
-          android:text="@string/browser_empty" />
-    </FrameLayout>
+        android:text="@string/browser_empty"
+    />
 </LinearLayout>

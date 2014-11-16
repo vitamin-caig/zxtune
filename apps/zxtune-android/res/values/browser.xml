@@ -2,5 +2,7 @@
 <resources>
   <string name="browser">Browser</string>
   <string name="browser_empty">No files</string>
+  <string name="browser_loading">Loading...</string>
+  <string name="browser_searching">Searching...</string>
   <string name="browser_search_hint">Search</string>
 </resources>

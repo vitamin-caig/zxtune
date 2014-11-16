@@ -144,6 +144,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     listing = (BrowserView) view.findViewById(R.id.browser_content);
     listing.setOnItemClickListener(new OnItemClickListener());
     listing.setEmptyView(view.findViewById(R.id.browser_stub));
+    listing.setProgressView(view.findViewById(R.id.browser_loading));
     listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
 
     final Uri currentPath = state.getCurrentPath(); 

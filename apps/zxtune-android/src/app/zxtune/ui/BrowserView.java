@@ -37,7 +37,7 @@ public class BrowserView extends ListViewCompat {
 
   private static final int LOADER_ID = BrowserView.class.hashCode();
 
-  private ProgressBar loadingView;
+  private ProgressBar progressView;
   private TextView emptyView;
 
   public BrowserView(Context context) {
@@ -58,14 +58,17 @@ public class BrowserView extends ListViewCompat {
   private void initView() {
     setAdapter(new BrowserViewAdapter());
   }
-
+  
   @Override
-  public void setEmptyView(View stub) {
-    super.setEmptyView(stub);
-    loadingView = (ProgressBar) stub.findViewById(R.id.browser_loading);
-    emptyView = (TextView) stub.findViewById(R.id.browser_loaded);
+  public void setEmptyView(View emptyView) {
+    super.setEmptyView(emptyView);
+    this.emptyView = (TextView) emptyView;
   }
   
+  public final void setProgressView(View view) {
+    this.progressView = (ProgressBar) view;
+  }
+
   //Required to call forceLoad due to bug in support library.
   //Some methods on callback does not called... 
   final void loadNew(LoaderManager manager, VfsDir dir, int pos) {
@@ -115,16 +118,17 @@ public class BrowserView extends ListViewCompat {
     ((BrowserViewAdapter) getAdapter()).setModel(model);
   }
 
-  //TODO: use ViewFlipper?
   private void showProgress() {
-    loadingView.setIndeterminate(true);
-    loadingView.setVisibility(VISIBLE);
-    emptyView.setVisibility(INVISIBLE);
+    progressView.setIndeterminate(true);
+    progressView.setVisibility(VISIBLE);
   }
 
   private void hideProgress() {
-    loadingView.setVisibility(INVISIBLE);
-    emptyView.setVisibility(VISIBLE);
+    progressView.setVisibility(INVISIBLE);
+  }
+  
+  private void setEmptyMessage() {
+    emptyView.setText(R.string.browser_empty);
   }
   
   private static class BrowserViewAdapter extends BaseAdapter {
@@ -207,6 +211,9 @@ public class BrowserView extends ListViewCompat {
     @Override
     public void onLoadFinished(Loader<BrowserViewModel> loader, BrowserViewModel model) {
       hideProgress();
+      if (model != null) {
+        setEmptyMessage();
+      }
       setModel(model);
       if (pos != null) {
         setSelection(pos);
@@ -283,7 +290,7 @@ public class BrowserView extends ListViewCompat {
       this.dir = dir;
       this.view = view;
       this.signal = new CancellationSignal();
-      view.emptyView.setText(R.string.browser_empty);
+      view.emptyView.setText(R.string.browser_loading);
     }
     
     @Override
@@ -304,8 +311,8 @@ public class BrowserView extends ListViewCompat {
           
           @Override
           public void onItemsCount(int count) {
-            view.loadingView.setIndeterminate(false);
-            view.loadingView.setMax(count);
+            view.progressView.setIndeterminate(false);
+            view.progressView.setMax(count);
           }
 
           @Override
@@ -327,7 +334,7 @@ public class BrowserView extends ListViewCompat {
               view.post(new Runnable() {
                 @Override
                 public void run() {
-                  view.loadingView.setProgress(counter);
+                  view.progressView.setProgress(counter);
                 }
               });
             }
@@ -366,7 +373,7 @@ public class BrowserView extends ListViewCompat {
       this.query = query.toLowerCase();
       this.view = view;
       this.signal = new CancellationSignal();
-      view.emptyView.setText(R.string.browser_empty);
+      view.emptyView.setText(R.string.browser_searching);
     }
     
     final String getQuery() {
