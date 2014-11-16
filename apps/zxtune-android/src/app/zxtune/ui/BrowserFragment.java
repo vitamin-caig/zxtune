@@ -161,7 +161,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
   
   private void reloadFileBrowser() {
-    if (getSearchQuery() != null) {
+    if (isSearchActive()) {
       loadBrowser(state.getCurrentPath());
     }
   }
@@ -395,7 +395,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     listing.loadSearch(getLoaderManager(), state.getCurrentPath(), query);
   }
   
-  private String getSearchQuery() {
-    return listing.getSearchQuery(getLoaderManager());
+  private boolean isSearchActive() {
+    return listing.isSearchActive(getLoaderManager());
   }
 }

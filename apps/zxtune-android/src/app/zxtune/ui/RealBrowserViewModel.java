@@ -80,14 +80,14 @@ class RealBrowserViewModel implements BrowserViewModel {
   //TODO: use explicit multiple view types
   public View getView(int position, View convertView, ViewGroup parent) {
     View result;
-    ViewHolder holder;
+    BrowserViewHolder holder;
     if (convertView == null) {
       result = inflater.inflate(R.layout.browser_item_detailed, parent, false);
-      holder = new ViewHolder(result);
+      holder = new BrowserViewHolder(result);
       result.setTag(holder);
     } else {
       result = convertView;
-      holder = (ViewHolder) convertView.getTag();
+      holder = (BrowserViewHolder) convertView.getTag();
     }
 
     final int dirsCount = dirs.size();
@@ -98,56 +98,5 @@ class RealBrowserViewModel implements BrowserViewModel {
     }
 
     return result;
-  }
-
-  private static class ViewHolder {
-
-    private final ImageView icon;
-    private final TextView name;
-    private final TextView description;
-    private final TextView size;
-    
-    ViewHolder(View view) {
-      this.icon = (ImageView) view.findViewById(R.id.browser_item_icon);
-      this.name = (TextView) view.findViewById(R.id.browser_item_name);
-      this.description = (TextView) view.findViewById(R.id.browser_item_description);
-      this.size = (TextView) view.findViewById(R.id.browser_item_size);
-    }
-    
-    final void makeView(VfsDir dir) {
-      makeBaseView(dir);
-      final int iconId = getIcon(dir);
-      if (icon != null) {
-        icon.setVisibility(View.VISIBLE);
-        icon.setImageResource(iconId);
-      } else {
-        name.setCompoundDrawablesWithIntrinsicBounds(iconId, 0, 0, 0);
-      }
-      size.setVisibility(View.GONE);
-    }
-    
-    final void makeView(VfsFile file) {
-      makeBaseView(file);
-      if (icon != null) {
-        icon.setVisibility(View.GONE);
-      } else {
-        name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-      }
-      size.setVisibility(View.VISIBLE);
-      size.setText(file.getSize());
-    }
-    
-    private void makeBaseView(VfsObject obj) {
-      name.setText(obj.getName());
-      if (description != null) {
-        description.setText(obj.getDescription());
-      }
-    }
-    
-    private static int getIcon(VfsDir dir) {
-      return dir instanceof IconSource
-        ? ((IconSource) dir).getResourceId()
-        : R.drawable.ic_browser_folder;
-    }
   }
 }

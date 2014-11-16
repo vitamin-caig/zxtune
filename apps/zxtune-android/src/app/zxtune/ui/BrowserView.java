@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import app.zxtune.R;
@@ -83,13 +84,9 @@ public class BrowserView extends ListViewCompat {
     manager.initLoader(LOADER_ID, null, cb).forceLoad();
   }
   
-  final String getSearchQuery(LoaderManager manager) {
+  final boolean isSearchActive(LoaderManager manager) {
     final Loader<BrowserViewModel> loader = manager.getLoader(LOADER_ID);
-    if (loader instanceof SearchLoader) {
-      return ((SearchLoader) loader).getQuery();
-    } else {
-      return null;
-    }
+    return loader instanceof SearchLoader;
   }
   
   //load existing
@@ -102,8 +99,14 @@ public class BrowserView extends ListViewCompat {
     if (loader.isStarted()) {
       showProgress();
     }
-    final ModelLoaderCallback cb = new ModelLoaderCallback();
-    manager.initLoader(LOADER_ID, null, cb);
+    if (loader instanceof SearchLoader) {
+      ((SearchLoader) loader).setViewModel();
+      final SearchLoaderCallback cb = new SearchLoaderCallback();
+      manager.initLoader(LOADER_ID, null, cb);
+    } else {
+      final ModelLoaderCallback cb = new ModelLoaderCallback();
+      manager.initLoader(LOADER_ID, null, cb);
+    }
     return true;
   }
   
@@ -165,10 +168,7 @@ public class BrowserView extends ListViewCompat {
     }
     
     final void setModel(BrowserViewModel model) {
-      if (this.model == model) {
-        return;
-      }
-      this.model = getSafeModel(model);
+      setInitialModel(model);
       if (model != null) {
         notifyDataSetChanged();
       } else {
@@ -176,7 +176,13 @@ public class BrowserView extends ListViewCompat {
       }
     }
     
-    private BrowserViewModel getSafeModel(BrowserViewModel model) {
+    final void setInitialModel(BrowserViewModel model) {
+      if (this.model != model) {
+        this.model = getSafeModel(model);
+      }
+    }
+    
+    private static BrowserViewModel getSafeModel(BrowserViewModel model) {
       if (model != null) {
         return model;
       } else {
@@ -231,6 +237,11 @@ public class BrowserView extends ListViewCompat {
     private final Uri dir;
     private final String query;
     
+    SearchLoaderCallback() {
+      this.dir = null;
+      this.query = null;
+    }
+    
     SearchLoaderCallback(Uri dir, String query) {
       this.dir = dir;
       this.query = query;
@@ -239,8 +250,8 @@ public class BrowserView extends ListViewCompat {
     @Override
     public Loader<BrowserViewModel> onCreateLoader(int id, Bundle params) {
       assert dir != null;
+      assert query != null;
       showProgress();
-      setModel(null);
       return new SearchLoader(getContext(), dir, query, BrowserView.this);
     }
 
@@ -365,37 +376,42 @@ public class BrowserView extends ListViewCompat {
     private final Uri dir;
     private final String query;
     private final BrowserView view;
-    private CancellationSignal signal;
+    private final RealBrowserViewModel model;
+    private final CancellationSignal signal;
+    private final Runnable updateCmd;
 
     SearchLoader(Context context, Uri dir, String query, BrowserView view) {
       super(context);
       this.dir = dir;
       this.query = query.toLowerCase();
       this.view = view;
+      this.model = new RealBrowserViewModel(context);
       this.signal = new CancellationSignal();
+      this.updateCmd = new UpdateViewCommand(view);
+      setViewModel();
       view.emptyView.setText(R.string.browser_searching);
-    }
-    
-    final String getQuery() {
-      return query;
     }
     
     @Override
     protected void onReset() {
       super.onReset();
       signal.cancel();
-      Log.d(TAG, "Reset loader");
+      Log.d(TAG, "Reset search loader");
+    }
+    
+    final void setViewModel() {
+      view.setModel(model);
     }
     
     @Override
     public BrowserViewModel loadInBackground() {
-      final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
       try {
         for (final VfsIterator iter = new VfsIterator(new Uri[] {dir}); iter.isValid(); iter.next()) {
           signal.throwIfCanceled();
           final VfsFile file = iter.getFile();
           if (matchQuery(file.getName()) || matchQuery(file.getDescription())) {
             model.add(file);
+            notifyUpdate();
           }
         }
         return model;
@@ -412,8 +428,26 @@ public class BrowserView extends ListViewCompat {
       return null;
     }
     
+    private void notifyUpdate() {
+      view.removeCallbacks(updateCmd);
+      view.postDelayed(updateCmd, 100);
+    }
+    
     private boolean matchQuery(String txt) {
       return txt.toLowerCase().contains(query); 
+    }
+  }
+
+  private static class UpdateViewCommand implements Runnable {
+    
+    private final BaseAdapter adapter;
+    
+    public UpdateViewCommand(ListView view) {
+      this.adapter = (BaseAdapter) view.getAdapter();
+    }
+    @Override
+    public void run() {
+      adapter.notifyDataSetChanged();
     }
   }
 }
