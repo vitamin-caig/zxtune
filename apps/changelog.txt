@@ -5,6 +5,16 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3135 from 18.11.2014
+
+[*] Fixed SQD playback
+[+] Supported AYLPT backend via dlportio-compatible gates
+[+] zxtune-android: save and restore currently played item and position between sessions
+[+] zxtune-android: search functionality in browser
+[*] zxtune-android: improved support of some network sources
+[*] zxtune-android: fixed some crashes on application exit
+[*] zxtune-android: reworked browser progress report
+
 --- Rev3120 from 27.10.2014
 
 [*] improved quality of beeper emulation
