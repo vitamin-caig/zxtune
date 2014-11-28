@@ -48,5 +48,6 @@ namespace Formats
     Decoder::Ptr CreateTFMMusicMaker13Decoder();
     Decoder::Ptr CreateDigitalMusicMakerDecoder();
     Decoder::Ptr CreateTurboSoundDecoder();
+    Decoder::Ptr CreateExtremeTracker1Decoder();
   }
 }

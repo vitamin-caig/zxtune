@@ -51,6 +51,16 @@ __cpp> "}//namespace Text\n"
 < ETRACKER_DECODER_DESCRIPTION
 > "E-Tracker v1.x"
 
+#ExtremeTracker
+< EXTREMETRACKER1_DECODER_DESCRIPTION
+> "Extreme Tracker v1.x"
+
+< EXTREMETRACKER131
+> "Extreme Tracker v1.31"
+
+< EXTREMETRACKER132
+> "Extreme Tracker v1.32-1.41"
+
 #FastTracker
 < FASTTRACKER_DECODER_DESCRIPTION
 > "Fast Tracker v1.x"

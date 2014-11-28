@@ -57,6 +57,11 @@ namespace
     {
       return true;
     }
+    //ExtremeTracker1
+    if (firstSize == 0xfc00 && secondSize == 0xbc00)
+    {
+      return true;
+    }
     return false;
   }
 
