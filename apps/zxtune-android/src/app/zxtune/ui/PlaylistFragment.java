@@ -111,7 +111,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
 
     if (savedInstanceState == null) {
       Log.d(TAG, "Loading persistent state");
-      listing.setTag(Integer.valueOf(state.getCurrentViewPosition()));
+      listing.storeViewPosition(state.getCurrentViewPosition());
     }
     listing.setRemoveListener(new PlaylistView.RemoveListener() {
       @Override

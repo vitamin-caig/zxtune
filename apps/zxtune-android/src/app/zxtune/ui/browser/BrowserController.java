@@ -135,7 +135,7 @@ public class BrowserController {
   //Some methods on callback does not called... 
   private void loadListing(VfsDir dir, int viewPosition) {
     loaderManager.destroyLoader(LOADER_ID);
-    listing.setTag(viewPosition);
+    listing.storeViewPosition(viewPosition);
     final LoaderManager.LoaderCallbacks<?> cb = ListingLoaderCallback.create(this, dir);
     loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
   }
@@ -192,11 +192,7 @@ public class BrowserController {
       if (model != null) {
         ctrl.loadingFinished();
         ctrl.listing.setModel(model);
-        final Integer pos = (Integer) ctrl.listing.getTag();
-        if (pos != null) {
-          ctrl.listing.setSelection(pos);
-          ctrl.listing.setTag(null);
-        }
+        ctrl.listing.useStoredViewPosition();
       } else {
         ctrl.hideProgress();
       }

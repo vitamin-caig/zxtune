@@ -53,28 +53,28 @@ public class ListViewCompat extends ListView {
 
   private android.support.v7.view.ActionMode actionModeCompat;
 
-  /**
-   * @param context
-   */
   public ListViewCompat(Context context) {
     super(context);
   }
 
-  /**
-   * @param context
-   * @param attrs
-   */
   public ListViewCompat(Context context, AttributeSet attrs) {
     super(context, attrs);
   }
 
-  /**
-   * @param context
-   * @param attrs
-   * @param defStyle
-   */
   public ListViewCompat(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
+  }
+  
+  public final void storeViewPosition(int pos) {
+    setTag(Integer.valueOf(pos));
+  }
+  
+  public final void useStoredViewPosition() {
+    final Integer pos = (Integer) getTag();
+    if (pos != null) {
+      setSelection(pos);
+      setTag(null);
+    }
   }
 
   public final boolean processActionItemClick(int itemId) {
@@ -112,7 +112,7 @@ public class ListViewCompat extends ListView {
     }
   }
 
-  final public int getCheckedItemsCount() {
+  public final int getCheckedItemsCount() {
     return hasNativeModalSelection ? getCheckedItemsCountNative() : getCheckedItemsCountSupp();
   }
 
