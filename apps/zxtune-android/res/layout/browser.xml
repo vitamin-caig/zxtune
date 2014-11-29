@@ -23,7 +23,7 @@
         android:src="@drawable/ic_browser_folder"
         style="@style/button"
       />
-      <app.zxtune.ui.BreadCrumbsView
+      <app.zxtune.ui.browser.BreadCrumbsView
         android:id="@+id/browser_breadcrumb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
         android:visibility="invisible"
         style="?android:attr/progressBarStyleHorizontal"
     />
-    <app.zxtune.ui.BrowserView
+    <app.zxtune.ui.browser.BrowserView
         android:id="@+id/browser_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

@@ -8,7 +8,7 @@
  *
  */
 
-package app.zxtune.ui;
+package app.zxtune.ui.browser;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +24,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.ui.IconSource;
 
 public class BreadCrumbsView extends HorizontalScrollView {
 
@@ -61,7 +62,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     listener = new StubDirSelectionListener();
   }
 
-  final void setDir(VfsDir dir) {
+  public final void setDir(VfsDir dir) {
     if (dir == null) {
       hideButtons(0, container.getChildCount());
     } else {
@@ -76,7 +77,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     }
   }
 
-  final void setDirSelectionListener(DirSelectionListener listener) {
+  public final void setDirSelectionListener(DirSelectionListener listener) {
     this.listener = listener != null ? listener : new StubDirSelectionListener();
   }
 

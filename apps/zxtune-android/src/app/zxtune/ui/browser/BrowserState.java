@@ -8,7 +8,7 @@
  *
  */
 
-package app.zxtune.ui;
+package app.zxtune.ui.browser;
 
 import java.util.Locale;
 

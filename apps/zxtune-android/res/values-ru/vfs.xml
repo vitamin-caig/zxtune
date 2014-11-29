@@ -28,7 +28,7 @@
     <string name="vfs_zxart_root_name">ZX-Art - новая музыка ZX Spectrum</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/rus/muzyka</string>
     <string name="vfs_zxart_authors_name">Авторы</string>
-    <string name="vfs_zxart_authors_description">Навигация по авторуr</string>
+    <string name="vfs_zxart_authors_description">Навигация по автору</string>
     <string name="vfs_zxart_parties_name">Пати</string>
     <string name="vfs_zxart_parties_description">Навигация по событиям</string>
     <string name="vfs_zxart_toptracks_name">Топ треков</string>

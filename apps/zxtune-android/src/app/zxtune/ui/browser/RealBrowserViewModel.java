@@ -8,7 +8,7 @@
  *
  */
 
-package app.zxtune.ui;
+package app.zxtune.ui.browser;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,8 +18,6 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.VfsDir;
@@ -79,24 +77,22 @@ class RealBrowserViewModel implements BrowserViewModel {
   @Override
   //TODO: use explicit multiple view types
   public View getView(int position, View convertView, ViewGroup parent) {
-    View result;
+    View view;
     BrowserViewHolder holder;
     if (convertView == null) {
-      result = inflater.inflate(R.layout.browser_item_detailed, parent, false);
-      holder = new BrowserViewHolder(result);
-      result.setTag(holder);
+      view = inflater.inflate(R.layout.browser_item_detailed, parent, false);
+      holder = BrowserViewHolder.create(view);
+      view.setTag(holder);
     } else {
-      result = convertView;
+      view = convertView;
       holder = (BrowserViewHolder) convertView.getTag();
     }
-
     final int dirsCount = dirs.size();
     if (position < dirsCount) {
-      holder.makeView(dirs.get(position));
+      holder.fill(dirs.get(position));
     } else {
-      holder.makeView(files.get(position - dirsCount));
+      holder.fill(files.get(position - dirsCount));
     }
-
-    return result;
+   return view;
   }
 }
