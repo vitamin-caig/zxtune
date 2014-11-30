@@ -264,7 +264,7 @@ public final class ZXTune {
    * @return New object
    */
   public static Module loadModule(ByteBuffer content, String subpath) throws InvalidObjectException {
-    return new NativeModule(Module_Create(content, subpath));
+    return new NativeModule(Module_Create(makeDirectBuffer(content), subpath));
   }
   
   public interface ModuleDetectCallback {
@@ -289,7 +289,21 @@ public final class ZXTune {
   }
   
   public static void detectModules(ByteBuffer content, ModuleDetectCallback cb) {
-    Module_Detect(content, new ModuleDetectCallbackNativeAdapter(cb));
+    Module_Detect(makeDirectBuffer(content), new ModuleDetectCallbackNativeAdapter(cb));
+  }
+  
+  private static ByteBuffer makeDirectBuffer(ByteBuffer content) {
+    if (content.position() != 0) {
+      throw new Error("Input data should have zero position");
+    }
+    if (content.isDirect()) {
+      return content;
+    } else {
+      final ByteBuffer direct = ByteBuffer.allocateDirect(content.capacity());
+      direct.put(content);
+      direct.position(0);
+      return direct;
+    }
   }
 
   /**
