@@ -13,6 +13,8 @@ package app.zxtune.ui;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -78,7 +80,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   public boolean onOptionsItemSelected (MenuItem item) {
     switch (item.getItemId()) {
       case R.id.action_clear:
-        service.getPlaylistControl().deleteAll();
+        getService().getPlaylistControl().deleteAll();
         break;
       case R.id.action_save:
         savePlaylist(null);
@@ -117,7 +119,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       @Override
       public void remove(int which) {
         final long[] id = {listing.getItemIdAtPosition(which)};
-        service.getPlaylistControl().delete(id);
+        getService().getPlaylistControl().delete(id);
       }
     });
     listing.setDropListener(new PlaylistView.DropListener() {
@@ -126,27 +128,38 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         if (from != to) {
           //TODO: perform in separate thread
           final long id = listing.getItemIdAtPosition(from);
-          service.getPlaylistControl().move(id, to - from);
+          getService().getPlaylistControl().move(id, to - from);
         }
       }
     });
+  }
+  
+  @Override
+  public synchronized void onStart() {
+    super.onStart();
+    
     bindViewToConnectedService();
   }
   
   @Override
-  public synchronized void onDestroyView() {
-    super.onDestroyView();
-
+  public synchronized void onStop() {
+    super.onStop();
+    
     Log.d(TAG, "Saving persistent state");
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
-    unbindFromService();
+    unbindFromService();//may affect playlistState
+    playingState.release();
   }
   
   @Override
-  public void onServiceConnected(PlaybackService service) {
+  public synchronized void onServiceConnected(PlaybackService service) {
     this.service = service;
     
     bindViewToConnectedService();
+  }
+  
+  private synchronized PlaybackService getService() {
+    return this.service;
   }
   
   private void bindViewToConnectedService() {
@@ -179,7 +192,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     } finally {
       connection = null;
     }
-    service = PlaybackServiceStub.instance();
   }
   
   private class OnItemClickListener implements PlaylistView.OnItemClickListener {
@@ -193,11 +205,15 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   
   private class NowPlayingState implements Callback, PlaylistView.PlayitemStateSource {
     
+    //Use separate handler to avoid memory leaks - 
+    // post/removeCallbacks on View (e.g. listing) has no effect...
+    private final Handler handler;
     private final Runnable updateTask;
     private boolean isPlaying;
     private Uri nowPlayingPlaylist;
     
     public NowPlayingState() {
+      this.handler = new Handler(Looper.getMainLooper());
       this.updateTask = new Runnable() {
         @Override
         public void run() {
@@ -208,10 +224,16 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       nowPlayingPlaylist = Uri.EMPTY;
     }
     
+    final void release() {
+      handler.removeCallbacks(updateTask);
+    }
+    
     @Override
     public void onStatusChanged(boolean nowPlaying) {
-      isPlaying = nowPlaying;
-      updateView();
+      if (isPlaying != nowPlaying) {
+        isPlaying = nowPlaying;
+        updateView();
+      }
     }
     
     @Override
@@ -223,8 +245,11 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     public void onItemChanged(Item item) {
       final Uri id = item.getId();
       final Uri contentId = item.getDataId();
-      nowPlayingPlaylist = id.equals(contentId) ? Uri.EMPTY : id;
-      updateView();
+      final Uri playlistId = 0 == id.compareTo(contentId) ? Uri.EMPTY : id;
+      if (0 != playlistId.compareTo(nowPlayingPlaylist)) {
+        nowPlayingPlaylist = playlistId;
+        updateView();
+      }
     }
 
     @Override
@@ -233,8 +258,8 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
     
     private void updateView() {
-      listing.removeCallbacks(updateTask);
-      listing.postDelayed(updateTask, 100);
+      handler.removeCallbacks(updateTask);
+      handler.postDelayed(updateTask, 100);
     }
   }
   

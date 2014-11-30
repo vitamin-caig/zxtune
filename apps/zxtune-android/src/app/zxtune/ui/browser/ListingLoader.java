@@ -21,12 +21,13 @@ import app.zxtune.fs.VfsObject;
 
 //Typical AsyncTaskLoader work flow from
 //http://developer.android.com/intl/ru/reference/android/content/AsyncTaskLoader.html
-public class ListingLoader extends AsyncTaskLoader<BrowserViewModel> {
+
+// Returns BrowserViewModel or Exception
+public class ListingLoader extends AsyncTaskLoader<Object> {
 
   public interface Callback {
     public void onProgressInit(int total);
     public void onProgressUpdate(int current);
-    public void onError(Exception e);
   }
   
   private static final String TAG = ListingLoader.class.getName();
@@ -54,7 +55,7 @@ public class ListingLoader extends AsyncTaskLoader<BrowserViewModel> {
 
   @SuppressWarnings("unchecked")
   @Override
-  public BrowserViewModel loadInBackground() {
+  public Object loadInBackground() {
     final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
     try {
       dir.enumerate(new VfsDir.Visitor() {
@@ -93,8 +94,7 @@ public class ListingLoader extends AsyncTaskLoader<BrowserViewModel> {
     } catch (OperationCanceledException e) {
       return model;
     } catch (Exception e) {
-      cb.onError(e);
+      return e;
     }
-    return null;
   }
 }

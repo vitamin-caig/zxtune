@@ -11,7 +11,6 @@
 package app.zxtune.ui.browser;
 
 import android.content.Context;
-import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.TextView;
@@ -54,32 +53,10 @@ public class BrowserView extends ListViewCompat {
   final void showError(Exception e) {
     final Throwable cause = e.getCause();
     final String msg = cause != null ? cause.getMessage() : e.getMessage();
-    if (isInUiThread()) {
-      emptyView.setText(msg);
-    } else {
-      post(new Runnable() {
-        @Override
-        public void run() {
-          emptyView.setText(msg);
-        }
-      });
-    }
+    emptyView.setText(msg);
   }
 
   final void setEmptyViewText(final int res) {
-    if (isInUiThread()) {
-      emptyView.setText(res);
-    } else {
-      post(new Runnable() {
-        @Override
-        public void run() {
-          emptyView.setText(res);
-        }
-      });
-    }
-  }
-  
-  private boolean isInUiThread() {
-    return Looper.getMainLooper().equals(Looper.myLooper());
+    emptyView.setText(res);
   }
 }

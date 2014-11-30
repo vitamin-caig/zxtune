@@ -25,7 +25,8 @@ public class VisualizerView extends View {
   
   private static final String TAG = VisualizerView.class.getName();
   private Visualizer source;
-  private Handler timer;
+  //use dedicated looper for smooth visualizer
+  private Handler looper;
   private UpdateViewTask updateTask;
 
   private Rect visibleRect;
@@ -47,10 +48,17 @@ public class VisualizerView extends View {
     init();
   }
   
-  final void setSource(Visualizer source) {
-    updateTask.stop();
+  final synchronized void setSource(Visualizer source) {
     this.source = source;
-    updateTask.run();
+  }
+  
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    updateTask.stop();
+    if (enabled) {
+      updateTask.run();
+    }
   }
   
   @Override
@@ -66,7 +74,7 @@ public class VisualizerView extends View {
   
   private void init() {
     source = VisualizerStub.instance();
-    timer = new Handler();
+    looper = new Handler();
     updateTask = new UpdateViewTask();
     visibleRect = new Rect();
     visualizer = new SpectrumVisualizer();
@@ -178,16 +186,19 @@ public class VisualizerView extends View {
     @Override
     public void run() {
       try {
-        if (visualizer.update() || isEnabled()) {
-          timer.postDelayed(this, 100);
-        }
+        update();
+        looper.postDelayed(this, 100);
       } catch (IllegalStateException e) {
         Log.d(TAG, "UpdateViewTask", e);
       }
     }
+    
+    private synchronized boolean update() {
+      return visualizer.update();
+    }
 
     final void stop() {
-      timer.removeCallbacks(this);
+      looper.removeCallbacks(this);
     }
   }
 }

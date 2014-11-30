@@ -61,7 +61,6 @@ public class SearchingLoader extends AsyncTaskLoader<Void> {
           cb.onFileFound(file);
         }
       }
-    } catch (IOException e) {
     } catch (OperationCanceledException e) {
     }
     return null;

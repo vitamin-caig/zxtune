@@ -40,8 +40,10 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.ItemStub;
+import app.zxtune.playback.PlaybackControlStub;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaybackServiceStub;
+import app.zxtune.playback.SeekControlStub;
 import app.zxtune.playback.VisualizerStub;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -72,7 +74,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
   
   @Override
-  public void onCreateOptionsMenu (Menu menu, MenuInflater inflater) {
+  public synchronized void onCreateOptionsMenu (Menu menu, MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.track, menu);
@@ -84,18 +86,18 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   public boolean onOptionsItemSelected (MenuItem menu) {
     switch (menu.getItemId()) {
       case R.id.action_add:
-        service.getPlaylistControl().add(new Uri[] {service.getNowPlaying().getDataId()});
+        getService().getPlaylistControl().add(new Uri[] {getService().getNowPlaying().getDataId()});
         //disable further addings
         menu.setVisible(false);
         break;
       case R.id.action_send:
-        final Intent toSend = Actions.makeSendIntent(new ShareData(getActivity(), service.getNowPlaying()));
+        final Intent toSend = Actions.makeSendIntent(new ShareData(getActivity(), getService().getNowPlaying()));
         if (toSend != null) {
           startActivity(Intent.createChooser(toSend, menu.getTitle()));
         }
         break;
       case R.id.action_share:
-        final Intent toShare = Actions.makeShareIntent(new ShareData(getActivity(), service.getNowPlaying()));
+        final Intent toShare = Actions.makeShareIntent(new ShareData(getActivity(), getService().getNowPlaying()));
         if (toShare != null) {
           startActivity(Intent.createChooser(toShare, menu.getTitle()));
         }
@@ -113,24 +115,40 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
 
   @Override
   public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
     seek = new SeekControlView(view);
     visualizer = (VisualizerView) view.findViewById(R.id.visualizer);
     info = new InformationView(view);
     ctrls = new PlaybackControlsView(view);
+  }
+  
+  @Override
+  public synchronized void onStart() {
+    super.onStart();
     bindViewsToConnectedService();
   }
-
+  
   @Override
-  public synchronized void onDestroy() {
-    super.onDestroy();
-
+  public synchronized void onStop() {
+    super.onStop();
     unbindFromService();
+  }
+  
+  @Override
+  public void onDestroyView() {
+    visualizer.setEnabled(false);
+    seek.setEnabled(false);
+    super.onDestroyView();
   }
 
   @Override
   public synchronized void onServiceConnected(PlaybackService service) {
     this.service = service;
     bindViewsToConnectedService();
+  }
+  
+  private synchronized PlaybackService getService() {
+    return this.service;
   }
   
   // relative order of onViewCreated/onCreateOptionsMenu/onServiceConnected is not specified
@@ -141,6 +159,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     final boolean menuCreated = actions != null;
     if (serviceConnected && viewsCreated && menuCreated) {
       Log.d(TAG, "Subscribe to service events");
+      visualizer.setSource(service.getVisualizer());
       seek.setControl(service.getSeekControl());
       ctrls.setControls(service.getPlaybackControl());
       callback = new PlaybackEvents();
@@ -161,14 +180,16 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         callback.onStatusChanged(false);
       }
     }
-    service = PlaybackServiceStub.instance();
+    visualizer.setSource(VisualizerStub.instance());
+    seek.setControl(SeekControlStub.instance());
+    ctrls.setControls(PlaybackControlStub.instance());
   }
   
   private class PlaybackEvents implements Callback {
     
     @Override
     public void onStatusChanged(boolean isPlaying) {
-      visualizer.setSource(isPlaying ? service.getVisualizer() : VisualizerStub.instance());
+      visualizer.setEnabled(isPlaying);
       seek.setEnabled(isPlaying);
       ctrls.updateStatus(isPlaying);
     }

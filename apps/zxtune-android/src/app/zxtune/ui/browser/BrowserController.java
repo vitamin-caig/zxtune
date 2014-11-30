@@ -11,10 +11,10 @@
 package app.zxtune.ui.browser;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -50,6 +50,15 @@ public class BrowserController {
     this.position = position;
     this.progress = progress;
     this.listing = listing;
+  }
+  
+  public final void resetViews() {
+    final Loader<?> loader = loaderManager.getLoader(LOADER_ID); 
+    if (loader instanceof SearchingLoader) {
+      SearchingLoaderCallback.detachLoader((SearchingLoader) loader);
+    } else if (loader instanceof ListingLoader) {
+      ListingLoaderCallback.detachLoader((ListingLoader) loader);
+    }
   }
   
   public final void loadState() {
@@ -140,124 +149,118 @@ public class BrowserController {
     loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
   }
   
-  private static abstract class WeakCallback<T> implements LoaderManager.LoaderCallbacks<T> {
-    
-    private WeakReference<BrowserController> control;
-    
-    protected synchronized void setControl(BrowserController ctrl) {
-      this.control = new WeakReference<BrowserController>(ctrl);
-    }
-    
-    protected synchronized BrowserController getControl() {
-      return control.get();
-    }
-  }
-  
-  private static class ListingLoaderCallback extends WeakCallback<BrowserViewModel> implements ListingLoader.Callback {
+  private static class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, ListingLoader.Callback {
     
     private final VfsDir dir;
+    private final Handler handler;
+    private BrowserController control;
     
     private ListingLoaderCallback(VfsDir dir) {
       this.dir = dir;
+      this.handler = new Handler();
     }
     
-    static LoaderManager.LoaderCallbacks<BrowserViewModel> create(BrowserController ctrl, VfsDir dir) {
+    static LoaderManager.LoaderCallbacks<Object> create(BrowserController ctrl, VfsDir dir) {
       final ListingLoaderCallback cb = new ListingLoaderCallback(dir);
-      cb.setControl(ctrl);
+      cb.control = ctrl;
+      ctrl.listing.setModel(null);
       ctrl.listingStarted();
       return cb;
     }
     
-    static LoaderManager.LoaderCallbacks<BrowserViewModel> create(BrowserController ctrl, ListingLoader loader) {
+    static LoaderManager.LoaderCallbacks<Object> create(BrowserController ctrl, ListingLoader loader) {
       final ListingLoaderCallback cb = (ListingLoaderCallback) loader.getCallback();
-      cb.setControl(ctrl);
+      synchronized (cb) {
+        cb.control = ctrl;
+      }
       if (loader.isStarted()) {
         ctrl.listingStarted();
       }
       ctrl.position.setDir(cb.dir);
       return cb;
     }
+    
+    static void detachLoader(ListingLoader loader) {
+      final ListingLoaderCallback cb = (ListingLoaderCallback) loader.getCallback();
+      synchronized (cb) {
+        cb.control = null;
+        cb.handler.removeCallbacksAndMessages(null);
+      }
+    }
 
     @Override
-    public Loader<BrowserViewModel> onCreateLoader(int id, Bundle params) {
+    public Loader<Object> onCreateLoader(int id, Bundle params) {
       return new ListingLoader(MainApplication.getInstance(), dir, this);
     }
 
     @Override
-    public void onLoadFinished(Loader<BrowserViewModel> loader, BrowserViewModel model) {
-      final BrowserController ctrl = getControl();
-      if (ctrl == null) {
+    public synchronized void onLoadFinished(Loader<Object> loader, Object result) {
+      if (control == null) {
         return;
-      }
-      if (model != null) {
-        ctrl.loadingFinished();
-        ctrl.listing.setModel(model);
-        ctrl.listing.useStoredViewPosition();
+      } else if (result instanceof BrowserViewModel) {
+        control.loadingFinished();
+        control.listing.setModel((BrowserViewModel) result);
+        control.listing.useStoredViewPosition();
       } else {
-        ctrl.hideProgress();
+        control.loadingFailed((Exception) result);
       }
     }
 
     @Override
-    public void onLoaderReset(Loader<BrowserViewModel> loader) {
-      final BrowserController ctrl = getControl();
-      if (ctrl != null) {
-        ctrl.loadingFinished();
+    public synchronized void onLoaderReset(Loader<Object> loader) {
+      if (control != null) {
+        control.loadingFinished();
       }
     }
 
     @Override
-    public void onProgressInit(int total) {
-      final BrowserController ctrl = getControl();
-      if (ctrl != null) {
-        ctrl.progress.setProgress(0);
-        ctrl.progress.setMax(total);
-        ctrl.progress.setIndeterminate(false);
+    public synchronized void onProgressInit(int total) {
+      if (control != null) {
+        control.progress.setProgress(0);
+        control.progress.setMax(total);
+        control.progress.setIndeterminate(false);
       }
     }
 
     @Override
-    public void onProgressUpdate(final int current) {
+    public void onProgressUpdate(int current) {
       if (0 == current % 5) {
-        final BrowserController ctrl = getControl();
-        if (ctrl != null) {
-          ctrl.progress.post(new Runnable() {
-            @Override
-            public void run() {
-              ctrl.progress.setProgress(current);
-            }
-          });
-        }
+        postProgress(current);
       }
     }
-
-    @Override
-    public void onError(Exception e) {
-      final BrowserController ctrl = getControl();
-      if (ctrl != null) {
-        ctrl.listing.showError(e);
+    
+    private synchronized void postProgress(final int current) {
+      if (control != null) {
+        final ProgressBar progress = control.progress;
+        handler.post(new Runnable() {
+          @Override
+          public void run() {
+            progress.setProgress(current);
+          }
+        });
       }
     }
   }
   
-  private static class SearchingLoaderCallback extends WeakCallback<Void> implements SearchingLoader.Callback {
+  private static class SearchingLoaderCallback implements LoaderManager.LoaderCallbacks<Void>, SearchingLoader.Callback {
     
     private final VfsDir dir;
     private final String query;
     private final RealBrowserViewModel model;
+    private final Handler handler;
+    private BrowserController control;
     
     private SearchingLoaderCallback(VfsDir dir, String query) {
       this.dir = dir;
       this.query = query;
       this.model = new RealBrowserViewModel(MainApplication.getInstance());
+      this.handler = new Handler();
     }
     
     static LoaderManager.LoaderCallbacks<Void> create(BrowserController ctrl, VfsDir dir, String query) {
       final SearchingLoaderCallback cb = new SearchingLoaderCallback(dir, query);
-      synchronized (cb) {
-        cb.setControl(ctrl);
-        ctrl.listing.setModel(cb.model);
-      }
+      cb.control = ctrl;
+      ctrl.listing.setModel(cb.model);
       ctrl.searchingStarted();
       return cb;
     }
@@ -265,14 +268,22 @@ public class BrowserController {
     static LoaderManager.LoaderCallbacks<Void> create(BrowserController ctrl, SearchingLoader loader) {
       final SearchingLoaderCallback cb = (SearchingLoaderCallback) loader.getCallback();
       synchronized (cb) {
-        cb.setControl(ctrl);
+        cb.control = ctrl;
         ctrl.listing.setModel(cb.model);
       }
-      ctrl.position.setDir(cb.dir);
       if (loader.isStarted()) {
         ctrl.searchingStarted();
       }
+      ctrl.position.setDir(cb.dir);
       return cb;
+    }
+    
+    static void detachLoader(SearchingLoader loader) {
+      final SearchingLoaderCallback cb = (SearchingLoaderCallback) loader.getCallback();
+      synchronized (cb) {
+        cb.control = null;
+        cb.handler.removeCallbacksAndMessages(null);
+      }
     }
     
     @Override
@@ -291,14 +302,14 @@ public class BrowserController {
     }
     
     @Override
-    public void onFileFound(final VfsFile file) {
-      final BrowserController ctrl = getControl();
-      if (ctrl != null) {
-        ctrl.listing.post(new Runnable() {
+    public synchronized void onFileFound(final VfsFile file) {
+      if (control != null) {
+        final BaseAdapter adapter = (BaseAdapter) control.listing.getAdapter();
+        handler.post(new Runnable() {
           @Override
           public void run() {
             model.add(file);
-            ((BaseAdapter) ctrl.listing.getAdapter()).notifyDataSetChanged();
+            adapter.notifyDataSetChanged();
           }
         });
       } else {
@@ -306,10 +317,9 @@ public class BrowserController {
       }
     }
     
-    private void loadingFinished() {
-      final BrowserController ctrl = getControl();
-      if (ctrl != null) {
-        ctrl.loadingFinished();
+    private synchronized void loadingFinished() {
+      if (control != null) {
+        control.loadingFinished();
       }
     }
   }
@@ -327,6 +337,11 @@ public class BrowserController {
   private void loadingFinished() {
     hideProgress();
     listing.setEmptyViewText(R.string.browser_empty);
+  }
+  
+  private void loadingFailed(Exception e) {
+    hideProgress();
+    listing.showError(e);
   }
 
   private void showProgress() {

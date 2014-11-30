@@ -88,6 +88,15 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     controller.loadState();
   }
 
+  @Override
+  public synchronized void onDestroyView() {
+    super.onDestroyView();
+    
+    Log.d(TAG, "Saving persistent state");
+    controller.storeCurrentViewPosition();
+    controller.resetViews();
+  }
+  
   private BrowserView setupListing(View view) {
     final BrowserView listing = (BrowserView) view.findViewById(R.id.browser_content);
     listing.setOnItemClickListener(new OnItemClickListener());
@@ -200,16 +209,6 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       });
   }  
   
-  @Override
-  public synchronized void onDestroyView() {
-    super.onDestroyView();
-
-    Log.d(TAG, "Saving persistent state");
-    controller.storeCurrentViewPosition();
-    listing.setAdapter(null);
-    service = PlaybackServiceStub.instance();
-  }
-  
   public final void moveUp() {
     if (!search.isIconified()) {
       search.setIconified(true);
@@ -219,8 +218,12 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
 
   @Override
-  public void onServiceConnected(PlaybackService service) {
+  public synchronized void onServiceConnected(PlaybackService service) {
     this.service = service;
+  }
+  
+  private synchronized PlaybackService getService() {
+    return this.service;
   }
   
   private String getActionModeTitle() {
@@ -237,7 +240,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
         controller.setCurrentDir((VfsDir) obj);
       } else if (obj instanceof VfsFile) {
         final Uri[] toPlay = getUrisFrom(position);
-        service.setNowPlaying(toPlay);
+        getService().setNowPlaying(toPlay);
       }
     }
 
@@ -276,10 +279,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       } else {
         switch (item.getItemId()) {
           case R.id.action_play:
-            service.setNowPlaying(getSelectedItemsUris());
+            getService().setNowPlaying(getSelectedItemsUris());
             break;
           case R.id.action_add:
-            service.getPlaylistControl().add(getSelectedItemsUris());
+            getService().getPlaylistControl().add(getSelectedItemsUris());
             break;
           default:
             return false;
