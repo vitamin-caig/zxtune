@@ -16,7 +16,6 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -66,34 +65,41 @@ public class HttpProvider {
     }
   }
 
+  //! result buffer is not direct so required wrapping
   private static ByteBuffer getContent(InputStream stream) throws IOException {
-    final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    final byte[] part = new byte[16384];
+    byte[] buffer = new byte[256 * 1024];
+    int size = 0;
     for (;;) {
-      final int read = readPartialContent(stream, part);
-      buffer.write(part, 0, read);
-      if (read != part.length) {
+      size = readPartialContent(stream, buffer, size);
+      if (size == buffer.length) {
+        buffer = reallocate(buffer);
+      } else {
         break;
       }
     }
-    if (0 == buffer.size()) {
+    if (0 == size) {
       throw new IOException("Empty file specified");
     }
-    Log.d(TAG, String.format("Got %d bytes", buffer.size()));
-    return ByteBuffer.wrap(buffer.toByteArray());
+    Log.d(TAG, String.format("Got %d bytes", size));
+    return ByteBuffer.wrap(buffer, 0, size);
   }
 
-  private static int readPartialContent(InputStream stream, byte[] buffer) throws IOException {
+  private static int readPartialContent(InputStream stream, byte[] buffer, int offset) throws IOException {
     final int len = buffer.length;
-    int received = 0;
-    while (received < len) {
-      final int chunk = stream.read(buffer, received, len - received);
+    while (offset < len) {
+      final int chunk = stream.read(buffer, offset, len - offset);
       if (chunk < 0) {
         break;
       }
-      received += chunk;
+      offset += chunk;
     }
-    return received;
+    return offset;
+  }
+  
+  private static byte[] reallocate(byte[] buf) {
+    final byte[] result = new byte[buf.length * 2];
+    System.arraycopy(buf, 0, result, 0, buf.length);
+    return result;
   }
 
   public final void checkConnectionError() throws IOException {
