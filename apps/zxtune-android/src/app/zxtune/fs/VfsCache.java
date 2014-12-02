@@ -18,42 +18,45 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
-import android.preference.PreferenceManager;
+import android.net.Uri;
 import android.util.Log;
-import app.zxtune.R;
 
 public class VfsCache {
   
   private final static String TAG = VfsCache.class.getName();
   private final static int MIN_CACHED_FILE_SIZE = 256;
   
-  private final String cacheDir;
+  private final Context context;
+  private final String name;
+  private File primary;
+  private final File fallback;
 
-  private VfsCache(Context ctx, String name, Boolean forceExternal) {
-    this.cacheDir = getCacheDir(ctx, name, forceExternal);
+  private VfsCache(Context ctx, String name, File primary, File fallback) {
+    this.context = ctx;
+    this.name = name;
+    this.primary = primary;
+    this.fallback = fallback;
+    if (primary == null && fallback == null) {
+      throw new RuntimeException("No cache directories specified");
+    }
   }
   
   public static VfsCache create(Context context, String name) {
-    return new VfsCache(context, name, null);
+    return new VfsCache(context, name, getExternalDir(context, name), getInternalDir(context, name));
   }
   
   public static VfsCache createExternal(Context context, String name) {
-    return new VfsCache(context, name, true);
-  }
-  
-  public final File getCachedFile(String path) {
-    return new File(cacheDir + path);
+    final File external = getExternalDir(context, name);
+    return new VfsCache(context, name, external, external);
   }
   
   public final ByteBuffer getCachedFileContent(String path) {
-    final File file = getCachedFile(path);
     try {
-      if (file.exists() && file.isFile()) {
-        Log.d(TAG, "Reading cached file " + file.getAbsolutePath());
-        return readFrom(file);
+      ByteBuffer result = readFrom(getPrimaryFile(path));
+      if (result == null) {
+        result = readFrom(getFallbackFile(path));
       }
+      return result;
     } catch (IOException e) {
       Log.d(TAG, "Failed to read from cache", e);
     }
@@ -61,25 +64,65 @@ public class VfsCache {
   }
 
   public final void putCachedFileContent(String path, ByteBuffer content) {
-    putCachedFileContent(path,  content, MIN_CACHED_FILE_SIZE);
+    putCachedFileContent(path, content, MIN_CACHED_FILE_SIZE);
   }
   
-  public final void putAnyCachedFileContent(String path, ByteBuffer content) {
-    putCachedFileContent(path,  content, 1);
+  public final Uri putAnyCachedFileContent(String path, ByteBuffer content) {
+    return putCachedFileContent(path, content, 1);
   }
   
-  public final void putCachedFileContent(String path, ByteBuffer content, int minSize) {
+  public final Uri putCachedFileContent(String path, ByteBuffer content, int minSize) {
     if (content.capacity() >= minSize) {
-      final File file = getCachedFile(path);
-      Log.d(TAG, "Write cached file " + file.getAbsolutePath());
+      final File file = getOutputFile(path);
       writeTo(file, content);
+      return Uri.fromFile(file);
     } else {
       Log.d(TAG, "Do not cache small content of " + path);
+      return Uri.EMPTY;
     }
-    
+  }
+  
+  private static File getSub(File dir, String name) {
+    return dir != null ? new File(dir, name) : null;
+  }
+  
+  private static File getExternalDir(Context ctx, String name) {
+    return getSub(ctx.getExternalCacheDir(), name);
+  }
+  
+  private static File getInternalDir(Context ctx, String name) {
+    return getSub(ctx.getCacheDir(), name);
+  }
+  
+  private File getPrimaryFile(String path) {
+    return getSub(getPrimaryDir(), path);
+  }
+  
+  private File getPrimaryDir() {
+    if (primary == null) {
+      primary = getExternalDir(context, name);
+    }
+    return primary;
+  }
+  
+  private File getFallbackFile(String path) {
+    return getSub(fallback, path); 
   }
 
+  private File getOutputFile(String path) {
+    final File primary = getPrimaryDir();
+    return primary != null ? getSub(primary, path) : getSub(fallback, path);
+  }
+  
   static ByteBuffer readFrom(File file) throws IOException {
+    if (file == null) {
+      return null;
+    }
+    if (!file.isFile()) {
+      Log.d(TAG, "No cached file " + file.getAbsolutePath());
+      return null;
+    }
+    Log.d(TAG, "Reading cached file " + file.getAbsolutePath());
     final FileInputStream stream = new FileInputStream(file);
     try {
       final FileChannel channel = stream.getChannel();
@@ -95,6 +138,7 @@ public class VfsCache {
 
   static void writeTo(File file, ByteBuffer data) {
     try {
+      Log.d(TAG, "Write cached file " + file.getAbsolutePath());
       file.getParentFile().mkdirs();
       final FileOutputStream stream = new FileOutputStream(file);
       try {
@@ -112,21 +156,5 @@ public class VfsCache {
       Log.d(TAG, "Failed to write to " + file.getAbsolutePath(), e);
       file.delete();
     }
-  }
-  
-  private static String getCacheDir(Context context, String name, Boolean forceExternal) {
-    final boolean useExternalDir = forceExternal != null
-      ? forceExternal 
-      : getUseExternalDir(context);
-    final File cacheDir = (useExternalDir ? context.getExternalCacheDir() : context.getCacheDir());
-    return cacheDir.getAbsolutePath() + File.separator + name + File.separator;
-  }
-  
-  private static boolean getUseExternalDir(Context context) {
-    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-    final Resources res = context.getResources();
-    final String key = res.getString(R.string.pref_vfs_cache_external);
-    final boolean defValue = res.getBoolean(R.bool.pref_vfs_cache_external_default);
-    return prefs.getBoolean(key, defValue);
   }
 }

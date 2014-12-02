@@ -344,9 +344,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       try {
         final VfsCache cache = VfsCache.createExternal(context, "sent");
         final String filename = file.getUri().getLastPathSegment();
-        cache.putAnyCachedFileContent(filename, file.getContent());
-        final File local = cache.getCachedFile(filename);
-        return Uri.fromFile(local); 
+        return cache.putAnyCachedFileContent(filename, file.getContent());
       } catch (IOException e) {
         Log.d(TAG, "Failed to create local file copy", e);
         return null;
