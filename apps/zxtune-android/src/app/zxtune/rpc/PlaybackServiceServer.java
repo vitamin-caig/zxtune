@@ -199,5 +199,14 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
         Log.e(TAG, "onIOStatusChanged()", e);
       }
     }
+    
+    @Override
+    public void onError(String error) {
+      try {
+        delegate.onError(error);
+      } catch (RemoteException e) {
+        Log.e(TAG, "onError()", e);
+      }
+    }
   }
 }

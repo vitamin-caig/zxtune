@@ -20,6 +20,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
@@ -45,6 +46,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final Visualizer visualizer;
   private Holder holder;
 
+  private static interface Command {
+    void execute() throws IOException;
+  }
+    
   public PlaybackServiceLocal(Context context) {
     this.context = context;
     this.executor = Executors.newSingleThreadExecutor();
@@ -112,10 +117,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   @Override
   public void setNowPlaying(Uri[] uris) {
     executeCommand(new SetNowPlayingCommand(uris));
-  }
-  
-  private static interface Command {
-    void execute() throws IOException;
   }
   
   private class SetNowPlayingCommand implements Command {
@@ -208,6 +209,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
           cmd.execute();
         } catch (Exception e) {//IOException|InterruptedException
           Log.w(TAG, cmd.getClass().getName(), e);
+          final Throwable cause = e.getCause();
+          final String msg = cause != null ? cause.getMessage() : e.getMessage();
+          callbacks.onError(msg);
         } finally {
           callbacks.onIOStatusChanged(false);
         }

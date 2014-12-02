@@ -24,10 +24,10 @@ import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.Util;
-import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.Item;
 
-public class StatusNotification implements Callback {
+public class StatusNotification extends CallbackStub {
   
   public enum Type {
     DEFAULT,
@@ -108,10 +108,6 @@ public class StatusNotification implements Callback {
     } else {
       scheduler.postDelayed(delayedHide, NOTIFICATION_DELAY);
     }
-  }
-  
-  @Override
-  public void onIOStatusChanged(boolean isActive) {
   }
   
   private void showNotification() {

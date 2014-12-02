@@ -312,5 +312,10 @@ public final class PlaybackServiceClient implements PlaybackService {
     public void onIOStatusChanged(boolean isActive) {
       delegate.onIOStatusChanged(isActive);
     }
+    
+    @Override
+    public void onError(String error) {
+      delegate.onError(error);
+    }
   }
 }

@@ -29,7 +29,7 @@ import android.widget.TextView;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
-import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
@@ -203,7 +203,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
   }
   
-  private class NowPlayingState implements Callback, PlaylistView.PlayitemStateSource {
+  private class NowPlayingState extends CallbackStub implements PlaylistView.PlayitemStateSource {
     
     //Use separate handler to avoid memory leaks - 
     // post/removeCallbacks on View (e.g. listing) has no effect...
@@ -234,11 +234,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         isPlaying = nowPlaying;
         updateView();
       }
-    }
-    
-    @Override
-    public void onIOStatusChanged(boolean isActive) {
-      //TODO
     }
     
     @Override

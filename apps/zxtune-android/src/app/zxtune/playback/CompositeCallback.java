@@ -52,7 +52,15 @@ public final class CompositeCallback implements Callback {
         cb.onIOStatusChanged(isActive);
       }
     }
-    
+  }
+  
+  @Override
+  public void onError(String e) {
+    synchronized (delegates) {
+      for (Callback cb : delegates) {
+        cb.onError(e);
+      }
+    }
   }
   
   public int add(Callback callback) {

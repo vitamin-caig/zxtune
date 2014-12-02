@@ -27,6 +27,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
@@ -185,6 +186,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     ctrls.setControls(PlaybackControlStub.instance());
   }
   
+  //executed in UI thread only via wrapper
   private class PlaybackEvents implements Callback {
     
     @Override
@@ -207,6 +209,11 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       if (activity != null) {
         activity.setSupportProgressBarIndeterminateVisibility(isActive);
       }
+    }
+    
+    @Override
+    public void onError(final String error) {
+      Toast.makeText(getActivity(), error, Toast.LENGTH_SHORT).show();
     }
   }
   

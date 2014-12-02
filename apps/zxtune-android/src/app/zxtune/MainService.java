@@ -22,9 +22,8 @@ import android.content.res.Resources;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
-import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackServiceLocal;
 import app.zxtune.rpc.PlaybackServiceServer;
@@ -191,20 +190,12 @@ public class MainService extends Service {
   
   private void setupServiceSessions() {
     service.restoreSession();
-    service.subscribe(new Callback() {
+    service.subscribe(new CallbackStub() {
       @Override
       public void onStatusChanged(boolean isPlaying) {
         if (!isPlaying) {
           service.storeSession();
         }
-      }
-
-      @Override
-      public void onItemChanged(Item item) {
-      }
-
-      @Override
-      public void onIOStatusChanged(boolean isActive) {
       }
     });
   }
