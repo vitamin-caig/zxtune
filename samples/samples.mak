@@ -28,6 +28,7 @@ samples_dac_zx := \
 	chi/ducktale.chi \
 	dmm/popcorn.dmm \
 	dst/Untitled.dst \
+	et1/mortal.m \
 	pdt/TechCent.M \
 	sqd/Maskarad.sqd \
 	str/COMETDAY.str
