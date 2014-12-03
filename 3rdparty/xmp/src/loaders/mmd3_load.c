@@ -58,21 +58,21 @@ static int mmd3_load(struct module_data *m, HIO_HANDLE *f, const int start)
 	struct SynthInstr synth;
 	struct InstrExt exp_smp;
 	struct MMD0exp expdata;
-	struct xmp_event *event;
+	struct xmp_event *event, dummy;
 	int ver = 0;
 	int smp_idx = 0;
 	uint8 e[4];
-	int song_offset;
-	int seqtable_offset;
-	int trackvols_offset;
-	int trackpans_offset;
-	int blockarr_offset;
-	int smplarr_offset;
-	int expdata_offset;
-	int expsmp_offset;
-	int songname_offset;
-	int iinfo_offset;
-	int playseq_offset;
+	uint32 song_offset;
+	uint32 seqtable_offset;
+	uint32 trackvols_offset;
+	uint32 trackpans_offset;
+	uint32 blockarr_offset;
+	uint32 smplarr_offset;
+	uint32 expdata_offset;
+	uint32 expsmp_offset;
+	uint32 songname_offset;
+	uint32 iinfo_offset;
+	uint32 playseq_offset;
 	int pos;
 	int bpm_on, bpmlen, med_8ch;
 
@@ -109,7 +109,8 @@ static int mmd3_load(struct module_data *m, HIO_HANDLE *f, const int start)
 	 * song structure
 	 */
 	D_(D_WARN "load song");
-	hio_seek(f, start + song_offset, SEEK_SET);
+	if (0 != hio_seek(f, start + song_offset, SEEK_SET))
+		return -1;
 	for (i = 0; i < 63; i++) {
 		song.sample[i].rep = hio_read16b(f);
 		song.sample[i].replen = hio_read16b(f);
@@ -150,13 +151,17 @@ static int mmd3_load(struct module_data *m, HIO_HANDLE *f, const int start)
 	/*
 	 * read sequence
 	 */
-	hio_seek(f, start + seqtable_offset, SEEK_SET);
+	if (0 != hio_seek(f, start + seqtable_offset, SEEK_SET))
+		return -1;
 	playseq_offset = hio_read32b(f);
-	hio_seek(f, start + playseq_offset, SEEK_SET);
+	if (0 != hio_seek(f, start + playseq_offset, SEEK_SET))
+		return -1;
 	hio_seek(f, 32, SEEK_CUR);	/* skip name */
 	hio_read32b(f);
 	hio_read32b(f);
 	mod->len = hio_read16b(f);
+	if (mod->len > XMP_MAX_MOD_LENGTH)
+		mod->len = XMP_MAX_MOD_LENGTH;
 	for (i = 0; i < mod->len; i++)
 		mod->xxo[i] = hio_read16b(f);
 
@@ -197,11 +202,13 @@ static int mmd3_load(struct module_data *m, HIO_HANDLE *f, const int start)
 	for (i = 0; i < mod->ins; i++) {
 		uint32 smpl_offset;
 		int16 type;
-		hio_seek(f, start + smplarr_offset + i * 4, SEEK_SET);
+		if (0 != hio_seek(f, start + smplarr_offset + i * 4, SEEK_SET))
+			continue;
 		smpl_offset = hio_read32b(f);
 		if (smpl_offset == 0)
 			continue;
-		hio_seek(f, start + smpl_offset, SEEK_SET);
+		if (0 != hio_seek(f, start + smpl_offset, SEEK_SET))
+			continue;
 		hio_read32b(f);				/* length */
 		type = hio_read16b(f);
 		if (type == -1) {			/* type is synth? */
@@ -222,8 +229,7 @@ static int mmd3_load(struct module_data *m, HIO_HANDLE *f, const int start)
 	expdata.i_ext_entrsz = 0;
 	expsmp_offset = 0;
 	iinfo_offset = 0;
-	if (expdata_offset) {
-		hio_seek(f, start + expdata_offset, SEEK_SET);
+	if (expdata_offset && 0 == hio_seek(f, start + expdata_offset, SEEK_SET)) {
 		hio_read32b(f);
 		expsmp_offset = hio_read32b(f);
 		D_(D_INFO "expsmp_offset = 0x%08x", expsmp_offset);
@@ -257,20 +263,22 @@ static int mmd3_load(struct module_data *m, HIO_HANDLE *f, const int start)
 	D_(D_WARN "find number of channels");
 
 	for (i = 0; i < mod->pat; i++) {
-		int block_offset;
+		uint32 block_offset;
 
-		hio_seek(f, start + blockarr_offset + i * 4, SEEK_SET);
+		if (0 != hio_seek(f, start + blockarr_offset + i * 4, SEEK_SET))
+			break;
 		block_offset = hio_read32b(f);
 		D_(D_INFO "block %d block_offset = 0x%08x", i, block_offset);
 		if (block_offset == 0)
 			continue;
-		hio_seek(f, start + block_offset, SEEK_SET);
+		if (0 != hio_seek(f, start + block_offset, SEEK_SET))
+			break;
 
 		block.numtracks = hio_read16b(f);
 		block.lines = hio_read16b(f);
 
 		if (block.numtracks > mod->chn)
-			mod->chn = block.numtracks;
+			mod->chn = MIN(block.numtracks, XMP_MAX_CHANNELS);
 	}
 
 	mod->trk = mod->pat * mod->chn;
@@ -295,14 +303,13 @@ static int mmd3_load(struct module_data *m, HIO_HANDLE *f, const int start)
 		return -1;
 
 	for (i = 0; i < mod->pat; i++) {
-		int block_offset;
+		uint32 block_offset;
 
-		hio_seek(f, start + blockarr_offset + i * 4, SEEK_SET);
+		if (0 != hio_seek(f, start + blockarr_offset + i * 4, SEEK_SET))
+			break;
 		block_offset = hio_read32b(f);
-		if (block_offset == 0)
+		if (block_offset == 0 || 0 != hio_seek(f, start + block_offset, SEEK_SET))
 			continue;
-		hio_seek(f, start + block_offset, SEEK_SET);
-
 		block.numtracks = hio_read16b(f);
 		block.lines = hio_read16b(f);
 		hio_read32b(f);
@@ -310,14 +317,17 @@ static int mmd3_load(struct module_data *m, HIO_HANDLE *f, const int start)
 		if (pattern_tracks_alloc(mod, i, block.lines + 1) < 0)
 			return -1;
 
-		for (j = 0; j < mod->xxp[i]->rows; j++) {
-			for (k = 0; k < block.numtracks; k++) {
+		for (j = 0; j < mod->xxp[i]->rows && !hio_eof(f); j++) {
+			for (k = 0; k < block.numtracks && !hio_eof(f); k++) {
 				e[0] = hio_read8(f);
 				e[1] = hio_read8(f);
 				e[2] = hio_read8(f);
 				e[3] = hio_read8(f);
 
-				event = &EVENT(i, k, j);
+				if (k >= mod->chn)
+					event = &dummy;
+				else
+					event = &EVENT(i, k, j);
 				event->note = e[0] & 0x7f;
 				if (event->note)
 					event->note += 24 + song.playtransp;
@@ -354,31 +364,29 @@ static int mmd3_load(struct module_data *m, HIO_HANDLE *f, const int start)
 		int smpl_offset;
 		char name[40] = "";
 
-		hio_seek(f, start + smplarr_offset + i * 4, SEEK_SET);
+		if (0 != hio_seek(f, start + smplarr_offset + i * 4, SEEK_SET))
+			break;
 		smpl_offset = hio_read32b(f);
 
 		D_(D_INFO "sample %d smpl_offset = 0x%08x", i, smpl_offset);
 
-		if (smpl_offset == 0)
+		if (smpl_offset == 0 || 0 != hio_seek(f, start + smpl_offset, SEEK_SET))
 			continue;
 
-		hio_seek(f, start + smpl_offset, SEEK_SET);
 		instr.length = hio_read32b(f);
 		instr.type = hio_read16b(f);
 
 		pos = hio_tell(f);
 
-		if (expdata_offset && i < expdata.i_ext_entries) {
-			hio_seek(f, iinfo_offset + i * expdata.i_ext_entrsz,
-								SEEK_SET);
+		if (expdata_offset && i < expdata.i_ext_entries
+		    && 0 == hio_seek(f, iinfo_offset + i * expdata.i_ext_entrsz, SEEK_SET)) {
 			hio_read(name, 40, 1, f);
 			D_(D_INFO "[%2x] %-40.40s %d", i, name, instr.type);
 		}
 
 		exp_smp.finetune = 0;
-		if (expdata_offset && i < expdata.s_ext_entries) {
-			hio_seek(f, expsmp_offset + i * expdata.s_ext_entrsz,
-							SEEK_SET);
+		if (expdata_offset && i < expdata.s_ext_entries
+		    && 0 == hio_seek(f, expsmp_offset + i * expdata.s_ext_entrsz, SEEK_SET)) {
 			exp_smp.hold = hio_read8(f);
 			exp_smp.decay = hio_read8(f);
 			exp_smp.suppress_midi_off = hio_read8(f);
