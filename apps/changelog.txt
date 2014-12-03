@@ -5,6 +5,16 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3150 from 03.12.2014
+
+[+] Added ExtremeTracker v1.xx support
+[*] Fix crash on invalid MMD3 modules
+[*] zxtune-android: use external storage as file cache
+[*] zxtune-android: improved errors reporting
+[*] zxtune-android: fixed some memory leaks on orientation change
+[*] zxtune-android: speedup and other improvements in remote catalogs support
+[*] zxtune-android: fixed search results disappearing on orientation change
+
 --- Rev3135 from 18.11.2014
 
 [*] Fixed SQD playback
