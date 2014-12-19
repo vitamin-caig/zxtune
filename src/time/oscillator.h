@@ -61,13 +61,18 @@ namespace Time
     {
       return TimeStamp(CurTime.Integer());
     }
+    
+    Tick GetTicksToTime(const TimeStamp& time) const
+    {
+      FixedPoint relTime(time.Get());
+      assert(relTime >= CurTime);
+      relTime -= CurTime;
+      return (TicksPerTimeSlice * relTime).Integer();
+    }
 
     Tick GetTickAtTime(const TimeStamp& time) const
     {
-      FixedPoint relTime(time.Get());
-      relTime -= CurTime;
-      const Tick relTick = (TicksPerTimeSlice * relTime).Integer();
-      return CurTick + relTick;
+      return CurTick + GetTicksToTime(time);
     }
   private:
     Tick CurTick;
