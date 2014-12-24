@@ -28,6 +28,7 @@ namespace Sound
 
     void Reserve(std::size_t maxSize)
     {
+      assert(maxSize < 1048576);
       Content = boost::make_shared<Chunk>(maxSize);
       Pos = &Content->front();
     }
