@@ -75,6 +75,10 @@ __cpp> "}//namespace Text\n"
 < GLOBALTRACKER1_EDITOR
 > GLOBALTRACKER " v1.%1%"
 
+#MIDI
+< MIDI_DECODER_DESCRIPTION
+> "MIDI/MID/SMF"
+
 #ProDigiTracker
 < PRODIGITRACKER_DECODER_DESCRIPTION
 > "ProDigi Tracker v0.0x"
