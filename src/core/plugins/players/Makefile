@@ -1,6 +1,6 @@
 library_name := core_plugins_players
 path_step := ../../../..
-source_dirs := . ay dac saa sid tfm xmp
+source_dirs := . ay dac midi saa sid tfm xmp
 
 include $(path_step)/3rdparty/sidplayfp/defines.mak
 
