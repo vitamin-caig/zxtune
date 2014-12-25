@@ -22,9 +22,13 @@
 
 #include "mt32emu.h"
 #include "mmath.h"
-#include "PartialManager.h"
-#include "BReverbModel.h"
+#include "internals.h"
+
 #include "Analog.h"
+#include "BReverbModel.h"
+#include "MemoryRegion.h"
+#include "MidiEventQueue.h"
+#include "PartialManager.h"
 
 namespace MT32Emu {
 
@@ -57,7 +61,7 @@ Bit8u Synth::calcSysexChecksum(const Bit8u *data, const Bit32u len, const Bit8u 
 	return Bit8u(checksum & 0x7f);
 }
 
-Synth::Synth(ReportHandler *useReportHandler) {
+Synth::Synth(ReportHandler *useReportHandler) : mt32ram(*new MemParams()), mt32default(*new MemParams()) {
 	isOpen = false;
 	reverbOverridden = false;
 	partialCount = DEFAULT_MAX_PARTIALS;
@@ -93,11 +97,12 @@ Synth::~Synth() {
 	if (isDefaultReportHandler) {
 		delete reportHandler;
 	}
+	delete &mt32ram;
+	delete &mt32default;
 }
 
 void ReportHandler::showLCDMessage(const char *data) {
-	printf("WRITE-LCD: %s", data);
-	printf("\n");
+	printf("WRITE-LCD: %s\n", data);
 }
 
 void ReportHandler::printDebug(const char *fmt, va_list list) {
@@ -117,7 +122,7 @@ void Synth::printDebug(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 #if MT32EMU_DEBUG_SAMPLESTAMPS > 0
-	reportHandler->printDebug("[%u] ", renderedSampleCount);
+	reportHandler->printDebug("[%u] ", (char *)&renderedSampleCount);
 #endif
 	reportHandler->printDebug(fmt, ap);
 	va_end(ap);
@@ -1535,7 +1540,10 @@ void Synth::renderStreams(Sample *nonReverbLeft, Sample *nonReverbRight, Sample 
 // In GENERATION2 units, the output from LA32 goes to the Boss chip already bit-shifted.
 // In NICE mode, it's also better to increase volume before the reverb processing to preserve accuracy.
 void Synth::produceLA32Output(Sample *buffer, Bit32u len) {
-#if !MT32EMU_USE_FLOAT_SAMPLES
+#if MT32EMU_USE_FLOAT_SAMPLES
+	(void)buffer;
+	(void)len;
+#else
 	switch (dacInputMode) {
 		case DACInputMode_GENERATION2:
 			while (len--) {
@@ -1556,7 +1564,10 @@ void Synth::produceLA32Output(Sample *buffer, Bit32u len) {
 }
 
 void Synth::convertSamplesToOutput(Sample *buffer, Bit32u len) {
-#if !MT32EMU_USE_FLOAT_SAMPLES
+#if MT32EMU_USE_FLOAT_SAMPLES
+	(void)buffer;
+	(void)len;
+#else
 	if (dacInputMode == DACInputMode_GENERATION1) {
 		while (len--) {
 			*buffer = Sample((*buffer & 0x8000) | ((*buffer << 1) & 0x7FFE));
@@ -1660,12 +1671,46 @@ bool Synth::isActive() const {
 	return false;
 }
 
-const Partial *Synth::getPartial(unsigned int partialNum) const {
-	return partialManager->getPartial(partialNum);
-}
-
 unsigned int Synth::getPartialCount() const {
 	return partialCount;
+}
+
+void Synth::getPartStates(bool *partStates) const {
+	for (int partNumber = 0; partNumber < 9; partNumber++) {
+		const Part *part = parts[partNumber];
+		partStates[partNumber] = part->getActiveNonReleasingPartialCount() > 0;
+	}
+}
+
+void Synth::getPartialStates(PartialState *partialStates) const {
+	static const PartialState partialPhaseToState[8] = {
+		PartialState_ATTACK, PartialState_ATTACK, PartialState_ATTACK, PartialState_ATTACK,
+		PartialState_SUSTAIN, PartialState_SUSTAIN, PartialState_RELEASE, PartialState_INACTIVE
+	};
+
+	for (unsigned int partialNum = 0; partialNum < getPartialCount(); partialNum++) {
+		const Partial *partial = partialManager->getPartial(partialNum);
+		partialStates[partialNum] = partial->isActive() ? partialPhaseToState[partial->getTVA()->getPhase()] : PartialState_INACTIVE;
+	}
+}
+
+unsigned int Synth::getPlayingNotes(unsigned int partNumber, Bit8u *keys, Bit8u *velocities) const {
+	unsigned int playingNotes = 0;
+	if (isOpen && (partNumber < 9)) {
+		const Part *part = parts[partNumber];
+		const Poly *poly = part->getFirstActivePoly();
+		while (poly != NULL) {
+			keys[playingNotes] = (Bit8u)poly->getKey();
+			velocities[playingNotes] = (Bit8u)poly->getVelocity();
+			playingNotes++;
+			poly = poly->getNext();
+		}
+	}
+	return playingNotes;
+}
+
+const char *Synth::getPatchName(unsigned int partNumber) const {
+	return (!isOpen || partNumber > 8) ? NULL : parts[partNumber]->getCurrentInstr();
 }
 
 const Part *Synth::getPart(unsigned int partNum) const {

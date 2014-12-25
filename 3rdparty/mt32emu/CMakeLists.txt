@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(libmt32emu CXX)
 set(libmt32emu_VERSION_MAJOR 1)
-set(libmt32emu_VERSION_MINOR 4)
+set(libmt32emu_VERSION_MINOR 5)
 set(libmt32emu_VERSION_PATCH 0)
 
 # Only headers that need to be installed should be listed here:
@@ -9,20 +9,10 @@ set(libmt32emu_HEADERS
   src/File.h
   src/FileStream.h
   src/mt32emu.h
-  src/LA32Ramp.h
-  src/LA32FloatWaveGenerator.h
-  src/LA32WaveGenerator.h
   src/MidiStreamParser.h
-  src/Part.h
-  src/Partial.h
-  src/Poly.h
   src/ROMInfo.h
-  src/Structures.h
   src/Synth.h
-  src/Tables.h
-  src/TVA.h
-  src/TVF.h
-  src/TVP.h
+  src/Types.h
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER MATCHES "(^|/)clang\\+\\+$")
