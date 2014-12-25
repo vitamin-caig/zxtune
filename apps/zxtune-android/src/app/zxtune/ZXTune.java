@@ -239,6 +239,7 @@ public final class ZXTune {
       public final static int DAC = 32;
       public final static int SAA1099 = 64;
       public final static int MOS6581 = 128;
+      public final static int MIDI = 256;
     }
     
     public interface Visitor {
