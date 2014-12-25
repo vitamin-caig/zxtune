@@ -72,14 +72,16 @@ namespace Devices
       virtual void GetState(MultiChannelState& result) const
       {
         MultiChannelState tmp;
+        const uint_t partials = Synth.getPartialCount();
+        std::vector<uint8_t> keys(partials);
+        std::vector<uint8_t> velocities(partials);
         //ignore rhythm part
-        for (unsigned idx = 0; idx < 8; ++idx)
+        for (unsigned partNumber = 0; partNumber < 8; ++partNumber)
         {
-          const MT32Emu::Part& part = *Synth.getPart(idx);
-          if (const MT32Emu::Poly* poly = part.getFirstActivePoly())
+          for (unsigned note = 0, notes = Synth.getPlayingNotes(partNumber, &keys.front(), &velocities.front()); note != notes; ++note)
           {
             //internal key value is in range 12-108
-            tmp.push_back(ChannelState(poly->getKey() - 12, LevelType(part.getVolume(), 100)));
+            tmp.push_back(ChannelState(keys[note] - 12, LevelType(velocities[note], 127)));
           }
         }
         result.swap(tmp);
