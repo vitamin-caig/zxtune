@@ -289,6 +289,9 @@ extern const Char INFO_CAP_HARDWARE[] = {
 extern const Char INFO_CAP_HWVOLUME[] = {
   'f','e','a','t','_','h','w','v','o','l','u','m','e',0
 };
+extern const Char INFO_CAP_MIDI[] = {
+  'd','e','v','_','m','i','d','i',0
+};
 extern const Char INFO_CAP_MODULE[] = {
   's','t','o','r','_','m','o','d','u','l','e',0
 };
