@@ -51,17 +51,15 @@ namespace Devices
       virtual void RenderData(const DataChunk& src)
       {
         FlushFrame(src.TimeStamp);
-        Require(src.Sizes.empty() == src.Data.empty());
-        std::size_t offset = 0;
-        for (std::size_t idx = 0, lim = src.Sizes.size(); idx != lim; ++idx)
-        {
-          const std::size_t size = src.Sizes[idx];
-          //at least one sample should be between messages
-          AddFrameData(&src.Data.front() + offset, size, Snd.GetCurrentTick() + idx);
-          offset += size;
-        }
+        PlayData(src);
       }
 
+      virtual void UpdateState(const DataChunk& src)
+      {
+        Synth.flushMIDIQueue();
+        PlayData(src);
+      }
+      
       virtual void Reset()
       {
         Synth.close();
@@ -97,7 +95,21 @@ namespace Devices
         Snd.SetFrequency(Synth.getStereoOutputSampleRate());
       }
       
-      void AddFrameData(const uint8_t* data, std::size_t size, uint_t stamp)
+      void PlayData(const DataChunk& src)
+      {
+        Require(src.Sizes.empty() == src.Data.empty());
+        const uint_t baseStamp = Snd.GetCurrentTick();
+        std::size_t offset = 0;
+        for (std::size_t idx = 0, lim = src.Sizes.size(); idx != lim; ++idx)
+        {
+          const std::size_t size = src.Sizes[idx];
+          //at least one sample should be between messages
+          PlayFrameData(&src.Data.front() + offset, size, baseStamp + idx);
+          offset += size;
+        }
+      }
+      
+      void PlayFrameData(const uint8_t* data, std::size_t size, uint_t stamp)
       {
         Require(size != 0);
         if (IsSysex(data[0]))
@@ -109,7 +121,7 @@ namespace Devices
           Synth.playMsg(MakeMsg(data, size), stamp);
         }
       }
-      
+
       void FlushFrame(Stamp time)
       {
         if (const uint_t samplesCount = Snd.GetTicksToTime(time))

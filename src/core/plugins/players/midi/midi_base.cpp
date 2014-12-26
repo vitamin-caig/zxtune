@@ -83,7 +83,8 @@ namespace Module
       }
       while (state->Frame() < frameNum && Iterator->IsValid())
       {
-        TransferChunk();
+        Iterator->GetData(LastChunk);
+        Device->UpdateState(LastChunk);
         Iterator->NextFrame(false);
       }
     }

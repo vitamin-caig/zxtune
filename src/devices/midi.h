@@ -47,6 +47,9 @@ namespace Devices
       /// Render sound till src.TimeStamp and change state
       virtual void RenderData(const DataChunk& src) = 0;
 
+      /// Same as RenderData but do not produce sound output
+      virtual void UpdateState(const DataChunk& src) = 0;
+
       /// reset internal state to initial
       virtual void Reset() = 0;
     };
