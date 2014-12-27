@@ -52,16 +52,19 @@ public class FileIterator implements Iterator {
   
   private static final int MAX_VISITED = 10;
   
+  private final VfsIterator.KeepLastErrorHandler handler;
   private final VfsIterator iterator;
   private final ArrayDeque<CacheEntry> prev;
   private final ArrayDeque<CacheEntry> next;//first is current
 
   public FileIterator(Context context, Uri[] paths) throws IOException {
-    this.iterator = new VfsIterator(paths);
+    this.handler = new VfsIterator.KeepLastErrorHandler();
+    this.iterator = new VfsIterator(paths, handler);
     this.prev = new ArrayDeque<CacheEntry>();
     this.next = new ArrayDeque<CacheEntry>();
     prefetch();
     if (next.isEmpty()) {
+      handler.throwLastIOError();
       throw new IOException(context.getString(R.string.no_tracks_found));
     }
   }
@@ -104,7 +107,7 @@ public class FileIterator implements Iterator {
       return true;
     }
   }
-  
+
   private void prefetch() {
     while (!hasNext() && iterator.isValid()) {
       processNextFile();
@@ -117,7 +120,7 @@ public class FileIterator implements Iterator {
     } catch (InvalidObjectException e) {
       Log.d(TAG, "Cached item become invalid");
     } catch (IOException e) {
-      Log.d(TAG, "I/O error while loading cached item");
+      handler.onIOError(e);
     }
     return PlayableItemStub.instance();
   }
@@ -130,7 +133,7 @@ public class FileIterator implements Iterator {
     } catch (InvalidObjectException e) {
       Log.d(TAG, "Skip not a module", e);
     } catch (IOException e) {
-      Log.d(TAG, "Skip I/O error", e);
+      handler.onIOError(e);
     }
   }
   

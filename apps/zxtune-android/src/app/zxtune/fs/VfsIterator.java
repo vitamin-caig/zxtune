@@ -17,14 +17,45 @@ import android.net.Uri;
 import android.util.Log;
 
 public final class VfsIterator {
-
+  
+  public interface ErrorHandler {
+    public void onIOError(IOException e);
+  }
+  
+  public static class KeepLastErrorHandler implements ErrorHandler {
+    
+    private IOException lastError;
+    
+    @Override
+    public void onIOError(IOException e) {
+      lastError = e;
+    }
+    
+    public final void throwLastIOError() throws IOException {
+      if (lastError != null) {
+        throw lastError;
+      }
+    }
+  }
+  
   private static final String TAG = VfsIterator.class.getName();
 
+  private final ErrorHandler handler;
   private final ArrayDeque<VfsFile> files;
   private final ArrayDeque<VfsDir> dirs;
   private final ArrayDeque<Uri> paths;
-
+  
   public VfsIterator(Uri[] paths) {
+    this(paths, new ErrorHandler() {
+      @Override
+      public void onIOError(IOException e) {
+        Log.d(TAG, "Skip I/O error", e);
+      }
+    });
+  }
+
+  public VfsIterator(Uri[] paths, ErrorHandler handler) {
+    this.handler = handler;
     this.files = new ArrayDeque<VfsFile>();
     this.dirs = new ArrayDeque<VfsDir>();
     this.paths = new ArrayDeque<Uri>(paths.length);
@@ -79,7 +110,7 @@ public final class VfsIterator {
         }
       });
     } catch (IOException e) {
-      Log.d(TAG, "Skip I/O error", e);
+      handler.onIOError(e);
     }
   }
   
@@ -92,7 +123,7 @@ public final class VfsIterator {
         dirs.addLast((VfsDir) obj);
       }
     } catch (IOException e) {
-      Log.d(TAG, "Skip I/O error", e);
+      handler.onIOError(e);
     }
   }
 }
