@@ -28,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import app.zxtune.MainApplication;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
@@ -213,7 +214,11 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     
     @Override
     public void onError(final String error) {
-      Toast.makeText(getActivity(), error, Toast.LENGTH_SHORT).show();
+      final ActionBarActivity activity = (ActionBarActivity)getActivity();
+      //Seems like may be called before activity attach
+      if (activity != null) {
+        Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
+      }
     }
   }
   
