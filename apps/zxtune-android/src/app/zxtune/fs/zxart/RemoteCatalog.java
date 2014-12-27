@@ -208,11 +208,14 @@ final class RemoteCatalog extends Catalog {
     }
 
     final Author captureResult() {
-      final Author res = new Author(id, nickname, name);
+      final Author res = isValid() ? new Author(id, nickname, name) : null;
       id = null;
-      nickname = null;
-      name = "".intern();//ok for null
+      nickname = name = null;
       return res;
+    }
+    
+    private boolean isValid() {
+      return id != null && nickname != null;
     }
   }
 
@@ -283,11 +286,15 @@ final class RemoteCatalog extends Catalog {
     }
 
     final Party captureResult() {
-      final Party res = new Party(id, name, year);
+      final Party res = isValid() ? new Party(id, name, year) : null;
       id = null;
-      name = "";
+      name = null;
       year = 0;
       return res;
+    }
+    
+    private boolean isValid() {
+      return id != null && name != null;
     }
   }
   
@@ -308,7 +315,10 @@ final class RemoteCatalog extends Catalog {
     item.setEndElementListener(new EndElementListener() {
       @Override
       public void end() {
-        visitor.accept(builder.captureResult());
+        final Track result = builder.captureResult();
+        if (result != null) {
+          visitor.accept(result);
+        }
       }
     });
     item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
@@ -444,16 +454,22 @@ final class RemoteCatalog extends Catalog {
 
     final Track captureResult() {
       title = Util.formatTrackTitle(internalAuthor, internalTitle, title);
-      final Track res = new Track(id, filename, title, votes, duration, year, compo, partyplace);
+      final Track res = isValid()
+        ? new Track(id, filename, title, votes, duration, year, compo, partyplace)
+        : null;
       reset();
       return res;
     }
     
     private void reset() {
       id = null;
+      filename = null;
       year = partyplace = 0;
       votes = duration = title = internalAuthor = internalTitle = compo = "".intern();
-      filename = null;
+    }
+    
+    private boolean isValid() {
+      return id != null && filename != null;
     }
   }
 

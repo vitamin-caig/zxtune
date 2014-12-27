@@ -486,7 +486,9 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
     @Override
     public String getSize() {
-      return FRAME_DURATION.multiplies(module.duration).toString();
+      return module.duration != null
+        ? FRAME_DURATION.multiplies(module.duration).toString()
+        : "".intern();
     }
 
     @Override

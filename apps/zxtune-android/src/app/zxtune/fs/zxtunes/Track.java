@@ -21,7 +21,7 @@ public final class Track {
   public Track(int id, String filename, String title, Integer duration, Integer date) {
     this.id = id;
     this.filename = filename;
-    this.title = title;
+    this.title = title != null ? title : "".intern();
     this.duration = duration;
     this.date = date;
   }

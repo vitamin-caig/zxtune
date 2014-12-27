@@ -168,7 +168,7 @@ final class RemoteCatalog extends Catalog {
     private String nickname;
     private String name;
     private Integer tracks;
-
+    
     final void setId(String val) {
       id = Integer.valueOf(val);
     }
@@ -186,11 +186,18 @@ final class RemoteCatalog extends Catalog {
     }
 
     final Author captureResult() {
-      final Author res = tracks != null && tracks != 0 ? new Author(id, nickname, name) : null;
+      final Author res = isValid() && hasTracks() ? new Author(id, nickname, name) : null;
       id = tracks = null;
-      nickname = null;
-      name = "".intern();//ok for null
+      nickname = name = null;
       return res;
+    }
+    
+    private boolean isValid() {
+      return id != null && nickname != null;
+    }
+    
+    private boolean hasTracks() {
+      return tracks != null && tracks != 0;
     }
   }
 
@@ -217,7 +224,10 @@ final class RemoteCatalog extends Catalog {
     item.setEndElementListener(new EndElementListener() {
       @Override
       public void end() {
-        visitor.accept(builder.captureResult());
+        final Track result = builder.captureResult();
+        if (result != null) {
+          visitor.accept(result);
+        }
       }
     });
     item.getChild("filename").setEndTextElementListener(new EndTextElementListener() {
@@ -254,7 +264,7 @@ final class RemoteCatalog extends Catalog {
     private String title;
     private Integer duration;
     private Integer date;
-
+    
     final void setId(String val) {
       id = Integer.valueOf(val);
     }
@@ -276,12 +286,14 @@ final class RemoteCatalog extends Catalog {
     }
 
     final Track captureResult() {
-      final Track res = new Track(id, filename, title, duration, date);
-      id = date = null;
-      duration = Integer.valueOf(0);//stub for null
-      filename = null;
-      title = "".intern();//stub for null
+      final Track res = isValid() ? new Track(id, filename, title, duration, date) : null;
+      id = duration = date = null;
+      filename = title = null;
       return res;
+    }
+    
+    private boolean isValid() {
+      return id != null && filename != null;
     }
   }
 
