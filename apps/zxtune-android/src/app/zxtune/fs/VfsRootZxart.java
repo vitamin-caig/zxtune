@@ -111,7 +111,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
   }
 
   @Override
-  public VfsObject resolve(Uri uri) {
+  public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
     } else {
@@ -184,7 +184,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
   }
 
-  private VfsObject resolvePath(Uri uri) {
+  private VfsObject resolvePath(Uri uri) throws IOException {
     final List<String> path = uri.getPathSegments();
     if (path.isEmpty()) {
       return this;
@@ -203,7 +203,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     String getPath();
 
-    VfsObject resolve(Uri uri, List<String> path);
+    VfsObject resolve(Uri uri, List<String> path) throws IOException;
   }
 
   private static class FindAuthorVisitor extends Catalog.AuthorsVisitor {
@@ -224,7 +224,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
 
-  private Author resolveAuthor(Uri uri, String nick) {
+  private Author resolveAuthor(Uri uri, String nick) throws IOException {
     try {
       // nickname is not unique, so use explicit identifier
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR_ID));
@@ -236,6 +236,8 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             id, result.nickname, nick));
       }
       return result;
+    } catch (IOException e) {
+      throw e;
     } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
       Log.d(TAG, "resolveAuthor(" + uri + ")", e);
     }
@@ -260,7 +262,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
 
-  private Party resolveParty(Uri uri, String name) {
+  private Party resolveParty(Uri uri, String name) throws IOException {
     try {
       // name is not unique, so use explicit identifier
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_PARTY_ID));
@@ -272,6 +274,8 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             id, result.name, name));
       }
       return result;
+    } catch (IOException e) {
+      throw e;
     } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
       Log.d(TAG, "resolveParty(" + uri + ")", e);
     }
@@ -296,7 +300,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
 
-  private Track resolveTrack(Uri uri, Author author, int year, String filename) {
+  private Track resolveTrack(Uri uri, Author author, int year, String filename) throws IOException {
     try {
       // filename is not unique and track can belong to several authors, so use
       // explicit identifier
@@ -310,13 +314,15 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             id, result.filename, filename));
       }
       return result;
+    } catch (IOException e) {
+      throw e;
     } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
       Log.d(TAG, "resolveTrack(" + uri + ")", e);
     }
     return null;
   }
 
-  private Track resolveTrack(Uri uri, Party party, String filename) {
+  private Track resolveTrack(Uri uri, Party party, String filename) throws IOException {
     try {
       // filename is not unique and track can belong to several parties(?), so use
       // explicit identifier
@@ -330,13 +336,15 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             id, result.filename, filename));
       }
       return result;
+    } catch (IOException e) {
+      throw e;
     } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
       Log.d(TAG, "resolveTrack(" + uri + ")", e);
     }
     return null;
   }
 
-  private Track resolveTrack(Uri uri, String filename) {
+  private Track resolveTrack(Uri uri, String filename) throws IOException {
     try {
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
@@ -347,6 +355,8 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             id, result.filename, filename));
       }
       return result;
+    } catch (IOException e) {
+      throw e;
     } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
       Log.d(TAG, "resolveTrack(" + uri + ")", e);
     }
@@ -399,7 +409,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) {
+    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
       final int lastPathElement = path.size() - 1;
       if (lastPathElement == POS_CATEGORY) {
         return this;
@@ -424,7 +434,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       return new AuthorYearDir(author, year);
     }
 
-    private VfsObject resolveAuthorYearTrack(Uri uri, Author author, List<String> path) {
+    private VfsObject resolveAuthorYearTrack(Uri uri, Author author, List<String> path) throws IOException {
       final int year = resolveAuthorYear(path);
       final Track track = resolveTrack(uri, author, year, path.get(POS_AUTHOR_YEAR_TRACK));
       if (track != null) {
@@ -583,7 +593,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) {
+    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
       final int lastPathElement = path.size() - 1;
       if (lastPathElement == POS_CATEGORY) {
         return this;
@@ -610,7 +620,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       return new PartyYearDir(year);
     }
     
-    private VfsObject resolvePartyCompoDir(Uri uri, Party party, List<String> path) {
+    private VfsObject resolvePartyCompoDir(Uri uri, Party party, List<String> path) throws IOException {
       final String compo = path.get(POS_PARTY_COMPO);
       //compatibility
       if (uri.getQueryParameter(PARAM_TRACK_ID) != null) {
@@ -620,7 +630,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       }
     }
     
-    private VfsObject resolvePartyTrack(Uri uri, Party party, String filename) {
+    private VfsObject resolvePartyTrack(Uri uri, Party party, String filename) throws IOException {
       final Track track = resolveTrack(uri, party, filename);
       if (track != null) {
         return new TrackFile(uri, track);
@@ -851,7 +861,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) {
+    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
       final int lastPathElement = path.size() - 1;
       if (lastPathElement == POS_CATEGORY) {
         return this;
@@ -862,7 +872,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       }
     }
     
-    private VfsObject resolveTopTrack(Uri uri, List<String> path) {
+    private VfsObject resolveTopTrack(Uri uri, List<String> path) throws IOException {
       final Track track = resolveTrack(uri, path.get(POS_TOP_TRACK));
       if (track != null) {
         return new TrackFile(uri, track);

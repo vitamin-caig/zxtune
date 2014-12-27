@@ -94,7 +94,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
     return new Uri.Builder().scheme(SCHEME);
   }
 
-  private VfsObject resolvePath(Uri uri) {
+  private VfsObject resolvePath(Uri uri) throws IOException {
     final List<String> path = uri.getPathSegments();
     if (path.isEmpty()) {
       return this;
@@ -111,7 +111,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
   
   private abstract class GroupsDir extends StubObject implements VfsDir {
     abstract String getPath();
-    abstract VfsObject resolve(Uri uri, List<String> path);
+    abstract VfsObject resolve(Uri uri, List<String> path) throws IOException;
   }
   
   private class C64MusicRootDir extends GroupsDir {
@@ -147,7 +147,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) {
+    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
       final int lastPathComponent = path.size() - 1;
       if (POS_CATEGORY == lastPathComponent) {
         return this;
@@ -160,6 +160,8 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
           return catalog.isDirContent(content)
               ? new C64MusicSubdir(subpath, content)
               : new C64MusicFile(subpath, content);
+        } catch (IOException e) {
+          throw e;
         } catch (Exception e) {
           Log.d(TAG, "resolve(" + uri + ")", e);
           return null;

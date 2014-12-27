@@ -103,7 +103,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
   }
   
   @Override
-  public VfsObject resolve(Uri uri) {
+  public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
     } else {
@@ -147,7 +147,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
         .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
   }
 
-  private VfsObject resolvePath(Uri uri) {
+  private VfsObject resolvePath(Uri uri) throws IOException {
     final List<String> path = uri.getPathSegments();
     if (path.isEmpty()) {
       return this;
@@ -164,7 +164,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
   
-  private VfsObject resolveAllAuthorsPath(Uri uri, List<String> path) {
+  private VfsObject resolveAllAuthorsPath(Uri uri, List<String> path) throws IOException {
     if (POS_CATEGORY == path.size() - 1) {
       return allAuthors;
     } else {
@@ -172,7 +172,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
   
-  private VfsObject resolveAuthorPath(Uri uri, List<String> path) {
+  private VfsObject resolveAuthorPath(Uri uri, List<String> path) throws IOException {
     final Author author = resolveAuthor(uri, path.get(POS_AUTHOR_NICK));
     if (author == null) {
       return null;
@@ -189,7 +189,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
    
-  private Author resolveAuthor(Uri uri, String nick) {
+  private Author resolveAuthor(Uri uri, String nick) throws IOException {
     try {
       //nickname is not unique, so use explicit identifier
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR_ID));
@@ -201,6 +201,8 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
           id, result.nickname, nick));
       }
       return result;
+    } catch (IOException e) {
+      throw e;
     } catch (Exception e) {//IllegalStateException|NullPointerException|NumberFormatException
       Log.d(TAG, "resolveAuthor(" + uri + ")", e);
     }
@@ -229,7 +231,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
 
-  private VfsObject resolveAuthorDatePathOrTrack(Uri uri, Author author, List<String> path) {
+  private VfsObject resolveAuthorDatePathOrTrack(Uri uri, Author author, List<String> path) throws IOException {
     final Integer date = resolveAuthorDate(path);
     if (date != null) {
       return new AuthorDateDir(author, date);
@@ -244,7 +246,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
   
-  private VfsObject resolveAuthorDateTrack(Uri uri, Author author, List<String> path) {
+  private VfsObject resolveAuthorDateTrack(Uri uri, Author author, List<String> path) throws IOException {
     final Integer date = resolveAuthorDate(path);
     if (date != null) {
       final Track track = resolveTrack(uri, author, date, path.get(POS_AUTHOR_DATE_TRACK));
@@ -287,7 +289,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
   
-  private Track resolveTrack(Uri uri, Author author, Integer date, String filename) {
+  private Track resolveTrack(Uri uri, Author author, Integer date, String filename) throws IOException {
     try {
       //filename is not unique and track can belong to several authors, so use explicit identifier
       //callers doesn't know that author and date is useless now
@@ -300,6 +302,8 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
           id, result.filename, filename));
       }
       return result;
+    } catch (IOException e) {
+      throw e;
     } catch (Exception e) {//IllegalStateException|NullPointerException|NumberFormatException
       Log.d(TAG, "resolveTrack(" + uri + ")", e);
     }
