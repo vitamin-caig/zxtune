@@ -47,6 +47,7 @@ public class MainService extends Service {
   private Releaseable remoteControlHandler;
   private Releaseable headphonesPlugHandler;
   private Releaseable notificationTypeHandler;
+  private Releaseable widgetHandler;
   private Releaseable settingsChangedHandler;
   
   public final static String ACTION_PREV = TAG + ".prev";
@@ -80,6 +81,7 @@ public class MainService extends Service {
     connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
     connectHeadphonesPlugging(prefs.getBoolean(PREF_UNPLUGGING, PREF_UNPLUGGING_DEFAULT));
     setupNotification(prefs.getBoolean(PREF_NOTIFICATIONBUTTONS, PREF_NOTIFICATIONBUTTONS_DEFAULT));
+    setupWidgets();
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
       final String key = entry.getKey();
       if (key.startsWith(ZXTune.Properties.PREFIX)) {
@@ -97,6 +99,8 @@ public class MainService extends Service {
     Log.d(TAG, "Destroying");
     settingsChangedHandler.release();
     settingsChangedHandler = null;
+    widgetHandler.release();
+    widgetHandler = null;
     notificationTypeHandler.release();
     notificationTypeHandler = null;
     headphonesPlugHandler.release();
@@ -186,6 +190,11 @@ public class MainService extends Service {
         ? StatusNotification.Type.WITH_CONTROLS : StatusNotification.Type.DEFAULT; 
     final StatusNotification cb = new StatusNotification(this, type);
     notificationTypeHandler = new CallbackSubscription(service, cb);
+  }
+  
+  private void setupWidgets() {
+    final WidgetHandler.WidgetNotification cb = new WidgetHandler.WidgetNotification();
+    widgetHandler = new CallbackSubscription(service, cb);
   }
   
   private void setupServiceSessions() {
