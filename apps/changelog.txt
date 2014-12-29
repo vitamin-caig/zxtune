@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3155 from 29.12.2014
+
+[+] zxtune-android: added homescreen widget
+[*] zxtune-android: fixed crash on www.zxtunes.com catalog searching
+[*] zxtune-android: improved errors reporting
+
 --- Rev3150 from 03.12.2014
 
 [+] Added ExtremeTracker v1.xx support
