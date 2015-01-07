@@ -18,9 +18,9 @@ namespace Platform
     {
 //fpu type
 #if defined(__arm__) && !defined(__SOFTFP__)
-      static const char ARCH("armhf");
+      static const char ARCH[] = "armhf";
 #else
-      static const char ARCH("arm");
+      static const char ARCH[] = "arm";
 #endif
     
 #if _M_ARM == 4 || \
