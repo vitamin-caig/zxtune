@@ -14,9 +14,10 @@
 
 //local includes
 #include "console.h"
-#include <apps/base/app.h>
 //common includes
 #include <error.h>
+//library includes
+#include <platform/application.h>
 //platform-dependent includes
 #include <errno.h>
 #include <fcntl.h>
