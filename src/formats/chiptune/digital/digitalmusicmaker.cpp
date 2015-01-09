@@ -298,10 +298,11 @@ namespace Chiptune
       void ParseMixins(Builder& target) const
       {
         //big mixins amount support
-        for (std::size_t mixIdx = 0; mixIdx != 64; ++mixIdx)
+        for (uint_t mixIdx = 0; mixIdx != 64; ++mixIdx)
         {
+          Dbg("Parse mixin %1%", mixIdx);
           const MixedLine& src = Source.Mixings[mixIdx];
-          std::auto_ptr<ChannelBuilder> dst = target.SetSampleMixin(mixIdx, src.Period);
+          const std::auto_ptr<ChannelBuilder> dst = target.SetSampleMixin(mixIdx, src.Period);
           ParseChannel(src.Mixin, *dst);
         }
       }
