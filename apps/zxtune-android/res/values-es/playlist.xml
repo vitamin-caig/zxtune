@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="playlist">Playlist</string>
+  <string name="playlist_empty">Lista de reproducción está vacía</string>
+  <string name="saved">Guardado</string>
+  <string name="save_failed">Error al guardar: %s</string>
+</resources>

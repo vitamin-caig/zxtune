@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <!--Local-->
+  <string name="vfs_local_root_name">Sistema de archivos local</string>
+  <string name="vfs_local_root_description">Contenido de almacenamientos internos y externos</string>
+  <!--zxtunes.com-->
+  <string name="vfs_zxtunes_root_name">Colección de música ZXTUNES</string>
+  <string name="vfs_zxtunes_authors_name">Autores</string>
+  <string name="vfs_zxtunes_authors_description">ZX Spectrum catálogo músicos</string>
+  <!--Playlists-->
+  <string name="vfs_playlists_root_name">Listas de reproducción</string>
+  <string name="vfs_playlists_root_description">Guardado almacenamiento listas de reproducción</string>
+  <!--ftp.modland.com-->
+  <string name="vfs_modland_root_name">Modland - mayor archivo del módulo</string>
+  <string name="vfs_modland_root_description">Vía http://www.exotica.org.uk</string>
+  <string name="vfs_modland_authors_name">Autores</string>
+  <string name="vfs_modland_authors_description">Búsqueda por autor</string>
+  <string name="vfs_modland_collections_name">Colecciones</string>
+  <string name="vfs_modland_collections_description">Búsqueda por coleccione</string>
+  <string name="vfs_modland_formats_name">Formatos</string>
+  <string name="vfs_modland_formats_description">Búsqueda por formato</string>
+  <!--High Voltage Sid Collection (www.hvsc.c64.org)-->
+  <string name="vfs_hvsc_root_description">Vía http://www.prg.dtu.dk</string>
+  <!--zxart.ee-->
+  <string name="vfs_zxart_root_name">ZX-Art - música moderna ZX Spectrum</string>
+  <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
+  <string name="vfs_zxart_authors_name">Autores</string>
+  <string name="vfs_zxart_authors_description">Búsqueda por autor</string>
+  <string name="vfs_zxart_parties_name">Eventos</string>
+  <string name="vfs_zxart_parties_description">Búsqueda por evento</string>
+  <string name="vfs_zxart_toptracks_name">Top módulos</string>
+  <string name="vfs_zxart_toptracks_description">100 módulos más votadas</string>
+  <string name="vfs_zxart_unknown_year_name">Año desconocido</string>
+  <string name="vfs_zxart_compo_unknown">Desconocido compo</string>
+  <string name="vfs_zxart_compo_standard">Compo música general</string>
+  <string name="vfs_zxart_compo_ay">Compo música AY</string>
+  <string name="vfs_zxart_compo_beeper">Compo música beeper</string>
+  <string name="vfs_zxart_compo_copyay">Compo AY copiar</string>
+  <string name="vfs_zxart_compo_nocopyay">Compo AY original</string>
+  <string name="vfs_zxart_compo_realtime">Compo tiempo real</string>
+  <string name="vfs_zxart_compo_realtimeay">Compo AY tiempo real</string>
+  <string name="vfs_zxart_compo_realtimebeeper">Compo beeper tiempo real</string>
+  <string name="vfs_zxart_compo_out">Fuera de compo</string>
+  <string name="vfs_zxart_compo_wild">Wild</string>
+  <string name="vfs_zxart_compo_experimental">Compo música experimental</string>
+  <string name="vfs_zxart_compo_oldschool">Compo música oldschool</string>
+  <string name="vfs_zxart_compo_mainstream">Compo música mainstream</string>
+  <string name="vfs_zxart_compo_progressive">Compo música progressive</string>
+  <!--errors-->
+  <string name="network_inaccessible">La red no es accesible</string>
+  <string name="failed_resolve">No se pudo resolver %s</string>
+</resources>
