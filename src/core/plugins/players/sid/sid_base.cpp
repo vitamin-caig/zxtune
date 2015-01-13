@@ -32,7 +32,7 @@
 #include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
-#include <3rdparty/sidplayfp/builders/resid/resid.h>
+#include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
