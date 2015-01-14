@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2001 Simon White
  *
@@ -32,8 +32,7 @@ protected:
     virtual void write(uint_least8_t addr, uint8_t data) = 0;
 
 public:
-    virtual void reset () = 0;
-    virtual const char *credits() const = 0;
+    virtual void reset() = 0;
 
 protected:
     ~component() {}

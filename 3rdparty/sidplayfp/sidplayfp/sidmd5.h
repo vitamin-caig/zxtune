@@ -28,25 +28,33 @@
 #include "utils/MD5/MD5.h"
 
 /**
-* A wrapper around the md5 implementation that provides
-* an hex formatted digest
-*/
+ * A wrapper around the md5 implementation that provides
+ * an hex formatted digest
+ */
 class sidmd5
 {
 private:
     MD5 m_md5;
 
 public:
-    /// Append a string to the message.
+    /**
+     * Append a string to the message.
+     */
     void append(const void* data, int nbytes) { m_md5.append(data, nbytes); }
 
-    /// Finish the message.
+    /**
+     * Finish the message.
+     */
     void finish() { m_md5.finish(); }
 
-    /// Initialize the algorithm. Reset starting values.
+    /**
+     * Initialize the algorithm. Reset starting values.
+     */
     void reset() { m_md5.reset(); }
 
-    /// Return pointer to 32-byte hex fingerprint.
+    /**
+     * Return pointer to 32-byte hex fingerprint.
+     * */
     std::string getDigest()
     {
         // Construct fingerprint.

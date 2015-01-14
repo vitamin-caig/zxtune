@@ -32,11 +32,6 @@ namespace reSIDfp
 
 /**
  * Representation of SID voice block.
- *
- * @author Ken Händel
- * @author Dag Lem
- * @author Antti Lankila
- * @author Leandro Nini
  */
 class Voice
 {
@@ -83,12 +78,8 @@ public:
 
     EnvelopeGenerator* envelope() const { return envelopeGenerator; }
 
-    // ----------------------------------------------------------------------------
-    // Register functions.
-    // ----------------------------------------------------------------------------
-
     /**
-     * Register functions.
+     * Write control register.
      *
      * @param control Control register value.
      */

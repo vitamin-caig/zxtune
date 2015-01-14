@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2012-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2012-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,59 +22,57 @@
 #define EXTRASIDBANK_H
 
 #include "Bank.h"
-#include "sidplayfp/c64/c64sid.h"
+#include "c64/c64sid.h"
 
-#include "NullSid.h"
+#include <vector>
+#include <algorithm>
 
 /**
-* Extra SID bank
-*/
+ * Extra SID bank
+ */
 class ExtraSidBank : public Bank
 {
 private:
+    typedef std::vector<c64sid*> sids_t;
+
+    class resetSID
+    {
+    public:
+        void operator() (sids_t::value_type &e) { e->reset(0xf); }
+    };
+
+private:
     /**
-    * Size of mapping table. Each 32 bytes another SID chip base address
-    * can be assigned to.
-    */
+     * Size of mapping table. Each 32 bytes another SID chip base address
+     * can be assigned to.
+     */
     static const int MAPPER_SIZE = 8;
 
 private:
     /**
-    * SID mapping table.
-    * Maps a SID chip base address to a SID
-    * or to the underlying bank.
-    */
+     * SID mapping table.
+     * Maps a SID chip base address to a SID
+     * or to the underlying bank.
+     */
     Bank *mapper[MAPPER_SIZE];
 
-    c64sid *sid;
+    sids_t sids;
 
 private:
     static unsigned int mapperIndex(int address) { return address >> 5 & (MAPPER_SIZE - 1); }
 
 public:
-    ExtraSidBank() :
-        sid(NullSid::getInstance())
-    {}
+    virtual ~ExtraSidBank() {}
 
     void reset()
     {
-        sid->reset(0xf);
+        std::for_each(sids.begin(), sids.end(), resetSID());
     }
 
     void resetSIDMapper(Bank *bank)
     {
         for (int i = 0; i < MAPPER_SIZE; i++)
             mapper[i] = bank;
-    }
-
-    /**
-    * Put a SID at desired location.
-    *
-    * @param address the address
-    */
-    void setSIDMapping(int address)
-    {
-        mapper[mapperIndex(address)] = sid;
     }
 
     uint8_t peek(uint_least16_t addr)
@@ -88,11 +86,16 @@ public:
     }
 
     /**
-    * Set SID emulation.
-    *
-    * @param s the emulation
-    */
-    void setSID(c64sid *s) { sid = (s != 0) ? s : NullSid::getInstance(); }
+     * Set SID emulation.
+     *
+     * @param s the emulation
+     * @param address the address where to put the chip
+     */
+    void addSID(c64sid *s, int address)
+    {
+        sids.push_back(s);
+        mapper[mapperIndex(address)] = s;
+    }
 };
 
 #endif

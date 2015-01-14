@@ -39,12 +39,6 @@ void Filter::enable(bool enable)
     }
 }
 
-void Filter::setClockFrequency(double clock)
-{
-    clockFrequency = clock;
-    updatedCenterFrequency();
-}
-
 void Filter::reset()
 {
     writeFC_LO(0);
@@ -74,10 +68,10 @@ void Filter::writeRES_FILT(unsigned char res_filt)
 
     if (enabled)
     {
-        filt1 = (filt & 1) != 0;
-        filt2 = (filt & 2) != 0;
-        filt3 = (filt & 4) != 0;
-        filtE = (filt & 8) != 0;
+        filt1 = (filt & 0x01) != 0;
+        filt2 = (filt & 0x02) != 0;
+        filt3 = (filt & 0x04) != 0;
+        filtE = (filt & 0x08) != 0;
     }
 
     updatedMixing();
@@ -85,7 +79,7 @@ void Filter::writeRES_FILT(unsigned char res_filt)
 
 void Filter::writeMODE_VOL(unsigned char mode_vol)
 {
-    vol = mode_vol & 0xf;
+    vol = mode_vol & 0x0f;
     lp = (mode_vol & 0x10) != 0;
     bp = (mode_vol & 0x20) != 0;
     hp = (mode_vol & 0x40) != 0;

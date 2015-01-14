@@ -33,8 +33,8 @@ class SidTuneBase;
 class sidmemory;
 
 /**
-* SidTune
-*/
+ * SidTune
+ */
 class SID_EXTERN SidTune
 {
 public:
@@ -54,110 +54,110 @@ private:  // -------------------------------------------------------------
 public:  // ----------------------------------------------------------------
 
     /**
-    * Load a sidtune from a file.
-    *
-    * To retrieve data from standard input pass in filename "-".
-    * If you want to override the default filename extensions use this
-    * contructor. Please note, that if the specified "fileName"
-    * does exist and the loader is able to determine its file format,
-    * this function does not try to append any file name extension.
-    * See "SidTune.cpp" for the default list of file name extensions.
-    * You can specify "fileName = 0", if you do not want to
-    * load a sidtune. You can later load one with open().
-    *
-    * @param fileName
-    * @param fileNameExt
-    * @param separatorIsSlash
-    */
+     * Load a sidtune from a file.
+     *
+     * To retrieve data from standard input pass in filename "-".
+     * If you want to override the default filename extensions use this
+     * contructor. Please note, that if the specified "fileName"
+     * does exist and the loader is able to determine its file format,
+     * this function does not try to append any file name extension.
+     * See "SidTune.cpp" for the default list of file name extensions.
+     * You can specify "fileName = 0", if you do not want to
+     * load a sidtune. You can later load one with open().
+     *
+     * @param fileName
+     * @param fileNameExt
+     * @param separatorIsSlash
+     */
     SidTune(const char* fileName, const char **fileNameExt = 0,
             bool separatorIsSlash = false);
 
     /**
-    * Load a single-file sidtune from a memory buffer.
-    * Currently supported: PSID format.
-    *
-    * @param oneFileFormatSidtune the buffer that contains song data
-    * @param sidtuneLength length of the buffer
-    */
+     * Load a single-file sidtune from a memory buffer.
+     * Currently supported: PSID format.
+     *
+     * @param oneFileFormatSidtune the buffer that contains song data
+     * @param sidtuneLength length of the buffer
+     */
     SidTune(const uint_least8_t* oneFileFormatSidtune, uint_least32_t sidtuneLength);
 
-    virtual ~SidTune() {}
+    virtual ~SidTune();
 
     /**
-    * The SidTune class does not copy the list of file name extensions,
-    * so make sure you keep it. If the provided pointer is 0, the
-    * default list will be activated. This is a static list which
-    * is used by all SidTune objects.
-    *
-    * @param fileNameExt
-    */
+     * The SidTune class does not copy the list of file name extensions,
+     * so make sure you keep it. If the provided pointer is 0, the
+     * default list will be activated. This is a static list which
+     * is used by all SidTune objects.
+     *
+     * @param fileNameExt
+     */
     void setFileNameExtensions(const char **fileNameExt);
 
     /**
-    * Load a sidtune into an existing object from a file.
-    *
-    * @param fileName
-    * @param separatorIsSlash
-    */
+     * Load a sidtune into an existing object from a file.
+     *
+     * @param fileName
+     * @param separatorIsSlash
+     */
     void load(const char* fileName, bool separatorIsSlash = false);
 
     /**
-    * Load a sidtune into an existing object from a buffer.
-    *
-    * @param sourceBuffer the buffer that contains song data
-    * @param bufferLen length of the buffer
-    */
+     * Load a sidtune into an existing object from a buffer.
+     *
+     * @param sourceBuffer the buffer that contains song data
+     * @param bufferLen length of the buffer
+     */
     void read(const uint_least8_t* sourceBuffer, uint_least32_t bufferLen);
 
     /**
-    * Select sub-song.
-    *
-    * @param songNum the selected song (0 = default starting song)
-    * @return active song number, 0 if no tune is loaded.
-    */
+     * Select sub-song.
+     *
+     * @param songNum the selected song (0 = default starting song)
+     * @return active song number, 0 if no tune is loaded.
+     */
     unsigned int selectSong(unsigned int songNum);
 
     /**
-    * Retrieve current active sub-song specific information.
-    *
-    * @return a pointer to #SidTuneInfo, 0 if no tune is loaded. The pointer must not be deleted.
-    */
+     * Retrieve current active sub-song specific information.
+     *
+     * @return a pointer to #SidTuneInfo, 0 if no tune is loaded. The pointer must not be deleted.
+     */
     const SidTuneInfo* getInfo() const;
 
     /**
-    * Select sub-song and retrieve information.
-    *
-    * @param songNum the selected song (0 = default starting song)
-    * @return a pointer to #SidTuneInfo, 0 if no tune is loaded. The pointer must not be deleted.
-    */
+     * Select sub-song and retrieve information.
+     *
+     * @param songNum the selected song (0 = default starting song)
+     * @return a pointer to #SidTuneInfo, 0 if no tune is loaded. The pointer must not be deleted.
+     */
     const SidTuneInfo* getInfo(unsigned int songNum);
 
     /**
-    * Determine current state of object.
-    * Upon error condition use #statusString to get a descriptive
-    * text string.
-    *
-    * @return current state (true = okay, false = error)
-    */
+     * Determine current state of object.
+     * Upon error condition use #statusString to get a descriptive
+     * text string.
+     *
+     * @return current state (true = okay, false = error)
+     */
     bool getStatus() const;
 
     /**
-    * Error/status message of last operation
-    */
+     * Error/status message of last operation.
+     */
     const char* statusString() const;
 
     /**
-    * Copy sidtune into C64 memory (64 KB).
-    */
+     * Copy sidtune into C64 memory (64 KB).
+     */
     bool placeSidTuneInC64mem(sidmemory* mem);
 
     /**
-    * Calculates the MD5 hash of the tune.
-    * Not providing an md5 buffer will cause the internal one to be used.
-    * If provided, buffer must be MD5_LENGTH + 1
-    *
-    * @return a pointer to the buffer containing the md5 string, 0 if no tune is loaded.
-    */
+     * Calculates the MD5 hash of the tune.
+     * Not providing an md5 buffer will cause the internal one to be used.
+     * If provided, buffer must be MD5_LENGTH + 1
+     *
+     * @return a pointer to the buffer containing the md5 string, 0 if no tune is loaded.
+     */
     const char *createMD5(char *md5 = 0);
 
 private:    // prevent copying

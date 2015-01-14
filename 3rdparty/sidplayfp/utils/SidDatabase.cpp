@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include <cctype> 
+#include <cctype>
 #include <cstdlib>
 
 #include "SidDatabase.h"
@@ -55,7 +55,8 @@ const char *SidDatabase::parseTime(const char *str, long &result)
         throw parseError();
     }
 
-    const long seconds = strtol(++end, &end, 10);
+    end++;
+    const long seconds = strtol(end, &end, 10);
     result = (minutes * 60) + seconds;
 
     while (!isspace(*end))

@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2004 Dag Lem <resid@nimrod.no>
  *
@@ -23,7 +23,7 @@
 #ifndef SIDFP_H
 #define SIDFP_H
 
-#include "residfp-config.h"
+#include "siddefs-fp.h"
 
 namespace reSIDfp
 {
@@ -52,30 +52,20 @@ public:
 
 /**
  * MOS6581/MOS8580 emulation.
- * Based on reSID 0.16 by Dag Lem,
- * and then hacked on by Antti S. Lankila.
- * Ported to Java by Ken Händel.
- *
- * @author Ken Händel
- * @author Dag Lem
- * @author Antti Lankila
- * @author Leandro Nini
  */
 class SID
 {
 private:
-    /**
-     * Bus value stays alive for some time after each operation.
-     */
+    /// Bus value stays alive for some time after each operation.
     static const int BUS_TTL;
 
-    /** Currently active filter */
+    /// Currently active filter
     Filter* filter;
 
-    /** Filter used, if model is set to 6581 */
+    /// Filter used, if model is set to 6581
     Filter6581* filter6581;
 
-    /** Filter used, if model is set to 8580 */
+    /// Filter used, if model is set to 8580
     Filter8580* filter8580;
 
     /**
@@ -84,42 +74,40 @@ private:
      */
     ExternalFilter* externalFilter;
 
-    /**
-     * Resampler used by audio generation code.
-     */
+    /// Resampler used by audio generation code.
     Resampler* resampler;
 
-    /** Paddle X register support */
+    /// Paddle X register support
     Potentiometer* potX;
 
-    /** Paddle Y register support */
+    /// Paddle Y register support
     Potentiometer* potY;
 
-    /** SID voices */
+    /// SID voices
     Voice* voice[3];
 
-    /** Time to live for the last written value */
+    /// Time to live for the last written value
     int busValueTtl;
 
-    /**
-     * Time until #voiceSync must be run.
-     */
+    /// Current chip model's bus value TTL
+    int modelTTL;
+
+    /// Time until #voiceSync must be run.
     int nextVoiceSync;
 
-    /** Delayed MOS8580 write register */
+    /// Delayed MOS8580 write register
     int delayedOffset;
 
-    /**
-     * Currently active chip model.
-     */
+    /// Currently active chip model.
     ChipModel model;
 
-    /** Delayed MOS8580 write value */
+    /// Delayed MOS8580 write value
     unsigned char delayedValue;
 
-    /** Last written value */
+    /// Last written value
     unsigned char busValue;
 
+    /// Flags for muted channels
     bool muted[3];
 
 private:
@@ -164,6 +152,9 @@ public:
      */
     void setChipModel(ChipModel model);
 
+    /**
+     * Get currently emulated chip model.
+     */
     ChipModel getChipModel() const { return model; }
 
     /**
@@ -183,7 +174,7 @@ public:
 
     /**
      * Read registers.
-     * <P>
+     * <p>
      * Reading a write only register returns the last char written to any SID register.
      * The individual bits in this value start to fade down towards zero after a few cycles.
      * All bits reach zero within approximately $2000 - $4000 cycles.
@@ -228,19 +219,19 @@ public:
 
     /**
      * Setting of SID sampling parameters.
-     * <P>
+     * <p>
      * Use a clock freqency of 985248Hz for PAL C64, 1022730Hz for NTSC C64.
      * The default end of passband frequency is pass_freq = 0.9*sample_freq/2
      * for sample frequencies up to ~ 44.1kHz, and 20kHz for higher sample frequencies.
-     * <P>
+     * <p>
      * For resampling, the ratio between the clock frequency and the sample frequency
      * is limited as follows: 125*clock_freq/sample_freq < 16384
      * E.g. provided a clock frequency of ~ 1MHz, the sample frequency can not be set
      * lower than ~ 8kHz. A lower sample frequency would make the resampling code
      * overfill its 16k sample ring buffer.
-     * <P>
+     * <p>
      * The end of passband frequency is also limited: pass_freq <= 0.9*sample_freq/2
-     * <P>
+     * <p>
      * E.g. for a 44.1kHz sampling rate the end of passband frequency
      * is limited to slightly below 20kHz.
      * This constraint ensures that the FIR table is not overfilled.
@@ -264,7 +255,7 @@ public:
     /**
      * Clock SID forward with no audio production.
      * <p>
-     * <b>Warning:</b>
+     * _Warning_:
      * You can't mix this method of clocking with the audio-producing
      * clock() because components that don't affect OSC3/ENV3 are not
      * emulated.
@@ -274,18 +265,25 @@ public:
     int clockSilent(int cycles);
 
     /**
-     * Get chip's 6581 filter.
+     * Set filter curve parameter for 6581 model.
      *
-     * @return filter
+     * @see Filter6581::setFilterCurve(double)
      */
-    Filter6581* getFilter6581() const { return filter6581; }
+    void setFilter6581Curve(double filterCurve);
 
     /**
-     * Get chip's 8580 filter.
+     * Set filter curve parameter for 8580 model.
      *
-     * @return filter
+     * @see Filter8580::setFilterCurve(double)
      */
-    Filter8580* getFilter8580() const { return filter8580; }
+    void setFilter8580Curve(double filterCurve);
+
+    /**
+     * Enable filter emulation.
+     *
+     * @param enable false to turn off filter emulation
+     */
+    void enableFilter(bool enable);
 };
 
 } // namespace reSIDfp
@@ -301,16 +299,30 @@ public:
 
 namespace reSIDfp
 {
+
+RESID_INLINE
+void SID::ageBusValue(int n)
+{
+    if (likely(busValueTtl != 0))
+    {
+        busValueTtl -= n;
+
+        if (unlikely(busValueTtl <= 0))
+        {
+            busValue = 0;
+            busValueTtl = 0;
+        }
+    }
+}
+
 RESID_INLINE
 int SID::output() const
 {
-    return externalFilter->clock(
-               filter->clock(
-                   voice[0]->output(voice[2]->wave()),
-                   voice[1]->output(voice[0]->wave()),
-                   voice[2]->output(voice[1]->wave())
-               )
-           );
+    const int v1 = voice[0]->output(voice[2]->wave());
+    const int v2 = voice[1]->output(voice[0]->wave());
+    const int v3 = voice[2]->output(voice[1]->wave());
+
+    return externalFilter->clock(filter->clock(v1, v2, v3));
 }
 
 
@@ -324,20 +336,15 @@ int SID::clock(int cycles, short* buf)
     {
         int delta_t = std::min(nextVoiceSync, cycles);
 
-        if (delta_t > 0)
+        if (likely(delta_t > 0))
         {
-            if (delayedOffset != -1)
+            if (unlikely(delayedOffset != -1))
             {
                 delta_t = 1;
             }
 
             for (int i = 0; i < delta_t; i++)
             {
-                if (resampler->input(output()))
-                {
-                    buf[s++] = resampler->getOutput();
-                }
-
                 /* clock waveform generators */
                 voice[0]->wave()->clock();
                 voice[1]->wave()->clock();
@@ -347,9 +354,14 @@ int SID::clock(int cycles, short* buf)
                 voice[0]->envelope()->clock();
                 voice[1]->envelope()->clock();
                 voice[2]->envelope()->clock();
+
+                if (unlikely(resampler->input(output())))
+                {
+                    buf[s++] = resampler->getOutput();
+                }
             }
 
-            if (delayedOffset != -1)
+            if (unlikely(delayedOffset != -1))
             {
                 writeImmediate(delayedOffset, delayedValue);
                 delayedOffset = -1;
@@ -359,7 +371,7 @@ int SID::clock(int cycles, short* buf)
             nextVoiceSync -= delta_t;
         }
 
-        if (nextVoiceSync == 0)
+        if (unlikely(nextVoiceSync == 0))
         {
             voiceSync(true);
         }

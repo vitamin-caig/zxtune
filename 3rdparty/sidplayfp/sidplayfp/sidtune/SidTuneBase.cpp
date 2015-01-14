@@ -33,9 +33,9 @@
 #include "SmartPtr.h"
 #include "SidTuneTools.h"
 #include "SidTuneInfoImpl.h"
-#include "sidplayfp/sidendian.h"
-#include "sidplayfp/sidmemory.h"
-#include "sidplayfp/stringutils.h"
+#include "sidendian.h"
+#include "sidmemory.h"
+#include "stringutils.h"
 
 #include "MUS.h"
 #include "p00.h"
@@ -88,7 +88,7 @@ SidTuneBase* SidTuneBase::load(const char* fileName, const char **fileNameExt,
         return 0;
 
 #if !defined(SIDTUNE_NO_STDIN_LOADER)
-    // Filename ``-'' is used as a synonym for standard input.
+    // Filename "-" is used as a synonym for standard input.
     if (strcmp(fileName, "-") == 0)
         return getFromStdIn();
 #endif
@@ -133,7 +133,7 @@ unsigned int SidTuneBase::selectSong(unsigned int selectedSong)
         info->m_songSpeed = SidTuneInfo::SPEED_CIA_1A;
         break;
     case SidTuneInfo::COMPATIBILITY_PSID:
-       // This does not take into account the PlaySID bug upon evaluating the
+        // This does not take into account the PlaySID bug upon evaluating the
         // SPEED field. It would most likely break compatibility to lots of
         // sidtunes, which have been converted from .SID format and vice versa.
         // The .SID format does the bit-wise/song-wise evaluation of the SPEED
@@ -184,9 +184,9 @@ void SidTuneBase::loadFile(const char* fileName, buffer_t& bufferRef)
     }
 
     inFile.seekg(0, inFile.end);
-    const size_t fileLen = (size_t)inFile.tellg();
+    const int fileLen = inFile.tellg();
 
-    if (fileLen == 0)
+    if (fileLen <= 0)
     {
         throw loadError(ERR_EMPTY);
     }
@@ -196,7 +196,14 @@ void SidTuneBase::loadFile(const char* fileName, buffer_t& bufferRef)
     buffer_t fileBuf;
     fileBuf.reserve(fileLen);
 
-    fileBuf.assign(std::istreambuf_iterator<char>(inFile), std::istreambuf_iterator<char>());
+    try
+    {
+        fileBuf.assign(std::istreambuf_iterator<char>(inFile), std::istreambuf_iterator<char>());
+    }
+    catch (std::exception &ex)
+    {
+        throw loadError(ex.what());
+    }
 
     if (inFile.bad())
     {
@@ -253,7 +260,7 @@ SidTuneBase* SidTuneBase::getFromBuffer(const uint_least8_t* const buffer, uint_
 
     buffer_t buf1(buffer, buffer+bufferLen);
 
-    // Here test for the possible single file formats. --------------
+    // Here test for the possible single file formats.
     std::auto_ptr<SidTuneBase> s(PSID::load(buf1));
     if (!s.get())
     {
@@ -337,7 +344,6 @@ void SidTuneBase::acceptSidTune(const char* dataFileName, const char* infoFileNa
     }
 
     // Check the size of the data.
-
     if (info->m_c64dataLen > MAX_MEMORY)
     {
         throw loadError(ERR_DATA_TOO_LONG);
@@ -383,8 +389,8 @@ SidTuneBase* SidTuneBase::getFromFiles(const char* fileName, const char **fileNa
             while (fileNameExtensions[n] != 0)
             {
                 createNewFileName(fileName2, fileName, fileNameExtensions[n]);
-                // 1st data file was loaded into ``fileBuf1'',
-                // so we load the 2nd one into ``fileBuf2''.
+                // 1st data file was loaded into "fileBuf1",
+                // so we load the 2nd one into "fileBuf2".
                 // Do not load the first file again if names are equal.
                 if (!stringutils::equal(fileName, fileName2.data(), fileName2.size()))
                 {
@@ -519,7 +525,6 @@ void SidTuneBase::resolveAddrs(const uint_least8_t *c64data)
 
         info->m_loadAddr = endian_16(*(c64data+1), *c64data);
         fileOffset += 2;
-        c64data += 2;
         info->m_c64dataLen -= 2;
     }
 
@@ -538,9 +543,8 @@ void SidTuneBase::resolveAddrs(const uint_least8_t *c64data)
 
 bool SidTuneBase::checkCompatibility()
 {
-    switch (info->m_compatibility)
+    if  (info->m_compatibility == SidTuneInfo::COMPATIBILITY_R64)
     {
-    case SidTuneInfo::COMPATIBILITY_R64:
         // Check valid init address
         switch (info->m_initAddr >> 12)
         {
@@ -557,19 +561,12 @@ bool SidTuneBase::checkCompatibility()
                 return false;
             }
         }
-        // deliberate run on
 
-    case SidTuneInfo::COMPATIBILITY_BASIC:
-        /*
-         * FIXME: Hellbound from Shining 8 (http://csdb.dk/release/?id=3574)
-         * loads at $608, should this check be performed only for PSID files?
-         */
         // Check tune is loadable on a real C64
         if (info->m_loadAddr < SIDTUNE_R64_MIN_LOAD_ADDR)
         {
             return false;
         }
-        break;
     }
 
     return true;

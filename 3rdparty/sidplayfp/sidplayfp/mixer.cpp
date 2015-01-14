@@ -24,12 +24,7 @@
 
 #include <algorithm>
 
-#include "sidplayfp/sidemu.h"
-
-/**
-* Scheduling time for next sample mixing event.
-*/
-const int MIXER_EVENT_RATE = OUTPUTBUFFERSIZE;
+#include "sidemu.h"
 
 void clockChip(sidemu *s) { s->clock(); }
 void clockChipSilent(sidemu* s) { s->clockSilent(); }
@@ -62,27 +57,18 @@ private:
     int samples;
 };
 
-void Mixer::event()
+void Mixer::clockChips()
 {
-    if (m_chips.size())
-    {
-        if (m_sampleBuffer)
-        {
-            renderSamples();
-        }
-        else
-        {
-            renderSilence();
-        }
-    }
-    event_context.schedule(*this, MIXER_EVENT_RATE);
+    std::for_each(m_chips.begin(), m_chips.end(), m_sampleBuffer ? &clockChip : &clockChipSilent);
+}
+
+void Mixer::resetBufs()
+{
+    std::for_each(m_chips.begin(), m_chips.end(), bufferPos(0));
 }
 
 void Mixer::renderSamples()
 {
-    /* this clocks the SIDs to the present moment, if they aren't already. */
-    std::for_each(m_chips.begin(), m_chips.end(), clockChip);
-
     /* extract buffer info now that the SID is updated.
      * clock() may update bufferpos.
      * NB: if chip2 exists, its bufferpos is identical to chip1's. */
@@ -128,9 +114,16 @@ void Mixer::renderSilence()
     std::for_each(m_chips.begin(), m_chips.end(), bufferPos(samplesLeft));
 }
 
-void Mixer::reset()
+void Mixer::doMix()
 {
-    event_context.schedule(*this, MIXER_EVENT_RATE, EVENT_CLOCK_PHI1);
+    if (m_sampleBuffer)
+    {
+        renderSamples();
+    }
+    else
+    {
+        renderSilence();
+    }
 }
 
 void Mixer::begin(short *buffer, uint_least32_t count)
@@ -150,7 +143,7 @@ void Mixer::updateParams()
 void Mixer::clearSids()
 {
     m_chips.clear();
-    m_buffers.clear();    
+    m_buffers.clear();
 }
 
 void Mixer::addSid(sidemu *chip)

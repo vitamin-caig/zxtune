@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2001 Simon White
  *
@@ -23,18 +23,15 @@
 #include "residfp-emu.h"
 
 #include <sstream>
+#include <string>
 #include <algorithm>
 
-#include "residfp/Filter6581.h"
-#include "residfp/Filter8580.h"
 #include "residfp/siddefs-fp.h"
 #include "sidplayfp/siddefs.h"
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
-
-std::string ReSIDfp::m_credit;
 
 const char* ReSIDfp::getCredits()
 {
@@ -55,15 +52,9 @@ const char* ReSIDfp::getCredits()
 
 ReSIDfp::ReSIDfp(sidbuilder *builder) :
     sidemu(builder),
-    m_context(0),
-    m_sid(*(new RESID_NAMESPACE::SID)),
-    m_status(true),
-    m_locked(false)
+    m_sid(*(new RESID_NAMESPACE::SID))
 {
-    m_error = "N/A";
-
     m_buffer = new short[OUTPUTBUFFERSIZE];
-    m_bufferpos = 0;
     reset (0);
 }
 
@@ -75,12 +66,12 @@ ReSIDfp::~ReSIDfp()
 
 void ReSIDfp::filter6581Curve(double filterCurve)
 {
-   m_sid.getFilter6581()->setFilterCurve(filterCurve);
+   m_sid.setFilter6581Curve(filterCurve);
 }
 
 void ReSIDfp::filter8580Curve(double filterCurve)
 {
-   m_sid.getFilter8580()->setFilterCurve(filterCurve);
+   m_sid.setFilter8580Curve(filterCurve);
 }
 
 // Standard component options
@@ -119,8 +110,7 @@ void ReSIDfp::clockSilent()
 
 void ReSIDfp::filter(bool enable)
 {
-      m_sid.getFilter6581()->enable(enable);
-      m_sid.getFilter8580()->enable(enable);
+      m_sid.enableFilter(enable);
 }
 
 void ReSIDfp::sampling(float systemclock, float freq,
@@ -137,7 +127,7 @@ void ReSIDfp::sampling(float systemclock, float freq,
         break;
     default:
         m_status = false;
-        m_error = "Invalid sampling method.";
+        m_error = ERR_INVALID_SAMPLING;
         return;
     }
 
@@ -150,30 +140,11 @@ void ReSIDfp::sampling(float systemclock, float freq,
     catch (RESID_NAMESPACE::SIDError const &e)
     {
         m_status = false;
-        m_error = "Unable to set desired output frequency.";
+        m_error = ERR_UNSUPPORTED_FREQ;
         return;
     }
 
     m_status = true;
-}
-
-// Set execution environment and lock sid to it
-bool ReSIDfp::lock(EventContext *env)
-{
-    if (m_locked)
-        return false;
-
-    m_locked  = true;
-    m_context = env;
-
-    return true;
-}
-
-// Unlock sid
-void ReSIDfp::unlock()
-{
-    m_locked  = false;
-    m_context = 0;
 }
 
 // Set the emulated SID model
@@ -190,7 +161,7 @@ void ReSIDfp::model(SidConfig::sid_model_t model)
             break;
         default:
             m_status = false;
-            m_error = "Invalid chip model.";
+            m_error = ERR_INVALID_CHIP;
             return;
     }
 

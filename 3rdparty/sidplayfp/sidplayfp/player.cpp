@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2000-2001 Simon White
  *
@@ -38,7 +38,6 @@ const char TXT_NA[]             = "NA";
 
 Player::Player () :
     // Set default settings for system
-    m_mixer(m_c64.getEventScheduler()),
     m_tune(0),
     m_errorString(TXT_NA),
     m_isPlaying(false),
@@ -64,18 +63,24 @@ void Player::setRoms(const uint8_t* kernal, const uint8_t* basic, const uint8_t*
         kernalCheck k(kernal);
         m_info.m_kernalDesc = k.info();
     }
+    else
+        m_info.m_kernalDesc.clear();
 
     if (basic)
     {
         basicCheck b(basic);
         m_info.m_basicDesc = b.info();
     }
+    else
+        m_info.m_basicDesc.clear();
 
     if (character)
     {
         chargenCheck c(character);
         m_info.m_chargenDesc = c.info();
     }
+    else
+        m_info.m_chargenDesc.clear();
 
     m_c64.setRoms(kernal, basic, character);
 }
@@ -92,7 +97,7 @@ void Player::initialise()
         const uint_least32_t size = (uint_least32_t)tuneInfo->loadAddr() + tuneInfo->c64dataLen() - 1;
         if (size > 0xffff)
         {
-            throw new configError("SIDPLAYER ERROR: Size of music data exceeds C64 memory.");
+            throw configError("SIDPLAYER ERROR: Size of music data exceeds C64 memory.");
         }
     }
 
@@ -105,9 +110,9 @@ void Player::initialise()
 
     psiddrv driver(m_tune->getInfo());
     driver.powerOnDelay(powerOnDelay);
-    if (!driver.drvReloc(m_c64.getMemInterface()))
+    if (!driver.drvReloc())
     {
-        throw new configError(driver.errorString());
+        throw configError(driver.errorString());
     }
 
     m_info.m_driverAddr = driver.driverAddr();
@@ -116,14 +121,12 @@ void Player::initialise()
 
     if (!m_tune->placeSidTuneInC64mem(m_c64.getMemInterface()))
     {
-        throw new configError(m_tune->statusString());
+        throw configError(m_tune->statusString());
     }
 
-    driver.install(m_c64.getMemInterface());
+    driver.install(m_c64.getMemInterface(), videoSwitch);
 
     m_c64.resetCpu();
-
-    m_mixer.reset();
 }
 
 bool Player::load(SidTune *tune)
@@ -179,35 +182,58 @@ uint_least32_t Player::play(short *buffer, uint_least32_t count)
     if (!m_tune)
         return 0;
 
-    if (count)
+    m_mixer.begin(buffer, count);
+
+    // Start the player loop
+    m_isPlaying = true;
+
+    if (m_mixer.getSid(0))
     {
-        m_mixer.begin(buffer, count);
-
-        // Start the player loop
-        m_isPlaying = true;
-
-        while (m_isPlaying && m_mixer.notFinished())
-            m_c64.getEventScheduler()->clock();
-
-        if (!m_isPlaying)
+        if (count)
         {
-            try
+            while (m_isPlaying && m_mixer.notFinished())
             {
-                initialise();
-            }
-            catch (configError const &e) {}
-        }
+                for (int i = 0; i < sidemu::OUTPUTBUFFERSIZE; i++)
+                    m_c64.getEventScheduler()->clock();
 
-        return m_mixer.samplesGenerated();
+                m_mixer.clockChips();
+                m_mixer.doMix();
+            }
+            count = m_mixer.samplesGenerated();
+        }
+        else
+        {
+            int size = m_c64.getMainCpuSpeed() / m_cfg.frequency;
+            while (m_isPlaying && --size)
+            {
+                for (int i = 0; i < sidemu::OUTPUTBUFFERSIZE; i++)
+                    m_c64.getEventScheduler()->clock();
+
+                m_mixer.clockChips();
+                m_mixer.resetBufs();
+            }
+        }
     }
     else
     {
-        count = OUTPUTBUFFERSIZE;
-        while (count--)
-            m_c64.getEventScheduler()->clock();
-
-        return 0;
+        int size = m_c64.getMainCpuSpeed() / m_cfg.frequency;
+        while (m_isPlaying && --size)
+        {
+            for (int i = 0; i < sidemu::OUTPUTBUFFERSIZE; i++)
+                m_c64.getEventScheduler()->clock();
+        }
     }
+
+    if (!m_isPlaying)
+    {
+        try
+        {
+            initialise();
+        }
+        catch (configError const &e) {}
+    }
+
+    return count;
 }
 
 void Player::stop()
@@ -228,5 +254,18 @@ void Player::stop()
         }
     }
 }
+
+#ifdef PC64_TESTSUITE
+    void Player::load(const char *file)
+    {
+        std::string name(PC64_TESTSUITE);
+        name.append(file);
+        name.append(".prg");
+
+        m_tune->load(name.c_str());
+        m_tune->selectSong(0);
+        initialise();
+    }
+#endif
 
 SIDPLAYFP_NAMESPACE_STOP

@@ -1,8 +1,9 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
+ * Copyright 2004,2010 Dag Lem
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,26 +29,49 @@ namespace reSIDfp
 {
 
 /**
- * This class solves the opamp equation when loaded by different sets of resistors.
- * Equations and first implementation were written by Dag Lem.
- * This class is a rewrite without use of fixed point integer mathematics, and
- * uses the actual voltages instead of the normalized values.
+ * Find output voltage in inverting gain and inverting summer SID op-amp
+ * circuits, using a combination of Newton-Raphson and bisection.
  *
- * @author alankila
+ *                ---R2--
+ *               |       |
+ *     vi ---R1-----[A>----- vo
+ *               vx
+ *
+ * From Kirchoff's current law it follows that
+ *
+ *     IR1f + IR2r = 0
+ *
+ * Substituting the triode mode transistor model K*W/L*(Vgst^2 - Vgdt^2)
+ * for the currents, we get:
+ *
+ *     n*((Vddt - vx)^2 - (Vddt - vi)^2) + (Vddt - vx)^2 - (Vddt - vo)^2 = 0
+ *
+ * Our root function f can thus be written as:
+ *
+ *     f = (n + 1)*(Vddt - vx)^2 - n*(Vddt - vi)^2 - (Vddt - vo)^2 = 0
+ *
+ * Using substitution constants
+ *
+ *     a = n + 1
+ *     b = Vddt
+ *     c = n*(Vddt - vi)^2
+ *
+ * the equations for the root function and its derivative can be written as:
+ *
+ *     f = a*(b - vx)^2 - c - (b - vo)^2
+ *     df = 2*((b - vo)*dvo - a*(b - vx))
  */
 class OpAmp
 {
 private:
     static const double EPSILON;
 
-    /** Current root position (cached as guess to speed up next iteration) */
+    /// Current root position (cached as guess to speed up next iteration)
     double x;
 
-    const double Vddt, vmin, vmax;
+    const double kVddt, vmin, vmax;
 
     Spline* opamp;
-
-    double out[2];
 
 public:
     /**
@@ -55,13 +79,13 @@ public:
      *
      * @param opamp opamp mapping table as pairs of points (in -> out)
      * @param opamplength length of the opamp array
-     * @param Vddt transistor dt parameter (in volts)
+     * @param kVddt transistor dt parameter (in volts)
      */
-    OpAmp(const double opamp[][2], int opamplength, double Vddt) :
+    OpAmp(const Spline::Point opamp[], int opamplength, double kVddt) :
         x(0.),
-        Vddt(Vddt),
-        vmin(opamp[0][0]),
-        vmax(opamp[opamplength - 1][0]),
+        kVddt(kVddt),
+        vmin(opamp[0].x),
+        vmax(opamp[opamplength - 1].x),
         opamp(new Spline(opamp, opamplength)) {}
 
     ~OpAmp() { delete opamp; }

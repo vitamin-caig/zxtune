@@ -1,21 +1,19 @@
-This is reSID, a reverse engineered software emulation of the MOS6581 SID
-(Sound Interface Device). This chip was used in the Commodore 64 computer.
+reSIDfp is a fork of Dag Lem's reSID 0.16, a reverse engineered software emulation
+of the MOS6581/8580 SID (Sound Interface Device).
 
-reSID is free software. See the file COPYING for copying permission.
+The project was started by Antti S. Lankila in order to improve SID emulation
+with special focus on the 6581 filter.
+The codebase has been later on ported to java by Ken Händel within the jsidplay2 project
+and has seen further work by Antti Lankila.
+It was then ported back to c++ and integrated with improvements from reSID 1.0 by Leandro Nini.
 
-reSID is a Java library containing a complete emulation of the SID chip.
-This library can be used in Java programs emulating the MOS6510 to
-play music made for the Commodore 64 computer.
 
-Various SID emulators exist, however reSID should still be of great
-interest to Commodore 64 nostalgics. The emulator engine is cycle-based,
-emulating the internal operations of the SID chip. SID's audio filter is
-modeled as an actual two-integrator-loop biquadratic filter circuit.
-The engine has been developed based on available information on SID, sampling
-of the OSC3 and ENV3 registers, filter theory, and meticulous testing.
-In short, a scientific approach has been taken to model the SID chip as
-accurately as possible.
+Main differences from reSID:
 
-To our knowledge reSID is by far the most accurate SID emulator ever created.
-This comes at a price; what is considered a fairly fast CPU at the time of
-this writing is needed to run the emulator.
+* combined waveforms are emulated by a parametrized model based on samplings from Kevtris
+* high quality resampling is done in two steps to allow computational savings using lower order filters
+* part of the calculations are don with floats instead of fixed point
+* Interpolation is accomplished with Fritsch-Carlson method to preserve monotonicity
+
+
+reSIDfp is free software. See the file COPYING for copying permission.

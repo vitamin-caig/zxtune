@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2012-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2012-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,13 +40,12 @@ private:
     uint_least16_t m_powerOnDelay;
 
 private:
-    static uint8_t psid_driver[];
-
-private:
     /**
-    * @param addr a 16-bit effective address
-    * @return a default bank-select value for $01
-    */
+     * Get required I/O map to reach address
+     *
+     * @param addr a 16-bit effective address
+     * @return a default bank-select value for $01
+     */
     uint8_t iomap(uint_least16_t addr) const;
 
 public:
@@ -55,32 +54,31 @@ public:
         m_powerOnDelay(0) {}
 
     /**
-    * Set the power on delay cycles.
-    *
-    * @param delay the delay
-    */
+     * Set the power on delay cycles.
+     *
+     * @param delay the delay
+     */
     void powerOnDelay(uint_least16_t delay) { m_powerOnDelay = delay; }
 
     /**
-    * Relocate the driver.
-    *
-    * @param mem the c64 memory interface
-    */
-    bool drvReloc(sidmemory *mem);
+     * Relocate the driver.
+     */
+    bool drvReloc();
 
     /**
      * Install the driver.
      * Must be called after the tune has been placed in memory.
      *
      * @param mem the c64 memory interface
+     * @param video the PAL/NTSC switch value, 0: NTSC, 1: PAL
      */
-    void install(sidmemory *mem) const;
+    void install(sidmemory *mem, uint8_t video) const;
 
     /**
-    * Get a detailed error message.
-    *
-    * @return a pointer to the string
-    */
+     * Get a detailed error message.
+     *
+     * @return a pointer to the string
+     */
     const char* errorString() const { return m_errorString; }
 
     uint_least16_t driverAddr() const { return m_driverAddr; }

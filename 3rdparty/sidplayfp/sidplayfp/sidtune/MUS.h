@@ -67,7 +67,8 @@ public:
 
     virtual bool placeSidTuneInC64mem(sidmemory* mem);
 
-private:    // prevent copying
+private:
+    // prevent copying
     MUS(const MUS&);
     MUS& operator=(MUS&);
 };

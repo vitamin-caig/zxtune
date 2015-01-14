@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2004 Dag Lem <resid@nimrod.no>
  *
@@ -34,7 +34,7 @@ const int DAC_BITS = 12;
 void WaveformGenerator::clock_shift_register()
 {
     // bit0 = (bit22 | test) ^ bit17
-    const int bit0 = ((shift_register >> 22) ^ (shift_register >> 17)) & 0x1;
+    const unsigned int bit0 = ((shift_register >> 22) ^ (shift_register >> 17)) & 0x1;
     shift_register = ((shift_register << 1) | bit0) & 0x7fffff;
 
     // New noise waveform output.
@@ -98,11 +98,11 @@ void WaveformGenerator::setChipModel(ChipModel chipModel)
     double dacBits[DAC_BITS];
     Dac::kinkedDac(dacBits, DAC_BITS, chipModel == MOS6581 ? 2.20 : 2.00, chipModel == MOS8580);
 
-    for (int i = 0; i < (1 << DAC_BITS); i++)
+    for (unsigned int i = 0; i < (1 << DAC_BITS); i++)
     {
         double dacValue = 0.;
 
-        for (int j = 0; j < DAC_BITS; j ++)
+        for (unsigned int j = 0; j < DAC_BITS; j ++)
         {
             if ((i & (1 << j)) != 0)
             {
@@ -115,7 +115,7 @@ void WaveformGenerator::setChipModel(ChipModel chipModel)
 
     const short offset = dac[chipModel == MOS6581 ? 0x380 : 0x800];
 
-    for (int i = 0; i < (1 << DAC_BITS); i ++)
+    for (unsigned int i = 0; i < (1 << DAC_BITS); i ++)
     {
         dac[i] -= offset;
     }
@@ -126,7 +126,7 @@ void WaveformGenerator::synchronize(WaveformGenerator* syncDest, const WaveformG
     // A special case occurs when a sync source is synced itself on the same
     // cycle as when its MSB is set high. In this case the destination will
     // not be synced. This has been verified by sampling OSC3.
-    if (msb_rising && syncDest->sync && !(sync && syncSource->msb_rising))
+    if (unlikely(msb_rising) && syncDest->sync && !(sync && syncSource->msb_rising))
     {
         syncDest->accumulator = 0;
     }
@@ -170,7 +170,7 @@ void WaveformGenerator::writeCONTROL_REG(unsigned char control)
         // completed by enabling SRAM write.
 
         // bit0 = (bit22 | test) ^ bit17 = 1 ^ bit17 = ~bit17
-        const int bit0 = (~shift_register >> 17) & 0x1;
+        const unsigned int bit0 = (~shift_register >> 17) & 0x1;
         shift_register = ((shift_register << 1) | bit0) & 0x7fffff;
 
         // Set new noise waveform output.
@@ -184,10 +184,11 @@ void WaveformGenerator::writeCONTROL_REG(unsigned char control)
 
         // FIXME
         // This value has been adjusted aleatorily from the original reSID value (0x4000)
-        // to fix MUSICIANS/H/Hatlelid_Kris/Grand_Prix_Circuit.sid#2
-        // see VICE Bug 3515933
-        // http://sourceforge.net/tracker/?func=detail&aid=3515933&group_id=223021&atid=1057617
-        floating_output_ttl = 0x28000;
+        // to fix /MUSICIANS/H/Hatlelid_Kris/Grand_Prix_Circuit.sid#2
+        // and /MUSICIANS/P/PVCF/Thomkat_with_Strange_End.sid
+        // see VICE Bug #290
+        // http://sourceforge.net/p/vice-emu/bugs/290/
+        floating_output_ttl = 0xF4240;
     }
 }
 

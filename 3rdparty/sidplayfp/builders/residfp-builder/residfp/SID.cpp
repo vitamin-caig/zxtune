@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2004 Dag Lem <resid@nimrod.no>
  *
@@ -36,10 +36,18 @@
 
 namespace reSIDfp
 {
-// This value has been adjusted empirically from the original reSID value (0x9000)
-// according to this discussion on CSDb:
-// http://noname.c64.org/csdb/forums/?roomid=11&topicid=29025&showallposts=1
-const int SID::BUS_TTL = 0x1000;
+/**
+ * Bus value stays alive for some time after each operation.
+ *
+ * This values has been adjusted empirically according to the discussion
+ * "How do I reliably detect 6581/8580 sid?" on CSDb [1].
+ *
+ * [1]: http://noname.c64.org/csdb/forums/?roomid=11&topicid=29025&showallposts=1
+ */
+//@{
+const int BUS_TTL_6581 = 0x1000;
+const int BUS_TTL_8580 = 0xa2000;
+//@}
 
 SID::SID() :
     filter6581(new Filter6581()),
@@ -70,6 +78,22 @@ SID::~SID()
     delete voice[1];
     delete voice[2];
     delete resampler;
+}
+
+void SID::setFilter6581Curve(double filterCurve)
+{
+    filter6581->setFilterCurve(filterCurve);
+}
+
+void SID::setFilter8580Curve(double filterCurve)
+{
+    filter8580->setFilterCurve(filterCurve);
+}
+
+void SID::enableFilter(bool enable)
+{
+    filter6581->enable(enable);
+    filter8580->enable(enable);
 }
 
 void SID::writeImmediate(int offset, unsigned char value)
@@ -188,20 +212,6 @@ void SID::writeImmediate(int offset, unsigned char value)
     voiceSync(false);
 }
 
-void SID::ageBusValue(int n)
-{
-    if (busValueTtl != 0)
-    {
-        busValueTtl -= n;
-
-        if (busValueTtl <= 0)
-        {
-            busValue = 0;
-            busValueTtl = 0;
-        }
-    }
-}
-
 void SID::voiceSync(bool sync)
 {
     if (sync)
@@ -241,10 +251,12 @@ void SID::setChipModel(ChipModel model)
     {
     case MOS6581:
         filter = filter6581;
+        modelTTL = BUS_TTL_6581;
         break;
 
     case MOS8580:
         filter = filter8580;
+        modelTTL = BUS_TTL_8580;
         break;
 
     default:
@@ -295,43 +307,41 @@ void SID::input(int value)
 
 unsigned char SID::read(int offset)
 {
-    unsigned char value;
-
+    // FIXME: is bus TTL actually reset after read?
+    // FIXME: are read values actually latched?
     switch (offset)
     {
     case 0x19:
-        value = potX->readPOT();
-        busValueTtl = BUS_TTL;
+        busValue = potX->readPOT();
+        busValueTtl = modelTTL;
         break;
 
     case 0x1a:
-        value = potY->readPOT();
-        busValueTtl = BUS_TTL;
+        busValue = potY->readPOT();
+        busValueTtl = modelTTL;
         break;
 
     case 0x1b:
-        value = voice[2]->wave()->readOSC();
+        busValue = voice[2]->wave()->readOSC();
         break;
 
     case 0x1c:
-        value = voice[2]->envelope()->readENV();
-        busValueTtl = BUS_TTL;
+        busValue = voice[2]->envelope()->readENV();
+        busValueTtl = modelTTL;
         break;
 
     default:
-        value = busValue;
-        busValueTtl /= 2;
+        busValueTtl /= 2; // FIXME: what's this???
         break;
     }
 
-    busValue = value;
-    return value;
+    return busValue;
 }
 
 void SID::write(int offset, unsigned char value)
 {
     busValue = value;
-    busValueTtl = BUS_TTL;
+    busValueTtl = modelTTL;
 
     if (model == MOS8580)
     {
@@ -356,8 +366,6 @@ void SID::readState(unsigned freqs[3], unsigned levels[3])
 
 void SID::setSamplingParameters(double clockFrequency, SamplingMethod method, double samplingFrequency, double highestAccurateFrequency)
 {
-    filter6581->setClockFrequency(clockFrequency);
-    filter8580->setClockFrequency(clockFrequency);
     externalFilter->setClockFrequency(clockFrequency);
 
     delete resampler;

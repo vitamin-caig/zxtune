@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,89 +21,97 @@
 
 #include "Spline.h"
 
+#include <vector>
+#include <cassert>
 #include <limits>
 
 namespace reSIDfp
 {
 
-Spline::Spline(const double input[][2], int inputLength) :
-    paramsLength(inputLength - 1),
-    params(new double[paramsLength][6])
+Spline::Spline(const Point input[], int inputLength) :
+    params(new Param[inputLength]),
+    c(&params[0]),
+    paramsLength(inputLength)
 {
+    assert(inputLength > 2);
 
-    for (int i = 0; i < paramsLength; i ++)
+    std::vector<double> dxs(inputLength - 1);
+    std::vector<double> ms(inputLength - 1);
+
+    // Get consecutive differences and slopes
+    for (int i = 0; i < inputLength - 1; i++)
     {
-        const double* p0 = i != 0 ? input[i - 1] : 0;
-        const double* p1 = input[i];
-        const double* p2 = input[i + 1];
-        const double* p3 = i != inputLength - 2 ? input[i + 2] : 0;
+        assert(input[i].x < input[i + 1].x);
 
-        double k1, k2;
-
-        if (p0 == 0)
-        {
-            k2 = (p3[1] - p1[1]) / (p3[0] - p1[0]);
-            k1 = (3. * (p2[1] - p1[1]) / (p2[0] - p1[0]) - k2) / 2.;
-        }
-        else if (p3 == 0)
-        {
-            k1 = (p2[1] - p0[1]) / (p2[0] - p0[0]);
-            k2 = (3. * (p2[1] - p1[1]) / (p2[0] - p1[0]) - k1) / 2.;
-        }
-        else
-        {
-            k1 = (p2[1] - p0[1]) / (p2[0] - p0[0]);
-            k2 = (p3[1] - p1[1]) / (p3[0] - p1[0]);
-        }
-
-        const double x1 = p1[0];
-        const double y1 = p1[1];
-        const double x2 = p2[0];
-        const double y2 = p2[1];
-
-        const double dx = x2 - x1;
-        const double dy = y2 - y1;
-
-        const double a = ((k1 + k2) - 2. * dy / dx) / (dx * dx);
-        const double b = ((k2 - k1) / dx - 3. * (x1 + x2) * a) / 2.;
-        const double c = k1 - (3. * x1 * a + 2.*b) * x1;
-        const double d = y1 - ((x1 * a + b) * x1 + c) * x1;
-
-        params[i][0] = x1;
-        params[i][1] = x2;
-        params[i][2] = a;
-        params[i][3] = b;
-        params[i][4] = c;
-        params[i][5] = d;
+        const double dx = input[i + 1].x - input[i].x;
+        const double dy = input[i + 1].y - input[i].y;
+        dxs[i] = dx;
+        ms[i] = dy/dx;
     }
 
-    /* Fix the value ranges, because we interpolate outside original bounds if necessary. */
-    params[0][0] = std::numeric_limits<double>::min();
-    params[paramsLength - 1][1] = std::numeric_limits<double>::max();
+    // Get degree-1 coefficients
+    params[0].c = ms[0];
+    for (int i = 1; i < inputLength - 1; i++)
+    {
+        const double m = ms[i - 1];
+        const double mNext = ms[i];
+        if (m * mNext <= 0) {
+            params[i].c = 0.0;
+        } else {
+            const double dx = dxs[i - 1];
+            const double dxNext = dxs[i];
+            const double common = dx + dxNext;
+            params[i].c = 3.0 * common / ((common + dxNext) / m + (common + dx) / mNext);
+        }
+    }
+    params[inputLength - 1].c = ms[inputLength - 2];
 
-    c = params[0];
+    // Get degree-2 and degree-3 coefficients
+    for (int i = 0; i < inputLength - 1; i++)
+    {
+        params[i].x1 = input[i].x;
+        params[i].x2 = input[i + 1].x;
+        params[i].d = input[i].y;
+
+        const double c1 = params[i].c;
+        const double m = ms[i];
+        const double invDx = 1.0 / dxs[i];
+        const double common = c1 + params[i + 1].c - m - m;
+        params[i].b = (m - c1 - common) * invDx;
+        params[i].a = common * invDx * invDx;
+    }
+
+    // Fix the value ranges, because we interpolate outside original bounds if necessary.
+    params[0].x1 = std::numeric_limits<double>::min();
+    params[inputLength - 2].x2 = std::numeric_limits<double>::max();
 }
 
-void Spline::evaluate(double x, double* out)
+Spline::Point Spline::evaluate(double x)
 {
-    if (x < c[0] || x > c[1])
+    if (x < c->x1 || x > c->x2)
     {
-        for (int i = 0; i < paramsLength; i ++)
+        for (int i = 0; i < paramsLength; i++)
         {
-            if (params[i][1] < x)
+            if (x <= params[i].x2)
             {
-                continue;
+                c = &params[i];
+                break;
             }
-
-            c = params[i];
-            break;
         }
     }
 
-    const double y = ((c[2] * x + c[3]) * x + c[4]) * x + c[5];
-    const double yd = (3. * c[2] * x + 2. * c[3]) * x + c[4];
-    out[0] = y;
-    out[1] = yd;
+    // Interpolate
+    const double diff = x - c->x1;
+
+    Point out;
+
+    // y = a*x^3 + b*x^2 + c*x + d
+    out.x =  ((c->a * diff + c->b) * diff + c->c) * diff + c->d;
+
+    // dy = 3*a*x^2 + 2*b*x + c
+    out.y = (3.0 * c->a * diff + 2.0 * c->b) * diff + c->c;
+
+    return out;
 }
 
 } // namespace reSIDfp

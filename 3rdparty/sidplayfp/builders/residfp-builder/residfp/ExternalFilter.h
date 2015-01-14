@@ -29,13 +29,12 @@ namespace reSIDfp
 {
 
 /**
- *
  * The audio output stage in a Commodore 64 consists of two STC networks, a
  * low-pass filter with 3-dB frequency 16kHz followed by a high-pass filter with
  * 3-dB frequency 16Hz (the latter provided an audio equipment input impedance
  * of 1kOhm).
- * <P>
- * The STC networks are connected with a BJT supposedly meant to act
+ * <p>
+ * The STC networks are connected with a [BJT] supposedly meant to act
  * as a unity gain buffer, which is not really how it works.
  * A more elaborate model would include the BJT, however DC circuit analysis
  * yields BJT base-emitter and emitter-base impedances sufficiently low
@@ -43,22 +42,15 @@ namespace reSIDfp
  * in the order of hundreds of kHz. This calls for a sampling frequency
  * of several MHz, which is far too high for practical use.
  *
- * @author Ken Händel
- * @author Dag Lem
- * @author Antti Lankila
- * @author Leandro Nini
+ * [BJT]: https://en.wikipedia.org/wiki/Bipolar_junction_transistor
  */
 class ExternalFilter
 {
 private:
-    /**
-     * lowpass
-     */
+    /// lowpass
     int Vlp;
 
-    /**
-     * highpass
-     */
+    /// highpass
     int Vhp;
 
     int w0lp_1_s7;
@@ -67,7 +59,7 @@ private:
 
 public:
     /**
-     * SID clocking - 1 cycle.
+     * SID clocking.
      *
      * @param Vi
      */

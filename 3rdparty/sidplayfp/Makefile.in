@@ -84,7 +84,8 @@ build_triplet = @build@
 host_triplet = @host@
 @HARDSID_TRUE@am__append_1 = builders/hardsid-builder/libsidplayfp-hardsid.la
 @HARDSID_TRUE@am__append_2 = builders/hardsid-builder/libsidplayfp-hardsid.la
-@TESTSUITE_TRUE@noinst_PROGRAMS = test/test$(EXEEXT) \
+@TESTSUITE_TRUE@noinst_PROGRAMS = test/demo$(EXEEXT) \
+@TESTSUITE_TRUE@	test/test$(EXEEXT) \
 @TESTSUITE_TRUE@	builders/residfp-builder/residfp/resample/test$(EXEEXT)
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
@@ -208,10 +209,12 @@ builders_residfp_builder_libsidplayfp_residfp_la_OBJECTS = $(am_builders_residfp
 builders_residfp_builder_residfp_libresidfp_la_LIBADD =
 am_builders_residfp_builder_residfp_libresidfp_la_OBJECTS =  \
 	builders/residfp-builder/residfp/Dac.lo \
+	builders/residfp-builder/residfp/Integrator.lo \
 	builders/residfp-builder/residfp/EnvelopeGenerator.lo \
 	builders/residfp-builder/residfp/ExternalFilter.lo \
 	builders/residfp-builder/residfp/FilterModelConfig.lo \
 	builders/residfp-builder/residfp/Filter.lo \
+	builders/residfp-builder/residfp/Filter8580.lo \
 	builders/residfp-builder/residfp/Filter6581.lo \
 	builders/residfp-builder/residfp/OpAmp.lo \
 	builders/residfp-builder/residfp/SID.lo \
@@ -230,12 +233,13 @@ am_sidplayfp_libsidplayfp_la_OBJECTS = sidplayfp/config.lo \
 	sidplayfp/psiddrv.lo sidplayfp/mixer.lo sidplayfp/reloc65.lo \
 	sidplayfp/sidbuilder.lo sidplayfp/SidConfig.lo \
 	sidplayfp/sidplayfp.lo sidplayfp/SidTune.lo \
-	sidplayfp/c64/c64.lo sidplayfp/c64/mmu.lo \
+	sidplayfp/sidemu.lo sidplayfp/c64/c64.lo sidplayfp/c64/mmu.lo \
 	sidplayfp/c64/VIC_II/mos656x.lo sidplayfp/c64/CPU/mos6510.lo \
 	sidplayfp/c64/CPU/mos6510debug.lo sidplayfp/c64/CIA/mos6526.lo \
-	sidplayfp/c64/CIA/timer.lo sidplayfp/sidtune/MUS.lo \
-	sidplayfp/sidtune/p00.lo sidplayfp/sidtune/prg.lo \
-	sidplayfp/sidtune/PSID.lo sidplayfp/sidtune/SidTuneBase.lo \
+	sidplayfp/c64/CIA/timer.lo sidplayfp/c64/CIA/tod.lo \
+	sidplayfp/sidtune/MUS.lo sidplayfp/sidtune/p00.lo \
+	sidplayfp/sidtune/prg.lo sidplayfp/sidtune/PSID.lo \
+	sidplayfp/sidtune/SidTuneBase.lo \
 	sidplayfp/sidtune/SidTuneTools.lo utils/iniParser.lo \
 	utils/SidDatabase.lo utils/MD5/MD5.lo
 sidplayfp_libsidplayfp_la_OBJECTS =  \
@@ -259,11 +263,14 @@ am__builders_residfp_builder_residfp_resample_test_SOURCES_DIST =  \
 builders_residfp_builder_residfp_resample_test_OBJECTS =  \
 	$(am_builders_residfp_builder_residfp_resample_test_OBJECTS)
 @TESTSUITE_TRUE@builders_residfp_builder_residfp_resample_test_DEPENDENCIES = builders/residfp-builder/residfp/resample/SincResampler.lo
+am__test_demo_SOURCES_DIST = test/demo.cpp
+@TESTSUITE_TRUE@am_test_demo_OBJECTS = test/demo.$(OBJEXT)
+test_demo_OBJECTS = $(am_test_demo_OBJECTS)
+@TESTSUITE_TRUE@test_demo_DEPENDENCIES = sidplayfp/libsidplayfp.la
 am__test_test_SOURCES_DIST = test/test.cpp
 @TESTSUITE_TRUE@am_test_test_OBJECTS = test/test.$(OBJEXT)
 test_test_OBJECTS = $(am_test_test_OBJECTS)
-@TESTSUITE_TRUE@test_test_DEPENDENCIES = sidplayfp/libsidplayfp.la \
-@TESTSUITE_TRUE@	builders/residfp-builder/libsidplayfp-residfp.la
+@TESTSUITE_TRUE@test_test_DEPENDENCIES = sidplayfp/libsidplayfp.la
 SCRIPTS = $(noinst_SCRIPTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -325,7 +332,7 @@ SOURCES = $(builders_hardsid_builder_libsidplayfp_hardsid_la_SOURCES) \
 	$(sidplayfp_libsidplayfp_la_SOURCES) \
 	$(sidplayfp_libstilview_la_SOURCES) \
 	$(builders_residfp_builder_residfp_resample_test_SOURCES) \
-	$(test_test_SOURCES)
+	$(test_demo_SOURCES) $(test_test_SOURCES)
 DIST_SOURCES = $(am__builders_hardsid_builder_libsidplayfp_hardsid_la_SOURCES_DIST) \
 	$(builders_resid_builder_libsidplayfp_resid_la_SOURCES) \
 	$(builders_resid_builder_resid_libresid_la_SOURCES) \
@@ -334,7 +341,7 @@ DIST_SOURCES = $(am__builders_hardsid_builder_libsidplayfp_hardsid_la_SOURCES_DI
 	$(sidplayfp_libsidplayfp_la_SOURCES) \
 	$(sidplayfp_libstilview_la_SOURCES) \
 	$(am__builders_residfp_builder_residfp_resample_test_SOURCES_DIST) \
-	$(am__test_test_SOURCES_DIST)
+	$(am__test_demo_SOURCES_DIST) $(am__test_test_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -530,15 +537,14 @@ AM_CPPFLAGS = -I $(top_builddir)/builders/residfp-builder \
 -I $(top_builddir)/builders/resid-builder \
 -I $(top_builddir)/builders/resid-builder/resid \
 -I $(top_builddir)/sidplayfp \
+-I $(top_srcdir)/sidplayfp \
 @debug_flags@
 
 
 #=========================================================
 EXTRA_DIST = \
 docs/mainpage.dox \
-sidplayfp/psiddrv.bin \
-sidplayfp/c64/poweron.bin \
-sidplayfp/sidtune/sidplayer.bin \
+sidplayfp/psiddrv.a65 \
 builders/residfp-builder/residfp/AUTHORS \
 builders/residfp-builder/residfp/COPYING \
 builders/residfp-builder/residfp/README \
@@ -547,6 +553,7 @@ builders/resid-builder/resid/ChangeLog \
 builders/resid-builder/resid/COPYING \
 builders/resid-builder/resid/configure.in \
 builders/resid-builder/resid/INSTALL \
+builders/resid-builder/resid/Makefile.am \
 builders/resid-builder/resid/NEWS \
 builders/resid-builder/resid/README \
 builders/resid-builder/resid/README.VICE \
@@ -570,7 +577,6 @@ noinst_LTLIBRARIES = builders/residfp-builder/residfp/libresidfp.la \
 #=========================================================
 # libsidplayfp
 sidplayfp_libsidplayfp_la_SOURCES = \
-sidplayfp/component.h \
 sidplayfp/config.cpp \
 sidplayfp/EventScheduler.cpp \
 sidplayfp/EventScheduler.h \
@@ -578,8 +584,10 @@ sidplayfp/player.cpp \
 sidplayfp/player.h \
 sidplayfp/psiddrv.cpp \
 sidplayfp/psiddrv.h \
+sidplayfp/psiddrv.bin \
 sidplayfp/mixer.cpp \
 sidplayfp/mixer.h \
+sidplayfp/poweron.bin \
 sidplayfp/reloc65.cpp \
 sidplayfp/reloc65.h \
 sidplayfp/sidbuilder.cpp \
@@ -589,8 +597,8 @@ sidplayfp/sidmemory.h \
 sidplayfp/sidplayfp.cpp \
 sidplayfp/SidInfoImpl.h \
 sidplayfp/SidTune.cpp \
-sidplayfp/psiddrv.a65 \
 sidplayfp/romCheck.h \
+sidplayfp/sidemu.cpp \
 sidplayfp/sidemu.h \
 sidplayfp/sidendian.h \
 sidplayfp/sidrandom.h \
@@ -603,6 +611,7 @@ sidplayfp/c64/c64sid.h \
 sidplayfp/c64/c64vic.h \
 sidplayfp/c64/c64.cpp \
 sidplayfp/c64/c64.h \
+sidplayfp/c64/component.h \
 sidplayfp/c64/mmu.cpp \
 sidplayfp/c64/mmu.h \
 sidplayfp/c64/Banks/ColorRAMBank.h \
@@ -616,6 +625,9 @@ sidplayfp/c64/Banks/SystemROMBanks.h \
 sidplayfp/c64/Banks/ZeroRAMBank.h \
 sidplayfp/c64/VIC_II/mos656x.cpp \
 sidplayfp/c64/VIC_II/mos656x.h \
+sidplayfp/c64/VIC_II/lightpen.h \
+sidplayfp/c64/VIC_II/sprites.h \
+sidplayfp/c64/CPU/flags.h \
 sidplayfp/c64/CPU/mos6510.cpp \
 sidplayfp/c64/CPU/mos6510.h \
 sidplayfp/c64/CPU/mos6510debug.cpp \
@@ -625,6 +637,8 @@ sidplayfp/c64/CIA/mos6526.cpp \
 sidplayfp/c64/CIA/mos6526.h \
 sidplayfp/c64/CIA/timer.cpp \
 sidplayfp/c64/CIA/timer.h \
+sidplayfp/c64/CIA/tod.cpp \
+sidplayfp/c64/CIA/tod.h \
 sidplayfp/sidtune/MUS.cpp \
 sidplayfp/sidtune/MUS.h \
 sidplayfp/sidtune/p00.cpp \
@@ -633,6 +647,7 @@ sidplayfp/sidtune/prg.cpp \
 sidplayfp/sidtune/prg.h \
 sidplayfp/sidtune/PSID.cpp \
 sidplayfp/sidtune/PSID.h \
+sidplayfp/sidtune/sidplayer.bin \
 sidplayfp/sidtune/SidTuneBase.cpp \
 sidplayfp/sidtune/SidTuneBase.h \
 sidplayfp/sidtune/SidTuneCfg.h \
@@ -673,6 +688,7 @@ builders_residfp_builder_residfp_libresidfp_la_SOURCES = \
 builders/residfp-builder/residfp/array.h \
 builders/residfp-builder/residfp/Dac.cpp \
 builders/residfp-builder/residfp/Dac.h \
+builders/residfp-builder/residfp/Integrator.cpp \
 builders/residfp-builder/residfp/Integrator.h \
 builders/residfp-builder/residfp/EnvelopeGenerator.cpp \
 builders/residfp-builder/residfp/EnvelopeGenerator.h \
@@ -682,6 +698,7 @@ builders/residfp-builder/residfp/FilterModelConfig.cpp \
 builders/residfp-builder/residfp/FilterModelConfig.h \
 builders/residfp-builder/residfp/Filter.cpp \
 builders/residfp-builder/residfp/Filter.h \
+builders/residfp-builder/residfp/Filter8580.cpp \
 builders/residfp-builder/residfp/Filter8580.h \
 builders/residfp-builder/residfp/Filter6581.cpp \
 builders/residfp-builder/residfp/Filter6581.h \
@@ -702,7 +719,6 @@ builders/residfp-builder/residfp/resample/ZeroOrderResampler.h \
 builders/residfp-builder/residfp/resample/SincResampler.cpp \
 builders/residfp-builder/residfp/resample/SincResampler.h \
 builders/residfp-builder/residfp/resample/TwoPassSincResampler.h \
-builders/residfp-builder/residfp/residfp-config.h \
 builders/residfp-builder/residfp/version.cc
 
 
@@ -795,16 +811,20 @@ sidplayfp_libstilview_la_HEADERS = \
 utils/STILview/stil.h \
 utils/STILview/stildefs.h
 
+@TESTSUITE_TRUE@test_demo_SOURCES = test/demo.cpp 
+@TESTSUITE_TRUE@test_demo_LDADD = sidplayfp/libsidplayfp.la
 @TESTSUITE_TRUE@test_test_SOURCES = test/test.cpp 
-@TESTSUITE_TRUE@test_test_LDADD = sidplayfp/libsidplayfp.la \
-@TESTSUITE_TRUE@builders/residfp-builder/libsidplayfp-residfp.la
-
+@TESTSUITE_TRUE@test_test_LDADD = sidplayfp/libsidplayfp.la
 @TESTSUITE_TRUE@builders_residfp_builder_residfp_resample_test_SOURCES = builders/residfp-builder/residfp/resample/test.cpp
 @TESTSUITE_TRUE@builders_residfp_builder_residfp_resample_test_LDADD = builders/residfp-builder/residfp/resample/SincResampler.lo
 
 #=========================================================
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libsidplayfp.pc libstilview.pc
+
+#=========================================================
+# Recreate psiddrv.bin, needs xa65
+CLEANFILES = sidplayfp/psiddrv.o65 sidplayfp/psiddrv.bin
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -1010,6 +1030,9 @@ builders/residfp-builder/residfp/$(DEPDIR)/$(am__dirstamp):
 builders/residfp-builder/residfp/Dac.lo:  \
 	builders/residfp-builder/residfp/$(am__dirstamp) \
 	builders/residfp-builder/residfp/$(DEPDIR)/$(am__dirstamp)
+builders/residfp-builder/residfp/Integrator.lo:  \
+	builders/residfp-builder/residfp/$(am__dirstamp) \
+	builders/residfp-builder/residfp/$(DEPDIR)/$(am__dirstamp)
 builders/residfp-builder/residfp/EnvelopeGenerator.lo:  \
 	builders/residfp-builder/residfp/$(am__dirstamp) \
 	builders/residfp-builder/residfp/$(DEPDIR)/$(am__dirstamp)
@@ -1020,6 +1043,9 @@ builders/residfp-builder/residfp/FilterModelConfig.lo:  \
 	builders/residfp-builder/residfp/$(am__dirstamp) \
 	builders/residfp-builder/residfp/$(DEPDIR)/$(am__dirstamp)
 builders/residfp-builder/residfp/Filter.lo:  \
+	builders/residfp-builder/residfp/$(am__dirstamp) \
+	builders/residfp-builder/residfp/$(DEPDIR)/$(am__dirstamp)
+builders/residfp-builder/residfp/Filter8580.lo:  \
 	builders/residfp-builder/residfp/$(am__dirstamp) \
 	builders/residfp-builder/residfp/$(DEPDIR)/$(am__dirstamp)
 builders/residfp-builder/residfp/Filter6581.lo:  \
@@ -1081,6 +1107,8 @@ sidplayfp/sidplayfp.lo: sidplayfp/$(am__dirstamp) \
 	sidplayfp/$(DEPDIR)/$(am__dirstamp)
 sidplayfp/SidTune.lo: sidplayfp/$(am__dirstamp) \
 	sidplayfp/$(DEPDIR)/$(am__dirstamp)
+sidplayfp/sidemu.lo: sidplayfp/$(am__dirstamp) \
+	sidplayfp/$(DEPDIR)/$(am__dirstamp)
 sidplayfp/c64/$(am__dirstamp):
 	@$(MKDIR_P) sidplayfp/c64
 	@: > sidplayfp/c64/$(am__dirstamp)
@@ -1118,6 +1146,8 @@ sidplayfp/c64/CIA/$(DEPDIR)/$(am__dirstamp):
 sidplayfp/c64/CIA/mos6526.lo: sidplayfp/c64/CIA/$(am__dirstamp) \
 	sidplayfp/c64/CIA/$(DEPDIR)/$(am__dirstamp)
 sidplayfp/c64/CIA/timer.lo: sidplayfp/c64/CIA/$(am__dirstamp) \
+	sidplayfp/c64/CIA/$(DEPDIR)/$(am__dirstamp)
+sidplayfp/c64/CIA/tod.lo: sidplayfp/c64/CIA/$(am__dirstamp) \
 	sidplayfp/c64/CIA/$(DEPDIR)/$(am__dirstamp)
 sidplayfp/sidtune/$(am__dirstamp):
 	@$(MKDIR_P) sidplayfp/sidtune
@@ -1191,6 +1221,12 @@ test/$(am__dirstamp):
 test/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) test/$(DEPDIR)
 	@: > test/$(DEPDIR)/$(am__dirstamp)
+test/demo.$(OBJEXT): test/$(am__dirstamp) \
+	test/$(DEPDIR)/$(am__dirstamp)
+
+test/demo$(EXEEXT): $(test_demo_OBJECTS) $(test_demo_DEPENDENCIES) $(EXTRA_test_demo_DEPENDENCIES) test/$(am__dirstamp)
+	@rm -f test/demo$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(test_demo_OBJECTS) $(test_demo_LDADD) $(LIBS)
 test/test.$(OBJEXT): test/$(am__dirstamp) \
 	test/$(DEPDIR)/$(am__dirstamp)
 
@@ -1256,7 +1292,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@builders/residfp-builder/residfp/$(DEPDIR)/ExternalFilter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@builders/residfp-builder/residfp/$(DEPDIR)/Filter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@builders/residfp-builder/residfp/$(DEPDIR)/Filter6581.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@builders/residfp-builder/residfp/$(DEPDIR)/Filter8580.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@builders/residfp-builder/residfp/$(DEPDIR)/FilterModelConfig.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@builders/residfp-builder/residfp/$(DEPDIR)/Integrator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@builders/residfp-builder/residfp/$(DEPDIR)/OpAmp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@builders/residfp-builder/residfp/$(DEPDIR)/SID.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@builders/residfp-builder/residfp/$(DEPDIR)/Spline.Plo@am__quote@
@@ -1274,11 +1312,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/$(DEPDIR)/psiddrv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/$(DEPDIR)/reloc65.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/$(DEPDIR)/sidbuilder.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/$(DEPDIR)/sidemu.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/$(DEPDIR)/sidplayfp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/c64/$(DEPDIR)/c64.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/c64/$(DEPDIR)/mmu.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/c64/CIA/$(DEPDIR)/mos6526.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/c64/CIA/$(DEPDIR)/timer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/c64/CIA/$(DEPDIR)/tod.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/c64/CPU/$(DEPDIR)/mos6510.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/c64/CPU/$(DEPDIR)/mos6510debug.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/c64/VIC_II/$(DEPDIR)/mos656x.Plo@am__quote@
@@ -1288,6 +1328,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/sidtune/$(DEPDIR)/SidTuneTools.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/sidtune/$(DEPDIR)/p00.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sidplayfp/sidtune/$(DEPDIR)/prg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/demo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@test/$(DEPDIR)/test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/SidDatabase.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/iniParser.Plo@am__quote@
@@ -1605,9 +1646,6 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	$(MAKE) $(AM_MAKEFLAGS) \
-	  top_distdir="$(top_distdir)" distdir="$(distdir)" \
-	  dist-hook
 	-test -n "$(am__skip_mode_fix)" \
 	|| find "$(distdir)" -type d ! -perm -755 \
 		-exec chmod u+rwx,go+rx {} \; -o \
@@ -1771,6 +1809,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -1905,11 +1944,11 @@ uninstall-am: uninstall-builders_hardsid_builder_libsidplayfp_hardsid_laHEADERS 
 	clean-cscope clean-generic clean-libLTLIBRARIES clean-libtool \
 	clean-local clean-noinstLTLIBRARIES clean-noinstPROGRAMS \
 	cscope cscopelist-am ctags ctags-am dist dist-all dist-bzip2 \
-	dist-gzip dist-hook dist-lzip dist-shar dist-tarZ dist-xz \
-	dist-zip distcheck distclean distclean-compile \
-	distclean-generic distclean-hdr distclean-libtool \
-	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am html html-am info info-am install install-am \
+	dist-gzip dist-lzip dist-shar dist-tarZ dist-xz dist-zip \
+	distcheck distclean distclean-compile distclean-generic \
+	distclean-hdr distclean-libtool distclean-tags distcleancheck \
+	distdir distuninstallcheck dvi dvi-am html html-am info \
+	info-am install install-am \
 	install-builders_hardsid_builder_libsidplayfp_hardsid_laHEADERS \
 	install-builders_resid_builder_libsidplayfp_resid_laHEADERS \
 	install-builders_residfp_builder_libsidplayfp_residfp_laHEADERS \
@@ -1942,12 +1981,11 @@ uninstall-am: uninstall-builders_hardsid_builder_libsidplayfp_hardsid_laHEADERS 
 @HAVE_DOXYGEN_TRUE@clean-local:
 @HAVE_DOXYGEN_TRUE@	rm -fr $(builddir)/docs/html
 
-#=========================================================
-# Remove SVN directories from any subdirs that get
-# included completely (e.g. win, directx,...).
+sidplayfp/psiddrv.o65:
+	xa -R -G $(srcdir)/sidplayfp/psiddrv.a65 -o $@
 
-dist-hook:
-	rm -rf `find $(distdir) -path \*/.svn`
+sidplayfp/psiddrv.bin: sidplayfp/psiddrv.o65
+	od -v -An -w8 -tx1 $< | sed -re 's/[[:alnum:]]+/0x&,/g' > sidplayfp/psiddrv.bin
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

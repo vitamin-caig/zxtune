@@ -3,7 +3,7 @@
  *
  * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
- * Copyright 2004 Dag Lem <resid@nimrod.no>
+ * Copyright 2004,2010 Dag Lem <resid@nimrod.no>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,33 +34,71 @@ namespace reSIDfp
  * FREQ is added to the lower 16 bits of the accumulator each cycle.
  * The accumulator is set to zero when TEST is set, and starts counting
  * when TEST is cleared.
- * The noise waveform is taken from intermediate bits of a 23 bit shift register.
- * This register is clocked by bit 19 of the accumulator.
  *
- * Java port of the reSID 1.0 waveformgenerator by Dag Lem.
+ * Waveforms are generated as follows:
  *
- * @author Ken Händel
- * @author Dag Lem
- * @author Antti Lankila
+ * - No waveform:
+ * When no waveform is selected, the DAC input is floating.
+ *
+ *
+ * - Triangle:
+ * The upper 12 bits of the accumulator are used.
+ * The MSB is used to create the falling edge of the triangle by inverting
+ * the lower 11 bits. The MSB is thrown away and the lower 11 bits are
+ * left-shifted (half the resolution, full amplitude).
+ * Ring modulation substitutes the MSB with MSB EOR sync_source MSB.
+ *
+ *
+ * - Sawtooth:
+ * The output is identical to the upper 12 bits of the accumulator.
+ *
+ *
+ * - Pulse:
+ * The upper 12 bits of the accumulator are used.
+ * These bits are compared to the pulse width register by a 12 bit digital
+ * comparator; output is either all one or all zero bits.
+ * The pulse setting is delayed one cycle after the compare; this is only
+ * modeled for single cycle clocking.
+ * The test bit, when set to one, holds the pulse waveform output at 0xfff
+ * regardless of the pulse width setting.
+ *
+ *
+ * - Noise:
+ * The noise output is taken from intermediate bits of a 23-bit shift register
+ * which is clocked by bit 19 of the accumulator.
+ * The shift is delayed 2 cycles after bit 19 is set high; this is only
+ * modeled for single cycle clocking.
+ *
+ * Operation: Calculate EOR result, shift register, set bit 0 = result.
+ *
+ *                    reset    -------------------------------------------
+ *                      |     |                                           |
+ *               test--OR-->EOR<--                                        |
+ *                      |         |                                       |
+ *                      2 2 2 1 1 1 1 1 1 1 1 1 1                         |
+ *     Register bits:   2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 <---
+ *                          |   |       |     |   |       |     |   |
+ *     Waveform bits:       1   1       9     8   7       6     5   4
+ *                          1   0
+ *
+ * The low 4 waveform bits are zero (grounded).
  */
 class WaveformGenerator
 {
 private:
     matrix_t* model_wave;
 
+    short* wave;
+
     // PWout = (PWn/40.95)%
     int pw;
 
-    int shift_register;
+    unsigned int shift_register;
 
-    /**
-    * Remaining time to fully reset shift register.
-    */
+    /// Remaining time to fully reset shift register.
     int shift_register_reset;
 
-    /**
-    * Emulation of pipeline causing bit 19 to clock the shift register.
-    */
+    /// Emulation of pipeline causing bit 19 to clock the shift register.
     int shift_pipeline;
 
     int ring_msb_mask;
@@ -70,32 +108,26 @@ private:
     int no_pulse;
     int pulse_output;
 
-    /**
-     * The control register right-shifted 4 bits; used for output function table lookup.
-     */
+    /// The control register right-shifted 4 bits; used for output function table lookup.
     int waveform;
 
     int floating_output_ttl;
 
-    short* wave;
-
     int waveform_output;
 
-    /** Current and previous accumulator value. */
+    /// Current and previous accumulator value.
     int accumulator;
 
     // Fout  = (Fn*Fclk/16777216)Hz
     int freq;
 
-    /**
-     * The control register bits. Gate is handled by EnvelopeGenerator.
-     */
+    /// The control register bits. Gate is handled by EnvelopeGenerator.
+    //@{
     bool test;
     bool sync;
+    //@}
 
-    /**
-    * Tell whether the accumulator MSB was set high on this cycle.
-    */
+    /// Tell whether the accumulator MSB was set high on this cycle.
     bool msb_rising;
 
     short dac[4096];
@@ -141,6 +173,7 @@ public:
      */
     WaveformGenerator() :
         model_wave(0),
+        wave(0),
         pw(0),
         shift_register(0),
         shift_register_reset(0),
@@ -153,7 +186,6 @@ public:
         pulse_output(0),
         waveform(0),
         floating_output_ttl(0),
-        wave(0),
         waveform_output(0),
         accumulator(0),
         freq(0),
@@ -206,6 +238,7 @@ public:
 
     /**
      * 12-bit waveform output.
+     * The output from SID 8580 is delayed one cycle compared to SID 6581;
      *
      * @param ringModulator The oscillator ring-modulating me.
      * @return output from waveform generator
@@ -214,29 +247,27 @@ public:
 
     /**
      * Read OSC3 value (6581, not latched/delayed version)
-     *
-     * @return OSC3 value
      */
     unsigned char readOSC() const { return (unsigned char)(waveform_output >> 4); }
 
     /**
-    * Read accumulator value.
-    */
+     * Read accumulator value.
+     */
     int readAccumulator() const { return accumulator; }
 
     /**
-    * Read freq value.
-    */
+     * Read freq value.
+     */
     int readFreq() const { return freq; }
 
     /**
-    * Read test value.
-    */
+     * Read test value.
+     */
     bool readTest() const { return test; }
 
     /**
-    * Read sync value.
-    */
+     * Read sync value.
+     */
     bool readSync() const { return sync; }
 };
 
@@ -250,9 +281,9 @@ namespace reSIDfp
 RESID_INLINE
 void WaveformGenerator::clock()
 {
-    if (test)
+    if (unlikely(test))
     {
-        if (shift_register_reset != 0 && --shift_register_reset == 0)
+        if (unlikely(shift_register_reset != 0) && unlikely(--shift_register_reset == 0))
         {
             reset_shift_register();
         }
@@ -272,12 +303,12 @@ void WaveformGenerator::clock()
 
         // Shift noise register once for each time accumulator bit 19 is set high.
         // The shift is delayed 2 cycles.
-        if ((accumulator_bits_set & 0x080000) != 0)
+        if (unlikely((accumulator_bits_set & 0x080000) != 0))
         {
             // Pipeline: Detect rising bit, shift phase 1, shift phase 2.
             shift_pipeline = 2;
         }
-        else if (shift_pipeline != 0 && --shift_pipeline == 0)
+        else if (unlikely(shift_pipeline) != 0 && --shift_pipeline == 0)
         {
             clock_shift_register();
         }
@@ -288,14 +319,14 @@ RESID_INLINE
 short WaveformGenerator::output(const WaveformGenerator* ringModulator)
 {
     // Set output value.
-    if (waveform != 0)
+    if (likely(waveform != 0))
     {
         // The bit masks no_pulse and no_noise are used to achieve branch-free
         // calculation of the output value.
         const int ix = (accumulator ^ (ringModulator->accumulator & ring_msb_mask)) >> 12;
         waveform_output = wave[ix] & (no_pulse | pulse_output) & no_noise_or_noise_output;
 
-        if (waveform > 0x8)
+        if (unlikely(waveform > 0x8))
         {
             // Combined waveforms that include noise
             // write to the shift register.
@@ -305,7 +336,7 @@ short WaveformGenerator::output(const WaveformGenerator* ringModulator)
     else
     {
         // Age floating DAC input.
-        if (floating_output_ttl != 0 && --floating_output_ttl == 0)
+        if (likely(floating_output_ttl != 0) && unlikely(--floating_output_ttl == 0))
         {
             waveform_output = 0;
         }

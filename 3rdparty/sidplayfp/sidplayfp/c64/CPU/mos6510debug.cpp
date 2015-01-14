@@ -28,7 +28,7 @@
 #include <cstdlib>
 
 #include "mos6510.h"
-#include "sidplayfp/sidendian.h"
+#include "sidendian.h"
 #include "opcodes.h"
 
 void MOS6510Debug::DumpState (event_clock_t time, MOS6510 &cpu)
@@ -43,14 +43,14 @@ void MOS6510Debug::DumpState (event_clock_t time, MOS6510 &cpu)
     fprintf(cpu.m_fdbg, "%02x ",   cpu.cpuRead (0));
     fprintf(cpu.m_fdbg, "%02x ",   cpu.cpuRead (1));
 
-    fprintf(cpu.m_fdbg, cpu.flagN ? "1" : "0");
-    fprintf(cpu.m_fdbg, cpu.flagV ? "1" : "0");
+    fprintf(cpu.m_fdbg, cpu.flags.N ? "1" : "0");
+    fprintf(cpu.m_fdbg, cpu.flags.V ? "1" : "0");
     fprintf(cpu.m_fdbg, "1");
-    fprintf(cpu.m_fdbg, cpu.flagB ? "1" : "0");
-    fprintf(cpu.m_fdbg, cpu.flagD ? "1" : "0");
-    fprintf(cpu.m_fdbg, cpu.flagI ? "1" : "0");
-    fprintf(cpu.m_fdbg, cpu.flagZ ? "1" : "0");
-    fprintf(cpu.m_fdbg, cpu.flagC ? "1" : "0");
+    fprintf(cpu.m_fdbg, cpu.flags.B ? "1" : "0");
+    fprintf(cpu.m_fdbg, cpu.flags.D ? "1" : "0");
+    fprintf(cpu.m_fdbg, cpu.flags.I ? "1" : "0");
+    fprintf(cpu.m_fdbg, cpu.flags.Z ? "1" : "0");
+    fprintf(cpu.m_fdbg, cpu.flags.C ? "1" : "0");
 
     const int opcode  = cpu.cpuRead(cpu.instrStartPC);
 

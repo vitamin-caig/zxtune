@@ -28,8 +28,6 @@ namespace reSIDfp
 /**
  * Abstraction of a resampling process. Given enough input, produces output.
  * Constructors take additional arguments that configure these objects.
- *
- * @author Antti Lankila
  */
 class Resampler
 {
@@ -56,15 +54,13 @@ public:
      */
     short getOutput() const
     {
-        const int value = output();
+        int value = output();
 
         // Clip signed integer value into the -32768,32767 range.
-#if 1
-        // This requires two's complement integer
-        return ((value + 0x8000) & ~0xFFFF) ? (value >> 31) ^ 0x7FFF : value;
-#else
-        return (value < -32768) ? -32768 : (value > 32767) ? 32767 : value;
-#endif
+        if (value < -32768) value = -32768;
+        if (value > 32767) value = 32767;
+
+        return value;
     }
 
     virtual void reset() = 0;

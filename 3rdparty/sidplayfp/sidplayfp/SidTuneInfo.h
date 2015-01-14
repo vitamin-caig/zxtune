@@ -26,13 +26,13 @@
 #include <stdint.h>
 
 /**
-* This interface is used to get values from SidTune objects.
-*
-* You must read (i.e. activate) sub-song specific information
-* via:
-*        const SidTuneInfo* tuneInfo = SidTune.getInfo();
-*        const SidTuneInfo* tuneInfo = SidTune.getInfo(songNumber);
-*/
+ * This interface is used to get values from SidTune objects.
+ *
+ * You must read (i.e. activate) sub-song specific information
+ * via:
+ *        const SidTuneInfo* tuneInfo = SidTune.getInfo();
+ *        const SidTuneInfo* tuneInfo = SidTune.getInfo(songNumber);
+ */
 class SidTuneInfo
 {
 public:
@@ -65,57 +65,63 @@ public:
     static const int SPEED_CIA_1A = 60;
 
 public:
-    /// Load Address
+    /**
+     * Load Address.
+     */
     virtual uint_least16_t loadAddr() const =0;
 
-    /// Init Address
+    /**
+     * Init Address.
+     */
     virtual uint_least16_t initAddr() const =0;
 
-    /// Play Address
+    /**
+     * Play Address.
+     */
     virtual uint_least16_t playAddr() const =0;
 
     /**
-    * The number of songs.
-    */
+     * The number of songs.
+     */
     virtual unsigned int songs() const =0;
 
     /**
-    * The default starting song.
-    */
+     * The default starting song.
+     */
     virtual unsigned int startSong() const =0;
 
     /**
-    * The tune that has been initialized.
-    */
+     * The tune that has been initialized.
+     */
     virtual unsigned int currentSong() const =0;
 
     /**
-    * @name Base addresses
-    * The SID chip base address(es) used by the sidtune.
-    */
+     * @name Base addresses
+     * The SID chip base address(es) used by the sidtune.
+     */
     //@{
     virtual uint_least16_t sidChipBase1() const =0;    ///< 0xD400 (normal, 1st SID)
     virtual uint_least16_t sidChipBase2() const =0;    ///< 0xD?00 (2nd SID) or 0 (no 2nd SID)
     //@}
 
     /**
-    * Whether sidtune uses two SID chips.
-    */
+     * Whether sidtune uses two SID chips.
+     */
     virtual bool isStereo() const=0;
 
     /**
-    * Intended speed.
-    */
+     * Intended speed.
+     */
     virtual int songSpeed() const =0;
 
     /**
-    * First available page for relocation.
-    */
+     * First available page for relocation.
+     */
     virtual uint_least8_t relocStartPage() const =0;
 
     /**
-    * Number of pages available for relocation.
-    */
+     * Number of pages available for relocation.
+     */
     virtual uint_least8_t relocPages() const =0;
 
     /**
@@ -128,70 +134,70 @@ public:
     //@}
 
     /**
-    * Compatibility requirements.
-    */
+     * Compatibility requirements.
+     */
     virtual compatibility_t compatibility() const =0;
 
     /**
-    * @name Tune infos
-    * Song title, credits, ...
-    * - 0 = Title
-    * - 1 = Author
-    * - 2 = Released
-    */
+     * @name Tune infos
+     * Song title, credits, ...
+     * - 0 = Title
+     * - 1 = Author
+     * - 2 = Released
+     */
     //@{
     virtual unsigned int numberOfInfoStrings() const =0;     ///< the number of available text info lines
     virtual const char* infoString(unsigned int i) const =0; ///< text info from the format headers etc.
     //@}
 
     /**
-    * @name Tune comments
-    * MUS comments.
-    */
+     * @name Tune comments
+     * MUS comments.
+     */
     //@{
     virtual unsigned int numberOfCommentStrings() const =0;     ///< Number of comments
     virtual const char* commentString(unsigned int i) const =0; ///<  Used to stash the MUS comment somewhere.
     //@}
 
     /**
-    * Length of single-file sidtune file.
-    */
+     * Length of single-file sidtune file.
+     */
     virtual uint_least32_t dataFileLen() const =0;
 
     /**
-    * Length of raw C64 data without load address.
-    */
+     * Length of raw C64 data without load address.
+     */
     virtual uint_least32_t c64dataLen() const =0;
 
     /**
-    * The tune clock speed.
-    */
+     * The tune clock speed.
+     */
     virtual clock_t clockSpeed() const =0;
 
     /**
-    * The name of the identified file format.
-    */
+     * The name of the identified file format.
+     */
     virtual const char* formatString() const =0;
 
     /**
-    * Whether load address might be duplicate.
-    */
+     * Whether load address might be duplicate.
+     */
     virtual bool fixLoad() const =0;
 
     /**
-    * Path to sidtune files.
-    */
+     * Path to sidtune files.
+     */
     virtual const char* path() const =0;
 
     /**
-    * A first file: e.g. "foo.sid" or "foo.mus".
-    */
+     * A first file: e.g. "foo.sid" or "foo.mus".
+     */
     virtual const char* dataFileName() const =0;
 
     /**
-    * A second file: e.g. "foo.str".
-    * Returns 0 if none.
-    */
+     * A second file: e.g. "foo.str".
+     * Returns 0 if none.
+     */
     virtual const char* infoFileName() const =0;
 
 protected:

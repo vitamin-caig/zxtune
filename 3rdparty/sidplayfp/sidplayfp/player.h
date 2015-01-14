@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <cstdio>
 
-#include "siddefs.h" 
+#include "siddefs.h"
 #include "SidConfig.h"
 #include "SidTuneInfo.h"
 #include "SidInfoImpl.h"
@@ -42,11 +42,9 @@
 
 #ifdef PC64_TESTSUITE
 #  include <string>
-#  include "SidTune.h"
-#else
-class SidTune;
 #endif
 
+class SidTune;
 class SidInfo;
 class sidbuilder;
 
@@ -86,28 +84,22 @@ private:
 
     sidrandom m_rand;
 
+    /// The PAL/NTSC switch value
+    uint8_t videoSwitch;
+
 private:
     c64::model_t c64model(SidConfig::c64_model_t defaultModel, bool forced);
     void initialise();
     void sidRelease();
     void sidCreate(sidbuilder *builder, SidConfig::sid_model_t defaultModel,
-                    bool forced, unsigned int channels);
+                    bool forced, const unsigned int secondSidAddresses);
     void sidParams(double cpuFreq, int frequency,
                     SidConfig::sampling_method_t sampling, bool fastSampling);
 
     static SidConfig::sid_model_t getModel (SidTuneInfo::model_t sidModel, SidConfig::sid_model_t defaultModel, bool forced);
 
 #ifdef PC64_TESTSUITE
-    void load(const char *file)
-    {
-        std::string name(PC64_TESTSUITE);
-        name.append(file);
-        name.append(".prg");
-
-        m_tune->load(name.c_str());
-        m_tune->selectSong(0);
-        initialise();
-    }
+    void load(const char *file);
 #endif
 
 public:

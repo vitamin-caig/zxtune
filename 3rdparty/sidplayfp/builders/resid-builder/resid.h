@@ -27,8 +27,8 @@
 #include "sidplayfp/siddefs.h"
 
 /**
-* ReSID Builder Class
-*/
+ * ReSID Builder Class
+ */
 class SID_EXTERN ReSIDBuilder : public sidbuilder
 {
 public:
@@ -37,10 +37,10 @@ public:
     ~ReSIDBuilder();
 
     /**
-    * Available sids.
-    *
-    * @return the number of available sids, 0 = endless.
-    */
+     * Available sids.
+     *
+     * @return the number of available sids, 0 = endless.
+     */
     unsigned int availDevices() const { return 0; }
 
     unsigned int create(unsigned int sids);
@@ -50,13 +50,15 @@ public:
     /// @name global settings
     /// Settings that affect all SIDs
     //@{
-    /// enable/disable filter
+    /**
+     * enable/disable filter.
+     */
     void filter(bool enable);
 
     /**
-    * The bias is given in millivolts, and a maximum reasonable
-    * control range is approximately -500 to 500.
-    */
+     * The bias is given in millivolts, and a maximum reasonable
+     * control range is approximately -500 to 500.
+     */
     void bias(double dac_bias);
     //@}
 };

@@ -25,16 +25,19 @@
 #include "Bank.h"
 
 /**
-* IO1/IO2
-* memory mapped registers or machine code routines of optional external devices 
-* I/O Area #1 located at $DE00-$DEFF
-* I/O Area #2 located at $DF00-$DFFF
-*/
+ * IO1/IO2
+ *
+ * memory mapped registers or machine code routines of optional external devices
+ *
+ * I/O Area #1 located at $DE00-$DEFF
+ *
+ * I/O Area #2 located at $DF00-$DFFF
+ */
 class DisconnectedBusBank : public Bank
 {
     /**
-    * No device is connected so this is a no-op.
-    */
+     * No device is connected so this is a no-op.
+     */
     void poke(uint_least16_t addr SID_UNUSED, uint8_t data SID_UNUSED) {}
 
     // FIXME this should actually return last byte read from VIC

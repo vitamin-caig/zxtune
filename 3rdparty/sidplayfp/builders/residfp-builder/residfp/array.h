@@ -42,7 +42,7 @@ class array
 {
 private:
     counter* count;
-    unsigned int x, y;
+    const unsigned int x, y;
     T* data;
 
 public:

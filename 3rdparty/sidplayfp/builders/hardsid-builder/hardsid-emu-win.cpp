@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2000-2002 Simon White
  *
@@ -22,8 +22,9 @@
 
 #include "hardsid-emu.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <sstream>
+#include <string>
 
 #include "hardsid.h"
 
@@ -40,8 +41,6 @@ Sidplay2 patch
 extern HsidDLL2 hsid2;
 const  unsigned int HardSID::voices = HARDSID_VOICES;
 unsigned int HardSID::sid = 0;
-
-std::string HardSID::m_credit;
 
 const char* HardSID::getCredits()
 {
@@ -60,14 +59,11 @@ const char* HardSID::getCredits()
 HardSID::HardSID (sidbuilder *builder) :
     sidemu(builder),
     Event("HardSID Delay"),
-    m_eventContext(0),
-    m_instance(sid++),
-    m_status(false),
-    m_locked(false)
+    m_instance(sid++)
 {
     if (m_instance >= hsid2.Devices ())
     {
-        m_errorBuffer = "HARDSID WARNING: System dosen't have enough SID chips.";
+        m_error = "HARDSID WARNING: System dosen't have enough SID chips.";
         return;
     }
 
@@ -93,7 +89,7 @@ void HardSID::clockSilent()
 
 uint8_t HardSID::read(uint_least8_t addr)
 {
-    event_clock_t cycles = m_eventContext->getTime (m_accessClk, EVENT_CLOCK_PHI1);
+    event_clock_t cycles = m_context->getTime (m_accessClk, EVENT_CLOCK_PHI1);
     m_accessClk += cycles;
 
     while (cycles > 0xFFFF)
@@ -108,7 +104,7 @@ uint8_t HardSID::read(uint_least8_t addr)
 
 void HardSID::write(uint_least8_t addr, uint8_t data)
 {
-    event_clock_t cycles = m_eventContext->getTime (m_accessClk, EVENT_CLOCK_PHI1);
+    event_clock_t cycles = m_context->getTime (m_accessClk, EVENT_CLOCK_PHI1);
     m_accessClk += cycles;
 
     while (cycles > 0xFFFF)
@@ -132,8 +128,8 @@ void HardSID::reset(uint8_t volume)
         hsid2.Reset((BYTE) m_instance);
     hsid2.Sync((BYTE) m_instance);
 
-    if (m_eventContext != 0)
-        m_eventContext->schedule(*this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
+    if (m_context != 0)
+        m_context->schedule(*this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
 }
 
 void HardSID::voice(unsigned int num, bool mute)
@@ -147,18 +143,14 @@ void HardSID::voice(unsigned int num, bool mute)
 // Set execution environment and lock sid to it
 bool HardSID::lock(EventContext *env)
 {
-    if (m_locked)
-        return false;
-
     if (hsid2.Version >= HSID_VERSION_204)
     {
         if (hsid2.Lock(m_instance) == FALSE)
             return false;
     }
 
-    m_locked = true;
-    m_eventContext = env;
-    m_eventContext->schedule(*this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
+    sidemu::lock(env);
+    m_context->schedule(*this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
 
     return true;
 }
@@ -169,24 +161,23 @@ void HardSID::unlock()
     if (hsid2.Version >= HSID_VERSION_204)
         hsid2.Unlock(m_instance);
 
-    m_locked = false;
-    m_eventContext->cancel(*this);
-    m_eventContext = 0;
+    m_context->cancel(*this);
+    sidemu::unlock();
 }
 
 void HardSID::event ()
 {
-    event_clock_t cycles = m_eventContext->getTime (m_accessClk, EVENT_CLOCK_PHI1);
+    event_clock_t cycles = m_context->getTime (m_accessClk, EVENT_CLOCK_PHI1);
     if (cycles < HARDSID_DELAY_CYCLES)
     {
-        m_eventContext->schedule(*this, HARDSID_DELAY_CYCLES - cycles,
+        m_context->schedule(*this, HARDSID_DELAY_CYCLES - cycles,
                   EVENT_CLOCK_PHI1);
     }
     else
     {
         m_accessClk += cycles;
         hsid2.Delay ((BYTE) m_instance, (WORD) cycles);
-        m_eventContext->schedule(*this, HARDSID_DELAY_CYCLES,
+        m_context->schedule(*this, HARDSID_DELAY_CYCLES,
                                 EVENT_CLOCK_PHI1);
     }
 }

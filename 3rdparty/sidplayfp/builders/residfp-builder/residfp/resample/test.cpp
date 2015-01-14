@@ -32,9 +32,9 @@
 #include "TwoPassSincResampler.h"
 
 /**
-* Simple sin waveform in, power output measurement function.
-* It would be far better to use FFT.
-*/
+ * Simple sin waveform in, power output measurement function.
+ * It would be far better to use FFT.
+ */
 int main(int argc, const char* argv[])
 {
     const double RATE = 985248.4;

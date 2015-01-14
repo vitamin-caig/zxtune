@@ -1,6 +1,8 @@
-/* reloc65 -- A part of xa65 - 65xx/65816 cross-assembler and utility suite
- * o65 file relocator
+/*
+ * This file is part of libsidplayfp, a SID player engine.
  *
+ * Copyright (C) 2013-2014 Leandro Nini
+ * Copyright (C) 2001 Dag Lem
  * Copyright (C) 1989-1997 André Fachat (a.fachat@physik.tu-chemnitz.de)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,34 +20,63 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/*
-    Modified by Dag Lem <resid@nimrod.no>
-    Relocate and extract text segment from memory buffer instead of file.
-    For use with VICE VSID.
-
-    Ported to c++ by Leandro Nini
-*/
-
 #include "reloc65.h"
 
 #include <cstring>
 
 #include "sidplayfp/siddefs.h"
 
-/* 16 bit header */
-const int BUF = (9 * 2 + 8);
+/// 16 bit header
+const int HEADER_SIZE = (8 + 9 * 2);
 
+/// Magic number
 const unsigned char o65hdr[] = {1, 0, 'o', '6', '5'};
 
+/**
+ * Get the size of header options section.
+ *
+ * @param buf
+ */
+int read_options(unsigned char *buf)
+{
+    int l = 0;
+
+    unsigned char c = buf[0];
+    while (c)
+    {
+        l += c;
+        c = buf[l];
+    }
+    return ++l;
+}
+
+/**
+ * Get the size of undefined references list.
+ *
+ * @param buf
+ */
+int read_undef(unsigned char *buf)
+{
+    int l = 2;
+
+    int n = buf[0] + 256 * buf[1];
+    while (n)
+    {
+        n--;
+        while (!buf[l++]) {}
+    }
+    return l;
+}
+
 reloc65::reloc65() :
-    m_tflag(false),
-    m_dflag(false),
-    m_bflag(false),
-    m_zflag(false),
     m_tbase(0),
     m_dbase(0),
     m_bbase(0),
     m_zbase(0),
+    m_tflag(false),
+    m_dflag(false),
+    m_bflag(false),
+    m_zflag(false),
     m_extract(WHOLE) {}
 
 void reloc65::setReloc(segment_t type, int addr)
@@ -80,68 +111,65 @@ void reloc65::setExtract(segment_t type)
 
 bool reloc65::reloc(unsigned char **buf, int *fsize)
 {
-    unsigned char *tmpBuf = (unsigned char *)*buf;
+    unsigned char *tmpBuf = *buf;
 
     if (memcmp(tmpBuf, o65hdr, 5) != 0)
     {
         return false;
     }
 
-    const int mode = tmpBuf[7] * 256 + tmpBuf[6];
-    if (mode & 0x2000)
+    const int mode = tmpBuf[6] + 256 * tmpBuf[7];
+    if ((mode & 0x2000)     // 32 bit size not supported
+        || (mode & 0x4000)) // pagewise relocation not supported
     {
-        return false; // 32 bit size not supported
-    }
-    else if (mode & 0x4000)
-    {
-        return false; // pagewise relocation not supported
+        return false;
     }
 
-    const int hlen = BUF+read_options(tmpBuf+BUF);
+    const int hlen = HEADER_SIZE + read_options(tmpBuf + HEADER_SIZE);
 
-    const int tbase = tmpBuf[ 9] * 256 + tmpBuf[ 8];
-    const int tlen  = tmpBuf[11] * 256 + tmpBuf[10];
+    const int tbase = tmpBuf[ 8] + 256 * tmpBuf[ 9];
+    const int tlen  = tmpBuf[10] + 256 * tmpBuf[11];
     m_tdiff = m_tflag ? m_tbase - tbase : 0;
-    const int dbase = tmpBuf[13] * 256 + tmpBuf[12];
-    const int dlen  = tmpBuf[15] * 256 + tmpBuf[14];
+    const int dbase = tmpBuf[12] + 256 * tmpBuf[13];
+    const int dlen  = tmpBuf[14] + 256 * tmpBuf[15];
     m_ddiff = m_dflag ? m_dbase - dbase : 0;
-    const int bbase = tmpBuf[17] * 256 + tmpBuf[16];
-    const int blen SID_UNUSED = tmpBuf[19] * 256 + tmpBuf[18];
+    const int bbase = tmpBuf[16] + 256 * tmpBuf[17];
+    const int blen SID_UNUSED = tmpBuf[18] + 256 * tmpBuf[19];
     m_bdiff = m_bflag ? m_bbase - bbase : 0;
-    const int zbase = tmpBuf[21] * 256 + tmpBuf[20];
-    const int zlen SID_UNUSED = tmpBuf[23] * 256 + tmpBuf[21];
+    const int zbase = tmpBuf[20] + 256 * tmpBuf[21];
+    const int zlen SID_UNUSED = tmpBuf[21] + 256 * tmpBuf[23];
     m_zdiff = m_zflag ? m_zbase - zbase : 0;
 
-    unsigned char *segt = tmpBuf + hlen;
-    unsigned char *segd = segt + tlen;
-    unsigned char *utab = segd + dlen;
+    unsigned char *segt = tmpBuf + hlen;                    // Text segment
+    unsigned char *segd = segt + tlen;                      // Data segment
+    unsigned char *utab = segd + dlen;                      // Undefined references list
 
-    unsigned char *rttab = utab + read_undef(utab);
+    unsigned char *rttab = utab + read_undef(utab);         // Text relocation table
 
-    unsigned char *rdtab = reloc_seg(segt, tlen, rttab);
-    unsigned char *extab = reloc_seg(segd, dlen, rdtab);
+    unsigned char *rdtab = reloc_seg(segt, tlen, rttab);    // Data relocation table
+    unsigned char *extab = reloc_seg(segd, dlen, rdtab);    // Exported globals list
 
     reloc_globals(extab);
 
     if (m_tflag)
     {
-        tmpBuf[ 9] = (m_tbase >> 8) & 255;
         tmpBuf[ 8] = m_tbase & 255;
+        tmpBuf[ 9] = (m_tbase >> 8) & 255;
     }
     if (m_dflag)
     {
-        tmpBuf[13] = (m_dbase >> 8) & 255;
         tmpBuf[12] = m_dbase & 255;
+        tmpBuf[13] = (m_dbase >> 8) & 255;
     }
     if (m_bflag)
     {
-        tmpBuf[17] = (m_bbase >> 8) & 255;
         tmpBuf[16] = m_bbase & 255;
+        tmpBuf[17] = (m_bbase >> 8) & 255;
     }
     if (m_zflag)
     {
-        tmpBuf[21] = (m_zbase >> 8) & 255;
         tmpBuf[20] = m_zbase & 255;
+        tmpBuf[21] = (m_zbase >> 8) & 255;
     }
 
     switch (m_extract)
@@ -161,32 +189,6 @@ bool reloc65::reloc(unsigned char **buf, int *fsize)
     }
 }
 
-int reloc65::read_options(unsigned char *buf)
-{
-    int l = 0;
-
-    unsigned char c = buf[0];
-    while (c)
-    {
-        l += c;
-        c = buf[l];
-    }
-    return ++l;
-}
-
-int reloc65::read_undef(unsigned char *buf)
-{
-    int l = 2;
-
-    int n = buf[0] + 256 * buf[1];
-    while (n)
-    {
-        n--;
-        while (!buf[l++]) {}
-    }
-    return l;
-}
-
 int reloc65::reldiff(unsigned char s)
 {
     switch (s)
@@ -199,7 +201,7 @@ int reloc65::reldiff(unsigned char s)
     }
 }
 
-unsigned char *reloc65::reloc_seg(unsigned char *buf, int len, unsigned char *rtab)
+unsigned char* reloc65::reloc_seg(unsigned char *buf, int len, unsigned char *rtab)
 {
     int adr = -1;
     while (*rtab)
@@ -243,7 +245,7 @@ unsigned char *reloc65::reloc_seg(unsigned char *buf, int len, unsigned char *rt
             }
         }
 
-        if(adr > len)
+        if (adr > len)
         {
                 // Warning: relocation table entries past segment end!
         }

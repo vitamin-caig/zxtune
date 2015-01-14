@@ -28,6 +28,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "siddefs-fp.h"
+
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
@@ -39,11 +41,25 @@
 namespace reSIDfp
 {
 
-SincResampler::fir_cache_t SincResampler::FIR_CACHE;
+typedef std::map<std::string, matrix_t> fir_cache_t;
 
-const double SincResampler::I0E = 1e-6;
+/// Cache for the expensive FIR table computation results.
+fir_cache_t FIR_CACHE;
 
-double SincResampler::I0(double x)
+/// Maximum error acceptable in I0 is 1e-6, or ~96 dB.
+const double I0E = 1e-6;
+
+const int BITS = 16;
+
+/**
+ * I0() computes the 0th order modified Bessel function of the first kind.
+ * This function is originally from resample-1.5/filterkit.c by J. O. Smith.
+ * It is used to build the Kaiser window for resampling.
+ *
+ * @param x evaluate I0 at x
+ * @return value of I0 at x.
+ */
+double I0(double x)
 {
     double sum = 1., u = 1., n = 1.;
     const double halfx = x / 2.;
@@ -60,7 +76,15 @@ double SincResampler::I0(double x)
     return sum;
 }
 
-int SincResampler::convolve(const short* a, const short* b, int bLength)
+/**
+ * Calculate convolution with sample and sinc.
+ *
+ * @param a sample buffer input
+ * @param b sinc
+ * @param bLength length of the sinc buffer
+ * @return convolved result
+ */
+int convolve(const short* a, const short* b, int bLength)
 {
 #ifdef HAVE_MMINTRIN_H
     __m64 acc = _mm_setzero_si64();
@@ -93,20 +117,18 @@ int SincResampler::convolve(const short* a, const short* b, int bLength)
 
 int SincResampler::fir(int subcycle)
 {
-    /* find the first of the nearest fir tables close to the phase */
+    // find the first of the nearest fir tables close to the phase
     int firTableFirst = (subcycle * firRES >> 10);
     const int firTableOffset = (subcycle * firRES) & 0x3ff;
 
-    /*
-    * find firN most recent samples, plus one extra in case the FIR wraps.
-    */
+    // find firN most recent samples, plus one extra in case the FIR wraps.
     int sampleStart = sampleIndex - firN + RINGSIZE - 1;
 
     const int v1 = convolve(sample + sampleStart, (*firTable)[firTableFirst], firN);
 
     // Use next FIR table, wrap around to first FIR table using
     // previous sample.
-    if (++firTableFirst == firRES)
+    if (unlikely(++firTableFirst == firRES))
     {
         firTableFirst = 0;
         ++sampleStart;
@@ -155,12 +177,12 @@ SincResampler::SincResampler(double clockFrequency, double samplingFrequency, do
         // Check whether the sample ring buffer would overflow.
         assert(firN < RINGSIZE);
 
-        /* Error is bounded by err < 1.234 / L^2, so L = sqrt(1.234 / (2^-16)) = sqrt(1.234 * 2^16). */
+        // Error is bounded by err < 1.234 / L^2, so L = sqrt(1.234 / (2^-16)) = sqrt(1.234 * 2^16).
         firRES = (int) ceil(sqrt(1.234 * (1 << BITS)) / cyclesPerSampleD);
 
-        /* firN*firRES represent the total resolution of the sinc sampling. JOS
-        * recommends a length of 2^BITS, but we don't quite use that good a filter.
-        * The filter test program indicates that the filter performs well, though. */
+        // firN*firRES represent the total resolution of the sinc sampling. JOS
+        // recommends a length of 2^BITS, but we don't quite use that good a filter.
+        // The filter test program indicates that the filter performs well, though. */
     }
 
     std::ostringstream o;
@@ -168,9 +190,8 @@ SincResampler::SincResampler(double clockFrequency, double samplingFrequency, do
     const std::string firKey = o.str();
     fir_cache_t::iterator lb = FIR_CACHE.lower_bound(firKey);
 
-    /* The FIR computation is expensive and we set sampling parameters often, but
-    * from a very small set of choices. Thus, caching is used to speed initialization.
-    */
+    // The FIR computation is expensive and we set sampling parameters often, but
+    // from a very small set of choices. Thus, caching is used to speed initialization.
     if (lb != FIR_CACHE.end() && !(FIR_CACHE.key_comp()(firKey, lb->first)))
     {
         firTable = &(lb->second);
@@ -184,7 +205,7 @@ SincResampler::SincResampler(double clockFrequency, double samplingFrequency, do
         // The cutoff frequency is midway through the transition band, in effect the same as nyquist.
         const double wc = M_PI;
 
-        /* Calculate the sinc tables. */
+        // Calculate the sinc tables.
         const double scale = 32768.0 * wc / cyclesPerSampleD / M_PI;
 
         for (int i = 0; i < firRES; i++)

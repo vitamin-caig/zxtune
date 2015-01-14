@@ -1,8 +1,9 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
+ * Copyright 2004,2010 Dag Lem
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,17 +25,20 @@
 
 #include <memory>
 
+#include "Spline.h"
+
 namespace reSIDfp
 {
 
 class Integrator;
 
 /**
-*/
+ * Calculate parameters for 6581 filter emulation.
+ */
 class FilterModelConfig
 {
 private:
-    static const unsigned int OPAMP_SIZE = 22;
+    static const unsigned int OPAMP_SIZE = 33;
     static const unsigned int DAC_BITS = 11;
 
 private:
@@ -42,40 +46,59 @@ private:
     // This allows access to the private constructor
     friend class std::auto_ptr<FilterModelConfig>;
 
-    static const double opamp_voltage[OPAMP_SIZE][2];
+    static const Spline::Point opamp_voltage[OPAMP_SIZE];
 
     const double voice_voltage_range;
     const double voice_DC_voltage;
 
-    // Capacitor value.
+    /// Capacitor value.
     const double C;
 
-    // Transistor parameters.
+    /// Transistor parameters.
+    //@{
     const double Vdd;
-    const double Vth;           // Threshold voltage
-    const double uCox_vcr;      // 1/2*u*Cox
-    const double WL_vcr;        // W/L for VCR
-    const double uCox_snake;    // 1/2*u*Cox
-    const double WL_snake;      // W/L for "snake"
+    const double Vth;           ///< Threshold voltage
+    const double Ut;            ///< Thermal voltage: Ut = k*T/q = 8.61734315e-5*T ~ 26mV
+    const double k;             ///< Gate coupling coefficient: K = Cox/(Cox+Cdep) ~ 0.7
+    const double uCox;          ///< u*Cox
+    const double WL_vcr;        ///< W/L for VCR
+    const double WL_snake;      ///< W/L for "snake"
+    const double kVddt;         ///< k * (Vdd - Vth)
+    //@}
 
-    // DAC parameters.
+    /// DAC parameters.
+    //@{
     const double dac_zero;
     const double dac_scale;
+    //@}
 
-    /* Derived stuff */
-    const double vmin, norm;
-    double opamp_working_point;
+    // Derived stuff
+    const double vmin, vmax;
+    const double denorm, norm;
+
+    /// Fixed point scaling for 16 bit op-amp output.
+    const double N16;
+
+    /// Lookup tables for gain and summer op-amps in output stage / filter.
+    //@{
     unsigned short* mixer[8];
-    unsigned short* summer[7];
+    unsigned short* summer[5];
     unsigned short* gain[16];
+    //@}
+
+    /// DAC lookup table
     double dac[DAC_BITS];
-    unsigned short vcr_Vg[1 << 16];
+
+    /// VCR - 6581 only.
+    //@{
+    unsigned short vcr_kVg[1 << 16];
     unsigned short vcr_n_Ids_term[1 << 16];
-    int opamp_rev[1 << 16];
+    //@}
+
+    /// Reverse op-amp transfer function.
+    unsigned short opamp_rev[1 << 16];
 
 private:
-    double evaluateTransistor(double Vw, double vi, double vx);
-
     double getDacZero(double adjustment) const { return dac_zero - (adjustment - 0.5) * 2.; }
 
     FilterModelConfig();
@@ -84,11 +107,16 @@ private:
 public:
     static FilterModelConfig* getInstance();
 
-    int getVO_T16() const { return (int)(norm * ((1L << 16) - 1) * vmin); }
+    /**
+     * The digital range of one voice is 20 bits; create a scaling term
+     * for multiplication which fits in 11 bits.
+     */
+    int getVoiceScaleS14() const { return (int)((norm * ((1 << 14) - 1)) * voice_voltage_range); }
 
-    int getVoiceScaleS14() const { return (int)((norm * ((1L << 14) - 1)) * voice_voltage_range); }
-
-    int getVoiceDC() const { return (int)((norm * ((1L << 16) - 1)) * (voice_DC_voltage - vmin)); }
+    /**
+     * The "zero" output level of the voices.
+     */
+    int getVoiceDC() const { return (int)(N16 * (voice_DC_voltage - vmin)); }
 
     unsigned short** getGain() { return gain; }
 
@@ -97,31 +125,14 @@ public:
     unsigned short** getMixer() { return mixer; }
 
     /**
-     * Construct a DAC table.
-     * Ownership is transferred to the requester which becomes responsible
-     * of freeing the object when done.
+     * Construct an 11 bit cutoff frequency DAC output voltage table.
      *
      * @param adjustment
      * @return the DAC table
      */
-    unsigned int* getDAC(double adjustment) const;
+    unsigned short* getDAC(double adjustment) const;
 
-    Integrator* buildIntegrator();
-
-    /**
-     * Estimate the center frequency corresponding to some FC setting.
-     *
-     * FIXME: this function is extremely sensitive to prevailing voltage offsets.
-     * They got to be right within about 0.1V, or the results will be simply wrong.
-     * This casts doubt on the feasibility of this approach. Perhaps the offsets
-     * at the integrators would need to be statically solved first for 1-voice null
-     * input.
-     *
-     * @param dac_zero
-     * @param fc
-     * @return frequency in Hz
-     */
-    double estimateFrequency(double dac_zero, int fc);
+    std::auto_ptr<Integrator> buildIntegrator();
 };
 
 } // namespace reSIDfp

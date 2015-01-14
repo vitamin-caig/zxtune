@@ -27,14 +27,15 @@
 // wire it into the computer (like adding a chip to a PCB).
 
 #include "Banks/Bank.h"
-#include "sidplayfp/c64/c64env.h"
-#include "sidplayfp/sidendian.h"
+#include "c64/c64env.h"
+#include "sidendian.h"
 #include "VIC_II/mos656x.h"
 
 /**
-* VIC-II
-* located at $D000-$D3FF
-*/
+ * VIC-II
+ *
+ * Located at $D000-$D3FF
+ */
 class c64vic: public MOS656X, public Bank
 {
 private:

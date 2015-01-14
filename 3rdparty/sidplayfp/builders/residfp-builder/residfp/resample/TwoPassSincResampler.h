@@ -32,8 +32,6 @@ namespace reSIDfp
 
 /**
  * Compose a more efficient SINC from chaining two other SINCs.
- *
- * @author Antti Lankila
  */
 class TwoPassSincResampler : public Resampler
 {
@@ -45,8 +43,8 @@ public:
     TwoPassSincResampler(double clockFrequency, double samplingFrequency,
                          double highestAccurateFrequency)
     {
-        /* Calculation according to Laurent Ganier. It evaluates to about 120 kHz at typical settings.
-         * Some testing around the chosen value seems to confirm that this does work. */
+        // Calculation according to Laurent Ganier. It evaluates to about 120 kHz at typical settings.
+        // Some testing around the chosen value seems to confirm that this does work.
         const double intermediateFrequency = 2. * highestAccurateFrequency
                                              + sqrt(2. * highestAccurateFrequency * clockFrequency
                                                      * (samplingFrequency - 2. * highestAccurateFrequency) / samplingFrequency);

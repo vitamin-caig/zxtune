@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2000-2001 Simon White
  *
@@ -23,59 +23,85 @@
 #ifndef SIDEMU_H
 #define SIDEMU_H
 
-#include "component.h"
+#include <string>
+
 #include "SidConfig.h"
 #include "siddefs.h"
+#include "event.h"
 #include "c64/c64sid.h"
 
 class sidbuilder;
 class EventContext;
 
 /**
-* Buffer size. 5000 is roughly 5 ms at 96 kHz
-*/
-enum
+ * Inherit this class to create a new SID emulation.
+ */
+class sidemu : public c64sid
 {
-    OUTPUTBUFFERSIZE = 5000
-};
+public:
+    /**
+     * Buffer size. 5000 is roughly 5 ms at 96 kHz
+     */
+    enum
+    {
+        OUTPUTBUFFERSIZE = 5000
+    };
 
-/**
-* Inherit this class to create a new SID emulation.
-*/
-class sidemu : public c64sid, public component
-{
 private:
     sidbuilder *m_builder;
 
 protected:
+    static std::string m_credit;
+
+protected:
+    static const char ERR_UNSUPPORTED_FREQ[];
+    static const char ERR_INVALID_SAMPLING[];
+    static const char ERR_INVALID_CHIP[];
+
+protected:
+    EventContext *m_context;
+
+    event_clock_t m_accessClk;
+
     short *m_buffer;
     int m_bufferpos;
 
+    bool m_status;
+    bool m_locked;
+
+    std::string m_error;
+
 public:
     sidemu(sidbuilder *builder) :
-        m_builder (builder), m_buffer(0) {}
+        m_builder (builder),
+        m_context(0),
+        m_buffer(0),
+        m_bufferpos(0),
+        m_status(true),
+        m_locked(false),
+        m_error("N/A") {}
     virtual ~sidemu() {}
-
-    // Standard component functions
-    void reset() { reset(0); }
-
-    virtual void reset(uint8_t volume) = 0;
 
     virtual void clock() = 0;
     virtual void clockSilent() = 0;
 
-    virtual bool lock(EventContext *env) = 0;
-    virtual void unlock() = 0;
+    /// Set execution environment and lock sid to it
+    virtual bool lock(EventContext *env);
+
+    /// Unlock sid
+    virtual void unlock();
 
     // Standard SID functions
     virtual void voice(unsigned int num, bool mute) = 0;
     virtual void model(SidConfig::sid_model_t model) = 0;
     virtual void analyze(unsigned int tone[3], unsigned int level[3]) = 0;
 
-    sidbuilder *builder() const { return m_builder; }
-
     virtual void sampling(float systemfreq SID_UNUSED, float outputfreq SID_UNUSED,
         SidConfig::sampling_method_t method SID_UNUSED, bool fast SID_UNUSED) {}
+
+    const char *error() const { return m_error.c_str(); }
+
+    sidbuilder *builder() const { return m_builder; }
 
     int bufferpos() const { return m_bufferpos; }
     void bufferpos(int pos) { m_bufferpos = pos; }

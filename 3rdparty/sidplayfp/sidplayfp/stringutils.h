@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- *  Copyright 2013 Leandro Nini
+ *  Copyright 2013-2014 Leandro Nini
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,19 +38,23 @@
 #include <string>
 
 
-class stringutils
+namespace stringutils
 {
-private:
-    static bool casecompare(char c1, char c2) { return (tolower(c1)==tolower(c2)); }
+    inline bool casecompare(char c1, char c2) { return (tolower(c1) == tolower(c2)); }
 
-public:
-    static bool equal(const std::string& s1, const std::string& s2)
+    /**
+     * Compares two strings case insensitively and returns true if they are equal.
+     */
+    inline bool equal(const std::string& s1, const std::string& s2)
     {
         return s1.size() == s2.size()
             && std::equal(s1.begin(), s1.end(), s2.begin(), casecompare);
     }
 
-    static bool equal(const char* s1, const char* s2)
+    /**
+     * Compares two strings case insensitively and returns true if they are equal.
+     */
+    inline bool equal(const char* s1, const char* s2)
     {
 
 #if defined(HAVE_STRCASECMP)
@@ -76,7 +80,10 @@ public:
 #endif
     }
 
-    static bool equal(const char* s1, const char* s2, size_t n)
+    /**
+     * Compares first n characters of two strings case insensitively and returns true if they are equal.
+     */
+    inline bool equal(const char* s1, const char* s2, size_t n)
     {
 
 #if defined(HAVE_STRNCASECMP)
@@ -101,6 +108,6 @@ public:
         return true;
 #endif
     }
-};
+}
 
 #endif

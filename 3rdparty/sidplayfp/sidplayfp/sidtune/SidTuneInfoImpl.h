@@ -30,8 +30,8 @@
 #include "sidplayfp/SidTuneInfo.h"
 
 /**
-* The implementation of the SidTuneInfo interface.
-*/
+ * The implementation of the SidTuneInfo interface.
+ */
 class SidTuneInfoImpl : public SidTuneInfo
 {
 public:

@@ -27,8 +27,8 @@
 #include "sidplayfp/siddefs.h"
 
 /**
-* HardSID Builder Class
-*/
+ * HardSID Builder Class
+ */
 class SID_EXTERN HardSIDBuilder : public sidbuilder
 {
 private:
@@ -45,24 +45,26 @@ public:
     ~HardSIDBuilder();
 
     /**
-    * Available sids.
-    *
-    * @return the number of available sids, 0 = endless.
-    */
+     * Available sids.
+     *
+     * @return the number of available sids, 0 = endless.
+     */
     unsigned int availDevices() const;
 
     const char *credits() const;
 
     void flush();
 
-    /// enable/disable filter.
+    /**
+     * enable/disable filter.
+     */
     void filter(bool enable);
 
     /**
-    * Create the sid emu.
-    *
-    * @param sids the number of required sid emu
-    */
+     * Create the sid emu.
+     *
+     * @param sids the number of required sid emu
+     */
     unsigned int create(unsigned int sids);
 };
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2001 Simon White
  *
@@ -27,21 +27,22 @@
 // wire them into the computer (like adding a chip to a PCB).
 
 #include "Banks/Bank.h"
-#include "sidplayfp/c64/c64env.h"
-#include "sidplayfp/sidendian.h"
+#include "c64/c64env.h"
+#include "sidendian.h"
 #include "CIA/mos6526.h"
 
 /**
-* CIA 1
-* Generates IRQs
-* located at $DC00-$DCFF
-*/
+ * CIA 1
+ *
+ * Generates IRQs
+ *
+ * Located at $DC00-$DCFF
+ */
 class c64cia1: public MOS6526, public Bank
 {
 private:
     c64env &m_env;
     uint_least16_t last_ta;
-    uint8_t lp;
 
 protected:
     void interrupt(bool state)
@@ -51,12 +52,7 @@ protected:
 
     void portB()
     {
-        const uint8_t lp = (prb | ~ddrb) & 0x10;
-        if (lp != this->lp)
-        {
-            m_env.lightpen();
-            this->lp = lp;
-        }
+        m_env.lightpen((prb | ~ddrb) & 0x10);
     }
 
 public:
@@ -84,7 +80,6 @@ public:
     void reset()
     {
         last_ta = 0;
-        lp = 0x10;
         MOS6526::reset ();
     }
 
@@ -92,10 +87,12 @@ public:
 };
 
 /**
-* CIA 2
-* Generates NMIs
-* located at $DD00-$DDFF
-*/
+ * CIA 2
+ *
+ * Generates NMIs
+ *
+ * Located at $DD00-$DDFF
+ */
 class c64cia2: public MOS6526, public Bank
 {
 private:

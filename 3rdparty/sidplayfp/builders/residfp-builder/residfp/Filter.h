@@ -28,61 +28,34 @@ namespace reSIDfp
 
 /**
  * SID filter base class
- *
- * @author Ken Händel
- * @author Dag Lem
- * @author Antti Lankila
- * @author Leandro Nini
  */
 class Filter
 {
-private:
-    /**
-     * Filter enabled.
-     */
-    bool enabled;
-
-    /**
-     * Selects which inputs to route through filter.
-     */
-    char filt;
-
 protected:
+    /// Filter cutoff frequency.
+    unsigned int fc;
 
-    /**
-     * Current clock frequency.
-     */
-    double clockFrequency;
+    /// Filter resonance.
+    unsigned char res;
 
-    /**
-     * Filter cutoff frequency.
-     */
-    int fc;
+    /// Current volume.
+    unsigned char vol;
 
-    /**
-     * Filter resonance.
-     */
-    int res;
-
-    /**
-     * Current volume.
-     */
-    int vol;
-
-    /**
-     * Routing to filter or outside filter
-     */
+    /// Routing to filter or outside filter
     bool filt1, filt2, filt3, filtE;
 
-    /**
-     * Switch voice 3 off.
-     */
+    /// Switch voice 3 off.
     bool voice3off;
 
-    /**
-     * Highpass, bandpass, and lowpass filter modes.
-     */
+    /// Highpass, bandpass, and lowpass filter modes.
     bool hp, bp, lp;
+
+private:
+    /// Filter enabled.
+    bool enabled;
+
+    /// Selects which inputs to route through filter.
+    unsigned char filt;
 
 protected:
     /**
@@ -102,9 +75,6 @@ protected:
 
 public:
     Filter() :
-        enabled(true),
-        filt(0),
-        clockFrequency(0.),
         fc(0),
         res(0),
         vol(0),
@@ -115,7 +85,9 @@ public:
         voice3off(false),
         hp(false),
         bp(false),
-        lp(false) {}
+        lp(false),
+        enabled(true),
+        filt(0) {}
 
     virtual ~Filter() {}
 
@@ -136,36 +108,34 @@ public:
      */
     void enable(bool enable);
 
-    void setClockFrequency(double clock);
-
     /**
      * SID reset.
      */
     void reset();
 
     /**
-     * Register function.
+     * Write Frequency Cutoff Low register.
      *
      * @param fc_lo Frequency Cutoff Low-Byte
      */
     void writeFC_LO(unsigned char fc_lo);
 
     /**
-     * Register function.
+     * Write Frequency Cutoff High register.
      *
      * @param fc_hi Frequency Cutoff High-Byte
      */
     void writeFC_HI(unsigned char fc_hi);
 
     /**
-     * Register function.
+     * Write Resonance/Filter register.
      *
      * @param res_filt Resonance/Filter
      */
     void writeRES_FILT(unsigned char res_filt);
 
     /**
-     * Register function.
+     * Write filter Mode/Volume register.
      *
      * @param mode_vol Filter Mode/Volume
      */

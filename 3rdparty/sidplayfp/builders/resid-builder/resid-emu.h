@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2001 Simon White
  *
@@ -24,10 +24,9 @@
 #define RESID_EMU_H
 
 #include <stdint.h>
-#include <string>
 
 #include "sidplayfp/SidConfig.h"
-#include "sidplayfp/sidemu.h"
+#include "sidemu.h"
 #include "sidplayfp/event.h"
 #include "resid/sid.h"
 
@@ -47,15 +46,8 @@
 class ReSID: public sidemu
 {
 private:
-    EventContext *m_context;
     RESID_NS::SID &m_sid;
-    event_clock_t m_accessClk;
-    const  char  *m_error;
-    bool          m_status;
-    bool          m_locked;
     uint8_t       m_voiceMask;
-
-    static std::string m_credit;
 
 public:
     static const char* getCredits();
@@ -65,15 +57,11 @@ public:
     ~ReSID();
 
     // Standard component functions
-    const char *credits () const { return getCredits(); }
-
     void reset() { sidemu::reset (); }
     void reset(uint8_t volume);
 
     uint8_t read(uint_least8_t addr);
     void write(uint_least8_t addr, uint8_t data);
-
-    const char *error() const { return m_error; }
 
     // Standard SID functions
     void clock();
@@ -90,10 +78,6 @@ public:
     void bias(double dac_bias);
     void model(SidConfig::sid_model_t model);
     void analyze(unsigned int tone[3], unsigned int level[3]);
-
-    // Must lock the SID before using the standard functions.
-    bool lock(EventContext *env);
-    void unlock();
 };
 
 #endif // RESID_EMU_H

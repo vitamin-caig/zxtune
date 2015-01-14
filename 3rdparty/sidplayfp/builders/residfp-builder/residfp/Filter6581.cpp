@@ -29,14 +29,12 @@ namespace reSIDfp
 
 Filter6581::~Filter6581()
 {
-    delete hpIntegrator;
-    delete bpIntegrator;
     delete [] f0_dac;
 }
 
 void Filter6581::updatedCenterFrequency()
 {
-    const unsigned int Vw = f0_dac[fc];
+    const unsigned short Vw = f0_dac[fc];
     hpIntegrator->setVw(Vw);
     bpIntegrator->setVw(Vw);
 }

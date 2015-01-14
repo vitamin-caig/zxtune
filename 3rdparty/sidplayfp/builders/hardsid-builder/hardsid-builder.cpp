@@ -77,7 +77,7 @@ unsigned int HardSIDBuilder::create(unsigned int sids)
         m_errorBuffer = "HARDSID ERROR: No devices found (run HardSIDConfig)";
         goto HardSIDBuilder_create_error;
     }
-        
+
     if (count < sids)
         sids = count;
 

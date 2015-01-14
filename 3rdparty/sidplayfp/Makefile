@@ -2,6 +2,8 @@ library_name := sidplayfp
 path_step := ../..
 include defines.mak
 
+include_dirs += $(path_step)/3rdparty/sidplayfp/sidplayfp
+
 source_dirs = sidplayfp \
               sidplayfp/c64 \
               sidplayfp/c64/CIA \
