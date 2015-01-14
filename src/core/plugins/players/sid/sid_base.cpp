@@ -21,6 +21,7 @@
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <core/module_attrs.h>
+#include <debug/log.h>
 #include <devices/details/analysis_map.h>
 #include <devices/details/parameters_helper.h>
 #include <formats/chiptune/container.h>
@@ -39,6 +40,11 @@
 #include <boost/algorithm/string/predicate.hpp>
 //text includes
 #include <formats/text/chiptune.h>
+
+namespace
+{
+  const Debug::Stream Dbg("Core::SIDSupp");
+}
 
 namespace Module
 {
@@ -340,7 +346,9 @@ namespace Sid
   private:
     uint_t GetFramesCount() const
     {
-      const TimeType duration = GetSongLength(Tune->createMD5(), SongIdx - 1);
+      const char* md5 = Tune->createMD5();
+      const TimeType duration = GetSongLength(md5, SongIdx - 1);
+      Dbg("Duration for %1%/%2% is %3%ms", md5, SongIdx, duration.Get());
       return Fps * (duration.Get() / duration.PER_SECOND);
     }
   private:
