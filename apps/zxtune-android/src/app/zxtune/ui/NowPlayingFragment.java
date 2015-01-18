@@ -18,6 +18,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -103,6 +104,10 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         if (toShare != null) {
           startActivity(Intent.createChooser(toShare, menu.getTitle()));
         }
+        break;
+      case R.id.action_make_ringtone:
+        final DialogFragment fragment = RingtoneFragment.createInstance(getService().getNowPlaying());
+        fragment.show(getActivity().getSupportFragmentManager(), "ringtone");
         break;
       default:
         return super.onOptionsItemSelected(menu);

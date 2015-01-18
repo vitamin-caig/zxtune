@@ -14,19 +14,15 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.Log;
+import app.zxtune.sound.SamplesSource.Channels;
+import app.zxtune.sound.SamplesSource.Sample;
 
-final class SoundOutputSamplesTarget implements SamplesTarget {
+final public class SoundOutputSamplesTarget implements SamplesTarget {
 
   private static final String TAG = SoundOutputSamplesTarget.class.getName();
   
-  private static final class Channels {
-    public final static int COUNT = 2;
-    public final static int ENCODING = AudioFormat.CHANNEL_OUT_STEREO;
-  }
-  private static final class Sample {
-    public final static int BYTES = 2;
-    public final static int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
-  }
+  private final static int CHANNEL_OUT = AudioFormat.CHANNEL_OUT_STEREO;
+  private final static int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
   private final static int STREAM = AudioManager.STREAM_MUSIC;
   private final static int DEFAULT_LATENCY = 80;// minimal is ~55
   
@@ -41,14 +37,14 @@ final class SoundOutputSamplesTarget implements SamplesTarget {
   public static SamplesTarget create() {
     //xmp plugin limits max frequency
     final int freqRate = Math.min(AudioTrack.getNativeOutputSampleRate(STREAM), 48000);
-    final int minBufSize = AudioTrack.getMinBufferSize(freqRate, Channels.ENCODING, Sample.ENCODING);
+    final int minBufSize = AudioTrack.getMinBufferSize(freqRate, CHANNEL_OUT, ENCODING);
     final int prefBufSize = Channels.COUNT * Sample.BYTES * (DEFAULT_LATENCY * freqRate / 1000);
     final int bufSize = Math.max(minBufSize, prefBufSize);
     Log.d(TAG, String.format(
         "Preparing playback. Freq=%d MinBuffer=%d PrefBuffer=%d BufferSize=%d", freqRate,
         minBufSize, prefBufSize, bufSize));
     final AudioTrack target =
-        new AudioTrack(STREAM, freqRate, Channels.ENCODING, Sample.ENCODING, bufSize, AudioTrack.MODE_STREAM);
+        new AudioTrack(STREAM, freqRate, CHANNEL_OUT, ENCODING, bufSize, AudioTrack.MODE_STREAM);
     return new SoundOutputSamplesTarget(bufSize, target);
   }
   

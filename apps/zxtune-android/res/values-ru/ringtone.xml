@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ringtone_create_title">Поставить на звонок</string>
+    <string name="ringtone_create_started">Создание рингтона...</string>
+    <string name="ringtone_changed">Установлен новый звонок!</string>
+    <string name="ringtone_creating_failed">Ошибка создания рингтона: %s</string>
+</resources>

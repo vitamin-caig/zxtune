@@ -15,7 +15,7 @@ import java.util.concurrent.Exchanger;
 import android.os.Process;
 import android.util.Log;
 
-final class SyncPlayer implements Player {
+public final class SyncPlayer implements Player {
 
   private final static String TAG = SyncPlayer.class.getName();
   private final PlayerEventsListener events;

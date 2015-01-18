@@ -11,6 +11,8 @@
     <!-- playlists storage -->
     <android>READ_EXTERNAL_STORAGE</android>
     <android>WRITE_EXTERNAL_STORAGE</android>
+    <!-- ringtone set -->
+    <android>WRITE_SETTINGS</android>
   </permissions>
   <filter>
     <!-- AY/YM -->

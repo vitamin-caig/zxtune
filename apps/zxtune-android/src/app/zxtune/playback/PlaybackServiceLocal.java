@@ -20,7 +20,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
@@ -28,6 +27,8 @@ import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
 import app.zxtune.sound.SamplesSource;
+import app.zxtune.sound.SamplesTarget;
+import app.zxtune.sound.SoundOutputSamplesTarget;
 import app.zxtune.sound.StubPlayer;
 
 public class PlaybackServiceLocal implements PlaybackService, Releaseable {
@@ -258,7 +259,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.item = iterator.getItem();
       final ZXTune.Player lowPlayer = item.getModule().createPlayer();
       final SeekableSamplesSource source = new SeekableSamplesSource(lowPlayer, item.getDuration());
-      this.player = AsyncPlayer.create(source, events);
+      final SamplesTarget target = SoundOutputSamplesTarget.create();
+      this.player = AsyncPlayer.create(source, target, events);
       this.seek = source;
       this.visualizer = new PlaybackVisualizer(lowPlayer);
     }
