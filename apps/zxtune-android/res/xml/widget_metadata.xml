@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+minResizeHeight=1 cell
+minResizeWidth=3 cells
+-->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
   android:initialLayout="@layout/widget"
-  android:minHeight="88dp"
-  android:minWidth="256dp"
+  android:minHeight="64dp"
+  android:minWidth="250dp"
+  android:resizeMode="horizontal|vertical"
+  android:minResizeHeight="40dp"
+  android:minResizeWidth="180dp"
   android:widgetCategory="home_screen|keyguard"
   android:previewImage="@drawable/ic_launcher"
   android:updatePeriodMillis="0"

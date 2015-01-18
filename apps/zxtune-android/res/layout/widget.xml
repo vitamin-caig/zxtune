@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="match_parent"
-  android:layout_height="wrap_content"
   android:orientation="vertical"
-  android:background="@android:drawable/screen_background_dark"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
   android:padding="@dimen/spacing_half"
+  android:background="@android:drawable/screen_background_dark"
   >
   <TextView
     android:id="@+id/widget_text"
-    android:layout_width="match_parent"
-    android:layout_height="24dp"
-    android:layout_gravity="center_vertical"
-    android:layout_marginBottom="@dimen/spacing_full"
+    android:gravity="center_vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
     android:paddingLeft="@dimen/spacing_half"
     android:paddingRight="@dimen/spacing_half"
     style="@style/text_main"
   />
   <LinearLayout
     android:orientation="horizontal"
+    android:layout_weight="0"
     style="@style/block_buttons"
     >
     <ImageView
@@ -25,6 +26,7 @@
       android:src="@drawable/ic_launcher"
       android:layout_width="wrap_content"
       android:layout_height="match_parent"
+      android:padding="@dimen/spacing_half"
       android:scaleType="fitCenter"
       android:layout_weight="0"
     />
