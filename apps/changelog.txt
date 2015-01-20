@@ -5,6 +5,16 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3170 from 20.01.2015
+
+[+] zxtune-android: initial spanish translation
+[+] zxtune-android: 'set as ringtone' functionality
+[*] zxtune-android: resizeable homescreen widget
+[*] zxtune-android: do not handle autorepeated media buttons actions
+[*] Updated libsidplayfp for 1.6.2
+[*] Fixed PT3 playback with default sample
+[*] Reset not significant registers bits in AY format convertors
+
 --- Rev3155 from 29.12.2014
 
 [+] zxtune-android: added homescreen widget
