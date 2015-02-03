@@ -299,9 +299,10 @@ public final class ZXTune {
     if (content.isDirect()) {
       return content;
     } else {
-      final ByteBuffer direct = ByteBuffer.allocateDirect(content.capacity());
+      final ByteBuffer direct = ByteBuffer.allocateDirect(content.limit());
       direct.put(content);
       direct.position(0);
+      content.position(0);
       return direct;
     }
   }
