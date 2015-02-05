@@ -49,5 +49,6 @@ namespace Formats
     Decoder::Ptr CreateDigitalMusicMakerDecoder();
     Decoder::Ptr CreateTurboSoundDecoder();
     Decoder::Ptr CreateExtremeTracker1Decoder();
+    Decoder::Ptr CreateAYCDecoder();
   }
 }

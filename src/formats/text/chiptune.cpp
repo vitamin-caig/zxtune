@@ -12,6 +12,9 @@ extern const Char ASCSOUNDMASTER1_DECODER_DESCRIPTION[] = {
 extern const Char ASCSOUNDMASTER2_DECODER_DESCRIPTION[] = {
   'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','v','2','.','x',0
 };
+extern const Char AYC_DECODER_DESCRIPTION[] = {
+  'C','P','C',' ','A','Y','C',0
+};
 extern const Char AY_EMUL_DECODER_DESCRIPTION[] = {
   'A','Y','/','E','M','U','L',0
 };

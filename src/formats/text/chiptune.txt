@@ -6,6 +6,10 @@ __cpp> "{\n"
 < __RAWFOOTER__
 __cpp> "}//namespace Text\n"
 
+#AYC
+< AYC_DECODER_DESCRIPTION
+> "CPC AYC"
+
 #AY_EMUL
 < AY_EMUL_DECODER_DESCRIPTION
 > "AY/EMUL"
