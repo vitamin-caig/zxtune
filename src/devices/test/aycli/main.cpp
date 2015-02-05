@@ -1,3 +1,5 @@
+#include <api_dynamic.h>
+#include <contract.h>
 #include <devices/aym/chip.h>
 #include <core/module_holder.h>
 #include <core/module_player.h>
@@ -7,6 +9,7 @@
 #include <sound/backends/storage.h>
 #include <sound/backends/backends_list.h>
 #include <sound/sound_parameters.h>
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <iostream>
 
@@ -160,7 +163,7 @@ namespace
 
     Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module)
     {
-      const Sound::BackendWorker::Ptr worker = Factory->CreateWorker(module->GetModuleProperties());
+      const Sound::BackendWorker::Ptr worker = Factory->CreateWorker(module->GetModuleProperties(), module);
       return Sound::CreateBackend(module->GetModuleProperties(), module, Sound::BackendCallback::Ptr(), worker);
     }
   private:
@@ -174,30 +177,142 @@ namespace
     Sound::RegisterDirectSoundBackend(factory);
     return factory.CreateBackend(module);
   }
+  
+  class Gate
+  {
+  public:
+    Gate()
+      : Data(boost::make_shared<Devices::AYM::DataChunk>())
+      , Backend(CreateBackend(Data))
+      , Control(Backend->GetPlaybackControl())
+    {
+    }
+    
+    bool IsStarted() const
+    {
+      return Sound::PlaybackControl::STARTED == Control->GetCurrentState();
+    }
+    
+    void Start()
+    {
+      Control->Play();
+    }
+    
+    void Stop()
+    {
+      Control->Stop();
+    }
+    
+    void WriteReg(uint_t reg, uint_t val)
+    {
+      Require(reg < Devices::AYM::Registers::TOTAL);
+      Require(val < 256);
+      Data->Data[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
+    }
+  private:
+    const boost::shared_ptr<Devices::AYM::DataChunk> Data;
+    const Sound::Backend::Ptr Backend;
+    const Sound::PlaybackControl::Ptr Control;
+  };
+
+  std::auto_ptr<Gate> GateInstance;
+
+  template<class Op>
+  int call(Op op)
+  {
+    try
+    {
+      if (Gate* gate = GateInstance.get())
+      {
+        op(gate);
+        return 0;
+      }
+      else
+      {
+        return -1;
+      }
+    }
+    catch (const Error& e)
+    {
+      std::cerr << e.ToString();
+      return 1;
+    }
+    catch (const std::exception&)
+    {
+      return 1;
+    }
+  }
 }
 
+//dll part
+#ifdef __cplusplus
+extern "C" {
+#endif
+PUBLIC_API_EXPORT int ay_open();
+PUBLIC_API_EXPORT void ay_close();
+PUBLIC_API_EXPORT int ay_start();
+PUBLIC_API_EXPORT int ay_stop();
+PUBLIC_API_EXPORT int ay_writereg(int idx, int val);
+
+#ifdef __cplusplus
+} //extern
+#endif
+
+int ay_open()
+{
+  try
+  {
+    GateInstance.reset(new Gate());
+    return 0;
+  }
+  catch (const Error& e)
+  {
+    std::cerr << e.ToString();
+    return 1;
+  }
+}
+
+void ay_close()
+{
+   GateInstance.reset();
+}
+
+int ay_start()
+{
+  return call(std::mem_fun(&Gate::Start));
+}
+
+int ay_stop()
+{
+  return call(std::mem_fun(&Gate::Stop));
+}
+
+int ay_writereg(int idx, int val)
+{
+  return call(boost::bind(&Gate::WriteReg, _1, idx, val));
+}
+
+//exe part
 int main(int /*argc*/, char* /*argv*/[])
 {
-  const boost::shared_ptr<Devices::AYM::DataChunk> data = boost::make_shared<Devices::AYM::DataChunk>();
-  const Sound::Backend::Ptr backend = CreateBackend(data);
-  const Sound::PlaybackControl::Ptr ctrl = backend->GetPlaybackControl();
+  Gate gate;
   std::cout << "start/stop - playback control\nexit - finish\nw X Y - write to register X value Y\n";
   for (;;)
   {
-    std::cout << (Sound::PlaybackControl::STARTED == ctrl->GetCurrentState() ? "> " : "# ");
+    std::cout << (gate.IsStarted() ? "> " : "# ");
     std::string cmd;
-    std::cin >> cmd;
+    while (!(std::cin >> cmd));
     if (cmd == "exit")
     {
       break;
     }
     else if (cmd == "start")
     {
-      ctrl->Play();
+      gate.Start();
     }
     else if (cmd == "stop")
     {
-      ctrl->Stop();
+      gate.Stop();
     }
     else if (cmd == "w")
     {
@@ -213,7 +328,7 @@ int main(int /*argc*/, char* /*argv*/[])
       }
       else
       {
-        data->Data[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
+        gate.WriteReg(reg, val);
       }
     }
   }
