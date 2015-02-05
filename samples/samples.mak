@@ -4,6 +4,7 @@ samples_ay38910 := \
 	as0/Samba.as0 \
 	asc/SANDRA.asc \
 	ay/AYMD39.ay \
+  ayc/MEGAPAB2.AYC \
 	ftc/Nostalgy.ftc \
 	gtr/L.Boy.gtr \
 	psc/FL_SH_EI.psc \
