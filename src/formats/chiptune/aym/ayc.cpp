@@ -201,6 +201,7 @@ namespace Chiptune
           uint_t counter = source.ReadCounter();
           std::size_t srcPtr = source.ReadBackRef();
           Require(count >= counter);
+          Require(srcPtr < bufSize);
           count -= counter;
           while (counter--)
           {
