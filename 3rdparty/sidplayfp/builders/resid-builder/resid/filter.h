@@ -447,8 +447,8 @@ protected:
   int solve_integrate_6581(int dt, int vi_t, int& x, int& vc, model_filter_t& mf);
 
   // VCR - 6581 only.
-  static unsigned short vcr_kVg[1 << 16];
-  static unsigned short vcr_n_Ids_term[1 << 16];
+  static int vcr_kVg[1 << 16];
+  static int vcr_n_Ids_term[1 << 16];
   // Common parameters.
   static model_filter_t model_filter[2];
 

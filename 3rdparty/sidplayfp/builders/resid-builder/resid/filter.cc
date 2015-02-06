@@ -171,8 +171,8 @@ static model_filter_init_t model_filter_init[2] = {
   }
 };
 
-unsigned short Filter::vcr_kVg[1 << 16];
-unsigned short Filter::vcr_n_Ids_term[1 << 16];
+int Filter::vcr_kVg[1 << 16];
+int Filter::vcr_n_Ids_term[1 << 16];
 
 Filter::model_filter_t Filter::model_filter[2];
 
@@ -379,7 +379,7 @@ Filter::Filter()
       //
       // I.e. k*Vg - t must be returned.
       double Vg = kVddt - sqrt((double)i*(1 << 16));
-      vcr_kVg[i] = (unsigned short)(k*Vg - vmin + 0.5);
+      vcr_kVg[i] = int(k*Vg - vmin + 0.5);
     }
 
     /*
@@ -402,7 +402,7 @@ Filter::Filter()
     for (int kVg_Vx = 0; kVg_Vx < (1 << 16); kVg_Vx++) {
       double log_term = log(1 + exp((kVg_Vx/N16 - kVt)/(2*Ut)));
       // Scaled by m*2^15
-      vcr_n_Ids_term[kVg_Vx] = (unsigned short)(n_Is*log_term*log_term);
+      vcr_n_Ids_term[kVg_Vx] = int(n_Is*log_term*log_term);
     }
 
     class_init = true;
