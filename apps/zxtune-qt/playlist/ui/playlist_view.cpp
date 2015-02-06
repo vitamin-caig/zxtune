@@ -110,11 +110,11 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
+  class TooltipFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
   {
     typedef Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> Parent;
   public:
-    explicit HTMLEscapedFieldsSourceAdapter(const Parameters::Accessor& props)
+    explicit TooltipFieldsSourceAdapter(const Parameters::Accessor& props)
       : Parent(props)
     {
     }
@@ -135,10 +135,11 @@ namespace
   class TooltipSource
   {
   public:
-    String Get(const Parameters::Accessor& properties) const
+    QString Get(const Parameters::Accessor& properties) const
     {
-      const HTMLEscapedFieldsSourceAdapter adapter(properties);
-      return GetTemplate().Instantiate(adapter);
+      const TooltipFieldsSourceAdapter adapter(properties);
+      const String& result = GetTemplate().Instantiate(adapter);
+      return ToQString(result);
     }
   private:
     const Strings::Template& GetTemplate() const
@@ -231,13 +232,14 @@ namespace
     {
       if (const Error& err = item.GetState())
       {
-        return ToQString(err.ToString());
+        //I/O errors usually gets messages in current locale
+        return ToQStringFromLocal(err.ToString());
       }
       else
       {
         const Module::Holder::Ptr holder = item.GetModule();
         const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
-        return ToQString(Tooltip.Get(*properties));
+        return Tooltip.Get(*properties);
       }
     }
 

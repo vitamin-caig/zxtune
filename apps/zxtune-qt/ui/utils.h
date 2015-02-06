@@ -12,6 +12,8 @@
 
 //common includes
 #include <types.h>
+//library includes
+#include <strings/encoding.h>
 //qt includes
 #include <QtCore/QString>
 #include <QtCore/QMetaType>
@@ -21,7 +23,7 @@ inline QString ToQString(const String& str)
 #ifdef UNICODE
   return QString::fromStdWString(str);
 #else
-  return QString::fromLocal8Bit(str.data(), static_cast<int>(str.size()));
+  return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
 #endif
 }
 
@@ -30,9 +32,24 @@ inline String FromQString(const QString& str)
 #ifdef UNICODE
   return str.toStdWString();
 #else
-  const QByteArray& raw = str.toLocal8Bit();
+  const QByteArray& raw = str.toUtf8();
   return raw.constData();
 #endif
+}
+
+inline QString ToQStringFromLocal(const String& str)
+{
+#ifdef UNICODE
+  return QString::fromStdWString(str);
+#else
+  return QString::fromLocal8Bit(str.data(), static_cast<int>(str.size()));
+#endif
+}
+
+inline String LocalFromQString(const QString& str)
+{
+  const QByteArray& raw = str.toLocal8Bit();
+  return raw.constData();
 }
 
 template<class T>

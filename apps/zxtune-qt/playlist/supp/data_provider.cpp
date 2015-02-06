@@ -29,6 +29,7 @@
 #include <parameters/template.h>
 #include <parameters/tracking.h>
 #include <sound/sound_parameters.h>
+#include <strings/encoding.h>
 #include <strings/format.h>
 #include <strings/template.h>
 //std includes
@@ -69,7 +70,8 @@ namespace
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
-      return IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub());
+      const String& localEncodingPath = LocalFromQString(ToQString(dataPath));
+      return IO::OpenData(localEncodingPath, *Params, Log::ProgressCallback::Stub());
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -325,6 +327,77 @@ namespace
     const IO::Identifier::Ptr DataId;
   };
 
+  class RecodeStringsAdapter : public Parameters::Accessor
+  {
+  public:
+    explicit RecodeStringsAdapter(Parameters::Accessor::Ptr delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Delegate->Version();
+    }
+
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    {
+      return Delegate->FindValue(name, val);
+    }
+    
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    {
+      if (Delegate->FindValue(name, val))
+      {
+        val = Strings::ToAutoUtf8(val);
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    {
+      return Delegate->FindValue(name, val);
+    }
+
+    virtual void Process(Parameters::Visitor& visitor) const
+    {
+      RecodeVisitorAdapter adapter(visitor);
+      Delegate->Process(adapter);
+    }
+  private:
+    class RecodeVisitorAdapter : public Parameters::Visitor
+    {
+    public:
+      explicit RecodeVisitorAdapter(Parameters::Visitor& delegate)
+        : Delegate(delegate)
+      {
+      }
+
+      virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+      {
+        Delegate.SetValue(name, val);
+      }
+
+      virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+      {
+        Delegate.SetValue(name, Strings::ToAutoUtf8(val));
+      }
+
+      virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+      {
+        Delegate.SetValue(name, val);
+      }
+    private:
+      Parameters::Visitor& Delegate;
+    };
+  private:
+    const Parameters::Accessor::Ptr Delegate;
+  };
+  
   class ModuleSource
   {
   public:
@@ -342,8 +415,9 @@ namespace
         const Binary::Container::Ptr data = Source->GetData();
         const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ModuleId->Subpath());
         const Module::Holder::Ptr module = Module::Open(location);
+        const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(module->GetModuleProperties());
         const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
-        const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams);
+        const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
         return Module::CreateMixedPropertiesHolder(module, moduleParams);
       }
       catch (const Error&)
@@ -591,7 +665,7 @@ namespace
     Time::MillisecondsDuration Duration;
     mutable Error State;
   };
-
+  
   class DetectCallback : public Module::DetectCallback
   {
   public:
@@ -616,7 +690,7 @@ namespace
       const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const Module::Information::Ptr info = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
+      const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(holder->GetModuleProperties());
       const IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
       const Parameters::Accessor::Ptr pathProps = Module::CreatePathProperties(moduleId);
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
