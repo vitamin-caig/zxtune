@@ -23,6 +23,7 @@
 #include "dac.h"
 #include "spline.h"
 #include <math.h>
+#include <cstring>
 
 namespace reSID
 {
@@ -183,6 +184,7 @@ Filter::Filter()
 {
   static bool class_init;
 
+  std::memset(this, 0, sizeof(*this));
   if (!class_init) {
     // Temporary table for op-amp transfer function.
     int* opamp = new int[1 << 16];
