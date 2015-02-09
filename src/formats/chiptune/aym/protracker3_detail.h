@@ -38,8 +38,8 @@ namespace Formats
           , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
           , UsedOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
         {
-          UsedSamples.Insert(0);
-          UsedOrnaments.Insert(0);
+          UsedSamples.Insert(DEFAULT_SAMPLE);
+          UsedOrnaments.Insert(DEFAULT_ORNAMENT);
         }
 
         virtual MetaBuilder& GetMetaBuilder()
@@ -70,13 +70,13 @@ namespace Formats
 
         virtual void SetSample(uint_t index, const Sample& sample)
         {
-          assert(0 == index || UsedSamples.Contain(index));
+          assert(UsedSamples.Contain(index));
           return Delegate.SetSample(index, sample);
         }
 
         virtual void SetOrnament(uint_t index, const Ornament& ornament)
         {
-          assert(0 == index || UsedOrnaments.Contain(index));
+          assert(UsedOrnaments.Contain(index));
           return Delegate.SetOrnament(index, ornament);
         }
 

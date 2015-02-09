@@ -94,17 +94,14 @@ namespace Vortex
     }
   };
   
-  const uint_t DEFAULT_SAMPLE = 1;
-  const uint_t DEFAULT_ORNAMENT = 0;
-
   //internal per-channel state type
   struct ChannelState
   {
     ChannelState()
       : Enabled(false), Envelope(false)
       , Note()
-      , SampleNum(DEFAULT_SAMPLE), PosInSample(0)
-      , OrnamentNum(DEFAULT_ORNAMENT), PosInOrnament(0)
+      , SampleNum(Formats::Chiptune::ProTracker3::DEFAULT_SAMPLE), PosInSample(0)
+      , OrnamentNum(Formats::Chiptune::ProTracker3::DEFAULT_ORNAMENT), PosInOrnament(0)
       , Volume(15), VolSlide(0)
       , ToneSlider(), SlidingTargetNote(LIMITER), ToneAccumulator(0)
       , EnvSliding(), NoiseSliding()
