@@ -34,7 +34,7 @@
     <item quantity="one">%d módulo</item>
     <item quantity="other">%d módulos</item>
   </plurals>
-  <string name="no_tracks_found">No hay módulos encontrados</string>
+  <string name="no_tracks_found">No hay módulos soportados encontrados</string>
   <string name="track">Módulo</string>
   <string name="starting">Empezando...</string>
 </resources>

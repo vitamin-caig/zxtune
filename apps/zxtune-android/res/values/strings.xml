@@ -34,7 +34,7 @@
       <item quantity="one">%d track</item>
       <item quantity="other">%d tracks</item>
     </plurals>
-    <string name="no_tracks_found">No tracks found</string>
+    <string name="no_tracks_found">No supported tracks found</string>
     <string name="track">Track</string>
     <string name="starting">Starting...</string>
 </resources>

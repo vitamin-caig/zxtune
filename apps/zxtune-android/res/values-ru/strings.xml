@@ -40,7 +40,7 @@
       <!-- for pre-HC -->
       <item quantity="other">%d треков</item>
     </plurals>
-    <string name="no_tracks_found">Треки не найдены</string>
+    <string name="no_tracks_found">Поддерживаемых треков не найдено</string>
     <string name="track">Трек</string>
     <string name="starting">Запуск...</string>
 </resources>

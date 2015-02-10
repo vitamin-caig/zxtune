@@ -34,7 +34,7 @@
       <item quantity="one">%d Tonspur</item>
       <item quantity="other">%d Tonspuren</item>
     </plurals>
-    <string name="no_tracks_found">Tonspuren wurden nicht gefunden</string>
+    <string name="no_tracks_found">Unterstützte Tonspuren wurden nicht gefunden</string>
     <string name="track">Tonspur</string>
     <string name="starting">Starten...</string>
 </resources>
