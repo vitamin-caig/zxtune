@@ -5,6 +5,15 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3190 from 10.02.2015
+
+[+] Added Amstrad AYC support
+[*] Fixed processing of non-ascii symbols in modules
+[*] Fixed STP/PT2 playback with default sample
+[*] Fixed filter emulation for SID playback
+[*] zxtune-android: fixes in remote catalogs access
+[*] zxtune-android: fixes in texts and deutsche translation
+
 --- Rev3170 from 20.01.2015
 
 [+] zxtune-android: initial spanish translation
