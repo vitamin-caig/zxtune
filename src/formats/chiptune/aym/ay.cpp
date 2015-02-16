@@ -19,6 +19,7 @@
 //library includes
 #include <binary/container_factories.h>
 #include <binary/typed_container.h>
+#include <debug/log.h>
 #include <formats/chiptune.h>
 //std includes
 #include <cstring>
@@ -27,6 +28,11 @@
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
+
+namespace
+{
+  const Debug::Stream Dbg("Formats::Chiptune::AY");
+}
 
 namespace Formats
 {
@@ -142,6 +148,7 @@ namespace AY
       const uint8_t* const ptr = GetPointerNocheck(beOffset);
       if (ptr < Start || ptr >= Finish)
       {
+        Dbg("Out of range %1%..%2% (%3%)", static_cast<const void*>(Start), static_cast<const void*>(Finish), static_cast<const void*>(ptr));
         return Binary::Container::Ptr();
       }
       const std::size_t offset = ptr - Start;
@@ -404,6 +411,7 @@ namespace AY
       std::auto_ptr<VariableDump> result(new VariableDump());
       //init header
       Header* const header = result->Add(Header());
+      std::memset(header, 0, sizeof(*header));
       std::copy(SIGNATURE, boost::end(SIGNATURE), header->Signature);
       std::copy(EMUL::SIGNATURE, boost::end(EMUL::SIGNATURE), header->Type);
       SetPointer(&header->AuthorOffset, result->Add(Author));
@@ -439,6 +447,7 @@ namespace AY
         dst->Address = fromBE<uint16_t>(it->first);
         dst->Size = fromBE<uint16_t>(static_cast<uint16_t>(it->second.size()));
         SetPointer(&dst->Offset, result->Add(&it->second[0], it->second.size()));
+        Dbg("Stored block %1% bytes at %2% stored at %3%", fromBE(dst->Size), fromBE(dst->Address), fromBE(dst->Offset)); 
       }
       return Binary::CreateContainer(std::auto_ptr<Dump>(result));
     }
@@ -484,6 +493,7 @@ namespace AY
     }
     try
     {
+      Dbg("Parse idx=%1%, totalSize=%2%", idx, rawData.Size());
       const Parser data(rawData);
       const Header& header = data.GetField<Header>(std::size_t(0));
       target.SetAuthor(data.GetString(&header.AuthorOffset));
@@ -510,6 +520,7 @@ namespace AY
         const EMUL::ModuleBlock& block = data.GetField<EMUL::ModuleBlock>(&moddata.BlocksOffset, blockIdx);
         const uint16_t blockAddr = fromBE(block.Address);
         const std::size_t blockSize = fromBE(block.Size);
+        Dbg("Block %1% bytes at %2% located at %3%", blockSize, blockAddr, fromBE(block.Offset));
         if (Binary::Container::Ptr blockData = data.GetBlob(&block.Offset, blockSize))
         {
           target.AddBlock(blockAddr, blockData->Start(), blockData->Size());
