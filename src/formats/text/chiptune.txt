@@ -216,3 +216,7 @@ __cpp> "}//namespace Text\n"
 #SID
 < SID_DECODER_DESCRIPTION
 > "Commodore64 RSID/PSID"
+
+#SPC
+< SPC_DECODER_DESCRIPTION
+> "SNES SPC700"

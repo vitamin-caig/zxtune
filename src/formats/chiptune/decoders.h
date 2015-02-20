@@ -50,5 +50,6 @@ namespace Formats
     Decoder::Ptr CreateTurboSoundDecoder();
     Decoder::Ptr CreateExtremeTracker1Decoder();
     Decoder::Ptr CreateAYCDecoder();
+    Decoder::Ptr CreateSPCDecoder();
   }
 }
