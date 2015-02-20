@@ -99,6 +99,10 @@
   <track>
     <location>Samples/SAA1099/axel.cop</location>
   </track>
+  <!-- SPC700 -->
+  <track>
+    <location>Samples/SPC700/ala-16.spc</location>
+  </track>
   <!-- YM2203 -->
   <track>
     <location>Samples/YM2203/ducktales1_moon.tf0</location>
