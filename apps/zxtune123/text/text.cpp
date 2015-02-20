@@ -307,6 +307,9 @@ extern const Char INFO_CAP_SAA1099[] = {
 extern const Char INFO_CAP_SCANER[] = {
   's','t','o','r','_','s','c','a','n','e','r',0
 };
+extern const Char INFO_CAP_SPC700[] = {
+  'd','e','v','_','s','p','c','7','0','0',0
+};
 extern const Char INFO_CAP_STUB[] = {
   't','y','p','e','_','s','t','u','b',0
 };

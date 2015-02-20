@@ -87,6 +87,7 @@ extern const Char INFO_CAP_MULTITRACK[];
 extern const Char INFO_CAP_PLAIN[];
 extern const Char INFO_CAP_SAA1099[];
 extern const Char INFO_CAP_SCANER[];
+extern const Char INFO_CAP_SPC700[];
 extern const Char INFO_CAP_STUB[];
 extern const Char INFO_CAP_SYSTEM[];
 extern const Char INFO_CAP_TURBOFM[];
