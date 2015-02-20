@@ -230,7 +230,7 @@ public final class ZXTune {
   public final static class Plugins {
     
     public final static class DeviceType {
-      //ZXTune::CAP_DEVICE_*
+      //ZXTune::CAP_DEV_*
       public final static int AY38910 = 1;
       public final static int TURBOSOUND = 2;
       public final static int BEEPER = 4;
@@ -239,6 +239,7 @@ public final class ZXTune {
       public final static int DAC = 32;
       public final static int SAA1099 = 64;
       public final static int MOS6581 = 128;
+      public final static int SPC700 = 256;
     }
     
     public interface Visitor {
