@@ -48,6 +48,7 @@ namespace ZXTune
   void RegisterSIDPlugins(PlayerPluginsRegistrator& registrator);
   void RegisterET1Support(PlayerPluginsRegistrator& registrator);
   void RegisterAYCSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterSPCSupport(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
@@ -85,5 +86,6 @@ namespace ZXTune
     RegisterSIDPlugins(registrator);
     RegisterET1Support(registrator);
     RegisterAYCSupport(registrator);
+    RegisterSPCSupport(registrator);
   }
 }

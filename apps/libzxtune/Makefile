@@ -14,7 +14,7 @@ libraries.common = analysis \
                    sound strings \
                    tools
 
-libraries.3rdparty = lhasa xmp z80ex zlib sidplayfp
+libraries.3rdparty = lhasa sidplayfp snesspc xmp z80ex zlib
 
 windows_libraries := oldnames
 
