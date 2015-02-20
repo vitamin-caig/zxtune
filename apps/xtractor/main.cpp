@@ -277,6 +277,7 @@ namespace Formats
       scanner.AddDecoder(CreateDigitalMusicMakerDecoder());
       scanner.AddDecoder(CreateExtremeTracker1Decoder());
       scanner.AddDecoder(CreateAYCDecoder());
+      scanner.AddDecoder(CreateSPCDecoder());
     }
   }
 }
