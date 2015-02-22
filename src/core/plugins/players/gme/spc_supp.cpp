@@ -32,7 +32,7 @@
 #include <boost/make_shared.hpp>
 //3rdparty
 #include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
-#include <3rdparty/snesspc/snes_spc/SPC_FILTER.h>
+#include <3rdparty/snesspc/snes_spc/SPC_Filter.h>
 
 namespace
 {
