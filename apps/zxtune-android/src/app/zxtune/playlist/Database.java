@@ -90,6 +90,18 @@ public class Database {
           "properties BLOB" +
           ");";
     }
+    
+    static final class Statistics {
+      static enum Fields {
+        count, locations, duration
+      }
+      
+      private static final String COLUMNS[] = {
+        "COUNT(*)",
+        "COUNT(DISTINCT(location))",
+        "SUM(duration)"
+      };
+    }
 
     static final class Positions {
       static enum Fields {
@@ -135,6 +147,14 @@ public class Database {
 
   public Database(Context context) {
     this.dbHelper = new DBHelper(context);
+  }
+  
+  // ! @return Cursor with statistics
+  public final Cursor queryStatistics(String selection) {
+    Log.d(TAG, "queryStatistics(" + selection + ") called");
+    final SQLiteDatabase db = dbHelper.getReadableDatabase();
+    return db.query(Tables.Tracks.NAME, Tables.Statistics.COLUMNS, selection, null/*selectionArgs*/, null/*groupBy*/,
+        null/*having*/, null/*orderBy*/); 
   }
 
   // ! @return Cursor with queried values

@@ -4,4 +4,7 @@
   <string name="playlist_empty">Playlist is empty</string>
   <string name="saved">Saved</string>
   <string name="save_failed">Failed to save: %s</string>
+  <string name="statistics">Statistics</string>
+  <string name="statistics_tracks">Total</string>
+  <string name="statistics_duration">Duration</string>
 </resources>

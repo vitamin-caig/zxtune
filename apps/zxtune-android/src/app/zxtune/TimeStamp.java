@@ -39,7 +39,7 @@ public final class TimeStamp implements Comparable<TimeStamp> {
     final int totalHour = totalMin / 60;
     final int min = totalMin % 60;
     final int sec = totalSec % 60;
-    return totalHour != 0 ? String.format(Locale.US, "%d:%d:%d", totalHour, min, sec) : String
+    return totalHour != 0 ? String.format(Locale.US, "%d:%02d:%02d", totalHour, min, sec) : String
         .format(Locale.US, "%d:%02d", min, sec);
   }
 

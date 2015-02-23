@@ -85,6 +85,9 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       case R.id.action_save:
         savePlaylist(null);
         break;
+      case R.id.action_statistics:
+        showStatistics(null);
+        break;
       default:
         return super.onOptionsItemSelected(item);
     }
@@ -93,6 +96,10 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   
   private void savePlaylist(long[] ids) {
     PlaylistSaveFragment.createInstance(ids).show(getFragmentManager(), "save");
+  }
+  
+  private void showStatistics(long[] ids) {
+    PlaylistStatisticsFragment.createInstance(ids).show(getFragmentManager(), "statistics");
   }
   
   @Override
@@ -290,6 +297,9 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
             break;
           case R.id.action_save:
             savePlaylist(listing.getCheckedItemIds());
+            break;
+          case R.id.action_statistics:
+            showStatistics(listing.getCheckedItemIds());
             break;
           default:
             return false;

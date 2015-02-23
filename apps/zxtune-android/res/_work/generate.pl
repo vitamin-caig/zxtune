@@ -72,4 +72,4 @@ convert({source => 'ringtone.svg:status', target => 'ic_stat_notify_ringtone.png
 #convert({source => 'sequence_looped.svg', target => 'ic_sequence_looped.png', category => 'icon'});
 #convert({source => 'sequence_shuffle.svg', target => 'ic_sequence_shuffle.png', category => 'icon'});
 
-convert_menu_icon('add', 'delete', 'save', 'play', 'share', 'send', 'ringtone:menu')
+convert_menu_icon('add', 'delete', 'save', 'statistics', 'play', 'share', 'send', 'ringtone:menu')

@@ -27,11 +27,15 @@ public class Provider extends ContentProvider {
 
   @Override
   public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-    final Long id = PlaylistQuery.idOf(uri);
-    final String select = id != null ? PlaylistQuery.selectionFor(id) : selection;
-    final Cursor result = db.queryPlaylistItems(projection, select, selectionArgs, sortOrder);
-    result.setNotificationUri(getContext().getContentResolver(), PlaylistQuery.ALL);
-    return result;
+    if (uri.equals(PlaylistQuery.STATISTICS)) {
+      return db.queryStatistics(selection);
+    } else {
+      final Long id = PlaylistQuery.idOf(uri);
+      final String select = id != null ? PlaylistQuery.selectionFor(id) : selection;
+      final Cursor result = db.queryPlaylistItems(projection, select, selectionArgs, sortOrder);
+      result.setNotificationUri(getContext().getContentResolver(), PlaylistQuery.ALL);
+      return result;
+    }
   }
   
   @Override
