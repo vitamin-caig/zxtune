@@ -21,6 +21,14 @@
         android:icon="@drawable/ic_menu_statistics"
         android:title="@string/statistics"
         sabd:showAsAction="never" />
+      <item
+        android:id="@+id/action_sort"
+        android:icon="@drawable/ic_menu_sort"
+        android:title="@string/sort"
+        sabd:showAsAction="never"
+        >
+        <menu/>
+      </item>
     </menu>
   </item>
 </menu>

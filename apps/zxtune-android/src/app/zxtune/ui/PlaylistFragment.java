@@ -21,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -34,6 +35,7 @@ import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaybackServiceStub;
+import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playlist.PlaylistQuery;
 
 public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -74,6 +76,45 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.playlist, menu);
+    final MenuItem sortItem = menu.findItem(R.id.action_sort);
+    final SubMenu sortMenuRoot = sortItem.getSubMenu();
+    for (PlaylistControl.SortBy sortBy : PlaylistControl.SortBy.values()) {
+      for (PlaylistControl.SortOrder sortOrder : PlaylistControl.SortOrder.values()) {
+        final MenuItem item = sortMenuRoot.add(getMenuTitle(sortBy));
+        final PlaylistControl.SortBy by = sortBy;
+        final PlaylistControl.SortOrder order = sortOrder;
+        item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+          @Override
+          public boolean onMenuItemClick(MenuItem item) {
+            getService().getPlaylistControl().sort(by, order);
+            return true;
+          }
+        });
+        item.setIcon(getMenuIcon(sortOrder));
+      }
+    }
+  }
+  
+  private static int getMenuTitle(PlaylistControl.SortBy by) {
+    if (by.equals(PlaylistControl.SortBy.title)) {
+      return R.string.information_title;
+    } else if (by.equals(PlaylistControl.SortBy.author)) {
+      return R.string.information_author;
+    } else if (by.equals(PlaylistControl.SortBy.duration)) {
+      return R.string.statistics_duration;//TODO: extract
+    } else {
+      throw new RuntimeException();
+    }
+  }
+  
+  private static int getMenuIcon(PlaylistControl.SortOrder order) {
+    if (order.equals(PlaylistControl.SortOrder.asc)) {
+      return android.R.drawable.arrow_up_float;
+    } else if (order.equals(PlaylistControl.SortOrder.desc)) {
+      return android.R.drawable.arrow_down_float;
+    } else {
+      throw new RuntimeException();
+    }
   }
   
   @Override

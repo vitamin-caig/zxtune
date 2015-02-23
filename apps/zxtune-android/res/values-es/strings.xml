@@ -13,6 +13,7 @@
   <string name="overwrite">Sobrescribir</string>
   <string name="send">Enviar</string>
   <string name="share">Compartir</string>
+  <string name="sort">Ordenar</string>
   <!--information-related-->
   <string name="information_title">Título</string>
   <string name="information_author">Autor</string>

@@ -208,6 +208,21 @@ public class Database {
     }
   }
   
+  public final void sortPlaylistItems(Tables.Playlist.Fields field, String order) {
+    Log.d(TAG, "sortPlaylistItems(" + field.name() + ", " + order + ")");
+    final SQLiteDatabase db = dbHelper.getWritableDatabase();
+    try {
+      db.beginTransaction();
+      db.delete(Tables.Positions.NAME, null, null);
+      final String insertString = "INSERT INTO " + Tables.Positions.NAME + "(" + Tables.Positions.Fields.track_id + ")";
+      final String selectString = "SELECT " + Tables.Tracks.Fields._id + " FROM " + Tables.Tracks.NAME + " ORDER BY " + field.name() + " " + order;
+      db.execSQL(insertString + " " + selectString + ";"); 
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+  }
+  
   private static class DBHelper extends SQLiteOpenHelper {
 
     public DBHelper(Context context) {

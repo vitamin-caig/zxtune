@@ -11,6 +11,8 @@
 package app.zxtune.playback;
 
 import android.net.Uri;
+import app.zxtune.playback.PlaylistControl.SortBy;
+import app.zxtune.playback.PlaylistControl.SortOrder;
 
 public class PlaylistControlStub implements PlaylistControl {
 
@@ -31,6 +33,10 @@ public class PlaylistControlStub implements PlaylistControl {
   
   @Override
   public void move(long id, int delta) {
+  }
+  
+  @Override
+  public void sort(SortBy by, SortOrder order) {
   }
   
   public static PlaylistControl instance() {

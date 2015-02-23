@@ -16,6 +16,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.SparseIntArray;
 import app.zxtune.ScanService;
+import app.zxtune.playback.PlaylistControl.SortBy;
+import app.zxtune.playback.PlaylistControl.SortOrder;
 import app.zxtune.playlist.Database;
 import app.zxtune.playlist.PlaylistQuery;
 
@@ -124,5 +126,13 @@ final class PlaylistControlLocal implements PlaylistControl {
       res.append(ids[i], pos[i]);
     }
     return res;
+  }
+  
+  @Override
+  public void sort(SortBy by, SortOrder order) {
+    final Database.Tables.Playlist.Fields field = Database.Tables.Playlist.Fields.valueOf(by.name());
+    final String orderString = order == SortOrder.desc ? "DESC" : "ASC";
+    db.sortPlaylistItems(field, orderString);
+    notifyPlaylist();
   }
 }
