@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.preference.PreferenceManager;
 import android.util.Log;
+import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
@@ -68,7 +68,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
   
   public final void restoreSession() {
-    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
     final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
     if (path != null) {
       final long position = prefs.getLong(PREF_LAST_PLAYED_POSITION, 0);
@@ -107,7 +107,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         final String path = nowPlaying.toString();
         final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
         Log.d(TAG, String.format("Save last played item '%s' at %dms", path, position));
-        final SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        final SharedPreferences.Editor editor = Preferences.getDefaultSharedPreferences(context).edit();
         editor.putString(PREF_LAST_PLAYED_PATH, path);
         editor.putLong(PREF_LAST_PLAYED_POSITION, position);
         editor.apply();
@@ -234,7 +234,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
   
   private void saveProperty(String name, long value) {
-    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
     prefs.edit().putLong(name, value).apply();
   }
   

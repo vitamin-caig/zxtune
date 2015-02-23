@@ -15,7 +15,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
 import app.zxtune.PlaybackServiceConnection;
+import app.zxtune.Preferences;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
 import app.zxtune.playback.CallbackStub;
@@ -59,7 +59,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   public void onAttach(Activity activity) {
     super.onAttach(activity);
     
-    state = new PlaylistState(PreferenceManager.getDefaultSharedPreferences(activity));
+    state = new PlaylistState(Preferences.getDefaultSharedPreferences(activity));
   }
   
   @Override

@@ -15,7 +15,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.preference.PreferenceManager;
+import app.zxtune.Preferences;
 import app.zxtune.playback.PlaybackControl.SequenceMode;
 
 public final class IteratorFactory {
@@ -51,7 +51,7 @@ public final class IteratorFactory {
     private final SharedPreferences prefs;
     
     NavigationMode(Context context) {
-      this.prefs = PreferenceManager.getDefaultSharedPreferences(context);
+      this.prefs = Preferences.getDefaultSharedPreferences(context);
     }
     
     final void set(SequenceMode mode) {

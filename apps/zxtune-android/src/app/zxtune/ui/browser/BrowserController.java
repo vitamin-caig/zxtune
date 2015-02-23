@@ -15,7 +15,6 @@ import java.io.IOException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -24,6 +23,7 @@ import android.view.View;
 import android.widget.BaseAdapter;
 import android.widget.ProgressBar;
 import app.zxtune.MainApplication;
+import app.zxtune.Preferences;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
@@ -43,7 +43,7 @@ public class BrowserController {
 
   public BrowserController(Fragment fragment) {
     this.loaderManager = fragment.getLoaderManager();
-    this.state = new BrowserState(PreferenceManager.getDefaultSharedPreferences(fragment.getActivity()));
+    this.state = new BrowserState(Preferences.getDefaultSharedPreferences(fragment.getActivity()));
   }
   
   public final void setViews(BreadCrumbsView position, ProgressBar progress, BrowserView listing) {

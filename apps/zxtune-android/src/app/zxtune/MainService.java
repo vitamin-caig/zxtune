@@ -20,7 +20,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
@@ -77,7 +76,7 @@ public class MainService extends Service {
     binder = new PlaybackServiceServer(service);
     final PlaybackControl control = service.getPlaybackControl();
     phoneCallHandler = PhoneCallHandler.subscribe(this, control);
-    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+    final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(this);
     connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
     connectHeadphonesPlugging(prefs.getBoolean(PREF_UNPLUGGING, PREF_UNPLUGGING_DEFAULT));
     setupNotification(prefs.getBoolean(PREF_NOTIFICATIONBUTTONS, PREF_NOTIFICATIONBUTTONS_DEFAULT));
