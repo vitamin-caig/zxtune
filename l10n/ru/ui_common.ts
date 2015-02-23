@@ -33,6 +33,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://rarlab.com&quot;&gt;unrar&lt;/a&gt; sources by &lt;b&gt;Alexander Roshal&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://github.com/cmatsuoka/libxmp&quot;&gt;libxmp&lt;/a&gt; library by &lt;b&gt;Claudio Matsuoka&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://sidplay-residfp.sourceforge.net&quot;&gt;libsidplayfp&lt;/a&gt; library&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://www.slack.net/~ant/&quot;&gt;snes_spc&lt;/a&gt; library by &lt;b&gt;Shay Green&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
@@ -60,6 +61,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://rarlab.com&quot;&gt;unrar&lt;/a&gt; от &lt;b&gt;Alexander Roshal&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/cmatsuoka/libxmp&quot;&gt;libxmp&lt;/a&gt; от &lt;b&gt;Claudio Matsuoka&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;http://sidplay-residfp.sourceforge.net&quot;&gt;libsidplayfp&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;http://www.slack.net/~ant/&quot;&gt;snes_spc&lt;/a&gt; от &lt;b&gt;Shay Green&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Посвящается &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
