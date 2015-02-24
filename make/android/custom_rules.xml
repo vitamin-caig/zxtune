@@ -95,6 +95,7 @@
     <property name="build.dir" value="${builds.dir}/${version}/android" />
   </target>
   
+  <!-- for and foreach only in ant-contrib -->
   <target name="nativelibs">
     <makelib-helper arch="x86" />
     <makelib-helper arch="armeabi" />
@@ -116,11 +117,37 @@
       <arg value="${debug.dir}" />
     </exec>
   </target>
+
+  <target name="makepackage" depends="release">
+    <copy file="${out.final.file}" toFile="${build.dir}/${ant.project.name}_${version}${suffix}.apk" overwrite="true" />
+  </target>
+
+  <!-- Single public build target (fat) -->
+  <target name="public-build-fat" depends="injectversion, nativelibs, debugarchive">
+    <antcall target="makepackage">
+      <param name="suffix" value="" />
+    </antcall>
+  </target>
   
-  <!-- Single public build target -->
-  <target name="public-build" depends="injectversion, nativelibs, release, debugarchive">
-    <property name="build.result" value="${build.dir}/${ant.project.name}_${version}.apk" />
-    <delete file="${build.result}" />
-    <copy file="${out.final.file}" toFile="${build.result}" />
+  <macrodef name="public-build-arch">
+    <attribute name="arch" />
+    <sequential>
+      <delete dir="${native.libs.absolute.dir}" />
+      <delete file="${build.result}" />
+      <installib-helper arch="@{arch}" />
+      <antcall target="makepackage">
+        <param name="suffix" value="_@{arch}" />
+      </antcall>
+    </sequential>
+  </macrodef>
+  
+  <target name="public-build-thin" depends="public-build-fat">
+    <public-build-arch arch="x86" />
+    <public-build-arch arch="armeabi" />
+    <public-build-arch arch="armeabi-v7a" />
+  </target>
+  
+  <!-- Full public build target (fat+thin) -->
+  <target name="public-build" depends="public-build-fat, public-build-thin">
   </target>
 </project>
