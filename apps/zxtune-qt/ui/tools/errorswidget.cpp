@@ -106,8 +106,8 @@ namespace
 
     void Set(const Error& err)
     {
-      setText(ToQString(err.GetText()));
-      setToolTip(ToQString(err.ToString()));
+      setText(ToQStringFromLocal(err.GetText()));
+      setToolTip(ToQStringFromLocal(err.ToString()));
     }
 
     void paintEvent(QPaintEvent*)

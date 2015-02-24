@@ -59,7 +59,17 @@ namespace
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const = 0;
   };
-
+  
+  inline String ToLocal(const String& utf)
+  {
+    return LocalFromQString(ToQString(utf));
+  }
+  
+  inline String FromLocal(const String& loc)
+  {
+    return FromQString(ToQStringFromLocal(loc));
+  }
+  
   class SimpleDataProvider : public DataProvider
   {
   public:
@@ -70,7 +80,7 @@ namespace
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
-      const String& localEncodingPath = LocalFromQString(ToQString(dataPath));
+      const String& localEncodingPath = ToLocal(dataPath);
       return IO::OpenData(localEncodingPath, *Params, Log::ProgressCallback::Stub());
     }
   private:
@@ -410,20 +420,13 @@ namespace
 
     Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
-      try
-      {
-        const Binary::Container::Ptr data = Source->GetData();
-        const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ModuleId->Subpath());
-        const Module::Holder::Ptr module = Module::Open(location);
-        const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(module->GetModuleProperties());
-        const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
-        const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
-        return Module::CreateMixedPropertiesHolder(module, moduleParams);
-      }
-      catch (const Error&)
-      {
-        return Module::Holder::Ptr();
-      }
+      const Binary::Container::Ptr data = Source->GetData();
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ToLocal(ModuleId->Subpath()));
+      const Module::Holder::Ptr module = Module::Open(location);
+      const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(module->GetModuleProperties());
+      const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
+      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
+      return Module::CreateMixedPropertiesHolder(module, moduleParams);
     }
 
     String GetFullPath() const
@@ -691,7 +694,7 @@ namespace
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(holder->GetModuleProperties());
-      const IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
+      const IO::Identifier::Ptr moduleId = DataId->WithSubpath(FromLocal(subPath));
       const Parameters::Accessor::Ptr pathProps = Module::CreatePathProperties(moduleId);
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
@@ -747,7 +750,7 @@ namespace
       const Binary::Container::Ptr data = Provider->GetData(id->Path());
       const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
 
-      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, id->Subpath());
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ToLocal(id->Subpath()));
       Module::Open(location, detectCallback);
     }
   private:

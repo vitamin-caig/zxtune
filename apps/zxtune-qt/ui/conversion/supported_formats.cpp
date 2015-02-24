@@ -122,7 +122,7 @@ namespace
       if (const Error status = Backends.GetStatus(but.first))
       {
         but.second->setEnabled(false);
-        but.second->setToolTip(ToQString(status.GetText()));
+        but.second->setToolTip(ToQStringFromLocal(status.GetText()));
       }
       else
       {

@@ -274,7 +274,7 @@ namespace
     virtual void AddFailedToConvert(const String& path, const Error& err)
     {
       Errors.append(Playlist::UI::ItemsContextMenu::tr("Failed to convert '%1': %2")
-        .arg(ToQString(path)).arg(ToQString(err.ToString())));
+        .arg(ToQString(path)).arg(ToQStringFromLocal(err.ToString())));
     }
   private:
     std::size_t Succeeds;
