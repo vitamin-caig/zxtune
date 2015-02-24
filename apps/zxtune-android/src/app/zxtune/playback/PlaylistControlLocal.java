@@ -16,8 +16,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.SparseIntArray;
 import app.zxtune.ScanService;
-import app.zxtune.playback.PlaylistControl.SortBy;
-import app.zxtune.playback.PlaylistControl.SortOrder;
 import app.zxtune.playlist.Database;
 import app.zxtune.playlist.PlaylistQuery;
 

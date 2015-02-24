@@ -434,7 +434,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void onError(Error e) {
+    public void onError(Exception e) {
       Log.d(TAG, "Error occurred: " + e);
     }
   }

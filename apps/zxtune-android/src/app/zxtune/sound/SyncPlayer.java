@@ -40,7 +40,7 @@ public final class SyncPlayer implements Player {
       produceCycle();
     } catch (InterruptedException e) {
       Log.d(TAG, "Interrupted producing sound data", e);
-    } catch (Error e) {
+    } catch (Exception e) {
       events.onError(e);
     } finally {
       stopConsumeThread();
@@ -117,6 +117,9 @@ public final class SyncPlayer implements Player {
       } catch (InterruptedException e) {
         Log.d(TAG, "Interrupted consume cycle");
         e.printStackTrace();
+      } catch (Exception e) {
+        events.onError(e);
+        isActive = false;
       } finally {
         Log.d(TAG, "Stopped consume cycle");
       }

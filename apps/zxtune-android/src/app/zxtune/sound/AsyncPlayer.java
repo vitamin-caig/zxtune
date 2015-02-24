@@ -109,7 +109,7 @@ final public class AsyncPlayer implements Player {
     }
 
     @Override
-    public void onError(Error e) {
+    public void onError(Exception e) {
       events.onError(e);
     }
   }

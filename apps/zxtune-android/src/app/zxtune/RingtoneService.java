@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 
 import android.app.IntentService;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -28,14 +27,13 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
-import android.preference.RingtonePreference;
 import android.provider.MediaStore;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.util.Log;
 import android.widget.Toast;
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
+import app.zxtune.sound.PlayerEventsListener;
 import app.zxtune.sound.SamplesSource;
 import app.zxtune.sound.StubPlayerEventsListener;
 import app.zxtune.sound.SyncPlayer;
@@ -64,6 +62,14 @@ public class RingtoneService extends IntentService {
     intent.putExtra(EXTRA_MODULE, module);
     intent.putExtra(EXTRA_DURATION_SECONDS, duration.convertTo(TimeUnit.SECONDS));
     context.startService(intent);
+  }
+  
+  private void makeToast(Exception e) {
+    Log.d(TAG, "Failed to create ringtone: ", e);
+    final Throwable cause = e.getCause();
+    final String msg = cause != null ? cause.getMessage() : e.getMessage();
+    final String txt = getString(R.string.ringtone_creating_failed, msg);
+    makeToast(txt, Toast.LENGTH_LONG);
   }
 
   private void makeToast(final String text, final int duration) {
@@ -107,9 +113,7 @@ public class RingtoneService extends IntentService {
         item.release();
       }
     } catch (Exception e) {
-      Log.d(TAG, "Failed to create ringtone: ", e);
-      final String msg = getString(R.string.ringtone_creating_failed, e.getMessage());
-      makeToast(msg, Toast.LENGTH_LONG);
+      makeToast(e);
     }
   }
 
@@ -133,11 +137,20 @@ public class RingtoneService extends IntentService {
     return item.getModule().getProperty("CRC"/*ZXTune.Module.Attributes.CRC*/, item.getDataId().hashCode());
   }
   
+  //TODO: rework errors processing scheme
+  private class NotifyEventsListener extends StubPlayerEventsListener {
+    @Override
+    public void onError(Exception e) {
+      makeToast(e);
+    }
+  }; 
+  
   private void convert(PlayableItem item, TimeStamp limit, File location) throws InvalidObjectException {
     makeToast(getString(R.string.ringtone_create_started), Toast.LENGTH_SHORT);
     final TimeLimitedSamplesSource source = new TimeLimitedSamplesSource(item.getModule().createPlayer(), limit);
     final WaveWriteSamplesTarget target = new WaveWriteSamplesTarget(location.getAbsolutePath());
-    final SyncPlayer player = new SyncPlayer(source, target, StubPlayerEventsListener.instance());
+    final PlayerEventsListener events = new NotifyEventsListener(); 
+    final SyncPlayer player = new SyncPlayer(source, target, events);
     try {
       player.startPlayback();
     } finally {
