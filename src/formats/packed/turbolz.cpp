@@ -91,6 +91,10 @@ namespace TurboLZ
         explicit KeyFunc(const RawHeader&)
         {
         }
+        
+        KeyFunc()
+        {
+        }
 
         uint8_t operator() ()
         {
@@ -344,6 +348,8 @@ namespace TurboLZ
         {
           //%00000000 - exit
           Decoded.push_back(Header.LastByte);
+          Simple::RawHeader::KeyFunc noDecode;
+          CopyNonPacked(Stream.GetRestBytes(), noDecode);
           return true;
         }
         else if (1 == (token & 1))
@@ -405,7 +411,8 @@ namespace TurboLZ
       return true;
     }
   private:
-    bool CopyNonPacked(std::size_t len, typename Version::RawHeader::KeyFunc& keyFunctor)
+    template<class KeyFunc>
+    bool CopyNonPacked(std::size_t len, KeyFunc& keyFunctor)
     {
       for (; len && !Stream.Eof(); --len)
       {
