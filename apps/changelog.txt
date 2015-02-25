@@ -5,6 +5,19 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3215 from 25.02.2015
+
+[+] Added SNES SPC support
+[*] Fixed possible crash in dsound backend
+[*] Fixed processing of some multitrack AY files
+[*] Fixed TurboLZ packers support
+[*] zxtune-qt: fixed encoding issues
+[+] zxtune-android: added playlist statistics functionality
+[+] zxtune-android: added playlist sorting functionality
+[*] zxtune-android: fixed sdcards enumerating for modern devices
+[*] zxtune-android: fixed settings reset for some cases
+[*] zxtune-android: improved errors reporting for ringtone service
+
 --- Rev3190 from 10.02.2015
 
 [+] Added Amstrad AYC support
