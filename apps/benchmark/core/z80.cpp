@@ -10,7 +10,8 @@
 
 //local includes
 #include "z80.h"
-#include "timer.h"
+//library includes
+#include <time/timer.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -58,7 +59,7 @@ namespace Benchmark
     double Test(Devices::Z80::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration)
     {
       using namespace Devices::Z80;
-      const Timer timer;
+      const Time::Timer timer;
       const Stamp period = frameDuration;
       const uint_t frames = Stamp(duration).Get() / period.Get();
       Stamp stamp;
@@ -67,7 +68,7 @@ namespace Benchmark
         dev.Interrupt();
         dev.Execute(stamp += period);
       }
-      const Stamp elapsed = timer.Elapsed<Stamp>();
+      const Stamp elapsed = timer.Elapsed();
       return double(stamp.Get()) / elapsed.Get();
     }
   }

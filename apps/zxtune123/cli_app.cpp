@@ -35,6 +35,7 @@
 #include <platform/version/api.h>
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
+#include <time/timer.h>
 //std includes
 #include <algorithm>
 #include <cctype>
@@ -176,24 +177,6 @@ namespace
     DataReceiver<Module::Holder::Ptr>::Ptr Pipe;
   };
 
-  class AutoTimer
-  {
-  public:
-    AutoTimer()
-      : Start(std::clock())
-    {
-    }
-
-    template<class StampType>
-    StampType Elapsed() const
-    {
-      const Time::Stamp<typename StampType::ValueType, CLOCKS_PER_SEC> local(std::clock() - Start);
-      return StampType(local);
-    }
-  private:
-    const std::clock_t Start;
-  };
-
   class FinishPlaybackCallback : public Sound::BackendCallback
   {
   public:
@@ -254,14 +237,14 @@ namespace
       FinishPlaybackCallback cb;
       const Sound::Backend::Ptr backend = Sounder.CreateBackend(holder, "null", Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
       const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
-      const AutoTimer timer;
+      const Time::Timer timer;
       for (unsigned i = 0; i != Iterations; ++i)
       {
         control->SetPosition(0);
         control->Play();
         cb.Wait();
       }
-      const Time::Microseconds real = timer.Elapsed<Time::Microseconds>();
+      const Time::Microseconds real = timer.Elapsed();
       const double relSpeed = double(total.Get()) / real.Get();
       Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed));
     }

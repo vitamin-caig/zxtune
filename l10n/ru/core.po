@@ -31,7 +31,7 @@ msgstr "Анализ %1% для %2%"
 msgid "%1% processing for %2% at %3%"
 msgstr "Анализ %1% для %2% в %3%"
 
-#: plugins/containers/raw_supp.cpp:322
+#: plugins/containers/raw_supp.cpp:305
 #, boost-format
 msgid "Specified minimal scan size (%1%). Should be more than %2%."
 msgstr ""

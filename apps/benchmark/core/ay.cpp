@@ -10,9 +10,9 @@
 
 //local includes
 #include "ay.h"
-#include "timer.h"
 //library includes
 #include <sound/matrix_mixer.h>
+#include <time/timer.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -88,7 +88,7 @@ namespace Benchmark
     double Test(Devices::AYM::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration)
     {
       using namespace Devices::AYM;
-      const Timer timer;
+      const Time::Timer timer;
       DataChunk chunk;
       chunk.Data[Registers::MIXER] = Registers::MASK_TONEA | Registers::MASK_NOISEB | Registers::MASK_TONEC | Registers::MASK_NOISEC;
       chunk.Data[Registers::VOLA] = 0;
@@ -114,7 +114,7 @@ namespace Benchmark
         chunk.TimeStamp += period;
         dev.RenderData(chunk);
       }
-      const Stamp elapsed = timer.Elapsed<Stamp>();
+      const Stamp elapsed = timer.Elapsed();
       return double(chunk.TimeStamp.Get()) / elapsed.Get();
     }
   }
