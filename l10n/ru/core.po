@@ -38,7 +38,7 @@ msgstr ""
 "Неправильный минимальный размер блока для анализа (%1%). Должен быть больше "
 "%2%."
 
-#: plugins/enumerator.cpp:215
+#: plugins/enumerator.cpp:210
 msgid "Invalid parameters specified."
 msgstr "Неправильные параметры."
 

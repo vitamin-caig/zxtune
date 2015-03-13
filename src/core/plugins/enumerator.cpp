@@ -26,6 +26,7 @@
 #include <core/module_open.h>
 #include <debug/log.h>
 #include <l10n/api.h>
+#include <time/timer.h>
 //std includes
 #include <list>
 #include <map>
@@ -54,24 +55,14 @@ namespace ZXTune
       const Plugin::Ptr description = plugin->GetDescription();
       Plugins.push_back(plugin);
       Dbg("Registered %1%", description->Id());
-      TypeToPlugin[description->Id()] = plugin;
     }
 
     virtual typename PluginType::Iterator::Ptr Enumerate() const
     {
       return CreateRangedObjectIteratorAdapter(Plugins.begin(), Plugins.end());
     }
-
-    virtual typename PluginType::Ptr Find(const String& id) const
-    {
-      const typename std::map<String, typename PluginType::Ptr>::const_iterator it = TypeToPlugin.find(id);
-      return it != TypeToPlugin.end()
-        ? it->second
-        : typename PluginType::Ptr();
-    }
-  private:
+  protected:
     std::vector<typename PluginType::Ptr> Plugins;
-    std::map<String, typename PluginType::Ptr> TypeToPlugin;
   };
 
   class ArchivePluginsContainer : public PluginsContainer<ArchivePlugin>
@@ -79,8 +70,10 @@ namespace ZXTune
   public:
     ArchivePluginsContainer()
     {
+      const Time::Timer timer;
       RegisterContainerPlugins(*this);
       RegisterArchivePlugins(*this);
+      Dbg("Registered %1% archive plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
     }
   };
 
@@ -89,7 +82,9 @@ namespace ZXTune
   public:
     PlayerPluginsContainer()
     {
+      const Time::Timer timer;
       RegisterPlayerPlugins(*this);
+      Dbg("Registered %1% player plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
     }
   };
 
