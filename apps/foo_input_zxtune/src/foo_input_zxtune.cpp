@@ -20,8 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef UNICODE
 #undef min
 
-#include <apps/version/api.h>
-
 //common includes
 #include <contract.h>
 #include <cycle_buffer.h>
@@ -40,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <core/data_location.h>
 #include <parameters/container.h>
 #include <sound/sound_parameters.h>
+#include <platform/version/api.h>
 
 //std includes
 #include <vector>

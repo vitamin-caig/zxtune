@@ -7,16 +7,14 @@ source_dirs := src $(path_step)/src/core/plugins/containers
 libraries.common = analysis \
                    binary binary_format formats_archived formats_packed \
                    core core_plugins_archives core_plugins_players \
-                   debug devices_aym devices_dac devices_fm devices_saa devices_z80 \
+                   debug devices_aym devices_beeper devices_dac devices_fm devices_saa devices_z80 \
                    formats_chiptune \
                    l10n_stub \
-                   parameters \
+                   parameters platform_version\
                    sound strings \
                    tools
 
-libraries.3rdparty = xmp z80ex sidplayfp sidplayfp_builders_resid lhasa zlib unrar
-
-windows_libraries := oldnames
+libraries.3rdparty = lhasa sidplayfp snesspc xmp z80ex zlib unrar
 
 have_gui = 1
 static_runtime = 1
