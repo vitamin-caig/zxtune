@@ -18,3 +18,9 @@ include $(path_step)/makefile.mak
 
 zxtune.h: ../src/app/zxtune/ZXTune.java
 	javah -classpath ../src -o $@ app.zxtune.ZXTune
+
+install_$(platform):
+	$(call copyfile_cmd,$(target),$(DESTDIR))
+
+install_debug:
+	$(call copyfile_cmd,$(target).pdb,$(DESTDIR))
