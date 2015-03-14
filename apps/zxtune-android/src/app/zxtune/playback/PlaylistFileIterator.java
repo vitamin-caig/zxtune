@@ -22,12 +22,14 @@ import app.zxtune.Identifier;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsIterator;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsRoot;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator;
 import app.zxtune.playlist.XspfIterator;
 
+//TODO: cleanup error processing logic
 final class PlaylistFileIterator implements Iterator {
   
   private final static String TAG = PlaylistFileIterator.class.getName();
@@ -36,6 +38,7 @@ final class PlaylistFileIterator implements Iterator {
   //use java.net.URI for correct resolving of relative paths
   private final URI dir;
   private final ReferencesIterator delegate;
+  private final VfsIterator.ErrorHandler handler;
   private PlayableItem item;
   
   enum Type {
@@ -49,14 +52,16 @@ final class PlaylistFileIterator implements Iterator {
     if (type == Type.UNKNOWN) {
       return null;
     }
-    final VfsRoot root = Vfs.createRoot(context);
+    final VfsRoot root = Vfs.getRoot();
     final VfsFile file = (VfsFile) root.resolve(path);
     final ReferencesIterator delegate = createDelegate(type, file.getContent());
-    final PlaylistFileIterator result = new PlaylistFileIterator(root, getParentOf(path), delegate);
-    if (result.initialize()) {
-      return result;
+    final VfsIterator.KeepLastErrorHandler handler = new VfsIterator.KeepLastErrorHandler();
+    final PlaylistFileIterator result = new PlaylistFileIterator(root, getParentOf(path), delegate, handler);
+    if (!result.next()) {
+      handler.throwLastIOError();
+      throw new IOException(context.getString(R.string.no_tracks_found));
     }
-    throw new IOException(context.getString(R.string.no_tracks_found));
+    return result;
   }
   
   private static Type detectType(String filename) {
@@ -82,19 +87,11 @@ final class PlaylistFileIterator implements Iterator {
     }
   }
   
-  private PlaylistFileIterator(VfsRoot root, URI dir, ReferencesIterator delegate) {
+  private PlaylistFileIterator(VfsRoot root, URI dir, ReferencesIterator delegate, VfsIterator.ErrorHandler handler) {
     this.root = root;
     this.dir = dir;
     this.delegate = delegate;
-  }
-  
-  final boolean initialize() {
-    while (delegate.next()) {
-      if (loadNewItem()) {
-        return true;
-      }
-    }
-    return false;
+    this.handler = handler;
   }
   
   private static URI getParentOf(Uri uri) {
@@ -143,7 +140,7 @@ final class PlaylistFileIterator implements Iterator {
     } catch (InvalidObjectException e) {
       Log.d(TAG, "Skip not a module", e);
     } catch (IOException e) {
-      Log.d(TAG, "Skip I/O error", e);
+      handler.onIOError(e);
     }
     return false;
   }

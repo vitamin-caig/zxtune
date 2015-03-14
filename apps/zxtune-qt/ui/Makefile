@@ -1,16 +1,17 @@
 library_name := ui_common
 path_step := ../../..
 
-source_files = format \
-               state \
-               tools/filedialog \
-               tools/errordialog
+source_dirs := .
 
 #informational
+source_dirs += informational tools
+
 ui_files += informational/aboutdialog \
             informational/componentsdialog \
             tools/errorswidget
 #controls
+source_dirs += controls
+
 ui_files += controls/playback_controls \
             controls/seek_controls \
             controls/status_control \

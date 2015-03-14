@@ -13,7 +13,6 @@
 #include "downloads.h"
 #include "parameters.h"
 #include "product.h"
-#include "apps/version/fields.h"
 #include "apps/zxtune-qt/text/text.h"
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/utils.h"
@@ -24,6 +23,7 @@
 #include <debug/log.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
+#include <platform/version/fields.h>
 //std includes
 #include <ctime>
 //boost includes
@@ -136,7 +136,7 @@ namespace
 
   String GetUserAgent()
   {
-    const std::auto_ptr<Strings::FieldsSource> fields = CreateVersionFieldsSource();
+    const std::auto_ptr<Strings::FieldsSource> fields = Platform::Version::CreateVersionFieldsSource();
     return Strings::Template::Instantiate(Text::HTTP_USERAGENT, *fields);
   }
 

@@ -56,8 +56,8 @@ namespace TurboSound
     Sound::Sample GetLevels() const
     {
       using namespace Sound;
-      const Sample s0 = Chip0.GetLevelsNoBeeper();
-      const Sample s1 = Chip1.GetLevelsNoBeeper();
+      const Sample s0 = Chip0.GetLevels();
+      const Sample s1 = Chip1.GetLevels();
       return Sound::Sample::FastAdd(s0, s1);
     }
 

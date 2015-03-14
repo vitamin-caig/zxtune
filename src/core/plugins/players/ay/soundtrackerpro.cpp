@@ -120,8 +120,8 @@ namespace SoundTrackerPro
   {
     ChannelState()
       : Enabled(false), Envelope(false), Volume(0)
-      , Note(0), SampleNum(0), PosInSample(0)
-      , OrnamentNum(0), PosInOrnament(0)
+      , Note(0), SampleNum(Formats::Chiptune::SoundTrackerPro::DEFAULT_SAMPLE), PosInSample(0)
+      , OrnamentNum(Formats::Chiptune::SoundTrackerPro::DEFAULT_ORNAMENT), PosInOrnament(0)
       , TonSlide(0), Glissade(0)
     {
     }

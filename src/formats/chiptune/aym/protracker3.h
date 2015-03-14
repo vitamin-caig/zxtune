@@ -22,6 +22,9 @@ namespace Formats
   {
     namespace ProTracker3
     {
+      const uint_t DEFAULT_SAMPLE = 1;
+      const uint_t DEFAULT_ORNAMENT = 0;
+
       struct Sample
       {
         struct Line

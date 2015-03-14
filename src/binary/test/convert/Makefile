@@ -1,6 +1,6 @@
 binary_name := binary_test_convert
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 libraries.common = binary parameters tools
 

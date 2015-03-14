@@ -26,8 +26,8 @@
 #include <stdint.h>
 
 #include "sidplayfp/event.h"
-#include "sidplayfp/sidendian.h"
-#include "sidplayfp/sidmemory.h"
+#include "sidendian.h"
+#include "sidmemory.h"
 
 #include "Banks/Bank.h"
 #include "Banks/SystemRAMBank.h"
@@ -38,13 +38,13 @@
 
 /**
  * The C64 MMU chip.
-*/
+ */
 class MMU : public PLA, public sidmemory
 {
 private:
     EventContext &context;
 
-    /** CPU port signals */
+    /// CPU port signals
     bool loram, hiram, charen;
 
     typedef uint8_t (*ReadFunc)(MMU& self, uint_least16_t addr);
@@ -55,21 +55,22 @@ private:
     /** CPU write memory mapping in WRITE_BANK_GRANULARITY chunks */
     Bank* cpuWriteMap[65536 / WRITE_BANK_GRANULARITY];
 
-    /** IO region handler */
+    /// IO region handler
     Bank* ioBank;
 
-    /** Kernal ROM */
+    /// Kernal ROM
     KernalRomBank kernalRomBank;
 
-    /** BASIC ROM */
+    /// BASIC ROM
     BasicRomBank basicRomBank;
 
-    /** Character ROM */
+    /// Character ROM
     CharacterRomBank characterRomBank;
 
-    /** RAM */
+    /// RAM
     SystemRAMBank ramBank;
 
+    /// RAM bank 0
     ZeroRAMBank zeroRAMBank;
 private:
     static uint8_t IO_Read(MMU& self, uint_least16_t addr)

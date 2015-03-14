@@ -44,7 +44,7 @@ public class ScanService extends IntentService {
   public static final String ACTION_CANCEL = TAG + ".cancel";
   public static final String EXTRA_PATHS = "paths";
 
-  private final Handler timer;
+  private final Handler handler;
   private final NotifyTask tracking;
   private final InsertItemsThread insertThread;
   private final AtomicInteger addedItems;
@@ -56,7 +56,7 @@ public class ScanService extends IntentService {
 
   public ScanService() {
     super(ScanService.class.getName());
-    this.timer = new Handler();
+    this.handler = new Handler();
     this.tracking = new NotifyTask();
     this.insertThread = new InsertItemsThread();
     this.addedItems = new AtomicInteger();
@@ -66,7 +66,7 @@ public class ScanService extends IntentService {
   @Override
   public void onCreate() {
     super.onCreate();
-    Toast.makeText(getApplicationContext(), R.string.scanning_started, Toast.LENGTH_SHORT).show();
+    makeToast(R.string.scanning_started, Toast.LENGTH_SHORT);
     insertThread.start();
   }
 
@@ -84,13 +84,25 @@ public class ScanService extends IntentService {
   public void onDestroy() {
     super.onDestroy();
     insertThread.flush();
-    final Context ctx = getApplicationContext();
     if (error != null) {
-      final String msg = ctx.getString(R.string.scanning_failed, error.getMessage());
-      Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+      final String msg = getString(R.string.scanning_failed, error.getMessage());
+      makeToast(msg, Toast.LENGTH_LONG);
     } else {
-      Toast.makeText(ctx, R.string.scanning_stopped, Toast.LENGTH_SHORT).show();
+      makeToast(R.string.scanning_stopped, Toast.LENGTH_SHORT);
     }
+  }
+  
+  private void makeToast(int textRes, int duration) {
+    makeToast(getString(textRes), duration);
+  }
+  
+  private void makeToast(final String text, final int duration) {
+    handler.post(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(ScanService.this, text, duration).show();
+      }
+    });
   }
 
   @Override
@@ -244,13 +256,13 @@ public class ScanService extends IntentService {
     
     final void start() {
       notification = new StatusNotification();
-      timer.postDelayed(this, NOTIFICATION_DELAY);
+      handler.postDelayed(this, NOTIFICATION_DELAY);
       getWakelock().acquire();
     }
 
     final void stop() {
       getWakelock().release();
-      timer.removeCallbacks(this);
+      handler.removeCallbacks(this);
       notifyResolver();
       notification.hide();
       notification = null;
@@ -259,7 +271,7 @@ public class ScanService extends IntentService {
     @Override
     public void run() {
       Log.d(TAG, "Notify about changes");
-      timer.postDelayed(this, NOTIFICATION_PERIOD);
+      handler.postDelayed(this, NOTIFICATION_PERIOD);
       notifyResolver();
       notification.show();
     }
@@ -287,7 +299,7 @@ public class ScanService extends IntentService {
         this.manager =
             (NotificationManager) ScanService.this.getSystemService(Context.NOTIFICATION_SERVICE);
         this.builder = new NotificationCompat.Builder(ScanService.this);
-        this.titlePrefix = getResources().getText(R.string.scanning_title);
+        this.titlePrefix = getText(R.string.scanning_title);
         final Intent cancelIntent = new Intent(ScanService.this, ScanService.class);
         cancelIntent.setAction(ACTION_CANCEL);
         builder
@@ -296,7 +308,7 @@ public class ScanService extends IntentService {
                     PendingIntent.FLAG_UPDATE_CURRENT)).setOngoing(true).setProgress(0, 0, true)
             .setSmallIcon(notificationId)
             .setContentTitle(titlePrefix)
-            .setContentText(getResources().getText(R.string.scanning_text));
+            .setContentText(getText(R.string.scanning_text));
       }
 
       final void show() {

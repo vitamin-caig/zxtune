@@ -30,7 +30,7 @@ class PlaylistState {
   final void setCurrentViewPosition(int pos) {
     final Editor editor = prefs.edit();
     editor.putInt(PREF_PLAYLIST_VIEWPOS, pos);
-    editor.commit();
+    editor.apply();
   }
 }
 

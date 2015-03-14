@@ -1,6 +1,8 @@
-/* reloc65 -- A part of xa65 - 65xx/65816 cross-assembler and utility suite
- * o65 file relocator
+/*
+ * This file is part of libsidplayfp, a SID player engine.
  *
+ * Copyright (C) 2013-2014 Leandro Nini
+ * Copyright (C) 2001 Dag Lem
  * Copyright (C) 1989-1997 André Fachat (a.fachat@physik.tu-chemnitz.de)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,6 +31,10 @@
 #ifndef RELOC65_H
 #define RELOC65_H
 
+/**
+ * reloc65 -- A part of xa65 - 65xx/65816 cross-assembler and utility suite
+ * o65 file relocator.
+ */
 class reloc65
 {
 public:
@@ -42,44 +48,57 @@ public:
     } segment_t;
 
 private:
-    bool m_tflag, m_dflag, m_bflag, m_zflag;
     int m_tbase, m_dbase, m_bbase, m_zbase;
     int m_tdiff, m_ddiff, m_bdiff, m_zdiff;
+    bool m_tflag, m_dflag, m_bflag, m_zflag;
 
     segment_t m_extract;
 
 private:
-    static int read_options(unsigned char *buf);
-    static int read_undef(unsigned char *buf);
-
     int reldiff(unsigned char s);
-    unsigned char *reloc_seg(unsigned char *buf, int len, unsigned char *rtab);
-    unsigned char *reloc_globals(unsigned char *buf);
+
+    /**
+     * Relocate segment.
+     *
+     * @param buf segment
+     * @param len segment size
+     * @param rtab relocation table
+     * @return a pointer to the next section
+     */
+    unsigned char* reloc_seg(unsigned char *buf, int len, unsigned char *rtab);
+
+    /**
+     * Relocate exported globals list.
+     *
+     * @param buf exported globals list
+     * @return a pointer to the next section
+     */
+    unsigned char* reloc_globals(unsigned char *buf);
 
 public:
     reloc65();
 
     /**
-    * Select segment to relocate.
-    * 
-    * @param type the segment to relocate
-    * @param addr new address
-    */
+     * Select segment to relocate.
+     * 
+     * @param type the segment to relocate
+     * @param addr new address
+     */
     void setReloc(segment_t type, int addr);
 
     /**
-    * Select segment to extract.
-    * 
-    * @param type the segment to extract
-    */
+     * Select segment to extract.
+     * 
+     * @param type the segment to extract
+     */
     void setExtract(segment_t type);
 
     /**
-    * Do the relocation.
-    *
-    * @param buf
-    * @param fsize
-    */
+     * Do the relocation.
+     *
+     * @param buf beffer containing o65 data
+     * @param fsize size of the data
+     */
     bool reloc(unsigned char **buf, int *fsize);
 };
 

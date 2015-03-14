@@ -18,7 +18,7 @@ void ShowErrorMessage(const QString& title, const Error& err)
 {
   QMessageBox msgBox;
   msgBox.setWindowTitle(QMessageBox::tr("Error"));
-  const QString& errorText = ToQString(err.GetText());
+  const QString& errorText = ToQStringFromLocal(err.GetText());
   if (title.size() != 0)
   {
     msgBox.setText(title);
@@ -28,7 +28,7 @@ void ShowErrorMessage(const QString& title, const Error& err)
   {
     msgBox.setText(errorText);
   }
-  msgBox.setDetailedText(ToQString(err.ToString()));
+  msgBox.setDetailedText(ToQStringFromLocal(err.ToString()));
   msgBox.setIcon(QMessageBox::Critical);
   msgBox.setStandardButtons(QMessageBox::Ok);
   msgBox.exec();

@@ -1,6 +1,6 @@
 binary_name := formats_test_lha
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 libraries.common = binary binary_format debug formats_archived formats_packed tools
 libraries.3rdparty = lhasa

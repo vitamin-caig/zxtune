@@ -26,8 +26,8 @@
 
 #include "SmartPtr.h"
 #include "sidplayfp/SidTuneInfo.h"
-#include "sidplayfp/sidendian.h"
-#include "sidplayfp/sidmemory.h"
+#include "sidendian.h"
+#include "sidmemory.h"
 
 #include "sidplayer.bin"
 

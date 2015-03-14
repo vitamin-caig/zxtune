@@ -10,13 +10,11 @@
 
 package app.zxtune.ui;
 
-import java.io.IOException;
-
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -25,27 +23,34 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
+import android.widget.ProgressBar;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
-import app.zxtune.fs.VfsRoot;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaybackServiceStub;
+import app.zxtune.ui.browser.BreadCrumbsView;
+import app.zxtune.ui.browser.BrowserController;
+import app.zxtune.ui.browser.BrowserView;
 
 public class BrowserFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
   private static final String TAG = BrowserFragment.class.getName();
-  private PlaybackService service;
-  private VfsRoot root;
-  private BrowserState state;
+  private static final String SEARCH_QUERY_KEY = "search_query";
+  private static final String SEARCH_FOCUSED_KEY = "search_focused";
+  
+  private BrowserController controller;
   private View sources;
-  private BreadCrumbsView position;
+  private SearchView search;
   private BrowserView listing;
+  private PlaybackService service;
 
   public static BrowserFragment createInstance() {
     return new BrowserFragment();
@@ -58,9 +63,8 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);
-    
-    root = Vfs.createRoot(activity.getApplicationContext());
-    state = new BrowserState(PreferenceManager.getDefaultSharedPreferences(activity));
+
+    this.controller = new BrowserController(this);
   }
 
   @Override
@@ -73,62 +77,153 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     super.onViewCreated(view, savedInstanceState);
     
     sources = view.findViewById(R.id.browser_sources);
-    final View roots = view.findViewById(R.id.browser_roots);
-    roots.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        setCurrentDir(root);
-      }
-    });
-    position = (BreadCrumbsView) view.findViewById(R.id.browser_breadcrumb);
-    position.setDirSelectionListener(new BreadCrumbsView.DirSelectionListener() {
-      @Override
-      public void onDirSelection(VfsDir dir) {
-        setCurrentDir(dir);
-      }
-    });
-    listing = (BrowserView) view.findViewById(R.id.browser_content);
-    listing.setOnItemClickListener(new OnItemClickListener());
-    listing.setEmptyView(view.findViewById(R.id.browser_stub));
-    listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
-
-    final Uri currentPath = state.getCurrentPath(); 
-    if (savedInstanceState == null) {
-      Log.d(TAG, "Load persistent state");
-      loadBrowser(currentPath);
-    } else {
-      if (!reloadListing()) {
-        loadBrowser(currentPath);
-      } else {
-        loadNavigation(currentPath);
-      }
-    }
+    search = setupSearchView(view);
+    setupRootsView(view);
+    final BreadCrumbsView position = setupPositionView(view);
+    final ProgressBar progress = (ProgressBar) view.findViewById(R.id.browser_loading);
+    listing = setupListing(view);
+    
+    controller.setViews(position, progress, listing);
+    
+    controller.loadState();
   }
 
   @Override
   public synchronized void onDestroyView() {
     super.onDestroyView();
-
+    
     Log.d(TAG, "Saving persistent state");
-    storeCurrentViewPosition();
-    service = PlaybackServiceStub.instance();
+    controller.storeCurrentViewPosition();
+    controller.resetViews();
   }
   
-  public final void moveUp() {
-    try {
-      final VfsDir curDir = (VfsDir) root.resolve(state.getCurrentPath());
-      if (curDir != root) {
-        final VfsDir parent = curDir != null ? curDir.getParent() : null;
-        setCurrentDir(parent != null ? parent : root);
+  private BrowserView setupListing(View view) {
+    final BrowserView listing = (BrowserView) view.findViewById(R.id.browser_content);
+    listing.setOnItemClickListener(new OnItemClickListener());
+    listing.setEmptyView(view.findViewById(R.id.browser_stub));
+    listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
+    return listing;
+  }
+
+  private BreadCrumbsView setupPositionView(View view) {
+    final BreadCrumbsView position  = (BreadCrumbsView) view.findViewById(R.id.browser_breadcrumb);
+    position.setDirSelectionListener(new BreadCrumbsView.DirSelectionListener() {
+      @Override
+      public void onDirSelection(VfsDir dir) {
+        controller.setCurrentDir(dir);
       }
-    } catch (IOException e) {
-      listing.showError(e);
+    });
+    return position;
+  }
+
+  private void setupRootsView(View view) {
+    final View roots = view.findViewById(R.id.browser_roots);
+    roots.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        controller.setCurrentDir(Vfs.getRoot());
+      }
+    });
+  }
+
+  private SearchView setupSearchView(View view) {
+    final SearchView search = (SearchView) view.findViewById(R.id.browser_search);
+
+    search.setOnSearchClickListener(new SearchView.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) search.getLayoutParams();
+        params.width = LayoutParams.MATCH_PARENT;
+        search.setLayoutParams(params);
+      }
+    });
+    search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+      @Override
+      public boolean onQueryTextSubmit(String query) {
+        controller.search(query);
+        search.clearFocus();
+        return true;
+      }
+      
+      @Override
+      public boolean onQueryTextChange(String query) {
+        return false;
+      }
+    });
+    search.setOnCloseListener(new SearchView.OnCloseListener() {
+      @Override
+      public boolean onClose() {
+        final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) search.getLayoutParams();
+        params.width = LayoutParams.WRAP_CONTENT;
+        search.setLayoutParams(params);
+        search.post(new Runnable() {
+          @Override
+          public void run() {
+            search.clearFocus();
+            if (controller.isInSearch()) {
+              controller.loadCurrentDir();
+            }
+          }
+        });
+        return false;
+      }
+    });
+    search.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+      @Override
+      public void onFocusChange(View v, boolean hasFocus) {
+        if (0 == search.getQuery().length()) {
+          search.setIconified(true);
+        }
+      }
+    });
+    return search;
+  }
+  
+  @Override
+  public void onSaveInstanceState(Bundle state) {
+      super.onSaveInstanceState(state);
+      if (!search.isIconified()) {
+        final String query = search.getQuery().toString();
+        state.putString(SEARCH_QUERY_KEY, query);
+        state.putBoolean(SEARCH_FOCUSED_KEY, search.hasFocus());
+      }
+  }
+
+  @Override
+  public void onViewStateRestored(Bundle state) {
+      super.onViewStateRestored(state);
+      if (state == null || !state.containsKey(SEARCH_QUERY_KEY)) {
+        return;
+      }
+      final String query = state.getString(SEARCH_QUERY_KEY);
+      final boolean isFocused = state.getBoolean(SEARCH_FOCUSED_KEY);
+      search.post(new Runnable() {
+        @Override
+        public void run() {
+          search.setIconified(false);
+          search.setQuery(query, false);
+          if (!isFocused) {
+            search.clearFocus();
+          }
+        }
+      });
+  }  
+  
+  public final void moveUp() {
+    if (!search.isIconified()) {
+      search.setIconified(true);
+    } else {
+      controller.moveToParent();
     }
   }
 
   @Override
-  public void onServiceConnected(PlaybackService service) {
+  public synchronized void onServiceConnected(PlaybackService service) {
     this.service = service;
+  }
+  
+  private synchronized PlaybackService getService() {
+    return this.service;
   }
   
   private String getActionModeTitle() {
@@ -142,10 +237,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
       final Object obj = parent.getItemAtPosition(position);
       if (obj instanceof VfsDir) {
-        setCurrentDir((VfsDir) obj);
+        controller.setCurrentDir((VfsDir) obj);
       } else if (obj instanceof VfsFile) {
         final Uri[] toPlay = getUrisFrom(position);
-        service.setNowPlaying(toPlay);
+        getService().setNowPlaying(toPlay);
       }
     }
 
@@ -184,10 +279,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       } else {
         switch (item.getItemId()) {
           case R.id.action_play:
-            service.setNowPlaying(getSelectedItemsUris());
+            getService().setNowPlaying(getSelectedItemsUris());
             break;
           case R.id.action_add:
-            service.getPlaylistControl().add(getSelectedItemsUris());
+            getService().getPlaylistControl().add(getSelectedItemsUris());
             break;
           default:
             return false;
@@ -232,67 +327,5 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     } else {
       view.setEnabled(enabled);
     }
-  }
-
-  private void setCurrentDir(VfsDir dir) {
-    storeCurrentViewPosition();
-    setNewState(dir.getUri());
-    loadBrowser(dir);
-  }
-
-  private void storeCurrentViewPosition() {
-    state.setCurrentViewPosition(listing.getFirstVisiblePosition());
-  }
-
-  private void setNewState(Uri uri) {
-    Log.d(TAG, "Set current path to " + uri);
-    state.setCurrentPath(uri);
-  }
-  
-  private void loadBrowser(Uri path) {
-    try {
-      final VfsObject obj = root.resolve(path);
-      if (obj instanceof VfsDir) {
-        loadBrowser((VfsDir) obj);
-      } else {
-        throw new IOException(getString(R.string.failed_resolve, path));
-      }
-    } catch (IOException e) {
-      listing.showError(e);
-    }
-  }
-  
-  private void loadBrowser(VfsDir dir) {
-    loadNavigation(dir);
-    loadListing(dir);
-  }
-  
-  private void loadNavigation(Uri path) {
-    try {
-      final VfsObject obj = root.resolve(path);
-      if (obj instanceof VfsDir) {
-        loadNavigation((VfsDir) obj);
-      } else {
-        throw new IOException(getString(R.string.failed_resolve, path));
-      }
-    } catch (IOException e) {
-      listing.showError(e);
-    }
-  }
-
-  private boolean reloadListing() {
-    return listing.loadCurrent(getLoaderManager());
-  }
-  
-  private void loadNavigation(VfsDir dir) {
-    if (dir == root) {
-      position.setDir(null);
-    } else {
-      position.setDir(dir);
-    }
-  }
-
-  private void loadListing(VfsDir dir) {
-    listing.loadNew(getLoaderManager(), dir, state.getCurrentViewPosition());
   }
 }

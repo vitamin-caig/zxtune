@@ -1,6 +1,6 @@
 binary_name := analysis_test_path
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 libraries.common = analysis
 

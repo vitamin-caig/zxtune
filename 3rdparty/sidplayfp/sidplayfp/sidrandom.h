@@ -31,16 +31,16 @@ private:
 
 public:
     /**
-    * Initialize PRNG
-    *
-    * @param seed 
-    */ 
+     * Initialize PRNG.
+     *
+     * @param seed
+     */
     sidrandom(unsigned int seed) :
         m_seed(seed * 1103515245 + 12345) {}
 
     /**
-    * Generate new pseudo-random number
-    */ 
+     * Generate new pseudo-random number.
+     */
     unsigned int next()
     {
         m_seed = m_seed * 13 + 1;

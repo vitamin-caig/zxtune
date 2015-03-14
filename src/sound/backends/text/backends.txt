@@ -62,3 +62,7 @@ __cpp> "}//namespace Text\n"
 #flac backend
 < FLAC_BACKEND_ID
 > "flac"
+
+#aylpt backend
+< AYLPT_BACKEND_ID
+> "aylpt"

@@ -45,7 +45,8 @@ public:
 
     virtual const char *createMD5(char *md5);
 
-private:    // prevent copying
+private:
+    // prevent copying
     PSID(const PSID&);
     PSID& operator=(PSID&);
 };

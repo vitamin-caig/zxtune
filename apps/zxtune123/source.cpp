@@ -9,11 +9,9 @@
 **/
 
 //local includes
+#include "config.h"
 #include "console.h"
 #include "source.h"
-#include <apps/base/app.h>
-#include <apps/base/parsing.h>
-#include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
 #include <progress_callback.h>
@@ -24,9 +22,11 @@
 #include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <core/properties/path.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <parameters/merged_accessor.h>
+#include <platform/application.h>
 #include <strings/array.h>
 #include <time/elapsed.h>
 //std includes
@@ -128,7 +128,7 @@ namespace
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
     {
       const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
-      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CreatePathProperties(subId), Params);
+      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(Module::CreatePathProperties(subId), Params);
       const Module::Holder::Ptr result = Module::CreateMixedPropertiesHolder(holder, moduleParams);
       Callback(result);
     }

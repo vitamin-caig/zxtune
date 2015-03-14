@@ -238,8 +238,8 @@ namespace ProTracker2
   {
     ChannelState()
       : Enabled(false), Envelope(false)
-      , Note(), SampleNum(0), PosInSample(0)
-      , OrnamentNum(0), PosInOrnament(0)
+      , Note(), SampleNum(Formats::Chiptune::ProTracker2::DEFAULT_SAMPLE), PosInSample(0)
+      , OrnamentNum(Formats::Chiptune::ProTracker2::DEFAULT_ORNAMENT), PosInOrnament(0)
       , Volume(15), NoiseAdd(0)
       , Sliding(0), SlidingTargetNote(LIMITER), Glissade(0)
     {

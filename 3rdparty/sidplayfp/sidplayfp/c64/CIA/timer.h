@@ -25,16 +25,16 @@
 
 #include <stdint.h>
 
-#include "sidplayfp/event.h" 
-#include "sidplayfp/EventScheduler.h"
+#include "sidplayfp/event.h"
+#include "EventScheduler.h"
 
 class MOS6526;
 
 /**
-* This is the base class for the MOS6526 timers.
-*
-* @author Ken Händel
-*/
+ * This is the base class for the MOS6526 timers.
+ *
+ * @author Ken Händel
+ */
 class Timer : private Event
 {
 protected:
@@ -58,73 +58,59 @@ protected:
 private:
     EventCallback<Timer> m_cycleSkippingEvent;
 
-    /**
-    * Event context.
-    */
+    /// Event context.
     EventContext &event_context;
 
     /**
-    * This is a tri-state:
-    *
-    * - when -1: cia is completely stopped
-    * - when 0: cia 1-clock events are ticking.
-    * - otherwise: cycleskipevent is ticking, and the value is the first
-    *   phi1 clock of skipping.
-    */
+     * This is a tri-state:
+     *
+     * - when -1: cia is completely stopped
+     * - when 0: cia 1-clock events are ticking.
+     * - otherwise: cycleskipevent is ticking, and the value is the first
+     *   phi1 clock of skipping.
+     */
     event_clock_t ciaEventPauseTime;
 
-    /**
-    * Current timer value.
-    */
+    /// Current timer value.
     uint_least16_t timer;
 
-    /**
-    * Timer start value (Latch).
-    */
+    /// Timer start value (Latch).
     uint_least16_t latch;
 
-    /**
-    * PB6/PB7 Flipflop to signal underflows.
-    */
+    /// PB6/PB7 Flipflop to signal underflows.
     bool pbToggle;
 
-    /**
-    * Copy of regs[CRA/B]
-    */
+    /// Copy of regs[CRA/B]
     uint8_t lastControlValue;
 
 protected:
-    /**
-    * Pointer to the MOS6526 which this Timer belongs to.
-    */
+    /// Pointer to the MOS6526 which this Timer belongs to.
     MOS6526* const parent;
 
-    /**
-    * CRA/CRB control register / state.
-    */
+    /// CRA/CRB control register / state.
     int_least32_t state;
 
 private:
     /**
-    * Perform scheduled cycle skipping, and resume.
-    */
+     * Perform scheduled cycle skipping, and resume.
+     */
     void cycleSkippingEvent();
 
     /**
-    * Execute one CIA state transition.
-    */
+     * Execute one CIA state transition.
+     */
     void clock();
 
     /**
-    * Reschedule CIA event at the earliest interesting time.
-    * If CIA timer is stopped or is programmed to just count down,
-    * the events are paused.
-    */
+     * Reschedule CIA event at the earliest interesting time.
+     * If CIA timer is stopped or is programmed to just count down,
+     * the events are paused.
+     */
     inline void reschedule();
 
     /**
-    * Timer ticking event.
-    */
+     * Timer ticking event.
+     */
     void event();
 
     /**
@@ -133,18 +119,18 @@ private:
     virtual void underFlow() =0;
 
     /**
-    * Handle the serial port.
-    */
+     * Handle the serial port.
+     */
     virtual void serialPort() {};
 
 protected:
     /**
-    * Create a new timer.
-    *
-    * @param name component name
-    * @param context event context
-    * @param parent the MOS6526 which this Timer belongs to
-    */
+     * Create a new timer.
+     *
+     * @param name component name
+     * @param context event context
+     * @param parent the MOS6526 which this Timer belongs to
+     */
     Timer(const char* name, EventContext *context, MOS6526* parent) :
         Event(name),
         m_cycleSkippingEvent("Skip CIA clock decrement cycles", *this, &Timer::cycleSkippingEvent),
@@ -158,76 +144,75 @@ protected:
 
 public:
     /**
-    * Set CRA/CRB control register.
-    *
-    * @param cr
-    *            control register value
-    */
+     * Set CRA/CRB control register.
+     *
+     * @param cr control register value
+     */
     void setControlRegister(uint8_t cr);
 
     /**
-    * Perform cycle skipping manually.
-    *
-    * Clocks the CIA up to the state it should be in, and stops all events.
-    */
+     * Perform cycle skipping manually.
+     *
+     * Clocks the CIA up to the state it should be in, and stops all events.
+     */
     void syncWithCpu();
 
     /**
-    * Counterpart of syncWithCpu(),
-    * starts the event ticking if it is needed.
-    * No clock() call or anything such is permissible here!
-    */
+     * Counterpart of syncWithCpu(),
+     * starts the event ticking if it is needed.
+     * No clock() call or anything such is permissible here!
+     */
     void wakeUpAfterSyncWithCpu();
 
     /**
-    * Reset timer.
-    */
+     * Reset timer.
+     */
     void reset();
 
     /**
-    * Set low byte of Timer start value (Latch).
-    *
-    * @param data
-    *            low byte of latch
-    */
+     * Set low byte of Timer start value (Latch).
+     *
+     * @param data
+     *            low byte of latch
+     */
     void latchLo(uint8_t data);
 
     /**
-    * Set high byte of Timer start value (Latch).
-    *
-    * @param data
-    *            high byte of latch
-    */
+     * Set high byte of Timer start value (Latch).
+     *
+     * @param data
+     *            high byte of latch
+     */
     void latchHi(uint8_t data);
 
     /**
-    * Set PB6/PB7 Flipflop state.
-    *
-    * @param state
-    *            PB6/PB7 flipflop state
-    */
+     * Set PB6/PB7 Flipflop state.
+     *
+     * @param state
+     *            PB6/PB7 flipflop state
+     */
     inline void setPbToggle(bool state) { pbToggle = state; }
 
     /**
-    * Get current state value.
-    *
-    * @return current state value
-    */
+     * Get current state value.
+     *
+     * @return current state value
+     */
     inline int_least32_t getState() const { return state; }
 
     /**
-    * Get current timer value.
-    *
-    * @return current timer value
-    */
+     * Get current timer value.
+     *
+     * @return current timer value
+     */
     inline uint_least16_t getTimer() const { return timer; }
 
     /**
-    * Get PB6/PB7 Flipflop state.
-    *
-    * @param reg value of the control register
-    * @return PB6/PB7 flipflop state
-    */
+     * Get PB6/PB7 Flipflop state.
+     *
+     * @param reg value of the control register
+     * @return PB6/PB7 flipflop state
+     */
     inline bool getPb(uint8_t reg) const { return (reg & 0x04) ? pbToggle : (state & CIAT_OUT); }
 };
 

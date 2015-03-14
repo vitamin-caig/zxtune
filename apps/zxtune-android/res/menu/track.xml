@@ -16,12 +16,20 @@
         android:id="@+id/action_send"
         android:icon="@drawable/ic_menu_send"
         android:title="@string/send"
-        sabd:showAsAction="never" />
+        sabd:showAsAction="never"
+      />
       <item
         android:id="@+id/action_share"
         android:icon="@drawable/ic_menu_share"
         android:title="@string/share"
-        sabd:showAsAction="never" />
+        sabd:showAsAction="never"
+      />
+      <item
+        android:id="@+id/action_make_ringtone"
+        android:icon="@drawable/ic_menu_ringtone"
+        android:title="@string/ringtone_create_title"
+        sabd:showAsAction="never"
+      />
     </menu>
   </item>
 </menu>

@@ -1,6 +1,6 @@
 binary_name := sound_test_gainer
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 libraries.common = l10n_stub sound tools
 

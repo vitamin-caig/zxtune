@@ -26,8 +26,8 @@
 #include <stdint.h>
 
 /**
-* This interface is used to get sid engine informations.
-*/
+ * This interface is used to get sid engine informations.
+ */
 class SidInfo
 {
 public:

@@ -26,7 +26,7 @@
 #include <cstring>
 
 #include "Bank.h"
-#include "sidplayfp/c64/CPU/opcodes.h"
+#include "c64/CPU/opcodes.h"
 
 /**
  * ROM bank base class
@@ -40,20 +40,30 @@ protected:
     uint8_t rom[N];
 
 protected:
-    /// Set value at memory address
+    /**
+     * Set value at memory address.
+     */
     void setVal(uint_least16_t address, uint8_t val) { rom[address & (N-1)]=val; }
 
-    /// Return value from memory address
+    /**
+     * Return value from memory address.
+     */
     uint8_t getVal(uint_least16_t address) const { return rom[address & (N-1)]; }
 
-    /// Return pointer to memory address
+    /**
+     * Return pointer to memory address.
+     */
     void* getPtr(uint_least16_t address) const { return (void*)&rom[address & (N-1)]; }
 
 public:
-    /// Copy content from source buffer
+    /**
+     * Copy content from source buffer.
+     */
     void set(const uint8_t* source) { if (source) memcpy(rom, source, N); }
 
-    /// Writing to ROM is a no-op
+    /**
+     * Writing to ROM is a no-op.
+     */
     void poke(uint_least16_t address SID_UNUSED, uint8_t value SID_UNUSED) {}
 
     inline uint8_t peekByte(uint_least16_t address) { return rom[address & (N-1)]; }
@@ -63,6 +73,8 @@ public:
 
 /**
  * Kernal ROM
+ *
+ * Located at $E000-$FFFF
  */
 class KernalRomBank : public romBank<0x2000>
 {
@@ -160,10 +172,10 @@ public:
     }
 
     /**
-    * Change the RESET vector
-    *
-    * @param addr the new addres to point to
-    */
+     * Change the RESET vector.
+     *
+     * @param addr the new addres to point to
+     */
     void installResetHook(uint_least16_t addr)
     {
         setVal(0xfffc, endian_16lo8(addr));
@@ -173,6 +185,8 @@ public:
 
 /**
  * BASIC ROM
+ *
+ * Located at $A000-$BFFF
  */
 class BasicRomBank : public romBank<0x2000>
 {
@@ -200,10 +214,10 @@ public:
     }
 
     /**
-    * Set BASIC Warm Start address
-    *
-    * @param addr
-    */
+     * Set BASIC Warm Start address.
+     *
+     * @param addr
+     */
     void installTrap(uint_least16_t addr)
     {
         setVal(0xa7ae, JMPw);
@@ -229,6 +243,8 @@ public:
 
 /**
  * Character ROM
+ *
+ * Located at $D000-$DFFF
  */
 class CharacterRomBank : public romBank<0x1000> {};
 

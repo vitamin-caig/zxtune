@@ -1,0 +1,609 @@
+/**
+* 
+* @file
+*
+* @brief  SPC support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
+//local includes
+#include "spc.h"
+#include "formats/chiptune/container.h"
+//common includes
+#include <byteorder.h>
+#include <contract.h>
+#include <crc.h>
+#include <pointers.h>
+//library includes
+#include <binary/container_factories.h>
+#include <binary/data_adapter.h>
+#include <binary/format_factories.h>
+#include <binary/input_stream.h>
+#include <binary/typed_container.h>
+#include <debug/log.h>
+#include <formats/chiptune.h>
+//boost includes
+#include <boost/array.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/chiptune.h>
+
+namespace
+{
+  const Debug::Stream Dbg("Formats::Chiptune::SPC");
+}
+
+namespace Formats
+{
+namespace Chiptune
+{
+  namespace SPC
+  {
+    typedef boost::array<uint8_t, 28> SignatureType;
+    const SignatureType SIGNATURE = {{
+      'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ',
+      'S', 'o', 'u', 'n', 'd', ' ', 'F', 'i', 'l', 'e', ' ', 'D', 'a', 't', 'a', ' '
+    }};
+    
+    inline String GetString(const char* begin, const char* end)
+    {
+      return String(begin, std::find(begin, end, '\0'));
+    }
+    
+    template<std::size_t D>
+    inline String GetString(const char (&str)[D])
+    {
+      return GetString(str, str + D);
+    }
+    
+    inline bool IsValidDate(const String& str)
+    {
+      return String::npos == str.find_first_not_of("0123456789/-");
+    }
+    
+    inline bool IsValidDigits(const String& str)
+    {
+      return String::npos == str.find_first_not_of("0123456789");
+    }
+    
+    inline String DateFromInteger(uint_t val)
+    {
+      String result(8, ' ');
+      for (uint_t pos = 0; pos < result.size(); ++pos)
+      {
+        result[pos] = '0' + (val & 15);
+        val >>= 4;
+      }
+      return result;
+    }
+
+    inline uint_t ToInt(const String& str)
+    {
+      if (str.empty())
+      {
+        return 0;
+      }
+      else if (IsValidDigits(str))
+      {
+        return boost::lexical_cast<uint_t>(str);
+      }
+      else
+      {
+        return ~uint_t(0);
+      }
+    }
+       
+    typedef Time::Stamp<uint_t, 64000> Ticks;
+    typedef Time::Stamp<uint_t, 1> Seconds;
+    
+    const Seconds MAX_DURATION(3600);
+    
+    template<class T>
+    inline bool IsValidTime(T t)
+    {
+      return t < MAX_DURATION;
+    }
+    
+#ifdef USE_PRAGMA_PACK
+#pragma pack(push,1)
+#endif
+    PACK_PRE struct Registers
+    {
+      uint16_t PC;
+      uint8_t A;
+      uint8_t X;
+      uint8_t Y;
+      uint8_t PSW;
+      uint8_t SP;
+      uint16_t Reserved;
+    } PACK_POST;
+    
+    PACK_PRE struct ID666TextTag
+    {
+      char Song[32];
+      char Game[32];
+      char Dumper[16];
+      char Comments[32];
+      char DumpDate[11];//MM/DD/YYYY or MM-DD-YYY or empty???
+      char FadeTimeSec[3];
+      char FadeDurationMs[5];
+      char Artist[32];
+      uint8_t DisableDefaultChannel;//1-do
+      uint8_t Emulator;
+      uint8_t Reserved[45];
+      
+      String GetDumpDate() const
+      {
+        return GetString(DumpDate);
+      }
+      
+      Seconds GetFadeTime() const
+      {
+        const String& str = GetString(FadeTimeSec);
+        const uint_t val = ToInt(str);
+        return Seconds(val);
+      }
+      
+      Time::Milliseconds GetFadeDuration() const
+      {
+        const String& str = GetString(FadeDurationMs);
+        const uint_t val = ToInt(str);
+        return Time::Milliseconds(val);
+      }
+    } PACK_POST;
+    
+    PACK_PRE struct ID666BinTag
+    {
+      char Song[32];
+      char Game[32];
+      char Dumper[16];
+      char Comments[32];
+      uint32_t DumpDate;//YYYYMMDD
+      uint8_t Unused[7];
+      uint8_t FadeTimeSec[3];
+      uint32_t FadeDurationMs;
+      char Artist[32];
+      uint8_t DisableDefaultChannel;//1-do
+      uint8_t Emulator;
+      uint8_t Reserved[46];
+      
+      String GetDumpDate() const
+      {
+        return DateFromInteger(fromLE(DumpDate));
+      }
+
+      Seconds GetFadeTime() const
+      {
+        const uint_t val = uint_t(FadeTimeSec[0]) | (uint_t(FadeTimeSec[1]) << 8) | (uint_t(FadeTimeSec[2]) << 16);
+        return Seconds(val);
+      }
+      
+      Time::Milliseconds GetFadeDuration() const
+      {
+        return Time::Milliseconds(FadeDurationMs);
+      }
+    } PACK_POST;
+    
+    PACK_PRE struct ExtraRAM
+    {
+      //usually at +0x10180
+      uint8_t Unused[64];
+      uint8_t Data[64];
+    } PACK_POST;
+    
+    PACK_PRE struct RawHeader
+    {
+      SignatureType Signature;
+      uint8_t VersionString[5];//vX.XX or 0.10\00
+      uint8_t Padding[2];//26,26
+      uint8_t UseID666;//26-no, 27- yes, not used
+      uint8_t VersionMinor;
+      //+0x25
+      Registers Regs;
+      //+0x2e
+      union ID666Tag
+      {
+        ID666TextTag TextTag;
+        ID666BinTag BinTag;
+      } ID666;
+      //+0x100
+      uint8_t RAM[65536];
+      //+0x10100
+      uint8_t DSPRegisters[128];
+    } PACK_POST;
+    
+    typedef boost::array<uint8_t, 4> IFFId;
+    const IFFId XID6 = {{'x', 'i', 'd', '6'}};
+
+    PACK_PRE struct IFFChunkHeader
+    {
+      IFFId ID;//xid6
+      uint32_t DataSize;
+    } PACK_POST;
+    
+    PACK_PRE struct SubChunkHeader
+    {
+      uint8_t ID;
+      uint8_t Type;
+      uint16_t DataSize;
+      
+      enum Types
+      {
+        Length = 0,//in DataSize
+        Asciiz = 1,//ASCIIZ
+        Integer = 4//ui32LE
+      };
+      
+      enum IDs
+      {
+        //Asciiz
+        SongName = 1,
+        GameName,
+        ArtistName,
+        DumperName,
+        //Integer
+        Date,
+        //Length
+        Emulator,
+        //Asciiz
+        Comments,
+        OfficialTitle = 16,
+        //Length
+        OSTDisk,
+        OSTTrack,
+        //Asciiz
+        PublisherName,
+        //Length
+        CopyrightYear,
+        //Integer
+        IntroductionLength = 48,
+        LoopLength,
+        EndLength,
+        FadeLength,
+        //Length
+        MutedChannels,
+        LoopTimes,
+        //Integer
+        Amplification,
+      };
+      
+      uint_t GetDataSize() const
+      {
+        return Type != Length ? fromLE(DataSize) : 0;
+      }
+      
+      uint_t GetInteger() const
+      {
+        if (Type == Length)
+        {
+          return fromLE(DataSize);
+        }
+        else if (Type == Integer)
+        {
+          return fromLE(*safe_ptr_cast<const uint32_t*>(this + 1));
+        }
+        else
+        {
+          assert(!"Invalid subchunk type");
+          return 0;
+        }
+      }
+      
+      Ticks GetTicks() const
+      {
+        return Ticks(GetInteger());
+      }
+      
+      String GetString() const
+      {
+        if (Type == Asciiz)
+        {
+          const char* const start = safe_ptr_cast<const char*>(this + 1);
+          const char* const end = start + fromLE(DataSize);
+          return end[-1] ? String(start, end) : String(start);
+        }
+        else
+        {
+          //assert(!"Invalid subchunk type");
+          return String();
+        }
+      }
+    } PACK_POST;
+#ifdef USE_PRAGMA_PACK
+#pragma pack(pop)
+#endif
+    
+    BOOST_STATIC_ASSERT(sizeof(Registers) == 9);
+    BOOST_STATIC_ASSERT(sizeof(ID666TextTag) == 0xd2);
+    BOOST_STATIC_ASSERT(sizeof(ID666BinTag) == 0xd2);
+    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10180);
+    BOOST_STATIC_ASSERT(sizeof(ExtraRAM) == 0x80);
+    BOOST_STATIC_ASSERT(sizeof(IFFChunkHeader) == 8);
+    BOOST_STATIC_ASSERT(sizeof(SubChunkHeader) == 4);
+
+    class StubBuilder : public Builder
+    {
+    public:
+      virtual void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/) {}
+      virtual void SetTitle(const String& /*title*/) {}
+      virtual void SetGame(const String& /*game*/) {}
+      virtual void SetDumper(const String& /*dumper*/) {}
+      virtual void SetComment(const String& /*comment*/) {}
+      virtual void SetDumpDate(const String& /*date*/) {}
+      virtual void SetIntro(Time::Milliseconds /*duration*/) {}
+      virtual void SetLoop(Time::Milliseconds /*duration*/) {}
+      virtual void SetFade(Time::Milliseconds /*duration*/) {}
+      virtual void SetArtist(const String& /*artist*/) {}
+      
+      virtual void SetRAM(const void* /*data*/, std::size_t /*size*/) {}
+      virtual void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) {}
+      virtual void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) {}
+    };
+    
+    //used nes_spc library doesn't support another versions
+    const std::string FORMAT(
+      "'S'N'E'S'-'S'P'C'7'0'0' 'S'o'u'n'd' 'F'i'l'e' 'D'a't'a' "
+      //actual|old
+      "'v     |'0"
+      "'0     |'."
+      "'.     |'1"
+      "('1-'3)|'0"
+      "('0-'9)|00"
+      "1a     |00"
+      "1a     |00"
+      "1a|1b  |00"              //has ID666
+      "0a-1e  |00"              //version minor
+    );
+
+    class Decoder : public Formats::Chiptune::Decoder
+    {
+    public:
+      Decoder()
+        : Format(Binary::CreateFormat(FORMAT, sizeof(RawHeader)))
+      {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::SPC_DECODER_DESCRIPTION;
+      }
+
+      virtual Binary::Format::Ptr GetFormat() const
+      {
+        return Format;
+      }
+
+      virtual bool Check(const Binary::Container& rawData) const
+      {
+        return Format->Match(rawData);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      {
+        Builder& stub = GetStubBuilder();
+        return Parse(rawData, stub);
+      }
+    private:
+      const Binary::Format::Ptr Format;
+    };
+    
+    struct Tag
+    {
+      const String Song;
+      const String Game;
+      const String Dumper;
+      const String Comments;
+      const String DumpDate;
+      const Seconds FadeTime;
+      const Time::Milliseconds FadeDuration;
+      const String Artist;
+      
+      template<class T>
+      explicit Tag(const T& tag)
+        : Song(GetString(tag.Song))
+        , Game(GetString(tag.Game))
+        , Dumper(GetString(tag.Dumper))
+        , Comments(GetString(tag.Comments))
+        , DumpDate(tag.GetDumpDate())
+        , FadeTime(tag.GetFadeTime())
+        , FadeDuration(tag.GetFadeDuration())
+        , Artist(GetString(tag.Artist))
+      {
+      }
+      
+      uint_t GetScore() const
+      {
+        return Song.size()
+             + Game.size()
+             + Dumper.size()
+             + Comments.size()
+             + DumpDate.size() * IsValidDate(DumpDate)
+             + 100 * IsValidTime(FadeTime)
+             + 100 * IsValidTime(FadeDuration)
+        ;
+      }
+    };
+    
+    class Format
+    {
+    public:
+      explicit Format(const Binary::Container& data)
+        : Stream(data)
+      {
+      }
+      
+      void ParseMainPart(Builder& target)
+      {
+        const RawHeader& hdr = Stream.ReadField<RawHeader>();
+        Require(hdr.Signature == SIGNATURE);
+        ParseID666(hdr.ID666, target);
+        target.SetRegisters(fromLE(hdr.Regs.PC), hdr.Regs.A, hdr.Regs.X, hdr.Regs.Y, hdr.Regs.PSW, hdr.Regs.SP);
+        target.SetRAM(hdr.RAM, sizeof(hdr.RAM));
+        target.SetDSPRegisters(hdr.DSPRegisters, sizeof(hdr.DSPRegisters));
+        if (Stream.GetRestSize() >= sizeof(ExtraRAM))
+        {
+          const ExtraRAM& extra = Stream.ReadField<ExtraRAM>();
+          target.SetExtraRAM(extra.Data, sizeof(extra.Data));
+        }
+      }
+      
+      void ParseExtendedPart(Builder& target)
+      {
+        if (Stream.GetPosition() == sizeof(RawHeader) + sizeof(ExtraRAM)
+         && Stream.GetRestSize() >= sizeof(IFFChunkHeader))
+        {
+          const IFFChunkHeader& hdr = Stream.ReadField<IFFChunkHeader>();
+          const std::size_t size = fromLE(hdr.DataSize);
+          if (hdr.ID == XID6 && Stream.GetRestSize() >= size)
+          {
+            const Binary::DataAdapter chunks(Stream.ReadData(size), size);
+            ParseSubchunks(chunks, target);
+          }
+          else
+          {
+            Dbg("Invalid IFFF chunk stored (id=%s, size=%u)", String(hdr.ID.begin(), hdr.ID.end()), size);
+            //TODO: fix used size instead
+            Stream.ReadRestData();
+          }
+        }
+      }
+      
+      Binary::Container::Ptr GetUsedData() const
+      {
+        return Stream.GetReadData();
+      }
+    private:
+      static void ParseID666(const RawHeader::ID666Tag& tag, Builder& target)
+      {
+        const Tag text(tag.TextTag);
+        const Tag bin(tag.BinTag);
+        if (text.GetScore() >= bin.GetScore())
+        {
+          Dbg("Parse text ID666");
+          ParseID666(text, target);
+        }
+        else
+        {
+          Dbg("Parse binary ID666");
+          ParseID666(bin, target);
+        }
+      }
+      
+      static void ParseID666(const Tag& tag, Builder& target)
+      {
+        target.SetTitle(tag.Song);
+        target.SetGame(tag.Game);
+        target.SetDumper(tag.Dumper);
+        target.SetComment(tag.Comments);
+        target.SetDumpDate(tag.DumpDate);
+        target.SetIntro(tag.FadeTime);
+        target.SetFade(tag.FadeDuration);
+        target.SetArtist(tag.Artist);
+      }
+      
+      static void ParseSubchunks(const Binary::Data& data, Builder& target)
+      {
+        try
+        {
+          Binary::TypedContainer typed(data);
+          for (std::size_t pos = 0; pos < typed.GetSize(); )
+          {
+            const SubChunkHeader* const hdr = typed.GetField<SubChunkHeader>(pos);
+            Require(hdr != 0);
+            if (hdr->ID == 0 && 0 != (pos % 4))
+            {
+              //in despite of official format description, subchunks can be not aligned by 4 byte boundary
+              ++pos;
+            }
+            else
+            {
+              Dbg("ParseSubchunk id=%u, type=%u, size=%u", uint_t(hdr->ID), uint_t(hdr->Type), fromLE(hdr->DataSize));
+              pos += sizeof(*hdr) + hdr->GetDataSize();
+              Require(pos <= typed.GetSize());
+              ParseSubchunk(*hdr, target);
+            }
+          }
+        }
+        catch (const std::exception&)
+        {
+          //ignore
+        }
+      }
+      
+      static void ParseSubchunk(const SubChunkHeader& hdr, Builder& target)
+      {
+          switch (hdr.ID)
+          {
+          case SubChunkHeader::SongName:
+            target.SetTitle(hdr.GetString());
+            break;
+          case SubChunkHeader::GameName:
+            target.SetGame(hdr.GetString());
+            break;
+          case SubChunkHeader::ArtistName:
+            target.SetArtist(hdr.GetString());
+            break;
+          case SubChunkHeader::DumperName:
+            target.SetDumper(hdr.GetString());
+            break;
+          case SubChunkHeader::Date:
+            target.SetDumpDate(DateFromInteger(hdr.GetInteger()));
+            break;
+          case SubChunkHeader::Comments:
+            target.SetComment(hdr.GetString());
+            break;
+          case SubChunkHeader::IntroductionLength:
+            target.SetIntro(hdr.GetTicks());
+            break;
+          case SubChunkHeader::LoopLength:
+            target.SetLoop(hdr.GetTicks());
+            break;
+          case SubChunkHeader::FadeLength:
+            target.SetFade(hdr.GetTicks());
+            break;
+          default:
+            break;
+          }
+      }
+    private:
+      Binary::InputStream Stream;
+    };
+    
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    {
+      if (data.Size() < sizeof(RawHeader))
+      {
+        return Formats::Chiptune::Container::Ptr();
+      }
+      try
+      {
+        Format format(data);
+        format.ParseMainPart(target);
+        format.ParseExtendedPart(target);
+        const Binary::Container::Ptr subData = format.GetUsedData();
+        const std::size_t fixedStart = offsetof(RawHeader, RAM);
+        const std::size_t fixedEnd = sizeof(RawHeader);
+        return CreateCalculatingCrcContainer(subData, fixedStart, fixedEnd - fixedStart);
+      }
+      catch (const std::exception&)
+      {
+        return Formats::Chiptune::Container::Ptr();
+      }
+    }
+    
+    Builder& GetStubBuilder()
+    {
+      static StubBuilder stub;
+      return stub;
+    }
+  } //namespace SPC
+
+  Decoder::Ptr CreateSPCDecoder()
+  {
+    return boost::make_shared<SPC::Decoder>();
+  }
+} //namespace Chiptune
+} //namespace Formats

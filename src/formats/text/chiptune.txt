@@ -6,6 +6,10 @@ __cpp> "{\n"
 < __RAWFOOTER__
 __cpp> "}//namespace Text\n"
 
+#AYC
+< AYC_DECODER_DESCRIPTION
+> "CPC AYC"
+
 #AY_EMUL
 < AY_EMUL_DECODER_DESCRIPTION
 > "AY/EMUL"
@@ -50,6 +54,16 @@ __cpp> "}//namespace Text\n"
 #ETracker
 < ETRACKER_DECODER_DESCRIPTION
 > "E-Tracker v1.x"
+
+#ExtremeTracker
+< EXTREMETRACKER1_DECODER_DESCRIPTION
+> "Extreme Tracker v1.x"
+
+< EXTREMETRACKER131
+> "Extreme Tracker v1.31"
+
+< EXTREMETRACKER132
+> "Extreme Tracker v1.32-1.41"
 
 #FastTracker
 < FASTTRACKER_DECODER_DESCRIPTION
@@ -202,3 +216,7 @@ __cpp> "}//namespace Text\n"
 #SID
 < SID_DECODER_DESCRIPTION
 > "Commodore64 RSID/PSID"
+
+#SPC
+< SPC_DECODER_DESCRIPTION
+> "SNES SPC700"

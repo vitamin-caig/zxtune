@@ -34,5 +34,5 @@ public interface PlayerEventsListener {
    * Called on unexpected error occurred
    * @param e
    */
-  public void onError(Error e);
+  public void onError(Exception e);
 }

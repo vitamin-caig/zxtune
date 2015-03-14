@@ -18,6 +18,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -27,9 +28,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+import app.zxtune.MainApplication;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
+import app.zxtune.Util;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.VfsFile;
@@ -39,8 +43,10 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.ItemStub;
+import app.zxtune.playback.PlaybackControlStub;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaybackServiceStub;
+import app.zxtune.playback.SeekControlStub;
 import app.zxtune.playback.VisualizerStub;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -71,7 +77,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
   
   @Override
-  public void onCreateOptionsMenu (Menu menu, MenuInflater inflater) {
+  public synchronized void onCreateOptionsMenu (Menu menu, MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.track, menu);
@@ -83,21 +89,25 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   public boolean onOptionsItemSelected (MenuItem menu) {
     switch (menu.getItemId()) {
       case R.id.action_add:
-        service.getPlaylistControl().add(new Uri[] {service.getNowPlaying().getDataId()});
+        getService().getPlaylistControl().add(new Uri[] {getService().getNowPlaying().getDataId()});
         //disable further addings
         menu.setVisible(false);
         break;
       case R.id.action_send:
-        final Intent toSend = Actions.makeSendIntent(new ShareData(getActivity(), service.getNowPlaying()));
+        final Intent toSend = Actions.makeSendIntent(new ShareData(getActivity(), getService().getNowPlaying()));
         if (toSend != null) {
           startActivity(Intent.createChooser(toSend, menu.getTitle()));
         }
         break;
       case R.id.action_share:
-        final Intent toShare = Actions.makeShareIntent(new ShareData(getActivity(), service.getNowPlaying()));
+        final Intent toShare = Actions.makeShareIntent(new ShareData(getActivity(), getService().getNowPlaying()));
         if (toShare != null) {
           startActivity(Intent.createChooser(toShare, menu.getTitle()));
         }
+        break;
+      case R.id.action_make_ringtone:
+        final DialogFragment fragment = RingtoneFragment.createInstance(getService().getNowPlaying());
+        fragment.show(getActivity().getSupportFragmentManager(), "ringtone");
         break;
       default:
         return super.onOptionsItemSelected(menu);
@@ -112,24 +122,40 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
 
   @Override
   public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
     seek = new SeekControlView(view);
     visualizer = (VisualizerView) view.findViewById(R.id.visualizer);
     info = new InformationView(view);
     ctrls = new PlaybackControlsView(view);
+  }
+  
+  @Override
+  public synchronized void onStart() {
+    super.onStart();
     bindViewsToConnectedService();
   }
-
+  
   @Override
-  public synchronized void onDestroy() {
-    super.onDestroy();
-
+  public synchronized void onStop() {
+    super.onStop();
     unbindFromService();
+  }
+  
+  @Override
+  public void onDestroyView() {
+    visualizer.setEnabled(false);
+    seek.setEnabled(false);
+    super.onDestroyView();
   }
 
   @Override
   public synchronized void onServiceConnected(PlaybackService service) {
     this.service = service;
     bindViewsToConnectedService();
+  }
+  
+  private synchronized PlaybackService getService() {
+    return this.service;
   }
   
   // relative order of onViewCreated/onCreateOptionsMenu/onServiceConnected is not specified
@@ -140,6 +166,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     final boolean menuCreated = actions != null;
     if (serviceConnected && viewsCreated && menuCreated) {
       Log.d(TAG, "Subscribe to service events");
+      visualizer.setSource(service.getVisualizer());
       seek.setControl(service.getSeekControl());
       ctrls.setControls(service.getPlaybackControl());
       callback = new PlaybackEvents();
@@ -160,14 +187,17 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         callback.onStatusChanged(false);
       }
     }
-    service = PlaybackServiceStub.instance();
+    visualizer.setSource(VisualizerStub.instance());
+    seek.setControl(SeekControlStub.instance());
+    ctrls.setControls(PlaybackControlStub.instance());
   }
   
+  //executed in UI thread only via wrapper
   private class PlaybackEvents implements Callback {
     
     @Override
     public void onStatusChanged(boolean isPlaying) {
-      visualizer.setSource(isPlaying ? service.getVisualizer() : VisualizerStub.instance());
+      visualizer.setEnabled(isPlaying);
       seek.setEnabled(isPlaying);
       ctrls.updateStatus(isPlaying);
     }
@@ -184,6 +214,15 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       //Seems like may be called before activity attach
       if (activity != null) {
         activity.setSupportProgressBarIndeterminateVisibility(isActive);
+      }
+    }
+    
+    @Override
+    public void onError(final String error) {
+      final ActionBarActivity activity = (ActionBarActivity)getActivity();
+      //Seems like may be called before activity attach
+      if (activity != null) {
+        Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
       }
     }
   }
@@ -266,22 +305,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     public final String getTitle() {
-      final String title = item.getTitle();
-      final String author = item.getAuthor();
-      final boolean noTitle = 0 == title.length();
-      final boolean noAuthor = 0 == author.length();
-      final StringBuilder result = new StringBuilder();
-      if (noTitle && noAuthor) {
-        final String filename = item.getDataId().getLastPathSegment();
-        result.append(filename);
-      } else {
-        result.append(title);
-        if (!noTitle && !noAuthor) {
-          result.append(" - ");
-        }
-        result.append(author);
-      }
-      return result.toString();
+      return Util.formatTrackTitle(item.getTitle(), item.getAuthor(), item.getDataId().getLastPathSegment());
     }
     
     public final String getSendText() {
@@ -315,7 +339,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     
     private VfsFile openFile(Uri uri) {
       try {
-        final VfsRoot root = Vfs.createRoot(context);
+        final VfsRoot root = Vfs.getRoot();
         final VfsObject obj = root.resolve(uri);
         return obj instanceof VfsFile
           ? (VfsFile) obj
@@ -330,9 +354,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       try {
         final VfsCache cache = VfsCache.createExternal(context, "sent");
         final String filename = file.getUri().getLastPathSegment();
-        cache.putAnyCachedFileContent(filename, file.getContent());
-        final File local = cache.getCachedFile(filename);
-        return Uri.fromFile(local); 
+        return cache.putAnyCachedFileContent(filename, file.getContent());
       } catch (IOException e) {
         Log.d(TAG, "Failed to create local file copy", e);
         return null;

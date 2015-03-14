@@ -47,33 +47,33 @@ Labeling:
 ///////////////////////////////////////////////////////////////////
 // INT16 FUNCTIONS
 ///////////////////////////////////////////////////////////////////
-// Set the lo byte (8 bit) in a word (16 bit)
+/// Set the lo byte (8 bit) in a word (16 bit)
 inline void endian_16lo8 (uint_least16_t &word, uint8_t byte)
 {
     word &= 0xff00;
     word |= byte;
 }
 
-// Get the lo byte (8 bit) in a word (16 bit)
+/// Get the lo byte (8 bit) in a word (16 bit)
 inline uint8_t endian_16lo8 (uint_least16_t word)
 {
     return (uint8_t) word;
 }
 
-// Set the hi byte (8 bit) in a word (16 bit)
+/// Set the hi byte (8 bit) in a word (16 bit)
 inline void endian_16hi8 (uint_least16_t &word, uint8_t byte)
 {
     word &= 0x00ff;
     word |= (uint_least16_t) byte << 8;
 }
 
-// Set the hi byte (8 bit) in a word (16 bit)
+/// Set the hi byte (8 bit) in a word (16 bit)
 inline uint8_t endian_16hi8 (uint_least16_t word)
 {
     return (uint8_t) (word >> 8);
 }
 
-// Swap word endian.
+/// Swap word endian.
 inline void endian_16swap8 (uint_least16_t &word)
 {
     uint8_t lo = endian_16lo8 (word);
@@ -82,7 +82,7 @@ inline void endian_16swap8 (uint_least16_t &word)
     endian_16hi8 (word, lo);
 }
 
-// Convert high-byte and low-byte to 16-bit word.
+/// Convert high-byte and low-byte to 16-bit word.
 inline uint_least16_t endian_16 (uint8_t hi, uint8_t lo)
 {
     uint_least16_t word = 0;
@@ -91,7 +91,7 @@ inline uint_least16_t endian_16 (uint8_t hi, uint8_t lo)
     return word;
 }
 
-// Convert high-byte and low-byte to 16-bit little endian word.
+/// Convert high-byte and low-byte to 16-bit little endian word.
 inline void endian_16 (uint8_t ptr[2], uint_least16_t word)
 {
 #   if defined(WORDS_BIGENDIAN)
@@ -108,14 +108,14 @@ inline void endian_16 (char ptr[2], uint_least16_t word)
     endian_16 ((uint8_t *) ptr, word);
 }
 
-// Convert high-byte and low-byte to 16-bit little endian word.
+/// Convert high-byte and low-byte to 16-bit little endian word.
 template<class T>
 inline uint_least16_t endian_little16 (const T ptr[2])
 {
     return endian_16 (ptr[1], ptr[0]);
 }
 
-// Write a little-endian 16-bit word to two bytes in memory.
+/// Write a little-endian 16-bit word to two bytes in memory.
 template<class T>
 inline void endian_little16 (T ptr[2], uint_least16_t word)
 {
@@ -123,13 +123,13 @@ inline void endian_little16 (T ptr[2], uint_least16_t word)
     ptr[1] = endian_16hi8 (word);
 }
 
-// Convert high-byte and low-byte to 16-bit big endian word.
+/// Convert high-byte and low-byte to 16-bit big endian word.
 inline uint_least16_t endian_big16 (const uint8_t ptr[2])
 {
     return endian_16 (ptr[0], ptr[1]);
 }
 
-// Write a little-big 16-bit word to two bytes in memory.
+/// Write a little-big 16-bit word to two bytes in memory.
 inline void endian_big16 (uint8_t ptr[2], uint_least16_t word)
 {
     ptr[0] = endian_16hi8 (word);
@@ -140,59 +140,59 @@ inline void endian_big16 (uint8_t ptr[2], uint_least16_t word)
 ///////////////////////////////////////////////////////////////////
 // INT32 FUNCTIONS
 ///////////////////////////////////////////////////////////////////
-// Set the lo word (16bit) in a dword (32 bit)
+/// Set the lo word (16bit) in a dword (32 bit)
 inline void endian_32lo16 (uint_least32_t &dword, uint_least16_t word)
 {
     dword &= (uint_least32_t) 0xffff0000;
     dword |= word;
 }
 
-// Get the lo word (16bit) in a dword (32 bit)
+/// Get the lo word (16bit) in a dword (32 bit)
 inline uint_least16_t endian_32lo16 (uint_least32_t dword)
 {
     return (uint_least16_t) dword & 0xffff;
 }
 
-// Set the hi word (16bit) in a dword (32 bit)
+/// Set the hi word (16bit) in a dword (32 bit)
 inline void endian_32hi16 (uint_least32_t &dword, uint_least16_t word)
 {
     dword &= (uint_least32_t) 0x0000ffff;
     dword |= (uint_least32_t) word << 16;
 }
 
-// Get the hi word (16bit) in a dword (32 bit)
+/// Get the hi word (16bit) in a dword (32 bit)
 inline uint_least16_t endian_32hi16 (uint_least32_t dword)
 {
     return (uint_least16_t) (dword >> 16);
 }
 
-// Set the lo byte (8 bit) in a dword (32 bit)
+/// Set the lo byte (8 bit) in a dword (32 bit)
 inline void endian_32lo8 (uint_least32_t &dword, uint8_t byte)
 {
     dword &= (uint_least32_t) 0xffffff00;
     dword |= (uint_least32_t) byte;
 }
 
-// Get the lo byte (8 bit) in a dword (32 bit)
+/// Get the lo byte (8 bit) in a dword (32 bit)
 inline uint8_t endian_32lo8 (uint_least32_t dword)
 {
     return (uint8_t) dword;
 }
 
-// Set the hi byte (8 bit) in a dword (32 bit)
+/// Set the hi byte (8 bit) in a dword (32 bit)
 inline void endian_32hi8 (uint_least32_t &dword, uint8_t byte)
 {
     dword &= (uint_least32_t) 0xffff00ff;
     dword |= (uint_least32_t) byte << 8;
 }
 
-// Get the hi byte (8 bit) in a dword (32 bit)
+/// Get the hi byte (8 bit) in a dword (32 bit)
 inline uint8_t endian_32hi8 (uint_least32_t dword)
 {
     return (uint8_t) (dword >> 8);
 }
 
-// Swap hi and lo words endian in 32 bit dword.
+/// Swap hi and lo words endian in 32 bit dword.
 inline void endian_32swap16 (uint_least32_t &dword)
 {
     uint_least16_t lo = endian_32lo16 (dword);
@@ -201,7 +201,7 @@ inline void endian_32swap16 (uint_least32_t &dword)
     endian_32hi16 (dword, lo);
 }
 
-// Swap word endian.
+/// Swap word endian.
 inline void endian_32swap8 (uint_least32_t &dword)
 {
     uint_least16_t lo = 0, hi = 0;
@@ -213,7 +213,7 @@ inline void endian_32swap8 (uint_least32_t &dword)
     endian_32hi16 (dword, lo);
 }
 
-// Convert high-byte and low-byte to 32-bit word.
+/// Convert high-byte and low-byte to 32-bit word.
 inline uint_least32_t endian_32 (uint8_t hihi, uint8_t hilo, uint8_t hi, uint8_t lo)
 {
     uint_least32_t dword = 0;
@@ -226,13 +226,13 @@ inline uint_least32_t endian_32 (uint8_t hihi, uint8_t hilo, uint8_t hi, uint8_t
     return dword;
 }
 
-// Convert high-byte and low-byte to 32-bit little endian word.
+/// Convert high-byte and low-byte to 32-bit little endian word.
 inline uint_least32_t endian_little32 (const uint8_t ptr[4])
 {
     return endian_32 (ptr[3], ptr[2], ptr[1], ptr[0]);
 }
 
-// Write a little-endian 32-bit word to four bytes in memory.
+/// Write a little-endian 32-bit word to four bytes in memory.
 inline void endian_little32 (uint8_t ptr[4], uint_least32_t dword)
 {
     uint_least16_t word = 0;
@@ -243,13 +243,13 @@ inline void endian_little32 (uint8_t ptr[4], uint_least32_t dword)
     ptr[3] = endian_16hi8  (word);
 }
 
-// Convert high-byte and low-byte to 32-bit big endian word.
+/// Convert high-byte and low-byte to 32-bit big endian word.
 inline uint_least32_t endian_big32 (const uint8_t ptr[4])
 {
     return endian_32 (ptr[0], ptr[1], ptr[2], ptr[3]);
 }
 
-// Write a big-endian 32-bit word to four bytes in memory.
+/// Write a big-endian 32-bit word to four bytes in memory.
 inline void endian_big32 (uint8_t ptr[4], uint_least32_t dword)
 {
     uint_least16_t word = 0;

@@ -32,13 +32,13 @@ class sidemu;
 class EventContext;
 
 /**
-* Base class for sid builders.
-*/ 
+ * Base class for sid builders.
+ */
 class sidbuilder
 {
 protected:
     typedef std::set<sidemu*> emuset_t;
- 
+
 private:
     const char * const m_name;
 
@@ -51,8 +51,8 @@ protected:
 
 protected:
     /**
-    * Utility class for setting emu parameters in builders.
-    */ 
+     * Utility class for setting emu parameters in builders.
+     */
     template<class Temu, typename Tparam>
     class applyParameter
     {
@@ -75,80 +75,78 @@ public:
     virtual ~sidbuilder() {}
 
     /**
-    * The number of used devices.
-    *
-    * @return number of used sids, 0 if none.
-    */
+     * The number of used devices.
+     *
+     * @return number of used sids, 0 if none.
+     */
     unsigned int usedDevices() const { return sidobjs.size (); }
 
     /**
-    * Available devices.
-    *
-    * @return the number of available sids, 0 = endless.
-    */
+     * Available devices.
+     *
+     * @return the number of available sids, 0 = endless.
+     */
     virtual unsigned int availDevices() const = 0;
 
     /**
-    * Create the sid emu.
-    *
-    * @param sids the number of required sid emu
-    */
+     * Create the sid emu.
+     *
+     * @param sids the number of required sid emu
+     */
     virtual unsigned int create(unsigned int sids) = 0;
 
     /**
-    * Find a free SID of the required specs
-    *
-    * @param env the event context
-    * @param model the required sid model
-    * @return pointer to the locked sid emu
-    */
+     * Find a free SID of the required specs
+     *
+     * @param env the event context
+     * @param model the required sid model
+     * @return pointer to the locked sid emu
+     */
     sidemu *lock(EventContext *env, SidConfig::sid_model_t model);
 
     /**
-    * Release this SID.
-    * 
-    * @param device the sid emu to unlock
-    */
+     * Release this SID.
+     *
+     * @param device the sid emu to unlock
+     */
     void unlock(sidemu *device);
 
-    /**
-    * Remove all SID emulations.
-    */
+    /** Remove all SID emulations. */
     void remove();
 
     /**
-    * Get the builder's name.
-    *
-    * @return the name
-    */ 
+     * Get the builder's name.
+     *
+     * @return the name
+     */
     const char *name() const { return m_name; }
 
     /**
-    * Error message.
-    *
-    * @return string error message.
-    */ 
+     * Error message.
+     *
+     * @return string error message.
+     */
     const char *error() const { return m_errorBuffer.c_str(); }
 
     /**
-    * Determine current state of object.
-    *
-    * @return true = okay, false = error
-    */
+     * Determine current state of object.
+     *
+     * @return true = okay, false = error
+     */
     bool getStatus() const { return m_status; }
 
     /**
-    * Get the builder's credits.
-    *
-    * @return credits
-    */
+     * Get the builder's credits.
+     *
+     * @return credits
+     */
     virtual const char *credits() const = 0;
 
     /**
-    * Toggle sid filter emulation.
-    *
-    * @param enable true = enable, false = disable
-    */
+     * Toggle sid filter emulation.
+     *
+     * @param enable true = enable, false = disable
+     */
     virtual void filter(bool enable) = 0;
 };
 

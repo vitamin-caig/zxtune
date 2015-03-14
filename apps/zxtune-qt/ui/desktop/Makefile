@@ -1,8 +1,7 @@
 library_name := ui_desktop
 path_step := ../../../..
+source_dirs := .
 ui_files := mainwindow 
-
-source_files := factory language
 
 ts_files := ui_desktop
 

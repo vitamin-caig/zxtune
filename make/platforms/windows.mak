@@ -2,7 +2,6 @@ makebin_name = $(1).exe
 makelib_name = $(1).lib
 makedyn_name = $(1).dll
 makeobj_name = $(1).obj
-makeres_name = $(1).res
 makeres_cmd = rc $(addprefix /d, $(DEFINITIONS)) /r /fo$(2) $(1)
 
 host=windows

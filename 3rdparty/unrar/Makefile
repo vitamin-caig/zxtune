@@ -21,4 +21,6 @@ source_files += rdwrfn
 #stubs names should be differ from real files
 source_dirs += stubs
 
+source_files := $(addsuffix .cpp,$(source_files))
+
 include $(path_step)/makefile.mak

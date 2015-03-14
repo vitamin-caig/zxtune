@@ -13,25 +13,29 @@ package app.zxtune.ui;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
 import app.zxtune.PlaybackServiceConnection;
+import app.zxtune.Preferences;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
-import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaybackServiceStub;
+import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playlist.PlaylistQuery;
 
 public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -57,7 +61,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   public void onAttach(Activity activity) {
     super.onAttach(activity);
     
-    state = new PlaylistState(PreferenceManager.getDefaultSharedPreferences(activity));
+    state = new PlaylistState(Preferences.getDefaultSharedPreferences(activity));
   }
   
   @Override
@@ -72,16 +76,58 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.playlist, menu);
+    final MenuItem sortItem = menu.findItem(R.id.action_sort);
+    final SubMenu sortMenuRoot = sortItem.getSubMenu();
+    for (PlaylistControl.SortBy sortBy : PlaylistControl.SortBy.values()) {
+      for (PlaylistControl.SortOrder sortOrder : PlaylistControl.SortOrder.values()) {
+        final MenuItem item = sortMenuRoot.add(getMenuTitle(sortBy));
+        final PlaylistControl.SortBy by = sortBy;
+        final PlaylistControl.SortOrder order = sortOrder;
+        item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+          @Override
+          public boolean onMenuItemClick(MenuItem item) {
+            getService().getPlaylistControl().sort(by, order);
+            return true;
+          }
+        });
+        item.setIcon(getMenuIcon(sortOrder));
+      }
+    }
+  }
+  
+  private static int getMenuTitle(PlaylistControl.SortBy by) {
+    if (by.equals(PlaylistControl.SortBy.title)) {
+      return R.string.information_title;
+    } else if (by.equals(PlaylistControl.SortBy.author)) {
+      return R.string.information_author;
+    } else if (by.equals(PlaylistControl.SortBy.duration)) {
+      return R.string.statistics_duration;//TODO: extract
+    } else {
+      throw new RuntimeException();
+    }
+  }
+  
+  private static int getMenuIcon(PlaylistControl.SortOrder order) {
+    if (order.equals(PlaylistControl.SortOrder.asc)) {
+      return android.R.drawable.arrow_up_float;
+    } else if (order.equals(PlaylistControl.SortOrder.desc)) {
+      return android.R.drawable.arrow_down_float;
+    } else {
+      throw new RuntimeException();
+    }
   }
   
   @Override
   public boolean onOptionsItemSelected (MenuItem item) {
     switch (item.getItemId()) {
       case R.id.action_clear:
-        service.getPlaylistControl().deleteAll();
+        getService().getPlaylistControl().deleteAll();
         break;
       case R.id.action_save:
         savePlaylist(null);
+        break;
+      case R.id.action_statistics:
+        showStatistics(null);
         break;
       default:
         return super.onOptionsItemSelected(item);
@@ -91,6 +137,10 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   
   private void savePlaylist(long[] ids) {
     PlaylistSaveFragment.createInstance(ids).show(getFragmentManager(), "save");
+  }
+  
+  private void showStatistics(long[] ids) {
+    PlaylistStatisticsFragment.createInstance(ids).show(getFragmentManager(), "statistics");
   }
   
   @Override
@@ -111,13 +161,13 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
 
     if (savedInstanceState == null) {
       Log.d(TAG, "Loading persistent state");
-      listing.setTag(Integer.valueOf(state.getCurrentViewPosition()));
+      listing.storeViewPosition(state.getCurrentViewPosition());
     }
     listing.setRemoveListener(new PlaylistView.RemoveListener() {
       @Override
       public void remove(int which) {
         final long[] id = {listing.getItemIdAtPosition(which)};
-        service.getPlaylistControl().delete(id);
+        getService().getPlaylistControl().delete(id);
       }
     });
     listing.setDropListener(new PlaylistView.DropListener() {
@@ -126,27 +176,38 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         if (from != to) {
           //TODO: perform in separate thread
           final long id = listing.getItemIdAtPosition(from);
-          service.getPlaylistControl().move(id, to - from);
+          getService().getPlaylistControl().move(id, to - from);
         }
       }
     });
+  }
+  
+  @Override
+  public synchronized void onStart() {
+    super.onStart();
+    
     bindViewToConnectedService();
   }
   
   @Override
-  public synchronized void onDestroyView() {
-    super.onDestroyView();
-
+  public synchronized void onStop() {
+    super.onStop();
+    
     Log.d(TAG, "Saving persistent state");
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
-    unbindFromService();
+    unbindFromService();//may affect playlistState
+    playingState.release();
   }
   
   @Override
-  public void onServiceConnected(PlaybackService service) {
+  public synchronized void onServiceConnected(PlaybackService service) {
     this.service = service;
     
     bindViewToConnectedService();
+  }
+  
+  private synchronized PlaybackService getService() {
+    return this.service;
   }
   
   private void bindViewToConnectedService() {
@@ -179,7 +240,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     } finally {
       connection = null;
     }
-    service = PlaybackServiceStub.instance();
   }
   
   private class OnItemClickListener implements PlaylistView.OnItemClickListener {
@@ -191,13 +251,17 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
   }
   
-  private class NowPlayingState implements Callback, PlaylistView.PlayitemStateSource {
+  private class NowPlayingState extends CallbackStub implements PlaylistView.PlayitemStateSource {
     
+    //Use separate handler to avoid memory leaks - 
+    // post/removeCallbacks on View (e.g. listing) has no effect...
+    private final Handler handler;
     private final Runnable updateTask;
     private boolean isPlaying;
     private Uri nowPlayingPlaylist;
     
     public NowPlayingState() {
+      this.handler = new Handler(Looper.getMainLooper());
       this.updateTask = new Runnable() {
         @Override
         public void run() {
@@ -208,23 +272,27 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       nowPlayingPlaylist = Uri.EMPTY;
     }
     
-    @Override
-    public void onStatusChanged(boolean nowPlaying) {
-      isPlaying = nowPlaying;
-      updateView();
+    final void release() {
+      handler.removeCallbacks(updateTask);
     }
     
     @Override
-    public void onIOStatusChanged(boolean isActive) {
-      //TODO
+    public void onStatusChanged(boolean nowPlaying) {
+      if (isPlaying != nowPlaying) {
+        isPlaying = nowPlaying;
+        updateView();
+      }
     }
     
     @Override
     public void onItemChanged(Item item) {
       final Uri id = item.getId();
       final Uri contentId = item.getDataId();
-      nowPlayingPlaylist = id.equals(contentId) ? Uri.EMPTY : id;
-      updateView();
+      final Uri playlistId = 0 == id.compareTo(contentId) ? Uri.EMPTY : id;
+      if (0 != playlistId.compareTo(nowPlayingPlaylist)) {
+        nowPlayingPlaylist = playlistId;
+        updateView();
+      }
     }
 
     @Override
@@ -233,8 +301,8 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
     
     private void updateView() {
-      listing.removeCallbacks(updateTask);
-      listing.postDelayed(updateTask, 100);
+      handler.removeCallbacks(updateTask);
+      handler.postDelayed(updateTask, 100);
     }
   }
   
@@ -270,6 +338,9 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
             break;
           case R.id.action_save:
             savePlaylist(listing.getCheckedItemIds());
+            break;
+          case R.id.action_statistics:
+            showStatistics(listing.getCheckedItemIds());
             break;
           default:
             return false;

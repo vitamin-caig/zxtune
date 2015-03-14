@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2001 Simon White
  *
@@ -38,12 +38,11 @@ const char TXT_NTSC_CIA[]       = "CIA (NTSC)";
 const char TXT_NTSC_UNKNOWN[]   = "UNKNOWN (NTSC)";
 
 // Error Strings
-const char ERR_UNSUPPORTED_FREQ[]      = "SIDPLAYER ERROR: Unsupported sampling frequency.";
+const char ERR_UNSUPPORTED_FREQ[]     = "SIDPLAYER ERROR: Unsupported sampling frequency.";
+const char ERR_UNSUPPORTED_SID_ADDR[] = "SIDPLAYER ERROR: Unsupported SID address.";
 
 bool Player::config(const SidConfig &cfg)
 {
-    const SidTuneInfo* tuneInfo = 0;
-
     // Check for base sampling frequency
     if (cfg.frequency < 8000)
     {
@@ -55,17 +54,15 @@ bool Player::config(const SidConfig &cfg)
     uint_least16_t secondSidAddress = cfg.secondSidAddress;
 
     // Only do these if we have a loaded tune
-    if (m_tune)
+    if (m_tune != 0)
     {
-        tuneInfo = m_tune->getInfo();
+        const SidTuneInfo* tuneInfo = m_tune->getInfo();
 
         if (tuneInfo->sidChipBase2() != 0)
             secondSidAddress = tuneInfo->sidChipBase2();
 
         try
         {
-            // SID emulation setup (must be performed before the
-            // environment setup call)
             const bool needReinit = forceReconfig
                 || cfg.sidEmulation != m_cfg.sidEmulation
                 || cfg.defaultSidModel != m_cfg.defaultSidModel
@@ -73,8 +70,7 @@ bool Player::config(const SidConfig &cfg)
             if (needReinit)
             {
               sidRelease();
-              const int channels = (secondSidAddress != 0) ? 2 : 1;
-              sidCreate(cfg.sidEmulation, cfg.defaultSidModel, cfg.forceSidModel, channels);
+              sidCreate(cfg.sidEmulation, cfg.defaultSidModel, cfg.forceSidModel, secondSidAddress);
             }
 
             if (forceReconfig
@@ -113,20 +109,7 @@ bool Player::config(const SidConfig &cfg)
         }
     }
 
-    if (forceReconfig || secondSidAddress != m_cfg.secondSidAddress)
-    {
-      if (secondSidAddress)
-      {
-          // Assumed to be in d420-d7ff or de00-dfff range
-          m_c64.setSecondSIDAddress(secondSidAddress);
-          m_info.m_channels = 2;
-      }
-      else
-      {
-          m_c64.setSecondSIDAddress(0);
-          m_info.m_channels = 1;
-      }
-    }
+    m_info.m_channels = secondSidAddress ? 2 : 1;
 
     m_mixer.setStereo(cfg.playback == SidConfig::STEREO);
     m_mixer.setVolume(cfg.leftVolume, cfg.rightVolume);
@@ -155,18 +138,22 @@ c64::model_t Player::c64model(SidConfig::c64_model_t defaultModel, bool forced)
         case SidConfig::PAL:
             clockSpeed = SidTuneInfo::CLOCK_PAL;
             model = c64::PAL_B;
+            videoSwitch = 1;
             break;
         case SidConfig::DREAN:
             clockSpeed = SidTuneInfo::CLOCK_PAL;
             model = c64::PAL_N;
+            videoSwitch = 1; // TODO verify
             break;
         case SidConfig::NTSC:
             clockSpeed = SidTuneInfo::CLOCK_NTSC;
             model = c64::NTSC_M;
+            videoSwitch = 0;
             break;
         case SidConfig::OLD_NTSC:
             clockSpeed = SidTuneInfo::CLOCK_NTSC;
             model = c64::OLD_NTSC_M;
+            videoSwitch = 0;
             break;
         }
     }
@@ -176,9 +163,11 @@ c64::model_t Player::c64model(SidConfig::c64_model_t defaultModel, bool forced)
         {
         case SidTuneInfo::CLOCK_PAL:
             model = c64::PAL_B;
+            videoSwitch = 1;
             break;
         case SidTuneInfo::CLOCK_NTSC:
             model = c64::NTSC_M;
+            videoSwitch = 0;
             break;
         }
     }
@@ -228,10 +217,10 @@ SidConfig::sid_model_t Player::getModel(SidTuneInfo::model_t sidModel, SidConfig
 
     switch (tuneModel)
     {
-    case SidTuneInfo::CLOCK_PAL:
+    case SidTuneInfo::SIDMODEL_6581:
         newModel = SidConfig::MOS6581;
         break;
-    case SidTuneInfo::CLOCK_NTSC:
+    case SidTuneInfo::SIDMODEL_8580:
         newModel = SidConfig::MOS8580;
         break;
     }
@@ -241,46 +230,53 @@ SidConfig::sid_model_t Player::getModel(SidTuneInfo::model_t sidModel, SidConfig
 
 void Player::sidRelease()
 {
-    unsigned int i=0;
-    while (sidemu *s = m_mixer.getSid(i))
+    m_c64.clearSids();
+
+    for (unsigned int i = 0; ; i++)
     {
+        sidemu *s = m_mixer.getSid(i);
+        if (s == 0)
+            break;
+
         if (sidbuilder *b = s->builder())
         {
             b->unlock(s);
         }
-        m_c64.setSid(i, 0);
-        i++;
     }
 
     m_mixer.clearSids();
 }
 
 void Player::sidCreate(sidbuilder *builder, SidConfig::sid_model_t defaultModel,
-                        bool forced, unsigned int channels)
+                        bool forced, const unsigned int secondSidAddresses)
 {
-    if (builder)
+    if (builder != 0)
     {
-        // Detect the Correct SID model
-        // Determine model when unknown
-        SidConfig::sid_model_t userModels[c64::MAX_SIDS];
-
         const SidTuneInfo* tuneInfo = m_tune->getInfo();
 
-        userModels[0] = getModel(tuneInfo->sidModel1(), defaultModel, forced);
-        // If bits 6-7 are set to Unknown then the second SID will be set to the same SID
-        // model as the first SID.
-        userModels[1] = getModel(tuneInfo->sidModel2(), userModels[0], forced);
-
-        for (unsigned int i = 0; i < channels; i++)
+        // Setup base SID
+        const SidConfig::sid_model_t userModel = getModel(tuneInfo->sidModel1(), defaultModel, forced);
+        sidemu *s = builder->lock(m_c64.getEventScheduler(), userModel);
+        if (!builder->getStatus())
         {
-            sidemu *s = builder->lock(m_c64.getEventScheduler(), userModels[i]);
-            // Get at least one SID emulation
-            if ((i == 0) && !builder->getStatus())
-            {
-                throw new configError(builder->error());
-            }
+            throw configError(builder->error());
+        }
 
-            m_c64.setSid(i, s);
+        m_c64.setBaseSid(s);
+        m_mixer.addSid(s);
+
+        // Setup extra SIDs if needed
+        if (secondSidAddresses != 0)
+        {
+            // If bits 6-7 are set to Unknown then the second SID will be set to the same SID
+            // model as the first SID.
+            const SidConfig::sid_model_t secondSidModel = getModel(tuneInfo->sidModel2(), userModel, forced);
+
+            sidemu *s = builder->lock(m_c64.getEventScheduler(), secondSidModel);
+
+            if (!m_c64.addExtraSid(s, secondSidAddresses))
+                throw configError(ERR_UNSUPPORTED_SID_ADDR);
+
             m_mixer.addSid(s);
         }
     }
@@ -289,12 +285,13 @@ void Player::sidCreate(sidbuilder *builder, SidConfig::sid_model_t defaultModel,
 void Player::sidParams(double cpuFreq, int frequency,
                         SidConfig::sampling_method_t sampling, bool fastSampling)
 {
-    unsigned int i = 0;
-
-    while (sidemu *s = m_mixer.getSid(i))
+    for (unsigned int i = 0; ; i++)
     {
+        sidemu *s = m_mixer.getSid(i);
+        if (s == 0)
+            break;
+
         s->sampling((float)cpuFreq, frequency, sampling, fastSampling);
-        i++;
     }
 }
 

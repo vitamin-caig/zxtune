@@ -13,9 +13,10 @@
     <string name="overwrite">Überschreiben</string>
     <string name="send">Senden</string>
     <string name="share">Teilen</string>
+    <string name="sort">Sortiervorgang</string>
     <!-- information-related -->
     <string name="information_title">Titel</string>
-    <string name="information_author">Author</string>
+    <string name="information_author">Autor</string>
     <string name="information_program">Programm</string>
     <string name="information_comment">Kommentar</string>
     <string name="information_location">Lage</string>
@@ -34,7 +35,7 @@
       <item quantity="one">%d Tonspur</item>
       <item quantity="other">%d Tonspuren</item>
     </plurals>
-    <string name="no_tracks_found">Tonspuren werden nicht gefunden</string>
+    <string name="no_tracks_found">Unterstützte Tonspuren wurden nicht gefunden</string>
     <string name="track">Tonspur</string>
     <string name="starting">Starten...</string>
 </resources>

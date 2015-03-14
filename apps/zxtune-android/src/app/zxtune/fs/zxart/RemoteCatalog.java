@@ -10,16 +10,6 @@
 
 package app.zxtune.fs.zxart;
 
-import android.content.Context;
-import android.sax.Element;
-import android.sax.EndElementListener;
-import android.sax.EndTextElementListener;
-import android.sax.RootElement;
-import android.util.Log;
-import android.util.Xml;
-
-import org.xml.sax.SAXException;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,8 +17,17 @@ import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
+import org.xml.sax.SAXException;
+
+import android.content.Context;
+import android.sax.Element;
+import android.sax.EndElementListener;
+import android.sax.EndTextElementListener;
+import android.sax.RootElement;
+import android.util.Log;
+import android.util.Xml;
+import app.zxtune.Util;
 import app.zxtune.fs.HttpProvider;
-import app.zxtune.fs.zxart.Catalog.TracksVisitor;
 
 final class RemoteCatalog extends Catalog {
 
@@ -72,11 +71,11 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthorTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException {
+  public void queryAuthorTracks(TracksVisitor visitor, Author author, Integer id) throws IOException {
     if (id != null) {
       queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
     } else {
-      queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author));
+      queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
     }
   }
 
@@ -88,11 +87,11 @@ final class RemoteCatalog extends Catalog {
     performQuery(connection, root);
   }
   
-  public void queryPartyTracks(TracksVisitor visitor, Integer id, Integer party) throws IOException {
+  public void queryPartyTracks(TracksVisitor visitor, Party party, Integer id) throws IOException {
     if (id != null) {
       queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
     } else {
-      queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party));
+      queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.id));
     }
   }
   
@@ -209,11 +208,14 @@ final class RemoteCatalog extends Catalog {
     }
 
     final Author captureResult() {
-      final Author res = new Author(id, nickname, name);
+      final Author res = isValid() ? new Author(id, nickname, name) : null;
       id = null;
-      nickname = null;
-      name = "".intern();//ok for null
+      nickname = name = null;
       return res;
+    }
+    
+    private boolean isValid() {
+      return id != null && nickname != null;
     }
   }
 
@@ -284,11 +286,15 @@ final class RemoteCatalog extends Catalog {
     }
 
     final Party captureResult() {
-      final Party res = new Party(id, name, year);
+      final Party res = isValid() ? new Party(id, name, year) : null;
       id = null;
-      name = "";
+      name = null;
       year = 0;
       return res;
+    }
+    
+    private boolean isValid() {
+      return id != null && name != null;
     }
   }
   
@@ -309,7 +315,10 @@ final class RemoteCatalog extends Catalog {
     item.setEndElementListener(new EndElementListener() {
       @Override
       public void end() {
-        visitor.accept(builder.captureResult());
+        final Track result = builder.captureResult();
+        if (result != null) {
+          visitor.accept(result);
+        }
       }
     });
     item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
@@ -330,6 +339,18 @@ final class RemoteCatalog extends Catalog {
         builder.setTitle(body);
       }
     });
+    item.getChild("internalAuthor").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setInternalAuthor(body);
+      }
+    });
+    item.getChild("internalTitle").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setInternalTitle(body);
+      }
+    });
     item.getChild("votes").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
@@ -348,6 +369,12 @@ final class RemoteCatalog extends Catalog {
         builder.setYear(body);
       }
     });
+    item.getChild("compo").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setCompo(body);
+      }
+    });
     item.getChild("partyplace").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
@@ -362,10 +389,17 @@ final class RemoteCatalog extends Catalog {
     private Integer id;
     private String filename;
     private String title;
+    private String internalAuthor;
+    private String internalTitle;
     private String votes;
     private String duration;
     private int year;
+    private String compo;
     private int partyplace;
+    
+    ModuleBuilder() {
+      reset();
+    }
 
     final void setId(String val) {
       id = Integer.valueOf(val);
@@ -380,6 +414,14 @@ final class RemoteCatalog extends Catalog {
 
     final void setTitle(String val) {
       title = val;
+    }
+    
+    final void setInternalAuthor(String val) {
+      internalAuthor = val;
+    }
+    
+    final void setInternalTitle(String val) {
+      internalTitle = val;
     }
     
     final void setVotes(String val) {
@@ -398,6 +440,10 @@ final class RemoteCatalog extends Catalog {
       }
     }
     
+    final void setCompo(String val) {
+      compo = val;
+    }
+    
     final void setPartyplace(String val) {
       try {
         partyplace = Integer.valueOf(val);
@@ -407,12 +453,23 @@ final class RemoteCatalog extends Catalog {
     }
 
     final Track captureResult() {
-      final Track res = new Track(id, filename, title, votes, duration, year, partyplace);
-      id = null;
-      year = partyplace = 0;
-      votes = duration = title = "".intern();
-      filename = null;
+      title = Util.formatTrackTitle(internalAuthor, internalTitle, title);
+      final Track res = isValid()
+        ? new Track(id, filename, title, votes, duration, year, compo, partyplace)
+        : null;
+      reset();
       return res;
+    }
+    
+    private void reset() {
+      id = null;
+      filename = null;
+      year = partyplace = 0;
+      votes = duration = title = internalAuthor = internalTitle = compo = "".intern();
+    }
+    
+    private boolean isValid() {
+      return id != null && filename != null;
     }
   }
 

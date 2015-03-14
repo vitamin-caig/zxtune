@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,22 +26,26 @@
 #include "sidplayfp/sidplayfp.h"
 #include "sidplayfp/SidTune.h"
 #include "sidplayfp/sidbuilder.h"
-#include "sidplayfp/sidemu.h"
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
 
 /*
-* Adjust these paths to point to existing ROM dumps
-*/
-#define KERNAL_PATH "/usr/local/lib/vice/C64/kernal"
-#define BASIC_PATH "/usr/local/lib/vice/C64/basic"
-#define CHARGEN_PATH "/usr/local/lib/vice/C64/chargen"
+ * Adjust these paths to point to existing ROM dumps
+ */
+#define KERNAL_PATH "/usr/lib/vice/C64/kernal"
+#define BASIC_PATH "/usr/lib/vice/C64/basic"
+#define CHARGEN_PATH "/usr/lib/vice/C64/chargen"
 
 void loadRom(const char* path, char* buffer)
 {
     std::ifstream is(path, std::ios::binary);
+    if (!is.is_open())
+    {
+        std::cout << "File " << path << " not found" << std::endl;
+        exit(-1);
+    }
     is.read(buffer, 8192);
     is.close();
 }

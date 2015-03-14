@@ -2,4 +2,7 @@
 <resources>
   <string name="browser">Браузер</string>
   <string name="browser_empty">Нет файлов</string>
+  <string name="browser_loading">Загрузка...</string>
+  <string name="browser_searching">Поиск...</string>
+  <string name="browser_search_hint">Поиск</string>
 </resources>

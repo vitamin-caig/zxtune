@@ -15,27 +15,11 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.preference.PreferenceManager;
+import app.zxtune.Preferences;
 import app.zxtune.playback.PlaybackControl.SequenceMode;
 
 public final class IteratorFactory {
 
-  /**
-   * 
-   * @param context Operational context
-   * @param uri Object identifier- playlist entry/file/playlist file/folder
-   * @return new iterator
-   * @throws IOException
-   */
-  /*
-  public static Iterator createIterator(Context context, Uri uri) throws IOException {
-    if (isPlaylistUri(uri)) {
-      return new PlaylistIterator(context, uri);
-    } else {
-    }
-  }
-  */
-  
   private static boolean isPlaylistUri(Uri uri) {
     return uri.getScheme().equals(ContentResolver.SCHEME_CONTENT);
   }
@@ -67,7 +51,7 @@ public final class IteratorFactory {
     private final SharedPreferences prefs;
     
     NavigationMode(Context context) {
-      this.prefs = PreferenceManager.getDefaultSharedPreferences(context);
+      this.prefs = Preferences.getDefaultSharedPreferences(context);
     }
     
     final void set(SequenceMode mode) {

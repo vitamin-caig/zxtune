@@ -16,7 +16,6 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -43,8 +42,6 @@ public class HttpProvider {
     try {
       final URL url = new URL(uri);
       final HttpURLConnection result = (HttpURLConnection) url.openConnection();
-      //disable GZIP encoding
-      result.setRequestProperty("Accept-Encoding", "identity");
       Log.d(TAG, String.format("Fetch %d bytes via %s", result.getContentLength(), uri));
       return result;
     } catch (IOException e) {
@@ -58,12 +55,7 @@ public class HttpProvider {
       final HttpURLConnection connection = connect(uri);
       try {
         final InputStream stream = connection.getInputStream();
-        final int len = connection.getContentLength();
-        if (len > 0) {
-          return getContent(stream, len);
-        } else {
-          return getContent(stream);
-        }
+        return getContent(stream);
       } finally {
         connection.disconnect();
       }
@@ -73,56 +65,41 @@ public class HttpProvider {
     }
   }
 
-  private static ByteBuffer getContent(InputStream stream, int len) throws IOException {
-    final ByteBuffer result = ByteBuffer.allocateDirect(len);
-    if (result.hasArray()) {
-      readContent(stream, result.array());
-    } else {
-      final byte[] buffer = new byte[len];
-      readContent(stream, buffer);
-      result.put(buffer);
-      result.rewind();
-    }
-    return result;
-  }
-
+  //! result buffer is not direct so required wrapping
   private static ByteBuffer getContent(InputStream stream) throws IOException {
-    final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    final byte[] part = new byte[4096];
+    byte[] buffer = new byte[256 * 1024];
+    int size = 0;
     for (;;) {
-      final int read = readPartialContent(stream, part);
-      buffer.write(part, 0, read);
-      if (read != part.length) {
+      size = readPartialContent(stream, buffer, size);
+      if (size == buffer.length) {
+        buffer = reallocate(buffer);
+      } else {
         break;
       }
     }
-    if (0 == buffer.size()) {
+    if (0 == size) {
       throw new IOException("Empty file specified");
     }
-    Log.d(TAG, String.format("Read %d bytes from unknown len source", buffer.size()));
-    return ByteBuffer.wrap(buffer.toByteArray());
+    Log.d(TAG, String.format("Got %d bytes", size));
+    return ByteBuffer.wrap(buffer, 0, size);
   }
 
-  private static void readContent(InputStream stream, byte[] buffer) throws IOException {
+  private static int readPartialContent(InputStream stream, byte[] buffer, int offset) throws IOException {
     final int len = buffer.length;
-    final int received = readPartialContent(stream, buffer);
-    if (len != received) {
-      throw new IOException(String.format(
-              "Read content size mismatch (%d received, %d expected)", received, len));
-    }
-  }
-
-  private static int readPartialContent(InputStream stream, byte[] buffer) throws IOException {
-    final int len = buffer.length;
-    int received = 0;
-    for (;;) {
-      final int chunk = stream.read(buffer, received, len - received);
-      if (chunk <= 0) {
+    while (offset < len) {
+      final int chunk = stream.read(buffer, offset, len - offset);
+      if (chunk < 0) {
         break;
       }
-      received += chunk;
+      offset += chunk;
     }
-    return received;
+    return offset;
+  }
+  
+  private static byte[] reallocate(byte[] buf) {
+    final byte[] result = new byte[buf.length * 2];
+    System.arraycopy(buf, 0, result, 0, buf.length);
+    return result;
   }
 
   public final void checkConnectionError() throws IOException {

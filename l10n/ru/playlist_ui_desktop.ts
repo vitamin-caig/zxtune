@@ -4,72 +4,72 @@
 <context>
     <name>MultipleItemsContextMenu</name>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="35"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="37"/>
         <source>Delete</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="45"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="47"/>
         <source>Crop</source>
         <translation>Обрезать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="55"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="57"/>
         <source>Group together</source>
         <translation>Сгруппировать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="65"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="67"/>
         <source>Remove duplicates in</source>
         <translation>Удалить дубликаты среди выбранных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="75"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="77"/>
         <source>Delete unavailable in</source>
         <translation>Удалить недоступные среди выбранных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="80"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="82"/>
         <source>Select</source>
         <translation>Выбрать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="94"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="96"/>
         <source>Rip-offs in this items</source>
         <translation>Похожие среди выбранных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="99"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="101"/>
         <source>Items with the same types</source>
         <translation>Тех же типов</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="104"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="106"/>
         <source>Items from the same files</source>
         <translation>Из тех же файлов</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="109"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="111"/>
         <source>Found in this items</source>
         <translation>Искать среди выбранных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="114"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="116"/>
         <source>Copy all paths</source>
         <translation>Скопировать все пути</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="124"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="126"/>
         <source>Show statistic</source>
         <translation>Статистика</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="134"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="136"/>
         <source>Export selected</source>
         <translation>Экспорт выбранных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="144"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="146"/>
         <source>Convert selected</source>
         <translation>Сконвертировать выбранные</translation>
     </message>
@@ -77,42 +77,42 @@
 <context>
     <name>NoItemsContextMenu</name>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="21"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="22"/>
         <source>Remove all duplicates</source>
         <translation>Удалить все дубликаты</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="31"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="32"/>
         <source>Delete all unavailable</source>
         <translation>Удалить все недоступные</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="36"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="37"/>
         <source>Shuffle</source>
         <translation>Перемешать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="41"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="42"/>
         <source>Select</source>
         <translation>Выбрать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="53"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="54"/>
         <source>All rip-offs</source>
         <translation>Все похожие</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="58"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="59"/>
         <source>All found items</source>
         <translation>Все найденные</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="68"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="69"/>
         <source>Show total statistic</source>
         <translation>Общая статистика</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="78"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/no_items_contextmenu.ui" line="79"/>
         <source>Export all</source>
         <translation>Экспортировать все</translation>
     </message>

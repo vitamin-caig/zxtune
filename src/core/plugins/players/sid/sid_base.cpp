@@ -21,6 +21,7 @@
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <core/module_attrs.h>
+#include <debug/log.h>
 #include <devices/details/analysis_map.h>
 #include <devices/details/parameters_helper.h>
 #include <formats/chiptune/container.h>
@@ -32,13 +33,18 @@
 #include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
-#include <3rdparty/sidplayfp/builders/resid/resid.h>
+#include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 //text includes
 #include <formats/text/chiptune.h>
+
+namespace
+{
+  const Debug::Stream Dbg("Core::SIDSupp");
+}
 
 namespace Module
 {
@@ -340,7 +346,9 @@ namespace Sid
   private:
     uint_t GetFramesCount() const
     {
-      const TimeType duration = GetSongLength(Tune->createMD5(), SongIdx - 1);
+      const char* md5 = Tune->createMD5();
+      const TimeType duration = GetSongLength(md5, SongIdx - 1);
+      Dbg("Duration for %1%/%2% is %3%ms", md5, SongIdx, duration.Get());
       return Fps * (duration.Get() / duration.PER_SECOND);
     }
   private:

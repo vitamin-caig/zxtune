@@ -20,6 +20,7 @@ interface IRemotePlaybackService {
   void delete(in long[] ids);
   void deleteAll();
   void move(in long id, in int delta);
+  void sort(in String field, in String order);
 
   //PlaybackControl
   void play();

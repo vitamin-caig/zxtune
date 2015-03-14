@@ -2,32 +2,26 @@ binary_name := zxtune123
 path_step := ../..
 include $(path_step)/make/default.mak
 
-source_files := information sound source display cli_app
-ifneq ($(findstring $(platform),windows mingw),)
-source_files += console_windows
-else ifneq ($(findstring $(platform),linux macos),)
-source_files += console_linux
-else
-source_files += console_$(platform)
-endif
+source_files := $(addsuffix .cpp,information sound source display cli_app config)
+source_files.windows = console_windows.cpp zxtune123.rc
+source_files.mingw = $(source_files.windows)
+source_files.linux = console_linux.cpp
+source_files.macos = $(source_files.linux)
+source_files.dingux = console_dingux.cpp
 
 text_files := text/text
-other_text_files := text/cmdline text/messages text/conversion text/cmd_keys_local
+other_text_files := text/configfile text/cmdline text/messages text/conversion text/cmd_keys_local
 
 libraries.common = analysis async binary binary_format \
-                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers \
-                  debug devices_aym devices_dac devices_aym_dumper devices_fm devices_saa devices_z80 \
+                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers core_properties \
+                  debug devices_aym devices_beeper devices_dac devices_aym_dumper devices_fm devices_saa devices_z80 \
                   formats_archived formats_chiptune formats_packed \
                   io \
                   l10n_stub \
-                  parameters platform \
+                  parameters platform platform_application platform_version \
                   sound sound_backends strings \
                   tools
-libraries.3rdparty = lhasa sidplayfp sidplayfp_builders_resid unrar xmp z80ex zlib
-
-#apps
-libraries += zxtune_app_base zxtune_app_version
-depends += $(addprefix apps/,base version)
+libraries.3rdparty = lhasa sidplayfp snesspc unrar xmp z80ex zlib
 
 #platform
 windows_libraries = advapi32 ole32 oldnames user32
@@ -38,8 +32,6 @@ manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)
 
 #platform-specific resources
-windows_resources := zxtune123
-mingw_resources := zxtune123
 embedded_files = $(l10n_archive)
 
 include $(path_step)/makefile.mak

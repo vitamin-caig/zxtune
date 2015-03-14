@@ -101,8 +101,8 @@ mingw.x86_64.cxx.flags = -m64
 mingw.x86_64.ld.flags = -m64
 
 #windows
-windows.cxx.flags = /arch:IA32
 # x86
+windows.x86.cxx.flags = /arch:IA32
 windows.x86.boost.version = 1.55.0
 windows.x86.qt.version = 4.8.5
 # x86_64

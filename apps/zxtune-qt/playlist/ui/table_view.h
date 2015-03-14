@@ -13,7 +13,7 @@
 //local includes
 #include "playlist/supp/model.h"
 //std includes
-#include <set>
+//#include <set>
 //qt includes
 #include <QtGui/QItemDelegate>
 #include <QtGui/QTableView>

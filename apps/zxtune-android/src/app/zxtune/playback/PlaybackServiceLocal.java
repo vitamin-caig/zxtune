@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.preference.PreferenceManager;
 import android.util.Log;
+import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
@@ -27,11 +27,16 @@ import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
 import app.zxtune.sound.SamplesSource;
+import app.zxtune.sound.SamplesTarget;
+import app.zxtune.sound.SoundOutputSamplesTarget;
 import app.zxtune.sound.StubPlayer;
 
 public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   
   private static final String TAG = PlaybackServiceLocal.class.getName();
+  
+  private final static String PREF_LAST_PLAYED_PATH = "last_played_path";
+  private final static String PREF_LAST_PLAYED_POSITION = "last_played_position";
   
   private final Context context;
   private final ExecutorService executor;
@@ -42,6 +47,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final Visualizer visualizer;
   private Holder holder;
 
+  private static interface Command {
+    void execute() throws IOException;
+  }
+    
   public PlaybackServiceLocal(Context context) {
     this.context = context;
     this.executor = Executors.newSingleThreadExecutor();
@@ -58,13 +67,57 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     return holder.item;
   }
   
+  public final void restoreSession() {
+    final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
+    final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
+    if (path != null) {
+      final long position = prefs.getLong(PREF_LAST_PLAYED_POSITION, 0);
+      Log.d(TAG, String.format("Restore last played item '%s' at %dms", path, position));
+      executeCommand(new RestoreSessionCommand(Uri.parse(path), TimeStamp.createFrom(position, TimeUnit.MILLISECONDS)));
+    }
+  }
+  
+  private class RestoreSessionCommand implements Command {
+
+    private final Uri[] uris;
+    private final TimeStamp position;
+    
+    RestoreSessionCommand(Uri uri, TimeStamp position) {
+      this.uris = new Uri[] {uri};
+      this.position = position;
+    }
+    
+    @Override
+    public void execute() throws IOException {
+      final Iterator iter = IteratorFactory.createIterator(context, uris);
+      setNewIterator(iter);
+      seek.setPosition(position);
+    }
+  }
+  
+  public final void storeSession() {
+    executeCommand(new StoreSessionCommand());
+  }
+  
+  private class StoreSessionCommand implements Command {
+    @Override
+    public void execute() throws IOException {
+      final Uri nowPlaying = getNowPlaying().getId();
+      if (!nowPlaying.equals(Uri.EMPTY)) {
+        final String path = nowPlaying.toString();
+        final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
+        Log.d(TAG, String.format("Save last played item '%s' at %dms", path, position));
+        final SharedPreferences.Editor editor = Preferences.getDefaultSharedPreferences(context).edit();
+        editor.putString(PREF_LAST_PLAYED_PATH, path);
+        editor.putLong(PREF_LAST_PLAYED_POSITION, position);
+        editor.apply();
+      }
+    }
+  }
+  
   @Override
   public void setNowPlaying(Uri[] uris) {
     executeCommand(new SetNowPlayingCommand(uris));
-  }
-  
-  private static interface Command {
-    void execute() throws IOException;
   }
   
   private class SetNowPlayingCommand implements Command {
@@ -82,9 +135,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private void play(Iterator iter) throws IOException {
+  private void setNewIterator(Iterator iter) throws IOException {
     final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
     setNewHolder(new Holder(iter, events));
+  }
+  
+  private void play(Iterator iter) throws IOException {
+    setNewIterator(iter);
+    holder.player.startPlayback();
   }
   
   @Override
@@ -152,6 +210,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
           cmd.execute();
         } catch (Exception e) {//IOException|InterruptedException
           Log.w(TAG, cmd.getClass().getName(), e);
+          final Throwable cause = e.getCause();
+          final String msg = cause != null ? cause.getMessage() : e.getMessage();
+          callbacks.onError(msg);
         } finally {
           callbacks.onIOStatusChanged(false);
         }
@@ -167,14 +228,13 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
     try {
       callbacks.onItemChanged(holder.item);
-      holder.player.startPlayback();
     } finally {
       oldHolder.release();
     }
   }
   
   private void saveProperty(String name, long value) {
-    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
     prefs.edit().putLong(name, value).apply();
   }
   
@@ -199,7 +259,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.item = iterator.getItem();
       final ZXTune.Player lowPlayer = item.getModule().createPlayer();
       final SeekableSamplesSource source = new SeekableSamplesSource(lowPlayer, item.getDuration());
-      this.player = AsyncPlayer.create(source, events);
+      final SamplesTarget target = SoundOutputSamplesTarget.create();
+      this.player = AsyncPlayer.create(source, target, events);
       this.seek = source;
       this.visualizer = new PlaybackVisualizer(lowPlayer);
     }
@@ -373,7 +434,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void onError(Error e) {
+    public void onError(Exception e) {
       Log.d(TAG, "Error occurred: " + e);
     }
   }

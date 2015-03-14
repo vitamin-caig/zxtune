@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "curl_api.h"
+#include "gates/curl_api.h"
 #include "enumerator.h"
 
 namespace IO

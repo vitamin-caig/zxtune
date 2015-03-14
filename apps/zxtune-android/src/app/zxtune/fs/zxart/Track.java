@@ -18,15 +18,17 @@ public final class Track {
   public final String votes;
   public final String duration;
   public final int year;
+  public final String compo;
   public final int partyplace;
   
-  public Track(int id, String filename, String title, String votes, String duration, int year, int partyplace) {
+  public Track(int id, String filename, String title, String votes, String duration, int year, String compo, int partyplace) {
     this.id = id;
     this.filename = filename;
     this.title = title;
     this.votes = votes;
     this.duration = duration;
     this.year = year;
+    this.compo = compo;
     this.partyplace = partyplace;
   }
 }

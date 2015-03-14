@@ -28,7 +28,7 @@ public interface SamplesTarget {
   public void start();
   
   /**
-   * @param buffer interleaved sound data in S16 format
+   * @param buffer sound data in S16/stereo/interleaved format
    */
   public void writeSamples(short[] buffer);
 

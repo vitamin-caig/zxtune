@@ -22,7 +22,7 @@ import android.media.RemoteControlClient;
 import android.media.RemoteControlClient.MetadataEditor;
 import android.os.Build;
 import android.util.Log;
-import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
@@ -101,7 +101,7 @@ class RemoteControl implements Releaseable {
     }
   }
 
-  private class StatusCallback implements Callback {
+  private class StatusCallback extends CallbackStub {
 
     @Override
     public void onStatusChanged(boolean isPlaying) {
@@ -127,10 +127,6 @@ class RemoteControl implements Releaseable {
       meta.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
           item.getDuration().convertTo(TimeUnit.MILLISECONDS));
       meta.apply();
-    }
-
-    @Override
-    public void onIOStatusChanged(boolean isActive) {
     }
   }
 }

@@ -1,6 +1,6 @@
 binary_name := sound_test_platform
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 libraries.common = async binary debug io l10n_stub platform strings sound sound_backends tools
 

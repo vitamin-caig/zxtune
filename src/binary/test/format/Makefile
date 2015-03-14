@@ -1,6 +1,6 @@
 binary_name := binary_test_format
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 libraries.common = binary binary_format
 

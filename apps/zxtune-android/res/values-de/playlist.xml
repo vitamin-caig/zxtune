@@ -2,6 +2,9 @@
 <resources>
   <string name="playlist">Wiedergabeliste</string>
   <string name="playlist_empty">Wiedergabeliste ist leer</string>
-  <string name="saved">Gelagert</string>
+  <string name="saved">Gespeichert</string>
   <string name="save_failed">Fehler beim Speichern: %s</string>
+  <string name="statistics">Statistik</string>
+  <string name="statistics_tracks">Gesamt</string>
+  <string name="statistics_duration">Dauer</string>
 </resources>

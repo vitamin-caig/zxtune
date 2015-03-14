@@ -209,14 +209,15 @@ doinit      ldy $02a6
 vicinit     stx $d011
             sty $d012
 
-            ; Don't override default irq handler for RSIDs
+            ; don't override default irq handler for RSIDs
             lda initiomap
             beq random
 
-            ; If play address, override default irq vector so
+            ; if play address, override default irq vector so
             ; we reach are routine to handle play routine
             lda playiomap
             beq random
+
             ldx #<irqjob
             stx $0314
 
@@ -251,10 +252,11 @@ wait        dex
             ; clear any pending irqs
 ciaclear    lda $dc0d
 
+
             ; set I/O map and call song init routine
             lda initiomap
             bne setbank
-            ; Only release interrupt mask for real
+            ; only release interrupt mask for real
             ; C64 tunes (initiomap = 0) thus
             ; providing a more realistic environment
             lda #$37

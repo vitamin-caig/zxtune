@@ -22,6 +22,9 @@ namespace Formats
   {
     namespace SoundTrackerPro
     {
+      const uint_t DEFAULT_SAMPLE = 0;
+      const uint_t DEFAULT_ORNAMENT = 0;
+
       struct Sample
       {
         struct Line

@@ -12,6 +12,14 @@ package app.zxtune.sound;
 
 public interface SamplesSource {
 
+  public static final class Channels {
+    public final static int COUNT = 2;
+  }
+
+  public static final class Sample {
+    public final static int BYTES = 2;
+  }
+  
   /**
    * Initialize stream for input
    * @param sampleRate required sample rate in Hz (e.g. 44100)

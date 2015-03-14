@@ -16,9 +16,10 @@
 #include "playlist/io/export.h"
 #include "playlist/io/import.h"
 #include "ui/utils.h"
-#include "apps/version/api.h"
 //common includes
 #include <error.h>
+//library includes
+#include <platform/version/api.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
@@ -42,7 +43,7 @@ namespace
       , Storage(storage)
     {
       Properties->SetValue(Playlist::ATTRIBUTE_NAME, name);
-      Properties->SetValue(Playlist::ATTRIBUTE_CREATOR, GetProgramVersionString());
+      Properties->SetValue(Playlist::ATTRIBUTE_CREATOR, Platform::Version::GetProgramVersionString());
     }
 
     virtual Parameters::Accessor::Ptr GetProperties() const

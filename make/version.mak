@@ -11,3 +11,11 @@ root.version = develop
 root.version.index = 0
 endif
 endif
+
+.PHONY: version_name version_index
+
+version_name:
+	$(info $(root.version))
+
+version_index:
+	$(info $(root.version.index))

@@ -11,7 +11,6 @@
 //local includes
 #include "information.h"
 #include "sound.h"
-#include <apps/base/app.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
@@ -22,6 +21,7 @@
 #include <io/io_parameters.h>
 #include <io/provider.h>
 #include <io/providers_parameters.h>
+#include <platform/application.h>
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -71,6 +71,7 @@ namespace
       CapsPair(ZXTune::CAP_DEV_DAC, Text::INFO_CAP_DAC),
       CapsPair(ZXTune::CAP_DEV_SAA1099, Text::INFO_CAP_SAA1099),
       CapsPair(ZXTune::CAP_DEV_MOS6581, Text::INFO_CAP_MOS6581),
+      CapsPair(ZXTune::CAP_DEV_SPC700, Text::INFO_CAP_SPC700),
       //storage caps
       CapsPair(ZXTune::CAP_STOR_MODULE, Text::INFO_CAP_MODULE),
       CapsPair(ZXTune::CAP_STOR_CONTAINER, Text::INFO_CAP_CONTAINER),

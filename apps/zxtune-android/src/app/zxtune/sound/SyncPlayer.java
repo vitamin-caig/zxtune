@@ -15,7 +15,7 @@ import java.util.concurrent.Exchanger;
 import android.os.Process;
 import android.util.Log;
 
-final class SyncPlayer implements Player {
+public final class SyncPlayer implements Player {
 
   private final static String TAG = SyncPlayer.class.getName();
   private final PlayerEventsListener events;
@@ -40,7 +40,7 @@ final class SyncPlayer implements Player {
       produceCycle();
     } catch (InterruptedException e) {
       Log.d(TAG, "Interrupted producing sound data", e);
-    } catch (Error e) {
+    } catch (Exception e) {
       events.onError(e);
     } finally {
       stopConsumeThread();
@@ -117,6 +117,9 @@ final class SyncPlayer implements Player {
       } catch (InterruptedException e) {
         Log.d(TAG, "Interrupted consume cycle");
         e.printStackTrace();
+      } catch (Exception e) {
+        events.onError(e);
+        isActive = false;
       } finally {
         Log.d(TAG, "Stopped consume cycle");
       }

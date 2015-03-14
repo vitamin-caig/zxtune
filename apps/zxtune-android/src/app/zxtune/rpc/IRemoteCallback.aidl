@@ -14,4 +14,5 @@ oneway interface IRemoteCallback {
   void onStatusChanged(in boolean isPlaying);
   void onItemChanged(in ParcelablePlaybackItem item);
   void onIOStatusChanged(in boolean isActive);
+  void onError(in String error);
 }

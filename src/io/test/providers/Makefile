@@ -1,6 +1,6 @@
 binary_name := io_test_providers
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 include $(path_step)/make/default.mak
 

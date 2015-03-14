@@ -11,7 +11,6 @@
 //local includes
 #include "scanner_view.h"
 #include "table_view.h"
-#include "apps/base/app.h"
 #include "contextmenu.h"
 #include "playlist_view.h"
 #include "search.h"
@@ -111,11 +110,11 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
+  class TooltipFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
   {
     typedef Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> Parent;
   public:
-    explicit HTMLEscapedFieldsSourceAdapter(const Parameters::Accessor& props)
+    explicit TooltipFieldsSourceAdapter(const Parameters::Accessor& props)
       : Parent(props)
     {
     }
@@ -136,10 +135,11 @@ namespace
   class TooltipSource
   {
   public:
-    String Get(const Parameters::Accessor& properties) const
+    QString Get(const Parameters::Accessor& properties) const
     {
-      const HTMLEscapedFieldsSourceAdapter adapter(properties);
-      return GetTemplate().Instantiate(adapter);
+      const TooltipFieldsSourceAdapter adapter(properties);
+      const String& result = GetTemplate().Instantiate(adapter);
+      return ToQString(result);
     }
   private:
     const Strings::Template& GetTemplate() const
@@ -232,13 +232,14 @@ namespace
     {
       if (const Error& err = item.GetState())
       {
-        return ToQString(err.ToString());
+        //I/O errors usually gets messages in current locale
+        return ToQStringFromLocal(err.ToString());
       }
       else
       {
         const Module::Holder::Ptr holder = item.GetModule();
         const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
-        return ToQString(Tooltip.Get(*properties));
+        return Tooltip.Get(*properties);
       }
     }
 
@@ -256,6 +257,8 @@ namespace
         return Playlist::UI::View::tr("Author");
       case Playlist::Model::COLUMN_TITLE:
         return Playlist::UI::View::tr("Title");
+      case Playlist::Model::COLUMN_COMMENT:
+        return Playlist::UI::View::tr("Comment");
       case Playlist::Model::COLUMN_PATH:
         return Playlist::UI::View::tr("Path");
       case Playlist::Model::COLUMN_SIZE:

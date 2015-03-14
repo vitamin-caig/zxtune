@@ -2,18 +2,28 @@ include $(path_step)/make/default.mak
 
 .SUFFIXES:
 
-src_suffix := .cpp
-src_suffix_cc := .c
-res_suffix := .rc
+#default suffixes
+suffix.cpp := .cpp
+suffix.cpp.all := $(suffix.cpp) .cxx .cc
+suffix.c := .c
+suffix.res := .rc
 
-%$(src_suffix) :
+suffix.src = $(suffix.cpp.all) $(suffix.c)
 
-%$(src_suffix_cc) :
+#reset default rules
+%$(suffix.cpp) :
 
-%$(res_suffix) :
+%.cxx :
+
+%.cc :
+
+%$(suffix.c) :
+
+%$(suffix.res) :
 
 %.mak :
 
+#setup modes
 ifneq ($(or $(pic),$(dynamic_name)),)
 pic := 1
 endif
@@ -75,10 +85,11 @@ all: $(target)
 include $(path_step)/make/compilers/$(compiler).mak
 
 #calculate input source files
+source_files += $(source_files.$(platform))
+source_dirs += $(source_dirs.$(platform))
 ifdef source_dirs
-source_files += $(basename $(wildcard $(addsuffix /*$(src_suffix),$(source_dirs))))
+source_files += $(foreach suffix,$(suffix.src),$(foreach dir,$(source_dirs),$(wildcard $(dir)/*$(suffix))))
 endif
-
 
 #process texts if required
 ifdef text_files
@@ -96,16 +107,11 @@ include $(path_step)/make/boost.mak
 #process l10n files
 include $(path_step)/make/l10n.mak
 
-GENERATED_HEADERS = $(addsuffix .h,$(generated_headers))
-
-SOURCES = $(addsuffix $(src_suffix),$(source_files)) $(addsuffix $(src_suffix_cc),$(source_files_cc))
-GENERATED_SOURCES = $(addsuffix $(src_suffix),$(generated_sources))
-
 #calculate object files from sources
-OBJECTS = $(foreach src, $(notdir $(source_files) $(source_files_cc) $(generated_sources)), $(objects_dir)/$(call makeobj_name,$(src)))
-
-#calculate object files from windows resources
-RESOURCES += $(foreach res,$(notdir $($(platform)_resources)), $(objects_dir)/$(call makeres_name,$(res)))
+OBJECTS = $(foreach src,$(notdir $(source_files) $(generated_sources)), $(objects_dir)/$(call makeobj_name,$(src)))
+OBJECTS.CPP = $(filter $(foreach ext,$(suffix.cpp.all),%$(call makeobj_name,$(ext))),$(OBJECTS))
+OBJECTS.C = $(filter %$(call makeobj_name,$(suffix.c)),$(OBJECTS))
+OBJECTS.RES = $(filter %$(call makeobj_name,$(suffix.res)),$(OBJECTS))
 
 TRANSLATIONS = $(mo_files) $(qm_files)
 
@@ -121,7 +127,7 @@ $(output_dir):
 #build target
 ifdef library_name
 #simple libraries
-$(target): $(OBJECTS) $(RESOURCES) | $(output_dir) $(TRANSLATIONS)
+$(target): $(OBJECTS) | $(output_dir) $(TRANSLATIONS)
 	$(call build_lib_cmd,$^,$@)
 
 .PHONY: deps
@@ -132,7 +138,7 @@ include $(path_step)/libraries.mak
 #binary and dynamic libraries with dependencies
 LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
-$(target): $(OBJECTS) $(RESOURCES) $(LIBS) $(embedded_files) | $(output_dir) $(TRANSLATIONS)
+$(target): $(OBJECTS) $(LIBS) $(embedded_files) | $(output_dir) $(TRANSLATIONS)
 	$(link_cmd)
 	$(postlink_cmd)
 	$(if $(embedded_files),$(embed_file_cmd),)
@@ -145,21 +151,17 @@ $(depends) $($(platform)_depends):
 	$(MAKE) pic=$(pic) static_runtime=$(static_runtime) -C $(addprefix $(path_step)/,$@) $(MAKECMDGOALS)
 endif
 
-$(OBJECTS): | $(GENERATED_HEADERS) $(objects_dir)
+$(OBJECTS): $(generated_headers) $(generated_sources) | $(objects_dir)
 
-$(RESOURCES): | $(objects_dir)
+VPATH = $(sort $(dir $(source_files) $(generated_sources)))
 
-vpath %$(src_suffix) $(sort $(dir $(source_files) $(generated_sources)))
-vpath %$(src_suffix_cc) $(sort $(dir $(source_files_cc)))
-vpath %$(res_suffix) $(sort $(dir $($(platform)_resources)))
-
-$(objects_dir)/%$(call makeobj_name,): %$(src_suffix)
+$(OBJECTS.CPP): $(objects_dir)/$(call makeobj_name,%): %
 	$(call build_obj_cmd,$(CURDIR)/$<,$@)
 
-$(objects_dir)/%$(call makeobj_name,): %$(src_suffix_cc)
+$(OBJECTS.C): $(objects_dir)/$(call makeobj_name,%): %
 	$(call build_obj_cmd_cc,$(CURDIR)/$<,$@)
 
-$(objects_dir)/%$(call makeres_name,): %$(res_suffix)
+$(OBJECTS.RES): $(objects_dir)/$(call makeobj_name,%): %
 	$(call makeres_cmd,$<,$@)
 
 .PHONY: clean
@@ -180,3 +182,13 @@ test: $(target)
 ifdef binary_name
 	$^
 endif
+
+report:
+	$(info src=$(source_files))
+	$(info src.gen=$(generated_sources))
+	$(info hdr.gen=$(generated_headers))
+	$(info obj=$(OBJECTS))
+	$(info obj.cpp=$(OBJECTS.CPP))
+	$(info obj.c=$(OBJECTS.C))
+	$(info obj.res=$(OBJECTS.RES))
+	$(info vpath=$(VPATH))

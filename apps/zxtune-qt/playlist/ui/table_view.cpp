@@ -39,18 +39,20 @@ namespace
   const int_t DURATION_WIDTH = 60;
   const int_t AUTHOR_WIDTH = 160;
   const int_t TITLE_WIDTH = 160;
+  const int_t COMMENT_WIDTH = 160;
   const int_t PATH_WIDTH = 320;
   const int_t SIZE_WIDTH = 60;
   const int_t CRC_WIDTH = 60;
   const int_t FIXEDCRC_WIDTH = 60;
 
+  //WARNING!!! change object name when adding new column
   class TableHeader : public QHeaderView
   {
   public:
     TableHeader(QAbstractItemModel& model, const QFont& font)
       : QHeaderView(Qt::Horizontal)
     {
-      setObjectName(QLatin1String("Columns"));
+      setObjectName(QLatin1String("Columns_v2"));
       setModel(&model);
       setFont(font);
       setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -63,6 +65,7 @@ namespace
       resizeSection(Playlist::Model::COLUMN_DURATION, DURATION_WIDTH);
       resizeSection(Playlist::Model::COLUMN_AUTHOR, AUTHOR_WIDTH);
       resizeSection(Playlist::Model::COLUMN_TITLE, TITLE_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_COMMENT, COMMENT_WIDTH);
       resizeSection(Playlist::Model::COLUMN_PATH, PATH_WIDTH);
       resizeSection(Playlist::Model::COLUMN_SIZE, SIZE_WIDTH);
       resizeSection(Playlist::Model::COLUMN_CRC, CRC_WIDTH);

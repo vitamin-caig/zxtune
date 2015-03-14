@@ -187,10 +187,13 @@ namespace Details
     mutable Sound::Sample PrevLevel;
   };
 
+  
   /*
     Decimation is performed after 2-order IIR LPF
     Cutoff freq of LPF should be less than Nyquist frequency of target signal
   */
+  const uint_t SOUND_CUTOFF_FREQUENCY = 9500;
+  
   template<class PSGType>
   class HQWrapper
   {
@@ -200,9 +203,9 @@ namespace Details
     {
     }
 
-    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    void SetClockFrequency(uint64_t clockFreq)
     {
-      Filter.SetParameters(clockFreq, soundFreq / 4);
+      Filter.SetParameters(clockFreq, SOUND_CUTOFF_FREQUENCY);
     }
 
     void Tick(uint_t ticksPassed)
@@ -256,9 +259,9 @@ namespace Details
     {
     }
 
-    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    void SetClockFrequency(uint64_t clockFreq)
     {
-      Parent::PSG.SetFrequency(clockFreq, soundFreq);
+      Parent::PSG.SetClockFrequency(clockFreq);
     }
   };
 }

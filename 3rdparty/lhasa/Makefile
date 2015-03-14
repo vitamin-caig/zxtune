@@ -2,7 +2,7 @@ library_name := lhasa
 path_step := ../..
 include $(path_step)/make/default.mak
 
-source_files_cc := $(addprefix lib/,\
+source_files := $(addprefix lib/,\
 	crc16 \
 	ext_header \
 	lha_arch_unix \
@@ -26,5 +26,7 @@ source_files_cc := $(addprefix lib/,\
 #this files are included directly:	bit_stream_reader lh_new_decoder tree_decode
 
 windows_definitions += vsnprintf=_vsnprintf
+
+source_files := $(addsuffix .c,$(source_files))
 
 include $(path_step)/makefile.mak

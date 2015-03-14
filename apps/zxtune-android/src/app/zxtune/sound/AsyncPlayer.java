@@ -35,8 +35,7 @@ final public class AsyncPlayer implements Player {
     this.state = new StoppedPlayer();
   }
 
-  public static Player create(SamplesSource source, PlayerEventsListener events) {
-    final SamplesTarget target = SoundOutputSamplesTarget.create();
+  public static Player create(SamplesSource source, SamplesTarget target, PlayerEventsListener events) {
     return new AsyncPlayer(source, target, events);
   }
 
@@ -110,7 +109,7 @@ final public class AsyncPlayer implements Player {
     }
 
     @Override
-    public void onError(Error e) {
+    public void onError(Exception e) {
       events.onError(e);
     }
   }

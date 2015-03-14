@@ -26,4 +26,9 @@ public interface Callback {
    * Called on I/O operation status change
    */
   public void onIOStatusChanged(boolean isActive);
+  
+  /**
+   * Called on error happends
+   */
+  public void onError(String e);
 }

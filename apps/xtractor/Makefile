@@ -1,21 +1,25 @@
 binary_name := xtractor
 path_step := ../..
-source_files := main
+source_dirs := .
+
+source_files.windows := xtractor.rc
+source_files.mingw := $(source_files.windows)
 
 text_files := text/text
 
-libraries.common = analysis async binary binary_format debug formats_archived formats_chiptune formats_image formats_packed io l10n_stub parameters platform strings tools
+libraries.common = analysis async \
+                   binary binary_format \
+                   debug \
+                   formats_archived formats_chiptune formats_image formats_packed \
+                   io \
+                   l10n_stub \
+                   parameters platform platform_application platform_version \
+                   strings \
+                   tools
 libraries.3rdparty = lhasa unrar zlib
-
-libraries = zxtune_app_version
-depends = apps/version
 
 libraries.boost = filesystem program_options thread system
 windows_libraries := advapi32 oldnames
-
-#platform-specific resources
-windows_resources := xtractor
-mingw_resources := xtractor
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak

@@ -24,6 +24,8 @@ import app.zxtune.playback.PlaybackControl.SequenceMode;
 import app.zxtune.playback.PlaybackControl.TrackMode;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaylistControl;
+import app.zxtune.playback.PlaylistControl.SortBy;
+import app.zxtune.playback.PlaylistControl.SortOrder;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
 
@@ -73,6 +75,11 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   @Override
   public void move(long id, int delta) {
     playlist.move(id, delta);
+  }
+  
+  @Override
+  public void sort(String field, String order) {
+    playlist.sort(SortBy.valueOf(field), SortOrder.valueOf(order));
   }
 
   @Override
@@ -197,6 +204,15 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
         delegate.onIOStatusChanged(isActive);
       } catch (RemoteException e) {
         Log.e(TAG, "onIOStatusChanged()", e);
+      }
+    }
+    
+    @Override
+    public void onError(String error) {
+      try {
+        delegate.onError(error);
+      } catch (RemoteException e) {
+        Log.e(TAG, "onError()", e);
       }
     }
   }

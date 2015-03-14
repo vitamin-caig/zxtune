@@ -31,9 +31,9 @@ class SidTune;
 class iniParser;
 
 /**
-* SidDatabase
-* An utility class to deal with the songlength DataBase.
-*/
+ * SidDatabase
+ * An utility class to deal with the songlength DataBase.
+ */
 class SID_EXTERN SidDatabase
 {
 private:
@@ -50,36 +50,38 @@ public:
     ~SidDatabase();
 
     /**
-    * Open the songlength DataBase.
-    *
-    * @param filename songlengthDB file name with full path.
-    * @return false in case of errors, true otherwise.
-    */
+     * Open the songlength DataBase.
+     *
+     * @param filename songlengthDB file name with full path.
+     * @return false in case of errors, true otherwise.
+     */
     bool open(const char *filename);
 
     /**
-    * Close the songlength DataBase.
-    */
+     * Close the songlength DataBase.
+     */
     void close();
 
     /**
-    * Get the length of the current subtune.
-    *
-    * @param tune
-    * @return tune length in seconds, -1 in case of errors.
-    */
+     * Get the length of the current subtune.
+     *
+     * @param tune
+     * @return tune length in seconds, -1 in case of errors.
+     */
     int_least32_t length(SidTune &tune);
 
     /**
-    * Get the length of the selected subtune.
-    *
-    * @param md5 the md5 hash of the tune.
-    * @param song the subtune.
-    * @return tune length in seconds, -1 in case of errors.
-    */
+     * Get the length of the selected subtune.
+     *
+     * @param md5 the md5 hash of the tune.
+     * @param song the subtune.
+     * @return tune length in seconds, -1 in case of errors.
+     */
     int_least32_t length(const char *md5, unsigned int song);
 
-    /// Get descriptive error message.
+    /**
+     * Get descriptive error message.
+     */
     const char *error() const { return errorString; }
 };
 

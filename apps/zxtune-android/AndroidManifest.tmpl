@@ -18,6 +18,7 @@
     
     <supports-screens android:largeScreens="true" android:xlargeScreens="true" />
     <application
+          android:name=".MainApplication"
           android:label="@string/app_name"
           android:icon="@drawable/ic_launcher"
           android:allowBackup="true"
@@ -67,6 +68,10 @@
               android:name=".ScanService"
               android:process=":service">
         </service>
+        <service
+              android:name=".RingtoneService"
+              android:process=":service">
+        </service>
         <!--
           Providers are usually used only in UI.
           ICS does not support running provider in separate thread:
@@ -93,6 +98,15 @@
           <intent-filter>
             <action android:name="android.intent.action.MEDIA_BUTTON"/>
           </intent-filter>
+        </receiver>
+        <!--
+          Homescreen widget handler
+        -->
+        <receiver android:name=".WidgetHandler">
+          <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+          </intent-filter>
+          <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_metadata"/>
         </receiver>
     </application>
 </manifest>

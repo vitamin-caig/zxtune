@@ -38,9 +38,12 @@ sub convert
 
 sub convert_menu_icon
 {
-  while (my $name = shift)
+  while (my $id = shift)
   {
-    convert({source => "${name}.svg", target => "ic_menu_${name}.png", category => 'icon'});
+    $id =~ /([^:]+)(:(.*))?/;
+    my $name = $1;
+    my $srcid = $3;
+    convert({source => "${name}.svg:${srcid}", target => "ic_menu_${name}.png", category => 'icon'});
   }
 }
 
@@ -54,6 +57,7 @@ sub convert_menu_icon
 
 #convert({source => 'status.svg', target => 'ic_stat_notify_play.png', category => 'status'});
 #convert({source => 'scanning.svg', target => 'ic_stat_notify_scan.png', category => 'status'});
+convert({source => 'ringtone.svg:status', target => 'ic_stat_notify_ringtone.png', category => 'status'});
 #convert({source => 'vfs_local.svg', target => 'ic_browser_vfs_local.png', category => 'icon'});
 #convert({source => 'vfs_zxtunes.svg', target => 'ic_browser_vfs_zxtunes.png', category => 'icon'});
 #convert({source => 'vfs_modland.svg', target => 'ic_browser_vfs_modland.png', category => 'icon'});
@@ -68,4 +72,4 @@ sub convert_menu_icon
 #convert({source => 'sequence_looped.svg', target => 'ic_sequence_looped.png', category => 'icon'});
 #convert({source => 'sequence_shuffle.svg', target => 'ic_sequence_shuffle.png', category => 'icon'});
 
-convert_menu_icon('add', 'delete', 'save', 'play', 'share', 'send')
+convert_menu_icon('add', 'delete', 'save', 'statistics', 'sort', 'play', 'share', 'send', 'ringtone:menu')

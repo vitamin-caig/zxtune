@@ -202,14 +202,23 @@ namespace Formats
           return Container::Ptr();
         }
         Formats::Chiptune::AY::Builder& stub = Formats::Chiptune::AY::GetStubBuilder();
+        std::size_t maxSize = 0;
         for (uint_t idx = subModules; idx; --idx)
         {
           if (Formats::Chiptune::Container::Ptr ayData = Formats::Chiptune::AY::Parse(rawData, idx - 1, stub))
           {
-            return boost::make_shared< ::MultiAY::Container>(ayData);
+            maxSize = std::max(maxSize, ayData->Size());
           }
         }
-        return Container::Ptr();
+        if (maxSize)
+        {
+          const Binary::Container::Ptr ayData = rawData.GetSubcontainer(0, maxSize);
+          return boost::make_shared< ::MultiAY::Container>(ayData);
+        }
+        else
+        {
+          return Container::Ptr();
+        }
       }
     private:
       const Binary::Format::Ptr Format;

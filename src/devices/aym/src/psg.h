@@ -24,7 +24,6 @@ namespace AYM
     explicit PSG(const MultiVolumeTable& table)
       : Table(table)
       , Regs()
-      , Beeper()
     {
       Regs[Registers::MIXER] = 0xff;
     }
@@ -39,7 +38,6 @@ namespace AYM
       std::fill(Regs.begin(), Regs.end(), 0);
       Regs[Registers::MIXER] = 0xff;
       Device.Reset();
-      Beeper = 0;
     }
 
     void SetNewData(const Registers& data)
@@ -105,10 +103,6 @@ namespace AYM
       {
         Device.SetLevel(Regs[Registers::VOLA], Regs[Registers::VOLB], Regs[Registers::VOLC]);
       }
-      if (data.HasBeeper())
-      {
-        Beeper = data.GetBeeper() ? HIGH_LEVEL : LOW_LEVEL;
-      }
     }
 
     void Tick(uint_t ticks)
@@ -117,11 +111,6 @@ namespace AYM
     }
 
     Sound::Sample GetLevels() const
-    {
-      return Table.Get(Beeper ? Beeper : Device.GetLevels());
-    }
-
-    Sound::Sample GetLevelsNoBeeper() const
     {
       return Table.Get(Device.GetLevels());
     }
@@ -212,7 +201,6 @@ namespace AYM
     boost::array<uint_t, Registers::TOTAL> Regs;
     //device
     AYMDevice Device;
-    uint_t Beeper;
   };
 }
 }

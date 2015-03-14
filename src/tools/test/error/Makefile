@@ -1,6 +1,6 @@
 binary_name := tools_test_error
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 libraries.common = tools
 

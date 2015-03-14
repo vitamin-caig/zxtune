@@ -125,4 +125,12 @@ final class PlaylistControlLocal implements PlaylistControl {
     }
     return res;
   }
+  
+  @Override
+  public void sort(SortBy by, SortOrder order) {
+    final Database.Tables.Playlist.Fields field = Database.Tables.Playlist.Fields.valueOf(by.name());
+    final String orderString = order == SortOrder.desc ? "DESC" : "ASC";
+    db.sortPlaylistItems(field, orderString);
+    notifyPlaylist();
+  }
 }

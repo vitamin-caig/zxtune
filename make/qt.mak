@@ -1,15 +1,15 @@
-ui_dir = $(objects_dir)/.ui
-ui_headers = $(addprefix $(ui_dir)/,$(notdir $(ui_files:=.ui) $(ui_headeronly:=.ui)))
-moc_sources = $(ui_files:=.moc) $(moc_files:=.moc)
+suffix.ui = .ui
+suffix.ui.h = .ui.h
+suffix.moc.cpp = .moc$(suffix.cpp)
+suffix.qrc = .qrc
+suffix.qrc.cpp = $(suffix.qrc)$(suffix.cpp)
 
-source_files += $(ui_files) $(moc_files)
-generated_headers += $(ui_headers)
-generated_sources += $(moc_sources)
+generated_dir = $(objects_dir)/.qt
 
-include_dirs += $(ui_dir)
+generated_headers += $(addprefix $(generated_dir)/,$(notdir $(ui_files:=$(suffix.ui.h))))
+generated_sources += $(addprefix $(generated_dir)/,$(notdir $(ui_files:=$(suffix.moc.cpp)) $(moc_files:=$(suffix.moc.cpp)) $(qrc_files:=$(suffix.qrc.cpp))))
 
-qrc_sources = $(qrc_files:=.qrc)
-generated_sources += $(qrc_sources)
+include_dirs += $(generated_dir)
 
 ifdef release
 defines += QT_NO_DEBUG
@@ -41,29 +41,32 @@ dingux_libraries += png
 endif
 endif
 
-vpath %.qrc $(sort $(dir $(qrc_files)))
-vpath %.ui $(sort $(dir $(ui_files)))
-vpath %.h $(sort $(dir $(moc_files) $(ui_files)))
+vpath %$(suffix.qrc) $(sort $(dir $(qrc_files)))
+vpath %$(suffix.ui) $(sort $(dir $(ui_files)))
+vpath %.h $(sort $(dir $(moc_files) $(ui_files) $(generated_dir)))
 
-$(ui_dir):
+$(generated_dir):
 	$(call makedir_cmd,$@)
 
 tools.uic ?= $(qt.bin)uic
 tools.moc ?= $(qt.bin)moc
 tools.rcc ?= $(qt.bin)rcc
 
-$(ui_dir)/%.ui.h: %.ui | $(ui_dir)
+$(generated_dir)/%$(suffix.ui.h): %$(suffix.ui) | $(generated_dir)
 	$(tools.uic) $< -o $@
 
-%.moc$(src_suffix): %.h
-	$(tools.moc) $(addprefix -D,$(DEFINITIONS)) $< -o $@
+$(generated_dir)/%$(suffix.moc.cpp): %.h | $(generated_dir)
+	$(tools.moc) -nw $(addprefix -D,$(DEFINITIONS)) $< -o $@
 
-%.qrc$(src_suffix): %.qrc
+$(generated_dir)/%$(suffix.moc.cpp): %$(suffix.ui.h) | $(generated_dir)
+	$(tools.moc) -nw $(addprefix -D,$(DEFINITIONS)) $< -o $@
+
+$(generated_dir)/%$(suffix.qrc.cpp): %$(suffix.qrc) | $(generated_dir)
 	$(tools.rcc) -name $(basename $(notdir $<)) -o $@ $<
 
 #disable dependencies generation for generated files
-$(objects_dir)/%$(call makeobj_name,.moc): %.moc$(src_suffix)
+$(objects_dir)/$(call makeobj_name,%$(suffix.moc.cpp)): $(generated_dir)/%$(suffix.moc.cpp)
 	$(call build_obj_cmd_nodeps,$(CURDIR)/$<,$@)
 
-$(objects_dir)/%$(call makeobj_name,.qrc): %.qrc$(src_suffix)
+$(objects_dir)/$(call makeobj_name,%$(suffix.qrc.cpp)): $(generated_dir)/%$(suffix.qrc.cpp)
 	$(call build_obj_cmd_nodeps,$(CURDIR)/$<,$@)

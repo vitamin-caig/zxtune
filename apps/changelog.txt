@@ -5,6 +5,77 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3215 from 25.02.2015
+
+[+] Added SNES SPC support
+[*] Fixed possible crash in dsound backend
+[*] Fixed processing of some multitrack AY files
+[*] Fixed TurboLZ packers support
+[*] zxtune-qt: fixed encoding issues
+[+] zxtune-android: added playlist statistics functionality
+[+] zxtune-android: added playlist sorting functionality
+[*] zxtune-android: fixed sdcards enumerating for modern devices
+[*] zxtune-android: fixed settings reset for some cases
+[*] zxtune-android: improved errors reporting for ringtone service
+
+--- Rev3190 from 10.02.2015
+
+[+] Added Amstrad AYC support
+[*] Fixed processing of non-ascii symbols in modules
+[*] Fixed STP/PT2 playback with default sample
+[*] Fixed filter emulation for SID playback
+[*] zxtune-android: fixes in remote catalogs access
+[*] zxtune-android: fixes in texts and deutsche translation
+
+--- Rev3170 from 20.01.2015
+
+[+] zxtune-android: initial spanish translation
+[+] zxtune-android: 'set as ringtone' functionality
+[*] zxtune-android: resizeable homescreen widget
+[*] zxtune-android: do not handle autorepeated media buttons actions
+[*] Updated libsidplayfp for 1.6.2
+[*] Fixed PT3 playback with default sample
+[*] Reset not significant registers bits in AY format convertors
+
+--- Rev3155 from 29.12.2014
+
+[+] zxtune-android: added homescreen widget
+[*] zxtune-android: fixed crash on www.zxtunes.com catalog searching
+[*] zxtune-android: improved errors reporting
+
+--- Rev3150 from 03.12.2014
+
+[+] Added ExtremeTracker v1.xx support
+[*] Fix crash on invalid MMD3 modules
+[*] zxtune-android: use external storage as file cache
+[*] zxtune-android: improved errors reporting
+[*] zxtune-android: fixed some memory leaks on orientation change
+[*] zxtune-android: speedup and other improvements in remote catalogs support
+[*] zxtune-android: fixed search results disappearing on orientation change
+
+--- Rev3135 from 18.11.2014
+
+[*] Fixed SQD playback
+[+] Supported AYLPT backend via dlportio-compatible gates
+[+] zxtune-android: save and restore currently played item and position between sessions
+[+] zxtune-android: search functionality in browser
+[*] zxtune-android: improved support of some network sources
+[*] zxtune-android: fixed some crashes on application exit
+[*] zxtune-android: reworked browser progress report
+
+--- Rev3120 from 27.10.2014
+
+[*] improved quality of beeper emulation
+[*] updated SID songs length database to #61
+[*] zxtune-android: fixed playback of some modules types at devices with 48000 Hz sample rate
+
+--- Rev3115 from 21.10.2014
+
+[+] zxtune-qt: added comment column in playlist
+[*] zxtune-android: fixed cache in www.zxart.ee catalogue
+[*] zxtune-android: support party compos information in www.zxart.ee catalogue
+[*] zxtune-android: detailed information about tracks in www.zxart.ee catalogue browser
+
 --- Rev3100 from 22.09.2014
 
 [+] Support unpacked YM files

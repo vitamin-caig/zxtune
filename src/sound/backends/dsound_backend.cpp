@@ -321,8 +321,10 @@ namespace DirectSound
   class VolumeControl : public Sound::VolumeControl
   {
   public:
-    explicit VolumeControl(DirectSoundBufferPtr buffer)
-      : Buffer(buffer)
+    //buffer depends of device
+    VolumeControl(DirectSoundPtr device, DirectSoundBufferPtr buffer)
+      : Device(device)
+      , Buffer(buffer)
     {
     }
 
@@ -369,6 +371,7 @@ namespace DirectSound
       CheckWin32Error(Buffer->SetPan(vols.second), THIS_LINE);
     }
   private:
+    const DirectSoundPtr Device;
     const DirectSoundBufferPtr Buffer;
   };
 
@@ -497,7 +500,7 @@ namespace DirectSound
       const Time::Milliseconds frameDuration = RenderingParameters->FrameDuration();
       res.Stream = boost::make_shared<StreamBuffer>(buffer, boost::posix_time::millisec(frameDuration.Get()));
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
-      res.Volume = boost::make_shared<VolumeControl>(primary);
+      res.Volume = boost::make_shared<VolumeControl>(res.Device, primary);
       return res;
     }
   private:
@@ -515,7 +518,7 @@ namespace DirectSound
     {
     }
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
       return boost::make_shared<BackendWorker>(DsApi, params);
     }

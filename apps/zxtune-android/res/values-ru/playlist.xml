@@ -4,4 +4,7 @@
   <string name="playlist_empty">Список пуст</string>
   <string name="saved">Сохранено</string>
   <string name="save_failed">Ошибка сохранения: %s</string>
+  <string name="statistics">Статистика</string>
+  <string name="statistics_tracks">Всего</string>
+  <string name="statistics_duration">Длительность</string>
 </resources>

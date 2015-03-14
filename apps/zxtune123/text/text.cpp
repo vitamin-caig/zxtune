@@ -49,8 +49,17 @@ extern const Char COMMON_ERROR[] = {
 extern const Char CONFIG_DESC[] = {
   'c','o','n','f','i','g','u','r','a','t','i','o','n',' ','f','i','l','e',0
 };
+extern const Char CONFIG_FILENAME[] = {
+  'z','x','t','u','n','e','.','c','o','n','f',0
+};
 extern const Char CONFIG_KEY[] = {
   'c','o','n','f','i','g',0
+};
+extern const Char CONFIG_PATH_NIX[] = {
+  '/','.','z','x','t','u','n','e','/','z','x','t','u','n','e','.','c','o','n','f',0
+};
+extern const Char CONFIG_PATH_WIN[] = {
+  '\\','z','x','t','u','n','e','\\','z','x','t','u','n','e','.','c','o','n','f',0
 };
 extern const Char CONVERSION_MODE_AYDUMP[] = {
   'a','y','d','u','m','p',0
@@ -132,6 +141,20 @@ extern const Char CORE_OPTS_KEY[] = {
 };
 extern const Char DISPLAY_SECTION[] = {
   'D','i','s','p','l','a','y','-','r','e','l','a','t','e','d',' ','o','p','t','i','o','n','s',0
+};
+extern const Char ENV_HOMEDIR_NIX[] = {
+  'H','O','M','E',0
+};
+extern const Char ENV_HOMEDIR_WIN[] = {
+  'A','P','P','D','A','T','A',0
+};
+extern const Char ERROR_CONFIG_FILE[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','o','p','e','n',' ','c','o','n','f','i','g','u','r','a','t','i','o',
+  'n',' ','f','i','l','e','.',0
+};
+extern const Char ERROR_INVALID_FORMAT[] = {
+  'I','n','v','a','l','i','d',' ','p','a','r','a','m','e','t','e','r',' ','f','o','r','m','a','t',' ','\'','%',
+  '1','%','\'','.',0
 };
 extern const Char ERROR_INVALID_PARAMETER[] = {
   'I','n','v','a','l','i','d',' ','p','a','r','a','m','e','t','e','r',' ','\'','%','1','%','\'',' ','i','n',' ',
@@ -283,6 +306,9 @@ extern const Char INFO_CAP_SAA1099[] = {
 };
 extern const Char INFO_CAP_SCANER[] = {
   's','t','o','r','_','s','c','a','n','e','r',0
+};
+extern const Char INFO_CAP_SPC700[] = {
+  'd','e','v','_','s','p','c','7','0','0',0
 };
 extern const Char INFO_CAP_STUB[] = {
   't','y','p','e','_','s','t','u','b',0

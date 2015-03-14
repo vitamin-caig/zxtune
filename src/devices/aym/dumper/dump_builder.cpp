@@ -31,11 +31,35 @@ namespace
     virtual void CommitDelta() = 0;
   };
 
+  uint8_t GetValueMask(Registers::Index idx)
+  {
+    const uint_t REGS_4BIT_SET = (1 << Registers::TONEA_H) | (1 << Registers::TONEB_H) |
+      (1 << Registers::TONEC_H) | (1 << Registers::ENV);
+    const uint_t REGS_5BIT_SET = (1 << Registers::TONEN) | (1 << Registers::VOLA) |
+      (1 << Registers::VOLB) | (1 << Registers::VOLC);
+
+    const uint_t mask = 1 << idx;
+    if (mask & REGS_4BIT_SET)
+    {
+      return 0x0f;
+    }
+    else if (mask & REGS_5BIT_SET)
+    {
+      return 0x1f;
+    }
+    else
+    {
+      return 0xff;
+    }
+  }
+
   void ApplyMerge(Registers& dst, const Registers& src)
   {
+
     for (Registers::IndicesIterator it(src); it; ++it)
     {
-      dst[*it] = src[*it];
+      const Registers::Index idx = *it;
+      dst[idx] = src[idx] & GetValueMask(idx);
     }
   }
 
@@ -81,7 +105,7 @@ namespace
       for (Registers::IndicesIterator it(delta); it; ++it)
       {
         const Registers::Index reg = *it;
-        const uint8_t newVal = delta[reg];
+        const uint8_t newVal = delta[reg] & GetValueMask(reg);
         if (Registers::ENV != reg && Base.Has(reg))
         {
           uint8_t& base = Base[reg];

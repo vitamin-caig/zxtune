@@ -13,8 +13,21 @@
 
 namespace
 {
-  using namespace Formats::Chiptune::ProTracker3;
-
+  Formats::Chiptune::ProTracker3::Decoder::Ptr CreateDecoder(const std::string& type)
+  {
+    if (type == "txt")
+    {
+      return Formats::Chiptune::ProTracker3::VortexTracker2::CreateDecoder();
+    }
+    else if (type == "pt3")
+    {
+      return Formats::Chiptune::ProTracker3::CreateDecoder();
+    }
+    else
+    {
+      throw std::runtime_error("Invalid type " + type);
+    }
+  }
 }
 
 int main(int argc, char* argv[])
@@ -28,16 +41,10 @@ int main(int argc, char* argv[])
     std::auto_ptr<Dump> rawData(new Dump());
     Test::OpenFile(argv[2], *rawData);
     const Binary::Container::Ptr data = Binary::CreateContainer(rawData);
-    const Formats::Chiptune::ProTracker3::ChiptuneBuilder::Ptr builder = Formats::Chiptune::ProTracker3::CreateVortexTracker2Builder();
+    const Formats::Chiptune::ProTracker3::ChiptuneBuilder::Ptr builder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateBuilder();
     const std::string type(argv[1]);
-    if (type == "txt")
-    {
-      Formats::Chiptune::ProTracker3::ParseVortexTracker2(*data, *builder);
-    }
-    else if (type == "pt3")
-    {
-      Formats::Chiptune::ProTracker3::ParseCompiled(*data, *builder);
-    }
+    const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = CreateDecoder(type);
+    decoder->Parse(*data, *builder);
     const Binary::Data::Ptr result = builder->GetResult();
     const char* const start = static_cast<const char*>(result->Start());
     std::cout << std::string(start, start + result->Size());

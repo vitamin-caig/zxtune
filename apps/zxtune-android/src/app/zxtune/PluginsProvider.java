@@ -31,13 +31,14 @@ public final class PluginsProvider extends ContentProvider {
     public final static int PLAYER_FM_TFM = 2;
     public final static int PLAYER_SAA = 3;
     public final static int PLAYER_SID = 4;
+    public final static int PLAYER_SPC = 5;
     
     //TODO: clarify types in low level
-    public final static int DECODER_DECOMPILER = 5;
+    public final static int DECODER_DECOMPILER = 6;
     
-    public final static int MULTITRACK_CONTAINER = 6;
+    public final static int MULTITRACK_CONTAINER = 7;
 
-    public final static int UNKNOWN = 7;
+    public final static int UNKNOWN = 8;
   }
   
   private final static String AUTHORITY = "app.zxtune.plugins";
@@ -107,6 +108,8 @@ public final class PluginsProvider extends ContentProvider {
       return Types.PLAYER_SAA;
     } else if (0 != (devices & ZXTune.Plugins.DeviceType.MOS6581)) {
       return Types.PLAYER_SID;
+    } else if (0 != (devices & ZXTune.Plugins.DeviceType.SPC700)) {
+      return Types.PLAYER_SPC;
     } else {
       return Types.UNKNOWN;
     }

@@ -1,6 +1,6 @@
 binary_name := async_test_activity
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 libraries.common := async tools
 

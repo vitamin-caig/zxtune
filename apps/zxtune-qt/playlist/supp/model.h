@@ -59,6 +59,7 @@ namespace Playlist
       COLUMN_DURATION,
       COLUMN_AUTHOR,
       COLUMN_TITLE,
+      COLUMN_COMMENT,
       COLUMN_PATH,
       COLUMN_SIZE,
       COLUMN_CRC,

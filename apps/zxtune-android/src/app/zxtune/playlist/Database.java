@@ -90,6 +90,18 @@ public class Database {
           "properties BLOB" +
           ");";
     }
+    
+    static final class Statistics {
+      static enum Fields {
+        count, locations, duration
+      }
+      
+      private static final String COLUMNS[] = {
+        "COUNT(*)",
+        "COUNT(DISTINCT(location))",
+        "SUM(duration)"
+      };
+    }
 
     static final class Positions {
       static enum Fields {
@@ -135,6 +147,14 @@ public class Database {
 
   public Database(Context context) {
     this.dbHelper = new DBHelper(context);
+  }
+  
+  // ! @return Cursor with statistics
+  public final Cursor queryStatistics(String selection) {
+    Log.d(TAG, "queryStatistics(" + selection + ") called");
+    final SQLiteDatabase db = dbHelper.getReadableDatabase();
+    return db.query(Tables.Tracks.NAME, Tables.Statistics.COLUMNS, selection, null/*selectionArgs*/, null/*groupBy*/,
+        null/*having*/, null/*orderBy*/); 
   }
 
   // ! @return Cursor with queried values
@@ -182,6 +202,21 @@ public class Database {
             positions.keyAt(i), positions.valueAt(i));
         db.execSQL(queryString);
       }
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+  }
+  
+  public final void sortPlaylistItems(Tables.Playlist.Fields field, String order) {
+    Log.d(TAG, "sortPlaylistItems(" + field.name() + ", " + order + ")");
+    final SQLiteDatabase db = dbHelper.getWritableDatabase();
+    try {
+      db.beginTransaction();
+      db.delete(Tables.Positions.NAME, null, null);
+      final String insertString = "INSERT INTO " + Tables.Positions.NAME + "(" + Tables.Positions.Fields.track_id + ")";
+      final String selectString = "SELECT " + Tables.Tracks.Fields._id + " FROM " + Tables.Tracks.NAME + " ORDER BY " + field.name() + " " + order;
+      db.execSQL(insertString + " " + selectString + ";"); 
       db.setTransactionSuccessful();
     } finally {
       db.endTransaction();

@@ -82,7 +82,6 @@ public class PlaylistView extends DragSortListView
 
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle params) {
-    assert id == LOADER_ID;
     getCursorAdapter().changeCursor(null);
     return new CursorLoader(getContext(), PlaylistQuery.ALL, null, null, null, null);
   }
@@ -90,11 +89,7 @@ public class PlaylistView extends DragSortListView
   @Override
   public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
     getCursorAdapter().changeCursor(cursor);
-    final Integer pos = (Integer) getTag();
-    if (pos != null) {
-      setSelection(pos);
-      setTag(null);
-    }
+    useStoredViewPosition();
   }
 
   @Override

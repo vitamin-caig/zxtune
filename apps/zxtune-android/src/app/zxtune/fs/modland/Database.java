@@ -38,7 +38,7 @@ final class Database {
 
   final static class Tables {
 
-    final static String DROP_QUERY = "DROP TABLE ? IF EXISTS;";
+    final static String DROP_QUERY = "DROP TABLE IF EXISTS %s;";
 
     final static class Groups {
 
@@ -266,10 +266,10 @@ final class Database {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
       for (String table : Tables.LIST) {
-        db.execSQL(Tables.DROP_QUERY, new Object[] {table});
-        db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.GroupTracks.getName(table)});
+        db.execSQL(String.format(Tables.DROP_QUERY, table));
+        db.execSQL(String.format(Tables.DROP_QUERY, Tables.GroupTracks.getName(table)));
       }
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.Tracks.NAME});
+      db.execSQL(String.format(Tables.DROP_QUERY, Tables.Tracks.NAME));
       onCreate(db);
     }
   }

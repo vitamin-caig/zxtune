@@ -108,6 +108,8 @@ public class AboutFragment extends DialogFragment {
             return R.string.plugin_player_saa;
           case PluginsProvider.Types.PLAYER_SID:
             return R.string.plugin_player_sid;
+          case PluginsProvider.Types.PLAYER_SPC:
+            return R.string.plugin_player_spc;
           case PluginsProvider.Types.DECODER_DECOMPILER:
             return R.string.plugin_decoder_decompiler;
           case PluginsProvider.Types.MULTITRACK_CONTAINER:

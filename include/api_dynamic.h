@@ -26,5 +26,3 @@
 #define PUBLIC_API_EXPORT
 #define PUBLIC_API_IMPORT
 #endif
-
-#endif //__API_DYNAMIC_H_DEFINED__

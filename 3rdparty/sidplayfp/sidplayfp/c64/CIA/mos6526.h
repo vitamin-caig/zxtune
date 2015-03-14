@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2000 Simon White
  *
@@ -26,42 +26,43 @@
 #include <stdint.h>
 
 #include "timer.h"
-#include "sidplayfp/EventScheduler.h"
-#include "sidplayfp/component.h"
+#include "tod.h"
+#include "EventScheduler.h"
+#include "c64/component.h"
 
 class EventContext;
 class MOS6526;
 
 /**
-* This is the timer A of this CIA.
-*
-* @author Ken Händel
-*
-*/
+ * This is the timer A of this CIA.
+ *
+ * @author Ken Händel
+ *
+ */
 class TimerA : public Timer
 {
 private:
     /**
-    * Signal underflows of Timer A to Timer B.
-    */
+     * Signal underflows of Timer A to Timer B.
+     */
     void underFlow();
 
     void serialPort();
 
 public:
     /**
-    * Create timer A.
-    */
+     * Create timer A.
+     */
     TimerA(EventContext *context, MOS6526* parent) :
         Timer("CIA Timer A", context, parent) {}
 };
 
 /**
-* This is the timer B of this CIA.
-*
-* @author Ken Händel
-*
-*/
+ * This is the timer B of this CIA.
+ *
+ * @author Ken Händel
+ *
+ */
 class TimerB : public Timer
 {
 private:
@@ -69,14 +70,14 @@ private:
 
 public:
     /**
-    * Create timer B.
-    */
+     * Create timer B.
+     */
     TimerB(EventContext *context, MOS6526* parent) :
         Timer("CIA Timer B", context, parent) {}
 
     /**
-    * Receive an underflow from Timer A.
-    */
+     * Receive an underflow from Timer A.
+     */
     void cascade()
     {
         /* we pretend that we are CPU doing a write to ctrl register */
@@ -86,10 +87,10 @@ public:
     }
 
     /**
-    * Check if start flag is set.
-    *
-    * @return true if start flag is set, false otherwise
-    */
+     * Check if start flag is set.
+     *
+     * @return true if start flag is set, false otherwise
+     */
     bool started() const { return (state & CIAT_CR_START) != 0; }
 };
 
@@ -103,168 +104,159 @@ class MOS6526: public component
 {
     friend class TimerA;
     friend class TimerB;
+    friend class Tod;
 
 private:
     static const char *credit;
 
 protected:
-    /**
-    * These are all CIA registers.
-    */
+    /// These are all CIA registers.
     uint8_t regs[0x10];
 
-    // Ports
+    /// Ports
+    //@{
     uint8_t &pra, &prb, &ddra, &ddrb;
+    //@}
 
-    /**
-    * Timers A and B.
-    */
+    /// Timers A and B.
+    //@{
     TimerA timerA;
     TimerB timerB;
+    //@}
 
-    // Serial Data Registers
+    /// Serial Data Registers
+    //@{
     uint8_t sdr_out;
     bool    sdr_buffered;
     int     sdr_count;
+    //@}
 
-    /** Interrupt control register */
+    /// Interrupt control register
     uint8_t icr;
 
-    /** Interrupt data register */
+    /// Interrupt data register
     uint8_t idr;
 
-    /**
-    * Event context.
-    */
+    /// Event context.
     EventContext &event_context;
 
-    // TOD
-    bool    m_todlatched;
-    bool    m_todstopped;
-    uint8_t m_todclock[4], m_todalarm[4], m_todlatch[4];
-    event_clock_t m_todCycles, m_todPeriod;
+    /// TOD
+    Tod tod;
 
-    /** Have we already scheduled CIA->CPU interrupt transition? */
+    /// Have we already scheduled CIA->CPU interrupt transition?
     bool triggerScheduled;
 
-    // Events
+    /// Events
+    //@{
     EventCallback<MOS6526> bTickEvent;
-    EventCallback<MOS6526> todEvent;
     EventCallback<MOS6526> triggerEvent;
+    //@}
 
 protected:
     /**
-    * Create a new CIA.
-    *
-    * @param ctx the event context
-    */
+     * Create a new CIA.
+     *
+     * @param context the event context
+     */
     MOS6526(EventContext *context);
     ~MOS6526() {}
 
     /**
-    * This event exists solely to break the ambiguity of what scheduling on
-    * top of PHI1 causes, because there is no ordering between events on
-    * same phase. Thus it is scheduled in PHI2 to ensure the b.event() is
-    * run once before the value changes.
-    *
-    * - PHI1 a.event() (which calls underFlow())
-    * - PHI1 b.event()
-    * - PHI2 bTick.event()
-    * - PHI1 a.event()
-    * - PHI1 b.event()
-    */
+     * This event exists solely to break the ambiguity of what scheduling on
+     * top of PHI1 causes, because there is no ordering between events on
+     * same phase. Thus it is scheduled in PHI2 to ensure the b.event() is
+     * run once before the value changes.
+     *
+     * - PHI1 a.event() (which calls underFlow())
+     * - PHI1 b.event()
+     * - PHI2 bTick.event()
+     * - PHI1 a.event()
+     * - PHI1 b.event()
+     */
     void bTick();
 
     /**
-    * TOD event.
-    */
-    void tod();
-
-    /**
-    * Signal interrupt to CPU.
-    */
+     * Signal interrupt to CPU.
+     */
     void trigger();
 
     /**
-    * Timer A underflow
-    */
+     * Timer A underflow.
+     */
     void underflowA();
 
-    /**
-    * Timer B underflow.
-    */
+    /** Timer B underflow. */
     void underflowB();
 
     /**
-    * Trigger an interrupt.
-    *
-    * @param interruptMask Interrupt flag number
-    */
-  void trigger(uint8_t interruptMask);
+     * Trigger an interrupt.
+     *
+     * @param interruptMask Interrupt flag number
+     */
+    void trigger(uint8_t interruptMask);
 
     /**
-    * Clear interrupt state.
-    */
+     * Clear interrupt state.
+     */
     void clear();
 
     /**
-    * Handle the serial port.
-    */
+     * Handle the serial port.
+     */
     void serialPort();
 
     /**
-    * Signal interrupt.
-    *
-    * @param state
-    *            interrupt state
-    */
+     * Signal interrupt.
+     *
+     * @param state
+     *            interrupt state
+     */
     virtual void interrupt(bool state) = 0;
 
     virtual void portA() {}
     virtual void portB() {}
 
     /**
-    * Read CIA register.
-    *
-    * @param addr
-    *            register address to read (lowest 4 bits)
-    */
+     * Read CIA register.
+     *
+     * @param addr
+     *            register address to read (lowest 4 bits)
+     */
     uint8_t read(uint_least8_t addr);
 
     /**
-    * Write CIA register.
-    *
-    * @param addr
-    *            register address to write (lowest 4 bits)
-    * @param data
-    *            value to write
-    */
+     * Write CIA register.
+     *
+     * @param addr
+     *            register address to write (lowest 4 bits)
+     * @param data
+     *            value to write
+     */
     void write(uint_least8_t addr, uint8_t data);
 
 private:
-    // TOD implementation taken from Vice
-    static uint8_t byte2bcd(uint8_t byte) { return (((byte / 10) << 4) + (byte % 10)) & 0xff; }
-    static uint8_t bcd2byte(uint8_t bcd) { return ((10*((bcd & 0xf0) >> 4)) + (bcd & 0xf)) & 0xff; }
+    void todInterrupt();
 
 public:
     /**
-    * Reset CIA.
-    */
+     * Reset CIA.
+     */
     virtual void reset();
 
     /**
-    * Get the credits.
-    *
-    * @return the credits
-    */
-    const char *credits() const { return credit; }
+     * Get the credits.
+     *
+     * @return the credits
+     */
+
+    static const char *credits() { return credit; }
 
     /**
-    * Set day-of-time event occurence of rate.
-    *
-    * @param clock
-    */
-    void setDayOfTimeRate(unsigned int clock);
+     * Set day-of-time event occurence of rate.
+     *
+     * @param clock
+     */
+    void setDayOfTimeRate(unsigned int clock) { tod.setPeriod(clock); }
 };
 
 #endif // MOS6526_H

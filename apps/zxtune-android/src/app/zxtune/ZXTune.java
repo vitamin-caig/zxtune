@@ -230,7 +230,7 @@ public final class ZXTune {
   public final static class Plugins {
     
     public final static class DeviceType {
-      //ZXTune::CAP_DEVICE_*
+      //ZXTune::CAP_DEV_*
       public final static int AY38910 = 1;
       public final static int TURBOSOUND = 2;
       public final static int BEEPER = 4;
@@ -239,6 +239,7 @@ public final class ZXTune {
       public final static int DAC = 32;
       public final static int SAA1099 = 64;
       public final static int MOS6581 = 128;
+      public final static int SPC700 = 256;
     }
     
     public interface Visitor {
@@ -264,7 +265,7 @@ public final class ZXTune {
    * @return New object
    */
   public static Module loadModule(ByteBuffer content, String subpath) throws InvalidObjectException {
-    return new NativeModule(Module_Create(content, subpath));
+    return new NativeModule(Module_Create(makeDirectBuffer(content), subpath));
   }
   
   public interface ModuleDetectCallback {
@@ -289,7 +290,22 @@ public final class ZXTune {
   }
   
   public static void detectModules(ByteBuffer content, ModuleDetectCallback cb) {
-    Module_Detect(content, new ModuleDetectCallbackNativeAdapter(cb));
+    Module_Detect(makeDirectBuffer(content), new ModuleDetectCallbackNativeAdapter(cb));
+  }
+  
+  private static ByteBuffer makeDirectBuffer(ByteBuffer content) {
+    if (content.position() != 0) {
+      throw new Error("Input data should have zero position");
+    }
+    if (content.isDirect()) {
+      return content;
+    } else {
+      final ByteBuffer direct = ByteBuffer.allocateDirect(content.limit());
+      direct.put(content);
+      direct.position(0);
+      content.position(0);
+      return direct;
+    }
   }
 
   /**

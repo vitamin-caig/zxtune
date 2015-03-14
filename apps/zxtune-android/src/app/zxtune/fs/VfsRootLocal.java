@@ -10,17 +10,14 @@
 
 package app.zxtune.fs;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.util.Scanner;
 
 import android.content.Context;
 import android.net.Uri;
@@ -63,18 +60,13 @@ final class VfsRootLocal implements VfsRoot, IconSource {
   @Override
   public void enumerate(Visitor visitor) {
     for (File root : File.listRoots()) {
-      visitor.onDir(new LocalDir(root));
+      visitor.onDir(buildDir(root));
     }
-    for (String storage : getExternalStorageDirectories()) {
-      visitor.onDir(buildDir(new File(storage)));
+    for (File storage : getExternalStorages()) {
+      visitor.onDir(buildDir(storage));
     }
   }
 
-  @Override
-  public void find(String mask, Visitor visitor) {
-    //TODO
-  }
-  
   @Override
   public VfsObject resolve(Uri uri) {
     if (SCHEME.equals(uri.getScheme())) {
@@ -122,52 +114,34 @@ final class VfsRootLocal implements VfsRoot, IconSource {
   }
 
   
-  //Based on code from http://renzhi.ca/2012/02/03/how-to-list-all-sd-cards-on-android/
-  private static List<String> getExternalStorageDirectories() {
+  private List<File> getExternalStorages() {
+    final List<File> result = new ArrayList<File>(5);
+    final File mounts = new File("/proc/mounts");
     try {
-      return readMountPoints();
-    }
-    catch (IOException e) {
-    }
-    return Collections.emptyList();
-  }
-  
-  private static List<String> readMountPoints() throws IOException {
-    final BufferedReader bufReader = new BufferedReader(new FileReader("/proc/mounts"));
-    try {
-      return readMountPoints(bufReader);
-    } finally {
-      bufReader.close();
-    }
-  }
-  
-  private static List<String> readMountPoints(BufferedReader reader) throws IOException {
-    final ArrayList<String> list = new ArrayList<String>();
-    for (;;) {
-      final String line = reader.readLine();
-      if (line == null) {
-        break;
-      }
-      if (line.contains("vfat") || line.contains("/mnt")) {
-        StringTokenizer tokens = new StringTokenizer(line, " ");
-        tokens.nextToken();
-        final String s = tokens.nextToken(); // Take the second token, i.e. mount point
-
-        if (s.equals(Environment.getExternalStorageDirectory().getPath())) {
-          list.add(s);
-        }
-        else if (line.contains("/dev/block/vold")
-          && !(line.contains("/mnt/secure") || line.contains("/mnt/asec") || 
-               line.contains("/mnt/obb") || line.contains("/dev/mapper") || 
-               line.contains("tmpfs"))) {
-          list.add(s);
+      final Scanner scan = new Scanner(mounts);
+      while (scan.hasNext()) {
+        //assume no comments in file
+        final String line = scan.nextLine();
+        final String[] fields = line.split(" ");
+        final String device = fields[0];
+        if (device.startsWith("/dev/block/vold")
+         || device.equals("/dev/fuse")) {
+          final String mountpoint = fields[1];
+          final File point = new File(mountpoint);
+          if (point.exists() && point.canRead() && !result.contains(point)) {
+            result.add(point);
+          }
         }
       }
+    } catch (IOException e) {
     }
-    return list;
+    if (result.isEmpty()) {
+      result.add(Environment.getExternalStorageDirectory());
+    }
+    return result;
   }
 
-  private class LocalDir implements VfsDir {
+  private class LocalDir extends StubObject implements VfsDir {
 
     private final File dir;
     private final String name;
@@ -187,11 +161,6 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     @Override
     public String getName() {
       return name;
-    }
-
-    @Override
-    public String getDescription() {
-      return "".intern();
     }
 
     @Override
@@ -217,14 +186,9 @@ final class VfsRootLocal implements VfsRoot, IconSource {
         }
       }
     }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      //TODO
-    }
   }
 
-  private class LocalFile implements VfsFile {
+  private class LocalFile extends StubObject implements VfsFile {
 
     private final File file;
 
@@ -243,11 +207,6 @@ final class VfsRootLocal implements VfsRoot, IconSource {
       return file.getName();
     }
     
-    @Override
-    public String getDescription() {
-      return "".intern();
-    }
-
     @Override
     public String getSize() {
       return Formatter.formatShortFileSize(context, file.length());

@@ -1,17 +1,288 @@
-Entry http://code.google.com/feeds/p/zxtune/downloads/basic/zxtune_r2086_windows_x86.zip
- Updated: 2012-10-29
- AlternateLink: http://code.google.com/p/zxtune/downloads/detail?name=zxtune_r2086_windows_x86.zip
+Entry zxtune_r3120.apk (7.0 MB)
+ Updated: 2014-10-27
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120.apk
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
  HtmlContent: 
 <pre>
-zxtune revision 2086
+zxtune revision 3120
 
-Labels:
+Labels: 
+ Type-Package
+ OpSys-Android
+ Platform-any
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120.apk">Download</a>
+</pre>
+ 
+
+Entry zxtune_r3120_windows_x86.zip (8.6 MB)
+ Updated: 2014-10-27
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_windows_x86.zip
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 3120
+
+Labels: 
  Type-Archive
  OpSys-Windows
  Platform-x86
- Compiler-vc71
+ Compiler-vc120
 
-<a href="http://zxtune.googlecode.com/files/zxtune_r2086_windows_x86.zip">Download</a>
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_windows_x86.zip">Download</a>
 </pre>
-  
+ 
+
+Entry zxtune_r3120_windows_x86_64.zip (10.0 MB)
+ Updated: 2014-10-27
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_windows_x86_64.zip
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 3120
+
+Labels: 
+ Type-Archive
+ OpSys-Windows
+ Platform-x86_64
+ Compiler-vc120
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_windows_x86_64.zip">Download</a>
+</pre>
+ 
+
+Entry zxtune_r3120_mingw_x86.zip (13.9 MB)
+ Updated: 2014-10-27
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_mingw_x86.zip
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 3120
+
+Labels: 
+ Type-Archive
+ OpSys-Windows
+ Platform-x86
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_mingw_x86.zip">Download</a>
+</pre>
+ 
+
+Entry zxtune_r3120_mingw_x86_64.zip (15.6 MB)
+ Updated: 2014-10-27
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_mingw_x86_64.zip
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 3120
+
+Labels: 
+ Type-Archive
+ OpSys-Windows
+ Platform-x86_64
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_mingw_x86_64.zip">Download</a>
+</pre>
+ 
+
+Entry zxtune_r2850_linux_i686.tar.gz (9.7 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_i686.tar.gz
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Archive
+ OpSys-Linux
+ Platform-x86
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_i686.tar.gz">Download</a>
+</pre>
+ 
+
+Entry zxtune_r2850_linux_x86_64.tar.gz (10.0 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_x86_64.tar.gz
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Archive
+ OpSys-Linux
+ Platform-x86_64
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_x86_64.tar.gz">Download</a>
+</pre>
+ 
+
+Entry zxtune_r2850_linux_arm.tar.gz (11.0 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_arm.tar.gz
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Archive
+ OpSys-Linux
+ Platform-arm
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_arm.tar.gz">Download</a>
+</pre>
+ 
+
+Entry zxtune_r2850_linux_armhf.tar.gz (9.5 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_armhf.tar.gz
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Archive
+ OpSys-Linux
+ Platform-armhf
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_armhf.tar.gz">Download</a>
+</pre>
+ 
+
+Entry zxtune_r2850_dingux_mipsel.tar.gz (9.6 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_dingux_mipsel.tar.gz
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Archive
+ OpSys-Dingux
+ Platform-mipsel
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_dingux_mipsel.tar.gz">Download</a>
+</pre>
+ 
+
+Entry zxtune-r2850-1-i686.pkg.tar.xz (2.3 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1-i686.pkg.tar.xz
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Package
+ OpSys-Archlinux
+ Platform-x86
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1-i686.pkg.tar.xz">Download</a>
+</pre>
+ 
+
+Entry zxtune-r2850-1-x86_64.pkg.tar.xz (2.5 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1-x86_64.pkg.tar.xz
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Package
+ OpSys-Archlinux
+ Platform-x86_64
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1-x86_64.pkg.tar.xz">Download</a>
+</pre>
+ 
+
+Entry zxtune_r2850_i386.deb (9.7 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_i386.deb
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Package
+ OpSys-Ubuntu
+ Platform-x86
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_i386.deb">Download</a>
+</pre>
+ 
+
+Entry zxtune_r2850_amd64.deb (10.0 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_amd64.deb
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Package
+ OpSys-Ubuntu
+ Platform-x86_64
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_amd64.deb">Download</a>
+</pre>
+ 
+
+Entry zxtune-r2850-1.i686.rpm (7.1 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.i686.rpm
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Package
+ OpSys-Redhat
+ Platform-x86
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.i686.rpm">Download</a>
+</pre>
+ 
+
+Entry zxtune-r2850-1.x86_64.rpm (7.2 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.x86_64.rpm
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Package
+ OpSys-Redhat
+ Platform-x86_64
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.x86_64.rpm">Download</a>
+</pre>
+ 
 

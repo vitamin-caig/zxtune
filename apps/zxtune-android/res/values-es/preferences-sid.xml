@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <!--zxtune.core.sid.interpolation-->
+  <!--zxtune.core.sid.filter-->
+  <string name="pref_zxtune_sid_filter_title">Emulación de filtro</string>
+</resources>

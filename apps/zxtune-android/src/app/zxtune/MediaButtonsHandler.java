@@ -59,7 +59,7 @@ public class MediaButtonsHandler extends BroadcastReceiver {
 
   private Intent getMediaButtonIntent(KeyEvent event) {
     final int action = event.getAction();
-    if (action != KeyEvent.ACTION_UP) {
+    if (action != KeyEvent.ACTION_UP || 0 != event.getRepeatCount()) {
       return null;
     }
     switch (event.getKeyCode()) {

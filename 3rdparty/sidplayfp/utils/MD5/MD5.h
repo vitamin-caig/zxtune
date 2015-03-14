@@ -1,7 +1,7 @@
 /*
  * This code has been derived by Michael Schwendt <mschwendt@yahoo.com>
  * from original work by L. Peter Deutsch <ghost@aladdin.com>.
- * 
+ *
  * The original C code (md5.c, md5.h) is available here:
  * ftp://ftp.cs.wisc.edu/ghost/packages/md5.tar.gz
  */

@@ -8,6 +8,7 @@
 *
 **/
 
+#include <strings/encoding.h>
 #include <strings/fields.h>
 #include <strings/fields_filter.h>
 #include <strings/map.h>
@@ -55,6 +56,19 @@ namespace
     const FieldsSourceFromMap<Policy> source(params);
     TestTemplate(source, templ, reference);
   }
+  
+  void TestTranscode(const String& str, const String& reference)
+  {
+    const String& trans = Strings::ToAutoUtf8(str);
+    if (trans == reference)
+    {
+      std::cout << "Passed test '" << str << "' => '" << reference << '\'' << std::endl;
+    }
+    else
+    {
+      std::cout << "Failed test '" << str << "' => '" << reference << "' (result is '" << trans << "')" << std::endl;
+    }
+  }
 }
 
 int main()
@@ -81,6 +95,18 @@ int main()
       TestTemplate(replaceToChar, "Replace bunch of symbols to single in [name] and [value]", "Replace bunch of symbols to single in v%lu% and n%m%");
       const Strings::FilterFieldsSource replaceToCharsSet(source, "abcde", "ABCDE");
       TestTemplate(replaceToCharsSet, "Replace bunch of symbols to multiple in [name] and [value]", "Replace bunch of symbols to multiple in vAluE and nAmE");
+    }
+    std::cout << "---- Test for transcode ----" << std::endl;
+    {
+      TestTranscode("S\xf8ren", "S\xc3\xb8ren");
+      TestTranscode("\xd8j", "\xc3\x98j");
+      TestTranscode("H\xfclsbeck", "H\xc3\xbclsbeck");
+      TestTranscode("Mih\xe1ly", "Mih\xc3\xa1ly");
+      TestTranscode("\xd6\xf6rni", "\xc3\x96\xc3\xb6rni");
+      TestTranscode("720\xb0", "720\xc2\xb0");
+      TestTranscode("M\xf6ller", "M\xc2\xb6ller");
+      TestTranscode("Norrg\xe5rd", "Norrg\xc3\xa5rd");
+      TestTranscode("Skarzy\xf1zki", "Skarzy\xc3\xb1zki");
     }
   }
   catch (int code)

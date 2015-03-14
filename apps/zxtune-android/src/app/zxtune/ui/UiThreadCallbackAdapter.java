@@ -25,59 +25,42 @@ public final class UiThreadCallbackAdapter implements Callback {
   }
 
   @Override
-  public void onStatusChanged(boolean isPlaying) {
-    activity.runOnUiThread(new UpdateStatusRunnable(isPlaying));
+  public void onStatusChanged(final boolean isPlaying) {
+    activity.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        delegate.onStatusChanged(isPlaying);
+      }
+    });
   }
 
   @Override
-  public void onItemChanged(Item item) {
-    activity.runOnUiThread(new UpdateItemRunnable(item));
+  public void onItemChanged(final Item item) {
+    activity.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        delegate.onItemChanged(item);
+      }
+    });
   }
   
   @Override
-  public void onIOStatusChanged(boolean isActive) {
-    activity.runOnUiThread(new UpdateIOStatusRunnable(isActive));
+  public void onIOStatusChanged(final boolean isActive) {
+    activity.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        delegate.onIOStatusChanged(isActive);
+      }
+    });
   }
   
-  private class UpdateStatusRunnable implements Runnable {
-    
-    private final boolean isPlaying;
-    
-    UpdateStatusRunnable(boolean isPlaying) {
-      this.isPlaying = isPlaying;
-    }
-    
-    @Override
-    public void run() {
-      delegate.onStatusChanged(isPlaying);
-    }
-  }
-
-  private class UpdateItemRunnable implements Runnable {
-    
-    private final Item item;
-    
-    UpdateItemRunnable(Item item) {
-      this.item = item;
-    }
-    
-    @Override
-    public void run() {
-      delegate.onItemChanged(item);
-    }
-  }
-
-  private class UpdateIOStatusRunnable implements Runnable {
-    
-    private final boolean isActive;
-    
-    UpdateIOStatusRunnable(boolean isActive) {
-      this.isActive = isActive;
-    }
-    
-    @Override
-    public void run() {
-      delegate.onIOStatusChanged(isActive);
-    }
+  @Override
+  public void onError(final String error) {
+    activity.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        delegate.onError(error);
+      }
+    });
   }
 }

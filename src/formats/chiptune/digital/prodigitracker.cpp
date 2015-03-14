@@ -323,7 +323,7 @@ namespace Chiptune
           std::size_t size = fromLE(descr.Size);
           if (descr.Page < PAGES_COUNT && start >= PAGES_START && size != 0)
           {
-            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%5$04x",
+            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x",
               samIdx, start, loop, size);
             const uint8_t* const sampleData = samplesStart + ZX_PAGE_SIZE * GetPageOrder(descr.Page) + (start - PAGES_START);
             while (--size && sampleData[size] == 0) {};

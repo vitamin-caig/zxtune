@@ -23,10 +23,11 @@ import android.widget.RemoteViews;
 import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
-import app.zxtune.playback.Callback;
+import app.zxtune.Util;
+import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.Item;
 
-public class StatusNotification implements Callback {
+public class StatusNotification extends CallbackStub {
   
   public enum Type {
     DEFAULT,
@@ -82,22 +83,14 @@ public class StatusNotification implements Callback {
   
   @Override
   public void onItemChanged(Item item) {
+    final String filename = item.getDataId().getLastPathSegment();
     String title = item.getTitle();
     final String author = item.getAuthor();
-    final boolean noTitle = 0 == title.length();
-    final boolean noAuthor = 0 == author.length();
-    final StringBuilder ticker = new StringBuilder();
-    if (noTitle && noAuthor) {
-      title = item.getDataId().getLastPathSegment();
-      ticker.append(title);
-    } else {
-      ticker.append(title);
-      if (!noTitle && !noAuthor) {
-        ticker.append(" - ");
-      }
-      ticker.append(author);
+    final String ticker = Util.formatTrackTitle(title, author, filename);
+    if (ticker.equals(filename)) {
+      title = filename;
     }
-    builder.setTicker(ticker.toString());
+    builder.setTicker(ticker);
     if (BUTTONS_SUPPORTED && type.equals(Type.WITH_CONTROLS)) {
       content.setTextViewText(R.id.notification_title, title);
       content.setTextViewText(R.id.notification_author, author);
@@ -115,10 +108,6 @@ public class StatusNotification implements Callback {
     } else {
       scheduler.postDelayed(delayedHide, NOTIFICATION_DELAY);
     }
-  }
-  
-  @Override
-  public void onIOStatusChanged(boolean isActive) {
   }
   
   private void showNotification() {

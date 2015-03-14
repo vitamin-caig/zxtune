@@ -4,6 +4,7 @@ samples_ay38910 := \
 	as0/Samba.as0 \
 	asc/SANDRA.asc \
 	ay/AYMD39.ay \
+  ayc/MEGAPAB2.AYC \
 	ftc/Nostalgy.ftc \
 	gtr/L.Boy.gtr \
 	psc/FL_SH_EI.psc \
@@ -28,6 +29,7 @@ samples_dac_zx := \
 	chi/ducktale.chi \
 	dmm/popcorn.dmm \
 	dst/Untitled.dst \
+	et1/mortal.m \
 	pdt/TechCent.M \
 	sqd/Maskarad.sqd \
 	str/COMETDAY.str
@@ -52,13 +54,18 @@ samples_ym2203 := \
 
 samples_ym2203_dir := YM2203
 
+samples_spc700 := \
+   spc/ala-16.spc
+   
+samples_spc700_dir := SPC700
+
 define install_samples_cmd
 	$(call makedir_cmd,$(DESTDIR)/Samples/$(samples_$(1)_dir))
 	$(foreach smp,$(samples_$(1)),$(call copyfile_cmd,$(samples_path)/$(samples_$(1)_dir)/$(smp),$(DESTDIR)/Samples/$(samples_$(1)_dir)) && ) \
 	echo Installed $(1) samples
 endef
 
-install_samples: install_samples_ay38910 install_samples_dac_zx install_samples_mos6581 install_samples_saa1099 install_samples_ym2203
+install_samples: install_samples_ay38910 install_samples_dac_zx install_samples_mos6581 install_samples_saa1099 install_samples_ym2203 install_samples_spc700
 
 install_samples_ay38910:
 	$(call install_samples_cmd,ay38910)
@@ -74,6 +81,9 @@ install_samples_saa1099:
 
 install_samples_ym2203:
 	$(call install_samples_cmd,ym2203)
+
+install_samples_spc700:
+	$(call install_samples_cmd,spc700)
 
 install_samples_playlist: 
 	$(call copyfile_cmd,$(path_step)/samples/samples.xspf,$(DESTDIR))

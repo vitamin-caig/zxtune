@@ -1,8 +1,9 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
+ * Copyright 2009-2014 VICE Project
  * Copyright 2000 Simon White
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,7 +25,7 @@
 
 #include <cstring>
 
-#include "sidplayfp/sidendian.h"
+#include "sidendian.h"
 
 enum
 {
@@ -77,9 +78,9 @@ const char *MOS6526::credit =
 {
     "MOS6526 (CIA) Emulation:\n"
     "\tCopyright (C) 2001-2004 Simon White\n"
-    "\tCopyright (C) 2009 VICE Project\n"
+    "\tCopyright (C) 2009-2014 VICE Project\n"
     "\tCopyright (C) 2009-2010 Antti S. Lankila\n"
-    "\tCopyright (C) 2011-2012 Leandro Nini\n"
+    "\tCopyright (C) 2011-2014 Leandro Nini\n"
 };
 
 MOS6526::MOS6526(EventContext *context) :
@@ -91,9 +92,8 @@ MOS6526::MOS6526(EventContext *context) :
     timerB(context, this),
     idr(0),
     event_context(*context),
-    m_todPeriod(~0), // Dummy
+    tod(context, this, regs),
     bTickEvent("CIA B counts A", *this, &MOS6526::bTick),
-    todEvent("CIA Time of Day", *this, &MOS6526::tod),
     triggerEvent("Trigger Interrupt", *this, &MOS6526::trigger)
 {
     reset();
@@ -128,11 +128,6 @@ void MOS6526::clear()
 }
 
 
-void MOS6526::setDayOfTimeRate(unsigned int clock)
-{
-    m_todPeriod = (event_clock_t) clock * (1 << 7);
-}
-
 void MOS6526::reset()
 {
     sdr_out = 0;
@@ -148,19 +143,12 @@ void MOS6526::reset()
     timerB.reset();
 
     // Reset tod
-    memset(m_todclock, 0, sizeof(m_todclock));
-    memset(m_todalarm, 0, sizeof(m_todalarm));
-    memset(m_todlatch, 0, sizeof(m_todlatch));
-    m_todlatched = false;
-    m_todstopped = true;
-    m_todclock[TOD_HR-TOD_TEN] = 1; // the most common value
-    m_todCycles = 0;
+    tod.reset();
 
     triggerScheduled = false;
 
     event_context.cancel(bTickEvent);
     event_context.cancel(triggerEvent);
-    event_context.schedule(todEvent, 0, EVENT_CLOCK_PHI1);
 }
 
 uint8_t MOS6526::read(uint_least8_t addr)
@@ -200,23 +188,11 @@ uint8_t MOS6526::read(uint_least8_t addr)
         return endian_16lo8(timerB.getTimer());
     case TBH:
         return endian_16hi8(timerB.getTimer());
-
-    // TOD implementation taken from Vice
-    // TOD clock is latched by reading Hours, and released
-    // upon reading Tenths of Seconds. The counter itself
-    // keeps ticking all the time.
-    // Also note that this latching is different from the input one.
-    case TOD_TEN: // Time Of Day clock 1/10 s
-    case TOD_SEC: // Time Of Day clock sec
-    case TOD_MIN: // Time Of Day clock min
-    case TOD_HR:  // Time Of Day clock hour
-        if (!m_todlatched)
-            memcpy(m_todlatch, m_todclock, sizeof(m_todlatch));
-        if (addr == TOD_TEN)
-            m_todlatched = false;
-        if (addr == TOD_HR)
-            m_todlatched = true;
-        return m_todlatch[addr - TOD_TEN];
+    case TOD_TEN:
+    case TOD_SEC:
+    case TOD_MIN:
+    case TOD_HR:
+        return tod.read(addr - TOD_TEN);
     case IDR:{
         if (triggerScheduled)
         {
@@ -269,35 +245,11 @@ void MOS6526::write(uint_least8_t addr, uint8_t data)
     case TBH:
         timerB.latchHi(data);
         break;
-
-    // TOD implementation taken from Vice
-    case TOD_HR:  // Time Of Day clock hour
-        // Flip AM/PM on hour 12
-        //   (Andreas Boose <viceteam@t-online.de> 1997/10/11).
-        // Flip AM/PM only when writing time, not when writing alarm
-        // (Alexander Bluhm <mam96ehy@studserv.uni-leipzig.de> 2000/09/17).
-        data &= 0x9f;
-        if ((data & 0x1f) == 0x12 && !(regs[CRB] & 0x80))
-            data ^= 0x80;
-        // deliberate run on
-    case TOD_TEN: // Time Of Day clock 1/10 s
-    case TOD_SEC: // Time Of Day clock sec
-    case TOD_MIN: // Time Of Day clock min
-        if (regs[CRB] & 0x80)
-            m_todalarm[addr - TOD_TEN] = data;
-        else
-        {
-            if (addr == TOD_TEN)
-                m_todstopped = false;
-            if (addr == TOD_HR)
-                m_todstopped = true;
-            m_todclock[addr - TOD_TEN] = data;
-        }
-        // check alarm
-        if (!m_todstopped && !memcmp(m_todalarm, m_todclock, sizeof(m_todalarm)))
-        {
-            trigger(INTERRUPT_ALARM);
-        }
+    case TOD_TEN:
+    case TOD_SEC:
+    case TOD_MIN:
+    case TOD_HR:
+        tod.write(addr - TOD_TEN, data);
         break;
     case SDR:
         if (regs[CRA] & 0x40)
@@ -379,52 +331,7 @@ void MOS6526::underflowB()
     trigger(INTERRUPT_UNDERFLOW_B);
 }
 
-void MOS6526::tod()
+void MOS6526::todInterrupt()
 {
-    // Reload divider according to 50/60 Hz flag
-    // Only performed on expiry according to Frodo
-    if (regs[CRA] & 0x80)
-        m_todCycles += (m_todPeriod * 5);
-    else
-        m_todCycles += (m_todPeriod * 6);
-
-    // Fixed precision 25.7
-    event_context.schedule(todEvent, m_todCycles >> 7);
-    m_todCycles &= 0x7F; // Just keep the decimal part
-
-    if (!m_todstopped)
-    {
-        // inc timer
-        uint8_t *tod = m_todclock;
-        uint8_t t = bcd2byte(*tod) + 1;
-        *tod++ = byte2bcd(t % 10);
-        if (t >= 10)
-        {
-            t = bcd2byte(*tod) + 1;
-            *tod++ = byte2bcd(t % 60);
-            if (t >= 60)
-            {
-                t = bcd2byte(*tod) + 1;
-                *tod++ = byte2bcd(t % 60);
-                if (t >= 60)
-                {
-                    uint8_t pm = *tod & 0x80;
-                    t = *tod & 0x1f;
-                    if (t == 0x11)
-                        pm ^= 0x80; // toggle am/pm on 0:59->1:00 hr
-                    if (t == 0x12)
-                        t = 1;
-                    else if (++t == 10)
-                        t = 0x10;   // increment, adjust bcd
-                    t &= 0x1f;
-                    *tod = t | pm;
-                }
-            }
-        }
-        // check alarm
-        if (!memcmp(m_todalarm, m_todclock, sizeof(m_todalarm)))
-        {
-            trigger(INTERRUPT_ALARM);
-        }
-    }
+    trigger(INTERRUPT_ALARM);
 }

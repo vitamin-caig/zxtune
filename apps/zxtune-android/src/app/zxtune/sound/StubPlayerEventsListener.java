@@ -25,7 +25,7 @@ public class StubPlayerEventsListener implements PlayerEventsListener {
   public void onStop() {}
   
   @Override
-  public void onError(Error e) {}
+  public void onError(Exception e) {}
 
   public static PlayerEventsListener instance() {
     return Holder.INSTANCE;

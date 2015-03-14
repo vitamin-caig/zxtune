@@ -279,14 +279,17 @@ namespace Xmp
       , State(new xmp_frame_info())
       , Target(target)
       , Params(params)
+      , SoundParams(Sound::RenderParameters::Create(params))
       , Track(boost::make_shared<TrackState>(info, State))
       , Analysis(boost::make_shared<Analyzer>(info->ChannelsCount(), State))
       , FrameDuration(info->GetFrameDuration())
+      , SoundFreq()
       , Looped(false)
     {
       const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(params);
+      SoundFreq = soundParams->SoundFreq();
       Looped = soundParams->Looped();
-      Ctx->Call(&::xmp_start_player, static_cast<int>(soundParams->SoundFreq()), 0);
+      Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
     }
 
     virtual ~Renderer()
@@ -346,6 +349,12 @@ namespace Xmp
     {
       if (Params.IsChanged())
       {
+        if (SoundFreq != SoundParams->SoundFreq())
+        {
+          SoundFreq = SoundParams->SoundFreq();
+          Ctx->Call(&::xmp_end_player);
+          Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
+        }
         Parameters::IntType val = 0;
         Params->FindValue(Parameters::ZXTune::Sound::LOOPED, val);
         Looped = val != 0;
@@ -360,9 +369,11 @@ namespace Xmp
     const StatePtr State;
     const Sound::Receiver::Ptr Target;
     const Devices::Details::ParametersHelper<Parameters::Accessor> Params;
+    const Sound::RenderParameters::Ptr SoundParams;
     const TrackState::Ptr Track;
     const Analyzer::Ptr Analysis;
     const TimeType FrameDuration;
+    uint_t SoundFreq;
     bool Looped;
   };
 

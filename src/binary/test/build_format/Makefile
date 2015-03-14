@@ -1,6 +1,6 @@
 binary_name := build_format
 path_step := ../../../..
-source_files := main
+source_dirs := .
 
 libraries.common = binary_format debug tools 
 

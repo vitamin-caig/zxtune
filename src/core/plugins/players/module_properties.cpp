@@ -95,9 +95,10 @@ namespace Module
 
   void PropertiesBuilder::SetComment(const String& comment)
   {
-    if (!comment.empty())
+    const String optimizedComment = OptimizeString(comment);
+    if (!optimizedComment.empty())
     {
-      Container->SetValue(ATTR_COMMENT, comment);
+      Container->SetValue(ATTR_COMMENT, optimizedComment);
     }
   }
 
@@ -121,9 +122,10 @@ namespace Module
 
   void PropertiesBuilder::SetVersion(const String& ver)
   {
-    if (!ver.empty())
+    const String optimizedVersion = OptimizeString(ver);
+    if (!optimizedVersion.empty())
     {
-      Container->SetValue(ATTR_VERSION, ver);
+      Container->SetValue(ATTR_VERSION, optimizedVersion);
     }
   }
 }

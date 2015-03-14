@@ -4,7 +4,7 @@ getlang = $(lastword $(subst /, ,$(dir $(1))))
 tools.lupdate ?= $(qt.bin)lupdate
 tools.lrelease ?= $(qt.bin)lrelease
 
-%.ts: $(sort $(wildcard $(addsuffix *$(src_suffix),$(sort $(dir $(source_files))))) $(addsuffix *.ui,$(sort $(dir $(ui_files)))))
+%.ts: $(source_files) $(addsuffix *.ui,$(sort $(dir $(ui_files))))
 	$(tools.lupdate) -target-language $(call getlang,$@) $^ -ts $@
 
 .PRECIOUS: %.ts

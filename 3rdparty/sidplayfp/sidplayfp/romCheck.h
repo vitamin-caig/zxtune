@@ -26,11 +26,11 @@
 #include <string>
 #include <utility>
 
-#include "sidplayfp/sidmd5.h"
+#include "sidmd5.h"
 
 /**
-* Utility class to identify known ROMs through their md5 checksum.
-*/
+ * Utility class to identify known ROMs through their md5 checksum.
+ */
 class romCheck
 {
 private:
@@ -98,8 +98,8 @@ public:
 };
 
 /**
-* romCheck implementation specific for kernal ROM.
-*/
+ * romCheck implementation specific for kernal ROM.
+ */
 class kernalCheck : public romCheck
 {
 public:
@@ -136,8 +136,8 @@ public:
 };
 
 /**
-* romCheck implementation specific for basic ROM.
-*/
+ * romCheck implementation specific for basic ROM.
+ */
 class basicCheck : public romCheck
 {
 public:
@@ -149,8 +149,8 @@ public:
 };
 
 /**
-* romCheck implementation specific for character generator ROM.
-*/
+ * romCheck implementation specific for character generator ROM.
+ */
 class chargenCheck : public romCheck
 {
 public:

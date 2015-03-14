@@ -35,7 +35,7 @@ msgstr ""
 msgid "Failed to found mixer '%1%' for ALSA backend."
 msgstr "Микшер '%1%' не найден в подсистеме ALSA."
 
-#: alsa_backend.cpp:619 dsound_backend.cpp:345 oss_backend.cpp:220
+#: alsa_backend.cpp:619 dsound_backend.cpp:347 oss_backend.cpp:220
 #: win32_backend.cpp:368
 msgid "Failed to set volume: gain is out of range."
 msgstr "Ошибка установки громкости: превышение допустимого значения."
@@ -47,9 +47,17 @@ msgstr ""
 "Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: alsa_backend.cpp:1066 dsound_backend.cpp:619 win32_backend.cpp:608
+#: alsa_backend.cpp:1066 dsound_backend.cpp:622 win32_backend.cpp:608
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
+
+#: aylpt_backend.cpp:53 aylpt_stub.cpp:23
+msgid "Real AY via LPT backend"
+msgstr "Поддержка реального AY чипа через LPT порт"
+
+#: aylpt_backend.cpp:282
+msgid "Real AY via LPT is not supported for this module."
+msgstr "Реальный AY через LPT порт не поддерживается для данного модуля."
 
 #: backend_impl.cpp:175 backend_impl.cpp:187
 msgid "Failed to initialize playback."
@@ -84,7 +92,7 @@ msgstr "Поддержка подсистемы DirectSound"
 msgid "Error in DirectSound backend: %1%."
 msgstr "Ошибка в подсистеме DirectSound: %1%."
 
-#: dsound_backend.cpp:397
+#: dsound_backend.cpp:400
 #, boost-format
 msgid "DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."
 msgstr ""
@@ -210,7 +218,7 @@ msgstr "Неизвестная ошибка в подсистеме SDL."
 #: service.cpp:116
 #, boost-format
 msgid "Backend '%1%' not registered."
-msgstr ""
+msgstr "Поддержка вывода '%1%' не зарегистрирована."
 
 #: service.cpp:121
 #, boost-format

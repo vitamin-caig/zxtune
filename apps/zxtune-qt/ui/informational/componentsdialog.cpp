@@ -63,6 +63,12 @@ namespace
     return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_MOS6581);
   }
 
+  bool IsSPCPlugin(const ZXTune::Plugin& plugin)
+  {
+    assert(IsPlayerPlugin(plugin));
+    return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_SPC700);
+  }
+
   bool IsMultitrackPlugin(const ZXTune::Plugin& plugin)
   {
     assert(!IsPlayerPlugin(plugin));
@@ -106,6 +112,7 @@ namespace
       , Fms(CreateTreeWidgetItem(Players, "FM"))
       , Saas(CreateTreeWidgetItem(Players, "SAA"))
       , Sids(CreateTreeWidgetItem(Players, "SID"))
+      , Spcs(CreateTreeWidgetItem(Players, "SPC"))
       , Multitracks(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Multitrack")))
       , Archives(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Archive")))
     {
@@ -144,6 +151,10 @@ namespace
       else if (IsSIDPlugin(plugin))
       {
         AddPlayerPluginItem(plugin, *Sids);
+      }
+      else if (IsSPCPlugin(plugin))
+      {
+        AddPlayerPluginItem(plugin, *Spcs);
       }
       else
       {
@@ -227,6 +238,7 @@ namespace
     QTreeWidgetItem* const Fms;
     QTreeWidgetItem* const Saas;
     QTreeWidgetItem* const Sids;
+    QTreeWidgetItem* const Spcs;
     QTreeWidgetItem* const Multitracks;
     QTreeWidgetItem* const Archives;
   };
@@ -249,12 +261,12 @@ namespace
   template<class T>
   QTreeWidgetItem* CreateRootItem(T& root, const String& description, const Error& status)
   {
-    QTreeWidgetItem* const item = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
+    QTreeWidgetItem* const item = new QTreeWidgetItem(&root, QStringList(ToQStringFromLocal(description)));
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     if (status)
     {
       item->setCheckState(0, Qt::Unchecked);
-      item->setToolTip(0, ToQString(status.ToString()));
+      item->setToolTip(0, ToQStringFromLocal(status.ToString()));
     }
     else
     {

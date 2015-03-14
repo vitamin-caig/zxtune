@@ -16,6 +16,9 @@
     <location>Samples/AY-3-8910/AYMD39.ay</location>
   </track>
   <track>
+    <location>Samples/AY-3-8910/MEGAPAB2.AYC</location>
+  </track>
+  <track>
     <location>Samples/AY-3-8910/Nostalgy.ftc</location>
   </track>
   <track>
@@ -77,6 +80,9 @@
     <location>Samples/DAC/ZX/Untitled.dst</location>
   </track>
   <track>
+    <location>Samples/DAC/ZX/mortal.m</location>
+  </track>
+  <track>
     <location>Samples/DAC/ZX/TechCent.M</location>
   </track>
   <track>
@@ -92,6 +98,10 @@
   <!-- SAA1099 -->
   <track>
     <location>Samples/SAA1099/axel.cop</location>
+  </track>
+  <!-- SPC700 -->
+  <track>
+    <location>Samples/SPC700/ala-16.spc</location>
   </track>
   <!-- YM2203 -->
   <track>

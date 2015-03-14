@@ -1,6 +1,6 @@
 binary_name := l10n_test_boost_locale
 path_step := ../../../..
-source_files := test
+source_dirs := .
 
 include $(path_step)/make/default.mak
 

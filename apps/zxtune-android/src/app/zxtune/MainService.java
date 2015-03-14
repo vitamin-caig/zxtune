@@ -20,8 +20,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.util.Log;
+import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackServiceLocal;
@@ -46,6 +46,7 @@ public class MainService extends Service {
   private Releaseable remoteControlHandler;
   private Releaseable headphonesPlugHandler;
   private Releaseable notificationTypeHandler;
+  private Releaseable widgetHandler;
   private Releaseable settingsChangedHandler;
   
   public final static String ACTION_PREV = TAG + ".prev";
@@ -75,10 +76,11 @@ public class MainService extends Service {
     binder = new PlaybackServiceServer(service);
     final PlaybackControl control = service.getPlaybackControl();
     phoneCallHandler = PhoneCallHandler.subscribe(this, control);
-    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+    final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(this);
     connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
     connectHeadphonesPlugging(prefs.getBoolean(PREF_UNPLUGGING, PREF_UNPLUGGING_DEFAULT));
     setupNotification(prefs.getBoolean(PREF_NOTIFICATIONBUTTONS, PREF_NOTIFICATIONBUTTONS_DEFAULT));
+    setupWidgets();
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
       final String key = entry.getKey();
       if (key.startsWith(ZXTune.Properties.PREFIX)) {
@@ -88,13 +90,16 @@ public class MainService extends Service {
     settingsChangedHandler =
         new BroadcastReceiverConnection(this, new ChangedSettingsReceiver(), new IntentFilter(
             PreferencesActivity.ACTION_PREFERENCE_CHANGED));
+    setupServiceSessions();
   }
-
+  
   @Override
   public void onDestroy() {
     Log.d(TAG, "Destroying");
     settingsChangedHandler.release();
     settingsChangedHandler = null;
+    widgetHandler.release();
+    widgetHandler = null;
     notificationTypeHandler.release();
     notificationTypeHandler = null;
     headphonesPlugHandler.release();
@@ -184,6 +189,23 @@ public class MainService extends Service {
         ? StatusNotification.Type.WITH_CONTROLS : StatusNotification.Type.DEFAULT; 
     final StatusNotification cb = new StatusNotification(this, type);
     notificationTypeHandler = new CallbackSubscription(service, cb);
+  }
+  
+  private void setupWidgets() {
+    final WidgetHandler.WidgetNotification cb = new WidgetHandler.WidgetNotification();
+    widgetHandler = new CallbackSubscription(service, cb);
+  }
+  
+  private void setupServiceSessions() {
+    service.restoreSession();
+    service.subscribe(new CallbackStub() {
+      @Override
+      public void onStatusChanged(boolean isPlaying) {
+        if (!isPlaying) {
+          service.storeSession();
+        }
+      }
+    });
   }
 
   private class ChangedSettingsReceiver extends BroadcastReceiver {

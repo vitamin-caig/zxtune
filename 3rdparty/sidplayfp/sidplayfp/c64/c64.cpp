@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2000 Simon White
  *
@@ -22,18 +22,21 @@
 
 #include "c64.h"
 
-#include "sidplayfp/c64/VIC_II/mos656x.h"
+#include <algorithm>
+
+#include "c64/VIC_II/mos656x.h"
 
 typedef struct
 {
-    double colorBurst;
-    double divider;
-    MOS656X::model_t vicModel;
+    double colorBurst;         ///< Colorburst frequency in Herz
+    double divider;            ///< Clock frequency divider
+    double powerFreq;          ///< Power line frequency in Herz
+    MOS656X::model_t vicModel; ///< Video chip model
 } model_data_t;
 
 /*
  * Color burst frequencies:
- * 
+ *
  * NTSC  - 3.579545455 MHz = 315/88 MHz
  * PAL-B - 4.43361875 MHz = 283.75 * 15625 Hz + 25 Hz.
  * PAL-M - 3.57561149 MHz
@@ -42,10 +45,10 @@ typedef struct
 
 const model_data_t modelData[] =
 {
-    {4.43361875,  18., MOS656X::MOS6569},      // PAL-B
-    {3.579545455, 14., MOS656X::MOS6567R8},    // NTSC-M
-    {3.579545455, 14., MOS656X::MOS6567R56A},  // Old NTSC-M
-    {3.58205625,  14., MOS656X::MOS6572},      // PAL-N
+    {4433618.75,  18., 50., MOS656X::MOS6569},      // PAL-B
+    {3579545.455, 14., 60., MOS656X::MOS6567R8},    // NTSC-M
+    {3579545.455, 14., 60., MOS656X::MOS6567R56A},  // Old NTSC-M
+    {3582056.25,  14., 50., MOS656X::MOS6572},      // PAL-N
 };
 
 double c64::getCpuFreq(model_t model)
@@ -54,8 +57,12 @@ double c64::getCpuFreq(model_t model)
      * The crystal clock that drives the VIC II chip is four times
      * the color burst frequency
      */
-    const double crystalFreq = modelData[model].colorBurst * 4. * 1000000.;
+    const double crystalFreq = modelData[model].colorBurst * 4.;
 
+    /*
+     * The VIC II produces the two-phase system clock
+     * by running the input clock through a divider
+     */
     return crystalFreq/modelData[model].divider;
 }
 
@@ -95,13 +102,15 @@ void c64::reset()
 {
     m_scheduler.reset();
 
-    //cpu.reset  ();
+    //cpu.reset();
     cia1.reset();
     cia2.reset();
     vic.reset();
     sidBank.reset();
     colorRAMBank.reset();
     mmu.reset();
+
+    std::for_each(extraSidBanks.begin(), extraSidBanks.end(), resetSID());
 
     irqCount = 0;
     oldBAState = true;
@@ -112,43 +121,56 @@ void c64::setModel(model_t model)
     m_cpuFreq = getCpuFreq(model);
     vic.chip(modelData[model].vicModel);
 
-    const unsigned int rate = vic.getCyclesPerLine() * vic.getRasterLines();
+    const unsigned int rate = m_cpuFreq / modelData[model].powerFreq;
     cia1.setDayOfTimeRate(rate);
     cia2.setDayOfTimeRate(rate);
 }
 
-void c64::setSid(unsigned int i, c64sid *s)
+void c64::setBaseSid(c64sid *s)
 {
-    switch (i)
-    {
-    case 0:
-        sidBank.setSID(s);
-        break;
-    case 1:
-        extraSidBank.setSID(s);
-        break;
-    default:
-        break;
-    }
+    sidBank.setSID(s);
 }
 
-void c64::setSecondSIDAddress(int sidChipBase2)
+bool c64::addExtraSid(c64sid *s, int address)
 {
+    // Check for valid address in the IO area range ($dxxx)
+    if ((address & 0xf000) != 0xd000)
+        return false;
+
+    const int idx = (address >> 8) & 0xf;
+
+    // Only allow second SID chip in SID area ($d400-$d7ff)
+    // or IO Area ($de00-$dfff)
+    if (idx < 0x4 || (idx > 0x7 && idx < 0xe))
+        return false;
+
+    //Add new SID bank
+    sidBankMap_t::iterator it = extraSidBanks.find(idx);
+    if (it != extraSidBanks.end())
+    {
+         ExtraSidBank *extraSidBank = it->second;
+         extraSidBank->addSID(s, address);
+    }
+    else
+    {
+        ExtraSidBank *extraSidBank = extraSidBanks.insert(it, sidBankMap_t::value_type(idx, new ExtraSidBank()))->second;
+        extraSidBank->resetSIDMapper(ioBank.getBank(idx));
+        ioBank.setBank(idx, extraSidBank);
+        extraSidBank->addSID(s, address);
+    }
+
+    return true;
+}
+
+void c64::clearSids()
+{
+    sidBank.setSID(0);
+
     resetIoBank();
 
-    // Check for valid address in the IO area range ($dxxx)
-    if (sidChipBase2 == 0 || ((sidChipBase2 & 0xf000) != 0xd000))
-        return;
-
-    const int idx = (sidChipBase2 >> 8) & 0xf;
-    /*
-    * Only allow second SID chip in SID area ($d400-$d7ff)
-    * or IO Area ($de00-$dfff)
-    */
-    if (idx < 0x4 || (idx > 0x7 && idx < 0xe))
-        return;
-
-    extraSidBank.resetSIDMapper(ioBank.getBank(idx));
-    ioBank.setBank(idx, &extraSidBank);
-    extraSidBank.setSIDMapping(sidChipBase2);
+    for(sidBankMap_t::const_iterator it = extraSidBanks.begin(); it != extraSidBanks.end(); ++it)
+    {
+        delete it->second;
+    }
+    extraSidBanks.clear();
 }

@@ -132,9 +132,9 @@ namespace SAA
     {
     }
 
-    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    void SetClockFrequency(uint64_t clockFreq)
     {
-      Filter.SetParameters(clockFreq / FREQ_DIVIDER, soundFreq / 4);
+      Filter.SetParameters(clockFreq / FREQ_DIVIDER, Details::SOUND_CUTOFF_FREQUENCY);
     }
 
     void Tick(uint_t ticksPassed)
@@ -169,9 +169,9 @@ namespace SAA
     {
     }
 
-    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    void SetClockFrequency(uint64_t clockFreq)
     {
-      Parent::PSG.SetFrequency(clockFreq, soundFreq);
+      Parent::PSG.SetClockFrequency(clockFreq);
     }
   };
 
@@ -202,7 +202,7 @@ namespace SAA
       if (ClockFreq != clockFreq || SoundFreq != soundFreq)
       {
         Clock.SetFrequency(clockFreq, soundFreq);
-        HQ.SetFrequency(clockFreq, soundFreq);
+        HQ.SetClockFrequency(clockFreq);
         ClockFreq = clockFreq;
         SoundFreq = soundFreq;
       }

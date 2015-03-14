@@ -22,7 +22,7 @@
 
 #include "timer.h"
 
-#include "sidplayfp/sidendian.h"
+#include "sidendian.h"
 
 void Timer::setControlRegister(uint8_t cr)
 {

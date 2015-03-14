@@ -38,7 +38,8 @@ public:
 
     virtual ~p00() {}
 
-private:    // prevent copying
+private:
+    // prevent copying
     p00(const p00&);
     p00& operator=(p00&);
 };

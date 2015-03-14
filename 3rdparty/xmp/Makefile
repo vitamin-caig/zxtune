@@ -4,20 +4,20 @@ include $(path_step)/make/default.mak
 
 include_dirs := include src
 
-source_files_cc += $(addprefix src/,\
+source_files += $(addprefix src/,\
  virtual format misc period player read_event \
  dataio mkstemp fnmatch md5 lfo envelope scan \
  control med_extras filter effects mixer \
  mix_all \
  load_helpers load hio hmn_extras extras smix)
 
-source_files_cc += $(addprefix src/depackers/,\
+source_files += $(addprefix src/depackers/,\
  ppdepack unsqsh mmcmp readrle readhuff readlzw \
  unarc arcfs xfd muse unlzx s404_dec \
  unzip gunzip uncompress unxz bunzip2 unlha \
  xz_dec_lzma2 xz_dec_stream oxm vorbis crc32)
 
-source_files_cc += $(addprefix src/loaders/,\
+source_files += $(addprefix src/loaders/,\
  common iff itsex asif voltable sample \
  xm_load mod_load stm_load 669_load far_load \
  mtm_load ptm_load okt_load \
@@ -31,7 +31,7 @@ source_files_cc += $(addprefix src/loaders/,\
  coco_load pw_load gal5_load gal4_load mfp_load \
  polly_load asylum_load hmn_load)
 
-source_files_cc += $(addprefix src/loaders/prowizard/,\
+source_files += $(addprefix src/loaders/prowizard/,\
  prowiz ptktable tuning ac1d di eureka \
  fc-m fuchs fuzzac gmc heatseek kris ksm \
  mp np1 np2 np3 p61a pm10c pm18a \
@@ -43,11 +43,13 @@ source_files_cc += $(addprefix src/loaders/prowizard/,\
 # pm20 pm40 pp10 pp30 tp1 tp2)
 
 ifneq ($(findstring $(platform),windows mingw),)
-source_files_cc += $(addprefix src/win32/,\
+source_files += $(addprefix src/win32/,\
  ptpopen debug usleep)
 
 include_dirs += src/win32
 endif
+
+source_files := $(addsuffix .c,$(source_files))
 
 defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS
 windows_definitions += inline=__inline _USE_MATH_DEFINES WIN32 _WINDOWS PATH_MAX=1024

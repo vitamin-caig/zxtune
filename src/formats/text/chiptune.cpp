@@ -12,6 +12,9 @@ extern const Char ASCSOUNDMASTER1_DECODER_DESCRIPTION[] = {
 extern const Char ASCSOUNDMASTER2_DECODER_DESCRIPTION[] = {
   'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','v','2','.','x',0
 };
+extern const Char AYC_DECODER_DESCRIPTION[] = {
+  'C','P','C',' ','A','Y','C',0
+};
 extern const Char AY_EMUL_DECODER_DESCRIPTION[] = {
   'A','Y','/','E','M','U','L',0
 };
@@ -35,6 +38,15 @@ extern const Char DIGITALSTUDIO_VERSION_DAC[] = {
 };
 extern const Char ETRACKER_DECODER_DESCRIPTION[] = {
   'E','-','T','r','a','c','k','e','r',' ','v','1','.','x',0
+};
+extern const Char EXTREMETRACKER131[] = {
+  'E','x','t','r','e','m','e',' ','T','r','a','c','k','e','r',' ','v','1','.','3','1',0
+};
+extern const Char EXTREMETRACKER132[] = {
+  'E','x','t','r','e','m','e',' ','T','r','a','c','k','e','r',' ','v','1','.','3','2','-','1','.','4','1',0
+};
+extern const Char EXTREMETRACKER1_DECODER_DESCRIPTION[] = {
+  'E','x','t','r','e','m','e',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
 extern const Char FASTTRACKER_DECODER_DESCRIPTION[] = {
   'F','a','s','t',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
@@ -108,6 +120,9 @@ extern const Char SOUNDTRACKERPRO_DECODER_DESCRIPTION[] = {
 };
 extern const Char SOUNDTRACKER_DECODER_DESCRIPTION[] = {
   'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
+};
+extern const Char SPC_DECODER_DESCRIPTION[] = {
+  'S','N','E','S',' ','S','P','C','7','0','0',0
 };
 extern const Char SQDIGITALTRACKER_DECODER_DESCRIPTION[] = {
   'S','Q',' ','D','i','g','i','t','a','l',' ','T','r','a','c','k','e','r',0

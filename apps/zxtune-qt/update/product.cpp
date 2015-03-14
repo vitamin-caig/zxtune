@@ -10,8 +10,9 @@
 
 //local includes
 #include "product.h"
-#include "apps/version/api.h"
 #include "apps/zxtune-qt/ui/utils.h"
+//library includes
+#include <platform/version/api.h>
 //boost includes
 #include <boost/range/end.hpp>
 //qt includes
@@ -24,7 +25,7 @@ namespace
   public:
     virtual Product::Release::PlatformTag Platform() const
     {
-      const String txt = GetBuildPlatform();
+      const String txt = Platform::Version::GetBuildPlatform();
       if (txt == "windows")
       {
         return Product::Release::WINDOWS;
@@ -49,7 +50,7 @@ namespace
 
     virtual Product::Release::ArchitectureTag Architecture() const
     {
-      const String txt = GetBuildArchitecture();
+      const String txt = Platform::Version::GetBuildArchitecture();
       if (txt == "x86")
       {
         return Product::Release::X86;
@@ -78,12 +79,12 @@ namespace
 
     virtual QString Version() const
     {
-      return ToQString(GetProgramVersion());
+      return ToQString(Platform::Version::GetProgramVersion());
     }
 
     virtual QDate Date() const
     {
-      return QDate::fromString(ToQString(GetBuildDate()), Qt::SystemLocaleShortDate);
+      return QDate::fromString(ToQString(Platform::Version::GetBuildDate()), Qt::SystemLocaleShortDate);
     }
   };
 

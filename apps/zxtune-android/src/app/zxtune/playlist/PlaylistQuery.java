@@ -38,21 +38,27 @@ public class PlaylistQuery {
 
   private static final String AUTHORITY = "app.zxtune.playlist";
   private static final String ITEMS_PATH = "items";
+  private static final String STATISTICS_PATH = "statistics";
 
   private static final Type TYPE_ALL_ITEMS;
   private static final Type TYPE_ONE_ITEM;
+  private static final Type TYPE_STATISTICS;
 
   private static final UriMatcher uriTemplate;
 
   public static final Uri ALL;
+  public static final Uri STATISTICS;
 
   static {
     TYPE_ALL_ITEMS = new Type("vnd.android.cursor.dir/vnd." + AUTHORITY + "." + ITEMS_PATH);
     TYPE_ONE_ITEM = new Type("vnd.android.cursor.item/vnd." + AUTHORITY + "." + ITEMS_PATH);
+    TYPE_STATISTICS = new Type("vnd.android.cursor.item/vnd." + AUTHORITY + "." + STATISTICS_PATH);
     uriTemplate = new UriMatcher(UriMatcher.NO_MATCH);
     uriTemplate.addURI(AUTHORITY, ITEMS_PATH, TYPE_ALL_ITEMS.id);
     uriTemplate.addURI(AUTHORITY, ITEMS_PATH + "/#", TYPE_ONE_ITEM.id);
+    uriTemplate.addURI(AUTHORITY, STATISTICS_PATH, TYPE_STATISTICS.id);
     ALL = uriFor(null);
+    STATISTICS = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY).path(STATISTICS_PATH).build();
   }
 
   //! @return Mime type of uri (used in content provider)
@@ -62,6 +68,8 @@ public class PlaylistQuery {
       return TYPE_ALL_ITEMS.mime;
     } else if (uriType == TYPE_ONE_ITEM.id) {
       return TYPE_ONE_ITEM.mime;
+    } else if (uriType == TYPE_STATISTICS.id) {
+      return TYPE_STATISTICS.mime;
     } else {
       throw new IllegalArgumentException("Wrong URI: " + uri);
     }

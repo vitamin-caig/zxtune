@@ -17,14 +17,13 @@ AM_CPPFLAGS = -I $(top_builddir)/builders/residfp-builder \
 -I $(top_builddir)/builders/resid-builder \
 -I $(top_builddir)/builders/resid-builder/resid \
 -I $(top_builddir)/sidplayfp \
+-I $(top_srcdir)/sidplayfp \
 @debug_flags@
 
 #=========================================================
 EXTRA_DIST = \
 docs/mainpage.dox \
-sidplayfp/psiddrv.bin \
-sidplayfp/c64/poweron.bin \
-sidplayfp/sidtune/sidplayer.bin \
+sidplayfp/psiddrv.a65 \
 builders/residfp-builder/residfp/AUTHORS \
 builders/residfp-builder/residfp/COPYING \
 builders/residfp-builder/residfp/README \
@@ -33,6 +32,7 @@ builders/resid-builder/resid/ChangeLog \
 builders/resid-builder/resid/COPYING \
 builders/resid-builder/resid/configure.in \
 builders/resid-builder/resid/INSTALL \
+builders/resid-builder/resid/Makefile.am \
 builders/resid-builder/resid/NEWS \
 builders/resid-builder/resid/README \
 builders/resid-builder/resid/README.VICE \
@@ -60,7 +60,6 @@ endif
 #=========================================================
 # libsidplayfp
 sidplayfp_libsidplayfp_la_SOURCES = \
-sidplayfp/component.h \
 sidplayfp/config.cpp \
 sidplayfp/EventScheduler.cpp \
 sidplayfp/EventScheduler.h \
@@ -68,8 +67,10 @@ sidplayfp/player.cpp \
 sidplayfp/player.h \
 sidplayfp/psiddrv.cpp \
 sidplayfp/psiddrv.h \
+sidplayfp/psiddrv.bin \
 sidplayfp/mixer.cpp \
 sidplayfp/mixer.h \
+sidplayfp/poweron.bin \
 sidplayfp/reloc65.cpp \
 sidplayfp/reloc65.h \
 sidplayfp/sidbuilder.cpp \
@@ -79,8 +80,8 @@ sidplayfp/sidmemory.h \
 sidplayfp/sidplayfp.cpp \
 sidplayfp/SidInfoImpl.h \
 sidplayfp/SidTune.cpp \
-sidplayfp/psiddrv.a65 \
 sidplayfp/romCheck.h \
+sidplayfp/sidemu.cpp \
 sidplayfp/sidemu.h \
 sidplayfp/sidendian.h \
 sidplayfp/sidrandom.h \
@@ -93,6 +94,7 @@ sidplayfp/c64/c64sid.h \
 sidplayfp/c64/c64vic.h \
 sidplayfp/c64/c64.cpp \
 sidplayfp/c64/c64.h \
+sidplayfp/c64/component.h \
 sidplayfp/c64/mmu.cpp \
 sidplayfp/c64/mmu.h \
 sidplayfp/c64/Banks/ColorRAMBank.h \
@@ -106,6 +108,9 @@ sidplayfp/c64/Banks/SystemROMBanks.h \
 sidplayfp/c64/Banks/ZeroRAMBank.h \
 sidplayfp/c64/VIC_II/mos656x.cpp \
 sidplayfp/c64/VIC_II/mos656x.h \
+sidplayfp/c64/VIC_II/lightpen.h \
+sidplayfp/c64/VIC_II/sprites.h \
+sidplayfp/c64/CPU/flags.h \
 sidplayfp/c64/CPU/mos6510.cpp \
 sidplayfp/c64/CPU/mos6510.h \
 sidplayfp/c64/CPU/mos6510debug.cpp \
@@ -115,6 +120,8 @@ sidplayfp/c64/CIA/mos6526.cpp \
 sidplayfp/c64/CIA/mos6526.h \
 sidplayfp/c64/CIA/timer.cpp \
 sidplayfp/c64/CIA/timer.h \
+sidplayfp/c64/CIA/tod.cpp \
+sidplayfp/c64/CIA/tod.h \
 sidplayfp/sidtune/MUS.cpp \
 sidplayfp/sidtune/MUS.h \
 sidplayfp/sidtune/p00.cpp \
@@ -123,6 +130,7 @@ sidplayfp/sidtune/prg.cpp \
 sidplayfp/sidtune/prg.h \
 sidplayfp/sidtune/PSID.cpp \
 sidplayfp/sidtune/PSID.h \
+sidplayfp/sidtune/sidplayer.bin \
 sidplayfp/sidtune/SidTuneBase.cpp \
 sidplayfp/sidtune/SidTuneBase.h \
 sidplayfp/sidtune/SidTuneCfg.h \
@@ -170,6 +178,7 @@ builders_residfp_builder_residfp_libresidfp_la_SOURCES = \
 builders/residfp-builder/residfp/array.h \
 builders/residfp-builder/residfp/Dac.cpp \
 builders/residfp-builder/residfp/Dac.h \
+builders/residfp-builder/residfp/Integrator.cpp \
 builders/residfp-builder/residfp/Integrator.h \
 builders/residfp-builder/residfp/EnvelopeGenerator.cpp \
 builders/residfp-builder/residfp/EnvelopeGenerator.h \
@@ -179,6 +188,7 @@ builders/residfp-builder/residfp/FilterModelConfig.cpp \
 builders/residfp-builder/residfp/FilterModelConfig.h \
 builders/residfp-builder/residfp/Filter.cpp \
 builders/residfp-builder/residfp/Filter.h \
+builders/residfp-builder/residfp/Filter8580.cpp \
 builders/residfp-builder/residfp/Filter8580.h \
 builders/residfp-builder/residfp/Filter6581.cpp \
 builders/residfp-builder/residfp/Filter6581.h \
@@ -199,7 +209,6 @@ builders/residfp-builder/residfp/resample/ZeroOrderResampler.h \
 builders/residfp-builder/residfp/resample/SincResampler.cpp \
 builders/residfp-builder/residfp/resample/SincResampler.h \
 builders/residfp-builder/residfp/resample/TwoPassSincResampler.h \
-builders/residfp-builder/residfp/residfp-config.h \
 builders/residfp-builder/residfp/version.cc
 
 #=========================================================
@@ -315,13 +324,17 @@ endif
 # test
 if TESTSUITE
 noinst_PROGRAMS = \
+test/demo \
 test/test \
 builders/residfp-builder/residfp/resample/test
 
+test_demo_SOURCES = test/demo.cpp 
+
+test_demo_LDADD = sidplayfp/libsidplayfp.la
+
 test_test_SOURCES = test/test.cpp 
 
-test_test_LDADD = sidplayfp/libsidplayfp.la \
-builders/residfp-builder/libsidplayfp-residfp.la
+test_test_LDADD = sidplayfp/libsidplayfp.la
 
 builders_residfp_builder_residfp_resample_test_SOURCES = builders/residfp-builder/residfp/resample/test.cpp
 
@@ -334,8 +347,12 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libsidplayfp.pc libstilview.pc
 
 #=========================================================
-# Remove SVN directories from any subdirs that get
-# included completely (e.g. win, directx,...).
+# Recreate psiddrv.bin, needs xa65
 
-dist-hook:
-	rm -rf `find $(distdir) -path \*/.svn`
+CLEANFILES = sidplayfp/psiddrv.o65 sidplayfp/psiddrv.bin
+
+sidplayfp/psiddrv.o65:
+	xa -R -G $(srcdir)/sidplayfp/psiddrv.a65 -o $@
+
+sidplayfp/psiddrv.bin: sidplayfp/psiddrv.o65
+	od -v -An -w8 -tx1 $< | sed -re 's/[[:alnum:]]+/0x&,/g' > sidplayfp/psiddrv.bin

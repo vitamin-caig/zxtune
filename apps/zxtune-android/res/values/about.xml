@@ -18,6 +18,7 @@
     \tDragSortListView by <b>Carl A.Bauer</b>\n
     \tlibxmp by <b>Claudio Matsuoka</b>\n
     \tlibsidplayfp+resid\n
+    \tsnes_spc by <b>Shay Green</b>\n
     \n
     Dedicated to <b>Lizzi</b>
   </string>
@@ -28,6 +29,7 @@
   <string name="plugin_player_fm_tfm" translatable="false">YM2203/TurboFM</string>
   <string name="plugin_player_saa" translatable="false">Philips SAA1099</string>
   <string name="plugin_player_sid" translatable="false">MOS6581/SID</string>
+  <string name="plugin_player_spc" translatable="false">SPC700</string>
   <!-- decoders -->
   <string name="plugin_decoder_decompiler">Decompilers</string>
   <!-- multitrack -->

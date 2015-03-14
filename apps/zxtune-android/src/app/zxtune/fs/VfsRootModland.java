@@ -117,11 +117,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
   }
 
   @Override
-  public void find(String mask, Visitor visitor) {
-    //TODO
-  }
-
-  @Override
   public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
@@ -154,7 +149,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
     return isLetter(c) ? str.substring(0, 1) : NOT_LETTER;
   }
 
-  private VfsObject resolvePath(Uri uri) {
+  private VfsObject resolvePath(Uri uri) throws IOException {
     final List<String> path = uri.getPathSegments();
     if (path.isEmpty()) {
       return this;
@@ -215,12 +210,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
       }
     }
 
-    @Override
-    public void find(String mask, Visitor visitor) {
-      //TODO
-    }
-
-    final VfsObject resolve(Uri uri, List<String> path) {
+    final VfsObject resolve(Uri uri, List<String> path) throws IOException {
       if (POS_CATEGORY == path.size() - 1) {
         return this;
       } else {
@@ -237,9 +227,9 @@ final class VfsRootModland implements VfsRoot, IconSource {
       return rootUri().appendPath(path);
     }
 
-    private class GroupByLetterDir implements VfsDir {
+    private class GroupByLetterDir extends StubObject implements VfsDir {
 
-      private String letter;
+      private final String letter;
 
       GroupByLetterDir(String letter) {
         this.letter = letter;
@@ -253,11 +243,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
       @Override
       public String getName() {
         return letter;
-      }
-
-      @Override
-      public String getDescription() {
-        return "".intern();
       }
 
       @Override
@@ -281,12 +266,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
         });
       }
 
-      @Override
-      public void find(String mask, Visitor visitor) {
-        //TODO
-      }
-
-      final VfsObject resolve(Uri uri, List<String> path) {
+      final VfsObject resolve(Uri uri, List<String> path) throws IOException {
         if (POS_LETTER == path.size() - 1) {
           return this;
         } else {
@@ -296,6 +276,8 @@ final class VfsRootModland implements VfsRoot, IconSource {
             return obj != null
                     ? new GroupDir(obj).resolve(uri, path)
                     : null;
+          } catch (IOException e) {
+            throw e;
           } catch (Exception e) {
             Log.d(TAG, "resolve(" + uri + ")", e);
             return null;
@@ -351,11 +333,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
           });
         }
 
-        @Override
-        public void find(String mask, Visitor visitor) {
-          //TODO
-        }
-
         final VfsObject resolve(Uri uri, List<String> path) {
           if (POS_NAME == path.size() - 1) {
             return this;
@@ -373,7 +350,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
     }
   }
 
-  private class TrackFile implements VfsFile {
+  private class TrackFile extends StubObject implements VfsFile {
 
     private final Track track;
 
@@ -389,11 +366,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
     @Override
     public String getName() {
       return track.filename;
-    }
-
-    @Override
-    public String getDescription() {
-      return "".intern();
     }
 
     @Override

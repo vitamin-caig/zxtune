@@ -149,6 +149,15 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.e(TAG, "move()", e);
       }
     }
+    
+    @Override
+    public void sort(SortBy field, SortOrder order) {
+      try {
+        delegate.sort(field.name(), order.name());
+      } catch (RemoteException e) {
+        Log.e(TAG, "sort()", e);
+      }
+    }
   }
   
   private class PlaybackControlClient implements PlaybackControl  {
@@ -311,6 +320,11 @@ public final class PlaybackServiceClient implements PlaybackService {
     @Override
     public void onIOStatusChanged(boolean isActive) {
       delegate.onIOStatusChanged(isActive);
+    }
+    
+    @Override
+    public void onError(String error) {
+      delegate.onError(error);
     }
   }
 }

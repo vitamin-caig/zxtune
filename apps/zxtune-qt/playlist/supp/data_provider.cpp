@@ -13,7 +13,6 @@
 #include "ui/format.h"
 #include "ui/utils.h"
 #include "playlist/parameters.h"
-#include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
 #include <progress_callback.h>
@@ -23,12 +22,14 @@
 #include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <core/properties/path.h>
 #include <debug/log.h>
 #include <io/api.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/template.h>
 #include <parameters/tracking.h>
 #include <sound/sound_parameters.h>
+#include <strings/encoding.h>
 #include <strings/format.h>
 #include <strings/template.h>
 //std includes
@@ -58,7 +59,17 @@ namespace
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const = 0;
   };
-
+  
+  inline String ToLocal(const String& utf)
+  {
+    return LocalFromQString(ToQString(utf));
+  }
+  
+  inline String FromLocal(const String& loc)
+  {
+    return FromQString(ToQStringFromLocal(loc));
+  }
+  
   class SimpleDataProvider : public DataProvider
   {
   public:
@@ -69,7 +80,8 @@ namespace
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
-      return IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub());
+      const String& localEncodingPath = ToLocal(dataPath);
+      return IO::OpenData(localEncodingPath, *Params, Log::ProgressCallback::Stub());
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -325,6 +337,77 @@ namespace
     const IO::Identifier::Ptr DataId;
   };
 
+  class RecodeStringsAdapter : public Parameters::Accessor
+  {
+  public:
+    explicit RecodeStringsAdapter(Parameters::Accessor::Ptr delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Delegate->Version();
+    }
+
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    {
+      return Delegate->FindValue(name, val);
+    }
+    
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    {
+      if (Delegate->FindValue(name, val))
+      {
+        val = Strings::ToAutoUtf8(val);
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    {
+      return Delegate->FindValue(name, val);
+    }
+
+    virtual void Process(Parameters::Visitor& visitor) const
+    {
+      RecodeVisitorAdapter adapter(visitor);
+      Delegate->Process(adapter);
+    }
+  private:
+    class RecodeVisitorAdapter : public Parameters::Visitor
+    {
+    public:
+      explicit RecodeVisitorAdapter(Parameters::Visitor& delegate)
+        : Delegate(delegate)
+      {
+      }
+
+      virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+      {
+        Delegate.SetValue(name, val);
+      }
+
+      virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+      {
+        Delegate.SetValue(name, Strings::ToAutoUtf8(val));
+      }
+
+      virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+      {
+        Delegate.SetValue(name, val);
+      }
+    private:
+      Parameters::Visitor& Delegate;
+    };
+  private:
+    const Parameters::Accessor::Ptr Delegate;
+  };
+  
   class ModuleSource
   {
   public:
@@ -337,19 +420,13 @@ namespace
 
     Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
-      try
-      {
-        const Binary::Container::Ptr data = Source->GetData();
-        const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ModuleId->Subpath());
-        const Module::Holder::Ptr module = Module::Open(location);
-        const Parameters::Accessor::Ptr pathParams = CreatePathProperties(ModuleId);
-        const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams);
-        return Module::CreateMixedPropertiesHolder(module, moduleParams);
-      }
-      catch (const Error&)
-      {
-        return Module::Holder::Ptr();
-      }
+      const Binary::Container::Ptr data = Source->GetData();
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ToLocal(ModuleId->Subpath()));
+      const Module::Holder::Ptr module = Module::Open(location);
+      const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(module->GetModuleProperties());
+      const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
+      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
+      return Module::CreateMixedPropertiesHolder(module, moduleParams);
     }
 
     String GetFullPath() const
@@ -501,6 +578,11 @@ namespace
       return Title;
     }
 
+    virtual String GetComment() const
+    {
+      return Comment;
+    }
+    
     virtual uint32_t GetChecksum() const
     {
       return Checksum;
@@ -556,6 +638,7 @@ namespace
         DisplayName.clear();
         Author.clear();
         Title.clear();
+        Comment.clear();
         Duration.SetCount(0);
       }
     }
@@ -565,6 +648,7 @@ namespace
       DisplayName = Attributes->GetDisplayName(props);
       Author = GetStringProperty(props, Module::ATTR_AUTHOR);
       Title = GetStringProperty(props, Module::ATTR_TITLE);
+      Comment = GetStringProperty(props, Module::ATTR_COMMENT);
       const Time::Microseconds period(GetIntProperty(props, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT));
       Duration.SetPeriod(period);
     }
@@ -580,10 +664,11 @@ namespace
     String DisplayName;
     String Author;
     String Title;
+    String Comment;
     Time::MillisecondsDuration Duration;
     mutable Error State;
   };
-
+  
   class DetectCallback : public Module::DetectCallback
   {
   public:
@@ -608,9 +693,9 @@ namespace
       const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const Module::Information::Ptr info = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
-      const IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
-      const Parameters::Accessor::Ptr pathProps = CreatePathProperties(moduleId);
+      const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(holder->GetModuleProperties());
+      const IO::Identifier::Ptr moduleId = DataId->WithSubpath(FromLocal(subPath));
+      const Parameters::Accessor::Ptr pathProps = Module::CreatePathProperties(moduleId);
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
@@ -665,7 +750,7 @@ namespace
       const Binary::Container::Ptr data = Provider->GetData(id->Path());
       const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
 
-      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, id->Subpath());
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ToLocal(id->Subpath()));
       Module::Open(location, detectCallback);
     }
   private:

@@ -7,7 +7,7 @@ path_step := ../../../..
 
 use_qt := 1
 
-source_files := container_impl import import_ayl import_xspf export_xspf
+source_dirs := .
 
 text_files := tags/xspf tags/ayl
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2011-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2011-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2007-2010 Antti Lankila
  * Copyright 2001 Simon White
  *
@@ -31,10 +31,10 @@ class EventContext;
 class MMU;
 
 /**
-* An implementation of of this class can be created to perform the C64
-* specifics.  A pointer to this child class can then be passed to
-* each of the components so they can interact with it.
-*/
+ * An implementation of of this class can be created to perform the C64
+ * specifics.  A pointer to this child class can then be passed to
+ * each of the components so they can interact with it.
+ */
 class c64env
 {
 public:
@@ -50,7 +50,7 @@ public:
     virtual void interruptRST() = 0;
 
     virtual void setBA (bool state) = 0;
-    virtual void lightpen() = 0;
+    virtual void lightpen(bool state) = 0;
 
 protected:
     ~c64env() {}

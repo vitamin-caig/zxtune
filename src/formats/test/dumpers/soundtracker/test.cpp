@@ -9,7 +9,7 @@
 **/
 
 #include "../../utils.h"
-#include <formats/chiptune/soundtracker.h>
+#include <formats/chiptune/aym/soundtracker.h>
 
 namespace
 {
@@ -29,9 +29,16 @@ namespace
     return std::string(TONES + halftone * 2, TONES + halftone * 2 + 2) + char('1' + octave);
   }
 
-  class STDumpBuilder : public Builder
+  class STDumpBuilder : public Builder, public Formats::Chiptune::MetaBuilder, public Formats::Chiptune::PatternBuilder
   {
   public:
+    //Builder
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    {
+      return *this;
+    }
+
+    //MetaBuilder
     virtual void SetProgram(const String& program)
     {
       std::cout << "Program: " << program << std::endl;
@@ -42,6 +49,12 @@ namespace
       std::cout << "Title: " << program << std::endl;
     }
 
+    virtual void SetAuthor(const String& author)
+    {
+      std::cout << "Author: " << author << std::endl;
+    }
+    
+    //Builder
     virtual void SetInitialTempo(uint_t tempo)
     {
       std::cout << "Tempo: " << tempo << std::endl;
@@ -67,13 +80,16 @@ namespace
       std::cout << std::endl;
     }
 
-    virtual void StartPattern(uint_t index)
+    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
       //nn C-1 soETT
       Line = String(33, ' ');
       std::cout << std::endl << "Pattern" << index << ':';
+      return *this;
     }
-    virtual void FinishPattern(uint_t size)
+    
+    //PatternBuilder
+    virtual void Finish(uint_t size)
     {
       std::cout << Line << std::endl;
       std::cout << size << " lines" << std::endl;
@@ -85,7 +101,12 @@ namespace
       Line[0] = '0' + index / 10;
       Line[1] = '0' + index % 10;
     }
+    
+    virtual void SetTempo(uint_t /*tempo*/)
+    {
+    }
 
+    //Builder
     virtual void StartChannel(uint_t index)
     {
       ChanPtr = &Line[3 + index * 10];
@@ -126,6 +147,26 @@ namespace
     String Line;
     Char* ChanPtr;
   };
+
+  Formats::Chiptune::SoundTracker::Decoder::Ptr CreateDecoder(const std::string& type)
+  {
+    if (type == "st1")
+    {
+      return Formats::Chiptune::SoundTracker::Ver1::CreateUncompiledDecoder();
+    }
+    else if (type == "stc")
+    {
+      return Formats::Chiptune::SoundTracker::Ver1::CreateCompiledDecoder();
+    }
+    else if (type == "st3")
+    {
+      return Formats::Chiptune::SoundTracker::Ver3::CreateDecoder();
+    }
+    else
+    {
+      throw std::runtime_error("Unknown type " + type);
+    }
+  }
 }
 
 int main(int argc, char* argv[])
@@ -141,18 +182,8 @@ int main(int argc, char* argv[])
     const Binary::Container::Ptr data = Binary::CreateContainer(rawData);
     const std::string type(argv[1]);
     STDumpBuilder builder;
-    if (type == "st1")
-    {
-      Formats::Chiptune::SoundTracker::Parse(*data, builder);
-    }
-    else if (type == "stc")
-    {
-      Formats::Chiptune::SoundTracker::ParseCompiled(*data, builder);
-    }
-    else if (type == "st3")
-    {
-      Formats::Chiptune::SoundTracker::ParseVersion3(*data, builder);
-    }
+    const Formats::Chiptune::SoundTracker::Decoder::Ptr decoder = CreateDecoder(type);
+    decoder->Parse(*data, builder);
   }
   catch (const std::exception& e)
   {

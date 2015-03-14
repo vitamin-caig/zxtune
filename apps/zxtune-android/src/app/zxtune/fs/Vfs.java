@@ -11,15 +11,16 @@
 package app.zxtune.fs;
 
 import android.content.Context;
+import app.zxtune.MainApplication;
 
 public final class Vfs {
 
   private static VfsRoot rootSingleton;
 
-  public synchronized static VfsRoot createRoot(Context context) {
+  public synchronized static VfsRoot getRoot() {
     if (rootSingleton == null) {
       final VfsRootComposite composite = new VfsRootComposite();
-      final Context appContext = context.getApplicationContext();
+      final Context appContext = MainApplication.getInstance();
       composite.addSubroot(new VfsRootLocal(appContext));
       composite.addSubroot(new VfsRootZxtunes(appContext));
       composite.addSubroot(new VfsRootPlaylists(appContext));

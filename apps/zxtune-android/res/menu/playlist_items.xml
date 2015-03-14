@@ -10,4 +10,9 @@
     android:icon="@drawable/ic_menu_save"
     android:title="@string/save"
     sabd:showAsAction="ifRoom" />
+  <item
+    android:id="@+id/action_statistics"
+    android:icon="@drawable/ic_menu_statistics"
+    android:title="@string/statistics"
+    sabd:showAsAction="ifRoom" />
 </menu>

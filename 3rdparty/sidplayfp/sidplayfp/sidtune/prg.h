@@ -36,7 +36,8 @@ public:
 
     virtual ~prg() {}
 
-private:    // prevent copying
+private:
+    // prevent copying
     prg(const prg&);
     prg& operator=(prg&);
 };

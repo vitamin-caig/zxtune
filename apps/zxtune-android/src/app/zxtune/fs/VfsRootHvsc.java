@@ -78,11 +78,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
   }
 
   @Override
-  public void find(String mask, Visitor visitor) {
-    //TODO
-  }
-
-  @Override
   public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
@@ -99,7 +94,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
     return new Uri.Builder().scheme(SCHEME);
   }
 
-  private VfsObject resolvePath(Uri uri) {
+  private VfsObject resolvePath(Uri uri) throws IOException {
     final List<String> path = uri.getPathSegments();
     if (path.isEmpty()) {
       return this;
@@ -114,12 +109,12 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
     }
   }
   
-  private interface GroupsDir extends VfsDir {
-    String getPath();
-    VfsObject resolve(Uri uri, List<String> path);
+  private abstract class GroupsDir extends StubObject implements VfsDir {
+    abstract String getPath();
+    abstract VfsObject resolve(Uri uri, List<String> path) throws IOException;
   }
   
-  private class C64MusicRootDir implements GroupsDir {
+  private class C64MusicRootDir extends GroupsDir {
     
     private final String[] SUBDIRS = {"DEMOS", "GAMES", "MUSICIANS"};
     private final int POS_SUBDIR = POS_CATEGORY + 1;
@@ -135,11 +130,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
     }
     
     @Override
-    public String getDescription() {
-      return "";
-    }
-
-    @Override
     public VfsDir getParent() {
       return VfsRootHvsc.this;
     }
@@ -152,17 +142,12 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
     }
 
     @Override
-    public void find(String mask, Visitor visitor) {
-      //TODO
-    }
-
-    @Override
     public String getPath() {
       return getName();
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) {
+    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
       final int lastPathComponent = path.size() - 1;
       if (POS_CATEGORY == lastPathComponent) {
         return this;
@@ -175,6 +160,8 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
           return catalog.isDirContent(content)
               ? new C64MusicSubdir(subpath, content)
               : new C64MusicFile(subpath, content);
+        } catch (IOException e) {
+          throw e;
         } catch (Exception e) {
           Log.d(TAG, "resolve(" + uri + ")", e);
           return null;
@@ -186,7 +173,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       return rootUri().appendPath(getPath());
     }
     
-    private class C64MusicObject implements VfsObject {
+    private class C64MusicObject extends StubObject implements VfsObject {
 
       protected final List<String> path;
       
@@ -211,11 +198,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       @Override
       public String getName() {
         return path.get(path.size() - 1);
-      }
-      
-      @Override
-      public String getDescription() {
-        return "";
       }
     }
     
@@ -280,11 +262,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
         return size > AUX_SIZE ? (size - AUX_SIZE) / ENTRY_SIZE : 0;
       }
 
-      @Override
-      public void find(String mask, Visitor visitor) {
-        //TODO
-      }
-
       private VfsDir makeNestedDir(String name) {
         final ArrayList<String> nestedPath = createNestedPath(name);
         return new C64MusicSubdir(nestedPath);
@@ -331,7 +308,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
         }
         return content;
       }
-      
     }
   }
 }

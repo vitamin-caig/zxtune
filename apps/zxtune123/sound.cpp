@@ -9,9 +9,8 @@
 **/
 
 //local includes
+#include "config.h"
 #include "sound.h"
-#include <apps/base/app.h>
-#include <apps/base/parsing.h>
 //common includes
 #include <error_tools.h>
 //library includes
@@ -20,6 +19,7 @@
 #include <math/numeric.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/serialize.h>
+#include <platform/application.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/service.h>
@@ -40,7 +40,6 @@
 #include <boost/program_options/value_semantic.hpp>
 //text includes
 #include "text/text.h"
-#include "../base/text/base_text.h"
 
 #define FILE_TAG DAEDAE2A
 

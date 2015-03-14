@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2012-2013 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2012-2014 Leandro Nini <drfiemost@users.sourceforge.net>
  * Copyright 2010 Antti Lankila
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,11 +22,11 @@
 #ifndef NULLSID_H
 #define NULLSID_H
 
-#include "sidplayfp/c64/c64sid.h"
+#include "c64/c64sid.h"
 
 /**
-* SID chip placeholder which does nothing and returns 0xff on reading.
-*/
+ * SID chip placeholder which does nothing and returns 0xff on reading.
+ */
 class NullSid : public c64sid
 {
 private:
@@ -34,7 +34,9 @@ private:
     virtual ~NullSid() {}
 
 public:
-    /// Returns singleton instance
+    /**
+     * Returns singleton instance.
+     */
     static NullSid *getInstance()
     {
         static NullSid nullsid;
@@ -43,8 +45,8 @@ public:
 
     void reset(uint8_t) {}
 
-    void poke(uint_least16_t address SID_UNUSED, uint8_t value SID_UNUSED) {}
-    uint8_t peek(uint_least16_t address SID_UNUSED) { return 0xff; }
+    void write(uint_least8_t, uint8_t) {}
+    uint8_t read(uint_least8_t) { return 0xff; }
 };
 
 #endif // NULLSID_H

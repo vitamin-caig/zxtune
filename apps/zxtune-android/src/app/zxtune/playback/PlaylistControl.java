@@ -24,4 +24,18 @@ public interface PlaylistControl {
   public void deleteAll();
   
   public void move(long id, int delta);
+  
+  //should be name-compatible with Database
+  public static enum SortBy {
+    title,
+    author,
+    duration
+  };
+  
+  public static enum SortOrder {
+    asc,
+    desc
+  }
+  
+  public void sort(SortBy by, SortOrder order);
 }

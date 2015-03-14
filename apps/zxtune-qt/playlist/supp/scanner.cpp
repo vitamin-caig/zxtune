@@ -327,7 +327,7 @@ namespace
       if (ReportTimeout())
       {
         Callback.OnProgress(current);
-        Callback.OnMessage(ToQString(message));
+        Callback.OnMessage(ToQStringFromLocal(message));
         Scheduler.Yield();
       }
     }

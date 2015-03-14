@@ -29,7 +29,7 @@
 
 #ifdef DEBUG
 
-#include "sidplayfp/EventScheduler.h"
+#include "EventScheduler.h"
 
 class MOS6510;
 

@@ -21,20 +21,17 @@ import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.VfsRoot;
 import app.zxtune.playlist.DatabaseIterator;
 
 class PlaylistIterator implements Iterator {
   
   private static final String TAG = PlaylistIterator.class.getName();
   
-  private final VfsRoot root;
   private final IteratorFactory.NavigationMode navigation;
   private DatabaseIterator delegate;
   private PlayableItem item;
 
   public PlaylistIterator(Context context, Uri id) throws IOException {
-    this.root = Vfs.createRoot(context);
     this.navigation = new IteratorFactory.NavigationMode(context);
     this.delegate = new DatabaseIterator(context, id);
     this.item = loadItem(delegate); 
@@ -106,7 +103,7 @@ class PlaylistIterator implements Iterator {
   private PlayableItem loadItem(DatabaseIterator iter) throws IOException, InvalidObjectException {
     final app.zxtune.playlist.Item meta = iter.getItem();
     final Identifier id = new Identifier(meta.getLocation());
-    final VfsFile file = (VfsFile) root.resolve(id.getDataLocation());
+    final VfsFile file = (VfsFile) Vfs.getRoot().resolve(id.getDataLocation());
     if (file instanceof VfsFile) {
       final PlayableItem item = FileIterator.loadItem(file, id.getSubpath());
       return new PlaylistItem(meta, item);

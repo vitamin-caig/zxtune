@@ -38,7 +38,7 @@
 #include <sstream>
 #include <utility>
 
-#include "sidplayfp/stringutils.h"
+#include "stringutils.h"
 
 using namespace std;
 
@@ -299,7 +299,7 @@ STIL::getEntry(const char *relPathToEntry, int tuneNo, STILField field)
     }
 
     const size_t relPathToEntryLen = strlen(relPathToEntry);
-    
+
     // Fail if a section-global comment was asked for.
 
     if (*(relPathToEntry + relPathToEntryLen - 1) == '/')
@@ -1003,7 +1003,6 @@ STIL::getField(string &result, const char *buffer, int tuneNo, STILField field)
 
                 CERR_STIL_DEBUG << "getField() invalid parameter combo: multitune, tuneNo=" << tuneNo << ", field=" << field << endl;
                 return false;
-                break;
             }
         }
 

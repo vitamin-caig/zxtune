@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <!--menu-related-->
+  <string name="prefs">Opciones</string>
+  <string name="review">Calificar</string>
+  <string name="quit">Dejar</string>
+  <!--action-related-->
+  <string name="play">Jugar</string>
+  <string name="add">Añadir</string>
+  <string name="delete">Borrar</string>
+  <string name="clear">Despejar</string>
+  <string name="save">Guardar</string>
+  <string name="overwrite">Sobrescribir</string>
+  <string name="send">Enviar</string>
+  <string name="share">Compartir</string>
+  <string name="sort">Ordenar</string>
+  <!--information-related-->
+  <string name="information_title">Título</string>
+  <string name="information_author">Autor</string>
+  <string name="information_program">Programa</string>
+  <string name="information_comment">Comentario</string>
+  <string name="information_location">Ubicación</string>
+  <string name="scanning_started">Started de escaneo</string>
+  <string name="scanning_stopped">Detenida de escaneo</string>
+  <string name="scanning_failed">Error al escanear: %s</string>
+  <string name="scanning_title">Escaneo.</string>
+  <string name="scanning_text">Haga clic para cancelar</string>
+  <!--other-->
+  <string name="main">Principal</string>
+  <plurals name="items">
+    <item quantity="one">%d elemento</item>
+    <item quantity="other">%d elementos</item>
+  </plurals>
+  <plurals name="tracks">
+    <item quantity="one">%d módulo</item>
+    <item quantity="other">%d módulos</item>
+  </plurals>
+  <string name="no_tracks_found">No hay módulos soportados encontrados</string>
+  <string name="track">Módulo</string>
+  <string name="starting">Empezando...</string>
+</resources>
