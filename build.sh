@@ -35,7 +35,7 @@ fi
 
 cpus=`grep processor /proc/cpuinfo | wc -l`
 
-makecmd="make release=1 platform=${Platform} arch=${Arch} -C apps/"
+makecmd="make platform=${Platform} arch=${Arch} -C apps/"
 
 for target in ${Targets}
 do

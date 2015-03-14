@@ -10,7 +10,6 @@
     <attribute name="arch" />
     <sequential>
       <exec executable="make" failonerror="true">
-        <arg value="release=1" />
         <arg value="platform=android" />
         <arg value="arch=@{arch}" />
         <arg value="-C" />

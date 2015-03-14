@@ -32,7 +32,7 @@ Building for linux with system boost/qt libraries installed
 
 Run:
 ```sh
-make system.zlib=1 release=1 -C <path to Makefile>
+make system.zlib=1 -C <path to Makefile>
 ```
 
 Building in windows environment
@@ -45,7 +45,7 @@ Common steps for mingw/msvc building are:
 
 After performing particular environment setup described above, use `shell.bat` to get console session with required parameters set. To start building run:
 ```sh
-make release=1 -C <path to Makefile>
+make -C <path to Makefile>
 ```
 
 Building for mingw

@@ -25,7 +25,7 @@ $(pkg_archlinux)/PKGBUILD: dist/arch/pkgbuild | $(pkg_archlinux)
 	arch=('$(arch)')\n\
 	options=(!strip !docs !libtool !emptydirs !zipman makeflags)\n\n\
 	package() {\n\
-	make DESTDIR=\x24{pkgdir} release=$(release) platform=$(platform) arch=$(arch) distro=$(distro) install -C `pwd`\n\
+	make DESTDIR=\x24{pkgdir} platform=$(platform) arch=$(arch) distro=$(distro) install -C `pwd`\n\
 	}\n\
 	" >> $@
 
