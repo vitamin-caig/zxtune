@@ -56,10 +56,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Since foobar2000 v1.0 having at least one of these in your DLL is mandatory to let the troubleshooter tell different versions of your component apart.
 // Note that it is possible to declare multiple components within one DLL, but it's strongly recommended to keep only one declaration per DLL.
 // As for 1.1, the version numbers are used by the component update finder to find updates; for that to work, you must have ONLY ONE declaration per DLL. If there are multiple declarations, the component is assumed to be outdated and a version number of "0" is assumed, to overwrite the component with whatever is currently on the site assuming that it comes with proper version numbers.
-DECLARE_COMPONENT_VERSION("ZX Tune Player", "0.0.3",
-"ZX Tune Player (C) 2008 - 2014 by Vitamin/CAIG.\n"
-"based on r3100M sep 22 2014\n"
-"foobar2000 plugin by djdron (C) 2013 - 2014.\n\n"
+DECLARE_COMPONENT_VERSION("ZX Tune Player", "0.0.4",
+"ZX Tune Player (C) 2008 - 2015 by Vitamin/CAIG.\n"
+"based on r3215 feb 25 2015\n"
+"foobar2000 plugin by djdron (C) 2013 - 2015.\n\n"
 
 "Used source codes from:\n"
 "AYEmul from S.Bulba\n"
@@ -73,7 +73,8 @@ DECLARE_COMPONENT_VERSION("ZX Tune Player", "0.0.3",
 "z80ex from Boo-boo\n"
 "lhasa from Simon Howard\n"
 "libxmp from Claudio Matsuoka\n"
-"libsidplayfp\n"
+"libsidplayfp from Simon White, Antti Lankila and Leandro Nini\n"
+"snes_spc from Shay Green\n"
 );
 
 // This will prevent users from renaming your component around (important for proper troubleshooter behaviors) or loading multiple instances of it.
