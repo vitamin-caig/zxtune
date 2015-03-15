@@ -82,15 +82,17 @@ VALIDATE_COMPONENT_FILENAME("foo_input_zxtune.dll");
 static const char* file_types[] =
 {
 	// AY/YM
-	"as0", "asc", "ay", "gtr", "$c", "logo1", "psg", "pt1", "pt2", "pt3", "st1", "st3", "stc", "stp", "ts", "vtx", "ym", "ftc", "psc", "sqt",
+	"as0", "asc", "ay", "ayc", "gtr", "$c", "logo1", "psg", "pt1", "pt2", "pt3", "st1", "st3", "stc", "stp", "ts", "vtx", "ym", "ftc", "psc", "sqt",
 	// dac
-	"pdt", "chi", "str", "dst", "sqd", "dmm", "669", "amf", "dbm", "dmf", "dtm", "dtt", "emod", "far", "fnk", "gdm", "gtk", "mod", "mtn", "imf", "ims", "it", "liq", "psm", "mdl", "med", "mtm", "okt", "pt36", "ptm", "rtm", "s3m", "sfx", "stim", "stm", "stx", "tcb", "ult", "xm",
+	"pdt", "chi", "str", "dst", "sqd", "et1", "dmm", "669", "amf", "dbm", "dmf", "dtm", "dtt", "emod", "far", "fnk", "gdm", "gtk", "mod", "mtn", "imf", "ims", "it", "liq", "psm", "mdl", "med", "mtm", "okt", "pt36", "ptm", "rtm", "s3m", "sfx", "stim", "stm", "stx", "tcb", "ult", "xm",
 	// fm
 	"tfc", "tfd", "tf0", "tfe",
 	// Sam Coupe
 	"cop",
 	// C64
 	"sid",
+	// SNES
+	"spc",
 	// arch
 	"hrp", "scl", "szx", "trd", "cc3", "dsq", "esv", "fdi", "gam", "gamplus", "$m", "$b", "hrm", "bin", "p", "lzs", "msp", "pcd", "td0", "tlz", "tlzp", "trs",
 	// end
