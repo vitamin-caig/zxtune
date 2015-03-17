@@ -33,17 +33,15 @@ namespace
   //Options
   const QLatin1String FONT_FAMILY("Arial");
   const int_t FONT_SIZE = 8;
-  const int_t ROW_HEIGTH = 16;
-  const int_t TYPE_WIDTH = 24;
+  const QLatin1String TYPE_TEXT("WWWW");
   const int_t DISPLAYNAME_WIDTH = 320;
-  const int_t DURATION_WIDTH = 60;
+  const QLatin1String DURATION_TEXT("77:77.77");
   const int_t AUTHOR_WIDTH = 160;
   const int_t TITLE_WIDTH = 160;
   const int_t COMMENT_WIDTH = 160;
   const int_t PATH_WIDTH = 320;
-  const int_t SIZE_WIDTH = 60;
-  const int_t CRC_WIDTH = 60;
-  const int_t FIXEDCRC_WIDTH = 60;
+  const QLatin1String SIZE_TEXT("7777777");
+  const QLatin1String CRC_TEXT("AAAAAAAA");
 
   //WARNING!!! change object name when adding new column
   class TableHeader : public QHeaderView
@@ -60,16 +58,17 @@ namespace
       setTextElideMode(Qt::ElideRight);
       setMovable(true);
       setClickable(true);
-      resizeSection(Playlist::Model::COLUMN_TYPE, TYPE_WIDTH);
+      const QFontMetrics fontMetrics(font);
+      resizeSection(Playlist::Model::COLUMN_TYPE, fontMetrics.width(TYPE_TEXT));
       resizeSection(Playlist::Model::COLUMN_DISPLAY_NAME, DISPLAYNAME_WIDTH);
-      resizeSection(Playlist::Model::COLUMN_DURATION, DURATION_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_DURATION, fontMetrics.width(DURATION_TEXT));
       resizeSection(Playlist::Model::COLUMN_AUTHOR, AUTHOR_WIDTH);
       resizeSection(Playlist::Model::COLUMN_TITLE, TITLE_WIDTH);
       resizeSection(Playlist::Model::COLUMN_COMMENT, COMMENT_WIDTH);
       resizeSection(Playlist::Model::COLUMN_PATH, PATH_WIDTH);
-      resizeSection(Playlist::Model::COLUMN_SIZE, SIZE_WIDTH);
-      resizeSection(Playlist::Model::COLUMN_CRC, CRC_WIDTH);
-      resizeSection(Playlist::Model::COLUMN_FIXEDCRC, FIXEDCRC_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_SIZE, fontMetrics.width(SIZE_TEXT));
+      resizeSection(Playlist::Model::COLUMN_CRC, fontMetrics.width(CRC_TEXT));
+      resizeSection(Playlist::Model::COLUMN_FIXEDCRC, fontMetrics.width(CRC_TEXT));
 
       //default view
       for (int idx = Playlist::Model::COLUMN_AUTHOR; idx != Playlist::Model::COLUMNS_COUNT; ++idx)
@@ -141,7 +140,8 @@ namespace
       {
         verHeader->setFont(Font);
         verHeader->setDefaultAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        verHeader->setDefaultSectionSize(ROW_HEIGTH);
+        const QFontMetrics fontMetrics(Font);
+        verHeader->setDefaultSectionSize(verHeader->minimumSectionSize()/*fontMetrics.height()*/);
         verHeader->setResizeMode(QHeaderView::Fixed);
       }
 
