@@ -13,6 +13,7 @@
 #include "operations_helpers.h"
 #include "storage.h"
 #include <apps/zxtune-qt/supp/playback_supp.h>
+#include <apps/zxtune-qt/ui/utils.h>
 //common includes
 #include <contract.h>
 #include <error_tools.h>
@@ -240,7 +241,7 @@ namespace
 
     void Save(const Binary::Data& data, const String& filename) const
     {
-      const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, *Params, Log::ProgressCallback::Stub());
+      const Binary::OutputStream::Ptr stream = IO::CreateStream(ToLocal(filename), *Params, Log::ProgressCallback::Stub());
       stream->ApplyData(data);
     }
   private:

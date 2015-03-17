@@ -60,16 +60,6 @@ namespace
     virtual Binary::Container::Ptr GetData(const String& dataPath) const = 0;
   };
   
-  inline String ToLocal(const String& utf)
-  {
-    return LocalFromQString(ToQString(utf));
-  }
-  
-  inline String FromLocal(const String& loc)
-  {
-    return FromQString(ToQStringFromLocal(loc));
-  }
-  
   class SimpleDataProvider : public DataProvider
   {
   public:

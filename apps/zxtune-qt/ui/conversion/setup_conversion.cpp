@@ -118,7 +118,7 @@ namespace
       {
         opts.Type = TargetFormat->GetSelectedId();
         opts.FilenameTemplate = FromQString(TargetTemplate->GetFilenameTemplate());
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, opts.FilenameTemplate);
+        Options->SetValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, ToLocal(opts.FilenameTemplate));
         const TemporaryProperty<Parameters::IntType> disableLoop(*Options, Parameters::ZXTune::Sound::LOOPED, 0);
         opts.Params = GlobalOptions::Instance().GetSnapshot();
         return true;
