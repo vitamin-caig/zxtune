@@ -218,6 +218,7 @@ namespace Formats
       scanner.AddDecoder(CreateZ80V20Decoder());
       scanner.AddDecoder(CreateZ80V30Decoder());
       scanner.AddDecoder(CreateMegaLZDecoder());
+      scanner.AddDecoder(CreateDSKDecoder());
       //players
       scanner.AddDecoder(CreateCompiledASC0Decoder());
       scanner.AddDecoder(CreateCompiledASC1Decoder());
