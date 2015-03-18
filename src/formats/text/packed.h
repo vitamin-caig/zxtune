@@ -7,6 +7,7 @@ extern const Char CC3_DECODER_DESCRIPTION[];
 extern const Char CC4PLUS_DECODER_DESCRIPTION[];
 extern const Char CC4_DECODER_DESCRIPTION[];
 extern const Char CHARPRES_DECODER_DESCRIPTION[];
+extern const Char DSK_DECODER_DESCRIPTION[];
 extern const Char DSQ_DECODER_DESCRIPTION[];
 extern const Char ESV_DECODER_DESCRIPTION[];
 extern const Char FDI_DECODER_DESCRIPTION[];

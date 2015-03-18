@@ -26,6 +26,10 @@ __cpp> "}//namespace Text\n"
 < CHARPRES_DECODER_DESCRIPTION
 > "CharPres"
 
+#DSK
+< DSK_DECODER_DESCRIPTION
+> "DSK Image"
+
 #DSQ
 < DSQ_DECODER_DESCRIPTION
 > "DataSqueezer v4.x"
