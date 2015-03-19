@@ -437,7 +437,9 @@ namespace
       Dbg("Restore current playlist %1% with track %2%", idx, trk);
       ActivatePlaylist(idx);
       widgetsContainer->setCurrentIndex(idx);
-      ActivePlaylistView->GetPlaylist()->GetIterator()->Select(trk);
+      const Playlist::Controller::Ptr playlist = ActivePlaylistView->GetPlaylist();
+      playlist->GetModel()->WaitOperationFinish();
+      playlist->GetIterator()->Select(trk);
     }
     
     void StorePlaylistSession()
