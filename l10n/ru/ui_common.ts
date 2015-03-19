@@ -288,7 +288,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.cpp" line="75"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.cpp" line="77"/>
         <source>Playback</source>
         <translation>Контроль</translation>
     </message>

@@ -13,6 +13,8 @@
 #include "status_control.ui.h"
 #include "supp/playback_supp.h"
 #include "ui/utils.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <core/module_attrs.h>
 //qt includes
@@ -33,10 +35,10 @@ namespace
       //setup self
       setupUi(this);
 
-      this->connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(Sound::Backend::Ptr)));
-      this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
-      this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
+      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(Sound::Backend::Ptr))));
+      Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
+      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
     }
 
     virtual void InitState(Sound::Backend::Ptr player)

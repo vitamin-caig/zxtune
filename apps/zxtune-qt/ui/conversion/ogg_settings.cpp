@@ -14,6 +14,8 @@
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <sound/backends_parameters.h>
 
@@ -35,10 +37,10 @@ namespace
       //setup self
       setupUi(this);
 
-      connect(selectQuality, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
-      connect(qualityValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged()));
-      connect(selectBitrate, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
-      connect(bitrateValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged()));
+      Require(connect(selectQuality, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged())));
+      Require(connect(qualityValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged())));
+      Require(connect(selectBitrate, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged())));
+      Require(connect(bitrateValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged())));
 
       using namespace Parameters;
       ExclusiveValue::Bind(*selectQuality, *Options, ZXTune::Sound::Backends::Ogg::MODE,

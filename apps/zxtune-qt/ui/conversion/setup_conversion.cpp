@@ -20,6 +20,8 @@
 #include "ui/state.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <parameters/tools.h>
 #include <sound/backends_parameters.h>
@@ -97,11 +99,11 @@ namespace
       AddBackendSettingsWidget(&UI::CreateOGGSettingsWidget);
       AddBackendSettingsWidget(&UI::CreateFLACSettingsWidget);
 
-      connect(TargetTemplate, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
-      connect(TargetFormat, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
+      Require(connect(TargetTemplate, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions())));
+      Require(connect(TargetFormat, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions())));
 
-      connect(buttonBox, SIGNAL(accepted()), SLOT(accept()));
-      connect(buttonBox, SIGNAL(rejected()), SLOT(reject()));
+      Require(connect(buttonBox, SIGNAL(accepted()), SLOT(accept())));
+      Require(connect(buttonBox, SIGNAL(rejected()), SLOT(reject())));
 
       toolBox->setCurrentIndex(TEMPLATE_PAGE);
       useMultithreading->setEnabled(HasMultithreadEnvironment());
@@ -148,7 +150,7 @@ namespace
       QWidget* const settingsWidget = toolBox->widget(SETTINGS_PAGE);
       UI::BackendSettingsWidget* const result = factory(*settingsWidget);
       formatSettingsLayout->addWidget(result);
-      connect(result, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
+      Require(connect(result, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions())));
       BackendSettings[result->GetBackendId()] = result;
     }
 

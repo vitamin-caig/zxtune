@@ -15,6 +15,8 @@
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <sound/service.h>
 //std includes
@@ -118,7 +120,7 @@ namespace
 
     void SetupButton(IdToButton::value_type but)
     {
-      connect(but.second, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
+      Require(connect(but.second, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged())));
       if (const Error status = Backends.GetStatus(but.first))
       {
         but.second->setEnabled(false);

@@ -151,7 +151,7 @@ namespace
       action->setChecked(widget->isVisibleTo(this));
       //integrate
       menuLayout->addAction(action);
-      widget->connect(action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
+      Require(widget->connect(action, SIGNAL(toggled(bool)), SLOT(setVisible(bool))));
     }
 
     QWidget* AddWidgetOnLayout(QWidget* widget)
