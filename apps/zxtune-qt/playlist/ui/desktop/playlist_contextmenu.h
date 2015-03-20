@@ -45,6 +45,7 @@ namespace Playlist
       virtual void ExportAll() const = 0;
       virtual void ExportSelected() const = 0;
       virtual void ConvertSelected() const = 0;
+      virtual void SaveAsSelected() const = 0;
       virtual void SelectFound() const = 0;
       virtual void SelectFoundInSelected() const = 0;
       virtual void ShowPropertiesOfSelected() const = 0;

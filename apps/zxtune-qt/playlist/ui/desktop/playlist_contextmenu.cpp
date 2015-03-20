@@ -28,10 +28,6 @@
 //common includes
 #include <contract.h>
 #include <error.h>
-//library includes
-#include <core/module_attrs.h>
-#include <parameters/merged_accessor.h>
-#include <sound/backends_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //qt includes
@@ -81,6 +77,7 @@ namespace
       Require(receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard())));
       Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected())));
       Require(receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected())));
+      Require(receiver.connect(SaveAsAction, SIGNAL(triggered()), SLOT(SaveAsSelected())));
       Require(receiver.connect(PropertiesAction, SIGNAL(triggered()), SLOT(ShowPropertiesOfSelected())));
     }
   };
@@ -435,36 +432,34 @@ namespace
 
     virtual void ExportAll() const
     {
-      QString nameTemplate;
-      if (UI::GetFilenameTemplate(View, nameTemplate))
+      if (const Playlist::Item::Conversion::Options::Ptr params = UI::GetExportParameters(View))
       {
-        const Parameters::Accessor::Ptr allParams = GlobalOptions::Instance().Get();
-        const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(FromQString(nameTemplate), allParams, result);
-        ExecuteNotificationOperation(op);
+        ExecuteConvertAllOperation(*params);
       }
     }
 
     virtual void ExportSelected() const
     {
-      QString nameTemplate;
-      if (UI::GetFilenameTemplate(View, nameTemplate))
+      if (const Playlist::Item::Conversion::Options::Ptr params = UI::GetExportParameters(View))
       {
-        const Parameters::Accessor::Ptr allParams = GlobalOptions::Instance().Get();
-        const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(SelectedItems, FromQString(nameTemplate), allParams, result);
-        ExecuteNotificationOperation(op);
+        ExecuteConvertOperation(*params);
       }
     }
 
     virtual void ConvertSelected() const
     {
-      Playlist::Item::Conversion::Options opts;
-      if (UI::GetConversionParameters(View, opts))
+      if (const Playlist::Item::Conversion::Options::Ptr params = UI::GetConvertParameters(View))
       {
-        const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, opts, result);
-        ExecuteNotificationOperation(op);
+        ExecuteConvertOperation(*params);
+      }
+    }
+    
+    virtual void SaveAsSelected() const
+    {
+      const Playlist::Item::Data::Ptr item = GetSelectedItem();
+      if (const Playlist::Item::Conversion::Options::Ptr params = UI::GetSaveAsParameters(item))
+      {
+        ExecuteConvertOperation(*params);
       }
     }
 
@@ -528,6 +523,26 @@ namespace
       Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
         SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
       model->PerformOperation(op);
+    }
+    
+    void ExecuteConvertAllOperation(const Playlist::Item::Conversion::Options& opts) const
+    {
+      const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
+      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(opts, result);
+      ExecuteNotificationOperation(op);
+    }
+    
+    void ExecuteConvertOperation(const Playlist::Item::Conversion::Options& opts) const
+    {
+      const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
+      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, opts, result);
+      ExecuteNotificationOperation(op);
+    }
+    
+    Playlist::Item::Data::Ptr GetSelectedItem() const
+    {
+      assert(SelectedItems->size() == 1);
+      return Controller.GetModel()->GetItem(*SelectedItems->begin());
     }
   private:
     Playlist::UI::TableView& View;

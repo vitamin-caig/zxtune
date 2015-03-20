@@ -11,6 +11,7 @@
 #pragma once
 
 //local includes
+#include "playlist/supp/data.h"
 #include "playlist/supp/conversion.h"
 //qt includes
 #include <QtGui/QDialog>
@@ -27,10 +28,15 @@ namespace UI
 
     static Ptr Create(QWidget& parent);
 
-    virtual bool Execute(Playlist::Item::Conversion::Options& opts) = 0;
+    virtual Playlist::Item::Conversion::Options::Ptr Execute() = 0;
   private slots:
     virtual void UpdateDescriptions() = 0;
   };
 
-  bool GetConversionParameters(QWidget& parent, Playlist::Item::Conversion::Options& opts);
+  //raw format
+  Playlist::Item::Conversion::Options::Ptr GetExportParameters(QWidget& parent);
+  //sound formats (TBD dumps)
+  Playlist::Item::Conversion::Options::Ptr GetConvertParameters(QWidget& parent);
+  //universal for single item
+  Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(Playlist::Item::Data::Ptr item);
 }

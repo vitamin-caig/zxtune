@@ -21,9 +21,18 @@ namespace Playlist
     {
       struct Options
       {
-        String Type;
-        String FilenameTemplate;
-        Parameters::Accessor::Ptr Params;
+        typedef boost::shared_ptr<const Options> Ptr;
+        
+        Options(const String& type, const String& filenameTemplate, Parameters::Accessor::Ptr params)
+          : Type(type)
+          , FilenameTemplate(filenameTemplate)
+          , Params(params)
+        {
+        }
+        
+        const String Type;
+        const String FilenameTemplate;
+        const Parameters::Accessor::Ptr Params;
       };
     }
   }
