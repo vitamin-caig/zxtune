@@ -132,11 +132,7 @@ public class BrowserController {
   }
   
   private void setDirectory(VfsDir dir) {
-    if (dir != Vfs.getRoot()) {
-      position.setDir(dir);
-    } else {
-      position.setDir(null);
-    }
+    position.setDir(dir);
     loadListing(dir, state.getCurrentViewPosition());
   }
   
