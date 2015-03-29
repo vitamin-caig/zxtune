@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>338</width>
-    <height>229</height>
+    <width>344</width>
+    <height>246</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -101,9 +101,9 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="updatesGroupBox">
+    <widget class="QGroupBox" name="appGroupBox">
      <property name="title">
-      <string>Check updates</string>
+      <string>Application</string>
      </property>
      <layout class="QFormLayout" name="formLayout_2">
       <property name="horizontalSpacing">
@@ -138,6 +138,23 @@
           <string>Once a week</string>
          </property>
         </item>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="updateCheckLabel">
+        <property name="text">
+         <string>Check updates</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QCheckBox" name="appSingleInstance">
+        <property name="toolTip">
+         <string>Changes applied after application restart</string>
+        </property>
+        <property name="text">
+         <string>Single instance</string>
+        </property>
        </widget>
       </item>
      </layout>

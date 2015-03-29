@@ -31,6 +31,7 @@
 //qt includes
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
+#include <QtCore/QTimer>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QMenu>
 
@@ -132,23 +133,15 @@ namespace
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual void Setup(const QStringList& items)
+    virtual void Setup()
     {
-      if (items.empty())
+      if (Session->Empty())
       {
-        if (Session->Empty())
-        {
-          LoadDefaultPlaylists(*Container);
-        }
-        else
-        {
-          RestorePlaylistSession();
-        }
+        LoadDefaultPlaylists(*Container);
       }
       else
       {
-        Playlist::UI::View& pl = CreateAnonymousPlaylist();
-        pl.AddItems(items);
+        RestorePlaylistSession();
       }
       if (widgetsContainer->count() == 0)
       {
@@ -163,6 +156,13 @@ namespace
         it.Get()->Shutdown();
       }
       StorePlaylistSession();
+    }
+
+    virtual void Open(const QStringList& items)
+    {
+      Playlist::UI::View& pl = GetEmptyPlaylist();
+      pl.AddItems(items);
+      QTimer::singleShot(1000, pl.GetPlaylist()->GetIterator(), SLOT(Reset()));
     }
 
     virtual QMenu* GetActionsMenu() const
@@ -352,6 +352,18 @@ namespace
       Dbg("Create default playlist");
       const Playlist::Controller::Ptr pl = Container->CreatePlaylist(Playlist::UI::ContainerView::tr("Default"));
       return RegisterPlaylist(pl);
+    }
+
+    Playlist::UI::View& GetEmptyPlaylist()
+    {
+      if (widgetsContainer->count() == 1 && 0 == ActivePlaylistView->GetPlaylist()->GetModel()->CountItems())
+      {
+        return *ActivePlaylistView;
+      }
+      else
+      {
+        return CreateAnonymousPlaylist();
+      }
     }
 
     Playlist::UI::View& RegisterPlaylist(Playlist::Controller::Ptr playlist)

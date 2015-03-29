@@ -10,16 +10,17 @@
 
 #pragma once
 
+//local includes
+#include "ui/mainwindow.h"
 //library includes
 #include <parameters/container.h>
-#include <strings/array.h>
-//qt includes
-#include <QtCore/QPointer>
-#include <QtGui/QMainWindow>
 
-class EmbeddedMainWindow : public QMainWindow
+class EmbeddedMainWindow : public MainWindow
 {
   Q_OBJECT
 public:
-  static QPointer<EmbeddedMainWindow> Create(Parameters::Container::Ptr options, const Strings::Array& cmdline);
+  static MainWindow::Ptr Create(Parameters::Container::Ptr options);
+
+public slots:
+  virtual void SetCmdline(const QStringList& args) = 0;
 };

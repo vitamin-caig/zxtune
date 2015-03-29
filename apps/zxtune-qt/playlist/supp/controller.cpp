@@ -82,6 +82,11 @@ namespace
       Activate(idx);
     }
     
+    virtual void Reset()
+    {
+      Reset(0);
+    }
+
     virtual void Reset(unsigned idx)
     {
       SelectItem(idx);

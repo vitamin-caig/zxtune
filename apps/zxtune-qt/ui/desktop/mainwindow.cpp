@@ -61,11 +61,11 @@ namespace
     return res;
   }
 
-  class MainWindowImpl : public MainWindow
-                       , public Ui::MainWindow
+  class DesktopMainWindowImpl : public DesktopMainWindow
+                              , public Ui::MainWindow
   {
   public:
-    MainWindowImpl(Parameters::Container::Ptr options, const Strings::Array& cmdline)
+    explicit DesktopMainWindowImpl(Parameters::Container::Ptr options)
       : Options(options)
       , Language(CreateLanguage(*options))
       , Playback(PlaybackSupport::Create(*this, Options))
@@ -136,12 +136,14 @@ namespace
 
       StopModule();
 
-      //TODO: remove
+      MultiPlaylist->Setup();
+    }
+
+    virtual void SetCmdline(const QStringList& args)
+    {
+      if (!args.empty())
       {
-        QStringList items;
-        std::transform(cmdline.begin(), cmdline.end(),
-          std::back_inserter(items), &ToQString);
-        MultiPlaylist->Setup(items);
+        MultiPlaylist->Open(args);
       }
     }
 
@@ -293,9 +295,9 @@ namespace
   };
 }
 
-QPointer<MainWindow> MainWindow::Create(Parameters::Container::Ptr options, const Strings::Array& cmdline)
+MainWindow::Ptr DesktopMainWindow::Create(Parameters::Container::Ptr options)
 {
-  QPointer<MainWindow> res(new MainWindowImpl(options, cmdline));
+  const MainWindow::Ptr res(new DesktopMainWindowImpl(options));
   res->show();
   return res;
 }

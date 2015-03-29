@@ -264,8 +264,23 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="106"/>
+        <source>Application</source>
+        <translation>Приложение</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="146"/>
         <source>Check updates</source>
         <translation>Проверять обновления</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="153"/>
+        <source>Changes applied after application restart</source>
+        <translation>Изменения применяются после перезапуска приложения</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="156"/>
+        <source>Single instance</source>
+        <translation>Единственный экземпляр</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="128"/>

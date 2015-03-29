@@ -10,12 +10,10 @@
 
 #pragma once
 
+//local includes
+#include "mainwindow.h"
 //library includes
 #include <parameters/container.h>
-#include <strings/array.h>
-//qt includes
-#include <QtCore/QPointer>
-#include <QtGui/QMainWindow>
 
 class WidgetsFactory
 {
@@ -23,7 +21,7 @@ public:
   virtual ~WidgetsFactory() {}
   
   //main window
-  virtual QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const Strings::Array& cmdline) const = 0;
+  virtual MainWindow::Ptr CreateMainWindow(Parameters::Container::Ptr options) const = 0;
 
   //singleton
   static WidgetsFactory& Instance();

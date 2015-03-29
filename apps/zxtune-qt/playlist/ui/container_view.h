@@ -36,8 +36,10 @@ namespace Playlist
       //creator
       static ContainerView* Create(QWidget& parent, Parameters::Container::Ptr parameters);
 
-      virtual void Setup(const QStringList& items) = 0;
+      virtual void Setup() = 0;
       virtual void Teardown() = 0;
+
+      virtual void Open(const QStringList& args) = 0;
 
       virtual QMenu* GetActionsMenu() const = 0;
 

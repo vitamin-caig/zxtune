@@ -72,7 +72,7 @@ namespace
                                , private Ui::MainWindowEmbedded
   {
   public:
-    EmbeddedMainWindowImpl(Parameters::Container::Ptr options, const Strings::Array& /*cmdline*/)
+    explicit EmbeddedMainWindowImpl(Parameters::Container::Ptr options)
       : Options(options)
       , Playback(PlaybackSupport::Create(*this, Options))
       , Controls(PlaybackControls::Create(*this, *Playback))
@@ -114,7 +114,11 @@ namespace
       Require(connect(actionAddFiles, SIGNAL(triggered()), Playlist, SLOT(AddFiles())));
       Require(connect(actionAddFolder, SIGNAL(triggered()), Playlist, SLOT(AddFolder())));
       
-      Playlist->Setup(QStringList());
+      Playlist->Setup();
+    }
+
+    virtual void SetCmdline(const QStringList& /*args*/)
+    {
     }
 
     //qwidget virtuals
@@ -171,10 +175,10 @@ namespace
   };
 }
 
-QPointer<EmbeddedMainWindow> EmbeddedMainWindow::Create(Parameters::Container::Ptr options, const Strings::Array& cmdline)
+MainWindow::Ptr EmbeddedMainWindow::Create(Parameters::Container::Ptr options)
 {
   //TODO: create proper window
-  QPointer<EmbeddedMainWindow> res(new EmbeddedMainWindowImpl(options, cmdline));
+  const MainWindow::Ptr res(new EmbeddedMainWindowImpl(options));
   res->setWindowFlags(Qt::FramelessWindowHint);
   res->showMaximized();
   return res;

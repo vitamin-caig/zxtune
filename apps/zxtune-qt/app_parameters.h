@@ -18,5 +18,8 @@ namespace Parameters
   namespace ZXTuneQT
   {
     const NameType PREFIX("zxtune-qt");
+
+    const NameType SINGLE_INSTANCE = PREFIX + "SingleInstance";
+    const IntType SINGLE_INSTANCE_DEFAULT = 0;
   }
 }

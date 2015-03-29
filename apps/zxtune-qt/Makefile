@@ -18,7 +18,7 @@ gui_theme ?= restorer
 have_gui = 1
 
 #other
-moc_files += supp/playback_supp
+moc_files += supp/playback_supp singlemode
 
 text_files := text/text
 
@@ -40,12 +40,11 @@ depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui)
 
 libraries.boost = thread system filesystem
 
-libraries.qt = Gui Core
+libraries.qt = Gui Core Network
 
 ifdef embedded
 libraries += ui_embedded playlist_ui_embedded
 depends += apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
-libraries.qt += Network
 else
 libraries.common += l10n debug
 libraries += ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_update

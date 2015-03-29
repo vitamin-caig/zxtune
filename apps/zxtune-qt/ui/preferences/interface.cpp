@@ -95,6 +95,7 @@ namespace
       IntegerValue::Bind(*playlistCacheLimit, *Options, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT);
       BooleanValue::Bind(*playlistStoreAllProperties, *Options, ZXTuneQT::Playlist::Store::PROPERTIES, ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT);
       UpdateCheckPeriod = IntegerValue::Bind(*updateCheckPeriod, boost::make_shared<UpdateCheckPeriodComboboxValue>(Options));
+      BooleanValue::Bind(*appSingleInstance, *Options, ZXTuneQT::SINGLE_INSTANCE, ZXTuneQT::SINGLE_INSTANCE_DEFAULT);
     }
 
     virtual void OnLanguageChanged(int idx)
