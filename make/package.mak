@@ -1,7 +1,7 @@
 #package generating
 include $(path_step)/make/version.mak
 
-pkg_version := $(root.version)$(if $(release),,_dbg)
+pkg_version := $(root.version)$(if $(debug),_dbg,)
 
 pkg_name ?= $(binary_name)
 packaging ?= any
