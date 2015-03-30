@@ -103,15 +103,8 @@ namespace
         const boost::scoped_ptr<QLocalSocket> holder(conn);
         QStringList cmdline;
         ReadDataFrom(*holder, cmdline);
-        if (cmdline.empty())
-        {
-          Dbg("Empty cmdline from slave. Ignored");
-        }
-        else
-        {
-          Dbg("Slave passed cmdline '%1%'", FromQString(cmdline.join(" ")));
-          emit OnSlaveStarted(cmdline);
-        }
+        Dbg("Slave passed cmdline '%1%'", FromQString(cmdline.join(" ")));
+        emit OnSlaveStarted(cmdline);
       }
     }
   private:

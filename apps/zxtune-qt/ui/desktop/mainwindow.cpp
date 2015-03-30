@@ -141,6 +141,12 @@ namespace
 
     virtual void SetCmdline(const QStringList& args)
     {
+      if (this->sender())
+      {
+        setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        raise();
+        activateWindow();
+      }
       if (!args.empty())
       {
         MultiPlaylist->Open(args);
