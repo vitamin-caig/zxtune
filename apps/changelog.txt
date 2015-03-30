@@ -5,6 +5,19 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3240 from 30.03.2015
+
+[+] Added DSK images support
+[+] zxtune-qt: added 'Save as' functionality for single item
+[+] zxtune-qt: added single instance mode
+[*] zxtune-qt: fixed non-ascii templates usage while convert/export
+[*] zxtune-qt: fixed playlist view for non-standard DPI (BB#9)
+[*] zxtune-qt: fixed last played item restoring for big playlists
+[*] zxtune-qt: do not start playback of next suitable item when current is deleted (BB#8)
+[*] zxtune-qt: fixed selecting of files without extension from 'Add file' dialog
+[*] zxtune-android: do not restart playback of externally opened files on orientation change (BB#11)
+[*] zxtune-android: fix empty breadcrumb button in browser's root while orientation change
+
 --- Rev3215 from 25.02.2015
 
 [+] Added SNES SPC support
