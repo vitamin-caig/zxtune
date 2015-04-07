@@ -16,6 +16,7 @@
 #include "playlist/io/export.h"
 #include "playlist/io/import.h"
 #include "ui/utils.h"
+#include "ui/tools/errordialog.h"
 //common includes
 #include <error.h>
 //library includes
@@ -84,7 +85,7 @@ namespace
       }
       catch (const Error& e)
       {
-        //TODO: handle error
+        ShowErrorMessage(QString(), e);
       }
     }
   private:

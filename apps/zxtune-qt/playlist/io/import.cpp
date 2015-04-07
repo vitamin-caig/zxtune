@@ -34,13 +34,13 @@ namespace Playlist
   {
     Container::Ptr Open(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
     {
-      if (Container::Ptr res = OpenAYL(provider, filename, cb))
+      if (const Container::Ptr ayl = OpenAYL(provider, filename, cb))
       {
-        return res;
+        return ayl;
       }
-      else if (Container::Ptr res = OpenXSPF(provider, filename, cb))
+      else if (const Container::Ptr xspf = OpenXSPF(provider, filename, cb))
       {
-        return res;
+        return xspf;
       }
       return Container::Ptr();
     }

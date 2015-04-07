@@ -458,9 +458,9 @@ namespace
       {
         Substates.push_back(boost::make_shared<MainWindowState>(mainWnd, Options));
       }
-      else if (QFileDialog* dialog = dynamic_cast<QFileDialog*>(&wid))
+      else if (QFileDialog* fileDialog = dynamic_cast<QFileDialog*>(&wid))
       {
-        Substates.push_back(boost::make_shared<FileDialogState>(dialog, Options));
+        Substates.push_back(boost::make_shared<FileDialogState>(fileDialog, Options));
       }
       else if (QDialog* dialog = dynamic_cast<QDialog*>(&wid))
       {
@@ -474,13 +474,13 @@ namespace
       {
         Substates.push_back(boost::make_shared<ComboBoxState>(combo, Options));
       }
-      else if (QHeaderView* view = dynamic_cast<QHeaderView*>(&wid))
+      else if (QHeaderView* headerView = dynamic_cast<QHeaderView*>(&wid))
       {
-        Substates.push_back(boost::make_shared<HeaderViewState>(view, Options));
+        Substates.push_back(boost::make_shared<HeaderViewState>(headerView, Options));
       }
-      else if (QAbstractButton* view = dynamic_cast<QAbstractButton*>(&wid))
+      else if (QAbstractButton* button = dynamic_cast<QAbstractButton*>(&wid))
       {
-        Substates.push_back(boost::make_shared<ButtonState>(view, Options));
+        Substates.push_back(boost::make_shared<ButtonState>(button, Options));
       }
       else
       {
