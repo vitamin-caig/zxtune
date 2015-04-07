@@ -60,7 +60,7 @@ namespace
       return (Data[2] << 16) | (Data[1] << 8) | Data[0];
     }
   private:
-    uint8_t Data[3];
+    boost::array<uint8_t, 3> Data;
   } PACK_POST;
 
   //4 LSBs of signature may be version

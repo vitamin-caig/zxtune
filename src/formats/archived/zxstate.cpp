@@ -451,11 +451,11 @@ namespace ZXState
     case Z_STREAM_END:
     case Z_OK:
       {
-        const std::size_t targetSize = stream.next_out - &result->front();
-        Dbg("Decompressed %1% -> %2% (required %3%)", blk.Size, targetSize, blk.UncompressedSize);
-        if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == targetSize)
+        const std::size_t doneSize = stream.next_out - &result->front();
+        Dbg("Decompressed %1% -> %2% (required %3%)", blk.Size, doneSize, blk.UncompressedSize);
+        if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == doneSize)
         {
-          result->resize(targetSize);
+          result->resize(doneSize);
           return Binary::CreateContainer(result);
         }
         Dbg("Uncompressed size mismatch");

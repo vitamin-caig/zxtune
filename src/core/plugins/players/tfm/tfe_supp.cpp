@@ -613,7 +613,7 @@ namespace TFMMusicMaker
 
     const Instrument* CurInstrument;
     uint_t Algorithm;
-    uint_t TotalLevel[OPERATORS_COUNT];
+    boost::array<uint_t, OPERATORS_COUNT> TotalLevel;
     Halftones::Type Note;
     Level::Type Volume;
     bool HasToneChange;

@@ -619,11 +619,11 @@ namespace Chiptune
         const Binary::Container::Ptr packed = stream.ReadRestData();
         if (const Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
         {
-          const std::size_t unpackedSize = unpacked->Size();
+          const std::size_t doneSize = unpacked->Size();
           const std::size_t columns = sizeof(RegistersDump);
           Require(0 == (unpackedSize % columns));
-          const std::size_t lines = unpackedSize / columns;
-          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), unpackedSize, lines, columns, target);
+          const std::size_t lines = doneSize / columns;
+          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), doneSize, lines, columns, target);
           const std::size_t packedSize = unpacked->PackedSize();
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
           return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);

@@ -222,7 +222,7 @@ namespace
         act->Wait();
         State.Reset();
       }
-      catch (const Error& err)
+      catch (const Error& /*err*/)
       {
         State.Reset();
       }

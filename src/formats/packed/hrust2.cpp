@@ -245,7 +245,7 @@ namespace Hrust2
           //%011001
           if (Stream.GetBit())
           {
-            uint_t len = Stream.GetByte();
+            len = Stream.GetByte();
             if (!len)
             {
               break;//eof
@@ -262,7 +262,7 @@ namespace Hrust2
           }
           else//%011000xxxx
           {
-            for (uint_t len = 2 * (Stream.GetBits(4) + 6); len; --len)
+            for (len = 2 * (Stream.GetBits(4) + 6); len; --len)
             {
               Decoded.push_back(Stream.GetByte());
             }

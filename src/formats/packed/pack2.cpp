@@ -229,10 +229,10 @@ namespace Pack2
           {
             if (const std::size_t len = token & 0x7f)
             {
-              const uint8_t data = len < Header.RleThreshold
+              const uint8_t filler = len < Header.RleThreshold
                 ? Header.FirstRleByte
                 : Header.SecondRleByte;
-              std::fill_n(std::back_inserter(Decoded), len, data);
+              std::fill_n(std::back_inserter(Decoded), len, filler);
             }
             else
             {
@@ -242,8 +242,8 @@ namespace Pack2
           else
           {
             const std::size_t len = token ? token : 256;
-            const uint8_t data = Stream.GetByte();
-            std::fill_n(std::back_inserter(Decoded), len, data);
+            const uint8_t filler = Stream.GetByte();
+            std::fill_n(std::back_inserter(Decoded), len, filler);
           }
         }
       }

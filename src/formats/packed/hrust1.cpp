@@ -288,7 +288,7 @@ namespace Hrust1
                 ++refBits;
                 continue;
               }
-              const int_t offset = static_cast<int16_t>(0xff00 + byte - 0xf);
+              offset = static_cast<int16_t>(0xff00 + byte - 0xf);
               if (!CopyBreaked(offset))
               {
                 return false;
@@ -370,7 +370,7 @@ namespace Hrust1
             byte ^= 3;
             byte &= 0xff;
 
-            const int_t offset = static_cast<int16_t>(0xff00 + byte - 0xf);
+            offset = static_cast<int16_t>(0xff00 + byte - 0xf);
             if (!CopyBreaked(offset))
             {
               return false;

@@ -136,7 +136,7 @@ namespace
       throw MakeFormattedError(THIS_LINE, translate("Failed to load resource archive '%1%'."), filename);
     }
     file.seekg(0, std::ios_base::end);
-    const std::size_t size = file.tellg();
+    const std::size_t size = static_cast<std::size_t>(file.tellg());
     file.seekg(0);
     std::auto_ptr<Dump> tmp(new Dump(size));
     file.read(safe_ptr_cast<char*>(&tmp->front()), size);

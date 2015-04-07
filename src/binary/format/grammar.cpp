@@ -112,8 +112,8 @@ namespace
     virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
     {
       static const std::string ANY_NIBBLES = std::string(1, ANY_NIBBLE_TEXT) + char(std::toupper(ANY_NIBBLE_TEXT));
-      static const std::string DIGITS = HEXDIGITS + ANY_NIBBLES;
-      if (lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(DIGITS))
+      static const std::string HEX_TOKENS = HEXDIGITS + ANY_NIBBLES;
+      if (lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(HEX_TOKENS))
       {
         return LexicalAnalysis::INVALID_TOKEN;
       }

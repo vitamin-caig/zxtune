@@ -83,7 +83,8 @@ namespace Wav
 
   const uint8_t RIFF[] = {'R', 'I', 'F', 'F'};
   const uint8_t RIFX[] = {'R', 'I', 'F', 'X'};
-  const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
+  const uint8_t WAVE[] = {'W', 'A', 'V', 'E'};
+  const uint8_t FORMAT[] = {'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
 
   const uint8_t LIST[] = {'L', 'I', 'S', 'T'};
@@ -179,7 +180,8 @@ namespace Wav
       {
         std::memcpy(Format.Id, RIFX, sizeof(RIFX));
       }
-      std::memcpy(Format.Type, WAVEfmt, sizeof(WAVEfmt));
+      std::memcpy(Format.Type, WAVE, sizeof(WAVE));
+      std::memcpy(Format.ChunkId, FORMAT, sizeof(FORMAT));
       Format.ChunkSize = fromLE<uint32_t>(16);
       Format.Compression = fromLE<uint16_t>(1);//PCM
       Format.Channels = fromLE<uint16_t>(Sample::CHANNELS);

@@ -55,8 +55,8 @@ namespace FM
         {
           return 0;
         }
-        const uint_t delta = stamp.Get() - LastTime.Get();
-        const uint_t res = (Frequency * delta).Integer();
+        const uint64_t delta = stamp.Get() - LastTime.Get();
+        const uint64_t res = (Frequency * delta).Integer();
         LastTime += Stamp((FixedPoint(res) / Frequency).Integer());
         return res;
       }
