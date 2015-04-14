@@ -35,8 +35,11 @@ namespace Formats
           : Delegate(delegate)
           , Mode(SINGLE_AY_MODE)
           , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
+          , AvailablePatterns(0, MAX_PATTERNS_COUNT - 1)
           , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
+          , AvailableSamples(0, MAX_SAMPLES_COUNT - 1)
           , UsedOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
+          , AvailableOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
         {
           UsedSamples.Insert(DEFAULT_SAMPLE);
           UsedOrnaments.Insert(DEFAULT_ORNAMENT);
@@ -70,13 +73,13 @@ namespace Formats
 
         virtual void SetSample(uint_t index, const Sample& sample)
         {
-          assert(UsedSamples.Contain(index));
+          AvailableSamples.Insert(index);
           return Delegate.SetSample(index, sample);
         }
 
         virtual void SetOrnament(uint_t index, const Ornament& ornament)
         {
-          assert(UsedOrnaments.Contain(index));
+          AvailableOrnaments.Insert(index);
           return Delegate.SetOrnament(index, ornament);
         }
 
@@ -89,7 +92,7 @@ namespace Formats
 
         virtual PatternBuilder& StartPattern(uint_t index)
         {
-          assert(UsedPatterns.Contain(index) || SINGLE_AY_MODE != Mode);
+          AvailablePatterns.Insert(index);
           return Delegate.StartPattern(index);
         }
 
@@ -179,22 +182,40 @@ namespace Formats
         {
           return UsedPatterns;
         }
+        
+        const Indices& GetAvailablePatterns() const
+        {
+          return AvailablePatterns;
+        }
 
         const Indices& GetUsedSamples() const
         {
           return UsedSamples;
+        }
+        
+        const Indices& GetAvailableSamples() const
+        {
+          return AvailableSamples;
         }
 
         const Indices& GetUsedOrnaments() const
         {
           return UsedOrnaments;
         }
+        
+        const Indices& GetAvailableOrnaments() const
+        {
+          return AvailableOrnaments;
+        }
       private:
         Builder& Delegate;
         uint_t Mode;
         Indices UsedPatterns;
+        Indices AvailablePatterns;
         Indices UsedSamples;
+        Indices AvailableSamples;
         Indices UsedOrnaments;
+        Indices AvailableOrnaments;
       };
     }
   }

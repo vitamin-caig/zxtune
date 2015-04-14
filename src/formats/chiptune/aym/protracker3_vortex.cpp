@@ -633,6 +633,11 @@ namespace ProTracker3
       std::string AsString() const
       {
         std::string result = SectionHeader("Sample", Index).AsString();
+        if (Lines.empty())
+        {
+          const LineObject line(Line(), true);
+          result += line.AsString();
+        }
         for (std::size_t idx = 0; idx != Lines.size(); ++idx)
         {
           const LineObject line(Lines[idx], idx == Loop);
@@ -1045,16 +1050,13 @@ namespace ProTracker3
 
       void Parse(PatternBuilder& patBuilder, Builder& builder) const
       {
-        if (const uint_t noiseBase = Noise.AsInt())
-        {
-          builder.SetNoiseBase(noiseBase);
-        }
         const uint_t envBase = Envelope.AsInt();
         for (uint_t idx = 0; idx != 3; ++idx)
         {
           builder.StartChannel(idx);
           Channels[idx].Parse(envBase, patBuilder, builder);
         }
+        builder.SetNoiseBase(Noise.AsInt());
       }
 
       std::string AsString() const
@@ -1096,7 +1098,7 @@ namespace ProTracker3
         Require(Math::InRange<uint_t>(Index, 0, MAX_PATTERNS_COUNT - 1));
         Dbg("Parse pattern %1%", Index);
         Lines.reserve(MAX_PATTERN_SIZE);
-        for (std::string line = src.ReadString(); !line.empty(); line = src.ReadString())
+        for (std::string line = src.ReadString(); !line.empty(); line = 0 != src.GetRestSize() ? src.ReadString() : std::string())
         {
           Lines.push_back(PatternLineObject(line));
         }
@@ -1120,6 +1122,7 @@ namespace ProTracker3
         {
           res += it->AsString();
         }
+        res += '\n';
         return res;
       }
 
@@ -1217,15 +1220,28 @@ namespace ProTracker3
     );
 
     const std::size_t MIN_SIZE = 256;
+    
+    void CheckIsSubset(const Indices& used, const Indices& available)
+    {
+      for (Indices::Iterator it(used); it; ++it)
+      {
+        Require(available.Contain(*it));
+      }
+    }
 
     Formats::Chiptune::Container::Ptr ParseText(const Binary::Container& data, Builder& target)
     {
       try
       {
         Binary::InputStream input(data);
-        VortexTracker2::Format format(input, target);
+        StatisticCollectingBuilder stat(target);
+        VortexTracker2::Format format(input, stat);
         format.ParseHeader();
-        const std::size_t limit = format.ParseBody(); 
+        const std::size_t limit = format.ParseBody();
+        CheckIsSubset(stat.GetUsedPatterns(), stat.GetAvailablePatterns());
+        CheckIsSubset(stat.GetUsedSamples(), stat.GetAvailableSamples());
+        stat.SetOrnament(DEFAULT_ORNAMENT, Ornament());
+        CheckIsSubset(stat.GetUsedOrnaments(), stat.GetAvailableOrnaments());
 
         const Binary::Container::Ptr subData = data.GetSubcontainer(0, limit);
         return CreateCalculatingCrcContainer(subData, 0, limit);
@@ -1333,7 +1349,10 @@ namespace ProTracker3
 
       virtual void SetOrnament(uint_t index, const Ornament& ornament)
       {
-        Ornaments.push_back(OrnamentObject(ornament, index));
+        if (index != DEFAULT_ORNAMENT)
+        {
+          Ornaments.push_back(OrnamentObject(ornament, index));
+        }
       }
 
       virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -1359,7 +1378,7 @@ namespace ProTracker3
 
       virtual void SetTempo(uint_t tempo)
       {
-        NoteCommandObject& cmd = Context.CurLine->Channels[1].Command;
+        NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.TEMPO;
         cmd.Param = tempo;
       }
@@ -1468,7 +1487,7 @@ namespace ProTracker3
 
       virtual void SetNoiseBase(uint_t val)
       {
-        Context.CurLine->Noise = val;
+        Context.SetNoiseBase(val);
       }
 
       virtual Binary::Data::Ptr GetResult() const
@@ -1495,12 +1514,14 @@ namespace ProTracker3
         PatternObject* CurPattern;
         PatternLineObject* CurLine;
         ChannelObject* CurChannel;
+        uint_t CurNoiseBase;
 
         BuildContext(std::vector<PatternObject>& patterns)
           : Patterns(patterns)
           , CurPattern()
           , CurLine()
           , CurChannel()
+          , CurNoiseBase()
         {
         }
 
@@ -1510,16 +1531,13 @@ namespace ProTracker3
           CurPattern = &Patterns.back();
           CurLine = 0;
           CurChannel = 0;
+          CurNoiseBase = 0;
         }
 
         void SetLine(uint_t idx)
         {
-          if (const std::size_t skipped = idx - CurPattern->GetSize())
-          {
-            CurPattern->AddLines(skipped);
-          }
-          CurLine = &CurPattern->AddLine();
-          CurChannel = 0;
+          FitTo(idx);
+          AddLine();
         }
 
         void SetChannel(uint_t idx)
@@ -1529,15 +1547,43 @@ namespace ProTracker3
 
         void FinishPattern(uint_t size)
         {
-          if (const std::size_t skipped = size - CurPattern->GetSize())
-          {
-            CurPattern->AddLines(skipped);
-          }
+          FitTo(size);
           CurLine = 0;
           CurPattern = 0;
         }
+        
+        void SetNoiseBase(uint_t val)
+        {
+          CurLine->Noise = CurNoiseBase = val;
+        }
+      private:
+        void FitTo(uint_t size)
+        {
+          const std::size_t skipped = size - CurPattern->GetSize();
+          if (skipped != 0)
+          {
+            if (CurNoiseBase != 0)
+            {
+              for (uint_t lines = 0; lines != skipped; ++lines)
+              {
+                AddLine();
+              }
+            }
+            else
+            {
+              CurPattern->AddLines(skipped);
+            }
+          }
+        }
+        
+        void AddLine()
+        {
+          CurLine = &CurPattern->AddLine();
+          CurLine->Noise = CurNoiseBase;
+          CurChannel = 0;
+        }
       };
-
+      
       ModuleHeader Header;
       std::vector<OrnamentObject> Ornaments;
       std::vector<SampleObject> Samples;
