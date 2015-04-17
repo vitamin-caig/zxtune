@@ -220,3 +220,7 @@ __cpp> "}//namespace Text\n"
 #SPC
 < SPC_DECODER_DESCRIPTION
 > "SNES SPC700"
+
+#MTC
+< MULTITRACK_CONTAINER_DECODER_DESCRIPTION
+> "Multitrack Container"

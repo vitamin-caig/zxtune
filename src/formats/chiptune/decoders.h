@@ -51,5 +51,6 @@ namespace Formats
     Decoder::Ptr CreateExtremeTracker1Decoder();
     Decoder::Ptr CreateAYCDecoder();
     Decoder::Ptr CreateSPCDecoder();
+    Decoder::Ptr CreateMultiTrackContainerDecoder();
   }
 }
