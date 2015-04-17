@@ -83,6 +83,7 @@ extern const Char INFO_CAP_HARDWARE[];
 extern const Char INFO_CAP_HWVOLUME[];
 extern const Char INFO_CAP_MODULE[];
 extern const Char INFO_CAP_MOS6581[];
+extern const Char INFO_CAP_MULTI[];
 extern const Char INFO_CAP_MULTITRACK[];
 extern const Char INFO_CAP_PLAIN[];
 extern const Char INFO_CAP_SAA1099[];
