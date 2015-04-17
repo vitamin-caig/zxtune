@@ -355,9 +355,13 @@ namespace Chiptune
           }
           const std::size_t sampleStart = fromLE(srcSample.Start);
           const std::size_t sampleEnd = fromLE(srcSample.Limit);
-          const std::size_t sampleLoop = fromLE(srcSample.Loop);
+          std::size_t sampleLoop = fromLE(srcSample.Loop);
           Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank), sampleStart, sampleEnd, sampleLoop);
-          Require(sampleStart >= SAMPLES_ADDR && sampleStart <= sampleEnd && sampleStart <= sampleLoop);
+          Require(sampleStart >= SAMPLES_ADDR && sampleStart <= sampleEnd);
+          if (sampleLoop < sampleStart)
+          {
+            sampleLoop = sampleEnd;
+          }
           Require((srcSample.Bank & 0xf8) == 0x50);
           const uint_t bankIdx = srcSample.Bank & 0x07;
           const Binary::Container::Ptr bankData = regions[bankIdx];
