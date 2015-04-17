@@ -35,6 +35,8 @@ namespace ZXTune
     CAP_DEV_MOS6581    = 0x080,
     //! SPC700 support
     CAP_DEV_SPC700     = 0x100,
+    //! Multi device support
+    CAP_DEV_MULTI      = 0x800,
 
     //! Storages-related capabilities
     CAP_STORAGE_MASK    = 0xff000,
