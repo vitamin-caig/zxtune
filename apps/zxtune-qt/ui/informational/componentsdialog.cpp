@@ -69,6 +69,12 @@ namespace
     return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_SPC700);
   }
 
+  bool IsMultidevicePlugin(const ZXTune::Plugin& plugin)
+  {
+    assert(IsPlayerPlugin(plugin));
+    return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_MULTI);
+  }
+  
   bool IsMultitrackPlugin(const ZXTune::Plugin& plugin)
   {
     assert(!IsPlayerPlugin(plugin));
@@ -113,6 +119,7 @@ namespace
       , Saas(CreateTreeWidgetItem(Players, "SAA"))
       , Sids(CreateTreeWidgetItem(Players, "SID"))
       , Spcs(CreateTreeWidgetItem(Players, "SPC"))
+      , Multidevices(CreateTreeWidgetItem(Players, QT_TRANSLATE_NOOP("ComponentsDialog", "Multidevice")))
       , Multitracks(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Multitrack")))
       , Archives(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Archive")))
     {
@@ -155,6 +162,10 @@ namespace
       else if (IsSPCPlugin(plugin))
       {
         AddPlayerPluginItem(plugin, *Spcs);
+      }
+      else if (IsMultidevicePlugin(plugin))
+      {
+        AddPlayerPluginItem(plugin, *Multidevices);
       }
       else
       {
@@ -239,6 +250,7 @@ namespace
     QTreeWidgetItem* const Saas;
     QTreeWidgetItem* const Sids;
     QTreeWidgetItem* const Spcs;
+    QTreeWidgetItem* const Multidevices;
     QTreeWidgetItem* const Multitracks;
     QTreeWidgetItem* const Archives;
   };
