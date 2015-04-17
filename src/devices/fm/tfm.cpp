@@ -55,6 +55,7 @@ namespace TFM
       FM::Details::YM2203SampleType* const outRaw = safe_ptr_cast<FM::Details::YM2203SampleType*>(out);
       ::YM2203UpdateOne(Chips[0].get(), outRaw, count);
       ::YM2203UpdateOne(Chips[1].get(), outRaw, count);
+      std::transform(outRaw, outRaw + count, outRaw, std::bind2nd(std::divides<FM::Details::YM2203SampleType>(), 2));
       Helper.ConvertSamples(outRaw, outRaw + count, out);
     }
 
