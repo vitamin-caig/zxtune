@@ -255,16 +255,14 @@ static xmp_zxtune* zxtune = NULL;
 
 static BOOL WINAPI ZXTUNE_CheckFile(const char* filename, XMPFILE file)
 {
+	const char* fileext = strrchr(filename, '.');
+	if(!fileext)
+		return false;
+	++fileext;
 	for(const char** ft = file_types; *ft; ++ft)
 	{
-		const char* ext = *ft;
-		const char* extf = strrchr(filename, '.');
-		if(extf)
-		{
-			++extf;
-			if(_stricmp(ext, extf) == 0)
-				return true;
-		}
+		if(_stricmp(fileext, *ft) == 0)
+			return true;
 	}
 	return false;
 }
