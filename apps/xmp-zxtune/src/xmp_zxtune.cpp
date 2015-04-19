@@ -79,6 +79,26 @@ static const char* file_types[] =
 	// end
 	NULL
 };
+static const char* about_short = "ZXTune Player (rev.2)";
+static const char* about_text = \
+"ZXTune Player (C) 2008 - 2015 by Vitamin/CAIG.\n"
+"based on r3215 feb 25 2015\n"
+"XMPlay plugin by djdron (C) 2015.\n\n"
+
+"Used source codes from:\n"
+"AYEmul from S.Bulba\n"
+"AYFly from Ander\n"
+"xPlugins from elf/2\n"
+"Pusher from Himik/ZxZ\n\n"
+
+"Used 3rdparty libraries:\n"
+"boost C++ library\n"
+"zlib from Jean-loup Gailly and Mark Adler\n"
+"z80ex from Boo-boo\n"
+"lhasa from Simon Howard\n"
+"libxmp from Claudio Matsuoka\n"
+"libsidplayfp from Simon White, Antti Lankila and Leandro Nini\n"
+"snes_spc from Shay Green\n";
 
 enum
 {
@@ -428,6 +448,7 @@ static void WINAPI ZXTUNE_GetGeneralInfo(char* buf)
 		buf += sprintf(buf, "Comment\t%s\r", md.comment.c_str());
 	if(!md.program.empty())
 		buf += sprintf(buf, "Program\t%s\r", md.program.c_str());
+	buf += sprintf(buf, "Player\t%s, %s\r", about_short, "xmp-zxtune");
 	buf += sprintf(buf, "Format\t%s\r", md.codec.c_str());
 	buf += sprintf(buf, "Bit rate\t%d bps\r", md.bitrate);
 	buf += sprintf(buf, "Sample rate\t%d hz\r", raw_sample_rate);
@@ -480,27 +501,6 @@ static double WINAPI ZXTUNE_SetPosition(DWORD pos)
 		return pos_sec;
 	return -1.0;
 }
-
-static const char* about_short = "ZXTune Player (rev.1)";
-static const char* about_text = \
-"ZXTune Player (C) 2008 - 2015 by Vitamin/CAIG.\n"
-"based on r3215 feb 25 2015\n"
-"XMPlay plugin by djdron (C) 2015.\n\n"
-
-"Used source codes from:\n"
-"AYEmul from S.Bulba\n"
-"AYFly from Ander\n"
-"xPlugins from elf/2\n"
-"Pusher from Himik/ZxZ\n\n"
-
-"Used 3rdparty libraries:\n"
-"boost C++ library\n"
-"zlib from Jean-loup Gailly and Mark Adler\n"
-"z80ex from Boo-boo\n"
-"lhasa from Simon Howard\n"
-"libxmp from Claudio Matsuoka\n"
-"libsidplayfp from Simon White, Antti Lankila and Leandro Nini\n"
-"snes_spc from Shay Green\n";
 
 static void WINAPI ZXTUNE_About(HWND win)
 {
