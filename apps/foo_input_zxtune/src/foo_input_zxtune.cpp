@@ -123,9 +123,9 @@ public:
 		m_file = p_filehint;//p_filehint may be null, hence next line
 		input_open_file_helper(m_file,p_path,p_reason,p_abort);//if m_file is null, opens file with appropriate privileges for our operation (read/write for writing tags, read-only otherwise).
 		t_size size = (t_size)m_file->get_size(p_abort);
-		m_buffer.set_size(size);
-		m_file->read(m_buffer.get_ptr(), size, p_abort);
-		input_file = Binary::CreateContainer(m_buffer.get_ptr(), size);
+		std::auto_ptr<Dump> data(new Dump(size));
+		m_file->read(&data->front(), size, p_abort);
+		input_file = Binary::CreateContainer(data);
 		if(!input_file)
 			throw exception_io_unsupported_format();
 		if(p_reason == input_open_info_read)
