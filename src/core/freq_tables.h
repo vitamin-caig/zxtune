@@ -48,4 +48,6 @@ namespace Module
   const Char TABLE_PROSOUNDMAKER[] = {'P','r','o','S','o','u','n','d','M','a','k','e','r','\0'};
   //! SQ-Tracker frequency table
   const Char TABLE_SQTRACKER[] = {'S','Q','T','r','a','c','k','e','r','\0'};
+  //! Fuxoft frequency table
+  const Char TABLE_FUXOFT[] = {'F','u','x','o','f','t','\0'};
 }
