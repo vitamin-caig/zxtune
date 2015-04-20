@@ -38,13 +38,13 @@ namespace Platform
       #define TOSTRING(a) #a
       #define STR(a) TOSTRING(a)
       static const char VERSION[] = STR(BUILD_VERSION);
-      return FromCharArray(VERSION);
+      return FromStdString(VERSION);
     }
 
     String GetBuildDate()
     {
       static const char DATE[] = __DATE__;
-      return FromCharArray(DATE);
+      return FromStdString(DATE);
     }
 
     String GetBuildPlatform()
@@ -54,7 +54,7 @@ namespace Platform
       //some business-logic
       if (os == "linux" && GetBuildArchitecture() == "mipsel")
       {
-        return FromCharArray("dingux");
+        return FromStdString("dingux");
       }
       else if (os == "windows" && toolset == "mingw")
       {
