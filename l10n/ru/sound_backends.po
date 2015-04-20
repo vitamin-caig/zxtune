@@ -241,7 +241,7 @@ msgstr "Ошибка установки уровня громкости."
 msgid "WAV support backend"
 msgstr "Поддержка вывода WAV"
 
-#: wav_backend.cpp:268
+#: wav_backend.cpp:270
 msgid "WAV conversion is not supported on non-seekable streams."
 msgstr "Конверсия в WAV не поддерживается для непозиционируемых потоков."
 

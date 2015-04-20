@@ -68,7 +68,7 @@ msgstr "Неправильное значение скважности (%1%)."
 msgid "Invalid frequency table size (%1%)."
 msgstr "Неправильный размер частотной таблицы (%1%)."
 
-#: plugins/players/ay/freq_tables.cpp:252
+#: plugins/players/ay/freq_tables.cpp:264
 #, boost-format
 msgid "Invalid frequency table '%1%'."
 msgstr "Неправильное значение частотной таблицы '%1%'."
