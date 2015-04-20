@@ -240,6 +240,7 @@ public final class ZXTune {
       public final static int SAA1099 = 64;
       public final static int MOS6581 = 128;
       public final static int SPC700 = 256;
+      public final static int MULTIDEVICE = 2048;
     }
     
     public interface Visitor {
