@@ -260,7 +260,7 @@ namespace TurboSound
     virtual void NextFrame(bool looped)
     {
       First->NextFrame(looped);
-      Second->NextFrame(looped);
+      Second->NextFrame(true);
     }
 
     virtual TrackState::Ptr GetStateObserver() const
@@ -428,16 +428,19 @@ namespace TurboSound
     virtual void SetPosition(uint_t frameNum)
     {
       const TrackState::Ptr state = Iterator->GetStateObserver();
-      if (state->Frame() > frameNum)
+      uint_t curFrame = state->Frame();
+      if (curFrame > frameNum)
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = Devices::TurboSound::Stamp();
+        curFrame = 0;
       }
-      while (state->Frame() < frameNum && Iterator->IsValid())
+      while (curFrame < frameNum && Iterator->IsValid())
       {
         TransferChunk();
-        Iterator->NextFrame(false);
+        Iterator->NextFrame(true);
+        ++curFrame;
       }
     }
   private:
@@ -549,7 +552,14 @@ namespace TurboSound
 
   Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
   {
-    return boost::make_shared<MergedChiptune>(params, first, second);
+    if (first->GetInformation()->FramesCount() >= second->GetInformation()->FramesCount())
+    {
+      return boost::make_shared<MergedChiptune>(params, first, second);
+    }
+    else
+    {
+      return boost::make_shared<MergedChiptune>(params, second, first);
+    }
   }
 
   Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)

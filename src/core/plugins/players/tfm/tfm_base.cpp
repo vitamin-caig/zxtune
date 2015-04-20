@@ -75,16 +75,19 @@ namespace Module
     virtual void SetPosition(uint_t frameNum)
     {
       const TrackState::Ptr state = Iterator->GetStateObserver();
-      if (state->Frame() > frameNum)
+      uint_t curFrame = state->Frame();
+      if (curFrame > frameNum)
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = Devices::TFM::Stamp();
+        curFrame = 0;
       }
-      while (state->Frame() < frameNum && Iterator->IsValid())
+      while (curFrame < frameNum && Iterator->IsValid())
       {
         TransferChunk();
-        Iterator->NextFrame(false);
+        Iterator->NextFrame(true);
+        ++curFrame;
       }
     }
   private:
