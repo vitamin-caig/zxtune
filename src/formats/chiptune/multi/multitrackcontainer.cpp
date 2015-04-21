@@ -106,8 +106,6 @@ namespace IFF
     return std::string(str, str + count);
   }
   
-  
-  
   class BlobChunkSourceBase : public ChunkSource
   {
   public:
