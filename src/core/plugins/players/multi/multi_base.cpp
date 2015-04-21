@@ -10,6 +10,8 @@
 
 //local includes
 #include "multi_base.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <parameters/merged_accessor.h>
 #include <parameters/visitor.h>
@@ -53,9 +55,12 @@ namespace Module
     
     static Ptr Create(const RenderersArray& renderers)
     {
+      Require(!renderers.empty());
       AnalyzersArray delegates(renderers.size());
       std::transform(renderers.begin(), renderers.end(), delegates.begin(), boost::mem_fn(&Renderer::GetAnalyzer));
-      return boost::make_shared<MultiAnalyzer>(delegates.begin(), delegates.end());
+      return delegates.size() == 1
+           ? delegates.front()
+           : boost::make_shared<MultiAnalyzer>(delegates.begin(), delegates.end());
     }
   private:
     const AnalyzersArray Delegates;
@@ -102,12 +107,20 @@ namespace Module
     
     static Ptr Create(const Multi::HoldersArray& holders)
     {
-      uint_t totalChannelsCount = 0;
-      for (Multi::HoldersArray::const_iterator it = holders.begin(), lim = holders.end(); it != lim; ++it)
+      Require(!holders.empty());
+      if (holders.size() == 1)
       {
-        totalChannelsCount += (*it)->GetModuleInformation()->ChannelsCount();
+        return holders.front()->GetModuleInformation();
       }
-      return boost::make_shared<MultiInformation>(holders.front()->GetModuleInformation(), totalChannelsCount);
+      else
+      {
+        uint_t totalChannelsCount = 0;
+        for (Multi::HoldersArray::const_iterator it = holders.begin(), lim = holders.end(); it != lim; ++it)
+        {
+          totalChannelsCount += (*it)->GetModuleInformation()->ChannelsCount();
+        }
+        return boost::make_shared<MultiInformation>(holders.front()->GetModuleInformation(), totalChannelsCount);
+      }
     }
   private:
     const Information::Ptr Delegate;
@@ -322,9 +335,12 @@ namespace Module
     
     static Ptr Create(const RenderersArray& renderers)
     {
+      Require(!renderers.empty());
       TrackStatesArray delegates(renderers.size());
       std::transform(renderers.begin(), renderers.end(), delegates.begin(), boost::mem_fn(&Renderer::GetTrackState));
-      return boost::make_shared<MultiTrackState>(delegates.begin(), delegates.end());
+      return delegates.size() == 1
+           ? delegates.front()
+           : boost::make_shared<MultiTrackState>(delegates.begin(), delegates.end());
     }
   private:
     const TrackStatesArray Delegates;
@@ -377,21 +393,29 @@ namespace Module
     
     static Ptr Create(Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders, Sound::Receiver::Ptr target)
     {
-      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      const std::size_t size = holders.size();
-      const std::size_t bufSize = renderParams->SamplesPerFrame();
-      const CompositeReceiver::Ptr receiver = boost::make_shared<CompositeReceiver>(target, bufSize);
-      const Parameters::Accessor::Ptr forcedLoop = boost::make_shared<ForcedLoopParam>();
-      RenderersArray delegates(size);
-      for (std::size_t idx = 0; idx != size; ++idx)
+      Require(!holders.empty());
+      if (holders.size() == 1)
       {
-        const Holder::Ptr holder = holders[idx];
-        const Parameters::Accessor::Ptr delegateParams = idx == 0
-          ? Parameters::CreateMergedAccessor(params, holder->GetModuleProperties())
-          : Parameters::CreateMergedAccessor(forcedLoop, params, holder->GetModuleProperties());
-        delegates[idx] = holder->CreateRenderer(delegateParams, receiver);
+        return holders.front()->CreateRenderer(params, target);
       }
-      return boost::make_shared<MultiRenderer>(delegates.begin(), delegates.end(), receiver);
+      else
+      {
+        const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+        const std::size_t size = holders.size();
+        const std::size_t bufSize = renderParams->SamplesPerFrame();
+        const CompositeReceiver::Ptr receiver = boost::make_shared<CompositeReceiver>(target, bufSize);
+        const Parameters::Accessor::Ptr forcedLoop = boost::make_shared<ForcedLoopParam>();
+        RenderersArray delegates(size);
+        for (std::size_t idx = 0; idx != size; ++idx)
+        {
+          const Holder::Ptr holder = holders[idx];
+          const Parameters::Accessor::Ptr delegateParams = idx == 0
+            ? params
+            : Parameters::CreateMergedAccessor(forcedLoop, params);
+          delegates[idx] = holder->CreateRenderer(delegateParams, receiver);
+        }
+        return boost::make_shared<MultiRenderer>(delegates.begin(), delegates.end(), receiver);
+      }
     }
   private:
     const RenderersArray Delegates;
@@ -424,18 +448,6 @@ namespace Module
     {
       return MultiRenderer::Create(params, Delegates, target);
     }
-    
-    static Ptr Create(Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders)
-    {
-      Multi::HoldersArray delegates(holders.begin(), holders.end());
-      std::stable_sort(delegates.begin(), delegates.end(), &SelectLongest);
-      return boost::make_shared<MultiHolder>(params, delegates.begin(), delegates.end());
-    }
-  private:
-    static bool SelectLongest(Holder::Ptr lh, Holder::Ptr rh)
-    {
-      return lh->GetModuleInformation()->FramesCount() > rh->GetModuleInformation()->FramesCount();
-    }
   private:
     const Parameters::Accessor::Ptr Properties;
     const Multi::HoldersArray Delegates;
@@ -449,7 +461,10 @@ namespace Module
   { 
     Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr params, const HoldersArray& holders)
     {
-      return Module::MultiHolder::Create(params, holders);
+      Require(!holders.empty());
+      return holders.size() == 1
+           ? CreateMixedPropertiesHolder(holders.front(), params)
+           : boost::make_shared<MultiHolder>(params, holders.begin(), holders.end());
     }
   }
 }

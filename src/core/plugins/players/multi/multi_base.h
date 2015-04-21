@@ -21,6 +21,7 @@ namespace Module
   {
     typedef std::vector<Module::Holder::Ptr> HoldersArray;
     
+    //first holder is used as a main one
     Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr params, const HoldersArray& holders);
   }
 }

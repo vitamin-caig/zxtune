@@ -24,6 +24,7 @@
 #include <formats/chiptune/multi/multitrackcontainer.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/serialize.h>
+#include <parameters/tools.h>
 //std includes
 #include <list>
 //boost includes
@@ -128,7 +129,7 @@ namespace MTC
       virtual Module::Holder::Ptr GetHolder() const = 0;
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual Module::PropertiesBuilder& GetPropertiesBuilder() = 0;
+      virtual Module::PropertiesBuilder& GetPropertiesBuilder() const = 0;
     };
     
     class StaticPropertiesTrackEntity : public TrackEntity
@@ -139,7 +140,7 @@ namespace MTC
         return Props ? Props->GetResult() : Parameters::Accessor::Ptr();
       }
       
-      virtual Module::PropertiesBuilder& GetPropertiesBuilder()
+      virtual Module::PropertiesBuilder& GetPropertiesBuilder() const
       {
         if (!Props)
         {
@@ -148,7 +149,7 @@ namespace MTC
         return *Props;
       }
     private:
-      boost::shared_ptr<Module::PropertiesBuilder> Props;
+      mutable boost::shared_ptr<Module::PropertiesBuilder> Props;
     };
     
     class Stream : public StaticPropertiesTrackEntity
@@ -294,16 +295,15 @@ namespace MTC
         const std::size_t tracksCount = Tracks.size();
         Dbg("Merge %1% tracks together", tracksCount);
         Require(tracksCount > 0);
-        if (tracksCount == 1)
+        Module::Multi::HoldersArray holders(tracksCount);
+        std::transform(Tracks.begin(), Tracks.end(), holders.begin(), std::mem_fun_ref(&TrackEntity::GetHolder));
+        const Module::Multi::HoldersArray::iterator longest = std::max_element(holders.begin(), holders.end(), &CompareByDuration);
+        MergeAbsentMetadata(*(*longest)->GetModuleProperties());
+        if (longest != holders.begin())
         {
-          return Tracks.front().GetHolder();
+          std::iter_swap(longest, holders.begin());
         }
-        else
-        { 
-          Module::Multi::HoldersArray holders(tracksCount);
-          std::transform(Tracks.begin(), Tracks.end(), holders.begin(), std::mem_fun_ref(&TrackEntity::GetHolder));
-          return Module::Multi::CreateHolder(GetProperties(), holders);
-        }
+        return Module::Multi::CreateHolder(GetProperties(), holders);
       }
 
       virtual Parameters::Accessor::Ptr GetProperties() const
@@ -311,9 +311,30 @@ namespace MTC
         return Props.GetResult();
       }
       
-      virtual Module::PropertiesBuilder& GetPropertiesBuilder()
+      virtual Module::PropertiesBuilder& GetPropertiesBuilder() const
       {
         return Props;
+      }
+    private:
+      static bool CompareByDuration(Module::Holder::Ptr lh, Module::Holder::Ptr rh)
+      {
+        return lh->GetModuleInformation()->FramesCount() < rh->GetModuleInformation()->FramesCount();
+      }
+      
+      void MergeAbsentMetadata(const Parameters::Accessor& toMerge) const
+      {
+        const Parameters::Accessor::Ptr cur = Props.GetResult();
+        String title, author, comment;
+        if (cur->FindValue(Module::ATTR_TITLE, title)
+         || cur->FindValue(Module::ATTR_AUTHOR, author)
+         || cur->FindValue(Module::ATTR_COMMENT, comment))
+        {
+          return;
+        }
+        Dbg("No existing metadata found. Merge from longest track.");
+        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, Props, Module::ATTR_TITLE);
+        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, Props, Module::ATTR_AUTHOR);
+        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, Props, Module::ATTR_COMMENT);
       }
     private:
       Module::PropertiesBuilder& Props;
