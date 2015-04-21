@@ -23,6 +23,7 @@
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/multi/multitrackcontainer.h>
 #include <parameters/merged_accessor.h>
+#include <parameters/serialize.h>
 #include <parameters/tools.h>
 //std includes
 #include <list>
@@ -87,7 +88,9 @@ namespace MTC
     
     virtual void SetProperty(const String& name, const String& value)
     {
-      GetCurrentProperties().SetValue(name, value);
+      Strings::Map props;
+      props[name] = value;
+      Parameters::Convert(props, GetCurrentProperties());
     }
     
     virtual void StartTrack(uint_t idx)
