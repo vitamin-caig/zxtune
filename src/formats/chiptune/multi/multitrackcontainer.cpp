@@ -253,7 +253,7 @@ namespace Chiptune
       virtual void SetAuthor(const String& /*author*/) {}
       virtual void SetTitle(const String& /*title*/) {}
       virtual void SetAnnotation(const String& /*annotation*/) {}
-      virtual void SetProperty(const String& /*property*/) {}
+      virtual void SetProperty(const String& /*name*/, const String& /*value*/) {}
 
       virtual void StartTrack(uint_t /*idx*/) {}
       virtual void SetData(Binary::Container::Ptr /*data*/) {}
@@ -275,6 +275,8 @@ namespace Chiptune
       "'M'T'C'1"
       "00 00-10 ? ?" //max 1Mb
     );
+    
+    const String::value_type PROPERTY_DELIMITER = '=';
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -341,11 +343,16 @@ namespace Chiptune
         }
       }
 
-      virtual void SetProperty(const String& property)
+      virtual void SetProperty(const String& name, const String& value)
       {
-        if (!property.empty())
+        Require(String::npos == name.find_first_of(PROPERTY_DELIMITER));
+        if (!value.empty())
         {
-          Context->OnString(IFF::Identifier::PROPERTY, property);
+          Context->OnString(IFF::Identifier::PROPERTY, name + PROPERTY_DELIMITER + value);
+        }
+        else
+        {
+          Context->OnString(IFF::Identifier::PROPERTY, name);
         }
       }
 
@@ -418,7 +425,11 @@ namespace Chiptune
         }
         else if (id == IFF::Identifier::PROPERTY)
         {
-          Delegate.SetProperty(IFF::GetString(*content));
+          const String& property = IFF::GetString(*content);
+          const String::size_type eqPos = property.find_first_of(PROPERTY_DELIMITER);
+          const String& name = property.substr(0, eqPos);
+          const String& value = eqPos != String::npos ? property.substr(eqPos + 1) : String();
+          Delegate.SetProperty(name, value);
         }
       }
     private:

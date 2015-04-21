@@ -44,7 +44,7 @@ namespace Formats
         virtual void SetTitle(const String& title) = 0;
         virtual void SetAnnotation(const String& annotation) = 0;
         //arbitrary property
-        virtual void SetProperty(const String& property) = 0;
+        virtual void SetProperty(const String& name, const String& value) = 0;
 
         virtual void StartTrack(uint_t idx) = 0;
         virtual void SetData(Binary::Container::Ptr data) = 0;

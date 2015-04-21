@@ -115,7 +115,7 @@ namespace
   {
     const std::string& file = *arg++;
     const Formats::Chiptune::MultiTrackContainer::ContainerBuilder::Ptr builder = Formats::Chiptune::MultiTrackContainer::CreateBuilder();
-    builder->SetProperty(Module::ATTR_PROGRAM + "=" + Platform::Version::GetProgramVersionString());
+    builder->SetProperty(Module::ATTR_PROGRAM, Platform::Version::GetProgramVersionString());
     uint_t track = 0;
     while (arg)
     {
@@ -138,13 +138,15 @@ namespace
       }
       else if (cmd == "--property")
       {
-        builder->SetProperty(*arg++);
+        const String& name = *arg++;
+        const String& value = *arg++;
+        builder->SetProperty(name, value);
       }
       else
       {
         const Binary::Container::Ptr data = OpenFile(cmd);
         builder->SetData(data);
-        builder->SetProperty(Module::ATTR_FILENAME + "=" + GetFilename(cmd));
+        builder->SetProperty(Module::ATTR_FILENAME, GetFilename(cmd));
       }
     }
     WriteFile(*builder->GetResult(), file);
@@ -168,9 +170,9 @@ namespace
       std::cout << Padding << "Annotation: " << annotation << std::endl;
     }
 
-    virtual void SetProperty(const String& property)
+    virtual void SetProperty(const String& name, const String& value)
     {
-      std::cout << Padding << property << std::endl;
+      std::cout << Padding << name << "=" << value << std::endl;
     }
 
     virtual void StartTrack(uint_t idx)
@@ -207,11 +209,8 @@ namespace
     virtual void SetAuthor(const String& /*author*/) {}
     virtual void SetTitle(const String& /*title*/) {}
     virtual void SetAnnotation(const String& /*annotation*/) {}
-    virtual void SetProperty(const String& property)
+    virtual void SetProperty(const String& name, const String& value)
     {
-      const String::size_type eqPos = property.find_first_of('=');
-      const String name = property.substr(0, eqPos);
-      const String value = eqPos != String::npos ? property.substr(eqPos + 1) : String();
       if (name == Module::ATTR_FILENAME)
       {
         LastDataName = value;
@@ -237,7 +236,7 @@ namespace
       if (LastData)
       {
         const String& filename = LastDataName.empty()
-                               ? Strings::Format("t%u_d%u", LastTrackIdx, LastDataIdx)
+                               ? Strings::Format("track%u_data%u", LastTrackIdx, LastDataIdx)
                                : LastDataName;
         std::cout << "Save " << LastData->Size() << " bytes to " << filename << std::endl;
         WriteFile(*LastData, filename);
@@ -281,7 +280,7 @@ namespace
       "   --title <title>\n"
       "   --author <author>\n"
       "   --annotation <annotation>\n"
-      "   --property name=value\n"
+      "   --property <name> <value>\n"
     },
     {
       "--list",

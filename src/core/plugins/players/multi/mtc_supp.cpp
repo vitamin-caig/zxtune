@@ -23,7 +23,6 @@
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/multi/multitrackcontainer.h>
 #include <parameters/merged_accessor.h>
-#include <parameters/serialize.h>
 #include <parameters/tools.h>
 //std includes
 #include <list>
@@ -86,20 +85,9 @@ namespace MTC
       GetCurrentProperties().SetComment(annotation);
     }
     
-    virtual void SetProperty(const String& property)
+    virtual void SetProperty(const String& name, const String& value)
     {
-      Strings::Map pairs;
-      //TODO: extract
-      const String::size_type delim = property.find_first_of('=');
-      if (delim != String::npos)
-      {
-        pairs[property.substr(0, delim)] = property.substr(delim + 1);
-      }
-      else
-      {
-        pairs[property] = String();
-      }
-      Parameters::Convert(pairs, GetCurrentProperties());
+      GetCurrentProperties().SetValue(name, value);
     }
     
     virtual void StartTrack(uint_t idx)
