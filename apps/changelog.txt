@@ -5,6 +5,17 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3270 from 21.04.2015
+
+[+] Added MultiTrackContainer (MTC) format support
+[*] Fixes in PT3 playback
+[*] Fixes in Vortex TXT parsing
+[*] Fixes in DMM processing for samples with invalid loop
+[*] Reduced volume of TFM tracks
+[*] Fixed parsing of some AY modules (BB#12)
+[*] Fixed crash on SID playback finish
+[*] Fixed playback of TS tracks with different duration
+
 --- Rev3240 from 30.03.2015
 
 [+] Added DSK images support
