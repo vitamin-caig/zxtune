@@ -17,9 +17,9 @@ namespace
   class EmbeddedWidgetsFactory : public WidgetsFactory
   {
   public:
-    virtual QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const Strings::Array& cmdline) const
+    virtual MainWindow::Ptr CreateMainWindow(Parameters::Container::Ptr options) const
     {
-      return QPointer<QMainWindow>(EmbeddedMainWindow::Create(options, cmdline));
+      return EmbeddedMainWindow::Create(options);
     }
   };
 }

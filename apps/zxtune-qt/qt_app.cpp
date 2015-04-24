@@ -9,15 +9,17 @@
 **/
 
 //local includes
+#include "singlemode.h"
 #include "ui/factory.h"
 #include "ui/utils.h"
 #include "supp/options.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <platform/application.h>
 #include <platform/version/api.h>
 //qt includes
 #include <QtGui/QApplication>
-#include <QtGui/QDesktopServices>
 //text includes
 #include "text/text.h"
 
@@ -33,14 +35,19 @@ namespace
     virtual int Run(int argc, const char* argv[])
     {
       QApplication qapp(argc, const_cast<char**>(argv));
-      //main ui
-      Strings::Array cmdline(argc - 1);
-      std::transform(argv + 1, argv + argc, cmdline.begin(), &FromStdString);
-      const QPointer<QMainWindow> win = WidgetsFactory::Instance().CreateMainWindow(GlobalOptions::Instance().Get(), cmdline);
       qapp.setOrganizationName(QLatin1String(Text::PROJECT_NAME));
       qapp.setOrganizationDomain(QLatin1String(Text::PROGRAM_SITE));
       qapp.setApplicationVersion(ToQString(Platform::Version::GetProgramVersionString()));
-      return qapp.exec();
+      const Parameters::Container::Ptr params = GlobalOptions::Instance().Get();
+      const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(params, argc - 1, argv + 1);
+      if (mode->StartMaster()) {
+        const MainWindow::Ptr win = WidgetsFactory::Instance().CreateMainWindow(params);
+        Require(win->connect(mode, SIGNAL(OnSlaveStarted(const QStringList&)), SLOT(SetCmdline(const QStringList&))));
+        win->SetCmdline(mode->GetCmdline());
+        return qapp.exec();
+      } else {
+        return 0;
+      }
     }
   };
 }

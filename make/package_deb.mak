@@ -39,7 +39,7 @@ $(pkg_debian)/control: dist/debian/control | $(pkg_debian)
 escaped_curdir = $(shell echo $(CURDIR) | sed -r 's/\//\\\//g')
 
 $(pkg_debian)/rules: $(path_step)/make/build/debian/rules | $(pkg_debian)
-	sed -r 's/\$$\(target\)/release=$(release) platform=$(platform) arch=$(arch) distro=$(distro) -C $(escaped_curdir)/g' $^ > $@
+	sed -r 's/\$$\(target\)/platform=$(platform) arch=$(arch) distro=$(distro) -C $(escaped_curdir)/g' $^ > $@
 
 $(pkg_debian)/copyright: $(path_step)/apps/copyright | $(pkg_debian)
 	$(call copyfile_cmd,$^,$@)

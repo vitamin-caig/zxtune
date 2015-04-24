@@ -104,7 +104,7 @@ namespace AY
     Parser(const Binary::Container& rawData)
       : RawData(rawData)
       , Delegate(rawData)
-      , Ranges(RangeChecker::CreateShared(RawData.Size()))
+      , Ranges(RangeChecker::CreateSimple(RawData.Size()))
       , Start(Delegate.GetField<uint8_t>(0))
       , Finish(Start + rawData.Size())
     {

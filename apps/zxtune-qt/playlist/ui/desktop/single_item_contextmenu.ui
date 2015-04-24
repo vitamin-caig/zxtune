@@ -11,6 +11,7 @@
   <addaction name="separator"/>
   <addaction name="ExportAction"/>
   <addaction name="ConvertAction"/>
+  <addaction name="SaveAsAction"/>
   <addaction name="separator"/>
   <addaction name="CopyToClipboardAction"/>
   <addaction name="PropertiesAction"/>
@@ -105,6 +106,11 @@
    </property>
    <property name="text">
     <string>Convert</string>
+   </property>
+  </action>
+  <action name="SaveAsAction">
+   <property name="text">
+    <string>Save as...</string>
    </property>
   </action>
   <action name="PropertiesAction">

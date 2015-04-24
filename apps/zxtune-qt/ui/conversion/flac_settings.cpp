@@ -14,6 +14,8 @@
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <sound/backends_parameters.h>
 
@@ -35,7 +37,7 @@ namespace
       //setup self
       setupUi(this);
 
-      connect(compressionValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged()));
+      Require(connect(compressionValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged())));
 
       using namespace Parameters;
       IntegerValue::Bind(*compressionValue, *Options, ZXTune::Sound::Backends::Flac::COMPRESSION,

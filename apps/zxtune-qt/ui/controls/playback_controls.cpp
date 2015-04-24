@@ -12,6 +12,8 @@
 #include "playback_controls.h"
 #include "playback_controls.ui.h"
 #include "supp/playback_supp.h"
+//common includes
+#include <contract.h>
 //std includes
 #include <cassert>
 //qt includes
@@ -32,15 +34,15 @@ namespace
       SetupMenu();
 
       //connect actions with self signals
-      connect(actionPlay, SIGNAL(triggered()), SIGNAL(OnPlay()));
-      connect(actionPause, SIGNAL(triggered()), SIGNAL(OnPause()));
-      connect(actionStop, SIGNAL(triggered()), SIGNAL(OnStop()));
-      connect(actionPrevious, SIGNAL(triggered()), SIGNAL(OnPrevious()));
-      connect(actionNext, SIGNAL(triggered()), SIGNAL(OnNext()));
+      Require(connect(actionPlay, SIGNAL(triggered()), SIGNAL(OnPlay())));
+      Require(connect(actionPause, SIGNAL(triggered()), SIGNAL(OnPause())));
+      Require(connect(actionStop, SIGNAL(triggered()), SIGNAL(OnStop())));
+      Require(connect(actionPrevious, SIGNAL(triggered()), SIGNAL(OnPrevious())));
+      Require(connect(actionNext, SIGNAL(triggered()), SIGNAL(OnNext())));
 
-      supp.connect(this, SIGNAL(OnPlay()), SLOT(Play()));
-      supp.connect(this, SIGNAL(OnStop()), SLOT(Stop()));
-      supp.connect(this, SIGNAL(OnPause()), SLOT(Pause()));
+      Require(supp.connect(this, SIGNAL(OnPlay()), SLOT(Play())));
+      Require(supp.connect(this, SIGNAL(OnStop()), SLOT(Stop())));
+      Require(supp.connect(this, SIGNAL(OnPause()), SLOT(Pause())));
     }
 
     virtual QMenu* GetActionsMenu() const

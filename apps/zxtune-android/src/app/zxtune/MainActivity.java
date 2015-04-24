@@ -39,6 +39,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   private ViewPager pager;
   private int browserPageIndex;
   private BrowserFragment browser;
+  private Uri openRequest;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,9 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
     setContentView(R.layout.main_activity);
 
     fillPages();
+    if (savedInstanceState == null) {
+      getOpenRequestFromIntent();
+    }
   }
   
   @Override
@@ -101,15 +105,22 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
         ((PlaybackServiceConnection.Callback) f).onServiceConnected(service);
       }
     }
-    redirectIntentData();
+    if (openRequest != null) {
+      processOpenRequest();
+    }
   }
   
-  private void redirectIntentData() {
+  private void getOpenRequestFromIntent() {
     final Intent intent = getIntent();
     if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
-      final Uri[] path = {intent.getData()};
-      service.setNowPlaying(path);
+      openRequest = intent.getData();
     }
+  }
+  
+  private void processOpenRequest() {
+    final Uri[] path = {openRequest};
+    service.setNowPlaying(path);
+    openRequest = null;
   }
   
   private void fillPages() { 

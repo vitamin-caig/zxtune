@@ -82,6 +82,11 @@ namespace
       Activate(idx);
     }
     
+    virtual void Reset()
+    {
+      Reset(0);
+    }
+
     virtual void Reset(unsigned idx)
     {
       SelectItem(idx);
@@ -100,14 +105,12 @@ namespace
         Index = *moved;
         return;
       }
-      if (const Playlist::Model::IndexType* newOne = remapping->FindNewSuitableIndex(Index))
-      {
-        if (SelectItem(*newOne))
-        {
-          return;
-        }
-      }
+      const uint_t oldIndex = Index;
       Deactivate();
+      if (const Playlist::Model::IndexType* newOne = remapping->FindNewSuitableIndex(oldIndex))
+      {
+        Activate(*newOne);
+      }
     }
   private:
     bool SelectItem(unsigned idx)

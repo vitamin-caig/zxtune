@@ -28,10 +28,10 @@ pkgver() {
 
 build() {
   cd "${srcdir}/zxtune"
-  make platform=linux system.zlib=1 release=1 ${_qt4_options} -C apps/bundle
+  make platform=linux system.zlib=1 ${_qt4_options} -C apps/bundle
 }
 
 package() {
   cd "${srcdir}/zxtune"
-  make DESTDIR="${pkgdir}" platform=linux release=1 install_linux -C apps/bundle
+  make DESTDIR="${pkgdir}" platform=linux install_linux -C apps/bundle
 }

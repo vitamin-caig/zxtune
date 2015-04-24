@@ -33,8 +33,8 @@ namespace
       //setup self
       setupUi(this);
 
-      connect(selectDevice, SIGNAL(clicked()), SLOT(DeviceSelected()));
-      connect(selectMixer, SIGNAL(clicked()), SLOT(MixerSelected()));
+      Require(connect(selectDevice, SIGNAL(clicked()), SLOT(DeviceSelected())));
+      Require(connect(selectMixer, SIGNAL(clicked()), SLOT(MixerSelected())));
 
       using namespace Parameters::ZXTune::Sound::Backends::Oss;
       Parameters::StringValue::Bind(*device, *Options, DEVICE, DEVICE_DEFAULT);

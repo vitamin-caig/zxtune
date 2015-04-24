@@ -1,65 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="build_rules">
-  <!-- default properties -->
-  <property name="cpu.cores" value="1" />
-  <property name="native.libs.source.dir" value="jni" />
-  
   <property file="${top.dir}/make/android/build.properties" />
-
-  <macrodef name="buildlib-helper">
-    <attribute name="arch" />
-    <sequential>
-      <exec executable="make" failonerror="true">
-        <arg value="release=1" />
-        <arg value="platform=android" />
-        <arg value="arch=@{arch}" />
-        <arg value="-C" />
-        <arg value="${native.libs.source.dir}" />
-        <arg value="-j" />
-        <arg value="${cpu.cores}" />
-      </exec>
-    </sequential>
-  </macrodef>
-
-  <macrodef name="installib-helper">
-    <attribute name="arch" />
-    <sequential>
-      <copy file="${top.dir}/bin/android_@{arch}/release/lib${native.libs}.so" todir="${native.libs.absolute.dir}/@{arch}" />
-    </sequential>
-  </macrodef>
-
-  <macrodef name="makelib-helper">
-    <attribute name="arch" />
-    <sequential>
-      <echo level="info">Make native library for arch @{arch}</echo>
-      <buildlib-helper arch="@{arch}" />
-      <installib-helper arch="@{arch}" />
-    </sequential>
-  </macrodef>
   
-  <macrodef name="makelib-debug">
-    <attribute name="arch" />
-    <sequential>
-      <copy file="${top.dir}/bin/android_@{arch}/release/lib${native.libs}.so.pdb" todir="${debug.dir}/@{arch}" />
-    </sequential>
-  </macrodef>
+  <import file="nativelibs.xml" />
 
   <target name="getversion">
     <sequential>
-      <exec executable="make" outputproperty="version.index" failonerror="true">
+      <exec executable="make" outputproperty="version.index.base" failonerror="true">
         <arg value="--quiet"/>
         <arg value="-f"/>
         <arg value="${top.dir}/make/version.mak"/>
         <arg value="version_index"/>
       </exec>
       <!-- version.name does not work... -->
-      <exec executable="make" outputproperty="version" failonerror="true">
+      <exec executable="make" outputproperty="version.base" failonerror="true">
         <arg value="--quiet"/>
         <arg value="-f"/>
         <arg value="${top.dir}/make/version.mak"/>
         <arg value="version_name"/>
       </exec>
-      <echo level="info">Current version is ${version} (${version.index})</echo>
+      <property name="build.dir" value="${builds.dir}/${version.base}/android" />
+      <echo level="info">Base version is ${version.base} (${version.index.base}). Build dir is ${build.dir}</echo>
     </sequential>
   </target>
   
@@ -67,7 +28,7 @@
     <available file="AndroidManifest.data" property="xsltmanifest"/>
   </target>
   
-  <target name="xsltmanifest" depends="getversion" if="xsltmanifest">
+  <target name="xsltmanifest" depends="checkmanifesttype" if="xsltmanifest">
     <exec executable="xsltproc" failonerror="true">
       <arg value="--stringparam"/>
       <arg value="version.index"/>
@@ -82,7 +43,7 @@
     </exec>
   </target>
   
-  <target name="substmanifest" depends="getversion" unless="xsltmanifest">
+  <target name="substmanifest" depends="checkmanifesttype" unless="xsltmanifest">
     <copy file="AndroidManifest.tmpl" tofile="AndroidManifest.xml" overwrite="yes" >
       <filterset>
         <filter token="version" value="${version}" />
@@ -91,63 +52,71 @@
     </copy>
   </target>
   
-  <target name="injectversion" depends="checkmanifesttype,xsltmanifest,substmanifest">
-    <property name="build.dir" value="${builds.dir}/${version}/android" />
-  </target>
-  
-  <!-- for and foreach only in ant-contrib -->
-  <target name="nativelibs">
-    <makelib-helper arch="x86" />
-    <makelib-helper arch="armeabi" />
-    <makelib-helper arch="armeabi-v7a" />
-  </target>
-  
-  <target name="debugsymbols">
-    <property name="debug.dir" value="${build.dir}/debug" />
-    <makelib-debug arch="x86" />
-    <makelib-debug arch="armeabi" />
-    <makelib-debug arch="armeabi-v7a" />
-  </target>
-
-  <target name="debugarchive" depends="debugsymbols">
-    <exec executable="tar" failonerror="true">
-      <arg value="-cjf" />
-      <arg value="${debug.dir}.tar.bz2" />
-      <arg value="--remove-files" />
-      <arg value="${debug.dir}" />
-    </exec>
-  </target>
-
-  <target name="makepackage" depends="release">
-    <copy file="${out.final.file}" toFile="${build.dir}/${ant.project.name}_${version}${suffix}.apk" overwrite="true" />
-  </target>
-
-  <!-- Single public build target (fat) -->
-  <target name="public-build-fat" depends="injectversion, nativelibs, debugarchive">
-    <antcall target="makepackage">
-      <param name="suffix" value="" />
-    </antcall>
-  </target>
-  
-  <macrodef name="public-build-arch">
-    <attribute name="arch" />
+  <!-- http://stackoverflow.com/questions/16359221/how-to-add-any-number-to-a-property-from-a-property-file -->
+  <macrodef name="math">
+    <attribute name="operation"/>
+    <attribute name="operator1"/>
+    <attribute name="operator2"/>
+    <attribute name="result"/>
     <sequential>
-      <delete dir="${native.libs.absolute.dir}" />
-      <delete file="${build.result}" />
-      <installib-helper arch="@{arch}" />
-      <antcall target="makepackage">
-        <param name="suffix" value="_@{arch}" />
-      </antcall>
+    <script language="javascript">
+     tmp = 0;
+     switch ("@{operation}")
+     {
+      case "+" :
+       tmp = parseInt("@{operator1}") + parseInt("@{operator2}");
+       break;
+      case "-" :
+       tmp = parseInt("@{operator1}") - parseInt("@{operator2}");
+       break;
+      case "*" :
+       tmp = parseInt("@{operator1}") * parseInt("@{operator2}");
+       break;
+      case "/" :
+       tmp = parseInt("@{operator1}") / parseInt("@{operator2}");
+       break;
+     }
+     project.setProperty("@{result}", tmp);
+    </script>
     </sequential>
   </macrodef>
-  
-  <target name="public-build-thin" depends="public-build-fat">
-    <public-build-arch arch="x86" />
-    <public-build-arch arch="armeabi" />
-    <public-build-arch arch="armeabi-v7a" />
+
+  <target name="getfixedversion" depends="getversion">
+    <condition property="version.suffix" value="+${version.delta}_${arch}" else="">
+      <isset property="arch" />
+    </condition>
+    <condition property="version.delta" value="0">
+      <not>
+        <isset property="arch" />
+      </not>
+    </condition>
+    <property name="version" value="${version.base}${version.suffix}" />
+    <math operation="+" operator1="${version.index.base}" operator2="${version.delta}" result="version.index" />
+    <echo level="info">Full version is ${version} (${version.index})</echo>
   </target>
   
+  <target name="makemanifest" depends="getfixedversion,xsltmanifest,substmanifest">
+  </target>
+  
+  <target name="makepackage" depends="makemanifest,nativelibs,release">
+    <copy file="${out.final.file}" toFile="${build.dir}/${ant.project.name}_${version}.apk" overwrite="true" />
+  </target>
+  
+  <target name="public-build-some">
+    <delete dir="${native.libs.absolute.dir}" />
+    <delete file="${build.result}" />
+    <antcall target="makepackage" />
+  </target>
+  
+  <target name="public-build-fat">
+    <antcall target="public-build-some" />
+  </target>
+  
+  <target name="public-build-thin">
+    <for-arch target="public-build-some" />
+  </target>
+
   <!-- Full public build target (fat+thin) -->
-  <target name="public-build" depends="public-build-fat, public-build-thin">
+  <target name="public-build" depends="public-build-fat,public-build-thin,debugarchive">
   </target>
 </project>

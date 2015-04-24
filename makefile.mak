@@ -28,10 +28,12 @@ ifneq ($(or $(pic),$(dynamic_name)),)
 pic := 1
 endif
 
-ifdef release
-mode := release
+ifdef debug
+mode = debug
+undefine release
 else
-mode := debug
+mode = release
+release = 1
 endif
 
 ifneq ($(or $(libraries.qt),$(ui_files),$(moc_files),$(qrc_files)),)

@@ -13,6 +13,7 @@
 #include "operations_helpers.h"
 #include "storage.h"
 #include <apps/zxtune-qt/supp/playback_supp.h>
+#include <apps/zxtune-qt/ui/utils.h>
 //common includes
 #include <contract.h>
 #include <error_tools.h>
@@ -20,7 +21,10 @@
 #include <async/src/event.h>
 #include <io/api.h>
 #include <io/template.h>
+#include <parameters/merged_accessor.h>
 #include <parameters/template.h>
+#include <sound/backends_parameters.h>
+#include <sound/sound_parameters.h>
 #include <sound/backend.h>
 //std includes
 #include <numeric>
@@ -240,7 +244,7 @@ namespace
 
     void Save(const Binary::Data& data, const String& filename) const
     {
-      const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, *Params, Log::ProgressCallback::Stub());
+      const Binary::OutputStream::Ptr stream = IO::CreateStream(ToLocal(filename), *Params, Log::ProgressCallback::Stub());
       stream->ApplyData(data);
     }
   private:
@@ -249,6 +253,14 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
+  
+  Parameters::Accessor::Ptr CreateSoundParameters(const Playlist::Item::Conversion::Options& opts)
+  {
+    const Parameters::Container::Ptr overriden = Parameters::Container::Create();
+    overriden->SetValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, opts.FilenameTemplate);
+    overriden->SetValue(Parameters::ZXTune::Sound::LOOPED, 0);
+    return Parameters::CreateMergedAccessor(overriden, opts.Params);
+  }
 }
 
 namespace Playlist
@@ -279,7 +291,8 @@ namespace Playlist
       }
       else
       {
-        const Sound::Service::Ptr service = Sound::CreateFileService(opts.Params);
+        const Parameters::Accessor::Ptr soundParams = CreateSoundParameters(opts);
+        const Sound::Service::Ptr service = Sound::CreateFileService(soundParams);
         return CreateSoundFormatConvertOperation(items, opts.Type, service, result);
       }
     }

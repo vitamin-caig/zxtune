@@ -15,6 +15,8 @@
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <sound/service.h>
 //std includes
@@ -39,16 +41,30 @@ namespace
         Ids.insert(std::make_pair(info->Id(), info->Status()));
       }
     }
+    
+    Strings::Array GetAvailable() const
+    {
+      Strings::Array result;
+      for (Id2Status::const_iterator it = Ids.begin(), lim = Ids.end(); it != lim; ++it)
+      {
+        if (!it->second)
+        {
+          result.push_back(it->first);
+        }
+      }
+      return result;
+    }
 
     Error GetStatus(const String& id) const
     {
-      const std::map<String, Error>::const_iterator it = Ids.find(id);
+      const Id2Status::const_iterator it = Ids.find(id);
       return it != Ids.end()
         ? it->second
         : Error();//TODO
     }
   private:
-    std::map<String, Error> Ids;
+    typedef std::map<String, Error> Id2Status;
+    Id2Status Ids;
   };
 
   const Char TYPE_WAV[] = {'w', 'a', 'v', 0};
@@ -118,7 +134,7 @@ namespace
 
     void SetupButton(IdToButton::value_type but)
     {
-      connect(but.second, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
+      Require(connect(but.second, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged())));
       if (const Error status = Backends.GetStatus(but.first))
       {
         but.second->setEnabled(false);
@@ -147,5 +163,10 @@ namespace UI
   SupportedFormatsWidget* SupportedFormatsWidget::Create(QWidget& parent)
   {
     return new SupportedFormats(parent);
+  }
+
+  Strings::Array SupportedFormatsWidget::GetSoundTypes()
+  {
+    return FileBackendsSet(GlobalOptions::Instance().Get()).GetAvailable();
   }
 }

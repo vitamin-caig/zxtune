@@ -22,7 +22,7 @@ namespace UI
     explicit FilenameTemplateWidget(QWidget& parent);
   public:
     static FilenameTemplateWidget* Create(QWidget& parent);
-
+    
     virtual QString GetFilenameTemplate() const = 0;
   private slots:
     virtual void OnBrowseDirectory() = 0;

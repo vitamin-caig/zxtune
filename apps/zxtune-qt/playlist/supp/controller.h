@@ -68,6 +68,7 @@ namespace Playlist
       virtual void Select(unsigned idx) = 0;
     public slots:
       //navigate
+      virtual void Reset() = 0;
       virtual void Reset(unsigned idx) = 0;
     private slots:
       virtual void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping) = 0;

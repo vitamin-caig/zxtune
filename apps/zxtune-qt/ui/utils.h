@@ -52,6 +52,16 @@ inline String LocalFromQString(const QString& str)
   return raw.constData();
 }
 
+inline String ToLocal(const String& utf)
+{
+  return LocalFromQString(ToQString(utf));
+}
+
+inline String FromLocal(const String& loc)
+{
+  return FromQString(ToQStringFromLocal(loc));
+}
+
 template<class T>
 struct AutoMetaTypeRegistrator
 {

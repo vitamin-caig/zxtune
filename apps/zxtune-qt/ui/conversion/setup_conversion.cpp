@@ -19,13 +19,18 @@
 #include "supp/options.h"
 #include "ui/state.h"
 #include "ui/utils.h"
+#include "ui/tools/filedialog.h"
 #include "ui/tools/parameters_helpers.h"
+//common includes
+#include <contract.h>
 //library includes
-#include <parameters/tools.h>
+#include <io/api.h>
+#include <io/providers_parameters.h>
+#include <parameters/merged_accessor.h>
 #include <sound/backends_parameters.h>
-#include <sound/sound_parameters.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 //qt includes
 #include <QtCore/QThread>
 #include <QtGui/QCloseEvent>
@@ -46,36 +51,11 @@ namespace
   {
     return QThread::idealThreadCount() > 1;
   }
-
-  template<class ValueType>
-  class TemporaryProperty
+  
+  Playlist::Item::Conversion::Options::Ptr CreateOptions(const String& type, const QString& filenameTemplate, Parameters::Accessor::Ptr params)
   {
-  public:
-    TemporaryProperty(Parameters::Container& param, const Parameters::NameType& name, const ValueType& newValue)
-      : Param(param)
-      , Name(name)
-      , OldValue(newValue)
-      , Changed(Param.FindValue(Name, OldValue) && OldValue != newValue)
-    {
-      if (Changed)
-      {
-        Param.SetValue(Name, newValue);
-      }
-    }
-
-    ~TemporaryProperty()
-    {
-      if (Changed)
-      {
-        Param.SetValue(Name, OldValue);
-      }
-    }
-  private:
-    Parameters::Container& Param;
-    const Parameters::NameType Name;
-    ValueType OldValue;
-    const bool Changed;
-  };
+    return boost::make_shared<Playlist::Item::Conversion::Options>(type, FromQString(filenameTemplate), params);
+  }
 
   class SetupConversionDialogImpl : public UI::SetupConversionDialog
                                   , private UI::Ui_SetupConversionDialog
@@ -97,35 +77,29 @@ namespace
       AddBackendSettingsWidget(&UI::CreateOGGSettingsWidget);
       AddBackendSettingsWidget(&UI::CreateFLACSettingsWidget);
 
-      connect(TargetTemplate, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
-      connect(TargetFormat, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
+      Require(connect(TargetTemplate, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions())));
+      Require(connect(TargetFormat, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions())));
 
-      connect(buttonBox, SIGNAL(accepted()), SLOT(accept()));
-      connect(buttonBox, SIGNAL(rejected()), SLOT(reject()));
+      Require(connect(buttonBox, SIGNAL(accepted()), SLOT(accept())));
+      Require(connect(buttonBox, SIGNAL(rejected()), SLOT(reject())));
 
       toolBox->setCurrentIndex(TEMPLATE_PAGE);
       useMultithreading->setEnabled(HasMultithreadEnvironment());
-      using namespace Parameters;
-      BooleanValue::Bind(*useMultithreading, *Options, ZXTune::Sound::Backends::File::BUFFERS, false, MULTITHREAD_BUFFERS_COUNT);
+      Parameters::BooleanValue::Bind(*useMultithreading, *Options, Parameters::ZXTune::Sound::Backends::File::BUFFERS, false, MULTITHREAD_BUFFERS_COUNT);
 
       UpdateDescriptions();
       State->Load();
     }
 
-    virtual bool Execute(Playlist::Item::Conversion::Options& opts)
+    virtual Playlist::Item::Conversion::Options::Ptr Execute()
     {
       if (exec())
       {
-        opts.Type = TargetFormat->GetSelectedId();
-        opts.FilenameTemplate = FromQString(TargetTemplate->GetFilenameTemplate());
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, opts.FilenameTemplate);
-        const TemporaryProperty<Parameters::IntType> disableLoop(*Options, Parameters::ZXTune::Sound::LOOPED, 0);
-        opts.Params = GlobalOptions::Instance().GetSnapshot();
-        return true;
+        return CreateOptions(TargetFormat->GetSelectedId(), TargetTemplate->GetFilenameTemplate(), GlobalOptions::Instance().GetSnapshot());
       }
       else
       {
-        return false;
+        return Playlist::Item::Conversion::Options::Ptr();
       }
     }
 
@@ -148,7 +122,7 @@ namespace
       QWidget* const settingsWidget = toolBox->widget(SETTINGS_PAGE);
       UI::BackendSettingsWidget* const result = factory(*settingsWidget);
       formatSettingsLayout->addWidget(result);
-      connect(result, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
+      Require(connect(result, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions())));
       BackendSettings[result->GetBackendId()] = result;
     }
 
@@ -193,6 +167,81 @@ namespace
     typedef std::map<String, UI::BackendSettingsWidget*> BackendIdToSettings;
     BackendIdToSettings BackendSettings;
   };
+  
+  QString GetDefaultFilename(Playlist::Item::Data::Ptr item)
+  {
+    const String& filePath = item->GetFilePath();
+    const IO::Identifier::Ptr id = IO::ResolveUri(filePath);
+    return ToQString(id->Filename());
+  }
+  
+  QString FixExtension(const QString& filename, const QString& extension)
+  {
+    const int pos = filename.indexOf('.');
+    if (pos != -1)
+    {
+      return filename.left(pos + 1) + extension;
+    }
+    else
+    {
+      return filename + '.' + extension;
+    }
+  }
+  
+  class Formats
+  {
+  public:
+    explicit Formats(const QString& type)
+    {
+      AddRawType(type);
+      AddSoundTypes();
+    }
+    
+    const QStringList& GetFilters() const
+    {
+      return Filters;
+    }
+    
+    String GetType(int idx) const
+    {
+      return Types[idx];
+    }
+  private:
+    void AddRawType(const QString& type)
+    {
+      Types.push_back("");
+      Filters << MakeFilter(type);
+    }
+    
+    void AddSoundTypes()
+    {
+      const Strings::Array& types = UI::SupportedFormatsWidget::GetSoundTypes();
+      for (Strings::Array::const_iterator it = types.begin(), lim = types.end(); it != lim; ++it)
+      {
+        Types.push_back(*it);
+        Filters << MakeFilter(ToQString(*it));
+      }
+    }
+    
+    static QString MakeFilter(const QString& type)
+    {
+      return QString::fromAscii("%1 (*.%1)").arg(type);
+    }
+  private:
+    Strings::Array Types;
+    QStringList Filters;
+  };
+
+  Parameters::Accessor::Ptr CreateSaveAsParameters()
+  {
+    //force simpliest mode
+    const Parameters::Accessor::Ptr base = GlobalOptions::Instance().GetSnapshot();
+    const Parameters::Container::Ptr overriden = Parameters::Container::Create();
+    overriden->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 1);
+    overriden->SetValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, 0);
+    overriden->SetValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, 0);
+    return Parameters::CreateMergedAccessor(overriden, base);
+  }
 }
 
 namespace UI
@@ -206,10 +255,44 @@ namespace UI
   {
     return SetupConversionDialog::Ptr(new SetupConversionDialogImpl(parent));
   }
+  
+  Playlist::Item::Conversion::Options::Ptr GetExportParameters(QWidget& parent)
+  {
+    QString nameTemplate;
+    if (UI::GetFilenameTemplate(parent, nameTemplate))
+    {
+      return CreateOptions(String(), nameTemplate, GlobalOptions::Instance().Get());
+    }
+    else
+    {
+      return Playlist::Item::Conversion::Options::Ptr();
+    }
+  }
 
-  bool GetConversionParameters(QWidget& parent, Playlist::Item::Conversion::Options& opts)
+  Playlist::Item::Conversion::Options::Ptr GetConvertParameters(QWidget& parent)
   {
     const SetupConversionDialog::Ptr dialog = SetupConversionDialog::Create(parent);
-    return dialog->Execute(opts);
+    return dialog->Execute();
+  }
+
+  Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(Playlist::Item::Data::Ptr item)
+  {
+    if (item->GetState())
+    {
+      return Playlist::Item::Conversion::Options::Ptr();
+    }
+    const QString type = ToQString(item->GetType()).toLower();
+    const Formats formats(type);
+    //QFileDialog automatically change extension only when filter is selected
+    QString filename = FixExtension(GetDefaultFilename(item), type);
+    int typeIndex = 0;
+    if (UI::SaveFileDialog(QString(), type, formats.GetFilters(), filename, &typeIndex))
+    {
+      return CreateOptions(formats.GetType(typeIndex), filename, CreateSaveAsParameters());
+    }
+    else
+    {
+      return Playlist::Item::Conversion::Options::Ptr();
+    }
   }
 }

@@ -64,6 +64,7 @@ namespace Sid
   ;
 
   typedef boost::shared_ptr<SidTune> TunePtr;
+  typedef boost::shared_ptr<sidplayfp> EnginePtr;
 
   void CheckSidplayError(bool ok)
   {
@@ -75,7 +76,7 @@ namespace Sid
   public:
     typedef boost::shared_ptr<Analyzer> Ptr;
 
-    explicit Analyzer(const sidplayfp& engine)
+    explicit Analyzer(EnginePtr engine)
       : Engine(engine)
     {
     }
@@ -90,7 +91,7 @@ namespace Sid
     virtual void GetState(std::vector<ChannelState>& channels) const
     {
       unsigned freqs[6], levels[6];
-      const unsigned count = Engine.getState(freqs, levels);
+      const unsigned count = Engine->getState(freqs, levels);
       std::vector<ChannelState> result(count);
       for (uint_t chan = 0; chan != count; ++chan)
       {
@@ -101,7 +102,7 @@ namespace Sid
       channels.swap(result);
     }
   private:
-    const sidplayfp& Engine;
+    const EnginePtr Engine;
     Devices::Details::AnalysisMap Analysis;
   };
 
@@ -153,24 +154,25 @@ namespace Sid
   public:
     Renderer(TunePtr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(tune)
+      , Engine(boost::make_shared<sidplayfp>())
       , Builder("resid")
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
-      , Analysis(new Analyzer(Engine))
+      , Analysis(boost::make_shared<Analyzer>(Engine))
       , Target(target)
       , SoundParams(Sound::RenderParameters::Create(params))
       , Params(params)
-      , Config(Engine.config())
+      , Config(Engine->config())
       , UseFilter()
       , Looped()
       , SamplesPerFrame()
     {
       LoadRoms(*params);
-      const uint_t chipsCount = Engine.info().maxsids();
+      const uint_t chipsCount = Engine->info().maxsids();
       Builder.create(chipsCount);
       Config.frequency = 0;
       ApplyParameters();
-      CheckSidplayError(Engine.load(tune.get()));
+      CheckSidplayError(Engine->load(tune.get()));
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -193,7 +195,7 @@ namespace Sid
 
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
-        Engine.play(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
+        Engine->play(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
         Target->ApplyData(builder.GetResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
@@ -206,7 +208,7 @@ namespace Sid
 
     virtual void Reset()
     {
-      Engine.stop();
+      Engine->stop();
       Iterator->Reset();
     }
 
@@ -222,7 +224,7 @@ namespace Sid
       params.FindValue(Parameters::ZXTune::Core::SID::ROM::KERNAL, kernal);
       params.FindValue(Parameters::ZXTune::Core::SID::ROM::BASIC, basic);
       params.FindValue(Parameters::ZXTune::Core::SID::ROM::CHARGEN, chargen);
-      Engine.setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
+      Engine->setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
     }
 
     static const uint8_t* GetData(const Parameters::DataType& dump, const uint8_t* defVal)
@@ -251,8 +253,8 @@ namespace Sid
           Builder.filter(UseFilter = newFilter);
 
           Config.sidEmulation = &Builder;
-          CheckSidplayError(Engine.config(Config));
-          Analysis->SetClockRate(Engine.getCPUFreq());
+          CheckSidplayError(Engine->config(Config));
+          Analysis->SetClockRate(Engine->getCPUFreq());
         }
         Looped = SoundParams->Looped();
         SamplesPerFrame = SoundParams->SamplesPerFrame();
@@ -264,7 +266,7 @@ namespace Sid
       uint_t current = State->Frame();
       if (frame < current)
       {
-        Engine.stop();
+        Engine->stop();
         current = 0;
       }
       if (const uint_t delta = frame - current)
@@ -275,11 +277,11 @@ namespace Sid
 
     void AdvanceEngine(uint_t framesToPlay)
     {
-      Engine.play(0, framesToPlay * SamplesPerFrame * Sound::Sample::CHANNELS);
+      Engine->play(0, framesToPlay * SamplesPerFrame * Sound::Sample::CHANNELS);
     }
   private:
     const TunePtr Tune;
-    sidplayfp Engine;
+    const EnginePtr Engine;
     ReSIDBuilder Builder;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;

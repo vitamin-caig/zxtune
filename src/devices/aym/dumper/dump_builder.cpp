@@ -135,7 +135,7 @@ namespace
 
     virtual void RenderData(const DataChunk& src)
     {
-      if (NextFrame < src.TimeStamp)
+      if (!(src.TimeStamp < NextFrame))
       {
         FinishFrame();
       }
@@ -146,11 +146,7 @@ namespace
     {
       for (std::vector<DataChunk>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
       {
-        if (NextFrame < it->TimeStamp)
-        {
-          FinishFrame();
-        }
-        State->Add(it->Data);
+        RenderData(*it);
       }
     }
 

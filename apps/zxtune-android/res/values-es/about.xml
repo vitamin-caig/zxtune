@@ -23,6 +23,7 @@ Bibliotecas usados:\n
 Dedicado a <b>Lizzi</b></string>
   <!--players-->
   <string name="plugin_player_dac">Muestra digital</string>
+  <string name="plugin_player_multidevice">Múltiples dispositivos</string>
   <!--decoders-->
   <string name="plugin_decoder_decompiler">Decompiladores</string>
   <!--multitrack-->

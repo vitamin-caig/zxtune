@@ -72,6 +72,13 @@ namespace Time
     }
 
     template<class T1, T1 OtherResolution>
+    Stamp<T, Resolution> operator + (const Stamp<T1, OtherResolution>& rh) const
+    {
+      BOOST_STATIC_ASSERT(Resolution >= OtherResolution);
+      return Stamp<T, Resolution>(Value + Stamp<T, Resolution>(rh).Get());
+    }
+
+    template<class T1, T1 OtherResolution>
     bool operator < (const Stamp<T1, OtherResolution>& rh) const
     {
       return *this < Stamp<T, Resolution>(rh);

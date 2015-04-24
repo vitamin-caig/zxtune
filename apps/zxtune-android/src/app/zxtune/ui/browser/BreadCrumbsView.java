@@ -23,6 +23,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import app.zxtune.R;
+import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.ui.IconSource;
 
@@ -63,7 +64,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
   }
 
   public final void setDir(VfsDir dir) {
-    if (dir == null) {
+    if (dir == null || dir == Vfs.getRoot()) {
       hideButtons(0, container.getChildCount());
     } else {
       final ArrayList<VfsDir> elems = new ArrayList<VfsDir>();

@@ -432,7 +432,7 @@ namespace
       catch (const Canceled&)
       {
       }
-      catch (const Error& e)
+      catch (const Error&)
       {
         //Do not bother with implicit check errors
       }

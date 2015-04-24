@@ -72,6 +72,7 @@ namespace
       CapsPair(ZXTune::CAP_DEV_SAA1099, Text::INFO_CAP_SAA1099),
       CapsPair(ZXTune::CAP_DEV_MOS6581, Text::INFO_CAP_MOS6581),
       CapsPair(ZXTune::CAP_DEV_SPC700, Text::INFO_CAP_SPC700),
+      CapsPair(ZXTune::CAP_DEV_MULTI, Text::INFO_CAP_MULTI),
       //storage caps
       CapsPair(ZXTune::CAP_STOR_MODULE, Text::INFO_CAP_MODULE),
       CapsPair(ZXTune::CAP_STOR_CONTAINER, Text::INFO_CAP_CONTAINER),

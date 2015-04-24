@@ -10,9 +10,9 @@
 
 //local includes
 #include "mixer.h"
-#include "timer.h"
 //library includes
 #include <sound/matrix_mixer.h>
+#include <time/timer.h>
 
 namespace Benchmark
 {
@@ -24,13 +24,13 @@ namespace Benchmark
       const typename Sound::FixedChannelsMixer<Channels>::Ptr mixer = Sound::FixedChannelsMatrixMixer<Channels>::Create();
 
       typename Sound::MultichannelSample<Channels>::Type input;
-      const Timer timer;
+      const Time::Timer timer;
       const uint_t totalFrames = uint64_t(duration.Get()) * soundFreq / duration.PER_SECOND;
       for (uint_t frame = 0; frame != totalFrames; ++frame)
       {
         mixer->ApplyData(input);
       }
-      const Time::Nanoseconds elapsed = timer.Elapsed<Time::Nanoseconds>();
+      const Time::Nanoseconds elapsed = timer.Elapsed();
       const Time::Nanoseconds emulated(duration);
       return double(emulated.Get()) / elapsed.Get();
     }

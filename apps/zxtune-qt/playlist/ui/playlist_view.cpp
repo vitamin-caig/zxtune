@@ -421,7 +421,7 @@ namespace
       QStringList files;
       if (UI::OpenMultipleFilesDialog(
         Playlist::UI::View::tr("Add files"),
-        Playlist::UI::View::tr("All files (*.*)"), files))
+        Playlist::UI::View::tr("All files (*)"), files))
       {
         AddItems(files);
       }

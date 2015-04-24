@@ -57,6 +57,9 @@ extern const Char GLOBALTRACKER1_EDITOR[] = {
 extern const Char GLOBALTRACKER_DECODER_DESCRIPTION[] = {
   'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
+extern const Char MULTITRACK_CONTAINER_DECODER_DESCRIPTION[] = {
+  'M','u','l','t','i','t','r','a','c','k',' ','C','o','n','t','a','i','n','e','r',0
+};
 extern const Char PRODIGITRACKER_DECODER_DESCRIPTION[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
 };

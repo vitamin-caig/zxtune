@@ -28,11 +28,11 @@ namespace
     PATH_ELEMENTS
   };
 
-  bool ParseFilename(const std::string& filename, L10n::Translation& trans)
+  bool ParseFilename(const std::string& path, L10n::Translation& trans)
   {
     std::vector<std::string> elements;
     static const std::string PATH_DELIMITERS("/\\");
-    boost::algorithm::split(elements, filename, boost::algorithm::is_any_of(PATH_DELIMITERS), boost::algorithm::token_compress_on);
+    boost::algorithm::split(elements, path, boost::algorithm::is_any_of(PATH_DELIMITERS), boost::algorithm::token_compress_on);
     if (elements.size() == PATH_ELEMENTS)
     {
       const std::string filename = elements[FILENAME_POS];

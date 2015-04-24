@@ -64,6 +64,7 @@ namespace
     {"Z80V20",   &CreateZ80V20Decoder,                    CAP_STOR_CONTAINER},
     {"Z80V30",   &CreateZ80V30Decoder,                    CAP_STOR_CONTAINER},
     {"MEGALZ",   &CreateMegaLZDecoder,                    CAP_STOR_CONTAINER},
+    {"DSK",      &CreateDSKDecoder,                       CAP_STOR_CONTAINER},
   };
 
   const ArchivePluginDescription DECOMPILERS[] =

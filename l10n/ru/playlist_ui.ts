@@ -81,8 +81,8 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="424"/>
-        <source>All files (*.*)</source>
-        <translation>Все файлы (*.*)</translation>
+        <source>All files (*)</source>
+        <translation>Все файлы (*)</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="434"/>

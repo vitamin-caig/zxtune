@@ -23,6 +23,7 @@
   </string>
   <!-- players -->
   <string name="plugin_player_dac">Digitale Formate</string>
+  <string name="plugin_player_multidevice">Multi-Geräte</string>
   <!-- decoders -->
   <string name="plugin_decoder_decompiler">Decompiler</string>
   <!-- multitrack -->

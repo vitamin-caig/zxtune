@@ -134,12 +134,14 @@ namespace Vortex
     CommonState()
       : EnvBase()
       , NoiseBase()
+      , NoiseAddon()
     {
     }
 
     uint_t EnvBase;
     Slider EnvSlider;
     uint_t NoiseBase;
+    uint_t NoiseAddon;
   };
 
   struct State
@@ -300,6 +302,8 @@ namespace Vortex
           dst.VibrateCounter = dst.Enabled ? dst.VibrateOn : dst.VibrateOff;
         }
       }
+      const uint_t noise = PlayerState.CommState.NoiseBase + PlayerState.CommState.NoiseAddon;
+      track.SetNoise(noise);
       const int_t envPeriod = envelopeAddon + PlayerState.CommState.EnvSlider.Value + PlayerState.CommState.EnvBase;
       track.SetEnvelopeTone(envPeriod);
       PlayerState.CommState.EnvSlider.Update();
@@ -353,12 +357,11 @@ namespace Vortex
       }
       else
       {
-        const int_t noiseAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.NoiseSliding;
+        PlayerState.CommState.NoiseAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.NoiseSliding;
         if (curSampleLine.KeepNoiseOrEnvelopeOffset)
         {
-          dst.NoiseSliding = noiseAddon;
+          dst.NoiseSliding = PlayerState.CommState.NoiseAddon;
         }
-        track.SetNoise(PlayerState.CommState.NoiseBase + noiseAddon);
       }
 
       if (dst.ToneSlider.Update() &&

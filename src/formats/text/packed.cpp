@@ -15,6 +15,9 @@ extern const Char CC4_DECODER_DESCRIPTION[] = {
 extern const Char CHARPRES_DECODER_DESCRIPTION[] = {
   'C','h','a','r','P','r','e','s',0
 };
+extern const Char DSK_DECODER_DESCRIPTION[] = {
+  'D','S','K',' ','I','m','a','g','e',0
+};
 extern const Char DSQ_DECODER_DESCRIPTION[] = {
   'D','a','t','a','S','q','u','e','e','z','e','r',' ','v','4','.','x',0
 };

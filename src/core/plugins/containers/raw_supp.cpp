@@ -24,6 +24,7 @@
 #include <debug/log.h>
 #include <l10n/api.h>
 #include <time/duration.h>
+#include <time/timer.h>
 //std includes
 #include <list>
 #include <map>
@@ -39,22 +40,6 @@
 namespace
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-
-  class AutoTimer
-  {
-  public:
-    AutoTimer()
-      : Start(std::clock())
-    {
-    }
-
-    std::clock_t Elapsed() const
-    {
-      return std::clock() - Start;
-    }
-  private:
-    std::clock_t Start;
-  };
 
   template<std::size_t Fields>
   class StatisticBuilder
@@ -119,6 +104,7 @@ namespace
 
   class Statistic
   {
+    typedef Time::Timer::NativeStamp Stamp;
   public:
     Statistic()
       : TotalData(0)
@@ -130,16 +116,13 @@ namespace
     ~Statistic()
     {
       const Debug::Stream Dbg("Core::RawScaner::Statistic");
-      typedef Time::Stamp<std::clock_t, CLOCKS_PER_SEC> Stamp;
-      typedef Time::Duration<std::clock_t, Stamp> Duration;
-      const Stamp RESOLUTION(1);
-      const Duration spent = Duration(Timer.Elapsed(), RESOLUTION);
+      const Stamp spent = Timer.Elapsed();
       Dbg("Total processed: %1%", TotalData);
-      Dbg("Time spent: %1%", spent.ToString());
+      Dbg("Time spent: %1%", Time::Duration<Stamp::ValueType, Stamp>(1, spent).ToString());
       const uint64_t useful = ArchivedData + ModulesData;
       Dbg("Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
       Dbg("Coverage: %1%%%", useful * 100 / TotalData);
-      Dbg("Speed: %1% b/s", spent.GetCount() ? (TotalData * RESOLUTION.PER_SECOND / spent.GetCount()) : TotalData);
+      Dbg("Speed: %1% b/s", spent.Get() ? (TotalData * Stamp::PER_SECOND / spent.Get()) : TotalData);
       StatisticBuilder<7> builder;
       builder.Add(MakeStatLine(), 0);
       StatItem total;
@@ -169,25 +152,25 @@ namespace
     }
 
     template<class PluginType>
-    void AddAimed(const PluginType& plug, const AutoTimer& scanTimer)
+    void AddAimed(const PluginType& plug, const Time::Timer& scanTimer)
     {
       StatItem& item = GetStat(plug);
       ++item.Aimed;
       item.AimedTime += scanTimer.Elapsed() + item.ScanTime;
-      item.ScanTime = 0;
+      item.ScanTime = Stamp(0);
     }
 
     template<class PluginType>
-    void AddMissed(const PluginType& plug, const AutoTimer& scanTimer)
+    void AddMissed(const PluginType& plug, const Time::Timer& scanTimer)
     {
       StatItem& item = GetStat(plug);
       ++item.Missed;
       item.MissedTime += scanTimer.Elapsed() + item.ScanTime;
-      item.ScanTime = 0;
+      item.ScanTime = Stamp(0);
     }
 
     template<class PluginType>
-    void AddScanned(const PluginType& plug, const AutoTimer& scanTimer)
+    void AddScanned(const PluginType& plug, const Time::Timer& scanTimer)
     {
       StatItem& item = GetStat(plug);
       item.ScanTime += scanTimer.Elapsed();
@@ -205,9 +188,9 @@ namespace
       std::size_t Index;
       std::size_t Aimed;
       std::size_t Missed;
-      std::clock_t AimedTime;
-      std::clock_t MissedTime;
-      std::clock_t ScanTime;
+      Stamp AimedTime;
+      Stamp MissedTime;
+      Stamp ScanTime;
 
       StatItem()
         : Index()
@@ -249,9 +232,9 @@ namespace
       res[1] = boost::lexical_cast<std::string>(item.Missed);
       res[2] = boost::lexical_cast<std::string>(item.Aimed + item.Missed);
       res[3] = boost::lexical_cast<std::string>(Percent(item.Aimed, item.Missed));
-      res[4] = boost::lexical_cast<std::string>(item.MissedTime * 1000 / CLOCKS_PER_SEC);
-      res[5] = boost::lexical_cast<std::string>((item.MissedTime + item.AimedTime) * 1000 / CLOCKS_PER_SEC);
-      res[6] = boost::lexical_cast<std::string>(Percent(item.AimedTime, item.MissedTime));
+      res[4] = boost::lexical_cast<std::string>(Time::Milliseconds(item.MissedTime).Get());
+      res[5] = boost::lexical_cast<std::string>(Time::Milliseconds(item.MissedTime + item.AimedTime).Get());
+      res[6] = boost::lexical_cast<std::string>(Percent(item.AimedTime.Get(), item.MissedTime.Get()));
       return res;
     }
 
@@ -280,7 +263,7 @@ namespace
       return Detection[key];
     }
   private:
-    const AutoTimer Timer;
+    const Time::Timer Timer;
     uint64_t TotalData;
     uint64_t ArchivedData;
     uint64_t ModulesData;
@@ -692,7 +675,7 @@ namespace
       const std::size_t maxSize = input->GetData()->Size();
       for (typename T::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
-        AutoTimer timer;
+        Time::Timer timer;
         const typename T::Ptr plugin = iter->Get();
         const Analysis::Result::Ptr result = plugin->Detect(input, callback);
         const String id = plugin->GetDescription()->Id();
@@ -707,7 +690,7 @@ namespace
           if (!firstScan)
           {
             Statistic::Self().AddMissed(*plugin, timer);
-            timer = AutoTimer();
+            timer = Time::Timer();
           }
           const std::size_t lookahead = result->GetLookaheadOffset();
           container.SetPluginLookahead(*plugin, id, lookahead);

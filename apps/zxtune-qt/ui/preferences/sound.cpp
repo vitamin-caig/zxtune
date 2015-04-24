@@ -71,11 +71,11 @@ namespace
       Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
       Options->FindValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
       SetFrequency(freq);
-      connect(soundFrequencyValue, SIGNAL(currentIndexChanged(int)), SLOT(ChangeSoundFrequency(int)));
+      Require(connect(soundFrequencyValue, SIGNAL(currentIndexChanged(int)), SLOT(ChangeSoundFrequency(int))));
 
-      connect(backendsList, SIGNAL(currentRowChanged(int)), SLOT(SelectBackend(int)));
-      connect(moveUp, SIGNAL(released()), SLOT(MoveBackendUp()));
-      connect(moveDown, SIGNAL(released()), SLOT(MoveBackendDown()));
+      Require(connect(backendsList, SIGNAL(currentRowChanged(int)), SLOT(SelectBackend(int))));
+      Require(connect(moveUp, SIGNAL(released()), SLOT(MoveBackendUp())));
+      Require(connect(moveDown, SIGNAL(released()), SLOT(MoveBackendDown())));
     }
 
     virtual void ChangeSoundFrequency(int idx)

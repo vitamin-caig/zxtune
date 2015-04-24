@@ -18,6 +18,13 @@
 namespace
 {
   template<class T>
+  void TestType(const char* name)
+  {
+    const T var = 0;
+    std::cout << "sizeof(" << name << " is " << typeid(var).name() << ")=" << sizeof(var) << std::endl;
+  }
+
+  template<class T>
   void TestOrder(T orig, T test)
   {
     const T result = swapBytes(orig);
@@ -77,8 +84,25 @@ int main()
 {
   try
   {
-  std::cout << "sizeof(int_t)=" << sizeof(int_t) << std::endl;
-  std::cout << "sizeof(uint_t)=" << sizeof(uint_t) << std::endl;
+  TestType<int_t>("int_t");
+  TestType<int8_t>("int8_t");
+  TestType<int16_t>("int16_t");
+  TestType<int32_t>("int32_t");
+  TestType<int64_t>("int64_t");
+  TestType<char>("char");
+  TestType<signed char>("signed char");
+  TestType<short>("short");
+  TestType<int>("int");
+  TestType<long>("long");
+  TestType<uint_t>("uint_t");
+  TestType<uint8_t>("uint8_t");
+  TestType<uint16_t>("uint16_t");
+  TestType<uint32_t>("uint32_t");
+  TestType<uint64_t>("uint64_t");
+  TestType<unsigned char>("unsigned char");
+  TestType<unsigned short>("unsigned short");
+  TestType<unsigned int>("unsigned int");
+  TestType<unsigned long>("unsigned long");
   std::cout << "---- Test for byteorder working ----" << std::endl;
   TestOrder<int16_t>(-30875, 0x6587);
   TestOrder<uint16_t>(0x1234, 0x3412);

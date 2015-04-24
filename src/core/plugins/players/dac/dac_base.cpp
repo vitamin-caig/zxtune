@@ -136,21 +136,24 @@ namespace Module
     virtual void SetPosition(uint_t frameNum)
     {
       const TrackState::Ptr state = Iterator->GetStateObserver();
-      if (state->Frame() > frameNum)
+      uint_t curFrame = state->Frame();
+      if (curFrame > frameNum)
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = Devices::DAC::Stamp();
+        curFrame = 0;
       }
       if (LastChunk.TimeStamp == Devices::DAC::Stamp())
       {
         Iterator->GetData(LastChunk.Data);
         Device->UpdateState(LastChunk);
       }
-      while (state->Frame() < frameNum && Iterator->IsValid())
+      while (curFrame < frameNum && Iterator->IsValid())
       {
-        Iterator->NextFrame(false);
+        Iterator->NextFrame(true);
         LastChunk.TimeStamp += FrameDuration;
+        ++curFrame;
         Iterator->GetData(LastChunk.Data);
         Device->UpdateState(LastChunk);
       }

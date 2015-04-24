@@ -61,11 +61,11 @@ namespace
     return res;
   }
 
-  class MainWindowImpl : public MainWindow
-                       , public Ui::MainWindow
+  class DesktopMainWindowImpl : public DesktopMainWindow
+                              , public Ui::MainWindow
   {
   public:
-    MainWindowImpl(Parameters::Container::Ptr options, const Strings::Array& cmdline)
+    explicit DesktopMainWindowImpl(Parameters::Container::Ptr options)
       : Options(options)
       , Language(CreateLanguage(*options))
       , Playback(PlaybackSupport::Create(*this, Options))
@@ -101,47 +101,55 @@ namespace
       //connect root actions
       Require(connect(actionComponents, SIGNAL(triggered()), SLOT(ShowComponentsInformation())));
       Require(connect(actionAbout, SIGNAL(triggered()), SLOT(ShowAboutProgram())));
-      this->connect(actionOnlineHelp, SIGNAL(triggered()), SLOT(VisitHelp()));
-      this->connect(actionWebSite, SIGNAL(triggered()), SLOT(VisitSite()));
-      this->connect(actionOnlineFAQ, SIGNAL(triggered()), SLOT(VisitFAQ()));
-      this->connect(actionReportBug, SIGNAL(triggered()), SLOT(ReportIssue()));
-      this->connect(actionAboutQt, SIGNAL(triggered()), SLOT(ShowAboutQt()));
-      this->connect(actionPreferences, SIGNAL(triggered()), SLOT(ShowPreferences()));
+      Require(connect(actionOnlineHelp, SIGNAL(triggered()), SLOT(VisitHelp())));
+      Require(connect(actionWebSite, SIGNAL(triggered()), SLOT(VisitSite())));
+      Require(connect(actionOnlineFAQ, SIGNAL(triggered()), SLOT(VisitFAQ())));
+      Require(connect(actionReportBug, SIGNAL(triggered()), SLOT(ReportIssue())));
+      Require(connect(actionAboutQt, SIGNAL(triggered()), SLOT(ShowAboutQt())));
+      Require(connect(actionPreferences, SIGNAL(triggered()), SLOT(ShowPreferences())));
       if (Update::CheckOperation* op = Update::CheckOperation::Create(*this))
       {
         Require(op->connect(actionCheckUpdates, SIGNAL(triggered()), SLOT(Execute())));
-        Require(this->connect(op, SIGNAL(ErrorOccurred(const Error&)), SLOT(ShowError(const Error&))));
+        Require(connect(op, SIGNAL(ErrorOccurred(const Error&)), SLOT(ShowError(const Error&))));
       }
       else
       {
         actionCheckUpdates->setEnabled(false);
       }
 
-      MultiPlaylist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
-      MultiPlaylist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
-      MultiPlaylist->connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play()));
-      MultiPlaylist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
-      MultiPlaylist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
-      MultiPlaylist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
-      MultiPlaylist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
+      Require(MultiPlaylist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev())));
+      Require(MultiPlaylist->connect(Controls, SIGNAL(OnNext()), SLOT(Next())));
+      Require(MultiPlaylist->connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play())));
+      Require(MultiPlaylist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play())));
+      Require(MultiPlaylist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause())));
+      Require(MultiPlaylist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop())));
+      Require(MultiPlaylist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish())));
       Require(Playback->connect(MultiPlaylist, SIGNAL(Activated(Playlist::Item::Data::Ptr)), SLOT(SetDefaultItem(Playlist::Item::Data::Ptr))));
       Require(Playback->connect(MultiPlaylist, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(SetItem(Playlist::Item::Data::Ptr))));
       Require(Playback->connect(MultiPlaylist, SIGNAL(Deactivated()), SLOT(ResetItem())));
-      this->connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(StartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
-      this->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopModule()));
+      Require(connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(StartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
+      Require(connect(Playback, SIGNAL(OnStopModule()), SLOT(StopModule())));
       Require(connect(Playback, SIGNAL(ErrorOccurred(const Error&)), SLOT(ShowError(const Error&))));
-      this->connect(actionAddFiles, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFiles()));
-      this->connect(actionAddFolder, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFolder()));
+      Require(connect(actionAddFiles, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFiles())));
+      Require(connect(actionAddFolder, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFolder())));
 
       StopModule();
 
-      //TODO: remove
+      MultiPlaylist->Setup();
+    }
+
+    virtual void SetCmdline(const QStringList& args)
+    {
+      if (this->sender())
       {
-        QStringList items;
-        std::transform(cmdline.begin(), cmdline.end(),
-          std::back_inserter(items), &ToQString);
-        MultiPlaylist->Setup(items);
+        setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        raise();
+        activateWindow();
+      }
+      if (!args.empty())
+      {
+        MultiPlaylist->Open(args);
       }
     }
 
@@ -293,9 +301,9 @@ namespace
   };
 }
 
-QPointer<MainWindow> MainWindow::Create(Parameters::Container::Ptr options, const Strings::Array& cmdline)
+MainWindow::Ptr DesktopMainWindow::Create(Parameters::Container::Ptr options)
 {
-  QPointer<MainWindow> res(new MainWindowImpl(options, cmdline));
+  const MainWindow::Ptr res(new DesktopMainWindowImpl(options));
   res->show();
   return res;
 }

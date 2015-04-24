@@ -16,29 +16,27 @@ namespace Platform
   {
     namespace Details
     {
-      static const char OS[] = 
 #if defined(_WIN32)
-        "windows"
+      static const char OS[] = "windows";
 #elif defined(__linux__)
-        "linux"
+      static const char OS[] = "linux";
 #elif defined(__ANDROID__)
-        "android"
+      static const char OS[] = "android";
 #elif defined(__APPLE__) && defined(__MACH__)
-        "macosx"
+      static const char OS[] = "macosx";
 #elif defined(__FreeBSD__)
-        "freebsd"
+      static const char OS[] = "freebsd";
 #elif defined(__NetBSD__)
-        "netbsd"
+      static const char OS[] = "netbsd";
 #elif defined(__OpenBSD__)
-        "openbsd"
+      static const char OS[] = "openbsd";
 #elif defined(__unix__)
-        "unix"
+      static const char OS[] = "unix";
 #elif defined(__CYGWIN__)
-        "cygwin"
+      static const char OS[] = "cygwin";
 #else
-        "unknown-platform"
+      static const char OS[] = "unknown-platform";
 #endif
-      ;
     }
   }
 }

@@ -125,8 +125,8 @@ namespace
     {
       TemplateBuilder = UI::FilenameTemplateWidget::Create(*this);
       QDialogButtonBox* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
-      this->connect(buttons, SIGNAL(accepted()), this, SLOT(accept()));
-      this->connect(buttons, SIGNAL(rejected()), this, SLOT(reject()));
+      Require(connect(buttons, SIGNAL(accepted()), this, SLOT(accept())));
+      Require(connect(buttons, SIGNAL(rejected()), this, SLOT(reject())));
       QVBoxLayout* const layout = new QVBoxLayout(this);
       layout->setContentsMargins(4, 4, 4, 4);
       layout->setSpacing(4);

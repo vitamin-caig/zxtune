@@ -45,8 +45,8 @@ namespace
       //setup self
       setupUi(this);
 
-      connect(clockRateValue, SIGNAL(textChanged(const QString&)), SLOT(OnClockRateChanged(const QString&)));
-      connect(clockRatePresets, SIGNAL(currentIndexChanged(int)), SLOT(OnClockRatePresetChanged(int)));
+      Require(connect(clockRateValue, SIGNAL(textChanged(const QString&)), SLOT(OnClockRateChanged(const QString&))));
+      Require(connect(clockRatePresets, SIGNAL(currentIndexChanged(int)), SLOT(OnClockRatePresetChanged(int))));
 
       using namespace Parameters;
       const IntegerTraits clockRate(ZXTune::Core::AYM::CLOCKRATE, ZXTune::Core::AYM::CLOCKRATE_DEFAULT, ZXTune::Core::AYM::CLOCKRATE_MIN, ZXTune::Core::AYM::CLOCKRATE_MAX);

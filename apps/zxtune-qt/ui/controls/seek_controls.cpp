@@ -14,6 +14,8 @@
 #include "supp/playback_supp.h"
 #include "ui/styles.h"
 #include "ui/utils.h"
+//common includes
+#include <contract.h>
 //qt includes
 #include <QtGui/QCursor>
 #include <QtGui/QToolTip>
@@ -30,13 +32,13 @@ namespace
       //setup self
       setupUi(this);
       timePosition->setRange(0, 0);
-      this->connect(timePosition, SIGNAL(sliderReleased()), SLOT(EndSeeking()));
+      Require(connect(timePosition, SIGNAL(sliderReleased()), SLOT(EndSeeking())));
 
-      this->connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
-      this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
-      this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
-      supp.connect(this, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
+      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
+      Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
+      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
+      Require(supp.connect(this, SIGNAL(OnSeeking(int)), SLOT(Seek(int))));
       timePosition->setStyle(new UI::ClickNGoSliderStyle(*timePosition));
     }
 

@@ -12,6 +12,8 @@
 
 //common includes
 #include <types.h>
+//library includes
+#include <strings/array.h>
 //qt includes
 #include <QtGui/QWidget>
 
@@ -27,6 +29,8 @@ namespace UI
 
     virtual String GetSelectedId() const = 0;
     virtual QString GetDescription() const = 0;
+    
+    static Strings::Array GetSoundTypes();
   signals:
     void SettingsChanged();
   };

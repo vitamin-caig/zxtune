@@ -64,11 +64,11 @@ namespace
       assert(0 != GetWeight(s));
       if (0x80 <= s && s <= 0xaf)
       {
-        return s += 0x390;
+        return s + 0x390;
       }
       else if (0xe0 <= s && s <= 0xef)
       {
-        return s += 0x360;
+        return s + 0x360;
       }
       else if (s == 0xf0)
       {

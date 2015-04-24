@@ -259,8 +259,8 @@ namespace LZS
         else if (0xc0 == code)
         {
           const std::size_t len = (data & 0x3f) + 3;
-          const uint8_t data = Stream.GetByte();
-          std::fill_n(std::back_inserter(Decoded), len, data);
+          const uint8_t filler = Stream.GetByte();
+          std::fill_n(std::back_inserter(Decoded), len, filler);
         }
         else
         {

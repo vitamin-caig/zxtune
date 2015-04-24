@@ -434,6 +434,7 @@ namespace AY
       //check CPC first
       else if (CPC.Write(timeStamp, port, data))
       {
+        Dbg("Detected CPC port mapping on write to port #%1$04x", port);
         Current = &CPC;
       }
       else 
@@ -609,19 +610,22 @@ namespace AY
       Looped = false;
     }
 
-    virtual void SetPosition(uint_t frame)
+    virtual void SetPosition(uint_t frameNum)
     {
-      if (State->Frame() > frame)
+      uint_t curFrame = State->Frame();
+      if (curFrame > frameNum)
       {
         //rewind
         Iterator->Reset();
+        curFrame = 0;
       }
       SynchronizeParameters();
       Devices::Z80::Stamp newTime = LastTime; 
-      while (State->Frame() < frame && Iterator->IsValid())
+      while (curFrame < frameNum && Iterator->IsValid())
       {
         newTime += FrameDuration;
-        Iterator->NextFrame(false);
+        Iterator->NextFrame(true);
+        ++curFrame;
       }
       Comp->SeekState(newTime, FrameDuration);
     }
