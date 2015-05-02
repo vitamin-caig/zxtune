@@ -14,7 +14,6 @@
 #include "aym_plugin.h"
 #include "core/plugins/registrator.h"
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/psg.h>
 //boost includes
 #include <boost/make_shared.hpp>

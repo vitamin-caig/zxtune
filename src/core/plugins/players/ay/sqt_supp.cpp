@@ -16,7 +16,6 @@
 #include "core/plugins/players/simple_orderlist.h"
 //library includes
 #include <debug/log.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/sqtracker.h>
 //boost includes
 #include <boost/unordered_map.hpp>

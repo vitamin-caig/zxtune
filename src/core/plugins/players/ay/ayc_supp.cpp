@@ -17,7 +17,6 @@
 #include <contract.h>
 //library includes
 #include <core/core_parameters.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/ayc.h>
 //boost includes
 #include <boost/make_shared.hpp>

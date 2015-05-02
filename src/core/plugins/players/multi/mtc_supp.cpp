@@ -20,7 +20,6 @@
 #include <core/module_open.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/multi/multitrackcontainer.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/serialize.h>

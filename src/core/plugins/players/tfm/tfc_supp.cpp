@@ -17,7 +17,6 @@
 #include <contract.h>
 #include <iterator.h>
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfc.h>
 #include <sound/sound_parameters.h>
 //boost includes

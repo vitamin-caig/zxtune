@@ -72,5 +72,7 @@ namespace Formats
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
     }
+
+    Decoder::Ptr CreateDigitalMusicMakerDecoder();
   }
 }

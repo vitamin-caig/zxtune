@@ -107,5 +107,9 @@ namespace Formats
         Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, const Dump& info);
       }
     }
+
+    Decoder::Ptr CreateSoundTrackerDecoder();
+    Decoder::Ptr CreateSoundTrackerCompiledDecoder();
+    Decoder::Ptr CreateSoundTracker3Decoder();
   }
 }

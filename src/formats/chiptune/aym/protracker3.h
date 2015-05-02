@@ -139,5 +139,8 @@ namespace Formats
         ChiptuneBuilder::Ptr CreateBuilder();
       }
     }
+
+    Decoder::Ptr CreateProTracker3Decoder();
+    Decoder::Ptr CreateVortexTracker2Decoder();
   }
 }

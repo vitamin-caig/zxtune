@@ -15,7 +15,6 @@
 #include "core/plugins/players/simple_orderlist.h"
 //library includes
 #include <core/plugin_attrs.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/saa/etracker.h>
 #include <math/numeric.h>
 

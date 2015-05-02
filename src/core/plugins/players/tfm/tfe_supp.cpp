@@ -18,7 +18,6 @@
 #include <contract.h>
 #include <pointers.h>
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfmmusicmaker.h>
 #include <math/fixedpoint.h>
 //boost includes

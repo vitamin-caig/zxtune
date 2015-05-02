@@ -13,7 +13,6 @@
 #include "digital.h"
 #include "core/plugins/registrator.h"
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/sampletracker.h>
 
 namespace Module

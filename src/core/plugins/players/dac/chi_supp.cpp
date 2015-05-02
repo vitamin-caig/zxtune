@@ -16,7 +16,6 @@
 #include "core/plugins/players/tracking.h"
 //library includes
 #include <devices/dac/sample_factories.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/chiptracker.h>
 
 namespace Module

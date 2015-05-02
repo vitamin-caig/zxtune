@@ -14,7 +14,6 @@
 #include "digital.h"
 #include "core/plugins/registrator.h"
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/digitalstudio.h>
 
 namespace Module

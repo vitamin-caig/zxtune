@@ -18,7 +18,6 @@
 //library includes
 #include <core/plugin_attrs.h>
 #include <devices/dac/sample_factories.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/prodigitracker.h>
 
 namespace Module

@@ -22,7 +22,6 @@
 #include <core/module_open.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/turbosound.h>
 //boost includes
 #include <boost/make_shared.hpp>

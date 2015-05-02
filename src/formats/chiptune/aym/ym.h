@@ -64,5 +64,9 @@ namespace Formats
       Decoder::Ptr CreateYMDecoder();
       Decoder::Ptr CreateVTXDecoder();
     }
+
+    Decoder::Ptr CreatePackedYMDecoder();
+    Decoder::Ptr CreateYMDecoder();
+    Decoder::Ptr CreateVTXDecoder();
   }
 }

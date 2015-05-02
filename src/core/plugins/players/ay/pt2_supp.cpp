@@ -16,7 +16,6 @@
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/protracker2.h>
 
 namespace Module

@@ -21,7 +21,6 @@
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
 #include <devices/details/parameters_helper.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/emulation/spc.h>
 #include <math/numeric.h>
 #include <sound/chunk_builder.h>
