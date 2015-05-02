@@ -279,6 +279,8 @@ namespace Formats
       scanner.AddDecoder(CreateExtremeTracker1Decoder());
       scanner.AddDecoder(CreateAYCDecoder());
       scanner.AddDecoder(CreateSPCDecoder());
+      scanner.AddDecoder(CreateMultiTrackContainerDecoder());
+      scanner.AddDecoder(CreateAYEMULDecoder());
     }
   }
 }

@@ -11,7 +11,7 @@
 //library includes
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
-#include <formats/chiptune/aym/ay.h>
+#include <formats/chiptune/emulation/ay.h>
 //std includes
 #include <sstream>
 //boost includes

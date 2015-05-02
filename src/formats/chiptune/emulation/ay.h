@@ -50,5 +50,7 @@ namespace Formats
       BlobBuilder::Ptr CreateMemoryDumpBuilder();
       BlobBuilder::Ptr CreateFileBuilder();
     }
+
+    Decoder::Ptr CreateAYEMULDecoder();
   }
 }

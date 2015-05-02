@@ -15,7 +15,6 @@
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //library includes
-#include <binary/format_factories.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
@@ -25,13 +24,11 @@
 #include <devices/beeper.h>
 #include <devices/z80.h>
 #include <devices/details/parameters_helper.h>
-#include <formats/chiptune/aym/ay.h>
+#include <formats/chiptune/emulation/ay.h>
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <formats/text/chiptune.h>
 
 namespace
 {
@@ -861,49 +858,6 @@ namespace AY
     const Parameters::Accessor::Ptr Properties;
   };
 
-  //TODO: extract
-  const std::string HEADER_FORMAT(
-    "'Z'X'A'Y" // uint8_t Signature[4];
-    "'E'M'U'L" // only one type is supported now
-    "??"       // versions
-    "??"       // player offset
-    "??"       // author offset
-    "??"       // misc offset
-    "00"       // first module
-    "00"       // last module
-  );
-  
-  class Decoder : public Formats::Chiptune::Decoder
-  {
-  public:
-    Decoder()
-      : Format(Binary::CreateFormat(HEADER_FORMAT))
-    {
-    }
-
-    virtual String GetDescription() const
-    {
-      return Text::AY_EMUL_DECODER_DESCRIPTION;
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Format;
-    }
-
-    virtual bool Check(const Binary::Container& rawData) const
-    {
-      return Formats::Chiptune::AY::GetModulesCount(rawData) == 1;
-    }
-
-    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
-    {
-      return Formats::Chiptune::AY::Parse(rawData, 0, Formats::Chiptune::AY::GetStubBuilder());
-    }
-  private:
-    const Binary::Format::Ptr Format;
-  };
-
   class Factory : public Module::Factory
   {
   public:
@@ -934,7 +888,7 @@ namespace ZXTune
     const Char ID[] = {'A', 'Y', 0};
     const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AY38910 | CAP_DEV_BEEPER | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
 
-    const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::AY::Decoder>();
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateAYEMULDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::AY::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
