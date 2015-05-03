@@ -21,7 +21,6 @@
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
-#include <core/text/plugins.h>
 
 namespace
 {
@@ -201,6 +200,65 @@ namespace ZXTune
     const Formats::Archived::Decoder::Ptr Decoder;
     const bool SupportDirectories;
   };
+
+  class OnceAppliedContainerPluginAdapter : public ArchivePlugin
+  {
+  public:
+    explicit OnceAppliedContainerPluginAdapter(ArchivePlugin::Ptr delegate)
+      : Delegate(delegate)
+      , Id(Delegate->GetDescription()->Id())
+    {
+    }
+
+    virtual Plugin::Ptr GetDescription() const
+    {
+      return Delegate->GetDescription();
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Delegate->GetFormat();
+    }
+
+    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    {
+      if (SelfIsVisited(*inputData->GetPluginsChain()))
+      {
+        return Analysis::CreateUnmatchedResult(inputData->GetData()->Size());
+      }
+      else
+      {
+        return Delegate->Detect(inputData, callback);
+      }
+    }
+
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters, DataLocation::Ptr inputData, const Analysis::Path& pathToOpen) const
+    {
+      if (SelfIsVisited(*inputData->GetPluginsChain()))
+      {
+        return DataLocation::Ptr();
+      }
+      else
+      {
+        return Delegate->Open(parameters, inputData, pathToOpen);
+      }
+    }
+  private:
+    bool SelfIsVisited(const Analysis::Path& path) const
+    {
+      for (Analysis::Path::Iterator::Ptr it = path.GetIterator(); it->IsValid(); it->Next())
+      {
+        if (it->Get() == Id)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  private:
+    const ArchivePlugin::Ptr Delegate;
+    const String Id;
+  };
 }
 
 namespace ZXTune
@@ -208,7 +266,10 @@ namespace ZXTune
   ArchivePlugin::Ptr CreateContainerPlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
     const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps);
-    return ArchivePlugin::Ptr(new ArchivedContainerPlugin(description, decoder));
+    const ArchivePlugin::Ptr result = boost::make_shared<ArchivedContainerPlugin>(description, decoder);
+    return 0 != (caps & CAP_STOR_ONCEAPPLIED)
+      ? boost::make_shared<OnceAppliedContainerPluginAdapter>(result)
+      : result;
   }
 
   String ProgressMessage(const String& id, const String& path)

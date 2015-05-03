@@ -39,19 +39,21 @@ namespace ZXTune
     CAP_DEV_MULTI      = 0x800,
 
     //! Storages-related capabilities
-    CAP_STORAGE_MASK    = 0xff000,
+    CAP_STORAGE_MASK     = 0xff000,
     //! Single module
-    CAP_STOR_MODULE     = 0x01000,
+    CAP_STOR_MODULE      = 0x01000,
     //! Supporting for container feature- raw dump transformation
-    CAP_STOR_CONTAINER  = 0x02000,
+    CAP_STOR_CONTAINER   = 0x02000,
     //! Supporting for multitrack feature
-    CAP_STOR_MULTITRACK = 0x04000,
+    CAP_STOR_MULTITRACK  = 0x04000,
     //! Supporting for scanning feature
-    CAP_STOR_SCANER     = 0x08000,
+    CAP_STOR_SCANER      = 0x08000,
     //! Use plain transformation, can be covered by scaner
-    CAP_STOR_PLAIN      = 0x10000,
+    CAP_STOR_PLAIN       = 0x10000,
     //! Supporting for directories in paths
-    CAP_STOR_DIRS       = 0x20000,
+    CAP_STOR_DIRS        = 0x20000,
+    //! Plugin should be applied only once
+    CAP_STOR_ONCEAPPLIED = 0x40000,
 
     //! Conversion-related capabilities
     CAP_CONVERSION_MASK = 0xfff00000,

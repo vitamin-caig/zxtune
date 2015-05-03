@@ -20,8 +20,7 @@ namespace ZXTune
 
     RegisterArchiveContainers(registrator);
     //process containers last
-    RegisterAyContainer(registrator);
-    RegisterSidContainer(registrator);
+    RegisterMultitrackContainers(registrator);
     RegisterZdataContainer(registrator);
   }
 }

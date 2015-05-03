@@ -43,8 +43,11 @@ namespace
     {"ZXSTATE", &CreateZXStateDecoder, CAP_STOR_MULTITRACK},
   };
 
-  const ContainerPluginDescription AY =
-    {"AY",      &CreateAYDecoder,      CAP_STOR_MULTITRACK};
+  const ContainerPluginDescription MULTITRACKS[] =
+  {
+    {"AY",      &CreateAYDecoder,      CAP_STOR_MULTITRACK},
+    {"SID",     &CreateSIDDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_ONCEAPPLIED},
+  };
 
   void RegisterPlugin(const ContainerPluginDescription& desc, ArchivePluginsRegistrator& registrator)
   {
@@ -56,9 +59,12 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterAyContainer(ArchivePluginsRegistrator& registrator)
+  void RegisterMultitrackContainers(ArchivePluginsRegistrator& registrator)
   {
-    RegisterPlugin(AY, registrator);
+    for (const ContainerPluginDescription* it = MULTITRACKS; it != boost::end(MULTITRACKS); ++it)
+    {
+      RegisterPlugin(*it, registrator);
+    }
   }
 
   void RegisterArchiveContainers(ArchivePluginsRegistrator& registrator)
