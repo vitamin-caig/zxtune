@@ -42,3 +42,7 @@ __cpp> "}//namespace Text\n"
 #SZX
 < ZXSTATE_DECODER_DESCRIPTION
 > "SZX (ZX-State)"
+
+#UMX
+< UMX_DECODER_DESCRIPTION
+> "UMX (Unreal Music eXperience)"

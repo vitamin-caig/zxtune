@@ -30,6 +30,10 @@ extern const Char SID_FILENAME_PREFIX[] = {
 extern const Char TRD_DECODER_DESCRIPTION[] = {
   'T','R','D',' ','(','T','R','-','D','O','S',')',0
 };
+extern const Char UMX_DECODER_DESCRIPTION[] = {
+  'U','M','X',' ','(','U','n','r','e','a','l',' ','M','u','s','i','c',' ','e','X','p','e','r','i','e','n','c',
+  'e',')',0
+};
 extern const Char ZXSTATE_DECODER_DESCRIPTION[] = {
   'S','Z','X',' ','(','Z','X','-','S','t','a','t','e',')',0
 };

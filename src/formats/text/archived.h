@@ -12,5 +12,6 @@ extern const Char SCL_DECODER_DESCRIPTION[];
 extern const Char SID_ARCHIVE_DECODER_DESCRIPTION[];
 extern const Char SID_FILENAME_PREFIX[];
 extern const Char TRD_DECODER_DESCRIPTION[];
+extern const Char UMX_DECODER_DESCRIPTION[];
 extern const Char ZXSTATE_DECODER_DESCRIPTION[];
 }//namespace Text
