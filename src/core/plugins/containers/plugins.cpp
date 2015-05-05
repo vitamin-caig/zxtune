@@ -41,6 +41,7 @@ namespace
     {"RAR",     &CreateRarDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
     {"LHA",     &CreateLhaDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
     {"ZXSTATE", &CreateZXStateDecoder, CAP_STOR_MULTITRACK},
+    {"UMX",     &CreateUMXDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_PLAIN},
   };
 
   const ContainerPluginDescription MULTITRACKS[] =
