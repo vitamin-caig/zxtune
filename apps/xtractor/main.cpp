@@ -180,6 +180,7 @@ namespace Formats
       scanner.AddDecoder(CreateAYDecoder());
       scanner.AddDecoder(CreateLhaDecoder());
       scanner.AddDecoder(CreateZXStateDecoder());
+      scanner.AddDecoder(CreateUMXDecoder());
     }
   }
 
