@@ -418,6 +418,13 @@ namespace
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
       return Module::CreateMixedPropertiesHolder(module, moduleParams);
     }
+    
+    Binary::Data::Ptr GetModuleData(std::size_t size) const
+    {
+      const Binary::Container::Ptr data = Source->GetData();
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ToLocal(ModuleId->Subpath()));
+      return location->GetData()->GetSubcontainer(0, size);
+    }
 
     String GetFullPath() const
     {
@@ -516,6 +523,11 @@ namespace
       return Module::Holder::Ptr();
     }
 
+    virtual Binary::Data::Ptr GetModuleData() const
+    {
+      return Source.GetModuleData(Size);
+    }
+    
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
       const Parameters::Modifier& cb = *this;

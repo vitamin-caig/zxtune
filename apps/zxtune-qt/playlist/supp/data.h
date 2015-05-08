@@ -35,6 +35,7 @@ namespace Playlist
 
       //common
       virtual Module::Holder::Ptr GetModule() const = 0;
+      virtual Binary::Data::Ptr GetModuleData() const = 0;
       virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
       virtual Capabilities GetCapabilities() const = 0;
       //playlist-related

@@ -216,9 +216,9 @@ namespace
     virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
     {
       const String path = data->GetFullPath();
-      if (Module::Holder::Ptr holder = data->GetModule())
+      if (const Module::Holder::Ptr holder = data->GetModule())
       {
-        ExportItem(path, *holder);
+        ExportItem(path, *holder, *data->GetModuleData());
       }
       else
       {
@@ -226,14 +226,13 @@ namespace
       }
     }
 
-    void ExportItem(const String& path, const Module::Holder& item)
+    void ExportItem(const String& path, const Module::Holder& item, const Binary::Data& content)
     {
       try
       {
-        const Binary::Data::Ptr result = Module::GetRawData(item);
         const Parameters::Accessor::Ptr props = item.GetModuleProperties();
         const String filename = NameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
-        Save(*result, filename);
+        Save(content, filename);
         Result->AddSucceed();
       }
       catch (const Error& err)
