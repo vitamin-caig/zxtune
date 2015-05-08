@@ -296,7 +296,6 @@ namespace
         name != Module::ATTR_TITLE &&
         name != Module::ATTR_COMMENT &&
         //skip redundand properties
-        name != Module::ATTR_CONTENT &&
         //skip all the parameters
         !IsParameter(name)
       ;

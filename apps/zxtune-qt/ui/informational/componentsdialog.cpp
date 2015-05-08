@@ -190,7 +190,6 @@ namespace
 
     void FillConversionCapabilities(uint_t caps, QTreeWidgetItem& root)
     {
-      AddCapability(caps, ZXTune::CAP_CONV_RAW, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Raw ripping"));
       AddCapability(caps, ZXTune::CAP_CONV_OUT, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .out format"));
       AddCapability(caps, ZXTune::CAP_CONV_PSG, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .psg format"));
       AddCapability(caps, ZXTune::CAP_CONV_YM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .ym format"));
