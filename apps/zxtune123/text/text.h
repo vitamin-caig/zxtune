@@ -97,7 +97,6 @@ extern const Char INFO_CAP_YM2203[];
 extern const Char INFO_CONV_AYDUMP[];
 extern const Char INFO_CONV_FYM[];
 extern const Char INFO_CONV_PSG[];
-extern const Char INFO_CONV_RAW[];
 extern const Char INFO_CONV_TXT[];
 extern const Char INFO_CONV_ZX50[];
 extern const Char INFO_LIST_ATTRIBUTES_DESC[];

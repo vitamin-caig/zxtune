@@ -81,7 +81,6 @@ namespace
       CapsPair(ZXTune::CAP_STOR_PLAIN, Text::INFO_CAP_PLAIN),
       CapsPair(ZXTune::CAP_STOR_DIRS, Text::INFO_CAP_DIRS),
       //conversion caps
-      CapsPair(ZXTune::CAP_CONV_RAW, Text::INFO_CONV_RAW),
       CapsPair(ZXTune::CAP_CONV_PSG, Text::INFO_CONV_PSG),
       CapsPair(ZXTune::CAP_CONV_ZX50, Text::INFO_CONV_ZX50),
       CapsPair(ZXTune::CAP_CONV_TXT, Text::INFO_CONV_TXT),

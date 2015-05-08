@@ -337,9 +337,6 @@ extern const Char INFO_CONV_FYM[] = {
 extern const Char INFO_CONV_PSG[] = {
   'c','o','n','v','_','p','s','g',0
 };
-extern const Char INFO_CONV_RAW[] = {
-  'c','o','n','v','_','r','a','w',0
-};
 extern const Char INFO_CONV_TXT[] = {
   'c','o','n','v','_','t','x','t',0
 };
