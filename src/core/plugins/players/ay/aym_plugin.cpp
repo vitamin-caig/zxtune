@@ -48,7 +48,7 @@ namespace ZXTune
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::AYM::Factory::Ptr factory)
   {
     const Module::Factory::Ptr modFactory = boost::make_shared<Module::AYMFactory>(factory);
-    const uint_t caps = CAP_STOR_MODULE | CAP_DEV_AY38910 | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+    const uint_t caps = CAP_STOR_MODULE | CAP_DEV_AY38910 | Module::AYM::SupportedFormatConvertors;
     return CreatePlayerPlugin(id, caps, decoder, modFactory);
   }
 }

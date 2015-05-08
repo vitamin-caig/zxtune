@@ -432,7 +432,7 @@ namespace ZXTune
   void RegisterSPCSupport(PlayerPluginsRegistrator& registrator)
   {
     const Char ID[] = {'S', 'P', 'C', 0};
-    const uint_t CAPS = CAP_DEV_SPC700 | CAP_STOR_MODULE | CAP_CONV_RAW;
+    const uint_t CAPS = CAP_DEV_SPC700 | CAP_STOR_MODULE;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSPCDecoder();
     const Module::SPC::Factory::Ptr factory = boost::make_shared<Module::SPC::Factory>();

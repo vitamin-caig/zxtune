@@ -45,8 +45,6 @@ namespace Module
   const std::string ATTR_FIXEDCRC("FixedCRC");
   //! Raw module size in bytes
   const std::string ATTR_SIZE("Size");
-  //! Raw module content
-  const std::string ATTR_CONTENT("Content");
   //@}
 
   //@{

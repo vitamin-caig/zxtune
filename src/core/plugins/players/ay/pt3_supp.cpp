@@ -428,7 +428,7 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'P', 'T', '3', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AY38910 | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors | Module::Vortex::SupportedFormatConvertors;
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AY38910 | Module::AYM::SupportedFormatConvertors | Module::Vortex::SupportedFormatConvertors;
 
     const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::CreateDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::ProTracker3::Factory>(decoder);
@@ -440,7 +440,7 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'T', 'X', 'T', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AY38910 | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors | Module::Vortex::SupportedFormatConvertors;
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AY38910 | Module::AYM::SupportedFormatConvertors | Module::Vortex::SupportedFormatConvertors;
 
     const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::ProTracker3::Factory>(decoder);

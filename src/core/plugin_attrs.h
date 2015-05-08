@@ -57,21 +57,19 @@ namespace ZXTune
 
     //! Conversion-related capabilities
     CAP_CONVERSION_MASK = 0xfff00000,
-    //! Support raw conversion (save ripped data)
-    CAP_CONV_RAW        = 0x00100000,
     //! Support .out format conversion
-    CAP_CONV_OUT        = 0x00200000,
+    CAP_CONV_OUT        = 0x00100000,
     //! Support .psg format conversion
-    CAP_CONV_PSG        = 0x00400000,
+    CAP_CONV_PSG        = 0x00200000,
     //! Support .ym format conversion
-    CAP_CONV_YM         = 0x00800000,
+    CAP_CONV_YM         = 0x00400000,
     //! Support .zx50 format conversion
-    CAP_CONV_ZX50       = 0x01000000,
+    CAP_CONV_ZX50       = 0x00800000,
     //! Support text vortex format conversion
-    CAP_CONV_TXT        = 0x02000000,
+    CAP_CONV_TXT        = 0x01000000,
     //! Support raw aydump conversion
-    CAP_CONV_AYDUMP     = 0x04000000,
+    CAP_CONV_AYDUMP     = 0x02000000,
     //! Support .fym format conversion
-    CAP_CONV_FYM        = 0x08000000,
+    CAP_CONV_FYM        = 0x04000000,
   };
 }

@@ -38,8 +38,5 @@ namespace Module
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const = 0;
   };
 
-  //TODO: remove
-  Binary::Data::Ptr GetRawData(const Holder& holder);
-
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props);
 }

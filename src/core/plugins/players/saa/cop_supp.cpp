@@ -557,7 +557,7 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'C', 'O', 'P', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_SAA1099 | CAP_CONV_RAW;
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_SAA1099;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateETrackerDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::ETracker::Factory>();

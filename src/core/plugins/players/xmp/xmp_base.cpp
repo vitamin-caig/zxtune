@@ -997,7 +997,7 @@ namespace ZXTune
 {
   void RegisterXMPPlugins(PlayerPluginsRegistrator& registrator)
   {
-    const uint_t CAPS = CAP_DEV_DAC | CAP_STOR_MODULE | CAP_CONV_RAW;
+    const uint_t CAPS = CAP_DEV_DAC | CAP_STOR_MODULE;
     for (const Module::Xmp::PluginDescription* it = Module::Xmp::PLUGINS; it != boost::end(Module::Xmp::PLUGINS); ++it)
     {
       const Module::Xmp::PluginDescription& desc = *it;
