@@ -30,7 +30,13 @@ namespace boost
 
 class CancelError : public std::exception {};
 
-typedef boost::function<void(Module::Holder::Ptr)> OnItemCallback;
+class OnItemCallback
+{
+public:
+  virtual ~OnItemCallback() {}
+  
+  virtual void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder) = 0;
+};
 
 class SourceComponent
 {
@@ -41,7 +47,7 @@ public:
   virtual void ParseParameters() = 0;
   // throw
   virtual void Initialize() = 0;
-  virtual void ProcessItems(const OnItemCallback& callback) = 0;
+  virtual void ProcessItems(OnItemCallback& callback) = 0;
 
   static std::auto_ptr<SourceComponent> Create(Parameters::Container::Ptr configParams);
 };
