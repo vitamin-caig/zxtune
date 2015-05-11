@@ -187,7 +187,7 @@ namespace SPC
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
       , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Sound::CreateResampler(::SNES_SPC::sample_rate, SoundParams->SoundFreq(), target))
+      , Target(target)
       , Looped()
       , SamplesPerFrame()
     {
@@ -213,7 +213,7 @@ namespace SPC
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
         Tune->Render(SamplesPerFrame, builder);
-        Target->ApplyData(builder.GetResult());
+        Resampler->ApplyData(builder.GetResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -242,6 +242,7 @@ namespace SPC
         Looped = SoundParams->Looped();
         const Time::Microseconds frameDuration = SoundParams->FrameDuration();
         SamplesPerFrame = static_cast<uint_t>(frameDuration.Get() * ::SNES_SPC::sample_rate / frameDuration.PER_SECOND);
+        Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, SoundParams->SoundFreq(), Target);
       }
     }
 
@@ -264,6 +265,7 @@ namespace SPC
     const TrackState::Ptr State;
     const Devices::Details::ParametersHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
+    Sound::Receiver::Ptr Resampler;
     bool Looped;
     std::size_t SamplesPerFrame;
   };
