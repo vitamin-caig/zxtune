@@ -12,7 +12,7 @@
 #include "dac_base.h"
 #include "core/plugins/players/analyzer.h"
 //library includes
-#include <devices/details/parameters_helper.h>
+#include <parameters/tracking_helper.h>
 #include <sound/multichannel_sample.h>
 //boost includes
 #include <boost/bind.hpp>
@@ -174,7 +174,7 @@ namespace Module
       Device->RenderData(LastChunk);
     }
   private:
-    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const DAC::DataIterator::Ptr Iterator;
     const Devices::DAC::Chip::Ptr Device;
     Devices::DAC::DataChunk LastChunk;

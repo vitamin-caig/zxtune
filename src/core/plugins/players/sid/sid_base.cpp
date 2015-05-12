@@ -22,9 +22,9 @@
 #include <core/module_attrs.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
-#include <devices/details/parameters_helper.h>
 #include <formats/chiptune/container.h>
 #include <formats/chiptune/emulation/sid.h>
+#include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -193,6 +193,7 @@ namespace Sid
 
     virtual void Reset()
     {
+      SoundParams.Reset();
       Engine->stop();
       Iterator->Reset();
     }
@@ -272,7 +273,7 @@ namespace Sid
     const TrackState::Ptr State;
     const Analyzer::Ptr Analysis;
     const Sound::Receiver::Ptr Target;
-    const Devices::Details::ParametersHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const SidParameters Params;
     SidConfig Config;
     //cache filter flag

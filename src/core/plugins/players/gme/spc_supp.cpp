@@ -20,9 +20,9 @@
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
-#include <devices/details/parameters_helper.h>
 #include <formats/chiptune/emulation/spc.h>
 #include <math/numeric.h>
+#include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/resampler.h>
@@ -225,6 +225,7 @@ namespace SPC
 
     virtual void Reset()
     {
+      SoundParams.Reset();
       Tune->Reset();
       Iterator->Reset();
     }
@@ -263,7 +264,7 @@ namespace SPC
     const SPC::Ptr Tune;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
-    const Devices::Details::ParametersHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
     bool Looped;

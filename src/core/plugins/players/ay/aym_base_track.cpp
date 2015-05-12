@@ -11,8 +11,8 @@
 //local includes
 #include "aym_base_track.h"
 //library includes
-#include <devices/details/parameters_helper.h>
 #include <math/numeric.h>
+#include <parameters/tracking_helper.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -76,7 +76,7 @@ namespace Module
         }
       }
     private:
-      Devices::Details::ParametersHelper<AYM::TrackParameters> Params;
+      Parameters::TrackingHelper<AYM::TrackParameters> Params;
       const TrackStateIterator::Ptr Delegate;
       const TrackModelState::Ptr State;
       const AYM::DataRenderer::Ptr Render;

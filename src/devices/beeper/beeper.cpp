@@ -10,8 +10,8 @@
 
 //local includes
 #include <devices/beeper.h>
-#include <devices/details/parameters_helper.h>
 #include <devices/details/renderers.h>
+#include <parameters/tracking_helper.h>
 
 namespace Devices
 {
@@ -108,7 +108,7 @@ namespace Beeper
       }
     }
   private:
-    Details::ParametersHelper<ChipParameters> Params;
+    Parameters::TrackingHelper<ChipParameters> Params;
     const Sound::Receiver::Ptr Target;
     BeeperPSG PSG;
     Details::ClockSource<Stamp> Clock;

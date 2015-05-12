@@ -13,8 +13,8 @@
 //common includes
 #include <contract.h>
 //library includes
-#include <devices/details/parameters_helper.h>
 #include <parameters/merged_accessor.h>
+#include <parameters/tracking_helper.h>
 #include <parameters/visitor.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -391,6 +391,7 @@ namespace Module
 
     virtual void Reset()
     {
+      SoundParams.Reset();
       std::for_each(Delegates.begin(), Delegates.end(), boost::mem_fn(&Renderer::Reset));
     }
 
@@ -435,7 +436,7 @@ namespace Module
     }
   private:
     const RenderersArray Delegates;
-    const Devices::Details::ParametersHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const CompositeReceiver::Ptr Target;
     const TrackState::Ptr State;
     const Analyzer::Ptr Analysis;

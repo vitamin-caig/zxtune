@@ -10,7 +10,8 @@
 
 //local includes
 #include <devices/z80.h>
-#include <devices/details/parameters_helper.h>
+//library includes
+#include <parameters/tracking_helper.h>
 //3rdparty includes
 #include <3rdparty/z80ex/include/z80ex.h>
 //boost includes
@@ -391,7 +392,7 @@ namespace
       }
     }
   private:
-    Devices::Details::ParametersHelper<ChipParameters> Params;
+    Parameters::TrackingHelper<ChipParameters> Params;
     const boost::scoped_ptr<IOBus> Bus;
     const boost::shared_ptr<Z80EX_CONTEXT> Context;
     ClockSource Clock;

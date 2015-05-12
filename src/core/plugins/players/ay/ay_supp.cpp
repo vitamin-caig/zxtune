@@ -23,8 +23,8 @@
 #include <debug/log.h>
 #include <devices/beeper.h>
 #include <devices/z80.h>
-#include <devices/details/parameters_helper.h>
 #include <formats/chiptune/emulation/ay.h>
+#include <parameters/tracking_helper.h>
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>
 //boost includes
@@ -636,7 +636,7 @@ namespace AY
       }
     }
   private:
-    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const StateIterator::Ptr Iterator;
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;

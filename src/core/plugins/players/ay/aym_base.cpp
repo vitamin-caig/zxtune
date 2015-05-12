@@ -13,8 +13,8 @@
 #include "core/plugins/players/analyzer.h"
 //library includes
 #include <debug/log.h>
-#include <devices/details/parameters_helper.h>
 #include <math/numeric.h>
+#include <parameters/tracking_helper.h>
 #include <sound/gainer.h>
 #include <sound/mixer_factory.h>
 #include <sound/sound_parameters.h>
@@ -155,7 +155,7 @@ namespace Module
       Device->RenderData(LastChunk);
     }
   private:
-    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Device::Ptr Device;
     Devices::AYM::DataChunk LastChunk;

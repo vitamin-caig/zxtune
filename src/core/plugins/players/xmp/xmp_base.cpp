@@ -17,8 +17,8 @@
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
-#include <devices/details/parameters_helper.h>
 #include <formats/chiptune/container.h>
+#include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -337,6 +337,7 @@ namespace Xmp
 
     virtual void Reset()
     {
+      Params.Reset();
       Ctx->Call(&::xmp_restart_module);
     }
 
@@ -368,7 +369,7 @@ namespace Xmp
     const Context::Ptr Ctx;
     const StatePtr State;
     const Sound::Receiver::Ptr Target;
-    const Devices::Details::ParametersHelper<Parameters::Accessor> Params;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::RenderParameters::Ptr SoundParams;
     const TrackState::Ptr Track;
     const Analyzer::Ptr Analysis;
@@ -411,7 +412,7 @@ namespace Xmp
   class Format : public Binary::Format
   {
   public:
-    virtual bool Match(const Binary::Data& data) const
+    virtual bool Match(const Binary::Data& /*data*/) const
     {
       return true;
     }
@@ -454,7 +455,7 @@ namespace Xmp
       return Fmt->Match(rawData);
     }
 
-    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const
     {
       return Formats::Chiptune::Container::Ptr();//TODO
     }
