@@ -70,7 +70,7 @@ namespace
 
     virtual void DeviceChanged(const QString& name)
     {
-      const String& id = FromQString(name);
+      const String& id = LocalFromQString(name);
       Dbg("Selecting device '%1%'", id);
       const DevicesArray::const_iterator it = std::find_if(Devices.begin(), Devices.end(),
         boost::bind(&Device::Name, _1) == name || boost::bind(&Device::Id, _1) == id);
@@ -124,7 +124,7 @@ namespace
       }
 
       explicit Device(const Sound::DirectSound::Device& in)
-        : Name(ToQString(in.Name()))
+        : Name(ToQStringFromLocal(in.Name()))
         , Id(in.Id())
       {
       }
