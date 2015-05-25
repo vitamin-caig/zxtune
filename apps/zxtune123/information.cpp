@@ -44,7 +44,7 @@
 namespace
 {
   typedef std::pair<uint_t, String> CapsPair;
-  String SerializeCaps(uint_t caps, const CapsPair* from)
+  String SerializeBitmask(uint_t caps, const CapsPair* from)
   {
     String result;
     for (const CapsPair* cap = from; cap->first; ++cap)
@@ -55,41 +55,97 @@ namespace
         result += cap->second;
       }
     }
-    return result.substr(1);
+    return result;
+  }
+  
+  String SerializeEnum(uint_t caps, const CapsPair* from)
+  {
+    for (const CapsPair* cap = from; !cap->second.empty(); ++cap)
+    {
+      if (cap->first == caps)
+      {
+        return Char(' ') + cap->second;
+      }
+    }
+    return FromStdString(" unknown");
   }
 
   String PluginCaps(uint_t caps)
   {
-    static const CapsPair PLUGINS_CAPS[] =
+    using namespace ZXTune;
+    static const CapsPair PLUGIN_TYPES[] =
+    {
+      CapsPair(Capabilities::Category::MODULE, Text::INFO_CAT_MODULE),
+      CapsPair(Capabilities::Category::CONTAINER, Text::INFO_CAT_CONTAINER),
+      CapsPair()
+    };
+
+    static const CapsPair MODULE_TYPES[] =
+    {
+      CapsPair(Capabilities::Module::Type::TRACK, Text::INFO_MOD_TRACK),
+      CapsPair(Capabilities::Module::Type::STREAM, Text::INFO_MOD_STREAM),
+      CapsPair(Capabilities::Module::Type::EMULATED, Text::INFO_MOD_EMULATED),
+      CapsPair(Capabilities::Module::Type::MULTI, Text::INFO_MOD_MULTI),
+      CapsPair()
+    };
+    
+    static const CapsPair MODULE_CAPS[] =
     {
       //device caps
-      CapsPair(ZXTune::CAP_DEV_AY38910, Text::INFO_CAP_AY38910),
-      CapsPair(ZXTune::CAP_DEV_TURBOSOUND, Text::INFO_CAP_TURBOSOUND),
-      CapsPair(ZXTune::CAP_DEV_BEEPER, Text::INFO_CAP_BEEPER),
-      CapsPair(ZXTune::CAP_DEV_YM2203, Text::INFO_CAP_YM2203),
-      CapsPair(ZXTune::CAP_DEV_TURBOFM, Text::INFO_CAP_TURBOFM),
-      CapsPair(ZXTune::CAP_DEV_DAC, Text::INFO_CAP_DAC),
-      CapsPair(ZXTune::CAP_DEV_SAA1099, Text::INFO_CAP_SAA1099),
-      CapsPair(ZXTune::CAP_DEV_MOS6581, Text::INFO_CAP_MOS6581),
-      CapsPair(ZXTune::CAP_DEV_SPC700, Text::INFO_CAP_SPC700),
-      CapsPair(ZXTune::CAP_DEV_MULTI, Text::INFO_CAP_MULTI),
-      //storage caps
-      CapsPair(ZXTune::CAP_STOR_MODULE, Text::INFO_CAP_MODULE),
-      CapsPair(ZXTune::CAP_STOR_CONTAINER, Text::INFO_CAP_CONTAINER),
-      CapsPair(ZXTune::CAP_STOR_MULTITRACK, Text::INFO_CAP_MULTITRACK),
-      CapsPair(ZXTune::CAP_STOR_SCANER, Text::INFO_CAP_SCANER),
-      CapsPair(ZXTune::CAP_STOR_PLAIN, Text::INFO_CAP_PLAIN),
-      CapsPair(ZXTune::CAP_STOR_DIRS, Text::INFO_CAP_DIRS),
+      CapsPair(Capabilities::Module::Device::AY38910, Text::INFO_DEV_AY38910),
+      CapsPair(Capabilities::Module::Device::TURBOSOUND, Text::INFO_DEV_TURBOSOUND),
+      CapsPair(Capabilities::Module::Device::BEEPER, Text::INFO_DEV_BEEPER),
+      CapsPair(Capabilities::Module::Device::YM2203, Text::INFO_DEV_YM2203),
+      CapsPair(Capabilities::Module::Device::TURBOFM, Text::INFO_DEV_TURBOFM),
+      CapsPair(Capabilities::Module::Device::DAC, Text::INFO_DEV_DAC),
+      CapsPair(Capabilities::Module::Device::SAA1099, Text::INFO_DEV_SAA1099),
+      CapsPair(Capabilities::Module::Device::MOS6581, Text::INFO_DEV_MOS6581),
+      CapsPair(Capabilities::Module::Device::SPC700, Text::INFO_DEV_SPC700),
+      CapsPair(Capabilities::Module::Device::MULTI, Text::INFO_DEV_MULTI),
       //conversion caps
-      CapsPair(ZXTune::CAP_CONV_PSG, Text::INFO_CONV_PSG),
-      CapsPair(ZXTune::CAP_CONV_ZX50, Text::INFO_CONV_ZX50),
-      CapsPair(ZXTune::CAP_CONV_TXT, Text::INFO_CONV_TXT),
-      CapsPair(ZXTune::CAP_CONV_AYDUMP, Text::INFO_CONV_AYDUMP),
-      CapsPair(ZXTune::CAP_CONV_FYM, Text::INFO_CONV_FYM),
+      CapsPair(Capabilities::Module::Conversion::PSG, Text::INFO_CONV_PSG),
+      CapsPair(Capabilities::Module::Conversion::ZX50, Text::INFO_CONV_ZX50),
+      CapsPair(Capabilities::Module::Conversion::TXT, Text::INFO_CONV_TXT),
+      CapsPair(Capabilities::Module::Conversion::AYDUMP, Text::INFO_CONV_AYDUMP),
+      CapsPair(Capabilities::Module::Conversion::FYM, Text::INFO_CONV_FYM),
       //limiter
       CapsPair()
     };
-    return SerializeCaps(caps, PLUGINS_CAPS);
+    
+    static const CapsPair CONTAINER_TYPES[] =
+    {
+      CapsPair(Capabilities::Container::Type::ARCHIVE, Text::INFO_CONT_ARCHIVE),
+      CapsPair(Capabilities::Container::Type::COMPRESSOR, Text::INFO_CONT_COMPRESSOR),
+      CapsPair(Capabilities::Container::Type::SNAPSHOT, Text::INFO_CONT_SNAPSHOT),
+      CapsPair(Capabilities::Container::Type::DISKIMAGE, Text::INFO_CONT_DISKIMAGE),
+      CapsPair(Capabilities::Container::Type::DECOMPILER, Text::INFO_CONT_DECOMPILER),
+      CapsPair(Capabilities::Container::Type::MULTITRACK, Text::INFO_CONT_MULTITRACK),
+      CapsPair(Capabilities::Container::Type::SCANER, Text::INFO_CONT_SCANER),
+      //limiter
+      CapsPair()
+    };
+
+    static const CapsPair CONTAINER_CAPS[] =
+    {
+      CapsPair(Capabilities::Container::Traits::DIRECTORIES, Text::INFO_CAP_DIRS),
+      CapsPair(Capabilities::Container::Traits::PLAIN, Text::INFO_CAP_PLAIN),
+      CapsPair(Capabilities::Container::Traits::ONCEAPPLIED, Text::INFO_CAP_ONCEAPPLIED),
+      //limiter
+      CapsPair()
+    };
+    String result = SerializeEnum(caps & Capabilities::Category::MASK, PLUGIN_TYPES);
+    switch (caps & Capabilities::Category::MASK)
+    {
+    case Capabilities::Category::MODULE:
+      result += SerializeEnum(caps & Capabilities::Module::Type::MASK, MODULE_TYPES);
+      result += SerializeBitmask(caps, MODULE_CAPS);
+      break;
+    case Capabilities::Category::CONTAINER:
+      result += SerializeEnum(caps & Capabilities::Container::Type::MASK, CONTAINER_TYPES);
+      result += SerializeBitmask(caps, CONTAINER_CAPS);
+      break;
+    }
+    return result.substr(1);
   }
 
   String BackendCaps(uint_t caps)
@@ -106,7 +162,7 @@ namespace
       //limiter
       CapsPair()
     };
-    return SerializeCaps(caps, BACKENDS_CAPS);
+    return SerializeBitmask(caps, BACKENDS_CAPS);
   }
   
   inline void ShowPlugin(const ZXTune::Plugin& plugin)

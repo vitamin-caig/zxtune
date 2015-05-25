@@ -265,20 +265,8 @@ extern const Char INFO_BACKEND_INFO[] = {
   '\n',
   0
 };
-extern const Char INFO_CAP_AY38910[] = {
-  'd','e','v','_','a','y','3','8','9','1','0',0
-};
-extern const Char INFO_CAP_BEEPER[] = {
-  'd','e','v','_','b','e','e','p','e','r',0
-};
-extern const Char INFO_CAP_CONTAINER[] = {
-  's','t','o','r','_','c','o','n','t','a','i','n','e','r',0
-};
-extern const Char INFO_CAP_DAC[] = {
-  'd','e','v','_','d','a','c',0
-};
 extern const Char INFO_CAP_DIRS[] = {
-  's','t','o','r','_','d','i','r','s',0
+  'c','a','p','_','d','i','r','s',0
 };
 extern const Char INFO_CAP_FILE[] = {
   't','y','p','e','_','f','i','l','e',0
@@ -289,29 +277,11 @@ extern const Char INFO_CAP_HARDWARE[] = {
 extern const Char INFO_CAP_HWVOLUME[] = {
   'f','e','a','t','_','h','w','v','o','l','u','m','e',0
 };
-extern const Char INFO_CAP_MODULE[] = {
-  's','t','o','r','_','m','o','d','u','l','e',0
-};
-extern const Char INFO_CAP_MOS6581[] = {
-  'd','e','v','_','m','o','s','6','5','8','1',0
-};
-extern const Char INFO_CAP_MULTI[] = {
-  'd','e','v','_','m','u','l','t','i',0
-};
-extern const Char INFO_CAP_MULTITRACK[] = {
-  's','t','o','r','_','m','u','l','t','i','t','r','a','c','k',0
+extern const Char INFO_CAP_ONCEAPPLIED[] = {
+  'c','a','p','_','o','n','c','e','a','p','p','l','i','e','d',0
 };
 extern const Char INFO_CAP_PLAIN[] = {
-  's','t','o','r','_','p','l','a','i','n',0
-};
-extern const Char INFO_CAP_SAA1099[] = {
-  'd','e','v','_','s','a','a','1','0','9','9',0
-};
-extern const Char INFO_CAP_SCANER[] = {
-  's','t','o','r','_','s','c','a','n','e','r',0
-};
-extern const Char INFO_CAP_SPC700[] = {
-  'd','e','v','_','s','p','c','7','0','0',0
+  'c','a','p','_','p','l','a','i','n',0
 };
 extern const Char INFO_CAP_STUB[] = {
   't','y','p','e','_','s','t','u','b',0
@@ -319,14 +289,32 @@ extern const Char INFO_CAP_STUB[] = {
 extern const Char INFO_CAP_SYSTEM[] = {
   't','y','p','e','_','s','y','s','t','e','m',0
 };
-extern const Char INFO_CAP_TURBOFM[] = {
-  'd','e','v','_','t','u','r','b','o','f','m',0
+extern const Char INFO_CAT_CONTAINER[] = {
+  'c','a','t','_','c','o','n','t','a','i','n','e','r',0
 };
-extern const Char INFO_CAP_TURBOSOUND[] = {
-  'd','e','v','_','t','u','r','b','o','s','o','u','n','d',0
+extern const Char INFO_CAT_MODULE[] = {
+  'c','a','t','_','m','o','d','u','l','e',0
 };
-extern const Char INFO_CAP_YM2203[] = {
-  'd','e','v','_','y','m','2','2','0','3',0
+extern const Char INFO_CONT_ARCHIVE[] = {
+  'c','o','n','t','_','a','r','c','h','i','v','e',0
+};
+extern const Char INFO_CONT_COMPRESSOR[] = {
+  'c','o','n','t','_','c','o','m','p','r','e','s','s','o','r',0
+};
+extern const Char INFO_CONT_DECOMPILER[] = {
+  'c','o','n','t','_','d','e','c','o','m','p','i','l','e','r',0
+};
+extern const Char INFO_CONT_DISKIMAGE[] = {
+  'c','o','n','t','_','d','i','s','k','i','m','a','g','e',0
+};
+extern const Char INFO_CONT_MULTITRACK[] = {
+  'c','o','n','t','_','m','u','l','t','i','t','r','a','c','k',0
+};
+extern const Char INFO_CONT_SCANER[] = {
+  'c','o','n','t','_','s','c','a','n','e','r',0
+};
+extern const Char INFO_CONT_SNAPSHOT[] = {
+  'c','o','n','t','_','s','n','a','p','s','h','o','t',0
 };
 extern const Char INFO_CONV_AYDUMP[] = {
   'c','o','n','v','_','a','y','d','u','m','p',0
@@ -342,6 +330,36 @@ extern const Char INFO_CONV_TXT[] = {
 };
 extern const Char INFO_CONV_ZX50[] = {
   'c','o','n','v','_','z','x','5','0',0
+};
+extern const Char INFO_DEV_AY38910[] = {
+  'd','e','v','_','a','y','3','8','9','1','0',0
+};
+extern const Char INFO_DEV_BEEPER[] = {
+  'd','e','v','_','b','e','e','p','e','r',0
+};
+extern const Char INFO_DEV_DAC[] = {
+  'd','e','v','_','d','a','c',0
+};
+extern const Char INFO_DEV_MOS6581[] = {
+  'd','e','v','_','m','o','s','6','5','8','1',0
+};
+extern const Char INFO_DEV_MULTI[] = {
+  'd','e','v','_','m','u','l','t','i',0
+};
+extern const Char INFO_DEV_SAA1099[] = {
+  'd','e','v','_','s','a','a','1','0','9','9',0
+};
+extern const Char INFO_DEV_SPC700[] = {
+  'd','e','v','_','s','p','c','7','0','0',0
+};
+extern const Char INFO_DEV_TURBOFM[] = {
+  'd','e','v','_','t','u','r','b','o','f','m',0
+};
+extern const Char INFO_DEV_TURBOSOUND[] = {
+  'd','e','v','_','t','u','r','b','o','s','o','u','n','d',0
+};
+extern const Char INFO_DEV_YM2203[] = {
+  'd','e','v','_','y','m','2','2','0','3',0
 };
 extern const Char INFO_LIST_ATTRIBUTES_DESC[] = {
   's','h','o','w',' ','t','h','e',' ','l','i','s','t',' ','o','f',' ','s','u','p','p','o','r','t','e','d',' ',
@@ -405,6 +423,18 @@ extern const Char INFO_LIST_PROVIDERS_KEY[] = {
 extern const Char INFO_LIST_PROVIDERS_TITLE[] = {
   'S','u','p','p','o','r','t','e','d',' ','I','O',' ','p','r','o','v','i','d','e','r','s',0
 };
+extern const Char INFO_MOD_EMULATED[] = {
+  'm','o','d','_','e','m','u','l','a','t','e','d',0
+};
+extern const Char INFO_MOD_MULTI[] = {
+  'm','o','d','_','m','u','l','t','i',0
+};
+extern const Char INFO_MOD_STREAM[] = {
+  'm','o','d','_','s','t','r','e','a','m',0
+};
+extern const Char INFO_MOD_TRACK[] = {
+  'm','o','d','_','t','r','a','c','k',0
+};
 extern const Char INFO_OPTIONS_CORE_AYM_CLOCKRATE[] = {
   'c','l','o','c','k',' ','r','a','t','e',' ','f','o','r',' ','A','Y','M',' ','i','n',' ','H','z',0
 };
@@ -461,8 +491,8 @@ extern const Char INFO_OPTIONS_CORE_PLUGINS_RAW_MIN_SIZE[] = {
   'w',' ','s','c','a','n','e','r',0
 };
 extern const Char INFO_OPTIONS_CORE_PLUGINS_RAW_PLAIN_DOUBLE_ANALYSIS[] = {
-  'a','n','a','l','y','z','e',' ','s','t','o','r','_','p','l','a','i','n',' ','p','l','u','g','i','n','s',' ',
-  't','w','i','c','e',0
+  'a','n','a','l','y','z','e',' ','c','a','p','_','p','l','a','i','n',' ','p','l','u','g','i','n','s',' ','t',
+  'w','i','c','e',0
 };
 extern const Char INFO_OPTIONS_CORE_PLUGINS_TITLE[] = {
   ' ','C','o','r','e',' ','p','l','u','g','i','n','s',' ','o','p','t','i','o','n','s',':',0
