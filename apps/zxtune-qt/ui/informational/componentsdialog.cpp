@@ -28,65 +28,6 @@
 
 namespace
 {
-  bool IsPlayerPlugin(const ZXTune::Plugin& plugin)
-  {
-    return ZXTune::CAP_STOR_MODULE == (plugin.Capabilities() & ZXTune::CAP_STORAGE_MASK);
-  }
-
-  bool IsAYMPlugin(const ZXTune::Plugin& plugin)
-  {
-    assert(IsPlayerPlugin(plugin));
-    return 0 != (plugin.Capabilities() & (ZXTune::CAP_DEV_AY38910 | ZXTune::CAP_DEV_TURBOSOUND));
-  }
-
-  bool IsDACPlugin(const ZXTune::Plugin& plugin)
-  {
-    assert(IsPlayerPlugin(plugin));
-    return 0 != (plugin.Capabilities() & (ZXTune::CAP_DEV_DAC | ZXTune::CAP_DEV_BEEPER));
-  }
-
-  bool IsFMPlugin(const ZXTune::Plugin& plugin)
-  {
-    assert(IsPlayerPlugin(plugin));
-    return 0 != (plugin.Capabilities() & (ZXTune::CAP_DEV_YM2203 | ZXTune::CAP_DEV_TURBOFM));
-  }
-
-  bool IsSAAPlugin(const ZXTune::Plugin& plugin)
-  {
-    assert(IsPlayerPlugin(plugin));
-    return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_SAA1099);
-  }
-
-  bool IsSIDPlugin(const ZXTune::Plugin& plugin)
-  {
-    assert(IsPlayerPlugin(plugin));
-    return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_MOS6581);
-  }
-
-  bool IsSPCPlugin(const ZXTune::Plugin& plugin)
-  {
-    assert(IsPlayerPlugin(plugin));
-    return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_SPC700);
-  }
-
-  bool IsMultidevicePlugin(const ZXTune::Plugin& plugin)
-  {
-    assert(IsPlayerPlugin(plugin));
-    return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_MULTI);
-  }
-  
-  bool IsMultitrackPlugin(const ZXTune::Plugin& plugin)
-  {
-    assert(!IsPlayerPlugin(plugin));
-    return ZXTune::CAP_STOR_MULTITRACK == (plugin.Capabilities() & ZXTune::CAP_STOR_MULTITRACK);
-  }
-
-  bool IsArchivePlugin(const ZXTune::Plugin& plugin)
-  {
-    assert(!IsPlayerPlugin(plugin));
-    return ZXTune::CAP_STOR_CONTAINER == (plugin.Capabilities() & ZXTune::CAP_STOR_CONTAINER);
-  }
-
   QString Translate(const char* msg)
   {
     return QApplication::translate("ComponentsDialog", msg, 0, QApplication::UnicodeUTF8);
@@ -113,101 +54,110 @@ namespace
       : Widget(widget)
       , Players(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "Player plugins")))
       , Containers(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "Container plugins")))
-      , Ayms(CreateTreeWidgetItem(Players, "AY/YM"))
-      , Dacs(CreateTreeWidgetItem(Players, "DAC"))
-      , Fms(CreateTreeWidgetItem(Players, "FM"))
-      , Saas(CreateTreeWidgetItem(Players, "SAA"))
-      , Sids(CreateTreeWidgetItem(Players, "SID"))
-      , Spcs(CreateTreeWidgetItem(Players, "SPC"))
-      , Multidevices(CreateTreeWidgetItem(Players, QT_TRANSLATE_NOOP("ComponentsDialog", "Multidevice")))
-      , Multitracks(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Multitrack")))
-      , Archives(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Archive")))
     {
+      FillPlayersByDevices();
+      FillContainersByTypes();
     }
 
     void AddPlugin(const ZXTune::Plugin& plugin)
     {
-      if (IsPlayerPlugin(plugin))
+      using namespace ZXTune::Capabilities::Category;
+      switch (plugin.Capabilities() & MASK)
       {
+      case MODULE:
         AddPlayerPlugin(plugin);
-      }
-      else
-      {
-        AddStoragePlugin(plugin);
+        break;
+      case CONTAINER:
+        AddContainerPlugin(plugin);
+        break;
+      default:
+        assert(!"Unknown plugin");
+        break;
       }
     }
   private:
+    void FillPlayersByDevices()
+    {
+      using namespace ZXTune::Capabilities::Module::Device;
+      PlayersByDeviceType[AY38910 | TURBOSOUND] = CreateTreeWidgetItem(Players, "AY-3-8910/YM2149F/Turbosound");
+      PlayersByDeviceType[DAC] = CreateTreeWidgetItem(Players, "DAC");
+      PlayersByDeviceType[YM2203 | TURBOFM] = CreateTreeWidgetItem(Players, "YM2203/TurboFM");
+      PlayersByDeviceType[SAA1099] = CreateTreeWidgetItem(Players, "SAA1099");
+      PlayersByDeviceType[MOS6581] = CreateTreeWidgetItem(Players, "MOS6581/SID");
+      PlayersByDeviceType[SPC700] = CreateTreeWidgetItem(Players, "SPC700");
+      PlayersByDeviceType[MULTI] = CreateTreeWidgetItem(Players, QT_TRANSLATE_NOOP("ComponentsDialog", "Multidevice"));
+    }
+    
+    void FillContainersByTypes()
+    {
+      using namespace ZXTune::Capabilities::Container::Type;
+      ContainersByType.resize(MASK);
+      ContainersByType[ARCHIVE] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Archive"));
+      ContainersByType[COMPRESSOR] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Compressor"));
+      ContainersByType[SNAPSHOT] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Snapshot"));
+      ContainersByType[DISKIMAGE] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Disk image"));
+      ContainersByType[DECOMPILER] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Decompiler"));
+      ContainersByType[MULTITRACK] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Multitrack"));
+      ContainersByType[SCANER] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Data scanner"));
+    }
+    
     void AddPlayerPlugin(const ZXTune::Plugin& plugin)
     {
-      if (IsAYMPlugin(plugin))
+      const uint_t deviceType = plugin.Capabilities() & ZXTune::Capabilities::Module::Device::MASK;
+      for (std::map<uint_t, QTreeWidgetItem*>::const_iterator it = PlayersByDeviceType.begin(), lim = PlayersByDeviceType.end(); it != lim; ++it)
       {
-        AddPlayerPluginItem(plugin, *Ayms);
+        if (0 != (deviceType & it->first))
+        {
+          AddPlayerPluginItem(plugin, *it->second);
+          return;
+        }
       }
-      else if (IsDACPlugin(plugin))
-      {
-        AddPlayerPluginItem(plugin, *Dacs);
-      }
-      else if (IsFMPlugin(plugin))
-      {
-        AddPlayerPluginItem(plugin, *Fms);
-      }
-      else if (IsSAAPlugin(plugin))
-      {
-        AddPlayerPluginItem(plugin, *Saas);
-      }
-      else if (IsSIDPlugin(plugin))
-      {
-        AddPlayerPluginItem(plugin, *Sids);
-      }
-      else if (IsSPCPlugin(plugin))
-      {
-        AddPlayerPluginItem(plugin, *Spcs);
-      }
-      else if (IsMultidevicePlugin(plugin))
-      {
-        AddPlayerPluginItem(plugin, *Multidevices);
-      }
-      else
-      {
-        assert(!"Unknown player plugin");
-      }
+      assert(!"Unknown player plugin");
     }
 
     void AddPlayerPluginItem(const ZXTune::Plugin& plugin, QTreeWidgetItem& root)
     {
-      assert(IsPlayerPlugin(plugin));
-
+      using namespace ZXTune::Capabilities::Module;
       //root
+      const uint_t caps = plugin.Capabilities();
       const String& title = Strings::Format("[%s] %s", plugin.Id(), plugin.Description());
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(title)));
+      FillModuleType(caps & Type::MASK, *pluginItem);
       //conversion
-      if (uint_t convCaps = plugin.Capabilities() & ZXTune::CAP_CONVERSION_MASK)
+      if (const uint_t convCaps = caps & Conversion::MASK)
       {
         QTreeWidgetItem* const conversionItem = CreateTreeWidgetItem(pluginItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Conversion targets"));
         FillConversionCapabilities(convCaps, *conversionItem);
       }
     }
+    
+    void FillModuleType(uint_t type, QTreeWidgetItem& root)
+    {
+      using namespace ZXTune::Capabilities::Module::Type;
+      AddCapability(1 << type, 1 << TRACK, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Track structure"));
+      AddCapability(1 << type, 1 << STREAM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Stream structure"));
+      AddCapability(1 << type, 1 << EMULATED, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Emulated environment"));
+      AddCapability(1 << type, 1 << MULTI, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Multistructure"));
+    }
 
     void FillConversionCapabilities(uint_t caps, QTreeWidgetItem& root)
     {
-      AddCapability(caps, ZXTune::CAP_CONV_OUT, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .out format"));
-      AddCapability(caps, ZXTune::CAP_CONV_PSG, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .psg format"));
-      AddCapability(caps, ZXTune::CAP_CONV_YM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .ym format"));
-      AddCapability(caps, ZXTune::CAP_CONV_ZX50, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .zx50 format"));
-      AddCapability(caps, ZXTune::CAP_CONV_TXT, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Vortex .txt format"));
-      AddCapability(caps, ZXTune::CAP_CONV_AYDUMP, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Raw aydump format"));
-      AddCapability(caps, ZXTune::CAP_CONV_FYM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Compressed .fym format"));
+      using namespace ZXTune::Capabilities::Module::Conversion;
+      AddCapability(caps, OUT, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .out format"));
+      AddCapability(caps, PSG, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .psg format"));
+      AddCapability(caps, YM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .ym format"));
+      AddCapability(caps, ZX50, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .zx50 format"));
+      AddCapability(caps, TXT, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Vortex .txt format"));
+      AddCapability(caps, AYDUMP, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Raw aydump format"));
+      AddCapability(caps, FYM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Compressed .fym format"));
     }
 
-    void AddStoragePlugin(const ZXTune::Plugin& plugin)
+    void AddContainerPlugin(const ZXTune::Plugin& plugin)
     {
-      if (IsMultitrackPlugin(plugin))
+      const uint_t containerType = plugin.Capabilities() & ZXTune::Capabilities::Container::Type::MASK;
+      if (QTreeWidgetItem* item = ContainersByType[containerType])
       {
-        AddContainerPluginItem(plugin, *Multitracks);
-      }
-      else if (IsArchivePlugin(plugin))
-      {
-        AddContainerPluginItem(plugin, *Archives);
+        AddContainerPluginItem(plugin, *item);
       }
       else
       {
@@ -217,41 +167,31 @@ namespace
 
     void AddContainerPluginItem(const ZXTune::Plugin& plugin, QTreeWidgetItem& root)
     {
-      assert(!IsPlayerPlugin(plugin));
+      const uint_t caps = plugin.Capabilities();
       const String& description = plugin.Description();
 
       //root
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
       //capabilities
-      const uint_t otherCapsMask = ZXTune::CAP_STORAGE_MASK & ~(ZXTune::CAP_STOR_MULTITRACK | ZXTune::CAP_STOR_CONTAINER);
-      if (uint_t caps = plugin.Capabilities() & otherCapsMask)
-      {
-        QTreeWidgetItem* const capabilitiesItem = CreateTreeWidgetItem(pluginItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Capabilities"));
-        FillStorageCapabilities(caps, *capabilitiesItem);
-      }
+      FillContainerTraits(caps, *pluginItem);
     }
 
-    void FillStorageCapabilities(uint_t caps, QTreeWidgetItem& root) const
+    void FillContainerTraits(uint_t caps, QTreeWidgetItem& root) const
     {
-      AddCapability(caps, ZXTune::CAP_STOR_SCANER, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Data scanner"));
-      AddCapability(caps, ZXTune::CAP_STOR_PLAIN, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Plain data structure format"));
-      AddCapability(caps, ZXTune::CAP_STOR_DIRS, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Directories support"));
+      using namespace ZXTune::Capabilities::Container::Traits;
+      AddCapability(caps, DIRECTORIES, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Directories support"));
+      AddCapability(caps, PLAIN, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Plain data structure format"));
+      AddCapability(caps, ONCEAPPLIED, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Not recursive"));
     }
   private:
     QTreeWidget& Widget;
     //1st level
     QTreeWidgetItem* const Players;
     QTreeWidgetItem* const Containers;
-    //2nd level
-    QTreeWidgetItem* const Ayms;
-    QTreeWidgetItem* const Dacs;
-    QTreeWidgetItem* const Fms;
-    QTreeWidgetItem* const Saas;
-    QTreeWidgetItem* const Sids;
-    QTreeWidgetItem* const Spcs;
-    QTreeWidgetItem* const Multidevices;
-    QTreeWidgetItem* const Multitracks;
-    QTreeWidgetItem* const Archives;
+    //2nd level of Players
+    std::map<uint_t, QTreeWidgetItem*> PlayersByDeviceType;
+    //2nd level of Containers
+    std::vector<QTreeWidgetItem*> ContainersByType;
   };
 
   bool IsPlaybackBackend(const Sound::BackendInformation& backend)
