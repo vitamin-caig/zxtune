@@ -584,7 +584,7 @@ namespace ZXTune
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProSoundMakerCompiledDecoder();
     const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::ProSoundMaker::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);;
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -17,11 +17,18 @@ namespace Module
 {
   namespace AYM
   {
-    const uint_t SupportedFormatConvertors = ZXTune::CAP_CONV_PSG | ZXTune::CAP_CONV_ZX50 | ZXTune::CAP_CONV_AYDUMP | ZXTune::CAP_CONV_FYM;
+    inline uint_t GetSupportedFormatConvertors()
+    {
+      using namespace ZXTune::Capabilities::Module::Conversion;
+      return PSG | ZX50 | AYDUMP | FYM;
+    }
   }
 
   namespace Vortex
   {
-    const uint_t SupportedFormatConvertors = 0;
+    inline uint_t GetSupportedFormatConvertors()
+    {
+      return 0;
+    }
   }
 }

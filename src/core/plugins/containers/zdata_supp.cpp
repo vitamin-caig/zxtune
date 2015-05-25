@@ -242,7 +242,7 @@ namespace
 
   const Char ID[] = {'Z', 'D', 'A', 'T', 'A', 0};
   const Char* const INFO = Text::ZDATA_PLUGIN_INFO;
-  const uint_t CAPS = CAP_STOR_MULTITRACK;
+  const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
 }
 
 namespace ZXTune

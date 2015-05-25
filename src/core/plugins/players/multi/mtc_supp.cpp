@@ -371,7 +371,7 @@ namespace ZXTune
   void RegisterMTCSupport(PlayerPluginsRegistrator& registrator)
   {
     const Char ID[] = {'M', 'T', 'C', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_MULTI;
+    const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::MULTI;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateMultiTrackContainerDecoder();
     const Module::MTC::Factory::Ptr factory = boost::make_shared<Module::MTC::Factory>();

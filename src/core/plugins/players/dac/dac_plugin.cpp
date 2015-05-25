@@ -104,7 +104,7 @@ namespace ZXTune
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::DAC::Factory::Ptr factory)
   {
     const Module::Factory::Ptr modFactory = boost::make_shared<Module::DACFactory>(factory);
-    const uint_t caps = CAP_STOR_MODULE | CAP_DEV_DAC;
+    const uint_t caps = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
     return CreatePlayerPlugin(id, caps, decoder, modFactory);
   }
 }

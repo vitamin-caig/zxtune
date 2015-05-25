@@ -129,7 +129,7 @@ namespace ZXTune
     ArchivedContainerPlugin(Plugin::Ptr descr, Formats::Archived::Decoder::Ptr decoder)
       : Description(descr)
       , Decoder(decoder)
-      , SupportDirectories(0 != (Description->Capabilities() & CAP_STOR_DIRS))
+      , SupportDirectories(0 != (Description->Capabilities() & Capabilities::Container::Traits::DIRECTORIES))
     {
     }
 
@@ -265,9 +265,9 @@ namespace ZXTune
 {
   ArchivePlugin::Ptr CreateContainerPlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps);
+    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
     const ArchivePlugin::Ptr result = boost::make_shared<ArchivedContainerPlugin>(description, decoder);
-    return 0 != (caps & CAP_STOR_ONCEAPPLIED)
+    return 0 != (caps & Capabilities::Container::Traits::ONCEAPPLIED)
       ? boost::make_shared<OnceAppliedContainerPluginAdapter>(result)
       : result;
   }

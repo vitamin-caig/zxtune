@@ -11,6 +11,7 @@
 //local includes
 #include "plugin.h"
 #include "core/src/callback.h"
+#include <core/plugin_attrs.h>
 //library includes
 #include <core/module_attrs.h>
 //boost includes
@@ -76,7 +77,7 @@ namespace ZXTune
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps,
     Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps);
+    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::MODULE);
     return PlayerPlugin::Ptr(new CommonPlayerPlugin(description, decoder, factory));
   }
 }

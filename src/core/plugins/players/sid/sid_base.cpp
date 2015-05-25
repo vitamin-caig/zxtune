@@ -438,7 +438,7 @@ namespace ZXTune
   void RegisterSIDPlugins(PlayerPluginsRegistrator& registrator)
   {
     const Char ID[] = {'S', 'I', 'D', 0};
-    const uint_t CAPS = CAP_DEV_MOS6581 | CAP_STOR_MODULE;
+    const uint_t CAPS = Capabilities::Module::Type::EMULATED | Capabilities::Module::Device::MOS6581;
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSIDDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::Sid::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);

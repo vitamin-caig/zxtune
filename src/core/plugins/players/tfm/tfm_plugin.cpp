@@ -74,10 +74,20 @@ namespace Module
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::TFM::Factory::Ptr factory)
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder, Module::TFM::Factory::Ptr factory)
   {
     const Module::Factory::Ptr modFactory = boost::make_shared<Module::TFMFactory>(factory);
-    const uint_t caps = CAP_STOR_MODULE | CAP_DEV_TURBOFM;
-    return CreatePlayerPlugin(id, caps, decoder, modFactory);
+    const uint_t tfmCaps = Capabilities::Module::Device::TURBOFM;
+    return CreatePlayerPlugin(id, caps | tfmCaps, decoder, modFactory);
+  }
+
+  PlayerPlugin::Ptr CreateTrackPlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::TFM::Factory::Ptr factory)
+  {
+    return CreatePlayerPlugin(id, Capabilities::Module::Type::TRACK, decoder, factory);
+  }
+  
+  PlayerPlugin::Ptr CreateStreamPlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::TFM::Factory::Ptr factory)
+  {
+    return CreatePlayerPlugin(id, Capabilities::Module::Type::STREAM, decoder, factory);
   }
 }

@@ -886,7 +886,8 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'A', 'Y', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AY38910 | CAP_DEV_BEEPER | Module::AYM::SupportedFormatConvertors;
+    const uint_t CAPS = Capabilities::Module::Type::EMULATED | Capabilities::Module::Device::AY38910 | Capabilities::Module::Device::BEEPER
+      | Module::AYM::GetSupportedFormatConvertors();
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateAYEMULDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::AY::Factory>();

@@ -703,14 +703,14 @@ namespace ZXTune
       const Char ID[] = {'A', 'S', '0', 0};
       const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver0::CreateDecoder();
       const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::ASCSoundMaster::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Char ID[] = {'A', 'S', 'C', 0};
       const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver1::CreateDecoder();
       const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::ASCSoundMaster::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

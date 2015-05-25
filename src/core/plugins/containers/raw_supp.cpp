@@ -280,7 +280,7 @@ namespace
 
   const Char ID[] = {'R', 'A', 'W', 0};
   const Char* const INFO = Text::RAW_PLUGIN_INFO;
-  const uint_t CAPS = CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
+  const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::SCANER;
 
   const std::size_t SCAN_STEP = 1;
   const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
@@ -611,7 +611,7 @@ namespace
       if (const ArchivePlugin::Ptr res = Delegate->Get())
       {
         const Plugin::Ptr plug = res->GetDescription();
-        return 0 != (plug->Capabilities() & CAP_STOR_PLAIN)
+        return 0 != (plug->Capabilities() & Capabilities::Container::Traits::PLAIN)
           ? boost::make_shared<DoubleAnalyzedArchivePlugin>(res)
           : res;
       }

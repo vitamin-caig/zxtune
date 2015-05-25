@@ -22,7 +22,7 @@ namespace ZXTune
 
     const Formats::Chiptune::SoundTracker::Decoder::Ptr decoder = Formats::Chiptune::SoundTracker::Ver3::CreateDecoder();
     const Module::AYM::Factory::Ptr factory = Module::SoundTracker::CreateModulesFactory(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

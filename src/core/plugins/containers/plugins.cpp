@@ -33,21 +33,21 @@ namespace
 
   const ContainerPluginDescription UNARCHIVES[] =
   {
-    {"TRD",     &CreateTRDDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_PLAIN},
-    {"SCL",     &CreateSCLDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_PLAIN},
-    {"HRIP",    &CreateHripDecoder,    CAP_STOR_MULTITRACK},
-    {"ZXZIP",   &CreateZXZipDecoder,   CAP_STOR_MULTITRACK},
-    {"ZIP",     &CreateZipDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
-    {"RAR",     &CreateRarDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
-    {"LHA",     &CreateLhaDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
-    {"ZXSTATE", &CreateZXStateDecoder, CAP_STOR_MULTITRACK},
-    {"UMX",     &CreateUMXDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_PLAIN},
+    {"TRD",     &CreateTRDDecoder,     Capabilities::Container::Type::DISKIMAGE | Capabilities::Container::Traits::PLAIN},
+    {"SCL",     &CreateSCLDecoder,     Capabilities::Container::Type::DISKIMAGE | Capabilities::Container::Traits::PLAIN},
+    {"HRIP",    &CreateHripDecoder,    Capabilities::Container::Type::ARCHIVE},
+    {"ZXZIP",   &CreateZXZipDecoder,   Capabilities::Container::Type::ARCHIVE},
+    {"ZIP",     &CreateZipDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"RAR",     &CreateRarDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"LHA",     &CreateLhaDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"ZXSTATE", &CreateZXStateDecoder, Capabilities::Container::Type::SNAPSHOT},
+    {"UMX",     &CreateUMXDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
   };
 
   const ContainerPluginDescription MULTITRACKS[] =
   {
-    {"AY",      &CreateAYDecoder,      CAP_STOR_MULTITRACK},
-    {"SID",     &CreateSIDDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_ONCEAPPLIED},
+    {"AY",      &CreateAYDecoder,      Capabilities::Container::Type::MULTITRACK},
+    {"SID",     &CreateSIDDecoder,     Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
   };
 
   void RegisterPlugin(const ContainerPluginDescription& desc, ArchivePluginsRegistrator& registrator)
