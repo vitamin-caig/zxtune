@@ -63,6 +63,7 @@ namespace
       const Jni::TempJString subpath(Env, location->GetPath()->AsString());
       const int handle = Module::Storage::Instance().Add(holder);
       Env->CallNonvirtualVoidMethod(Delegate, CallbackClass, methodId, subpath.Get(), handle);
+      CheckException();
     }
 
     virtual Log::ProgressCallback* GetProgress() const
@@ -80,6 +81,14 @@ namespace
       return OnModuleMethod;
     }
 
+    void CheckException() const
+    {
+      if (const jthrowable e = Env->ExceptionOccurred())
+      {
+        Env->ExceptionDescribe();
+        throw e;
+      }
+    }
   private:
     JNIEnv* const Env;
     const jobject Delegate;
@@ -119,7 +128,15 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Detect
   {
     const Binary::Container::Ptr data = Binary::CreateNonCopyContainer(addr, capacity);
     DetectCallback callbackAdapter(env, cb);
-    DetectModules(data, callbackAdapter);
+    try
+    {
+      DetectModules(data, callbackAdapter);
+    }
+    catch (jthrowable e)
+    {
+      env->ExceptionClear();
+      env->Throw(e);
+    }
   }
 }
 
