@@ -24,8 +24,8 @@
   <!-- players -->
   <string name="plugin_player_dac">Digitale Formate</string>
   <string name="plugin_player_multidevice">Multi-Geräte</string>
-  <!-- decoders -->
-  <string name="plugin_decoder_decompiler">Decompiler</string>
-  <!-- multitrack -->
-  <string name="plugin_multitrack_container">Container</string>
+  <!-- containers -->
+  <string name="plugin_multitrack">Multi-Spuren</string>
+  <string name="plugin_archive">Archiver</string>
+  <string name="plugin_decompiler">Decompiler</string>
 </resources>

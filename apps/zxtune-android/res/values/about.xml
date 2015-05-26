@@ -27,12 +27,16 @@
   <string name="plugin_player_aym_ts" translatable="false">AY&#8211;3&#8211;8910/YM2149F/TurboSound</string>
   <string name="plugin_player_dac">Samples-based</string>
   <string name="plugin_player_fm_tfm" translatable="false">YM2203/TurboFM</string>
-  <string name="plugin_player_saa" translatable="false">Philips SAA1099</string>
+  <string name="plugin_player_saa" translatable="false">SAA1099</string>
   <string name="plugin_player_sid" translatable="false">MOS6581/SID</string>
   <string name="plugin_player_spc" translatable="false">SPC700</string>
+  <string name="plugin_player_rp2a0x" translatable="false">RP2A03/RP2A07</string>
+  <string name="plugin_player_lr35902" translatable="false">LR35902/PAPU</string>
+  <string name="plugin_player_co12294" translatable="false">CO12294/POKEY</string>
+  <string name="plugin_player_huc6270" translatable="false">HuC6270</string>
   <string name="plugin_player_multidevice">Multidevice</string>
-  <!-- decoders -->
-  <string name="plugin_decoder_decompiler">Decompilers</string>
-  <!-- multitrack -->
-  <string name="plugin_multitrack_container">Containers</string>
+  <!-- containers -->
+  <string name="plugin_multitrack">Multitrack containers</string>
+  <string name="plugin_archive">Archivers</string>
+  <string name="plugin_decompiler">Decompilers</string>
 </resources>

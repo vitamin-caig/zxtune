@@ -230,7 +230,7 @@ public final class ZXTune {
   public final static class Plugins {
     
     public final static class DeviceType {
-      //ZXTune::CAP_DEV_*
+      //ZXTune::Capabilities::Module::Device::Type
       public final static int AY38910 = 1;
       public final static int TURBOSOUND = 2;
       public final static int BEEPER = 4;
@@ -240,13 +240,27 @@ public final class ZXTune {
       public final static int SAA1099 = 64;
       public final static int MOS6581 = 128;
       public final static int SPC700 = 256;
-      public final static int MULTIDEVICE = 2048;
+      public final static int MULTIDEVICE = 512;
+      public final static int RP2A0X = 1024;
+      public final static int LR35902 = 2048;
+      public final static int CO12294 = 4096;
+      public final static int HUC6270 = 8192;
+    }
+    
+    public final static class ContainerType {
+      //ZXTune::Capabilities::Container::Type
+      public final static int ARCHIVE = 0;
+      public final static int COMPRESSOR = 1;
+      public final static int SNAPSHOT = 2;
+      public final static int DISKIMAGE = 3;
+      public final static int DECOMPILER = 4;
+      public final static int MULTITRACK = 5;
+      public final static int SCANER = 6;
     }
     
     public interface Visitor {
       void onPlayerPlugin(int devices, String id, String description);
-      void onDecoderPlugin(String id, String description);
-      void onMultitrackPlugin(String id, String description);
+      void onContainerPlugin(int type, String id, String description);
     }
     
     public static void enumerate(Visitor visitor) {

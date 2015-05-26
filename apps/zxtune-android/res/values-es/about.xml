@@ -21,11 +21,11 @@ Bibliotecas usados:\n
 \tsnes_spc por <b>Shay Green</b>\n
 \n
 Dedicado a <b>Lizzi</b></string>
-  <!--players-->
+  <!-- players -->
   <string name="plugin_player_dac">Muestra digital</string>
   <string name="plugin_player_multidevice">Múltiples dispositivos</string>
-  <!--decoders-->
-  <string name="plugin_decoder_decompiler">Decompiladores</string>
-  <!--multitrack-->
-  <string name="plugin_multitrack_container">Contenedores</string>
+  <!-- containers -->
+  <string name="plugin_multitrack">Múltiples módulos</string>
+  <string name="plugin_archive">Archivadores</string>
+  <string name="plugin_decompiler">Decompiladores</string>
 </resources>
