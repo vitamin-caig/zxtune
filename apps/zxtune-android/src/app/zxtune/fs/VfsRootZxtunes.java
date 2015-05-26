@@ -93,7 +93,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
   }
   
   @Override
-  public VfsDir getParent() {
+  public VfsObject getParent() {
     return null;
   }
 
@@ -153,61 +153,16 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
       return this;
     } else {
       final String category = path.get(POS_CATEGORY);
-      if (category.equals(AllAuthorsDir.PATH)) {
-        return resolveAllAuthorsPath(uri, path);
-      } else if (category.equals(allAuthors.getName())) {
+      if (category.equals(AllAuthorsDir.PATH)
         //compatibility
-        return resolveAllAuthorsPath(uri, path);
+        || category.equals(allAuthors.getName())) {
+        return allAuthors.resolve(uri, path);
       } else {
         return null;
       }
     }
   }
   
-  private VfsObject resolveAllAuthorsPath(Uri uri, List<String> path) throws IOException {
-    if (POS_CATEGORY == path.size() - 1) {
-      return allAuthors;
-    } else {
-      return resolveAuthorPath(uri, path);
-    }
-  }
-  
-  private VfsObject resolveAuthorPath(Uri uri, List<String> path) throws IOException {
-    final Author author = resolveAuthor(uri, path.get(POS_AUTHOR_NICK));
-    if (author == null) {
-      return null;
-    }
-    final int lastPathElement = path.size() - 1;
-    if (lastPathElement == POS_AUTHOR_NICK) {
-      return new AuthorDir(author);
-    } else if (lastPathElement == POS_AUTHOR_DATE) {
-      return resolveAuthorDatePathOrTrack(uri, author, path);
-    } else if (lastPathElement == POS_AUTHOR_DATE_TRACK) {
-      return resolveAuthorDateTrack(uri, author, path);
-    } else {
-      return null;
-    }
-  }
-   
-  private Author resolveAuthor(Uri uri, String nick) throws IOException {
-    try {
-      //nickname is not unique, so use explicit identifier
-      final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR_ID));
-      final FindAuthorVisitor visitor = new FindAuthorVisitor();
-      catalog.queryAuthors(visitor, id);
-      final Author result = visitor.getResult();
-      if (!result.nickname.equals(nick)) {
-        Log.d(TAG, String.format("Real author id=%d nick (%s) differs from requested (%s)",
-          id, result.nickname, nick));
-      }
-      return result;
-    } catch (IOException e) {
-      throw e;
-    } catch (Exception e) {//IllegalStateException|NullPointerException|NumberFormatException
-      Log.d(TAG, "resolveAuthor(" + uri + ")", e);
-    }
-    return null;
-  }
   
   private static class FindAuthorVisitor implements Catalog.AuthorsVisitor {
 
@@ -231,42 +186,6 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
 
-  private VfsObject resolveAuthorDatePathOrTrack(Uri uri, Author author, List<String> path) throws IOException {
-    final Integer date = resolveAuthorDate(path);
-    if (date != null) {
-      return new AuthorDateDir(author, date);
-    } else {
-      final Track track = resolveTrack(uri, author, null, path.get(POS_AUTHOR_TRACK));
-      if (track != null) {
-        return new TrackFile(uri, track);
-      } else {
-        Log.d(TAG, "Unknown URI " + uri);
-        return null;
-      }
-    }
-  }
-  
-  private VfsObject resolveAuthorDateTrack(Uri uri, Author author, List<String> path) throws IOException {
-    final Integer date = resolveAuthorDate(path);
-    if (date != null) {
-      final Track track = resolveTrack(uri, author, date, path.get(POS_AUTHOR_DATE_TRACK));
-      if (track != null) {
-        return new TrackFile(uri, track);
-      }
-    }
-    Log.d(TAG, "Unknown URI " + uri);
-    return null;
-  }
-  
-  private Integer resolveAuthorDate(List<String> path) {
-    try {
-      final String date = path.get(POS_AUTHOR_DATE);
-      return Integer.valueOf(date);
-    } catch (NumberFormatException e) {
-      return null;
-    }
-  }
-  
   private static class FindTrackVisitor implements Catalog.TracksVisitor {
     
     private Track result;
@@ -331,7 +250,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootZxtunes.this;
     }
     
@@ -348,6 +267,43 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
           visitor.onDir(new AuthorDir(obj));
         }
       }, null);
+    }
+    
+    final VfsObject resolve(Uri uri, List<String> path) throws IOException {
+      if (POS_CATEGORY == path.size() - 1) {
+        return this;
+      } else {
+        return resolveAuthorPath(uri, path);
+      }
+    }
+
+    private VfsObject resolveAuthorPath(Uri uri, List<String> path) throws IOException {
+      final Author author = resolveAuthor(uri, path.get(POS_AUTHOR_NICK));
+      if (author == null) {
+        return null;
+      } else {
+        return new AuthorDir(author).resolve(uri, path);
+      }
+    }
+     
+    private Author resolveAuthor(Uri uri, String nick) throws IOException {
+      try {
+        //nickname is not unique, so use explicit identifier
+        final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR_ID));
+        final FindAuthorVisitor visitor = new FindAuthorVisitor();
+        catalog.queryAuthors(visitor, id);
+        final Author result = visitor.getResult();
+        if (!result.nickname.equals(nick)) {
+          Log.d(TAG, String.format("Real author id=%d nick (%s) differs from requested (%s)",
+            id, result.nickname, nick));
+        }
+        return result;
+      } catch (IOException e) {
+        throw e;
+      } catch (Exception e) {//IllegalStateException|NullPointerException|NumberFormatException
+        Log.d(TAG, "resolveAuthor(" + uri + ")", e);
+      }
+      return null;
     }
   }
 
@@ -375,7 +331,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootZxtunes.this.allAuthors;
     }
     
@@ -391,7 +347,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
         @Override
         public void accept(Track obj) {
           if (isEmptyDate(obj.date)) {
-            visitor.onFile(new TrackFile(trackUri(author, obj).build(), obj));
+            visitor.onFile(new AuthorNodateTrackFile(trackUri(author, obj).build(), obj));
           } else {
             dates.put(obj.date, 1 + dates.get(obj.date));
           }
@@ -404,6 +360,53 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
     private boolean isEmptyDate(Integer date) {
       return date == null || 0 == date;
+    }
+
+    private VfsObject resolve(Uri uri, List<String> path) throws IOException {
+      final int lastPathElement = path.size() - 1;
+      if (lastPathElement == POS_AUTHOR_NICK) {
+        return this;
+      } else if (lastPathElement == POS_AUTHOR_DATE) {
+        return resolveAuthorDatePathOrTrack(uri, path);
+      } else {
+        return null;
+      }
+    }
+    
+    private VfsObject resolveAuthorDatePathOrTrack(Uri uri, List<String> path) throws IOException {
+      final Integer date = resolveAuthorDate(path);
+      if (date != null) {
+        return new AuthorDateDir(author, date).resolve(uri, path);
+      } else {
+        final Track track = resolveTrack(uri, author, null, path.get(POS_AUTHOR_TRACK));
+        if (track != null) {
+          return new AuthorNodateTrackFile(uri, track);
+        } else {
+          Log.d(TAG, "Unknown URI " + uri);
+          return null;
+        }
+      }
+    }
+    
+    private Integer resolveAuthorDate(List<String> path) {
+      try {
+        final String date = path.get(POS_AUTHOR_DATE);
+        return Integer.valueOf(date);
+      } catch (NumberFormatException e) {
+        return null;
+      }
+    }
+    
+    private class AuthorNodateTrackFile extends TrackFile {
+
+      AuthorNodateTrackFile(Uri uri, Track module) {
+        super(uri, module);
+      }
+      
+      @Override
+      public VfsObject getParent() {
+        return AuthorDir.this;
+      }
     }
   }
 
@@ -439,7 +442,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
     
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return new AuthorDir(author);
     }    
 
@@ -454,16 +457,38 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
         @Override
         public void accept(Track obj) {
           if (date.equals(obj.date)) {
-            visitor.onFile(new TrackFile(trackDateUri(author, date, obj).build(), obj));
+            visitor.onFile(new AuthorDatedTrackFile(trackDateUri(author, date, obj).build(), obj));
           }
         }
       }, null/*id*/, author.id);
+    }
+    
+    private VfsObject resolve(Uri uri, List<String> path) throws IOException {
+      final Track track = resolveTrack(uri, author, date, path.get(POS_AUTHOR_DATE_TRACK));
+      if (track != null) {
+        return new AuthorDatedTrackFile(uri, track);
+      } else {
+        Log.d(TAG, "Unknown URI " + uri);
+        return null;
+      }
+    }
+    
+    private class AuthorDatedTrackFile extends TrackFile {
+
+      AuthorDatedTrackFile(Uri uri, Track module) {
+        super(uri, module);
+      }
+      
+      @Override
+      public VfsObject getParent() {
+        return AuthorDateDir.this;
+      }
     }
   }
 
   private final static TimeStamp FRAME_DURATION = TimeStamp.createFrom(20, TimeUnit.MILLISECONDS);
   
-  private class TrackFile implements VfsFile {
+  private abstract class TrackFile implements VfsFile {
 
     private final Uri uri;
     private final Track module;

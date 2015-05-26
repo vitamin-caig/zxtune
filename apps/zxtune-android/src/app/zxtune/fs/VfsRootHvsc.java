@@ -66,7 +66,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
   }
 
   @Override
-  public VfsDir getParent() {
+  public VfsObject getParent() {
     return null;
   }
 
@@ -130,7 +130,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
     }
     
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootHvsc.this;
     }
 
@@ -151,29 +151,16 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       final int lastPathComponent = path.size() - 1;
       if (POS_CATEGORY == lastPathComponent) {
         return this;
-      } else if (POS_SUBDIR == lastPathComponent) {
-        return new C64MusicSubdir(path.get(POS_SUBDIR));
       } else {
-        try {
-          final List<String> subpath = path.subList(POS_SUBDIR, path.size());
-          final ByteBuffer content = catalog.getFileContent(subpath);
-          return catalog.isDirContent(content)
-              ? new C64MusicSubdir(subpath, content)
-              : new C64MusicFile(subpath, content);
-        } catch (IOException e) {
-          throw e;
-        } catch (Exception e) {
-          Log.d(TAG, "resolve(" + uri + ")", e);
-          return null;
-        }
+        return new C64MusicSubdir(path.get(POS_SUBDIR)).resolve(uri, path);
       }
     }
-
+        
     final Uri.Builder pathsUri() {
       return rootUri().appendPath(getPath());
     }
     
-    private class C64MusicObject extends StubObject implements VfsObject {
+    private abstract class C64MusicObject extends StubObject implements VfsObject {
 
       protected final List<String> path;
       
@@ -220,7 +207,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       }
       
       @Override
-      public VfsDir getParent() {
+      public VfsObject getParent() {
         final int depth = path.size();
         return 1 == depth
             ? C64MusicRootDir.this//root folder
@@ -242,6 +229,26 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
             visitor.onFile(makeNestedFile(name, size));
           }
         });
+      }
+
+      final VfsObject resolve(Uri uri, List<String> path) throws IOException {
+        final int lastPathComponent = path.size() - 1;
+        if (POS_SUBDIR == lastPathComponent) {
+          return this;
+        } else {
+          try {
+            final List<String> subpath = path.subList(POS_SUBDIR, path.size());
+            final ByteBuffer content = catalog.getFileContent(subpath);
+            return catalog.isDirContent(content)
+                ? new C64MusicSubdir(subpath, content)
+                : new C64MusicFile(subpath, content);
+          } catch (IOException e) {
+            throw e;
+          } catch (Exception e) {
+            Log.d(TAG, "resolve(" + uri + ")", e);
+            return null;
+          }
+        }
       }
       
       private ByteBuffer getContent() throws IOException {
@@ -278,35 +285,40 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
         result.add(name);
         return result;
       }
-    }
-    
-    class C64MusicFile extends C64MusicObject implements VfsFile {
       
-      private String size;
-      private ByteBuffer content;
-      
-      C64MusicFile(List<String> path, String size) {
-        super(path);
-        this.size = size;
-      }
-      
-      C64MusicFile(List<String> path, ByteBuffer content) {
-        super(path);
-        this.size = Integer.toString(content.limit());
-        this.content = content;
-      }
-
-      @Override
-      public String getSize() {
-        return size;
-      }
-
-      @Override
-      public ByteBuffer getContent() throws IOException {
-        if (content == null) {
-          content = catalog.getFileContent(path);
+      private class C64MusicFile extends C64MusicObject implements VfsFile {
+        
+        private String size;
+        private ByteBuffer content;
+        
+        C64MusicFile(List<String> path, String size) {
+          super(path);
+          this.size = size;
         }
-        return content;
+        
+        C64MusicFile(List<String> path, ByteBuffer content) {
+          super(path);
+          this.size = Integer.toString(content.limit());
+          this.content = content;
+        }
+
+        @Override
+        public VfsObject getParent() {
+          return C64MusicSubdir.this;
+        }
+        
+        @Override
+        public String getSize() {
+          return size;
+        }
+
+        @Override
+        public ByteBuffer getContent() throws IOException {
+          if (content == null) {
+            content = catalog.getFileContent(path);
+          }
+          return content;
+        }
       }
     }
   }

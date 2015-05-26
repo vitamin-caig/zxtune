@@ -28,4 +28,9 @@ public interface VfsObject {
    * @return Optional description
    */
   public String getDescription();
+
+  /**
+   * Retrieve parent object or null
+   */
+  public VfsObject getParent();
 }

@@ -28,7 +28,7 @@ final class VfsRootComposite extends StubObject implements VfsRoot {
   }
   
   @Override
-  public VfsDir getParent() {
+  public VfsObject getParent() {
     return null;
   }
 

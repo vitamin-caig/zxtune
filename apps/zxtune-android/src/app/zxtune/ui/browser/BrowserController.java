@@ -28,7 +28,6 @@ import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.VfsRoot;
 
 public class BrowserController {
   
@@ -70,7 +69,7 @@ public class BrowserController {
   public final void search(String query) {
     try {
       final Uri currentPath = state.getCurrentPath();
-      final VfsDir currentDir = (VfsDir) Vfs.getRoot().resolve(currentPath);
+      final VfsDir currentDir = (VfsDir) Vfs.resolve(currentPath);
       loaderManager.destroyLoader(LOADER_ID);
       final LoaderManager.LoaderCallbacks<?> cb = SearchingLoaderCallback.create(this, currentDir, query);
       loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
@@ -92,10 +91,10 @@ public class BrowserController {
   
   public final void moveToParent() {
     try {
-      final VfsRoot root = Vfs.getRoot();
-      final VfsDir curDir = (VfsDir) root.resolve(state.getCurrentPath());
+      final VfsDir root = Vfs.getRoot();
+      final VfsDir curDir = (VfsDir) Vfs.resolve(state.getCurrentPath());
       if (curDir != root) {
-        final VfsDir parent = curDir != null ? curDir.getParent() : null;
+        final VfsDir parent = curDir != null ? (VfsDir) curDir.getParent() : null;
         setCurrentDir(parent != null ? parent : root);
       }
     } catch (IOException e) {
@@ -124,7 +123,7 @@ public class BrowserController {
   public final void loadCurrentDir() {
     try {
       final Uri currentPath = state.getCurrentPath();
-      final VfsDir currentDir = (VfsDir) Vfs.getRoot().resolve(currentPath);
+      final VfsDir currentDir = (VfsDir) Vfs.resolve(currentPath);
       setDirectory(currentDir);
     } catch (Exception e) {
       listing.showError(e);

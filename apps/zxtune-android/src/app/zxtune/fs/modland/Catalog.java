@@ -28,7 +28,7 @@ public abstract class Catalog {
 
     void setCountHint(int size);
 
-    void accept(Track obj);
+    boolean accept(Track obj);
   }
 
   public interface Grouping {
@@ -56,6 +56,15 @@ public abstract class Catalog {
      * @throws IOException
      */
     public void queryTracks(int id, TracksVisitor visitor) throws IOException;
+    
+    /**
+     * Query track by name
+     * @param id object identifier
+     * @param filename track filename
+     * @return null if nothing found
+     * @throws IOException
+     */
+    public Track findTrack(int id, String filename) throws IOException;
   }
 
   public abstract Grouping getAuthors();

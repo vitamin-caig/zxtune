@@ -10,7 +10,6 @@
 
 package app.zxtune.ui;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -29,7 +28,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-import app.zxtune.MainApplication;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
@@ -38,7 +36,6 @@ import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
-import app.zxtune.fs.VfsRoot;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
@@ -339,8 +336,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     
     private VfsFile openFile(Uri uri) {
       try {
-        final VfsRoot root = Vfs.getRoot();
-        final VfsObject obj = root.resolve(uri);
+        final VfsObject obj = Vfs.resolve(uri);
         return obj instanceof VfsFile
           ? (VfsFile) obj
           : null;

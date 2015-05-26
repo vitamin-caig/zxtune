@@ -24,9 +24,10 @@ import android.util.Log;
  * CREATE TABLE {authors,collections,formats} (_id INTEGER PRIMARY KEY, name TEXT NOT NULL, tracks INTEGER)
  * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, path TEXT NOT NULL, size INTEGER)
  * CREATE TABLE {authors,collections,formats}_tracks (hash INTEGER UNIQUE, group_id INTEGER, track_id INTEGER)
- * CREATE TABLE collections_tracks (hash INTEGER UNIQUE, collection INTEGER, track INTEGER)
  *
  * use hash as 10000000000 * group_id + track_id to support multiple insertions of same pair
+ * 
+ * TODO: store decoded paths on UpgradeDB
  */
 
 final class Database {
@@ -221,6 +222,22 @@ final class Database {
     } finally {
       cursor.close();
     }
+  }
+  
+  final Track findTrack(String category, int id, String filename) {
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final String selection = createGroupTracksSelection(category, id)
+        + " AND " + Tables.Tracks.Fields.path + " LIKE ?";
+    final String[] selectionArgs = {"%/" + filename};
+    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, selectionArgs, null, null, null);
+    try {
+      if (cursor.moveToFirst()) {
+        return Tables.Tracks.createTrack(cursor);
+      }
+    } finally {
+      cursor.close();
+    }
+    return null;
   }
 
   private static String createGroupTracksSelection(String category, int id) {

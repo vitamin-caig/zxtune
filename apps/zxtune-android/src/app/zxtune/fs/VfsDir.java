@@ -36,11 +36,6 @@ public interface VfsDir extends VfsObject {
   }
   
   /**
-   * Retrieve parent directory or null
-   */
-  public VfsDir getParent();
-  
-  /**
    * Enumerate directory content
    * @param visitor Callback
    */

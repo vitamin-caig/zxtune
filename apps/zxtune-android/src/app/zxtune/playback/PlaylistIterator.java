@@ -103,7 +103,7 @@ class PlaylistIterator implements Iterator {
   private PlayableItem loadItem(DatabaseIterator iter) throws IOException, InvalidObjectException {
     final app.zxtune.playlist.Item meta = iter.getItem();
     final Identifier id = new Identifier(meta.getLocation());
-    final VfsFile file = (VfsFile) Vfs.getRoot().resolve(id.getDataLocation());
+    final VfsFile file = (VfsFile) Vfs.resolve(id.getDataLocation());
     if (file instanceof VfsFile) {
       final PlayableItem item = FileIterator.loadItem(file, id.getSubpath());
       return new PlaylistItem(meta, item);

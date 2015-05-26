@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 import app.zxtune.fs.VfsCache;
 
@@ -112,6 +113,28 @@ final class CachingCatalog extends Catalog {
         }
       }
     }
+
+    @Override
+    public Track findTrack(int id, String filename) throws IOException {
+      //TODO: keep all the paths decoded in DB
+      final String encodedFilename = Uri.encode(filename).replace("!", "%21").replace("'", "%27").replace("(", "%28").replace(")", "%29");
+      Track res = db.findTrack(category, id, encodedFilename);
+      if (res == null) {
+        Log.d(TAG, "Track " + filename + " not found in " + category + "=" + id);
+        //fill cache
+        queryTracks(id, new TracksVisitor() {
+          @Override
+          public void setCountHint(int size) {}
+
+          @Override
+          public boolean accept(Track obj) {
+            return true;
+          }
+        });
+        res = db.findTrack(category, id, encodedFilename);
+      }
+      return res;
+    }
   }
 
   @Override
@@ -194,9 +217,10 @@ final class CachingCatalog extends Catalog {
     }
     
     @Override
-    public void accept(Track obj) {
-      delegate.accept(obj);
+    public boolean accept(Track obj) {
+      final boolean result = delegate.accept(obj);
       ++count;
+      return result;
     }
 
     final int get() {
@@ -222,14 +246,15 @@ final class CachingCatalog extends Catalog {
     }
     
     @Override
-    public void accept(Track obj) {
-      delegate.accept(obj);
+    public boolean accept(Track obj) {
+      final boolean result = delegate.accept(obj);
       try {
         db.addTrack(obj);
         db.addGroupTrack(category, group, obj);
       } catch (Exception e) {
         Log.d(TAG, "addTrack()", e);
       }
+      return result;
     }
   }
 }

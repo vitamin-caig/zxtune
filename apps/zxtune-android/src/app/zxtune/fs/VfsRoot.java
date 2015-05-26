@@ -14,7 +14,7 @@ import java.io.IOException;
 
 import android.net.Uri;
 
-public interface VfsRoot extends VfsDir {
+interface VfsRoot extends VfsDir {
 
   /**
    * Tries to resolve object by uri

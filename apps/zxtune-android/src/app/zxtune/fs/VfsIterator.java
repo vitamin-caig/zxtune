@@ -116,7 +116,7 @@ public final class VfsIterator {
   
   private void resolve(Uri path) {
     try {
-      final VfsObject obj = Vfs.getRoot().resolve(path);
+      final VfsObject obj = Vfs.resolve(path);
       if (obj instanceof VfsFile) {
         files.addLast((VfsFile) obj);
       } else if (obj instanceof VfsDir) {

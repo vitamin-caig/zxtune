@@ -64,6 +64,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
   private final static int POS_CATEGORY = 0;
   private final static int POS_LETTER = 1;
   private final static int POS_NAME = 2;
+  private final static int POS_FILENAME = 3;
 
   private final static String PARAM_ID = "id";
 
@@ -105,7 +106,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
   }
 
   @Override
-  public VfsDir getParent() {
+  public VfsObject getParent() {
     return null;
   }
 
@@ -122,7 +123,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
       return resolvePath(uri);
     } else if (Storage.checkUri(uri)) {
       final Track track = new Track(uri.getEncodedPath(), 0);
-      return new TrackFile(track);
+      return new FreeTrackFile(track);
     }
     return null;
   }
@@ -136,17 +137,8 @@ final class VfsRootModland implements VfsRoot, IconSource {
     return new Uri.Builder().scheme(SCHEME);
   }
 
-  private Uri.Builder trackUri(String path) {
-    return Storage.makeUri().encodedPath(path);
-  }
-
   private boolean isLetter(char c) {
     return (Character.isLetter(c) && Character.isUpperCase(c));
-  }
-
-  private String getLetter(String str) {
-    final char c = str.charAt(0);
-    return isLetter(c) ? str.substring(0, 1) : NOT_LETTER;
   }
 
   private VfsObject resolvePath(Uri uri) throws IOException {
@@ -184,7 +176,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
 
     @Override
     public Uri getUri() {
-      return groupUri().build();
+      return groupsUri().build();
     }
 
     @Override
@@ -198,7 +190,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootModland.this;
     }
 
@@ -223,7 +215,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
       }
     }
 
-    final Uri.Builder groupUri() {
+    final Uri.Builder groupsUri() {
       return rootUri().appendPath(path);
     }
 
@@ -237,7 +229,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
 
       @Override
       public Uri getUri() {
-        return groupLetterUri(letter).build();
+        return groupLetterUri().build();
       }
 
       @Override
@@ -246,7 +238,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
       }
 
       @Override
-      public VfsDir getParent() {
+      public VfsObject getParent() {
         return GroupsDir.this;
       }
 
@@ -285,8 +277,8 @@ final class VfsRootModland implements VfsRoot, IconSource {
         }
       }
 
-      final Uri.Builder groupLetterUri(String letter) {
-        return groupUri().appendPath(letter);
+      final Uri.Builder groupLetterUri() {
+        return groupsUri().appendPath(letter);
       }
 
       private class GroupDir implements VfsDir {
@@ -299,7 +291,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
 
         @Override
         public Uri getUri() {
-          return groupUri(obj.name, obj.id).build();
+          return groupUri().build();
         }
 
         @Override
@@ -313,7 +305,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
         }
 
         @Override
-        public VfsDir getParent() {
+        public VfsObject getParent() {
           return GroupByLetterDir.this;
         }
 
@@ -327,45 +319,73 @@ final class VfsRootModland implements VfsRoot, IconSource {
             }
             
             @Override
-            public void accept(Track obj) {
+            public boolean accept(Track obj) {
               visitor.onFile(new TrackFile(obj));
+              return true;
             }
           });
         }
 
-        final VfsObject resolve(Uri uri, List<String> path) {
+        final VfsObject resolve(Uri uri, List<String> path) throws IOException {
           if (POS_NAME == path.size() - 1) {
             return this;
           } else {
-            return null;
+            final String filename = path.get(POS_FILENAME);
+            final Track track = group.findTrack(obj.id, filename);
+            return track != null
+              ? new TrackFile(track)
+              : null;
           }
         }
 
-        final Uri.Builder groupUri(String name, int id) {
-          return groupLetterUri(getLetter(name))
-            .appendPath(name)
-            .appendQueryParameter(PARAM_ID, String.valueOf(id));
+        final Uri.Builder groupUri() {
+          return groupLetterUri()
+            .appendPath(obj.name)
+            .appendQueryParameter(PARAM_ID, String.valueOf(obj.id));
+        }
+        
+        private class TrackFile extends FreeTrackFile {
+
+          TrackFile(Track track) {
+            super(track);
+          }
+          
+          @Override
+          public VfsObject getParent() {
+            return GroupDir.this;
+          }
+
+          @Override
+          Uri.Builder trackUri() {
+            return groupUri()
+              .appendPath(track.filename);
+          }
         }
       }
     }
   }
 
-  private class TrackFile extends StubObject implements VfsFile {
+  private class FreeTrackFile extends StubObject implements VfsFile {
 
-    private final Track track;
+    protected final Track track;
 
-    TrackFile(Track track) {
+    FreeTrackFile(Track track) {
       this.track = track;
     }
 
     @Override
     public Uri getUri() {
-      return trackUri(track.path).build();
+      return trackUri().build();
     }
 
     @Override
     public String getName() {
       return track.filename;
+    }
+    
+    @Override
+    public VfsObject getParent() {
+      return null;
     }
 
     @Override
@@ -376,6 +396,10 @@ final class VfsRootModland implements VfsRoot, IconSource {
     @Override
     public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(track.path);
+    }
+    
+    Uri.Builder trackUri() {
+      return Storage.makeUri().encodedPath(track.path);
     }
   }
 }

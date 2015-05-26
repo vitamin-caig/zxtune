@@ -18,6 +18,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -151,10 +152,29 @@ class RemoteCatalog extends Catalog {
             visitor.setCountHint(results);
             countReported = true;
           }
-          parseTracks(content, visitor);
-          return true;
+          return parseTracks(content, visitor);
         }
       });
+    }
+    
+    @Override
+    public Track findTrack(int id, final String filename) throws IOException {
+      final AtomicReference<Track> result = new AtomicReference<Track>();
+      queryTracks(id, new TracksVisitor() {
+        @Override
+        public void setCountHint(int size) {}
+
+        @Override
+        public boolean accept(Track obj) {
+          if (obj.filename.equals(filename)) {
+            result.set(obj);
+            return false;
+          } else {
+            return true;
+          }
+        }
+      });
+      return result.get();
     }
     
     abstract String getTracksHeader();
@@ -200,13 +220,16 @@ class RemoteCatalog extends Catalog {
     }
   }
   
-  private static void parseTracks(CharSequence content, TracksVisitor visitor) {
+  private static boolean parseTracks(CharSequence content, TracksVisitor visitor) {
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
       final String path = "/" + matcher.group(1);
       final String size = matcher.group(2);
-      visitor.accept(new Track(path, Integer.valueOf(size)));
+      if (!visitor.accept(new Track(path, Integer.valueOf(size)))) {
+        return false;
+      }
     }
+    return true;
   }
 
   @Override

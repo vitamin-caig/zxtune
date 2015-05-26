@@ -18,7 +18,8 @@ public final class Track {
 
   /// unique id (hash of decoded path)
   public final long id;
-  /// path starting at /pub/modules/...
+  //TODO: keep decoded
+  /// encoded path starting at /pub/modules/...
   public final String path;
   /// decoded last segment of id
   public final String filename;

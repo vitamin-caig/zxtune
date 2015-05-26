@@ -10,14 +10,25 @@
 
 package app.zxtune.fs;
 
+import java.io.IOException;
+
 import android.content.Context;
+import android.net.Uri;
 import app.zxtune.MainApplication;
 
 public final class Vfs {
 
   private static VfsRoot rootSingleton;
+  
+  public static VfsDir getRoot() {
+    return getRootInternal();
+  }
+  
+  public static VfsObject resolve(Uri uri) throws IOException {
+    return getRootInternal().resolve(uri);
+  }
 
-  public synchronized static VfsRoot getRoot() {
+  synchronized static VfsRoot getRootInternal() {
     if (rootSingleton == null) {
       final VfsRootComposite composite = new VfsRootComposite();
       final Context appContext = MainApplication.getInstance();

@@ -70,7 +70,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
       final ArrayList<VfsDir> elems = new ArrayList<VfsDir>();
       while (dir != null) {
         elems.add(dir);
-        dir = dir.getParent();
+        dir = (VfsDir) dir.getParent();
       }
       Collections.reverse(elems);
       fillButtons(elems);

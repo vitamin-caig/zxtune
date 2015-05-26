@@ -99,7 +99,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
   }
 
   @Override
-  public VfsDir getParent() {
+  public VfsObject getParent() {
     return null;
   }
 
@@ -384,7 +384,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootZxart.this;
     }
 
@@ -417,40 +417,8 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       final Author author = resolveAuthor(uri, path.get(POS_AUTHOR_NICK));
       if (author == null) {
         return null;
-      }
-      if (lastPathElement == POS_AUTHOR_NICK) {
-        return new AuthorDir(author);
-      } else if (lastPathElement == POS_AUTHOR_YEAR) {
-        return resolveAuthorYearPath(uri, author, path);
-      } else if (lastPathElement == POS_AUTHOR_YEAR_TRACK) {
-        return resolveAuthorYearTrack(uri, author, path);
       } else {
-        return null;
-      }
-    }
-
-    private VfsObject resolveAuthorYearPath(Uri uri, Author author, List<String> path) {
-      final int year = resolveAuthorYear(path);
-      return new AuthorYearDir(author, year);
-    }
-
-    private VfsObject resolveAuthorYearTrack(Uri uri, Author author, List<String> path) throws IOException {
-      final int year = resolveAuthorYear(path);
-      final Track track = resolveTrack(uri, author, year, path.get(POS_AUTHOR_YEAR_TRACK));
-      if (track != null) {
-        return new TrackFile(uri, track);
-      } else {
-        Log.d(TAG, "Unknown URI " + uri);
-        return null;
-      }
-    }
-
-    private int resolveAuthorYear(List<String> path) {
-      try {
-        final String year = path.get(POS_AUTHOR_YEAR);
-        return AuthorYearDir.UNKNOWNYEAR_PATH.equals(year) ? 0 : Integer.valueOf(year);
-      } catch (NumberFormatException e) {
-        return 0;
+        return new AuthorDir(author).resolve(uri, path);
       }
     }
   }
@@ -479,7 +447,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return groups[0];// TODO
     }
 
@@ -497,6 +465,25 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       for (int i = 0, lim = years.size(); i != lim; ++i) {
         //handle count when required
         visitor.onDir(new AuthorYearDir(author, years.keyAt(i)));
+      }
+    }
+    
+    final VfsObject resolve(Uri uri, List<String> path) throws IOException {
+      final int lastPathElement = path.size() - 1;
+      if (lastPathElement == POS_AUTHOR_NICK) {
+        return this;
+      } else {
+        final int year = resolveAuthorYear(path);
+        return new AuthorYearDir(author, year).resolve(uri, path);
+      }
+    }
+    
+    private int resolveAuthorYear(List<String> path) {
+      try {
+        final String year = path.get(POS_AUTHOR_YEAR);
+        return AuthorYearDir.UNKNOWNYEAR_PATH.equals(year) ? 0 : Integer.valueOf(year);
+      } catch (NumberFormatException e) {
+        return 0;
       }
     }
   }
@@ -525,7 +512,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return new AuthorDir(author);
     }
 
@@ -540,10 +527,37 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         @Override
         public void accept(Track obj) {
           if (year == obj.year) {
-            visitor.onFile(new TrackFile(trackUri(author, year, obj).build(), obj));
+            visitor.onFile(new AuthorTrackFile(trackUri(author, year, obj).build(), obj));
           }
         }
       }, author, null/* id */);
+    }
+    
+    final VfsObject resolve(Uri uri, List<String> path) throws IOException {
+      final int lastPathElement = path.size() - 1;
+      if (lastPathElement == POS_AUTHOR_YEAR) {
+        return this;
+      } else if (lastPathElement == POS_AUTHOR_YEAR_TRACK) {
+        final Track track = resolveTrack(uri, author, year, path.get(POS_AUTHOR_YEAR_TRACK));
+        if (track != null) {
+          return new AuthorTrackFile(uri, track);
+        } else {
+          Log.d(TAG, "Unknown URI " + uri);
+        }
+      }
+      return null;
+    }
+    
+    private class AuthorTrackFile extends BaseTrackFile {
+      
+      public AuthorTrackFile(Uri uri, Track track) {
+        super(uri, track);
+      }
+
+      @Override
+      public VfsObject getParent() {
+        return AuthorYearDir.this;
+      }
     }
   }
 
@@ -568,7 +582,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootZxart.this;
     }
 
@@ -633,7 +647,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     private VfsObject resolvePartyTrack(Uri uri, Party party, String filename) throws IOException {
       final Track track = resolveTrack(uri, party, filename);
       if (track != null) {
-        return new TrackFile(uri, track);
+        return new PartyTrackFile(uri, track);
       } else {
         Log.d(TAG, "Unknown URI " + uri);
         return null;
@@ -646,6 +660,18 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         return Integer.valueOf(year);
       } catch (NumberFormatException e) {
         return 0;
+      }
+    }
+    
+    private class PartyTrackFile extends BaseTrackFile {
+
+      PartyTrackFile(Uri uri, Track track) {
+        super(uri, track);
+      }
+      
+      @Override
+      public VfsObject getParent() {
+        return AllPartiesDir.this;
       }
     }
   }
@@ -669,7 +695,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootZxart.this.groups[1];//TODO
     }
 
@@ -705,7 +731,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return new PartyYearDir(party.year);
     }
 
@@ -783,7 +809,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return new PartyDir(party);
     }
 
@@ -806,11 +832,28 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public int compare(VfsObject lh, VfsObject rh) {
-      final int lhPlace = ((TrackFile)lh).module.partyplace;
-      final int rhPlace = ((TrackFile)rh).module.partyplace;
+      final int lhPlace = ((BaseTrackFile)lh).module.partyplace;
+      final int rhPlace = ((BaseTrackFile)rh).module.partyplace;
       return lhPlace == rhPlace
         ? 0
         : (lhPlace < rhPlace ? -1 : +1);
+    }
+
+    private class PartyplacedTrackFile extends BaseTrackFile {
+      
+      PartyplacedTrackFile(Uri uri, Track module) {
+        super(uri, module);
+      }
+      
+      @Override
+      public VfsObject getParent() {
+        return PartyCompoDir.this;
+      }
+      
+      @Override
+      public String getSize() {
+        return Integer.toString(module.partyplace);
+      }
     }
   }
   
@@ -836,7 +879,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
     
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootZxart.this;
     }
 
@@ -875,7 +918,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     private VfsObject resolveTopTrack(Uri uri, List<String> path) throws IOException {
       final Track track = resolveTrack(uri, path.get(POS_TOP_TRACK));
       if (track != null) {
-        return new TrackFile(uri, track);
+        return new VotedTrackFile(uri, track);
       } else {
         Log.d(TAG, "Unknown URI " + uri);
         return null;
@@ -887,14 +930,31 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       //assume that votes can be compared in lexicographical order
       return -String.CASE_INSENSITIVE_ORDER.compare(((VfsFile)lh).getSize(), ((VfsFile)rh).getSize());
     }
+
+    private class VotedTrackFile extends BaseTrackFile {
+
+      VotedTrackFile(Uri uri, Track module) {
+        super(uri, module);
+      }
+      
+      @Override
+      public VfsObject getParent() {
+        return TopTracksDir.this;
+      }
+
+      @Override
+      public String getSize() {
+        return module.votes;
+      }
+    }
   }
   
-  private class TrackFile implements VfsFile {
+  private abstract class BaseTrackFile implements VfsFile {
 
     private final Uri uri;
     protected final Track module;
 
-    TrackFile(Uri uri, Track module) {
+    BaseTrackFile(Uri uri, Track module) {
       this.uri = uri;
       this.module = module;
     }
@@ -916,36 +976,12 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public String getSize() {
-      return module.duration;
+      return module.duration; 
     }
-
+    
     @Override
     public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(module.id);
-    }
-  }
-
-  private class VotedTrackFile extends TrackFile {
-
-    VotedTrackFile(Uri uri, Track module) {
-      super(uri, module);
-    }
-
-    @Override
-    public String getSize() {
-      return module.votes;
-    }
-  }
-  
-  private class PartyplacedTrackFile extends TrackFile {
-    
-    PartyplacedTrackFile(Uri uri, Track module) {
-      super(uri, module);
-    }
-    
-    @Override
-    public String getSize() {
-      return Integer.toString(module.partyplace);
     }
   }
 }
