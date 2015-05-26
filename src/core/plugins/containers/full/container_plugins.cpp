@@ -19,6 +19,7 @@ namespace ZXTune
     RegisterRawContainer(registrator);
 
     RegisterArchiveContainers(registrator);
+    RegisterZXArchiveContainers(registrator);
     //process containers last
     RegisterMultitrackContainers(registrator);
     RegisterZdataContainer(registrator);

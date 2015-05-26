@@ -34,15 +34,19 @@ namespace
 
   const ContainerPluginDescription UNARCHIVES[] =
   {
+    {"ZIP",     &CreateZipDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"RAR",     &CreateRarDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"LHA",     &CreateLhaDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"UMX",     &CreateUMXDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
+  };
+
+  const ContainerPluginDescription ZXUNARCHIVES[] =
+  {
     {"TRD",     &CreateTRDDecoder,     Capabilities::Container::Type::DISKIMAGE | Capabilities::Container::Traits::PLAIN},
     {"SCL",     &CreateSCLDecoder,     Capabilities::Container::Type::DISKIMAGE | Capabilities::Container::Traits::PLAIN},
     {"HRIP",    &CreateHripDecoder,    Capabilities::Container::Type::ARCHIVE},
     {"ZXZIP",   &CreateZXZipDecoder,   Capabilities::Container::Type::ARCHIVE},
-    {"ZIP",     &CreateZipDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
-    {"RAR",     &CreateRarDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
-    {"LHA",     &CreateLhaDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
     {"ZXSTATE", &CreateZXStateDecoder, Capabilities::Container::Type::SNAPSHOT},
-    {"UMX",     &CreateUMXDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
   };
 
   const ContainerPluginDescription MULTITRACKS[] =
@@ -76,6 +80,14 @@ namespace ZXTune
   void RegisterArchiveContainers(ArchivePluginsRegistrator& registrator)
   {
     for (const ContainerPluginDescription* it = UNARCHIVES; it != boost::end(UNARCHIVES); ++it)
+    {
+      RegisterPlugin(*it, registrator);
+    }
+  }
+
+  void RegisterZXArchiveContainers(ArchivePluginsRegistrator& registrator)
+  {
+    for (const ContainerPluginDescription* it = ZXUNARCHIVES; it != boost::end(ZXUNARCHIVES); ++it)
     {
       RegisterPlugin(*it, registrator);
     }
