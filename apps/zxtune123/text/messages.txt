@@ -58,6 +58,9 @@
 < INFO_DEV_MULTI
 > INFO_DEV_PREFIX "multi"
 
+< INFO_DEV_RP2A0X
+> INFO_DEV_PREFIX "rp2a0x"
+
 #module conversion
 = INFO_CONV_PREFIX
 > "conv_"

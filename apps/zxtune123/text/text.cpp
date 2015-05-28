@@ -346,6 +346,9 @@ extern const Char INFO_DEV_MOS6581[] = {
 extern const Char INFO_DEV_MULTI[] = {
   'd','e','v','_','m','u','l','t','i',0
 };
+extern const Char INFO_DEV_RP2A0X[] = {
+  'd','e','v','_','r','p','2','a','0','x',0
+};
 extern const Char INFO_DEV_SAA1099[] = {
   'd','e','v','_','s','a','a','1','0','9','9',0
 };
