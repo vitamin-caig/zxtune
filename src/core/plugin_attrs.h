@@ -88,6 +88,7 @@ namespace ZXTune
           MOS6581    = 0x00000800,
           SPC700     = 0x00001000,
           MULTI      = 0x00002000,
+          RP2A0X     = 0x00004000,
 
           MASK       = 0x0000fff0
         };

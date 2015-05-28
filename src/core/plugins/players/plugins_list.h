@@ -50,6 +50,7 @@ namespace ZXTune
   void RegisterAYCSupport(PlayerPluginsRegistrator& registrator);
   void RegisterSPCSupport(PlayerPluginsRegistrator& registrator);
   void RegisterMTCSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterGMEPlugins(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
@@ -89,5 +90,6 @@ namespace ZXTune
     RegisterAYCSupport(registrator);
     RegisterSPCSupport(registrator);
     RegisterMTCSupport(registrator);
+    RegisterGMEPlugins(registrator);
   }
 }
