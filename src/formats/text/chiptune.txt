@@ -224,3 +224,7 @@ __cpp> "}//namespace Text\n"
 #MTC
 < MULTITRACK_CONTAINER_DECODER_DESCRIPTION
 > "Multitrack Container"
+
+#NSF
+< NSF_DECODER_DESCRIPTION
+> "NES Sound Format"
