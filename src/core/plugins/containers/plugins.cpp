@@ -48,6 +48,7 @@ namespace
   {
     {"AY",      &CreateAYDecoder,      Capabilities::Container::Type::MULTITRACK},
     {"SID",     &CreateSIDDecoder,     Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
+    {"NSF",     &CreateNSFDecoder,     Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
   };
 
   void RegisterPlugin(const ContainerPluginDescription& desc, ArchivePluginsRegistrator& registrator)
