@@ -86,6 +86,7 @@ namespace
       PlayersByDeviceType[MOS6581] = CreateTreeWidgetItem(Players, "MOS6581/SID");
       PlayersByDeviceType[SPC700] = CreateTreeWidgetItem(Players, "SPC700");
       PlayersByDeviceType[MULTI] = CreateTreeWidgetItem(Players, QT_TRANSLATE_NOOP("ComponentsDialog", "Multidevice"));
+      PlayersByDeviceType[RP2A0X] = CreateTreeWidgetItem(Players, "RP2A03/RP2A07");
     }
     
     void FillContainersByTypes()
