@@ -8,6 +8,8 @@ extern const Char AY_FILENAME_PREFIX[];
 extern const Char AY_RAW_FILENAME_PREFIX[];
 extern const Char HRIP_DECODER_DESCRIPTION[];
 extern const Char LHA_DECODER_DESCRIPTION[];
+extern const Char NSF_ARCHIVE_DECODER_DESCRIPTION[];
+extern const Char NSF_FILENAME_PREFIX[];
 extern const Char SCL_DECODER_DESCRIPTION[];
 extern const Char SID_ARCHIVE_DECODER_DESCRIPTION[];
 extern const Char SID_FILENAME_PREFIX[];

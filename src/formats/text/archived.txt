@@ -46,3 +46,10 @@ __cpp> "}//namespace Text\n"
 #UMX
 < UMX_DECODER_DESCRIPTION
 > "UMX (Unreal Music eXperience)"
+
+#NSF
+< NSF_ARCHIVE_DECODER_DESCRIPTION
+> "Multi-NSF"
+
+< NSF_FILENAME_PREFIX
+> "#"

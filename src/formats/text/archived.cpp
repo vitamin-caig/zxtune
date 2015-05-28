@@ -18,6 +18,12 @@ extern const Char HRIP_DECODER_DESCRIPTION[] = {
 extern const Char LHA_DECODER_DESCRIPTION[] = {
   'L','H','A',' ','(','L','H','A','r','c',')',0
 };
+extern const Char NSF_ARCHIVE_DECODER_DESCRIPTION[] = {
+  'M','u','l','t','i','-','N','S','F',0
+};
+extern const Char NSF_FILENAME_PREFIX[] = {
+  '#',0
+};
 extern const Char SCL_DECODER_DESCRIPTION[] = {
   'S','C','L',' ','(','S','I','N','C','L','A','I','R',')',0
 };

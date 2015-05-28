@@ -28,5 +28,6 @@ namespace Formats
     Decoder::Ptr CreateZXStateDecoder();
     Decoder::Ptr CreateSIDDecoder();
     Decoder::Ptr CreateUMXDecoder();
+    Decoder::Ptr CreateNSFDecoder();
   }
 }
