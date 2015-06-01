@@ -22,7 +22,7 @@ public class Identifier {
   private final Uri fullpath;
   private final Uri location;
   private final String subpath;
-
+  
   public Identifier(Uri location, String subpath) {
     this.fullpath = withSubpath(location, subpath);
     this.location = location;
@@ -56,5 +56,21 @@ public class Identifier {
   
   public final String getSubpath() {
     return subpath;
+  }
+  
+  @Override
+  public String toString() {
+    return fullpath.toString();
+  }
+  
+  @Override
+  public int hashCode() {
+    return fullpath.hashCode();
+  }
+  
+  @Override
+  public boolean equals(Object rh) {
+    final Identifier id = (Identifier) rh;
+    return fullpath.equals(id.fullpath);
   }
 }

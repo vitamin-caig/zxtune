@@ -92,6 +92,15 @@
               android:exported="false">
         </provider>
         <!--
+          Archives browsing provider to avoid loading zxtune library in UI part
+        -->
+        <provider
+              android:name="app.zxtune.fs.archives.Provider"
+              android:authorities="app.zxtune.archive"
+              android:process=":service"
+              android:exported="false">
+        </provider>
+        <!--
           Static receiver should be used for remote controls
         -->
         <receiver android:name=".MediaButtonsHandler">
