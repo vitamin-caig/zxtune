@@ -378,6 +378,20 @@ void Nsf_Emu::set_voice( int i, Blip_Buffer* buf, Blip_Buffer*, Blip_Buffer* )
 	#endif
 }
 
+int Nsf_Emu::voices_status( voice_status_t* buf, int buf_size ) const
+{
+  voice_status_t* out = buf;
+  voice_status_t* const end = buf + buf_size;
+  out += apu.osc_status( out, end - out );
+
+  const int freq = clock_rate() / clock_divisor;
+  for (voice_status_t* fix = buf; fix != out; ++fix)
+  {
+    fix->frequency = freq;
+  }
+  return out - buf;
+}
+
 // Emulation
 
 // see nes_cpu_io.h for read/write functions

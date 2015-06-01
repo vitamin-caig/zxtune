@@ -69,6 +69,9 @@ public:
 	// 2) Triangle, 3) Noise, 4) DMC.
 	enum { osc_count = 5 };
 	void osc_output( int index, Blip_Buffer* buffer );
+  
+  // returns count of elements filled in buf (up to buf_size)
+  int osc_status( voice_status_t* buf, int buf_size ) const;
 	
 	// Set IRQ time callback that is invoked when the time of earliest IRQ
 	// may have changed, or NULL to disable. When callback is invoked,

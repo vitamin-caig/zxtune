@@ -14,6 +14,7 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+#include "gme.h"
 
 // Nes_Osc
 
@@ -76,6 +77,22 @@ void Nes_Square::clock_sweep( int negative_adjust )
 		reg_written [1] = false;
 		sweep_delay = (sweep >> 4) & 7;
 	}
+}
+
+int Nes_Square::status( voice_status_t* stat ) const
+{
+  if ( length_counter != 0 )
+  {
+    const int volume = this->volume();
+    const int period = 2 * this->period();
+    if ( volume != 0 && period != 0 )
+    {
+      stat->divider = period;
+      stat->level = volume * voice_max_level / 15;
+      return 1;
+    }
+  }
+  return 0;
 }
 
 // TODO: clean up
@@ -184,6 +201,21 @@ inline int Nes_Triangle::calc_amp() const
 	if ( amp < 0 )
 		amp = phase - (phase_range + 1);
 	return amp;
+}
+
+int Nes_Triangle::status( voice_status_t* stat ) const
+{
+  if ( length_counter != 0 )
+  {
+    const int period = this->period();
+    if ( period != 0 )
+    {
+      stat->divider = period;
+      stat->level = voice_max_level;
+      return 1;
+    }
+  }
+  return 0;
 }
 
 // TODO: clean up
@@ -549,3 +581,13 @@ void Nes_Noise::run( nes_time_t time, nes_time_t end_time )
 	delay = time - end_time;
 }
 
+int Nes_Noise::status( voice_status_t* stat ) const
+{
+  if ( const int volume = this->volume() )
+  {
+    stat->divider = noise_period_table [regs [2] & 15];
+    stat->level = volume * voice_max_level / 15;
+    return 1;
+  }
+  return 0;
+}
