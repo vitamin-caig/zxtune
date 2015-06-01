@@ -105,6 +105,12 @@ void Music_Emu::mute_voice( int index, bool mute )
 	mute_voices( mask );
 }
 
+int Music_Emu::voices_status( voice_status_t* /*buf*/, int /*buf_size*/ ) const
+{
+  //stub
+  return 0;
+}
+
 void Music_Emu::mute_voices( int mask )
 {
 	require( sample_rate() ); // sample rate must be set first

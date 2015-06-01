@@ -90,7 +90,6 @@ struct track_info_t
 };
 enum { gme_max_field = 255 };
 
-
 /******** Advanced playback ********/
 
 /* Adjust stereo echo depth, where 0.0 = off and 1.0 = maximum. Has no effect for
@@ -117,6 +116,17 @@ void gme_mute_voice( Music_Emu*, int index, int mute );
 /* Set muting state of all voices at once using a bit mask, where -1 mutes all
 voices, 0 unmutes them all, 0x01 mutes just the first voice, etc. */
 void gme_mute_voices( Music_Emu*, int muting_mask );
+
+typedef struct voice_status_t voice_status_t;
+int gme_voices_status( Music_Emu const*, voice_status_t*, int);
+
+struct voice_status_t
+{
+  int frequency;
+  int divider;
+  int level;    //0..100
+};
+enum { voice_max_level = 100 };
 
 /* Frequency equalizer parameters (see gme.txt) */
 typedef struct gme_equalizer_t

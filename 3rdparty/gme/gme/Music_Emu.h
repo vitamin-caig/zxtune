@@ -73,6 +73,10 @@ public:
 	// Set muting state of all voices at once using a bit mask, where -1 mutes them all,
 	// 0 unmutes them all, 0x01 mutes just the first voice, etc.
 	void mute_voices( int mask );
+  
+  // Get some runtime information about active voices
+  // returns count of elements filled in buf (up to buf_size)
+  virtual int voices_status( voice_status_t* buf, int buf_size ) const;
 	
 	// Change overall output amplitude, where 1.0 results in minimal clamping.
 	// Must be called before set_sample_rate().
