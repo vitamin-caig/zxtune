@@ -12,7 +12,6 @@ package app.zxtune.ui.browser;
 
 import java.io.IOException;
 
-import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -22,7 +21,10 @@ import android.widget.ProgressBar;
 import app.zxtune.Preferences;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
+import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsObject;
 
 public class BrowserController {
   
@@ -52,6 +54,8 @@ public class BrowserController {
       SearchingLoaderCallback.detachLoader((SearchingLoader) loader);
     } else if (loader instanceof ListingLoader) {
       ListingLoaderCallback.detachLoader((ListingLoader) loader);
+    } else if (loader instanceof ArchiveLoader) {
+      ArchiveLoaderCallback.detachLoader((ArchiveLoader) loader);
     }
   }
   
@@ -63,8 +67,7 @@ public class BrowserController {
   
   public final void search(String query) {
     try {
-      final Uri currentPath = state.getCurrentPath();
-      final VfsDir currentDir = (VfsDir) Vfs.resolve(currentPath);
+      final VfsDir currentDir = getCurrentDir();
       loaderManager.destroyLoader(LOADER_ID);
       final LoaderManager.LoaderCallbacks<?> cb = SearchingLoaderCallback.create(this, currentDir, query);
       loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
@@ -87,7 +90,7 @@ public class BrowserController {
   public final void moveToParent() {
     try {
       final VfsDir root = Vfs.getRoot();
-      final VfsDir curDir = (VfsDir) Vfs.resolve(state.getCurrentPath());
+      final VfsDir curDir = getCurrentDir();
       if (curDir != root) {
         final VfsDir parent = curDir != null ? (VfsDir) curDir.getParent() : null;
         setCurrentDir(parent != null ? parent : root);
@@ -100,6 +103,17 @@ public class BrowserController {
   public final void storeCurrentViewPosition() {
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
   }
+  
+  public final void browseArchive(VfsFile file, Runnable playCmd) {
+    final VfsObject resolved = VfsArchive.browseCached(file);
+    if (resolved == null) {
+      loadArchive(file, playCmd);
+    } else if (resolved instanceof VfsDir) {
+      setCurrentDir((VfsDir) resolved);
+    } else if (resolved instanceof VfsFile) {
+      playCmd.run();
+    }
+  }
 
   private boolean reloadCurrentState() {
     final Loader<?> loader = loaderManager.getLoader(LOADER_ID); 
@@ -109,19 +123,28 @@ public class BrowserController {
     }
     if (loader instanceof SearchingLoader) {
       loaderManager.initLoader(LOADER_ID, null, SearchingLoaderCallback.create(this, (SearchingLoader) loader));
-    } else {
+    } else if (loader instanceof ListingLoader) {
       loaderManager.initLoader(LOADER_ID, null, ListingLoaderCallback.create(this, (ListingLoader) loader));
+    } else if (loader instanceof ArchiveLoader) {
+      loaderManager.initLoader(LOADER_ID, null, ArchiveLoaderCallback.create(this, (ArchiveLoader) loader));
     }
     return true;
   }
   
   public final void loadCurrentDir() {
     try {
-      final Uri currentPath = state.getCurrentPath();
-      final VfsDir currentDir = (VfsDir) Vfs.resolve(currentPath);
-      setDirectory(currentDir);
+      setDirectory(getCurrentDir());
     } catch (Exception e) {
       listing.showError(e);
+    }
+  }
+  
+  private VfsDir getCurrentDir() throws IOException {
+    final VfsObject obj = VfsArchive.resolve(state.getCurrentPath());
+    if (obj instanceof VfsDir) {
+      return (VfsDir) obj;
+    } else {
+      return null;
     }
   }
   
@@ -136,6 +159,12 @@ public class BrowserController {
     loaderManager.destroyLoader(LOADER_ID);
     listing.storeViewPosition(viewPosition);
     final LoaderManager.LoaderCallbacks<?> cb = ListingLoaderCallback.create(this, dir);
+    loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
+  }
+  
+  private void loadArchive(VfsFile file, Runnable playCmd) {
+    loaderManager.destroyLoader(LOADER_ID);
+    final LoaderManager.LoaderCallbacks<?> cb = ArchiveLoaderCallback.create(this, file, playCmd);
     loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
   }
   
@@ -159,12 +188,12 @@ public class BrowserController {
     listing.showError(e);
   }
 
-  private void showProgress() {
+  void showProgress() {
     progress.setVisibility(View.VISIBLE);
     progress.setIndeterminate(true);
   }
   
-  private void hideProgress() {
+  void hideProgress() {
     progress.setVisibility(View.INVISIBLE);
   }
 }

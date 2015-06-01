@@ -234,16 +234,22 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   class OnItemClickListener implements AdapterView.OnItemClickListener {
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
       final Object obj = parent.getItemAtPosition(position);
       if (obj instanceof VfsDir) {
         controller.setCurrentDir((VfsDir) obj);
       } else if (obj instanceof VfsFile) {
-        final Uri[] toPlay = getUrisFrom(position);
-        getService().setNowPlaying(toPlay);
+        final Runnable playCmd = new Runnable() {
+          final Uri[] toPlay = getUrisFrom(position);
+          @Override
+          public void run() {
+            getService().setNowPlaying(toPlay);
+          }
+        };
+        controller.browseArchive((VfsFile) obj, playCmd);
       }
     }
-
+    
     private Uri[] getUrisFrom(int position) {
       final ListAdapter adapter = listing.getAdapter();
       final Uri[] result = new Uri[adapter.getCount() - position];
