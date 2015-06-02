@@ -65,12 +65,12 @@ namespace ZXTune
       {
         enum
         {
-          TRACK    = 0x00000000,
-          STREAM   = 0x00000001,
-          EMULATED = 0x00000002,
-          MULTI    = 0x00000003,
+          TRACK      = 0x00000000,
+          STREAM     = 0x00000001,
+          MEMORYDUMP = 0x00000002,
+          MULTI      = 0x00000003,
           
-          MASK     = 0x0000000f
+          MASK       = 0x0000000f
         };
       }
       

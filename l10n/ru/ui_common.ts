@@ -215,8 +215,8 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="140"/>
-        <source>Emulated environment</source>
-        <translation>Эмуляция окружения</translation>
+        <source>Memory dump structure</source>
+        <translation>Дамп памяти</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="141"/>

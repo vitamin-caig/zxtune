@@ -401,7 +401,7 @@ namespace ZXTune
 {
   void RegisterGMEPlugins(PlayerPluginsRegistrator& registrator)
   {
-    const uint_t CAPS = Capabilities::Module::Type::EMULATED;
+    const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP;
     for (const Module::GME::PluginDescription* it = Module::GME::PLUGINS; it != boost::end(Module::GME::PLUGINS); ++it)
     {
       const Module::GME::PluginDescription& desc = *it;

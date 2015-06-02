@@ -84,7 +84,7 @@ namespace
     {
       CapsPair(Capabilities::Module::Type::TRACK, Text::INFO_MOD_TRACK),
       CapsPair(Capabilities::Module::Type::STREAM, Text::INFO_MOD_STREAM),
-      CapsPair(Capabilities::Module::Type::EMULATED, Text::INFO_MOD_EMULATED),
+      CapsPair(Capabilities::Module::Type::MEMORYDUMP, Text::INFO_MOD_MEMORYDUMP),
       CapsPair(Capabilities::Module::Type::MULTI, Text::INFO_MOD_MULTI),
       CapsPair()
     };

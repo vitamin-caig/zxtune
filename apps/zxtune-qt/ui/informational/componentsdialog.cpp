@@ -137,7 +137,7 @@ namespace
       using namespace ZXTune::Capabilities::Module::Type;
       AddCapability(1 << type, 1 << TRACK, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Track structure"));
       AddCapability(1 << type, 1 << STREAM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Stream structure"));
-      AddCapability(1 << type, 1 << EMULATED, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Emulated environment"));
+      AddCapability(1 << type, 1 << MEMORYDUMP, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Memory dump structure"));
       AddCapability(1 << type, 1 << MULTI, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Multistructure"));
     }
 

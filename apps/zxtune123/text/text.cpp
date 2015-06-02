@@ -426,8 +426,8 @@ extern const Char INFO_LIST_PROVIDERS_KEY[] = {
 extern const Char INFO_LIST_PROVIDERS_TITLE[] = {
   'S','u','p','p','o','r','t','e','d',' ','I','O',' ','p','r','o','v','i','d','e','r','s',0
 };
-extern const Char INFO_MOD_EMULATED[] = {
-  'm','o','d','_','e','m','u','l','a','t','e','d',0
+extern const Char INFO_MOD_MEMORYDUMP[] = {
+  'm','o','d','_','m','e','m','o','r','y','d','u','m','p',0
 };
 extern const Char INFO_MOD_MULTI[] = {
   'm','o','d','_','m','u','l','t','i',0

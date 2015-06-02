@@ -124,7 +124,7 @@ extern const Char INFO_LIST_PLUGINS_TITLE[];
 extern const Char INFO_LIST_PROVIDERS_DESC[];
 extern const Char INFO_LIST_PROVIDERS_KEY[];
 extern const Char INFO_LIST_PROVIDERS_TITLE[];
-extern const Char INFO_MOD_EMULATED[];
+extern const Char INFO_MOD_MEMORYDUMP[];
 extern const Char INFO_MOD_MULTI[];
 extern const Char INFO_MOD_STREAM[];
 extern const Char INFO_MOD_TRACK[];
