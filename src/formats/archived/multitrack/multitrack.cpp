@@ -2,16 +2,14 @@
 * 
 * @file
 *
-* @brief  SID containers support
+* @brief  Multitrack archives support implementation
 *
 * @author vitamin.caig@gmail.com
 *
 **/
 
-//library includes
-#include <binary/format_factories.h>
-#include <formats/archived/decoders.h>
-#include <formats/chiptune/emulation/sid.h>
+//local includes
+#include "multitrack.h"
 //std includes
 #include <sstream>
 //boost includes
@@ -19,7 +17,7 @@
 //text includes
 #include <formats/text/archived.h>
 
-namespace MultiSID
+namespace MultitrackArchives
 {
   class File : public Formats::Archived::File
   {
@@ -96,7 +94,7 @@ namespace MultiSID
   class Container : public Formats::Archived::Container
   {
   public:
-    explicit Container(Binary::Container::Ptr data)
+    explicit Container(Formats::Multitrack::Container::Ptr data)
       : Delegate(data)
     {
     }
@@ -123,8 +121,8 @@ namespace MultiSID
       for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
       {
         const uint_t song = idx + 1;
-        const String subPath = Filename(Text::SID_FILENAME_PREFIX, song).ToString();
-        const Binary::Container::Ptr subData = Formats::Chiptune::SID::FixStartSong(*Delegate, song);
+        const String subPath = Filename(Text::MULTITRACK_FILENAME_PREFIX, song).ToString();
+        const Binary::Container::Ptr subData = Delegate->WithStartTrackIndex(idx);
         const File file(subPath, subData);
         walker.OnFile(file);
       }
@@ -132,7 +130,7 @@ namespace MultiSID
 
     virtual Formats::Archived::File::Ptr FindFile(const String& name) const
     {
-      const Filename filename(Text::SID_FILENAME_PREFIX, name);
+      const Filename filename(Text::MULTITRACK_FILENAME_PREFIX, name);
       if (!filename.IsValid())
       {
         return Formats::Archived::File::Ptr();
@@ -142,70 +140,62 @@ namespace MultiSID
       {
         return Formats::Archived::File::Ptr();
       }
-      const Binary::Container::Ptr subData = Formats::Chiptune::SID::FixStartSong(*Delegate, song);
+      const uint_t idx = song - 1;
+      const Binary::Container::Ptr subData = Delegate->WithStartTrackIndex(idx);
       return boost::make_shared<File>(name, subData);
     }
 
     virtual uint_t CountFiles() const
     {
-      return Formats::Chiptune::SID::GetModulesCount(*Delegate);
+      return Delegate->TracksCount();
     }
   private:
-    const Binary::Container::Ptr Delegate;
+    const Formats::Multitrack::Container::Ptr Delegate;
   };
 
-  const std::string FORMAT =
-      "'R|'P 'S'I'D" //signature
-      "00 01-03"     //BE version
-      "00 76|7c"     //BE data offset
-      "??"           //BE load address
-      "??"           //BE init address
-      "??"           //BE play address
-      "00|01 ?"      //BE songs count 1-256
-      "??"           //BE start song
-      "????"         //BE speed flag
-   ;
+  class Decoder : public Formats::Archived::Decoder
+  {
+  public:
+    Decoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
+      : Description(description)
+      , Delegate(delegate)
+    {
+    }
+
+    virtual String GetDescription() const
+    {
+      return Description;
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Delegate->GetFormat();
+    }
+
+    virtual Formats::Archived::Container::Ptr Decode(const Binary::Container& rawData) const
+    {
+      if (const Formats::Multitrack::Container::Ptr data = Delegate->Decode(rawData))
+      {
+        if (data->TracksCount() > 1)
+        {
+          return boost::make_shared<Container>(data);
+        }
+      }
+      return Formats::Archived::Container::Ptr();
+    }
+  private:
+    const String Description;
+    const Formats::Multitrack::Decoder::Ptr Delegate;
+  };
 }
 
 namespace Formats
 {
   namespace Archived
   {
-    class MultiSIDDecoder : public Formats::Archived::Decoder
+    Formats::Archived::Decoder::Ptr CreateMultitrackArchiveDecoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
     {
-    public:
-      MultiSIDDecoder()
-        : Format(Binary::CreateMatchOnlyFormat(MultiSID::FORMAT))
-      {
-      }
-
-      virtual String GetDescription() const
-      {
-        return Text::SID_ARCHIVE_DECODER_DESCRIPTION;
-      }
-
-      virtual Binary::Format::Ptr GetFormat() const
-      {
-        return Format;
-      }
-
-      virtual Container::Ptr Decode(const Binary::Container& rawData) const
-      {
-        const uint_t subModules = Formats::Chiptune::SID::GetModulesCount(rawData);
-        if (subModules < 2)
-        {
-          return Container::Ptr();
-        }
-        const Binary::Container::Ptr sidData = rawData.GetSubcontainer(0, rawData.Size());
-        return boost::make_shared<MultiSID::Container>(sidData);
-      }
-    private:
-      const Binary::Format::Ptr Format;
-    };
-
-    Decoder::Ptr CreateSIDDecoder()
-    {
-      return boost::make_shared<MultiSIDDecoder>();
+      return boost::make_shared<MultitrackArchives::Decoder>(description, delegate);
     }
   }
 }

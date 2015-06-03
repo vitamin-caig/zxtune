@@ -10,9 +10,6 @@ __cpp> "}//namespace Text\n"
 < AY_ARCHIVE_DECODER_DESCRIPTION
 > "Multi-AY/EMUL"
 
-< AY_FILENAME_PREFIX
-> "#"
-
 < AY_RAW_FILENAME_PREFIX
 > "@"
 
@@ -32,9 +29,6 @@ __cpp> "}//namespace Text\n"
 < SID_ARCHIVE_DECODER_DESCRIPTION
 > "Multi-SID/PSID/RSID"
 
-< SID_FILENAME_PREFIX
-> "#"
-
 #TRD
 < TRD_DECODER_DESCRIPTION
 > "TRD (TR-DOS)"
@@ -51,5 +45,5 @@ __cpp> "}//namespace Text\n"
 < NSF_ARCHIVE_DECODER_DESCRIPTION
 > "Multi-NSF"
 
-< NSF_FILENAME_PREFIX
+< MULTITRACK_FILENAME_PREFIX
 > "#"

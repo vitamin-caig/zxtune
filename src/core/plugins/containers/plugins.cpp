@@ -14,6 +14,7 @@
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/archived/decoders.h>
+#include <formats/archived/multitrack/decoders.h>
 //boost includes
 #include <boost/range/end.hpp>
 

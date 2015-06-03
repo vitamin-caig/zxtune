@@ -1,8 +1,8 @@
 /**
-*
+* 
 * @file
 *
-* @brief  Chiptunes support interfaces
+* @brief  Interfaces for multitrack chiptunes with undivideable tracks (e.g. SID)
 *
 * @author vitamin.caig@gmail.com
 *
@@ -20,33 +20,32 @@
 
 namespace Formats
 {
-  namespace Chiptune
+  namespace Multitrack
   {
-    //! @brief Chiptune raw data presentation
     class Container : public Binary::Container
     {
     public:
       typedef boost::shared_ptr<const Container> Ptr;
-
-      //! @brief Whole data fingerprint
-      //! @return Some integer value at least 32-bit
-      virtual uint_t Checksum() const = 0;
-
-      //! @brief Internal structures simple fingerprint
-      //! @return Some integer value at least 32-bit
+      
+      //! Same as in Chiptune::Container
       virtual uint_t FixedChecksum() const = 0;
-    };
+      
+      //! @return total tracks count
+      virtual uint_t TracksCount() const = 0;
 
-    //! @brief Decoding functionality provider
+      //! @return 0-based index of first track
+      virtual uint_t StartTrackIndex() const = 0;
+      
+      //! @brief Create copy of self with modified start track 0-based index
+      virtual Container::Ptr WithStartTrackIndex(uint_t idx) const = 0;
+    };
+    
     class Decoder
     {
     public:
       typedef boost::shared_ptr<const Decoder> Ptr;
       virtual ~Decoder() {}
-
-      //! @brief Get short decoder description
-      virtual String GetDescription() const = 0;
-
+      
       //! @brief Get approximate format description to search in raw binary data
       //! @invariant Cannot be empty
       virtual Binary::Format::Ptr GetFormat() const = 0;
@@ -55,6 +54,7 @@ namespace Formats
       //! @param rawData Data to be checked
       //! @return false if rawData has defenitely wrong format, else otherwise
       virtual bool Check(const Binary::Container& rawData) const = 0;
+      
       //! @brief Perform raw data decoding
       //! @param rawData Data to be decoded
       //! @return Non-null object if data is successfully recognized and decoded

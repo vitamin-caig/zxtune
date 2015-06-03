@@ -430,7 +430,7 @@ namespace
     //for AY files FormatSpec is subtune index
     if (boost::algorithm::iends_with(item.Path, FromStdString(".ay")))
     {
-      const String subPath = IndexPathComponent(Text::AY_FILENAME_PREFIX).Build(formatSpec);
+      const String subPath = IndexPathComponent(Text::MULTITRACK_FILENAME_PREFIX).Build(formatSpec);
       item.Path = AppendSubpath(item.Path, subPath);
     }
   }

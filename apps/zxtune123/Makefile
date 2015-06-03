@@ -15,7 +15,7 @@ other_text_files := text/configfile text/cmdline text/messages text/conversion t
 libraries.common = analysis async binary binary_format \
                   core core_conversion core_plugins_players core_plugins_archives core_plugins_containers core_properties \
                   debug devices_aym devices_beeper devices_dac devices_aym_dumper devices_fm devices_saa devices_z80 \
-                  formats_archived formats_chiptune formats_packed \
+                  formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \
                   io \
                   l10n_stub \
                   parameters platform platform_application platform_version \

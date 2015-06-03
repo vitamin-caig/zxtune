@@ -2,7 +2,7 @@
 * 
 * @file
 *
-* @brief  NSF containers support
+* @brief  SID containers support
 *
 * @author vitamin.caig@gmail.com
 *
@@ -11,7 +11,7 @@
 //library includes
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
-#include <formats/chiptune/emulation/nsf.h>
+#include <formats/chiptune/emulation/sid.h>
 //std includes
 #include <sstream>
 //boost includes
@@ -19,7 +19,7 @@
 //text includes
 #include <formats/text/archived.h>
 
-namespace MultiNSF
+namespace MultiSID
 {
   class File : public Formats::Archived::File
   {
@@ -96,7 +96,7 @@ namespace MultiNSF
   class Container : public Formats::Archived::Container
   {
   public:
-    explicit Container(Formats::Chiptune::PolyTrackContainer::Ptr data)
+    explicit Container(Binary::Container::Ptr data)
       : Delegate(data)
     {
     }
@@ -123,8 +123,8 @@ namespace MultiNSF
       for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
       {
         const uint_t song = idx + 1;
-        const String subPath = Filename(Text::NSF_FILENAME_PREFIX, song).ToString();
-        const Binary::Container::Ptr subData = Delegate->WithStartTrackIndex(idx);
+        const String subPath = Filename(Text::MULTITRACK_FILENAME_PREFIX, song).ToString();
+        const Binary::Container::Ptr subData = Formats::Chiptune::SID::FixStartSong(*Delegate, song);
         const File file(subPath, subData);
         walker.OnFile(file);
       }
@@ -132,7 +132,7 @@ namespace MultiNSF
 
     virtual Formats::Archived::File::Ptr FindFile(const String& name) const
     {
-      const Filename filename(Text::NSF_FILENAME_PREFIX, name);
+      const Filename filename(Text::MULTITRACK_FILENAME_PREFIX, name);
       if (!filename.IsValid())
       {
         return Formats::Archived::File::Ptr();
@@ -142,47 +142,46 @@ namespace MultiNSF
       {
         return Formats::Archived::File::Ptr();
       }
-      const uint_t idx = song - 1;
-      const Binary::Container::Ptr subData = Delegate->WithStartTrackIndex(idx);
+      const Binary::Container::Ptr subData = Formats::Chiptune::SID::FixStartSong(*Delegate, song);
       return boost::make_shared<File>(name, subData);
     }
 
     virtual uint_t CountFiles() const
     {
-      return Delegate->TracksCount();
+      return Formats::Chiptune::SID::GetModulesCount(*Delegate);
     }
   private:
-    const Formats::Chiptune::PolyTrackContainer::Ptr Delegate;
+    const Binary::Container::Ptr Delegate;
   };
 
   const std::string FORMAT =
-      "'N'E'S'M"
-      "1a"
-      "?"     //version
-      "02-ff" //2 songs minimum
-      "01-ff"
-      //gme supports nfs load/init address starting from 0x8000 or zero
-      "(? 00|80-ff){2}"
+      "'R|'P 'S'I'D" //signature
+      "00 01-03"     //BE version
+      "00 76|7c"     //BE data offset
+      "??"           //BE load address
+      "??"           //BE init address
+      "??"           //BE play address
+      "00|01 ?"      //BE songs count 1-256
+      "??"           //BE start song
+      "????"         //BE speed flag
    ;
-
-    const std::size_t MIN_SIZE = 256;
 }
 
 namespace Formats
 {
   namespace Archived
   {
-    class MultiNSFDecoder : public Formats::Archived::Decoder
+    class MultiSIDDecoder : public Formats::Archived::Decoder
     {
     public:
-      MultiNSFDecoder()
-        : Format(Binary::CreateMatchOnlyFormat(MultiNSF::FORMAT, MultiNSF::MIN_SIZE))
+      MultiSIDDecoder()
+        : Format(Binary::CreateMatchOnlyFormat(MultiSID::FORMAT))
       {
       }
 
       virtual String GetDescription() const
       {
-        return Text::NSF_ARCHIVE_DECODER_DESCRIPTION;
+        return Text::SID_ARCHIVE_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const
@@ -192,22 +191,21 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        if (const Formats::Chiptune::PolyTrackContainer::Ptr data = Formats::Chiptune::NSF::Parse(rawData))
+        const uint_t subModules = Formats::Chiptune::SID::GetModulesCount(rawData);
+        if (subModules < 2)
         {
-          if (data->TracksCount() > 1)
-          {
-            return boost::make_shared<MultiNSF::Container>(data);
-          }
+          return Container::Ptr();
         }
-        return Container::Ptr();
+        const Binary::Container::Ptr sidData = rawData.GetSubcontainer(0, rawData.Size());
+        return boost::make_shared<MultiSID::Container>(sidData);
       }
     private:
       const Binary::Format::Ptr Format;
     };
 
-    Decoder::Ptr CreateNSFDecoder()
+    Decoder::Ptr CreateSIDDecoder()
     {
-      return boost::make_shared<MultiNSFDecoder>();
+      return boost::make_shared<MultiSIDDecoder>();
     }
   }
 }

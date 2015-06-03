@@ -125,7 +125,7 @@ namespace MultiAY
         const Formats::Chiptune::AY::BlobBuilder::Ptr builder = Formats::Chiptune::AY::CreateFileBuilder();
         if (const Formats::Chiptune::Container::Ptr parsed = Formats::Chiptune::AY::Parse(*Delegate, idx, *builder))
         {
-          const String subPath = Filename(Text::AY_FILENAME_PREFIX, idx).ToString();
+          const String subPath = Filename(Text::MULTITRACK_FILENAME_PREFIX, idx).ToString();
           const Binary::Container::Ptr subData = builder->Result();
           const File file(subPath, subData);
           walker.OnFile(file);
@@ -136,7 +136,7 @@ namespace MultiAY
     virtual Formats::Archived::File::Ptr FindFile(const String& name) const
     {
       const Filename rawName(Text::AY_RAW_FILENAME_PREFIX, name);
-      const Filename ayName(Text::AY_FILENAME_PREFIX, name);
+      const Filename ayName(Text::MULTITRACK_FILENAME_PREFIX, name);
       if (!rawName.IsValid() && !ayName.IsValid())
       {
         return Formats::Archived::File::Ptr();
