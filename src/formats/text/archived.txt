@@ -6,6 +6,10 @@ __cpp> "{\n"
 < __RAWFOOTER__
 __cpp> "}//namespace Text\n"
 
+#common
+< MULTITRACK_FILENAME_PREFIX
+> "#"
+
 #AY
 < AY_ARCHIVE_DECODER_DESCRIPTION
 > "Multi-AY/EMUL"
@@ -45,5 +49,6 @@ __cpp> "}//namespace Text\n"
 < NSF_ARCHIVE_DECODER_DESCRIPTION
 > "Multi-NSF"
 
-< MULTITRACK_FILENAME_PREFIX
-> "#"
+#NSFE
+< NSFE_ARCHIVE_DECODER_DESCRIPTION
+> "Multi-NSFE"

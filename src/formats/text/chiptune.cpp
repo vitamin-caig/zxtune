@@ -60,6 +60,10 @@ extern const Char GLOBALTRACKER_DECODER_DESCRIPTION[] = {
 extern const Char MULTITRACK_CONTAINER_DECODER_DESCRIPTION[] = {
   'M','u','l','t','i','t','r','a','c','k',' ','C','o','n','t','a','i','n','e','r',0
 };
+extern const Char NSFE_DECODER_DESCRIPTION[] = {
+  'E','x','t','e','n','d','e','d',' ','N','i','n','t','e','n','d','o',' ','S','o','u','n','d',' ','F','o','r',
+  'm','a','t',0
+};
 extern const Char NSF_DECODER_DESCRIPTION[] = {
   'N','E','S',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
 };

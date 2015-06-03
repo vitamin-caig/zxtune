@@ -19,7 +19,9 @@ namespace Formats
   {
     Decoder::Ptr CreateAYDecoder();
     Decoder::Ptr CreateSIDDecoder();
+
     //TODO: take Formats::Multitrack::Decoder::Ptr decoder as a parameter
     Decoder::Ptr CreateNSFDecoder();
+    Decoder::Ptr CreateNSFEDecoder();
   }
 }

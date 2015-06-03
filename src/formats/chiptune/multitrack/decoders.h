@@ -19,5 +19,6 @@ namespace Formats
   namespace Chiptune
   {
     Decoder::Ptr CreateNSFDecoder(Formats::Multitrack::Decoder::Ptr decoder);
+    Decoder::Ptr CreateNSFEDecoder(Formats::Multitrack::Decoder::Ptr decoder);
   }
 }

@@ -18,5 +18,6 @@ namespace Formats
   namespace Multitrack
   {
     Decoder::Ptr CreateNSFDecoder();
+    Decoder::Ptr CreateNSFEDecoder();
   }
 }

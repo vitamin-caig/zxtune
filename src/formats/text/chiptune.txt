@@ -228,3 +228,7 @@ __cpp> "}//namespace Text\n"
 #NSF
 < NSF_DECODER_DESCRIPTION
 > "NES Sound Format"
+
+#NSFE
+< NSFE_DECODER_DESCRIPTION
+> "Extended Nintendo Sound Format"

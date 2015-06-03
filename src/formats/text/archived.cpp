@@ -18,6 +18,9 @@ extern const Char LHA_DECODER_DESCRIPTION[] = {
 extern const Char MULTITRACK_FILENAME_PREFIX[] = {
   '#',0
 };
+extern const Char NSFE_ARCHIVE_DECODER_DESCRIPTION[] = {
+  'M','u','l','t','i','-','N','S','F','E',0
+};
 extern const Char NSF_ARCHIVE_DECODER_DESCRIPTION[] = {
   'M','u','l','t','i','-','N','S','F',0
 };
