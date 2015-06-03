@@ -396,6 +396,14 @@ namespace GME
       &Formats::Multitrack::CreateNSFDecoder,
       &Formats::Chiptune::CreateNSFDecoder,
       &Create< ::Nsf_Emu>
+    },
+    //nsfe
+    {
+      "NSFE",
+      ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
+      &Formats::Multitrack::CreateNSFEDecoder,
+      &Formats::Chiptune::CreateNSFEDecoder,
+      &Create< ::Nsfe_Emu>
     }
   };
 }
