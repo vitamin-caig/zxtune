@@ -100,6 +100,7 @@ extern const Char INFO_DEV_BEEPER[];
 extern const Char INFO_DEV_DAC[];
 extern const Char INFO_DEV_MOS6581[];
 extern const Char INFO_DEV_MULTI[];
+extern const Char INFO_DEV_PAPU[];
 extern const Char INFO_DEV_RP2A0X[];
 extern const Char INFO_DEV_SAA1099[];
 extern const Char INFO_DEV_SPC700[];

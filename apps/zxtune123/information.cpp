@@ -103,6 +103,7 @@ namespace
       CapsPair(Capabilities::Module::Device::SPC700, Text::INFO_DEV_SPC700),
       CapsPair(Capabilities::Module::Device::MULTI, Text::INFO_DEV_MULTI),
       CapsPair(Capabilities::Module::Device::RP2A0X, Text::INFO_DEV_RP2A0X),
+      CapsPair(Capabilities::Module::Device::PAPU, Text::INFO_DEV_PAPU),
       //conversion caps
       CapsPair(Capabilities::Module::Conversion::PSG, Text::INFO_CONV_PSG),
       CapsPair(Capabilities::Module::Conversion::ZX50, Text::INFO_CONV_ZX50),

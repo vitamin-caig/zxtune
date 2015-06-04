@@ -61,6 +61,9 @@
 < INFO_DEV_RP2A0X
 > INFO_DEV_PREFIX "rp2a0x"
 
+< INFO_DEV_PAPU
+> INFO_DEV_PREFIX "papu"
+
 #module conversion
 = INFO_CONV_PREFIX
 > "conv_"
