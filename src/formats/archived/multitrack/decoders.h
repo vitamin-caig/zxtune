@@ -23,5 +23,6 @@ namespace Formats
     //TODO: take Formats::Multitrack::Decoder::Ptr decoder as a parameter
     Decoder::Ptr CreateNSFDecoder();
     Decoder::Ptr CreateNSFEDecoder();
+    Decoder::Ptr CreateGBSDecoder();
   }
 }

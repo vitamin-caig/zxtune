@@ -51,6 +51,9 @@ extern const Char EXTREMETRACKER1_DECODER_DESCRIPTION[] = {
 extern const Char FASTTRACKER_DECODER_DESCRIPTION[] = {
   'F','a','s','t',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
+extern const Char GBS_DECODER_DESCRIPTION[] = {
+  'G','a','m','e','B','o','y',' ','S','o','u','n','d',0
+};
 extern const Char GLOBALTRACKER1_EDITOR[] = {
   'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','%','1','%',0
 };

@@ -5,6 +5,7 @@ namespace Text
 {
 extern const Char AY_ARCHIVE_DECODER_DESCRIPTION[];
 extern const Char AY_RAW_FILENAME_PREFIX[];
+extern const Char GBS_ARCHIVE_DECODER_DESCRIPTION[];
 extern const Char HRIP_DECODER_DESCRIPTION[];
 extern const Char LHA_DECODER_DESCRIPTION[];
 extern const Char MULTITRACK_FILENAME_PREFIX[];

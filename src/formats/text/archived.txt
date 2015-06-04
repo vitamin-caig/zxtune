@@ -52,3 +52,7 @@ __cpp> "}//namespace Text\n"
 #NSFE
 < NSFE_ARCHIVE_DECODER_DESCRIPTION
 > "Multi-NSFE"
+
+#GBS
+< GBS_ARCHIVE_DECODER_DESCRIPTION
+> "Multi-GBS"

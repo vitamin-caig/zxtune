@@ -232,3 +232,7 @@ __cpp> "}//namespace Text\n"
 #NSFE
 < NSFE_DECODER_DESCRIPTION
 > "Extended Nintendo Sound Format"
+
+#GBS
+< GBS_DECODER_DESCRIPTION
+> "GameBoy Sound"
