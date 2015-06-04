@@ -7,6 +7,8 @@
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
 
+struct voice_status_t;
+
 struct Gb_Osc
 {
 	enum { trigger = 0x80 };
@@ -51,6 +53,7 @@ struct Gb_Square : Gb_Env
 	void reset();
 	void clock_sweep();
 	void run( blip_time_t, blip_time_t, int playing );
+  int status( voice_status_t* stat ) const;
 };
 
 struct Gb_Noise : Gb_Env
@@ -60,6 +63,7 @@ struct Gb_Noise : Gb_Env
 	unsigned bits;
 	
 	void run( blip_time_t, blip_time_t, int playing );
+  int status( voice_status_t* stat ) const;
 };
 
 struct Gb_Wave : Gb_Osc
@@ -72,6 +76,7 @@ struct Gb_Wave : Gb_Osc
 	
 	void write_register( int, int );
 	void run( blip_time_t, blip_time_t, int playing );
+  int status( voice_status_t* stat ) const;
 };
 
 inline void Gb_Env::reset()

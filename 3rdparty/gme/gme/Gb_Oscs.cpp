@@ -16,6 +16,7 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+#include "gme.h"
 
 // Gb_Osc
 
@@ -166,6 +167,26 @@ void Gb_Square::run( blip_time_t time, blip_time_t end_time, int playing )
 	delay = time - end_time;
 }
 
+int Gb_Square::status( voice_status_t* stat ) const
+{
+  if ( enabled && volume && sweep_freq != 2048 )
+  {
+    /*
+    This counter is clocked by the output
+    of a 5-bit count-0-to-31-and-loop timer/divider, which itself is clocked by the
+    gameboy's standard CPU clock input, 4.194304mhz.
+    */
+    const int period = (2048 - this->frequency()) << 5;
+    if ( period != 0 )
+    {
+      stat->divider = period;
+      stat->level = voice_max_level * volume / 15;
+      return 1;
+    }
+  }
+  return 0;
+}
+
 // Gb_Noise
 
 void Gb_Noise::run( blip_time_t time, blip_time_t end_time, int playing )
@@ -220,6 +241,19 @@ void Gb_Noise::run( blip_time_t time, blip_time_t end_time, int playing )
 		last_amp = delta >> 1;
 	}
 	delay = time - end_time;
+}
+
+int Gb_Noise::status( voice_status_t* stat ) const
+{
+  if ( enabled && volume )
+  {
+    //TODO: remove C&P
+  	static unsigned char const table [8] = { 8, 16, 32, 48, 64, 80, 96, 112 };
+    stat->divider = table [regs [3] & 7] << (regs [3] >> 4);
+    stat->level = voice_max_level * volume / 15;
+    return 1;
+  }
+  return 0;
 }
 
 // Gb_Wave
@@ -301,6 +335,22 @@ void Gb_Wave::run( blip_time_t time, blip_time_t end_time, int playing )
 		this->wave_pos = (wave_pos - 1) & (wave_size - 1);
 	}
 	delay = time - end_time;
+}
+
+int Gb_Wave::status( voice_status_t* stat ) const
+{
+  if ( enabled && volume )
+  {
+    //take full wave period
+    const int period = (2048 - this->frequency()) * 2 * wave_size;
+    if ( period != 0 )
+    {
+      stat->divider = period;
+      stat->level = voice_max_level * volume / 7;
+      return 1;
+    }
+  }
+  return 0;
 }
 
 // Gb_Apu::write_osc

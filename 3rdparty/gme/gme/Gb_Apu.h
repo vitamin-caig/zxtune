@@ -29,6 +29,9 @@ public:
 	enum { osc_count = 4 };
 	void osc_output( int index, Blip_Buffer* mono );
 	void osc_output( int index, Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right );
+
+  // returns count of elements filled in buf (up to buf_size)
+  int osc_status( voice_status_t* buf, int buf_size ) const;
 	
 	// Reset oscillators and internal state
 	void reset();
