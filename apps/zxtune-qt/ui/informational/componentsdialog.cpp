@@ -87,6 +87,7 @@ namespace
       PlayersByDeviceType[SPC700] = CreateTreeWidgetItem(Players, "SPC700");
       PlayersByDeviceType[MULTI] = CreateTreeWidgetItem(Players, QT_TRANSLATE_NOOP("ComponentsDialog", "Multidevice"));
       PlayersByDeviceType[RP2A0X] = CreateTreeWidgetItem(Players, "RP2A03/RP2A07");
+      PlayersByDeviceType[PAPU] = CreateTreeWidgetItem(Players, "Pseudo Audio Processing Unit");
     }
     
     void FillContainersByTypes()
