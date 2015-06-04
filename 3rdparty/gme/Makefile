@@ -12,4 +12,7 @@ source_files += $(addprefix gme/,Nes_Apu.cpp Nes_Cpu.cpp Nes_Oscs.cpp)
 #$(platform)_definitions += NSF_EMU_APU_ONLY
 source_files += $(addprefix gme/,Nes_Namco_Apu.cpp Nes_Vrc6_Apu.cpp Nes_Fme7_Apu.cpp)
 
+#gbs
+source_files += $(addprefix gme/,Gbs_Emu.cpp Gb_Apu.cpp Gb_Cpu.cpp Gb_Oscs.cpp)
+
 include $(path_step)/makefile.mak
