@@ -34,6 +34,7 @@
 #include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 //3rdparty
+#include <3rdparty/gme/gme/Gbs_Emu.h>
 #include <3rdparty/gme/gme/Nsf_Emu.h>
 #include <3rdparty/gme/gme/Nsfe_Emu.h>
 
@@ -404,6 +405,14 @@ namespace GME
       &Formats::Multitrack::CreateNSFEDecoder,
       &Formats::Chiptune::CreateNSFEDecoder,
       &Create< ::Nsfe_Emu>
+    },
+    //gbs
+    {
+      "GBS",
+      ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::PAPU,
+      &Formats::Multitrack::CreateGBSDecoder,
+      &Formats::Chiptune::CreateGBSDecoder,
+      &Create< ::Gbs_Emu>
     }
   };
 }
