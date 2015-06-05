@@ -18,4 +18,7 @@ source_files += $(addprefix gme/,Gbs_Emu.cpp Gb_Apu.cpp Gb_Cpu.cpp Gb_Oscs.cpp)
 #sap
 source_files += $(addprefix gme/,Sap_Emu.cpp Sap_Apu.cpp Sap_Cpu.cpp)
 
+#hes
+source_files += $(addprefix gme/,Hes_Emu.cpp Hes_Apu.cpp Hes_Cpu.cpp)
+
 include $(path_step)/makefile.mak
