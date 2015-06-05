@@ -53,5 +53,6 @@ namespace Formats
     Decoder::Ptr CreateSPCDecoder();
     Decoder::Ptr CreateMultiTrackContainerDecoder();
     Decoder::Ptr CreateAYEMULDecoder();
+    Decoder::Ptr CreateHESDecoder();
   }
 }

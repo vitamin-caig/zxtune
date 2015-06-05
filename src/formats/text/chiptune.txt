@@ -240,3 +240,7 @@ __cpp> "}//namespace Text\n"
 #SAP
 < SAP_DECODER_DESCRIPTION
 > "Slight Atari Player Sound Format"
+
+#HES
+< HES_DECODER_DESCRIPTION
+> "Home Entertainment System"
