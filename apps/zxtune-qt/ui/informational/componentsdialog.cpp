@@ -89,6 +89,7 @@ namespace
       PlayersByDeviceType[RP2A0X] = CreateTreeWidgetItem(Players, "RP2A03/RP2A07");
       PlayersByDeviceType[PAPU] = CreateTreeWidgetItem(Players, "Pseudo Audio Processing Unit");
       PlayersByDeviceType[CO12294] = CreateTreeWidgetItem(Players, "CO12294/POKEY");
+      PlayersByDeviceType[HUC6270] = CreateTreeWidgetItem(Players, "HuC6270");
     }
     
     void FillContainersByTypes()
