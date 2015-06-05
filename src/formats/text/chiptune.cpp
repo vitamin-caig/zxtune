@@ -113,6 +113,10 @@ extern const Char PSG_DECODER_DESCRIPTION[] = {
 extern const Char SAMPLETRACKER_DECODER_DESCRIPTION[] = {
   'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
 };
+extern const Char SAP_DECODER_DESCRIPTION[] = {
+  'S','l','i','g','h','t',' ','A','t','a','r','i',' ','P','l','a','y','e','r',' ','S','o','u','n','d',' ','F',
+  'o','r','m','a','t',0
+};
 extern const Char SID_DECODER_DESCRIPTION[] = {
   'C','o','m','m','o','d','o','r','e','6','4',' ','R','S','I','D','/','P','S','I','D',0
 };

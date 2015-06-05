@@ -20,5 +20,6 @@ namespace Formats
     Decoder::Ptr CreateNSFDecoder();
     Decoder::Ptr CreateNSFEDecoder();
     Decoder::Ptr CreateGBSDecoder();
+    Decoder::Ptr CreateSAPDecoder();
   }
 }

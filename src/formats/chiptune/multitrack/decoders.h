@@ -21,5 +21,6 @@ namespace Formats
     Decoder::Ptr CreateNSFDecoder(Formats::Multitrack::Decoder::Ptr decoder);
     Decoder::Ptr CreateNSFEDecoder(Formats::Multitrack::Decoder::Ptr decoder);
     Decoder::Ptr CreateGBSDecoder(Formats::Multitrack::Decoder::Ptr decoder);
+    Decoder::Ptr CreateSAPDecoder(Formats::Multitrack::Decoder::Ptr decoder);
   }
 }

@@ -27,6 +27,9 @@ extern const Char NSFE_ARCHIVE_DECODER_DESCRIPTION[] = {
 extern const Char NSF_ARCHIVE_DECODER_DESCRIPTION[] = {
   'M','u','l','t','i','-','N','S','F',0
 };
+extern const Char SAP_ARCHIVE_DECODER_DESCRIPTION[] = {
+  'M','u','l','t','i','-','S','A','P',0
+};
 extern const Char SCL_DECODER_DESCRIPTION[] = {
   'S','C','L',' ','(','S','I','N','C','L','A','I','R',')',0
 };

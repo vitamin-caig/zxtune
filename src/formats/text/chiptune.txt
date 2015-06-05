@@ -236,3 +236,7 @@ __cpp> "}//namespace Text\n"
 #GBS
 < GBS_DECODER_DESCRIPTION
 > "GameBoy Sound"
+
+#SAP
+< SAP_DECODER_DESCRIPTION
+> "Slight Atari Player Sound Format"

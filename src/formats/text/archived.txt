@@ -56,3 +56,7 @@ __cpp> "}//namespace Text\n"
 #GBS
 < GBS_ARCHIVE_DECODER_DESCRIPTION
 > "Multi-GBS"
+
+#SAP
+< SAP_ARCHIVE_DECODER_DESCRIPTION
+> "Multi-SAP"
