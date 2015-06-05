@@ -79,15 +79,16 @@ namespace
     void FillPlayersByDevices()
     {
       using namespace ZXTune::Capabilities::Module::Device;
-      PlayersByDeviceType[AY38910 | TURBOSOUND] = CreateTreeWidgetItem(Players, "AY-3-8910/YM2149F/Turbosound");
+      PlayersByDeviceType[AY38910] = PlayersByDeviceType[TURBOSOUND] = CreateTreeWidgetItem(Players, "AY-3-8910/YM2149F/Turbosound");
       PlayersByDeviceType[DAC] = CreateTreeWidgetItem(Players, "DAC");
-      PlayersByDeviceType[YM2203 | TURBOFM] = CreateTreeWidgetItem(Players, "YM2203/TurboFM");
+      PlayersByDeviceType[YM2203] = PlayersByDeviceType[TURBOFM] = CreateTreeWidgetItem(Players, "YM2203/TurboFM");
       PlayersByDeviceType[SAA1099] = CreateTreeWidgetItem(Players, "SAA1099");
       PlayersByDeviceType[MOS6581] = CreateTreeWidgetItem(Players, "MOS6581/SID");
       PlayersByDeviceType[SPC700] = CreateTreeWidgetItem(Players, "SPC700");
       PlayersByDeviceType[MULTI] = CreateTreeWidgetItem(Players, QT_TRANSLATE_NOOP("ComponentsDialog", "Multidevice"));
       PlayersByDeviceType[RP2A0X] = CreateTreeWidgetItem(Players, "RP2A03/RP2A07");
       PlayersByDeviceType[PAPU] = CreateTreeWidgetItem(Players, "Pseudo Audio Processing Unit");
+      PlayersByDeviceType[CO12294] = CreateTreeWidgetItem(Players, "CO12294/POKEY");
     }
     
     void FillContainersByTypes()
