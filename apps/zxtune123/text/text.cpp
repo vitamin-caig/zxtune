@@ -343,6 +343,9 @@ extern const Char INFO_DEV_CO12294[] = {
 extern const Char INFO_DEV_DAC[] = {
   'd','e','v','_','d','a','c',0
 };
+extern const Char INFO_DEV_HUC6270[] = {
+  'd','e','v','_','h','u','c','6','2','7','0',0
+};
 extern const Char INFO_DEV_MOS6581[] = {
   'd','e','v','_','m','o','s','6','5','8','1',0
 };

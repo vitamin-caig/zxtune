@@ -67,6 +67,9 @@
 < INFO_DEV_CO12294
 > INFO_DEV_PREFIX "co12294"
 
+< INFO_DEV_HUC6270
+> INFO_DEV_PREFIX "huc6270"
+
 #module conversion
 = INFO_CONV_PREFIX
 > "conv_"
