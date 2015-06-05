@@ -91,6 +91,7 @@ namespace ZXTune
           RP2A0X     = 0x00004000,
           PAPU       = 0x00008000,
           CO12294    = 0x00010000,
+          HUC6270    = 0x00020000,
 
           MASK       = 0x000ffff0
         };

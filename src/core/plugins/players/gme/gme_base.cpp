@@ -21,6 +21,7 @@
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
+#include <formats/chiptune/decoders.h>
 #include <formats/multitrack/decoders.h>
 #include <formats/chiptune/multitrack/decoders.h>
 #include <formats/chiptune/multitrack/multitrack.h>
@@ -35,6 +36,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 //3rdparty
 #include <3rdparty/gme/gme/Gbs_Emu.h>
+#include <3rdparty/gme/gme/Hes_Emu.h>
 #include <3rdparty/gme/gme/Nsf_Emu.h>
 #include <3rdparty/gme/gme/Nsfe_Emu.h>
 #include <3rdparty/gme/gme/Sap_Emu.h>
@@ -271,30 +273,70 @@ namespace GME
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
-  
-  typedef Formats::Multitrack::Decoder::Ptr (*MultitrackDecoderCreator)();
-  typedef Formats::Chiptune::Decoder::Ptr (*ChiptuneDecoderCreator)(Formats::Multitrack::Decoder::Ptr);
-  
+
   struct PluginDescription
   {
     const String Id;
     const uint_t ChiptuneCaps;
-    const MultitrackDecoderCreator CreateMultitrackDecoder;
-    const ChiptuneDecoderCreator CreateChiptuneDecoder;
     const EmuCreator CreateEmu;
   };
   
-  bool HasContainer(const String& type, Parameters::Accessor::Ptr params)
+  uint_t GetInformation(const GME& gme, PropertiesBuilder& propBuilder)
   {
-    Parameters::StringType container;
-    Require(params->FindValue(Module::ATTR_CONTAINER, container));
-    return container == type || boost::algorithm::ends_with(container, ">" + type);
+    static const Time::Milliseconds DEFAULT_DURATION(120000);
+
+    ::track_info_t info;
+    gme.GetInfo(info);
+    
+    const String& system = OptimizeString(FromStdString(info.system));
+    const String& song = OptimizeString(FromStdString(info.song));
+    const String& game = OptimizeString(FromStdString(info.game));
+    const String& author = OptimizeString(FromStdString(info.author));
+    const String& comment = OptimizeString(FromStdString(info.comment));
+    const String& copyright = OptimizeString(FromStdString(info.copyright));
+    const String& dumper = OptimizeString(FromStdString(info.dumper));
+    
+    if (!system.empty())
+    {
+      propBuilder.SetValue(ATTR_COMPUTER, system);
+    }
+    if (!song.empty())
+    {
+      propBuilder.SetTitle(song);
+      propBuilder.SetProgram(game);
+    }
+    else
+    {
+      propBuilder.SetTitle(game);
+    }
+    if (!author.empty())
+    {
+      propBuilder.SetAuthor(author);
+    }
+    else
+    {
+      propBuilder.SetAuthor(dumper);
+    }
+    if (!comment.empty())
+    {
+      propBuilder.SetComment(comment);
+    }
+    else if (!copyright.empty())
+    {
+      propBuilder.SetComment(copyright);
+    }
+    
+    const Time::Milliseconds duration = info.length > 0 ? Time::Milliseconds(info.length) : DEFAULT_DURATION;
+    const Time::Milliseconds period = Time::Milliseconds(20);
+    propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(period).Get());
+    const uint_t frames = duration.Get() / period.Get();
+    return frames;
   }
   
-  class Factory : public Module::Factory
+  class MultitrackFactory : public Module::Factory
   {
   public:
-    Factory(const PluginDescription& desc, Formats::Multitrack::Decoder::Ptr decoder)
+    MultitrackFactory(const PluginDescription& desc, Formats::Multitrack::Decoder::Ptr decoder)
       : Desc(desc)
       , Decoder(decoder)
     {
@@ -333,95 +375,130 @@ namespace GME
       return Module::Holder::Ptr();
     }
   private:
-    static uint_t GetInformation(const GME& gme, PropertiesBuilder& propBuilder)
+    static bool HasContainer(const String& type, Parameters::Accessor::Ptr params)
     {
-      static const Time::Milliseconds DEFAULT_DURATION(120000);
-
-      ::track_info_t info;
-      gme.GetInfo(info);
-      
-      const String& system = OptimizeString(FromStdString(info.system));
-      const String& song = OptimizeString(FromStdString(info.song));
-      const String& game = OptimizeString(FromStdString(info.game));
-      const String& author = OptimizeString(FromStdString(info.author));
-      const String& comment = OptimizeString(FromStdString(info.comment));
-      const String& copyright = OptimizeString(FromStdString(info.copyright));
-      const String& dumper = OptimizeString(FromStdString(info.dumper));
-      
-      if (!system.empty())
-      {
-        propBuilder.SetValue(ATTR_COMPUTER, system);
-      }
-      if (!song.empty())
-      {
-        propBuilder.SetTitle(song);
-        propBuilder.SetProgram(game);
-      }
-      else
-      {
-        propBuilder.SetTitle(game);
-      }
-      if (!author.empty())
-      {
-        propBuilder.SetAuthor(author);
-      }
-      else
-      {
-        propBuilder.SetAuthor(dumper);
-      }
-      if (!comment.empty())
-      {
-        propBuilder.SetComment(comment);
-      }
-      else if (!copyright.empty())
-      {
-        propBuilder.SetComment(copyright);
-      }
-      
-      const Time::Milliseconds duration = info.length > 0 ? Time::Milliseconds(info.length) : DEFAULT_DURATION;
-      const Time::Milliseconds period = Time::Milliseconds(20);
-      propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(period).Get());
-      const uint_t frames = duration.Get() / period.Get();
-      return frames;
+      Parameters::StringType container;
+      Require(params->FindValue(Module::ATTR_CONTAINER, container));
+      return container == type || boost::algorithm::ends_with(container, ">" + type);
     }
   private:
     const PluginDescription Desc;
     const Formats::Multitrack::Decoder::Ptr Decoder;
   };
   
-  const PluginDescription MULTITRACK_PLUGINS[] =
+  class SingletrackFactory : public Module::Factory
+  {
+  public:
+    SingletrackFactory(const PluginDescription& desc, Formats::Chiptune::Decoder::Ptr decoder)
+      : Desc(desc)
+      , Decoder(decoder)
+    {
+    }
+    
+    virtual Module::Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    {
+      try
+      {
+        if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
+        {
+          const Parameters::Accessor::Ptr props = propBuilder.GetResult();
+          const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(props);
+
+          const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, soundParams->SoundFreq());
+        
+          tune->SetTrack(0);
+        
+          const uint_t frames = GetInformation(*tune, propBuilder);
+          const Information::Ptr info = CreateStreamInfo(frames);
+        
+          propBuilder.SetSource(*container);
+        
+          return boost::make_shared<Holder>(tune, info, props);
+        }
+      }
+      catch (const std::exception& e)
+      {
+        Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
+      }
+      return Module::Holder::Ptr();
+    }
+  private:
+    const PluginDescription Desc;
+    const Formats::Chiptune::Decoder::Ptr Decoder;
+  };
+
+  struct MultitrackPluginDescription
+  {
+    typedef Formats::Multitrack::Decoder::Ptr (*MultitrackDecoderCreator)();
+    typedef Formats::Chiptune::Decoder::Ptr (*ChiptuneDecoderCreator)(Formats::Multitrack::Decoder::Ptr);
+
+    PluginDescription Desc;
+    const MultitrackDecoderCreator CreateMultitrackDecoder;
+    const ChiptuneDecoderCreator CreateChiptuneDecoder;
+  };
+  
+  const MultitrackPluginDescription MULTITRACK_PLUGINS[] =
   {
     //nsf
     {
-      "NSF",
-      ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
+      {
+        "NSF",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
+        &Create< ::Nsf_Emu>
+      },
       &Formats::Multitrack::CreateNSFDecoder,
       &Formats::Chiptune::CreateNSFDecoder,
-      &Create< ::Nsf_Emu>
     },
     //nsfe
     {
-      "NSFE",
-      ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
+      {
+        "NSFE",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
+        &Create< ::Nsfe_Emu>
+      },
       &Formats::Multitrack::CreateNSFEDecoder,
       &Formats::Chiptune::CreateNSFEDecoder,
-      &Create< ::Nsfe_Emu>
     },
     //gbs
     {
-      "GBS",
-      ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::PAPU,
+      {
+        "GBS",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::PAPU,
+        &Create< ::Gbs_Emu>
+      },
       &Formats::Multitrack::CreateGBSDecoder,
       &Formats::Chiptune::CreateGBSDecoder,
-      &Create< ::Gbs_Emu>
     },
     //sap
     {
-      "SAP",
-      ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
+      {
+        "SAP",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
+        &Create< ::Sap_Emu>
+      },
       &Formats::Multitrack::CreateSAPDecoder,
       &Formats::Chiptune::CreateSAPDecoder,
-      &Create< ::Sap_Emu>
+    }
+  };
+  
+  struct SingletrackPluginDescription
+  {
+    typedef Formats::Chiptune::Decoder::Ptr (*ChiptuneDecoderCreator)();
+
+    PluginDescription Desc;
+    const ChiptuneDecoderCreator CreateChiptuneDecoder;
+  };
+
+  const SingletrackPluginDescription SINGLETRACK_PLUGINS[] =
+  {
+    //hes
+    {
+      {
+        "HES",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::HUC6270,
+        &Create< ::Hes_Emu>
+      },
+      &Formats::Chiptune::CreateHESDecoder
     }
   };
 }
@@ -431,15 +508,29 @@ namespace ZXTune
 {
   void RegisterMultitrackGMEPlugins(PlayerPluginsRegistrator& registrator)
   {
-    for (const Module::GME::PluginDescription* it = Module::GME::MULTITRACK_PLUGINS; it != boost::end(Module::GME::MULTITRACK_PLUGINS); ++it)
+    for (const Module::GME::MultitrackPluginDescription* it = Module::GME::MULTITRACK_PLUGINS; it != boost::end(Module::GME::MULTITRACK_PLUGINS); ++it)
     {
-      const Module::GME::PluginDescription& desc = *it;
+      const Module::GME::MultitrackPluginDescription& desc = *it;
 
       const Formats::Multitrack::Decoder::Ptr multi = desc.CreateMultitrackDecoder();
-      const uint_t caps = desc.ChiptuneCaps;
+      const uint_t caps = desc.Desc.ChiptuneCaps;
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder(multi);
-      const Module::Factory::Ptr factory = boost::make_shared<Module::GME::Factory>(desc, multi);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Id, caps, decoder, factory);
+      const Module::Factory::Ptr factory = boost::make_shared<Module::GME::MultitrackFactory>(desc.Desc, multi);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
+      registrator.RegisterPlugin(plugin);
+    }
+  }
+  
+  void RegisterSingletrackGMEPlugins(PlayerPluginsRegistrator& registrator)
+  {
+    for (const Module::GME::SingletrackPluginDescription* it = Module::GME::SINGLETRACK_PLUGINS; it != boost::end(Module::GME::SINGLETRACK_PLUGINS); ++it)
+    {
+      const Module::GME::SingletrackPluginDescription& desc = *it;
+
+      const uint_t caps = desc.Desc.ChiptuneCaps;
+      const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder();
+      const Module::Factory::Ptr factory = boost::make_shared<Module::GME::SingletrackFactory>(desc.Desc, decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }
@@ -447,5 +538,6 @@ namespace ZXTune
   void RegisterGMEPlugins(PlayerPluginsRegistrator& registrator)
   {
     RegisterMultitrackGMEPlugins(registrator);
+    RegisterSingletrackGMEPlugins(registrator);
   }
 }
