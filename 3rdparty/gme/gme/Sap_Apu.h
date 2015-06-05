@@ -7,6 +7,8 @@
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
 
+struct voice_status_t;
+
 class Sap_Apu_Impl;
 
 class Sap_Apu {
@@ -21,6 +23,9 @@ public:
 	void write_data( blip_time_t, unsigned addr, int data );
 	
 	void end_frame( blip_time_t );
+
+  // returns count of elements filled in buf (up to buf_size)
+  int osc_status( voice_status_t* buf, int buf_size ) const;
 	
 public:
 	Sap_Apu();

@@ -36,6 +36,7 @@ protected:
 	blargg_err_t run_clocks( blip_time_t&, int );
 	void set_tempo_( double );
 	void set_voice( int, Blip_Buffer*, Blip_Buffer*, Blip_Buffer* );
+  virtual int voices_status( voice_status_t* buf, int buf_size ) const;
 	void update_eq( blip_eq_t const& );
 public: private: friend class Sap_Cpu;
 	int cpu_read( sap_addr_t );

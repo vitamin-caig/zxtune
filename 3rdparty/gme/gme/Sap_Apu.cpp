@@ -16,6 +16,7 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+#include "gme.h"
 
 int const max_frequency = 12000; // pure waves above this frequency are silenced
 
@@ -331,4 +332,24 @@ void Sap_Apu::end_frame( blip_time_t end_time )
 		run_until( end_time );
 	
 	last_time -= end_time;
+}
+
+int Sap_Apu::osc_status( voice_status_t* buf, int buf_size ) const
+{
+  //http://en.wikipedia.org/wiki/POKEY
+  int voices = 0;
+  for ( int idx = 0; idx < osc_count && voices < buf_size; ++idx )
+  {
+    const osc_t& osc = oscs [idx];
+  	const blip_time_t period = osc.period;
+  	const int control = osc.regs [1];
+	  const int volume = control & 0x0F;
+    if ( period != 0 && volume != 0 && !(control & 0x10) )
+    {
+      buf[voices].level = volume * voice_max_level / 15;
+      buf[voices].divider = 2 * period;
+      ++voices;
+    }
+  }
+  return voices;
 }
