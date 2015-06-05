@@ -337,6 +337,9 @@ extern const Char INFO_DEV_AY38910[] = {
 extern const Char INFO_DEV_BEEPER[] = {
   'd','e','v','_','b','e','e','p','e','r',0
 };
+extern const Char INFO_DEV_CO12294[] = {
+  'd','e','v','_','c','o','1','2','2','9','4',0
+};
 extern const Char INFO_DEV_DAC[] = {
   'd','e','v','_','d','a','c',0
 };

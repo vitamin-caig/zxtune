@@ -64,6 +64,9 @@
 < INFO_DEV_PAPU
 > INFO_DEV_PREFIX "papu"
 
+< INFO_DEV_CO12294
+> INFO_DEV_PREFIX "co12294"
+
 #module conversion
 = INFO_CONV_PREFIX
 > "conv_"
