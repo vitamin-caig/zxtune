@@ -7,9 +7,12 @@
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
 
+struct voice_status_t;
+
 struct Hes_Osc
 {
-	unsigned char wave [32];
+  enum { wave_size = 32 };
+	unsigned char wave [wave_size];
 	short volume [2];
 	int last_amp [2];
 	int delay;
@@ -39,6 +42,9 @@ public:
 	enum { osc_count = 6 };
 	void osc_output( int index, Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right );
 	
+  // returns count of elements filled in buf (up to buf_size)
+  int osc_status( voice_status_t* buf, int buf_size ) const;
+  
 	void reset();
 	
 	enum { start_addr = 0x0800 };

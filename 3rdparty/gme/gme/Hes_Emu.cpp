@@ -196,6 +196,20 @@ void Hes_Emu::set_voice( int i, Blip_Buffer* center, Blip_Buffer* left, Blip_Buf
 	apu.osc_output( i, center, left, right );
 }
 
+int Hes_Emu::voices_status( voice_status_t* buf, int buf_size ) const
+{
+  voice_status_t* out = buf;
+  voice_status_t* const end = buf + buf_size;
+  out += apu.osc_status( out, end - out );
+
+  const int freq = clock_rate();
+  for (voice_status_t* fix = buf; fix != out; ++fix)
+  {
+    fix->frequency = freq;
+  }
+  return out - buf;
+}
+
 // Emulation
 
 void Hes_Emu::recalc_timer_load()

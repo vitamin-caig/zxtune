@@ -16,6 +16,7 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+#include "gme.h"
 
 bool const center_waves = true; // reduces asymmetry and clamping when starting notes
 
@@ -67,6 +68,45 @@ void Hes_Apu::osc_output( int index, Blip_Buffer* center, Blip_Buffer* left, Bli
 		balance_changed( *osc );
 	}
 	while ( osc != oscs );
+}
+
+int Hes_Apu::osc_status( voice_status_t* buf, int buf_size ) const
+{
+  //http://www.interlog.com/~daves/pce_info/pcesound.txt
+  int voices = 0;
+  for ( int idx = 0; idx < osc_count && voices < buf_size; ++idx )
+  {
+    const Hes_Osc& osc = oscs [idx];
+  	const int control = osc.control;
+    if (  control & 0x80 )
+    {
+      voice_status_t& voice = buf[voices];
+      if ( osc.noise & 0x80 )
+      {
+        //noise
+        voice.divider = (32 - (osc.noise & 0x1F)) * 64;
+      }
+  		else if ( !(control & 0x40) )
+      {
+        //wave
+        voice.divider = osc.period * 2 * Hes_Osc::wave_size;
+      }
+      else
+      {
+        //dac
+        voice.divider = 0;
+      }
+      const int volume = 2 * ((osc.control & 0x1F) - 0x1E * 2)
+        + (osc.balance >> 3 & 0x1E) + (balance >> 3 & 0x1E)
+        + (osc.balance << 1 & 0x1E) + (balance << 1 & 0x1E);
+      if ( voice.divider != 0 && volume > 0 )
+      {
+        voice.level = volume * voice_max_level / 0x3E;
+        ++voices;
+      }
+    }
+  }
+  return voices;
 }
 
 void Hes_Osc::run_until( synth_t& synth_, blip_time_t end_time )
@@ -130,14 +170,14 @@ void Hes_Osc::run_until( synth_t& synth_, blip_time_t end_time )
 			else if ( !(control & 0x40) )
 			{
 				// wave
-				int phase = (this->phase + 1) & 0x1F; // pre-advance for optimal inner loop
+				int phase = (this->phase + 1) & (wave_size - 1); // pre-advance for optimal inner loop
 				int period = this->period * 2;
 				if ( period >= 14 && (volume_0 | volume_1) )
 				{
 					do
 					{
 						int new_dac = wave [phase];
-						phase = (phase + 1) & 0x1F;
+						phase = (phase + 1) & (wave_size - 1);
 						int delta = new_dac - dac;
 						if ( delta )
 						{
@@ -166,7 +206,7 @@ void Hes_Osc::run_until( synth_t& synth_, blip_time_t end_time )
 					phase += count; // phase will be masked below
 					time += count * period;
 				}
-				this->phase = (phase - 1) & 0x1F; // undo pre-advance
+				this->phase = (phase - 1) & (wave_size - 1); // undo pre-advance
 			}
 		}
 		time -= end_time;
