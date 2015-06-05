@@ -37,6 +37,7 @@
 #include <3rdparty/gme/gme/Gbs_Emu.h>
 #include <3rdparty/gme/gme/Nsf_Emu.h>
 #include <3rdparty/gme/gme/Nsfe_Emu.h>
+#include <3rdparty/gme/gme/Sap_Emu.h>
 
 namespace
 {
@@ -413,6 +414,14 @@ namespace GME
       &Formats::Multitrack::CreateGBSDecoder,
       &Formats::Chiptune::CreateGBSDecoder,
       &Create< ::Gbs_Emu>
+    },
+    //sap
+    {
+      "SAP",
+      ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
+      &Formats::Multitrack::CreateSAPDecoder,
+      &Formats::Chiptune::CreateSAPDecoder,
+      &Create< ::Sap_Emu>
     }
   };
 }

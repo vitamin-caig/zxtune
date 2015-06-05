@@ -90,8 +90,9 @@ namespace ZXTune
           MULTI      = 0x00002000,
           RP2A0X     = 0x00004000,
           PAPU       = 0x00008000,
+          CO12294    = 0x00010000,
 
-          MASK       = 0x0000fff0
+          MASK       = 0x000ffff0
         };
       }
       
@@ -99,15 +100,15 @@ namespace ZXTune
       {
         enum
         {
-          OUT        = 0x00010000,
-          PSG        = 0x00020000,
-          YM         = 0x00040000,
-          ZX50       = 0x00080000,
-          TXT        = 0x00100000,
-          AYDUMP     = 0x00200000,
-          FYM        = 0x00400000,
+          OUT        = 0x00100000,
+          PSG        = 0x00200000,
+          YM         = 0x00400000,
+          ZX50       = 0x00800000,
+          TXT        = 0x01000000,
+          AYDUMP     = 0x02000000,
+          FYM        = 0x04000000,
 
-          MASK       = 0x00ff0000
+          MASK       = 0x0ff00000
         };
       }
     }
