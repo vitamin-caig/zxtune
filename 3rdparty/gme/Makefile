@@ -15,4 +15,7 @@ source_files += $(addprefix gme/,Nes_Namco_Apu.cpp Nes_Vrc6_Apu.cpp Nes_Fme7_Apu
 #gbs
 source_files += $(addprefix gme/,Gbs_Emu.cpp Gb_Apu.cpp Gb_Cpu.cpp Gb_Oscs.cpp)
 
+#sap
+source_files += $(addprefix gme/,Sap_Emu.cpp Sap_Apu.cpp Sap_Cpu.cpp)
+
 include $(path_step)/makefile.mak
