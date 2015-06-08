@@ -16,5 +16,6 @@ namespace ZXTune
   void RegisterContainerPlugins(ArchivePluginsRegistrator& registrator)
   {
     RegisterMultitrackContainers(registrator);
+    RegisterArchiveContainers(registrator);
   }
 }
