@@ -15,6 +15,8 @@
 	#error "GB_APU_OVERCLOCK must be a power of 2"
 #endif
 
+struct voice_status_t;
+
 class Gb_Osc {
 protected:
 	
@@ -79,6 +81,7 @@ public:
 		Gb_Env::reset();
 		delay = 0x40000000; // TODO: something less hacky (never clocked until first trigger)
 	}
+	int status( voice_status_t* stat ) const;
 private:
 	// Frequency timer period
 	int period() const { return (2048 - frequency()) * (4 * clk_mul); }
@@ -123,7 +126,7 @@ public:
 		Gb_Env::reset();
 		delay = 4 * clk_mul; // TODO: remove?
 	}
-
+	int status( voice_status_t* stat ) const;
 private:
 	enum { period2_mask = 0x1FFFF };
 	
@@ -148,7 +151,7 @@ public:
 		sample_buf = 0;
 		Gb_Osc::reset();
 	}
-	
+	int status( voice_status_t* stat ) const;
 private:
 	enum { bank40_mask = 0x40 };
 	enum { bank_size   = 32 };

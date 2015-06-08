@@ -107,6 +107,11 @@ void Music_Emu::mute_voices( int mask )
 	mute_voices_( mask );
 }
 
+int Music_Emu::voices_status( voice_status_t* buf, int buf_size ) const
+{
+	return voices_status_( buf, buf_size );
+}
+
 const char* Music_Emu::voice_name( int i ) const
 {
 	if ( (unsigned) i < (unsigned) voice_count_ )

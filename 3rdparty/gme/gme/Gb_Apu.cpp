@@ -16,6 +16,7 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+#include "gme.h"
 
 int const vol_reg    = 0xFF24;
 int const stereo_reg = 0xFF25;
@@ -53,6 +54,29 @@ void Gb_Apu::set_output( int i, Blip_Buffer* center, Blip_Buffer* left, Blip_Buf
 	o.outputs [2] = left;
 	o.outputs [3] = center;
 	o.output = o.outputs [calc_output( i )];
+}
+
+int Gb_Apu::osc_status( voice_status_t* buf, int buf_size ) const
+{
+	//http://emu-docs.org/Game%20Boy/gb_sound.txt
+	int voices = 0;
+	if ( voices < buf_size )
+	{
+		voices += square1.status( buf + voices );
+	}
+	if ( voices < buf_size )
+	{
+		voices += square2.status( buf + voices );
+	}
+	if ( voices < buf_size )
+	{
+		voices += wave.status( buf + voices );
+	}
+	if ( voices < buf_size )
+	{
+		voices += noise.status( buf + voices );
+	}
+	return voices;
 }
 
 void Gb_Apu::synth_volume( int iv )

@@ -42,6 +42,7 @@ protected:
 	virtual blargg_err_t run_clocks( blip_time_t&, int );
 	virtual void set_tempo_( double );
 	virtual void set_voice( int, Blip_Buffer*, Blip_Buffer*, Blip_Buffer* );
+	virtual int voices_status_( voice_status_t* buf, int buf_size ) const;
 	virtual void update_eq( blip_eq_t const& );
 
 private:

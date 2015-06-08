@@ -50,6 +50,9 @@ public:
 	void set_output( int chan, Blip_Buffer* center,
 			Blip_Buffer* left = NULL, Blip_Buffer* right = NULL );
 	
+	// returns count of elements filled in buf (up to buf_size)
+	int osc_status( voice_status_t* buf, int buf_size ) const;
+
 	// Sets overall volume, where 1.0 is normal
 	void volume( double );
 	

@@ -7,6 +7,8 @@
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
 
+struct voice_status_t;
+
 class Sap_Apu_Impl;
 
 class Sap_Apu {
@@ -35,7 +37,8 @@ public:
 	// Registers are at io_addr to io_addr+io_size-1
 	enum { io_addr = 0xD200 };
 	enum { io_size = 0x0A };
-	
+	int osc_status( voice_status_t* buf, int buf_size ) const;
+
 private:
 	// noncopyable
 	Sap_Apu( const Sap_Apu& );

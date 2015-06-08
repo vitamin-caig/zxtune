@@ -380,6 +380,24 @@ void Sap_Emu::set_voice( int i, Blip_Buffer* center, Blip_Buffer* left, Blip_Buf
 		core.apu().set_output( i, (info_.stereo ? left : center) );
 }
 
+int Sap_Emu::voices_status_( voice_status_t* buf, int buf_size ) const
+{
+	voice_status_t* out = buf;
+	voice_status_t* const end = buf + buf_size;
+	out += core.apu().osc_status( out, end - out );
+	if ( info_.stereo && end > out )
+	{
+		out += core.apu2().osc_status( out, end - out );
+	}
+	
+	const int freq = clock_rate();
+	for (voice_status_t* fix = buf; fix != out; ++fix)
+	{
+		fix->frequency = freq;
+	}
+	return out - buf;
+}
+
 // Emulation
 
 void Sap_Emu::set_tempo_( double t )
