@@ -115,6 +115,9 @@ global scope already. */
 		UCHAR_MAX != 0xFF || USHRT_MAX != 0xFFFF || UINT_MAX != 0xFFFFFFFF
 	#include <stdint.h>
 	#define BOOST
+#elif defined (HAVE_BOOST)
+  #include <boost/cstdint.hpp>
+  #define BOOST boost
 #else
 	struct BOOST
 	{

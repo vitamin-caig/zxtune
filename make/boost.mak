@@ -10,3 +10,5 @@ boost.libs = $(prebuilt.dir)/boost-$(boost.version)-$(platform)-$(arch)/lib
 endif
 include_dirs += $(boost.includes)
 $(platform)_libraries_dirs += $(boost.libs)
+
+defines += HAVE_BOOST
