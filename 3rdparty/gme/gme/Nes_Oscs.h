@@ -1,6 +1,6 @@
 // Private oscillators used by Nes_Apu
 
-// Nes_Snd_Emu 0.1.8
+// Nes_Snd_Emu $vers
 #ifndef NES_OSCS_H
 #define NES_OSCS_H
 
@@ -8,10 +8,11 @@
 #include "Blip_Buffer.h"
 
 class Nes_Apu;
-struct voice_status_t;
 
 struct Nes_Osc
 {
+	typedef int nes_time_t;
+	
 	unsigned char regs [4];
 	bool reg_written [4];
 	Blip_Buffer* output;
@@ -57,7 +58,7 @@ struct Nes_Square : Nes_Envelope
 	int phase;
 	int sweep_delay;
 	
-	typedef Blip_Synth<blip_good_quality,1> Synth;
+	typedef Blip_Synth_Norm Synth;
 	Synth const& synth; // shared between squares
 	
 	Nes_Square( Synth const* s ) : synth( *s ) { }
@@ -68,7 +69,6 @@ struct Nes_Square : Nes_Envelope
 		sweep_delay = 0;
 		Nes_Envelope::reset();
 	}
-  int status( voice_status_t* stat ) const;
 	nes_time_t maintain_phase( nes_time_t time, nes_time_t end_time,
 			nes_time_t timer_period );
 };
@@ -79,7 +79,7 @@ struct Nes_Triangle : Nes_Osc
 	enum { phase_range = 16 };
 	int phase;
 	int linear_counter;
-	Blip_Synth<blip_med_quality,1> synth;
+	Blip_Synth_Fast synth;
 	
 	int calc_amp() const;
 	void run( nes_time_t, nes_time_t );
@@ -89,7 +89,6 @@ struct Nes_Triangle : Nes_Osc
 		phase = 1;
 		Nes_Osc::reset();
 	}
-  int status( voice_status_t* stat ) const;
 	nes_time_t maintain_phase( nes_time_t time, nes_time_t end_time,
 			nes_time_t timer_period );
 };
@@ -98,14 +97,13 @@ struct Nes_Triangle : Nes_Osc
 struct Nes_Noise : Nes_Envelope
 {
 	int noise;
-	Blip_Synth<blip_med_quality,1> synth;
+	Blip_Synth_Fast synth;
 	
 	void run( nes_time_t, nes_time_t );
 	void reset() {
 		noise = 1 << 14;
 		Nes_Envelope::reset();
 	}
-  int status( voice_status_t* stat ) const;
 };
 
 // Nes_Dmc
@@ -130,13 +128,11 @@ struct Nes_Dmc : Nes_Osc
 	bool pal_mode;
 	bool nonlinear;
 	
-	int (*prg_reader)( void*, nes_addr_t ); // needs to be initialized to prg read function
-	void* prg_reader_data;
-	
 	Nes_Apu* apu;
 	
-	Blip_Synth<blip_med_quality,1> synth;
+	Blip_Synth_Fast synth;
 	
+	int  update_amp_nonlinear( int dac_in );
 	void start();
 	void write_register( int, int );
 	void run( nes_time_t, nes_time_t );
