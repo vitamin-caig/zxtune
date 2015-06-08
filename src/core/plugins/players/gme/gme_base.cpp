@@ -203,15 +203,29 @@ namespace GME
 
     virtual void Reset()
     {
-      SoundParams.Reset();
-      Tune->Reset();
-      Iterator->Reset();
+      try
+      {
+        SoundParams.Reset();
+        Iterator->Reset();
+        Tune->Reset();
+      }
+      catch (const std::exception& e)
+      {
+        Dbg(e.what());
+      }
     }
 
     virtual void SetPosition(uint_t frame)
     {
-      SeekTune(frame);
-      Module::SeekIterator(*Iterator, frame);
+      try
+      {
+        Module::SeekIterator(*Iterator, frame);
+        SeekTune(frame);
+      }
+      catch (const std::exception& e)
+      {
+        Dbg(e.what());
+      }
     }
   private:
     void ApplyParameters()
