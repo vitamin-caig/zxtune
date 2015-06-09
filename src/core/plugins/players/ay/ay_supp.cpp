@@ -536,19 +536,15 @@ namespace AY
       CPU->Execute(til);
     }
 
-    void SeekState(const Devices::Z80::Stamp& til, const Devices::Z80::Stamp& frameStep)
+    void SkipFrames(uint_t count, const Devices::Z80::Stamp& frameStep)
     {
       const Devices::Z80::Stamp curTime = CPU->GetTime();
-      if (til < curTime)
-      {
-        Reset();
-      }
       CPUPorts->SetBlocked(true);
       Devices::Z80::Stamp pos = curTime;
-      while ((pos += frameStep) < til)
+      for (uint_t frame = 0; frame < count; ++frame)
       {
-        CPU->Interrupt();
-        CPU->Execute(pos);
+        pos += frameStep;
+        NextFrame(pos);
       }
       CPUPorts->SetBlocked(false);
       CPU->SetTime(curTime);
@@ -610,21 +606,24 @@ namespace AY
     virtual void SetPosition(uint_t frameNum)
     {
       uint_t curFrame = State->Frame();
-      if (curFrame > frameNum)
+      if (frameNum < curFrame)
       {
         //rewind
         Iterator->Reset();
+        Comp->Reset();
+        Device->Reset();
+        LastTime = Devices::Z80::Stamp();
         curFrame = 0;
       }
       SynchronizeParameters();
-      Devices::Z80::Stamp newTime = LastTime; 
+      uint_t toSkip = 0;
       while (curFrame < frameNum && Iterator->IsValid())
       {
-        newTime += FrameDuration;
         Iterator->NextFrame(true);
         ++curFrame;
+        ++toSkip;
       }
-      Comp->SeekState(newTime, FrameDuration);
+      Comp->SkipFrames(toSkip, FrameDuration);
     }
   private:
     void SynchronizeParameters()
