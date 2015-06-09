@@ -177,7 +177,6 @@ namespace Formats
       scanner.AddDecoder(CreateSCLDecoder());
       scanner.AddDecoder(CreateTRDDecoder());
       scanner.AddDecoder(CreateHripDecoder());
-      scanner.AddDecoder(CreateAYDecoder());
       scanner.AddDecoder(CreateLhaDecoder());
       scanner.AddDecoder(CreateZXStateDecoder());
       scanner.AddDecoder(CreateUMXDecoder());
@@ -220,6 +219,7 @@ namespace Formats
       scanner.AddDecoder(CreateZ80V30Decoder());
       scanner.AddDecoder(CreateMegaLZDecoder());
       scanner.AddDecoder(CreateDSKDecoder());
+      scanner.AddDecoder(CreateGzipDecoder());
       //players
       scanner.AddDecoder(CreateCompiledASC0Decoder());
       scanner.AddDecoder(CreateCompiledASC1Decoder());
