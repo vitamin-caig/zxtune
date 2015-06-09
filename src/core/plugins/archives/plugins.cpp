@@ -65,6 +65,7 @@ namespace
     {"Z80V30",   &CreateZ80V30Decoder,                    Capabilities::Container::Type::SNAPSHOT},
     {"MEGALZ",   &CreateMegaLZDecoder,                    Capabilities::Container::Type::COMPRESSOR},
     {"DSK",      &CreateDSKDecoder,                       Capabilities::Container::Type::DISKIMAGE},
+    {"GZIP",     &CreateGzipDecoder,                      Capabilities::Container::Type::COMPRESSOR},
   };
 
   const ArchivePluginDescription DECOMPILERS[] =
