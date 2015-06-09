@@ -33,6 +33,9 @@ extern const Char GAMPLUS_DECODER_DESCRIPTION[] = {
 extern const Char GAM_DECODER_DESCRIPTION[] = {
   'G','a','m','e','P','a','c','k','e','r',0
 };
+extern const Char GZIP_DECODER_DESCRIPTION[] = {
+  'G','Z','i','p',0
+};
 extern const Char HOBETA_DECODER_DESCRIPTION[] = {
   'H','o','b','e','t','a',0
 };
