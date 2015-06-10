@@ -40,6 +40,7 @@
 #include <3rdparty/gme/gme/Nsf_Emu.h>
 #include <3rdparty/gme/gme/Nsfe_Emu.h>
 #include <3rdparty/gme/gme/Sap_Emu.h>
+#include <3rdparty/gme/gme/Vgm_Emu.h>
 
 namespace
 {
@@ -513,6 +514,15 @@ namespace GME
         &Create< ::Hes_Emu>
       },
       &Formats::Chiptune::CreateHESDecoder
+    },
+    //vgm
+    {
+      {
+        "VGM",
+        ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI,
+        &Create< ::Vgm_Emu>
+      },
+      &Formats::Chiptune::CreateVideoGameMusicDecoder
     }
   };
 }
