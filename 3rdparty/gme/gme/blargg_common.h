@@ -5,9 +5,37 @@
 #ifndef BLARGG_COMMON_H
 #define BLARGG_COMMON_H
 
+/* BOOST::int8_t, BOOST::int32_t, etc.
+I used BOOST since I originally was going to allow use of the boost library
+for prividing the definitions. If I'm defining them, they must be scoped or
+else they could conflict with the standard ones at global scope. Even if
+HAVE_STDINT_H isn't defined, I can't assume the typedefs won't exist at
+global scope already. */
+#if defined (HAVE_STDINT_H) || \
+		UCHAR_MAX != 0xFF || USHRT_MAX != 0xFFFF || UINT_MAX != 0xFFFFFFFF
+	#include <stdint.h>
+	#define BOOST
+#elif defined (HAVE_BOOST)
+  //somehow conflicts with standard includes on msvc, so put it on top
+  #include <boost/cstdint.hpp>
+  #define BOOST boost
+#else
+	struct BOOST
+	{
+		typedef signed char        int8_t;
+		typedef unsigned char     uint8_t;
+		typedef short             int16_t;
+		typedef unsigned short   uint16_t;
+		typedef int               int32_t;
+		typedef unsigned int     uint32_t;
+		typedef __int64           int64_t;
+		typedef unsigned __int64 uint64_t;
+	};
+#endif
+
 #include <stdlib.h>
-#include <assert.h>
 #include <limits.h>
+#include <assert.h>
 
 typedef const char* blargg_err_t; // 0 on success, otherwise error string
 
@@ -103,33 +131,6 @@ we strip it out unless BLARGG_LEGACY is true. */
 	// By default, deprecated items are removed, to avoid use in new code
 	#define BLARGG_DEPRECATED_TEXT( text )
 	#define BLARGG_DEPRECATED(      text )
-#endif
-
-/* BOOST::int8_t, BOOST::int32_t, etc.
-I used BOOST since I originally was going to allow use of the boost library
-for prividing the definitions. If I'm defining them, they must be scoped or
-else they could conflict with the standard ones at global scope. Even if
-HAVE_STDINT_H isn't defined, I can't assume the typedefs won't exist at
-global scope already. */
-#if defined (HAVE_STDINT_H) || \
-		UCHAR_MAX != 0xFF || USHRT_MAX != 0xFFFF || UINT_MAX != 0xFFFFFFFF
-	#include <stdint.h>
-	#define BOOST
-#elif defined (HAVE_BOOST)
-  #include <boost/cstdint.hpp>
-  #define BOOST boost
-#else
-	struct BOOST
-	{
-		typedef signed char        int8_t;
-		typedef unsigned char     uint8_t;
-		typedef short             int16_t;
-		typedef unsigned short   uint16_t;
-		typedef int               int32_t;
-		typedef unsigned int     uint32_t;
-		typedef __int64           int64_t;
-		typedef unsigned __int64 uint64_t;
-	};
 #endif
 
 /* My code is not written with exceptions in mind, so either uses new (nothrow)
