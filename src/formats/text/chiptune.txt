@@ -244,3 +244,7 @@ __cpp> "}//namespace Text\n"
 #HES
 < HES_DECODER_DESCRIPTION
 > "Home Entertainment System"
+
+#VGM
+< VGM_DECODER_DESCRIPTION
+> "Video Game Music"

@@ -165,6 +165,9 @@ extern const Char TFMMUSICMAKER13_DECODER_DESCRIPTION[] = {
 extern const Char TURBOSOUND_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','S','o','u','n','d',0
 };
+extern const Char VGM_DECODER_DESCRIPTION[] = {
+  'V','i','d','e','o',' ','G','a','m','e',' ','M','u','s','i','c',0
+};
 extern const Char VORTEXTRACKER2_DECODER_DESCRIPTION[] = {
   'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','I','I',0
 };
