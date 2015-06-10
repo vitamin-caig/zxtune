@@ -13,6 +13,7 @@
 #include "playlist/io/import.h"
 #include "ui/utils.h"
 //common includes
+#include <contract.h>
 #include <error.h>
 //library includes
 #include <async/coroutine.h>
@@ -65,6 +66,7 @@ namespace
 
     virtual QString GetNext()
     {
+      Require(!Items.isEmpty());
       return Items.takeFirst();
     }
   private:
@@ -146,6 +148,7 @@ namespace
     virtual QString GetNext()
     {
       Prefetch();
+      Require(!Cache.isEmpty());
       return Cache.takeFirst();
     }
   private:
@@ -379,8 +382,14 @@ namespace
       ProgressCallbackAdapter cb(Callback, sched);
       while (!Queue->Empty())
       {
-        const QString file = Queue->GetNext();
-        ScanFile(file, cb);
+        try
+        {
+          const QString file = Queue->GetNext();
+          ScanFile(file, cb);
+        }
+        catch (const std::exception&)
+        {
+        }
       }
     }
   private:
