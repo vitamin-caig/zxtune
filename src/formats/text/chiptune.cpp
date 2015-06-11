@@ -60,6 +60,9 @@ extern const Char GLOBALTRACKER1_EDITOR[] = {
 extern const Char GLOBALTRACKER_DECODER_DESCRIPTION[] = {
   'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
+extern const Char GYM_DECODER_DESCRIPTION[] = {
+  'G','e','n','e','s','i','s',' ','Y','M','2','6','1','2',0
+};
 extern const Char HES_DECODER_DESCRIPTION[] = {
   'H','o','m','e',' ','E','n','t','e','r','t','a','i','n','m','e','n','t',' ','S','y','s','t','e','m',0
 };

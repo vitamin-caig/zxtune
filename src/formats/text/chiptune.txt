@@ -248,3 +248,7 @@ __cpp> "}//namespace Text\n"
 #VGM
 < VGM_DECODER_DESCRIPTION
 > "Video Game Music"
+
+#GYM
+< GYM_DECODER_DESCRIPTION
+> "Genesis YM2612 (unpacked)"

@@ -55,5 +55,6 @@ namespace Formats
     Decoder::Ptr CreateAYEMULDecoder();
     Decoder::Ptr CreateHESDecoder();
     Decoder::Ptr CreateVideoGameMusicDecoder();
+    Decoder::Ptr CreateGYMDecoder();
   }
 }
