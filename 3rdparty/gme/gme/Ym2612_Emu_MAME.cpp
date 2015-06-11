@@ -4,6 +4,7 @@
 #include "fm.h"
 
 #include "blargg_errors.h"
+#include "gme.h"
 
 // Ym2612_Emu
 
@@ -84,4 +85,20 @@ void Ym2612_Emu::run( int pair_count, sample_t* out )
 
 		pair_count -= todo;
 	}
+}
+
+int Ym2612_Emu::osc_status( voice_status_t* buf, int buf_size ) const
+{
+	int voices = 0;
+	int clockrate = 0;
+	int attenuations[Ym2612_Emu::channel_count] = {0};
+	int periods[Ym2612_Emu::channel_count] = {0};
+	for (int chan = 0, lim = ym2612_get_state( impl, &clockrate, attenuations, periods); voices < buf_size && chan < lim; ++chan, ++voices)
+	{
+		voice_status_t& voice = buf[voices];
+		voice.frequency = clockrate;
+		voice.level = (1023 - attenuations[chan]) * voice_max_level / 1024;
+		voice.divider = periods[chan];
+	}
+	return voices;
 }

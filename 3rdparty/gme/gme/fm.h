@@ -171,6 +171,9 @@ unsigned char ym2612_read(void *chip,int a);
 
 void ym2612_set_mutemask(void *chip, UINT32 MuteMask);
 void ym2612_setoptions(void *chip, UINT8 Flags);
+
+//return count of filled channels
+int ym2612_get_state(void* chip, int* clockrate, int *attenuations, int *periods);
 #endif /* (BUILD_YM2612||BUILD_YM3438) */
 
 #ifdef __cplusplus

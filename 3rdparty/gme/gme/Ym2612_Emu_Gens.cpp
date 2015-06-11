@@ -1297,3 +1297,5 @@ void Ym2612_Impl::run( int pair_count, Ym2612_Emu::sample_t out [] )
 }
 
 void Ym2612_Emu::run( int pair_count, sample_t out [] ) { impl->run( pair_count, out ); }
+
+int Ym2612_Emu::osc_status( voice_status_t* buf, int buf_size ) const { return 0; }

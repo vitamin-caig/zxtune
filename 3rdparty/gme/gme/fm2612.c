@@ -2631,4 +2631,59 @@ void ym2612_setoptions(void *chip, UINT8 Flags)
 	
 	return;
 }
+
+int ym2612_get_state(void *chip, int* clockrate, int *attenuations, int *periods)
+{
+	static const unsigned slotMap[8]={ 0x08,0x08,0x08,0x08,0x0c,0x0e,0x0e,0x0f };
+	YM2612 *F2612 = (YM2612 *)chip;
+
+	*clockrate = F2612->OPN.ST.clock;
+	int inChan = 0;
+	int outChan = 0;
+	for (inChan = 0; inChan < 6; ++inChan)
+	{
+		FM_CH* ch = F2612->CH + inChan;
+		if (ch->Muted)
+		{
+			continue;
+		}
+		const unsigned algo = slotMap[ch->ALGO&7];
+		unsigned att = 0;
+		unsigned div = 0;
+		if(algo&1)
+		{
+			att += ch->SLOT[SLOT1].vol_out; div++;
+		}
+		if(algo&2)
+		{
+			att += ch->SLOT[SLOT2].vol_out; div++;
+		}
+		if(algo&4)
+		{
+			att += ch->SLOT[SLOT3].vol_out; div++;
+		}
+		if(algo&8)
+		{
+			att += ch->SLOT[SLOT4].vol_out; div++;
+		}
+		if (div && att < MAX_ATT_INDEX * div)
+		{
+			attenuations[outChan] = att / div;
+			const int octave = ch->block_fnum >> 11;
+			const int counter = ch->block_fnum & 0x7ff;
+			const int prescaler = (6 * 24) << (11 + SIN_BITS);
+			if (counter != 0)
+			{
+				periods[outChan] = prescaler / (counter << octave);
+			}
+			else
+			{
+				periods[outChan] = prescaler;
+			}
+			++outChan;
+		}
+	}
+	return outChan;
+}
+
 #endif /* (BUILD_YM2612||BUILD_YM3238) */
