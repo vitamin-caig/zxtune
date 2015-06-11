@@ -49,5 +49,10 @@ source_files += $(addprefix gme/,Vgm_Emu.cpp Vgm_Core.cpp Fir_Resampler.cpp Dual
                   Ymf262_Emu.cpp dbopl.cpp \
                   Ymz280b_Emu.cpp ymz280b.c \
                  )
-
+                 
+#gym
+source_files += $(addprefix gme/,Gym_Emu.cpp)
+#                 Ym2612_Emu.cpp fm2612.c \
+#                 Sms_Apu.cpp \
+ 
 include $(path_step)/makefile.mak
