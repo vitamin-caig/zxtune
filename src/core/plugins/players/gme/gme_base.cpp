@@ -479,7 +479,7 @@ namespace GME
     {
       {
         "GBS",
-        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::PAPU,
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::LR35902,
         &Create< ::Gbs_Emu>
       },
       &Formats::Multitrack::CreateGBSDecoder,

@@ -103,7 +103,7 @@ namespace
       CapsPair(Capabilities::Module::Device::SPC700, Text::INFO_DEV_SPC700),
       CapsPair(Capabilities::Module::Device::MULTI, Text::INFO_DEV_MULTI),
       CapsPair(Capabilities::Module::Device::RP2A0X, Text::INFO_DEV_RP2A0X),
-      CapsPair(Capabilities::Module::Device::PAPU, Text::INFO_DEV_PAPU),
+      CapsPair(Capabilities::Module::Device::LR35902, Text::INFO_DEV_LR35902),
       CapsPair(Capabilities::Module::Device::CO12294, Text::INFO_DEV_CO12294),
       CapsPair(Capabilities::Module::Device::HUC6270, Text::INFO_DEV_HUC6270),
       //conversion caps

@@ -85,11 +85,11 @@ namespace
       PlayersByDeviceType[SAA1099] = CreateTreeWidgetItem(Players, "SAA1099");
       PlayersByDeviceType[MOS6581] = CreateTreeWidgetItem(Players, "MOS6581/SID");
       PlayersByDeviceType[SPC700] = CreateTreeWidgetItem(Players, "SPC700");
-      PlayersByDeviceType[MULTI] = CreateTreeWidgetItem(Players, QT_TRANSLATE_NOOP("ComponentsDialog", "Multidevice"));
       PlayersByDeviceType[RP2A0X] = CreateTreeWidgetItem(Players, "RP2A03/RP2A07");
-      PlayersByDeviceType[PAPU] = CreateTreeWidgetItem(Players, "Pseudo Audio Processing Unit");
+      PlayersByDeviceType[LR35902] = CreateTreeWidgetItem(Players, "LR35902/PAPU");
       PlayersByDeviceType[CO12294] = CreateTreeWidgetItem(Players, "CO12294/POKEY");
       PlayersByDeviceType[HUC6270] = CreateTreeWidgetItem(Players, "HuC6270");
+      PlayersByDeviceType[MULTI] = CreateTreeWidgetItem(Players, QT_TRANSLATE_NOOP("ComponentsDialog", "Multidevice"));
     }
     
     void FillContainersByTypes()

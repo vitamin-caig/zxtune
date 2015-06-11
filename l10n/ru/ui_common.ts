@@ -114,7 +114,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Поддержка контейнеров</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="88"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="92"/>
         <source>Multidevice</source>
         <translation>Поддержка произвольных устройств</translation>
     </message>

@@ -346,14 +346,14 @@ extern const Char INFO_DEV_DAC[] = {
 extern const Char INFO_DEV_HUC6270[] = {
   'd','e','v','_','h','u','c','6','2','7','0',0
 };
+extern const Char INFO_DEV_LR35902[] = {
+  'd','e','v','_','l','r','3','5','9','0','2',0
+};
 extern const Char INFO_DEV_MOS6581[] = {
   'd','e','v','_','m','o','s','6','5','8','1',0
 };
 extern const Char INFO_DEV_MULTI[] = {
   'd','e','v','_','m','u','l','t','i',0
-};
-extern const Char INFO_DEV_PAPU[] = {
-  'd','e','v','_','p','a','p','u',0
 };
 extern const Char INFO_DEV_RP2A0X[] = {
   'd','e','v','_','r','p','2','a','0','x',0
