@@ -41,6 +41,7 @@
 #include <3rdparty/gme/gme/Nsfe_Emu.h>
 #include <3rdparty/gme/gme/Sap_Emu.h>
 #include <3rdparty/gme/gme/Vgm_Emu.h>
+#include <3rdparty/gme/gme/Gym_Emu.h>
 
 namespace
 {
@@ -523,6 +524,15 @@ namespace GME
         &Create< ::Vgm_Emu>
       },
       &Formats::Chiptune::CreateVideoGameMusicDecoder
+    },
+    //vgm
+    {
+      {
+        "GYM",
+        ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI,
+        &Create< ::Gym_Emu>
+      },
+      &Formats::Chiptune::CreateGYMDecoder
     }
   };
 }
