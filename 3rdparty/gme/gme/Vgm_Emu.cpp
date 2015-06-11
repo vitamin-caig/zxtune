@@ -428,6 +428,24 @@ void Vgm_Emu::mute_voices_( int mask )
 	}
 }
 
+int Vgm_Emu::voices_status_( voice_status_t* buf, int buf_size ) const
+{
+	int voices = 0;
+	for (int chip = 0; voices < buf_size && chip < 2; ++chip)
+	{
+		voices += core.psg[chip].osc_status( buf + voices, buf_size - voices );
+	}
+	for (int chip = 0; voices < buf_size && chip < 2; ++chip)
+	{
+		const Chip_Resampler_Emu<Ym2612_Emu>& emu = core.ym2612[chip];
+		if ( emu.enabled() )
+		{
+			voices += emu.osc_status( buf + voices, buf_size - voices );
+		}
+	}
+	return voices;
+}
+
 blargg_err_t Vgm_Emu::load_mem_( byte const data [], int size )
 {
 	RETURN_ERR( core.load_mem( data, size ) );
