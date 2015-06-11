@@ -8,6 +8,7 @@
 #include "Blip_Buffer.h"
 
 struct sms_apu_state_t;
+struct voice_status_t;
 
 class Sms_Apu {
 public:
@@ -37,6 +38,8 @@ public:
 	enum { osc_count = 4 }; // 0 <= chan < osc_count
 	void set_output( int chan, Blip_Buffer* center, Blip_Buffer* left = NULL, Blip_Buffer* right = NULL );
 	
+	int osc_status( voice_status_t* buf, int buf_size ) const;
+
 	// Sets overall volume, where 1.0 is normal
 	void volume( double );
 	
