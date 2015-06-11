@@ -34,6 +34,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://github.com/cmatsuoka/libxmp&quot;&gt;libxmp&lt;/a&gt; library by &lt;b&gt;Claudio Matsuoka&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://sidplay-residfp.sourceforge.net&quot;&gt;libsidplayfp&lt;/a&gt; library&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://www.slack.net/~ant/&quot;&gt;snes_spc&lt;/a&gt; library by &lt;b&gt;Shay Green&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/kode54/Game_Music_Emu&quot;&gt;Game_Music_Emu&lt;/a&gt; library by &lt;b&gt;Shay Green&lt;/b&gt; and &lt;b&gt;Chris Moeller&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
@@ -49,7 +50,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://bulba.untergrund.net&quot;&gt;AYEmul&lt;/a&gt; от &lt;b&gt;S.Bulba&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://ayfly.googlecode.com&quot;&gt;AYFly&lt;/a&gt; от &lt;b&gt;Ander&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://thex.untergrund.net&quot;&gt;xPlugins&lt;/a&gt; от &lt;b&gt;elf/2&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Использована библиотека &lt;a href=&quot;http://zlib.net&quot;&gt;zlib&lt;/a&gt; от &lt;b&gt;Jean-loup Gailly&lt;/b&gt; and &lt;b&gt;Mark Adler&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;http://zlib.net&quot;&gt;zlib&lt;/a&gt; от &lt;b&gt;Jean-loup Gailly&lt;/b&gt; и &lt;b&gt;Mark Adler&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/mkoloberdin/z80ex&quot;&gt;z80ex&lt;/a&gt; от &lt;b&gt;Boo-boo&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;http://boost.org&quot;&gt;boost&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://opensourcezx.untergrund.net/c_soft-music_ripper-pusher-pusher6_src.html&quot;&gt;Pusher&lt;/a&gt; от &lt;b&gt;Himik/ZxZ&lt;/b&gt;&lt;/li&gt;
@@ -62,6 +63,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/cmatsuoka/libxmp&quot;&gt;libxmp&lt;/a&gt; от &lt;b&gt;Claudio Matsuoka&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;http://sidplay-residfp.sourceforge.net&quot;&gt;libsidplayfp&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;http://www.slack.net/~ant/&quot;&gt;snes_spc&lt;/a&gt; от &lt;b&gt;Shay Green&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/kode54/Game_Music_Emu&quot;&gt;Game_Music_Emu&lt;/a&gt; от &lt;b&gt;Shay Green&lt;/b&gt; и &lt;b&gt;Chris Moeller&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Посвящается &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
