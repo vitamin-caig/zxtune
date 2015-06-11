@@ -220,6 +220,14 @@ void Gym_Emu::mute_voices_( int mask )
 	pcm_synth.volume( (mask & 0x40) ? 0.0 : 0.125 / 256 * fm_gain * gain() );
 }
 
+int Gym_Emu::voices_status_( voice_status_t* buf, int buf_size ) const
+{
+	int voices = 0;
+	voices += apu.osc_status( buf + voices, buf_size - voices );
+	voices += fm.osc_status( buf + voices, buf_size - voices );
+	return voices;
+}
+
 blargg_err_t Gym_Emu::load_mem_( byte const in [], int size )
 {
 	assert( offsetof (header_t,packed [4]) == header_t::size );
