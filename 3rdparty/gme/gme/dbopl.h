@@ -27,27 +27,16 @@
 typedef         double		Real64;
 /* The internal types */
 
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
+#include "blargg_common.h"
 
-typedef uint8_t         	Bit8u;
-typedef int8_t         		Bit8s;
-typedef uint16_t        	Bit16u;
-typedef int16_t     		Bit16s;
-typedef uint32_t    		Bit32u;
-typedef int32_t     		Bit32s;
-typedef uint64_t        	Bit64u;
-typedef int64_t         	Bit64s;
-#else
-typedef  unsigned char		Bit8u;
-typedef    signed char		Bit8s;
-typedef unsigned short		Bit16u;
-typedef   signed short		Bit16s;
-typedef  unsigned long		Bit32u;
-typedef    signed long		Bit32s;
-typedef unsigned __int64	Bit64u;
-typedef   signed __int64	Bit64s;
-#endif
+typedef BOOST::uint8_t         	Bit8u;
+typedef BOOST::int8_t         		Bit8s;
+typedef BOOST::uint16_t        	Bit16u;
+typedef BOOST::int16_t     		Bit16s;
+typedef BOOST::uint32_t    		Bit32u;
+typedef BOOST::int32_t     		Bit32s;
+typedef BOOST::uint64_t        	Bit64u;
+typedef BOOST::int64_t         	Bit64s;
 
 typedef unsigned int		Bitu;
 typedef signed int			Bits;
