@@ -30,6 +30,8 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+//std includes
+#include <map>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
@@ -67,23 +69,18 @@ namespace GME
   public:
     typedef boost::shared_ptr<GME> Ptr;
     
-    GME(EmuCreator create, Binary::Data::Ptr data, uint_t soundFreq)
+    GME(EmuCreator create, Binary::Data::Ptr data, uint_t track)
       : CreateEmu(create)
       , Data(data)
+      , Track(track)
       , SoundFreq(0)
-      , Track(0)
     {
-      Load(soundFreq);
+      Load(Parameters::ZXTune::Sound::FREQUENCY_DEFAULT);
     }
     
     uint_t GetTotalTracks() const
     {
       return Emu->track_count();
-    }
-    
-    void SetTrack(uint_t track)
-    {
-      Track = track;
     }
     
     void GetInfo(::track_info_t& info) const
@@ -125,10 +122,10 @@ namespace GME
       for (int chan = 0; chan < actual; ++chan)
       {
         const voice_status_t& in = voices[chan];
-        Analysis.SetClockRate(in.frequency);
+        Devices::Details::AnalysisMap& analysis = GetAnalysisFor(in.frequency);
         ChannelState state;
         state.Level = in.level * 100 / voice_max_level;
-        state.Band = Analysis.GetBandByPeriod(in.divider);
+        state.Band = analysis.GetBandByPeriod(in.divider);
         result.push_back(state);
       }
       channels.swap(result);
@@ -144,19 +141,32 @@ namespace GME
 
     void Load(uint_t soundFreq)
     {
+      const int oldPos = Emu ? Emu->tell() : 0;
       EmuPtr emu = CreateEmu();
       CheckError(emu->set_sample_rate(soundFreq));
       CheckError(emu->load_mem(Data->Start(), Data->Size()));
+      CheckError(emu->start_track(Track));
+      if (oldPos)
+      {
+        CheckError(emu->seek(oldPos));
+      }
       Emu.swap(emu);
       SoundFreq = soundFreq;
+    }
+
+    Devices::Details::AnalysisMap& GetAnalysisFor(int freq) const
+    {
+      Devices::Details::AnalysisMap& result = Analysis[freq];
+      result.SetClockRate(freq);
+      return result;
     }
   private:
     const EmuCreator CreateEmu;
     const Binary::Data::Ptr Data;
+    const uint_t Track;
     uint_t SoundFreq;
     EmuPtr Emu;
-    uint_t Track;
-    mutable Devices::Details::AnalysisMap Analysis;
+    mutable std::map<int, Devices::Details::AnalysisMap> Analysis;
   };
   
   class Renderer : public Module::Renderer
@@ -235,6 +245,7 @@ namespace GME
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
+        Tune->SetSoundFreq(SoundParams->SoundFreq());
       }
     }
 
@@ -365,16 +376,13 @@ namespace GME
         if (const Formats::Multitrack::Container::Ptr container = Decoder->Decode(rawData))
         {
           const Parameters::Accessor::Ptr props = propBuilder.GetResult();
-          const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(props);
-
-          const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, soundParams->SoundFreq());
         
           if (container->TracksCount() > 1)
           {
             Require(HasContainer(Desc.Id, props));
           }
-          const uint_t trk = container->StartTrackIndex();
-          tune->SetTrack(trk);
+
+          const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
         
           const uint_t frames = GetInformation(*tune, propBuilder);
           const Information::Ptr info = CreateStreamInfo(frames);
@@ -418,11 +426,8 @@ namespace GME
         if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
         {
           const Parameters::Accessor::Ptr props = propBuilder.GetResult();
-          const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(props);
 
-          const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, soundParams->SoundFreq());
-        
-          tune->SetTrack(0);
+          const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, 0);
         
           const uint_t frames = GetInformation(*tune, propBuilder);
           const Information::Ptr info = CreateStreamInfo(frames);
