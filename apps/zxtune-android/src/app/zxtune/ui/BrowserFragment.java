@@ -240,7 +240,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
         controller.setCurrentDir((VfsDir) obj);
       } else if (obj instanceof VfsFile) {
         final Runnable playCmd = new Runnable() {
-          final Uri[] toPlay = getUrisFrom(position);
+          final Uri[] toPlay = getUrisFrom(position, 100);
           @Override
           public void run() {
             getService().setNowPlaying(toPlay);
@@ -250,9 +250,9 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       }
     }
     
-    private Uri[] getUrisFrom(int position) {
+    private Uri[] getUrisFrom(int position, int limit) {
       final ListAdapter adapter = listing.getAdapter();
-      final Uri[] result = new Uri[adapter.getCount() - position];
+      final Uri[] result = new Uri[Math.min(adapter.getCount() - position, limit)];
       for (int idx = 0; idx != result.length; ++idx) {
         final VfsObject obj = (VfsObject) adapter.getItem(position + idx);
         result[idx] = obj.getUri();
