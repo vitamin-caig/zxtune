@@ -15,7 +15,7 @@
 #include "common.h"
 #include "hio.h"
 
-inline ptrdiff_t CAN_READ(HIO_HANDLE *h)
+inline static ptrdiff_t CAN_READ(HIO_HANDLE *h)
 {
   return h->pos >= 0 ? h->size - h->pos : 0;
 }
