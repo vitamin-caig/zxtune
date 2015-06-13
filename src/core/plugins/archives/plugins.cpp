@@ -65,7 +65,11 @@ namespace
     {"Z80V30",   &CreateZ80V30Decoder,                    Capabilities::Container::Type::SNAPSHOT},
     {"MEGALZ",   &CreateMegaLZDecoder,                    Capabilities::Container::Type::COMPRESSOR},
     {"DSK",      &CreateDSKDecoder,                       Capabilities::Container::Type::DISKIMAGE},
-    {"GZIP",     &CreateGzipDecoder,                      Capabilities::Container::Type::COMPRESSOR},
+  };
+
+  const ArchivePluginDescription CHIPTUNE_PACKERS[] =
+  {
+    {"GZIP",     &CreateGzipDecoder,                      Capabilities::Container::Type::ARCHIVE},//may contain source filename, so can be treated as archive
   };
 
   const ArchivePluginDescription DECOMPILERS[] =
@@ -98,6 +102,11 @@ namespace ZXTune
   void RegisterDepackPlugins(ArchivePluginsRegistrator& registrator)
   {
     RegisterPlugins(DEPACKERS, boost::end(DEPACKERS), registrator);
+  }
+
+  void RegisterChiptunePackerPlugins(ArchivePluginsRegistrator& registrator)
+  {
+    RegisterPlugins(CHIPTUNE_PACKERS, boost::end(CHIPTUNE_PACKERS), registrator);
   }
 
   void RegisterDecompilePlugins(ArchivePluginsRegistrator& registrator)
