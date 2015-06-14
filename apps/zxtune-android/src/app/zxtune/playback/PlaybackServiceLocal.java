@@ -135,14 +135,42 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private void setNewIterator(Iterator iter) throws IOException {
+  private synchronized void setNewIterator(Iterator iter) throws IOException {
+    if (holder.iterator != iter) {
+      Log.d(TAG, "Update iterator " + holder.iterator + " -> " + iter);
+      holder.iterator.release();
+    }
     final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
     setNewHolder(new Holder(iter, events));
   }
   
-  private void play(Iterator iter) throws IOException {
+  private synchronized void setNewHolder(Holder holder) {
+    final Holder oldHolder = this.holder;
+    oldHolder.player.stopPlayback();
+    try {
+      this.holder = holder;
+      callbacks.onItemChanged(holder.item);
+    } finally {
+      oldHolder.release();
+    }
+  }
+  
+  
+  private synchronized void play(Iterator iter) throws IOException {
     setNewIterator(iter);
     holder.player.startPlayback();
+  }
+  
+  private synchronized void playNext() throws IOException {
+    if (holder.iterator.next()) {
+      play(holder.iterator);
+    }
+  }
+  
+  private synchronized void playPrev() throws IOException {
+    if (holder.iterator.prev()) {
+      play(holder.iterator);
+    }
   }
   
   @Override
@@ -181,8 +209,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     synchronized (this) {
       try {
         holder.player.stopPlayback();
-        holder.release();
       } finally {
+        holder.iterator.release();
+        holder.release();
         holder = new Holder();
       }
     }
@@ -218,19 +247,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         }
       }
     });
-  }
-  
-  private void setNewHolder(Holder holder) {
-    final Holder oldHolder = this.holder;
-    oldHolder.player.stopPlayback();
-    synchronized (this) {
-      this.holder = holder;
-    }
-    try {
-      callbacks.onItemChanged(holder.item);
-    } finally {
-      oldHolder.release();
-    }
   }
   
   private void saveProperty(String name, long value) {
@@ -303,16 +319,25 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public synchronized void next() {
-      synchronized (PlaybackServiceLocal.this) {
-        executeCommand(new PlayNextCommand(holder.iterator));
-      }
+      executeCommand(new Command() {
+
+        @Override
+        public void execute() throws IOException {
+          playNext();
+        }
+      });
     }
 
     @Override
     public synchronized void prev() {
-      synchronized (PlaybackServiceLocal.this) {
-        executeCommand(new PlayPrevCommand(holder.iterator));
-      }
+      executeCommand(new Command() {
+
+        @Override
+        public void execute() throws IOException {
+          playPrev();
+        }
+        
+      });
     }
 
     @Override
@@ -336,38 +361,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void setSequenceMode(SequenceMode mode) {
       navigation.set(mode);
-    }
-  }
-  
-  private class PlayNextCommand implements Command {
-    
-    private final Iterator iter;
-    
-    PlayNextCommand(Iterator iter) {
-      this.iter = iter;
-    }
-
-    @Override
-    public void execute() throws IOException {
-      if (iter.next()) {
-        play(iter);
-      }
-    }
-  }
-
-  private class PlayPrevCommand implements Command {
-    
-    private final Iterator iter;
-    
-    PlayPrevCommand(Iterator iter) {
-      this.iter = iter;
-    }
-
-    @Override
-    public void execute() throws IOException {
-      if (iter.prev()) {
-        play(iter);
-      }
     }
   }
   

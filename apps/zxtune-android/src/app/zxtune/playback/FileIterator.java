@@ -11,9 +11,10 @@
 package app.zxtune.playback;
 
 import java.io.IOException;
-import java.io.InvalidObjectException;
-import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
@@ -21,162 +22,167 @@ import android.net.Uri;
 import android.util.Log;
 import app.zxtune.Identifier;
 import app.zxtune.R;
+import app.zxtune.Scanner;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
 import app.zxtune.ZXTune.Module;
-import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.VfsIterator;
 
 public class FileIterator implements Iterator {
   
   private static final String TAG = FileIterator.class.getName();
   
-  private static class CacheEntry {
-
-    final VfsFile file;
-    final String subpath;
-    PlayableItem item;
-    
-    CacheEntry(VfsFile file, String subpath, PlayableItem item) {
-      this.file = file;
-      this.subpath = subpath;
-      this.item = item;
-    }
-    
-    final PlayableItem captureItem() {
-      final PlayableItem result = item;
-      item = null;
-      return result;
-    }
-  }
-  
   private static final int MAX_VISITED = 10;
   
-  private final VfsIterator.KeepLastErrorHandler handler;
-  private final VfsIterator iterator;
-  private final ArrayDeque<CacheEntry> prev;
-  private final ArrayDeque<CacheEntry> next;//first is current
-
-  public FileIterator(Context context, Uri[] paths) throws IOException {
-    this.handler = new VfsIterator.KeepLastErrorHandler();
-    this.iterator = new VfsIterator(paths, handler);
-    this.prev = new ArrayDeque<CacheEntry>();
-    this.next = new ArrayDeque<CacheEntry>();
-    prefetch();
-    if (next.isEmpty()) {
-      handler.throwLastIOError();
+  private final Scanner scanner;
+  private final ExecutorService executor;
+  private final LinkedBlockingQueue<PlayableItem> itemsQueue;
+  private final ArrayList<Uri> history;
+  private int historyDepth;
+  private IOException lastError;
+  private PlayableItem item;
+  
+  public FileIterator(Context context, Uri[] uris) throws IOException {
+    this.scanner = new Scanner();
+    this.executor = Executors.newCachedThreadPool();
+    this.itemsQueue = new LinkedBlockingQueue<PlayableItem>(1);
+    this.history = new ArrayList<Uri>();
+    this.historyDepth = 0;
+    start(uris);
+    if (!takeNextItem()) {
+      if (lastError != null) {
+        throw lastError;
+      }
       throw new IOException(context.getString(R.string.no_tracks_found));
     }
   }
   
   @Override
   public PlayableItem getItem() {
-    final CacheEntry entry = next.getFirst();
-    final PlayableItem cached = entry.captureItem();
-    if (cached != null) {
-      return cached;
-    }
-    return loadItem(entry);
-  }
-
-  @Override
-  public boolean next() {
-    if (hasNext()) {
-      final CacheEntry entry = next.removeFirst();
-      prev.addFirst(entry);
-      assert null == entry.captureItem();
-      cleanupHistory();
-      prefetch();
-      return true;
-    } else {
-      return false;
-    }
+    return item;
   }
   
-  private boolean hasNext() {
-    return next.size() >= 2;
+  @Override
+  public boolean next() {
+    while (0 != historyDepth) {
+      if (loadFrom(history.get(--historyDepth))) {
+        return true;
+      }
+    }
+    if (takeNextItem()) {
+      while (history.size() > MAX_VISITED) {
+        history.remove(MAX_VISITED);
+      }
+      return true;
+    }
+    return false;
   }
   
   @Override
   public boolean prev() {
-    if (prev.isEmpty()) {
-      return false;
-    } else {
-      final CacheEntry entry = prev.removeFirst();
-      next.addFirst(entry);
-      return true;
+    while (historyDepth + 1 < history.size()) {
+      if (loadFrom(history.get(++historyDepth))) {
+        return true;
+      }
     }
+    return false;
   }
-
-  private void prefetch() {
-    while (!hasNext() && iterator.isValid()) {
-      processNextFile();
+  
+  @Override
+  public void release() {
+    stop();
+    for (;;) {
+      final PlayableItem item = itemsQueue.poll();
+      if (item != null) {
+        item.release();
+      } else {
+        break;
+      }
     }
   }
   
-  private PlayableItem loadItem(CacheEntry entry) {
-    try {
-      return loadItem(entry.file, entry.subpath);
-    } catch (InvalidObjectException e) {
-      Log.d(TAG, "Cached item become invalid");
-    } catch (IOException e) {
-      handler.onIOError(e);
-    }
-    return PlayableItemStub.instance();
-  }
-  
-  private void processNextFile() {
-    try {
-      final VfsFile file = iterator.getFile();
-      iterator.next();
-      detectItems(file);
-    } catch (InvalidObjectException e) {
-      Log.d(TAG, "Skip not a module", e);
-    } catch (IOException e) {
-      handler.onIOError(e);
-    }
-  }
-  
-  private void detectItems(final VfsFile file) throws IOException {
-    final ByteBuffer content = file.getContent();
-    final Uri uri = file.getUri();
-    ZXTune.detectModules(content, new ZXTune.ModuleDetectCallback() {
-      
+  private void start(final Uri[] uris) {
+    executor.execute(new Runnable() {
       @Override
-      public void onModule(String subpath, Module obj) {
-        final PlayableItem item = new FileItem(uri, subpath, obj);
-        final CacheEntry entry = new CacheEntry(file, subpath, item);
-        next.addLast(entry);
+      public void run() {
+        try {
+          scanner.analyze(uris, new Scanner.Callback() {
+            @Override
+            public void onModule(Identifier id, Module module) {
+              addItem(new FileItem(id, module));
+            }
+            
+            @Override
+            public void onIOError(IOException e) {
+              lastError = e;
+            }
+          });
+          addItem(PlayableItemStub.instance());//limiter
+        } catch (Error e) {
+        }
       }
     });
   }
   
-  private void cleanupHistory() {
-    while (prev.size() > MAX_VISITED) {
-      prev.removeLast();
+  private void stop() {
+    try {
+      do {
+        executor.shutdownNow();
+        Log.d(TAG, "Waiting for executor shutdown...");
+      } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
+      Log.d(TAG, "Executor shut down");
+    } catch (InterruptedException e) {
+      Log.w(TAG, "Failed to shutdown executor", e);
     }
   }
   
-  static PlayableItem loadItem(VfsFile file, String subpath) throws IOException, InvalidObjectException {
-    final ZXTune.Module module = loadModule(file, subpath);
-    return new FileItem(file.getUri(), subpath, module);
+  private void addItem(PlayableItem item) {
+    try {
+      itemsQueue.put(item);
+    } catch (InterruptedException e) {
+      throw new Error("Interrupted");
+    }
   }
-    
-  static ZXTune.Module loadModule(VfsFile file, String subpath) throws IOException, InvalidObjectException {
-    final ByteBuffer content = file.getContent();
-    return ZXTune.loadModule(content, subpath);
+  
+  private boolean takeNextItem() {
+    try {
+      item = itemsQueue.take();
+      if (item != PlayableItemStub.instance()) {
+        history.add(0, item.getDataId());
+        return true;
+      }
+      //put limiter back
+      itemsQueue.put(item);
+    } catch (InterruptedException e) {
+    }
+    return false;
   }
-
-  private static class FileItem implements PlayableItem {
+  
+  private boolean loadFrom(Uri uri) {
+    final PlayableItem current = item;
+    scanner.analyzeUri(uri, new Scanner.Callback() {
+      
+      @Override
+      public void onModule(Identifier id, Module module) {
+        item = new FileItem(id, module);
+      }
+      
+      @Override
+      public void onIOError(IOException e) {
+      }
+    });
+    return item != current;
+  }
+  
+  static class FileItem implements PlayableItem {
 
     private final static String EMPTY_STRING = "";
     private ZXTune.Module module;
     private final Uri id;
     private final Uri dataId;
 
-    public FileItem(Uri fileId, String subpath, ZXTune.Module module) {
+    public FileItem(Identifier id, ZXTune.Module module) {
       this.module = module;
-      this.id = new Identifier(fileId, subpath).getFullLocation();
+      this.id = id.getFullLocation();
       this.dataId = this.id;
     }
 

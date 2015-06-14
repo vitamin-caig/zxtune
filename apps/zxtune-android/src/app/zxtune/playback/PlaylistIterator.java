@@ -11,30 +11,34 @@
 package app.zxtune.playback;
 
 import java.io.IOException;
-import java.io.InvalidObjectException;
 
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import app.zxtune.Identifier;
+import app.zxtune.R;
+import app.zxtune.Scanner;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
-import app.zxtune.fs.Vfs;
-import app.zxtune.fs.VfsFile;
+import app.zxtune.ZXTune.Module;
 import app.zxtune.playlist.DatabaseIterator;
 
 class PlaylistIterator implements Iterator {
   
   private static final String TAG = PlaylistIterator.class.getName();
   
+  private final Scanner scanner;
   private final IteratorFactory.NavigationMode navigation;
   private DatabaseIterator delegate;
   private PlayableItem item;
 
   public PlaylistIterator(Context context, Uri id) throws IOException {
+    this.scanner = new Scanner();
     this.navigation = new IteratorFactory.NavigationMode(context);
     this.delegate = new DatabaseIterator(context, id);
-    this.item = loadItem(delegate); 
+    if (!updateItem(delegate) && !next()) {
+      throw new IOException(context.getString(R.string.no_tracks_found));
+    }
   }
 
   @Override
@@ -51,6 +55,11 @@ class PlaylistIterator implements Iterator {
       }
     }
     return false;
+  }
+  
+  @Override
+  public void release() {
+    item.release();
   }
   
   private DatabaseIterator getNext(DatabaseIterator it) {
@@ -89,27 +98,26 @@ class PlaylistIterator implements Iterator {
   }
   
   private boolean updateItem(DatabaseIterator iter) {
-    try {
-      item = loadItem(iter);
-      return true;
-    } catch (InvalidObjectException e) {
-      Log.d(TAG, "Skip not a module", e);
-    } catch (IOException e) {
-      Log.d(TAG, "Skip I/O error", e);
-    }
-    return false;
+    final PlayableItem cur = item;
+    loadItem(iter);
+    return cur != item;
   }
   
-  private PlayableItem loadItem(DatabaseIterator iter) throws IOException, InvalidObjectException {
+  private void loadItem(DatabaseIterator iter) {
     final app.zxtune.playlist.Item meta = iter.getItem();
-    final Identifier id = new Identifier(meta.getLocation());
-    final VfsFile file = (VfsFile) Vfs.resolve(id.getDataLocation());
-    if (file instanceof VfsFile) {
-      final PlayableItem item = FileIterator.loadItem(file, id.getSubpath());
-      return new PlaylistItem(meta, item);
-    } else {
-      throw new IOException("Failed to resolve " + id.getFullLocation().toString());
-    }
+    scanner.analyzeUri(meta.getLocation(), new Scanner.Callback() {
+      
+      @Override
+      public void onModule(Identifier id, Module module) {
+        final PlayableItem fileItem = new FileIterator.FileItem(id, module);
+        item = new PlaylistItem(meta, fileItem);
+      }
+      
+      @Override
+      public void onIOError(IOException e) {
+        Log.d(TAG, "Ignore I/O error", e);
+      }
+    });
   }
   
   private static class PlaylistItem implements PlayableItem {
