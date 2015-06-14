@@ -26,7 +26,7 @@ public class Identifier {
   public Identifier(Uri location, String subpath) {
     this.fullpath = withSubpath(location, subpath);
     this.location = location;
-    this.subpath = subpath;
+    this.subpath = subpath != null ? subpath : "";
   }
 
   public Identifier(Uri fullpath) {
@@ -43,7 +43,7 @@ public class Identifier {
   
   private static String getSubpath(Uri in) {
     final String fragment = in.getFragment();
-    return fragment;
+    return fragment != null ? fragment : "";
   }
   
   public final Uri getFullLocation() {
@@ -56,6 +56,10 @@ public class Identifier {
   
   public final String getSubpath() {
     return subpath;
+  }
+  
+  public final Identifier withSubpath(String subpath) {
+    return new Identifier(location, subpath);
   }
   
   @Override
