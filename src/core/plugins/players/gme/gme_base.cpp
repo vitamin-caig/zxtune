@@ -231,13 +231,13 @@ namespace GME
     {
       try
       {
-        Module::SeekIterator(*Iterator, frame);
         SeekTune(frame);
       }
       catch (const std::exception& e)
       {
         Dbg(e.what());
       }
+      Module::SeekIterator(*Iterator, frame);
     }
   private:
     void ApplyParameters()
