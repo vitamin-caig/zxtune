@@ -53,65 +53,65 @@ public final class Scanner {
   
   public final void analyzeUri(Uri uri, Callback cb) {
     try {
-      final VfsObject obj = VfsArchive.resolve(uri);
-      if (obj instanceof VfsDir) {
-        analyzeDir((VfsDir) obj, cb);
-      } else if (obj instanceof VfsFile) {
-        analyzeFile((VfsFile) obj, cb);
+      final Identifier id = new Identifier(uri);
+      if (id.getSubpath().isEmpty()) {
+        analyzeResolvedObject(uri, cb);
       } else {
-        throw new IOException("Failed to resolve " + uri);
+        analyzeArchiveObject(id, cb);
       }
     } catch (IOException e) {
       cb.onIOError(e);
     }
   }
   
-  private void analyzeDir(VfsDir directory, Callback cb) {
-    try {
-      //analyze depth first
-      final ArrayList<VfsDir> dirs = new ArrayList<VfsDir>();
-      final ArrayList<VfsFile> files = new ArrayList<VfsFile>();
-      directory.enumerate(new VfsDir.Visitor() {
-        
-        @Override
-        public void onItemsCount(int count) {
-        }
-        
-        @Override
-        public void onFile(VfsFile file) {
-          files.add(file);
-        }
-        
-        @Override
-        public void onDir(VfsDir dir) {
-          dirs.add(dir);
-        }
-      });
-      final Comparator<VfsObject> comparator = directory instanceof Comparator<?>
-        ? (Comparator<VfsObject>) directory
-        : DefaultComparator.instance();
-      Collections.sort(dirs, comparator);
-      Collections.sort(files, comparator);
-      
-      for (VfsDir dir : dirs) {
-        analyzeDir(dir, cb);
-      }
-      for (VfsFile file : files) {
-        analyzeFile(file, cb);
-      }
-    } catch (IOException e) {
-      cb.onIOError(e);
-    }
-  }
-  
-  private void analyzeFile(VfsFile file, Callback cb) {
-    final Identifier id = new Identifier(file.getUri());
-    if (id.getSubpath().isEmpty()) {
-      if (!analyzePlaylistFile(file, cb)) {
-        analyzeRealFile(file, cb);
-      }
+  private void analyzeResolvedObject(Uri uri, Callback cb) throws IOException {
+    final VfsObject obj = VfsArchive.resolve(uri);
+    if (obj instanceof VfsDir) {
+      analyzeDir((VfsDir) obj, cb);
+    } else if (obj instanceof VfsFile) {
+      analyzeFile((VfsFile) obj, cb);
     } else {
-      analyzeArchiveFile(id, cb);
+      throw new IOException("Failed to resolve " + uri);
+    }
+  }
+  
+  private void analyzeDir(VfsDir directory, Callback cb) throws IOException {
+    //analyze depth first
+    final ArrayList<VfsDir> dirs = new ArrayList<VfsDir>();
+    final ArrayList<VfsFile> files = new ArrayList<VfsFile>();
+    directory.enumerate(new VfsDir.Visitor() {
+      
+      @Override
+      public void onItemsCount(int count) {
+      }
+      
+      @Override
+      public void onFile(VfsFile file) {
+        files.add(file);
+      }
+      
+      @Override
+      public void onDir(VfsDir dir) {
+        dirs.add(dir);
+      }
+    });
+    final Comparator<VfsObject> comparator = directory instanceof Comparator<?>
+      ? (Comparator<VfsObject>) directory
+      : DefaultComparator.instance();
+    Collections.sort(dirs, comparator);
+    Collections.sort(files, comparator);
+    
+    for (VfsDir dir : dirs) {
+      analyzeDir(dir, cb);
+    }
+    for (VfsFile file : files) {
+      analyzeFile(file, cb);
+    }
+  }
+  
+  private void analyzeFile(VfsFile file, Callback cb) throws IOException {
+    if (!analyzePlaylistFile(file, cb)) {
+      analyzeRealFile(file, cb);
     }
   }
   
@@ -134,12 +134,12 @@ public final class Scanner {
   private void analyzePlaylist(Uri fileUri, ReferencesIterator iter, Callback cb) {
     final URI dir = URI.create(fileUri.toString()).resolve(".");
     while (iter.next()) {
-        final String location = iter.getItem().location;
-        if (isWindowsPath(location)) {
-          continue;//windows paths are not supported
-        }
-        final Uri uri = Uri.parse(dir.resolve(location).toString());
-        analyzeUri(uri, cb);
+      final String location = iter.getItem().location;
+      if (isWindowsPath(location)) {
+        continue;//windows paths are not supported
+      }
+      final Uri uri = Uri.parse(dir.resolve(location).toString());
+      analyzeUri(uri, cb);
     }
   }
       
@@ -147,39 +147,41 @@ public final class Scanner {
     return path.length() > 2 && path.charAt(1) == ':';
   }
   
-  private static void analyzeRealFile(VfsFile file, final Callback cb) {
-    try {
-      final Uri uri = file.getUri();
-      final ByteBuffer content = file.getContent();
-      ZXTune.detectModules(content, new ZXTune.ModuleDetectCallback() {
-        
-        @Override
-        public void onModule(String subpath, Module obj) {
-          try {
-            cb.onModule(new Identifier(uri, subpath), obj);
-          } catch (Error e) {
-            obj.release();
-            throw e;
-          }
+  private static void analyzeRealFile(VfsFile file, final Callback cb) throws IOException {
+    final Uri uri = file.getUri();
+    final ByteBuffer content = file.getContent();
+    ZXTune.detectModules(content, new ZXTune.ModuleDetectCallback() {
+      
+      @Override
+      public void onModule(String subpath, Module obj) {
+        try {
+          cb.onModule(new Identifier(uri, subpath), obj);
+        } catch (Error e) {
+          obj.release();
+          throw e;
         }
-      });
+      }
+    });
+  }
+  
+  private void analyzeArchiveObject(Identifier id, Callback cb) throws IOException {
+    try {
+      //try to avoid VfsArchive
+      analyzeArchiveFile(id, cb);
     } catch (IOException e) {
-      cb.onIOError(e);
+      analyzeResolvedObject(id.getFullLocation(), cb);
     }
   }
   
-  private void analyzeArchiveFile(Identifier id, Callback cb) {
+  
+  private void analyzeArchiveFile(Identifier id, Callback cb) throws IOException {
+    final VfsFile archive = openArchive(id.getDataLocation());
+    final ZXTune.Module module = openModule(archive, id.getSubpath());
     try {
-      final VfsFile archive = openArchive(id.getDataLocation());
-      final ZXTune.Module module = openModule(archive, id.getSubpath());
-      try {
-        cb.onModule(id, module);
-      } catch (Error e) {
-        module.release();
-        throw e;
-      }
-    } catch (IOException e) {
-      cb.onIOError(e);
+      cb.onModule(id, module);
+    } catch (Error e) {
+      module.release();
+      throw e;
     }
   }
   
