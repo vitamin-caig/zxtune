@@ -5,6 +5,18 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3370 from 16.06.2015
+
+[+] Added UMX archives support
+[+] Added GZip archives support
+[+] Added NSF, NSFE, GBS, SAP, HES, VGM and GYM formats support
+[*] Fixed .ay files playback seeking
+[*] zxtune-qt: fix invalid encoding in dsound and win32 sound devices selectors
+[*] zxtune-qt: fixed crash on empty folder scan
+[+] zxtune-android: added containers browsing support (multitrack modules, archives etc)
+[+] zxtune-android: added ZIP, RAR, LHA, UMX and GZip archives support
+[*] zxtune-android: fixed playback of SPC and MTC with non-standard sound frequency
+
 --- Rev3270 from 21.04.2015
 
 [+] Added MultiTrackContainer (MTC) format support
