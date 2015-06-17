@@ -200,7 +200,9 @@ class Database {
         "CREATE TRIGGER dirs_insert INSTEAD OF INSERT ON dirs " +
           "FOR EACH ROW " +
           "BEGIN " +
-            "INSERT OR IGNORE INTO paths(path) VALUES(new.path), (new.parent);" +
+            //sqlite prior to 3.7.11 does not support multiple rows insert
+            "INSERT OR IGNORE INTO paths(path) VALUES (new.path);" +
+            "INSERT OR IGNORE INTO paths(path) VALUES (new.parent);" +
             "INSERT INTO dirs_internal " +
               "SELECT self.rowid, parent.rowid FROM paths AS self, paths AS parent " +
                 "WHERE self.path = new.path AND parent.path = new.parent;" +
