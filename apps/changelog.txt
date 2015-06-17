@@ -5,6 +5,10 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3380 from 17.05.2015
+
+[*] zxtune-android: fix crash on Android prior to 4.1
+
 --- Rev3370 from 16.06.2015
 
 [+] Added UMX archives support
