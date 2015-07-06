@@ -366,7 +366,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
       final int lastPathElement = path.size() - 1;
       if (lastPathElement == POS_AUTHOR_NICK) {
         return this;
-      } else if (lastPathElement == POS_AUTHOR_DATE) {
+      } else if (lastPathElement >= POS_AUTHOR_DATE) {
         return resolveAuthorDatePathOrTrack(uri, path);
       } else {
         return null;
@@ -464,12 +464,16 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
     
     private VfsObject resolve(Uri uri, List<String> path) throws IOException {
-      final Track track = resolveTrack(uri, author, date, path.get(POS_AUTHOR_DATE_TRACK));
-      if (track != null) {
-        return new AuthorDatedTrackFile(uri, track);
+      if (path.size() - 1 == POS_AUTHOR_DATE) {
+        return this;
       } else {
-        Log.d(TAG, "Unknown URI " + uri);
-        return null;
+        final Track track = resolveTrack(uri, author, date, path.get(POS_AUTHOR_DATE_TRACK));
+        if (track != null) {
+          return new AuthorDatedTrackFile(uri, track);
+        } else {
+          Log.d(TAG, "Unknown URI " + uri);
+          return null;
+        }
       }
     }
     
