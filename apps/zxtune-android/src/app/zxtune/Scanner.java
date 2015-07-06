@@ -55,7 +55,7 @@ public final class Scanner {
     try {
       final Identifier id = new Identifier(uri);
       if (id.getSubpath().isEmpty()) {
-        analyzeResolvedObject(uri, cb);
+        analyzeRealObject(uri, cb);
       } else {
         analyzeArchiveObject(id, cb);
       }
@@ -64,8 +64,12 @@ public final class Scanner {
     }
   }
   
-  private void analyzeResolvedObject(Uri uri, Callback cb) throws IOException {
-    final VfsObject obj = VfsArchive.resolve(uri);
+  private void analyzeRealObject(Uri uri, Callback cb) throws IOException {
+    final VfsObject obj = Vfs.resolve(uri);
+    analyzeObject(uri, obj, cb);
+  }
+  
+  private void analyzeObject(Uri uri, VfsObject obj, Callback cb) throws IOException {
     if (obj instanceof VfsDir) {
       analyzeDir((VfsDir) obj, cb);
     } else if (obj instanceof VfsFile) {
@@ -110,7 +114,11 @@ public final class Scanner {
   }
   
   private void analyzeFile(VfsFile file, Callback cb) throws IOException {
-    if (!analyzePlaylistFile(file, cb)) {
+    //may be called from recursion, so additionally check for archived objects
+    final Identifier id = new Identifier(file.getUri());
+    if (!id.getSubpath().isEmpty()) {
+      analyzeArchiveObject(id, cb);
+    } else if (!analyzePlaylistFile(file, cb)) {
       analyzeRealFile(file, cb);
     }
   }
@@ -169,7 +177,9 @@ public final class Scanner {
       //try to avoid VfsArchive
       analyzeArchiveFile(id, cb);
     } catch (IOException e) {
-      analyzeResolvedObject(id.getFullLocation(), cb);
+      final Uri uri = id.getFullLocation();
+      final VfsObject obj = VfsArchive.resolve(uri);
+      analyzeObject(uri, obj, cb);
     }
   }
   
