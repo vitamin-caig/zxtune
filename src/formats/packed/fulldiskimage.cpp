@@ -242,8 +242,8 @@ namespace FullDiskImage
   const std::string FORMAT_PATTERN(
     "'F'D'I"      // uint8_t ID[3]
     "%0000000x"   // uint8_t ReadOnly;
-    "%0xxxxxxx"   // uint16_t Cylinders;
-    "%000000xx"   // uint16_t Sides;
+    "28-64 00"    // uint16_t Cylinders;
+    "01-02 00"    // uint16_t Sides;
   );
 }
 
