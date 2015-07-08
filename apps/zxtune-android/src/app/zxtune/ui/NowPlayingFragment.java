@@ -28,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import app.zxtune.Identifier;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
@@ -302,7 +303,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     public final String getTitle() {
-      return Util.formatTrackTitle(item.getTitle(), item.getAuthor(), item.getDataId().getLastPathSegment());
+      return Util.formatTrackTitle(item.getTitle(), item.getAuthor(), new Identifier(item.getDataId()).getDisplayFilename());
     }
     
     public final String getSendText() {

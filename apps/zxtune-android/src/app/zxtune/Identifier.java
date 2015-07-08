@@ -11,8 +11,11 @@
 package app.zxtune;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 public class Identifier {
+  
+  private final static String SUBPATH_DELIMITER = "/";
 
   /**
    * Identifier is not fully compatible with playlists from desktop version of zxtune
@@ -60,6 +63,24 @@ public class Identifier {
   
   public final Identifier withSubpath(String subpath) {
     return new Identifier(location, subpath);
+  }
+  
+  public final Identifier withSubpath(String[] components) {
+    return withSubpath(TextUtils.join(SUBPATH_DELIMITER, components));
+  }
+  
+  public final String getDisplayFilename() {
+    final String filename = location.getLastPathSegment();
+    if (subpath.length() == 0) {
+      return filename;
+    } else {
+      final String subname = subpath.substring(subpath.lastIndexOf(SUBPATH_DELIMITER) + 1);
+      return filename + " > " + subname;  
+    }
+  }
+  
+  public final String[] getSubpathComponents() {
+    return TextUtils.split(subpath, SUBPATH_DELIMITER);
   }
   
   @Override

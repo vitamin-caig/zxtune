@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
+import app.zxtune.Identifier;
 import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
@@ -83,7 +84,7 @@ public class StatusNotification extends CallbackStub {
   
   @Override
   public void onItemChanged(Item item) {
-    final String filename = item.getDataId().getLastPathSegment();
+    final String filename = new Identifier(item.getDataId()).getDisplayFilename();
     String title = item.getTitle();
     final String author = item.getAuthor();
     final String ticker = Util.formatTrackTitle(title, author, filename);

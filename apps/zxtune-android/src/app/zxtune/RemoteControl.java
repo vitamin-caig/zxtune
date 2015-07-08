@@ -118,7 +118,8 @@ class RemoteControl implements Releaseable {
       final boolean noAuthor = author.length() == 0;
       final boolean noTitle = title.length() == 0;
       if (noAuthor && noTitle) {
-        meta.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, item.getDataId().getLastPathSegment());
+        final String filename = new Identifier(item.getDataId()).getDisplayFilename();
+        meta.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, filename);
       } else {
         meta.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, author);
         meta.putString(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST, author);
