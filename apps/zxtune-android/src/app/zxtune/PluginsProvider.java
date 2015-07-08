@@ -29,7 +29,7 @@ public final class PluginsProvider extends ContentProvider {
     PlayerAymTs(R.string.plugin_player_aym_ts),
     PlayerDac(R.string.plugin_player_dac),
     PlayerFmTfm(R.string.plugin_player_fm_tfm),
-    PlayerSaa(R.string.plugin_player_aym_ts),
+    PlayerSaa(R.string.plugin_player_saa),
     PlayerSid(R.string.plugin_player_sid),
     PlayerSpc(R.string.plugin_player_spc),
     PlayerRp2a0x(R.string.plugin_player_rp2a0x),
