@@ -21,7 +21,7 @@ libraries.common = analysis async binary binary_format \
                   parameters platform platform_application platform_version \
                   sound sound_backends strings \
                   tools
-libraries.3rdparty = gme lhasa sidplayfp snesspc unrar xmp z80ex zlib
+libraries.3rdparty = gme lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
 
 #platform
 windows_libraries = advapi32 ole32 oldnames user32
