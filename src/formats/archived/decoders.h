@@ -26,5 +26,6 @@ namespace Formats
     Decoder::Ptr CreateLhaDecoder();
     Decoder::Ptr CreateZXStateDecoder();
     Decoder::Ptr CreateUMXDecoder();
+    Decoder::Ptr Create7zipDecoder();
   }
 }

@@ -33,6 +33,9 @@ extern const Char SAP_ARCHIVE_DECODER_DESCRIPTION[] = {
 extern const Char SCL_DECODER_DESCRIPTION[] = {
   'S','C','L',' ','(','S','I','N','C','L','A','I','R',')',0
 };
+extern const Char SEVENZIP_DECODER_DESCRIPTION[] = {
+  '7','z','i','p',0
+};
 extern const Char SID_ARCHIVE_DECODER_DESCRIPTION[] = {
   'M','u','l','t','i','-','S','I','D','/','P','S','I','D','/','R','S','I','D',0
 };

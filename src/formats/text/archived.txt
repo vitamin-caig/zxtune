@@ -60,3 +60,7 @@ __cpp> "}//namespace Text\n"
 #SAP
 < SAP_ARCHIVE_DECODER_DESCRIPTION
 > "Multi-SAP"
+
+#7ZIP
+< SEVENZIP_DECODER_DESCRIPTION
+> "7zip"
