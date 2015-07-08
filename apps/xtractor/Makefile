@@ -16,7 +16,7 @@ libraries.common = analysis async \
                    parameters platform platform_application platform_version \
                    strings \
                    tools
-libraries.3rdparty = lhasa unrar zlib
+libraries.3rdparty = lhasa lzma unrar zlib
 
 libraries.boost = filesystem program_options thread system
 windows_libraries := advapi32 oldnames
