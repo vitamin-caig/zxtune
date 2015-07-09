@@ -84,7 +84,7 @@ public class StatusNotification extends CallbackStub {
   
   @Override
   public void onItemChanged(Item item) {
-    final String filename = new Identifier(item.getDataId()).getDisplayFilename();
+    final String filename = item.getDataId().getDisplayFilename();
     String title = item.getTitle();
     final String author = item.getAuthor();
     final String ticker = Util.formatTrackTitle(title, author, filename);

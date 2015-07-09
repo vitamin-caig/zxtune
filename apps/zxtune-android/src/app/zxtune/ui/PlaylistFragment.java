@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
+import app.zxtune.Identifier;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.Preferences;
 import app.zxtune.R;
@@ -287,8 +288,8 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     @Override
     public void onItemChanged(Item item) {
       final Uri id = item.getId();
-      final Uri contentId = item.getDataId();
-      final Uri playlistId = 0 == id.compareTo(contentId) ? Uri.EMPTY : id;
+      final Identifier contentId = item.getDataId();
+      final Uri playlistId = 0 == id.compareTo(contentId.getFullLocation()) ? Uri.EMPTY : id;
       if (0 != playlistId.compareTo(nowPlayingPlaylist)) {
         nowPlayingPlaylist = playlistId;
         updateView();

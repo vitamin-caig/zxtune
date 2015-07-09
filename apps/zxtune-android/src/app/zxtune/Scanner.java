@@ -47,15 +47,14 @@ public final class Scanner {
   
   public final void analyze(Uri[] uris, Callback cb) {
     for (Uri uri : uris) {
-      analyzeUri(uri, cb);
+      analyzeIdentifier(new Identifier(uri), cb);
     }
   }
   
-  public final void analyzeUri(Uri uri, Callback cb) {
+  public final void analyzeIdentifier(Identifier id, Callback cb) {
     try {
-      final Identifier id = new Identifier(uri);
       if (id.getSubpath().isEmpty()) {
-        analyzeRealObject(uri, cb);
+        analyzeRealObject(id.getDataLocation(), cb);
       } else {
         analyzeArchiveObject(id, cb);
       }
@@ -146,8 +145,8 @@ public final class Scanner {
       if (isWindowsPath(location)) {
         continue;//windows paths are not supported
       }
-      final Uri uri = Uri.parse(dir.resolve(location).toString());
-      analyzeUri(uri, cb);
+      final Identifier id = Identifier.parse(dir.resolve(location).toString());
+      analyzeIdentifier(id, cb);
     }
   }
       

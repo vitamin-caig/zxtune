@@ -172,7 +172,7 @@ public class RingtoneService extends IntentService {
     final ContentValues values = new ContentValues();
     values.put(MediaStore.MediaColumns.DATA, path.getAbsolutePath());
     values.put(MediaStore.MediaColumns.MIME_TYPE, "audio/wav");
-    final String filename = new Identifier(item.getDataId()).getDisplayFilename();
+    final String filename = item.getDataId().getDisplayFilename();
     values.put(MediaStore.MediaColumns.DISPLAY_NAME, filename);
     values.put(MediaStore.Audio.Media.DURATION, limit.convertTo(TimeUnit.MILLISECONDS));
     final String title = Util.formatTrackTitle(item.getAuthor(), item.getTitle(), filename);

@@ -85,26 +85,27 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   
   @Override
   public boolean onOptionsItemSelected (MenuItem menu) {
+    final Item nowPlaying = getService().getNowPlaying(); 
     switch (menu.getItemId()) {
       case R.id.action_add:
-        getService().getPlaylistControl().add(new Uri[] {getService().getNowPlaying().getDataId()});
+        getService().getPlaylistControl().add(new Uri[] {nowPlaying.getDataId().getFullLocation()});
         //disable further addings
         menu.setVisible(false);
         break;
       case R.id.action_send:
-        final Intent toSend = Actions.makeSendIntent(new ShareData(getActivity(), getService().getNowPlaying()));
+        final Intent toSend = Actions.makeSendIntent(new ShareData(getActivity(), nowPlaying));
         if (toSend != null) {
           startActivity(Intent.createChooser(toSend, menu.getTitle()));
         }
         break;
       case R.id.action_share:
-        final Intent toShare = Actions.makeShareIntent(new ShareData(getActivity(), getService().getNowPlaying()));
+        final Intent toShare = Actions.makeShareIntent(new ShareData(getActivity(), nowPlaying));
         if (toShare != null) {
           startActivity(Intent.createChooser(toShare, menu.getTitle()));
         }
         break;
       case R.id.action_make_ringtone:
-        final DialogFragment fragment = RingtoneFragment.createInstance(getService().getNowPlaying());
+        final DialogFragment fragment = RingtoneFragment.createInstance(nowPlaying);
         fragment.show(getActivity().getSupportFragmentManager(), "ringtone");
         break;
       default:
@@ -249,12 +250,12 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     private void updateAddStatus(Item item) {
-      final boolean isVfsItem = item.getId().equals(item.getDataId());
+      final boolean isVfsItem = 0 == item.getId().compareTo(item.getDataId().getFullLocation());
       add.setVisible(isVfsItem);
     }
     
     private void updateShareStatus(Item item) {
-      final boolean hasRemotePage = ShareData.hasRemotePage(item.getDataId()); 
+      final boolean hasRemotePage = ShareData.hasRemotePage(item.getDataId().getDataLocation()); 
       share.setEnabled(hasRemotePage);
     }
     
@@ -303,7 +304,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     public final String getTitle() {
-      return Util.formatTrackTitle(item.getTitle(), item.getAuthor(), new Identifier(item.getDataId()).getDisplayFilename());
+      return Util.formatTrackTitle(item.getTitle(), item.getAuthor(), item.getDataId().getDisplayFilename());
     }
     
     public final String getSendText() {
@@ -316,7 +317,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     public final Uri getLocalPath() {
-      final Uri uri = item.getDataId();
+      final Uri uri = item.getDataId().getDataLocation();
       if (uri.getScheme().equals("file")) {
         return uri;
       }
@@ -325,7 +326,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
 
     public final String getRemotePage() {
-      final Uri uri = item.getDataId();
+      final Uri uri = item.getDataId().getDataLocation();
       final String scheme = uri.getScheme();
       for (RemoteCatalog cat : CATALOGS) {
         if (cat.checkScheme(scheme)) {

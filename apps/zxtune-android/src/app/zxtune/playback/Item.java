@@ -11,6 +11,7 @@
 package app.zxtune.playback;
 
 import android.net.Uri;
+import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
 
 public interface Item {
@@ -23,7 +24,7 @@ public interface Item {
   /**
    * @return Item's data identifier
    */
-  public Uri getDataId();
+  public Identifier getDataId();
 
   /**
    * @return Item's title

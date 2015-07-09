@@ -39,7 +39,7 @@ public class RingtoneFragment extends DialogFragment {
   
   static DialogFragment createInstance(Item item) {
     final Bundle args = new Bundle();
-    args.putParcelable("url", item.getDataId());
+    args.putParcelable("url", item.getDataId().getFullLocation());
     args.putLong("duration", item.getDuration().convertTo(TimeUnit.SECONDS));
     final DialogFragment result = new RingtoneFragment();
     result.setArguments(args);

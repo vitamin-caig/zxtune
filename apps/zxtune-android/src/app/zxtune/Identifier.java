@@ -16,6 +16,7 @@ import android.text.TextUtils;
 public class Identifier {
   
   private final static String SUBPATH_DELIMITER = "/";
+  public final static Identifier EMPTY = new Identifier(Uri.EMPTY);
 
   /**
    * Identifier is not fully compatible with playlists from desktop version of zxtune
@@ -36,6 +37,10 @@ public class Identifier {
     this.fullpath = fullpath;
     this.location = withSubpath(fullpath, "");
     this.subpath = getSubpath(fullpath);
+  }
+  
+  public static Identifier parse(String str) {
+    return new Identifier(Uri.parse(str));
   }
   
   private static Uri withSubpath(Uri in, String subpath) {

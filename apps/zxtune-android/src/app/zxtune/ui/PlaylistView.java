@@ -123,7 +123,7 @@ public class PlaylistView extends DragSortListView
       final Item item = new Item(cursor);
       final String title = item.getTitle();
       if (0 == title.length()) {
-        final String filename = new Identifier(item.getLocation()).getDisplayFilename();
+        final String filename = item.getLocation().getDisplayFilename();
         holder.title.setText(filename);
       } else {
         holder.title.setText(title);

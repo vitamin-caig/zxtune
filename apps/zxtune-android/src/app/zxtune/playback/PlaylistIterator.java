@@ -105,7 +105,7 @@ class PlaylistIterator implements Iterator {
   
   private void loadItem(DatabaseIterator iter) {
     final app.zxtune.playlist.Item meta = iter.getItem();
-    scanner.analyzeUri(meta.getLocation(), new Scanner.Callback() {
+    scanner.analyzeIdentifier(meta.getLocation(), new Scanner.Callback() {
       
       @Override
       public void onModule(Identifier id, Module module) {
@@ -136,7 +136,7 @@ class PlaylistIterator implements Iterator {
     }
 
     @Override
-    public Uri getDataId() {
+    public Identifier getDataId() {
       return content.getDataId();
     }
 

@@ -46,7 +46,7 @@ public class WidgetHandler extends AppWidgetProvider {
     widgetView.setOnClickPendingIntent(R.id.widget_ctrl_pause, createServiceIntent(context, MainService.ACTION_PAUSE));
     widgetView.setOnClickPendingIntent(R.id.widget_ctrl_next, createServiceIntent(context, MainService.ACTION_NEXT));
     
-    final String info = Util.formatTrackTitle(nowPlaying.getAuthor(), nowPlaying.getTitle(), new Identifier(nowPlaying.getDataId()).getDisplayFilename());
+    final String info = Util.formatTrackTitle(nowPlaying.getAuthor(), nowPlaying.getTitle(), nowPlaying.getDataId().getDisplayFilename());
     widgetView.setTextViewText(R.id.widget_text, info);
     
     mgr.updateAppWidget(widgets, widgetView);

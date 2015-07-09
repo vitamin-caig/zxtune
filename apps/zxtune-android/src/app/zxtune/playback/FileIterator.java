@@ -36,7 +36,7 @@ public class FileIterator implements Iterator {
   private final Scanner scanner;
   private final ExecutorService executor;
   private final LinkedBlockingQueue<PlayableItem> itemsQueue;
-  private final ArrayList<Uri> history;
+  private final ArrayList<Identifier> history;
   private int historyDepth;
   private IOException lastError;
   private PlayableItem item;
@@ -45,7 +45,7 @@ public class FileIterator implements Iterator {
     this.scanner = new Scanner();
     this.executor = Executors.newCachedThreadPool();
     this.itemsQueue = new LinkedBlockingQueue<PlayableItem>(1);
-    this.history = new ArrayList<Uri>();
+    this.history = new ArrayList<Identifier>();
     this.historyDepth = 0;
     start(uris);
     if (!takeNextItem()) {
@@ -157,9 +157,9 @@ public class FileIterator implements Iterator {
     return false;
   }
   
-  private boolean loadFrom(Uri uri) {
+  private boolean loadFrom(Identifier id) {
     final PlayableItem current = item;
-    scanner.analyzeUri(uri, new Scanner.Callback() {
+    scanner.analyzeIdentifier(id, new Scanner.Callback() {
       
       @Override
       public void onModule(Identifier id, Module module) {
@@ -178,12 +178,12 @@ public class FileIterator implements Iterator {
     private final static String EMPTY_STRING = "";
     private ZXTune.Module module;
     private final Uri id;
-    private final Uri dataId;
+    private final Identifier dataId;
 
     public FileItem(Identifier id, ZXTune.Module module) {
       this.module = module;
       this.id = id.getFullLocation();
-      this.dataId = this.id;
+      this.dataId = id;
     }
 
     @Override
@@ -192,7 +192,7 @@ public class FileIterator implements Iterator {
     }
 
     @Override
-    public Uri getDataId() {
+    public Identifier getDataId() {
       return dataId;
     }
 
