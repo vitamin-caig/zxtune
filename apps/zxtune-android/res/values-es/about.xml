@@ -5,25 +5,27 @@
   <string name="about_plugins">Complementos</string>
   <!--about-related-->
   <string name="about_author">
-Idea, programación: <b>Vitamin/CAIG</b>\n
-Diseñar: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
-Códigos fuente utilizado:\n
-\tAYEmul por <b>S.Bulba</b>\n
-\tAYFly por <b>Ander</b>\n
-\tPusher por <b>Himik/ZxZ</b>\n
-Bibliotecas usados:\n
-\tboost\n
-\tzlib por <b>Jean-Loup Gailly</b> más <b>Mark Adler</b>\n
-\tz80ex por <b>Boo-boo</b>\n
-\tlhasa por <b>Simon Howard</b>\n
-\tDragSortListView por <b>Carl A.Bauer</b>\n
-\tunrar por <b>Alexander Roshal</b>\n
-\tlibxmp por <b>Claudio Matsuoka</b>\n
-\tlibsidplayfp+resid\n
-\tsnes_spc por <b>Shay Green</b>\n
-\tGame_Music_Emu por <b>Shay Green</b> más <b>Chris Moeller</b>\n
-\n
-Dedicado a <b>Lizzi</b></string>
+    Idea, programación: <b>Vitamin/CAIG</b>\n
+    Diseñar: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
+    Códigos fuente utilizado:\n
+    \tAYEmul por <b>S.Bulba</b>\n
+    \tAYFly por <b>Ander</b>\n
+    \tPusher por <b>Himik/ZxZ</b>\n
+    Bibliotecas usados:\n
+    \tboost\n
+    \tzlib por <b>Jean-Loup Gailly</b> más <b>Mark Adler</b>\n
+    \tz80ex por <b>Boo-boo</b>\n
+    \tlhasa por <b>Simon Howard</b>\n
+    \tDragSortListView por <b>Carl A.Bauer</b>\n
+    \tunrar por <b>Alexander Roshal</b>\n
+    \tlibxmp por <b>Claudio Matsuoka</b>\n
+    \tlibsidplayfp+resid\n
+    \tsnes_spc por <b>Shay Green</b>\n
+    \tGame_Music_Emu por <b>Shay Green</b> más <b>Chris Moeller</b>\n
+    \t7-Zip por <b>Igor Pavlov</b>\n
+    \n
+    Dedicado a <b>Lizzi</b>
+  </string>
   <!-- players -->
   <string name="plugin_player_dac">Muestra digital</string>
   <string name="plugin_player_multidevice">Múltiples dispositivos</string>
