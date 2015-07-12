@@ -48,7 +48,21 @@
     <string name="vfs_zxart_compo_oldschool">Oldschool music compo</string>
     <string name="vfs_zxart_compo_mainstream">Mainstream music compo</string>
     <string name="vfs_zxart_compo_progressive">Progressive music compo</string>
+    <!-- joshw.info -->
+    <string name="vfs_joshw_root_name" translatable="false">Josh W</string>
+    <string name="vfs_joshw_root_description">Various archives</string>
+    <string name="vfs_joshw_gbs_name" translatable="false">Game Boy/Color</string>
+    <string name="vfs_joshw_gbs_description" translatable="false">http://gbs.joshw.info</string>
+    <string name="vfs_joshw_hes_name" translatable="false">PC Engine/PC Engine CD</string>
+    <string name="vfs_joshw_hes_description" translatable="false">http://hes.joshw.info</string>
+    <string name="vfs_joshw_nsf_name" translatable="false">Nintendo Entertainment System</string>
+    <string name="vfs_joshw_nsf_description" translatable="false">http://nsf.joshw.info</string>
+    <string name="vfs_joshw_smd_name" translatable="false">Mega Drive/Mega CD</string>
+    <string name="vfs_joshw_smd_description" translatable="false">http://smd.joshw.info</string>
+    <string name="vfs_joshw_spc_name" translatable="false">Super Nintendo</string>
+    <string name="vfs_joshw_spc_description" translatable="false">http://spc.joshw.info</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
+    <string name="file_too_big">File is too big</string>
 </resources>

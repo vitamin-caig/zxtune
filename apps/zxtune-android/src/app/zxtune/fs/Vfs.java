@@ -38,6 +38,7 @@ public final class Vfs {
       composite.addSubroot(new VfsRootModland(appContext));
       composite.addSubroot(new VfsRootHvsc(appContext));
       composite.addSubroot(new VfsRootZxart(appContext));
+      composite.addSubroot(new VfsRootJoshw(appContext));
       rootSingleton = composite;
     }
     return rootSingleton;

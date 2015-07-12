@@ -45,7 +45,10 @@
     <string name="vfs_zxart_compo_oldschool">Oldschool-Musikwettbewerb</string>
     <string name="vfs_zxart_compo_mainstream">Mainstream-Musikwettbewerb</string>
     <string name="vfs_zxart_compo_progressive">Progressive Musikwettbewerb</string>
+    <!-- joshw.info -->
+    <string name="vfs_joshw_root_description">Verschiedene Archive</string>
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>
+    <string name="file_too_big">Die Datei ist zu groß</string>
 </resources>

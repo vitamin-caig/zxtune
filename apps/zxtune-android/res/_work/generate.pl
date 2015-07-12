@@ -57,12 +57,13 @@ sub convert_menu_icon
 
 #convert({source => 'status.svg', target => 'ic_stat_notify_play.png', category => 'status'});
 #convert({source => 'scanning.svg', target => 'ic_stat_notify_scan.png', category => 'status'});
-convert({source => 'ringtone.svg:status', target => 'ic_stat_notify_ringtone.png', category => 'status'});
+#convert({source => 'ringtone.svg:status', target => 'ic_stat_notify_ringtone.png', category => 'status'});
 #convert({source => 'vfs_local.svg', target => 'ic_browser_vfs_local.png', category => 'icon'});
 #convert({source => 'vfs_zxtunes.svg', target => 'ic_browser_vfs_zxtunes.png', category => 'icon'});
 #convert({source => 'vfs_modland.svg', target => 'ic_browser_vfs_modland.png', category => 'icon'});
 #convert({source => 'vfs_hvsc.svg', target => 'ic_browser_vfs_hvsc.png', category => 'icon'});
 #convert({source => 'vfs_zxart.svg', target => 'ic_browser_vfs_zxart.png', category => 'icon'});
+convert({source => 'vfs_joshw.svg', target => 'ic_browser_vfs_joshw.png', category => 'icon'});
 #convert({source => 'drag_handler.svg', target => 'ic_drag_handler.png', category => 'icon'});
 #convert({source => 'status.svg', target => 'ic_playing.png', category => 'icon'});
 
@@ -72,4 +73,4 @@ convert({source => 'ringtone.svg:status', target => 'ic_stat_notify_ringtone.png
 #convert({source => 'sequence_looped.svg', target => 'ic_sequence_looped.png', category => 'icon'});
 #convert({source => 'sequence_shuffle.svg', target => 'ic_sequence_shuffle.png', category => 'icon'});
 
-convert_menu_icon('add', 'delete', 'save', 'statistics', 'sort', 'play', 'share', 'send', 'ringtone:menu')
+#convert_menu_icon('add', 'delete', 'save', 'statistics', 'sort', 'play', 'share', 'send', 'ringtone:menu')

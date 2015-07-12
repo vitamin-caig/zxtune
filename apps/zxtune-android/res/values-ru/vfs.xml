@@ -49,7 +49,10 @@
     <string name="vfs_zxart_compo_oldschool">Конкурс oldschool музыки</string>
     <string name="vfs_zxart_compo_mainstream">Конкурс mainstream музыки</string>
     <string name="vfs_zxart_compo_progressive">Конкурс progressive музыки</string>
+    <!-- joshw.info -->
+    <string name="vfs_joshw_root_description">Различные архивы</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>
+    <string name="file_too_big">Файл слишком большой</string>
 </resources>

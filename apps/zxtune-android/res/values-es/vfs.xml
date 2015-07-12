@@ -46,7 +46,10 @@
   <string name="vfs_zxart_compo_oldschool">Compo música oldschool</string>
   <string name="vfs_zxart_compo_mainstream">Compo música mainstream</string>
   <string name="vfs_zxart_compo_progressive">Compo música progressive</string>
+  <!-- joshw.info -->
+  <string name="vfs_joshw_root_description">Varios archivos</string>
   <!--errors-->
   <string name="network_inaccessible">La red no es accesible</string>
   <string name="failed_resolve">No se pudo resolver %s</string>
+  <string name="file_too_big">El archivo es demasiado grande</string>
 </resources>
