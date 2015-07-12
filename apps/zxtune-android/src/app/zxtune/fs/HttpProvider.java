@@ -27,6 +27,7 @@ import app.zxtune.R;
 public class HttpProvider {
 
   private final static String TAG = HttpProvider.class.getName();
+  private final static int MAX_REMOTE_FILE_SIZE = 5 * 1024 * 1024;//5Mb
 
   private Context context;
 
@@ -42,6 +43,7 @@ public class HttpProvider {
     try {
       final URL url = new URL(uri);
       final HttpURLConnection result = (HttpURLConnection) url.openConnection();
+      CheckSizeLimit(result.getContentLength());
       Log.d(TAG, String.format("Fetch %d bytes via %s", result.getContentLength(), uri));
       return result;
     } catch (IOException e) {
@@ -66,12 +68,13 @@ public class HttpProvider {
   }
 
   //! result buffer is not direct so required wrapping
-  private static ByteBuffer getContent(InputStream stream) throws IOException {
+  private ByteBuffer getContent(InputStream stream) throws IOException {
     byte[] buffer = new byte[256 * 1024];
     int size = 0;
     for (;;) {
       size = readPartialContent(stream, buffer, size);
       if (size == buffer.length) {
+        CheckSizeLimit(size);
         buffer = reallocate(buffer);
       } else {
         break;
@@ -100,6 +103,12 @@ public class HttpProvider {
     final byte[] result = new byte[buf.length * 2];
     System.arraycopy(buf, 0, result, 0, buf.length);
     return result;
+  }
+  
+  private void CheckSizeLimit(int size) throws IOException {
+    if (size > MAX_REMOTE_FILE_SIZE) {
+      throw new IOException(context.getString(R.string.file_too_big));
+    }
   }
 
   public final void checkConnectionError() throws IOException {
