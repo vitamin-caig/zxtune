@@ -33,6 +33,8 @@ namespace
 namespace
 {
   const QString SERVER_NAME(Text::PROGRAM_NAME);
+  
+  const QDataStream::Version STREAM_VERSION = QDataStream::Qt_4_6;//compatible with up to 4.9
 
   class StubModeDispatcher : public SingleModeDispatcher
   {
@@ -176,7 +178,7 @@ namespace
     {
       QByteArray blob;
       QDataStream stream(&blob, QIODevice::WriteOnly);
-      stream.setVersion(QDataStream::Qt_4_8);
+      stream.setVersion(STREAM_VERSION);
       stream << Cmdline;
       stream.device()->seek(0);
       SocketHelper out(socket);
@@ -189,7 +191,7 @@ namespace
       QByteArray blob;
       in.Read(blob);
       QDataStream stream(&blob, QIODevice::ReadOnly);
-      stream.setVersion(QDataStream::Qt_4_8);
+      stream.setVersion(STREAM_VERSION);
       stream >> result;
     }
 
