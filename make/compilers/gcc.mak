@@ -49,7 +49,7 @@ INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
 	$(addprefix -D,$(DEFINITIONS) $($(platform).definitions) $($(platform).$(arch).definitions)) \
 	-funsigned-char -fno-strict-aliasing \
-	-W -Wall -Wextra -Wno-unused-local-typedefs -pipe \
+	-W -Wall -Wextra -pipe \
 	$(addprefix -I,$(INCLUDES))
 
 CXXFLAGS = $(CCFLAGS) -ansi -fvisibility=hidden -fvisibility-inlines-hidden
