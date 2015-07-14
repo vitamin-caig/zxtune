@@ -36,7 +36,7 @@ ifneq (,$(findstring Gui,$(libraries.qt)))
 windows_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
 mingw_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
 ifneq ($($(platform).$(arch).qt.version),)
-linux_libraries += freetype SM ICE Xext Xrender Xrandr Xfixes X11 fontconfig
+linux_libraries += freetype Xext Xrender Xrandr Xfixes X11 fontconfig
 dingux_libraries += png
 endif
 endif

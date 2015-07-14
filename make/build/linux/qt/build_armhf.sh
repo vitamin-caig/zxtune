@@ -8,7 +8,7 @@ TARGETS="-nomake demos -nomake examples -nomake docs -nomake translations -nomak
 VERSIONS="-opensource -release -static -fast -confirm-license"
 FORMATS="-no-gif -no-libtiff -no-libmng -no-libjpeg -qt-libpng"
 FEATURES="-no-accessibility -no-opengl -no-openvg -no-sql-sqlite -no-qt3support -no-openssl -no-nis -no-cups -no-qdbus -no-dbus -no-gtkstyle -no-glib \
--fontconfig -xrender -xrandr -xfixes -xshape -no-mmx -no-3dnow -no-sse -no-sse2 -no-sse3 -no-ssse3 -no-sse4.1 -no-sse4.2 -no-avx -no-neon"
+-fontconfig -xrender -xrandr -xfixes -xshape -no-mmx -no-3dnow -no-sse -no-sse2 -no-sse3 -no-ssse3 -no-sse4.1 -no-sse4.2 -no-avx -no-neon -no-sm -no-nas-sound"
 PARTS="-no-webkit -no-javascript-jit -no-phonon -no-phonon-backend -no-multimedia -no-audio-backend -no-script -no-scripttools -no-declarative -no-declarative-debug -no-xmlpatterns"
 
 mkdir -p mkspecs/${PLATFORM}
@@ -46,7 +46,7 @@ QMAKE_AR                = \$\${EXECPREFIX}ar cqs
 QMAKE_OBJCOPY           = \$\${EXECPREFIX}objcopy
 QMAKE_STRIP             = \$\${EXECPREFIX}strip
 
-QMAKE_LFLAGS            = -Wl,-rpath-link,\$\${CROSS_ROOT}/lib -Wl,-rpath-link,\$\${QMAKE_LIBDIR_X11}
+QMAKE_LFLAGS            = -Wl,-rpath-link,\$\${CROSS_ROOT}/lib/arm-linux-gnueabihf -Wl,-rpath-link,\$\${QMAKE_LIBDIR_X11}
 
 load(qt_config)
 EOF
