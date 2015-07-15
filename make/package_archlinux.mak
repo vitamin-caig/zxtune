@@ -11,7 +11,7 @@ package_archlinux:
 
 $(pkg_file): $(pkg_archlinux)/PKGBUILD $(pkg_archlinux)/makepkg.conf
 	@$(call showtime_cmd)
-	(cd $(pkg_dir) && makepkg -c -p archlinux/PKGBUILD --config archlinux/makepkg.conf)
+	(cd $(pkg_archlinux) && makepkg -c -p PKGBUILD --config makepkg.conf && mv *.pkg.tar.xz ..)
 	$(call rmdir_cmd,$(pkg_archlinux))
 
 $(pkg_archlinux):

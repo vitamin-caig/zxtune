@@ -3,7 +3,6 @@ pkgname=zxtune-qt
 pkgdesc="Qt-based GUI version of crossplatform ZX Spectrum music player and ripper"
 url="http://zxtune.bitbucket.org/"
 license=('GPL3')
-depends=('boost-libs' 'gcc-libs' 'qt4')
 optdepends=(
  'alsa-lib: for ALSA output support'
  'sdl: for SDL output support'
