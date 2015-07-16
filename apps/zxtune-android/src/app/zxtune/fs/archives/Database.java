@@ -81,20 +81,31 @@ import android.util.Log;
  * 'description'
  * 'duration'
  */
+ 
+/*
+ * Version 2
+ *  added 7zip support
+ */
 
 class Database {
 
   private static final String NAME = "archives";
-  private static final int VERSION = 1;
+  private static final int VERSION = 2;
   private static final String TAG = Database.class.getName();
 
   static final class Tables {
+  
+    private static final String DROP_TABLE_QUERY = "DROP TABLE IF EXISTS %s";
+    private static final String DROP_VIEW_QUERY = "DROP VIEW IF EXISTS %s";
+    private static final String DROP_TRIGGER_QUERY = "DROP TRIGGER IF EXISTS %s";
+    private static final String DROP_INDEX_QUERY = "DROP INDEX IF EXISTS %s";
     
     static final class Paths {
       static enum Fields {
         path
       }
       
+      private static final String NAME = "paths";
       private static final String CREATE_QUERY = "CREATE TABLE paths (" +
         "path TEXT PRIMARY KEY NOT NULL" +
         ");";
@@ -105,7 +116,7 @@ class Database {
         path_id, modules
       }
       
-      //private static final String NAME = "archives_internal";
+      private static final String NAME = "archives_internal";
       private static final String CREATE_QUERY = "CREATE TABLE archives_internal (" +
         "path_id INTEGER NOT NULL PRIMARY KEY, " +
         "modules INTEGER NOT NULL" +
@@ -122,14 +133,19 @@ class Database {
         "CREATE VIEW archives AS " +
           "SELECT path, modules FROM archives_internal, paths " +
             "WHERE archives_internal.path_id = paths.rowid;";
-      private static final String CREATE_INSERT_TRIGGER_QUERY =
-        "CREATE TRIGGER archives_insert INSTEAD OF INSERT ON archives " +
-          "FOR EACH ROW " +
-          "BEGIN " +
-            "INSERT OR IGNORE INTO paths(path) VALUES(new.path);" +
-            "INSERT INTO archives_internal " +
-              "SELECT rowid, new.modules FROM paths WHERE path = new.path;" +
-          "END;";
+
+      static final class InsertTrigger {
+        private static final String NAME = "archives_insert";
+        private static final String CREATE_QUERY =
+          "CREATE TRIGGER archives_insert INSTEAD OF INSERT ON archives " +
+            "FOR EACH ROW " +
+            "BEGIN " +
+              "INSERT OR IGNORE INTO paths(path) VALUES(new.path);" +
+              "INSERT INTO archives_internal " +
+                "SELECT rowid, new.modules FROM paths WHERE path = new.path;" +
+            "END;";
+      };
+      
       private static final String INSERT_STATEMENT = 
         "INSERT INTO archives VALUES (?,?);";
     }
@@ -139,7 +155,7 @@ class Database {
         path_id, description, duration
       }
       
-      //private static final String NAME = "tracks_internal";
+      private static final String NAME = "tracks_internal";
       private static final String CREATE_QUERY = "CREATE TABLE tracks_internal (" +
         "path_id INTEGER NOT NULL PRIMARY KEY, " +
         "description TEXT, " +
@@ -152,19 +168,24 @@ class Database {
         path, description, duration
       }
       
-      //private static final String NAME = "tracks";
+      private static final String NAME = "tracks";
       private static final String CREATE_QUERY =
         "CREATE VIEW tracks AS " +
           "SELECT path, description, duration FROM tracks_internal, paths " +
             "WHERE tracks_internal.path_id = paths.rowid;";
-      private static final String CREATE_INSERT_TRIGGER_QUERY =
-        "CREATE TRIGGER tracks_insert INSTEAD OF INSERT ON tracks " +
-          "FOR EACH ROW " +
-          "BEGIN " +
-            "INSERT OR IGNORE INTO paths(path) VALUES(new.path);" +
-            "INSERT INTO tracks_internal " +
-              "SELECT rowid, new.description, new.duration FROM paths WHERE path = new.path;" +
-          "END;";
+            
+      static final class InsertTrigger {
+        private static final String NAME = "tracks_insert";
+        private static final String CREATE_QUERY =
+          "CREATE TRIGGER tracks_insert INSTEAD OF INSERT ON tracks " +
+            "FOR EACH ROW " +
+            "BEGIN " +
+              "INSERT OR IGNORE INTO paths(path) VALUES(new.path);" +
+              "INSERT INTO tracks_internal " +
+                "SELECT rowid, new.description, new.duration FROM paths WHERE path = new.path;" +
+            "END;";
+      };
+      
       private static final String INSERT_STATEMENT = 
           "INSERT INTO tracks VALUES (?,?,?);";
     }
@@ -174,13 +195,17 @@ class Database {
         path_id, parent_id
       }
       
-      //private static final String NAME = "dirs_internal";
+      private static final String NAME = "dirs_internal";
       private static final String CREATE_QUERY = "CREATE TABLE dirs_internal (" +
         "path_id INTEGER NOT NULL PRIMARY KEY, " +
         "parent_id INTEGER NOT NULL" +
         ");";
-      private static final String CREATE_INDEX_QUERY = 
-        "CREATE INDEX dirs_index ON dirs_internal (parent_id);";
+        
+      static final class Index {
+        private static final String NAME = "dirs_index";
+        private static final String CREATE_QUERY = 
+          "CREATE INDEX dirs_index ON dirs_internal (parent_id);";
+      };
     }
     
     static final class Dirs {
@@ -188,7 +213,7 @@ class Database {
         path, parent
       }
       
-      //private static final String NAME = "dirs";
+      private static final String NAME = "dirs";
       private static final String CREATE_QUERY =
         "CREATE VIEW dirs AS " +
           "SELECT " + 
@@ -196,17 +221,22 @@ class Database {
             "parent.path AS parent " + 
           "FROM dirs_internal, paths AS self, paths AS parent " +
             "WHERE dirs_internal.path_id = self.rowid AND dirs_internal.parent_id = parent.rowid;";
-      private static final String CREATE_INSERT_TRIGGER_QUERY =
-        "CREATE TRIGGER dirs_insert INSTEAD OF INSERT ON dirs " +
-          "FOR EACH ROW " +
-          "BEGIN " +
-            //sqlite prior to 3.7.11 does not support multiple rows insert
-            "INSERT OR IGNORE INTO paths(path) VALUES (new.path);" +
-            "INSERT OR IGNORE INTO paths(path) VALUES (new.parent);" +
-            "INSERT INTO dirs_internal " +
-              "SELECT self.rowid, parent.rowid FROM paths AS self, paths AS parent " +
-                "WHERE self.path = new.path AND parent.path = new.parent;" +
-          "END;";
+            
+      static final class InsertTrigger {
+        private static final String NAME = "dirs_insert";
+        private static final String CREATE_QUERY =
+          "CREATE TRIGGER dirs_insert INSTEAD OF INSERT ON dirs " +
+            "FOR EACH ROW " +
+            "BEGIN " +
+              //sqlite prior to 3.7.11 does not support multiple rows insert
+              "INSERT OR IGNORE INTO paths(path) VALUES (new.path);" +
+              "INSERT OR IGNORE INTO paths(path) VALUES (new.parent);" +
+              "INSERT INTO dirs_internal " +
+                "SELECT self.rowid, parent.rowid FROM paths AS self, paths AS parent " +
+                  "WHERE self.path = new.path AND parent.path = new.parent;" +
+            "END;";
+      };
+      
       private static final String INSERT_STATEMENT = 
         "INSERT INTO dirs VALUES (?,?);";
     }
@@ -322,23 +352,62 @@ class Database {
     @Override
     public void onCreate(SQLiteDatabase db) {
       Log.d(TAG, "Creating database");
-      db.execSQL(Tables.Paths.CREATE_QUERY);
-      db.execSQL(Tables.ArchivesInternal.CREATE_QUERY);
-      db.execSQL(Tables.Archives.CREATE_QUERY);
-      db.execSQL(Tables.Archives.CREATE_INSERT_TRIGGER_QUERY);
-      db.execSQL(Tables.TracksInternal.CREATE_QUERY);
-      db.execSQL(Tables.Tracks.CREATE_QUERY);
-      db.execSQL(Tables.Tracks.CREATE_INSERT_TRIGGER_QUERY);
-      db.execSQL(Tables.DirsInternal.CREATE_QUERY);
-      db.execSQL(Tables.DirsInternal.CREATE_INDEX_QUERY);
-      db.execSQL(Tables.Dirs.CREATE_QUERY);
-      db.execSQL(Tables.Dirs.CREATE_INSERT_TRIGGER_QUERY);
-      db.execSQL(Tables.Entries.CREATE_QUERY);
+      final String QUERIES[] = {
+	Tables.Paths.CREATE_QUERY,
+	Tables.ArchivesInternal.CREATE_QUERY,
+	Tables.Archives.CREATE_QUERY, Tables.Archives.InsertTrigger.CREATE_QUERY,
+	Tables.TracksInternal.CREATE_QUERY,
+	Tables.Tracks.CREATE_QUERY, Tables.Tracks.InsertTrigger.CREATE_QUERY,
+	Tables.DirsInternal.CREATE_QUERY, Tables.DirsInternal.Index.CREATE_QUERY,
+	Tables.Dirs.CREATE_QUERY, Tables.Dirs.InsertTrigger.CREATE_QUERY,
+	Tables.Entries.CREATE_QUERY
+      };
+      for (String query : QUERIES) {
+        db.execSQL(query);
+      }
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
+      onDelete(db);
+      onCreate(db);
+    }
+    
+    private void onDelete(SQLiteDatabase db) {
+      final String TABLES[] = {
+        Tables.Paths.NAME,
+        Tables.ArchivesInternal.NAME,
+        Tables.TracksInternal.NAME,
+        Tables.DirsInternal.NAME
+      };
+      final String VIEWS[] = {
+        Tables.Archives.NAME,
+        Tables.Tracks.NAME,
+        Tables.Dirs.NAME,
+        Tables.Entries.NAME
+      };
+      final String TRIGGERS[] = {
+        Tables.Archives.InsertTrigger.NAME,
+        Tables.Tracks.InsertTrigger.NAME,
+        Tables.Dirs.InsertTrigger.NAME
+      };
+      final String INDICES[] = {
+        Tables.DirsInternal.Index.NAME
+      };
+      
+      for (String table : TABLES) {
+        db.execSQL(String.format(Tables.DROP_TABLE_QUERY, table));
+      }
+      for (String view : VIEWS) {
+        db.execSQL(String.format(Tables.DROP_VIEW_QUERY, view));
+      }
+      for (String trigger : TRIGGERS) {
+        db.execSQL(String.format(Tables.DROP_TRIGGER_QUERY, trigger));
+      }
+      for (String index : INDICES) {
+        db.execSQL(String.format(Tables.DROP_INDEX_QUERY, index));
+      }
     }
     
     public final SQLiteStatement getInsertArchiveStatement() {
