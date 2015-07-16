@@ -5,7 +5,17 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
---- Rev3380 from 17.05.2015
+--- Rev3410 from 16.07.2015
+
+[+] Added 7zip archives support
+[+] zxtune-android: Josh W music catalogues support (gbs, hes, nsf, smd, spc)
+[*] zxtune-android: fixed zxtunes.com catalogue working
+[*] zxtune-android: fixed crash on archive adding to playlist
+[*] zxtune-android: fixed searching on browsed archive
+[*] zxtune-android: fixed invalid SAA plugins header info
+[*] zxtune-android: limit max downloaded file size to 5Mb
+
+--- Rev3380 from 17.06.2015
 
 [*] zxtune-android: fix crash on Android prior to 4.1
 
