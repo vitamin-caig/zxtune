@@ -43,6 +43,9 @@ extern const Char OGG_BACKEND_TITLE_TAG[] = {
 extern const Char OSS_BACKEND_ID[] = {
   'o','s','s',0
 };
+extern const Char PAUDIO_BACKEND_ID[] = {
+  'p','a','u','d','i','o',0
+};
 extern const Char SDL_BACKEND_ID[] = {
   's','d','l',0
 };

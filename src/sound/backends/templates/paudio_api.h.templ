@@ -1,0 +1,24 @@
+/**
+*
+* @file
+*
+* @brief  PulseAudio subsystem API gate interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
+#pragma once
+
+//platform-dependent includes
+#include <pulse/simple.h>
+//boost includes
+#include <boost/shared_ptr.hpp>
+
+namespace Sound
+{
+  namespace PulseAudio
+  {
+<TMPL_INCLUDE NAME="api.h.templ">
+  }
+}

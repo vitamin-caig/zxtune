@@ -26,11 +26,13 @@ namespace Sound
   void RegisterAlsaBackend(BackendsStorage& storage);
   void RegisterSdlBackend(BackendsStorage& storage);
   void RegisterAyLptBackend(BackendsStorage& storage);
+  void RegisterPulseAudioBackend(BackendsStorage& storage);
 
   inline void RegisterSystemBackends(BackendsStorage& storage)
   {
     RegisterOssBackend(storage);
     RegisterAlsaBackend(storage);
+    RegisterPulseAudioBackend(storage);
     RegisterDirectSoundBackend(storage);
     RegisterWin32Backend(storage);
     RegisterSdlBackend(storage);

@@ -20,34 +20,34 @@ msgstr "Поддержка подсистемы ALSA"
 msgid "Error in ALSA backend: %1%."
 msgstr "Ошибка в подсистеме ALSA: %1%."
 
-#: alsa_backend.cpp:165
+#: alsa_backend.cpp:170
 #, boost-format
 msgid "Error in ALSA backend while working with device '%1%': %2%."
 msgstr "Ошибка при работе с ALSA устройством '%1%': %2%."
 
-#: alsa_backend.cpp:329
+#: alsa_backend.cpp:338
 msgid "No suitable formats supported by ALSA."
 msgstr ""
 "Ни один подходящий формат вывода звука не поддерживается подсистемой ALSA."
 
-#: alsa_backend.cpp:574
+#: alsa_backend.cpp:569
 #, boost-format
 msgid "Failed to found mixer '%1%' for ALSA backend."
 msgstr "Микшер '%1%' не найден в подсистеме ALSA."
 
-#: alsa_backend.cpp:619 dsound_backend.cpp:347 oss_backend.cpp:220
+#: alsa_backend.cpp:614 dsound_backend.cpp:347 oss_backend.cpp:233
 #: win32_backend.cpp:368
 msgid "Failed to set volume: gain is out of range."
 msgstr "Ошибка установки громкости: превышение допустимого значения."
 
-#: alsa_backend.cpp:701
+#: alsa_backend.cpp:696
 #, boost-format
 msgid "ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: alsa_backend.cpp:1066 dsound_backend.cpp:622 win32_backend.cpp:608
+#: alsa_backend.cpp:1061 dsound_backend.cpp:622 win32_backend.cpp:608
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 
@@ -181,19 +181,32 @@ msgstr ""
 "Ошибка в подсистеме вывода OGG: уровень качества (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: oss_backend.cpp:54 oss_stub.cpp:23
+#: oss_backend.cpp:55 oss_stub.cpp:23
 msgid "OSS sound system backend"
 msgstr "Поддержка подсистемы OSS"
 
-#: oss_backend.cpp:139
+#: oss_backend.cpp:152
 #, boost-format
 msgid "Error in OSS backend while working with device '%1%': %2%."
 msgstr "Ошибка при работе с OSS устройством '%1%': %2%."
 
-#: oss_backend.cpp:348
+#: oss_backend.cpp:361
 msgid "No suitable formats supported by OSS."
 msgstr ""
 "Ни один подходящий формат вывода звука не поддерживается подсистемой OSS."
+
+#: paudio_backend.cpp:45 paudio_stub.cpp:23
+msgid "PulseAudio support backend"
+msgstr "Поддержка подсистемы PulseAudio"
+
+#: paudio_backend.cpp:134
+#, boost-format
+msgid "Error in PulseAudio backend: %1%."
+msgstr "Ошибка в подсистеме PulseAudio: %1%."
+
+#: paudio_backend.cpp:138
+msgid "Unknown error in PulseAudio backend."
+msgstr "Неизвестная ошибка в подсистеме PulseAudio."
 
 #: sdl_backend.cpp:47 sdl_stub.cpp:23
 msgid "SDL support backend"
