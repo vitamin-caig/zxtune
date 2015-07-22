@@ -82,9 +82,13 @@
         <translation>Микшер</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_alsa.ui" line="63"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_alsa.ui" line="69"/>
+        <source>Latency, mS</source>
+        <translation type="unfinished">Латентность, мс</translation>
+    </message>
+    <message>
         <source>Buffers</source>
-        <translation>Число буферов</translation>
+        <translation type="obsolete">Число буферов</translation>
     </message>
 </context>
 <context>
