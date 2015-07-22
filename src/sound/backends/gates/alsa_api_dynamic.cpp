@@ -206,6 +206,14 @@ namespace
       return func(pcm, name, stream, mode);
     }
     
+    virtual int snd_pcm_hw_free (snd_pcm_t *pcm)
+    {
+      static const char NAME[] = "snd_pcm_hw_free";
+      typedef int ( *FunctionType)(snd_pcm_t *);
+      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+      return func(pcm);
+    }
+    
     virtual int snd_pcm_close (snd_pcm_t *pcm)
     {
       static const char NAME[] = "snd_pcm_close";
@@ -220,6 +228,14 @@ namespace
       typedef int ( *FunctionType)(snd_pcm_t *);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(pcm);
+    }
+    
+    virtual int snd_pcm_recover (snd_pcm_t *pcm, int err, int silent)
+    {
+      static const char NAME[] = "snd_pcm_recover";
+      typedef int ( *FunctionType)(snd_pcm_t *, int, int);
+      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+      return func(pcm, err, silent);
     }
     
     virtual int snd_pcm_pause (snd_pcm_t *pcm, int enable)
@@ -246,6 +262,14 @@ namespace
       return func(pcm, buffer, size);
     }
     
+    virtual int snd_pcm_set_params (snd_pcm_t *pcm, snd_pcm_format_t format, snd_pcm_access_t access, unsigned int channels, unsigned int rate, int soft_resample, unsigned int latency)
+    {
+      static const char NAME[] = "snd_pcm_set_params";
+      typedef int ( *FunctionType)(snd_pcm_t *, snd_pcm_format_t, snd_pcm_access_t, unsigned int, unsigned int, int, unsigned int);
+      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+      return func(pcm, format, access, channels, rate, soft_resample, latency);
+    }
+    
     virtual int snd_pcm_format_mask_malloc (snd_pcm_format_mask_t ** ptr)
     {
       static const char NAME[] = "snd_pcm_format_mask_malloc";
@@ -270,6 +294,22 @@ namespace
       return func(mask, val);
     }
     
+    virtual int snd_pcm_hw_params_malloc(snd_pcm_hw_params_t ** ptr)
+    {
+      static const char NAME[] = "snd_pcm_hw_params_malloc";
+      typedef int ( *FunctionType)(snd_pcm_hw_params_t **);
+      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+      return func(ptr);
+    }
+    
+    virtual void snd_pcm_hw_params_free (snd_pcm_hw_params_t * obj)
+    {
+      static const char NAME[] = "snd_pcm_hw_params_free";
+      typedef void ( *FunctionType)(snd_pcm_hw_params_t *);
+      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+      return func(obj);
+    }
+    
     virtual int snd_pcm_hw_params_any (snd_pcm_t *pcm, snd_pcm_hw_params_t *params)
     {
       static const char NAME[] = "snd_pcm_hw_params_any";
@@ -292,94 +332,6 @@ namespace
       typedef void ( *FunctionType)(snd_pcm_hw_params_t *, snd_pcm_format_mask_t *);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(params, mask);
-    }
-    
-    virtual int snd_pcm_hw_params_malloc(snd_pcm_hw_params_t ** ptr)
-    {
-      static const char NAME[] = "snd_pcm_hw_params_malloc";
-      typedef int ( *FunctionType)(snd_pcm_hw_params_t **);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(ptr);
-    }
-    
-    virtual void snd_pcm_hw_params_free (snd_pcm_hw_params_t * obj)
-    {
-      static const char NAME[] = "snd_pcm_hw_params_free";
-      typedef void ( *FunctionType)(snd_pcm_hw_params_t *);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(obj);
-    }
-    
-    virtual int snd_pcm_hw_params (snd_pcm_t *pcm, snd_pcm_hw_params_t *params)
-    {
-      static const char NAME[] = "snd_pcm_hw_params";
-      typedef int ( *FunctionType)(snd_pcm_t *, snd_pcm_hw_params_t *);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, params);
-    }
-    
-    virtual int snd_pcm_hw_free (snd_pcm_t *pcm)
-    {
-      static const char NAME[] = "snd_pcm_hw_free";
-      typedef int ( *FunctionType)(snd_pcm_t *);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm);
-    }
-    
-    virtual int snd_pcm_hw_params_set_access (snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_access_t _access)
-    {
-      static const char NAME[] = "snd_pcm_hw_params_set_access";
-      typedef int ( *FunctionType)(snd_pcm_t *, snd_pcm_hw_params_t *, snd_pcm_access_t);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, params, _access);
-    }
-    
-    virtual int snd_pcm_hw_params_set_format (snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_format_t val)
-    {
-      static const char NAME[] = "snd_pcm_hw_params_set_format";
-      typedef int ( *FunctionType)(snd_pcm_t *, snd_pcm_hw_params_t *, snd_pcm_format_t);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, params, val);
-    }
-    
-    virtual int snd_pcm_hw_params_set_channels (snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val)
-    {
-      static const char NAME[] = "snd_pcm_hw_params_set_channels";
-      typedef int ( *FunctionType)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, params, val);
-    }
-    
-    virtual int snd_pcm_hw_params_set_rate_resample (snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val)
-    {
-      static const char NAME[] = "snd_pcm_hw_params_set_rate_resample";
-      typedef int ( *FunctionType)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, params, val);
-    }
-    
-    virtual int snd_pcm_hw_params_set_periods_near (snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val, int *dir)
-    {
-      static const char NAME[] = "snd_pcm_hw_params_set_periods_near";
-      typedef int ( *FunctionType)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int *, int *);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, params, val, dir);
-    }
-    
-    virtual int snd_pcm_hw_params_set_buffer_size_near (snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val)
-    {
-      static const char NAME[] = "snd_pcm_hw_params_set_buffer_size_near";
-      typedef int ( *FunctionType)(snd_pcm_t *, snd_pcm_hw_params_t *, snd_pcm_uframes_t *);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, params, val);
-    }
-    
-    virtual int snd_pcm_hw_params_set_rate (snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val, int dir)
-    {
-      static const char NAME[] = "snd_pcm_hw_params_set_rate";
-      typedef int ( *FunctionType)(snd_pcm_t *, snd_pcm_hw_params_t *, unsigned int, int);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, params, val, dir);
     }
     
     virtual int snd_pcm_info_malloc (snd_pcm_info_t ** ptr)

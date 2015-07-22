@@ -148,6 +148,11 @@ namespace Alsa
       CheckResult(((*AlsaApi).*func)(Handle, p1, p2, p3), loc);
     }
 
+    template<class P1, class P2, class P3, class P4, class P5, class P6>
+    void CheckedCall(int (Api::*func)(T*, P1, P2, P3, P4, P5, P6), P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, Error::LocationRef loc) const
+    {
+      CheckResult(((*AlsaApi).*func)(Handle, p1, p2, p3, p4, p5, p6), loc);
+    }
   protected:
     T* Release()
     {
@@ -264,7 +269,11 @@ namespace Alsa
       std::size_t size = buffer.size();
       while (size)
       {
-        const snd_pcm_sframes_t res = AlsaApi->snd_pcm_writei(Handle, data, size);
+        snd_pcm_sframes_t res = AlsaApi->snd_pcm_writei(Handle, data, size);
+        if (res < 0)
+        {
+          res = AlsaApi->snd_pcm_recover(Handle, res, 1);
+        }
         if (res < 0)
         {
           CheckedCall(&Api::snd_pcm_prepare, THIS_LINE);
@@ -315,9 +324,9 @@ namespace Alsa
       const boost::shared_ptr<snd_pcm_hw_params_t> hwParams = Allocate<snd_pcm_hw_params_t>(AlsaApi,
         &Api::snd_pcm_hw_params_malloc, &Api::snd_pcm_hw_params_free);
       Pcm.CheckedCall(&Api::snd_pcm_hw_params_any, hwParams.get(), THIS_LINE);
-      Pcm.CheckedCall(&Api::snd_pcm_hw_params_set_access, hwParams.get(), SND_PCM_ACCESS_RW_INTERLEAVED, THIS_LINE);
-      Dbg("Setting resampling possibility");
-      Pcm.CheckedCall(&Api::snd_pcm_hw_params_set_rate_resample, hwParams.get(), 1u, THIS_LINE);
+
+      const bool canPause = AlsaApi->snd_pcm_hw_params_can_pause(hwParams.get()) != 0;
+      Dbg(canPause ? "Hardware support pause" : "Hardware doesn't support pause");
 
       const boost::shared_ptr<snd_pcm_format_mask_t> fmtMask = Allocate<snd_pcm_format_mask_t>(AlsaApi,
         &Api::snd_pcm_format_mask_malloc, &Api::snd_pcm_format_mask_free);
@@ -328,29 +337,15 @@ namespace Alsa
       {
         throw Error(THIS_LINE, translate("No suitable formats supported by ALSA."));
       }
-      Dbg("Setting format");
-      Pcm.CheckedCall(&Api::snd_pcm_hw_params_set_format, hwParams.get(), fmt.Get(), THIS_LINE);
-      Dbg("Setting channels");
-      Pcm.CheckedCall(&Api::snd_pcm_hw_params_set_channels, hwParams.get(), unsigned(Sample::CHANNELS), THIS_LINE);
-      const unsigned samplerate = params.SoundFreq();
-      Dbg("Setting frequency to %1%", samplerate);
-      Pcm.CheckedCall(&Api::snd_pcm_hw_params_set_rate, hwParams.get(), samplerate, 0, THIS_LINE);
-      Dbg("Setting buffers count to %1%", buffersCount);
-      int dir = 0;
-      Pcm.CheckedCall(&Api::snd_pcm_hw_params_set_periods_near, hwParams.get(), &buffersCount, &dir, THIS_LINE);
-      Dbg("Actually set to %1%", buffersCount);
 
-      snd_pcm_uframes_t minBufSize(buffersCount * params.SamplesPerFrame());
-      Dbg("Setting buffer size to %1% samples", minBufSize);
-      Pcm.CheckedCall(&Api::snd_pcm_hw_params_set_buffer_size_near, hwParams.get(), &minBufSize, THIS_LINE);
-      Dbg("Actually set %1% samples", minBufSize);
-
-      Dbg("Applying parameters");
-      Pcm.CheckedCall(&Api::snd_pcm_hw_params, hwParams.get(), THIS_LINE);
+      const unsigned freq = params.SoundFreq();
+      const unsigned latency = Time::Microseconds(params.FrameDuration()).Get() * buffersCount;
+      Dbg("Setting parameters: rate=%1%Hz latency=%2%uS", freq, latency);
+      Pcm.CheckedCall(&Api::snd_pcm_set_params, fmt.Get(), SND_PCM_ACCESS_RW_INTERLEAVED, unsigned(Sample::CHANNELS), freq, 1, latency, THIS_LINE);
+      
       Pcm.CheckedCall(&Api::snd_pcm_prepare, THIS_LINE);
-
-      CanPause = AlsaApi->snd_pcm_hw_params_can_pause(hwParams.get()) != 0;
-      Dbg(CanPause ? "Hardware support pause" : "Hardware doesn't support pause");
+      
+      CanPause = canPause;
       Format = fmt.Get();
     }
 
