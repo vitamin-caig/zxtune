@@ -241,8 +241,8 @@
 < INFO_OPTIONS_SOUND_BACKENDS_ALSA_MIXER
 > "mixer for ALSA backend (taking the first one if not specified)"
 
-< INFO_OPTIONS_SOUND_BACKENDS_ALSA_BUFFERS
-> "buffers count for ALSA backend"
+< INFO_OPTIONS_SOUND_BACKENDS_ALSA_LATENCY
+> "latency in ms for ALSA backend"
 
 < INFO_OPTIONS_SOUND_BACKENDS_SDL_BUFFERS
 > "buffers count for SDL backend"

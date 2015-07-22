@@ -547,13 +547,13 @@ extern const Char INFO_OPTIONS_IO_PROVIDERS_FILE_OVERWRITE_EXISTING[] = {
 extern const Char INFO_OPTIONS_IO_PROVIDERS_TITLE[] = {
   ' ','I','O',' ','p','r','o','v','i','d','e','r','s',' ','o','p','t','i','o','n','s',':',0
 };
-extern const Char INFO_OPTIONS_SOUND_BACKENDS_ALSA_BUFFERS[] = {
-  'b','u','f','f','e','r','s',' ','c','o','u','n','t',' ','f','o','r',' ','A','L','S','A',' ','b','a','c','k',
-  'e','n','d',0
-};
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_ALSA_DEVICE[] = {
   'p','l','a','y','b','a','c','k',' ','d','e','v','i','c','e',' ','f','o','r',' ','A','L','S','A',' ','b','a',
   'c','k','e','n','d',0
+};
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_ALSA_LATENCY[] = {
+  'l','a','t','e','n','c','y',' ','i','n',' ','m','s',' ','f','o','r',' ','A','L','S','A',' ','b','a','c','k',
+  'e','n','d',0
 };
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_ALSA_MIXER[] = {
   'm','i','x','e','r',' ','f','o','r',' ','A','L','S','A',' ','b','a','c','k','e','n','d',' ','(','t','a','k',
