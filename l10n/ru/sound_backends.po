@@ -42,9 +42,9 @@ msgstr "Ошибка установки громкости: превышение
 
 #: alsa_backend.cpp:696
 #, boost-format
-msgid "ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."
+msgid "ALSA backend error: latency (%1%) is out of range (%2%..%3%)."
 msgstr ""
-"Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
+"Ошибка в подсистеме ALSA: задержка (%1%) превышает допустимые значения "
 "(%2%..%3%)."
 
 #: alsa_backend.cpp:1061 dsound_backend.cpp:622 win32_backend.cpp:608

@@ -107,9 +107,9 @@ namespace Parameters
           extern const NameType MIXER;
 
           //! Default value
-          const IntType BUFFERS_DEFAULT = 3;
-          //! Buffers count
-          extern const NameType BUFFERS;
+          const IntType LATENCY_DEFAULT = 100;
+          //! Latency in mS
+          extern const NameType LATENCY;
           //@}
         }
 
@@ -143,7 +143,7 @@ namespace Parameters
 
           //! Default value
           const IntType LATENCY_DEFAULT = 100;
-          //! Buffers count
+          //! Latency in mS
           extern const NameType LATENCY;
           //@}
         }
