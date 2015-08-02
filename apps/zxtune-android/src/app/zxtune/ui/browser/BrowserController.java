@@ -168,32 +168,38 @@ public class BrowserController {
     loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
   }
   
-  void listingStarted() {
+  final void listingStarted() {
     showProgress();
     listing.setEmptyViewText(R.string.browser_loading);
   }
   
-  void searchingStarted() {
+  final void searchingStarted() {
     showProgress();
     listing.setEmptyViewText(R.string.browser_searching);
   }
 
-  void loadingFinished() {
+  final void loadingFinished() {
     hideProgress();
     listing.setEmptyViewText(R.string.browser_empty);
   }
   
-  void loadingFailed(Exception e) {
+  final void archiveLoadingFinished(Runnable playCmd) {
+    loaderManager.destroyLoader(LOADER_ID);
+    hideProgress();
+    playCmd.run();
+  }
+  
+  final void loadingFailed(Exception e) {
     hideProgress();
     listing.showError(e);
   }
 
-  void showProgress() {
+  final void showProgress() {
     progress.setVisibility(View.VISIBLE);
     progress.setIndeterminate(true);
   }
   
-  void hideProgress() {
+  final void hideProgress() {
     progress.setVisibility(View.INVISIBLE);
   }
 }

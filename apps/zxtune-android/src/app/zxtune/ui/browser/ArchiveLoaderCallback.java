@@ -65,10 +65,7 @@ class ArchiveLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Ar
     } else if (result instanceof VfsDir) {
       control.setCurrentDir((VfsDir) result);
     } else {
-      loadingFinished();
-      //TODO: refresh dir on orientation change
-      //control.setCurrentDir((VfsDir) file.getParent());
-      playCmd.run();
+      control.archiveLoadingFinished(playCmd);
     }
   }
 
