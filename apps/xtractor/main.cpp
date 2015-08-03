@@ -283,6 +283,7 @@ namespace Formats
       scanner.AddDecoder(CreateSPCDecoder());
       scanner.AddDecoder(CreateMultiTrackContainerDecoder());
       scanner.AddDecoder(CreateAYEMULDecoder());
+      scanner.AddDecoder(CreateAbyssHighestExperienceDecoder());
     }
   }
 }
