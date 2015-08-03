@@ -32,7 +32,7 @@ libraries.common = analysis async binary binary_format \
                   resource \
                   sound sound_backends strings \
                   tools
-libraries.3rdparty = gme lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
+libraries.3rdparty = gme hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
 
 #ui
 libraries += playlist_ui playlist_supp playlist_io ui_common
