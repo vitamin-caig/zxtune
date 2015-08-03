@@ -52,6 +52,12 @@ namespace
       return QVariant();
     }
   };
+  
+  template<class T>
+  inline QString ToHex(T val)
+  {
+    return QString::number(val, 16).rightJustified(2 * sizeof(val), '0');
+  }
 
   class DisplayDataProvider : public RowDataProvider
   {
@@ -77,9 +83,9 @@ namespace
       case Playlist::Model::COLUMN_SIZE:
         return QString::number(item.GetSize());
       case Playlist::Model::COLUMN_CRC:
-        return QString::number(item.GetChecksum(), 16);
+        return ToHex(item.GetChecksum());
       case Playlist::Model::COLUMN_FIXEDCRC:
-        return QString::number(item.GetCoreChecksum(), 16);
+        return ToHex(item.GetCoreChecksum());
       default:
         return QVariant();
       };
