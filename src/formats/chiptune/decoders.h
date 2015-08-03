@@ -56,5 +56,6 @@ namespace Formats
     Decoder::Ptr CreateHESDecoder();
     Decoder::Ptr CreateVideoGameMusicDecoder();
     Decoder::Ptr CreateGYMDecoder();
+    Decoder::Ptr CreateAbyssHighestExperienceDecoder();
   }
 }

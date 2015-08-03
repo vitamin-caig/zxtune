@@ -3,6 +3,17 @@
 
 namespace Text
 {
+extern const Char ABYSSHIGHESTEXPERIENCE_DECODER_DESCRIPTION[] = {
+  'A','b','y','s','s','\'',' ','H','i','g','h','e','s','t',' ','E','x','p','e','r','i','e','n','c','e',0
+};
+extern const Char ABYSSHIGHESTEXPERIENCE_EDITOR_NEW[] = {
+  'A','b','y','s','s','\'',' ','H','i','g','h','e','s','t',' ','E','x','p','e','r','i','e','n','c','e',' ','v',
+  '2','.','0','0','+',0
+};
+extern const Char ABYSSHIGHESTEXPERIENCE_EDITOR_OLD[] = {
+  'A','b','y','s','s','\'',' ','H','i','g','h','e','s','t',' ','E','x','p','e','r','i','e','n','c','e',' ','v',
+  '1','.','0','0','-','1','.','2','7',0
+};
 extern const Char ASCSOUNDMASTER0_DECODER_DESCRIPTION[] = {
   'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','v','0','.','x',0
 };
@@ -61,7 +72,7 @@ extern const Char GLOBALTRACKER_DECODER_DESCRIPTION[] = {
   'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
 extern const Char GYM_DECODER_DESCRIPTION[] = {
-  'G','e','n','e','s','i','s',' ','Y','M','2','6','1','2',0
+  'G','e','n','e','s','i','s',' ','Y','M','2','6','1','2',' ','(','u','n','p','a','c','k','e','d',')',0
 };
 extern const Char HES_DECODER_DESCRIPTION[] = {
   'H','o','m','e',' ','E','n','t','e','r','t','a','i','n','m','e','n','t',' ','S','y','s','t','e','m',0
