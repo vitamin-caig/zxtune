@@ -95,6 +95,10 @@
   <track>
     <location>Samples/DAC/ZX/COMETDAY.str</location>
   </track>
+  <!-- DAC/Amiga -->
+  <track>
+    <location>Samples/DAC/Amiga/Stormlord.ahx</location>
+  </track>
   <!-- HuC6270 -->
   <track>
     <location>Samples/HuC6270/raiden.hes</location>
