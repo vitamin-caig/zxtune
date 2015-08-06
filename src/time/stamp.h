@@ -98,6 +98,7 @@ namespace Time
     T Value;
   };
 
+  typedef Stamp<uint32_t, 1> Seconds;
   typedef Stamp<uint32_t, MILLISECONDS_PER_SECOND> Milliseconds;
   typedef Stamp<uint64_t, MICROSECONDS_PER_SECOND> Microseconds;
   typedef Stamp<uint64_t, NANOSECONDS_PER_SECOND> Nanoseconds;

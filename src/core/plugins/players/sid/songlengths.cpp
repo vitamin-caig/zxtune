@@ -37,9 +37,7 @@ namespace Sid
 #include "songlengths_db.inc"
   };
 
-  typedef Time::Stamp<uint_t, 1> Seconds;
-
-  const Seconds DEFAULT_SONG_LENGTH(120);
+  const Time::Seconds DEFAULT_SONG_LENGTH(120);
 
   TimeType GetSongLength(const char* md5digest, uint_t idx)
   {
@@ -51,7 +49,7 @@ namespace Sid
       const SongEntry* const entry = lower + idx;
       if (lower->HashCrc32 == entry->HashCrc32)
       {
-        return Seconds(entry->Seconds);
+        return Time::Seconds(entry->Seconds);
       }
     }
     return DEFAULT_SONG_LENGTH;

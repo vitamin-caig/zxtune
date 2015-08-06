@@ -97,9 +97,8 @@ namespace Chiptune
     }
        
     typedef Time::Stamp<uint_t, 64000> Ticks;
-    typedef Time::Stamp<uint_t, 1> Seconds;
     
-    const Seconds MAX_DURATION(3600);
+    const Time::Seconds MAX_DURATION(3600);
     
     template<class T>
     inline bool IsValidTime(T t)
@@ -140,11 +139,11 @@ namespace Chiptune
         return GetString(DumpDate);
       }
       
-      Seconds GetFadeTime() const
+      Time::Seconds GetFadeTime() const
       {
         const String& str = GetString(FadeTimeSec);
         const uint_t val = ToInt(str);
-        return Seconds(val);
+        return Time::Seconds(val);
       }
       
       Time::Milliseconds GetFadeDuration() const
@@ -175,10 +174,10 @@ namespace Chiptune
         return DateFromInteger(fromLE(DumpDate));
       }
 
-      Seconds GetFadeTime() const
+      Time::Seconds GetFadeTime() const
       {
         const uint_t val = uint_t(FadeTimeSec[0]) | (uint_t(FadeTimeSec[1]) << 8) | (uint_t(FadeTimeSec[2]) << 16);
-        return Seconds(val);
+        return Time::Seconds(val);
       }
       
       Time::Milliseconds GetFadeDuration() const
@@ -397,7 +396,7 @@ namespace Chiptune
       const String Dumper;
       const String Comments;
       const String DumpDate;
-      const Seconds FadeTime;
+      const Time::Seconds FadeTime;
       const Time::Milliseconds FadeDuration;
       const String Artist;
       
