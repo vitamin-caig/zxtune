@@ -27,9 +27,9 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, const Binary::Container& data) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, PropertiesBuilder& properties) const
     {
-      if (const AYM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(properties, data))
+      if (const AYM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {
         return AYM::CreateHolder(chiptune);
       }

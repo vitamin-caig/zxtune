@@ -278,12 +278,12 @@ namespace
       return Binary::Format::Ptr();
     }
 
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& /*callback*/) const
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input, const Module::DetectCallback& /*callback*/) const
     {
       return Analysis::CreateUnmatchedResult(input->GetData()->Size());
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
     {
       const String& pathComp = inPath.GetIterator()->Get();
       Parameters::IntType marker;

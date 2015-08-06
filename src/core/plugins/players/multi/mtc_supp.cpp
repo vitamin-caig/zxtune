@@ -62,8 +62,8 @@ namespace MTC
   class DataBuilder : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& propBuilder)
-      : Module(propBuilder)
+    DataBuilder(const Parameters::Accessor& params, PropertiesBuilder& propBuilder)
+      : Module(params, propBuilder)
       , CurTrack()
       , CurStream()
       , CurEntity(&Module)
@@ -210,8 +210,9 @@ namespace MTC
     class Track : public StaticPropertiesTrackEntity
     {
     public:      
-      Track()
-        : SelectedStream()
+      explicit Track(const Parameters::Accessor& params)
+        : Params(params)
+        , SelectedStream()
       {
       }
       
@@ -237,11 +238,11 @@ namespace MTC
         return CombineProps(stream.GetProperties(), StaticPropertiesTrackEntity::GetProperties());
       }
     private:  
-      static Module::Holder::Ptr OpenModule(Binary::Container::Ptr data)
+      Module::Holder::Ptr OpenModule(Binary::Container::Ptr data) const
       {
         try
         {
-          return Module::Open(*data);
+          return Module::Open(Params, *data);
         }
         catch (const Error&/*ignored*/)
         {
@@ -261,6 +262,7 @@ namespace MTC
         return *SelectedStream;
       }
     private:
+      const Parameters::Accessor& Params;
       std::list<Stream> Streams;
       mutable const Stream* SelectedStream;
     };
@@ -268,15 +270,16 @@ namespace MTC
     class Tune : public TrackEntity
     {
     public:
-      explicit Tune(Module::PropertiesBuilder& props)
-        : Props(props)
+      Tune(const Parameters::Accessor& params, Module::PropertiesBuilder& props)
+        : Params(params)
+        , Props(props)
       {
       }
       
       Track* AddTrack(uint_t idx)
       {
         Require(idx == Tracks.size());
-        Tracks.push_back(Track());
+        Tracks.push_back(Track(Params));
         return &Tracks.back();
       }
       
@@ -327,6 +330,7 @@ namespace MTC
         Parameters::CopyExistingValue<Parameters::StringType>(toMerge, Props, Module::ATTR_COMMENT);
       }
     private:
+      const Parameters::Accessor& Params;
       Module::PropertiesBuilder& Props;
       std::list<Track> Tracks;
     };
@@ -345,11 +349,11 @@ namespace MTC
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       try
       {
-        DataBuilder dataBuilder(propBuilder);
+        DataBuilder dataBuilder(params, propBuilder);
         if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::MultiTrackContainer::Parse(rawData, dataBuilder))
         {
           propBuilder.SetSource(*container);

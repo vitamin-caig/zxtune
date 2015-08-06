@@ -28,9 +28,10 @@ namespace
   {
     try
     {
+      const Parameters::Accessor::Ptr options = Parameters::GlobalOptions();
       const Module::Holder::Ptr module = subpath.empty()
-          ? Module::Open(*data)
-          : Module::Open(ZXTune::OpenLocation(Parameters::GlobalOptions(), data, subpath));
+          ? Module::Open(*options, *data)
+          : Module::Open(*options, ZXTune::OpenLocation(*options, data, subpath));
       Dbg("Module::Create(data=%p, subpath=%s)=%p", data.get(), subpath, module.get());
       return Module::Storage::Instance().Add(module);
     }
@@ -49,11 +50,6 @@ namespace
       , CallbackClass()
       , OnModuleMethod()
     {
-    }
-
-    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
-    {
-      return Parameters::GlobalOptions();
     }
 
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/,
@@ -99,7 +95,7 @@ namespace
   void DetectModules(Binary::Container::Ptr data, Module::DetectCallback& cb)
   {
     const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
-    Module::Detect(location, cb);
+    Module::Detect(*Parameters::GlobalOptions(), location, cb);
   }
 }
 

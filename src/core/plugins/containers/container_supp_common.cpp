@@ -82,15 +82,16 @@ namespace ZXTune
   class ContainerDetectCallback : public Formats::Archived::Container::Walker
   {
   public:
-    ContainerDetectCallback(std::size_t maxSize, const String& plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
-      : MaxSize(maxSize)
+    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, const String& plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
+      : Params(params)
+      , MaxSize(maxSize)
       , BaseLocation(location)
       , SubPlugin(plugin)
       , Logger(count, callback, SubPlugin, BaseLocation->GetPath()->AsString())
     {
     }
 
-    void OnFile(const Formats::Archived::File& file) const
+    virtual void OnFile(const Formats::Archived::File& file) const
     {
       const String& name = file.GetName();
       const std::size_t size = file.GetSize();
@@ -112,11 +113,12 @@ namespace ZXTune
         const String subPath = file.GetName();
         const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(BaseLocation, subData, SubPlugin, subPath);
         const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
-        Module::Detect(subLocation, *nestedProgressCallback);
+        Module::Detect(Params, subLocation, *nestedProgressCallback);
       }
       Logger.Next();
     }
   private:
+    const Parameters::Accessor& Params;
     const std::size_t MaxSize;
     const DataLocation::Ptr BaseLocation;
     const String SubPlugin;
@@ -143,14 +145,14 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const Binary::Container::Ptr rawData = input->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
       {
         if (const uint_t count = archive->CountFiles())
         {
-          ContainerDetectCallback detect(~std::size_t(0), Description->Id(), input, count, callback);
+          ContainerDetectCallback detect(params, ~std::size_t(0), Description->Id(), input, count, callback);
           archive->ExploreFiles(detect);
         }
         return Analysis::CreateMatchedResult(archive->Size());
@@ -158,7 +160,7 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
     {
       const Binary::Container::Ptr rawData = location->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -220,7 +222,7 @@ namespace ZXTune
       return Delegate->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       if (SelfIsVisited(*inputData->GetPluginsChain()))
       {
@@ -228,11 +230,11 @@ namespace ZXTune
       }
       else
       {
-        return Delegate->Detect(inputData, callback);
+        return Delegate->Detect(params, inputData, callback);
       }
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters, DataLocation::Ptr inputData, const Analysis::Path& pathToOpen) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Analysis::Path& pathToOpen) const
     {
       if (SelfIsVisited(*inputData->GetPluginsChain()))
       {
@@ -240,7 +242,7 @@ namespace ZXTune
       }
       else
       {
-        return Delegate->Open(parameters, inputData, pathToOpen);
+        return Delegate->Open(params, inputData, pathToOpen);
       }
     }
   private:

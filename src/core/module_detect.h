@@ -31,8 +31,6 @@ namespace Module
   public:
     virtual ~DetectCallback() {}
 
-    //! @brief Returns plugins parameters
-    virtual Parameters::Accessor::Ptr GetPluginsParameters() const = 0;
     //! @brief Process module
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const = 0;
     //! @brief Logging callback
@@ -40,14 +38,16 @@ namespace Module
   };
 
   //! @brief Recursively search all the modules inside location
+  //! @param params Parameters for plugins
   //! @param location Start data location
   //! @param callback Detect callback
   //! @return Size in bytes of source data processed
-  std::size_t Detect(ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
+  std::size_t Detect(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
 
   //! @brief Opens module directly from location
+  //! @param params Parameters for plugins
   //! @param location Start data location
   //! @param callback Detect callback
   //! @throw Error if no module found
-  void Open(ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
+  void Open(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
 }

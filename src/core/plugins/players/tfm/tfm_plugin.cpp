@@ -56,9 +56,9 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, const Binary::Container& data) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, PropertiesBuilder& properties) const
     {
-      if (const TFM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(properties, data))
+      if (const TFM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {
         return boost::make_shared<TFMHolder>(chiptune);
       }

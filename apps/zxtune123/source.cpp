@@ -120,11 +120,6 @@ namespace
     {
     }
 
-    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
-    {
-      return Params;
-    }
-
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
     {
       const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
@@ -223,12 +218,12 @@ namespace
         if (subpath.empty())
         {
           const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
-          Module::Detect(location, detectCallback);
+          Module::Detect(*Params, location, detectCallback);
         }
         else
         {
-          const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(Params, data, subpath);
-          Module::Open(location, detectCallback);
+          const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*Params, data, subpath);
+          Module::Open(*Params, location, detectCallback);
         }
       }
       catch (const Error& e)

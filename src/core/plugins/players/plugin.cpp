@@ -39,7 +39,7 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       const Binary::Container::Ptr data = inputData->GetData();
       if (Decoder->Check(*data))
@@ -47,7 +47,7 @@ namespace ZXTune
         Module::PropertiesBuilder properties;
         properties.SetType(Description->Id());
         properties.SetLocation(*inputData);
-        if (const Module::Holder::Ptr holder = Factory->CreateModule(properties, *data))
+        if (const Module::Holder::Ptr holder = Factory->CreateModule(params, *data, properties))
         {
           callback.ProcessModule(inputData, Description, holder);
           Parameters::IntType usedSize = 0;
@@ -58,13 +58,13 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), data);
     }
 
-    virtual Module::Holder::Ptr Open(const Binary::Container& data) const
+    virtual Module::Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data) const
     {
       if (Decoder->Check(data))
       {
         Module::PropertiesBuilder properties;
         properties.SetType(Description->Id());
-        return Factory->CreateModule(properties, data);
+        return Factory->CreateModule(params, data, properties);
       }
       return Module::Holder::Ptr();
     }

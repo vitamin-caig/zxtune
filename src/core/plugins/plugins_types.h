@@ -30,9 +30,9 @@ namespace ZXTune
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
     //! @brief Detect modules in data
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
 
-    virtual Module::Holder::Ptr Open(const Binary::Container& data) const = 0;
+    virtual Module::Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data) const = 0;
   };
 
   class ArchivePlugin
@@ -46,9 +46,9 @@ namespace ZXTune
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
     //! @brief Detect modules in data
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters,
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& params,
                                    DataLocation::Ptr inputData,
                                    const Analysis::Path& pathToOpen) const = 0; 
   };
