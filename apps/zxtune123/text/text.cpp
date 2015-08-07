@@ -489,11 +489,6 @@ extern const Char INFO_OPTIONS_CORE_DAC_INTERPOLATION[] = {
 extern const Char INFO_OPTIONS_CORE_FM_CLOCKRATE[] = {
   'c','l','o','c','k',' ','r','a','t','e',' ','f','o','r',' ','F','M',' ','i','n',' ','H','z',0
 };
-extern const Char INFO_OPTIONS_CORE_PLUGINS_AY_DEFAULT_DURATION_FRAMES[] = {
-  'd','e','f','a','u','l','t',' ','.','a','y',' ','m','o','d','u','l','e','s',' ','d','u','r','a','t','i','o',
-  'n',' ','i','n',' ','f','r','a','m','e','s',' ','(','i','f',' ','n','o','t',' ','f','o','u','n','d',' ','i',
-  'n',' ','m','o','d','u','l','e',')',0
-};
 extern const Char INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED[] = {
   'i','g','n','o','r','e',' ','c','o','r','r','u','p','t','e','d',' ','b','l','o','c','k','s',' ','i','n',' ',
   'H','R','i','P',' ','a','r','c','h','i','v','e',0
