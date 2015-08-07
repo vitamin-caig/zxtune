@@ -84,11 +84,7 @@
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound_alsa.ui" line="69"/>
         <source>Latency, mS</source>
-        <translation type="unfinished">Латентность, мс</translation>
-    </message>
-    <message>
-        <source>Buffers</source>
-        <translation type="obsolete">Число буферов</translation>
+        <translation>Латентность, мс</translation>
     </message>
 </context>
 <context>
@@ -135,6 +131,31 @@
         <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="74"/>
         <source>Double analysis of plain data containers</source>
         <translation>Двойной анализ контейнеров с простой структурой</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="84"/>
+        <source>Duration for modules without timing info</source>
+        <translation>Длительность модулей с неизвестными данными о времени</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="87"/>
+        <source>Duration</source>
+        <translation>Длительность</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="104"/>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="112"/>
+        <source>Common</source>
+        <translation>Общее</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="159"/>
+        <source>Reset to common value</source>
+        <translation>Сбросить к общему значению</translation>
     </message>
 </context>
 <context>

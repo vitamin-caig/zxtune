@@ -22,5 +22,9 @@ namespace UI
     explicit PluginsSettingsWidget(QWidget& parent);
   public:
     static PluginsSettingsWidget* Create(QWidget& parent);
+  private slots:
+    virtual void OnDurationTypeChanged(int row) = 0;
+    virtual void OnDurationValueChanged(int duration) = 0;
+    virtual void OnDurationDefault() = 0;
   };
 }
