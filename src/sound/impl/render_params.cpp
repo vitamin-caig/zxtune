@@ -71,4 +71,11 @@ namespace Sound
   {
     return boost::make_shared<RenderParametersImpl>(soundParameters);
   }
+
+  Time::Microseconds GetFrameDuration(const Parameters::Accessor& params)
+  {
+    Parameters::IntType value = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
+    params.FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, value);
+    return Time::Microseconds(value);
+  }
 }
