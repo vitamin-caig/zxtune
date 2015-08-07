@@ -11,6 +11,7 @@
 //local includes
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/analyzer.h"
+#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //common includes
@@ -18,6 +19,7 @@
 //library includes
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <core/plugins_parameters.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
 #include <formats/chiptune/emulation/spc.h>
@@ -382,13 +384,12 @@ namespace SPC
     {
     }
     
-    Time::Milliseconds GetDuration() const
+    Time::Milliseconds GetDuration(const Parameters::Accessor& params) const
     {
-      static const Time::Milliseconds DEFAULT_DURATION(120000);
       Time::Milliseconds total = Intro;
       total += Loop;
       total += Fade;
-      return total.Get() ? total : DEFAULT_DURATION;
+      return total.Get() ? total : Time::Milliseconds(Module::GetDuration(params, "spc"));
     }
   private:
     PropertiesBuilder& Properties;
@@ -404,7 +405,7 @@ namespace SPC
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       try
       {
@@ -413,7 +414,8 @@ namespace SPC
         {
           const SPC::Ptr tune = boost::make_shared<SPC>(rawData);
           propBuilder.SetSource(*container);
-          const Time::Milliseconds duration = dataBuilder.GetDuration(), period = Time::Milliseconds(20);
+          const Time::Milliseconds duration = dataBuilder.GetDuration(params);
+          const Time::Milliseconds period = Time::Milliseconds(20);
           propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(period).Get());
           const uint_t frames = duration.Get() / period.Get();
           const Information::Ptr info = CreateStreamInfo(frames);

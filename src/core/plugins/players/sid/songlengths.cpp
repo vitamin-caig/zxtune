@@ -37,8 +37,6 @@ namespace Sid
 #include "songlengths_db.inc"
   };
 
-  const Time::Seconds DEFAULT_SONG_LENGTH(120);
-
   TimeType GetSongLength(const char* md5digest, uint_t idx)
   {
     const uint32_t hashCrc32 = Crc32(safe_ptr_cast<const uint8_t*>(md5digest), 32);
@@ -52,7 +50,7 @@ namespace Sid
         return Time::Seconds(entry->Seconds);
       }
     }
-    return DEFAULT_SONG_LENGTH;
+    return TimeType();
   }
 }//namespace Sid
 }//namespace Module

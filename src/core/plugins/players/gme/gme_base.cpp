@@ -11,6 +11,7 @@
 //local includes
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
+#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //common includes
@@ -308,10 +309,10 @@ namespace GME
     const EmuCreator CreateEmu;
   };
   
-  uint_t GetInformation(const GME& gme, PropertiesBuilder& propBuilder)
+  const Time::Milliseconds PERIOD = Time::Milliseconds(20);
+  
+  Time::Milliseconds GetProperties(const GME& gme, PropertiesBuilder& propBuilder)
   {
-    static const Time::Milliseconds DEFAULT_DURATION(120000);
-
     ::track_info_t info;
     gme.GetInfo(info);
     
@@ -352,12 +353,9 @@ namespace GME
     {
       propBuilder.SetComment(copyright);
     }
-    
-    const Time::Milliseconds duration = info.length > 0 ? Time::Milliseconds(info.length) : DEFAULT_DURATION;
-    const Time::Milliseconds period = Time::Milliseconds(20);
-    propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(period).Get());
-    const uint_t frames = duration.Get() / period.Get();
-    return frames;
+    propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(PERIOD).Get());
+
+    return info.length > 0 ? Time::Milliseconds(info.length) : Time::Milliseconds();
   }
   
   class MultitrackFactory : public Module::Factory
@@ -369,7 +367,7 @@ namespace GME
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       try
       {
@@ -383,9 +381,9 @@ namespace GME
           }
 
           const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
-        
-          const uint_t frames = GetInformation(*tune, propBuilder);
-          const Information::Ptr info = CreateStreamInfo(frames);
+          const Time::Milliseconds storedDuration = GetProperties(*tune, propBuilder);
+          const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params, Desc.Id)) : storedDuration;
+          const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
         
           propBuilder.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
         
@@ -419,7 +417,7 @@ namespace GME
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       try
       {
@@ -428,9 +426,9 @@ namespace GME
           const Parameters::Accessor::Ptr props = propBuilder.GetResult();
 
           const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, 0);
-        
-          const uint_t frames = GetInformation(*tune, propBuilder);
-          const Information::Ptr info = CreateStreamInfo(frames);
+          const Time::Milliseconds storedDuration = GetProperties(*tune, propBuilder);
+          const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params, Desc.Id)) : storedDuration;
+          const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
         
           propBuilder.SetSource(*container);
         

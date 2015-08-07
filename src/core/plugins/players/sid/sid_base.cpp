@@ -12,6 +12,7 @@
 #include "roms.h"
 #include "songlengths.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //common includes
@@ -19,6 +20,7 @@
 //library includes
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
+#include <core/plugins_parameters.h>
 #include <core/module_attrs.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
@@ -207,9 +209,9 @@ namespace Sid
     void LoadRoms(const Parameters::Accessor& params)
     {
       Parameters::DataType kernal, basic, chargen;
-      params.FindValue(Parameters::ZXTune::Core::SID::ROM::KERNAL, kernal);
-      params.FindValue(Parameters::ZXTune::Core::SID::ROM::BASIC, basic);
-      params.FindValue(Parameters::ZXTune::Core::SID::ROM::CHARGEN, chargen);
+      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::KERNAL, kernal);
+      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::BASIC, basic);
+      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::CHARGEN, chargen);
       Engine->setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
     }
 
@@ -285,8 +287,9 @@ namespace Sid
   class Information : public Module::Information
   {
   public:
-    Information(TunePtr tune, uint_t fps, uint_t songIdx)
-      : Tune(tune)
+    Information(const TimeType defaultDuration, TunePtr tune, uint_t fps, uint_t songIdx)
+      : DefaultDuration(defaultDuration)
+      , Tune(tune)
       , Fps(fps)
       , SongIdx(songIdx)
       , Frames()
@@ -335,11 +338,13 @@ namespace Sid
     uint_t GetFramesCount() const
     {
       const char* md5 = Tune->createMD5();
-      const TimeType duration = GetSongLength(md5, SongIdx - 1);
+      const TimeType knownDuration = GetSongLength(md5, SongIdx - 1);
+      const TimeType duration = knownDuration == TimeType() ? DefaultDuration : knownDuration;
       Dbg("Duration for %1%/%2% is %3%ms", md5, SongIdx, duration.Get());
       return Fps * (duration.Get() / duration.PER_SECOND);
     }
   private:
+    const TimeType DefaultDuration;
     const TunePtr Tune;
     const uint_t Fps;
     const uint_t SongIdx;
@@ -421,7 +426,7 @@ namespace Sid
         const uint_t fps = tuneInfo.songSpeed() == SidTuneInfo::SPEED_CIA_1A || tuneInfo.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
         propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(fps).Get());
 
-        const Information::Ptr info = boost::make_shared<Information>(tune, fps, songIdx);
+        const Information::Ptr info = boost::make_shared<Information>(GetDuration(params, "sid"), tune, fps, songIdx);
         return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
       }
       catch (const std::exception&)
