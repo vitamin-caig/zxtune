@@ -139,23 +139,13 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="87"/>
-        <source>Duration</source>
-        <translation>Длительность</translation>
+        <source>Players</source>
+        <translation>Плееры</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="104"/>
-        <source>Type</source>
-        <translation>Тип</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="112"/>
-        <source>Common</source>
-        <translation>Общее</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="159"/>
-        <source>Reset to common value</source>
-        <translation>Сбросить к общему значению</translation>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="110"/>
+        <source>Default duration, seconds</source>
+        <translation>Длительностью по умолчанию, секунд</translation>
     </message>
 </context>
 <context>
