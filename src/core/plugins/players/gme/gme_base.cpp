@@ -382,7 +382,7 @@ namespace GME
 
           const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
           const Time::Milliseconds storedDuration = GetProperties(*tune, propBuilder);
-          const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params, Desc.Id)) : storedDuration;
+          const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
           const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
         
           propBuilder.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
@@ -427,7 +427,7 @@ namespace GME
 
           const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, 0);
           const Time::Milliseconds storedDuration = GetProperties(*tune, propBuilder);
-          const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params, Desc.Id)) : storedDuration;
+          const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
           const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
         
           propBuilder.SetSource(*container);

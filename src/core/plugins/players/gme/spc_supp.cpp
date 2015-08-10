@@ -389,7 +389,7 @@ namespace SPC
       Time::Milliseconds total = Intro;
       total += Loop;
       total += Fade;
-      return total.Get() ? total : Time::Milliseconds(Module::GetDuration(params, "spc"));
+      return total.Get() ? total : Time::Milliseconds(Module::GetDuration(params));
     }
   private:
     PropertiesBuilder& Properties;

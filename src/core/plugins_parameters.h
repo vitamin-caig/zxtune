@@ -31,7 +31,7 @@ namespace Parameters
         //! Default value (3min)
         const IntType DEFAULT_DURATION_DEFAULT = 3 * 60;
         //! Parameter name for type
-        NameType DEFAULT_DURATION(const String& id);
+        extern const NameType DEFAULT_DURATION;
         //@}
 
         //! @brief RAW scaner parameters namespace

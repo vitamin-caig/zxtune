@@ -869,7 +869,7 @@ namespace AY
       {
         propBuilder.SetSource(*container);
         const ModuleData::Ptr data = builder.GetResult();
-        const uint_t frames = data->Frames ? data->Frames : GetDurationInFrames(params, "ay");
+        const uint_t frames = data->Frames ? data->Frames : GetDurationInFrames(params);
         return boost::make_shared<Holder>(data, CreateStreamInfo(frames), propBuilder.GetResult());
       }
       return Holder::Ptr();

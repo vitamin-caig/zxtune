@@ -12,8 +12,6 @@
 #include <zxtune.h>
 #include <core/core_parameters.h>
 #include <core/plugins_parameters.h>
-//boost includes
-#include <boost/algorithm/string/case_conv.hpp>
 
 namespace Parameters
 {
@@ -80,10 +78,7 @@ namespace Parameters
       {
         extern const NameType PREFIX = Core::PREFIX + "plugins";
         
-        NameType DEFAULT_DURATION(const String& id)
-        {
-          return PREFIX + boost::algorithm::to_lower_copy(id) + "default_duration";
-        }
+        extern const NameType DEFAULT_DURATION = PREFIX + "default_duration";
 
         namespace Raw
         {

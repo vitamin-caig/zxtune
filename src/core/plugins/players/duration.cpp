@@ -17,21 +17,18 @@
 
 namespace Module
 {
-  uint_t GetDurationInFrames(const Parameters::Accessor& params, const String& type)
+  uint_t GetDurationInFrames(const Parameters::Accessor& params)
   {
-    const Time::Microseconds duration = GetDuration(params, type);
+    const Time::Microseconds duration = GetDuration(params);
     const Time::Microseconds frameDuration = Sound::GetFrameDuration(params);
     return duration.Get() / frameDuration.Get();
   }
   
-  Time::Seconds GetDuration(const Parameters::Accessor& params, const String& type)
+  Time::Seconds GetDuration(const Parameters::Accessor& params)
   {
     using namespace Parameters::ZXTune::Core::Plugins;
     Parameters::IntType duration = DEFAULT_DURATION_DEFAULT;
-    if (!params.FindValue(DEFAULT_DURATION(type), duration))
-    {
-      params.FindValue(DEFAULT_DURATION(String()), duration);
-    }
+    params.FindValue(DEFAULT_DURATION, duration);
     return Time::Seconds(duration);
   }
 }

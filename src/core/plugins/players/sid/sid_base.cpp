@@ -426,7 +426,7 @@ namespace Sid
         const uint_t fps = tuneInfo.songSpeed() == SidTuneInfo::SPEED_CIA_1A || tuneInfo.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
         propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(fps).Get());
 
-        const Information::Ptr info = boost::make_shared<Information>(GetDuration(params, "sid"), tune, fps, songIdx);
+        const Information::Ptr info = boost::make_shared<Information>(GetDuration(params), tune, fps, songIdx);
         return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
       }
       catch (const std::exception&)
