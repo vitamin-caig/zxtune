@@ -246,7 +246,11 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
             getService().setNowPlaying(toPlay);
           }
         };
-        controller.browseArchive((VfsFile) obj, playCmd);
+        if (controller.isInSearch()) {
+          playCmd.run();
+        } else {
+          controller.browseArchive((VfsFile) obj, playCmd);
+        }
       }
     }
     
