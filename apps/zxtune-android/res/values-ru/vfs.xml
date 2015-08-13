@@ -51,6 +51,136 @@
     <string name="vfs_zxart_compo_progressive">Конкурс progressive музыки</string>
     <!-- joshw.info -->
     <string name="vfs_joshw_root_description">Различные архивы</string>
+    <!-- amp.dascene.net -->
+    <string name="vfs_amp_handles_name">Имена</string>
+    <string name="vfs_amp_handles_description">Навигация по именам</string>
+    <string name="vfs_amp_countries_name">Страны</string>
+    <string name="vfs_amp_countries_description">Навигация по странам</string>
+    <string-array name="vfs_amp_countries_list">
+<!--0--><item></item>
+<!--1--><item>Аргентина</item>
+<!--2--><item>Австралия</item>
+<!--3--><item>Австрия</item>
+<!--4--><item>Беларусь</item>
+<!--5--><item>Бельгия</item>
+<!--6--><item>Бразилия</item>
+<!--7--><item>Болгария</item>
+<!--8--><item>Канада</item>
+<!--9--><item>Чили</item>
+<!--10--><item>Коста Рика</item>
+<!--11--><item>Хорватия</item>
+<!--12--><item>Кипр</item>
+<!--13--><item>Чехия</item>
+<!--14--><item>Дания</item>
+<!--15--><item>Доминиканская Республика</item>
+<!--16--><item>Эстония</item>
+<!--17--><item>Финляндия</item>
+<!--18--><item>Франция</item>
+<!--19--><item>Германия</item>
+<!--20--><item>Греция</item>
+<!--21--><item>Венгрия</item>
+<!--22--><item>Исландия</item>
+<!--23--><item>Ирландия</item>
+<!--24--><item>Остров Мэн</item>
+<!--25--><item>Остров Уайт</item>
+<!--26--><item>Израиль</item>
+<!--27--><item>Италия</item>
+<!--28--><item>Япония</item>
+<!--29--><item>Иордания</item>
+<!--30--><item>Лихтенштейн</item>
+<!--31--><item>Люксембург</item>
+<!--32--><item>Македония</item>
+<!--33--><item>Мальта</item>
+<!--34--><item>Мартиника</item>
+<!--35--><item>Мексика</item>
+<!--36--><item>Новая Каледония</item>
+<!--37--><item>Новая Зеландия</item>
+<!--38--><item>Северная Ирландия</item>
+<!--39--><item>Норвегия</item>
+<!--40--><item>Польша</item>
+<!--41--><item>Португалия</item>
+<!--42--><item>Квебек</item>
+<!--43--><item>Румыния</item>
+<!--44--><item>Россия</item>
+<!--45--><item>Шотландия</item>
+<!--46--><item>Сербия</item>
+<!--47--><item>Сингапур</item>
+<!--48--><item>Словакия</item>
+<!--49--><item>Словения</item>
+<!--50--><item>ЮАР</item>
+<!--51--><item>Испания</item>
+<!--52--><item>Швеция</item>
+<!--53--><item>Швейцария</item>
+<!--54--><item>Тайвань</item>
+<!--55--><item>Нидерланды</item>
+<!--56--><item>Турция</item>
+<!--57--><item>США</item>
+<!--58--><item>Украина</item>
+<!--59--><item>Великобритания</item>
+<!--60--><item>Неизвестно</item>
+<!--61--><item>Уругвай</item>
+<!--62--><item>Венесуэла</item>
+<!--63--><item>Уэльс</item>
+<!--64--><item>Югославия (бывш.)</item>
+<!--65--><item></item>
+<!--66--><item></item>
+<!--67--><item></item>
+<!--68--><item></item>
+<!--69--><item></item>
+<!--70--><item></item>
+<!--71--><item></item>
+<!--72--><item></item>
+<!--73--><item></item>
+<!--74--><item>Корсика</item>
+<!--75--><item></item>
+<!--76--><item></item>
+<!--77--><item></item>
+<!--78--><item></item>
+<!--79--><item>R.I.P</item>
+<!--80--><item></item>
+<!--81--><item></item>
+<!--82--><item></item>
+<!--83--><item></item>
+<!--84--><item></item>
+<!--85--><item></item>
+<!--86--><item>Латвия</item>
+<!--87--><item>Перу</item>
+<!--88--><item></item>
+<!--89--><item></item>
+<!--90--><item></item>
+<!--91--><item></item>
+<!--92--><item>Тайланд</item>
+<!--93--><item></item>
+<!--94--><item></item>
+<!--95--><item></item>
+<!--96--><item></item>
+<!--97--><item></item>
+<!--98--><item></item>
+<!--99--><item>Иран</item>
+<!--100--><item></item>
+<!--101--><item>Ирак</item>
+<!--102--><item></item>
+<!--103--><item></item>
+<!--104--><item></item>
+<!--105--><item></item>
+<!--106--><item></item>
+<!--107--><item></item>
+<!--108--><item></item>
+<!--109--><item></item>
+<!--110--><item></item>
+<!--111--><item></item>
+<!--112--><item></item>
+<!--113--><item></item>
+<!--114--><item>Парагвай</item>
+<!--115--><item></item>
+<!--116--><item></item>
+<!--117--><item></item>
+<!--118--><item></item>
+<!--119--><item></item>
+<!--120--><item>Малайзия</item>
+<!--121--><item></item>
+<!--122--><item>Гватемала</item>
+    </string-array>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>
