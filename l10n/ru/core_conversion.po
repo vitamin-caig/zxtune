@@ -11,22 +11,17 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: aym.cpp:125
 msgid "Failed to convert to PSG format."
 msgstr "Ошибка конверсии в PSG."
 
-#: aym.cpp:132
 msgid "Failed to convert to ZX50 format."
 msgstr "Ошибка конверсии в ZX50."
 
-#: aym.cpp:139
 msgid "Failed to convert to debug ay format."
 msgstr "Ошибка конверсии в отладочный формат."
 
-#: aym.cpp:146
 msgid "Failed to convert to raw ay dump."
 msgstr "Ошибка конверсии в сырой дамп регистров."
 
-#: aym.cpp:153
 msgid "Failed to convert to FYM format."
 msgstr "Ошибка конверсии в FYM."

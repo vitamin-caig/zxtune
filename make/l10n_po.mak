@@ -19,7 +19,7 @@ endif
 po_source_files = $(wildcard $(foreach suff,$(suffix.src),$(foreach dir,$(patsubst %/,%,$(po_source_dirs)),$(dir)/*$(suff))))
 
 $(po_dir)/messages.pot: $(sort $(po_source_files)) | $(po_dir)
-		$(tools.gettext.root)xgettext --c++ --escape --boost --from-code=UTF-8 --omit-header \
+		$(tools.gettext.root)xgettext --c++ --escape --boost --from-code=UTF-8 --omit-header --no-location --width=120 \
 		  --keyword=translate:1,1t --keyword=translate:1,2,3t \
 		  --keyword=translate:1c,2,2t --keyword=translate:1c,2,3,4t \
 		  --output $@ $^
