@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.fs.VfsCache;
 
 final class CachingCatalog extends Catalog {
@@ -70,12 +70,12 @@ final class CachingCatalog extends Catalog {
       final CountingGroupsVisitor count = new CountingGroupsVisitor(visitor);
       db.queryGroups(category, filter, count);
       if (0 == count.get()) {
-        Log.d(TAG, category + " cache for filter '" + filter + "' is empty. Query from remote");
+        Log.d(TAG, "%s cache for filter '%s' is empty. Query from remote.", category, filter);
         final Database.Transaction transaction = db.startTransaction();
         try {
           remote.query(filter, new CachingGroupsVisitor(category, count));
           transaction.succeed();
-          Log.d(TAG, "Cached " + count.get() + " " + category);
+          Log.d(TAG, "Cached %d %s", count.get(), category);
         } finally {
           transaction.finish();
         }
@@ -86,10 +86,10 @@ final class CachingCatalog extends Catalog {
     public Group query(int id) throws IOException {
       Group res = db.queryGroup(category, id);
       if (res == null) {
-        Log.d(TAG, "No " + category + " id=" + id + " in cache. Query from remote");
+        Log.d(TAG, "No %s id=%d in cache. Query from remote", category, id);
         res = remote.query(id);
         if (res != null) {
-          Log.d(TAG, "Cache " + category + " id=" + id);
+          Log.d(TAG, "Cache %s id=%d", category, id);
           db.addGroup(category, res);
         }
       }
@@ -102,12 +102,12 @@ final class CachingCatalog extends Catalog {
       final CountingTracksVisitor count = new CountingTracksVisitor(visitor);
       db.queryTracks(category, id, count);
       if (0 == count.get()) {
-        Log.d(TAG, "Tracks cache is empty for " + category + "=" + id);
+        Log.d(TAG, "Tracks cache is empty for %s=%d", category, id);
         final Database.Transaction transaction = db.startTransaction();
         try {
           remote.queryTracks(id, new CachingTracksVisitor(category, id, count));
           transaction.succeed();
-          Log.d(TAG, "Cached " + count.get() + " tracks");
+          Log.d(TAG, "Cached %d tracks", count.get());
         } finally {
           transaction.finish();
         }
@@ -120,7 +120,7 @@ final class CachingCatalog extends Catalog {
       final String encodedFilename = Uri.encode(filename).replace("!", "%21").replace("'", "%27").replace("(", "%28").replace(")", "%29");
       Track res = db.findTrack(category, id, encodedFilename);
       if (res == null) {
-        Log.d(TAG, "Track " + filename + " not found in " + category + "=" + id);
+        Log.d(TAG, "Track %s not found in %s=%d", filename, category, id);
         //fill cache
         queryTracks(id, new TracksVisitor() {
           @Override
@@ -196,7 +196,7 @@ final class CachingCatalog extends Catalog {
       try {
         db.addGroup(category, obj);
       } catch (Exception e) {
-        Log.d(TAG, "acceptAuthor()", e);
+        Log.d(TAG, e, "acceptAuthor()");
       }
     }
   }
@@ -252,7 +252,7 @@ final class CachingCatalog extends Catalog {
         db.addTrack(obj);
         db.addGroupTrack(category, group, obj);
       } catch (Exception e) {
-        Log.d(TAG, "addTrack()", e);
+        Log.d(TAG, e, "addTrack()");
       }
       return result;
     }

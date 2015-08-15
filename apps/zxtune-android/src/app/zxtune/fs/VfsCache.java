@@ -19,7 +19,7 @@ import java.nio.channels.FileChannel;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
+import app.zxtune.Log;
 
 public class VfsCache {
   

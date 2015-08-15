@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import android.net.Uri;
 import android.os.RemoteException;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
@@ -185,7 +185,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
       try {
         delegate.onStatusChanged(isPlaying);
       } catch (RemoteException e) {
-        Log.e(TAG, "onStatusChanged()", e);
+        Log.d(TAG, e, "onStatusChanged()");
       }
     }
     
@@ -194,7 +194,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
       try {
         delegate.onItemChanged(ParcelablePlaybackItem.create(item));
       } catch (RemoteException e) {
-        Log.e(TAG, "onItemChanged()", e);
+        Log.d(TAG, e, "onItemChanged()");
       }
     }
     
@@ -203,7 +203,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
       try {
         delegate.onIOStatusChanged(isActive);
       } catch (RemoteException e) {
-        Log.e(TAG, "onIOStatusChanged()", e);
+        Log.d(TAG, e, "onIOStatusChanged()");
       }
     }
     
@@ -212,7 +212,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
       try {
         delegate.onError(error);
       } catch (RemoteException e) {
-        Log.e(TAG, "onError()", e);
+        Log.d(TAG, e, "onError()");
       }
     }
   }

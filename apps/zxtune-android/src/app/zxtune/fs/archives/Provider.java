@@ -20,8 +20,8 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
 import app.zxtune.Identifier;
+import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.Util;
 import app.zxtune.ZXTune;
@@ -59,7 +59,7 @@ public final class Provider extends ContentProvider {
     try {
       final Identifier fileId = new Identifier(Query.getPathFrom(uri));
       final Uri path = fileId.getDataLocation();
-      Log.d(TAG, "Add archive content of " + path);
+      Log.d(TAG, "Add archive content of %s", path);
       final VfsFile file = (VfsFile)Vfs.resolve(path);
       final ByteBuffer data = file.getContent();
       final HashSet<Identifier> dirEntries = new HashSet<Identifier>();
@@ -82,7 +82,7 @@ public final class Provider extends ContentProvider {
             db.addTrack(track);
             final int doneTracks = modulesCount.incrementAndGet();
             if (0 == doneTracks % 100) {
-              Log.d(TAG, "Found tracks: " + doneTracks);
+              Log.d(TAG, "Found tracks: %d", doneTracks);
             }
             module.release();
             if (!dirEntry.isRoot()) {
@@ -111,7 +111,7 @@ public final class Provider extends ContentProvider {
         if (dirEntry.isRoot()) {
           break;
         }
-        Log.d(TAG, "Add dir " + dirEntry.path);
+        Log.d(TAG, "Add dir %s", dirEntry.path);
         db.addDirEntry(dirEntry);
         created.add(toCreate);
         toCreate = dirEntry.parent;
@@ -129,13 +129,10 @@ public final class Provider extends ContentProvider {
       String sortOrder) {
     final Uri path = Query.getPathFrom(uri);
     if (Query.isArchiveUri(uri)) {
-      Log.d(TAG, "Query archive info of " + path);
       return db.queryArchive(path);
     } else if (Query.isListDirUri(uri)) {
-      Log.d(TAG, "Query archive content of " + path);
       return db.queryListing(path);
     } else if (Query.isInfoUri(uri)) {
-      Log.d(TAG, "Query archive item info of " + path);
       return db.queryInfo(path);
     } else {
       return null; 

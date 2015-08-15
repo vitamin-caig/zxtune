@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import android.content.Context;
 import android.net.Uri;
 import android.text.format.Formatter;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.amp.Author;
 import app.zxtune.fs.amp.Catalog;
@@ -252,7 +252,7 @@ final class VfsRootAmp implements VfsRoot, IconSource {
           } catch (IOException e) {
             throw e;
           } catch (Exception e) {
-            Log.d(TAG, "resolve(" + uri + ")", e);
+            Log.d(TAG, e, "resolve %s", uri);
             return null;
           }
         }
@@ -321,7 +321,7 @@ final class VfsRootAmp implements VfsRoot, IconSource {
             final Country country = new Country(id, name);
             return new HandleByCountryDir(country).resolve(uri, path);
           } catch (NumberFormatException e) {
-            Log.d(TAG, "Unknown countryid=" + countryId);
+            Log.d(TAG, "Unknown countryid=%d", countryId);
           }
         }
         return null;
@@ -383,7 +383,7 @@ final class VfsRootAmp implements VfsRoot, IconSource {
           } catch (IOException e) {
             throw e;
           } catch (Exception e) {
-            Log.d(TAG, "resolve(" + uri + ")", e);
+            Log.d(TAG, e, "resolve %s", uri);
             return null;
           }
         }
@@ -461,7 +461,7 @@ final class VfsRootAmp implements VfsRoot, IconSource {
         } catch (IOException e) {
           throw e;
         } catch (Exception e) {
-          Log.d(TAG, "resolve(" + uri + ")", e);
+          Log.d(TAG, e, "resolve %s", uri);
           return null;
         }
       }

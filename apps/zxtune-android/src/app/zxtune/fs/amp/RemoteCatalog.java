@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.text.Html;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
 /**
@@ -159,7 +159,7 @@ class RemoteCatalog extends Catalog {
       final String chars = loadPage(uri);
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
-        Log.d(TAG, "Load page: " + uri);
+        Log.d(TAG, "Load page: %s", uri);
         final String nextPageOffset = matcher.group(4);
         final String next = nextPageOffset != null
             ? nextPageOffset : "";

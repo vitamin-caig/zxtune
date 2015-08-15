@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
@@ -72,7 +72,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
     if (path != null) {
       final long position = prefs.getLong(PREF_LAST_PLAYED_POSITION, 0);
-      Log.d(TAG, String.format("Restore last played item '%s' at %dms", path, position));
+      Log.d(TAG, "Restore last played item '%s' at %dms", path, position);
       executeCommand(new RestoreSessionCommand(Uri.parse(path), TimeStamp.createFrom(position, TimeUnit.MILLISECONDS)));
     }
   }
@@ -106,7 +106,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       if (!nowPlaying.equals(Uri.EMPTY)) {
         final String path = nowPlaying.toString();
         final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
-        Log.d(TAG, String.format("Save last played item '%s' at %dms", path, position));
+        Log.d(TAG, "Save last played item '%s' at %dms", path, position);
         final SharedPreferences.Editor editor = Preferences.getDefaultSharedPreferences(context).edit();
         editor.putString(PREF_LAST_PLAYED_PATH, path);
         editor.putLong(PREF_LAST_PLAYED_POSITION, position);
@@ -137,7 +137,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   
   private synchronized void setNewIterator(Iterator iter) throws IOException {
     if (holder.iterator != iter) {
-      Log.d(TAG, "Update iterator " + holder.iterator + " -> " + iter);
+      Log.d(TAG, "Update iterator %s -> %s", holder.iterator, iter);
       holder.iterator.release();
     }
     final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
@@ -225,7 +225,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
       Log.d(TAG, "Executor shut down");
     } catch (InterruptedException e) {
-      Log.w(TAG, "Failed to shutdown executor", e);
+      Log.d(TAG, e, "Failed to shutdown executor");
     }
   }
   
@@ -238,7 +238,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
           callbacks.onIOStatusChanged(true);
           cmd.execute();
         } catch (Exception e) {//IOException|InterruptedException
-          Log.w(TAG, cmd.getClass().getName(), e);
+          Log.d(TAG, e, cmd.getClass().getName());
           final Throwable cause = e.getCause();
           final String msg = cause != null ? cause.getMessage() : e.getMessage();
           callbacks.onError(msg);
@@ -428,7 +428,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void onError(Exception e) {
-      Log.d(TAG, "Error occurred: " + e);
+      Log.d(TAG, e, "Error occurred");
     }
   }
   

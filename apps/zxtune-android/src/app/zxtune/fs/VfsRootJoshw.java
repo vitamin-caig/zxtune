@@ -27,7 +27,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.text.format.Formatter;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.joshw.Catalog;
 import app.zxtune.ui.IconSource;
@@ -171,7 +171,7 @@ final class VfsRootJoshw implements VfsRoot, IconSource {
         } catch (IOException e) {
           throw e;
         } catch (Exception e) {
-          Log.d(TAG, "resolve(" + uri + ")", e);
+          Log.d(TAG, e, "resolve %s", uri);
           return null;
         }
       }

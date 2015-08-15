@@ -24,8 +24,8 @@ import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
-import android.util.Log;
 import android.util.Xml;
+import app.zxtune.Log;
 import app.zxtune.Util;
 import app.zxtune.fs.HttpProvider;
 
@@ -115,7 +115,7 @@ final class RemoteCatalog extends Catalog {
       final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
       return http.getContent(query);
     } catch (IOException e) {
-      Log.d(TAG, "getModuleContent(" + id + ")", e);
+      Log.d(TAG, e, "getTrackContent(%d)", id);
       throw e;
     }
   }

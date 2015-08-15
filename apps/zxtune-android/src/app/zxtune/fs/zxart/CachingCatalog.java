@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.zxart.Database.CacheLifetime;
@@ -86,7 +86,7 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Authors cache is empty/expired for id=" + id);
+        Log.d(TAG, "Authors cache is empty/expired for id=%s", id);
         remote.queryAuthors(new CachingAuthorsVisitor(), null);
       }
     });
@@ -110,7 +110,7 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Tracks cache is empty/expired for id=" + id + " author=" + author);
+        Log.d(TAG, "Tracks cache is empty/expired for id=%s author=%d", id, author.id);
         remote.queryAuthorTracks(new CachingTracksVisitor(author), author, null);
       }
     });
@@ -131,7 +131,7 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Parties cache is empty/expired for id=" + id);
+        Log.d(TAG, "Parties cache is empty/expired for id=%s", id);
         remote.queryParties(new CachingPartiesVisitor(), null);
       }
     });
@@ -155,7 +155,7 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Tracks cache is empty/expired for id=" + id + " party=" + party);
+        Log.d(TAG, "Tracks cache is empty/expired for id=%s party=%d", id, party.id);
         remote.queryPartyTracks(new CachingTracksVisitor(party), party, null);
       }
     });
@@ -204,7 +204,7 @@ final class CachingCatalog extends Catalog {
       try {
         db.addAuthor(obj);
       } catch (Exception e) {
-        Log.d(TAG, "acceptAuthor()", e);
+        Log.d(TAG, e, "acceptAuthor()");
       }
     }
   }
@@ -216,7 +216,7 @@ final class CachingCatalog extends Catalog {
       try {
         db.addParty(obj);
       } catch (Exception e) {
-        Log.d(TAG, "acceptParty()", e);
+        Log.d(TAG, e, "acceptParty()");
       }
     }
   }
@@ -246,7 +246,7 @@ final class CachingCatalog extends Catalog {
       try {
         db.addTrack(obj, author, party);
       } catch (Exception e) {
-        Log.d(TAG, "acceptTrack()", e);
+        Log.d(TAG, e, "acceptTrack()");
       }
     }
   }

@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 import android.util.SparseIntArray;
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.zxtunes.Author;
@@ -217,14 +217,14 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
       catalog.queryTracks(visitor, id, author.id);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
-        Log.d(TAG, String.format("Real track id=%d filename (%s) differs from requested (%s)",
-          id, result.filename, filename));
+        Log.d(TAG, "Real track id=%d filename (%s) differs from requested (%s)",
+          id, result.filename, filename);
       }
       return result;
     } catch (IOException e) {
       throw e;
     } catch (Exception e) {//IllegalStateException|NullPointerException|NumberFormatException
-      Log.d(TAG, "resolveTrack(" + uri + ")", e);
+      Log.d(TAG, e, "resolveTrack %s", uri);
     }
     return null;
   }
@@ -294,14 +294,14 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
         catalog.queryAuthors(visitor, id);
         final Author result = visitor.getResult();
         if (!result.nickname.equals(nick)) {
-          Log.d(TAG, String.format("Real author id=%d nick (%s) differs from requested (%s)",
-            id, result.nickname, nick));
+          Log.d(TAG, "Real author id=%d nick (%s) differs from requested (%s)",
+            id, result.nickname, nick);
         }
         return result;
       } catch (IOException e) {
         throw e;
       } catch (Exception e) {//IllegalStateException|NullPointerException|NumberFormatException
-        Log.d(TAG, "resolveAuthor(" + uri + ")", e);
+        Log.d(TAG, e, "resolveAuthor %s", uri);
       }
       return null;
     }
@@ -382,7 +382,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
         if (track != null) {
           return new AuthorNodateTrackFile(uri, track);
         } else {
-          Log.d(TAG, "Unknown URI " + uri);
+          Log.d(TAG, "Unknown URI %s");
           return null;
         }
       }
@@ -471,7 +471,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
         if (track != null) {
           return new AuthorDatedTrackFile(uri, track);
         } else {
-          Log.d(TAG, "Unknown URI " + uri);
+          Log.d(TAG, "Unknown URI %s", uri);
           return null;
         }
       }

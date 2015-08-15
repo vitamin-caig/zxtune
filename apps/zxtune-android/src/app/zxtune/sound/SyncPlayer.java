@@ -13,7 +13,7 @@ package app.zxtune.sound;
 import java.util.concurrent.Exchanger;
 
 import android.os.Process;
-import android.util.Log;
+import app.zxtune.Log;
 
 public final class SyncPlayer implements Player {
 
@@ -39,7 +39,7 @@ public final class SyncPlayer implements Player {
       startConsumeThread();
       produceCycle();
     } catch (InterruptedException e) {
-      Log.d(TAG, "Interrupted producing sound data", e);
+      Log.d(TAG, e, "Interrupted producing sound data");
     } catch (Exception e) {
       events.onError(e);
     } finally {
@@ -77,8 +77,7 @@ public final class SyncPlayer implements Player {
     try {
       consumeThread.join();
     } catch (InterruptedException e) {
-      Log.d(TAG, "Interrupted while stopping consume thread: ");
-      e.printStackTrace();
+      Log.d(TAG, e, "Interrupted while stopping consume thread");
     } finally {
       consumeThread = null;
     }
@@ -115,8 +114,7 @@ public final class SyncPlayer implements Player {
         Log.d(TAG, "Started consume cycle");
         consumeCycle();
       } catch (InterruptedException e) {
-        Log.d(TAG, "Interrupted consume cycle");
-        e.printStackTrace();
+        Log.d(TAG, e, "Interrupted consume cycle");
       } catch (Exception e) {
         events.onError(e);
         isActive = false;

@@ -18,7 +18,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
-import android.util.Log;
+import app.zxtune.Log;
 
 /*
  * Archived content DB model.
@@ -287,7 +287,7 @@ class Database {
   }
   
   final Cursor queryArchive(Uri path) {
-    Log.d(TAG, "queryArchive(" + path + ") called");
+    Log.d(TAG, "queryArchive(%s)", path);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
     final String selection = Tables.Archives.Fields.path + " = ?";
     final String[] selectionArgs = {path.toString()};
@@ -296,7 +296,7 @@ class Database {
   }
   
   final Cursor queryInfo(Uri path) {
-    Log.d(TAG, "queryInfo(" + path + ") called");
+    Log.d(TAG, "queryInfo(%s)", path);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
     final String selection = Tables.Entries.Fields.path + " = ?";
     final String[] selectionArgs = {path.toString()};
@@ -305,7 +305,7 @@ class Database {
   }
 
   final Cursor queryListing(Uri path) {
-    Log.d(TAG, "queryListing(" + path + ") called");
+    Log.d(TAG, "queryListing(%s)", path);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
     final String selection = Tables.Entries.Fields.parent + " = ?";
     final String[] selectionArgs = {path.toString()};
@@ -314,7 +314,7 @@ class Database {
   }
 
   final long addArchive(Archive arch) {
-    Log.d(TAG, "addArchive(" + arch.path + ", " + arch.modules + " modules) called");
+    Log.d(TAG, "addArchive(%s, %d modules)", arch.path, arch.modules);
     final SQLiteStatement stat = dbHelper.getInsertArchiveStatement();
     stat.clearBindings();
     stat.bindString(1 + Tables.Archives.Fields.path.ordinal(), arch.path.toString());
@@ -353,14 +353,14 @@ class Database {
     public void onCreate(SQLiteDatabase db) {
       Log.d(TAG, "Creating database");
       final String QUERIES[] = {
-	Tables.Paths.CREATE_QUERY,
-	Tables.ArchivesInternal.CREATE_QUERY,
-	Tables.Archives.CREATE_QUERY, Tables.Archives.InsertTrigger.CREATE_QUERY,
-	Tables.TracksInternal.CREATE_QUERY,
-	Tables.Tracks.CREATE_QUERY, Tables.Tracks.InsertTrigger.CREATE_QUERY,
-	Tables.DirsInternal.CREATE_QUERY, Tables.DirsInternal.Index.CREATE_QUERY,
-	Tables.Dirs.CREATE_QUERY, Tables.Dirs.InsertTrigger.CREATE_QUERY,
-	Tables.Entries.CREATE_QUERY
+      	Tables.Paths.CREATE_QUERY,
+      	Tables.ArchivesInternal.CREATE_QUERY,
+      	Tables.Archives.CREATE_QUERY, Tables.Archives.InsertTrigger.CREATE_QUERY,
+      	Tables.TracksInternal.CREATE_QUERY,
+      	Tables.Tracks.CREATE_QUERY, Tables.Tracks.InsertTrigger.CREATE_QUERY,
+      	Tables.DirsInternal.CREATE_QUERY, Tables.DirsInternal.Index.CREATE_QUERY,
+      	Tables.Dirs.CREATE_QUERY, Tables.Dirs.InsertTrigger.CREATE_QUERY,
+      	Tables.Entries.CREATE_QUERY
       };
       for (String query : QUERIES) {
         db.execSQL(query);
@@ -369,7 +369,7 @@ class Database {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-      Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
+      Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
       onDelete(db);
       onCreate(db);
     }

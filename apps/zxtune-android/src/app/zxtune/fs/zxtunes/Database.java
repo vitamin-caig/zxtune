@@ -16,7 +16,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
-import android.util.Log;
+import app.zxtune.Log;
 
 /**
  * Version 1
@@ -108,14 +108,14 @@ final class Database {
   }
 
   final void queryAuthors(Catalog.AuthorsVisitor visitor, Integer id) {
-    Log.d(TAG, "queryAuthors(" + id + ")");
+    Log.d(TAG, "queryAuthors(%s)", id);
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = id != null ? Tables.Authors.Fields._id + " = " + id : null;
     final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
     try {
       final int count = cursor.getCount();
       if (count != 0) {
-        Log.d(TAG, count + " found");
+        Log.d(TAG, "Found %d authors", count);
         visitor.setCountHint(count);
         while (cursor.moveToNext()) {
           visitor.accept(createAuthor(cursor));
@@ -140,7 +140,7 @@ final class Database {
     try {
       final int count = cursor.getCount();
       if (count != 0) {
-        Log.d(TAG, count + " found");
+        Log.d(TAG, "Found %d tracks", count);
         visitor.setCountHint(count);
         while (cursor.moveToNext()) {
           visitor.accept(createTrack(cursor));
@@ -235,7 +235,7 @@ final class Database {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-      Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
+      Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
       final String ALL_TABLES[] = {
           Tables.Authors.NAME, Tables.Tracks.NAME, Tables.AuthorsTracks.NAME
       };

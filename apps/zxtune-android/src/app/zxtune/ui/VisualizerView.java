@@ -16,8 +16,8 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
+import app.zxtune.Log;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.VisualizerStub;
 
@@ -189,7 +189,7 @@ public class VisualizerView extends View {
         update();
         looper.postDelayed(this, 100);
       } catch (IllegalStateException e) {
-        Log.d(TAG, "UpdateViewTask", e);
+        Log.d(TAG, e, "UpdateViewTask");
       }
     }
     

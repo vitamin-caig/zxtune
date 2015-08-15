@@ -19,8 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 import app.zxtune.Identifier;
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.Scanner;
 import app.zxtune.TimeStamp;
@@ -131,7 +131,7 @@ public class FileIterator implements Iterator {
       } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
       Log.d(TAG, "Executor shut down");
     } catch (InterruptedException e) {
-      Log.w(TAG, "Failed to shutdown executor", e);
+      Log.d(TAG, e, "Failed to shutdown executor");
     }
   }
   

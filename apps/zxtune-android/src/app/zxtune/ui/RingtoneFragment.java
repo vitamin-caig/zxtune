@@ -15,14 +15,13 @@ import java.util.concurrent.TimeUnit;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import app.zxtune.RingtoneService;
+import app.zxtune.Log;
 import app.zxtune.R;
+import app.zxtune.RingtoneService;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Item;
 
@@ -74,7 +73,7 @@ public class RingtoneFragment extends DialogFragment {
       if (moduleDuration.compareTo(duration) < 0) {
         break;
       }
-      Log.d(TAG, "Add duration button " + duration);
+      Log.d(TAG, "Add duration button %s", duration);
       final Button button = (Button) inflater.inflate(R.layout.button, container, false);
       button.setText(duration.toString());
       button.setTag(duration);

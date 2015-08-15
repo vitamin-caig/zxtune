@@ -20,7 +20,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.IBinder;
-import android.util.Log;
 import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.PlaybackControl;
@@ -146,7 +145,7 @@ public class MainService extends Service {
   }
   
   private void connectMediaButtons(boolean connect) {
-    Log.d(TAG, "connectMediaButtons = " + connect);
+    Log.d(TAG, "connectMediaButtons = %b", connect);
     final boolean connected = mediaButtonsHandler != ReleaseableStub.instance();
     if (connect != connected) {
       mediaButtonsHandler.release();
@@ -160,7 +159,7 @@ public class MainService extends Service {
   }
   
   private void connectRemoteControl(boolean connect) {
-    Log.d(TAG, "connectRemoteControl = " + connect);
+    Log.d(TAG, "connectRemoteControl = %b", connect);
     final boolean connected = remoteControlHandler != ReleaseableStub.instance();
     if (connect != connected) {
       remoteControlHandler.release();
@@ -172,7 +171,7 @@ public class MainService extends Service {
   }
 
   private void connectHeadphonesPlugging(boolean connect) {
-    Log.d(TAG, "connectHeadPhonesPlugging = " + connect);
+    Log.d(TAG, "connectHeadPhonesPlugging = %b", connect);
     final boolean connected = headphonesPlugHandler != ReleaseableStub.instance();
     if (connect != connected) {
       headphonesPlugHandler.release();
@@ -184,7 +183,7 @@ public class MainService extends Service {
   }
   
   private void setupNotification(boolean buttons) {
-    Log.d(TAG, "setupNotification buttons = " + buttons);
+    Log.d(TAG, "setupNotification buttons = %b", buttons);
     final StatusNotification.Type type = buttons 
         ? StatusNotification.Type.WITH_CONTROLS : StatusNotification.Type.DEFAULT; 
     final StatusNotification cb = new StatusNotification(this, type);

@@ -19,13 +19,13 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.hvsc.Catalog;
 import app.zxtune.ui.IconSource;
@@ -245,7 +245,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
           } catch (IOException e) {
             throw e;
           } catch (Exception e) {
-            Log.d(TAG, "resolve(" + uri + ")", e);
+            Log.d(TAG, e, "resolve %s", uri);
             return null;
           }
         }

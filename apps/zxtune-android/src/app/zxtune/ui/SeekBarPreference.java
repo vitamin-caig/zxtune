@@ -15,7 +15,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.preference.Preference;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -23,6 +22,7 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import app.zxtune.Log;
 import app.zxtune.R;
 
 public class SeekBarPreference extends Preference implements OnSeekBarChangeListener {
@@ -92,8 +92,8 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
         newContainer.addView(seekBar, ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT);
       }
-    } catch (Exception ex) {
-      Log.e(TAG, "Error binding view: " + ex.toString());
+    } catch (Exception e) {
+      Log.d(TAG, e, "Error binding view");
     }
 
     //if dependency is false from the beginning, disable the seek bar
@@ -118,7 +118,7 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
 
       seekBar.setProgress(currentValue);
     } catch (Exception e) {
-      Log.e(TAG, "Error updating seek bar preference", e);
+      Log.d(TAG, e, "Error updating seek bar preference");
     }
   }
 
@@ -161,8 +161,8 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
       int temp = 0;
       try {
         temp = (Integer) defaultValue;
-      } catch (Exception ex) {
-        Log.e(TAG, "Invalid default value: " + defaultValue.toString());
+      } catch (Exception e) {
+        Log.d(TAG, e, "Invalid default value: %s", defaultValue);
       }
 
       persistInt(temp);

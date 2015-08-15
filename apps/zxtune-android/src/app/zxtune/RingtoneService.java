@@ -29,7 +29,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat.Builder;
-import android.util.Log;
 import android.widget.Toast;
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
@@ -129,7 +128,7 @@ public class RingtoneService extends IntentService {
     }
     final long moduleId = getModuleId(item); 
     final String filename = String.format(Locale.US, "%d_%d.wav", moduleId, duration.convertTo(TimeUnit.SECONDS)); 
-    Log.d(TAG, "Dir: " + dir + " filename: " + filename);
+    Log.d(TAG, "Dir: %s filename: %s", dir, filename);
     return new File(dir, filename);
   }
   
@@ -201,13 +200,13 @@ public class RingtoneService extends IntentService {
         if (0 != getContentResolver().update(ringtoneUri, values,
             MediaStore.Audio.Media.IS_RINGTONE + " = 1",
             null)) {
-          Log.d(TAG, "Updated ringtone at " + ringtoneUri);
+          Log.d(TAG, "Updated ringtone at %s", ringtoneUri);
         } else {
-          Log.d(TAG, "Failed to update ringtone " + ringtoneUri);
+          Log.d(TAG, "Failed to update ringtone %s", ringtoneUri);
         }
       } else {
         ringtoneUri = getContentResolver().insert(tableUri, values);
-        Log.d(TAG, "Registered new ringtone at " + ringtoneUri);
+        Log.d(TAG, "Registered new ringtone at %s", ringtoneUri);
       }
     } finally {
       query.close();

@@ -13,7 +13,6 @@ package app.zxtune.fs.modland;
 import android.content.Context;
 import android.net.Uri;
 import android.text.Html;
-import android.util.Log;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -22,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
 /**
@@ -248,7 +248,7 @@ class RemoteCatalog extends Catalog {
       final String chars = new String(buf.array(), "UTF-8");
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
-        Log.d(TAG, "Load page: " + matcher.group());
+        Log.d(TAG, "Load page: %s", matcher.group());
         final String header = matcher.group(1);
         final String results = matcher.group(2);
         final String page = matcher.group(3);

@@ -16,7 +16,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
-import android.util.Log;
+import app.zxtune.Log;
 
 /**
  * Version 1
@@ -168,7 +168,7 @@ final class Database {
   }
 
   final void queryGroups(String category, String filter, Catalog.GroupsVisitor visitor) {
-    Log.d(TAG, "query" + category + "(filter=" + filter + ")");
+    Log.d(TAG, "query%S(filter=%s)", category, filter);
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = filter.equals("#")
       ? "SUBSTR(" + Tables.Groups.Fields.name + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
@@ -188,7 +188,7 @@ final class Database {
   }
 
   final Group queryGroup(String category, int id) {
-    Log.d(TAG, "query" + category + "(id=" + id + ")");
+    Log.d(TAG, "query%S(id=%d)", category, id);
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Groups.Fields._id + " = " + id;
     final Cursor cursor = db.query(category, null, selection, null, null, null, null);
@@ -281,7 +281,7 @@ final class Database {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-      Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
+      Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
       for (String table : Tables.LIST) {
         db.execSQL(String.format(Tables.DROP_QUERY, table));
         db.execSQL(String.format(Tables.DROP_QUERY, Tables.GroupTracks.getName(table)));

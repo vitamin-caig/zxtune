@@ -19,8 +19,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.util.Log;
 import app.zxtune.Identifier;
+import app.zxtune.Log;
 import app.zxtune.MainApplication;
 import app.zxtune.fs.VfsDir.Visitor;
 import app.zxtune.fs.archives.Archive;
@@ -53,10 +53,10 @@ public final class VfsArchive {
     final Uri uri = file.getUri();
     final Integer modulesInArchive = getModulesInArchive(resolver, uri);
     if (modulesInArchive == null) {
-      Log.d(TAG, "Unknown archive " + uri);
+      Log.d(TAG, "Unknown archive %s", uri);
       return null;
     } else if (modulesInArchive < 2) {
-      Log.d(TAG, "Too few modules in archive " + uri);
+      Log.d(TAG, "Too few modules in archive %s", uri);
       return file;
     }
     return new ArchiveRoot(resolver, file);

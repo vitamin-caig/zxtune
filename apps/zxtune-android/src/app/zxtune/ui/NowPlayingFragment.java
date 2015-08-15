@@ -20,7 +20,6 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,7 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-import app.zxtune.Identifier;
+import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
@@ -288,6 +287,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
   }
   
+  //TODO: move out
   private static class ShareData {
     
     private final Context context;
@@ -343,7 +343,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
           ? (VfsFile) obj
           : null;
       } catch (IOException e) {
-        Log.d(TAG, "Failed to open " + uri, e);
+        Log.d(TAG, e, "Failed to open %s", uri);
         return null;
       }
     }
@@ -354,7 +354,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         final String filename = file.getUri().getLastPathSegment();
         return cache.putAnyCachedFileContent(filename, file.getContent());
       } catch (IOException e) {
-        Log.d(TAG, "Failed to create local file copy", e);
+        Log.d(TAG, e, "Failed to create local file copy");
         return null;
       }
     }

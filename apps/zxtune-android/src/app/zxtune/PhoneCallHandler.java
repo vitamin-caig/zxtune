@@ -13,7 +13,6 @@ package app.zxtune;
 import android.content.Context;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import app.zxtune.playback.PlaybackControl;
 
 class PhoneCallHandler extends PhoneStateListener {
@@ -35,7 +34,7 @@ class PhoneCallHandler extends PhoneStateListener {
   
   @Override
   public void onCallStateChanged(int state, String incomingNumber) {
-    Log.d(TAG, "Process call state to " + state);
+    Log.d(TAG, "Process call state to %d", state);
     switch (state) {
       case TelephonyManager.CALL_STATE_RINGING://incoming call
         processCall();

@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 
 import android.net.Uri;
-import android.util.Log;
+import app.zxtune.Log;
 
 public final class VfsIterator {
   

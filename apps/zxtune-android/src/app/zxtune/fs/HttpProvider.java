@@ -14,7 +14,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +21,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
+import app.zxtune.Log;
 import app.zxtune.R;
 
 public class HttpProvider {
@@ -44,10 +44,10 @@ public class HttpProvider {
       final URL url = new URL(uri);
       final HttpURLConnection result = (HttpURLConnection) url.openConnection();
       CheckSizeLimit(result.getContentLength());
-      Log.d(TAG, String.format("Fetch %d bytes via %s", result.getContentLength(), uri));
+      Log.d(TAG, "Fetch %d bytes via %s", result.getContentLength(), uri);
       return result;
     } catch (IOException e) {
-      Log.d(TAG, "Fetch " + uri, e);
+      Log.d(TAG, e, "Fetch %s", uri);
       throw e;
     }
   }
@@ -83,7 +83,7 @@ public class HttpProvider {
     if (0 == size) {
       throw new IOException("Empty file specified");
     }
-    Log.d(TAG, String.format("Got %d bytes", size));
+    Log.d(TAG, "Got %d bytes", size);
     return ByteBuffer.wrap(buffer, 0, size);
   }
 

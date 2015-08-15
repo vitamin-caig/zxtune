@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.amp.Database.CacheLifetime;
@@ -84,7 +84,7 @@ final class CachingCatalog extends Catalog {
       
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Authors cache is empty/expired for handleFilter=" + handleFilter);
+        Log.d(TAG, "Authors cache is empty/expired for handleFilter=%s", handleFilter);
         remote.queryAuthors(handleFilter, new CachingAuthorsVisitor());
       }
       
@@ -107,7 +107,7 @@ final class CachingCatalog extends Catalog {
       
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Authors cache is empty/expired for country=" + country.id);
+        Log.d(TAG, "Authors cache is empty/expired for country=%d", country.id);
         remote.queryAuthors(country, new CachingAuthorsVisitor(country));
       }
       
@@ -130,7 +130,7 @@ final class CachingCatalog extends Catalog {
       
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Authors cache is empty/expired for id=" + id);
+        Log.d(TAG, "Authors cache is empty/expired for id=%d", id);
         remote.queryAuthors(id, new CachingAuthorsVisitor());
       }
       
@@ -203,7 +203,7 @@ final class CachingCatalog extends Catalog {
           db.addCountryAuthor(country, obj);
         }
       } catch (Exception e) {
-        Log.d(TAG, "acceptAuthor()", e);
+        Log.d(TAG, e, "acceptAuthor()");
       }
     }
   }
@@ -222,7 +222,7 @@ final class CachingCatalog extends Catalog {
         db.addTrack(obj);
         db.addAuthorTrack(author, obj);
       } catch (Exception e) {
-        Log.d(TAG, "acceptTrack()", e);
+        Log.d(TAG, e, "acceptTrack()");
       }
     }
   }

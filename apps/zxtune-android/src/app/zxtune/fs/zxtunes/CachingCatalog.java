@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import android.content.Context;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.fs.VfsCache;
 
 final class CachingCatalog extends Catalog {
@@ -44,7 +44,7 @@ final class CachingCatalog extends Catalog {
         //query all
         remote.queryAuthors(new CachingAuthorsVisitor(), null);
         transaction.succeed();
-        Log.d(TAG, "Cached " + count.get() + " authors");
+        Log.d(TAG, "Cached %d authors", count.get());
       } finally {
         transaction.finish();
       }
@@ -58,13 +58,13 @@ final class CachingCatalog extends Catalog {
     final CountingTracksVisitor count = new CountingTracksVisitor(visitor);
     db.queryTracks(count, id, author);
     if (0 == count.get()) {
-      Log.d(TAG, "Tracks cache is empty for id=" + id + " author=" + author);
+      Log.d(TAG, "Tracks cache is empty for id=%s author=%s", id, author);
       final Database.Transaction transaction = db.startTransaction();
       try {
         //query all
         remote.queryTracks(new CachingTracksVisitor(author), null, author);
         transaction.succeed();
-        Log.d(TAG, "Cached " + count.get() + " tracks");
+        Log.d(TAG, "Cached %d tracks", count.get());
       } finally {
         transaction.finish();
       }
@@ -123,7 +123,7 @@ final class CachingCatalog extends Catalog {
       try {
         db.addAuthor(obj);
       } catch (Exception e) {
-        Log.d(TAG, "acceptAuthor()", e);
+        Log.d(TAG, e, "acceptAuthor()");
       }
     }
   }
@@ -171,7 +171,7 @@ final class CachingCatalog extends Catalog {
       try {
         db.addTrack(obj, author);
       } catch (Exception e) {
-        Log.d(TAG, "addTrack()", e);
+        Log.d(TAG, e, "addTrack()");
       }
     }
   }

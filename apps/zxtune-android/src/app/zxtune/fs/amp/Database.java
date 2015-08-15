@@ -18,7 +18,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.amp.Catalog.AuthorsVisitor;
 
@@ -281,7 +281,7 @@ final class Database {
   }
   
   final void queryAuthors(String handleFilter, AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors(filter=" + handleFilter + ")");
+    Log.d(TAG, "queryAuthors(filter=%s)", handleFilter);
     final String selection = handleFilter.equals("0-9")
       ? "SUBSTR(" + Tables.Authors.Fields.handle + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
       : Tables.Authors.Fields.handle + " LIKE '" + handleFilter + "%'";
@@ -289,14 +289,14 @@ final class Database {
   }
   
   final void queryAuthors(Country country, AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors(country=" + country.id + ")");
+    Log.d(TAG, "queryAuthors(country=%d)", country.id);
     final String idQuery = Tables.CountryAuthors.getAuthorsIdsSelection(country);
     final String selection = Tables.Authors.Fields._id + " IN (" + idQuery + ")";
     queryAuthorsInternal(selection, visitor);
   }
   
   final void queryAuthors(int id, AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors(id=" + id + ")");
+    Log.d(TAG, "queryAuthors(id=%d)", id);
     final String selection = Tables.Authors.Fields._id + " = " + id;
     queryAuthorsInternal(selection, visitor);
   }
@@ -318,14 +318,14 @@ final class Database {
   }
 
   final void queryTracks(Author author, Catalog.TracksVisitor visitor) {
-    Log.d(TAG, "queryTracks(author=" + author.id + ")");
+    Log.d(TAG, "queryTracks(author=%d)", author.id);
     final String idQuery = Tables.AuthorTracks.getTracksIdsSelection(author);
     final String selection = Tables.Tracks.Fields._id + " IN (" + idQuery + ")";
     queryTracksInternal(selection, visitor);
   }
   
   final void queryTracks(int id, Catalog.TracksVisitor visitor) {
-    Log.d(TAG, "queryTracks(id=" + id + ")");
+    Log.d(TAG, "queryTracks(id=%d)", id);
     final String selection = Tables.Tracks.Fields._id + " = " + id;
     queryTracksInternal(selection, visitor);
   }
@@ -390,7 +390,7 @@ final class Database {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-      Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
+      Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
       if (oldVersion == 1) {
         final String[] tables = {
             Tables.CountryAuthors.NAME,

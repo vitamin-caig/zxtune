@@ -14,8 +14,8 @@ import java.io.IOException;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 import app.zxtune.Identifier;
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.Scanner;
 import app.zxtune.TimeStamp;
@@ -115,7 +115,7 @@ class PlaylistIterator implements Iterator {
       
       @Override
       public void onIOError(IOException e) {
-        Log.d(TAG, "Ignore I/O error", e);
+        Log.d(TAG, e, "Ignore I/O error");
       }
     });
   }
