@@ -40,4 +40,16 @@
 
   <!-- sid -->
   <string  name="pref_zxtune_sid_filter_title">Эмуляция фильтра</string>
+
+  <!-- other -->
+  <string name="pref_zxtune_other_title">Прочее</string>
+  <!-- zxtune.core.plugins.default_duration -->
+  <string  name="pref_zxtune_default_duration_title">Длительность по умолчанию</string>
+  <string-array name="pref_zxtune_default_duration_entries">
+    <item>30 секунд</item>
+    <item>1 минута</item>
+    <item>2 минуты</item>
+    <item>3 минуты</item>
+    <item>5 минут</item>
+  </string-array>
 </resources>

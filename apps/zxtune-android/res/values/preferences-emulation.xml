@@ -95,4 +95,25 @@
   <string  name="pref_zxtune_sid_filter" translatable="false">zxtune.core.sid.filter</string>
   <string  name="pref_zxtune_sid_filter_title">Filter emulation</string>
   <integer name="pref_zxtune_sid_filter_default">1</integer>
+
+  <!-- other -->
+  <string name="pref_zxtune_other_title">Other</string>
+  <!-- zxtune.core.plugins.default_duration -->
+  <string  name="pref_zxtune_default_duration" translatable="false">zxtune.core.plugins.default_duration</string>
+  <string  name="pref_zxtune_default_duration_title">Default duration</string>
+  <string-array name="pref_zxtune_default_duration_entries">
+    <item>30 seconds</item>
+    <item>1 minute</item>
+    <item>2 minutes</item>
+    <item>3 minutes</item>
+    <item>5 minutes</item>
+  </string-array>
+  <string-array name="pref_zxtune_default_duration_values" translatable="false">
+    <item>30</item>
+    <item>60</item>
+    <item>120</item>
+    <item>180</item>
+    <item>300</item>
+  </string-array>
+  <integer name="pref_zxtune_default_duration_default">180</integer>
 </resources>

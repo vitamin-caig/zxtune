@@ -75,5 +75,17 @@
       android:defaultValue="@integer/pref_zxtune_sid_filter_default"
       />
   </PreferenceCategory>
+  <!-- other -->
+  <PreferenceCategory
+    android:title="@string/pref_zxtune_other_title"
+    >
+    <ListPreference
+      android:key="@string/pref_zxtune_default_duration"
+      android:title="@string/pref_zxtune_default_duration_title"
+      android:entries="@array/pref_zxtune_default_duration_entries"
+      android:entryValues="@array/pref_zxtune_default_duration_values"
+      android:defaultValue="@integer/pref_zxtune_default_duration_default"
+    />
+  </PreferenceCategory>
   </PreferenceScreen>
 </PreferenceScreen>

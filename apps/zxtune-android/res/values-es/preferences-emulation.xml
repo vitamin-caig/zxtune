@@ -28,4 +28,16 @@
   <!--zxtune.core.sid.interpolation-->
   <!--zxtune.core.sid.filter-->
   <string name="pref_zxtune_sid_filter_title">Emulación de filtro</string>
+
+  <!-- other -->
+  <string name="pref_zxtune_other_title">Demás</string>
+  <!-- zxtune.core.plugins.default_duration -->
+  <string  name="pref_zxtune_default_duration_title">Duración predeterminada</string>
+  <string-array name="pref_zxtune_default_duration_entries">
+    <item>30 segundos</item>
+    <item>1 minuto</item>
+    <item>2 minutos</item>
+    <item>3 minutos</item>
+    <item>5 minutos</item>
+  </string-array>
 </resources>

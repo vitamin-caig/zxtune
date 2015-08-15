@@ -24,4 +24,16 @@
   
   <!-- sid -->
   <string  name="pref_zxtune_sid_filter_title">Filter-Emulator</string>
+
+  <!-- other -->
+  <string name="pref_zxtune_other_title">Sonstig</string>
+  <!-- zxtune.core.plugins.default_duration -->
+  <string name="pref_zxtune_default_duration_title">Standarddauer</string>
+  <string-array name="pref_zxtune_default_duration_entries">
+    <item>30 Sekunden</item>
+    <item>1 Minute</item>
+    <item>2 Minuten</item>
+    <item>3 Minuten</item>
+    <item>5 Minuten</item>
+  </string-array>
 </resources>
