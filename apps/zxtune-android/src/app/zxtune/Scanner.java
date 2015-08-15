@@ -172,10 +172,7 @@ public final class Scanner {
   }
   
   private void analyzeArchiveObject(Identifier id, Callback cb) throws IOException {
-    try {
-      //try to avoid VfsArchive
-      analyzeArchiveFile(id, cb);
-    } catch (IOException e) {
+    if (!analyzeArchiveFile(id, cb)) {
       final Uri uri = id.getFullLocation();
       final VfsObject obj = VfsArchive.resolve(uri);
       analyzeObject(uri, obj, cb);
@@ -183,15 +180,20 @@ public final class Scanner {
   }
   
   
-  private void analyzeArchiveFile(Identifier id, Callback cb) throws IOException {
+  private boolean analyzeArchiveFile(Identifier id, Callback cb) throws IOException {
     final VfsFile archive = openArchive(id.getDataLocation());
-    final ZXTune.Module module = openModule(archive, id.getSubpath());
     try {
-      cb.onModule(id, module);
-    } catch (Error e) {
-      module.release();
-      throw e;
+      final ZXTune.Module module = openModule(archive, id.getSubpath());
+      try {
+        cb.onModule(id, module);
+        return true;
+      } catch (Error e) {
+        module.release();
+        throw e;
+      }
+    } catch (InvalidObjectException e) {
     }
+    return false;
   }
   
   private VfsFile openArchive(Uri uri) throws IOException {
@@ -209,11 +211,7 @@ public final class Scanner {
   }
   
   private static ZXTune.Module openModule(VfsFile file, String subpath) throws IOException {
-    try {
-      final ByteBuffer content = file.getContent();
-      return ZXTune.loadModule(content, subpath);
-    } catch (InvalidObjectException e) {
-      throw new IOException("No module " + subpath + " in " + file.getUri());
-    }
+    final ByteBuffer content = file.getContent();
+    return ZXTune.loadModule(content, subpath);
   }
 }
