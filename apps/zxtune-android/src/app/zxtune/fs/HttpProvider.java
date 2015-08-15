@@ -29,7 +29,8 @@ public class HttpProvider {
   private final static String TAG = HttpProvider.class.getName();
   private final static int MAX_REMOTE_FILE_SIZE = 5 * 1024 * 1024;//5Mb
 
-  private Context context;
+  private final Context context;
+  private static ByteBuffer htmlBuffer;
 
   public HttpProvider(Context context) {
     this.context = context;
@@ -38,7 +39,7 @@ public class HttpProvider {
       System.setProperty("http.keepAlive", "false");
     }
   }
-
+  
   public final HttpURLConnection connect(String uri) throws IOException {
     try {
       final URL url = new URL(uri);
@@ -57,7 +58,23 @@ public class HttpProvider {
       final HttpURLConnection connection = connect(uri);
       try {
         final InputStream stream = connection.getInputStream();
-        return getContent(stream);
+        return getContent(stream, null);
+      } finally {
+        connection.disconnect();
+      }
+    } catch (IOException e) {
+      checkConnectionError();
+      throw e;
+    }
+  }
+  
+  public final synchronized String getHtml(String uri) throws IOException {
+    try {
+      final HttpURLConnection connection = connect(uri);
+      try {
+        final InputStream stream = connection.getInputStream();
+        htmlBuffer = getContent(stream, htmlBuffer);
+        return new String(htmlBuffer.array(), 0, htmlBuffer.limit(), "UTF-8");
       } finally {
         connection.disconnect();
       }
@@ -68,8 +85,8 @@ public class HttpProvider {
   }
 
   //! result buffer is not direct so required wrapping
-  private ByteBuffer getContent(InputStream stream) throws IOException {
-    byte[] buffer = new byte[256 * 1024];
+  private ByteBuffer getContent(InputStream stream, ByteBuffer cache) throws IOException {
+    byte[] buffer = cache != null ? cache.array() : new byte[256 * 1024];
     int size = 0;
     for (;;) {
       size = readPartialContent(stream, buffer, size);

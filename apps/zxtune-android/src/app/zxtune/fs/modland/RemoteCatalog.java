@@ -244,8 +244,7 @@ class RemoteCatalog extends Catalog {
   private void loadPages(String query, PagesVisitor visitor) throws IOException {
     for (int pg = 1; ; ++pg) {
       final String uri = query + String.format(Locale.US, "&pg=%d", pg);
-      final ByteBuffer buf = http.getContent(uri);
-      final String chars = new String(buf.array(), "UTF-8");
+      final String chars = http.getHtml(uri); 
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
         Log.d(TAG, "Load page: %s", matcher.group());

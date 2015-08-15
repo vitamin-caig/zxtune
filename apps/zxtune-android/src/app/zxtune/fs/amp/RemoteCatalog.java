@@ -74,7 +74,6 @@ class RemoteCatalog extends Catalog {
     this.http = new HttpProvider(context);
   }
 
-
   private static String decodeHtml(String txt) {
     return Html.fromHtml(txt).toString();
   }
@@ -114,7 +113,7 @@ class RemoteCatalog extends Catalog {
   @Override
   public void queryAuthors(int id, AuthorsVisitor visitor) throws IOException {
     final String uri = String.format(Locale.US, AUTHOR_URI_FORMAT, id);
-    final String content = loadPage(uri);
+    final String content = http.getHtml(uri);
     final Matcher matcher = AUTHOR.matcher(content);
     if (matcher.find()) {
       final String name = matcher.group(1);
@@ -126,7 +125,7 @@ class RemoteCatalog extends Catalog {
   @Override
   public void queryTracks(Author author, Integer trackId, TracksVisitor visitor) throws IOException {
     final String uri = String.format(Locale.US, AUTHOR_TRACKS_URI_FORMAT, author.id);
-    final String content = loadPage(uri);
+    final String content = http.getHtml(uri);
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
       final Integer id = Integer.valueOf(matcher.group(1));
@@ -148,15 +147,10 @@ class RemoteCatalog extends Catalog {
     boolean onPage(CharSequence content);
   }
   
-  private String loadPage(String uri) throws IOException {
-    final ByteBuffer buf = http.getContent(uri);
-    return new String(buf.array(), "UTF-8");
-  }
-
   private void loadPages(String query, PagesVisitor visitor) throws IOException {
     for (int offset = 0; ; ) {
       final String uri = query + String.format(Locale.US, "&position=%d", offset);
-      final String chars = loadPage(uri);
+      final String chars = http.getHtml(uri);
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
         Log.d(TAG, "Load page: %s", uri);
