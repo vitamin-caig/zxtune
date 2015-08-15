@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+  <!-- sound -->
+  <string name="pref_sound_title">Звук</string>
+  
+  <!-- common -->
   <string name="pref_zxtune_sound_mixer_x_0_x_title">Канал A</string>
   <string name="pref_zxtune_sound_mixer_x_1_x_title">Канал B</string>
   <string name="pref_zxtune_sound_mixer_x_2_x_title">Канал C</string>

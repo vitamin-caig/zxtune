@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+  <!-- emulation -->
+  <string name="pref_emulation_title">Emulation</string>
+  
+  <!-- common -->
+  <string name="pref_interpolation">Interpolation</string>
+  <string-array name="pref_interpolation_entries">
+    <item>None</item>
+    <item>Performance</item>
+    <item>Quality <b>(high CPU usage)</b></item>
+  </string-array>
+  <string-array name="pref_interpolation_values" translatable="false">
+    <item>0</item>
+    <item>1</item>
+    <item>2</item>
+  </string-array>
+  <!-- ay/ym -->
   <string name="pref_zxtune_aym_title" translatable="false">AY&#8211;3&#8211;8910/YM2149F</string>
   <!-- zxtune.core.aym.clockrate -->
   <string name="pref_zxtune_aym_clockrate" translatable="false">zxtune.core.aym.clockrate</string>
@@ -56,4 +72,27 @@
     <item>6</item>
   </string-array>
   <integer name="pref_zxtune_aym_layout_default">0</integer>
+
+  <!-- dac -->
+  <string name="pref_zxtune_dac_title">Digital samples</string>
+  <!-- zxtune.core.dac.interpolation -->
+  <string name="pref_zxtune_dac_interpolation_title" translatable="false">@string/pref_interpolation</string>
+  <string name="pref_zxtune_dac_interpolation" translatable="false">zxtune.core.dac.interpolation</string>
+  <integer name="pref_zxtune_dac_interpolation_default">0</integer>
+  
+  <!-- saa -->
+  <string name="pref_zxtune_saa_title" translatable="false">Philips SAA1099</string>
+  <!-- zxtune.core.saa.interpolation -->
+  <string  name="pref_zxtune_saa_interpolation" translatable="false">zxtune.core.saa.interpolation</string>
+  <integer name="pref_zxtune_saa_interpolation_default">1</integer>
+
+  <!-- sid -->
+  <string name="pref_zxtune_sid_title" translatable="false">MOS6581/SID</string>
+  <!-- zxtune.core.sid.interpolation -->
+  <string  name="pref_zxtune_sid_interpolation" translatable="false">zxtune.core.sid.interpolation</string>
+  <integer name="pref_zxtune_sid_interpolation_default">0</integer>
+  <!-- zxtune.core.sid.filter -->
+  <string  name="pref_zxtune_sid_filter" translatable="false">zxtune.core.sid.filter</string>
+  <string  name="pref_zxtune_sid_filter_title">Filter emulation</string>
+  <integer name="pref_zxtune_sid_filter_default">1</integer>
 </resources>

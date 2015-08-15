@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-  <!-- 3-channel -->
+  <PreferenceScreen
+    android:title="@string/pref_sound_title"
+    >
+  <!-- 3-channel mixer -->
   <PreferenceScreen
     android:title="@string/pref_zxtune_sound_mixer_3_x_x_title"
     >
@@ -56,7 +59,7 @@
       />
     </PreferenceCategory>
   </PreferenceScreen>
-  <!-- 4-channel -->
+  <!-- 4-channel mixer -->
   <PreferenceScreen
     android:title="@string/pref_zxtune_sound_mixer_4_x_x_title"
     >
@@ -128,5 +131,6 @@
         android:max="100"
       />
     </PreferenceCategory>
+  </PreferenceScreen>
   </PreferenceScreen>
 </PreferenceScreen>

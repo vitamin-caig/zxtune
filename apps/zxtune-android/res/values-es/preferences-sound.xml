@@ -1,5 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
+  <!-- sound -->
+  <string name="pref_sound_title">Sonar</string>
+  
+  <!-- common -->
   <string name="pref_zxtune_sound_mixer_x_0_x_title">Canal A</string>
   <string name="pref_zxtune_sound_mixer_x_1_x_title">Canal B</string>
   <string name="pref_zxtune_sound_mixer_x_2_x_title">Canal C</string>
