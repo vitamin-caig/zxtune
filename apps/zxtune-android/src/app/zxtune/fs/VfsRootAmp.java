@@ -137,17 +137,6 @@ final class VfsRootAmp implements VfsRoot, IconSource {
     return (Character.isLetter(c) && Character.isUpperCase(c));
   }
   
-  private Author queryAuthor(int id) throws IOException {
-    final AtomicReference<Author> result = new AtomicReference<Author>();
-    catalog.queryAuthors(id, new Catalog.AuthorsVisitor() {
-      @Override
-      public void accept(Author obj) {
-        result.set(obj);
-      }
-    });
-    return result.get();
-  }
-  
   private final class HandlesDir extends GroupsDir {
   
     @Override
@@ -245,7 +234,7 @@ final class VfsRootAmp implements VfsRoot, IconSource {
         } else {
           try {
             final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR));
-            final Author author = queryAuthor(id);
+            final Author author = catalog.queryAuthor(id);
             return author != null
                     ? new AuthorDir(this, author).resolve(uri, path)
                     : null;
@@ -376,7 +365,7 @@ final class VfsRootAmp implements VfsRoot, IconSource {
         } else {
           try {
             final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR));
-            final Author author = queryAuthor(id);
+            final Author author = catalog.queryAuthor(id);
             return author != null
                 ? new AuthorDir(this, author).resolve(uri, path)
                 : null;

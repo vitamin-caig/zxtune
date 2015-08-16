@@ -164,14 +164,10 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
   }
   
   
-  private static class FindAuthorVisitor implements Catalog.AuthorsVisitor {
+  private static class FindAuthorVisitor extends Catalog.AuthorsVisitor {
 
     private Author result;
 
-    @Override
-    public void setCountHint(int size) {
-    }
-    
     @Override
     public void accept(Author obj) {
       if (result == null) {
@@ -186,14 +182,10 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
 
-  private static class FindTrackVisitor implements Catalog.TracksVisitor {
+  private static class FindTrackVisitor extends Catalog.TracksVisitor {
     
     private Track result;
 
-    @Override
-    public void setCountHint(int size) {
-    }
-    
     @Override
     public void accept(Track obj) {
       if (result == null) {
@@ -214,7 +206,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
       //callers doesn't know that author and date is useless now
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryTracks(visitor, id, author.id);
+      catalog.queryAuthorTracks(author, id, visitor);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
         Log.d(TAG, "Real track id=%d filename (%s) differs from requested (%s)",
@@ -256,7 +248,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthors(new Catalog.AuthorsVisitor() {
+      catalog.queryAuthors(null/*all*/, new Catalog.AuthorsVisitor() {
         @Override
         public void setCountHint(int hint) {
           visitor.onItemsCount(hint);
@@ -266,7 +258,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
         public void accept(Author obj) {
           visitor.onDir(new AuthorDir(obj));
         }
-      }, null);
+      });
     }
     
     final VfsObject resolve(Uri uri, List<String> path) throws IOException {
@@ -291,7 +283,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
         //nickname is not unique, so use explicit identifier
         final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR_ID));
         final FindAuthorVisitor visitor = new FindAuthorVisitor();
-        catalog.queryAuthors(visitor, id);
+        catalog.queryAuthors(id, visitor);
         final Author result = visitor.getResult();
         if (!result.nickname.equals(nick)) {
           Log.d(TAG, "Real author id=%d nick (%s) differs from requested (%s)",
@@ -338,7 +330,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       final SparseIntArray dates = new SparseIntArray();
-      catalog.queryTracks(new Catalog.TracksVisitor() {
+      catalog.queryAuthorTracks(author, null/*all*/, new Catalog.TracksVisitor() {
         @Override
         public void setCountHint(int size) {
           visitor.onItemsCount(size);
@@ -352,7 +344,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
             dates.put(obj.date, 1 + dates.get(obj.date));
           }
         }
-      }, null/*id*/, author.id);
+      });
       for (int i = 0, lim = dates.size(); i != lim; ++i) {
         visitor.onDir(new AuthorDateDir(author, dates.keyAt(i), dates.valueAt(i)));
       }
@@ -448,7 +440,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryTracks(new Catalog.TracksVisitor() {
+      catalog.queryAuthorTracks(author, null/*all*/, new Catalog.TracksVisitor() {
         @Override
         public void setCountHint(int size) {
           visitor.onItemsCount(size);
@@ -460,7 +452,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
             visitor.onFile(new AuthorDatedTrackFile(trackDateUri(author, date, obj).build(), obj));
           }
         }
-      }, null/*id*/, author.id);
+      });
     }
     
     private VfsObject resolve(Uri uri, List<String> path) throws IOException {

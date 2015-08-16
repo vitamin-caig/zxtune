@@ -15,8 +15,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
 import app.zxtune.Log;
+import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.Grouping;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.fs.dbhelpers.Utils;
 
 /**
  * Version 1
@@ -24,9 +28,14 @@ import app.zxtune.Log;
  * CREATE TABLE authors (_id INTEGER PRIMARY KEY, nickname TEXT NOT NULL, name TEXT)
  * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, filename TEXT NOT NULL, title TEXT, duration
  * INTEGER, date INTEGER)
- * CREATE TABLE owning (hash INTEGER UNIQUE, author INTEGER, track INTEGER)
+ * CREATE TABLE author_tracks (hash INTEGER UNIQUE, author INTEGER, track INTEGER)
  * 
  * use hash as 100000 * author + track to support multiple insertings of same pair
+ * 
+ * Version 2
+ * 
+ * Use author_tracks standard grouping
+ * Use timestamps
  */
 
 final class Database {
@@ -34,11 +43,9 @@ final class Database {
   final static String TAG = Database.class.getName();
 
   final static String NAME = "www.zxtunes.com";
-  final static int VERSION = 1;
+  final static int VERSION = 2;
 
   final static class Tables {
-
-    final static String DROP_QUERY = "DROP TABLE IF EXISTS %s;";
 
     final static class Authors {
 
@@ -51,6 +58,10 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
           + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
           + " TEXT);";
+
+      static String getSelection(int id) {
+        return Fields._id + " = " + id;
+      }
     }
 
     final static class Tracks {
@@ -64,66 +75,73 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
           + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
           + " TEXT, " + Fields.duration + " INTEGER, " + Fields.date + " INTEGER);";
+
+      static String getSelection(int id) {
+        return Fields._id + " = " + id;
+      }
+      
+      static String getSelection(String subquery) {
+        return Fields._id + " IN (" + subquery + ")";
+      }
     }
 
     final static class AuthorsTracks {
 
-      static enum Fields {
-        hash, author, track
-      }
-
       final static String NAME = "authors_tracks";
+      private final static Grouping grouping = new Grouping(NAME, 32);
 
-      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields.hash
-          + " INTEGER UNIQUE, " + Fields.author + " INTEGER, " + Fields.track + " INTEGER);";
+      static String createQuery() {
+        return grouping.createQuery();
+      }
+      
+      static ContentValues createValues(Author author, Track track) {
+        return grouping.createValues(author.id, track.id);
+      }
+      
+      static String getTracksIdsSelection(Author author) {
+        return grouping.getIdsSelection(author.id);
+      }
     }
   }
 
   private final Helper helper;
+  private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
-  }
-
-  class Transaction {
-
-    private final SQLiteDatabase db;
-
-    Transaction(SQLiteDatabase db) {
-      this.db = db;
-      db.beginTransaction();
-    }
-
-    final void succeed() {
-      db.setTransactionSuccessful();
-    }
-
-    final void finish() {
-      db.endTransaction();
-    }
+    this.timestamps = new Timestamps(helper);
   }
 
   final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
 
-  final void queryAuthors(Catalog.AuthorsVisitor visitor, Integer id) {
-    Log.d(TAG, "queryAuthors(%s)", id);
+  final Timestamps.Lifetime getAuthorsLifetime(TimeStamp ttl) {
+    return timestamps.getLifetime(Tables.Authors.NAME, ttl);
+  }
+  
+  final Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
+    return timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl);
+  }
+  
+  final boolean queryAuthors(Integer id, Catalog.AuthorsVisitor visitor) {
+    Log.d(TAG, "queryAuthors(id=%d)", id);
+    final String selection = id != null ? Tables.Authors.getSelection(id) : null;
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = id != null ? Tables.Authors.Fields._id + " = " + id : null;
     final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
     try {
       final int count = cursor.getCount();
       if (count != 0) {
-        Log.d(TAG, "Found %d authors", count);
         visitor.setCountHint(count);
         while (cursor.moveToNext()) {
           visitor.accept(createAuthor(cursor));
         }
+        return true;
       }
     } finally {
       cursor.close();
     }
+    return false;
   }
 
   final void addAuthor(Author obj) {
@@ -132,44 +150,45 @@ final class Database {
         SQLiteDatabase.CONFLICT_REPLACE);
   }
 
-  final void queryTracks(Catalog.TracksVisitor visitor, Integer id, Integer author) {
+  final boolean queryTrack(int id, Catalog.TracksVisitor visitor) {
+    Log.d(TAG, "queryTracks(id=%d)", id);
+    final String selection = Tables.Tracks.getSelection(id);
+    return queryTracks(selection, visitor);
+  }
+  
+  final boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
+    Log.d(TAG, "queryTracks(author=%d)", author.id);
+    final String selection = Tables.Tracks.getSelection(Tables.AuthorsTracks.getTracksIdsSelection(author));
+    return queryTracks(selection, visitor);
+  }
+  
+  private boolean queryTracks(String selection, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection =
-        id != null ? createSingleTrackSelection(id) : createAuthorTracksSelection(author);
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     try {
       final int count = cursor.getCount();
       if (count != 0) {
-        Log.d(TAG, "Found %d tracks", count);
         visitor.setCountHint(count);
         while (cursor.moveToNext()) {
           visitor.accept(createTrack(cursor));
         }
+        return true;
       }
     } finally {
       cursor.close();
     }
+    return false;
   }
 
-  private static String createSingleTrackSelection(int id) {
-    return Tables.Tracks.Fields._id + " = " + id;
-  }
-
-  private static String createAuthorTracksSelection(int author) {
-    final String idQuery =
-        SQLiteQueryBuilder.buildQueryString(true, Tables.AuthorsTracks.NAME,
-            new String[] {Tables.AuthorsTracks.Fields.track.name()}, Tables.AuthorsTracks.Fields.author + " = "
-                + author, null, null, null, null);
-    return Tables.Tracks.Fields._id + " IN (" + idQuery + ")";
-  }
-
-  final void addTrack(Track obj, Integer author) {
+  final void addTrack(Track obj) {
     final SQLiteDatabase db = helper.getWritableDatabase();
     db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, createValues(obj),
         SQLiteDatabase.CONFLICT_REPLACE);
-    if (author != null) {
-      db.insert(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, createValues(author, obj.id));
-    }
+  }
+  
+  final void addAuthorTrack(Author author, Track track) {
+    final SQLiteDatabase db = helper.getWritableDatabase();
+    db.insert(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, Tables.AuthorsTracks.createValues(author, track));
   }
 
   private static Author createAuthor(Cursor cursor) {
@@ -206,14 +225,6 @@ final class Database {
     return res;
   }
 
-  private static ContentValues createValues(int author, int track) {
-    final int hash = 100000 * author + track;
-    final ContentValues res = new ContentValues();
-    res.put(Tables.AuthorsTracks.Fields.hash.name(), hash);
-    res.put(Tables.AuthorsTracks.Fields.author.name(), author);
-    res.put(Tables.AuthorsTracks.Fields.track.name(), track);
-    return res;
-  }
 
   private static class Helper extends SQLiteOpenHelper {
     
@@ -230,18 +241,14 @@ final class Database {
       Log.d(TAG, "Creating database");
       db.execSQL(Tables.Authors.CREATE_QUERY);
       db.execSQL(Tables.Tracks.CREATE_QUERY);
-      db.execSQL(Tables.AuthorsTracks.CREATE_QUERY);
+      db.execSQL(Tables.AuthorsTracks.createQuery());
+      db.execSQL(Timestamps.CREATE_QUERY);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
-      final String ALL_TABLES[] = {
-          Tables.Authors.NAME, Tables.Tracks.NAME, Tables.AuthorsTracks.NAME
-      };
-      for (String table : ALL_TABLES) {
-        db.execSQL(String.format(Tables.DROP_QUERY, table));
-      }
+      Utils.cleanupDb(db);
       onCreate(db);
     }
   }

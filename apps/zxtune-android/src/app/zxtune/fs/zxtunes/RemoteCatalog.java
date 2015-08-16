@@ -30,6 +30,7 @@ import java.util.Locale;
 
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.zxtunes.Catalog.TracksVisitor;
 
 final class RemoteCatalog extends Catalog {
 
@@ -53,7 +54,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException {
+  public void queryAuthors(Integer id, AuthorsVisitor visitor) throws IOException {
     final String query =
         id == null ? ALL_AUTHORS_QUERY : String.format(Locale.US, AUTHOR_QUERY, id);
     final HttpURLConnection connection = http.connect(query);
@@ -62,11 +63,11 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException {
+  public void queryAuthorTracks(Author author, Integer id, TracksVisitor visitor) throws IOException {
     if (id != null) {
       queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
     } else {
-      queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author));
+      queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
     }
   }
 

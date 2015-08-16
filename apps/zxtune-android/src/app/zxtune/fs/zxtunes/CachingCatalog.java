@@ -12,10 +12,16 @@ package app.zxtune.fs.zxtunes;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import app.zxtune.Log;
+import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.dbhelpers.QueryCommand;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.fs.dbhelpers.Utils;
 
 final class CachingCatalog extends Catalog {
   
@@ -23,6 +29,8 @@ final class CachingCatalog extends Catalog {
   
   private final static String CACHE_DIR_NAME = "www.zxtunes.com";
 
+  private final TimeStamp AUTHORS_TTL = TimeStamp.createFrom(30, TimeUnit.DAYS);
+  
   private final VfsCache cacheDir;
   private final Catalog remote;
   private final Database db;
@@ -34,42 +42,59 @@ final class CachingCatalog extends Catalog {
   }
   
   @Override
-  public void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException {
-    final CountingAuthorsVisitor count = new CountingAuthorsVisitor(visitor);
-    db.queryAuthors(count, id);
-    if (0 == count.get()) {
-      Log.d(TAG, "Authors cache is empty. Query from remote");
-      final Database.Transaction transaction = db.startTransaction();
-      try {
-        //query all
-        remote.queryAuthors(new CachingAuthorsVisitor(), null);
-        transaction.succeed();
-        Log.d(TAG, "Cached %d authors", count.get());
-      } finally {
-        transaction.finish();
+  public void queryAuthors(final Integer id, final AuthorsVisitor visitor) throws IOException {
+    Utils.executeQueryCommand(new QueryCommand() {
+      @Override
+      public Timestamps.Lifetime getLifetime() {
+        return db.getAuthorsLifetime(AUTHORS_TTL);
       }
-      db.queryAuthors(visitor, id);
-    }
+      
+      @Override
+      public Transaction startTransaction() {
+        return db.startTransaction();
+      }
+
+      @Override
+      public boolean queryFromCache() {
+        return db.queryAuthors(id, visitor);
+      }
+
+      @Override
+      public void queryFromRemote() throws IOException {
+        Log.d(TAG, "Authors cache is empty/expired for id=%s", id);
+        //query all
+        remote.queryAuthors(null, new CachingAuthorsVisitor());
+      }
+    });
   }
   
   @Override
-  public void queryTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException {
-    //TODO: make another way to check if cache is filled
-    final CountingTracksVisitor count = new CountingTracksVisitor(visitor);
-    db.queryTracks(count, id, author);
-    if (0 == count.get()) {
-      Log.d(TAG, "Tracks cache is empty for id=%s author=%s", id, author);
-      final Database.Transaction transaction = db.startTransaction();
-      try {
-        //query all
-        remote.queryTracks(new CachingTracksVisitor(author), null, author);
-        transaction.succeed();
-        Log.d(TAG, "Cached %d tracks", count.get());
-      } finally {
-        transaction.finish();
+  public void queryAuthorTracks(final Author author, final Integer id, final TracksVisitor visitor) throws IOException {
+    Utils.executeQueryCommand(new QueryCommand() {
+      @Override
+      public Timestamps.Lifetime getLifetime() {
+        return db.getAuthorTracksLifetime(author, AUTHORS_TTL);
       }
-      db.queryTracks(visitor, id, author);
-    }
+      
+      @Override
+      public Transaction startTransaction() {
+        return db.startTransaction();
+      }
+
+      @Override
+      public boolean queryFromCache() {
+        return id != null
+            ? db.queryTrack(id, visitor)
+            : db.queryAuthorTracks(author, visitor);
+      }
+
+      @Override
+      public void queryFromRemote() throws IOException {
+        Log.d(TAG, "Tracks cache is empty/expired for id=%s author=%d", id, author.id);
+        //query all tracks
+        remote.queryAuthorTracks(author, null, new CachingTracksVisitor(author));
+      }
+    });
   }
   
   
@@ -85,39 +110,9 @@ final class CachingCatalog extends Catalog {
       return content;
     }
   }
-  
-  private static class CountingAuthorsVisitor implements AuthorsVisitor {
 
-    private final AuthorsVisitor delegate;
-    private int count;
-    
-    CountingAuthorsVisitor(AuthorsVisitor delegate) {
-      this.delegate = delegate;
-      this.count = 0;
-    }
-    
-    @Override
-    public void setCountHint(int hint) {
-      delegate.setCountHint(hint);
-    }
-    
-    @Override
-    public void accept(Author obj) {
-      delegate.accept(obj);
-      ++count;
-    }
-    
-    final int get() {
-      return count;
-    }
-  }
-  
-  private class CachingAuthorsVisitor implements AuthorsVisitor {
-    
-    @Override
-    public void setCountHint(int hint) {
-    }
-    
+  private class CachingAuthorsVisitor extends AuthorsVisitor {
+
     @Override
     public void accept(Author obj) {
       try {
@@ -128,50 +123,21 @@ final class CachingCatalog extends Catalog {
     }
   }
   
-  private static class CountingTracksVisitor implements TracksVisitor {
+  private class CachingTracksVisitor extends TracksVisitor {
     
-    private final TracksVisitor delegate;
-    private int count;
+    private final Author author;
     
-    CountingTracksVisitor(TracksVisitor delegate) {
-      this.delegate = delegate;
-      this.count = 0;
-    }
-
-    @Override
-    public void setCountHint(int hint) {
-      delegate.setCountHint(hint);
-    }
-    
-    @Override
-    public void accept(Track obj) {
-      delegate.accept(obj);
-      ++count;
-    }
-    
-    final int get() {
-      return count;
-    }
-  }
-  
-  private class CachingTracksVisitor implements TracksVisitor {
-    
-    private final Integer author;
-    
-    CachingTracksVisitor(Integer author) {
+    CachingTracksVisitor(Author author) {
       this.author = author;
     }
-
-    @Override
-    public void setCountHint(int hint) {
-    }
     
     @Override
-    public void accept(Track obj) {
+    public void accept(Track track) {
       try {
-        db.addTrack(obj, author);
+        db.addTrack(track);
+        db.addAuthorTrack(author, track);
       } catch (Exception e) {
-        Log.d(TAG, e, "addTrack()");
+        Log.d(TAG, e, "acceptTrack()");
       }
     }
   }

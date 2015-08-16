@@ -40,40 +40,41 @@ public abstract class Catalog {
 
   /**
    * Query authors object
-   * @param visitor result receiver
    * @param id identifier of specified author or null if all authors required
+   * @param visitor result receiver
    */
-  public abstract void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException;
+  public abstract void queryAuthors(Integer id, AuthorsVisitor visitor) throws IOException;
   
   /**
    * Query tracks objects
-   * @param visitor result receiver
    * @param author tracks owner
    * @param id filter by id. If not null, author filter may be ignored (but required for cache)
+   * @param visitor result receiver
    */
-  public abstract void queryAuthorTracks(TracksVisitor visitor, Author author, Integer id) throws IOException;
+  public abstract void queryAuthorTracks(Author author, Integer id, TracksVisitor visitor) throws IOException;
 
   /**
    * Query parties object
-   * @param visitor result receiver
    * @param id identifier of specified party or null if all parties required
+   * @param visitor result receiver
    */
-  public abstract void queryParties(PartiesVisitor visitor, Integer id) throws IOException;
+  public abstract void queryParties(Integer id, PartiesVisitor visitor) throws IOException;
 
   /**
    * Query tracks objects
-   * @param visitor result receiver
    * @param party filter by party
    * @param id filter by id. If not null, party filter may be ignored (but required for cache)
+   * @param visitor result receiver
    */
-  public abstract void queryPartyTracks(TracksVisitor visitor, Party party, Integer id) throws IOException;
+  public abstract void queryPartyTracks(Party party, Integer id, TracksVisitor visitor) throws IOException;
   
   /**
    * Query top tracks (not cached
-   * @param visitor result receiver
+   * @param limit count
    * @param id filter by id
+   * @param visitor result receiver
    */
-  public abstract void queryTopTracks(TracksVisitor visitor, Integer id, int limit) throws IOException;
+  public abstract void queryTopTracks(int limit, Integer id, TracksVisitor visitor) throws IOException;
   
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
   

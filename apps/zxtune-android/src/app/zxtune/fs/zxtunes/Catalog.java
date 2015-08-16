@@ -17,35 +17,34 @@ import android.content.Context;
 
 public abstract class Catalog {
   
-  public interface AuthorsVisitor {
+  public static abstract class AuthorsVisitor {
     
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
     
-    void accept(Author obj);
+    public abstract void accept(Author obj);
   }
   
-  public interface TracksVisitor {
+  public static abstract class TracksVisitor {
     
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
 
-    void accept(Track obj);
+    public abstract void accept(Track obj);
   }
 
   /**
    * Query authors object
-   * @param visitor result receiver
    * @param id identifier of specified author or null if all authors required
+   * @param visitor result receiver
    */
-  public abstract void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException;
+  public abstract void queryAuthors(Integer id, AuthorsVisitor visitor) throws IOException;
   
   /**
    * Query tracks objects
-   * @param visitor result receiver
-   * @param author author's identifier
+   * @param author scope
    * @param id filter by id. If not null, author filter may be ignored (but required for cache)
-   * @param author filter by author
+   * @param visitor result receiver
    */
-  public abstract void queryTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException;
+  public abstract void queryAuthorTracks(Author author, Integer id, TracksVisitor visitor) throws IOException;
   
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
   

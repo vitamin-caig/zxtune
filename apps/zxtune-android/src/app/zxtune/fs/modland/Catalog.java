@@ -17,18 +17,19 @@ import android.content.Context;
 
 public abstract class Catalog {
 
-  public interface GroupsVisitor {
+  public static abstract class GroupsVisitor {
 
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
     
-    void accept(Group obj);
+    public abstract void accept(Group obj);
   }
 
-  public interface TracksVisitor {
+  public static abstract class TracksVisitor {
 
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
 
-    boolean accept(Track obj);
+    //too many tracks possible, so enable breaking
+    public abstract boolean accept(Track obj);
   }
 
   public interface Grouping {

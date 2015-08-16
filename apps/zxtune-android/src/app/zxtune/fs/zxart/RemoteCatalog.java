@@ -62,7 +62,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException {
+  public void queryAuthors(Integer id, AuthorsVisitor visitor) throws IOException {
     final String query =
         id == null ? ALL_AUTHORS_QUERY : String.format(Locale.US, AUTHOR_QUERY, id);
     final HttpURLConnection connection = http.connect(query);
@@ -71,7 +71,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthorTracks(TracksVisitor visitor, Author author, Integer id) throws IOException {
+  public void queryAuthorTracks(Author author, Integer id, TracksVisitor visitor) throws IOException {
     if (id != null) {
       queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
     } else {
@@ -79,7 +79,8 @@ final class RemoteCatalog extends Catalog {
     }
   }
 
-  public void queryParties(PartiesVisitor visitor, Integer id) throws IOException {
+  @Override
+  public void queryParties(Integer id, PartiesVisitor visitor) throws IOException {
     final String query =
         id == null ? ALL_PARTIES_QUERY : String.format(Locale.US, PARTY_QUERY, id);
     final HttpURLConnection connection = http.connect(query);
@@ -87,7 +88,8 @@ final class RemoteCatalog extends Catalog {
     performQuery(connection, root);
   }
   
-  public void queryPartyTracks(TracksVisitor visitor, Party party, Integer id) throws IOException {
+  @Override
+  public void queryPartyTracks(Party party, Integer id, TracksVisitor visitor) throws IOException {
     if (id != null) {
       queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
     } else {
@@ -95,7 +97,8 @@ final class RemoteCatalog extends Catalog {
     }
   }
   
-  public void queryTopTracks(TracksVisitor visitor, Integer id, int limit) throws IOException {
+  @Override
+  public void queryTopTracks(int limit, Integer id, TracksVisitor visitor) throws IOException {
     if (id != null) {
       queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
     } else {

@@ -10,30 +10,28 @@
 
 package app.zxtune.fs.amp;
 
-import java.util.concurrent.TimeUnit;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.amp.Catalog.AuthorsVisitor;
+import app.zxtune.fs.dbhelpers.Grouping;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.fs.dbhelpers.Utils;
 
 /**
  * Version 1
  *
  * CREATE TABLE authors (_id INTEGER PRIMARY KEY, handle TEXT NOT NULL, real_name TEXT NOT NULL)
  * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, filename TEXT NOT NULL, size INTEGER NOT NULL)
- * CREATE TABLE author_tracks (_id INTEGER PRIMARY KEY)
- *   with _id as (author_id << 32) | track_id to support multiple insertions of same pair
- *   
- * CREATE TABLE country_authors (_id INTEGER PRIMARY KEY, author_id INTEGER)
- *   with _id as (country_id << 32) | author_id to support multiple insertions of same pair
- *   
- * CREATE TABLE timestamps (_id TEXT PRIMARY KEY, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)
+ * 
+ * author_tracks and country_authors are 32-bit grouping
+ * 
+ * Standard timestamps table(s) 
  * 
  */
 
@@ -46,8 +44,6 @@ final class Database {
 
   final static class Tables {
 
-    final static String DROP_QUERY = "DROP TABLE IF EXISTS %s;";
-    
     final static class Authors {
 
       static enum Fields {
@@ -109,180 +105,74 @@ final class Database {
       }
     }
     
-    static class Grouping {
-      static enum Fields {
-        _id
-      }
+    final static class AuthorTracks {
       
-      protected static String getCreateQuery(String tableName) {
-        return "CREATE TABLE " + tableName + " (_id INTEGER PRIMARY KEY);";
-      }
-
-      protected static ContentValues createValues(int group, int object) {
-        final ContentValues res = new ContentValues();
-        res.put(Fields._id.name(), getId(group, object));
-        return res;
-      }
-
-      protected static String getIdsSelection(String tableName, int group) {
-        final long lower = getId(group, 0);
-        final long upper = getId(group + 1, 0) - 1;
-        final String groupSelection = Fields._id + " BETWEEN " + lower + " AND " + upper;
-        final String objectSelection = Fields._id + " & ((1 << 32) - 1)";
-        return SQLiteQueryBuilder.buildQueryString(true, tableName,
-              new String[]{objectSelection}, groupSelection, null, null, null, null);
-      }
-
-      private static long getId(int group, int object) {
-        return ((long)group << 32) | object;
-      }
-    }
-
-    final static class AuthorTracks extends Grouping {
-
       final static String NAME = "author_tracks";
+      private final static Grouping grouping = new Grouping(NAME, 32);
       
-      static String getCreateQuery() {
-        return getCreateQuery(NAME);
+      static String createQuery() {
+        return grouping.createQuery();
       }
       
       static ContentValues createValues(Author author, Track track) {
-        return createValues(author.id, track.id);
+        return grouping.createValues(author.id, track.id);
       }
       
       static String getTracksIdsSelection(Author author) {
-        return getIdsSelection(NAME, author.id);
+        return grouping.getIdsSelection(author.id);
       }
     }
 
-    final static class CountryAuthors extends Grouping {
+    final static class CountryAuthors {
 
       final static String NAME = "country_authors";
+      private final static Grouping grouping = new Grouping(NAME, 32);
       
-      static String getCreateQuery() {
-        return getCreateQuery(NAME);
+      static String createQuery() {
+        return grouping.createQuery();
       }
-
+      
       static ContentValues createValues(Country country, Author author) {
-        return createValues(country.id, author.id);
+        return grouping.createValues(country.id, author.id);
       }
       
       static String getAuthorsIdsSelection(Country country) {
-        return getIdsSelection(NAME, country.id);
+        return grouping.getIdsSelection(country.id);
       }
-    }
-
-    final static class Timestamps {
-      
-      static enum Fields {
-        _id, stamp
-      }
-      
-      final static String NAME = "timestamps";
-      
-      final static String CREATE_QUERY = "CREATE TABLE timestamps (" +
-          "_id  TEXT PRIMARY KEY, " +
-          "stamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL" +
-          ");";
     }
   }
 
   private final Helper helper;
+  private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
-  }
-
-  class Transaction {
-
-    private final SQLiteDatabase db;
-
-    Transaction(SQLiteDatabase db) {
-      this.db = db;
-      db.beginTransaction();
-    }
-
-    final void succeed() {
-      db.setTransactionSuccessful();
-    }
-
-    final void finish() {
-      db.endTransaction();
-    }
+    this.timestamps = new Timestamps(helper);
   }
 
   final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
   
-  interface CacheLifetime {
-    boolean isExpired();
-    void update();
+  final Timestamps.Lifetime getAuthorsLifetime(String handleFilter, TimeStamp ttl) {
+    return timestamps.getLifetime(Tables.Authors.NAME + handleFilter, ttl);
   }
   
-  class DbCacheLifetime implements CacheLifetime {
-    
-    private final String objId;
-    private final TimeStamp TTL;
-    
-    DbCacheLifetime(String id, TimeStamp ttl) {
-      this.objId = id;
-      this.TTL = ttl;
-    }
-    
-    @Override
-    public boolean isExpired() {
-      final SQLiteDatabase db = helper.getReadableDatabase();
-      final String selection = Tables.Timestamps.Fields._id + " = '" + objId + "'";
-      final String target = "strftime('%s', 'now') - strftime('%s', " + Tables.Timestamps.Fields.stamp + ")";
-      final Cursor cursor = db.query(Tables.Timestamps.NAME, new String[] {target}, selection, 
-          null, null, null, null, null);
-      try {
-        if (cursor.moveToFirst()) {
-            final TimeStamp age = TimeStamp.createFrom(cursor.getInt(0), TimeUnit.SECONDS);
-            return age.compareTo(TTL) > 0;
-        }
-      } finally {
-        cursor.close();
-      }
-      return true;
-    }
-    
-    @Override
-    public void update() {
-      final ContentValues values = new ContentValues();
-      values.put(Tables.Timestamps.Fields._id.name(), objId);
-      final SQLiteDatabase db = helper.getWritableDatabase();
-      db.insertWithOnConflict(Tables.Timestamps.NAME, null/* nullColumnHack */, values,
-          SQLiteDatabase.CONFLICT_REPLACE);
-    }
+  final Timestamps.Lifetime getCountryLifetime(Country country, TimeStamp ttl) {
+    return timestamps.getLifetime("countries" + country.id, ttl);
+  }
+
+  final Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
+    return timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl);
   }
   
-  //TODO: singleton
-  class StubCacheLifetime implements CacheLifetime {
-    
-    private StubCacheLifetime() {}
-    
-    @Override
-    public boolean isExpired() {
-      return false;
-    }
-    
-    @Override
-    public void update() {}
-  }
-  
-  final CacheLifetime getLifetime(String id, TimeStamp ttl) {
-    return new DbCacheLifetime(id, ttl);
-  }
-  
-  final CacheLifetime getStubLifetime() {
-    return new StubCacheLifetime();
+  final Timestamps.Lifetime getStubLifetime() {
+    return timestamps.getStubLifetime();
   }
   
   final void queryAuthors(String handleFilter, AuthorsVisitor visitor) {
     Log.d(TAG, "queryAuthors(filter=%s)", handleFilter);
-    final String selection = handleFilter.equals("0-9")
+    final String selection = handleFilter.equals(Catalog.NON_LETTER_FILTER)
       ? "SUBSTR(" + Tables.Authors.Fields.handle + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
       : Tables.Authors.Fields.handle + " LIKE '" + handleFilter + "%'";
     queryAuthorsInternal(selection, visitor);
@@ -295,12 +185,22 @@ final class Database {
     queryAuthorsInternal(selection, visitor);
   }
   
-  final void queryAuthors(int id, AuthorsVisitor visitor) {
+  final Author queryAuthor(int id) {
     Log.d(TAG, "queryAuthors(id=%d)", id);
     final String selection = Tables.Authors.Fields._id + " = " + id;
-    queryAuthorsInternal(selection, visitor);
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
+    try {
+      if (cursor.moveToNext()) {
+        return Tables.Authors.createAuthor(cursor);
+      }
+    } finally {
+      cursor.close();
+    }
+    return null;
   }
   
+  //result may be empty, so don't treat it as error
   private void queryAuthorsInternal(String selection, AuthorsVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
@@ -381,29 +281,18 @@ final class Database {
     @Override
     public void onCreate(SQLiteDatabase db) {
       Log.d(TAG, "Creating database");
-      db.execSQL(Tables.CountryAuthors.getCreateQuery());
+      db.execSQL(Tables.CountryAuthors.createQuery());
       db.execSQL(Tables.Authors.CREATE_QUERY);
       db.execSQL(Tables.Tracks.CREATE_QUERY);
-      db.execSQL(Tables.AuthorTracks.getCreateQuery());
-      db.execSQL(Tables.Timestamps.CREATE_QUERY);
+      db.execSQL(Tables.AuthorTracks.createQuery());
+      db.execSQL(Timestamps.CREATE_QUERY);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
-      if (oldVersion == 1) {
-        final String[] tables = {
-            Tables.CountryAuthors.NAME,
-            Tables.Authors.NAME,
-            Tables.Tracks.NAME,
-            Tables.AuthorTracks.NAME,
-            Tables.Timestamps.NAME
-        };
-        for (String table : tables) {
-          db.execSQL(String.format(Tables.DROP_QUERY, table));
-        }
-        onCreate(db);
-      }
+      Utils.cleanupDb(db);
+      onCreate(db);
     }
   }
 }

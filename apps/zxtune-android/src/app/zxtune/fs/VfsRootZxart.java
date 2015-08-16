@@ -229,7 +229,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       // nickname is not unique, so use explicit identifier
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR_ID));
       final FindAuthorVisitor visitor = new FindAuthorVisitor();
-      catalog.queryAuthors(visitor, id);
+      catalog.queryAuthors(id, visitor);
       final Author result = visitor.getResult();
       if (!result.nickname.equals(nick)) {
         Log.d(TAG, "Real author id=%d nick (%s) differs from requested (%s)",
@@ -267,7 +267,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       // name is not unique, so use explicit identifier
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_PARTY_ID));
       final FindPartyVisitor visitor = new FindPartyVisitor();
-      catalog.queryParties(visitor, id);
+      catalog.queryParties(id, visitor);
       final Party result = visitor.getResult();
       if (!result.name.equals(name)) {
         Log.d(TAG, "Real party id=%d name (%s) differs from requested (%s)",
@@ -307,7 +307,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       // callers doesn't know that author and year is useless now
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryAuthorTracks(visitor, author, id);
+      catalog.queryAuthorTracks(author, id, visitor);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
         Log.d(TAG, "Real track id=%d filename (%s) differs from requested (%s)",
@@ -329,7 +329,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       // callers doesn't know that party is useless
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryPartyTracks(visitor, party, id);
+      catalog.queryPartyTracks(party, id, visitor);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
         Log.d(TAG, "Real track id=%d filename (%s) differs from requested (%s)",
@@ -348,7 +348,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     try {
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryTopTracks(visitor, id, 1);
+      catalog.queryTopTracks(100, id, visitor);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
         Log.d(TAG, "Real track id=%d filename (%s) differs from requested (%s)",
@@ -390,7 +390,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthors(new Catalog.AuthorsVisitor() {
+      catalog.queryAuthors(null/*all*/, new Catalog.AuthorsVisitor() {
         @Override
         public void setCountHint(int hint) {
           visitor.onItemsCount(hint);
@@ -400,7 +400,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         public void accept(Author obj) {
           visitor.onDir(new AuthorDir(obj));
         }
-      }, null);
+      });
     }
 
     @Override
@@ -455,12 +455,12 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     public void enumerate(final Visitor visitor) throws IOException {
       final SparseIntArray years = new SparseIntArray();
       
-      catalog.queryAuthorTracks(new Catalog.TracksVisitor() {
+      catalog.queryAuthorTracks(author, null/*all*/, new Catalog.TracksVisitor() {
         @Override
         public void accept(Track obj) {
           years.put(obj.year, 1 + years.get(obj.year));
         }
-      }, author, null/*id*/);
+      });
       visitor.onItemsCount(years.size());
       for (int i = 0, lim = years.size(); i != lim; ++i) {
         //handle count when required
@@ -518,7 +518,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthorTracks(new Catalog.TracksVisitor() {
+      catalog.queryAuthorTracks(author, null/*all*/, new Catalog.TracksVisitor() {
         @Override
         public void setCountHint(int size) {
           visitor.onItemsCount(size);
@@ -530,7 +530,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             visitor.onFile(new AuthorTrackFile(trackUri(author, year, obj).build(), obj));
           }
         }
-      }, author, null/* id */);
+      });
     }
     
     final VfsObject resolve(Uri uri, List<String> path) throws IOException {
@@ -589,12 +589,12 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       final SparseIntArray years = new SparseIntArray();
-      catalog.queryParties(new Catalog.PartiesVisitor() {
+      catalog.queryParties(null/*all*/, new Catalog.PartiesVisitor() {
         @Override
         public void accept(Party obj) {
           years.put(obj.year, 1 + years.get(obj.year));
         }
-      }, null/*id*/);
+      });
       visitor.onItemsCount(years.size());
       for (int i = 0, lim = years.size(); i != lim; ++i) {
         visitor.onDir(new PartyYearDir(years.keyAt(i))); 
@@ -701,14 +701,14 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryParties(new Catalog.PartiesVisitor() {
+      catalog.queryParties(null/*all*/, new Catalog.PartiesVisitor() {
         @Override
         public void accept(Party obj) {
           if (obj.year == year) {
             visitor.onDir(new PartyDir(obj));
           }
         }
-      }, null/*id*/);
+      });
     }
   }
   
@@ -738,12 +738,12 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       final HashSet<String> compos = new HashSet<String>();
-      catalog.queryPartyTracks(new Catalog.TracksVisitor() {
+      catalog.queryPartyTracks(party, null/*all*/, new Catalog.TracksVisitor() {
         @Override
         public void accept(Track obj) {
           compos.add(obj.compo);
         }
-      }, party, null/*id*/);
+      });
       visitor.onItemsCount(compos.size());
       for (String compo : compos) {
         visitor.onDir(new PartyCompoDir(party, compo)); 
@@ -815,7 +815,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryPartyTracks(new Catalog.TracksVisitor() {
+      catalog.queryPartyTracks(party, null/*all*/, new Catalog.TracksVisitor() {
         @Override
         public void setCountHint(int size) {
           visitor.onItemsCount(size);
@@ -827,7 +827,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             visitor.onFile(new PartyplacedTrackFile(trackUri(party, compo.name(), obj).build(), obj));
           }
         }
-      }, party, null/* id */);
+      });
     }
 
     @Override
@@ -885,7 +885,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryTopTracks(new Catalog.TracksVisitor() {
+      catalog.queryTopTracks(100, null/*all*/, new Catalog.TracksVisitor() {
         @Override
         public void setCountHint(int size) {
           visitor.onItemsCount(size);
@@ -895,7 +895,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         public void accept(Track obj) {
           visitor.onFile(new VotedTrackFile(topTrackUri(obj).build(), obj));
         }
-      }, null/*id*/, 100);
+      });
     }
 
     @Override

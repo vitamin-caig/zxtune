@@ -111,15 +111,16 @@ class RemoteCatalog extends Catalog {
   }
   
   @Override
-  public void queryAuthors(int id, AuthorsVisitor visitor) throws IOException {
+  public Author queryAuthor(int id) throws IOException {
     final String uri = String.format(Locale.US, AUTHOR_URI_FORMAT, id);
     final String content = http.getHtml(uri);
     final Matcher matcher = AUTHOR.matcher(content);
     if (matcher.find()) {
       final String name = matcher.group(1);
       final String realName = matcher.group(2);
-      visitor.accept(new Author(id, decodeHtml(name), decodeHtml(realName)));
+      return new Author(id, decodeHtml(name), decodeHtml(realName));
     }
+    return null;
   }
   
   @Override

@@ -18,7 +18,10 @@ import android.content.Context;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
-import app.zxtune.fs.amp.Database.CacheLifetime;
+import app.zxtune.fs.dbhelpers.QueryCommand;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.fs.dbhelpers.Utils;
 
 final class CachingCatalog extends Catalog {
 
@@ -44,42 +47,18 @@ final class CachingCatalog extends Catalog {
     this.db = db;
   }
 
-  //TODO: extract to common place
-  private interface QueryCommand {
-    Database.CacheLifetime getLifetime();
-
-    boolean queryFromCache();
-
-    void queryFromRemote() throws IOException;
-  }
-
-  private void executeQuery(QueryCommand cmd) throws IOException {
-    final Database.CacheLifetime lifetime = cmd.getLifetime();
-    if (lifetime.isExpired() || !cmd.queryFromCache()) {
-      IOException remoteError = null;
-      final Database.Transaction transaction = db.startTransaction();
-      try {
-        cmd.queryFromRemote();
-        lifetime.update();
-        transaction.succeed();
-      } catch (IOException e) {
-        remoteError = e;
-      } finally {
-        transaction.finish();
-      }
-      if (!cmd.queryFromCache() && remoteError != null) {
-        throw remoteError;
-      }
-    }
-  }
-  
   @Override
   public void queryAuthors(final String handleFilter, final AuthorsVisitor visitor) throws IOException {
-    executeQuery(new QueryCommand() {
+    Utils.executeQueryCommand(new QueryCommand() {
       
       @Override
-      public CacheLifetime getLifetime() {
-        return db.getLifetime("authors" + handleFilter, AUTHORS_TTL);
+      public Timestamps.Lifetime getLifetime() {
+        return db.getAuthorsLifetime(handleFilter, AUTHORS_TTL);
+      }
+
+      @Override
+      public Transaction startTransaction() {
+        return db.startTransaction();
       }
       
       @Override
@@ -98,13 +77,18 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final Country country, final AuthorsVisitor visitor) throws IOException {
-    executeQuery(new QueryCommand() {
+    Utils.executeQueryCommand(new QueryCommand() {
       
       @Override
-      public CacheLifetime getLifetime() {
-        return db.getLifetime("country" + country.id, COUNTRIES_TTL);
+      public Timestamps.Lifetime getLifetime() {
+        return db.getCountryLifetime(country, COUNTRIES_TTL);
       }
-      
+
+      @Override
+      public Transaction startTransaction() {
+        return db.startTransaction();
+      }
+
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Authors cache is empty/expired for country=%d", country.id);
@@ -120,37 +104,32 @@ final class CachingCatalog extends Catalog {
   }
   
   @Override
-  public void queryAuthors(final int id, final AuthorsVisitor visitor) throws IOException {
-    executeQuery(new QueryCommand() {
-      
-      @Override
-      public CacheLifetime getLifetime() {
-        return db.getLifetime("author" + id, AUTHORS_TTL);
+  public Author queryAuthor(int id) throws IOException {
+    Author result = db.queryAuthor(id);
+    if (result == null) {
+      Log.d(TAG, "Authors cache is empty for id=%d", id);
+      result = remote.queryAuthor(id);
+      if (result != null) {
+        db.addAuthor(result);
       }
-      
-      @Override
-      public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Authors cache is empty/expired for id=%d", id);
-        remote.queryAuthors(id, new CachingAuthorsVisitor());
-      }
-      
-      @Override
-      public boolean queryFromCache() {
-        db.queryAuthors(id, visitor);
-        return true;
-      }
-    });
+    }
+    return result;
   }
 
   @Override
   public void queryTracks(final Author author, final Integer id, final TracksVisitor visitor) throws IOException {
-    executeQuery(new QueryCommand() {
+    Utils.executeQueryCommand(new QueryCommand() {
 
       @Override
-      public CacheLifetime getLifetime() {
+      public Timestamps.Lifetime getLifetime() {
         return id == null
-            ? db.getLifetime("tracks" + author.id, TRACKS_TTL)
+            ? db.getAuthorTracksLifetime(author, TRACKS_TTL)
             : db.getStubLifetime();
+      }
+
+      @Override
+      public Transaction startTransaction() {
+        return db.startTransaction();
       }
 
       @Override
@@ -165,7 +144,9 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public void queryFromRemote() throws IOException {
-        remote.queryTracks(author, id, new CachingTracksVisitor(author));
+        Log.d(TAG, "Tracks cache is empty/expired for author=%d", author.id);
+        //query all
+        remote.queryTracks(author, null, new CachingTracksVisitor(author));
       }
     });
   }

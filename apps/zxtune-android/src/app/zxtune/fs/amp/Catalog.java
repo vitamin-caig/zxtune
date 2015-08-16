@@ -50,10 +50,9 @@ public abstract class Catalog {
   /**
    * Query author
    * @param id identifier
-   * @param visitor result receiver
    * @throws IOException
    */
-  public abstract void queryAuthors(int id, AuthorsVisitor visitor) throws IOException;
+  public abstract Author queryAuthor(int id) throws IOException;
 
   /**
    * Query authors's tracks
