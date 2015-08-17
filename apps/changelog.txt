@@ -5,6 +5,24 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3450 from 17.08.2015
+
+[+] Added Abyss' Highest Experience format support (AHX)
+[+] Support tuneable default modules duration
+[+] Added PulseAudio backend
+[*] Fixes in OSS backend
+[*] Use latency parameter in Alsa backend instead of buffers count
+[*] zxtune123: do not show intermediate sound backend errors
+[+] zxtune-qt: support mediabuttons as controls hotkeys
+[*] zxtune-qt: pad crc columns in playlist with zeroes
+[*] zxtune-qt: fixed processing of last item of .ayl files
+[+] zxtune-android: add http://amp.dascene.net online source
+[*] zxtune-android: fix playback restart on orientation change
+[*] zxtune-android: do not stop searching on found items playback
+[*] zxtune-android: rework preferences screen
+[*] zxtune-android: fixed hangup on missed archive item loading
+[*] zxtune-android: slight speedup of some online sources
+
 --- Rev3410 from 16.07.2015
 
 [+] Added 7zip archives support
