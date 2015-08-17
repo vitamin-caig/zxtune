@@ -17,6 +17,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.Grouping;
@@ -38,7 +39,6 @@ import app.zxtune.fs.dbhelpers.Utils;
  * 
  * Use standard grouping for {authors,collections,formats}_tracks
  * Use timestamps
- * Store decoded paths
  */
 
 final class Database {
@@ -217,10 +217,11 @@ final class Database {
   }
   
   final Track findTrack(String category, int id, String filename) {
+    final String encodedFilename = Uri.encode(filename).replace("!", "%21").replace("'", "%27").replace("(", "%28").replace(")", "%29");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Tracks.getSelection(Tables.GroupTracks.get(category).getIdsSelection(id))
         + " AND " + Tables.Tracks.Fields.path + " LIKE ?";
-    final String[] selectionArgs = {"%/" + filename};
+    final String[] selectionArgs = {"%/" + encodedFilename};
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, selectionArgs, null, null, null);
     try {
       if (cursor.moveToFirst()) {

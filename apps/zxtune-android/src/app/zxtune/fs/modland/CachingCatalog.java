@@ -145,7 +145,6 @@ final class CachingCatalog extends Catalog {
 
     @Override
     public Track findTrack(int id, String filename) throws IOException {
-      //TODO: keep all the paths decoded in DB
       Track res = db.findTrack(category, id, filename);
       if (res == null) {
         Log.d(TAG, "Track %s not found in %s=%d", filename, category, id);

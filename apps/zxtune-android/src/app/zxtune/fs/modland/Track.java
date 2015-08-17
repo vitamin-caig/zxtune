@@ -18,7 +18,8 @@ public final class Track {
 
   /// unique id (hash of decoded path)
   public final long id;
-  /// decoded path starting at /pub/modules/...
+  /// encoded path starting at /pub/modules/...
+  /// encoding is not fully compatible with Uri.encode, so keep it as is
   public final String path;
   /// decoded last segment of id
   public final String filename;
@@ -31,8 +32,8 @@ public final class Track {
 
   public Track(long id, String path, int size) {
     this.id = id;
-    this.path = Uri.decode(path);
-    this.filename = path.substring(1 + path.lastIndexOf('/'));
+    this.path = path;
+    this.filename = Uri.decode(path.substring(1 + path.lastIndexOf('/')));
     this.size = size;
   }
 
