@@ -48,8 +48,8 @@ namespace AHX
       hvl_InitReplayer();
       initialized = true;
     }
-    const HvlPtr result = HvlPtr(hvl_LoadTune(static_cast<const uint8*>(data.Start()), data.Size(), 4, 44100), &hvl_FreeTune);
-    Require(result);
+    const HvlPtr result = HvlPtr(hvl_LoadTune(static_cast<const uint8*>(data.Start()), data.Size(), 4, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT), &hvl_FreeTune);
+    Require(result.get() != 0);
     return result;
   }
   
@@ -227,6 +227,16 @@ namespace AHX
       SamplesPerFrame = Hvl->ht_Frequency / 50;
     }
     
+    void SetFrequency(uint_t freq)
+    {
+      if (freq != Hvl->ht_Frequency)
+      {
+        Require(Hvl->ht_PlayingTime == 0);
+        Hvl->ht_Frequency = freq;
+        Reset();
+      }
+    }
+    
     void RenderFrame(Sound::ChunkBuilder& target)
     {
       BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
@@ -253,7 +263,7 @@ namespace AHX
     
     bool EndReached() const
     {
-      return Hvl->ht_SongEndReached;
+      return 0 != Hvl->ht_SongEndReached;
     }
     
     TrackState::Ptr MakeTrackState() const
@@ -325,6 +335,7 @@ namespace AHX
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
+        Tune->SetFrequency(SoundParams->SoundFreq());
       }
     }
   private:
