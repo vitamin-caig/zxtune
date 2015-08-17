@@ -185,7 +185,6 @@ struct hvl_tune
   TEXT                   ht_Name[128];
   uint16                 ht_SongNum;
   uint32                 ht_Frequency;
-  float64                ht_FreqF;
   int8                  *ht_WaveformTab[MAX_CHANNELS];
   uint16                 ht_Restart;
   uint16                 ht_PositionNr;

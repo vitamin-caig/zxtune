@@ -161,7 +161,7 @@ void hvl_GenSquare( int8 *buf )
   }
 }
 
-static inline float64 clip( float64 x )
+static float64 clip( float64 x )
 {
   if( x > 127.f )
     x = 127.f;
@@ -410,7 +410,6 @@ struct hvl_tune *hvl_load_ahx( uint8 *buf, uint32 buflen, uint32 defstereo, uint
   }
   
   ht->ht_Frequency       = freq;
-  ht->ht_FreqF           = (float64)freq;
   
   ht->ht_Positions   = (struct hvl_position *)(&ht[1]);
   ht->ht_Instruments = (struct hvl_instrument *)(&ht->ht_Positions[posn]);
@@ -645,7 +644,6 @@ struct hvl_tune *hvl_LoadTune( CONST uint8 *buf, uint32 buflen, uint32 defstereo
   
   ht->ht_Version         = buf[3]; // 1.5
   ht->ht_Frequency       = freq;
-  ht->ht_FreqF           = (float64)freq;
   
   ht->ht_Positions       = (struct hvl_position *)(&ht[1]);
   ht->ht_Instruments     = (struct hvl_instrument *)(&ht->ht_Positions[posn]);
