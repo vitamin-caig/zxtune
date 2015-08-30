@@ -15,6 +15,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.Grouping;
@@ -59,6 +60,29 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
           + " TEXT);";
 
+      final static String INSERT_STATEMENT =
+          "REPLACE INTO " + NAME + " VALUES (?, ?, ?);";
+      
+      private final SQLiteStatement insertStatement;
+      
+      Authors(SQLiteOpenHelper helper) {
+        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+      }
+      
+      final synchronized void add(Author obj) {
+        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
+        insertStatement.bindString(1 + Fields.nickname.ordinal(), obj.nickname);
+        insertStatement.bindString(1 + Fields.name.ordinal(), obj.name);
+        insertStatement.executeInsert();
+      }
+      
+      private static Author createAuthor(Cursor cursor) {
+        final int id = cursor.getInt(Tables.Authors.Fields._id.ordinal());
+        final String name = cursor.getString(Tables.Authors.Fields.name.ordinal());
+        final String nickname = cursor.getString(Tables.Authors.Fields.nickname.ordinal());
+        return new Author(id, nickname, name);
+      }
+      
       static String getSelection(int id) {
         return Fields._id + " = " + id;
       }
@@ -76,6 +100,41 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
           + " TEXT, " + Fields.duration + " INTEGER, " + Fields.date + " INTEGER);";
 
+      final static String INSERT_STATEMENT =
+          "REPLACE INTO " + NAME + " VALUES (?, ?, ?, ?, ?);";
+      
+      private final SQLiteStatement insertStatement;
+      
+      Tracks(SQLiteOpenHelper helper) {
+        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+      }
+      
+      final synchronized void add(Track obj) {
+        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
+        insertStatement.bindString(1 + Fields.filename.ordinal(), obj.filename);
+        insertStatement.bindString(1 + Fields.title.ordinal(), obj.title);
+        if (obj.duration != null) {
+          insertStatement.bindLong(1 + Fields.duration.ordinal(), obj.duration);
+        } else {
+          insertStatement.bindNull(1 + Fields.duration.ordinal());
+        }
+        if (obj.date != null) {
+          insertStatement.bindLong(1 + Fields.date.ordinal(), obj.date);
+        } else {
+          insertStatement.bindNull(1 + Fields.date.ordinal());
+        }
+        insertStatement.executeInsert();
+      }
+      
+      private static Track createTrack(Cursor cursor) {
+        final int id = cursor.getInt(Tables.Tracks.Fields._id.ordinal());
+        final String filename = cursor.getString(Tables.Tracks.Fields.filename.ordinal());
+        final String title = cursor.getString(Tables.Tracks.Fields.title.ordinal());
+        final int duration = cursor.getInt(Tables.Tracks.Fields.duration.ordinal());
+        final int date = cursor.getInt(Tables.Tracks.Fields.date.ordinal());
+        return new Track(id, filename, title, duration, date);
+      }
+      
       static String getSelection(int id) {
         return Fields._id + " = " + id;
       }
@@ -105,12 +164,16 @@ final class Database {
   }
 
   private final Helper helper;
+  private final Tables.Authors authors;
   private final Tables.AuthorsTracks authorsTracks;
+  private final Tables.Tracks tracks;
   private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
+    this.authors = new Tables.Authors(helper);
     this.authorsTracks = new Tables.AuthorsTracks(helper);
+    this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
   }
 
@@ -136,7 +199,7 @@ final class Database {
       if (count != 0) {
         visitor.setCountHint(count);
         while (cursor.moveToNext()) {
-          visitor.accept(createAuthor(cursor));
+          visitor.accept(Tables.Authors.createAuthor(cursor));
         }
         return true;
       }
@@ -147,9 +210,7 @@ final class Database {
   }
 
   final void addAuthor(Author obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Authors.NAME, null/* nullColumnHack */, createValues(obj),
-        SQLiteDatabase.CONFLICT_REPLACE);
+    authors.add(obj);
   }
 
   final boolean queryTrack(int id, Catalog.TracksVisitor visitor) {
@@ -172,7 +233,7 @@ final class Database {
       if (count != 0) {
         visitor.setCountHint(count);
         while (cursor.moveToNext()) {
-          visitor.accept(createTrack(cursor));
+          visitor.accept(Tables.Tracks.createTrack(cursor));
         }
         return true;
       }
@@ -183,49 +244,12 @@ final class Database {
   }
 
   final void addTrack(Track obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, createValues(obj),
-        SQLiteDatabase.CONFLICT_REPLACE);
+    tracks.add(obj);
   }
   
   final void addAuthorTrack(Author author, Track track) {
     authorsTracks.add(author, track);
   }
-
-  private static Author createAuthor(Cursor cursor) {
-    final int id = cursor.getInt(Tables.Authors.Fields._id.ordinal());
-    final String name = cursor.getString(Tables.Authors.Fields.name.ordinal());
-    final String nickname = cursor.getString(Tables.Authors.Fields.nickname.ordinal());
-    return new Author(id, nickname, name);
-  }
-
-  private static ContentValues createValues(Author obj) {
-    final ContentValues res = new ContentValues();
-    res.put(Tables.Authors.Fields._id.name(), obj.id);
-    res.put(Tables.Authors.Fields.name.name(), obj.name);
-    res.put(Tables.Authors.Fields.nickname.name(), obj.nickname);
-    return res;
-  }
-
-  private static Track createTrack(Cursor cursor) {
-    final int id = cursor.getInt(Tables.Tracks.Fields._id.ordinal());
-    final String filename = cursor.getString(Tables.Tracks.Fields.filename.ordinal());
-    final String title = cursor.getString(Tables.Tracks.Fields.title.ordinal());
-    final int duration = cursor.getInt(Tables.Tracks.Fields.duration.ordinal());
-    final int date = cursor.getInt(Tables.Tracks.Fields.date.ordinal());
-    return new Track(id, filename, title, duration, date);
-  }
-
-  private static ContentValues createValues(Track obj) {
-    final ContentValues res = new ContentValues();
-    res.put(Tables.Tracks.Fields._id.name(), obj.id);
-    res.put(Tables.Tracks.Fields.filename.name(), obj.filename);
-    res.put(Tables.Tracks.Fields.title.name(), obj.title);
-    res.put(Tables.Tracks.Fields.duration.name(), obj.duration);
-    res.put(Tables.Tracks.Fields.date.name(), obj.date);
-    return res;
-  }
-
 
   private static class Helper extends SQLiteOpenHelper {
     
