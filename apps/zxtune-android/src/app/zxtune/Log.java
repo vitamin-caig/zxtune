@@ -28,6 +28,6 @@ public final class Log {
   }
 
   public static void d(String tag, Throwable e, String msg, Object... params) {
-    d(tag, String.format(Locale.US, msg, params), e);
+    d(tag, e, String.format(Locale.US, msg, params));
   }
 }
