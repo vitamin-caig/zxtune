@@ -39,6 +39,9 @@ import app.zxtune.fs.HttpProvider;
  *   
  * Groups:
  *   http://amp.dascene.net/newresult.php?request=groupid&search=${groupid} id=1..7149
+ *   
+ * list all:
+ *   http://amp.dascene.net/newresult.php?request=groups
  */
 
 class RemoteCatalog extends Catalog {
@@ -47,9 +50,11 @@ class RemoteCatalog extends Catalog {
 
   private final static String SITE = "http://amp.dascene.net/";
   
+  private final static String GROUPS_URI = SITE + "newresult.php?request=groups";
   private final static String BY_HANDLE_URI_FORMAT = SITE + "newresult.php?request=list&search=%s";
   private final static String BY_COUNTRY_URI_FORMAT = SITE + "newresult.php?request=country&search=%s";
-  private final static String AUTHOR_URI_FORMAT = SITE + "detail.php?view=%d";
+  private final static String BY_GROUP_URI_FORMAT = SITE + "newresult.php?request=groupid&search=%s";
+  //private final static String AUTHOR_URI_FORMAT = SITE + "detail.php?view=%d";
   private final static String AUTHOR_TRACKS_URI_FORMAT = SITE + "detail.php?detail=modules&view=%d";
   private final static String TRACK_URI_FORMAT = SITE + "downmod.php?index=%d";
 
@@ -58,12 +63,16 @@ class RemoteCatalog extends Catalog {
                     "(<a href=.+?position=([0-9]+).+?left.gif.+?)?" +
                     "(<a href=.+?position=([0-9]+).+?right.gif.+?)?" +
                     "</caption>", Pattern.DOTALL);
+  private final static Pattern GROUPS =
+    Pattern.compile("<a href=.newresult.php.request=groupid.search=([0-9]+).>(.+?)</a>", Pattern.DOTALL);
   private final static Pattern AUTHORS = 
     Pattern.compile("Handle:.+?<a href=.detail.php.view=([0-9]+).+?>(.+?)</a>.+?" +
                     "Real Name:.+?<td>(.+?)</td>", Pattern.DOTALL);
+  /*
   private final static Pattern AUTHOR =
       Pattern.compile("Handle:.+?<td>(.+?)\\s+?</td>.+?" +
           "Real.+?Name:.+?<td>(.+?)\\s+?</td>", Pattern.DOTALL);
+  */
   private final static Pattern TRACKS =
     Pattern.compile("<a href=.downmod.php.index=([0-9]+).+?>(.+?)</a>.+?" +
                     "<td>([0-9]+)Kb</td>", Pattern.DOTALL);
@@ -79,6 +88,17 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
+  public void queryGroups(GroupsVisitor visitor) throws IOException {
+    final String content = http.getHtml(GROUPS_URI);
+    final Matcher matcher = GROUPS.matcher(content);
+    while (matcher.find()) {
+      final String id = matcher.group(1);
+      final String name = matcher.group(2);
+      visitor.accept(new Group(Integer.valueOf(id), decodeHtml(name)));
+    }
+  }
+  
+  @Override
   public void queryAuthors(String handleFilter, AuthorsVisitor visitor) throws IOException {
     final String uri = String.format(Locale.US, BY_HANDLE_URI_FORMAT, handleFilter);
     queryAuthorsInternal(uri, visitor);
@@ -90,6 +110,12 @@ class RemoteCatalog extends Catalog {
     queryAuthorsInternal(uri, visitor);
   }
 
+  @Override
+  public void queryAuthors(Group group, AuthorsVisitor visitor) throws IOException {
+    final String uri = String.format(Locale.US, BY_GROUP_URI_FORMAT, group.id);
+    queryAuthorsInternal(uri, visitor);
+  }
+  
   private void queryAuthorsInternal(String uri, final AuthorsVisitor visitor) throws IOException {
     loadPages(uri, new PagesVisitor() {
       @Override
@@ -111,30 +137,15 @@ class RemoteCatalog extends Catalog {
   }
   
   @Override
-  public Author queryAuthor(int id) throws IOException {
-    final String uri = String.format(Locale.US, AUTHOR_URI_FORMAT, id);
-    final String content = http.getHtml(uri);
-    final Matcher matcher = AUTHOR.matcher(content);
-    if (matcher.find()) {
-      final String name = matcher.group(1);
-      final String realName = matcher.group(2);
-      return new Author(id, decodeHtml(name), decodeHtml(realName));
-    }
-    return null;
-  }
-  
-  @Override
-  public void queryTracks(Author author, Integer trackId, TracksVisitor visitor) throws IOException {
+  public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
     final String uri = String.format(Locale.US, AUTHOR_TRACKS_URI_FORMAT, author.id);
     final String content = http.getHtml(uri);
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
       final Integer id = Integer.valueOf(matcher.group(1));
-      if (trackId == null || id.equals(trackId)) {
-        final String name = decodeHtml(matcher.group(2));
-        final Integer size = Integer.valueOf(matcher.group(3));
-        visitor.accept(new Track(id, name, size));
-      }
+      final String name = decodeHtml(matcher.group(2));
+      final Integer size = Integer.valueOf(matcher.group(3));
+      visitor.accept(new Track(id, name, size));
     }
   }
 

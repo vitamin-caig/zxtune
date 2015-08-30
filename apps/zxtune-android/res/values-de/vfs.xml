@@ -52,6 +52,8 @@
     <string name="vfs_amp_handles_description">Browsen nach Autor</string>
     <string name="vfs_amp_countries_name">Die Länder</string>
     <string name="vfs_amp_countries_description">Browsen nach Ländern</string>
+    <string name="vfs_amp_groups_name">Gruppen</string>
+    <string name="vfs_amp_groups_description">Browsen nach Gruppe</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>Argentinien</item>

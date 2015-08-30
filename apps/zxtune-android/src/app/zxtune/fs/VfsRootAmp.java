@@ -10,24 +10,9 @@
 
 package app.zxtune.fs;
 
-/**
- *
- * Paths:
- *
- * 1) amp:/
- * 2) amp:/Handle
- * 3) amp:/Handle/${author_letter}
- * 4) amp:/Handle/${author_letter}/${author_name}?id=${id}
- * 5) amp:/Country
- * 6) amp:/Country/${country}?country=${country}
- * 7) amp:/Country/${country}/${author_name}?id=${id}&country=${country}
- */
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.atomic.AtomicReference;
 
 import android.content.Context;
 import android.net.Uri;
@@ -36,41 +21,33 @@ import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.amp.Author;
 import app.zxtune.fs.amp.Catalog;
+import app.zxtune.fs.amp.Catalog.GroupsVisitor;
 import app.zxtune.fs.amp.Country;
+import app.zxtune.fs.amp.Group;
+import app.zxtune.fs.amp.Identifier;
 import app.zxtune.fs.amp.Track;
 
 final class VfsRootAmp extends StubObject implements VfsRoot {
 
   private final static String TAG = VfsRootAmp.class.getName();
 
-  private final static String SCHEME = "amp";
-
-  private final static int POS_CATEGORY = 0;
-  private final static int POS_LETTER = 1;
-  private final static int POS_COUNTRY = 1;
-  private final static int POS_NAME = 2;
-  //private final static int POS_FILENAME = 3;
-
-  private final static String PARAM_AUTHOR = "author";
-  private final static String PARAM_COUNTRY = "country";
-  private final static String PARAM_TRACK = "track";
-
   private final Context context;
   private final Catalog catalog;
-  private final GroupsDir groups[];
+  private final GroupingDir groupings[];
 
   VfsRootAmp(Context context) {
     this.context = context;
     this.catalog = Catalog.create(context);
-    this.groups = new GroupsDir[] {
-      new HandlesDir(),
-      new CountriesDir()
+    this.groupings = new GroupingDir[] {
+        new HandlesDir(),
+        new CountriesDir(),
+        new GroupsDir()
     };
   }
 
   @Override
   public Uri getUri() {
-    return rootUri().build();
+    return Identifier.forRoot().build();
   }
 
   @Override
@@ -99,69 +76,102 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
   @Override
   public void enumerate(Visitor visitor) throws IOException {
-    for (GroupsDir group : groups) {
+    for (GroupingDir group : groupings) {
       visitor.onDir(group);
     }
   }
 
   @Override
   public VfsObject resolve(Uri uri) throws IOException {
-    if (SCHEME.equals(uri.getScheme())) {
-      return resolvePath(uri);
+    try {
+      if (Identifier.isFromRoot(uri)) {
+        final List<String> path = uri.getPathSegments();
+        return resolve(uri, path);
+      }
+    } catch (Exception e) {
+      Log.d(TAG, e, "resolve(%s)", uri);
     }
     return null;
   }
 
-  private Uri.Builder rootUri() {
-    return new Uri.Builder().scheme(SCHEME);
+  private VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    // due to identical structure of groupings, may resolve here
+    // use plain algo with most frequent cases check first
+    final Track track = Identifier.findTrack(uri, path);
+    if (track != null) {
+      return new TrackFile(uri, track);
+    }
+    final Author author = Identifier.findAuthor(uri, path);
+    if (author != null) {
+      return new AuthorDir(uri, author);
+    }
+    final VfsObject grouping = resolveGroupingDir(uri, path);
+    if (grouping != null) {
+      return grouping;
+    }
+    final String category = Identifier.findCategory(path);
+    if (category == null) {
+      return this;
+    }
+    for (GroupingDir group : groupings) {
+      if (category.equals(group.getPath())) {
+        return group;
+      }
+    }
+    return null;
   }
 
-  private VfsObject resolvePath(Uri uri) throws IOException {
-    final List<String> path = uri.getPathSegments();
-    if (path.isEmpty()) {
-      return this;
-    } else {
-      final String category = path.get(POS_CATEGORY);
-      for (GroupsDir group : groups) {
-        if (category.equals(group.getPath())) {
-          return group.resolve(uri, path);
-        }
-      }
-      return null;
+  private VfsObject resolveGroupingDir(Uri uri, List<String> path) {
+    final Group group = Identifier.findGroup(uri, path);
+    if (group != null) {
+      return new HandleByGroupDir(group);
     }
+    final Country country = Identifier.findCountry(uri, path);
+    if (country != null) {
+      return new HandleByCountryDir(country);
+    }
+    final String letter = Identifier.findHandleLetter(uri, path);
+    if (letter != null) {
+      return new HandleByLetterDir(letter);
+    }
+    return null;
   }
-  
-  private abstract class GroupsDir extends StubObject implements VfsDir {
-    abstract String getPath();
-    abstract VfsObject resolve(Uri uri, List<String> path) throws IOException;
-  };
-  
-  private static boolean isLetter(char c) {
-    return (Character.isLetter(c) && Character.isUpperCase(c));
-  }
-  
-  private final class HandlesDir extends GroupsDir {
-  
+
+  private abstract class GroupingDir extends StubObject implements VfsDir {
+
     @Override
     public Uri getUri() {
-      return handlesUri().build();
+      return Identifier.forCategory(getPath()).build();
     }
-    
+
+    abstract String getPath();
+  };
+
+  private abstract class HandleByGroupingDir extends StubObject implements VfsDir {
+
+    final AuthorDir makeSubdir(Author author) {
+      final Uri uri = Identifier.forAuthor(getUri().buildUpon(), author).build();
+      return new AuthorDir(uri, author);
+    }
+  }
+
+  private final class HandlesDir extends GroupingDir {
+
     @Override
     public String getName() {
       return context.getString(R.string.vfs_amp_handles_name);
     }
-    
+
     @Override
     public String getDescription() {
       return context.getString(R.string.vfs_amp_handles_description);
     }
-    
+
     @Override
     public VfsObject getParent() {
       return VfsRootAmp.this;
     }
-    
+
     @Override
     public void enumerate(Visitor visitor) {
       visitor.onDir(new HandleByLetterDir(Catalog.NON_LETTER_FILTER));
@@ -169,121 +179,75 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
         visitor.onDir(new HandleByLetterDir(String.valueOf(c)));
       }
     }
-    
+
     @Override
     public String getPath() {
-      return "Handle";
-    }
-    
-    @Override
-    final VfsObject resolve(Uri uri, List<String> path) throws IOException {
-      if (POS_CATEGORY == path.size() - 1) {
-        return this;
-      } else {
-        final String letter = Uri.decode(path.get(POS_LETTER));
-        if (letter.equals(Catalog.NON_LETTER_FILTER) || (letter.length() == 1 && isLetter(letter.charAt(0)))) {
-          return new HandleByLetterDir(letter).resolve(uri, path);
-        } else {
-          return null;
-        }
-      }
-    }
-    
-    private final Uri.Builder handlesUri() {
-      return rootUri().appendPath(getPath());
-    }
-
-    private class HandleByLetterDir extends StubObject implements VfsDir {
-
-      private final String letter;
-
-      HandleByLetterDir(String letter) {
-        this.letter = letter;
-      }
-
-      @Override
-      public Uri getUri() {
-        return handlesLetterUri().build();
-      }
-
-      @Override
-      public String getName() {
-        return letter;
-      }
-
-      @Override
-      public VfsObject getParent() {
-        return HandlesDir.this;
-      }
-
-      @Override
-      public void enumerate(final Visitor visitor) throws IOException {
-        catalog.queryAuthors(letter, new Catalog.AuthorsVisitor() {
-          @Override
-          public void setCountHint(int count) {
-            visitor.onItemsCount(count);
-          }
-
-          @Override
-          public void accept(Author obj) {
-            visitor.onDir(new AuthorDir(HandleByLetterDir.this, obj));
-          }
-        });
-      }
-
-      final VfsObject resolve(Uri uri, List<String> path) throws IOException {
-        if (POS_LETTER == path.size() - 1) {
-          return this;
-        } else {
-          try {
-            final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR));
-            final Author author = catalog.queryAuthor(id);
-            return author != null
-                    ? new AuthorDir(this, author).resolve(uri, path)
-                    : null;
-          } catch (IOException e) {
-            throw e;
-          } catch (Exception e) {
-            Log.d(TAG, e, "resolve %s", uri);
-            return null;
-          }
-        }
-      }
-
-      final Uri.Builder handlesLetterUri() {
-        return handlesUri().appendPath(letter);
-      }
+      return Identifier.CATEGORY_HANDLE;
     }
   }
-  
-  private final class CountriesDir extends GroupsDir {
-    
-    private final String[] countries;
-    
-    CountriesDir() {
-      this.countries = context.getResources().getStringArray(R.array.vfs_amp_countries_list); 
+
+  private class HandleByLetterDir extends HandleByGroupingDir {
+
+    private final String letter;
+
+    HandleByLetterDir(String letter) {
+      this.letter = letter;
     }
-    
+
     @Override
     public Uri getUri() {
-      return countriesUri().build();
+      return Identifier.forHandleLetter(letter).build();
     }
-    
+
+    @Override
+    public String getName() {
+      return letter;
+    }
+
+    @Override
+    public VfsObject getParent() {
+      return groupings[0];// TODO
+    }
+
+    @Override
+    public void enumerate(final Visitor visitor) throws IOException {
+      catalog.queryAuthors(letter, new Catalog.AuthorsVisitor() {
+        @Override
+        public void setCountHint(int count) {
+          visitor.onItemsCount(count);
+        }
+
+        @Override
+        public void accept(Author obj) {
+          visitor.onDir(makeSubdir(obj));
+        }
+      });
+    }
+  }
+
+  private final class CountriesDir extends GroupingDir {
+
+    private final String[] countries;
+
+    CountriesDir() {
+      this.countries = context.getResources().getStringArray(R.array.vfs_amp_countries_list);
+    }
+
     @Override
     public String getName() {
       return context.getString(R.string.vfs_amp_countries_name);
     }
-    
+
     @Override
     public String getDescription() {
       return context.getString(R.string.vfs_amp_countries_description);
     }
-    
+
     @Override
     public VfsObject getParent() {
       return VfsRootAmp.this;
     }
-    
+
     @Override
     public void enumerate(Visitor visitor) {
       for (int id = 0; id < countries.length; ++id) {
@@ -293,117 +257,143 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
         }
       }
     }
-    
+
     @Override
     public String getPath() {
-      return "Country";
-    }
-    
-    @Override
-    final VfsObject resolve(Uri uri, List<String> path) throws IOException {
-      if (POS_CATEGORY == path.size() - 1) {
-        return this;
-      } else {
-        final String countryId = uri.getQueryParameter(PARAM_COUNTRY);
-        if (countryId != null) {
-          try {
-            final int UNKNOWN = 60;
-            final int id = Integer.parseInt(countryId);
-            final String name = id > 0 && id < countries.length ? countries[id] : countries[UNKNOWN];
-            final Country country = new Country(id, name);
-            return new HandleByCountryDir(country).resolve(uri, path);
-          } catch (NumberFormatException e) {
-            Log.d(TAG, "Unknown countryid=%d", countryId);
-          }
-        }
-        return null;
-      }
-    }
-    
-    private final Uri.Builder countriesUri() {
-      return rootUri().appendPath(getPath());
-    }
-
-    private class HandleByCountryDir extends StubObject implements VfsDir {
-
-      private final Country country;
-
-      HandleByCountryDir(Country country) {
-        this.country = country;
-      }
-
-      @Override
-      public Uri getUri() {
-        return handlesCountryUri().build();
-      }
-
-      @Override
-      public String getName() {
-        return country.name;
-      }
-
-      @Override
-      public VfsObject getParent() {
-        return CountriesDir.this;
-      }
-
-      @Override
-      public void enumerate(final Visitor visitor) throws IOException {
-        catalog.queryAuthors(country, new Catalog.AuthorsVisitor() {
-          @Override
-          public void setCountHint(int count) {
-            visitor.onItemsCount(count);
-          }
-
-          @Override
-          public void accept(Author obj) {
-            visitor.onDir(new AuthorDir(HandleByCountryDir.this, obj));
-          }
-        });
-      }
-
-      final VfsObject resolve(Uri uri, List<String> path) throws IOException {
-        if (POS_COUNTRY == path.size() - 1) {
-          return this;
-        } else {
-          try {
-            final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR));
-            final Author author = catalog.queryAuthor(id);
-            return author != null
-                ? new AuthorDir(this, author).resolve(uri, path)
-                : null;
-          } catch (IOException e) {
-            throw e;
-          } catch (Exception e) {
-            Log.d(TAG, e, "resolve %s", uri);
-            return null;
-          }
-        }
-      }
-
-      final Uri.Builder handlesCountryUri() {
-        return countriesUri()
-            .appendPath(country.name)
-            .appendQueryParameter(PARAM_COUNTRY, String.valueOf(country.id));
-      }
+      return Identifier.CATEGORY_COUNTRY;
     }
   }
 
-  private class AuthorDir implements VfsDir {
+  private class HandleByCountryDir extends HandleByGroupingDir {
 
-    private final VfsObject parent;
-    private final Author author;
-    private final Uri.Builder uri;
+    private final Country country;
 
-    AuthorDir(VfsObject parent, Author author) {
-      this.parent = parent;
-      this.author = author;
-      this.uri = buildUri();
+    HandleByCountryDir(Country country) {
+      this.country = country;
     }
 
     @Override
     public Uri getUri() {
-      return uri.build();
+      return Identifier.forCountry(country).build();
+    }
+
+    @Override
+    public String getName() {
+      return country.name;
+    }
+
+    @Override
+    public VfsObject getParent() {
+      return groupings[1];// TODO
+    }
+
+    @Override
+    public void enumerate(final Visitor visitor) throws IOException {
+      catalog.queryAuthors(country, new Catalog.AuthorsVisitor() {
+        @Override
+        public void setCountHint(int count) {
+          visitor.onItemsCount(count);
+        }
+
+        @Override
+        public void accept(Author obj) {
+          visitor.onDir(makeSubdir(obj));
+        }
+      });
+    }
+  }
+
+  private final class GroupsDir extends GroupingDir {
+
+    @Override
+    public String getName() {
+      return context.getString(R.string.vfs_amp_groups_name);
+    }
+
+    @Override
+    public String getDescription() {
+      return context.getString(R.string.vfs_amp_groups_description);
+    }
+
+    @Override
+    public VfsObject getParent() {
+      return VfsRootAmp.this;
+    }
+
+    @Override
+    public void enumerate(final Visitor visitor) throws IOException {
+      catalog.queryGroups(new GroupsVisitor() {
+
+        @Override
+        public void setCountHint(int hint) {
+          visitor.onItemsCount(hint);
+        }
+
+        @Override
+        public void accept(Group group) {
+          visitor.onDir(new HandleByGroupDir(group));
+        }
+      });
+    }
+
+    @Override
+    public String getPath() {
+      return Identifier.CATEGORY_GROUP;
+    }
+  }
+
+  private class HandleByGroupDir extends HandleByGroupingDir {
+
+    private final Group group;
+
+    HandleByGroupDir(Group group) {
+      this.group = group;
+    }
+
+    @Override
+    public Uri getUri() {
+      return Identifier.forGroup(group).build();
+    }
+
+    @Override
+    public String getName() {
+      return group.name;
+    }
+
+    @Override
+    public VfsObject getParent() {
+      return groupings[2];// TODO
+    }
+
+    @Override
+    public void enumerate(final Visitor visitor) throws IOException {
+      catalog.queryAuthors(group, new Catalog.AuthorsVisitor() {
+        @Override
+        public void setCountHint(int count) {
+          visitor.onItemsCount(count);
+        }
+
+        @Override
+        public void accept(Author obj) {
+          visitor.onDir(makeSubdir(obj));
+        }
+      });
+    }
+  }
+
+  private class AuthorDir extends StubObject implements VfsDir {
+
+    private final Uri uri;
+    private final Author author;
+
+    AuthorDir(Uri uri, Author author) {
+      this.uri = uri;
+      this.author = author;
+    }
+
+    @Override
+    public Uri getUri() {
+      return uri;
     }
 
     @Override
@@ -418,88 +408,75 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public VfsObject getParent() {
-      return parent;
+      final List<String> path = uri.getPathSegments();
+      return resolveGroupingDir(uri, path);
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryTracks(author, null, new Catalog.TracksVisitor() {
+      catalog.queryTracks(author, new Catalog.TracksVisitor() {
         @Override
         public void setCountHint(int count) {
           visitor.onItemsCount(count);
         }
-        
+
         @Override
         public void accept(Track obj) {
-          visitor.onFile(new TrackFile(obj));
+          final Uri fileUri = Identifier.forTrack(uri.buildUpon(), obj).build();
+          visitor.onFile(new TrackFile(fileUri, obj));
         }
       });
     }
+  }
 
-    final VfsObject resolve(Uri uri, List<String> path) throws IOException {
-      if (POS_NAME == path.size() - 1) {
-        return this;
-      } else {
-        try {
-          final Integer id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK));
-          final AtomicReference<VfsObject> result = new AtomicReference<VfsObject>();
-          catalog.queryTracks(author, id, new Catalog.TracksVisitor() {
-            @Override
-            public void accept(Track obj) {
-              result.set(new TrackFile(obj));
-            }
-          });
-          return result.get();
-        } catch (IOException e) {
-          throw e;
-        } catch (Exception e) {
-          Log.d(TAG, e, "resolve %s", uri);
-          return null;
-        }
-      }
+  private VfsObject resolveAuthorDir(Uri uri, List<String> path) {
+    final Author author = Identifier.findAuthor(uri, path);
+    if (author == null) {
+      return null;
     }
-    
-    private Uri.Builder buildUri() {
-      return parent.getUri().buildUpon()
-          .appendPath(getName())
-          .appendQueryParameter(PARAM_AUTHOR, String.valueOf(author.id));
+    final VfsObject grouping = resolveGroupingDir(uri, path);
+    if (grouping == null) {
+      return null;
+    }
+    // cut uri here
+    return new AuthorDir(Identifier.forAuthor(grouping.getUri().buildUpon(), author).build(),
+        author);
+  }
+
+  private class TrackFile extends StubObject implements VfsFile {
+
+    private final Uri uri;
+    private final Track track;
+
+    TrackFile(Uri uri, Track track) {
+      this.uri = uri;
+      this.track = track;
     }
 
-    private class TrackFile extends StubObject implements VfsFile {
-      
-      private final Track track;
+    @Override
+    public Uri getUri() {
+      return uri;
+    }
 
-      TrackFile(Track track) {
-        this.track = track;
-      }
-      
-      @Override
-      public Uri getUri() {
-        return buildUri()
-            .appendPath(getName())
-            .appendQueryParameter(PARAM_TRACK, String.valueOf(track.id))
-            .build();
-      }
-      
-      @Override
-      public String getName() {
-        return track.filename;
-      }
-      
-      @Override
-      public VfsObject getParent() {
-        return AuthorDir.this;
-      }
-      
-      @Override
-      public String getSize() {
-        return Formatter.formatShortFileSize(context, track.size * 1024); 
-      }
-      
-      @Override
-      public ByteBuffer getContent() throws IOException {
-        return catalog.getTrackContent(track.id);
-      }
+    @Override
+    public String getName() {
+      return track.filename;
+    }
+
+    @Override
+    public VfsObject getParent() {
+      final List<String> path = uri.getPathSegments();
+      return resolveAuthorDir(uri, path);
+    }
+
+    @Override
+    public String getSize() {
+      return Formatter.formatShortFileSize(context, track.size * 1024);
+    }
+
+    @Override
+    public ByteBuffer getContent() throws IOException {
+      return catalog.getTrackContent(track.id);
     }
   }
 }

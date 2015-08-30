@@ -56,6 +56,8 @@
     <string name="vfs_amp_handles_description">Навигация по именам</string>
     <string name="vfs_amp_countries_name">Страны</string>
     <string name="vfs_amp_countries_description">Навигация по странам</string>
+    <string name="vfs_amp_groups_name">Группы</string>
+    <string name="vfs_amp_groups_description">Навигация по группам</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>Аргентина</item>

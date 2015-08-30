@@ -16,6 +16,12 @@ import java.nio.ByteBuffer;
 import android.content.Context;
 
 public abstract class Catalog {
+  
+  public static abstract class GroupsVisitor {
+    
+    public void setCountHint(int count) {}
+    public abstract void accept(Group obj);
+  }
 
   public static abstract class AuthorsVisitor {
 
@@ -31,6 +37,13 @@ public abstract class Catalog {
   
   public static final String NON_LETTER_FILTER = "0-9";
 
+  /**
+   * Query all groups 
+   * @param visitor result receiver
+   * @throws IOException
+   */
+  public abstract void queryGroups(GroupsVisitor visitor) throws IOException;
+  
   /**
    * Query authors by handle filter
    * @param handleFilter letter(s) or '0-9' for non-letter entries
@@ -48,20 +61,20 @@ public abstract class Catalog {
   public abstract void queryAuthors(Country country, AuthorsVisitor visitor) throws IOException;
   
   /**
-   * Query author
-   * @param id identifier
-   * @throws IOException
-   */
-  public abstract Author queryAuthor(int id) throws IOException;
-
-  /**
-   * Query authors's tracks
-   * @param author scope
-   * @param id track identifier or null for all author's tracks
+   * Query authors by group id
+   * @param group scope
    * @param visitor result receiver
    * @throws IOException
    */
-  public abstract void queryTracks(Author author, Integer id, TracksVisitor visitor) throws IOException;
+  public abstract void queryAuthors(Group group, AuthorsVisitor visitor) throws IOException;
+  
+  /**
+   * Query authors's tracks
+   * @param author scope
+   * @param visitor result receiver
+   * @throws IOException
+   */
+  public abstract void queryTracks(Author author, TracksVisitor visitor) throws IOException;
   
   /**
    * Get track file content

@@ -53,6 +53,8 @@
     <string name="vfs_amp_handles_description">Búsqueda por apodos</string>
     <string name="vfs_amp_countries_name">Países</string>
     <string name="vfs_amp_countries_description">Búsqueda por países</string>
+    <string name="vfs_amp_groups_name">Grupos</string>
+    <string name="vfs_amp_groups_description">Búsqueda por grupo</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>Argentina</item>

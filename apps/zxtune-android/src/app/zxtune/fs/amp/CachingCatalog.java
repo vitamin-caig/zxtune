@@ -29,9 +29,10 @@ final class CachingCatalog extends Catalog {
 
   private final static String CACHE_DIR_NAME = "amp.dascene.net";
 
-  private final TimeStamp AUTHORS_TTL = days(7);
-  private final TimeStamp COUNTRIES_TTL = days(7);
-  private final TimeStamp TRACKS_TTL = days(7);
+  private final TimeStamp GROUPS_TTL = days(30);
+  private final TimeStamp AUTHORS_TTL = days(30);
+  private final TimeStamp COUNTRIES_TTL = days(30);
+  private final TimeStamp TRACKS_TTL = days(30);
   
   private static TimeStamp days(int val) {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
@@ -47,6 +48,33 @@ final class CachingCatalog extends Catalog {
     this.db = db;
   }
 
+  @Override
+  public void queryGroups(final GroupsVisitor visitor) throws IOException {
+    Utils.executeQueryCommand(new QueryCommand() {
+      @Override
+      public Timestamps.Lifetime getLifetime() {
+        return db.getGroupsLifetime(GROUPS_TTL);
+      }
+
+      @Override
+      public Transaction startTransaction() {
+        return db.startTransaction();
+      }
+      
+      @Override
+      public void queryFromRemote() throws IOException {
+        Log.d(TAG, "Groups cache is empty/expired");
+        remote.queryGroups(new CachingGroupsVisitor());
+      }
+      
+      @Override
+      public boolean queryFromCache() {
+        db.queryGroups(visitor);
+        return true;
+      }
+    });
+  }
+  
   @Override
   public void queryAuthors(final String handleFilter, final AuthorsVisitor visitor) throws IOException {
     Utils.executeQueryCommand(new QueryCommand() {
@@ -104,27 +132,40 @@ final class CachingCatalog extends Catalog {
   }
   
   @Override
-  public Author queryAuthor(int id) throws IOException {
-    Author result = db.queryAuthor(id);
-    if (result == null) {
-      Log.d(TAG, "Authors cache is empty for id=%d", id);
-      result = remote.queryAuthor(id);
-      if (result != null) {
-        db.addAuthor(result);
+  public void queryAuthors(final Group group, final AuthorsVisitor visitor) throws IOException {
+    Utils.executeQueryCommand(new QueryCommand() {
+      
+      @Override
+      public Timestamps.Lifetime getLifetime() {
+        return db.getGroupLifetime(group, GROUPS_TTL);
       }
-    }
-    return result;
-  }
 
+      @Override
+      public Transaction startTransaction() {
+        return db.startTransaction();
+      }
+
+      @Override
+      public void queryFromRemote() throws IOException {
+        Log.d(TAG, "Authors cache is empty/expired for group=%d", group.id);
+        remote.queryAuthors(group, new CachingAuthorsVisitor(group));
+      }
+      
+      @Override
+      public boolean queryFromCache() {
+        db.queryAuthors(group, visitor);
+        return true;
+      }
+    });
+  }
+  
   @Override
-  public void queryTracks(final Author author, final Integer id, final TracksVisitor visitor) throws IOException {
+  public void queryTracks(final Author author, final TracksVisitor visitor) throws IOException {
     Utils.executeQueryCommand(new QueryCommand() {
 
       @Override
       public Timestamps.Lifetime getLifetime() {
-        return id == null
-            ? db.getAuthorTracksLifetime(author, TRACKS_TTL)
-            : db.getStubLifetime();
+        return db.getAuthorTracksLifetime(author, TRACKS_TTL);
       }
 
       @Override
@@ -134,19 +175,14 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        if (id != null) {
-          db.queryTracks(id, visitor);
-        } else {
-          db.queryTracks(author, visitor);
-        }
+        db.queryTracks(author, visitor);
         return true;
       }
 
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Tracks cache is empty/expired for author=%d", author.id);
-        //query all
-        remote.queryTracks(author, null, new CachingTracksVisitor(author));
+        remote.queryTracks(author, new CachingTracksVisitor(author));
       }
     });
   }
@@ -164,16 +200,36 @@ final class CachingCatalog extends Catalog {
     }
   }
   
+  private class CachingGroupsVisitor extends GroupsVisitor {
+    
+    @Override
+    public void accept(Group obj) {
+      try {
+        db.addGroup(obj);
+      } catch (Exception e) {
+        Log.d(TAG, e, "acceptGroup()");
+      }
+    }
+  }
+  
   private class CachingAuthorsVisitor extends AuthorsVisitor {
     
     private final Country country;
+    private final Group group;
     
     CachingAuthorsVisitor() {
       this.country = null;
+      this.group = null;
     }
     
     CachingAuthorsVisitor(Country country) {
       this.country = country;
+      this.group = null;
+    }
+    
+    CachingAuthorsVisitor(Group group) {
+      this.country = null;
+      this.group = group;
     }
 
     @Override
@@ -182,6 +238,9 @@ final class CachingCatalog extends Catalog {
         db.addAuthor(obj);
         if (country != null) {
           db.addCountryAuthor(country, obj);
+        }
+        if (group != null) {
+          db.addGroupAuthor(group, obj);
         }
       } catch (Exception e) {
         Log.d(TAG, e, "acceptAuthor()");
