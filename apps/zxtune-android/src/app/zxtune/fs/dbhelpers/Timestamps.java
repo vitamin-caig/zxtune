@@ -12,10 +12,9 @@ package app.zxtune.fs.dbhelpers;
 
 import java.util.concurrent.TimeUnit;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDoneException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import app.zxtune.TimeStamp;
 
 public class Timestamps {
@@ -25,12 +24,18 @@ public class Timestamps {
       _id, stamp
     }
     
-    final static String NAME = "timestamps";
+    //final static String NAME = "timestamps";
     
     final static String CREATE_QUERY = "CREATE TABLE timestamps (" +
         "_id  TEXT PRIMARY KEY, " +
-        "stamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL" +
+        "stamp DATETIME NOT NULL" +
         ");";
+    
+    final static String QUERY_STATEMENT =
+        "SELECT strftime('%s', 'now') - strftime('%s', stamp) FROM timestamps WHERE _id = ?;";
+    
+    final static String INSERT_STATEMENT =
+        "REPLACE INTO timestamps VALUES (?, CURRENT_TIMESTAMP);";
   }
   
   public static String CREATE_QUERY = Table.CREATE_QUERY;
@@ -40,57 +45,61 @@ public class Timestamps {
     void update();
   }
   
-  private final SQLiteOpenHelper helper;
+  private final SQLiteStatement queryStatement;
+  private final SQLiteStatement updateStatement;
   
   public Timestamps(SQLiteOpenHelper helper) {
-    this.helper = helper;
+    this.queryStatement = helper.getReadableDatabase().compileStatement(Table.QUERY_STATEMENT);
+    this.updateStatement = helper.getWritableDatabase().compileStatement(Table.INSERT_STATEMENT);
   }
   
   public final Lifetime getLifetime(String id, TimeStamp ttl) {
-    return new DbLifetime(helper, id, ttl);
+    return new DbLifetime(id, ttl);
   }
   
   public final Lifetime getStubLifetime() {
     return StubLifetime.INSTANCE;
   }
-
-  static class DbLifetime implements Lifetime {
+  
+  private long queryAge(String id) {
+    synchronized (queryStatement) {
+      queryStatement.clearBindings();
+      queryStatement.bindString(1 + Table.Fields._id.ordinal(), id);
+      return queryStatement.simpleQueryForLong();
+    }
+  }
+  
+  private void updateAge(String id) {
+    synchronized (updateStatement) {
+      updateStatement.clearBindings();
+      updateStatement.bindString(1 + Table.Fields._id.ordinal(), id);
+      updateStatement.executeInsert();
+    }
+  }
+  
+  private class DbLifetime implements Lifetime {
     
-    private final SQLiteOpenHelper helper;
     private final String objId;
     private final TimeStamp TTL;
     
-    DbLifetime(SQLiteOpenHelper helper, String id, TimeStamp ttl) {
-      this.helper = helper;
+    DbLifetime(String id, TimeStamp ttl) {
       this.objId = id;
       this.TTL = ttl;
     }
     
     @Override
     public boolean isExpired() {
-      final SQLiteDatabase db = helper.getReadableDatabase();
-      final String selection = Table.Fields._id + " = '" + objId + "'";
-      final String target = "strftime('%s', 'now') - strftime('%s', " + Table.Fields.stamp + ")";
-      final Cursor cursor = db.query(Table.NAME, new String[] {target}, selection, 
-          null, null, null, null, null);
       try {
-        if (cursor.moveToFirst()) {
-            final TimeStamp age = TimeStamp.createFrom(cursor.getInt(0), TimeUnit.SECONDS);
-            return age.compareTo(TTL) > 0;
-        }
-      } finally {
-        cursor.close();
+        final TimeStamp age = TimeStamp.createFrom(queryAge(objId), TimeUnit.SECONDS);
+        return age.compareTo(TTL) > 0;
+      } catch (SQLiteDoneException e) {
+        return true;
       }
-      return true;
     }
     
     @Override
     public void update() {
-      final ContentValues values = new ContentValues();
-      values.put(Table.Fields._id.name(), objId);
-      final SQLiteDatabase db = helper.getWritableDatabase();
-      db.insertWithOnConflict(Table.NAME, null/* nullColumnHack */, values,
-          SQLiteDatabase.CONFLICT_REPLACE);
+      updateAge(objId);
     }
   }
   
