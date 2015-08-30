@@ -28,9 +28,8 @@ import java.util.List;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.hvsc.Catalog;
-import app.zxtune.ui.IconSource;
 
-final class VfsRootHvsc implements VfsRoot, IconSource {
+final class VfsRootHvsc extends StubObject implements VfsRoot {
 
   private final static String TAG = VfsRootHvsc.class.getName();
 
@@ -71,6 +70,15 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
   }
 
   @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
+      return R.drawable.ic_browser_vfs_hvsc;
+    } else {
+      return super.getExtension(id);
+    }
+  }
+  
+  @Override
   public void enumerate(Visitor visitor) throws IOException {
     for (GroupsDir group : groups) {
       visitor.onDir(group);
@@ -85,11 +93,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
     return null;
   }
 
-  @Override
-  public int getResourceId() {
-    return R.drawable.ic_browser_vfs_hvsc;
-  }
-  
   private Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }

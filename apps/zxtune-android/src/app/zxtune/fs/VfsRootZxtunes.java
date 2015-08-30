@@ -24,7 +24,6 @@ import app.zxtune.TimeStamp;
 import app.zxtune.fs.zxtunes.Author;
 import app.zxtune.fs.zxtunes.Catalog;
 import app.zxtune.fs.zxtunes.Track;
-import app.zxtune.ui.IconSource;
 
 /**
  * 
@@ -51,7 +50,7 @@ import app.zxtune.ui.IconSource;
  * track=${track_id} parameter is not analyzed for cases 1, 2, 3 and 4
  */
 
-final class VfsRootZxtunes implements VfsRoot, IconSource {
+final class VfsRootZxtunes implements VfsRoot {
 
   private final static String TAG = VfsRootZxtunes.class.getName();
 
@@ -98,6 +97,15 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
   }
 
   @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
+      return R.drawable.ic_browser_vfs_zxtunes;
+    } else {
+      return null;
+    }
+  }
+  
+  @Override
   public void enumerate(Visitor visitor) {
     visitor.onDir(allAuthors);
   }
@@ -111,11 +119,6 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
 
-  @Override
-  public int getResourceId() {
-    return R.drawable.ic_browser_vfs_zxtunes;
-  }
-  
   private Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }
@@ -221,7 +224,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     return null;
   }
 
-  private class AllAuthorsDir implements VfsDir {
+  private class AllAuthorsDir extends StubObject implements VfsDir {
 
     // Static locale-independent path of all authors' dir
     final static String PATH = "Authors";
@@ -299,7 +302,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
 
-  private class AuthorDir implements VfsDir {
+  private class AuthorDir extends StubObject implements VfsDir {
 
     private final Author author;
 
@@ -402,7 +405,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
   }
 
-  private class AuthorDateDir implements VfsDir {
+  private class AuthorDateDir extends StubObject implements VfsDir {
 
     private final Author author;
     private final Integer date;
@@ -484,7 +487,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
   private final static TimeStamp FRAME_DURATION = TimeStamp.createFrom(20, TimeUnit.MILLISECONDS);
   
-  private abstract class TrackFile implements VfsFile {
+  private abstract class TrackFile extends StubObject implements VfsFile {
 
     private final Uri uri;
     private final Track module;

@@ -25,9 +25,8 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.text.format.Formatter;
 import app.zxtune.R;
-import app.zxtune.ui.IconSource;
 
-final class VfsRootLocal implements VfsRoot, IconSource {
+final class VfsRootLocal extends StubObject implements VfsRoot {
   
   private final static String SCHEME = "file";
   
@@ -58,6 +57,15 @@ final class VfsRootLocal implements VfsRoot, IconSource {
   }
   
   @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
+      return R.drawable.ic_browser_vfs_local;
+    } else {
+      return super.getExtension(id);
+    }
+  }
+  
+  @Override
   public void enumerate(Visitor visitor) {
     for (File root : File.listRoots()) {
       visitor.onDir(buildDir(root));
@@ -81,11 +89,6 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     }
   }
   
-  @Override
-  public int getResourceId() {
-    return R.drawable.ic_browser_vfs_local;
-  }
-
   private static Uri buildUri(String path) {
     return new Uri.Builder().scheme(SCHEME).path(path).build(); 
   }

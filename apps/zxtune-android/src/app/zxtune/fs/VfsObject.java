@@ -33,4 +33,10 @@ public interface VfsObject {
    * Retrieve parent object or null
    */
   public VfsObject getParent();
+  
+  /**
+   * Retrieve extension by specified ID
+   * @return null if not supported
+   */
+  public Object getExtension(String id);
 }

@@ -38,9 +38,8 @@ import app.zxtune.fs.amp.Author;
 import app.zxtune.fs.amp.Catalog;
 import app.zxtune.fs.amp.Country;
 import app.zxtune.fs.amp.Track;
-import app.zxtune.ui.IconSource;
 
-final class VfsRootAmp implements VfsRoot, IconSource {
+final class VfsRootAmp extends StubObject implements VfsRoot {
 
   private final static String TAG = VfsRootAmp.class.getName();
 
@@ -88,6 +87,15 @@ final class VfsRootAmp implements VfsRoot, IconSource {
   public VfsObject getParent() {
     return null;
   }
+  
+  @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
+      return R.drawable.ic_browser_vfs_amp;
+    } else {
+      return super.getExtension(id);
+    }
+  }
 
   @Override
   public void enumerate(Visitor visitor) throws IOException {
@@ -104,11 +112,6 @@ final class VfsRootAmp implements VfsRoot, IconSource {
     return null;
   }
 
-  @Override
-  public int getResourceId() {
-    return R.drawable.ic_browser_vfs_amp;
-  }
-  
   private Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }

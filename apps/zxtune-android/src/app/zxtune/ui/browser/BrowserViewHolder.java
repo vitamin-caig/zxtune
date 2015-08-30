@@ -16,9 +16,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
-import app.zxtune.ui.IconSource;
 
 @SuppressLint("Assert")
 class BrowserViewHolder {
@@ -67,8 +67,9 @@ class BrowserViewHolder {
   }
 
   private static int getIcon(VfsObject dir) {
-    return dir instanceof IconSource
-      ? ((IconSource) dir).getResourceId()
+    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
+    return icon != null
+      ? (Integer) icon
       : R.drawable.ic_browser_folder;
   }
 }

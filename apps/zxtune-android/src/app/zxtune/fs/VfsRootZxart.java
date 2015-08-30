@@ -25,7 +25,6 @@ import app.zxtune.fs.zxart.Author;
 import app.zxtune.fs.zxart.Catalog;
 import app.zxtune.fs.zxart.Party;
 import app.zxtune.fs.zxart.Track;
-import app.zxtune.ui.IconSource;
 
 /**
  * Paths:
@@ -48,7 +47,7 @@ import app.zxtune.ui.IconSource;
  *
  */
 
-public class VfsRootZxart implements VfsRoot, IconSource {
+public class VfsRootZxart implements VfsRoot {
 
   private final static String TAG = VfsRootZxart.class.getName();
 
@@ -104,6 +103,15 @@ public class VfsRootZxart implements VfsRoot, IconSource {
   }
 
   @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
+      return R.drawable.ic_browser_vfs_zxart;
+    } else {
+      return null;
+    }
+  }
+  
+  @Override
   public void enumerate(Visitor visitor) {
     for (GroupsDir group : groups) {
       visitor.onDir(group);
@@ -117,11 +125,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     } else {
       return null;
     }
-  }
-
-  @Override
-  public int getResourceId() {
-    return R.drawable.ic_browser_vfs_zxart;
   }
 
   private static Uri.Builder rootUri() {
@@ -363,7 +366,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     return null;
   }
   
-  private class AllAuthorsDir implements GroupsDir {
+  private class AllAuthorsDir extends StubObject implements GroupsDir {
 
     // Static locale-independent path of all authors' dir
     final static String PATH = "Authors";
@@ -423,7 +426,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
 
-  private class AuthorDir implements VfsDir {
+  private class AuthorDir extends StubObject implements VfsDir {
 
     private final Author author;
 
@@ -561,7 +564,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
 
-  private class AllPartiesDir implements GroupsDir {
+  private class AllPartiesDir extends StubObject implements GroupsDir {
 
     // Static locale-independent path of all parties' dir
     final static String PATH = "Parties";
@@ -858,7 +861,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
   }
   
   //custom ordering by votes desc
-  class TopTracksDir implements GroupsDir, Comparator<VfsObject> {
+  class TopTracksDir extends StubObject implements GroupsDir, Comparator<VfsObject> {
 
     // Static locale-independent path of top tracks' dir
     final static String PATH = "Top";
@@ -949,7 +952,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
   
-  private abstract class BaseTrackFile implements VfsFile {
+  private abstract class BaseTrackFile extends StubObject implements VfsFile {
 
     private final Uri uri;
     protected final Track module;

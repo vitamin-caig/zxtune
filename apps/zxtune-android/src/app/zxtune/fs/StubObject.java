@@ -16,4 +16,9 @@ abstract class StubObject implements VfsObject {
   public String getDescription() {
     return "".intern();
   }
+
+  @Override
+  public Object getExtension(String id) {
+    return null;
+  }
 }

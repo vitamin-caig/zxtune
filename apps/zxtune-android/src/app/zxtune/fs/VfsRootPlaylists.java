@@ -17,7 +17,7 @@ import android.net.Uri;
 import app.zxtune.R;
 import app.zxtune.playlist.XspfStorage;
 
-final class VfsRootPlaylists implements VfsRoot {
+final class VfsRootPlaylists extends StubObject implements VfsRoot {
 
   private final static String SCHEME = "playlists";
 

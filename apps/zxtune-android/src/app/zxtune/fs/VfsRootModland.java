@@ -39,9 +39,8 @@ import app.zxtune.R;
 import app.zxtune.fs.modland.Catalog;
 import app.zxtune.fs.modland.Group;
 import app.zxtune.fs.modland.Track;
-import app.zxtune.ui.IconSource;
 
-final class VfsRootModland implements VfsRoot, IconSource {
+final class VfsRootModland extends StubObject implements VfsRoot {
 
   private final static String TAG = VfsRootModland.class.getName();
 
@@ -111,6 +110,15 @@ final class VfsRootModland implements VfsRoot, IconSource {
   }
 
   @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
+      return R.drawable.ic_browser_vfs_modland;
+    } else {
+      return super.getExtension(id);
+    }
+  }
+  
+  @Override
   public void enumerate(Visitor visitor) throws IOException {
     for (GroupsDir group : groups) {
       visitor.onDir(group);
@@ -128,11 +136,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
     return null;
   }
 
-  @Override
-  public int getResourceId() {
-    return R.drawable.ic_browser_vfs_modland;
-  }
-  
   private Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }
@@ -156,7 +159,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
     }
   }
 
-  private class GroupsDir implements VfsDir {
+  private class GroupsDir extends StubObject implements VfsDir {
 
     private final String path;
     private final int nameRes;
@@ -281,7 +284,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
         return groupsUri().appendPath(letter);
       }
 
-      private class GroupDir implements VfsDir {
+      private class GroupDir extends StubObject implements VfsDir {
 
         private Group obj;
 

@@ -30,9 +30,8 @@ import android.text.format.Formatter;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.joshw.Catalog;
-import app.zxtune.ui.IconSource;
 
-final class VfsRootJoshw implements VfsRoot, IconSource {
+final class VfsRootJoshw extends StubObject implements VfsRoot {
 
   private final static String TAG = VfsRootJoshw.class.getName();
 
@@ -75,6 +74,15 @@ final class VfsRootJoshw implements VfsRoot, IconSource {
   public VfsObject getParent() {
     return null;
   }
+  
+  @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
+      return R.drawable.ic_browser_vfs_joshw;
+    } else {
+      return super.getExtension(id);
+    }
+  }
 
   @Override
   public void enumerate(Visitor visitor) throws IOException {
@@ -91,11 +99,6 @@ final class VfsRootJoshw implements VfsRoot, IconSource {
     return null;
   }
 
-  @Override
-  public int getResourceId() {
-    return R.drawable.ic_browser_vfs_joshw;
-  }
-  
   private Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }
