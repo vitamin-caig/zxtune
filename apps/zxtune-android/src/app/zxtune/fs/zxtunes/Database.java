@@ -10,15 +10,14 @@
 
 package app.zxtune.fs.zxtunes;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.Grouping;
+import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
@@ -48,7 +47,7 @@ final class Database {
 
   final static class Tables {
 
-    final static class Authors {
+    final static class Authors extends Objects {
 
       static enum Fields {
         _id, nickname, name
@@ -60,20 +59,12 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
           + " TEXT);";
 
-      final static String INSERT_STATEMENT =
-          "REPLACE INTO " + NAME + " VALUES (?, ?, ?);";
-      
-      private final SQLiteStatement insertStatement;
-      
       Authors(SQLiteOpenHelper helper) {
-        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+        super(helper, NAME, Fields.values().length);
       }
       
-      final synchronized void add(Author obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.nickname.ordinal(), obj.nickname);
-        insertStatement.bindString(1 + Fields.name.ordinal(), obj.name);
-        insertStatement.executeInsert();
+      final void add(Author obj) {
+        add(obj.id, obj.nickname, obj.name);
       }
       
       private static Author createAuthor(Cursor cursor) {
@@ -88,7 +79,7 @@ final class Database {
       }
     }
 
-    final static class Tracks {
+    final static class Tracks extends Objects {
 
       static enum Fields {
         _id, filename, title, duration, date
@@ -100,30 +91,12 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
           + " TEXT, " + Fields.duration + " INTEGER, " + Fields.date + " INTEGER);";
 
-      final static String INSERT_STATEMENT =
-          "REPLACE INTO " + NAME + " VALUES (?, ?, ?, ?, ?);";
-      
-      private final SQLiteStatement insertStatement;
-      
       Tracks(SQLiteOpenHelper helper) {
-        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+        super(helper, NAME, Fields.values().length);
       }
       
-      final synchronized void add(Track obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.filename.ordinal(), obj.filename);
-        insertStatement.bindString(1 + Fields.title.ordinal(), obj.title);
-        if (obj.duration != null) {
-          insertStatement.bindLong(1 + Fields.duration.ordinal(), obj.duration);
-        } else {
-          insertStatement.bindNull(1 + Fields.duration.ordinal());
-        }
-        if (obj.date != null) {
-          insertStatement.bindLong(1 + Fields.date.ordinal(), obj.date);
-        } else {
-          insertStatement.bindNull(1 + Fields.date.ordinal());
-        }
-        insertStatement.executeInsert();
+      final void add(Track obj) {
+        add(obj.id, obj.filename, obj.title, obj.duration, obj.date);
       }
       
       private static Track createTrack(Cursor cursor) {

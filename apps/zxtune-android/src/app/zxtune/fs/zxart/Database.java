@@ -14,10 +14,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.Grouping;
+import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
@@ -51,7 +51,7 @@ final class Database {
 
   final static class Tables {
 
-    final static class Authors {
+    final static class Authors extends Objects {
 
       static enum Fields {
         _id, nickname, name
@@ -63,20 +63,12 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
           + " TEXT);";
 
-      final static String INSERT_STATEMENT =
-          "REPLACE INTO authors VALUES (?, ?, ?);";
-      
-      private final SQLiteStatement insertStatement;
-      
       Authors(SQLiteOpenHelper helper) {
-        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+        super(helper, NAME, Fields.values().length);
       }
       
-      final synchronized void add(Author obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.nickname.ordinal(), obj.nickname);
-        insertStatement.bindString(1 + Fields.name.ordinal(), obj.name);
-        insertStatement.executeInsert();
+      final void add(Author obj) {
+        add(obj.id, obj.nickname, obj.name);
       }
 
       private static Author createAuthor(Cursor cursor) {
@@ -91,7 +83,7 @@ final class Database {
       }
     }
 
-    final static class Parties {
+    final static class Parties extends Objects {
 
       static enum Fields {
         _id, name, year
@@ -103,20 +95,12 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.name + " TEXT NOT NULL, " + Fields.year
           + " INTEGER NOT NULL);";
 
-      final static String INSERT_STATEMENT =
-          "REPLACE INTO parties VALUES (?, ?, ?);";
-      
-      private final SQLiteStatement insertStatement;
-      
       Parties(SQLiteOpenHelper helper) {
-        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+        super(helper, NAME, Fields.values().length);
       }
       
-      final synchronized void add(Party obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.name.ordinal(), obj.name);
-        insertStatement.bindLong(1 + Fields.year.ordinal(), obj.year);
-        insertStatement.executeInsert();
+      final void add(Party obj) {
+        add(obj.id, obj.name, obj.year);
       }
 
       private static Party createParty(Cursor cursor) {
@@ -131,7 +115,7 @@ final class Database {
       }
     }
 
-    final static class Tracks {
+    final static class Tracks extends Objects {
 
       static enum Fields {
         _id, filename, title, votes, duration, year, compo, partyplace
@@ -144,25 +128,12 @@ final class Database {
           + " TEXT, " + Fields.votes + " TEXT, " + Fields.duration + " INTEGER, " + Fields.year
           + " INTEGER, " + Fields.compo + " TEXT, " + Fields.partyplace + " INTEGER);";
       
-      final static String INSERT_STATEMENT =
-          "REPLACE INTO tracks VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
-      
-      private final SQLiteStatement insertStatement;
-      
       Tracks(SQLiteOpenHelper helper) {
-        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+        super(helper, NAME, Fields.values().length);
       }
       
-      final synchronized void add(Track obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.filename.ordinal(), obj.filename);
-        insertStatement.bindString(1 + Fields.title.ordinal(), obj.title);
-        insertStatement.bindString(1 + Fields.votes.ordinal(), obj.votes);
-        insertStatement.bindString(1 + Fields.duration.ordinal(), obj.duration);
-        insertStatement.bindLong(1 + Fields.year.ordinal(), obj.year);
-        insertStatement.bindString(1 + Fields.compo.ordinal(), obj.compo);
-        insertStatement.bindLong(1 + Fields.partyplace.ordinal(), obj.partyplace);
-        insertStatement.executeInsert();
+      final void add(Track obj) {
+        add(obj.id, obj.filename, obj.title, obj.votes, obj.duration, obj.year, obj.compo, obj.partyplace);
       }
       
       static Track createTrack(Cursor cursor) {

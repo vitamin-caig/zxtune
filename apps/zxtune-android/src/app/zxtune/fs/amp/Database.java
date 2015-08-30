@@ -14,11 +14,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.amp.Catalog.AuthorsVisitor;
 import app.zxtune.fs.dbhelpers.Grouping;
+import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
@@ -49,7 +49,7 @@ final class Database {
 
   final static class Tables {
 
-    final static class Authors {
+    final static class Authors extends Objects {
 
       static enum Fields {
         _id, handle, real_name
@@ -64,20 +64,12 @@ final class Database {
         ");";
       ;
       
-      final static String INSERT_STATEMENT =
-          "REPLACE INTO authors VALUES (?, ?, ?);";
-      
-      private final SQLiteStatement insertStatement;
-      
       Authors(SQLiteOpenHelper helper) {
-        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+        super(helper, NAME, Fields.values().length);
       }
       
-      final synchronized void add(Author obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.handle.ordinal(), obj.handle);
-        insertStatement.bindString(1 + Fields.real_name.ordinal(), obj.realName);
-        insertStatement.executeInsert();
+      final void add(Author obj) {
+        add(obj.id, obj.handle, obj.realName);
       }
 
       static Author createAuthor(Cursor cursor) {
@@ -92,7 +84,7 @@ final class Database {
       }
     }
 
-    final static class Tracks {
+    final static class Tracks extends Objects {
 
       static enum Fields {
         _id, filename, size
@@ -106,20 +98,12 @@ final class Database {
           "size INTEGER NOT NULL" +
           ");";
 
-      final static String INSERT_STATEMENT =
-          "REPLACE INTO tracks VALUES (?, ?, ?);";
-      
-      private final SQLiteStatement insertStatement;
-      
       Tracks(SQLiteOpenHelper helper) {
-        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+        super(helper, NAME, Fields.values().length);
       }
       
-      final synchronized void add(Track obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.filename.ordinal(), obj.filename);
-        insertStatement.bindLong(1 + Fields.size.ordinal(), obj.size);
-        insertStatement.executeInsert();
+      final void add(Track obj) {
+        add(obj.id, obj.filename, obj.size);
       }
       
       static Track createTrack(Cursor cursor) {
@@ -170,7 +154,7 @@ final class Database {
       }
     }
     
-    final static class Groups {
+    final static class Groups extends Objects {
       
       static enum Fields {
         _id, name
@@ -184,19 +168,12 @@ final class Database {
         ");";
       ;
 
-      final static String INSERT_STATEMENT =
-          "REPLACE INTO groups VALUES (?, ?);";
-      
-      private final SQLiteStatement insertStatement;
-      
       Groups(SQLiteOpenHelper helper) {
-        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+        super(helper, NAME, Fields.values().length);
       }
       
-      final synchronized void add(Group obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.name.ordinal(), obj.name);
-        insertStatement.executeInsert();
+      final void add(Group obj) {
+        add(obj.id, obj.name);
       }
             
       static Group createGroup(Cursor cursor) {

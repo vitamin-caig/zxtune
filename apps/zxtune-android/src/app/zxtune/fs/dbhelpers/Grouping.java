@@ -14,9 +14,8 @@ import java.util.Locale;
 
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
-import android.database.sqlite.SQLiteStatement;
 
-public class Grouping {
+public class Grouping extends Objects {
   
   private static enum Fields {
     _id
@@ -24,23 +23,19 @@ public class Grouping {
   
   private final String tableName;
   private final int bitsForObject;
-  private final SQLiteStatement insertStatement;
 
   public static String createQuery(String tableName) {
     return String.format(Locale.US, "CREATE TABLE %s (%s INTEGER PRIMARY KEY);", tableName, Fields._id.name());
   }
   
   public Grouping(SQLiteOpenHelper helper, String tableName, int bitsForObject) {
+    super(helper, tableName, Fields.values().length);
     this.tableName = tableName;
     this.bitsForObject = bitsForObject;
-    final String statement = String.format(Locale.US, "REPLACE INTO %s VALUES (?);", tableName); 
-    this.insertStatement = helper.getWritableDatabase().compileStatement(statement);
   }
   
-  public synchronized final void add(long group, long object) {
-    final long id = getId(group, object);
-    insertStatement.bindLong(1 + Fields._id.ordinal(), id);
-    insertStatement.executeInsert();
+  public final void add(long group, long object) {
+    add(getId(group, object));
   }
   
   public final String getIdsSelection(long group) {

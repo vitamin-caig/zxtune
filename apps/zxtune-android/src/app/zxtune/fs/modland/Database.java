@@ -17,11 +17,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.Grouping;
+import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
@@ -51,7 +51,7 @@ final class Database {
 
   final static class Tables {
 
-    final static class Groups {
+    final static class Groups extends Objects {
 
       static enum Fields {
         _id, name, tracks
@@ -63,18 +63,12 @@ final class Database {
               + " INTEGER);";
       }
 
-      private final SQLiteStatement insertStatement;
-      
       Groups(SQLiteOpenHelper helper, String name) {
-        final String statement = "REPLACE INTO " + name + " VALUES (?, ?, ?);";
-        this.insertStatement = helper.getWritableDatabase().compileStatement(statement);
+        super(helper, name, Fields.values().length);
       }
       
-      final synchronized void add(Group obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.name.ordinal(), obj.name);
-        insertStatement.bindLong(1 + Fields.tracks.ordinal(), obj.tracks);
-        insertStatement.executeInsert();
+      final void add(Group obj) {
+        add(obj.id, obj.name, obj.tracks);
       }
       
       static Group createGroup(Cursor cursor) {
@@ -110,7 +104,7 @@ final class Database {
     
     final static String LIST[] = {Authors.NAME, Collections.NAME, Formats.NAME};
     
-    final static class Tracks {
+    final static class Tracks extends Objects {
 
       static enum Fields {
         _id, path, size
@@ -121,20 +115,12 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
               + " INTEGER PRIMARY KEY, " + Fields.path + " TEXT NOT NULL, " + Fields.size + " INTEGER);";
       
-      final static String INSERT_STATEMENT =
-          "REPLACE INTO " + NAME + " VALUES (?, ?, ?);";
-      
-      private final SQLiteStatement insertStatement;
-      
       Tracks(SQLiteOpenHelper helper) {
-        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+        super(helper, NAME, Fields.values().length);
       }
       
-      final synchronized void add(Track obj) {
-        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
-        insertStatement.bindString(1 + Fields.path.ordinal(), obj.path);
-        insertStatement.bindLong(1 + Fields.size.ordinal(), obj.size);
-        insertStatement.executeInsert();
+      final void add(Track obj) {
+        add(obj.id, obj.path, obj.size);
       }
 
       static Track createTrack(Cursor cursor) {
