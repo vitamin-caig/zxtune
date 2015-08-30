@@ -17,6 +17,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -62,6 +63,20 @@ final class Database {
               + " INTEGER);";
       }
 
+      private final SQLiteStatement insertStatement;
+      
+      Groups(SQLiteOpenHelper helper, String name) {
+        final String statement = "REPLACE INTO " + name + " VALUES (?, ?, ?);";
+        this.insertStatement = helper.getWritableDatabase().compileStatement(statement);
+      }
+      
+      final synchronized void add(Group obj) {
+        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
+        insertStatement.bindString(1 + Fields.name.ordinal(), obj.name);
+        insertStatement.bindLong(1 + Fields.tracks.ordinal(), obj.tracks);
+        insertStatement.executeInsert();
+      }
+      
       static Group createGroup(Cursor cursor) {
         final int id = cursor.getInt(Fields._id.ordinal());
         final String title = cursor.getString(Fields.name.ordinal());
@@ -106,8 +121,20 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
               + " INTEGER PRIMARY KEY, " + Fields.path + " TEXT NOT NULL, " + Fields.size + " INTEGER);";
       
-      static String getSelection(String subquery) {
-        return Fields._id + " IN (" + subquery + ")";
+      final static String INSERT_STATEMENT =
+          "REPLACE INTO " + NAME + " VALUES (?, ?, ?);";
+      
+      private final SQLiteStatement insertStatement;
+      
+      Tracks(SQLiteOpenHelper helper) {
+        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+      }
+      
+      final synchronized void add(Track obj) {
+        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
+        insertStatement.bindString(1 + Fields.path.ordinal(), obj.path);
+        insertStatement.bindLong(1 + Fields.size.ordinal(), obj.size);
+        insertStatement.executeInsert();
       }
 
       static Track createTrack(Cursor cursor) {
@@ -116,13 +143,9 @@ final class Database {
         final int size = cursor.getInt(Fields.size.ordinal());
         return new Track(id, path, size);
       }
-
-      static ContentValues createValues(Track obj) {
-        final ContentValues res = new ContentValues();
-        res.put(Fields._id.name(), obj.id);
-        res.put(Fields.path.name(), obj.path);
-        res.put(Fields.size.name(), obj.size);
-        return res;
+      
+      static String getSelection(String subquery) {
+        return Fields._id + " IN (" + subquery + ")";
       }
     }
     
@@ -143,15 +166,20 @@ final class Database {
   }
 
   private final Helper helper;
+  private final HashMap<String, Tables.Groups> groups;
   private final HashMap<String, Tables.GroupTracks> groupTracks;
+  private final Tables.Tracks tracks;
   private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
+    this.groups = new HashMap<String, Tables.Groups>();
     this.groupTracks = new HashMap<String, Tables.GroupTracks>();
     for (String group : Tables.LIST) {
+      groups.put(group, new Tables.Groups(helper, group));
       groupTracks.put(group, new Tables.GroupTracks(helper, group));
     }
+    this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
   }
 
@@ -204,9 +232,7 @@ final class Database {
   }
 
   final void addGroup(String category, Group obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(category, null/* nullColumnHack */, Tables.Groups.createValues(obj),
-      SQLiteDatabase.CONFLICT_REPLACE);
+    groups.get(category).add(obj);
   }
 
   final boolean queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
@@ -246,9 +272,7 @@ final class Database {
   }
 
   final void addTrack(Track obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, Tables.Tracks.createValues(obj),
-            SQLiteDatabase.CONFLICT_REPLACE);
+    tracks.add(obj);
   }
 
   final void addGroupTrack(String category, int id, Track obj) {
