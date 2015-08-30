@@ -69,8 +69,7 @@ final class CachingCatalog extends Catalog {
       
       @Override
       public boolean queryFromCache() {
-        db.queryGroups(visitor);
-        return true;
+        return db.queryGroups(visitor);
       }
     });
   }
@@ -97,8 +96,7 @@ final class CachingCatalog extends Catalog {
       
       @Override
       public boolean queryFromCache() {
-        db.queryAuthors(handleFilter, visitor);
-        return true;
+        return db.queryAuthors(handleFilter, visitor);
       }
     });
   }
@@ -125,8 +123,7 @@ final class CachingCatalog extends Catalog {
       
       @Override
       public boolean queryFromCache() {
-        db.queryAuthors(country, visitor);
-        return true;
+        return db.queryAuthors(country, visitor);
       }
     });
   }
@@ -153,8 +150,7 @@ final class CachingCatalog extends Catalog {
       
       @Override
       public boolean queryFromCache() {
-        db.queryAuthors(group, visitor);
-        return true;
+        return db.queryAuthors(group, visitor);
       }
     });
   }
@@ -175,8 +171,7 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        db.queryTracks(author, visitor);
-        return true;
+        return db.queryTracks(author, visitor);
       }
 
       @Override

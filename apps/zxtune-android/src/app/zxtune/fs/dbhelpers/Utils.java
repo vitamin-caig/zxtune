@@ -16,6 +16,7 @@ import java.util.Locale;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.widget.Toast;
 import app.zxtune.Log;
 
 public final class Utils {
@@ -51,8 +52,8 @@ public final class Utils {
 
   public static void executeQueryCommand(QueryCommand cmd) throws IOException {
     final Timestamps.Lifetime lifetime = cmd.getLifetime();
-    if (lifetime.isExpired() || !cmd.queryFromCache()) {
-      IOException remoteError = null;
+    IOException remoteError = null;
+    if (lifetime.isExpired()) {
       final Transaction transaction = cmd.startTransaction();
       try {
         cmd.queryFromRemote();
@@ -63,9 +64,9 @@ public final class Utils {
       } finally {
         transaction.finish();
       }
-      if (!cmd.queryFromCache() && remoteError != null) {
-        throw remoteError;
-      }
+    }
+    if (!cmd.queryFromCache() && remoteError != null) {
+      throw remoteError;
     }
   }
 }

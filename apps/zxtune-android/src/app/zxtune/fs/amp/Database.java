@@ -246,28 +246,27 @@ final class Database {
     return timestamps.getLifetime(Tables.Groups.NAME + group.id, ttl);
   }
   
-  final void queryAuthors(String handleFilter, AuthorsVisitor visitor) {
+  final boolean queryAuthors(String handleFilter, AuthorsVisitor visitor) {
     Log.d(TAG, "queryAuthors(filter=%s)", handleFilter);
     final String selection = handleFilter.equals(Catalog.NON_LETTER_FILTER)
       ? "SUBSTR(" + Tables.Authors.Fields.handle + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
       : Tables.Authors.Fields.handle + " LIKE '" + handleFilter + "%'";
-    queryAuthorsInternal(selection, visitor);
+    return queryAuthorsInternal(selection, visitor);
   }
   
-  final void queryAuthors(Country country, AuthorsVisitor visitor) {
+  final boolean queryAuthors(Country country, AuthorsVisitor visitor) {
     Log.d(TAG, "queryAuthors(country=%d)", country.id);
     final String selection = Tables.Authors.getSelection(countryAuthors.getAuthorsIdsSelection(country));
-    queryAuthorsInternal(selection, visitor);
+    return queryAuthorsInternal(selection, visitor);
   }
 
-  final void queryAuthors(Group group, AuthorsVisitor visitor) {
+  final boolean queryAuthors(Group group, AuthorsVisitor visitor) {
     Log.d(TAG, "queryAuthors(group=%d)", group.id);
     final String selection = Tables.Authors.getSelection(groupAuthors.getAuthorsIdsSelection(group));
-    queryAuthorsInternal(selection, visitor);
+    return queryAuthorsInternal(selection, visitor);
   }
   
-  //result may be empty, so don't treat it as error
-  private void queryAuthorsInternal(String selection, AuthorsVisitor visitor) {
+  private boolean queryAuthorsInternal(String selection, AuthorsVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
     try {
@@ -277,19 +276,21 @@ final class Database {
         while (cursor.moveToNext()) {
           visitor.accept(Tables.Authors.createAuthor(cursor));
         }
+        return true;
       }
     } finally {
       cursor.close();
     }
+    return false;
   }
 
-  final void queryTracks(Author author, Catalog.TracksVisitor visitor) {
+  final boolean queryTracks(Author author, Catalog.TracksVisitor visitor) {
     Log.d(TAG, "queryTracks(author=%d)", author.id);
     final String selection = Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author));
-    queryTracksInternal(selection, visitor);
+    return queryTracksInternal(selection, visitor);
   }
   
-  private void queryTracksInternal(String selection, Catalog.TracksVisitor visitor) {
+  private boolean queryTracksInternal(String selection, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     try {
@@ -299,13 +300,15 @@ final class Database {
         while (cursor.moveToNext()) {
           visitor.accept(Tables.Tracks.createTrack(cursor));
         }
+        return true;
       }
     } finally {
       cursor.close();
     }
+    return false;
   }
   
-  final void queryGroups(Catalog.GroupsVisitor visitor) {
+  final boolean queryGroups(Catalog.GroupsVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Groups.NAME, null, null, null, null, null, null);
     try {
@@ -315,10 +318,12 @@ final class Database {
         while (cursor.moveToNext()) {
           visitor.accept(Tables.Groups.createGroup(cursor));
         }
+        return true;
       }
     } finally {
       cursor.close();
     }
+    return false;
   }
   
   final void addCountryAuthor(Country country, Author author) {
