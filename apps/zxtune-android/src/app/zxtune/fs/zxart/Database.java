@@ -107,48 +107,52 @@ final class Database {
       }
     }
     
-    final static class AuthorsTracks {
+    final static class AuthorsTracks extends Grouping {
 
       final static String NAME = "authors_tracks";
-      private final static Grouping grouping = new Grouping(NAME, 32);
+      final static String CREATE_QUERY = Grouping.createQuery(NAME);
+      
+      AuthorsTracks(SQLiteOpenHelper helper) {
+        super(helper, NAME, 32);
+      }
 
-      static String createQuery() {
-        return grouping.createQuery();
+      final void add(Author author, Track track) {
+        add(author.id, track.id);
       }
       
-      static ContentValues createValues(Author author, Track track) {
-        return grouping.createValues(author.id, track.id);
-      }
-      
-      static String getTracksIdsSelection(Author author) {
-        return grouping.getIdsSelection(author.id);
+      final String getTracksIdsSelection(Author author) {
+        return getIdsSelection(author.id);
       }
     }
 
-    final static class PartiesTracks {
+    final static class PartiesTracks extends Grouping {
 
       final static String NAME = "parties_tracks";
-      private final static Grouping grouping = new Grouping(NAME, 32);
+      final static String CREATE_QUERY = Grouping.createQuery(NAME);
+      
+      PartiesTracks(SQLiteOpenHelper helper) {
+        super(helper, NAME, 32);
+      }
 
-      static String createQuery() {
-        return grouping.createQuery();
+      final void add(Party party, Track track) {
+        add(party.id, track.id);
       }
       
-      static ContentValues createValues(Party party, Track track) {
-        return grouping.createValues(party.id, track.id);
-      }
-      
-      static String getTracksIdsSelection(Party party) {
-        return grouping.getIdsSelection(party.id);
+      final String getTracksIdsSelection(Party party) {
+        return getIdsSelection(party.id);
       }
     }
   }
 
   private final Helper helper;
+  private final Tables.AuthorsTracks authorsTracks;
+  private final Tables.PartiesTracks partiesTracks;
   private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
+    this.authorsTracks = new Tables.AuthorsTracks(helper);
+    this.partiesTracks = new Tables.PartiesTracks(helper);
     this.timestamps = new Timestamps(helper);
   }
 
@@ -234,12 +238,12 @@ final class Database {
   }
   
   final boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
-    final String selection = Tables.Tracks.getSelection(Tables.AuthorsTracks.getTracksIdsSelection(author));
+    final String selection = Tables.Tracks.getSelection(authorsTracks.getTracksIdsSelection(author));
     return queryTracks(selection, visitor);
   }
 
   final boolean queryPartyTracks(Party party, Catalog.TracksVisitor visitor) {
-    final String selection = Tables.Tracks.getSelection(Tables.PartiesTracks.getTracksIdsSelection(party));
+    final String selection = Tables.Tracks.getSelection(partiesTracks.getTracksIdsSelection(party));
     return queryTracks(selection, visitor);
   }
 
@@ -279,15 +283,11 @@ final class Database {
   }
   
   final void addAuthorTrack(Author author, Track track) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, Tables.AuthorsTracks.createValues(author, track),
-        SQLiteDatabase.CONFLICT_REPLACE);
+    authorsTracks.add(author, track);
   }
 
   final void addPartyTrack(Party party, Track track) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.PartiesTracks.NAME, null/* nullColumnHack */, Tables.PartiesTracks.createValues(party, track),
-        SQLiteDatabase.CONFLICT_REPLACE);
+    partiesTracks.add(party, track);
   }
 
   private static Author createAuthor(Cursor cursor) {
@@ -361,8 +361,8 @@ final class Database {
       db.execSQL(Tables.Authors.CREATE_QUERY);
       db.execSQL(Tables.Parties.CREATE_QUERY);
       db.execSQL(Tables.Tracks.CREATE_QUERY);
-      db.execSQL(Tables.AuthorsTracks.createQuery());
-      db.execSQL(Tables.PartiesTracks.createQuery());
+      db.execSQL(Tables.AuthorsTracks.CREATE_QUERY);
+      db.execSQL(Tables.PartiesTracks.CREATE_QUERY);
       db.execSQL(Timestamps.CREATE_QUERY);
     }
 

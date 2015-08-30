@@ -85,30 +85,32 @@ final class Database {
       }
     }
 
-    final static class AuthorsTracks {
+    final static class AuthorsTracks extends Grouping {
 
       final static String NAME = "authors_tracks";
-      private final static Grouping grouping = new Grouping(NAME, 32);
-
-      static String createQuery() {
-        return grouping.createQuery();
+      final static String CREATE_QUERY = Grouping.createQuery(NAME);
+      
+      AuthorsTracks(SQLiteOpenHelper helper) {
+        super(helper, NAME, 32);
       }
       
-      static ContentValues createValues(Author author, Track track) {
-        return grouping.createValues(author.id, track.id);
+      final void add(Author author, Track track) {
+        add(author.id, track.id);
       }
       
-      static String getTracksIdsSelection(Author author) {
-        return grouping.getIdsSelection(author.id);
+      final String getTracksIdsSelection(Author author) {
+        return getIdsSelection(author.id);
       }
     }
   }
 
   private final Helper helper;
+  private final Tables.AuthorsTracks authorsTracks;
   private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
+    this.authorsTracks = new Tables.AuthorsTracks(helper);
     this.timestamps = new Timestamps(helper);
   }
 
@@ -158,7 +160,7 @@ final class Database {
   
   final boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
     Log.d(TAG, "queryTracks(author=%d)", author.id);
-    final String selection = Tables.Tracks.getSelection(Tables.AuthorsTracks.getTracksIdsSelection(author));
+    final String selection = Tables.Tracks.getSelection(authorsTracks.getTracksIdsSelection(author));
     return queryTracks(selection, visitor);
   }
   
@@ -187,8 +189,7 @@ final class Database {
   }
   
   final void addAuthorTrack(Author author, Track track) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insert(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, Tables.AuthorsTracks.createValues(author, track));
+    authorsTracks.add(author, track);
   }
 
   private static Author createAuthor(Cursor cursor) {
@@ -241,7 +242,7 @@ final class Database {
       Log.d(TAG, "Creating database");
       db.execSQL(Tables.Authors.CREATE_QUERY);
       db.execSQL(Tables.Tracks.CREATE_QUERY);
-      db.execSQL(Tables.AuthorsTracks.createQuery());
+      db.execSQL(Tables.AuthorsTracks.CREATE_QUERY);
       db.execSQL(Timestamps.CREATE_QUERY);
     }
 

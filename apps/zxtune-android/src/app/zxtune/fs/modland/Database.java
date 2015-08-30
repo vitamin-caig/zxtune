@@ -126,20 +126,32 @@ final class Database {
       }
     }
     
-    final static HashMap<String, Grouping> GroupTracks = new HashMap<String, Grouping>();
-    
-    static {
-      for (String group : LIST) {
-        GroupTracks.put(group, new Grouping(group + "_tracks", 32));
+    final static class GroupTracks extends Grouping {
+      
+      static String name(String category) {
+        return category + "_tracks";
+      }
+      
+      static String getCreateQuery(String category) {
+        return createQuery(name(category));
+      }
+      
+      GroupTracks(SQLiteOpenHelper helper, String category) {
+        super(helper, name(category), 32);
       }
     }
   }
 
   private final Helper helper;
+  private final HashMap<String, Tables.GroupTracks> groupTracks;
   private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
+    this.groupTracks = new HashMap<String, Tables.GroupTracks>();
+    for (String group : Tables.LIST) {
+      groupTracks.put(group, new Tables.GroupTracks(helper, group));
+    }
     this.timestamps = new Timestamps(helper);
   }
 
@@ -199,7 +211,7 @@ final class Database {
 
   final boolean queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = Tables.Tracks.getSelection(Tables.GroupTracks.get(category).getIdsSelection(id));
+    final String selection = Tables.Tracks.getSelection(groupTracks.get(category).getIdsSelection(id));
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     try {
       final int count = cursor.getCount();
@@ -219,7 +231,7 @@ final class Database {
   final Track findTrack(String category, int id, String filename) {
     final String encodedFilename = Uri.encode(filename).replace("!", "%21").replace("'", "%27").replace("(", "%28").replace(")", "%29");
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = Tables.Tracks.getSelection(Tables.GroupTracks.get(category).getIdsSelection(id))
+    final String selection = Tables.Tracks.getSelection(groupTracks.get(category).getIdsSelection(id))
         + " AND " + Tables.Tracks.Fields.path + " LIKE ?";
     final String[] selectionArgs = {"%/" + encodedFilename};
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, selectionArgs, null, null, null);
@@ -240,9 +252,7 @@ final class Database {
   }
 
   final void addGroupTrack(String category, int id, Track obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    final Grouping grouping = Tables.GroupTracks.get(category);
-    db.insert(grouping.getTableName(), null/* nullColumnHack */, grouping.createValues(id, obj.id));
+    groupTracks.get(category).add(id, obj.id);
   }
 
   private static class Helper extends SQLiteOpenHelper {
@@ -260,7 +270,7 @@ final class Database {
       Log.d(TAG, "Creating database");
       for (String table : Tables.LIST) {
         db.execSQL(Tables.Groups.getCreateQuery(table));
-        db.execSQL(Tables.GroupTracks.get(table).createQuery());
+        db.execSQL(Tables.GroupTracks.getCreateQuery(table));
       }
       db.execSQL(Tables.Tracks.CREATE_QUERY);
       db.execSQL(Timestamps.CREATE_QUERY);

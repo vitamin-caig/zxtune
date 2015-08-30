@@ -36,6 +36,7 @@ import app.zxtune.fs.dbhelpers.Utils;
  * Version 2
  * 
  * CREATE TABLE groups (_id INTEGER PRIMARY KEY, name TEXT NOT NULL)
+ * group_authors with 32-bit grouping
  * 
  */
 
@@ -77,6 +78,10 @@ final class Database {
         final String realName = cursor.getString(Fields.real_name.ordinal());
         return new Author(id, handle, realName);
       }
+
+      static String getSelection(String subquery) {
+        return Fields._id + " IN (" + subquery + ")";
+      }
     }
 
     final static class Tracks {
@@ -107,41 +112,45 @@ final class Database {
         res.put(Fields.size.name(), obj.size);
         return res;
       }
+
+      static String getSelection(String subquery) {
+        return Fields._id + " IN (" + subquery + ")";
+      }
     }
     
-    final static class AuthorTracks {
+    final static class AuthorTracks extends Grouping {
       
       final static String NAME = "author_tracks";
-      private final static Grouping grouping = new Grouping(NAME, 32);
+      final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      static String createQuery() {
-        return grouping.createQuery();
+      AuthorTracks(SQLiteOpenHelper helper) {
+        super(helper, NAME, 32);
       }
       
-      static ContentValues createValues(Author author, Track track) {
-        return grouping.createValues(author.id, track.id);
+      final void add(Author author, Track track) {
+        add(author.id, track.id);
       }
       
-      static String getTracksIdsSelection(Author author) {
-        return grouping.getIdsSelection(author.id);
+      final String getTracksIdsSelection(Author author) {
+        return getIdsSelection(author.id);
       }
     }
 
-    final static class CountryAuthors {
+    final static class CountryAuthors extends Grouping {
 
       final static String NAME = "country_authors";
-      private final static Grouping grouping = new Grouping(NAME, 32);
+      final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      static String createQuery() {
-        return grouping.createQuery();
+      CountryAuthors(SQLiteOpenHelper helper) {
+        super(helper, NAME, 32);
       }
       
-      static ContentValues createValues(Country country, Author author) {
-        return grouping.createValues(country.id, author.id);
+      final void add(Country country, Author author) {
+        add(country.id, author.id);
       }
       
-      static String getAuthorsIdsSelection(Country country) {
-        return grouping.getIdsSelection(country.id);
+      final String getAuthorsIdsSelection(Country country) {
+        return getIdsSelection(country.id);
       }
     }
     
@@ -173,30 +182,36 @@ final class Database {
       }
     }
 
-    final static class GroupAuthors {
+    final static class GroupAuthors extends Grouping {
 
       final static String NAME = "group_authors";
-      private final static Grouping grouping = new Grouping(NAME, 32);
+      final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      static String createQuery() {
-        return grouping.createQuery();
+      GroupAuthors(SQLiteOpenHelper helper) {
+        super(helper, NAME, 32);
       }
       
-      static ContentValues createValues(Group group, Author author) {
-        return grouping.createValues(group.id, author.id);
+      final void add(Group group, Author author) {
+        add(group.id, author.id);
       }
       
-      static String getAuthorsIdsSelection(Group group) {
-        return grouping.getIdsSelection(group.id);
+      final String getAuthorsIdsSelection(Group group) {
+        return getIdsSelection(group.id);
       }
     }
   }
 
   private final Helper helper;
+  private final Tables.CountryAuthors countryAuthors;
+  private final Tables.GroupAuthors groupAuthors;
+  private final Tables.AuthorTracks authorTracks;
   private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
+    this.countryAuthors = new Tables.CountryAuthors(helper);
+    this.groupAuthors = new Tables.GroupAuthors(helper);
+    this.authorTracks = new Tables.AuthorTracks(helper);
     this.timestamps = new Timestamps(helper);
   }
 
@@ -224,10 +239,6 @@ final class Database {
     return timestamps.getLifetime(Tables.Groups.NAME + group.id, ttl);
   }
   
-  final Timestamps.Lifetime getStubLifetime() {
-    return timestamps.getStubLifetime();
-  }
-  
   final void queryAuthors(String handleFilter, AuthorsVisitor visitor) {
     Log.d(TAG, "queryAuthors(filter=%s)", handleFilter);
     final String selection = handleFilter.equals(Catalog.NON_LETTER_FILTER)
@@ -238,31 +249,14 @@ final class Database {
   
   final void queryAuthors(Country country, AuthorsVisitor visitor) {
     Log.d(TAG, "queryAuthors(country=%d)", country.id);
-    final String idQuery = Tables.CountryAuthors.getAuthorsIdsSelection(country);
-    final String selection = Tables.Authors.Fields._id + " IN (" + idQuery + ")";
+    final String selection = Tables.Authors.getSelection(countryAuthors.getAuthorsIdsSelection(country));
     queryAuthorsInternal(selection, visitor);
   }
 
   final void queryAuthors(Group group, AuthorsVisitor visitor) {
     Log.d(TAG, "queryAuthors(group=%d)", group.id);
-    final String idQuery = Tables.GroupAuthors.getAuthorsIdsSelection(group);
-    final String selection = Tables.Authors.Fields._id + " IN (" + idQuery + ")";
+    final String selection = Tables.Authors.getSelection(groupAuthors.getAuthorsIdsSelection(group));
     queryAuthorsInternal(selection, visitor);
-  }
-  
-  final Author queryAuthor(int id) {
-    Log.d(TAG, "queryAuthors(id=%d)", id);
-    final String selection = Tables.Authors.Fields._id + " = " + id;
-    final SQLiteDatabase db = helper.getReadableDatabase();
-    final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
-    try {
-      if (cursor.moveToNext()) {
-        return Tables.Authors.createAuthor(cursor);
-      }
-    } finally {
-      cursor.close();
-    }
-    return null;
   }
   
   //result may be empty, so don't treat it as error
@@ -284,8 +278,7 @@ final class Database {
 
   final void queryTracks(Author author, Catalog.TracksVisitor visitor) {
     Log.d(TAG, "queryTracks(author=%d)", author.id);
-    final String idQuery = Tables.AuthorTracks.getTracksIdsSelection(author);
-    final String selection = Tables.Tracks.Fields._id + " IN (" + idQuery + ")";
+    final String selection = Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author));
     queryTracksInternal(selection, visitor);
   }
   
@@ -322,8 +315,7 @@ final class Database {
   }
   
   final void addCountryAuthor(Country country, Author author) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insert(Tables.CountryAuthors.NAME, null/* nullColumnHack */, Tables.CountryAuthors.createValues(country, author));
+    countryAuthors.add(country, author);
   }
 
   final void addGroup(Group group) {
@@ -332,8 +324,7 @@ final class Database {
   }
   
   final void addGroupAuthor(Group group, Author author) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insert(Tables.GroupAuthors.NAME, null/* nullColumnHack */, Tables.GroupAuthors.createValues(group, author));
+    groupAuthors.add(group, author);
   }
   
   final void addAuthor(Author obj) {
@@ -349,8 +340,7 @@ final class Database {
   }
 
   final void addAuthorTrack(Author author, Track track) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insert(Tables.AuthorTracks.NAME, null/* nullColumnHack */, Tables.AuthorTracks.createValues(author, track));
+    authorTracks.add(author, track);
   }
   
   private static class Helper extends SQLiteOpenHelper {
@@ -366,12 +356,12 @@ final class Database {
     @Override
     public void onCreate(SQLiteDatabase db) {
       Log.d(TAG, "Creating database");
-      db.execSQL(Tables.CountryAuthors.createQuery());
+      db.execSQL(Tables.CountryAuthors.CREATE_QUERY);
       db.execSQL(Tables.Groups.CREATE_QUERY);
-      db.execSQL(Tables.GroupAuthors.createQuery());
+      db.execSQL(Tables.GroupAuthors.CREATE_QUERY);
       db.execSQL(Tables.Authors.CREATE_QUERY);
       db.execSQL(Tables.Tracks.CREATE_QUERY);
-      db.execSQL(Tables.AuthorTracks.createQuery());
+      db.execSQL(Tables.AuthorTracks.CREATE_QUERY);
       db.execSQL(Timestamps.CREATE_QUERY);
     }
 
@@ -381,7 +371,7 @@ final class Database {
       if (newVersion == 2) {
         //light update
         db.execSQL(Tables.Groups.CREATE_QUERY);
-        db.execSQL(Tables.GroupAuthors.createQuery());
+        db.execSQL(Tables.GroupAuthors.CREATE_QUERY);
       } else {
         Utils.cleanupDb(db);
         onCreate(db);

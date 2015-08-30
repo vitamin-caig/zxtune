@@ -12,8 +12,9 @@ package app.zxtune.fs.dbhelpers;
 
 import java.util.Locale;
 
-import android.content.ContentValues;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.database.sqlite.SQLiteStatement;
 
 public class Grouping {
   
@@ -23,26 +24,25 @@ public class Grouping {
   
   private final String tableName;
   private final int bitsForObject;
-  
-  public Grouping(String tableName, int bitsForObject) {
-    this.tableName = tableName;
-    this.bitsForObject = bitsForObject;
-  }
-  
-  public final String getTableName() {
-    return tableName;
-  }
-  
-  public final String createQuery() {
+  private final SQLiteStatement insertStatement;
+
+  public static String createQuery(String tableName) {
     return String.format(Locale.US, "CREATE TABLE %s (%s INTEGER PRIMARY KEY);", tableName, Fields._id.name());
   }
   
-  public final ContentValues createValues(long group, long object) {
-    final ContentValues res = new ContentValues();
-    res.put(Fields._id.name(), getId(group, object));
-    return res;
+  public Grouping(SQLiteOpenHelper helper, String tableName, int bitsForObject) {
+    this.tableName = tableName;
+    this.bitsForObject = bitsForObject;
+    final String statement = String.format(Locale.US, "REPLACE INTO %s VALUES (?);", tableName); 
+    this.insertStatement = helper.getWritableDatabase().compileStatement(statement);
   }
-
+  
+  public synchronized final void add(long group, long object) {
+    final long id = getId(group, object);
+    insertStatement.bindLong(1 + Fields._id.ordinal(), id);
+    insertStatement.executeInsert();
+  }
+  
   public final String getIdsSelection(long group) {
     final long mask = getId(1, 0) - 1;
     final long lower = getId(group, 0);
