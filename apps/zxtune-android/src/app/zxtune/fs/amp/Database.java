@@ -10,11 +10,11 @@
 
 package app.zxtune.fs.amp;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.amp.Catalog.AuthorsVisitor;
@@ -63,15 +63,23 @@ final class Database {
         "real_name TEXT NOT NULL" +
         ");";
       ;
-
-      static ContentValues createValues(Author obj) {
-        final ContentValues res = new ContentValues();
-        res.put(Fields._id.name(), obj.id);
-        res.put(Fields.handle.name(), obj.handle);
-        res.put(Fields.real_name.name(), obj.realName);
-        return res;
+      
+      final static String INSERT_STATEMENT =
+          "REPLACE INTO authors VALUES (?, ?, ?);";
+      
+      private final SQLiteStatement insertStatement;
+      
+      Authors(SQLiteOpenHelper helper) {
+        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
       }
       
+      final synchronized void add(Author obj) {
+        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
+        insertStatement.bindString(1 + Fields.handle.ordinal(), obj.handle);
+        insertStatement.bindString(1 + Fields.real_name.ordinal(), obj.realName);
+        insertStatement.executeInsert();
+      }
+
       static Author createAuthor(Cursor cursor) {
         final int id = cursor.getInt(Fields._id.ordinal());
         final String handle = cursor.getString(Fields.handle.ordinal());
@@ -98,19 +106,27 @@ final class Database {
           "size INTEGER NOT NULL" +
           ");";
 
+      final static String INSERT_STATEMENT =
+          "REPLACE INTO tracks VALUES (?, ?, ?);";
+      
+      private final SQLiteStatement insertStatement;
+      
+      Tracks(SQLiteOpenHelper helper) {
+        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
+      }
+      
+      final synchronized void add(Track obj) {
+        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
+        insertStatement.bindString(1 + Fields.filename.ordinal(), obj.filename);
+        insertStatement.bindLong(1 + Fields.size.ordinal(), obj.size);
+        insertStatement.executeInsert();
+      }
+      
       static Track createTrack(Cursor cursor) {
         final int id = cursor.getInt(Fields._id.ordinal());
         final String filename = cursor.getString(Fields.filename.ordinal());
         final int size = cursor.getInt(Fields.size.ordinal());
         return new Track(id, filename, size);
-      }
-
-      static ContentValues createValues(Track obj) {
-        final ContentValues res = new ContentValues();
-        res.put(Fields._id.name(), obj.id);
-        res.put(Fields.filename.name(), obj.filename);
-        res.put(Fields.size.name(), obj.size);
-        return res;
       }
 
       static String getSelection(String subquery) {
@@ -168,13 +184,21 @@ final class Database {
         ");";
       ;
 
-      static ContentValues createValues(Group obj) {
-        final ContentValues res = new ContentValues();
-        res.put(Fields._id.name(), obj.id);
-        res.put(Fields.name.name(), obj.name);
-        return res;
+      final static String INSERT_STATEMENT =
+          "REPLACE INTO groups VALUES (?, ?);";
+      
+      private final SQLiteStatement insertStatement;
+      
+      Groups(SQLiteOpenHelper helper) {
+        this.insertStatement = helper.getWritableDatabase().compileStatement(INSERT_STATEMENT);
       }
       
+      final synchronized void add(Group obj) {
+        insertStatement.bindLong(1 + Fields._id.ordinal(), obj.id);
+        insertStatement.bindString(1 + Fields.name.ordinal(), obj.name);
+        insertStatement.executeInsert();
+      }
+            
       static Group createGroup(Cursor cursor) {
         final int id = cursor.getInt(Fields._id.ordinal());
         final String name = cursor.getString(Fields.name.ordinal());
@@ -204,14 +228,20 @@ final class Database {
   private final Helper helper;
   private final Tables.CountryAuthors countryAuthors;
   private final Tables.GroupAuthors groupAuthors;
+  private final Tables.Groups groups;
+  private final Tables.Authors authors;
   private final Tables.AuthorTracks authorTracks;
+  private final Tables.Tracks tracks;
   private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
     this.countryAuthors = new Tables.CountryAuthors(helper);
     this.groupAuthors = new Tables.GroupAuthors(helper);
+    this.groups = new Tables.Groups(helper);
+    this.authors = new Tables.Authors(helper);
     this.authorTracks = new Tables.AuthorTracks(helper);
+    this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
   }
 
@@ -319,8 +349,7 @@ final class Database {
   }
 
   final void addGroup(Group group) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insert(Tables.Groups.NAME, null/* nullColumnHack */, Tables.Groups.createValues(group));
+    groups.add(group);
   }
   
   final void addGroupAuthor(Group group, Author author) {
@@ -328,15 +357,11 @@ final class Database {
   }
   
   final void addAuthor(Author obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Authors.NAME, null/* nullColumnHack */, Tables.Authors.createValues(obj),
-      SQLiteDatabase.CONFLICT_REPLACE);
+    authors.add(obj);
   }
   
   final void addTrack(Track obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, Tables.Tracks.createValues(obj),
-            SQLiteDatabase.CONFLICT_REPLACE);
+    tracks.add(obj);
   }
 
   final void addAuthorTrack(Author author, Track track) {
