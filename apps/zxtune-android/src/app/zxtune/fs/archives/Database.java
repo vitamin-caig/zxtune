@@ -16,9 +16,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import app.zxtune.Log;
+import app.zxtune.fs.dbhelpers.Objects;
+import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
 
 /*
@@ -117,7 +118,12 @@ class Database {
         ");";
     }
     
-    static final class Archives {
+    /*
+     * Working on views with compiled REPLACE statement breaks rowid numbering in paths table.
+     * So use explicit INSERT statement.
+     */
+    
+    static final class Archives extends Objects {
       static enum Fields {
         path, modules
       }
@@ -139,8 +145,13 @@ class Database {
             "END;";
       };
       
-      private static final String INSERT_STATEMENT = 
-        "INSERT INTO archives VALUES (?,?);";
+      Archives(SQLiteOpenHelper helper) {
+        super(helper, NAME, "INSERT", Fields.values().length);
+      }
+      
+      final void add(Archive obj) {
+        add(obj.path.toString(), obj.modules);
+      }
     }
     
     static final class TracksInternal {
@@ -155,11 +166,12 @@ class Database {
         ");";
     }
     
-    static final class Tracks {
+    static final class Tracks extends Objects {
       static enum Fields {
         path, description, duration
       }
       
+      private static final String NAME = "tracks";
       private static final String CREATE_QUERY =
         "CREATE VIEW tracks AS " +
           "SELECT path, description, duration FROM tracks_internal, paths " +
@@ -176,8 +188,13 @@ class Database {
             "END;";
       };
       
-      private static final String INSERT_STATEMENT = 
-          "INSERT INTO tracks VALUES (?,?,?);";
+      Tracks(SQLiteOpenHelper helper) {
+        super(helper, NAME, "INSERT", Fields.values().length);
+      }
+      
+      final void add(Track obj) {
+        add(obj.path.toString(), obj.description, obj.duration.convertTo(TimeUnit.MILLISECONDS));
+      }
     }
     
     static final class DirsInternal {
@@ -196,11 +213,12 @@ class Database {
       };
     }
     
-    static final class Dirs {
+    static final class Dirs extends Objects {
       static enum Fields {
         path, parent
       }
       
+      private static final String NAME = "dirs";
       private static final String CREATE_QUERY =
         "CREATE VIEW dirs AS " +
           "SELECT " + 
@@ -223,8 +241,13 @@ class Database {
             "END;";
       };
       
-      private static final String INSERT_STATEMENT = 
-        "INSERT INTO dirs VALUES (?,?);";
+      Dirs(SQLiteOpenHelper helper) {
+        super(helper, NAME, "INSERT", Fields.values().length);
+      }
+      
+      final void add(DirEntry dir) {
+        add(dir.path.toString(), dir.parent.toString());
+      }
     }
     
     // tracks should be joined instead of intersection
@@ -245,29 +268,17 @@ class Database {
   }
 
   private final DBHelper dbHelper;
+  private final Tables.Archives archives;
+  private final Tables.Dirs dirs;
+  private final Tables.Tracks tracks;
 
   Database(Context context) {
     this.dbHelper = new DBHelper(context);
+    this.archives = new Tables.Archives(dbHelper);
+    this.dirs = new Tables.Dirs(dbHelper);
+    this.tracks = new Tables.Tracks(dbHelper);
   }
   
-  class Transaction {
-
-    private final SQLiteDatabase db;
-
-    Transaction(SQLiteDatabase db) {
-      this.db = db;
-      db.beginTransaction();
-    }
-
-    final void succeed() {
-      db.setTransactionSuccessful();
-    }
-
-    final void finish() {
-      db.endTransaction();
-    }
-  }
-
   final Transaction startTransaction() {
     return new Transaction(dbHelper.getWritableDatabase());
   }
@@ -299,38 +310,21 @@ class Database {
         null/* having */, null/*orderBy*/);
   }
 
-  final long addArchive(Archive arch) {
+  final void addArchive(Archive arch) {
     Log.d(TAG, "addArchive(%s, %d modules)", arch.path, arch.modules);
-    final SQLiteStatement stat = dbHelper.getInsertArchiveStatement();
-    stat.clearBindings();
-    stat.bindString(1 + Tables.Archives.Fields.path.ordinal(), arch.path.toString());
-    stat.bindLong(1 + Tables.Archives.Fields.modules.ordinal(), arch.modules);
-    return stat.executeInsert();
+    archives.add(arch);
   }
 
-  final long addTrack(Track track) {
-    final SQLiteStatement stat = dbHelper.getInsertTrackStatement();
-    stat.clearBindings();
-    stat.bindString(1 + Tables.Tracks.Fields.path.ordinal(), track.path.toString());
-    stat.bindString(1 + Tables.Tracks.Fields.description.ordinal(), track.description);
-    stat.bindLong(1 + Database.Tables.Tracks.Fields.duration.ordinal(), track.duration.convertTo(TimeUnit.MILLISECONDS));
-    return stat.executeInsert();
+  final void addTrack(Track track) {
+    tracks.add(track);
   }
   
-  final long addDirEntry(DirEntry entry) {
-    final SQLiteStatement stat = dbHelper.getInsertDirStatement();
-    stat.clearBindings();
-    stat.bindString(1 + Tables.Dirs.Fields.path.ordinal(), entry.path.toString());
-    stat.bindString(1 + Tables.Dirs.Fields.parent.ordinal(), entry.parent.toString());
-    return stat.executeInsert();
+  final void addDirEntry(DirEntry entry) {
+    dirs.add(entry);
   }
   
   private static class DBHelper extends SQLiteOpenHelper {
     
-    private SQLiteStatement insertArchiveStatement;
-    private SQLiteStatement insertTrackStatement;
-    private SQLiteStatement insertDirStatement;
-
     DBHelper(Context context) {
       super(context, NAME, null, VERSION);
     }
@@ -358,30 +352,6 @@ class Database {
       Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
       Utils.cleanupDb(db);
       onCreate(db);
-    }
-    
-    public final SQLiteStatement getInsertArchiveStatement() {
-      if (insertArchiveStatement == null) {
-        final SQLiteDatabase db = getWritableDatabase();
-        insertArchiveStatement = db.compileStatement(Tables.Archives.INSERT_STATEMENT);
-      }
-      return insertArchiveStatement;
-    }
-
-    public final SQLiteStatement getInsertTrackStatement() {
-      if (insertTrackStatement == null) {
-        final SQLiteDatabase db = getWritableDatabase();
-        insertTrackStatement = db.compileStatement(Tables.Tracks.INSERT_STATEMENT);
-      }
-      return insertTrackStatement;
-    }
-
-    public final SQLiteStatement getInsertDirStatement() {
-      if (insertDirStatement == null) {
-        final SQLiteDatabase db = getWritableDatabase();
-        insertDirStatement = db.compileStatement(Tables.Dirs.INSERT_STATEMENT);
-      }
-      return insertDirStatement;
     }
   }
 }

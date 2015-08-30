@@ -19,11 +19,15 @@ public class Objects {
   
   private final int fields;
   private final SQLiteStatement insertStatement;
-
-  public Objects(SQLiteOpenHelper helper, String name, int fields) {
-    final String statement = makeInsertStatement(name, fields);
+  
+  public Objects(SQLiteOpenHelper helper, String name, String mode, int fields) {
+    final String statement = makeInsertStatement(mode, name, fields);
     this.fields = fields;
     this.insertStatement = helper.getWritableDatabase().compileStatement(statement);
+  }
+
+  public Objects(SQLiteOpenHelper helper, String name, int fields) {
+    this(helper, name, "REPLACE", fields);
   }
   
   public synchronized final void add(Object... objects) {
@@ -47,56 +51,77 @@ public class Objects {
   //particular cases to avoid temporary arrays and type casts
   public synchronized final void add(long p1) {
     checkFieldsCount(1);
-    insertStatement.bindLong(1, p1);
+    bind(1, p1);
     insertStatement.executeInsert();
   }
 
   public synchronized final void add(String p1) {
     checkFieldsCount(1);
-    insertStatement.bindString(1, p1);
+    bind(1, p1);
     insertStatement.executeInsert();
   }
   
   public synchronized final void add(long p1, String p2) {
     checkFieldsCount(2);
     insertStatement.clearBindings();
-    insertStatement.bindLong(1, p1);
-    if (p2 == null) {
-      insertStatement.bindNull(2);
-    } else {
-      insertStatement.bindString(2, p2);
-    }
+    bind(1, p1);
+    bind(2, p2);
+    insertStatement.executeInsert();
+  }
+
+  public synchronized final void add(String p1, long p2) {
+    checkFieldsCount(2);
+    insertStatement.clearBindings();
+    bind(1, p1);
+    bind(2, p2);
+    insertStatement.executeInsert();
+  }
+
+  public synchronized final void add(String p1, String p2) {
+    checkFieldsCount(2);
+    insertStatement.clearBindings();
+    bind(1, p1);
+    bind(2, p2);
     insertStatement.executeInsert();
   }
   
   public synchronized final void add(long p1, String p2, String p3) {
     checkFieldsCount(3);
     insertStatement.clearBindings();
-    insertStatement.bindLong(1, p1);
-    if (p2 == null) {
-      insertStatement.bindNull(2);
-    } else {
-      insertStatement.bindString(2, p2);
-    }
-    if (p3 == null) {
-      insertStatement.bindNull(3);
-    } else {
-      insertStatement.bindString(3, p3);
-    }
+    bind(1, p1);
+    bind(2, p2);
+    bind(3, p3);
     insertStatement.executeInsert();
   }
 
   public synchronized final void add(long p1, String p2, long p3) {
     checkFieldsCount(3);
     insertStatement.clearBindings();
-    insertStatement.bindLong(1, p1);
-    if (p2 == null) {
-      insertStatement.bindNull(2);
-    } else {
-      insertStatement.bindString(2, p2);
-    }
-    insertStatement.bindLong(3, p3);
+    bind(1, p1);
+    bind(2, p2);
+    bind(3, p3);
     insertStatement.executeInsert();
+  }
+
+  public synchronized final void add(String p1, String p2, long p3) {
+    checkFieldsCount(3);
+    insertStatement.clearBindings();
+    bind(1, p1);
+    bind(2, p2);
+    bind(3, p3);
+    insertStatement.executeInsert();
+  }
+  
+  private void bind(int pos, String p) {
+    if (p == null) {
+      insertStatement.bindNull(pos);
+    } else {
+      insertStatement.bindString(pos, p);
+    }
+  }
+  
+  private void bind(int pos, long p) {
+    insertStatement.bindLong(pos, p);
   }
   
   private void checkFieldsCount(int objectsCount) {
@@ -105,9 +130,10 @@ public class Objects {
     }
   }
   
-  private static String makeInsertStatement(String name, int fields) {
+  private static String makeInsertStatement(String mode, String name, int fields) {
     final StringBuilder builder = new StringBuilder();
-    builder.append("REPLACE INTO ");
+    builder.append(mode);
+    builder.append(" INTO ");
     builder.append(name);
     builder.append(" VALUES (");
     for (int pos = 0; pos < fields; ++pos) {

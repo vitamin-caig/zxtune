@@ -28,6 +28,7 @@ import app.zxtune.ZXTune;
 import app.zxtune.ZXTune.Module;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.dbhelpers.Transaction;
 
 public final class Provider extends ContentProvider {
   
@@ -63,7 +64,7 @@ public final class Provider extends ContentProvider {
       final VfsFile file = (VfsFile)Vfs.resolve(path);
       final ByteBuffer data = file.getContent();
       final HashSet<Identifier> dirEntries = new HashSet<Identifier>();
-      final Database.Transaction transaction = db.startTransaction();
+      final Transaction transaction = db.startTransaction();
       final AtomicInteger modulesCount = new AtomicInteger(0);
       try {
         ZXTune.detectModules(data, new ZXTune.ModuleDetectCallback() {
