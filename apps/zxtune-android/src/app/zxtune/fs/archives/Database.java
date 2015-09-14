@@ -87,12 +87,15 @@ import app.zxtune.fs.dbhelpers.Utils;
 /*
  * Version 2
  *  added 7zip support
+ *  
+ * Version 3
+ *  use REPLACE instead of INSERT in views insert triggers
  */
 
 class Database {
 
   private static final String NAME = "archives";
-  private static final int VERSION = 2;
+  private static final int VERSION = 3;
   private static final String TAG = Database.class.getName();
 
   static final class Tables {
@@ -140,7 +143,7 @@ class Database {
             "FOR EACH ROW " +
             "BEGIN " +
               "INSERT OR IGNORE INTO paths(path) VALUES(new.path);" +
-              "INSERT INTO archives_internal " +
+              "REPLACE INTO archives_internal " +
                 "SELECT rowid, new.modules FROM paths WHERE path = new.path;" +
             "END;";
       };
@@ -183,7 +186,7 @@ class Database {
             "FOR EACH ROW " +
             "BEGIN " +
               "INSERT OR IGNORE INTO paths(path) VALUES(new.path);" +
-              "INSERT INTO tracks_internal " +
+              "REPLACE INTO tracks_internal " +
                 "SELECT rowid, new.description, new.duration FROM paths WHERE path = new.path;" +
             "END;";
       };
@@ -235,7 +238,7 @@ class Database {
               //sqlite prior to 3.7.11 does not support multiple rows insert
               "INSERT OR IGNORE INTO paths(path) VALUES (new.path);" +
               "INSERT OR IGNORE INTO paths(path) VALUES (new.parent);" +
-              "INSERT INTO dirs_internal " +
+              "REPLACE INTO dirs_internal " +
                 "SELECT self.rowid, parent.rowid FROM paths AS self, paths AS parent " +
                   "WHERE self.path = new.path AND parent.path = new.parent;" +
             "END;";
