@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import android.content.Context;
 import android.net.Uri;
@@ -47,7 +48,7 @@ import app.zxtune.fs.zxart.Track;
  *
  */
 
-public class VfsRootZxart implements VfsRoot {
+public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private final static String TAG = VfsRootZxart.class.getName();
 
@@ -107,7 +108,7 @@ public class VfsRootZxart implements VfsRoot {
     if (VfsExtensions.ICON_RESOURCE.equals(id)) {
       return R.drawable.ic_browser_vfs_zxart;
     } else {
-      return null;
+      return super.getExtension(id);
     }
   }
   
@@ -978,6 +979,15 @@ public class VfsRootZxart implements VfsRoot {
     }
 
     @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.SHARE_URL.equals(id)) {
+        return getShareUrl();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+    
+    @Override
     public String getSize() {
       return module.duration; 
     }
@@ -985,6 +995,10 @@ public class VfsRootZxart implements VfsRoot {
     @Override
     public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(module.id);
+    }
+    
+    private String getShareUrl() {
+      return String.format(Locale.US, "http://zxart.ee/zxtune/action%%3aplay/tuneId%%3a%d", module.id);
     }
   }
 }

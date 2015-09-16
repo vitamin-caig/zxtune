@@ -13,6 +13,7 @@ package app.zxtune.fs;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
@@ -50,7 +51,7 @@ import app.zxtune.fs.zxtunes.Track;
  * track=${track_id} parameter is not analyzed for cases 1, 2, 3 and 4
  */
 
-final class VfsRootZxtunes implements VfsRoot {
+final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
   private final static String TAG = VfsRootZxtunes.class.getName();
 
@@ -101,7 +102,7 @@ final class VfsRootZxtunes implements VfsRoot {
     if (VfsExtensions.ICON_RESOURCE.equals(id)) {
       return R.drawable.ic_browser_vfs_zxtunes;
     } else {
-      return null;
+      return super.getExtension(id);
     }
   }
   
@@ -511,6 +512,15 @@ final class VfsRootZxtunes implements VfsRoot {
     public String getDescription() {
       return module.title;
     }
+    
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.SHARE_URL.equals(id)) {
+        return getShareUrl();
+      } else {
+        return super.getExtension(id);
+      }
+    }
 
     @Override
     public String getSize() {
@@ -522,6 +532,11 @@ final class VfsRootZxtunes implements VfsRoot {
     @Override
     public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(module.id);
+    }
+    
+    private String getShareUrl() {
+      final int authorId = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR_ID));
+      return String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", authorId, module.id);
     }
   }
 }
