@@ -10,17 +10,6 @@
 
 package app.zxtune.fs.zxtunes;
 
-import android.content.Context;
-import android.sax.Element;
-import android.sax.EndElementListener;
-import android.sax.EndTextElementListener;
-import android.sax.RootElement;
-import android.sax.StartElementListener;
-import android.util.Xml;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,9 +17,18 @@ import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+
+import android.content.Context;
+import android.sax.Element;
+import android.sax.EndElementListener;
+import android.sax.EndTextElementListener;
+import android.sax.RootElement;
+import android.sax.StartElementListener;
+import android.util.Xml;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
-import app.zxtune.fs.zxtunes.Catalog.TracksVisitor;
 
 final class RemoteCatalog extends Catalog {
 
@@ -39,12 +37,10 @@ final class RemoteCatalog extends Catalog {
   private static final String SITE = "http://www.zxtunes.com/";
   private static final String API = SITE + "xml.php?";
   private static final String ALL_AUTHORS_QUERY = API + "scope=authors&fields=nickname,name,tracks";
-  private static final String AUTHOR_QUERY = ALL_AUTHORS_QUERY + "&id=%d";
   //return nothing really, but required for more logical model
   private static final String ALL_TRACKS_QUERY = API
       + "scope=tracks&fields=filename,title,duration,date";
   private static final String AUTHOR_TRACKS_QUERY = ALL_TRACKS_QUERY + "&author_id=%d";
-  private static final String TRACK_QUERY = ALL_TRACKS_QUERY + "&id=%d";
   private static final String DOWNLOAD_QUERY = SITE + "downloads.php?id=%d";
 
   private final HttpProvider http;
@@ -54,21 +50,15 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthors(Integer id, AuthorsVisitor visitor) throws IOException {
-    final String query =
-        id == null ? ALL_AUTHORS_QUERY : String.format(Locale.US, AUTHOR_QUERY, id);
-    final HttpURLConnection connection = http.connect(query);
+  public void queryAuthors(AuthorsVisitor visitor) throws IOException {
+    final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
   }
 
   @Override
-  public void queryAuthorTracks(Author author, Integer id, TracksVisitor visitor) throws IOException {
-    if (id != null) {
-      queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
-    } else {
-      queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
-    }
+  public void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException {
+    queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
   }
 
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {

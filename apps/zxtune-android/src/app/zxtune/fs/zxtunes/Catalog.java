@@ -33,18 +33,16 @@ public abstract class Catalog {
 
   /**
    * Query authors object
-   * @param id identifier of specified author or null if all authors required
    * @param visitor result receiver
    */
-  public abstract void queryAuthors(Integer id, AuthorsVisitor visitor) throws IOException;
+  public abstract void queryAuthors(AuthorsVisitor visitor) throws IOException;
   
   /**
    * Query tracks objects
    * @param author scope
-   * @param id filter by id. If not null, author filter may be ignored (but required for cache)
    * @param visitor result receiver
    */
-  public abstract void queryAuthorTracks(Author author, Integer id, TracksVisitor visitor) throws IOException;
+  public abstract void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException;
   
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
   

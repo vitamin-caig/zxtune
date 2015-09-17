@@ -42,7 +42,7 @@ final class CachingCatalog extends Catalog {
   }
   
   @Override
-  public void queryAuthors(final Integer id, final AuthorsVisitor visitor) throws IOException {
+  public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
     Utils.executeQueryCommand(new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -56,20 +56,19 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        return db.queryAuthors(id, visitor);
+        return db.queryAuthors(visitor);
       }
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Authors cache is empty/expired for id=%s", id);
-        //query all
-        remote.queryAuthors(null, new CachingAuthorsVisitor());
+        Log.d(TAG, "Authors cache is empty/expired");
+        remote.queryAuthors(new CachingAuthorsVisitor());
       }
     });
   }
   
   @Override
-  public void queryAuthorTracks(final Author author, final Integer id, final TracksVisitor visitor) throws IOException {
+  public void queryAuthorTracks(final Author author, final TracksVisitor visitor) throws IOException {
     Utils.executeQueryCommand(new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -83,16 +82,13 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        return id != null
-            ? db.queryTrack(id, visitor)
-            : db.queryAuthorTracks(author, visitor);
+        return db.queryAuthorTracks(author, visitor);
       }
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Tracks cache is empty/expired for id=%s author=%d", id, author.id);
-        //query all tracks
-        remote.queryAuthorTracks(author, null, new CachingTracksVisitor(author));
+        Log.d(TAG, "Tracks cache is empty/expired for author=%d", author.id);
+        remote.queryAuthorTracks(author, new CachingTracksVisitor(author));
       }
     });
   }
