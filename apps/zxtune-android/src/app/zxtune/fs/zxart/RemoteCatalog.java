@@ -45,13 +45,10 @@ final class RemoteCatalog extends Catalog {
   private static final String PARTY_ID = "/partyId:%d";
   private static final String TRACK_ID = "/tuneId:%d";
   private static final String ALL_TRACKS_QUERY = API + ACTION_TRACKS;
-  private static final String TRACK_QUERY = ALL_TRACKS_QUERY + TRACK_ID;
   private static final String DOWNLOAD_QUERY = SITE + "/file/id:%d";
   private static final String ALL_AUTHORS_QUERY = API + ACTION_AUTHORS;
-  private static final String AUTHOR_QUERY = ALL_AUTHORS_QUERY + AUTHOR_ID;
   private static final String AUTHOR_TRACKS_QUERY = ALL_TRACKS_QUERY + AUTHOR_ID;
   private static final String ALL_PARTIES_QUERY = API + ACTION_PARTIES;
-  private static final String PARTY_QUERY = ALL_PARTIES_QUERY + PARTY_ID;
   private static final String PARTY_TRACKS_QUERY = ALL_TRACKS_QUERY + PARTY_ID;
   private static final String TOP_TRACKS_QUERY = API + ACTION_TOP + LIMIT;
 
@@ -62,48 +59,32 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthors(Integer id, AuthorsVisitor visitor) throws IOException {
-    final String query =
-        id == null ? ALL_AUTHORS_QUERY : String.format(Locale.US, AUTHOR_QUERY, id);
-    final HttpURLConnection connection = http.connect(query);
+  public void queryAuthors(AuthorsVisitor visitor) throws IOException {
+    final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
   }
 
   @Override
-  public void queryAuthorTracks(Author author, Integer id, TracksVisitor visitor) throws IOException {
-    if (id != null) {
-      queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
-    } else {
-      queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
-    }
+  public void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException {
+    queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
   }
 
   @Override
-  public void queryParties(Integer id, PartiesVisitor visitor) throws IOException {
-    final String query =
-        id == null ? ALL_PARTIES_QUERY : String.format(Locale.US, PARTY_QUERY, id);
-    final HttpURLConnection connection = http.connect(query);
+  public void queryParties(PartiesVisitor visitor) throws IOException {
+    final HttpURLConnection connection = http.connect(ALL_PARTIES_QUERY);
     final RootElement root = createPartiesParserRoot(visitor);
     performQuery(connection, root);
   }
   
   @Override
-  public void queryPartyTracks(Party party, Integer id, TracksVisitor visitor) throws IOException {
-    if (id != null) {
-      queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
-    } else {
-      queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.id));
-    }
+  public void queryPartyTracks(Party party, TracksVisitor visitor) throws IOException {
+    queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.id));
   }
   
   @Override
-  public void queryTopTracks(int limit, Integer id, TracksVisitor visitor) throws IOException {
-    if (id != null) {
-      queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
-    } else {
-      queryTracks(visitor, String.format(Locale.US, TOP_TRACKS_QUERY, limit));
-    }
+  public void queryTopTracks(int limit, TracksVisitor visitor) throws IOException {
+    queryTracks(visitor, String.format(Locale.US, TOP_TRACKS_QUERY, limit));
   }
   
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {

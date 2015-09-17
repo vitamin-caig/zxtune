@@ -77,10 +77,6 @@ final class Database {
         final String nickname = cursor.getString(Tables.Authors.Fields.nickname.ordinal());
         return new Author(id, nickname, name);
       }
-
-      static String getSelection(int id) {
-        return Fields._id + " = " + id;
-      }
     }
 
     final static class Parties extends Objects {
@@ -108,10 +104,6 @@ final class Database {
         final String name = cursor.getString(Tables.Parties.Fields.name.ordinal());
         final int year = cursor.getInt(Tables.Parties.Fields.year.ordinal());
         return new Party(id, name, year);
-      }
-
-      static String getSelection(int id) {
-        return Fields._id + " = " + id;
       }
     }
 
@@ -146,10 +138,6 @@ final class Database {
         final String compo = cursor.getString(Tables.Tracks.Fields.compo.ordinal());
         final int partyplace = cursor.getInt(Tables.Tracks.Fields.partyplace.ordinal());
         return new Track(id, filename, title, votes, duration, year, compo, partyplace);
-      }
-      
-      static String getSelection(int id) {
-        return Fields._id + " = " + id;
       }
       
       static String getSelection(String subquery) {
@@ -236,11 +224,10 @@ final class Database {
     return timestamps.getLifetime(Tables.Tracks.NAME, ttl);
   }
   
-  final boolean queryAuthors(Integer id, Catalog.AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors(id=%s)", id);
+  final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
+    Log.d(TAG, "queryAuthors()");
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = id != null ? Tables.Authors.getSelection(id) : null;
-    final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
+    final Cursor cursor = db.query(Tables.Authors.NAME, null, null, null, null, null, null);
     try {
       final int count = cursor.getCount();
       if (count != 0) {
@@ -260,11 +247,10 @@ final class Database {
     authors.add(obj);
   }
 
-  final boolean queryParties(Integer id, Catalog.PartiesVisitor visitor) {
-    Log.d(TAG, "queryParties(id=%s)", id);
+  final boolean queryParties(Catalog.PartiesVisitor visitor) {
+    Log.d(TAG, "queryParties()");
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = id != null ? Tables.Parties.getSelection(id) : null;
-    final Cursor cursor = db.query(Tables.Parties.NAME, null, selection, null, null, null, null);
+    final Cursor cursor = db.query(Tables.Parties.NAME, null, null, null, null, null, null);
     try {
       final int count = cursor.getCount();
       if (count != 0) {
@@ -282,11 +268,6 @@ final class Database {
 
   final void addParty(Party obj) {
     parties.add(obj);
-  }
-  
-  final boolean queryTrack(int id, Catalog.TracksVisitor visitor) {
-    final String selection = Tables.Tracks.getSelection(id);
-    return queryTracks(selection, visitor);
   }
   
   final boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {

@@ -47,7 +47,7 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthors(final Integer id, final AuthorsVisitor visitor) throws IOException {
+  public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
     Utils.executeQueryCommand(new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -61,20 +61,19 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        return db.queryAuthors(id, visitor);
+        return db.queryAuthors(visitor);
       }
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Authors cache is empty/expired for id=%s", id);
-        //query all
-        remote.queryAuthors(null, new CachingAuthorsVisitor());
+        Log.d(TAG, "Authors cache is empty/expired");
+        remote.queryAuthors(new CachingAuthorsVisitor());
       }
     });
   }
 
   @Override
-  public void queryAuthorTracks(final Author author, final Integer id, final TracksVisitor visitor)
+  public void queryAuthorTracks(final Author author, final TracksVisitor visitor)
       throws IOException {
     Utils.executeQueryCommand(new QueryCommand() {
       @Override
@@ -89,22 +88,19 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        return id != null
-            ? db.queryTrack(id, visitor)
-            : db.queryAuthorTracks(author, visitor);
+        return db.queryAuthorTracks(author, visitor);
       }
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Tracks cache is empty/expired for id=%s author=%d", id, author.id);
-        //query all
-        remote.queryAuthorTracks(author, null, new CachingTracksVisitor(author));
+        Log.d(TAG, "Tracks cache is empty/expired for author=%d", author.id);
+        remote.queryAuthorTracks(author, new CachingTracksVisitor(author));
       }
     });
   }
 
   @Override
-  public void queryParties(final Integer id, final PartiesVisitor visitor) throws IOException {
+  public void queryParties(final PartiesVisitor visitor) throws IOException {
     Utils.executeQueryCommand(new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -118,20 +114,19 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        return db.queryParties(id, visitor);
+        return db.queryParties(visitor);
       }
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Parties cache is empty/expired for id=%s", id);
-        //query all
-        remote.queryParties(null, new CachingPartiesVisitor());
+        Log.d(TAG, "Parties cache is empty/expired");
+        remote.queryParties(new CachingPartiesVisitor());
       }
     });
   }
 
   @Override
-  public void queryPartyTracks(final Party party, final Integer id, final TracksVisitor visitor)
+  public void queryPartyTracks(final Party party, final TracksVisitor visitor)
       throws IOException {
     Utils.executeQueryCommand(new QueryCommand() {
       @Override
@@ -146,22 +141,19 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        return id != null
-            ? db.queryTrack(id, visitor)
-            : db.queryPartyTracks(party, visitor);
+        return db.queryPartyTracks(party, visitor);
       }
 
       @Override
       public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Tracks cache is empty/expired for id=%s party=%d", id, party.id);
-        //query all
-        remote.queryPartyTracks(party, null, new CachingTracksVisitor(party));
+        Log.d(TAG, "Tracks cache is empty/expired for party=%d", party.id);
+        remote.queryPartyTracks(party, new CachingTracksVisitor(party));
       }
     });
   }
 
   @Override
-  public void queryTopTracks(final int limit, final Integer id, final TracksVisitor visitor) throws IOException {
+  public void queryTopTracks(final int limit, final TracksVisitor visitor) throws IOException {
     Utils.executeQueryCommand(new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -175,16 +167,13 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        return id != null
-          ? db.queryTrack(id, visitor)
-          : db.queryTopTracks(limit, visitor);
+        return db.queryTopTracks(limit, visitor);
       }
 
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Top tracks cache is empty/expired");
-        //query all
-        remote.queryTopTracks(limit, null, new CachingTracksVisitor());
+        remote.queryTopTracks(limit, new CachingTracksVisitor());
       }
     });
   }
