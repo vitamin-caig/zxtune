@@ -10,11 +10,14 @@
 
 package app.zxtune.ui.browser;
 
+import java.io.IOException;
+
 import android.content.Context;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
 import app.zxtune.Log;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsIterator;
 
@@ -52,11 +55,13 @@ public class SearchingLoader extends AsyncTaskLoader<Void> {
   @Override
   public Void loadInBackground() {
     try {
-      for (final VfsIterator iter = new VfsIterator(new Uri[] {dir.getUri()}); iter.isValid(); iter.next()) {
-        signal.throwIfCanceled();
-        final VfsFile file = iter.getFile();
-        if (matchQuery(file.getName()) || matchQuery(file.getDescription())) {
-          cb.onFileFound(file);
+      if (!optimizedSearch()) {
+        for (final VfsIterator iter = new VfsIterator(new Uri[] {dir.getUri()}); iter.isValid(); iter.next()) {
+          signal.throwIfCanceled();
+          final VfsFile file = iter.getFile();
+          if (matchQuery(file.getName()) || matchQuery(file.getDescription())) {
+            cb.onFileFound(file);
+          }
         }
       }
     } catch (OperationCanceledException e) {
@@ -66,5 +71,24 @@ public class SearchingLoader extends AsyncTaskLoader<Void> {
 
   private boolean matchQuery(String txt) {
     return txt.toLowerCase().contains(query); 
+  }
+  
+  private boolean optimizedSearch() {
+    final VfsExtensions.SearchEngine engine = (VfsExtensions.SearchEngine) dir.getExtension(VfsExtensions.SEARCH_ENGINE);
+    if (engine == null) {
+      return false;
+    }
+    try {
+        engine.find(query, new VfsExtensions.SearchEngine.Visitor() {
+          @Override
+          public void onFile(VfsFile file) {
+            signal.throwIfCanceled();
+            cb.onFileFound(file);
+          }
+        });
+    } catch(IOException e) {
+      return false;
+    }
+    return true;
   }
 }
