@@ -15,22 +15,20 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import android.content.Context;
 import android.text.TextUtils;
 import app.zxtune.fs.VfsCache;
 
 class CachingCatalog extends Catalog {
 
-  private final static String TAG = CachingCatalog.class.getName();
-  private final static String CACHE_DIR_NAME = "joshw.info";
+  //private final static String TAG = CachingCatalog.class.getName();
   private final static String CACHE_HTML_FILE = File.separator + "index.html";
 
-  private final VfsCache cacheDir;
   private final Catalog remote;
+  private final VfsCache cacheDir;
   
-  public CachingCatalog(Context context, Catalog remote) {
-    this.cacheDir = VfsCache.create(context, CACHE_DIR_NAME);
+  public CachingCatalog(Catalog remote, VfsCache cacheDir) {
     this.remote = remote;
+    this.cacheDir = cacheDir;
   }
 
   @Override

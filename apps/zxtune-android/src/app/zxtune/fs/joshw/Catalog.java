@@ -16,6 +16,7 @@ import java.util.List;
 
 import android.content.Context;
 import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.VfsCache;
 
 public abstract class Catalog {
   
@@ -49,6 +50,7 @@ public abstract class Catalog {
   
   public static Catalog create(Context context, HttpProvider http) {
     final Catalog remote = new RemoteCatalog(http);
-    return new CachingCatalog(context, remote);
+    final VfsCache cacheDir = VfsCache.create(context, "joshw.info");
+    return new CachingCatalog(remote, cacheDir);
   }
 }

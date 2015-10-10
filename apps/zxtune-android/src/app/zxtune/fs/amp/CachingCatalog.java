@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
-import android.content.Context;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
@@ -27,8 +26,6 @@ final class CachingCatalog extends Catalog {
 
   private final static String TAG = CachingCatalog.class.getName();
 
-  private final static String CACHE_DIR_NAME = "amp.dascene.net";
-
   private final TimeStamp GROUPS_TTL = days(30);
   private final TimeStamp AUTHORS_TTL = days(30);
   private final TimeStamp COUNTRIES_TTL = days(30);
@@ -38,14 +35,14 @@ final class CachingCatalog extends Catalog {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
   }
   
-  private final VfsCache cacheDir;
   private final Catalog remote;
   private final Database db;
+  private final VfsCache cacheDir;
 
-  public CachingCatalog(Context context, Catalog remote, Database db) {
-    this.cacheDir = VfsCache.create(context, CACHE_DIR_NAME); 
+  public CachingCatalog(Catalog remote, Database db, VfsCache cacheDir) {
     this.remote = remote;
     this.db = db;
+    this.cacheDir = cacheDir; 
   }
 
   @Override

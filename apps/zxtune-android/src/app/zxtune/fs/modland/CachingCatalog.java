@@ -27,8 +27,6 @@ final class CachingCatalog extends Catalog {
 
   private final static String TAG = CachingCatalog.class.getName();
 
-  private final static String CACHE_DIR_NAME = "ftp.modland.com";
-
   private final TimeStamp GROUPS_TTL = days(30);
   private final TimeStamp GROUP_TRACKS_TTL = days(14);
 
@@ -36,20 +34,20 @@ final class CachingCatalog extends Catalog {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
   }
   
-  private final VfsCache cacheDir;
   private final Catalog remote;
+  private final Database db;
+  private final VfsCache cacheDir;
   private final Grouping authors;
   private final Grouping collections;
   private final Grouping formats;
-  private final Database db;
 
-  public CachingCatalog(Context context, Catalog remote, Database db) {
-    this.cacheDir = VfsCache.create(context, CACHE_DIR_NAME); 
+  public CachingCatalog(Catalog remote, Database db, VfsCache cacheDir) {
     this.remote = remote;
+    this.db = db;
+    this.cacheDir = cacheDir; 
     this.authors = new CachedGrouping(Database.Tables.Authors.NAME, remote.getAuthors());
     this.collections = new CachedGrouping(Database.Tables.Collections.NAME, remote.getCollections());
     this.formats = new CachedGrouping(Database.Tables.Formats.NAME, remote.getFormats());
-    this.db = db;
   }
 
   @Override

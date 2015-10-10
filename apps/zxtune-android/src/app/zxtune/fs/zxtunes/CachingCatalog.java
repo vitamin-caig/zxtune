@@ -27,18 +27,16 @@ final class CachingCatalog extends Catalog {
   
   private final static String TAG = CachingCatalog.class.getName();
   
-  private final static String CACHE_DIR_NAME = "www.zxtunes.com";
-
   private final TimeStamp AUTHORS_TTL = TimeStamp.createFrom(30, TimeUnit.DAYS);
   
-  private final VfsCache cacheDir;
   private final Catalog remote;
   private final Database db;
+  private final VfsCache cacheDir;
   
-  public CachingCatalog(Context context, Catalog remote, Database db) {
-    this.cacheDir = VfsCache.create(context, CACHE_DIR_NAME);
+  public CachingCatalog(Catalog remote, Database db, VfsCache cacheDir) {
     this.remote = remote;
     this.db = db;
+    this.cacheDir = cacheDir;
   }
   
   @Override

@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 
 import android.content.Context;
 import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.VfsCache;
 
 public abstract class Catalog {
   
@@ -86,8 +87,9 @@ public abstract class Catalog {
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
 
   public static Catalog create(Context context, HttpProvider http) {
-    final Database db = new Database(context);
     final Catalog remote = new RemoteCatalog(http);
-    return new CachingCatalog(context, remote, db);
+    final Database db = new Database(context);
+    final VfsCache cacheDir = VfsCache.create(context, "amp.dascene.net");
+    return new CachingCatalog(remote, db, cacheDir);
   }
 }
