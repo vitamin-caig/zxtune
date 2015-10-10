@@ -94,13 +94,17 @@ final class Database {
       final void add(Track obj) {
         add(obj.id, obj.filename, obj.title, obj.duration, obj.date);
       }
-      
+
       private static Track createTrack(Cursor cursor) {
-        final int id = cursor.getInt(Tables.Tracks.Fields._id.ordinal());
-        final String filename = cursor.getString(Tables.Tracks.Fields.filename.ordinal());
-        final String title = cursor.getString(Tables.Tracks.Fields.title.ordinal());
-        final int duration = cursor.getInt(Tables.Tracks.Fields.duration.ordinal());
-        final int date = cursor.getInt(Tables.Tracks.Fields.date.ordinal());
+        return createTrack(cursor, 0);
+      }
+      
+      private static Track createTrack(Cursor cursor, int fieldOffset) {
+        final int id = cursor.getInt(fieldOffset + Tables.Tracks.Fields._id.ordinal());
+        final String filename = cursor.getString(fieldOffset + Tables.Tracks.Fields.filename.ordinal());
+        final String title = cursor.getString(fieldOffset + Tables.Tracks.Fields.title.ordinal());
+        final int duration = cursor.getInt(fieldOffset + Tables.Tracks.Fields.duration.ordinal());
+        final int date = cursor.getInt(fieldOffset + Tables.Tracks.Fields.date.ordinal());
         return new Track(id, filename, title, duration, date);
       }
       
@@ -133,6 +137,7 @@ final class Database {
   private final Tables.AuthorsTracks authorsTracks;
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
+  private final String findQuery;
 
   Database(Context context) {
     this.helper = Helper.create(context);
@@ -140,12 +145,16 @@ final class Database {
     this.authorsTracks = new Tables.AuthorsTracks(helper);
     this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
+    this.findQuery = "SELECT * " +
+        "FROM authors LEFT OUTER JOIN tracks ON " +
+        "tracks." + Tables.Tracks.getSelection(authorsTracks.getIdsSelection("authors._id")) +
+        " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
   }
 
   final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
-
+  
   final Timestamps.Lifetime getAuthorsLifetime(TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Authors.NAME, ttl);
   }
@@ -199,6 +208,25 @@ final class Database {
       cursor.close();
     }
     return false;
+  }
+  
+  final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
+    Log.d(TAG, "findTracks(query=%s)", query);
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final Cursor cursor = db.rawQuery(findQuery, new String[] {query});
+    try {
+      final int count = cursor.getCount();
+      if (count != 0) {
+        visitor.setCountHint(count);
+        while (cursor.moveToNext()) {
+          final Author author = Tables.Authors.createAuthor(cursor);
+          final Track track = Tables.Tracks.createTrack(cursor, Tables.Authors.Fields.values().length);
+          visitor.accept(author, track);
+        }
+      }
+    } finally {
+      cursor.close();
+    }
   }
 
   final void addTrack(Track obj) {

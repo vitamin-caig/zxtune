@@ -67,6 +67,16 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
+  public boolean searchSupported() {
+    return http.hasConnection();
+  }
+  
+  @Override
+  public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
+    throw new IOException("Search is not supported on remote side");
+  }
+  
+  @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     try {
       final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);

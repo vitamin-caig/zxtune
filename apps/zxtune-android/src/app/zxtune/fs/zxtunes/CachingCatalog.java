@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
-import android.content.Context;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
@@ -22,6 +21,7 @@ import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
+import app.zxtune.fs.zxtunes.Catalog.FoundTracksVisitor;
 
 final class CachingCatalog extends Catalog {
   
@@ -91,6 +91,23 @@ final class CachingCatalog extends Catalog {
     });
   }
   
+  @Override
+  public boolean searchSupported() {
+    //TODO: rework logic to more clear
+    if (remote.searchSupported()) {
+      //network is available, so direct scanning may be more comprehensive
+      //TODO: check out if all the cache is not expired
+      Log.d(TAG, "Disable fast search due to enabled network");
+      return false;
+    }
+    return true;
+  }
+  
+  @Override
+  public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
+    //TODO: query also remote catalog when search will be enabled
+    db.findTracks(query, visitor);
+  }
   
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {

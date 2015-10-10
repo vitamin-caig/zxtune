@@ -67,6 +67,9 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   public Object getExtension(String id) {
     if (VfsExtensions.ICON_RESOURCE.equals(id)) {
       return R.drawable.ic_browser_vfs_zxtunes;
+    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      //assume root will search by authors
+      return new AuthorsSearchEngine();
     } else {
       return super.getExtension(id);
     }
@@ -135,6 +138,15 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       return VfsRootZxtunes.this;
     }
 
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+        return new AuthorsSearchEngine();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+    
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(new Catalog.AuthorsVisitor() {
@@ -351,6 +363,21 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       final Author author = Identifier.findAuthor(uri, uri.getPathSegments());
       return String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.id,
           module.id);
+    }
+  }
+
+  private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
+    
+    @Override
+    public void find(String query, final Visitor visitor) throws IOException {
+      catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
+        
+        @Override
+        public void accept(Author author, Track track) {
+          final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), track).build();
+          visitor.onFile(new TrackFile(uri, track));
+        }
+      });
     }
   }
 }

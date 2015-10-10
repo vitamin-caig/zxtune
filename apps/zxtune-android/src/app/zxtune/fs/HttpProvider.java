@@ -134,7 +134,7 @@ public class HttpProvider {
     }
   }
 
-  private boolean hasConnection() {
+  public final boolean hasConnection() {
     final ConnectivityManager mgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
     final NetworkInfo info = mgr.getActiveNetworkInfo();
     return info != null && info.isConnected();
