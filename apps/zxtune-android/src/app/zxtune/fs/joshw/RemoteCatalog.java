@@ -18,13 +18,12 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.content.Context;
 import android.text.TextUtils;
 import app.zxtune.fs.HttpProvider;
 
 class RemoteCatalog extends Catalog {
   
-  private static final String TAG = RemoteCatalog.class.getName();
+  //private static final String TAG = RemoteCatalog.class.getName();
   private static final String STORAGE_FORMAT = "http://%s.joshw.info/%s";
   private static final byte[] HTML_SIGNATURE = {'<', '!', 'D', 'O', 'C', 'T', 'Y', 'P', 'E'};
   private static final String DIR_MARKUP = "DIR";
@@ -41,8 +40,8 @@ class RemoteCatalog extends Catalog {
   
   private final HttpProvider http;
 
-  public RemoteCatalog(Context context) {
-    this.http = new HttpProvider(context);
+  public RemoteCatalog(HttpProvider http) {
+    this.http = http;
   }
 
   @Override

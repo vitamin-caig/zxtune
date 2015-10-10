@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import android.content.Context;
+import app.zxtune.fs.HttpProvider;
 
 public abstract class Catalog {
   
@@ -46,8 +47,8 @@ public abstract class Catalog {
    */
   public abstract void parseDir(ByteBuffer data, DirVisitor visitor) throws IOException;
   
-  public static Catalog create(Context context) {
-    final Catalog remote = new RemoteCatalog(context);
+  public static Catalog create(Context context, HttpProvider http) {
+    final Catalog remote = new RemoteCatalog(http);
     return new CachingCatalog(context, remote);
   }
 }

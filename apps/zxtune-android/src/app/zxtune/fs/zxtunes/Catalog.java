@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import android.content.Context;
+import app.zxtune.fs.HttpProvider;
 
 public abstract class Catalog {
   
@@ -46,9 +47,9 @@ public abstract class Catalog {
   
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
   
-  public static Catalog create(Context context) {
+  public static Catalog create(Context context, HttpProvider http) {
     final Database db = new Database(context);
-    final Catalog remote = new RemoteCatalog(context);
+    final Catalog remote = new RemoteCatalog(http);
     return new CachingCatalog(context, remote, db);
   }
 }

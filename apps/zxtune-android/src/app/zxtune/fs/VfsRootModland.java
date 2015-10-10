@@ -73,9 +73,9 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupsDir groups[];
 
-  VfsRootModland(Context context) {
+  VfsRootModland(Context context, HttpProvider http) {
     this.context = context;
-    this.catalog = Catalog.create(context);
+    this.catalog = Catalog.create(context, http);
     this.groups = new GroupsDir[] {
       new GroupsDir("Authors",
         R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,

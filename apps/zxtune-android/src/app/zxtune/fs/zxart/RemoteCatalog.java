@@ -19,7 +19,6 @@ import java.util.Locale;
 
 import org.xml.sax.SAXException;
 
-import android.content.Context;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
@@ -43,7 +42,7 @@ final class RemoteCatalog extends Catalog {
   private static final String LIMIT = "/limit:%d";
   private static final String AUTHOR_ID = "/authorId:%d";
   private static final String PARTY_ID = "/partyId:%d";
-  private static final String TRACK_ID = "/tuneId:%d";
+  //private static final String TRACK_ID = "/tuneId:%d";
   private static final String ALL_TRACKS_QUERY = API + ACTION_TRACKS;
   private static final String DOWNLOAD_QUERY = SITE + "/file/id:%d";
   private static final String ALL_AUTHORS_QUERY = API + ACTION_AUTHORS;
@@ -54,8 +53,8 @@ final class RemoteCatalog extends Catalog {
 
   private final HttpProvider http;
 
-  public RemoteCatalog(Context context) {
-    this.http = new HttpProvider(context);
+  public RemoteCatalog(HttpProvider http) {
+    this.http = http;
   }
 
   @Override

@@ -36,9 +36,9 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupingDir groups[];
 
-  public VfsRootZxart(Context context) {
+  public VfsRootZxart(Context context, HttpProvider http) {
     this.context = context;
-    this.catalog = Catalog.create(context);
+    this.catalog = Catalog.create(context, http);
     this.groups = new GroupingDir[] {
         new AuthorsDir(),
         new PartiesDir(),

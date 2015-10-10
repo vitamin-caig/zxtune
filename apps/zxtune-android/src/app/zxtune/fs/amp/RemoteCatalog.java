@@ -16,7 +16,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.content.Context;
 import android.text.Html;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
@@ -79,8 +78,8 @@ class RemoteCatalog extends Catalog {
 
   private final HttpProvider http;
 
-  RemoteCatalog(Context context) {
-    this.http = new HttpProvider(context);
+  RemoteCatalog(HttpProvider http) {
+    this.http = http;
   }
 
   private static String decodeHtml(String txt) {

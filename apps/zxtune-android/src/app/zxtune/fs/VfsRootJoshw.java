@@ -43,9 +43,9 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final AudiobaseDir bases[];
 
-  VfsRootJoshw(Context context) {
+  VfsRootJoshw(Context context, HttpProvider http) {
     this.context = context;
-    this.catalog = Catalog.create(context);
+    this.catalog = Catalog.create(context, http);
     this.bases = new AudiobaseDir[] {
       new AudiobaseDir("gbs", R.string.vfs_joshw_gbs_name, R.string.vfs_joshw_gbs_description),
       new AudiobaseDir("hes", R.string.vfs_joshw_hes_name, R.string.vfs_joshw_hes_description),

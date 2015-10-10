@@ -10,10 +10,6 @@
 
 package app.zxtune.fs.modland;
 
-import android.content.Context;
-import android.net.Uri;
-import android.text.Html;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Locale;
@@ -21,6 +17,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.net.Uri;
+import android.text.Html;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
@@ -52,8 +50,8 @@ class RemoteCatalog extends Catalog {
   private final Grouping collections;
   private final Grouping formats;
 
-  RemoteCatalog(Context context) {
-    this.http = new HttpProvider(context);
+  RemoteCatalog(HttpProvider http) {
+    this.http = http;
     this.authors = new Authors();
     this.collections = new Collections();
     this.formats = new Formats();

@@ -20,7 +20,6 @@ import java.util.Locale;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import android.content.Context;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
@@ -45,8 +44,8 @@ final class RemoteCatalog extends Catalog {
 
   private final HttpProvider http;
 
-  public RemoteCatalog(Context context) {
-    this.http = new HttpProvider(context);
+  public RemoteCatalog(HttpProvider http) {
+    this.http = http;
   }
 
   @Override

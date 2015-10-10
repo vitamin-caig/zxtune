@@ -16,7 +16,6 @@ import java.util.Locale;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.widget.Toast;
 import app.zxtune.Log;
 
 public final class Utils {

@@ -32,14 +32,15 @@ public final class Vfs {
     if (rootSingleton == null) {
       final VfsRootComposite composite = new VfsRootComposite();
       final Context appContext = MainApplication.getInstance();
+      final HttpProvider http = new HttpProvider(appContext);
       composite.addSubroot(new VfsRootLocal(appContext));
-      composite.addSubroot(new VfsRootZxtunes(appContext));
+      composite.addSubroot(new VfsRootZxtunes(appContext, http));
       composite.addSubroot(new VfsRootPlaylists(appContext));
-      composite.addSubroot(new VfsRootModland(appContext));
-      composite.addSubroot(new VfsRootHvsc(appContext));
-      composite.addSubroot(new VfsRootZxart(appContext));
-      composite.addSubroot(new VfsRootJoshw(appContext));
-      composite.addSubroot(new VfsRootAmp(appContext));
+      composite.addSubroot(new VfsRootModland(appContext, http));
+      composite.addSubroot(new VfsRootHvsc(appContext, http));
+      composite.addSubroot(new VfsRootZxart(appContext, http));
+      composite.addSubroot(new VfsRootJoshw(appContext, http));
+      composite.addSubroot(new VfsRootAmp(appContext, http));
       rootSingleton = composite;
     }
     return rootSingleton;
