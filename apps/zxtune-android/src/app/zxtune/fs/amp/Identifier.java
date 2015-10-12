@@ -73,14 +73,16 @@ public class Identifier {
     return forCategory(CATEGORY_HANDLE).appendPath(letter);
   }
   
+  public static boolean isHandleLetter(String letter) {
+    return letter.length() == 1 && 
+        Character.isLetter(letter.charAt(0)) && 
+        Character.isUpperCase(letter.charAt(0));
+  }
+  
   public static String findHandleLetter(Uri uri, List<String> path) {
     if (path.size() > POS_HANDLE_LETTER) {
       final String letter = path.get(POS_HANDLE_LETTER);
-      if (letter.equals(Catalog.NON_LETTER_FILTER)) {
-        return letter;
-      } else if (letter.length() == 1 && 
-          Character.isLetter(letter.charAt(0)) && 
-          Character.isUpperCase(letter.charAt(0))) {
+      if (letter.equals(Catalog.NON_LETTER_FILTER) || isHandleLetter(letter)) {
         return letter;
       }
     }

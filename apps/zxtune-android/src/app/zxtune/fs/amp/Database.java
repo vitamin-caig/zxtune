@@ -107,9 +107,13 @@ final class Database {
       }
       
       static Track createTrack(Cursor cursor) {
-        final int id = cursor.getInt(Fields._id.ordinal());
-        final String filename = cursor.getString(Fields.filename.ordinal());
-        final int size = cursor.getInt(Fields.size.ordinal());
+        return createTrack(cursor, 0);
+      }
+      
+      static Track createTrack(Cursor cursor, int fieldOffset) {
+        final int id = cursor.getInt(fieldOffset + Fields._id.ordinal());
+        final String filename = cursor.getString(fieldOffset + Fields.filename.ordinal());
+        final int size = cursor.getInt(fieldOffset + Fields.size.ordinal());
         return new Track(id, filename, size);
       }
 
@@ -210,6 +214,7 @@ final class Database {
   private final Tables.AuthorTracks authorTracks;
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
+  private final String findQuery;
 
   Database(Context context) {
     this.helper = Helper.create(context);
@@ -220,6 +225,10 @@ final class Database {
     this.authorTracks = new Tables.AuthorTracks(helper);
     this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
+    this.findQuery = "SELECT * " +
+        "FROM authors LEFT OUTER JOIN tracks ON " +
+        "tracks." + Tables.Tracks.getSelection(authorTracks.getIdsSelection("authors._id")) +
+        " WHERE tracks.filename LIKE '%' || ? || '%'";
   }
 
   final Transaction startTransaction() {
@@ -324,6 +333,25 @@ final class Database {
       cursor.close();
     }
     return false;
+  }
+  
+  final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
+    Log.d(TAG, "findTracks(query=%s)", query);
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final Cursor cursor = db.rawQuery(findQuery, new String[] {query});
+    try {
+      final int count = cursor.getCount();
+      if (count != 0) {
+        visitor.setCountHint(count);
+        while (cursor.moveToNext()) {
+          final Author author = Tables.Authors.createAuthor(cursor);
+          final Track track = Tables.Tracks.createTrack(cursor, Tables.Authors.Fields.values().length);
+          visitor.accept(author, track);
+        }
+      }
+    } finally {
+      cursor.close();
+    }
   }
   
   final void addCountryAuthor(Country country, Author author) {

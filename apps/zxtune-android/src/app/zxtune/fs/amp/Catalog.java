@@ -37,6 +37,13 @@ public abstract class Catalog {
     public abstract void accept(Track obj);
   }
   
+  public static abstract class FoundTracksVisitor {
+    
+    public void setCountHint(int size) {}
+    
+    public abstract void accept(Author author, Track track);
+  }
+  
   public static final String NON_LETTER_FILTER = "0-9";
 
   /**
@@ -77,6 +84,19 @@ public abstract class Catalog {
    * @throws IOException
    */
   public abstract void queryTracks(Author author, TracksVisitor visitor) throws IOException;
+  
+  /**
+   * Checks whether tracks can be found directly from catalogue instead of scanning
+   */
+  public abstract boolean searchSupported();
+  
+  /**
+   * Find tracks by query substring
+   * @param query string to search in filename/title
+   * @param visitor result receiver
+   * @throws IOException
+   */
+  public abstract void findTracks(String query, FoundTracksVisitor visitor) throws IOException;
   
   /**
    * Get track file content

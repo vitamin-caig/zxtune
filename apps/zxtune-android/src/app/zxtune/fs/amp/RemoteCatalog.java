@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.net.Uri;
 import android.text.Html;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
@@ -41,6 +42,9 @@ import app.zxtune.fs.HttpProvider;
  *   
  * list all:
  *   http://amp.dascene.net/newresult.php?request=groups
+ *   
+ * Search:
+ *   http://amp.dascene.net/newresult.php?request=module&search=${whatever}
  */
 
 class RemoteCatalog extends Catalog {
@@ -56,6 +60,7 @@ class RemoteCatalog extends Catalog {
   //private final static String AUTHOR_URI_FORMAT = SITE + "detail.php?view=%d";
   private final static String AUTHOR_TRACKS_URI_FORMAT = SITE + "detail.php?detail=modules&view=%d";
   private final static String TRACK_URI_FORMAT = SITE + "downmod.php?index=%d";
+  private final static String FIND_TRACK_URI_FORMAT = SITE + "newresult.php?request=module&search=%s";
 
   private final static Pattern PAGINATOR =
     Pattern.compile("<caption>.+?" +
@@ -64,17 +69,29 @@ class RemoteCatalog extends Catalog {
                     "</caption>", Pattern.DOTALL);
   private final static Pattern GROUPS =
     Pattern.compile("<a href=.newresult.php.request=groupid.search=([0-9]+).>(.+?)</a>", Pattern.DOTALL);
+  
+  private final static String AUTHOR_ANCHOR = "<a href=.detail.php.view=([0-9]+).+?>(.+?)</a>.+?";
+  
   private final static Pattern AUTHORS = 
-    Pattern.compile("Handle:.+?<a href=.detail.php.view=([0-9]+).+?>(.+?)</a>.+?" +
+    Pattern.compile("Handle:.+?" + AUTHOR_ANCHOR +
                     "Real Name:.+?<td>(.+?)</td>", Pattern.DOTALL);
   /*
   private final static Pattern AUTHOR =
       Pattern.compile("Handle:.+?<td>(.+?)\\s+?</td>.+?" +
           "Real.+?Name:.+?<td>(.+?)\\s+?</td>", Pattern.DOTALL);
   */
+  
+  private final static String TRACK_ANCHOR = "<a href=.downmod.php.index=([0-9]+).+?>(.+?)</a>.+?";
+  private final static String TRACK_SIZE = "<td>([0-9]+)Kb</td>"; 
+  
   private final static Pattern TRACKS =
-    Pattern.compile("<a href=.downmod.php.index=([0-9]+).+?>(.+?)</a>.+?" +
-                    "<td>([0-9]+)Kb</td>", Pattern.DOTALL);
+    Pattern.compile(TRACK_ANCHOR +
+                    TRACK_SIZE, Pattern.DOTALL);
+  
+  private final static Pattern FOUND_TRACKS =
+    Pattern.compile(TRACK_ANCHOR +
+                    AUTHOR_ANCHOR +
+                    TRACK_SIZE, Pattern.DOTALL);
 
   private final HttpProvider http;
 
@@ -148,6 +165,35 @@ class RemoteCatalog extends Catalog {
     }
   }
 
+  @Override
+  public boolean searchSupported() {
+    return http.hasConnection();
+  }
+  
+  @Override
+  public void findTracks(String query, final FoundTracksVisitor visitor) throws IOException {
+    final String uri = String.format(Locale.US, FIND_TRACK_URI_FORMAT, Uri.encode(query));
+    loadPages(uri, new PagesVisitor() {
+      @Override
+      public boolean onPage(CharSequence content) {
+        parseFoundTracks(content, visitor);
+        return true;
+      }
+    });
+  }
+  
+  private void parseFoundTracks(CharSequence content, FoundTracksVisitor visitor) {
+    final Matcher matcher = FOUND_TRACKS.matcher(content);
+    while (matcher.find()) {
+      final Integer trackId = Integer.valueOf(matcher.group(1));
+      final String trackName = decodeHtml(matcher.group(2));
+      final Integer authorId = Integer.valueOf(matcher.group(3));
+      final String authorHandle = decodeHtml(matcher.group(4));
+      final Integer size = Integer.valueOf(matcher.group(5));
+      visitor.accept(new Author(authorId, authorHandle, ""/*realName*/), new Track(trackId, trackName, size));
+    }
+  }
+  
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     final String uri = String.format(Locale.US, TRACK_URI_FORMAT, id);

@@ -69,6 +69,9 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   public Object getExtension(String id) {
     if (VfsExtensions.ICON_RESOURCE.equals(id)) {
       return R.drawable.ic_browser_vfs_amp;
+    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      //assume root will search by authors
+      return new AuthorsSearchEngine();
     } else {
       return super.getExtension(id);
     }
@@ -144,6 +147,16 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
       return Identifier.forCategory(getPath()).build();
     }
 
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+        //assume all the groups will search by authors
+        return new AuthorsSearchEngine();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+    
     abstract String getPath();
   };
 
@@ -477,6 +490,25 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(track.id);
+    }
+  }
+
+  private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
+    
+    @Override
+    public void find(String query, final Visitor visitor) throws IOException {
+      catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
+        
+        @Override
+        public void accept(Author author, Track track) {
+          final String letter = author.handle.substring(0, 1);
+          final Uri.Builder categoryUri = Identifier.forHandleLetter(Identifier.isHandleLetter(letter)
+              ? letter : Catalog.NON_LETTER_FILTER);
+          final Uri.Builder authorsUri = Identifier.forAuthor(categoryUri, author);
+          final Uri.Builder trackUri = Identifier.forTrack(authorsUri, track);
+          visitor.onFile(new TrackFile(trackUri.build(), track));
+        }
+      });
     }
   }
 }

@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.amp.Catalog.FoundTracksVisitor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
@@ -177,6 +178,22 @@ final class CachingCatalog extends Catalog {
         remote.queryTracks(author, new CachingTracksVisitor(author));
       }
     });
+  }
+  
+  @Override
+  public boolean searchSupported() {
+    return true;
+  }
+  
+  @Override
+  public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
+    if (remote.searchSupported()) {
+      Log.d(TAG, "Use remote-side search");
+      remote.findTracks(query, visitor);
+    } else {
+      Log.d(TAG, "Use local search");
+      db.findTracks(query, visitor);
+    }
   }
   
   @Override
