@@ -53,6 +53,7 @@ sub convert_menu_icon
 #convert({source => 'restorer/next.svg', target => 'ic_next.png', category => 'icon'});
 #convert({source => 'restorer/prev.svg', target => 'ic_prev.png', category => 'icon'});
 #convert({source => 'restorer/pause.svg', target => 'ic_pause.png', category => 'icon'});
+convert({source => 'restorer/stop.svg', target => 'ic_stop.png', category => 'icon'});
 #convert({source => 'restorer/folder.svg', target => 'ic_browser_folder.png', category => 'icon'});
 
 #convert({source => 'status.svg', target => 'ic_stat_notify_play.png', category => 'status'});
@@ -64,7 +65,7 @@ sub convert_menu_icon
 #convert({source => 'vfs_hvsc.svg', target => 'ic_browser_vfs_hvsc.png', category => 'icon'});
 #convert({source => 'vfs_zxart.svg', target => 'ic_browser_vfs_zxart.png', category => 'icon'});
 #convert({source => 'vfs_joshw.svg', target => 'ic_browser_vfs_joshw.png', category => 'icon'});
-convert({source => 'vfs_amp.svg', target => 'ic_browser_vfs_amp.png', category => 'icon'});
+#convert({source => 'vfs_amp.svg', target => 'ic_browser_vfs_amp.png', category => 'icon'});
 #convert({source => 'drag_handler.svg', target => 'ic_drag_handler.png', category => 'icon'});
 #convert({source => 'status.svg', target => 'ic_playing.png', category => 'icon'});
 

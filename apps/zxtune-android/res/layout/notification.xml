@@ -6,14 +6,6 @@
   android:orientation="horizontal"
   android:gravity="center_horizontal"
   >
-  <ImageButton
-    android:id="@+id/notification_ctrl_prev"
-    android:src="@drawable/ic_prev"
-    android:layout_weight="0"
-    android:layout_width="wrap_content"
-    android:layout_height="match_parent"
-    style="?android:attr/borderlessButtonStyle" 
-    />
   <LinearLayout
     android:layout_weight="1"
     android:layout_width="wrap_content"
@@ -36,6 +28,14 @@
       style="@style/text_aux"
       />
   </LinearLayout>
+  <ImageButton
+    android:id="@+id/notification_ctrl_stop"
+    android:src="@drawable/ic_stop"
+    android:layout_weight="0"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    style="?android:attr/borderlessButtonStyle" 
+    />
   <ImageButton
     android:id="@+id/notification_ctrl_next"
     android:src="@drawable/ic_next"

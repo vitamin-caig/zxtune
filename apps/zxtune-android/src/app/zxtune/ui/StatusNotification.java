@@ -20,7 +20,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
-import app.zxtune.Identifier;
 import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
@@ -58,7 +57,7 @@ public class StatusNotification extends CallbackStub {
     this.content = new RemoteViews(service.getPackageName(), R.layout.notification);
     builder.setOngoing(true);
     builder.setContentIntent(createActivateIntent());
-    content.setOnClickPendingIntent(R.id.notification_ctrl_prev, createNavigatePrevIntent());
+    content.setOnClickPendingIntent(R.id.notification_ctrl_stop, createStopIntent());
     content.setOnClickPendingIntent(R.id.notification_ctrl_next, createNavigateNextIntent());
   }
   
@@ -68,8 +67,8 @@ public class StatusNotification extends CallbackStub {
     return PendingIntent.getActivity(service, 0, intent, 0);
   }
   
-  private PendingIntent createNavigatePrevIntent() {
-    return createServiceIntent(MainService.ACTION_PREV);
+  private PendingIntent createStopIntent() {
+    return createServiceIntent(MainService.ACTION_PAUSE);
   }
 
   private PendingIntent createNavigateNextIntent() {
