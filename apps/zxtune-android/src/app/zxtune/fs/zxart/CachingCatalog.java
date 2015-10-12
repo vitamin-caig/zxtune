@@ -27,7 +27,7 @@ final class CachingCatalog extends Catalog {
   private final static String TAG = CachingCatalog.class.getName();
 
   private final TimeStamp AUTHORS_TTL = days(7);
-  private final TimeStamp PARTIES_TTL = days(14);
+  private final TimeStamp PARTIES_TTL = days(7);
   private final TimeStamp TOP_TTL = days(1);
 
   private static TimeStamp days(int val) {
@@ -176,6 +176,21 @@ final class CachingCatalog extends Catalog {
     });
   }
 
+  @Override
+  public boolean searchSupported() {
+    return true;
+  }
+  
+  public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
+    if (remote.searchSupported()) {
+      Log.d(TAG, "Use remote-side search");
+      remote.findTracks(query, visitor);
+    } else {
+      Log.d(TAG, "Use local search");
+      db.findTracks(query, visitor);
+    }
+  }
+  
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     final String strId = Integer.toString(id);

@@ -127,16 +127,20 @@ final class Database {
       final void add(Track obj) {
         add(obj.id, obj.filename, obj.title, obj.votes, obj.duration, obj.year, obj.compo, obj.partyplace);
       }
-      
+
       static Track createTrack(Cursor cursor) {
-        final int id = cursor.getInt(Tables.Tracks.Fields._id.ordinal());
-        final String filename = cursor.getString(Tables.Tracks.Fields.filename.ordinal());
-        final String title = cursor.getString(Tables.Tracks.Fields.title.ordinal());
-        final String votes = cursor.getString(Tables.Tracks.Fields.votes.ordinal());
-        final String duration = cursor.getString(Tables.Tracks.Fields.duration.ordinal());
-        final int year = cursor.getInt(Tables.Tracks.Fields.year.ordinal());
-        final String compo = cursor.getString(Tables.Tracks.Fields.compo.ordinal());
-        final int partyplace = cursor.getInt(Tables.Tracks.Fields.partyplace.ordinal());
+        return createTrack(cursor, 0);
+      }
+      
+      static Track createTrack(Cursor cursor, int fieldOffset) {
+        final int id = cursor.getInt(fieldOffset + Tables.Tracks.Fields._id.ordinal());
+        final String filename = cursor.getString(fieldOffset + Tables.Tracks.Fields.filename.ordinal());
+        final String title = cursor.getString(fieldOffset + Tables.Tracks.Fields.title.ordinal());
+        final String votes = cursor.getString(fieldOffset + Tables.Tracks.Fields.votes.ordinal());
+        final String duration = cursor.getString(fieldOffset + Tables.Tracks.Fields.duration.ordinal());
+        final int year = cursor.getInt(fieldOffset + Tables.Tracks.Fields.year.ordinal());
+        final String compo = cursor.getString(fieldOffset + Tables.Tracks.Fields.compo.ordinal());
+        final int partyplace = cursor.getInt(fieldOffset + Tables.Tracks.Fields.partyplace.ordinal());
         return new Track(id, filename, title, votes, duration, year, compo, partyplace);
       }
       
@@ -189,6 +193,7 @@ final class Database {
   private final Tables.PartiesTracks partiesTracks;
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
+  private final String findQuery;
 
   Database(Context context) {
     this.helper = Helper.create(context);
@@ -198,6 +203,10 @@ final class Database {
     this.partiesTracks = new Tables.PartiesTracks(helper);
     this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
+    this.findQuery = "SELECT * " +
+        "FROM authors LEFT OUTER JOIN tracks ON " +
+        "tracks." + Tables.Tracks.getSelection(authorsTracks.getIdsSelection("authors._id")) +
+        " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
   }
 
   final Transaction startTransaction() {
@@ -307,6 +316,25 @@ final class Database {
       cursor.close();
     }
     return false;
+  }
+  
+  final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
+    Log.d(TAG, "findTracks(query=%s)", query);
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final Cursor cursor = db.rawQuery(findQuery, new String[] {query});
+    try {
+      final int count = cursor.getCount();
+      if (count != 0) {
+        visitor.setCountHint(count);
+        while (cursor.moveToNext()) {
+          final Author author = Tables.Authors.createAuthor(cursor);
+          final Track track = Tables.Tracks.createTrack(cursor, Tables.Authors.Fields.values().length);
+          visitor.accept(author, track);
+        }
+      }
+    } finally {
+      cursor.close();
+    }
   }
   
   final void addTrack(Track track) {

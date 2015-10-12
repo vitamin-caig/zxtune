@@ -19,6 +19,7 @@ import java.util.Locale;
 
 import org.xml.sax.SAXException;
 
+import android.net.Uri;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
@@ -39,6 +40,7 @@ final class RemoteCatalog extends Catalog {
   private static final String ACTION_PARTIES = "/action:parties";
   private static final String ACTION_TRACKS = "/action:tunes";
   private static final String ACTION_TOP = "/action:topTunes";
+  private static final String ACTION_SEARCH = "/action:search";
   private static final String LIMIT = "/limit:%d";
   private static final String AUTHOR_ID = "/authorId:%d";
   private static final String PARTY_ID = "/partyId:%d";
@@ -50,6 +52,7 @@ final class RemoteCatalog extends Catalog {
   private static final String ALL_PARTIES_QUERY = API + ACTION_PARTIES;
   private static final String PARTY_TRACKS_QUERY = ALL_TRACKS_QUERY + PARTY_ID;
   private static final String TOP_TRACKS_QUERY = API + ACTION_TOP + LIMIT;
+  private static final String FIND_TRACKS_QUERY = API + ACTION_SEARCH + "/query:%s";
 
   private final HttpProvider http;
 
@@ -92,6 +95,18 @@ final class RemoteCatalog extends Catalog {
     performQuery(connection, root);
   }
 
+  @Override
+  public boolean searchSupported() {
+    return http.hasConnection();
+  }
+  
+  public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
+    final String url = String.format(Locale.US, FIND_TRACKS_QUERY, Uri.encode(query));
+    final HttpURLConnection connection = http.connect(url);
+    final RootElement root = createModulesParserRoot(visitor);
+    performQuery(connection, root);
+  }
+  
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     try {
@@ -304,6 +319,40 @@ final class RemoteCatalog extends Catalog {
         }
       }
     });
+    bindXmlActions(item, builder);
+    return result;
+  }
+
+  //TODO: remove C&P
+  private static RootElement createModulesParserRoot(final FoundTracksVisitor visitor) {
+    final ModuleBuilder builder = new ModuleBuilder();
+    final RootElement result = createRootElement();
+    final Element data = result.getChild("responseData");
+    data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        final Integer count = asInt(body);
+        if (count != null) {
+          visitor.setCountHint(count);
+        }
+      }
+    });
+    final Element item = data.getChild("tunes").getChild("tune");
+    item.setEndElementListener(new EndElementListener() {
+      @Override
+      public void end() {
+        final Author author = builder.captureResultAuthor();
+        final Track result = builder.captureResult();
+        if (result != null && author != null) {
+          visitor.accept(author, result);
+        }
+      }
+    });
+    bindXmlActions(item, builder);
+    return result;
+  }
+  
+  private static void bindXmlActions(Element item, final ModuleBuilder builder) {
     item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
@@ -364,7 +413,12 @@ final class RemoteCatalog extends Catalog {
         builder.setPartyplace(body);
       }
     });
-    return result;
+    item.getChild("authors").getChild("id").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setAuthorId(body);
+      }
+    });
   }
 
   private static class ModuleBuilder {
@@ -379,6 +433,7 @@ final class RemoteCatalog extends Catalog {
     private int year;
     private String compo;
     private int partyplace;
+    private Integer authorId;
     
     ModuleBuilder() {
       reset();
@@ -434,6 +489,25 @@ final class RemoteCatalog extends Catalog {
         partyplace = 0;
       }
     }
+    
+    final void setAuthorId(String val) {
+      try {
+        authorId = Integer.valueOf(val);
+      } catch (NumberFormatException e) {
+        authorId = null;
+      }
+    }
+    
+    final Author captureResultAuthor() {
+      if (authorId != null) {
+        final String fakeName = "Author" + authorId;
+        final Author res = new Author(authorId, fakeName, "");
+        authorId = null;
+        return res;
+      } else {
+        return null;
+      }
+    }
 
     final Track captureResult() {
       title = Util.formatTrackTitle(internalAuthor, internalTitle, title);
@@ -449,6 +523,7 @@ final class RemoteCatalog extends Catalog {
       filename = null;
       year = partyplace = 0;
       votes = duration = title = internalAuthor = internalTitle = compo = "".intern();
+      authorId = null;
     }
     
     private boolean isValid() {
