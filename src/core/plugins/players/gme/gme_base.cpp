@@ -355,7 +355,18 @@ namespace GME
     }
     propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(PERIOD).Get());
 
-    return info.length > 0 ? Time::Milliseconds(info.length) : Time::Milliseconds();
+    if (info.length > 0)
+    {
+      return Time::Milliseconds(info.length);
+    }
+    else if (info.loop_length > 0)
+    {
+      return Time::Milliseconds(info.intro_length + info.loop_length);
+    }
+    else
+    {
+      Time::Milliseconds();
+    }
   }
   
   class MultitrackFactory : public Module::Factory
