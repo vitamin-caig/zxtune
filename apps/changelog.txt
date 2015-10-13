@@ -5,6 +5,17 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3480 from 13.10.2015
+
+[*] Fixed playback of some .ay files
+[*] Fixed looped VGM tracks length (BB#18)
+[*] Fixed SPC track author (BB#19)
+[+] zxtune-android: add browse by group functionality to http://amp.dascene.net catalogue
+[+] zxtune-android: enable server-side search for http://amp.dascene.net and http://zxart.ee online sources
+[*] zxtune-android: add stop playback button on notification area instead of play previous
+[*] zxtune-android: speed and memory usage optimizations
+[*] zxtune-android: fixed some crashes
+
 --- Rev3450 from 17.08.2015
 
 [+] Added Abyss' Highest Experience format support (AHX)
