@@ -19,58 +19,59 @@ namespace Module
   //! @name Built-in attributes
 
   //! %Module type attribute @see PluginInformation#Id
-  const std::string ATTR_TYPE("Type");
+  extern const std::string ATTR_TYPE;
   //! %Module title
-  const std::string ATTR_TITLE("Title");
+  extern const std::string ATTR_TITLE;
   //! %Module author
-  const std::string ATTR_AUTHOR("Author");
+  extern const std::string ATTR_AUTHOR;
   //! %Module program produced at
-  const std::string ATTR_PROGRAM("Program");
-  //! %Module computer (hardware platform)
-  const std::string ATTR_COMPUTER("Computer");
+  extern const std::string ATTR_PROGRAM;
+  //! %Module computer 
+  extern const std::string ATTR_COMPUTER;
   //! %Module creating date
-  const std::string ATTR_DATE("Date");
+  extern const std::string ATTR_DATE;
   //! %Module comment
-  const std::string ATTR_COMMENT("Comment");
+  extern const std::string ATTR_COMMENT;
   //! Internal format version 10 * major + minor
-  const std::string ATTR_VERSION("Version");
+  extern const std::string ATTR_VERSION;
   //@}
 
   //@{
   //! @name Storage-related attributes
 
   //! Raw module data crc32 checksum
-  const std::string ATTR_CRC("CRC");
-  //! Constant (without any headers) module data crc32 checksum
-  const std::string ATTR_FIXEDCRC("FixedCRC");
+  extern const std::string ATTR_CRC;
+  //! Constant  module data crc32 checksum
+  extern const std::string ATTR_FIXEDCRC;
   //! Raw module size in bytes
-  const std::string ATTR_SIZE("Size");
+  extern const std::string ATTR_SIZE;
   //@}
 
   //@{
   //! @name Named storage-related attributes
 
   //! %Module containers chain
-  const std::string ATTR_CONTAINER("Container");
+  extern const std::string ATTR_CONTAINER;
   //! %Module path in top-level data dump
-  const std::string ATTR_SUBPATH("Subpath");
+  extern const std::string ATTR_SUBPATH;
   //! Module's input data filename extension
-  const std::string ATTR_EXTENSION("Extension");
+  extern const std::string ATTR_EXTENSION;
   //! Module's input data filename
-  const std::string ATTR_FILENAME("Filename");
+  extern const std::string ATTR_FILENAME;
   //! Path of module's input data
-  const std::string ATTR_PATH("Path");
+  extern const std::string ATTR_PATH;
   //! Full path of module including path of input data and subpath
-  const std::string ATTR_FULLPATH("Fullpath");
+  extern const std::string ATTR_FULLPATH;
   //@}
 
   //@{
   //! @name Runtime attributes
 
   //! Current module position
-  const std::string ATTR_CURRENT_POSITION("CurPosition");
+  extern const std::string ATTR_CURRENT_POSITION;
   //! Current module pattern
-  const std::string ATTR_CURRENT_PATTERN("CurPattern");
+  extern const std::string ATTR_CURRENT_PATTERN;
   //! Current module line
-  const std::string ATTR_CURRENT_LINE("CurLine");
+  extern const std::string ATTR_CURRENT_LINE;
+  //@}
 }
