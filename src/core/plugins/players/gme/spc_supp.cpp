@@ -369,7 +369,7 @@ namespace SPC
     
     virtual void SetArtist(const String& artist)
     {
-      SetDumper(artist);
+      Properties.SetAuthor(Author = artist);
     }
     
     virtual void SetRAM(const void* /*data*/, std::size_t /*size*/)
