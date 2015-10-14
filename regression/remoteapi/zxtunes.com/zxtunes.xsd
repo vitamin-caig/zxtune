@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+<xsd:element name="zxtunes">
+  <xsd:complexType>
+    <xsd:choice>
+      <xsd:element name="authors" type="authorsList"/>
+      <xsd:element name="tracks" type="tracksList"/>
+    </xsd:choice>
+    <xsd:attribute name="version" type="xsd:integer"/>
+  </xsd:complexType>
+</xsd:element>
+
+<xsd:complexType name="authorsList"><xsd:sequence>
+  <xsd:element name="author" type="author" maxOccurs="unbounded"/>
+</xsd:sequence></xsd:complexType>
+
+<xsd:complexType name="author">
+  <xsd:all>
+    <xsd:element name="nickname" type="nonEmptyString"/>
+    <xsd:element name="name" type="nonEmptyString" minOccurs="0"/>
+    <xsd:element name="tracks" type="xsd:integer" minOccurs="0"/>
+  </xsd:all>
+  <xsd:attribute name="id" type="xsd:integer"/>
+</xsd:complexType>
+
+<xsd:complexType name="tracksList"><xsd:sequence>
+  <xsd:element name="track" type="track" maxOccurs="unbounded" minOccurs="0"/>
+</xsd:sequence></xsd:complexType>
+
+<xsd:complexType name="track">
+  <xsd:all>
+    <xsd:element name="filename" type="nonEmptyString"/>
+    <xsd:element name="date" type="xsd:integer" minOccurs="0"/>
+    <xsd:element name="title" type="nonEmptyString" minOccurs="0"/>
+    <xsd:element name="duration" type="xsd:integer" minOccurs="0"/>
+  </xsd:all>
+  <xsd:attribute name="id" type="xsd:integer"/>
+</xsd:complexType>
+
+<xsd:simpleType name="nonEmptyString">
+  <xsd:restriction base="xsd:string">
+    <xsd:minLength value="1"/>
+    <xsd:pattern value=".*[^\s].*"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+</xsd:schema>
