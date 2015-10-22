@@ -239,6 +239,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       this.subMenu = menu.findItem(R.id.action_track);
       this.add = menu.findItem(R.id.action_add);
       this.share = menu.findItem(R.id.action_share);
+      subMenu.setEnabled(false);
     }
     
     final boolean selectItem(MenuItem item) throws IOException {
