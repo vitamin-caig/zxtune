@@ -309,7 +309,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
         
         @Override
         public void accept(Author author, Track track) {
-          final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), track).build();
+          final Uri uri = Identifier.forTrack(Identifier.forAuthor(author, track.year), track).build();
           visitor.onFile(new AuthorTrackFile(uri, track));
         }
       });
