@@ -103,7 +103,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void execute() throws IOException {
       final Uri nowPlaying = getNowPlaying().getId();
-      if (!nowPlaying.equals(Uri.EMPTY)) {
+      if (!Uri.EMPTY.equals(nowPlaying)) {
         final String path = nowPlaying.toString();
         final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
         Log.d(TAG, "Save last played item '%s' at %dms", path, position);

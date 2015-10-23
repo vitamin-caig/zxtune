@@ -257,7 +257,7 @@ final class Database {
   
   final boolean queryAuthors(String handleFilter, AuthorsVisitor visitor) {
     Log.d(TAG, "queryAuthors(filter=%s)", handleFilter);
-    final String selection = handleFilter.equals(Catalog.NON_LETTER_FILTER)
+    final String selection = Catalog.NON_LETTER_FILTER.equals(handleFilter)
       ? "SUBSTR(" + Tables.Authors.Fields.handle + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
       : Tables.Authors.Fields.handle + " LIKE '" + handleFilter + "%'";
     return queryAuthorsInternal(selection, visitor);

@@ -56,7 +56,7 @@ public class Identifier {
   }
 
   public static boolean isFromRoot(Uri uri) {
-    return uri.getScheme().equals(SCHEME);
+    return SCHEME.equals(uri.getScheme());
   }
   
   // Categories
@@ -82,7 +82,7 @@ public class Identifier {
   public static String findHandleLetter(Uri uri, List<String> path) {
     if (path.size() > POS_HANDLE_LETTER) {
       final String letter = path.get(POS_HANDLE_LETTER);
-      if (letter.equals(Catalog.NON_LETTER_FILTER) || isHandleLetter(letter)) {
+      if (Catalog.NON_LETTER_FILTER.equals(letter) || isHandleLetter(letter)) {
         return letter;
       }
     }

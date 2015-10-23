@@ -66,7 +66,7 @@ public class Identifier {
   }
 
   public static boolean isFromRoot(Uri uri) {
-    return uri.getScheme().equals(SCHEME);
+    return SCHEME.equals(uri.getScheme());
   }
 
   // Categories
@@ -106,7 +106,7 @@ public class Identifier {
     if (path.size() > POS_AUTHOR_YEAR) {
       final String year = path.get(POS_AUTHOR_YEAR);
       try {
-        if (!year.equals(UNKNOWN_YEAR)) {
+        if (!UNKNOWN_YEAR.equals(year)) {
           return Integer.valueOf(year);
         }
       } catch (NumberFormatException e) {

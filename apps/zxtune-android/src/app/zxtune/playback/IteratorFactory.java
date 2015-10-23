@@ -21,7 +21,7 @@ import app.zxtune.playback.PlaybackControl.SequenceMode;
 public final class IteratorFactory {
 
   private static boolean isPlaylistUri(Uri uri) {
-    return uri.getScheme().equals(ContentResolver.SCHEME_CONTENT);
+    return ContentResolver.SCHEME_CONTENT.equals(uri.getScheme());
   }
   
   /**

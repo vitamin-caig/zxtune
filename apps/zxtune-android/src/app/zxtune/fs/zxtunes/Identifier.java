@@ -60,7 +60,7 @@ public class Identifier {
   }
   
   public static boolean isFromRoot(Uri uri) {
-    return uri.getScheme().equals(SCHEME);
+    return SCHEME.equals(uri.getScheme());
   }
   
   // Categories

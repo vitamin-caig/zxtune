@@ -210,7 +210,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
         return this;
       } else {
         final String letter = Uri.decode(path.get(POS_LETTER));
-        if (letter.equals(NOT_LETTER) || (letter.length() == 1 && isLetter(letter.charAt(0)))) {
+        if (NOT_LETTER.equals(letter) || (letter.length() == 1 && isLetter(letter.charAt(0)))) {
           return new GroupByLetterDir(letter).resolve(uri, path);
         } else {
           return null;

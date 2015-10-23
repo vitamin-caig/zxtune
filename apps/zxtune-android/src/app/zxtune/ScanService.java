@@ -71,7 +71,7 @@ public class ScanService extends IntentService {
 
   @Override
   public void onStart(Intent intent, int startId) {
-    if (intent.getAction().equals(ACTION_CANCEL)) {
+    if (ACTION_CANCEL.equals(intent.getAction())) {
       insertThread.cancel();
       stopSelf();
     } else {
@@ -106,7 +106,7 @@ public class ScanService extends IntentService {
 
   @Override
   protected void onHandleIntent(Intent intent) {
-    if (intent.getAction().equals(ACTION_START)) {
+    if (ACTION_START.equals(intent.getAction())) {
       final Parcelable[] paths = intent.getParcelableArrayExtra(EXTRA_PATHS);
       scan(paths);
     }

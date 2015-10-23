@@ -92,7 +92,7 @@ public class RingtoneService extends IntentService {
   
   @Override
   protected void onHandleIntent(Intent intent) {
-    if (intent.getAction().equals(ACTION_MAKERINGTONE)) {
+    if (ACTION_MAKERINGTONE.equals(intent.getAction())) {
       final Uri module = intent.getParcelableExtra(EXTRA_MODULE);
       final long seconds = intent.getLongExtra(EXTRA_DURATION_SECONDS, DEFAULT_DURATION_SECONDS);
       final TimeStamp duration = TimeStamp.createFrom(seconds, TimeUnit.SECONDS);

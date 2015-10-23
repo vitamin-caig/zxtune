@@ -70,7 +70,7 @@ class RemoteCatalog extends Catalog {
     while (matcher.find()) {
       final String dirMark = matcher.group(1);
       final String name = matcher.group(2);
-      if (dirMark.equals(DIR_MARKUP)) {
+      if (DIR_MARKUP.equals(dirMark)) {
         visitor.acceptDir(name);
       } else {
         final String size = matcher.group(3);

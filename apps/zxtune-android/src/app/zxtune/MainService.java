@@ -212,17 +212,17 @@ public class MainService extends Service {
     @Override
     public void onReceive(Context context, Intent intent) {
       final String key = intent.getStringExtra(PreferencesActivity.EXTRA_PREFERENCE_NAME);
-      if (key.equals(PREF_MEDIABUTTONS)) {
+      if (PREF_MEDIABUTTONS.equals(key)) {
         final boolean use =
             intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
                 PREF_MEDIABUTTONS_DEFAULT);
         connectMediaButtons(use);
-      } else if (key.equals(PREF_UNPLUGGING)) {
+      } else if (PREF_UNPLUGGING.equals(key)) {
         final boolean use =
             intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
                 PREF_UNPLUGGING_DEFAULT);
         connectHeadphonesPlugging(use);
-      } else if (key.equals(PREF_NOTIFICATIONBUTTONS)) {
+      } else if (PREF_NOTIFICATIONBUTTONS.equals(key)) {
         final boolean type = 
             intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
                 PREF_NOTIFICATIONBUTTONS_DEFAULT);

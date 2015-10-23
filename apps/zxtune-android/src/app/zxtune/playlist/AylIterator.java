@@ -83,13 +83,13 @@ public final class AylIterator {
   }
   
   private static boolean parseParameters(LinkedList<String> strings) {
-    if (strings.isEmpty() || !strings.getFirst().equals(PARAMETERS_BEGIN)) {
+    if (strings.isEmpty() || !PARAMETERS_BEGIN.equals(strings.getFirst())) {
       return false;
     }
     strings.removeFirst();
     while (!strings.isEmpty()) {
       final String str = strings.removeFirst();
-      if (str.equals(PARAMETERS_END)) {
+      if (PARAMETERS_END.equals(str)) {
         break;
       }
       //TODO: parse parameters string

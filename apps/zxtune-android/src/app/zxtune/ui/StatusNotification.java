@@ -91,7 +91,7 @@ public class StatusNotification extends CallbackStub {
       title = filename;
     }
     builder.setTicker(ticker);
-    if (BUTTONS_SUPPORTED && type.equals(Type.WITH_CONTROLS)) {
+    if (BUTTONS_SUPPORTED && Type.WITH_CONTROLS.equals(type)) {
       content.setTextViewText(R.id.notification_title, title);
       content.setTextViewText(R.id.notification_author, author);
       builder.setContent(content);

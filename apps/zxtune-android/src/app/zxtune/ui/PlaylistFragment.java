@@ -97,11 +97,11 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   }
   
   private static int getMenuTitle(PlaylistControl.SortBy by) {
-    if (by.equals(PlaylistControl.SortBy.title)) {
+    if (PlaylistControl.SortBy.title.equals(by)) {
       return R.string.information_title;
-    } else if (by.equals(PlaylistControl.SortBy.author)) {
+    } else if (PlaylistControl.SortBy.author.equals(by)) {
       return R.string.information_author;
-    } else if (by.equals(PlaylistControl.SortBy.duration)) {
+    } else if (PlaylistControl.SortBy.duration.equals(by)) {
       return R.string.statistics_duration;//TODO: extract
     } else {
       throw new RuntimeException();
@@ -109,9 +109,9 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   }
   
   private static int getMenuIcon(PlaylistControl.SortOrder order) {
-    if (order.equals(PlaylistControl.SortOrder.asc)) {
+    if (PlaylistControl.SortOrder.asc.equals(order)) {
       return android.R.drawable.arrow_up_float;
-    } else if (order.equals(PlaylistControl.SortOrder.desc)) {
+    } else if (PlaylistControl.SortOrder.desc.equals(order)) {
       return android.R.drawable.arrow_down_float;
     } else {
       throw new RuntimeException();
