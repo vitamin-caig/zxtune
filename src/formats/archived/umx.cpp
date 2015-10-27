@@ -256,7 +256,8 @@ namespace UMX
     void Read(Property& res)
     {
       Require(!res.IsLimiter());
-      Require(!"TODO: implement");
+      //TODO: implement
+      Require(false);
     }
 
     Binary::Container::Ptr ReadContainer(std::size_t size)

@@ -81,7 +81,7 @@ namespace
 
   typedef boost::array<char, 8> TxtMarker;
   typedef boost::array<char, 16> TxtHeader;
-
+  
   struct Marker
   {
     explicit Marker(uint32_t crc)
@@ -92,8 +92,9 @@ namespace
     TxtMarker Encode() const
     {
       const RawMarker in = {SIGNATURE, fromLE(Value)};
+      const uint8_t* const inData = in.Signature.begin();
       TxtMarker out;
-      Binary::Base64::Encode(safe_ptr_cast<const uint8_t*>(&in), safe_ptr_cast<const uint8_t*>(&in + 1), out.begin(), out.end());
+      Binary::Base64::Encode(inData, inData + sizeof(in), out.begin(), out.end());
       return out;
     }
 
@@ -112,7 +113,8 @@ namespace
     static Header Decode(const TxtHeader& in)
     {
       RawHeader out;
-      Binary::Base64::Decode(in.begin(), in.end(), safe_ptr_cast<uint8_t*>(&out), safe_ptr_cast<uint8_t*>(&out + 1));
+      uint8_t* const outData = out.Signature.begin();
+      Binary::Base64::Decode(in.begin(), in.end(), outData, outData + sizeof(out));
       Require(out.Signature == SIGNATURE);
       return Header(fromLE(out.Crc), out.OriginalSize, out.PackedSize);
     }

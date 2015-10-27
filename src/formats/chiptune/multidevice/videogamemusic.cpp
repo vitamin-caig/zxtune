@@ -89,7 +89,7 @@ namespace Chiptune
         {
           return 0xc0;
         }
-        else if (vers <= 170)
+        else
         {
           return 0x100;
         }

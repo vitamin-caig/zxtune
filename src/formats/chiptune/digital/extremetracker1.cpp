@@ -570,7 +570,7 @@ namespace Chiptune
             target.SetRest();
             break;
           default:
-            Require(!"Unknown command");
+            Require(false);
             break;
           }
         }
