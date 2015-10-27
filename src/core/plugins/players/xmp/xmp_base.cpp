@@ -255,7 +255,7 @@ namespace Xmp
       for (uint_t idx = 0; idx != Channels; ++idx)
       {
         const xmp_frame_info::xmp_channel_info& info = State->channel_info[idx];
-        if (info.note != -1 && info.volume != 0)
+        if (info.note != uint8_t(-1) && info.volume != 0)
         {
           //TODO: use period as precise playback speed
           chan.Band = std::max<int>(0, info.note - C2OFFSET);
