@@ -48,7 +48,7 @@ namespace Formats
 
       struct Ornament
       {
-        Ornament()
+        Ornament() : Loop()
         {
         }
 

@@ -723,15 +723,54 @@ namespace Chiptune
         line.RightLevel = val >> 4;
       }
 
+/*
+  	ld	a,(ix++0Dh) ;ornament offset
+		dec	(ix++14h)   ;ornament counter
+		jr	nz,loc_0_82B1
+		ld	c,1
+		ld	l,(ix++6)   ;ornament ptr
+		ld	h,(ix++7)
+loc_0_829F:
+		ld	a,(hl)
+		inc	hl
+		cp	60h ; '`'
+		jr	nc,loc_0_824F
+		ld	(ix++14h),c
+		ld	(ix++0Dh),a
+		ld	(ix++6),l
+		ld	(ix++7),h
+loc_0_82B1:
+		add	a,(ix++0Eh)
+
+    <...>
+
+loc_0_824F:
+		inc	a
+		jr	z,loc_0_825A
+		inc	a
+		jr	z,loc_0_8262
+		sub	60h ; '`'
+		ld	c,a
+		jr	loc_0_829F
+loc_0_825A:
+		ld	l,(ix++8)
+		ld	h,(ix++9)
+		jr	loc_0_829F
+loc_0_8262:
+		ld	(ix++8),l
+		ld	(ix++9),h
+		jr	loc_0_829F
+*/
+
       void ParseOrnament(std::size_t start, Ornament& dst) const
       {
         dst.Lines.clear();
         dst.Loop = ~uint_t(0);
         std::size_t cursor = start;
         uint_t line = 0;
-        for (uint_t skip = 0;;)
+        uint_t skip = 1;
+        for (;;)
         {
-          skip = 1;
           const uint_t val = PeekByte(cursor++);
           if (val < 0x60)
           {
@@ -746,16 +785,13 @@ namespace Chiptune
             dst.Loop = dst.Lines.size();
             continue;
           }
-          else if (val >= 0x60)
+          else
           {
-            skip = val - 0x60;
+            skip = val + 2 - 0x60;
             continue;
           }
-          if (skip)
-          {
-            dst.Lines.resize(dst.Lines.size() + skip, line);
-            skip = 0;
-          }
+          dst.Lines.resize(dst.Lines.size() + skip, line);
+          skip = 1;
         }
         Ranges.Add(start, cursor - start);
         dst.Loop = std::min<uint_t>(dst.Loop, dst.Lines.size());
