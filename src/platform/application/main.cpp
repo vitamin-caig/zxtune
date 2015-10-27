@@ -37,6 +37,7 @@ int main(int argc, const char* argv[])
   catch (const std::exception& e)
   {
     StdOut << e.what() << std::endl;
+    return 1;
   }
   catch (...)
   {
