@@ -313,11 +313,11 @@ namespace Z80
     {
       if (additionalSize == Version2_0::ADDITIONAL_SIZE)
       {
-        FillVer2Traits(hwMode);
+        FillTraits(static_cast<Version2_0::HardwareTypes>(hwMode));
       }
       else
       {
-        FillVer3Traits(hwMode);
+        FillTraits(static_cast<Version3_0::HardwareTypes>(hwMode));
       }
       MinPages = Is48kLocked(port7ffd) ? 3 : Pages;
     }
@@ -430,7 +430,7 @@ namespace Z80
       Numbers.assign(VER256_PAGES, boost::end(VER256_PAGES));
     }
 
-    void FillVer2Traits(uint_t hwMode)
+    void FillTraits(Version2_0::HardwareTypes hwMode)
     {
       switch (hwMode)
       {
@@ -443,7 +443,7 @@ namespace Z80
         break;
       case Version2_0::Ver128k:
       case Version2_0::Ver128k_iface1:
-      case Version3_0::Ver_Pentagon:
+      case Version2_0::Ver_Pentagon:
         Fill128kTraits();
         break;
       default:
@@ -452,7 +452,7 @@ namespace Z80
       }
     }
 
-    void FillVer3Traits(uint_t hwMode)
+    void FillTraits(Version3_0::HardwareTypes hwMode)
     {
       switch (hwMode)
       {
