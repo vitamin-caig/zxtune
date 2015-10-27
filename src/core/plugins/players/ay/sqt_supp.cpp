@@ -461,6 +461,7 @@ namespace SQTracker
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
       , Patterns(SingleChannelPatternsBuilder::Create())
+      , Loop()
     {
       Properties.SetFreqtable(TABLE_SQTRACKER);
     }

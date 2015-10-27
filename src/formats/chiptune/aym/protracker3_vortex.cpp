@@ -1083,6 +1083,7 @@ namespace ProTracker3
     {
     public:
       PatternObject()
+        : Index()
       {
       }
 

@@ -36,6 +36,7 @@ namespace
   struct Device
   {
     Device()
+      : Id()
     {
     }
 

@@ -42,6 +42,7 @@ namespace Playlist
 
         Data()
           : Scope(ALL)
+          , Options()
         {
         }
       };

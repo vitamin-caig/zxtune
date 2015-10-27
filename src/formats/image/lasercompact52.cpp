@@ -53,6 +53,8 @@ namespace LaserCompact52
       : Start(data)
       , Cursor(Start + offset)
       , End(Start + size)
+      , Bits()
+      , Mask()
     {
     }
 
