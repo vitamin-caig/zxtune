@@ -365,7 +365,7 @@ namespace GME
     }
     else
     {
-      Time::Milliseconds();
+      return Time::Milliseconds();
     }
   }
   
