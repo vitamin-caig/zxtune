@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3500 from 30.10.2015
+
+[*] Slight fixes in COP playback
+[*] zxtune-android: fixed invalid search result in http://zxart.ee catalogue
+[*] zxtune-android: disable track menu item if no current track available
+
 --- Rev3480 from 13.10.2015
 
 [*] Fixed playback of some .ay files
