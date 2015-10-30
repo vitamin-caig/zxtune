@@ -195,6 +195,9 @@
 <!--121--><item></item>
 <!--122--><item>Guatemala</item>
     </string-array>
+    <!-- aygor -->
+    <string name="vfs_aygor_root_name">AYGOR - The AY Great Original Resource</string>
+    <string name="vfs_aygor_root_description">http://abrimaal.pro-e.pl/aygor</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
