@@ -71,7 +71,7 @@ namespace Chiptune
 
     PACK_PRE struct SampleInfo
     {
-      uint8_t Name[9];
+      char Name[9];
       uint16_t Start;
       uint8_t Bank;
       uint16_t Limit;
@@ -276,6 +276,16 @@ namespace Chiptune
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
+        Strings::Array names(SAMPLES_COUNT);
+        for (uint_t samIdx = 1; samIdx != SAMPLES_COUNT; ++samIdx)
+        {
+          const SampleInfo& srcSample = Source.SampleDescriptions[samIdx - 1];
+          if (srcSample.Name[0] != '.')
+          {
+            names[samIdx] = FromCharArray(srcSample.Name);
+          }
+        }
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -379,7 +389,7 @@ namespace Chiptune
           }
         }
       }
-
+      
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
