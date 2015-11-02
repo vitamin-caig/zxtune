@@ -32,6 +32,7 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
+#include <QtGui/QTextBrowser>
 #include <QtGui/QToolButton>
 
 namespace
@@ -156,6 +157,7 @@ namespace
         const Parameters::IntegerTraits samplesFreq(SAMPLES_FREQUENCY, -1, SAMPLES_FREQUENCY_MIN, SAMPLES_FREQUENCY_MAX);
         AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Samples frequency"), samplesFreq);
       }
+      AddStrings(Module::ATTR_STRINGS);
     }
 
     void FillAymChipTypeProperty()
@@ -222,6 +224,23 @@ namespace
       itemsLayout->addWidget(resetButton, row, 2);
       Require(value->connect(this, SIGNAL(ResetToDefaults()), SLOT(Reset())));
       Require(value->connect(resetButton, SIGNAL(clicked()), SLOT(Reset())));
+    }
+    
+    void AddStrings(const Parameters::NameType& name)
+    {
+      Parameters::StringType value;
+      if (Properties->FindValue(name, value))
+      {
+        QTextBrowser* const strings = new QTextBrowser(this);
+        QFont font;
+        font.setFamily(QString::fromLatin1("Courier New"));
+        strings->setFont(font);
+        strings->setLineWrapMode(QTextEdit::NoWrap);
+
+        const int row = itemsLayout->rowCount();
+        itemsLayout->addWidget(strings, row, 0, 1, itemsLayout->columnCount());
+        strings->setText(ToQString(value));
+      }
     }
   private:
     Parameters::Container::Ptr Properties;

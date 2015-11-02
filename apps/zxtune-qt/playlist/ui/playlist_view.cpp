@@ -37,6 +37,7 @@
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/algorithm/string/find.hpp>
 #include <boost/algorithm/string/replace.hpp>
 //qt includes
 #include <QtCore/QUrl>
@@ -125,10 +126,31 @@ namespace
       static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
       static const Char LBRACKET[] = {'<', 0};
       static const Char LBRACKET_ESCAPED[] = {'&', 'l', 't', ';', 0};
+      static const Char RBRACKET[] = {'>', 0};
+      static const Char RBRACKET_ESCAPED[] = {'&', 'g', 't', ';', 0};
+      static const Char NEWLINE[] = {'\n', 0};
+      static const Char NEWLINE_ESCAPED[] = {'<', 'b', 'r', '/', '>', 0};
+      static const int MAX_LINES = 16;
       String result = Parent::GetFieldValue(fieldName);
+      TrimLongMultiline(result, MAX_LINES);
       boost::algorithm::replace_all(result, AMPERSAND, AMPERSAND_ESCAPED);
       boost::algorithm::replace_all(result, LBRACKET, LBRACKET_ESCAPED);
+      boost::algorithm::replace_all(result, RBRACKET, RBRACKET_ESCAPED);
+      boost::algorithm::replace_all(result, NEWLINE, NEWLINE_ESCAPED);
       return result;
+    }
+  private:
+    static void TrimLongMultiline(String& result, int maxLines)
+    {
+      static const Char NEWLINE[] = {'\n', 0};
+      static const Char ELLIPSIS[] = {'\n', '<', '.', '.', '.', '>', 0};
+      typedef boost::iterator_range<String::iterator> Range;
+      const Range head = boost::algorithm::find_nth(result, NEWLINE, maxLines / 2 - 1);
+      const Range tail = boost::algorithm::find_nth(result, NEWLINE, -maxLines / 2);
+      if (head.begin() < tail.begin())
+      {
+        boost::algorithm::replace_range(result, Range(head.begin(), tail.begin()), ELLIPSIS);
+      }
     }
   };
 
@@ -152,6 +174,7 @@ namespace
         "<b>Author:</b> [Author]<br/>"
         "<b>Program:</b> [Program]<br/>"
         "[Comment]"
+        "<pre>[Strings]</pre>"
         "</html>"
       );
       return GetTemplate(view);
