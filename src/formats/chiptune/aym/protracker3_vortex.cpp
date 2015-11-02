@@ -1324,6 +1324,10 @@ namespace ProTracker3
         Header.Author = ToStdString(author);
       }
 
+      virtual void SetStrings(const Strings::Array& /*strings*/)
+      {
+      }
+      
       virtual void SetVersion(uint_t version)
       {
         Header.Version = version;

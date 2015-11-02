@@ -16,6 +16,7 @@
 #include <formats/chiptune.h>
 #include <formats/chiptune/builder_meta.h>
 #include <parameters/container.h>
+#include <strings/array.h>
 
 namespace Module
 {
@@ -31,6 +32,7 @@ namespace Module
     virtual void SetProgram(const String& program);
     virtual void SetTitle(const String& title);
     virtual void SetAuthor(const String& author);
+    virtual void SetStrings(const Strings::Array& strings);
 
     void SetType(const String& type);
     void SetLocation(const ZXTune::DataLocation& location);

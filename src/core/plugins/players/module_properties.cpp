@@ -17,6 +17,9 @@
 #include <core/module_attrs.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/trim_all.hpp>
+#include <boost/range/adaptor/transformed.hpp>
 
 namespace Module
 {
@@ -69,6 +72,17 @@ namespace Module
     }
   }
 
+  
+  void PropertiesBuilder::SetStrings(const Strings::Array& strings)
+  {
+    String joined = boost::algorithm::join(boost::adaptors::transform(strings, OptimizeString), "\n");
+    boost::algorithm::trim_all_if(joined, boost::algorithm::is_any_of("\n"));
+    if (!joined.empty())
+    {
+      Container->SetValue(ATTR_STRINGS, joined);
+    }
+  }
+  
   //PropertiesBuilder
   void PropertiesBuilder::SetType(const String& type)
   {
