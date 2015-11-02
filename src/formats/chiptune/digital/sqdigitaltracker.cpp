@@ -185,7 +185,7 @@ namespace Chiptune
       //+0x213
       uint8_t Padding3[0xed];
       //+0x300
-      boost::array<uint8_t, 8> SampleNames[SAMPLES_COUNT];
+      boost::array<char[8], SAMPLES_COUNT> SampleNames;
       //+0x380
       uint8_t Padding4[0x80];
       //+0x400
@@ -336,6 +336,9 @@ namespace Chiptune
           : String(Source.Title.begin(), Source.Title.end());
         meta.SetTitle(title);
         meta.SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
+        Strings::Array names(SAMPLES_COUNT);
+        std::transform(Source.SampleNames.begin(), Source.SampleNames.end(), names.begin(), &FromCharArray<8>);
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -406,7 +409,7 @@ namespace Chiptune
           }
         }
       }
-
+      
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
