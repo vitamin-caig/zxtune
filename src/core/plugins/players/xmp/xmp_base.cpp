@@ -16,6 +16,7 @@
 //library includes
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
+#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/container.h>
 #include <parameters/tracking_helper.h>
@@ -463,6 +464,20 @@ namespace Xmp
     const PluginDescription& Desc;
     const Binary::Format::Ptr Fmt;
   };
+  
+  void ParseStrings(const xmp_module& mod, PropertiesBuilder& propBuilder)
+  {
+    Strings::Array strings;
+    for (uint_t idx = 0; idx < mod.smp; ++idx)
+    {
+      strings.push_back(FromStdString(mod.xxs[idx].name));
+    }
+    for (uint_t idx = 0; idx < mod.ins; ++idx)
+    {
+      strings.push_back(FromStdString(mod.xxi[idx].name));
+    }
+    propBuilder.SetStrings(strings);
+  }
 
   class Factory : public Module::Factory
   {
@@ -489,6 +504,7 @@ namespace Xmp
         {
           propBuilder.SetComment(FromStdString(comment));
         }
+        ParseStrings(*modInfo.mod, propBuilder);
         const Binary::Container::Ptr data = rawData.GetSubcontainer(0, modInfo.size);
         const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, modInfo.size);
         propBuilder.SetSource(*source);
