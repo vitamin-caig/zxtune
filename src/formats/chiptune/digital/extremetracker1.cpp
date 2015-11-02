@@ -434,6 +434,12 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(FromCharArray(Source.Title));
         meta.SetProgram(Version.GetEditorString());
+        Strings::Array names(Source.Samples.size());
+        for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
+        {
+          names[idx] = FromCharArray(Source.Samples[idx].Name);
+        }
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -507,7 +513,7 @@ namespace Chiptune
           }
         }
       }
-
+      
       std::size_t GetSize() const
       {
         return MODULE_SIZE;
