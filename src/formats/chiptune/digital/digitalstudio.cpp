@@ -99,7 +99,7 @@ namespace Chiptune
       //+0xc8
       ZeroesArray Zeroes;
       //+0x100
-      SampleInfo Samples[SAMPLES_COUNT];
+      boost::array<SampleInfo, SAMPLES_COUNT> Samples;
       //+0x200
       uint8_t FirstPage[0x4000];
       //+0x4200
@@ -212,7 +212,14 @@ namespace Chiptune
       void ParseCommonProperties(Builder& target) const
       {
         target.SetInitialTempo(Source.Tempo);
-        target.GetMetaBuilder().SetTitle(FromCharArray(Source.Title));
+        MetaBuilder& meta = target.GetMetaBuilder();
+        meta.SetTitle(FromCharArray(Source.Title));
+        Strings::Array names(Source.Samples.size());
+        for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
+        {
+          names[idx] = FromCharArray(Source.Samples[idx].Name);
+        }
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -255,7 +262,7 @@ namespace Chiptune
           }
         }
       }
-
+      
       std::size_t GetSize() const
       {
         return IsCompiled ? COMPILED_MODULE_SIZE : MODULE_SIZE;

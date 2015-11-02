@@ -91,7 +91,7 @@ namespace Chiptune
       //+0x18fc
       uint8_t Padding[4];
       //+0x1900
-      boost::array<uint8_t, 10> SampleNames[SAMPLES_COUNT];
+      boost::array<char[10], SAMPLES_COUNT> SampleNames;
       //+0x19a0
       uint8_t Samples[1];
     } PACK_POST;
@@ -140,6 +140,9 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(FromCharArray(Source.Title));
         meta.SetProgram(Text::SAMPLETRACKER_DECODER_DESCRIPTION);
+        Strings::Array names(Source.SampleNames.size());
+        std::transform(Source.SampleNames.begin(), Source.SampleNames.end(), names.begin(), &FromCharArray<10>);
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -193,7 +196,7 @@ namespace Chiptune
         }
         Require(validSamples != 0);
       }
-
+      
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
