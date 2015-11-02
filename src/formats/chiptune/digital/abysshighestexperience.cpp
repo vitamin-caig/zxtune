@@ -195,7 +195,7 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         const std::string& title = Stream.ReadCString(Stream.GetRestSize());
         meta.SetTitle(FromStdString(title));
-        ParseSampleNames();
+        ParseSampleNames(meta);
         if (Source.Identifier == ID0)
         {
           meta.SetProgram(Text::ABYSSHIGHESTEXPERIENCE_EDITOR_OLD);
@@ -206,13 +206,16 @@ namespace Chiptune
         }
       }
       
-      void ParseSampleNames()
+      void ParseSampleNames(MetaBuilder& meta)
       {
         const uint_t count = Source.SamplesCount;
+        Strings::Array names(count);
         for (uint_t smp = 0; smp < count; ++smp)
         {
-          Stream.ReadCString(Stream.GetRestSize());
+          const std::string& name = Stream.ReadCString(Stream.GetRestSize());
+          names[smp] = FromStdString(name);
         }
+        meta.SetStrings(names);
       }
     private:
       Binary::InputStream Stream;
