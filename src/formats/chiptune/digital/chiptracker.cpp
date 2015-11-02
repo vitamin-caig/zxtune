@@ -49,7 +49,7 @@ namespace Chiptune
     const uint_t SAMPLES_COUNT = 16;
 
     const uint8_t SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
-
+    
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -68,7 +68,7 @@ namespace Chiptune
       } PACK_POST;
       boost::array<SampleDescr, SAMPLES_COUNT> Samples;
       uint8_t Reserved[21];
-      uint8_t SampleNames[SAMPLES_COUNT][8];//unused
+      boost::array<char[8], SAMPLES_COUNT> SampleNames;
       boost::array<uint8_t, 256> Positions;
     } PACK_POST;
 
@@ -281,6 +281,10 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(FromCharArray(Source.Title));
         meta.SetProgram(Strings::Format(Text::CHIPTRACKER_EDITOR, FromCharArray(Source.Version)));
+
+        Strings::Array names(Source.SampleNames.size());
+        std::transform(Source.SampleNames.begin(), Source.SampleNames.end(), names.begin(), &FromCharArray<8>);
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -332,7 +336,7 @@ namespace Chiptune
           }
         }
       }
-
+      
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
