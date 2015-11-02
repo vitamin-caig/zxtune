@@ -66,7 +66,7 @@ namespace Chiptune
       }
     } PACK_POST;
 
-    typedef boost::array<uint8_t, 16> InstrumentName;
+    typedef char InstrumentName[16];
 
     PACK_PRE struct RawInstrument
     {
@@ -812,6 +812,9 @@ namespace Chiptune
         meta.SetTitle(FromCharArray(Source.Title));
         meta.SetAuthor(FromCharArray(Source.Author));
         builder.SetComment(FromCharArray(Source.Comment));
+        Strings::Array names(Source.InstrumentNames.size());
+        std::transform(Source.InstrumentNames.begin(), Source.InstrumentNames.end(), names.begin(), &FromCharArray<16>);
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& builder) const
