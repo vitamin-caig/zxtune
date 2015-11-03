@@ -26,34 +26,32 @@ public class VfsCache {
   private final static String TAG = VfsCache.class.getName();
   private final static int MIN_CACHED_FILE_SIZE = 256;
   
-  private final Context context;
-  private final String name;
-  private File primary;
+  private final File primary;
   private final File fallback;
+  private final boolean hasFallback;
 
-  private VfsCache(Context ctx, String name, File primary, File fallback) {
-    this.context = ctx;
-    this.name = name;
-    this.primary = primary;
-    this.fallback = fallback;
+  private VfsCache(File primary, File fallback) {
     if (primary == null && fallback == null) {
       throw new RuntimeException("No cache directories specified");
     }
+    this.primary = primary != null ? primary : fallback;
+    this.fallback = fallback;
+    this.hasFallback = !primary.equals(fallback) && fallback != null;
   }
   
   public static VfsCache create(Context context, String name) {
-    return new VfsCache(context, name, getExternalDir(context, name), getInternalDir(context, name));
+    return new VfsCache(getExternalDir(context, name), getInternalDir(context, name));
   }
   
   public static VfsCache createExternal(Context context, String name) {
     final File external = getExternalDir(context, name);
-    return new VfsCache(context, name, external, external);
+    return new VfsCache(external, external);
   }
   
   public final ByteBuffer getCachedFileContent(String path) {
     try {
       ByteBuffer result = readFrom(getPrimaryFile(path));
-      if (result == null) {
+      if (result == null && hasFallback) {
         result = readFrom(getFallbackFile(path));
       }
       return result;
@@ -95,14 +93,7 @@ public class VfsCache {
   }
   
   private File getPrimaryFile(String path) {
-    return getSub(getPrimaryDir(), path);
-  }
-  
-  private File getPrimaryDir() {
-    if (primary == null) {
-      primary = getExternalDir(context, name);
-    }
-    return primary;
+    return getSub(primary, path);
   }
   
   private File getFallbackFile(String path) {
@@ -110,8 +101,7 @@ public class VfsCache {
   }
 
   private File getOutputFile(String path) {
-    final File primary = getPrimaryDir();
-    return primary != null ? getSub(primary, path) : getSub(fallback, path);
+    return getPrimaryFile(path);
   }
   
   static ByteBuffer readFrom(File file) throws IOException {
