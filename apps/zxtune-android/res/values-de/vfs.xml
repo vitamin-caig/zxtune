@@ -179,6 +179,11 @@
 <!--121--><item></item>
 <!--122--><item>Guatemala</item>
     </string-array>
+    <!-- modarchive.org -->
+    <string name="vfs_modarchive_authors_name">Künstler</string>
+    <string name="vfs_modarchive_authors_description">Browsen nach Künstler</string>
+    <string name="vfs_modarchive_genres_name">Genre</string>
+    <string name="vfs_modarchive_genres_description">Browse nach Genre</string>
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>

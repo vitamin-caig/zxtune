@@ -66,7 +66,8 @@ sub convert_menu_icon
 #convert({source => 'vfs_zxart.svg', target => 'ic_browser_vfs_zxart.png', category => 'icon'});
 #convert({source => 'vfs_joshw.svg', target => 'ic_browser_vfs_joshw.png', category => 'icon'});
 #convert({source => 'vfs_amp.svg', target => 'ic_browser_vfs_amp.png', category => 'icon'});
-convert({source => 'vfs_aygor.svg', target => 'ic_browser_vfs_aygor.png', category => 'icon'});
+#convert({source => 'vfs_aygor.svg', target => 'ic_browser_vfs_aygor.png', category => 'icon'});
+convert({source => 'vfs_modarchive.svg', target => 'ic_browser_vfs_modarchive.png', category => 'icon'});
 #convert({source => 'drag_handler.svg', target => 'ic_drag_handler.png', category => 'icon'});
 #convert({source => 'status.svg', target => 'ic_playing.png', category => 'icon'});
 

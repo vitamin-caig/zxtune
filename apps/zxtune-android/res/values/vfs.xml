@@ -196,8 +196,15 @@
 <!--122--><item>Guatemala</item>
     </string-array>
     <!-- aygor -->
-    <string name="vfs_aygor_root_name">AYGOR - The AY Great Original Resource</string>
-    <string name="vfs_aygor_root_description">http://abrimaal.pro-e.pl/aygor</string>
+    <string name="vfs_aygor_root_name" translatable="false">AYGOR - The AY Great Original Resource</string>
+    <string name="vfs_aygor_root_description" translatable="false">http://abrimaal.pro-e.pl/aygor</string>
+    <!-- modarchive.org -->
+    <string name="vfs_modarchive_root_name" translatable="false">The Mod Archive</string>
+    <string name="vfs_modarchive_root_description" translatable="false">http://modarchive.org</string>
+    <string name="vfs_modarchive_authors_name">Artists</string>
+    <string name="vfs_modarchive_authors_description">Browse by artists</string>
+    <string name="vfs_modarchive_genres_name">Genres</string>
+    <string name="vfs_modarchive_genres_description">Browse by genres</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>

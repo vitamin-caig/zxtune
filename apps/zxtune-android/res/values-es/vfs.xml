@@ -180,6 +180,11 @@
 <!--121--><item></item>
 <!--122--><item>Guatemala</item>
     </string-array>
+    <!-- modarchive.org -->
+    <string name="vfs_modarchive_authors_name">Artistas</string>
+    <string name="vfs_modarchive_authors_description">Búsqueda por artista</string>
+    <string name="vfs_modarchive_genres_name">Géneros</string>
+    <string name="vfs_modarchive_genres_description">Búsqueda por género</string>
   <!--errors-->
   <string name="network_inaccessible">La red no es accesible</string>
   <string name="failed_resolve">No se pudo resolver %s</string>

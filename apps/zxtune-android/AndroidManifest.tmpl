@@ -24,6 +24,11 @@
           android:allowBackup="true"
           android:theme="@style/Theme.AppCompat"
         >
+        <xsl:for-each select="document('metadata.xml')/metadata">
+          <xsl:for-each select="*">
+            <meta-data android:name="{name()}" android:value="{text()}" />
+          </xsl:for-each>
+        </xsl:for-each>
         <activity
               android:name=".MainActivity"
               android:label="@string/app_name">

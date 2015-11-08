@@ -183,6 +183,11 @@
 <!--121--><item></item>
 <!--122--><item>Гватемала</item>
     </string-array>
+    <!-- modarchive.org -->
+    <string name="vfs_modarchive_authors_name">Исполнители</string>
+    <string name="vfs_modarchive_authors_description">Навигация по авторам</string>
+    <string name="vfs_modarchive_genres_name">Жанры</string>
+    <string name="vfs_modarchive_genres_description">Навигация по жанрам</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>
