@@ -19,9 +19,9 @@ namespace ZXTune
     RegisterRawContainer(registrator);
 
     RegisterArchiveContainers(registrator);
+    RegisterZXArchiveContainers(registrator);
     //process containers last
-    RegisterAyContainer(registrator);
-    RegisterSidContainer(registrator);
+    RegisterMultitrackContainers(registrator);
     RegisterZdataContainer(registrator);
   }
 }

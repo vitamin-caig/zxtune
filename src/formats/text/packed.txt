@@ -42,6 +42,10 @@ __cpp> "}//namespace Text\n"
 < FDI_DECODER_DESCRIPTION
 > "FDI (Full Disk Image)"
 
+#FDI
+< GZIP_DECODER_DESCRIPTION
+> "GZip"
+
 #Hobeta
 < HOBETA_DECODER_DESCRIPTION
 > "Hobeta"

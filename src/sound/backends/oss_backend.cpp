@@ -28,6 +28,7 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 #include <sys/soundcard.h>
+#include <sys/stat.h>
 //std includes
 #include <algorithm>
 #include <cstring>
@@ -63,7 +64,13 @@ namespace Oss
       : Handle(-1)
     {
     }
-
+    
+    explicit AutoDescriptor(const std::string& name)
+      : Name(name)
+      , Handle(-1)
+    {
+    }
+    
     AutoDescriptor(const std::string& name, int mode)
       : Name(name)
       , Handle(::open(name.c_str(), mode, 0))
@@ -130,6 +137,12 @@ namespace Oss
         return res;
       }
     }
+    
+    void CheckStat() const
+    {
+      struct stat sb;
+      CheckResult(0 == ::stat(Name.c_str(), &sb), THIS_LINE);
+    }
   private:
     void CheckResult(bool res, Error::LocationRef loc) const
     {
@@ -170,11 +183,11 @@ namespace Oss
   private:
     static int GetSoundFormat(bool isSigned)
     {
-      switch (sizeof(Sample))
+      switch (Sample::BITS)
       {
-      case 1:
+      case 8:
         return isSigned ? AFMT_S8 : AFMT_U8;
-      case 2:
+      case 16:
         return isSigned
           ? (isLE() ? AFMT_S16_LE : AFMT_S16_BE)
           : (isLE() ? AFMT_U16_LE : AFMT_U16_BE);
@@ -377,6 +390,9 @@ namespace Oss
   public:
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
+      const BackendParameters backend(*params);
+      AutoDescriptor(backend.GetMixerName()).CheckStat();
+      AutoDescriptor(backend.GetDeviceName()).CheckStat();
       return boost::make_shared<BackendWorker>(params);
     }
   };

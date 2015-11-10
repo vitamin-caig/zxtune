@@ -280,7 +280,7 @@ namespace
 
   const Char ID[] = {'R', 'A', 'W', 0};
   const Char* const INFO = Text::RAW_PLUGIN_INFO;
-  const uint_t CAPS = CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
+  const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::SCANER;
 
   const std::size_t SCAN_STEP = 1;
   const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
@@ -573,9 +573,9 @@ namespace
       return Delegate->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
-      const Analysis::Result::Ptr result = Delegate->Detect(inputData, callback);
+      const Analysis::Result::Ptr result = Delegate->Detect(params, inputData, callback);
       if (const std::size_t matched = result->GetMatchedDataSize())
       {
         return Analysis::CreateUnmatchedResult(matched);
@@ -583,11 +583,11 @@ namespace
       return result;
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters,
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& params,
                                    DataLocation::Ptr inputData,
                                    const Analysis::Path& pathToOpen) const
     {
-      return Delegate->Open(parameters, inputData, pathToOpen);
+      return Delegate->Open(params, inputData, pathToOpen);
     }
   private:
     const ArchivePlugin::Ptr Delegate;
@@ -611,7 +611,7 @@ namespace
       if (const ArchivePlugin::Ptr res = Delegate->Get())
       {
         const Plugin::Ptr plug = res->GetDescription();
-        return 0 != (plug->Capabilities() & CAP_STOR_PLAIN)
+        return 0 != (plug->Capabilities() & Capabilities::Container::Traits::PLAIN)
           ? boost::make_shared<DoubleAnalyzedArchivePlugin>(res)
           : res;
       }
@@ -632,8 +632,9 @@ namespace
   class RawDetectionPlugins
   {
   public:
-    RawDetectionPlugins(PlayerPlugin::Iterator::Ptr players, ArchivePlugin::Iterator::Ptr archives, const ArchivePlugin& denied)
-      : Players(players)
+    RawDetectionPlugins(const Parameters::Accessor& params, PlayerPlugin::Iterator::Ptr players, ArchivePlugin::Iterator::Ptr archives, const ArchivePlugin& denied)
+      : Params(params)
+      , Players(players)
       , Archives(archives)
       , Offset()
     {
@@ -677,7 +678,7 @@ namespace
       {
         Time::Timer timer;
         const typename T::Ptr plugin = iter->Get();
-        const Analysis::Result::Ptr result = plugin->Detect(input, callback);
+        const Analysis::Result::Ptr result = plugin->Detect(Params, input, callback);
         const String id = plugin->GetDescription()->Id();
         if (const std::size_t usedSize = result->GetMatchedDataSize())
         {
@@ -708,6 +709,7 @@ namespace
       return Analysis::CreateUnmatchedResult(minLookahead);
     }
   private:
+    const Parameters::Accessor& Params;
     LookaheadPluginsStorage<PlayerPlugin> Players;
     LookaheadPluginsStorage<ArchivePlugin> Archives;
     std::size_t Offset;
@@ -736,7 +738,7 @@ namespace
       return Binary::Format::Ptr();
     }
 
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const Binary::Container::Ptr rawData = input->GetData();
       const std::size_t size = rawData->Size();
@@ -747,8 +749,7 @@ namespace
         return Analysis::CreateUnmatchedResult(size);
       }
 
-      const Parameters::Accessor::Ptr pluginParams = callback.GetPluginsParameters();
-      const RawPluginParameters scanParams(*pluginParams);
+      const RawPluginParameters scanParams(params);
       const std::size_t minRawSize = scanParams.GetMinimalSize();
 
       const String currentPath = input->GetPath()->AsString();
@@ -760,7 +761,7 @@ namespace
       const ArchivePlugin::Iterator::Ptr usedArchives = scanParams.GetDoubleAnalysis()
         ? ArchivePlugin::Iterator::Ptr(new DoubleAnalysisArchivePlugins(availableArchives))
         : availableArchives;
-      RawDetectionPlugins usedPlugins(PlayerPluginsEnumerator::Create()->Enumerate(), usedArchives, *this);
+      RawDetectionPlugins usedPlugins(params, PlayerPluginsEnumerator::Create()->Enumerate(), usedArchives, *this);
 
       ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, Description->Id(), 0);
 
@@ -781,7 +782,7 @@ namespace
       return Analysis::CreateMatchedResult(size);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
     {
       const String& pathComp = inPath.GetIterator()->Get();
       std::size_t offset = 0;

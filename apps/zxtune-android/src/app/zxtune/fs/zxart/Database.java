@@ -10,16 +10,17 @@
 
 package app.zxtune.fs.zxart;
 
-import java.util.concurrent.TimeUnit;
-
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.Grouping;
+import app.zxtune.fs.dbhelpers.Objects;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.fs.dbhelpers.Utils;
 
 /**
  * Version 1 
@@ -32,7 +33,13 @@ import app.zxtune.TimeStamp;
  * 
  * Version 2
  * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, filename TEXT NOT NULL, title TEXT, votes TEXT, 
- * duration TEXT, year INTEGER, compo TEXT, partyplace INTEGER) 
+ * duration TEXT, year INTEGER, compo TEXT, partyplace INTEGER)
+ * 
+ * Version 3
+ * 
+ * Change format of {authors,parties}_tracks to grouping
+ * Use timestamps
+ * 
  */
 
 final class Database {
@@ -40,13 +47,11 @@ final class Database {
   final static String TAG = Database.class.getName();
 
   final static String NAME = "www.zxart.ee";
-  final static int VERSION = 2;
+  final static int VERSION = 3;
 
   final static class Tables {
 
-    final static String DROP_QUERY = "DROP TABLE IF EXISTS %s;";
-
-    final static class Authors {
+    final static class Authors extends Objects {
 
       static enum Fields {
         _id, nickname, name
@@ -57,9 +62,24 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
           + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
           + " TEXT);";
+
+      Authors(SQLiteOpenHelper helper) {
+        super(helper, NAME, Fields.values().length);
+      }
+      
+      final void add(Author obj) {
+        add(obj.id, obj.nickname, obj.name);
+      }
+
+      private static Author createAuthor(Cursor cursor) {
+        final int id = cursor.getInt(Tables.Authors.Fields._id.ordinal());
+        final String name = cursor.getString(Tables.Authors.Fields.name.ordinal());
+        final String nickname = cursor.getString(Tables.Authors.Fields.nickname.ordinal());
+        return new Author(id, nickname, name);
+      }
     }
 
-    final static class Parties {
+    final static class Parties extends Objects {
 
       static enum Fields {
         _id, name, year
@@ -70,9 +90,24 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
           + " INTEGER PRIMARY KEY, " + Fields.name + " TEXT NOT NULL, " + Fields.year
           + " INTEGER NOT NULL);";
+
+      Parties(SQLiteOpenHelper helper) {
+        super(helper, NAME, Fields.values().length);
+      }
+      
+      final void add(Party obj) {
+        add(obj.id, obj.name, obj.year);
+      }
+
+      private static Party createParty(Cursor cursor) {
+        final int id = cursor.getInt(Tables.Parties.Fields._id.ordinal());
+        final String name = cursor.getString(Tables.Parties.Fields.name.ordinal());
+        final int year = cursor.getInt(Tables.Parties.Fields.year.ordinal());
+        return new Party(id, name, year);
+      }
     }
 
-    final static class Tracks {
+    final static class Tracks extends Objects {
 
       static enum Fields {
         _id, filename, title, votes, duration, year, compo, partyplace
@@ -84,124 +119,130 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
           + " TEXT, " + Fields.votes + " TEXT, " + Fields.duration + " INTEGER, " + Fields.year
           + " INTEGER, " + Fields.compo + " TEXT, " + Fields.partyplace + " INTEGER);";
+      
+      Tracks(SQLiteOpenHelper helper) {
+        super(helper, NAME, Fields.values().length);
+      }
+      
+      final void add(Track obj) {
+        add(obj.id, obj.filename, obj.title, obj.votes, obj.duration, obj.year, obj.compo, obj.partyplace);
+      }
+
+      static Track createTrack(Cursor cursor) {
+        return createTrack(cursor, 0);
+      }
+      
+      static Track createTrack(Cursor cursor, int fieldOffset) {
+        final int id = cursor.getInt(fieldOffset + Tables.Tracks.Fields._id.ordinal());
+        final String filename = cursor.getString(fieldOffset + Tables.Tracks.Fields.filename.ordinal());
+        final String title = cursor.getString(fieldOffset + Tables.Tracks.Fields.title.ordinal());
+        final String votes = cursor.getString(fieldOffset + Tables.Tracks.Fields.votes.ordinal());
+        final String duration = cursor.getString(fieldOffset + Tables.Tracks.Fields.duration.ordinal());
+        final int year = cursor.getInt(fieldOffset + Tables.Tracks.Fields.year.ordinal());
+        final String compo = cursor.getString(fieldOffset + Tables.Tracks.Fields.compo.ordinal());
+        final int partyplace = cursor.getInt(fieldOffset + Tables.Tracks.Fields.partyplace.ordinal());
+        return new Track(id, filename, title, votes, duration, year, compo, partyplace);
+      }
+      
+      static String getSelection(String subquery) {
+        return Fields._id + " IN (" + subquery + ")";
+      }
     }
     
-    final static class Grouping {
-      
-      static enum Fields {
-        hash, group_id, track_id
-      }
-      
-      final static String makeCreateQuery(String name) {
-        return "CREATE TABLE " + name + " (" + Fields.hash
-            + " INTEGER UNIQUE, " + Fields.group_id + " INTEGER, " + Fields.track_id + " INTEGER);";
-      }
-    }
-
-    final static class AuthorsTracks {
+    final static class AuthorsTracks extends Grouping {
 
       final static String NAME = "authors_tracks";
-
-      final static String CREATE_QUERY = Grouping.makeCreateQuery(NAME); 
-    }
-
-    final static class PartiesTracks {
-
-      final static String NAME = "parties_tracks";
-
-      final static String CREATE_QUERY = Grouping.makeCreateQuery(NAME);
-    }
-    
-    final static class Timestamps {
+      final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      static enum Fields {
-        _id, stamp
+      AuthorsTracks(SQLiteOpenHelper helper) {
+        super(helper, NAME, 32);
+      }
+
+      final void add(Author author, Track track) {
+        add(author.id, track.id);
       }
       
-      final static String NAME = "timestamps";
+      final String getTracksIdsSelection(Author author) {
+        return getIdsSelection(author.id);
+      }
+    }
+
+    final static class PartiesTracks extends Grouping {
+
+      final static String NAME = "parties_tracks";
+      final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " ("
-          + Fields._id + " TEXT PRIMARY KEY, "
-          + Fields.stamp + " DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL);";
+      PartiesTracks(SQLiteOpenHelper helper) {
+        super(helper, NAME, 32);
+      }
+
+      final void add(Party party, Track track) {
+        add(party.id, track.id);
+      }
+      
+      final String getTracksIdsSelection(Party party) {
+        return getIdsSelection(party.id);
+      }
     }
   }
 
   private final Helper helper;
+  private final Tables.Authors authors;
+  private final Tables.AuthorsTracks authorsTracks;
+  private final Tables.Parties parties;
+  private final Tables.PartiesTracks partiesTracks;
+  private final Tables.Tracks tracks;
+  private final Timestamps timestamps;
+  private final String findQuery;
 
   Database(Context context) {
     this.helper = Helper.create(context);
-  }
-
-  static class Transaction {
-
-    private final SQLiteDatabase db;
-
-    Transaction(SQLiteDatabase db) {
-      this.db = db;
-      db.beginTransaction();
-    }
-
-    final void succeed() {
-      db.setTransactionSuccessful();
-    }
-
-    final void finish() {
-      db.endTransaction();
-    }
-  }
-  
-  class CacheLifetime {
-    
-    private final String objId;
-    private final TimeStamp TTL;
-    
-    CacheLifetime(String type, Integer id, TimeStamp ttl) {
-      this.objId = id != null ? String.format("%s/%d", type, id) : type;
-      this.TTL = ttl;
-    }
-    
-    final boolean isExpired() {
-      final SQLiteDatabase db = helper.getReadableDatabase();
-      final String selection = Tables.Timestamps.Fields._id + " = '" + objId + "'";
-      final String target = "strftime('%s', 'now') - strftime('%s', " + Tables.Timestamps.Fields.stamp + ")";
-      final Cursor cursor = db.query(Tables.Timestamps.NAME, new String[] {target}, selection, 
-          null, null, null, null, null);
-      try {
-        if (cursor.moveToFirst()) {
-            final TimeStamp age = TimeStamp.createFrom(cursor.getInt(0), TimeUnit.SECONDS);
-            return age.compareTo(TTL) > 0;
-        }
-      } finally {
-        cursor.close();
-      }
-      return true;
-    }
-    
-    final void update() {
-      final ContentValues values = new ContentValues();
-      values.put(Tables.Timestamps.Fields._id.name(), objId);
-      final SQLiteDatabase db = helper.getWritableDatabase();
-      db.insertWithOnConflict(Tables.Timestamps.NAME, null/* nullColumnHack */, values,
-          SQLiteDatabase.CONFLICT_REPLACE);
-    }
+    this.authors = new Tables.Authors(helper);
+    this.authorsTracks = new Tables.AuthorsTracks(helper);
+    this.parties = new Tables.Parties(helper);
+    this.partiesTracks = new Tables.PartiesTracks(helper);
+    this.tracks = new Tables.Tracks(helper);
+    this.timestamps = new Timestamps(helper);
+    this.findQuery = "SELECT * " +
+        "FROM authors LEFT OUTER JOIN tracks ON " +
+        "tracks." + Tables.Tracks.getSelection(authorsTracks.getIdsSelection("authors._id")) +
+        " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
   }
 
   final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
+
+  final Timestamps.Lifetime getAuthorsLifetime(TimeStamp ttl) {
+    return timestamps.getLifetime(Tables.Authors.NAME, ttl);
+  }
   
-  final boolean queryAuthors(Catalog.AuthorsVisitor visitor, Integer id) {
-    Log.d(TAG, "queryAuthors(" + id + ")");
+  final Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
+    return timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl);
+  }
+  
+  final Timestamps.Lifetime getPartiesLifetime(TimeStamp ttl) {
+    return timestamps.getLifetime(Tables.Parties.NAME, ttl);
+  }
+
+  final Timestamps.Lifetime getPartyTracksLifetime(Party party, TimeStamp ttl) {
+    return timestamps.getLifetime(Tables.Parties.NAME + party.id, ttl);
+  }
+  
+  final Timestamps.Lifetime getTopLifetime(TimeStamp ttl) {
+    return timestamps.getLifetime(Tables.Tracks.NAME, ttl);
+  }
+  
+  final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
+    Log.d(TAG, "queryAuthors()");
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = id != null ? Tables.Authors.Fields._id + " = " + id : null;
-    final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
+    final Cursor cursor = db.query(Tables.Authors.NAME, null, null, null, null, null, null);
     try {
       final int count = cursor.getCount();
       if (count != 0) {
-        Log.d(TAG, count + " found");
         visitor.setCountHint(count);
         while (cursor.moveToNext()) {
-          visitor.accept(createAuthor(cursor));
+          visitor.accept(Tables.Authors.createAuthor(cursor));
         }
         return true;
       }
@@ -212,23 +253,19 @@ final class Database {
   }
 
   final void addAuthor(Author obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Authors.NAME, null/* nullColumnHack */, createValues(obj),
-        SQLiteDatabase.CONFLICT_REPLACE);
+    authors.add(obj);
   }
 
-  final boolean queryParties(Catalog.PartiesVisitor visitor, Integer id) {
-    Log.d(TAG, "queryParties(" + id + ")");
+  final boolean queryParties(Catalog.PartiesVisitor visitor) {
+    Log.d(TAG, "queryParties()");
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = id != null ? Tables.Parties.Fields._id + " = " + id : null;
-    final Cursor cursor = db.query(Tables.Parties.NAME, null, selection, null, null, null, null);
+    final Cursor cursor = db.query(Tables.Parties.NAME, null, null, null, null, null, null);
     try {
       final int count = cursor.getCount();
       if (count != 0) {
-        Log.d(TAG, count + " found");
         visitor.setCountHint(count);
         while (cursor.moveToNext()) {
-          visitor.accept(createParty(cursor));
+          visitor.accept(Tables.Parties.createParty(cursor));
         }
         return true;
       }
@@ -239,33 +276,26 @@ final class Database {
   }
 
   final void addParty(Party obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Parties.NAME, null/* nullColumnHack */, createValues(obj),
-        SQLiteDatabase.CONFLICT_REPLACE);
+    parties.add(obj);
   }
   
-  final boolean queryTrack(Catalog.TracksVisitor visitor, int id) {
-    final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = createSingleTrackSelection(id);
-    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
-    return queryTracks(cursor, visitor);
-  }
-  
-  final boolean queryAuthorTracks(Catalog.TracksVisitor visitor, Author author) {
-    final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = createAuthorTracksSelection(author);
-    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
-    return queryTracks(cursor, visitor);
+  final boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
+    final String selection = Tables.Tracks.getSelection(authorsTracks.getTracksIdsSelection(author));
+    return queryTracks(selection, visitor);
   }
 
-  final boolean queryPartyTracks(Catalog.TracksVisitor visitor, Party party) {
+  final boolean queryPartyTracks(Party party, Catalog.TracksVisitor visitor) {
+    final String selection = Tables.Tracks.getSelection(partiesTracks.getTracksIdsSelection(party));
+    return queryTracks(selection, visitor);
+  }
+
+  private boolean queryTracks(String selection, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = createPartyTracksSelection(party);
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     return queryTracks(cursor, visitor);
   }
   
-  final boolean queryTopTracks(Catalog.TracksVisitor visitor, int limit) {
+  final boolean queryTopTracks(int limit, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, null, null, null, null, 
         Tables.Tracks.Fields.votes.name() + " DESC", Integer.toString(limit));
@@ -276,10 +306,9 @@ final class Database {
     try {
       final int count = cursor.getCount();
       if (count != 0) {
-        Log.d(TAG, count + " found");
         visitor.setCountHint(count);
         while (cursor.moveToNext()) {
-          visitor.accept(createTrack(cursor));
+          visitor.accept(Tables.Tracks.createTrack(cursor));
         }
         return true;
       }
@@ -289,116 +318,35 @@ final class Database {
     return false;
   }
   
-  private static String createSingleTrackSelection(int id) {
-    return Tables.Tracks.Fields._id + " = " + id;
-  }
-
-  private static String createAuthorTracksSelection(Author author) {
-    return createTracksSelection(Tables.AuthorsTracks.NAME, author.id);
-  }
-
-  private static String createPartyTracksSelection(Party party) {
-    return createTracksSelection(Tables.PartiesTracks.NAME, party.id);
-  }
-  
-  private static String createTracksSelection(String tableName, int group) {
-    final String idQuery =
-        SQLiteQueryBuilder.buildQueryString(true, tableName,
-            new String[] {
-              Tables.Grouping.Fields.track_id.name()
-            }, Tables.Grouping.Fields.group_id + " = "
-                + group, null, null, null, null);
-    return Tables.Tracks.Fields._id + " IN (" + idQuery + ")";
-  }
-
-  final void addTrack(Track obj, Integer author, Integer party) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, createValues(obj),
-        SQLiteDatabase.CONFLICT_REPLACE);
-    if (author != null) {
-      db.insertWithOnConflict(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, createValues(author, obj.id),
-          SQLiteDatabase.CONFLICT_REPLACE);
-    }
-    if (party != null) {
-      db.insertWithOnConflict(Tables.PartiesTracks.NAME, null/* nullColumnHack */, createValues(party, obj.id),
-          SQLiteDatabase.CONFLICT_REPLACE);
+  final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
+    Log.d(TAG, "findTracks(query=%s)", query);
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final Cursor cursor = db.rawQuery(findQuery, new String[] {query});
+    try {
+      final int count = cursor.getCount();
+      if (count != 0) {
+        visitor.setCountHint(count);
+        while (cursor.moveToNext()) {
+          final Author author = Tables.Authors.createAuthor(cursor);
+          final Track track = Tables.Tracks.createTrack(cursor, Tables.Authors.Fields.values().length);
+          visitor.accept(author, track);
+        }
+      }
+    } finally {
+      cursor.close();
     }
   }
   
-  final CacheLifetime getAuthorsLifetime(Integer id, TimeStamp ttl) {
-    return new CacheLifetime(Tables.Authors.NAME, id, ttl);
+  final void addTrack(Track track) {
+    tracks.add(track);
   }
   
-  final CacheLifetime getPartiesLifetime(Integer id, TimeStamp ttl) {
-    return new CacheLifetime(Tables.Parties.NAME, id, ttl);
-  }
-  
-  final CacheLifetime getTopLifetime(TimeStamp ttl) {
-    return new CacheLifetime(Tables.Tracks.NAME, null, ttl);
-  }
-  
-  private static Author createAuthor(Cursor cursor) {
-    final int id = cursor.getInt(Tables.Authors.Fields._id.ordinal());
-    final String name = cursor.getString(Tables.Authors.Fields.name.ordinal());
-    final String nickname = cursor.getString(Tables.Authors.Fields.nickname.ordinal());
-    return new Author(id, nickname, name);
+  final void addAuthorTrack(Author author, Track track) {
+    authorsTracks.add(author, track);
   }
 
-  private static ContentValues createValues(Author obj) {
-    final ContentValues res = new ContentValues();
-    res.put(Tables.Authors.Fields._id.name(), obj.id);
-    res.put(Tables.Authors.Fields.name.name(), obj.name);
-    res.put(Tables.Authors.Fields.nickname.name(), obj.nickname);
-    return res;
-  }
-
-  private static Party createParty(Cursor cursor) {
-    final int id = cursor.getInt(Tables.Parties.Fields._id.ordinal());
-    final String name = cursor.getString(Tables.Parties.Fields.name.ordinal());
-    final int year = cursor.getInt(Tables.Parties.Fields.year.ordinal());
-    return new Party(id, name, year);
-  }
-
-  private static ContentValues createValues(Party obj) {
-    final ContentValues res = new ContentValues();
-    res.put(Tables.Parties.Fields._id.name(), obj.id);
-    res.put(Tables.Parties.Fields.name.name(), obj.name);
-    res.put(Tables.Parties.Fields.year.name(), obj.year);
-    return res;
-  }
-  
-  private static Track createTrack(Cursor cursor) {
-    final int id = cursor.getInt(Tables.Tracks.Fields._id.ordinal());
-    final String filename = cursor.getString(Tables.Tracks.Fields.filename.ordinal());
-    final String title = cursor.getString(Tables.Tracks.Fields.title.ordinal());
-    final String votes = cursor.getString(Tables.Tracks.Fields.votes.ordinal());
-    final String duration = cursor.getString(Tables.Tracks.Fields.duration.ordinal());
-    final int year = cursor.getInt(Tables.Tracks.Fields.year.ordinal());
-    final String compo = cursor.getString(Tables.Tracks.Fields.compo.ordinal());
-    final int partyplace = cursor.getInt(Tables.Tracks.Fields.partyplace.ordinal());
-    return new Track(id, filename, title, votes, duration, year, compo, partyplace);
-  }
-
-  private static ContentValues createValues(Track obj) {
-    final ContentValues res = new ContentValues();
-    res.put(Tables.Tracks.Fields._id.name(), obj.id);
-    res.put(Tables.Tracks.Fields.filename.name(), obj.filename);
-    res.put(Tables.Tracks.Fields.title.name(), obj.title);
-    res.put(Tables.Tracks.Fields.votes.name(), obj.votes);
-    res.put(Tables.Tracks.Fields.duration.name(), obj.duration);
-    res.put(Tables.Tracks.Fields.year.name(), obj.year);
-    res.put(Tables.Tracks.Fields.compo.name(), obj.compo);
-    res.put(Tables.Tracks.Fields.partyplace.name(), obj.partyplace);
-    return res;
-  }
-
-  private static ContentValues createValues(int group, int track) {
-    final int hash = 1000000 * group + track;
-    final ContentValues res = new ContentValues();
-    res.put(Tables.Grouping.Fields.hash.name(), hash);
-    res.put(Tables.Grouping.Fields.group_id.name(), group);
-    res.put(Tables.Grouping.Fields.track_id.name(), track);
-    return res;
+  final void addPartyTrack(Party party, Track track) {
+    partiesTracks.add(party, track);
   }
 
   private static class Helper extends SQLiteOpenHelper {
@@ -419,20 +367,13 @@ final class Database {
       db.execSQL(Tables.Tracks.CREATE_QUERY);
       db.execSQL(Tables.AuthorsTracks.CREATE_QUERY);
       db.execSQL(Tables.PartiesTracks.CREATE_QUERY);
-      db.execSQL(Tables.Timestamps.CREATE_QUERY);
+      db.execSQL(Timestamps.CREATE_QUERY);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-      Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
-      final String ALL_TABLES[] = {
-          Tables.Authors.NAME, Tables.Parties.NAME, Tables.Tracks.NAME,
-          Tables.AuthorsTracks.NAME, Tables.PartiesTracks.NAME,
-          Tables.Timestamps.NAME
-      };
-      for (String table : ALL_TABLES) {
-        db.execSQL(String.format(Tables.DROP_QUERY, table));
-      }
+      Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
+      Utils.cleanupDb(db);
       onCreate(db);
     }
   }

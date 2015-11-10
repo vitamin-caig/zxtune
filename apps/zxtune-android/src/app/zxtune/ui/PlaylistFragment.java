@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +25,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
+import app.zxtune.Identifier;
+import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.Preferences;
 import app.zxtune.R;
@@ -96,11 +97,11 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   }
   
   private static int getMenuTitle(PlaylistControl.SortBy by) {
-    if (by.equals(PlaylistControl.SortBy.title)) {
+    if (PlaylistControl.SortBy.title.equals(by)) {
       return R.string.information_title;
-    } else if (by.equals(PlaylistControl.SortBy.author)) {
+    } else if (PlaylistControl.SortBy.author.equals(by)) {
       return R.string.information_author;
-    } else if (by.equals(PlaylistControl.SortBy.duration)) {
+    } else if (PlaylistControl.SortBy.duration.equals(by)) {
       return R.string.statistics_duration;//TODO: extract
     } else {
       throw new RuntimeException();
@@ -108,9 +109,9 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   }
   
   private static int getMenuIcon(PlaylistControl.SortOrder order) {
-    if (order.equals(PlaylistControl.SortOrder.asc)) {
+    if (PlaylistControl.SortOrder.asc.equals(order)) {
       return android.R.drawable.arrow_up_float;
-    } else if (order.equals(PlaylistControl.SortOrder.desc)) {
+    } else if (PlaylistControl.SortOrder.desc.equals(order)) {
       return android.R.drawable.arrow_down_float;
     } else {
       throw new RuntimeException();
@@ -287,8 +288,8 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     @Override
     public void onItemChanged(Item item) {
       final Uri id = item.getId();
-      final Uri contentId = item.getDataId();
-      final Uri playlistId = 0 == id.compareTo(contentId) ? Uri.EMPTY : id;
+      final Identifier contentId = item.getDataId();
+      final Uri playlistId = 0 == id.compareTo(contentId.getFullLocation()) ? Uri.EMPTY : id;
       if (0 != playlistId.compareTo(nowPlayingPlaylist)) {
         nowPlayingPlaylist = playlistId;
         updateView();

@@ -13,6 +13,7 @@
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <contract.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -21,6 +22,7 @@
 #include <algorithm>
 #include <iterator>
 //boost includes
+#include <boost/array.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
@@ -85,23 +87,23 @@ namespace TurboLZ
       //+0x43
       uint8_t LastByte;
       //+0x44
-
-      struct KeyFunc : public std::unary_function<void, uint8_t>
-      {
-        explicit KeyFunc(const RawHeader&)
-        {
-        }
-        
-        KeyFunc()
-        {
-        }
-
-        uint8_t operator() ()
-        {
-          return 0;
-        }
-      };
     } PACK_POST;
+
+    struct KeyFunc : public std::unary_function<void, uint8_t>
+    {
+      KeyFunc(const uint8_t* /*data*/, std::size_t /*size*/)
+      {
+      }
+      
+      KeyFunc()
+      {
+      }
+
+      uint8_t operator() ()
+      {
+        return 0;
+      }
+    };
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
@@ -167,26 +169,29 @@ namespace TurboLZ
     //+0x87
     uint8_t InitialCryptoKeyIndex;
     //+0x88
-
-    struct KeyFunc : public std::unary_function<void, uint8_t>
-    {
-      explicit KeyFunc(const RawHeader& header)
-        : Key(header.DepackerBody, header.DepackerBody + 128)
-        , Index(Key[offsetof(RawHeader, InitialCryptoKeyIndex) - offsetof(RawHeader, DepackerBody)])
-      {
-      }
-
-      uint8_t operator() ()
-      {
-        ++Index;
-        Index &= 0x7f;
-        return Key[Index];
-      }
-    private:
-      Dump Key;
-      uint8_t& Index;
-    };
   } PACK_POST;
+  
+  static const std::size_t KeyOffset = offsetof(RawHeader, DepackerBody);
+
+  struct KeyFunc : public std::unary_function<void, uint8_t>
+  {
+    KeyFunc(const uint8_t* data, std::size_t size)
+      : Index(Key[offsetof(RawHeader, InitialCryptoKeyIndex) - KeyOffset])
+    {
+      Require(KeyOffset + Key.size() <= size);
+      std::copy(data + KeyOffset, data + KeyOffset + Key.size(), Key.begin());
+    }
+
+    uint8_t operator() ()
+    {
+      ++Index;
+      Index &= 0x7f;
+      return Key[Index];
+    }
+  private:
+    boost::array<uint8_t, 128> Key;
+    uint8_t& Index;
+  };
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
@@ -301,6 +306,11 @@ namespace TurboLZ
       assert(Size >= sizeof(typename Version::RawHeader));
       return *safe_ptr_cast<const typename Version::RawHeader*>(Data);
     }
+    
+    typename Version::KeyFunc GetKeyFunc() const
+    {
+      return typename Version::KeyFunc(Data, Size);
+    }
   private:
     const uint8_t* const Data;
     const std::size_t Size;
@@ -319,7 +329,8 @@ namespace TurboLZ
     {
       if (IsValid && !Stream.Eof())
       {
-        IsValid = DecodeData();
+        typename Version::KeyFunc keyFunctor = container.GetKeyFunc();
+        IsValid = DecodeData(keyFunctor);
       }
     }
 
@@ -337,10 +348,9 @@ namespace TurboLZ
         : 0;
     }
   private:
-    bool DecodeData()
+    template<class KeyFunc>
+    bool DecodeData(KeyFunc& keyFunctor)
     {
-      typename Version::RawHeader::KeyFunc keyFunctor(Header);
-
       while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
       {
         const uint_t token = Stream.GetByte();
@@ -348,7 +358,7 @@ namespace TurboLZ
         {
           //%00000000 - exit
           Decoded.push_back(Header.LastByte);
-          Simple::RawHeader::KeyFunc noDecode;
+          Simple::KeyFunc noDecode;
           CopyNonPacked(Stream.GetRestBytes(), noDecode);
           return true;
         }

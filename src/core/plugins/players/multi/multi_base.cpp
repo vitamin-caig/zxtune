@@ -14,6 +14,7 @@
 #include <contract.h>
 //library includes
 #include <parameters/merged_accessor.h>
+#include <parameters/tracking_helper.h>
 #include <parameters/visitor.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -132,9 +133,8 @@ namespace Module
   public:
     typedef boost::shared_ptr<CompositeReceiver> Ptr;
     
-    CompositeReceiver(Sound::Receiver::Ptr delegate, uint_t bufferSize)
+    explicit CompositeReceiver(Sound::Receiver::Ptr delegate)
       : Delegate(delegate)
-      , Buffer(bufferSize)
       , DoneStreams()
     {
     }
@@ -153,6 +153,11 @@ namespace Module
     
     virtual void Flush()
     {
+    }
+
+    void SetBufferSize(uint_t size)
+    {
+      Buffer.Resize(size);
     }
     
     void FinishFrame()
@@ -196,9 +201,9 @@ namespace Module
     class CumulativeChunk
     {
     public:
-      explicit CumulativeChunk(uint_t size)
-        : Buffer(size)
+      void Resize(uint_t size)
       {
+        Buffer.resize(size);
       }
       
       void Fill(const Sound::Chunk& data)
@@ -349,12 +354,14 @@ namespace Module
   class MultiRenderer : public Renderer
   {
   public:
-    MultiRenderer(RenderersArray::const_iterator begin, RenderersArray::const_iterator end, CompositeReceiver::Ptr target)
+    MultiRenderer(RenderersArray::const_iterator begin, RenderersArray::const_iterator end, Sound::RenderParameters::Ptr renderParams, CompositeReceiver::Ptr target)
       : Delegates(begin, end)
+      , SoundParams(renderParams)
       , Target(target)
       , State(MultiTrackState::Create(Delegates))
       , Analysis(MultiAnalyzer::Create(Delegates))
     {
+      ApplyParameters();
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -369,6 +376,7 @@ namespace Module
 
     virtual bool RenderFrame()
     {
+      ApplyParameters();
       bool result = true;
       for (std::size_t idx = 0, lim = Delegates.size(); idx != lim; ++idx)
       {
@@ -383,6 +391,7 @@ namespace Module
 
     virtual void Reset()
     {
+      SoundParams.Reset();
       std::for_each(Delegates.begin(), Delegates.end(), boost::mem_fn(&Renderer::Reset));
     }
 
@@ -400,10 +409,8 @@ namespace Module
       }
       else
       {
-        const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
         const std::size_t size = holders.size();
-        const std::size_t bufSize = renderParams->SamplesPerFrame();
-        const CompositeReceiver::Ptr receiver = boost::make_shared<CompositeReceiver>(target, bufSize);
+        const CompositeReceiver::Ptr receiver = boost::make_shared<CompositeReceiver>(target);
         const Parameters::Accessor::Ptr forcedLoop = boost::make_shared<ForcedLoopParam>();
         RenderersArray delegates(size);
         for (std::size_t idx = 0; idx != size; ++idx)
@@ -414,11 +421,22 @@ namespace Module
             : Parameters::CreateMergedAccessor(forcedLoop, params);
           delegates[idx] = holder->CreateRenderer(delegateParams, receiver);
         }
-        return boost::make_shared<MultiRenderer>(delegates.begin(), delegates.end(), receiver);
+        const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+        return boost::make_shared<MultiRenderer>(delegates.begin(), delegates.end(), renderParams, receiver);
+      }
+    }
+  private:
+    void ApplyParameters()
+    {
+      if (SoundParams.IsChanged())
+      {
+        const uint_t bufSize = SoundParams->SamplesPerFrame();
+        Target->SetBufferSize(bufSize);
       }
     }
   private:
     const RenderersArray Delegates;
+    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const CompositeReceiver::Ptr Target;
     const TrackState::Ptr State;
     const Analyzer::Ptr Analysis;

@@ -19,13 +19,13 @@ import java.util.Locale;
 
 import org.xml.sax.SAXException;
 
-import android.content.Context;
+import android.net.Uri;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
-import android.util.Log;
 import android.util.Xml;
+import app.zxtune.Log;
 import app.zxtune.Util;
 import app.zxtune.fs.HttpProvider;
 
@@ -40,67 +40,53 @@ final class RemoteCatalog extends Catalog {
   private static final String ACTION_PARTIES = "/action:parties";
   private static final String ACTION_TRACKS = "/action:tunes";
   private static final String ACTION_TOP = "/action:topTunes";
+  private static final String ACTION_SEARCH = "/action:search";
   private static final String LIMIT = "/limit:%d";
   private static final String AUTHOR_ID = "/authorId:%d";
   private static final String PARTY_ID = "/partyId:%d";
-  private static final String TRACK_ID = "/tuneId:%d";
+  //private static final String TRACK_ID = "/tuneId:%d";
   private static final String ALL_TRACKS_QUERY = API + ACTION_TRACKS;
-  private static final String TRACK_QUERY = ALL_TRACKS_QUERY + TRACK_ID;
   private static final String DOWNLOAD_QUERY = SITE + "/file/id:%d";
   private static final String ALL_AUTHORS_QUERY = API + ACTION_AUTHORS;
-  private static final String AUTHOR_QUERY = ALL_AUTHORS_QUERY + AUTHOR_ID;
   private static final String AUTHOR_TRACKS_QUERY = ALL_TRACKS_QUERY + AUTHOR_ID;
   private static final String ALL_PARTIES_QUERY = API + ACTION_PARTIES;
-  private static final String PARTY_QUERY = ALL_PARTIES_QUERY + PARTY_ID;
   private static final String PARTY_TRACKS_QUERY = ALL_TRACKS_QUERY + PARTY_ID;
   private static final String TOP_TRACKS_QUERY = API + ACTION_TOP + LIMIT;
+  private static final String FIND_TRACKS_QUERY = API + ACTION_SEARCH + "/query:%s";
 
   private final HttpProvider http;
 
-  public RemoteCatalog(Context context) {
-    this.http = new HttpProvider(context);
+  public RemoteCatalog(HttpProvider http) {
+    this.http = http;
   }
 
   @Override
-  public void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException {
-    final String query =
-        id == null ? ALL_AUTHORS_QUERY : String.format(Locale.US, AUTHOR_QUERY, id);
-    final HttpURLConnection connection = http.connect(query);
+  public void queryAuthors(AuthorsVisitor visitor) throws IOException {
+    final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
   }
 
   @Override
-  public void queryAuthorTracks(TracksVisitor visitor, Author author, Integer id) throws IOException {
-    if (id != null) {
-      queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
-    } else {
-      queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
-    }
+  public void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException {
+    queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
   }
 
-  public void queryParties(PartiesVisitor visitor, Integer id) throws IOException {
-    final String query =
-        id == null ? ALL_PARTIES_QUERY : String.format(Locale.US, PARTY_QUERY, id);
-    final HttpURLConnection connection = http.connect(query);
+  @Override
+  public void queryParties(PartiesVisitor visitor) throws IOException {
+    final HttpURLConnection connection = http.connect(ALL_PARTIES_QUERY);
     final RootElement root = createPartiesParserRoot(visitor);
     performQuery(connection, root);
   }
   
-  public void queryPartyTracks(TracksVisitor visitor, Party party, Integer id) throws IOException {
-    if (id != null) {
-      queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
-    } else {
-      queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.id));
-    }
+  @Override
+  public void queryPartyTracks(Party party, TracksVisitor visitor) throws IOException {
+    queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.id));
   }
   
-  public void queryTopTracks(TracksVisitor visitor, Integer id, int limit) throws IOException {
-    if (id != null) {
-      queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
-    } else {
-      queryTracks(visitor, String.format(Locale.US, TOP_TRACKS_QUERY, limit));
-    }
+  @Override
+  public void queryTopTracks(int limit, TracksVisitor visitor) throws IOException {
+    queryTracks(visitor, String.format(Locale.US, TOP_TRACKS_QUERY, limit));
   }
   
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
@@ -110,12 +96,24 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
+  public boolean searchSupported() {
+    return http.hasConnection();
+  }
+  
+  public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
+    final String url = String.format(Locale.US, FIND_TRACKS_QUERY, Uri.encode(query));
+    final HttpURLConnection connection = http.connect(url);
+    final RootElement root = createModulesParserRoot(visitor);
+    performQuery(connection, root);
+  }
+  
+  @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     try {
       final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
       return http.getContent(query);
     } catch (IOException e) {
-      Log.d(TAG, "getModuleContent(" + id + ")", e);
+      Log.d(TAG, e, "getTrackContent(%d)", id);
       throw e;
     }
   }
@@ -321,6 +319,40 @@ final class RemoteCatalog extends Catalog {
         }
       }
     });
+    bindXmlActions(item, builder);
+    return result;
+  }
+
+  //TODO: remove C&P
+  private static RootElement createModulesParserRoot(final FoundTracksVisitor visitor) {
+    final ModuleBuilder builder = new ModuleBuilder();
+    final RootElement result = createRootElement();
+    final Element data = result.getChild("responseData");
+    data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        final Integer count = asInt(body);
+        if (count != null) {
+          visitor.setCountHint(count);
+        }
+      }
+    });
+    final Element item = data.getChild("tunes").getChild("tune");
+    item.setEndElementListener(new EndElementListener() {
+      @Override
+      public void end() {
+        final Author author = builder.captureResultAuthor();
+        final Track result = builder.captureResult();
+        if (result != null && author != null) {
+          visitor.accept(author, result);
+        }
+      }
+    });
+    bindXmlActions(item, builder);
+    return result;
+  }
+  
+  private static void bindXmlActions(Element item, final ModuleBuilder builder) {
     item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
@@ -381,7 +413,12 @@ final class RemoteCatalog extends Catalog {
         builder.setPartyplace(body);
       }
     });
-    return result;
+    item.getChild("authors").getChild("id").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setAuthorId(body);
+      }
+    });
   }
 
   private static class ModuleBuilder {
@@ -396,6 +433,7 @@ final class RemoteCatalog extends Catalog {
     private int year;
     private String compo;
     private int partyplace;
+    private Integer authorId;
     
     ModuleBuilder() {
       reset();
@@ -451,6 +489,25 @@ final class RemoteCatalog extends Catalog {
         partyplace = 0;
       }
     }
+    
+    final void setAuthorId(String val) {
+      try {
+        authorId = Integer.valueOf(val);
+      } catch (NumberFormatException e) {
+        authorId = null;
+      }
+    }
+    
+    final Author captureResultAuthor() {
+      if (authorId != null) {
+        final String fakeName = "Author" + authorId;
+        final Author res = new Author(authorId, fakeName, "");
+        authorId = null;
+        return res;
+      } else {
+        return null;
+      }
+    }
 
     final Track captureResult() {
       title = Util.formatTrackTitle(internalAuthor, internalTitle, title);
@@ -466,6 +523,7 @@ final class RemoteCatalog extends Catalog {
       filename = null;
       year = partyplace = 0;
       votes = duration = title = internalAuthor = internalTitle = compo = "".intern();
+      authorId = null;
     }
     
     private boolean isValid() {

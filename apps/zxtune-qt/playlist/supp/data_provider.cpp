@@ -411,12 +411,19 @@ namespace
     Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
       const Binary::Container::Ptr data = Source->GetData();
-      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ToLocal(ModuleId->Subpath()));
-      const Module::Holder::Ptr module = Module::Open(location);
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*CoreParams, data, ToLocal(ModuleId->Subpath()));
+      const Module::Holder::Ptr module = Module::Open(*CoreParams, location);
       const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(module->GetModuleProperties());
       const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
       return Module::CreateMixedPropertiesHolder(module, moduleParams);
+    }
+    
+    Binary::Data::Ptr GetModuleData(std::size_t size) const
+    {
+      const Binary::Container::Ptr data = Source->GetData();
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*CoreParams, data, ToLocal(ModuleId->Subpath()));
+      return location->GetData()->GetSubcontainer(0, size);
     }
 
     String GetFullPath() const
@@ -516,6 +523,11 @@ namespace
       return Module::Holder::Ptr();
     }
 
+    virtual Binary::Data::Ptr GetModuleData() const
+    {
+      return Source.GetModuleData(Size);
+    }
+    
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
       const Parameters::Modifier& cb = *this;
@@ -673,11 +685,6 @@ namespace
     {
     }
 
-    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
-    {
-      return CoreParams;
-    }
-
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const
     {
       const String subPath = location->GetPath()->AsString();
@@ -725,7 +732,7 @@ namespace
         const Binary::Container::Ptr data = Provider->GetData(id->Path());
         const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
         const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
-        Module::Detect(location, detectCallback);
+        Module::Detect(*CoreParams, location, detectCallback);
       }
       else
       {
@@ -740,8 +747,8 @@ namespace
       const Binary::Container::Ptr data = Provider->GetData(id->Path());
       const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
 
-      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ToLocal(id->Subpath()));
-      Module::Open(location, detectCallback);
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*CoreParams, data, ToLocal(id->Subpath()));
+      Module::Open(*CoreParams, location, detectCallback);
     }
   private:
     const CachedDataProvider::Ptr Provider;

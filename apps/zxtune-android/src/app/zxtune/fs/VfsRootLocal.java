@@ -25,9 +25,8 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.text.format.Formatter;
 import app.zxtune.R;
-import app.zxtune.ui.IconSource;
 
-final class VfsRootLocal implements VfsRoot, IconSource {
+final class VfsRootLocal extends StubObject implements VfsRoot {
   
   private final static String SCHEME = "file";
   
@@ -53,8 +52,17 @@ final class VfsRootLocal implements VfsRoot, IconSource {
   }
 
   @Override
-  public VfsDir getParent() {
+  public VfsObject getParent() {
     return null;
+  }
+  
+  @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
+      return R.drawable.ic_browser_vfs_local;
+    } else {
+      return super.getExtension(id);
+    }
   }
   
   @Override
@@ -81,11 +89,6 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     }
   }
   
-  @Override
-  public int getResourceId() {
-    return R.drawable.ic_browser_vfs_local;
-  }
-
   private static Uri buildUri(String path) {
     return new Uri.Builder().scheme(SCHEME).path(path).build(); 
   }
@@ -140,22 +143,20 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     }
     return result;
   }
-
-  private class LocalDir extends StubObject implements VfsDir {
-
-    private final File dir;
-    private final String name;
-
-    public LocalDir(File dir) {
-      assert dir.isDirectory();
-      this.dir = dir;
-      final String name = dir.getName();
-      this.name = 0 != name.length() ? name : dir.getAbsolutePath(); 
+  
+  private class LocalObject extends StubObject implements VfsObject {
+    
+    protected final File object;
+    protected final String name;
+    
+    public LocalObject(File obj, String name) {
+      this.object = obj;
+      this.name = name;
     }
 
     @Override
     public Uri getUri() {
-      return buildUri(dir.getPath());
+      return buildUri(object.getPath());
     }
 
     @Override
@@ -164,16 +165,28 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
-      final File parent = dir.getParentFile();
+    public VfsObject getParent() {
+      final File parent = object.getParentFile();
       return parent != null
         ? new LocalDir(parent)
         : VfsRootLocal.this;
     }
+  }
+
+  private static String getDirName(File dir) {
+    final String name = dir.getName();
+    return 0 != name.length() ? name : dir.getAbsolutePath(); 
+  }
+  
+  private class LocalDir extends LocalObject implements VfsDir {
+
+    public LocalDir(File dir) {
+      super(dir, getDirName(dir));
+    }
     
     @Override
     public void enumerate(Visitor visitor) throws IOException {
-      final File[] files = dir.listFiles();
+      final File[] files = object.listFiles();
       if (files == null) {
         throw new IOException("Failed to enumerate files in directory");
       }
@@ -188,33 +201,20 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     }
   }
 
-  private class LocalFile extends StubObject implements VfsFile {
-
-    private final File file;
+  private class LocalFile extends LocalObject implements VfsFile {
 
     public LocalFile(File file) {
-      assert file.isFile();
-      this.file = file;
+      super(file, file.getName());
     }
 
-    @Override
-    public Uri getUri() {
-      return buildUri(file.getPath());
-    }
-
-    @Override
-    public String getName() {
-      return file.getName();
-    }
-    
     @Override
     public String getSize() {
-      return Formatter.formatShortFileSize(context, file.length());
+      return Formatter.formatShortFileSize(context, object.length());
     }
 
     @Override
     public ByteBuffer getContent() throws IOException {
-      final FileInputStream stream = new FileInputStream(file);
+      final FileInputStream stream = new FileInputStream(object);
       try {
         final FileChannel channel = stream.getChannel();
         try {

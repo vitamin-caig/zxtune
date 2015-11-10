@@ -72,20 +72,13 @@ namespace Parameters
 
         extern const NameType FILTER = PREFIX + "filter";
         extern const NameType INTERPOLATION = PREFIX + "interpolation";
-
-        namespace ROM
-        {
-          extern const NameType PREFIX = SID::PREFIX + "rom";
-
-          extern const NameType KERNAL = PREFIX + "kernal";
-          extern const NameType BASIC = PREFIX + "basic";
-          extern const NameType CHARGEN = PREFIX + "chargen";
-        }
       }
 
       namespace Plugins
       {
         extern const NameType PREFIX = Core::PREFIX + "plugins";
+        
+        extern const NameType DEFAULT_DURATION = PREFIX + "default_duration";
 
         namespace Raw
         {
@@ -102,11 +95,13 @@ namespace Parameters
           extern const NameType IGNORE_CORRUPTED = PREFIX + "ignore_corrupted";
         }
 
-        namespace AY
+        namespace SID
         {
-          extern const NameType PREFIX = Plugins::PREFIX + "ay";
+          extern const NameType PREFIX = Plugins::PREFIX + "sid";
 
-          extern const NameType DEFAULT_DURATION_FRAMES = PREFIX + "default_duration";
+          extern const NameType KERNAL = PREFIX + "kernal";
+          extern const NameType BASIC = PREFIX + "basic";
+          extern const NameType CHARGEN = PREFIX + "chargen";
         }
 
         namespace Zip

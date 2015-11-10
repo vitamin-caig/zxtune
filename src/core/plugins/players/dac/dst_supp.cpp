@@ -14,7 +14,6 @@
 #include "digital.h"
 #include "core/plugins/registrator.h"
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/digitalstudio.h>
 
 namespace Module
@@ -29,7 +28,7 @@ namespace DigitalStudio
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       const std::auto_ptr<DataBuilder> dataBuilder = DataBuilder::Create<CHANNELS_COUNT>(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(rawData, *dataBuilder))

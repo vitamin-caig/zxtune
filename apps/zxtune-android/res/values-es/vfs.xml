@@ -46,7 +46,142 @@
   <string name="vfs_zxart_compo_oldschool">Compo música oldschool</string>
   <string name="vfs_zxart_compo_mainstream">Compo música mainstream</string>
   <string name="vfs_zxart_compo_progressive">Compo música progressive</string>
+  <!-- joshw.info -->
+  <string name="vfs_joshw_root_description">Varios archivos</string>
+    <!-- amp.dascene.net -->
+    <string name="vfs_amp_handles_name">Apodos</string>
+    <string name="vfs_amp_handles_description">Búsqueda por apodos</string>
+    <string name="vfs_amp_countries_name">Países</string>
+    <string name="vfs_amp_countries_description">Búsqueda por países</string>
+    <string name="vfs_amp_groups_name">Grupos</string>
+    <string name="vfs_amp_groups_description">Búsqueda por grupo</string>
+    <string-array name="vfs_amp_countries_list">
+<!--0--><item></item>
+<!--1--><item>Argentina</item>
+<!--2--><item>Australia</item>
+<!--3--><item>Austria</item>
+<!--4--><item>Bielorrusia</item>
+<!--5--><item>Bélgica</item>
+<!--6--><item>Brasil</item>
+<!--7--><item>Bulgaria</item>
+<!--8--><item>Canadá</item>
+<!--9--><item>Chile</item>
+<!--10--><item>Costa Rica</item>
+<!--11--><item>Croacia</item>
+<!--12--><item>Chipre</item>
+<!--13--><item>República Checa</item>
+<!--14--><item>Dinamarca</item>
+<!--15--><item>República Dominicana</item>
+<!--16--><item>Estonia</item>
+<!--17--><item>Finlandia</item>
+<!--18--><item>Francia</item>
+<!--19--><item>Alemania</item>
+<!--20--><item>Grecia</item>
+<!--21--><item>Hungría</item>
+<!--22--><item>Islandia</item>
+<!--23--><item>Irlanda</item>
+<!--24--><item>Isla de Man</item>
+<!--25--><item>Isla de Wight</item>
+<!--26--><item>Israel</item>
+<!--27--><item>Italia</item>
+<!--28--><item>Japón</item>
+<!--29--><item>Jordan</item>
+<!--30--><item>Lichtenstein</item>
+<!--31--><item>Luxemburgo</item>
+<!--32--><item>Macedonia</item>
+<!--33--><item>Malta</item>
+<!--34--><item>Martinica</item>
+<!--35--><item>México</item>
+<!--36--><item>Nueva Caledonia</item>
+<!--37--><item>Nueva Zelanda</item>
+<!--38--><item>Irlanda del Norte</item>
+<!--39--><item>Noruega</item>
+<!--40--><item>Polonia</item>
+<!--41--><item>Portugal</item>
+<!--42--><item>Quebec</item>
+<!--43--><item>Rumania</item>
+<!--44--><item>Rusia</item>
+<!--45--><item>Escocia</item>
+<!--46--><item>Serbia</item>
+<!--47--><item>Singapur</item>
+<!--48--><item>Eslovaquia</item>
+<!--49--><item>Eslovenia</item>
+<!--50--><item>Sudáfrica</item>
+<!--51--><item>España</item>
+<!--52--><item>Suecia</item>
+<!--53--><item>Suiza</item>
+<!--54--><item>Taiwán</item>
+<!--55--><item>Los Países Bajos</item>
+<!--56--><item>Turquía</item>
+<!--57--><item>EE.UU.</item>
+<!--58--><item>Ucrania</item>
+<!--59--><item>Reino Unido</item>
+<!--60--><item>Desconocido</item>
+<!--61--><item>Uruguay</item>
+<!--62--><item>Venezuela</item>
+<!--63--><item>Gales</item>
+<!--64--><item>Yugoslavia (ex)</item>
+<!--65--><item></item>
+<!--66--><item></item>
+<!--67--><item></item>
+<!--68--><item></item>
+<!--69--><item></item>
+<!--70--><item></item>
+<!--71--><item></item>
+<!--72--><item></item>
+<!--73--><item></item>
+<!--74--><item>Córcega</item>
+<!--75--><item></item>
+<!--76--><item></item>
+<!--77--><item></item>
+<!--78--><item></item>
+<!--79--><item>R.I.P</item>
+<!--80--><item></item>
+<!--81--><item></item>
+<!--82--><item></item>
+<!--83--><item></item>
+<!--84--><item></item>
+<!--85--><item></item>
+<!--86--><item>Letonia</item>
+<!--87--><item>Perú</item>
+<!--88--><item></item>
+<!--89--><item></item>
+<!--90--><item></item>
+<!--91--><item></item>
+<!--92--><item>Tailandia</item>
+<!--93--><item></item>
+<!--94--><item></item>
+<!--95--><item></item>
+<!--96--><item></item>
+<!--97--><item></item>
+<!--98--><item></item>
+<!--99--><item>Irán</item>
+<!--100--><item></item>
+<!--101--><item>Irak</item>
+<!--102--><item></item>
+<!--103--><item></item>
+<!--104--><item></item>
+<!--105--><item></item>
+<!--106--><item></item>
+<!--107--><item></item>
+<!--108--><item></item>
+<!--109--><item></item>
+<!--110--><item></item>
+<!--111--><item></item>
+<!--112--><item></item>
+<!--113--><item></item>
+<!--114--><item>Paraguay</item>
+<!--115--><item></item>
+<!--116--><item></item>
+<!--117--><item></item>
+<!--118--><item></item>
+<!--119--><item></item>
+<!--120--><item>Malasia</item>
+<!--121--><item></item>
+<!--122--><item>Guatemala</item>
+    </string-array>
   <!--errors-->
   <string name="network_inaccessible">La red no es accesible</string>
   <string name="failed_resolve">No se pudo resolver %s</string>
+  <string name="file_too_big">El archivo es demasiado grande</string>
 </resources>

@@ -11,29 +11,22 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: src/linux/shared_library.cpp:53
 #, boost-format
 msgid "Failed to find symbol '%1%' in shared object."
 msgstr "Символ '%1%' не найден в динамической библиотеке."
 
-#: src/linux/shared_library.cpp:79
 #, boost-format
 msgid "Failed to load shared object '%1%' (%2%)."
 msgstr "Ошибка загрузки динамической библиотеки '%1%' (%2%)."
 
-#: src/shared_library_common.cpp:43
 #, boost-format
 msgid "Failed to load dynamic library '%1%' by any of the alternative names."
-msgstr ""
-"Динамическая библиотека '%1%' не может быть загружена ни по одному из "
-"известных имен."
+msgstr "Динамическая библиотека '%1%' не может быть загружена ни по одному из известных имен."
 
-#: src/windows/shared_library.cpp:53
 #, boost-format
 msgid "Failed to find symbol '%1%' in dynamic library."
 msgstr "Символ '%1%' не найден в динамической библиотеке."
 
-#: src/windows/shared_library.cpp:85
 #, boost-format
 msgid "Failed to load dynamic library '%1%' (error code is %2%)."
 msgstr "Ошибка загрузки динамической библиотеки '%1%' (код %2%)."

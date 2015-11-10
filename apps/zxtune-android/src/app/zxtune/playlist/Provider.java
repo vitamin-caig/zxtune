@@ -27,7 +27,7 @@ public class Provider extends ContentProvider {
 
   @Override
   public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-    if (uri.equals(PlaylistQuery.STATISTICS)) {
+    if (PlaylistQuery.STATISTICS.equals(uri)) {
       return db.queryStatistics(selection);
     } else {
       final Long id = PlaylistQuery.idOf(uri);

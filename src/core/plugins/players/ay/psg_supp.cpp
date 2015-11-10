@@ -14,7 +14,6 @@
 #include "aym_plugin.h"
 #include "core/plugins/registrator.h"
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/psg.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -86,7 +85,7 @@ namespace PSG
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder;
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
@@ -112,7 +111,7 @@ namespace ZXTune
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreatePSGDecoder();
     const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::PSG::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);;
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -1,0 +1,9 @@
+1) Assume crossroot is /mnt/devel/zxtune/Build/root-linux-armhf
+2) Search for missed files at https://www.debian.org/distrib/packages#search_contents
+3) Filter by arch (armhf) and distro (wheezy for July 2015)
+4) Find deb url
+5) Download and install package:
+
+#!/bin/sh
+url=$1
+wget $url && dpkg -x `basename $url` /mnt/devel/zxtune/Build/root-linux-armhf

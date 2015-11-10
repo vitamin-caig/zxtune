@@ -64,21 +64,17 @@ public class AboutFragment extends DialogFragment {
         final ArrayList<ArrayList<ArrayMap<String, String>>> childs = new ArrayList<ArrayList<ArrayMap<String, String>>>();
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
           final int type = cursor.getInt(PluginsProvider.Columns.Type.ordinal());
-          final String id = cursor.getString(PluginsProvider.Columns.Id.ordinal());
           final String descr = cursor.getString(PluginsProvider.Columns.Description.ordinal());
           while (type >= groups.size()) {
             groups.add(new ArrayMap<String, String>());
             childs.add(new ArrayList<ArrayMap<String, String>>());
           }
           final ArrayMap<String, String> plugin = new ArrayMap<String, String>(1);
-          final String text = type < PluginsProvider.Types.DECODER_DECOMPILER 
-              ? String.format("\t[%s] %s", id, descr)
-              : "\t" + descr;
-          plugin.put(PluginsProvider.Columns.Description.name(), text);
+          plugin.put(PluginsProvider.Columns.Description.name(), "\t" + descr);
           childs.get(type).add(plugin);
         }
         for (int type = 0; type != groups.size(); ++type) {
-          groups.get(type).put(PluginsProvider.Columns.Type.name(), ctx.getString(getTypeStringId(type)));
+          groups.get(type).put(PluginsProvider.Columns.Type.name(), ctx.getString(getPluginTypeString(type)));
         }
         
         final String[] groupFrom = {PluginsProvider.Columns.Type.name()};
@@ -95,35 +91,14 @@ public class AboutFragment extends DialogFragment {
       @Override
       public void onLoaderReset(Loader<Cursor> arg0) {
       }
-      
-      private int getTypeStringId(int type) {
-        switch (type) {
-          case PluginsProvider.Types.PLAYER_AYM_TS:
-            return R.string.plugin_player_aym_ts;
-          case PluginsProvider.Types.PLAYER_DAC:
-            return R.string.plugin_player_dac;
-          case PluginsProvider.Types.PLAYER_FM_TFM:
-            return R.string.plugin_player_fm_tfm;
-          case PluginsProvider.Types.PLAYER_SAA:
-            return R.string.plugin_player_saa;
-          case PluginsProvider.Types.PLAYER_SID:
-            return R.string.plugin_player_sid;
-          case PluginsProvider.Types.PLAYER_SPC:
-            return R.string.plugin_player_spc;
-          case PluginsProvider.Types.PLAYER_MULTIDEVICE:
-            return R.string.plugin_player_multidevice;
-          case PluginsProvider.Types.DECODER_DECOMPILER:
-            return R.string.plugin_decoder_decompiler;
-          case PluginsProvider.Types.MULTITRACK_CONTAINER:
-            return R.string.plugin_multitrack_container;
-          default:
-            return R.string.plugin_unknown;
-        }
-      }
     });
     return res;
   }
 
+  private static int getPluginTypeString(int type) {
+    return PluginsProvider.Types.values()[type].nameId();
+  }
+  
   private String getApplicationInfo() {
     try {
       final Context context = getActivity();

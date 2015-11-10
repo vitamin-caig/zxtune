@@ -48,7 +48,155 @@
     <string name="vfs_zxart_compo_oldschool">Oldschool music compo</string>
     <string name="vfs_zxart_compo_mainstream">Mainstream music compo</string>
     <string name="vfs_zxart_compo_progressive">Progressive music compo</string>
+    <!-- joshw.info -->
+    <string name="vfs_joshw_root_name" translatable="false">Josh W</string>
+    <string name="vfs_joshw_root_description">Various archives</string>
+    <string name="vfs_joshw_gbs_name" translatable="false">Game Boy/Color</string>
+    <string name="vfs_joshw_gbs_description" translatable="false">http://gbs.joshw.info</string>
+    <string name="vfs_joshw_hes_name" translatable="false">PC Engine/PC Engine CD</string>
+    <string name="vfs_joshw_hes_description" translatable="false">http://hes.joshw.info</string>
+    <string name="vfs_joshw_nsf_name" translatable="false">Nintendo Entertainment System</string>
+    <string name="vfs_joshw_nsf_description" translatable="false">http://nsf.joshw.info</string>
+    <string name="vfs_joshw_smd_name" translatable="false">Mega Drive/Mega CD</string>
+    <string name="vfs_joshw_smd_description" translatable="false">http://smd.joshw.info</string>
+    <string name="vfs_joshw_spc_name" translatable="false">Super Nintendo</string>
+    <string name="vfs_joshw_spc_description" translatable="false">http://spc.joshw.info</string>
+    <!-- amp.dascene.net -->
+    <string name="vfs_amp_root_name" translatable="false">Amiga Music Preservation</string>
+    <string name="vfs_amp_root_description" translatable="false">http://amp.dascene.net</string>
+    <string name="vfs_amp_handles_name">Handles</string>
+    <string name="vfs_amp_handles_description">Browse by authors\' handle</string>
+    <string name="vfs_amp_countries_name">Countries</string>
+    <string name="vfs_amp_countries_description">Browse by authors\' country</string>
+    <string name="vfs_amp_groups_name">Groups</string>
+    <string name="vfs_amp_groups_description">Browse by authors\' group</string>
+    <string-array name="vfs_amp_countries_list">
+<!--0--><item></item>
+<!--1--><item>Argentina</item>
+<!--2--><item>Australia</item>
+<!--3--><item>Austria</item>
+<!--4--><item>Belarus</item>
+<!--5--><item>Belgium</item>
+<!--6--><item>Brazil</item>
+<!--7--><item>Bulgaria</item>
+<!--8--><item>Canada</item>
+<!--9--><item>Chile</item>
+<!--10--><item>Costa Rica</item>
+<!--11--><item>Croatia</item>
+<!--12--><item>Cyprus</item>
+<!--13--><item>Czech Republic</item>
+<!--14--><item>Denmark</item>
+<!--15--><item>Dominican Republic</item>
+<!--16--><item>Estonia</item>
+<!--17--><item>Finland</item>
+<!--18--><item>France</item>
+<!--19--><item>Germany</item>
+<!--20--><item>Greece</item>
+<!--21--><item>Hungary</item>
+<!--22--><item>Iceland</item>
+<!--23--><item>Ireland</item>
+<!--24--><item>Isle of Man</item>
+<!--25--><item>Isle of Wight</item>
+<!--26--><item>Israel</item>
+<!--27--><item>Italy</item>
+<!--28--><item>Japan</item>
+<!--29--><item>Jordan</item>
+<!--30--><item>Lichtenstein</item>
+<!--31--><item>Luxembourg</item>
+<!--32--><item>Macedonia</item>
+<!--33--><item>Malta</item>
+<!--34--><item>Martinique</item>
+<!--35--><item>Mexico</item>
+<!--36--><item>New Caledonia</item>
+<!--37--><item>New Zealand</item>
+<!--38--><item>Northern Ireland</item>
+<!--39--><item>Norway</item>
+<!--40--><item>Poland</item>
+<!--41--><item>Portugal</item>
+<!--42--><item>Quebec</item>
+<!--43--><item>Romania</item>
+<!--44--><item>Russia</item>
+<!--45--><item>Scotland</item>
+<!--46--><item>Serbia</item>
+<!--47--><item>Singapore</item>
+<!--48--><item>Slovakia</item>
+<!--49--><item>Slovenia</item>
+<!--50--><item>South Africa</item>
+<!--51--><item>Spain</item>
+<!--52--><item>Sweden</item>
+<!--53--><item>Switzerland</item>
+<!--54--><item>Taiwan</item>
+<!--55--><item>The Netherlands</item>
+<!--56--><item>Turkey</item>
+<!--57--><item>USA</item>
+<!--58--><item>Ukraine</item>
+<!--59--><item>United Kingdom</item>
+<!--60--><item>Unknown</item>
+<!--61--><item>Uruguay</item>
+<!--62--><item>Venezuela</item>
+<!--63--><item>Wales</item>
+<!--64--><item>Yugoslavia (ex)</item>
+<!--65--><item></item>
+<!--66--><item></item>
+<!--67--><item></item>
+<!--68--><item></item>
+<!--69--><item></item>
+<!--70--><item></item>
+<!--71--><item></item>
+<!--72--><item></item>
+<!--73--><item></item>
+<!--74--><item>Corsica</item>
+<!--75--><item></item>
+<!--76--><item></item>
+<!--77--><item></item>
+<!--78--><item></item>
+<!--79--><item>R.I.P</item>
+<!--80--><item></item>
+<!--81--><item></item>
+<!--82--><item></item>
+<!--83--><item></item>
+<!--84--><item></item>
+<!--85--><item></item>
+<!--86--><item>Latvia</item>
+<!--87--><item>Peru</item>
+<!--88--><item></item>
+<!--89--><item></item>
+<!--90--><item></item>
+<!--91--><item></item>
+<!--92--><item>Thailand</item>
+<!--93--><item></item>
+<!--94--><item></item>
+<!--95--><item></item>
+<!--96--><item></item>
+<!--97--><item></item>
+<!--98--><item></item>
+<!--99--><item>Iran</item>
+<!--100--><item></item>
+<!--101--><item>Iraq</item>
+<!--102--><item></item>
+<!--103--><item></item>
+<!--104--><item></item>
+<!--105--><item></item>
+<!--106--><item></item>
+<!--107--><item></item>
+<!--108--><item></item>
+<!--109--><item></item>
+<!--110--><item></item>
+<!--111--><item></item>
+<!--112--><item></item>
+<!--113--><item></item>
+<!--114--><item>Paraguay</item>
+<!--115--><item></item>
+<!--116--><item></item>
+<!--117--><item></item>
+<!--118--><item></item>
+<!--119--><item></item>
+<!--120--><item>Malaysia</item>
+<!--121--><item></item>
+<!--122--><item>Guatemala</item>
+    </string-array>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
+    <string name="file_too_big">File is too big</string>
 </resources>

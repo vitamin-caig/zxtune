@@ -14,7 +14,6 @@
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/streaming.h"
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfd.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -130,7 +129,7 @@ namespace TFD
   class Factory : public TFM::Factory
   {
   public:
-    virtual TFM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
@@ -157,7 +156,7 @@ namespace ZXTune
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFDDecoder();
     const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFD::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

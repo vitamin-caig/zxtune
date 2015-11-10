@@ -129,5 +129,8 @@ namespace Formats
         Decoder::Ptr CreateDecoder();
       }
     }
+
+    Decoder::Ptr CreateASCSoundMaster0xDecoder();
+    Decoder::Ptr CreateASCSoundMaster1xDecoder();
   }
 }

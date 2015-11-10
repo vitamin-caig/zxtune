@@ -27,7 +27,6 @@ import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 import android.widget.Toast;
 import app.zxtune.playback.Iterator;
 import app.zxtune.playback.IteratorFactory;
@@ -72,7 +71,7 @@ public class ScanService extends IntentService {
 
   @Override
   public void onStart(Intent intent, int startId) {
-    if (intent.getAction().equals(ACTION_CANCEL)) {
+    if (ACTION_CANCEL.equals(intent.getAction())) {
       insertThread.cancel();
       stopSelf();
     } else {
@@ -107,7 +106,7 @@ public class ScanService extends IntentService {
 
   @Override
   protected void onHandleIntent(Intent intent) {
-    if (intent.getAction().equals(ACTION_START)) {
+    if (ACTION_START.equals(intent.getAction())) {
       final Parcelable[] paths = intent.getParcelableArrayExtra(EXTRA_PATHS);
       scan(paths);
     }
@@ -122,7 +121,7 @@ public class ScanService extends IntentService {
 
   private void scan(Uri[] uris) {
     for (Uri uri : uris) {
-      Log.d(TAG, "scan on " + uri);
+      Log.d(TAG, "scan on %s", uri);
     }
     try {
       error = null;

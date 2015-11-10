@@ -14,44 +14,66 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import android.content.Context;
+import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.VfsCache;
 
 public abstract class Catalog {
   
-  public interface AuthorsVisitor {
+  public static abstract class AuthorsVisitor {
     
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
     
-    void accept(Author obj);
+    public abstract void accept(Author obj);
   }
   
-  public interface TracksVisitor {
+  public static abstract class TracksVisitor {
     
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
 
-    void accept(Track obj);
+    public abstract void accept(Track obj);
+  }
+  
+  public static abstract class FoundTracksVisitor {
+    
+    public void setCountHint(int size) {}
+    
+    public abstract void accept(Author author, Track track);
   }
 
   /**
    * Query authors object
    * @param visitor result receiver
-   * @param id identifier of specified author or null if all authors required
+   * @throws IOException
    */
-  public abstract void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException;
+  public abstract void queryAuthors(AuthorsVisitor visitor) throws IOException;
   
   /**
    * Query tracks objects
+   * @param author scope
    * @param visitor result receiver
-   * @param author author's identifier
-   * @param id filter by id. If not null, author filter may be ignored (but required for cache)
-   * @param author filter by author
+   * @throws IOException
    */
-  public abstract void queryTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException;
+  public abstract void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException;
+  
+  /**
+   * Checks whether tracks can be found directly from catalogue instead of scanning
+   */
+  public abstract boolean searchSupported();
+  
+  /**
+   * Find tracks by query substring
+   * @param query string to search in filename/title
+   * @param visitor result receiver
+   * @throws IOException
+   */
+  public abstract void findTracks(String query, FoundTracksVisitor visitor) throws IOException;
   
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
   
-  public static Catalog create(Context context) {
+  public static Catalog create(Context context, HttpProvider http) {
+    final Catalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
-    final Catalog remote = new RemoteCatalog(context);
-    return new CachingCatalog(context, remote, db);
+    final VfsCache cacheDir = VfsCache.create(context, "www.zxtunes.com");
+    return new CachingCatalog(remote, db, cacheDir);
   }
 }

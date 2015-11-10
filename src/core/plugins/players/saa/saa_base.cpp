@@ -14,8 +14,8 @@
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <devices/details/parameters_helper.h>
 #include <math/numeric.h>
+#include <parameters/tracking_helper.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -164,7 +164,7 @@ namespace Module
       Device->RenderData(LastChunk);
     }
   private:
-    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const SAA::DataIterator::Ptr Iterator;
     const Devices::SAA::Device::Ptr Device;
     Devices::SAA::DataChunk LastChunk;

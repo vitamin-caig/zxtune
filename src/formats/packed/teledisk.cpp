@@ -308,7 +308,7 @@ namespace TeleDiskImage
           continue;
         }
         Require(Math::InRange<uint_t>(sector.Size, 0, 6));
-        const std::size_t sectorSize = 128 << sector.Size;
+        const std::size_t sectorSize = std::size_t(128) << sector.Size;
         const RawData& srcDataDesc = stream.Get<RawData>();
         Require(Math::InRange<uint_t>(srcDataDesc.Method, RAW_SECTOR, RLE_SECTOR));
         const std::size_t dataSize = fromLE(srcDataDesc.Size) - 1;

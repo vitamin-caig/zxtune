@@ -16,8 +16,8 @@
 #include <iterator.h>
 //library includes
 #include <core/module_attrs.h>
-#include <devices/details/parameters_helper.h>
 #include <parameters/merged_accessor.h>
+#include <parameters/tracking_helper.h>
 #include <parameters/visitor.h>
 #include <sound/mixer_factory.h>
 //std includes
@@ -290,13 +290,18 @@ namespace TurboSound
       BOOST_STATIC_ASSERT(TrackParametersArray::static_size == 2);
     }
 
-    Devices::Details::ParametersHelper<AYM::TrackParameters>& operator[] (std::size_t idx)
+    const Parameters::TrackingHelper<AYM::TrackParameters>& operator[] (std::size_t idx) const
+    {
+      return idx == 0 ? Delegate0 : Delegate1;
+    }
+    
+    Parameters::TrackingHelper<AYM::TrackParameters>& operator[] (std::size_t idx)
     {
       return idx == 0 ? Delegate0 : Delegate1;
     }
   private:
-    Devices::Details::ParametersHelper<AYM::TrackParameters> Delegate0;
-    Devices::Details::ParametersHelper<AYM::TrackParameters> Delegate1;
+    Parameters::TrackingHelper<AYM::TrackParameters> Delegate0;
+    Parameters::TrackingHelper<AYM::TrackParameters> Delegate1;
   };
 
   class DoubleDataIterator : public DataIterator
@@ -367,7 +372,7 @@ namespace TurboSound
     const TrackStateIterator::Ptr Delegate;
     const TrackModelState::Ptr State;
     const DataRenderersArray Renderers;
-    mutable ParametersHelpersSet Params;
+    ParametersHelpersSet Params;
     mutable FrequencyTable Table[Devices::TurboSound::CHIPS];
   };
 
@@ -459,7 +464,7 @@ namespace TurboSound
       Device->RenderData(LastChunk);
     }
   private:
-    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const TurboSound::DataIterator::Ptr Iterator;
     const Devices::TurboSound::Device::Ptr Device;
     Devices::TurboSound::DataChunk LastChunk;

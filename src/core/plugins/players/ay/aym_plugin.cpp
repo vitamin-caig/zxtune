@@ -27,9 +27,9 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, const Binary::Container& data) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, PropertiesBuilder& properties) const
     {
-      if (const AYM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(properties, data))
+      if (const AYM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {
         return AYM::CreateHolder(chiptune);
       }
@@ -45,10 +45,20 @@ namespace Module
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::AYM::Factory::Ptr factory)
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder, Module::AYM::Factory::Ptr factory)
   {
     const Module::Factory::Ptr modFactory = boost::make_shared<Module::AYMFactory>(factory);
-    const uint_t caps = CAP_STOR_MODULE | CAP_DEV_AY38910 | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
-    return CreatePlayerPlugin(id, caps, decoder, modFactory);
+    const uint_t ayCaps = Capabilities::Module::Device::AY38910 | Module::AYM::GetSupportedFormatConvertors();
+    return CreatePlayerPlugin(id, caps | ayCaps, decoder, modFactory);
+  }
+
+  PlayerPlugin::Ptr CreateTrackPlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::AYM::Factory::Ptr factory)
+  {
+    return CreatePlayerPlugin(id, Capabilities::Module::Type::TRACK, decoder, factory);
+  }
+  
+  PlayerPlugin::Ptr CreateStreamPlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::AYM::Factory::Ptr factory)
+  {
+    return CreatePlayerPlugin(id, Capabilities::Module::Type::STREAM, decoder, factory);
   }
 }

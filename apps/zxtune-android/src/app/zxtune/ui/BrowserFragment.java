@@ -15,7 +15,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,6 +27,7 @@ import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ProgressBar;
+import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
@@ -234,19 +234,29 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   class OnItemClickListener implements AdapterView.OnItemClickListener {
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
       final Object obj = parent.getItemAtPosition(position);
       if (obj instanceof VfsDir) {
         controller.setCurrentDir((VfsDir) obj);
       } else if (obj instanceof VfsFile) {
-        final Uri[] toPlay = getUrisFrom(position);
-        getService().setNowPlaying(toPlay);
+        final Runnable playCmd = new Runnable() {
+          final Uri[] toPlay = getUrisFrom(position, 100);
+          @Override
+          public void run() {
+            getService().setNowPlaying(toPlay);
+          }
+        };
+        if (controller.isInSearch()) {
+          playCmd.run();
+        } else {
+          controller.browseArchive((VfsFile) obj, playCmd);
+        }
       }
     }
-
-    private Uri[] getUrisFrom(int position) {
+    
+    private Uri[] getUrisFrom(int position, int limit) {
       final ListAdapter adapter = listing.getAdapter();
-      final Uri[] result = new Uri[adapter.getCount() - position];
+      final Uri[] result = new Uri[Math.min(adapter.getCount() - position, limit)];
       for (int idx = 0; idx != result.length; ++idx) {
         final VfsObject obj = (VfsObject) adapter.getItem(position + idx);
         result[idx] = obj.getUri();

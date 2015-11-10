@@ -197,7 +197,7 @@ namespace YMVTX
     {
     }
 
-    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
@@ -225,7 +225,7 @@ namespace ZXTune
 
     const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateVTXDecoder();
     const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);;
     registrator.RegisterPlugin(plugin);
   }
 
@@ -236,13 +236,13 @@ namespace ZXTune
     {
       const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreatePackedYMDecoder();
       const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateYMDecoder();
       const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);;
       registrator.RegisterPlugin(plugin);
     }
   }

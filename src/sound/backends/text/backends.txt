@@ -66,3 +66,7 @@ __cpp> "}//namespace Text\n"
 #aylpt backend
 < AYLPT_BACKEND_ID
 > "aylpt"
+
+#paudio backend
+< PAUDIO_BACKEND_ID
+> "paudio"

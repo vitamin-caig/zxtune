@@ -16,7 +16,6 @@
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/protracker2.h>
 
 namespace Module
@@ -470,7 +469,7 @@ namespace ProTracker2
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
@@ -496,7 +495,7 @@ namespace ZXTune
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker2Decoder();
     const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::ProTracker2::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);;
     registrator.RegisterPlugin(plugin);
   }
 }

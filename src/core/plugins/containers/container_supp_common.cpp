@@ -21,7 +21,6 @@
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
-#include <core/text/plugins.h>
 
 namespace
 {
@@ -83,15 +82,16 @@ namespace ZXTune
   class ContainerDetectCallback : public Formats::Archived::Container::Walker
   {
   public:
-    ContainerDetectCallback(std::size_t maxSize, const String& plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
-      : MaxSize(maxSize)
+    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, const String& plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
+      : Params(params)
+      , MaxSize(maxSize)
       , BaseLocation(location)
       , SubPlugin(plugin)
       , Logger(count, callback, SubPlugin, BaseLocation->GetPath()->AsString())
     {
     }
 
-    void OnFile(const Formats::Archived::File& file) const
+    virtual void OnFile(const Formats::Archived::File& file) const
     {
       const String& name = file.GetName();
       const std::size_t size = file.GetSize();
@@ -113,11 +113,12 @@ namespace ZXTune
         const String subPath = file.GetName();
         const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(BaseLocation, subData, SubPlugin, subPath);
         const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
-        Module::Detect(subLocation, *nestedProgressCallback);
+        Module::Detect(Params, subLocation, *nestedProgressCallback);
       }
       Logger.Next();
     }
   private:
+    const Parameters::Accessor& Params;
     const std::size_t MaxSize;
     const DataLocation::Ptr BaseLocation;
     const String SubPlugin;
@@ -130,7 +131,7 @@ namespace ZXTune
     ArchivedContainerPlugin(Plugin::Ptr descr, Formats::Archived::Decoder::Ptr decoder)
       : Description(descr)
       , Decoder(decoder)
-      , SupportDirectories(0 != (Description->Capabilities() & CAP_STOR_DIRS))
+      , SupportDirectories(0 != (Description->Capabilities() & Capabilities::Container::Traits::DIRECTORIES))
     {
     }
 
@@ -144,14 +145,14 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const Binary::Container::Ptr rawData = input->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
       {
         if (const uint_t count = archive->CountFiles())
         {
-          ContainerDetectCallback detect(~std::size_t(0), Description->Id(), input, count, callback);
+          ContainerDetectCallback detect(params, ~std::size_t(0), Description->Id(), input, count, callback);
           archive->ExploreFiles(detect);
         }
         return Analysis::CreateMatchedResult(archive->Size());
@@ -159,7 +160,7 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
     {
       const Binary::Container::Ptr rawData = location->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -201,14 +202,76 @@ namespace ZXTune
     const Formats::Archived::Decoder::Ptr Decoder;
     const bool SupportDirectories;
   };
+
+  class OnceAppliedContainerPluginAdapter : public ArchivePlugin
+  {
+  public:
+    explicit OnceAppliedContainerPluginAdapter(ArchivePlugin::Ptr delegate)
+      : Delegate(delegate)
+      , Id(Delegate->GetDescription()->Id())
+    {
+    }
+
+    virtual Plugin::Ptr GetDescription() const
+    {
+      return Delegate->GetDescription();
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Delegate->GetFormat();
+    }
+
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    {
+      if (SelfIsVisited(*inputData->GetPluginsChain()))
+      {
+        return Analysis::CreateUnmatchedResult(inputData->GetData()->Size());
+      }
+      else
+      {
+        return Delegate->Detect(params, inputData, callback);
+      }
+    }
+
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Analysis::Path& pathToOpen) const
+    {
+      if (SelfIsVisited(*inputData->GetPluginsChain()))
+      {
+        return DataLocation::Ptr();
+      }
+      else
+      {
+        return Delegate->Open(params, inputData, pathToOpen);
+      }
+    }
+  private:
+    bool SelfIsVisited(const Analysis::Path& path) const
+    {
+      for (Analysis::Path::Iterator::Ptr it = path.GetIterator(); it->IsValid(); it->Next())
+      {
+        if (it->Get() == Id)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  private:
+    const ArchivePlugin::Ptr Delegate;
+    const String Id;
+  };
 }
 
 namespace ZXTune
 {
   ArchivePlugin::Ptr CreateContainerPlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps);
-    return ArchivePlugin::Ptr(new ArchivedContainerPlugin(description, decoder));
+    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
+    const ArchivePlugin::Ptr result = boost::make_shared<ArchivedContainerPlugin>(description, decoder);
+    return 0 != (caps & Capabilities::Container::Traits::ONCEAPPLIED)
+      ? boost::make_shared<OnceAppliedContainerPluginAdapter>(result)
+      : result;
   }
 
   String ProgressMessage(const String& id, const String& path)

@@ -220,21 +220,6 @@ namespace Parameters
         //! Parameter name
         extern const NameType INTERPOLATION;
         //@}
-
-        //! @brief ROMs section for full C64 environment emulation
-        namespace ROM
-        {
-          //! @brief Parameters#ZXTune#Core#SID#ROM namespace prefix
-          extern const NameType PREFIX;
-
-          //! @name ROMs content
-          //! 8192 bytes
-          extern const NameType KERNAL;
-          //! 8192 bytes
-          extern const NameType BASIC;
-          //! 4096 bytes
-          extern const NameType CHARGEN;
-        }
       }
     }
   }

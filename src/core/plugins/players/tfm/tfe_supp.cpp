@@ -18,7 +18,6 @@
 #include <contract.h>
 #include <pointers.h>
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfmmusicmaker.h>
 #include <math/fixedpoint.h>
 //boost includes
@@ -1552,7 +1551,7 @@ namespace TFMMusicMaker
     {
     }
 
-    virtual TFM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
@@ -1580,14 +1579,14 @@ namespace ZXTune
       const Char ID[] = {'T', 'F', '0', 0};
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver05::CreateDecoder();
       const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Char ID[] = {'T', 'F', 'E', 0};
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver13::CreateDecoder();
       const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

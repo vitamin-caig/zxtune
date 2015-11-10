@@ -296,7 +296,6 @@ namespace
         name != Module::ATTR_TITLE &&
         name != Module::ATTR_COMMENT &&
         //skip redundand properties
-        name != Module::ATTR_CONTENT &&
         //skip all the parameters
         !IsParameter(name)
       ;
@@ -361,9 +360,8 @@ namespace
   public:
     virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
     {
-      if (const Module::Holder::Ptr holder = item.GetModule())
+      if (const Binary::Data::Ptr rawContent = item.GetModuleData())
       {
-        const Binary::Data::Ptr rawContent = Module::GetRawData(*holder);
         const ZXTune::DataLocation::Ptr container = ZXTune::BuildZdataContainer(*rawContent);
         const String id = container->GetPath()->AsString();
         saver.SaveModuleLocation(XSPF::EMBEDDED_PREFIX + id);

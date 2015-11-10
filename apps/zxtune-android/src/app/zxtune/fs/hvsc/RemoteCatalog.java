@@ -17,13 +17,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.content.Context;
 import android.text.TextUtils;
 import app.zxtune.fs.HttpProvider;
 
 class RemoteCatalog extends Catalog {
   
-  private static final String TAG = RemoteCatalog.class.getName();
+  //private static final String TAG = RemoteCatalog.class.getName();
   //use tagged names for html content
   protected static final String VERSION = "prg.dtu.dk";
   private static final String STORAGE_MIRROR = "http://www.prg.dtu.dk/HVSC/C64Music/";
@@ -42,8 +41,8 @@ class RemoteCatalog extends Catalog {
   
   private final HttpProvider http;
 
-  public RemoteCatalog(Context context) {
-    this.http = new HttpProvider(context);
+  public RemoteCatalog(HttpProvider http) {
+    this.http = http;
   }
 
   @Override
@@ -70,7 +69,7 @@ class RemoteCatalog extends Catalog {
     while (matcher.find()) {
       final String dirMark = matcher.group(1);
       final String name = matcher.group(2);
-      if (dirMark.equals(DIR_MARKUP)) {
+      if (DIR_MARKUP.equals(dirMark)) {
         visitor.acceptDir(name);
       } else {
         final String size = matcher.group(3);

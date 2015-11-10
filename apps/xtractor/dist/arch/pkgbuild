@@ -4,5 +4,4 @@ pkgrel=1
 pkgdesc="CLI tool to analyze calgary data"
 url="http://zxtune.bitbucket.org/"
 license=('GPL3')
-depends=('boost-libs' 'gcc-libs')
 conflicts=('zxtune')

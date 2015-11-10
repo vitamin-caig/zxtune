@@ -11,7 +11,7 @@
 package app.zxtune.sound;
 
 import android.os.Process;
-import android.util.Log;
+import app.zxtune.Log;
 
 /**
  * Asynchronous player state machine
@@ -83,7 +83,7 @@ final public class AsyncPlayer implements Player {
           stateGuard.wait();
           break;
         } catch (InterruptedException e) {
-          Log.d(TAG, "Interrupted while waiting for state change", e);
+          Log.d(TAG, e, "Interrupted while waiting for state change");
         }
       }
     }
@@ -142,7 +142,7 @@ final public class AsyncPlayer implements Player {
         playThread.join();
         playThread = null;
       } catch (InterruptedException e) {
-        Log.d(TAG, "Interrupted while stop", e);
+        Log.d(TAG, e, "Interrupted while stop");
       }
     }
 

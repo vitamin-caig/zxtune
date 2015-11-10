@@ -24,6 +24,15 @@ namespace Parameters
       {
         //! @brief Parameters#ZXTune#Core#Plugins namespace prefix
         extern const NameType PREFIX;
+        
+        //@{
+        //! @name Default song duration in seconds (if not specified exactly) for all types (can be overriden)
+
+        //! Default value (3min)
+        const IntType DEFAULT_DURATION_DEFAULT = 3 * 60;
+        //! Parameter name for type
+        extern const NameType DEFAULT_DURATION;
+        //@}
 
         //! @brief RAW scaner parameters namespace
         namespace Raw
@@ -59,22 +68,24 @@ namespace Parameters
           extern const NameType IGNORE_CORRUPTED;
         }
 
-        //! @brief AY container/player parameters namespace
-        namespace AY
+        //! @brief SID container/player parameters namespace
+        namespace SID
         {
-          //! @brief Parameters#ZXTune#Core#Plugins#AY namespace prefix
+          //! @brief Parameters#ZXTune#Core#Plugins#SID namespace prefix
           extern const NameType PREFIX;
 
           //@{
-          //! @name Default song duration (if not specified exactly)
-
-          //! Default value (3min for 50 fps)
-          const IntType DEFAULT_DURATION_FRAMES_DEFAULT = 3 * 60 * 50;
-          //! Parameter name
-          extern const NameType DEFAULT_DURATION_FRAMES;
+          //! @name ROMs content
+          
+          //! 8192 bytes
+          extern const NameType KERNAL;
+          //! 8192 bytes
+          extern const NameType BASIC;
+          //! 4096 bytes
+          extern const NameType CHARGEN;
           //@}
         }
-
+        
         //! @brief ZIP container parameters namespace
         namespace Zip
         {

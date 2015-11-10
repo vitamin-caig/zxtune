@@ -123,7 +123,7 @@ public:
   //! @name Serialization-related functions
 
   //! @brief Convert error and all suberrors to single string using AttributesToString function
-  String ToString() const;
+  String ToString() const throw();
   //@}
 private:
   Error(MetaPtr ptr) : ErrorMeta(ptr)

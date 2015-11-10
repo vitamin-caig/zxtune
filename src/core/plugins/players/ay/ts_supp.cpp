@@ -22,7 +22,6 @@
 #include <core/module_open.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/turbosound.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -39,8 +38,9 @@ namespace TS
   class DataBuilder : public Formats::Chiptune::TurboSound::Builder
   {
   public:
-    explicit DataBuilder(const Binary::Container& data)
-      : Data(data)
+    DataBuilder(const Parameters::Accessor& params, const Binary::Container& data)
+      : Params(params)
+      , Data(data)
     {
     }
 
@@ -78,7 +78,7 @@ namespace TS
     AYM::Chiptune::Ptr LoadChiptune(std::size_t offset, std::size_t size) const
     {
       const Binary::Container::Ptr content = Data.GetSubcontainer(offset, size);
-      if (const AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const AYM::Holder>(Module::Open(*content)))
+      if (const AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const AYM::Holder>(Module::Open(Params, *content)))
       {
         return holder->GetChiptune();
       }
@@ -89,6 +89,7 @@ namespace TS
 
     }
   private:
+    const Parameters::Accessor& Params;
     const Binary::Container& Data;
     AYM::Chiptune::Ptr First;
     AYM::Chiptune::Ptr Second;
@@ -102,11 +103,11 @@ namespace TS
     {
     }
 
-    virtual Module::Holder::Ptr CreateModule(Module::PropertiesBuilder& properties, const Binary::Container& data) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Module::PropertiesBuilder& properties) const
     {
       try
       {
-        DataBuilder dataBuilder(data);
+        DataBuilder dataBuilder(params, data);
         if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(data, dataBuilder))
         {
           if (dataBuilder.HasResult())
@@ -135,7 +136,7 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'T', 'S', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TURBOSOUND | CAP_CONV_RAW;
+    const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::TURBOSOUND;
 
     const Formats::Chiptune::TurboSound::Decoder::Ptr decoder = Formats::Chiptune::TurboSound::CreateDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>(decoder);

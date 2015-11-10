@@ -14,6 +14,8 @@
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <core/plugins_parameters.h>
 
@@ -34,8 +36,11 @@ namespace
       //raw scaner
       IntegerValue::Bind(*rawMinSizeValue, *Options, ZXTune::Core::Plugins::Raw::MIN_SIZE, ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT);
       BooleanValue::Bind(*rawPlainDoubleAnalysis, *Options, ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, false);
+      
+      //players
+      IntegerValue::Bind(*defaultDurationValue, *Options, ZXTune::Core::Plugins::DEFAULT_DURATION, ZXTune::Core::Plugins::DEFAULT_DURATION_DEFAULT);
     }
-
+    
     //QWidget
     virtual void changeEvent(QEvent* event)
     {
@@ -47,6 +52,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Options;
+    Parameters::NameType DurationParameter;
   };
 }
 

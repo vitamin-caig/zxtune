@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
@@ -72,7 +72,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
     if (path != null) {
       final long position = prefs.getLong(PREF_LAST_PLAYED_POSITION, 0);
-      Log.d(TAG, String.format("Restore last played item '%s' at %dms", path, position));
+      Log.d(TAG, "Restore last played item '%s' at %dms", path, position);
       executeCommand(new RestoreSessionCommand(Uri.parse(path), TimeStamp.createFrom(position, TimeUnit.MILLISECONDS)));
     }
   }
@@ -103,10 +103,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void execute() throws IOException {
       final Uri nowPlaying = getNowPlaying().getId();
-      if (!nowPlaying.equals(Uri.EMPTY)) {
+      if (!Uri.EMPTY.equals(nowPlaying)) {
         final String path = nowPlaying.toString();
         final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
-        Log.d(TAG, String.format("Save last played item '%s' at %dms", path, position));
+        Log.d(TAG, "Save last played item '%s' at %dms", path, position);
         final SharedPreferences.Editor editor = Preferences.getDefaultSharedPreferences(context).edit();
         editor.putString(PREF_LAST_PLAYED_PATH, path);
         editor.putLong(PREF_LAST_PLAYED_POSITION, position);
@@ -135,14 +135,42 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private void setNewIterator(Iterator iter) throws IOException {
+  private synchronized void setNewIterator(Iterator iter) throws IOException {
+    if (holder.iterator != iter) {
+      Log.d(TAG, "Update iterator %s -> %s", holder.iterator, iter);
+      holder.iterator.release();
+    }
     final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
     setNewHolder(new Holder(iter, events));
   }
   
-  private void play(Iterator iter) throws IOException {
+  private synchronized void setNewHolder(Holder holder) {
+    final Holder oldHolder = this.holder;
+    oldHolder.player.stopPlayback();
+    try {
+      this.holder = holder;
+      callbacks.onItemChanged(holder.item);
+    } finally {
+      oldHolder.release();
+    }
+  }
+  
+  
+  private synchronized void play(Iterator iter) throws IOException {
     setNewIterator(iter);
     holder.player.startPlayback();
+  }
+  
+  private synchronized void playNext() throws IOException {
+    if (holder.iterator.next()) {
+      play(holder.iterator);
+    }
+  }
+  
+  private synchronized void playPrev() throws IOException {
+    if (holder.iterator.prev()) {
+      play(holder.iterator);
+    }
   }
   
   @Override
@@ -181,8 +209,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     synchronized (this) {
       try {
         holder.player.stopPlayback();
-        holder.release();
       } finally {
+        holder.iterator.release();
+        holder.release();
         holder = new Holder();
       }
     }
@@ -196,7 +225,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
       Log.d(TAG, "Executor shut down");
     } catch (InterruptedException e) {
-      Log.w(TAG, "Failed to shutdown executor", e);
+      Log.d(TAG, e, "Failed to shutdown executor");
     }
   }
   
@@ -209,7 +238,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
           callbacks.onIOStatusChanged(true);
           cmd.execute();
         } catch (Exception e) {//IOException|InterruptedException
-          Log.w(TAG, cmd.getClass().getName(), e);
+          Log.d(TAG, e, cmd.getClass().getName());
           final Throwable cause = e.getCause();
           final String msg = cause != null ? cause.getMessage() : e.getMessage();
           callbacks.onError(msg);
@@ -218,19 +247,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         }
       }
     });
-  }
-  
-  private void setNewHolder(Holder holder) {
-    final Holder oldHolder = this.holder;
-    oldHolder.player.stopPlayback();
-    synchronized (this) {
-      this.holder = holder;
-    }
-    try {
-      callbacks.onItemChanged(holder.item);
-    } finally {
-      oldHolder.release();
-    }
   }
   
   private void saveProperty(String name, long value) {
@@ -303,16 +319,25 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public synchronized void next() {
-      synchronized (PlaybackServiceLocal.this) {
-        executeCommand(new PlayNextCommand(holder.iterator));
-      }
+      executeCommand(new Command() {
+
+        @Override
+        public void execute() throws IOException {
+          playNext();
+        }
+      });
     }
 
     @Override
     public synchronized void prev() {
-      synchronized (PlaybackServiceLocal.this) {
-        executeCommand(new PlayPrevCommand(holder.iterator));
-      }
+      executeCommand(new Command() {
+
+        @Override
+        public void execute() throws IOException {
+          playPrev();
+        }
+        
+      });
     }
 
     @Override
@@ -336,38 +361,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void setSequenceMode(SequenceMode mode) {
       navigation.set(mode);
-    }
-  }
-  
-  private class PlayNextCommand implements Command {
-    
-    private final Iterator iter;
-    
-    PlayNextCommand(Iterator iter) {
-      this.iter = iter;
-    }
-
-    @Override
-    public void execute() throws IOException {
-      if (iter.next()) {
-        play(iter);
-      }
-    }
-  }
-
-  private class PlayPrevCommand implements Command {
-    
-    private final Iterator iter;
-    
-    PlayPrevCommand(Iterator iter) {
-      this.iter = iter;
-    }
-
-    @Override
-    public void execute() throws IOException {
-      if (iter.prev()) {
-        play(iter);
-      }
     }
   }
   
@@ -435,7 +428,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void onError(Exception e) {
-      Log.d(TAG, "Error occurred: " + e);
+      Log.d(TAG, e, "Error occurred");
     }
   }
   

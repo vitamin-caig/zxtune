@@ -177,9 +177,10 @@ namespace Formats
       scanner.AddDecoder(CreateSCLDecoder());
       scanner.AddDecoder(CreateTRDDecoder());
       scanner.AddDecoder(CreateHripDecoder());
-      scanner.AddDecoder(CreateAYDecoder());
       scanner.AddDecoder(CreateLhaDecoder());
       scanner.AddDecoder(CreateZXStateDecoder());
+      scanner.AddDecoder(CreateUMXDecoder());
+      scanner.AddDecoder(Create7zipDecoder());
     }
   }
 
@@ -219,6 +220,7 @@ namespace Formats
       scanner.AddDecoder(CreateZ80V30Decoder());
       scanner.AddDecoder(CreateMegaLZDecoder());
       scanner.AddDecoder(CreateDSKDecoder());
+      scanner.AddDecoder(CreateGzipDecoder());
       //players
       scanner.AddDecoder(CreateCompiledASC0Decoder());
       scanner.AddDecoder(CreateCompiledASC1Decoder());
@@ -279,6 +281,9 @@ namespace Formats
       scanner.AddDecoder(CreateExtremeTracker1Decoder());
       scanner.AddDecoder(CreateAYCDecoder());
       scanner.AddDecoder(CreateSPCDecoder());
+      scanner.AddDecoder(CreateMultiTrackContainerDecoder());
+      scanner.AddDecoder(CreateAYEMULDecoder());
+      scanner.AddDecoder(CreateAbyssHighestExperienceDecoder());
     }
   }
 }

@@ -29,7 +29,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat.Builder;
-import android.util.Log;
 import android.widget.Toast;
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
@@ -93,7 +92,7 @@ public class RingtoneService extends IntentService {
   
   @Override
   protected void onHandleIntent(Intent intent) {
-    if (intent.getAction().equals(ACTION_MAKERINGTONE)) {
+    if (ACTION_MAKERINGTONE.equals(intent.getAction())) {
       final Uri module = intent.getParcelableExtra(EXTRA_MODULE);
       final long seconds = intent.getLongExtra(EXTRA_DURATION_SECONDS, DEFAULT_DURATION_SECONDS);
       final TimeStamp duration = TimeStamp.createFrom(seconds, TimeUnit.SECONDS);
@@ -129,7 +128,7 @@ public class RingtoneService extends IntentService {
     }
     final long moduleId = getModuleId(item); 
     final String filename = String.format(Locale.US, "%d_%d.wav", moduleId, duration.convertTo(TimeUnit.SECONDS)); 
-    Log.d(TAG, "Dir: " + dir + " filename: " + filename);
+    Log.d(TAG, "Dir: %s filename: %s", dir, filename);
     return new File(dir, filename);
   }
   
@@ -172,7 +171,7 @@ public class RingtoneService extends IntentService {
     final ContentValues values = new ContentValues();
     values.put(MediaStore.MediaColumns.DATA, path.getAbsolutePath());
     values.put(MediaStore.MediaColumns.MIME_TYPE, "audio/wav");
-    final String filename = item.getDataId().getLastPathSegment();
+    final String filename = item.getDataId().getDisplayFilename();
     values.put(MediaStore.MediaColumns.DISPLAY_NAME, filename);
     values.put(MediaStore.Audio.Media.DURATION, limit.convertTo(TimeUnit.MILLISECONDS));
     final String title = Util.formatTrackTitle(item.getAuthor(), item.getTitle(), filename);
@@ -201,13 +200,13 @@ public class RingtoneService extends IntentService {
         if (0 != getContentResolver().update(ringtoneUri, values,
             MediaStore.Audio.Media.IS_RINGTONE + " = 1",
             null)) {
-          Log.d(TAG, "Updated ringtone at " + ringtoneUri);
+          Log.d(TAG, "Updated ringtone at %s", ringtoneUri);
         } else {
-          Log.d(TAG, "Failed to update ringtone " + ringtoneUri);
+          Log.d(TAG, "Failed to update ringtone %s", ringtoneUri);
         }
       } else {
         ringtoneUri = getContentResolver().insert(tableUri, values);
-        Log.d(TAG, "Registered new ringtone at " + ringtoneUri);
+        Log.d(TAG, "Registered new ringtone at %s", ringtoneUri);
       }
     } finally {
       query.close();

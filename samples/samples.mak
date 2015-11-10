@@ -4,7 +4,7 @@ samples_ay38910 := \
 	as0/Samba.as0 \
 	asc/SANDRA.asc \
 	ay/AYMD39.ay \
-  ayc/MEGAPAB2.AYC \
+	ayc/MEGAPAB2.AYC \
 	ftc/Nostalgy.ftc \
 	gtr/L.Boy.gtr \
 	psc/FL_SH_EI.psc \
@@ -36,6 +36,11 @@ samples_dac_zx := \
 
 samples_dac_zx_dir := DAC/ZX
 
+samples_dac_amiga := \
+  ahx/Stormlord.ahx
+  
+samples_dac_amiga_dir := DAC/Amiga
+
 samples_mos6581 := \
         sid/Love_Is_a_Shield.sid
 
@@ -55,14 +60,37 @@ samples_ym2203 := \
 samples_ym2203_dir := YM2203
 
 samples_spc700 := \
-   spc/ala-16.spc
+	spc/ala-16.spc
    
 samples_spc700_dir := SPC700
 
 samples_multi := \
-   mtc/CyberMotion.mtc
+	gym/TheLionKing.gym \
+	mtc/CyberMotion.mtc \
+	vgm/EarthwormJim.vgm
    
 samples_multi_dir := Multi
+
+samples_rp2a0x := \
+	nsf/knifus.nsf \
+	nsfe/SuperContra.nsfe
+   
+samples_rp2a0x_dir := RP2A0X
+
+samples_lr35902 := \
+	gbs/stripped.gbs
+
+samples_lr35902_dir := LR35902
+
+samples_co12294 := \
+	sap/intro.sap
+   
+samples_co12294_dir := CO12294
+
+samples_huc6270 := \
+	hes/raiden.hes
+   
+samples_huc6270_dir := HuC6270
 
 define install_samples_cmd
 	$(call makedir_cmd,$(DESTDIR)/Samples/$(samples_$(1)_dir))
@@ -70,13 +98,17 @@ define install_samples_cmd
 	echo Installed $(1) samples
 endef
 
-install_samples: install_samples_ay38910 install_samples_dac_zx install_samples_mos6581 install_samples_saa1099 install_samples_ym2203 install_samples_spc700 install_samples_multi
+install_samples: install_samples_ay38910 install_samples_dac_zx install_samples_dac_amiga install_samples_mos6581 install_samples_saa1099 install_samples_ym2203 install_samples_spc700 \
+  install_samples_multi install_samples_rp2a0x install_samples_lr35902 install_samples_co12294 install_samples_huc6270
 
 install_samples_ay38910:
 	$(call install_samples_cmd,ay38910)
 
 install_samples_dac_zx:
 	$(call install_samples_cmd,dac_zx)
+
+install_samples_dac_amiga:
+	$(call install_samples_cmd,dac_amiga)
 
 install_samples_mos6581:
 	$(call install_samples_cmd,mos6581)
@@ -92,6 +124,18 @@ install_samples_spc700:
 
 install_samples_multi:
 	$(call install_samples_cmd,multi)
+  
+install_samples_rp2a0x:
+	$(call install_samples_cmd,rp2a0x)
+
+install_samples_lr35902:
+	$(call install_samples_cmd,lr35902)
+
+install_samples_co12294:
+	$(call install_samples_cmd,co12294)
+
+install_samples_huc6270:
+	$(call install_samples_cmd,huc6270)
 
 install_samples_playlist: 
 	$(call copyfile_cmd,$(path_step)/samples/samples.xspf,$(DESTDIR))

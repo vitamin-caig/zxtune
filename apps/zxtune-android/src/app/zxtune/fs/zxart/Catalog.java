@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import android.content.Context;
+import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.VfsCache;
 
 public abstract class Catalog {
   
@@ -38,48 +40,65 @@ public abstract class Catalog {
     public abstract void accept(Track obj);
   }
 
+  public static abstract class FoundTracksVisitor {
+    
+    public void setCountHint(int size) {}
+    
+    public abstract void accept(Author author, Track track);
+  }
+  
   /**
    * Query authors object
    * @param visitor result receiver
-   * @param id identifier of specified author or null if all authors required
    */
-  public abstract void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException;
+  public abstract void queryAuthors(AuthorsVisitor visitor) throws IOException;
   
   /**
    * Query tracks objects
-   * @param visitor result receiver
    * @param author tracks owner
-   * @param id filter by id. If not null, author filter may be ignored (but required for cache)
+   * @param visitor result receiver
    */
-  public abstract void queryAuthorTracks(TracksVisitor visitor, Author author, Integer id) throws IOException;
+  public abstract void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException;
 
   /**
    * Query parties object
    * @param visitor result receiver
-   * @param id identifier of specified party or null if all parties required
    */
-  public abstract void queryParties(PartiesVisitor visitor, Integer id) throws IOException;
+  public abstract void queryParties(PartiesVisitor visitor) throws IOException;
 
   /**
    * Query tracks objects
-   * @param visitor result receiver
    * @param party filter by party
-   * @param id filter by id. If not null, party filter may be ignored (but required for cache)
+   * @param visitor result receiver
    */
-  public abstract void queryPartyTracks(TracksVisitor visitor, Party party, Integer id) throws IOException;
+  public abstract void queryPartyTracks(Party party, TracksVisitor visitor) throws IOException;
   
   /**
    * Query top tracks (not cached
+   * @param limit count
    * @param visitor result receiver
-   * @param id filter by id
    */
-  public abstract void queryTopTracks(TracksVisitor visitor, Integer id, int limit) throws IOException;
+  public abstract void queryTopTracks(int limit, TracksVisitor visitor) throws IOException;
+  
+  /**
+   * Checks whether tracks can be found directly from catalogue instead of scanning
+   */
+  public abstract boolean searchSupported();
+  
+  /**
+   * Find tracks by query substring
+   * @param query string to search in filename/title
+   * @param visitor result receiver
+   * @throws IOException
+   */
+  public abstract void findTracks(String query, FoundTracksVisitor visitor) throws IOException;
   
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
   
-  public static Catalog create(Context context) {
+  public static Catalog create(Context context, HttpProvider http) {
+    final Catalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
-    final Catalog remote = new RemoteCatalog(context);
-    return new CachingCatalog(context, remote, db);
+    final VfsCache cacheDir = VfsCache.create(context, "www.zxart.ee");
+    return new CachingCatalog(remote, db, cacheDir);
   }
 }

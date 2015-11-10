@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
+import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Item;
 
@@ -38,7 +39,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
   }
 
   private final Uri id;
-  private final Uri dataId;
+  private final Identifier dataId;
   private final String title;
   private final String author;
   private final String program;
@@ -57,7 +58,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
 
   private ParcelablePlaybackItem(Parcel in) {
     id = in.readParcelable(Uri.class.getClassLoader());
-    dataId = in.readParcelable(Uri.class.getClassLoader());
+    dataId = Identifier.parse(in.readString());
     title = in.readString();
     author = in.readString();
     program = in.readString();
@@ -71,7 +72,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
   }
 
   @Override
-  public Uri getDataId() {
+  public Identifier getDataId() {
     return dataId;
   }
 
@@ -108,7 +109,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
   @Override
   public void writeToParcel(Parcel dest, int flags) {
     dest.writeParcelable(id, 0);
-    dest.writeParcelable(dataId, 0);
+    dest.writeString(dataId.toString());
     dest.writeString(title);
     dest.writeString(author);
     dest.writeString(program);

@@ -21,7 +21,6 @@ import android.media.MediaMetadataRetriever;
 import android.media.RemoteControlClient;
 import android.media.RemoteControlClient.MetadataEditor;
 import android.os.Build;
-import android.util.Log;
 import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
@@ -118,7 +117,8 @@ class RemoteControl implements Releaseable {
       final boolean noAuthor = author.length() == 0;
       final boolean noTitle = title.length() == 0;
       if (noAuthor && noTitle) {
-        meta.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, item.getDataId().getLastPathSegment());
+        final String filename = item.getDataId().getDisplayFilename();
+        meta.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, filename);
       } else {
         meta.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, author);
         meta.putString(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST, author);

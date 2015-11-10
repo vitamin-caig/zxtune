@@ -17,7 +17,6 @@
 #include <contract.h>
 #include <iterator.h>
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfc.h>
 #include <sound/sound_parameters.h>
 //boost includes
@@ -228,7 +227,7 @@ namespace TFC
   class Factory : public TFM::Factory
   {
   public:
-    virtual TFM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFC::Parse(rawData, dataBuilder))
@@ -255,7 +254,7 @@ namespace ZXTune
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFCDecoder();
     const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFC::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

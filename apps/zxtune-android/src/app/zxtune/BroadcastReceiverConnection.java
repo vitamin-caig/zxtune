@@ -13,7 +13,6 @@ package app.zxtune;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
-import android.util.Log;
 
 public class BroadcastReceiverConnection implements Releaseable {
   

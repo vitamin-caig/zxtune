@@ -23,8 +23,9 @@ namespace Formats
     Decoder::Ptr CreateSCLDecoder();
     Decoder::Ptr CreateTRDDecoder();
     Decoder::Ptr CreateHripDecoder();
-    Decoder::Ptr CreateAYDecoder();
     Decoder::Ptr CreateLhaDecoder();
     Decoder::Ptr CreateZXStateDecoder();
+    Decoder::Ptr CreateUMXDecoder();
+    Decoder::Ptr Create7zipDecoder();
   }
 }

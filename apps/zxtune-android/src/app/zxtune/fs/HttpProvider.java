@@ -14,7 +14,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,13 +21,16 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
+import app.zxtune.Log;
 import app.zxtune.R;
 
 public class HttpProvider {
 
   private final static String TAG = HttpProvider.class.getName();
+  private final static int MAX_REMOTE_FILE_SIZE = 5 * 1024 * 1024;//5Mb
 
-  private Context context;
+  private final Context context;
+  private static ByteBuffer htmlBuffer;
 
   public HttpProvider(Context context) {
     this.context = context;
@@ -37,15 +39,16 @@ public class HttpProvider {
       System.setProperty("http.keepAlive", "false");
     }
   }
-
+  
   public final HttpURLConnection connect(String uri) throws IOException {
     try {
       final URL url = new URL(uri);
       final HttpURLConnection result = (HttpURLConnection) url.openConnection();
-      Log.d(TAG, String.format("Fetch %d bytes via %s", result.getContentLength(), uri));
+      CheckSizeLimit(result.getContentLength());
+      Log.d(TAG, "Fetch %d bytes via %s", result.getContentLength(), uri);
       return result;
     } catch (IOException e) {
-      Log.d(TAG, "Fetch " + uri, e);
+      Log.d(TAG, e, "Fetch %s", uri);
       throw e;
     }
   }
@@ -55,7 +58,23 @@ public class HttpProvider {
       final HttpURLConnection connection = connect(uri);
       try {
         final InputStream stream = connection.getInputStream();
-        return getContent(stream);
+        return getContent(stream, null);
+      } finally {
+        connection.disconnect();
+      }
+    } catch (IOException e) {
+      checkConnectionError();
+      throw e;
+    }
+  }
+  
+  public final synchronized String getHtml(String uri) throws IOException {
+    try {
+      final HttpURLConnection connection = connect(uri);
+      try {
+        final InputStream stream = connection.getInputStream();
+        htmlBuffer = getContent(stream, htmlBuffer);
+        return new String(htmlBuffer.array(), 0, htmlBuffer.limit(), "UTF-8");
       } finally {
         connection.disconnect();
       }
@@ -66,12 +85,13 @@ public class HttpProvider {
   }
 
   //! result buffer is not direct so required wrapping
-  private static ByteBuffer getContent(InputStream stream) throws IOException {
-    byte[] buffer = new byte[256 * 1024];
+  private ByteBuffer getContent(InputStream stream, ByteBuffer cache) throws IOException {
+    byte[] buffer = cache != null ? cache.array() : new byte[256 * 1024];
     int size = 0;
     for (;;) {
       size = readPartialContent(stream, buffer, size);
       if (size == buffer.length) {
+        CheckSizeLimit(size);
         buffer = reallocate(buffer);
       } else {
         break;
@@ -80,7 +100,7 @@ public class HttpProvider {
     if (0 == size) {
       throw new IOException("Empty file specified");
     }
-    Log.d(TAG, String.format("Got %d bytes", size));
+    Log.d(TAG, "Got %d bytes", size);
     return ByteBuffer.wrap(buffer, 0, size);
   }
 
@@ -101,6 +121,12 @@ public class HttpProvider {
     System.arraycopy(buf, 0, result, 0, buf.length);
     return result;
   }
+  
+  private void CheckSizeLimit(int size) throws IOException {
+    if (size > MAX_REMOTE_FILE_SIZE) {
+      throw new IOException(context.getString(R.string.file_too_big));
+    }
+  }
 
   public final void checkConnectionError() throws IOException {
     if (!hasConnection()) {
@@ -108,7 +134,7 @@ public class HttpProvider {
     }
   }
 
-  private boolean hasConnection() {
+  public final boolean hasConnection() {
     final ConnectivityManager mgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
     final NetworkInfo info = mgr.getActiveNetworkInfo();
     return info != null && info.isConnected();

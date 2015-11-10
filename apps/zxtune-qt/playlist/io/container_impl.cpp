@@ -77,6 +77,11 @@ namespace
       return Module::Holder::Ptr();
     }
 
+    virtual Binary::Data::Ptr GetModuleData() const
+    {
+      return Binary::Data::Ptr();
+    }
+    
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
       return Params;
@@ -209,6 +214,12 @@ namespace
     {
       AcquireDelegate();
       return Delegate->GetModule();
+    }
+    
+    virtual Binary::Data::Ptr GetModuleData() const
+    {
+      AcquireDelegate();
+      return Delegate->GetModuleData();
     }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const

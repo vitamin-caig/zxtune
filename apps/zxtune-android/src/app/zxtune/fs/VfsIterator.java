@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 
 import android.net.Uri;
-import android.util.Log;
+import app.zxtune.Log;
 
 public final class VfsIterator {
   
@@ -116,7 +116,7 @@ public final class VfsIterator {
   
   private void resolve(Uri path) {
     try {
-      final VfsObject obj = Vfs.getRoot().resolve(path);
+      final VfsObject obj = VfsArchive.resolve(path);
       if (obj instanceof VfsFile) {
         files.addLast((VfsFile) obj);
       } else if (obj instanceof VfsDir) {

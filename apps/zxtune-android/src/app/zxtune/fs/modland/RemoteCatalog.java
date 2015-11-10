@@ -10,17 +10,16 @@
 
 package app.zxtune.fs.modland;
 
-import android.content.Context;
-import android.net.Uri;
-import android.text.Html;
-import android.util.Log;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.net.Uri;
+import android.text.Html;
+import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
 /**
@@ -51,8 +50,8 @@ class RemoteCatalog extends Catalog {
   private final Grouping collections;
   private final Grouping formats;
 
-  RemoteCatalog(Context context) {
-    this.http = new HttpProvider(context);
+  RemoteCatalog(HttpProvider http) {
+    this.http = http;
     this.authors = new Authors();
     this.collections = new Collections();
     this.formats = new Formats();
@@ -151,10 +150,29 @@ class RemoteCatalog extends Catalog {
             visitor.setCountHint(results);
             countReported = true;
           }
-          parseTracks(content, visitor);
-          return true;
+          return parseTracks(content, visitor);
         }
       });
+    }
+    
+    @Override
+    public Track findTrack(int id, final String filename) throws IOException {
+      final AtomicReference<Track> result = new AtomicReference<Track>();
+      queryTracks(id, new TracksVisitor() {
+        @Override
+        public void setCountHint(int size) {}
+
+        @Override
+        public boolean accept(Track obj) {
+          if (obj.filename.equals(filename)) {
+            result.set(obj);
+            return false;
+          } else {
+            return true;
+          }
+        }
+      });
+      return result.get();
     }
     
     abstract String getTracksHeader();
@@ -200,13 +218,16 @@ class RemoteCatalog extends Catalog {
     }
   }
   
-  private static void parseTracks(CharSequence content, TracksVisitor visitor) {
+  private static boolean parseTracks(CharSequence content, TracksVisitor visitor) {
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
       final String path = "/" + matcher.group(1);
       final String size = matcher.group(2);
-      visitor.accept(new Track(path, Integer.valueOf(size)));
+      if (!visitor.accept(new Track(path, Integer.valueOf(size)))) {
+        return false;
+      }
     }
+    return true;
   }
 
   @Override
@@ -221,11 +242,10 @@ class RemoteCatalog extends Catalog {
   private void loadPages(String query, PagesVisitor visitor) throws IOException {
     for (int pg = 1; ; ++pg) {
       final String uri = query + String.format(Locale.US, "&pg=%d", pg);
-      final ByteBuffer buf = http.getContent(uri);
-      final String chars = new String(buf.array(), "UTF-8");
+      final String chars = http.getHtml(uri); 
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
-        Log.d(TAG, "Load page: " + matcher.group());
+        Log.d(TAG, "Load page: %s", matcher.group());
         final String header = matcher.group(1);
         final String results = matcher.group(2);
         final String page = matcher.group(3);

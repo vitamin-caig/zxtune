@@ -57,7 +57,7 @@ public class StatusNotification extends CallbackStub {
     this.content = new RemoteViews(service.getPackageName(), R.layout.notification);
     builder.setOngoing(true);
     builder.setContentIntent(createActivateIntent());
-    content.setOnClickPendingIntent(R.id.notification_ctrl_prev, createNavigatePrevIntent());
+    content.setOnClickPendingIntent(R.id.notification_ctrl_stop, createStopIntent());
     content.setOnClickPendingIntent(R.id.notification_ctrl_next, createNavigateNextIntent());
   }
   
@@ -67,8 +67,8 @@ public class StatusNotification extends CallbackStub {
     return PendingIntent.getActivity(service, 0, intent, 0);
   }
   
-  private PendingIntent createNavigatePrevIntent() {
-    return createServiceIntent(MainService.ACTION_PREV);
+  private PendingIntent createStopIntent() {
+    return createServiceIntent(MainService.ACTION_PAUSE);
   }
 
   private PendingIntent createNavigateNextIntent() {
@@ -83,7 +83,7 @@ public class StatusNotification extends CallbackStub {
   
   @Override
   public void onItemChanged(Item item) {
-    final String filename = item.getDataId().getLastPathSegment();
+    final String filename = item.getDataId().getDisplayFilename();
     String title = item.getTitle();
     final String author = item.getAuthor();
     final String ticker = Util.formatTrackTitle(title, author, filename);
@@ -91,7 +91,7 @@ public class StatusNotification extends CallbackStub {
       title = filename;
     }
     builder.setTicker(ticker);
-    if (BUTTONS_SUPPORTED && type.equals(Type.WITH_CONTROLS)) {
+    if (BUTTONS_SUPPORTED && Type.WITH_CONTROLS.equals(type)) {
       content.setTextViewText(R.id.notification_title, title);
       content.setTextViewText(R.id.notification_author, author);
       builder.setContent(content);

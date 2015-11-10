@@ -37,4 +37,6 @@ namespace Sound
 
     static Ptr Create(Parameters::Accessor::Ptr soundParameters);
   };
+  
+  Time::Microseconds GetFrameDuration(const Parameters::Accessor& params);
 }

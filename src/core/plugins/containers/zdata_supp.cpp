@@ -81,7 +81,7 @@ namespace
 
   typedef boost::array<char, 8> TxtMarker;
   typedef boost::array<char, 16> TxtHeader;
-
+  
   struct Marker
   {
     explicit Marker(uint32_t crc)
@@ -92,8 +92,9 @@ namespace
     TxtMarker Encode() const
     {
       const RawMarker in = {SIGNATURE, fromLE(Value)};
+      const uint8_t* const inData = in.Signature.begin();
       TxtMarker out;
-      Binary::Base64::Encode(safe_ptr_cast<const uint8_t*>(&in), safe_ptr_cast<const uint8_t*>(&in + 1), out.begin(), out.end());
+      Binary::Base64::Encode(inData, inData + sizeof(in), out.begin(), out.end());
       return out;
     }
 
@@ -112,7 +113,8 @@ namespace
     static Header Decode(const TxtHeader& in)
     {
       RawHeader out;
-      Binary::Base64::Decode(in.begin(), in.end(), safe_ptr_cast<uint8_t*>(&out), safe_ptr_cast<uint8_t*>(&out + 1));
+      uint8_t* const outData = out.Signature.begin();
+      Binary::Base64::Decode(in.begin(), in.end(), outData, outData + sizeof(out));
       Require(out.Signature == SIGNATURE);
       return Header(fromLE(out.Crc), out.OriginalSize, out.PackedSize);
     }
@@ -242,7 +244,7 @@ namespace
 
   const Char ID[] = {'Z', 'D', 'A', 'T', 'A', 0};
   const Char* const INFO = Text::ZDATA_PLUGIN_INFO;
-  const uint_t CAPS = CAP_STOR_MULTITRACK;
+  const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
 }
 
 namespace ZXTune
@@ -278,12 +280,12 @@ namespace
       return Binary::Format::Ptr();
     }
 
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& /*callback*/) const
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input, const Module::DetectCallback& /*callback*/) const
     {
       return Analysis::CreateUnmatchedResult(input->GetData()->Size());
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
     {
       const String& pathComp = inPath.GetIterator()->Get();
       Parameters::IntType marker;

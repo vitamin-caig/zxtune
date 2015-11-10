@@ -12,10 +12,10 @@
 #include "aym_base.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
+#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //library includes
-#include <binary/format_factories.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
@@ -24,14 +24,12 @@
 #include <debug/log.h>
 #include <devices/beeper.h>
 #include <devices/z80.h>
-#include <devices/details/parameters_helper.h>
-#include <formats/chiptune/aym/ay.h>
+#include <formats/chiptune/emulation/ay.h>
+#include <parameters/tracking_helper.h>
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <formats/text/chiptune.h>
 
 namespace
 {
@@ -539,19 +537,15 @@ namespace AY
       CPU->Execute(til);
     }
 
-    void SeekState(const Devices::Z80::Stamp& til, const Devices::Z80::Stamp& frameStep)
+    void SkipFrames(uint_t count, const Devices::Z80::Stamp& frameStep)
     {
       const Devices::Z80::Stamp curTime = CPU->GetTime();
-      if (til < curTime)
-      {
-        Reset();
-      }
       CPUPorts->SetBlocked(true);
       Devices::Z80::Stamp pos = curTime;
-      while ((pos += frameStep) < til)
+      for (uint_t frame = 0; frame < count; ++frame)
       {
-        CPU->Interrupt();
-        CPU->Execute(pos);
+        pos += frameStep;
+        NextFrame(pos);
       }
       CPUPorts->SetBlocked(false);
       CPU->SetTime(curTime);
@@ -613,21 +607,24 @@ namespace AY
     virtual void SetPosition(uint_t frameNum)
     {
       uint_t curFrame = State->Frame();
-      if (curFrame > frameNum)
+      if (frameNum < curFrame)
       {
         //rewind
         Iterator->Reset();
+        Comp->Reset();
+        Device->Reset();
+        LastTime = Devices::Z80::Stamp();
         curFrame = 0;
       }
       SynchronizeParameters();
-      Devices::Z80::Stamp newTime = LastTime; 
+      uint_t toSkip = 0;
       while (curFrame < frameNum && Iterator->IsValid())
       {
-        newTime += FrameDuration;
         Iterator->NextFrame(true);
         ++curFrame;
+        ++toSkip;
       }
-      Comp->SeekState(newTime, FrameDuration);
+      Comp->SkipFrames(toSkip, FrameDuration);
     }
   private:
     void SynchronizeParameters()
@@ -639,7 +636,7 @@ namespace AY
       }
     }
   private:
-    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const StateIterator::Ptr Iterator;
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;
@@ -652,12 +649,11 @@ namespace AY
   class DataBuilder : public Formats::Chiptune::AY::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props, uint_t defaultDuration)
+    explicit DataBuilder(PropertiesBuilder& props)
       : Properties(props)
       , Data(boost::make_shared<ModuleData>())
       , Delegate(Formats::Chiptune::AY::CreateMemoryDumpBuilder())
     {
-      Data->Frames = defaultDuration;
     }
 
     virtual void SetTitle(const String& title)
@@ -810,9 +806,9 @@ namespace AY
   class Holder : public AYM::Holder
   {
   public:
-    Holder(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+    Holder(ModuleData::Ptr data, Information::Ptr info, Parameters::Accessor::Ptr properties)
       : Data(data)
-      , Info(CreateStreamInfo(Data->Frames))
+      , Info(info)
       , Properties(properties)
     {
     }
@@ -860,65 +856,21 @@ namespace AY
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
-
-  //TODO: extract
-  const std::string HEADER_FORMAT(
-    "'Z'X'A'Y" // uint8_t Signature[4];
-    "'E'M'U'L" // only one type is supported now
-    "??"       // versions
-    "??"       // player offset
-    "??"       // author offset
-    "??"       // misc offset
-    "00"       // first module
-    "00"       // last module
-  );
   
-  class Decoder : public Formats::Chiptune::Decoder
-  {
-  public:
-    Decoder()
-      : Format(Binary::CreateFormat(HEADER_FORMAT))
-    {
-    }
-
-    virtual String GetDescription() const
-    {
-      return Text::AY_EMUL_DECODER_DESCRIPTION;
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Format;
-    }
-
-    virtual bool Check(const Binary::Container& rawData) const
-    {
-      return Formats::Chiptune::AY::GetModulesCount(rawData) == 1;
-    }
-
-    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
-    {
-      return Formats::Chiptune::AY::Parse(rawData, 0, Formats::Chiptune::AY::GetStubBuilder());
-    }
-  private:
-    const Binary::Format::Ptr Format;
-  };
-
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       assert(Formats::Chiptune::AY::GetModulesCount(rawData) == 1);
 
-      Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
-      //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
-
-      DataBuilder builder(propBuilder, static_cast<uint_t>(defaultDuration));
+      DataBuilder builder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
       {
         propBuilder.SetSource(*container);
-        return boost::make_shared<Holder>(builder.GetResult(), propBuilder.GetResult());
+        const ModuleData::Ptr data = builder.GetResult();
+        const uint_t frames = data->Frames ? data->Frames : GetDurationInFrames(params);
+        return boost::make_shared<Holder>(data, CreateStreamInfo(frames), propBuilder.GetResult());
       }
       return Holder::Ptr();
     }
@@ -932,9 +884,10 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'A', 'Y', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AY38910 | CAP_DEV_BEEPER | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+    const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::AY38910 | Capabilities::Module::Device::BEEPER
+      | Module::AYM::GetSupportedFormatConvertors();
 
-    const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::AY::Decoder>();
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateAYEMULDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::AY::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);

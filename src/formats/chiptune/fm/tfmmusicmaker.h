@@ -132,5 +132,8 @@ namespace Formats
         Decoder::Ptr CreateDecoder();
       }
     }
+
+    Decoder::Ptr CreateTFMMusicMaker05Decoder();
+    Decoder::Ptr CreateTFMMusicMaker13Decoder();
   }
 }

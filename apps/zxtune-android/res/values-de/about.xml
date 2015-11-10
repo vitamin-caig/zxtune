@@ -12,20 +12,25 @@
     \tPusher von <b>Himik/ZXZ</b>\n
     Gebraucht Bibliotheken:\n
     \tboost\n
+    \tzlib von <b>Jean-Loup Gailly</b> und <b>Mark Adler</b>\n
     \tz80ex von <b>Boo-boo</b>\n
     \tlhasa von <b>Simon Howard</b>\n
     \tDragSortListView von <b>Carl A.Bauer</b>\n
+    \tunrar von <b>Alexander Roshal</b>\n
     \tlibxmp von <b>Claudio Matsuoka</b>\n
     \tlibsidplayfp + resid\n
     \tsnes_spc von <b>Shay Green</b>\n
+    \tGame_Music_Emu von <b>Shay Green</b> und <b>Chris Moeller</b>\n
+    \t7-Zip von <b>Igor Pavlov</b>\n
+    \tHVL2WAV von <b>Peter Gordon</b>\n
     \n
     <b>Lizzi</b> gewidmet
   </string>
   <!-- players -->
   <string name="plugin_player_dac">Digitale Formate</string>
   <string name="plugin_player_multidevice">Multi-Geräte</string>
-  <!-- decoders -->
-  <string name="plugin_decoder_decompiler">Decompiler</string>
-  <!-- multitrack -->
-  <string name="plugin_multitrack_container">Container</string>
+  <!-- containers -->
+  <string name="plugin_multitrack">Multi-Spuren</string>
+  <string name="plugin_archive">Archiver</string>
+  <string name="plugin_decompiler">Decompiler</string>
 </resources>

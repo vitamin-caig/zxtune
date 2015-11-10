@@ -16,9 +16,10 @@
 
 namespace Module
 {
+  //! @param params Parameters for plugins
   //! @param location Source data location
   //! @throw Error if no object detected
-  Holder::Ptr Open(ZXTune::DataLocation::Ptr location);
+  Holder::Ptr Open(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location);
 
-  Holder::Ptr Open(const Binary::Container& data);
+  Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data);
 }

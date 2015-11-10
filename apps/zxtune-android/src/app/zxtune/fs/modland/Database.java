@@ -10,13 +10,21 @@
 
 package app.zxtune.fs.modland;
 
+import java.util.HashMap;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.util.Log;
+import android.net.Uri;
+import app.zxtune.Log;
+import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.Grouping;
+import app.zxtune.fs.dbhelpers.Objects;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.fs.dbhelpers.Utils;
 
 /**
  * Version 1
@@ -24,9 +32,14 @@ import android.util.Log;
  * CREATE TABLE {authors,collections,formats} (_id INTEGER PRIMARY KEY, name TEXT NOT NULL, tracks INTEGER)
  * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, path TEXT NOT NULL, size INTEGER)
  * CREATE TABLE {authors,collections,formats}_tracks (hash INTEGER UNIQUE, group_id INTEGER, track_id INTEGER)
- * CREATE TABLE collections_tracks (hash INTEGER UNIQUE, collection INTEGER, track INTEGER)
  *
  * use hash as 10000000000 * group_id + track_id to support multiple insertions of same pair
+ * 
+ * 
+ * Version 2
+ * 
+ * Use standard grouping for {authors,collections,formats}_tracks
+ * Use timestamps
  */
 
 final class Database {
@@ -34,13 +47,11 @@ final class Database {
   final static String TAG = Database.class.getName();
 
   final static String NAME = "modland.com";
-  final static int VERSION = 1;
+  final static int VERSION = 2;
 
   final static class Tables {
 
-    final static String DROP_QUERY = "DROP TABLE IF EXISTS %s;";
-
-    final static class Groups {
+    final static class Groups extends Objects {
 
       static enum Fields {
         _id, name, tracks
@@ -52,6 +63,14 @@ final class Database {
               + " INTEGER);";
       }
 
+      Groups(SQLiteOpenHelper helper, String name) {
+        super(helper, name, Fields.values().length);
+      }
+      
+      final void add(Group obj) {
+        add(obj.id, obj.name, obj.tracks);
+      }
+      
       static Group createGroup(Cursor cursor) {
         final int id = cursor.getInt(Fields._id.ordinal());
         final String title = cursor.getString(Fields.name.ordinal());
@@ -85,7 +104,7 @@ final class Database {
     
     final static String LIST[] = {Authors.NAME, Collections.NAME, Formats.NAME};
     
-    final static class Tracks {
+    final static class Tracks extends Objects {
 
       static enum Fields {
         _id, path, size
@@ -95,6 +114,14 @@ final class Database {
 
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
               + " INTEGER PRIMARY KEY, " + Fields.path + " TEXT NOT NULL, " + Fields.size + " INTEGER);";
+      
+      Tracks(SQLiteOpenHelper helper) {
+        super(helper, NAME, Fields.values().length);
+      }
+      
+      final void add(Track obj) {
+        add(obj.id, obj.path, obj.size);
+      }
 
       static Track createTrack(Cursor cursor) {
         final int id = cursor.getInt(Fields._id.ordinal());
@@ -102,72 +129,60 @@ final class Database {
         final int size = cursor.getInt(Fields.size.ordinal());
         return new Track(id, path, size);
       }
-
-      static ContentValues createValues(Track obj) {
-        final ContentValues res = new ContentValues();
-        res.put(Fields._id.name(), obj.id);
-        res.put(Fields.path.name(), obj.path);
-        res.put(Fields.size.name(), obj.size);
-        return res;
+      
+      static String getSelection(String subquery) {
+        return Fields._id + " IN (" + subquery + ")";
       }
     }
-
-    final static class GroupTracks {
-
-      static enum Fields {
-        hash, group_id, track_id
+    
+    final static class GroupTracks extends Grouping {
+      
+      static String name(String category) {
+        return category + "_tracks";
       }
-
-      final static String getName(String table) {
-        return table + "_tracks";
+      
+      static String getCreateQuery(String category) {
+        return createQuery(name(category));
       }
-
-      final static String getCreateQuery(String table) {
-        return "CREATE TABLE " + getName(table) + " (" + Fields.hash
-              + " INTEGER UNIQUE, " + Fields.group_id + " INTEGER, " + Fields.track_id + " INTEGER);";
-      }
-
-      static ContentValues createValues(int group, long track) {
-        final long hash = 10000000000l * group + track;
-        final ContentValues res = new ContentValues();
-        res.put(Fields.hash.name(), hash);
-        res.put(Fields.group_id.name(), group);
-        res.put(Fields.track_id.name(), track);
-        return res;
+      
+      GroupTracks(SQLiteOpenHelper helper, String category) {
+        super(helper, name(category), 32);
       }
     }
   }
 
   private final Helper helper;
+  private final HashMap<String, Tables.Groups> groups;
+  private final HashMap<String, Tables.GroupTracks> groupTracks;
+  private final Tables.Tracks tracks;
+  private final Timestamps timestamps;
 
   Database(Context context) {
     this.helper = Helper.create(context);
-  }
-
-  class Transaction {
-
-    private final SQLiteDatabase db;
-
-    Transaction(SQLiteDatabase db) {
-      this.db = db;
-      db.beginTransaction();
+    this.groups = new HashMap<String, Tables.Groups>();
+    this.groupTracks = new HashMap<String, Tables.GroupTracks>();
+    for (String group : Tables.LIST) {
+      groups.put(group, new Tables.Groups(helper, group));
+      groupTracks.put(group, new Tables.GroupTracks(helper, group));
     }
-
-    final void succeed() {
-      db.setTransactionSuccessful();
-    }
-
-    final void finish() {
-      db.endTransaction();
-    }
+    this.tracks = new Tables.Tracks(helper);
+    this.timestamps = new Timestamps(helper);
   }
 
   final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
 
-  final void queryGroups(String category, String filter, Catalog.GroupsVisitor visitor) {
-    Log.d(TAG, "query" + category + "(filter=" + filter + ")");
+  final Timestamps.Lifetime getGroupsLifetime(String category, String filter, TimeStamp ttl) {
+    return timestamps.getLifetime(category + filter, ttl);
+  }
+  
+  final Timestamps.Lifetime getGroupTracksLifetime(String category, int id, TimeStamp ttl) {
+    return timestamps.getLifetime(category + id, ttl);
+  }
+  
+  final boolean queryGroups(String category, String filter, Catalog.GroupsVisitor visitor) {
+    Log.d(TAG, "query%S(filter=%s)", category, filter);
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = filter.equals("#")
       ? "SUBSTR(" + Tables.Groups.Fields.name + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
@@ -180,14 +195,16 @@ final class Database {
         while (cursor.moveToNext()) {
           visitor.accept(Tables.Groups.createGroup(cursor));
         }
+        return true;
       }
     } finally {
       cursor.close();
     }
+    return false;
   }
 
   final Group queryGroup(String category, int id) {
-    Log.d(TAG, "query" + category + "(id=" + id + ")");
+    Log.d(TAG, "query%S(id=%d)", category, id);
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Groups.Fields._id + " = " + id;
     final Cursor cursor = db.query(category, null, selection, null, null, null, null);
@@ -201,14 +218,12 @@ final class Database {
   }
 
   final void addGroup(String category, Group obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(category, null/* nullColumnHack */, Tables.Groups.createValues(obj),
-      SQLiteDatabase.CONFLICT_REPLACE);
+    groups.get(category).add(obj);
   }
 
-  final void queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
+  final boolean queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = createGroupTracksSelection(category, id);
+    final String selection = Tables.Tracks.getSelection(groupTracks.get(category).getIdsSelection(id));
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     try {
       final int count = cursor.getCount();
@@ -217,29 +232,37 @@ final class Database {
         while (cursor.moveToNext()) {
           visitor.accept(Tables.Tracks.createTrack(cursor));
         }
+        return true;
       }
     } finally {
       cursor.close();
     }
+    return false;
   }
-
-  private static String createGroupTracksSelection(String category, int id) {
-    final String idQuery =
-      SQLiteQueryBuilder.buildQueryString(true, Tables.GroupTracks.getName(category),
-        new String[]{Tables.GroupTracks.Fields.track_id.name()}, Tables.GroupTracks.Fields.group_id + " = "
-        + id, null, null, null, null);
-    return Tables.Tracks.Fields._id + " IN (" + idQuery + ")";
+  
+  final Track findTrack(String category, int id, String filename) {
+    final String encodedFilename = Uri.encode(filename).replace("!", "%21").replace("'", "%27").replace("(", "%28").replace(")", "%29");
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final String selection = Tables.Tracks.getSelection(groupTracks.get(category).getIdsSelection(id))
+        + " AND " + Tables.Tracks.Fields.path + " LIKE ?";
+    final String[] selectionArgs = {"%/" + encodedFilename};
+    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, selectionArgs, null, null, null);
+    try {
+      if (cursor.moveToFirst()) {
+        return Tables.Tracks.createTrack(cursor);
+      }
+    } finally {
+      cursor.close();
+    }
+    return null;
   }
 
   final void addTrack(Track obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, Tables.Tracks.createValues(obj),
-            SQLiteDatabase.CONFLICT_REPLACE);
+    tracks.add(obj);
   }
 
   final void addGroupTrack(String category, int id, Track obj) {
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insert(Tables.GroupTracks.getName(category), null/* nullColumnHack */, Tables.GroupTracks.createValues(id, obj.id));
+    groupTracks.get(category).add(id, obj.id);
   }
 
   private static class Helper extends SQLiteOpenHelper {
@@ -260,16 +283,13 @@ final class Database {
         db.execSQL(Tables.GroupTracks.getCreateQuery(table));
       }
       db.execSQL(Tables.Tracks.CREATE_QUERY);
+      db.execSQL(Timestamps.CREATE_QUERY);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-      Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
-      for (String table : Tables.LIST) {
-        db.execSQL(String.format(Tables.DROP_QUERY, table));
-        db.execSQL(String.format(Tables.DROP_QUERY, Tables.GroupTracks.getName(table)));
-      }
-      db.execSQL(String.format(Tables.DROP_QUERY, Tables.Tracks.NAME));
+      Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
+      Utils.cleanupDb(db);
       onCreate(db);
     }
   }

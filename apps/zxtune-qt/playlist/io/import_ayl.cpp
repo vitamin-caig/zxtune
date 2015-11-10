@@ -103,21 +103,26 @@ namespace
     LinesSource(QTextStream& stream, const VersionLayer& version)
       : Stream(stream)
       , Version(version)
+      , Valid(true)
     {
-      if (IsValid())
-      {
-        Next();
-      }
+      Next();
     }
 
     bool IsValid() const
     {
-      return !Stream.atEnd();
+      return Valid;
     }
 
     void Next()
     {
-      Line = Version.DecodeString(Stream.readLine(0).trimmed());
+      if ((Valid = !Stream.atEnd()))
+      {
+        Line = Version.DecodeString(Stream.readLine(0).trimmed());
+      }
+      else
+      {
+        Line.clear();
+      }
     }
 
     String GetLine() const 
@@ -138,6 +143,7 @@ namespace
     QTextStream& Stream;
     const VersionLayer& Version;
     String Line;
+    bool Valid;
   };
 
   class AYLContainer
@@ -430,7 +436,7 @@ namespace
     //for AY files FormatSpec is subtune index
     if (boost::algorithm::iends_with(item.Path, FromStdString(".ay")))
     {
-      const String subPath = IndexPathComponent(Text::AY_FILENAME_PREFIX).Build(formatSpec);
+      const String subPath = IndexPathComponent(Text::MULTITRACK_FILENAME_PREFIX).Build(formatSpec);
       item.Path = AppendSubpath(item.Path, subPath);
     }
   }

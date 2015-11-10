@@ -13,7 +13,7 @@ package app.zxtune.sound;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.util.Log;
+import app.zxtune.Log;
 import app.zxtune.sound.SamplesSource.Channels;
 import app.zxtune.sound.SamplesSource.Sample;
 
@@ -40,9 +40,8 @@ final public class SoundOutputSamplesTarget implements SamplesTarget {
     final int minBufSize = AudioTrack.getMinBufferSize(freqRate, CHANNEL_OUT, ENCODING);
     final int prefBufSize = Channels.COUNT * Sample.BYTES * (DEFAULT_LATENCY * freqRate / 1000);
     final int bufSize = Math.max(minBufSize, prefBufSize);
-    Log.d(TAG, String.format(
-        "Preparing playback. Freq=%d MinBuffer=%d PrefBuffer=%d BufferSize=%d", freqRate,
-        minBufSize, prefBufSize, bufSize));
+    Log.d(TAG, "Preparing playback. Freq=%d MinBuffer=%d PrefBuffer=%d BufferSize=%d", freqRate,
+        minBufSize, prefBufSize, bufSize);
     final AudioTrack target =
         new AudioTrack(STREAM, freqRate, CHANNEL_OUT, ENCODING, bufSize, AudioTrack.MODE_STREAM);
     return new SoundOutputSamplesTarget(bufSize, target);

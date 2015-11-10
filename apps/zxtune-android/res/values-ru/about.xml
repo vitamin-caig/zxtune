@@ -12,20 +12,25 @@
     \tPusher от <b>Himik/ZxZ</b>\n
     Использованы библиотеки:\n
     \tboost\n
+    \tzlib от <b>Jean-Loup Gailly</b> и <b>Mark Adler</b>\n
     \tz80ex от <b>Boo-boo</b>\n
     \tlhasa от <b>Simon Howard</b>\n
     \tDragSortListView от <b>Carl A.Bauer</b>\n
+    \tunrar от <b>Alexander Roshal</b>\n
     \tlibxmp от <b>Claudio Matsuoka</b>\n
     \tlibsidplayfp+resid\n
     \tsnes_spc от <b>Shay Green</b>\n
+    \tGame_Music_Emu от <b>Shay Green</b> и <b>Chris Moeller</b>\n
+    \t7-Zip от <b>Igor Pavlov</b>\n
+    \tHVL2WAV от <b>Peter Gordon</b>\n
     \n
     Посвящается <b>Lizzi</b>
   </string>
   <!-- players -->
   <string name="plugin_player_dac">Цифровые форматы</string>
   <string name="plugin_player_multidevice">Произвольные устройства</string>
-  <!-- decoders -->
-  <string name="plugin_decoder_decompiler">Декомпиляторы</string>
-  <!-- multitrack -->
-  <string name="plugin_multitrack_container">Контейнеры</string>
+  <!-- containers -->
+  <string name="plugin_multitrack">Многотрековые</string>
+  <string name="plugin_archive">Архиваторы</string>
+  <string name="plugin_decompiler">Декомпиляторы</string>
 </resources>

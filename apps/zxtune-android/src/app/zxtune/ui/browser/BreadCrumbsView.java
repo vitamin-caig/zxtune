@@ -25,7 +25,7 @@ import android.widget.LinearLayout;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
-import app.zxtune.ui.IconSource;
+import app.zxtune.fs.VfsExtensions;
 
 public class BreadCrumbsView extends HorizontalScrollView {
 
@@ -70,7 +70,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
       final ArrayList<VfsDir> elems = new ArrayList<VfsDir>();
       while (dir != null) {
         elems.add(dir);
-        dir = dir.getParent();
+        dir = (VfsDir) dir.getParent();
       }
       Collections.reverse(elems);
       fillButtons(elems);
@@ -117,19 +117,21 @@ public class BreadCrumbsView extends HorizontalScrollView {
   
   private View createButton(VfsDir dir) {
     final LayoutInflater inflater = LayoutInflater.from(getContext());
-    if (dir instanceof IconSource) {
-      return updateButton((ImageButton) inflater.inflate(R.layout.image_button, container, false), dir);
+    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
+    if (icon != null) {
+      return updateButton((ImageButton) inflater.inflate(R.layout.image_button, container, false), icon);
     } else {
       return updateButton((Button) inflater.inflate(R.layout.button, container, false), dir);
     }
   }
   
   private View updateButton(int idx, View but, VfsDir dir) {
+    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
+    final boolean hasIcon = icon != null;
     final boolean canShowIcon = but instanceof ImageButton;
-    final boolean hasIcon = dir instanceof IconSource;
     if (canShowIcon == hasIcon) {
       return canShowIcon
-          ? updateButton((ImageButton) but, dir)
+          ? updateButton((ImageButton) but, icon)
               : updateButton((Button) but, dir);
     } else {
       container.removeViewAt(idx);
@@ -137,8 +139,8 @@ public class BreadCrumbsView extends HorizontalScrollView {
     }
   }
   
-  private View updateButton(ImageButton but, VfsDir dir) {
-    but.setImageResource(((IconSource) dir).getResourceId());
+  private View updateButton(ImageButton but, Object icon) {
+    but.setImageResource((Integer) icon);
     return but;
   }
   

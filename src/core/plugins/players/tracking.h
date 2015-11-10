@@ -139,7 +139,7 @@ namespace Module
     {
     }
 
-    T Get(uint_t idx) const
+    const T& Get(uint_t idx) const
     {
       if (const T* res = Find(idx))
       {
@@ -147,7 +147,8 @@ namespace Module
       }
       else
       {
-        return T();
+        static const T instance;
+        return instance;
       }
     }
 
@@ -174,7 +175,7 @@ namespace Module
       Count = newSize;
     }
 
-    void Add(uint_t idx, T obj)
+    void Add(uint_t idx, const T& obj)
     {
       assert(Objects.end() == std::find(Objects.begin(), Objects.end(), idx));
       Objects.push_back(ObjectWithIndex(idx, obj));
@@ -196,7 +197,7 @@ namespace Module
       {
       }
 
-      ObjectWithIndex(uint_t idx, T obj)
+      ObjectWithIndex(uint_t idx, const T& obj)
         : Index(idx)
         , Object(obj)
       {

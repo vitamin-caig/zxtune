@@ -51,6 +51,9 @@
        <height>24</height>
       </size>
      </property>
+     <property name="shortcut">
+      <string notr="true">Media Previous</string>
+     </property>
     </widget>
    </item>
    <item>
@@ -74,6 +77,9 @@
        <width>24</width>
        <height>24</height>
       </size>
+     </property>
+     <property name="shortcut">
+      <string notr="true">Media Play</string>
      </property>
     </widget>
    </item>
@@ -99,6 +105,9 @@
        <height>24</height>
       </size>
      </property>
+     <property name="shortcut">
+      <string notr="true">Media Pause</string>
+     </property>
     </widget>
    </item>
    <item>
@@ -123,6 +132,9 @@
        <height>24</height>
       </size>
      </property>
+     <property name="shortcut">
+      <string notr="true">Media Stop</string>
+     </property>
     </widget>
    </item>
    <item>
@@ -146,6 +158,9 @@
        <width>24</width>
        <height>24</height>
       </size>
+     </property>
+     <property name="shortcut">
+      <string notr="true">Media Next</string>
      </property>
     </widget>
    </item>
@@ -212,7 +227,7 @@
     <string>Next</string>
    </property>
    <property name="shortcut">
-    <string>Alt+B</string>
+    <string notr="true">Alt+B</string>
    </property>
   </action>
  </widget>

@@ -58,38 +58,45 @@ namespace
     props.FindValue(Module::ATTR_FULLPATH, res);
     return res;
   }
+  
+  String GetFilenameTemplate(const Parameters::Accessor& params)
+  {
+    String nameTemplate;
+    if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_FILENAME), nameTemplate))
+    {
+      throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_FILENAME);
+    }
+    return nameTemplate;
+  }
+  
+  struct HolderAndData
+  {
+    Module::Holder::Ptr Holder;
+    Binary::Data::Ptr Data;
+    
+    typedef DataReceiver<HolderAndData> Receiver;
+  };
 
-  class ConvertEndpoint : public DataReceiver<Module::Holder::Ptr>
+  class SaveEndpoint : public HolderAndData::Receiver
   {
   public:
-    ConvertEndpoint(DisplayComponent& display, const Parameters::Accessor& params, std::auto_ptr<Module::Conversion::Parameter> param, Strings::Template::Ptr templ)
+    SaveEndpoint(DisplayComponent& display, const Parameters::Accessor& params)
       : Display(display)
       , Params(params)
-      , ConversionParameter(param)
-      , FileNameTemplate(templ)
+      , FileNameTemplate(IO::CreateFilenameTemplate(GetFilenameTemplate(params)))
     {
     }
 
-    virtual void ApplyData(const Module::Holder::Ptr& holder)
+    virtual void ApplyData(const HolderAndData& data)
     {
       try
       {
-        const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
-        const String id = GetModuleId(*props);
-        if (const Binary::Data::Ptr result = Module::Convert(*holder, *ConversionParameter, props))
-        {
-          //prepare result filename
-          const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
-          const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
-          stream->ApplyData(*result);
-          Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
-        }
-        else
-        {
-          Parameters::StringType type;
-          props->FindValue(Module::ATTR_TYPE, type);
-          Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, type));
-        }
+        const Parameters::Accessor::Ptr props = data.Holder->GetModuleProperties();
+        const String& id = GetModuleId(*props);
+        const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
+        const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
+        stream->ApplyData(*data.Data);
+        Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
       }
       catch (const Error& e)
       {
@@ -103,78 +110,117 @@ namespace
   private:
     DisplayComponent& Display;
     const Parameters::Accessor& Params;
-    const std::auto_ptr<Module::Conversion::Parameter> ConversionParameter;
     const Strings::Template::Ptr FileNameTemplate;
   };
+  
+  std::auto_ptr<Module::Conversion::Parameter> CreateConversionParameters(const String& mode, const Parameters::Accessor& modeParams)
+  {
+    Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
+    modeParams.FindValue(ToStdString(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
+    std::auto_ptr<Module::Conversion::Parameter> param;
+    if (mode == Text::CONVERSION_MODE_PSG)
+    {
+      param.reset(new Module::Conversion::PSGConvertParam(optimization));
+    }
+    else if (mode == Text::CONVERSION_MODE_ZX50)
+    {
+      param.reset(new Module::Conversion::ZX50ConvertParam(optimization));
+    }
+    else if (mode == Text::CONVERSION_MODE_TXT)
+    {
+      param.reset(new Module::Conversion::TXTConvertParam());
+    }
+    else if (mode == Text::CONVERSION_MODE_DEBUGAY)
+    {
+      param.reset(new Module::Conversion::DebugAYConvertParam(optimization));
+    }
+    else if (mode == Text::CONVERSION_MODE_AYDUMP)
+    {
+      param.reset(new Module::Conversion::AYDumpConvertParam(optimization));
+    }
+    else if (mode == Text::CONVERSION_MODE_FYM)
+    {
+      param.reset(new Module::Conversion::FYMConvertParam(optimization));
+    }
+    else
+    {
+      throw Error(THIS_LINE, Text::CONVERT_ERROR_INVALID_MODE);
+    }
+    return param;
+  }
+  
+  class ConvertEndpoint : public HolderAndData::Receiver
+  {
+  public:
+    ConvertEndpoint(DisplayComponent& display, const String& mode, const Parameters::Accessor& modeParams, HolderAndData::Receiver::Ptr saver)
+      : Display(display)
+      , ConversionParameter(CreateConversionParameters(mode, modeParams))
+      , Saver(saver)
+    {
+    }
+    
+    virtual void ApplyData(const HolderAndData& data)
+    {
+      const Module::Holder::Ptr holder = data.Holder;
+      const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
+      if (const Binary::Data::Ptr result = Module::Convert(*holder, *ConversionParameter, props))
+      {
+        HolderAndData converted;
+        converted.Holder = holder;
+        converted.Data = result;
+        Saver->ApplyData(converted);
+      }
+      else
+      {
+        Parameters::StringType type;
+        props->FindValue(Module::ATTR_TYPE, type);
+        const String& id = GetModuleId(*props);
+        Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, type));
+      }
+    }
+    
+    virtual void Flush()
+    {
+      Saver->Flush();
+    }
+  private:
+    DisplayComponent& Display;
+    const std::auto_ptr<Module::Conversion::Parameter> ConversionParameter;
+    const HolderAndData::Receiver::Ptr Saver;
+  };
 
-
-  class Convertor
+  class Convertor : public OnItemCallback
   {
   public:
     Convertor(const Parameters::Accessor& params, DisplayComponent& display)
-      : Pipe(DataReceiver<Module::Holder::Ptr>::CreateStub())
+      : Pipe(HolderAndData::Receiver::CreateStub())
     {
       Parameters::StringType mode;
       if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_MODE), mode))
       {
         throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_MODE);
       }
-      String nameTemplate;
-      if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_FILENAME), nameTemplate))
-      {
-        throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_FILENAME);
-      }
-      Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
-      params.FindValue(ToStdString(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
-      std::auto_ptr<Module::Conversion::Parameter> param;
-      if (mode == Text::CONVERSION_MODE_RAW)
-      {
-        param.reset(new Module::Conversion::RawConvertParam());
-      }
-      else if (mode == Text::CONVERSION_MODE_PSG)
-      {
-        param.reset(new Module::Conversion::PSGConvertParam(optimization));
-      }
-      else if (mode == Text::CONVERSION_MODE_ZX50)
-      {
-        param.reset(new Module::Conversion::ZX50ConvertParam(optimization));
-      }
-      else if (mode == Text::CONVERSION_MODE_TXT)
-      {
-        param.reset(new Module::Conversion::TXTConvertParam());
-      }
-      else if (mode == Text::CONVERSION_MODE_DEBUGAY)
-      {
-        param.reset(new Module::Conversion::DebugAYConvertParam(optimization));
-      }
-      else if (mode == Text::CONVERSION_MODE_AYDUMP)
-      {
-        param.reset(new Module::Conversion::AYDumpConvertParam(optimization));
-      }
-      else if (mode == Text::CONVERSION_MODE_FYM)
-      {
-        param.reset(new Module::Conversion::FYMConvertParam(optimization));
-      }
-      else
-      {
-        throw Error(THIS_LINE, Text::CONVERT_ERROR_INVALID_MODE);
-      }
-      Strings::Template::Ptr templ = IO::CreateFilenameTemplate(nameTemplate);
-      const DataReceiver<Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, params, param, templ));
-      Pipe = Async::DataReceiver<Module::Holder::Ptr>::Create(1, 1000, target);
+      const HolderAndData::Receiver::Ptr saver(new SaveEndpoint(display, params));
+      const HolderAndData::Receiver::Ptr target = mode == Text::CONVERSION_MODE_RAW
+        ? saver
+        : HolderAndData::Receiver::Ptr(new ConvertEndpoint(display, mode, params, saver));
+      Pipe = Async::DataReceiver<HolderAndData>::Create(1, 1000, target);
     }
 
-    ~Convertor()
+    virtual ~Convertor()
     {
       Pipe->Flush();
     }
 
-    void ProcessItem(Module::Holder::Ptr holder) const
+    virtual void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder)
     {
-      Pipe->ApplyData(holder);
+      HolderAndData pair;
+      pair.Holder = holder;
+      pair.Data = data;
+      Pipe->ApplyData(pair);
     }
   private:
-    DataReceiver<Module::Holder::Ptr>::Ptr Pipe;
+    HolderAndData::Receiver::Ptr Pipe;
   };
 
   class FinishPlaybackCallback : public Sound::BackendCallback
@@ -214,7 +260,7 @@ namespace
     Async::Event<uint_t> Event;
   };
 
-  class Benchmark
+  class Benchmark : public OnItemCallback
   {
   public:
     Benchmark(unsigned iterations, SoundComponent& sound, DisplayComponent& display)
@@ -224,7 +270,7 @@ namespace
     {
     }
 
-    void ProcessItem(Module::Holder::Ptr holder) const
+    virtual void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder)
     {
       const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
@@ -255,6 +301,7 @@ namespace
   };
 
   class CLIApplication : public Platform::Application
+                       , private OnItemCallback
   {
   public:
     CLIApplication()
@@ -286,17 +333,17 @@ namespace
           ParseParametersString(Parameters::NameType(), ConvertParams, *cnvParams);
           const Parameters::Accessor::Ptr mergedParams = Parameters::CreateMergedAccessor(cnvParams, ConfigParams);
           Convertor cnv(*mergedParams, *Display);
-          Sourcer->ProcessItems(boost::bind(&Convertor::ProcessItem, &cnv, _1));
+          Sourcer->ProcessItems(cnv);
         }
         else if (0 != BenchmarkIterations)
         {
-          const Benchmark benchmark(BenchmarkIterations, *Sounder, *Display);
-          Sourcer->ProcessItems(boost::bind(&Benchmark::ProcessItem, &benchmark, _1));
+          Benchmark benchmark(BenchmarkIterations, *Sounder, *Display);
+          Sourcer->ProcessItems(benchmark);
         }
         else
         {
           Sounder->Initialize();
-          Sourcer->ProcessItems(boost::bind(&CLIApplication::PlayItem, this, _1));
+          Sourcer->ProcessItems(*this);
         }
       }
       catch (const CancelError&)
@@ -366,7 +413,7 @@ namespace
       }
     }
 
-    void PlayItem(Module::Holder::Ptr holder)
+    virtual void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder)
     {
       const Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
       const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();

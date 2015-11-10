@@ -21,7 +21,7 @@ import app.zxtune.playback.PlaybackControl.SequenceMode;
 public final class IteratorFactory {
 
   private static boolean isPlaylistUri(Uri uri) {
-    return uri.getScheme().equals(ContentResolver.SCHEME_CONTENT);
+    return ContentResolver.SCHEME_CONTENT.equals(uri.getScheme());
   }
   
   /**
@@ -36,11 +36,7 @@ public final class IteratorFactory {
     if (isPlaylistUri(first)) {
       return new PlaylistIterator(context, first);
     } else {
-      Iterator result = PlaylistFileIterator.create(context, first);
-      if (result == null) {
-        result = new FileIterator(context, uris);
-      }
-      return result;
+      return new FileIterator(context, uris);
     }
   }
   

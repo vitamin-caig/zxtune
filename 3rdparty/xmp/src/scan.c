@@ -33,7 +33,7 @@
 #define S3M_END		0xff
 #define S3M_SKIP	0xfe
 
-inline int get_pattern_rows(struct xmp_module *mod, int idx)
+inline static int get_pattern_rows(struct xmp_module *mod, int idx)
 {
     struct xmp_pattern *pat = idx < mod->pat ? mod->xxp[idx] : NULL;
     return pat && pat->rows ? pat->rows : 1;

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- emulation -->
+  <string name="pref_emulation_title">Emulation</string>
+  
+  <!-- common -->
+  <string name="pref_interpolation">Interpolierung</string>
+  <string-array name="pref_interpolation_entries">
+    <item>Nein</item>
+    <item>Leistung</item>
+    <item>Qualität <b>(hohe CPU-last)</b></item>
+  </string-array>
+  
+  <!-- ay/ym -->
+  <!-- zxtune.core.aym.clockrate -->
+  <string name="pref_zxtune_aym_clockrate_title">Taktrate</string>
+  <!-- zxtune.core.aym.type -->
+  <string name="pref_zxtune_aym_type_title">Typ</string>
+  <!-- zxtun.core.aym.layout -->
+  <string name="pref_zxtune_aym_layout_title">Kanäle</string>
+  
+  <!-- dac -->
+  <string name="pref_zxtune_dac_title">Digitalklang</string>
+  
+  <!-- sid -->
+  <string  name="pref_zxtune_sid_filter_title">Filter-Emulator</string>
+
+  <!-- other -->
+  <string name="pref_zxtune_other_title">Sonstig</string>
+  <!-- zxtune.core.plugins.default_duration -->
+  <string name="pref_zxtune_default_duration_title">Standarddauer</string>
+  <string-array name="pref_zxtune_default_duration_entries">
+    <item>30 Sekunden</item>
+    <item>1 Minute</item>
+    <item>2 Minuten</item>
+    <item>3 Minuten</item>
+    <item>5 Minuten</item>
+  </string-array>
+</resources>

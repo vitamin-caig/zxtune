@@ -16,8 +16,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 import android.util.SparseIntArray;
+import app.zxtune.Log;
 
 /*
  * Playlist DB model.
@@ -151,7 +151,7 @@ public class Database {
   
   // ! @return Cursor with statistics
   public final Cursor queryStatistics(String selection) {
-    Log.d(TAG, "queryStatistics(" + selection + ") called");
+    Log.d(TAG, "queryStatistics(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
     return db.query(Tables.Tracks.NAME, Tables.Statistics.COLUMNS, selection, null/*selectionArgs*/, null/*groupBy*/,
         null/*having*/, null/*orderBy*/); 
@@ -160,7 +160,7 @@ public class Database {
   // ! @return Cursor with queried values
   public final Cursor queryPlaylistItems(String[] columns, String selection, String[] selectionArgs,
       String orderBy) {
-    Log.d(TAG, "queryPlaylistItems(" + selection + ") called");
+    Log.d(TAG, "queryPlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
     return db.query(Tables.Playlist.NAME, columns, selection, selectionArgs, null/* groupBy */,
         null/* having */, orderBy);
@@ -174,7 +174,7 @@ public class Database {
 
   // ! @return count of deleted items
   public final int deletePlaylistItems(String selection, String[] selectionArgs) {
-    Log.d(TAG, "deletePlaylistItems(" + selection + ") called");
+    Log.d(TAG, "deletePlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.delete(Tables.Playlist.NAME, selection, selectionArgs);
   }
@@ -182,7 +182,7 @@ public class Database {
   // ! @return count of updated items
   public final int updatePlaylistItems(ContentValues values, String selection, String[] selectionArgs) {
     //update tracks table directly to avoid on update trigger
-    Log.d(TAG, "updatePlaylistItems(" + selection + ") called");
+    Log.d(TAG, "updatePlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.update(Tables.Tracks.NAME, values, selection, selectionArgs);
   }
@@ -209,7 +209,7 @@ public class Database {
   }
   
   public final void sortPlaylistItems(Tables.Playlist.Fields field, String order) {
-    Log.d(TAG, "sortPlaylistItems(" + field.name() + ", " + order + ")");
+    Log.d(TAG, "sortPlaylistItems(%s, %s) called", field.name(), order);
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     try {
       db.beginTransaction();
@@ -241,7 +241,7 @@ public class Database {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-      Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
+      Log.d(TAG, "Upgrading database %d -> %d", oldVersion, newVersion);
       if (oldVersion == 1) {
         upgradeFromVer1(db);
       }
@@ -258,7 +258,7 @@ public class Database {
         db.setTransactionSuccessful();
         return;
       } catch (SQLiteException e) {
-        Log.d(TAG, "upgradeFromVer1", e);
+        Log.d(TAG, e, "upgradeFromVer1");
       } finally {
         db.endTransaction();
       }

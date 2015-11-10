@@ -26,11 +26,6 @@ namespace Module
     {
     }
 
-    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
-    {
-      return Delegate.GetPluginsParameters();
-    }
-
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const
     {
       return Delegate.ProcessModule(location, decoder, holder);

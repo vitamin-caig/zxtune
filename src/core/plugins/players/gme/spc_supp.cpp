@@ -11,6 +11,7 @@
 //local includes
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/analyzer.h"
+#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //common includes
@@ -18,12 +19,12 @@
 //library includes
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <core/plugins_parameters.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
-#include <devices/details/parameters_helper.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/emulation/spc.h>
 #include <math/numeric.h>
+#include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/resampler.h>
@@ -188,7 +189,7 @@ namespace SPC
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
       , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Sound::CreateResampler(::SNES_SPC::sample_rate, SoundParams->SoundFreq(), target))
+      , Target(target)
       , Looped()
       , SamplesPerFrame()
     {
@@ -214,7 +215,7 @@ namespace SPC
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
         Tune->Render(SamplesPerFrame, builder);
-        Target->ApplyData(builder.GetResult());
+        Resampler->ApplyData(builder.GetResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -226,6 +227,7 @@ namespace SPC
 
     virtual void Reset()
     {
+      SoundParams.Reset();
       Tune->Reset();
       Iterator->Reset();
     }
@@ -243,6 +245,7 @@ namespace SPC
         Looped = SoundParams->Looped();
         const Time::Microseconds frameDuration = SoundParams->FrameDuration();
         SamplesPerFrame = static_cast<uint_t>(frameDuration.Get() * ::SNES_SPC::sample_rate / frameDuration.PER_SECOND);
+        Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, SoundParams->SoundFreq(), Target);
       }
     }
 
@@ -263,8 +266,9 @@ namespace SPC
     const SPC::Ptr Tune;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
-    const Devices::Details::ParametersHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
+    Sound::Receiver::Ptr Resampler;
     bool Looped;
     std::size_t SamplesPerFrame;
   };
@@ -365,7 +369,7 @@ namespace SPC
     
     virtual void SetArtist(const String& artist)
     {
-      SetDumper(artist);
+      Properties.SetAuthor(Author = artist);
     }
     
     virtual void SetRAM(const void* /*data*/, std::size_t /*size*/)
@@ -380,13 +384,12 @@ namespace SPC
     {
     }
     
-    Time::Milliseconds GetDuration() const
+    Time::Milliseconds GetDuration(const Parameters::Accessor& params) const
     {
-      static const Time::Milliseconds DEFAULT_DURATION(120000);
       Time::Milliseconds total = Intro;
       total += Loop;
       total += Fade;
-      return total.Get() ? total : DEFAULT_DURATION;
+      return total.Get() ? total : Time::Milliseconds(Module::GetDuration(params));
     }
   private:
     PropertiesBuilder& Properties;
@@ -402,7 +405,7 @@ namespace SPC
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       try
       {
@@ -411,7 +414,8 @@ namespace SPC
         {
           const SPC::Ptr tune = boost::make_shared<SPC>(rawData);
           propBuilder.SetSource(*container);
-          const Time::Milliseconds duration = dataBuilder.GetDuration(), period = Time::Milliseconds(20);
+          const Time::Milliseconds duration = dataBuilder.GetDuration(params);
+          const Time::Milliseconds period = Time::Milliseconds(20);
           propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(period).Get());
           const uint_t frames = duration.Get() / period.Get();
           const Information::Ptr info = CreateStreamInfo(frames);
@@ -433,7 +437,7 @@ namespace ZXTune
   void RegisterSPCSupport(PlayerPluginsRegistrator& registrator)
   {
     const Char ID[] = {'S', 'P', 'C', 0};
-    const uint_t CAPS = CAP_DEV_SPC700 | CAP_STOR_MODULE | CAP_CONV_RAW;
+    const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::SPC700;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSPCDecoder();
     const Module::SPC::Factory::Ptr factory = boost::make_shared<Module::SPC::Factory>();

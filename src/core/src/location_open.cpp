@@ -98,12 +98,12 @@ namespace
     const Analysis::Path::Ptr Plugins;
   };
 
-  DataLocation::Ptr TryToOpenLocation(const ArchivePluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const Analysis::Path& subPath)
+  DataLocation::Ptr TryToOpenLocation(const ArchivePluginsEnumerator& plugins, const Parameters::Accessor& params, DataLocation::Ptr location, const Analysis::Path& subPath)
   {
     for (ArchivePlugin::Iterator::Ptr iter = plugins.Enumerate(); iter->IsValid(); iter->Next())
     {
       const ArchivePlugin::Ptr plugin = iter->Get();
-      if (DataLocation::Ptr result = plugin->Open(coreParams, location, subPath))
+      if (DataLocation::Ptr result = plugin->Open(params, location, subPath))
       {
         return result;
       }
@@ -119,7 +119,7 @@ namespace ZXTune
     return boost::make_shared<UnresolvedLocation>(data);
   }
 
-  DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, Binary::Container::Ptr data, const String& subpath)
+  DataLocation::Ptr OpenLocation(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath)
   {
     const ArchivePluginsEnumerator::Ptr usedPlugins = ArchivePluginsEnumerator::Create();
     DataLocation::Ptr resolvedLocation = boost::make_shared<UnresolvedLocation>(data);
@@ -128,7 +128,7 @@ namespace ZXTune
     {
       const String toResolve = unresolved->AsString();
       Dbg("Resolving '%1%'", toResolve);
-      if (!(resolvedLocation = TryToOpenLocation(*usedPlugins, *coreParams, resolvedLocation, *unresolved)))
+      if (!(resolvedLocation = TryToOpenLocation(*usedPlugins, params, resolvedLocation, *unresolved)))
       {
         throw MakeFormattedError(THIS_LINE, translate("Failed to resolve subpath '%1%'."), subpath);
       }

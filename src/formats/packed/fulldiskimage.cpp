@@ -199,7 +199,7 @@ namespace FullDiskImage
           for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)
           {
             const RawTrack::Sector* const sector = trackInfo->Sectors + secNum;
-            const std::size_t secSize = 128 << sector->Size;
+            const std::size_t secSize = std::size_t(128) << sector->Size;
             //since there's no information about head number (always 0), do not check it
             //assert(sector->Head == sid);
             if (sector->Cylinder != cyl)
@@ -242,8 +242,8 @@ namespace FullDiskImage
   const std::string FORMAT_PATTERN(
     "'F'D'I"      // uint8_t ID[3]
     "%0000000x"   // uint8_t ReadOnly;
-    "%0xxxxxxx"   // uint16_t Cylinders;
-    "%000000xx"   // uint16_t Sides;
+    "28-64 00"    // uint16_t Cylinders;
+    "01-02 00"    // uint16_t Sides;
   );
 }
 

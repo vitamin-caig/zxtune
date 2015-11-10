@@ -16,6 +16,7 @@ namespace ZXTune
   void RegisterArchivePlugins(ArchivePluginsRegistrator& registrator)
   {
     RegisterDepackPlugins(registrator);
+    RegisterChiptunePackerPlugins(registrator);
     RegisterDecompilePlugins(registrator);
   }
 }

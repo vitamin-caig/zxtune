@@ -15,70 +15,33 @@ import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 import android.util.SparseIntArray;
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.zxart.Author;
 import app.zxtune.fs.zxart.Catalog;
+import app.zxtune.fs.zxart.Identifier;
 import app.zxtune.fs.zxart.Party;
 import app.zxtune.fs.zxart.Track;
-import app.zxtune.ui.IconSource;
 
-/**
- * Paths:
- * 
- * zxart:
- * 
- * zxart://Authors
- * zxart://Authors/${nick}?author=${author_id}
- * zxart://Authors/${nick}/${year}?author=${author_id}
- * zxart://Authors/${nick}/${year}/${filename}?author=${author_id}&track=${track_id}
- * 
- * zxart://Parties
- * zxart://Parties/${year}
- * zxart://Parties/${year}/${name}?party=${party_id} 
- * zxart://Parties/${year}/${name}/${compo}?party=${party_id} 
- * zxart://Parties/${year}/${name}/${compo}/${filename}?party=${party_id}&track=${track_id}
- * 
- * zxart://Top
- * zxart://Top/${filename}?track=${track_id}
- *
- */
-
-public class VfsRootZxart implements VfsRoot, IconSource {
+public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private final static String TAG = VfsRootZxart.class.getName();
 
-  private final static String SCHEME = "zxart";
-
-  // indices of parts in path
-  private final static int POS_CATEGORY = 0;
-  private final static int POS_AUTHOR_NICK = 1;
-  private final static int POS_AUTHOR_YEAR = 2;
-  private final static int POS_AUTHOR_YEAR_TRACK = 3;
-  private final static int POS_PARTY_YEAR = 1;
-  private final static int POS_PARTY_NAME = 2;
-  private final static int POS_PARTY_COMPO = 3;
-  private final static int POS_PARTY_TRACK = 4;
-  private final static int POS_TOP_TRACK = 1;
-
-  private final static String PARAM_AUTHOR_ID = "author";
-  private final static String PARAM_PARTY_ID = "party";
-  private final static String PARAM_TRACK_ID = "track";
-
   private final Context context;
   private final Catalog catalog;
-  private final GroupsDir groups[];
+  private final GroupingDir groups[];
 
-  public VfsRootZxart(Context context) {
+  public VfsRootZxart(Context context, HttpProvider http) {
     this.context = context;
-    this.catalog = Catalog.create(context);
-    this.groups = new GroupsDir[] {
-        new AllAuthorsDir(),
-        new AllPartiesDir(),
+    this.catalog = Catalog.create(context, http);
+    this.groups = new GroupingDir[] {
+        new AuthorsDir(),
+        new PartiesDir(),
         new TopTracksDir()
     };
   }
@@ -95,283 +58,73 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
   @Override
   public Uri getUri() {
-    return rootUri().build();
+    return Identifier.forRoot().build();
   }
 
   @Override
-  public VfsDir getParent() {
+  public VfsObject getParent() {
     return null;
   }
 
   @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
+      return R.drawable.ic_browser_vfs_zxart;
+    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      //assume search by authors from root
+      return new AuthorsSearchEngine();
+    } else {
+      return super.getExtension(id);
+    }
+  }
+
+  @Override
   public void enumerate(Visitor visitor) {
-    for (GroupsDir group : groups) {
+    for (GroupingDir group : groups) {
       visitor.onDir(group);
     }
   }
 
   @Override
   public VfsObject resolve(Uri uri) throws IOException {
-    if (SCHEME.equals(uri.getScheme())) {
-      return resolvePath(uri);
-    } else {
-      return null;
+    try {
+      if (Identifier.isFromRoot(uri)) {
+        final List<String> path = uri.getPathSegments();
+        return resolve(uri, path);
+      }
+    } catch (Exception e) {
+      Log.d(TAG, e, "resolve(%s)", uri);
     }
+    return null;
   }
 
-  @Override
-  public int getResourceId() {
-    return R.drawable.ic_browser_vfs_zxart;
-  }
-
-  private static Uri.Builder rootUri() {
-    return new Uri.Builder().scheme(SCHEME);
-  }
-
-  private static Uri.Builder allAuthorsUri() {
-    return rootUri().appendPath(AllAuthorsDir.PATH);
-  }
-
-  private static Uri.Builder authorUri(Author author) {
-    return allAuthorsUri()
-        .appendPath(author.nickname)
-        .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.id));
-  }
-
-  private static Uri.Builder authorYearUri(Author author, int year) {
-    return authorUri(author)
-        .appendPath(year != 0 ? Integer.toString(year) : AuthorYearDir.UNKNOWNYEAR_PATH);
-  }
-
-  private static Uri.Builder trackUri(Author author, int year, Track track) {
-    return authorYearUri(author, year)
-        .appendPath(track.filename)
-        .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
-  }
-  
-  private static Uri.Builder allPartiesUri() {
-    return rootUri().appendPath(AllPartiesDir.PATH);
-  }
-  
-  private static Uri.Builder partyYearUri(int year) {
-    return allPartiesUri().appendPath(Integer.toString(year));
-  }
-  
-  private static Uri.Builder partyUri(Party party) {
-    return partyYearUri(party.year)
-        .appendPath(party.name)
-        .appendQueryParameter(PARAM_PARTY_ID, Integer.toString(party.id));
-  }
-  
-  private static Uri.Builder partyCompoUri(Party party, String compo) {
-    return partyUri(party)
-        .appendPath(compo);
-  }
-  
-  private static Uri.Builder trackUri(Party party, String compo, Track track) {
-    return partyCompoUri(party, compo)
-        .appendPath(track.filename)
-        .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
-  }
-  
-  private static Uri.Builder topTracksUri() {
-    return rootUri().appendPath(TopTracksDir.PATH);
-  }
-  
-  private static Uri.Builder topTrackUri(Track track) {
-    return topTracksUri()
-        .appendPath(track.filename)
-        .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
-  }
-
-  private VfsObject resolvePath(Uri uri) throws IOException {
-    final List<String> path = uri.getPathSegments();
-    if (path.isEmpty()) {
+  private VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    final String category = Identifier.findCategory(path);
+    if (category == null) {
       return this;
     } else {
-      final String category = path.get(POS_CATEGORY);
-      for (GroupsDir group : groups) {
+      for (GroupingDir group : groups) {
         if (category.equals(group.getPath())) {
           return group.resolve(uri, path);
         }
       }
-      return null;
-    }
-  }
-
-  private interface GroupsDir extends VfsDir {
-
-    String getPath();
-
-    VfsObject resolve(Uri uri, List<String> path) throws IOException;
-  }
-
-  private static class FindAuthorVisitor extends Catalog.AuthorsVisitor {
-
-    private Author result;
-
-    @Override
-    public void accept(Author obj) {
-      if (result == null) {
-        result = obj;
-      } else {
-        throw new IllegalStateException();
-      }
-    }
-
-    final Author getResult() {
-      return result;
-    }
-  }
-
-  private Author resolveAuthor(Uri uri, String nick) throws IOException {
-    try {
-      // nickname is not unique, so use explicit identifier
-      final int id = Integer.parseInt(uri.getQueryParameter(PARAM_AUTHOR_ID));
-      final FindAuthorVisitor visitor = new FindAuthorVisitor();
-      catalog.queryAuthors(visitor, id);
-      final Author result = visitor.getResult();
-      if (!result.nickname.equals(nick)) {
-        Log.d(TAG, String.format("Real author id=%d nick (%s) differs from requested (%s)",
-            id, result.nickname, nick));
-      }
-      return result;
-    } catch (IOException e) {
-      throw e;
-    } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
-      Log.d(TAG, "resolveAuthor(" + uri + ")", e);
     }
     return null;
   }
 
-  private static class FindPartyVisitor extends Catalog.PartiesVisitor {
-
-    private Party result;
-
-    @Override
-    public void accept(Party obj) {
-      if (result == null) {
-        result = obj;
-      } else {
-        throw new IllegalStateException();
-      }
-    }
-
-    final Party getResult() {
-      return result;
-    }
-  }
-
-  private Party resolveParty(Uri uri, String name) throws IOException {
-    try {
-      // name is not unique, so use explicit identifier
-      final int id = Integer.parseInt(uri.getQueryParameter(PARAM_PARTY_ID));
-      final FindPartyVisitor visitor = new FindPartyVisitor();
-      catalog.queryParties(visitor, id);
-      final Party result = visitor.getResult();
-      if (!result.name.equals(name)) {
-        Log.d(TAG, String.format("Real party id=%d name (%s) differs from requested (%s)",
-            id, result.name, name));
-      }
-      return result;
-    } catch (IOException e) {
-      throw e;
-    } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
-      Log.d(TAG, "resolveParty(" + uri + ")", e);
-    }
-    return null;
-  }
-  
-  private static class FindTrackVisitor extends Catalog.TracksVisitor {
-
-    private Track result;
-
-    @Override
-    public void accept(Track obj) {
-      if (result == null) {
-        result = obj;
-      } else {
-        throw new IllegalStateException();
-      }
-    }
-
-    final Track getResult() {
-      return result;
-    }
-  }
-
-  private Track resolveTrack(Uri uri, Author author, int year, String filename) throws IOException {
-    try {
-      // filename is not unique and track can belong to several authors, so use
-      // explicit identifier
-      // callers doesn't know that author and year is useless now
-      final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
-      final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryAuthorTracks(visitor, author, id);
-      final Track result = visitor.getResult();
-      if (!result.filename.equals(filename)) {
-        Log.d(TAG, String.format("Real track id=%d filename (%s) differs from requested (%s)",
-            id, result.filename, filename));
-      }
-      return result;
-    } catch (IOException e) {
-      throw e;
-    } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
-      Log.d(TAG, "resolveTrack(" + uri + ")", e);
-    }
-    return null;
-  }
-
-  private Track resolveTrack(Uri uri, Party party, String filename) throws IOException {
-    try {
-      // filename is not unique and track can belong to several parties(?), so use
-      // explicit identifier
-      // callers doesn't know that party is useless
-      final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
-      final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryPartyTracks(visitor, party, id);
-      final Track result = visitor.getResult();
-      if (!result.filename.equals(filename)) {
-        Log.d(TAG, String.format("Real track id=%d filename (%s) differs from requested (%s)",
-            id, result.filename, filename));
-      }
-      return result;
-    } catch (IOException e) {
-      throw e;
-    } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
-      Log.d(TAG, "resolveTrack(" + uri + ")", e);
-    }
-    return null;
-  }
-
-  private Track resolveTrack(Uri uri, String filename) throws IOException {
-    try {
-      final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
-      final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryTopTracks(visitor, id, 1);
-      final Track result = visitor.getResult();
-      if (!result.filename.equals(filename)) {
-        Log.d(TAG, String.format("Real track id=%d filename (%s) differs from requested (%s)",
-            id, result.filename, filename));
-      }
-      return result;
-    } catch (IOException e) {
-      throw e;
-    } catch (Exception e) {// IllegalStateException|NullPointerException|NumberFormatException
-      Log.d(TAG, "resolveTrack(" + uri + ")", e);
-    }
-    return null;
-  }
-  
-  private class AllAuthorsDir implements GroupsDir {
-
-    // Static locale-independent path of all authors' dir
-    final static String PATH = "Authors";
+  private abstract class GroupingDir extends StubObject implements VfsDir {
 
     @Override
     public Uri getUri() {
-      return allAuthorsUri().build();
+      return Identifier.forCategory(getPath()).build();
     }
+
+    abstract String getPath();
+
+    abstract VfsObject resolve(Uri uri, List<String> path) throws IOException;
+  }
+
+  private class AuthorsDir extends GroupingDir {
 
     @Override
     public String getName() {
@@ -384,10 +137,19 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootZxart.this;
     }
 
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+        return new AuthorsSearchEngine();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+    
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(new Catalog.AuthorsVisitor() {
@@ -400,62 +162,41 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         public void accept(Author obj) {
           visitor.onDir(new AuthorDir(obj));
         }
-      }, null);
+      });
     }
 
     @Override
     public String getPath() {
-      return PATH;
+      return Identifier.CATEGORY_AUTHORS;
     }
 
     @Override
     public VfsObject resolve(Uri uri, List<String> path) throws IOException {
-      final int lastPathElement = path.size() - 1;
-      if (lastPathElement == POS_CATEGORY) {
-        return this;
-      }
-      final Author author = resolveAuthor(uri, path.get(POS_AUTHOR_NICK));
-      if (author == null) {
-        return null;
-      }
-      if (lastPathElement == POS_AUTHOR_NICK) {
-        return new AuthorDir(author);
-      } else if (lastPathElement == POS_AUTHOR_YEAR) {
-        return resolveAuthorYearPath(uri, author, path);
-      } else if (lastPathElement == POS_AUTHOR_YEAR_TRACK) {
-        return resolveAuthorYearTrack(uri, author, path);
-      } else {
-        return null;
-      }
-    }
-
-    private VfsObject resolveAuthorYearPath(Uri uri, Author author, List<String> path) {
-      final int year = resolveAuthorYear(path);
-      return new AuthorYearDir(author, year);
-    }
-
-    private VfsObject resolveAuthorYearTrack(Uri uri, Author author, List<String> path) throws IOException {
-      final int year = resolveAuthorYear(path);
-      final Track track = resolveTrack(uri, author, year, path.get(POS_AUTHOR_YEAR_TRACK));
+      // use plain resolving to avoid deep hierarchy
+      // check most frequent cases first
+      final Track track = Identifier.findAuthorTrack(uri, path);
       if (track != null) {
-        return new TrackFile(uri, track);
-      } else {
-        Log.d(TAG, "Unknown URI " + uri);
-        return null;
+        return new AuthorTrackFile(uri, track);
       }
-    }
-
-    private int resolveAuthorYear(List<String> path) {
-      try {
-        final String year = path.get(POS_AUTHOR_YEAR);
-        return AuthorYearDir.UNKNOWNYEAR_PATH.equals(year) ? 0 : Integer.valueOf(year);
-      } catch (NumberFormatException e) {
-        return 0;
-      }
+      final VfsObject dir = resolveAuthorDir(uri, path);
+      return dir != null
+          ? dir
+          : this;
     }
   }
 
-  private class AuthorDir implements VfsDir {
+  private VfsObject resolveAuthorDir(Uri uri, List<String> path) {
+    final Author author = Identifier.findAuthor(uri, path);
+    if (author == null) {
+      return null;
+    }
+    final Integer year = Identifier.findAuthorYear(uri, path);
+    return year != null
+        ? new AuthorYearDir(author, year)
+        : new AuthorDir(author);
+  }
+
+  private class AuthorDir extends StubObject implements VfsDir {
 
     private final Author author;
 
@@ -465,7 +206,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public Uri getUri() {
-      return authorUri(author).build();
+      return Identifier.forAuthor(author).build();
     }
 
     @Override
@@ -479,23 +220,23 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return groups[0];// TODO
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       final SparseIntArray years = new SparseIntArray();
-      
-      catalog.queryAuthorTracks(new Catalog.TracksVisitor() {
+
+      catalog.queryAuthorTracks(author, new Catalog.TracksVisitor() {
         @Override
         public void accept(Track obj) {
           years.put(obj.year, 1 + years.get(obj.year));
         }
-      }, author, null/*id*/);
+      });
       visitor.onItemsCount(years.size());
       for (int i = 0, lim = years.size(); i != lim; ++i) {
-        //handle count when required
+        // handle count when required
         visitor.onDir(new AuthorYearDir(author, years.keyAt(i)));
       }
     }
@@ -503,7 +244,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
   private class AuthorYearDir extends StubObject implements VfsDir {
 
-    static final String UNKNOWNYEAR_PATH = "unknown";
     private final Author author;
     private final int year;
 
@@ -514,7 +254,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public Uri getUri() {
-      return authorYearUri(author, year).build();
+      return Identifier.forAuthor(author, year).build();
     }
 
     @Override
@@ -525,13 +265,13 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return new AuthorDir(author);
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthorTracks(new Catalog.TracksVisitor() {
+      catalog.queryAuthorTracks(author, new Catalog.TracksVisitor() {
         @Override
         public void setCountHint(int size) {
           visitor.onItemsCount(size);
@@ -540,22 +280,43 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         @Override
         public void accept(Track obj) {
           if (year == obj.year) {
-            visitor.onFile(new TrackFile(trackUri(author, year, obj).build(), obj));
+            final Uri uri = Identifier.forTrack(Identifier.forAuthor(author, year), obj).build();
+            visitor.onFile(new AuthorTrackFile(uri, obj));
           }
         }
-      }, author, null/* id */);
+      });
     }
   }
 
-  private class AllPartiesDir implements GroupsDir {
+  private class AuthorTrackFile extends BaseTrackFile {
 
-    // Static locale-independent path of all parties' dir
-    final static String PATH = "Parties";
+    public AuthorTrackFile(Uri uri, Track track) {
+      super(uri, track);
+    }
 
     @Override
-    public Uri getUri() {
-      return allPartiesUri().build();
+    public VfsObject getParent() {
+      final List<String> path = uri.getPathSegments();
+      return resolveAuthorDir(uri, path);
     }
+  }
+
+  private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
+    
+    @Override
+    public void find(String query, final Visitor visitor) throws IOException {
+      catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
+        
+        @Override
+        public void accept(Author author, Track track) {
+          final Uri uri = Identifier.forTrack(Identifier.forAuthor(author, track.year), track).build();
+          visitor.onFile(new AuthorTrackFile(uri, track));
+        }
+      });
+    }
+  }
+  
+  private class PartiesDir extends GroupingDir {
 
     @Override
     public String getName() {
@@ -568,7 +329,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootZxart.this;
     }
 
@@ -580,87 +341,54 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         public void accept(Party obj) {
           years.put(obj.year, 1 + years.get(obj.year));
         }
-      }, null/*id*/);
+      });
       visitor.onItemsCount(years.size());
       for (int i = 0, lim = years.size(); i != lim; ++i) {
-        visitor.onDir(new PartyYearDir(years.keyAt(i))); 
+        visitor.onDir(new PartyYearDir(years.keyAt(i)));
       }
     }
 
     @Override
     public String getPath() {
-      return PATH;
+      return Identifier.CATEGORY_PARTIES;
     }
 
     @Override
     public VfsObject resolve(Uri uri, List<String> path) throws IOException {
-      final int lastPathElement = path.size() - 1;
-      if (lastPathElement == POS_CATEGORY) {
-        return this;
-      } else if (lastPathElement == POS_PARTY_YEAR) {
-        return resolvePartyYearDir(path);
-      }
-      final Party party = resolveParty(uri, path.get(POS_PARTY_NAME));
-      if (party == null) {
-        return null;
-      }
-      if (lastPathElement == POS_PARTY_NAME) {
-        return new PartyDir(party);
-      } else if (lastPathElement == POS_PARTY_COMPO) {
-        return resolvePartyCompoDir(uri, party, path);
-      } else if (lastPathElement == POS_PARTY_TRACK) {
-        return resolvePartyTrack(uri, party, path.get(POS_PARTY_TRACK));
-      } else {
-        return null;
-      }
-    }
-    
-    private VfsObject resolvePartyYearDir(List<String> path) {
-      final int year = resolvePartyYear(path);
-      return new PartyYearDir(year);
-    }
-    
-    private VfsObject resolvePartyCompoDir(Uri uri, Party party, List<String> path) throws IOException {
-      final String compo = path.get(POS_PARTY_COMPO);
-      //compatibility
-      if (uri.getQueryParameter(PARAM_TRACK_ID) != null) {
-        return resolvePartyTrack(uri, party, compo);
-      } else {
-        return new PartyCompoDir(party, compo);
-      }
-    }
-    
-    private VfsObject resolvePartyTrack(Uri uri, Party party, String filename) throws IOException {
-      final Track track = resolveTrack(uri, party, filename);
+      final Track track = Identifier.findPartyTrack(uri, path);
       if (track != null) {
-        return new TrackFile(uri, track);
-      } else {
-        Log.d(TAG, "Unknown URI " + uri);
-        return null;
+        return new PartyTrackFile(uri, track);
       }
-    }
-    
-    private int resolvePartyYear(List<String> path) {
-      try {
-        final String year = path.get(POS_PARTY_YEAR);
-        return Integer.valueOf(year);
-      } catch (NumberFormatException e) {
-        return 0;
-      }
+      final VfsObject dir = resolvePartyDir(uri, path);
+      return dir != null ? dir : this;
     }
   }
-  
+
+  private VfsObject resolvePartyDir(Uri uri, List<String> path) {
+    final Party party = Identifier.findParty(uri, path);
+    if (party == null) {
+      final Integer year = Identifier.findPartiesYear(uri, path);
+      return year != null
+          ? new PartyYearDir(year)
+          : null;
+    }
+    final String compo = Identifier.findPartyCompo(uri, path);
+    return compo != null
+        ? new PartyCompoDir(party, compo)
+        : new PartyDir(party);
+  }
+
   private class PartyYearDir extends StubObject implements VfsDir {
-    
+
     private final int year;
-    
+
     PartyYearDir(int year) {
       this.year = year;
     }
-    
+
     @Override
     public Uri getUri() {
-      return partyYearUri(year).build();
+      return Identifier.forPartiesYear(year).build();
     }
 
     @Override
@@ -669,8 +397,8 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
-      return VfsRootZxart.this.groups[1];//TODO
+    public VfsObject getParent() {
+      return groups[1]; // TODO
     }
 
     @Override
@@ -682,21 +410,21 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             visitor.onDir(new PartyDir(obj));
           }
         }
-      }, null/*id*/);
+      });
     }
   }
-  
+
   private class PartyDir extends StubObject implements VfsDir {
-    
+
     private final Party party;
-    
+
     PartyDir(Party party) {
       this.party = party;
     }
 
     @Override
     public Uri getUri() {
-      return partyUri(party).build();
+      return Identifier.forParty(party).build();
     }
 
     @Override
@@ -705,26 +433,26 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return new PartyYearDir(party.year);
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       final HashSet<String> compos = new HashSet<String>();
-      catalog.queryPartyTracks(new Catalog.TracksVisitor() {
+      catalog.queryPartyTracks(party, new Catalog.TracksVisitor() {
         @Override
         public void accept(Track obj) {
           compos.add(obj.compo);
         }
-      }, party, null/*id*/);
+      });
       visitor.onItemsCount(compos.size());
       for (String compo : compos) {
-        visitor.onDir(new PartyCompoDir(party, compo)); 
+        visitor.onDir(new PartyCompoDir(party, compo));
       }
     }
   }
-  
+
   enum CompoIdentifier {
     unknown(R.string.vfs_zxart_compo_unknown),
     standard(R.string.vfs_zxart_compo_standard),
@@ -741,17 +469,17 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     oldschool(R.string.vfs_zxart_compo_oldschool),
     mainstream(R.string.vfs_zxart_compo_mainstream),
     progressive(R.string.vfs_zxart_compo_progressive);
-    
+
     private final int resourceId;
-    
+
     private CompoIdentifier(int id) {
       this.resourceId = id;
     }
-    
+
     final int getResource() {
       return resourceId;
     }
-  
+
     static CompoIdentifier getId(String val) {
       try {
         return CompoIdentifier.valueOf(val);
@@ -760,10 +488,10 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       }
     }
   }
-  
-  //custom ordering by partyplace
+
+  // custom ordering by party place
   private class PartyCompoDir extends StubObject implements VfsDir, Comparator<VfsObject> {
-    
+
     private final Party party;
     private final CompoIdentifier compo;
 
@@ -774,7 +502,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public Uri getUri() {
-      return partyCompoUri(party, compo.name()).build();
+      return Identifier.forPartyCompo(party, compo.name()).build();
     }
 
     @Override
@@ -783,13 +511,13 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return new PartyDir(party);
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryPartyTracks(new Catalog.TracksVisitor() {
+      catalog.queryPartyTracks(party, new Catalog.TracksVisitor() {
         @Override
         public void setCountHint(int size) {
           visitor.onItemsCount(size);
@@ -798,32 +526,44 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         @Override
         public void accept(Track obj) {
           if (compo.name().equals(obj.compo)) {
-            visitor.onFile(new PartyplacedTrackFile(trackUri(party, compo.name(), obj).build(), obj));
+            final Uri uri = Identifier.forTrack(Identifier.forPartyCompo(party, compo.name()), obj)
+                .build();
+            visitor.onFile(new PartyTrackFile(uri, obj));
           }
         }
-      }, party, null/* id */);
+      });
     }
 
     @Override
     public int compare(VfsObject lh, VfsObject rh) {
-      final int lhPlace = ((TrackFile)lh).module.partyplace;
-      final int rhPlace = ((TrackFile)rh).module.partyplace;
+      final int lhPlace = ((BaseTrackFile) lh).module.partyplace;
+      final int rhPlace = ((BaseTrackFile) rh).module.partyplace;
       return lhPlace == rhPlace
-        ? 0
-        : (lhPlace < rhPlace ? -1 : +1);
+          ? 0
+          : (lhPlace < rhPlace ? -1 : +1);
     }
   }
-  
-  //custom ordering by votes desc
-  class TopTracksDir implements GroupsDir, Comparator<VfsObject> {
 
-    // Static locale-independent path of top tracks' dir
-    final static String PATH = "Top";
+  private class PartyTrackFile extends BaseTrackFile {
+
+    PartyTrackFile(Uri uri, Track module) {
+      super(uri, module);
+    }
 
     @Override
-    public Uri getUri() {
-      return topTracksUri().build();
+    public VfsObject getParent() {
+      final List<String> path = uri.getPathSegments();
+      return resolvePartyDir(uri, path);
     }
+
+    @Override
+    public String getSize() {
+      return Integer.toString(module.partyplace);
+    }
+  }
+
+  // custom ordering by votes desc
+  private class TopTracksDir extends GroupingDir implements Comparator<VfsObject> {
 
     @Override
     public String getName() {
@@ -834,67 +574,73 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     public String getDescription() {
       return context.getString(R.string.vfs_zxart_toptracks_description);
     }
-    
+
     @Override
-    public VfsDir getParent() {
+    public VfsObject getParent() {
       return VfsRootZxart.this;
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryTopTracks(new Catalog.TracksVisitor() {
+      catalog.queryTopTracks(100, new Catalog.TracksVisitor() {
         @Override
         public void setCountHint(int size) {
           visitor.onItemsCount(size);
         }
-        
+
         @Override
         public void accept(Track obj) {
-          visitor.onFile(new VotedTrackFile(topTrackUri(obj).build(), obj));
+          final Uri uri = Identifier.forTrack(Identifier.forCategory(Identifier.CATEGORY_TOP), obj)
+              .build();
+          visitor.onFile(new TopTrackFile(uri, obj));
         }
-      }, null/*id*/, 100);
+      });
     }
 
     @Override
     public String getPath() {
-      return PATH;
+      return Identifier.CATEGORY_TOP;
     }
 
     @Override
     public VfsObject resolve(Uri uri, List<String> path) throws IOException {
-      final int lastPathElement = path.size() - 1;
-      if (lastPathElement == POS_CATEGORY) {
-        return this;
-      } else if (lastPathElement == POS_TOP_TRACK) {
-        return resolveTopTrack(uri, path);
-      } else {
-        return null;
-      }
-    }
-    
-    private VfsObject resolveTopTrack(Uri uri, List<String> path) throws IOException {
-      final Track track = resolveTrack(uri, path.get(POS_TOP_TRACK));
-      if (track != null) {
-        return new TrackFile(uri, track);
-      } else {
-        Log.d(TAG, "Unknown URI " + uri);
-        return null;
-      }
+      final Track track = Identifier.findTopTrack(uri, path);
+      return track != null
+          ? new TopTrackFile(uri, track)
+          : this;
     }
 
     @Override
     public int compare(VfsObject lh, VfsObject rh) {
-      //assume that votes can be compared in lexicographical order
-      return -String.CASE_INSENSITIVE_ORDER.compare(((VfsFile)lh).getSize(), ((VfsFile)rh).getSize());
+      // assume that votes can be compared in lexicographical order
+      return -String.CASE_INSENSITIVE_ORDER.compare(((VfsFile) lh).getSize(),
+          ((VfsFile) rh).getSize());
+    }
+
+    private class TopTrackFile extends BaseTrackFile {
+
+      TopTrackFile(Uri uri, Track module) {
+        super(uri, module);
+      }
+
+      @Override
+      public VfsObject getParent() {
+        return TopTracksDir.this;
+      }
+
+      @Override
+      public String getSize() {
+        return module.votes;
+      }
     }
   }
-  
-  private class TrackFile implements VfsFile {
 
-    private final Uri uri;
+  private abstract class BaseTrackFile extends StubObject implements VfsFile {
+
+    protected final Uri uri;
     protected final Track module;
 
-    TrackFile(Uri uri, Track module) {
+    BaseTrackFile(Uri uri, Track module) {
       this.uri = uri;
       this.module = module;
     }
@@ -915,6 +661,15 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.SHARE_URL.equals(id)) {
+        return getShareUrl();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+
+    @Override
     public String getSize() {
       return module.duration;
     }
@@ -923,29 +678,10 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(module.id);
     }
-  }
 
-  private class VotedTrackFile extends TrackFile {
-
-    VotedTrackFile(Uri uri, Track module) {
-      super(uri, module);
-    }
-
-    @Override
-    public String getSize() {
-      return module.votes;
-    }
-  }
-  
-  private class PartyplacedTrackFile extends TrackFile {
-    
-    PartyplacedTrackFile(Uri uri, Track module) {
-      super(uri, module);
-    }
-    
-    @Override
-    public String getSize() {
-      return Integer.toString(module.partyplace);
+    private String getShareUrl() {
+      return String.format(Locale.US, "http://zxart.ee/zxtune/action%%3aplay/tuneId%%3a%d",
+          module.id);
     }
   }
 }

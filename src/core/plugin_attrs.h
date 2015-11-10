@@ -12,64 +12,140 @@
 
 namespace ZXTune
 {
-  //! @brief Set of capabilities for plugins
-  enum
+  /*
+    Type - Module - Device type - AY38910
+         |        |             - Turbosound
+         |        |             - Beeper
+         |        |             - YM2203
+         |        |             - TURBOFM
+         |        |             - DAC
+         |        |             - SAA1099
+         |        |             - MOS6581
+         |        |             - SPC700
+         |        |             - Multi
+         |        |
+         |        - Conversions - OUT
+         |                      - PSG
+         |                      - YM
+         |                      - ZX50
+         |                      - TXT
+         |                      - AYDUMP
+         |                      - FYM
+         |
+         - Container - User type - Disk image
+                     |           - Snapshot
+                     |           - Archive
+                     |           - Compressor
+                     |           - Decompiler
+                     |           - MultitrackModule
+                     |           - Scaner
+                     |           
+                     - Traits - Plain
+                              - OnceApplied
+                              - Multifile
+                              - Directories
+  */
+  
+  namespace Capabilities
   {
-    //! Device-related capabilities
-    CAP_DEVICE_MASK    = 0xfff,
-    //! Single AY/YM support
-    CAP_DEV_AY38910    = 0x001,
-    //! Double AY/YM support
-    CAP_DEV_TURBOSOUND = 0x002,
-    //! Beeper support
-    CAP_DEV_BEEPER     = 0x004,
-    //! Single FM chip
-    CAP_DEV_YM2203     = 0x008,
-    //! Double FM chip support
-    CAP_DEV_TURBOFM    = 0x010,
-    //! DAC-based devices support
-    CAP_DEV_DAC        = 0x020,
-    //! SAA1099 support
-    CAP_DEV_SAA1099    = 0x040,
-    //! SID (MOS6581/MOS8580) support
-    CAP_DEV_MOS6581    = 0x080,
-    //! SPC700 support
-    CAP_DEV_SPC700     = 0x100,
-    //! Multi device support
-    CAP_DEV_MULTI      = 0x800,
+    namespace Category
+    {
+      enum
+      {
+        MODULE    = 0x00000000,
+        CONTAINER = 0x10000000,
+      
+        MASK      = 0xf0000000
+      };
+    }
+    
+    namespace Module
+    {
+      namespace Type
+      {
+        enum
+        {
+          TRACK      = 0x00000000,
+          STREAM     = 0x00000001,
+          MEMORYDUMP = 0x00000002,
+          MULTI      = 0x00000003,
+          
+          MASK       = 0x0000000f
+        };
+      }
+      
+      namespace Device
+      {
+        enum
+        {
+          AY38910    = 0x00000010,
+          TURBOSOUND = 0x00000020,
+          BEEPER     = 0x00000040,
+          YM2203     = 0x00000080,
+          TURBOFM    = 0x00000100,
+          DAC        = 0x00000200,
+          SAA1099    = 0x00000400,
+          MOS6581    = 0x00000800,
+          SPC700     = 0x00001000,
+          MULTI      = 0x00002000,
+          RP2A0X     = 0x00004000,
+          LR35902    = 0x00008000,
+          CO12294    = 0x00010000,
+          HUC6270    = 0x00020000,
 
-    //! Storages-related capabilities
-    CAP_STORAGE_MASK    = 0xff000,
-    //! Single module
-    CAP_STOR_MODULE     = 0x01000,
-    //! Supporting for container feature- raw dump transformation
-    CAP_STOR_CONTAINER  = 0x02000,
-    //! Supporting for multitrack feature
-    CAP_STOR_MULTITRACK = 0x04000,
-    //! Supporting for scanning feature
-    CAP_STOR_SCANER     = 0x08000,
-    //! Use plain transformation, can be covered by scaner
-    CAP_STOR_PLAIN      = 0x10000,
-    //! Supporting for directories in paths
-    CAP_STOR_DIRS       = 0x20000,
+          MASK       = 0x000ffff0
+        };
+      }
+      
+      namespace Conversion
+      {
+        enum
+        {
+          OUT        = 0x00100000,
+          PSG        = 0x00200000,
+          YM         = 0x00400000,
+          ZX50       = 0x00800000,
+          TXT        = 0x01000000,
+          AYDUMP     = 0x02000000,
+          FYM        = 0x04000000,
 
-    //! Conversion-related capabilities
-    CAP_CONVERSION_MASK = 0xfff00000,
-    //! Support raw conversion (save ripped data)
-    CAP_CONV_RAW        = 0x00100000,
-    //! Support .out format conversion
-    CAP_CONV_OUT        = 0x00200000,
-    //! Support .psg format conversion
-    CAP_CONV_PSG        = 0x00400000,
-    //! Support .ym format conversion
-    CAP_CONV_YM         = 0x00800000,
-    //! Support .zx50 format conversion
-    CAP_CONV_ZX50       = 0x01000000,
-    //! Support text vortex format conversion
-    CAP_CONV_TXT        = 0x02000000,
-    //! Support raw aydump conversion
-    CAP_CONV_AYDUMP     = 0x04000000,
-    //! Support .fym format conversion
-    CAP_CONV_FYM        = 0x08000000,
-  };
+          MASK       = 0x0ff00000
+        };
+      }
+    }
+    
+    namespace Container
+    {
+      namespace Type
+      {
+        enum
+        {
+          ARCHIVE    = 0x00000000,
+          COMPRESSOR = 0x00000001,
+          SNAPSHOT   = 0x00000002,
+          DISKIMAGE  = 0x00000003,
+          DECOMPILER = 0x00000004,
+          MULTITRACK = 0x00000005,
+          SCANER     = 0x00000006,
+          
+          MASK       = 0x0000000f
+        };
+      }
+      
+      namespace Traits
+      {
+        enum
+        {
+          //! Container may have directory structure
+          DIRECTORIES = 0x00000010,
+          //! Use plain transformation, can be covered by scaner
+          PLAIN       = 0x00000020,
+          //! Plugin should be applied only once
+          ONCEAPPLIED = 0x00000040,
+          
+          MASK        = 0x000000f0
+        };
+      }
+    }
+  }
 }

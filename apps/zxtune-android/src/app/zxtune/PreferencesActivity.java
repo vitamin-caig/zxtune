@@ -13,7 +13,6 @@ package app.zxtune;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
@@ -33,12 +32,9 @@ public class PreferencesActivity extends PreferenceActivity implements OnSharedP
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    addPreferencesFromResource(R.xml.preferences_control);
-    addPreferencesFromResource(R.xml.preferences_aym);
-    addPreferencesFromResource(R.xml.preferences_dac);
-    addPreferencesFromResource(R.xml.preferences_saa);
-    addPreferencesFromResource(R.xml.preferences_sid);
-    addPreferencesFromResource(R.xml.preferences_mixer);
+    addPreferencesFromResource(R.xml.preferences_ui);
+    addPreferencesFromResource(R.xml.preferences_emulation);
+    addPreferencesFromResource(R.xml.preferences_sound);
     hideUnsupportedPreferences(getPreferenceScreen());
     initPreferenceSummary(getPreferenceScreen());
   }

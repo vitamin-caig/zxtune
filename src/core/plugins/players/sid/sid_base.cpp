@@ -12,19 +12,21 @@
 #include "roms.h"
 #include "songlengths.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
 //library includes
-#include <binary/format_factories.h>
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
+#include <core/plugins_parameters.h>
 #include <core/module_attrs.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
-#include <devices/details/parameters_helper.h>
 #include <formats/chiptune/container.h>
+#include <formats/chiptune/emulation/sid.h>
+#include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -38,8 +40,6 @@
 #include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-//text includes
-#include <formats/text/chiptune.h>
 
 namespace
 {
@@ -50,19 +50,6 @@ namespace Module
 {
 namespace Sid
 {
-  //TODO: extract to Formats library
-  const std::string FORMAT =
-      "'R|'P 'S'I'D" //signature
-      "00 01-03"     //BE version
-      "00 76|7c"     //BE data offset
-      "??"           //BE load address
-      "??"           //BE init address
-      "??"           //BE play address
-      "00|01 ?"      //BE songs count 1-256
-      "??"           //BE start song
-      "????"         //BE speed flag
-  ;
-
   typedef boost::shared_ptr<SidTune> TunePtr;
   typedef boost::shared_ptr<sidplayfp> EnginePtr;
 
@@ -208,6 +195,7 @@ namespace Sid
 
     virtual void Reset()
     {
+      SoundParams.Reset();
       Engine->stop();
       Iterator->Reset();
     }
@@ -221,9 +209,9 @@ namespace Sid
     void LoadRoms(const Parameters::Accessor& params)
     {
       Parameters::DataType kernal, basic, chargen;
-      params.FindValue(Parameters::ZXTune::Core::SID::ROM::KERNAL, kernal);
-      params.FindValue(Parameters::ZXTune::Core::SID::ROM::BASIC, basic);
-      params.FindValue(Parameters::ZXTune::Core::SID::ROM::CHARGEN, chargen);
+      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::KERNAL, kernal);
+      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::BASIC, basic);
+      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::CHARGEN, chargen);
       Engine->setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
     }
 
@@ -287,7 +275,7 @@ namespace Sid
     const TrackState::Ptr State;
     const Analyzer::Ptr Analysis;
     const Sound::Receiver::Ptr Target;
-    const Devices::Details::ParametersHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const SidParameters Params;
     SidConfig Config;
     //cache filter flag
@@ -299,8 +287,9 @@ namespace Sid
   class Information : public Module::Information
   {
   public:
-    Information(TunePtr tune, uint_t fps, uint_t songIdx)
-      : Tune(tune)
+    Information(const TimeType defaultDuration, TunePtr tune, uint_t fps, uint_t songIdx)
+      : DefaultDuration(defaultDuration)
+      , Tune(tune)
       , Fps(fps)
       , SongIdx(songIdx)
       , Frames()
@@ -349,11 +338,13 @@ namespace Sid
     uint_t GetFramesCount() const
     {
       const char* md5 = Tune->createMD5();
-      const TimeType duration = GetSongLength(md5, SongIdx - 1);
+      const TimeType knownDuration = GetSongLength(md5, SongIdx - 1);
+      const TimeType duration = knownDuration == TimeType() ? DefaultDuration : knownDuration;
       Dbg("Duration for %1%/%2% is %3%ms", md5, SongIdx, duration.Get());
       return Fps * (duration.Get() / duration.PER_SECOND);
     }
   private:
+    const TimeType DefaultDuration;
     const TunePtr Tune;
     const uint_t Fps;
     const uint_t SongIdx;
@@ -390,37 +381,6 @@ namespace Sid
     const Parameters::Accessor::Ptr Properties;
   };
 
-  class Decoder : public Formats::Chiptune::Decoder
-  {
-  public:
-    Decoder()
-      : Fmt(Binary::CreateMatchOnlyFormat(FORMAT))
-    {
-    }
-
-    virtual String GetDescription() const
-    {
-      return Text::SID_DECODER_DESCRIPTION;
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Fmt;
-    }
-
-    virtual bool Check(const Binary::Container& rawData) const
-    {
-      return Fmt->Match(rawData);
-    }
-
-    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const
-    {
-      return Formats::Chiptune::Container::Ptr();//TODO
-    }
-  private:
-    const Binary::Format::Ptr Fmt;
-  };
-
   bool HasSidContainer(Parameters::Accessor::Ptr params)
   {
     Parameters::StringType container;
@@ -431,7 +391,7 @@ namespace Sid
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       try
       {
@@ -466,7 +426,7 @@ namespace Sid
         const uint_t fps = tuneInfo.songSpeed() == SidTuneInfo::SPEED_CIA_1A || tuneInfo.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
         propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(fps).Get());
 
-        const Information::Ptr info = boost::make_shared<Information>(tune, fps, songIdx);
+        const Information::Ptr info = boost::make_shared<Information>(GetDuration(params), tune, fps, songIdx);
         return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
       }
       catch (const std::exception&)
@@ -483,8 +443,8 @@ namespace ZXTune
   void RegisterSIDPlugins(PlayerPluginsRegistrator& registrator)
   {
     const Char ID[] = {'S', 'I', 'D', 0};
-    const uint_t CAPS = CAP_DEV_MOS6581 | CAP_STOR_MODULE | CAP_CONV_RAW;
-    const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::Sid::Decoder>();
+    const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::MOS6581;
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSIDDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::Sid::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);

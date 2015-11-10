@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import app.zxtune.Identifier;
 import app.zxtune.R;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.PlaylistQuery;
@@ -120,14 +121,16 @@ public class PlaylistView extends DragSortListView
     public void bindView(View view, Context context, Cursor cursor) {
       final ViewHolder holder = (ViewHolder) view.getTag();
       final Item item = new Item(cursor);
-      final Uri uri = item.getUri();
-      if (0 == item.getTitle().length()) {
-        holder.title.setText(item.getLocation().getLastPathSegment());
+      final String title = item.getTitle();
+      if (0 == title.length()) {
+        final String filename = item.getLocation().getDisplayFilename();
+        holder.title.setText(filename);
       } else {
-        holder.title.setText(item.getTitle());
+        holder.title.setText(title);
       }
       holder.author.setText(item.getAuthor());
       holder.duration.setText(item.getDuration().toString());
+      final Uri uri = item.getUri();
       final int icon = state.isPlaying(uri) ? R.drawable.ic_playing : R.drawable.ic_drag_handler;
       holder.handler.setImageResource(icon);
     }

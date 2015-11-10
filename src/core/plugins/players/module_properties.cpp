@@ -89,8 +89,6 @@ namespace Module
     Container->SetValue(ATTR_SIZE, source.Size());
     Container->SetValue(ATTR_CRC, source.Checksum());
     Container->SetValue(ATTR_FIXEDCRC, source.FixedChecksum());
-    const uint8_t* const start = static_cast<const uint8_t*>(source.Start());
-    Container->SetValue(ATTR_CONTENT, Parameters::DataType(start, start + source.Size()));
   }
 
   void PropertiesBuilder::SetComment(const String& comment)

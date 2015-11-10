@@ -16,7 +16,6 @@
 #include "core/plugins/players/simple_orderlist.h"
 //library includes
 #include <debug/log.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/sqtracker.h>
 //boost includes
 #include <boost/unordered_map.hpp>
@@ -462,6 +461,7 @@ namespace SQTracker
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
       , Patterns(SingleChannelPatternsBuilder::Create())
+      , Loop()
     {
       Properties.SetFreqtable(TABLE_SQTRACKER);
     }
@@ -833,7 +833,7 @@ namespace SQTracker
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
@@ -859,7 +859,7 @@ namespace ZXTune
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQTrackerDecoder();
     const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::SQTracker::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

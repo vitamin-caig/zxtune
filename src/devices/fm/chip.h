@@ -15,8 +15,8 @@
 //library includes
 #include <devices/fm.h>
 #include <devices/details/analysis_map.h>
-#include <devices/details/parameters_helper.h>
 #include <math/numeric.h>
+#include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <time/oscillator.h>
 //boost includes
@@ -176,7 +176,7 @@ namespace FM
         Target->Flush();
       }
     private:
-      Devices::Details::ParametersHelper<ChipParameters> Params;
+      Parameters::TrackingHelper<ChipParameters> Params;
       const Sound::Receiver::Ptr Target;
       typename ChipTraits::AdapterType Adapter;
       ClockSource Clock;

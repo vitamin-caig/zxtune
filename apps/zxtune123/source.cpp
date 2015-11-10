@@ -112,7 +112,7 @@ namespace
   class DetectCallback : public Module::DetectCallback
   {
   public:
-    DetectCallback(Parameters::Accessor::Ptr params, IO::Identifier::Ptr id, const OnItemCallback& callback, bool showLogs)
+    DetectCallback(Parameters::Accessor::Ptr params, IO::Identifier::Ptr id, OnItemCallback& callback, bool showLogs)
       : Params(params)
       , Id(id)
       , Callback(callback)
@@ -120,17 +120,12 @@ namespace
     {
     }
 
-    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
-    {
-      return Params;
-    }
-
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
     {
       const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(Module::CreatePathProperties(subId), Params);
       const Module::Holder::Ptr result = Module::CreateMixedPropertiesHolder(holder, moduleParams);
-      Callback(result);
+      Callback.ProcessItem(location->GetData(), result);
     }
 
     virtual Log::ProgressCallback* GetProgress() const
@@ -140,7 +135,7 @@ namespace
   private:
     const Parameters::Accessor::Ptr Params;
     const IO::Identifier::Ptr Id;
-    const OnItemCallback& Callback;
+    OnItemCallback& Callback;
     const Log::ProgressCallback::Ptr ProgressCallback;
   };
 
@@ -202,36 +197,33 @@ namespace
       }
     }
 
-    virtual void ProcessItems(const OnItemCallback& callback)
+    virtual void ProcessItems(OnItemCallback& callback)
     {
-      assert(callback);
-
       for (Strings::Array::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
         ProcessItem(*it, callback);
       }
     }
   private:
-    void ProcessItem(const String& uri, const OnItemCallback& callback) const
+    void ProcessItem(const String& uri, OnItemCallback& callback) const
     {
       try
       {
         const IO::Identifier::Ptr id = IO::ResolveUri(uri);
 
         const DetectCallback detectCallback(Params, id, callback, ShowProgress);
-        Log::ProgressCallback& progress = ShowProgress ? *detectCallback.GetProgress() : Log::ProgressCallback::Stub();
-        const Binary::Container::Ptr data = IO::OpenData(id->Path(), *Params, progress);
+        const Binary::Container::Ptr data = IO::OpenData(id->Path(), *Params, Log::ProgressCallback::Stub());
 
         const String subpath = id->Subpath();
         if (subpath.empty())
         {
           const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
-          Module::Detect(location, detectCallback);
+          Module::Detect(*Params, location, detectCallback);
         }
         else
         {
-          const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(Params, data, subpath);
-          Module::Open(location, detectCallback);
+          const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*Params, data, subpath);
+          Module::Open(*Params, location, detectCallback);
         }
       }
       catch (const Error& e)

@@ -20,7 +20,6 @@ import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaybackServiceStub;
 import app.zxtune.rpc.IRemotePlaybackService;

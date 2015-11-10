@@ -197,16 +197,3 @@ namespace ZXTune
     return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
   }
 }
-
-namespace Module
-{
-  Binary::Data::Ptr GetRawData(const Holder& holder)
-  {
-    std::auto_ptr<Parameters::DataType> data(new Parameters::DataType());
-    if (holder.GetModuleProperties()->FindValue(ATTR_CONTENT, *data))
-    {
-      return Binary::CreateContainer(data);
-    }
-    throw Error(THIS_LINE, translate("Invalid parameters specified."));
-  }
-}

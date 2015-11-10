@@ -12,7 +12,7 @@
 #include "tfm_base.h"
 #include "core/plugins/players/analyzer.h"
 //library includes
-#include <devices/details/parameters_helper.h>
+#include <parameters/tracking_helper.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -106,7 +106,7 @@ namespace Module
       Device->RenderData(LastChunk);
     }
   private:
-    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const TFM::DataIterator::Ptr Iterator;
     const Devices::TFM::Device::Ptr Device;
     Devices::TFM::DataChunk LastChunk;

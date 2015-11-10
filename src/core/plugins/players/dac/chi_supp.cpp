@@ -16,7 +16,6 @@
 #include "core/plugins/players/tracking.h"
 //library includes
 #include <devices/dac/sample_factories.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/chiptracker.h>
 
 namespace Module
@@ -292,7 +291,7 @@ namespace ChipTracker
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ChipTracker::Parse(rawData, dataBuilder))

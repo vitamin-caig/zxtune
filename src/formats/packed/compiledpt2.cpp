@@ -10,7 +10,6 @@
 
 //local includes
 #include "container.h"
-#include "formats/chiptune/decoders.h"
 #include "formats/chiptune/metainfo.h"
 #include "formats/chiptune/aym/protracker2.h"
 //common includes

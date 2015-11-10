@@ -175,11 +175,7 @@ namespace Module
   Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params)
   {
     using namespace Conversion;
-    if (parameter_cast<RawConvertParam>(&spec))
-    {
-      return GetRawData(holder);
-    }
-    else if (const AYM::Holder* aymHolder = dynamic_cast<const AYM::Holder*>(&holder))
+    if (const AYM::Holder* aymHolder = dynamic_cast<const AYM::Holder*>(&holder))
     {
       return ConvertAYMFormat(*aymHolder, spec, params);
     }

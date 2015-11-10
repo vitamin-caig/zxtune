@@ -123,7 +123,7 @@ namespace Parameters
 
           extern const NameType DEVICE = PREFIX + "device";
           extern const NameType MIXER = PREFIX + "mixer";
-          extern const NameType BUFFERS = PREFIX + "buffers";
+          extern const NameType LATENCY = PREFIX + "latency";
         }
 
         namespace Sdl

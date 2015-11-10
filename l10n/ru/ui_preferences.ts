@@ -82,9 +82,9 @@
         <translation>Микшер</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_alsa.ui" line="63"/>
-        <source>Buffers</source>
-        <translation>Число буферов</translation>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_alsa.ui" line="69"/>
+        <source>Latency, mS</source>
+        <translation>Латентность, мс</translation>
     </message>
 </context>
 <context>
@@ -131,6 +131,21 @@
         <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="74"/>
         <source>Double analysis of plain data containers</source>
         <translation>Двойной анализ контейнеров с простой структурой</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="84"/>
+        <source>Duration for modules without timing info</source>
+        <translation>Длительность модулей с неизвестными данными о времени</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="87"/>
+        <source>Players</source>
+        <translation>Плееры</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="110"/>
+        <source>Default duration, seconds</source>
+        <translation>Длительностью по умолчанию, секунд</translation>
     </message>
 </context>
 <context>

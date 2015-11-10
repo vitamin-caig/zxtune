@@ -17,13 +17,20 @@
 
 namespace
 {
-  String AttributesToString(Error::LocationRef loc, const String& text)
+  String AttributesToString(Error::LocationRef loc, const String& text) throw()
   {
-  #ifdef NDEBUG
-    return Strings::Format(Text::ERROR_FORMAT, text, loc);
-  #else
-    return Strings::Format(Text::ERROR_FORMAT_DEBUG, text, loc.Tag, loc.File, loc.Line, loc.Function);
-  #endif
+    try
+    {
+#ifdef NDEBUG
+      return Strings::Format(Text::ERROR_FORMAT, text, loc);
+#else
+      return Strings::Format(Text::ERROR_FORMAT_DEBUG, text, loc.Tag, loc.File, loc.Line, loc.Function);
+#endif
+    }
+    catch (const std::exception& e)
+    {
+      return FromStdString(e.what());
+    }
   }
 }
 
@@ -92,7 +99,7 @@ bool Error::operator ! () const
   return !ErrorMeta;
 }
 
-String Error::ToString() const
+String Error::ToString() const throw()
 {
   String details;
   for (MetaPtr meta = ErrorMeta; meta; meta = meta->Suberror)

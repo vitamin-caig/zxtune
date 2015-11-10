@@ -13,12 +13,17 @@
     \tPusher by <b>Himik/ZxZ</b>\n
     Used libraries:\n
     \tboost\n
+    \tzlib by <b>Jean-Loup Gailly</b> and <b>Mark Adler</b>\n
     \tz80ex by <b>Boo-boo</b>\n
     \tlhasa by <b>Simon Howard</b>\n
     \tDragSortListView by <b>Carl A.Bauer</b>\n
+    \tunrar by <b>Alexander Roshal</b>\n
     \tlibxmp by <b>Claudio Matsuoka</b>\n
     \tlibsidplayfp+resid\n
     \tsnes_spc by <b>Shay Green</b>\n
+    \tGame_Music_Emu by <b>Shay Green</b> and <b>Chris Moeller</b>\n
+    \t7-Zip by <b>Igor Pavlov</b>\n
+    \tHVL2WAV by <b>Peter Gordon</b>\n
     \n
     Dedicated to <b>Lizzi</b>
   </string>
@@ -27,12 +32,16 @@
   <string name="plugin_player_aym_ts" translatable="false">AY&#8211;3&#8211;8910/YM2149F/TurboSound</string>
   <string name="plugin_player_dac">Samples-based</string>
   <string name="plugin_player_fm_tfm" translatable="false">YM2203/TurboFM</string>
-  <string name="plugin_player_saa" translatable="false">Philips SAA1099</string>
+  <string name="plugin_player_saa" translatable="false">SAA1099</string>
   <string name="plugin_player_sid" translatable="false">MOS6581/SID</string>
   <string name="plugin_player_spc" translatable="false">SPC700</string>
+  <string name="plugin_player_rp2a0x" translatable="false">RP2A03/RP2A07</string>
+  <string name="plugin_player_lr35902" translatable="false">LR35902/PAPU</string>
+  <string name="plugin_player_co12294" translatable="false">CO12294/POKEY</string>
+  <string name="plugin_player_huc6270" translatable="false">HuC6270</string>
   <string name="plugin_player_multidevice">Multidevice</string>
-  <!-- decoders -->
-  <string name="plugin_decoder_decompiler">Decompilers</string>
-  <!-- multitrack -->
-  <string name="plugin_multitrack_container">Containers</string>
+  <!-- containers -->
+  <string name="plugin_multitrack">Multitrack containers</string>
+  <string name="plugin_archive">Archivers</string>
+  <string name="plugin_decompiler">Decompilers</string>
 </resources>

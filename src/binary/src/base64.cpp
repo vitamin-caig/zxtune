@@ -48,26 +48,26 @@ namespace
 
   inline void Encode3Bytes(const uint8_t* in, char* out)
   {
-    const uint32_t buf = (in[0] << 16) | (in[1] << 8) | in[2];
-    out[0] = ENCODE_TABLE[buf >> 18];
+    const uint_t buf = (uint_t(in[0]) << 16) | (uint_t(in[1]) << 8) | in[2];
+    out[0] = ENCODE_TABLE[(buf >> 18) & 63];
     out[1] = ENCODE_TABLE[(buf >> 12) & 63];
-    out[2] = ENCODE_TABLE[(buf >> 6) & 63];
-    out[3] = ENCODE_TABLE[buf & 63];
+    out[2] = ENCODE_TABLE[(buf >> 6)  & 63];
+    out[3] = ENCODE_TABLE[(buf >> 0)  & 63];
   }
 
   inline void Encode2Bytes(const uint8_t* in, char* out)
   {
-    const uint32_t buf = (in[0] << 8) | in[1];
-    out[0] = ENCODE_TABLE[buf >> 10];
-    out[1] = ENCODE_TABLE[(buf >> 4) & 63];
-    out[2] = ENCODE_TABLE[(buf << 2) & 63];
+    const uint_t buf = (uint_t(in[0]) << 8) | in[1];
+    out[0] = ENCODE_TABLE[(buf >> 10) & 63];
+    out[1] = ENCODE_TABLE[(buf >> 4)  & 63];
+    out[2] = ENCODE_TABLE[(buf << 2)  & 63];
     out[3] = STUB_SYMBOL;
   }
 
   inline void Encode1Byte(const uint8_t* in, char* out)
   {
-    const uint32_t buf = *in;
-    out[0] = ENCODE_TABLE[buf >> 2];
+    const uint_t buf = *in;
+    out[0] = ENCODE_TABLE[(buf >> 2) & 63];
     out[1] = ENCODE_TABLE[(buf << 4) & 63];
     out[2] = STUB_SYMBOL;
     out[3] = STUB_SYMBOL;

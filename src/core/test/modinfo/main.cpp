@@ -27,7 +27,7 @@ namespace
     const String filename = fullPath;//TODO: split if required
     const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
     const DataLocation::Ptr dataLocation = CreateLocation(data);
-    return Module::Open(dataLocation);
+    return Module::Open(*emptyParams, dataLocation);
   }
 
   void ShowModuleInfo(const Module::Information& info)

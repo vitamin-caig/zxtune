@@ -1,9 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<resources>
-  <string name="pref_interpolation">Interpolación</string>
-  <string-array name="pref_interpolation_entries">
-    <item>Ninguna</item>
-    <item>Rendimiento</item>
-    <item>Calidad <b>(alto uso de CPU)</b></item>
-  </string-array>
-</resources>

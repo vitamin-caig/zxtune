@@ -27,15 +27,15 @@ namespace Formats
     Decoder::Ptr CreateASCSoundMaster1xDecoder();
     Decoder::Ptr CreateProTracker2Decoder();
     Decoder::Ptr CreateProTracker3Decoder();
+    Decoder::Ptr CreateVortexTracker2Decoder();
     Decoder::Ptr CreateProSoundMakerCompiledDecoder();
     Decoder::Ptr CreateGlobalTrackerDecoder();
     Decoder::Ptr CreateProTracker1Decoder();
-    Decoder::Ptr CreateVTXDecoder();
     Decoder::Ptr CreatePackedYMDecoder();
     Decoder::Ptr CreateYMDecoder();
+    Decoder::Ptr CreateVTXDecoder();
     Decoder::Ptr CreateTFDDecoder();
     Decoder::Ptr CreateTFCDecoder();
-    Decoder::Ptr CreateVortexTracker2Decoder();
     Decoder::Ptr CreateChipTrackerDecoder();
     Decoder::Ptr CreateSampleTrackerDecoder();
     Decoder::Ptr CreateProDigiTrackerDecoder();
@@ -52,5 +52,10 @@ namespace Formats
     Decoder::Ptr CreateAYCDecoder();
     Decoder::Ptr CreateSPCDecoder();
     Decoder::Ptr CreateMultiTrackContainerDecoder();
+    Decoder::Ptr CreateAYEMULDecoder();
+    Decoder::Ptr CreateHESDecoder();
+    Decoder::Ptr CreateVideoGameMusicDecoder();
+    Decoder::Ptr CreateGYMDecoder();
+    Decoder::Ptr CreateAbyssHighestExperienceDecoder();
   }
 }

@@ -15,7 +15,6 @@
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/simple_orderlist.h"
 //library includes
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/prosoundcreator.h>
 #include <math/numeric.h>
 
@@ -728,7 +727,7 @@ namespace ProSoundCreator
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProSoundCreator::Parse(rawData, dataBuilder))
@@ -754,7 +753,7 @@ namespace ZXTune
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProSoundCreatorDecoder();
     const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::ProSoundCreator::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);;
     registrator.RegisterPlugin(plugin);
   }
 }

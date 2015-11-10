@@ -11,11 +11,11 @@
 //local includes
 #include <devices/dac.h>
 #include <devices/details/freq_table.h>
-#include <devices/details/parameters_helper.h>
 //common includes
 #include <pointers.h>
 //library includes
 #include <math/numeric.h>
+#include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 //std includes
 #include <cmath>
@@ -604,7 +604,7 @@ namespace DAC
       State[state.Channel].Update(Samples, Clock, state);
     }
   private:
-    Details::ParametersHelper<ChipParameters> Params;
+    Parameters::TrackingHelper<ChipParameters> Params;
     const typename Sound::FixedChannelsMixer<Channels>::Ptr Mixer;
     const Sound::Receiver::Ptr Target;
     SamplesStorage Samples;

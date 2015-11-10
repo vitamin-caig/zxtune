@@ -60,5 +60,6 @@ namespace Formats
     Decoder::Ptr CreateZ80V30Decoder();
     Decoder::Ptr CreateMegaLZDecoder();
     Decoder::Ptr CreateDSKDecoder();
+    Decoder::Ptr CreateGzipDecoder();
   }
 }

@@ -109,5 +109,7 @@ namespace Formats
 
       Decoder::Ptr CreateCompiledModulesDecoder();
     }
+
+    Decoder::Ptr CreateSoundTrackerProCompiledDecoder();
   }
 }

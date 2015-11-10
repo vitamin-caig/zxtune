@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <!-- emulation -->
+  <string name="pref_emulation_title">Emulación</string>
+  
+  <!-- common -->
+  <string name="pref_interpolation">Interpolación</string>
+  <string-array name="pref_interpolation_entries">
+    <item>Ninguna</item>
+    <item>Rendimiento</item>
+    <item>Calidad <b>(alto uso de CPU)</b></item>
+  </string-array>
+
+  <!-- ay/ym -->
+  <!--zxtune.core.aym.clockrate-->
+  <string name="pref_zxtune_aym_clockrate_title">Tasa de oscilador</string>
+  <!--zxtune.core.aym.type-->
+  <string name="pref_zxtune_aym_type_title">Tipo</string>
+  <!--zxtune.core.aym.interpolation-->
+  <!--zxtun.core.aym.layout-->
+  <string name="pref_zxtune_aym_layout_title">Canales diseño</string>
+
+  <!-- dac -->
+  <string name="pref_zxtune_dac_title">Muestras digitales</string>
+  <!--zxtune.core.dac.interpolation-->
+
+  <!-- sid -->
+  <!--zxtune.core.sid.interpolation-->
+  <!--zxtune.core.sid.filter-->
+  <string name="pref_zxtune_sid_filter_title">Emulación de filtro</string>
+
+  <!-- other -->
+  <string name="pref_zxtune_other_title">Demás</string>
+  <!-- zxtune.core.plugins.default_duration -->
+  <string  name="pref_zxtune_default_duration_title">Duración predeterminada</string>
+  <string-array name="pref_zxtune_default_duration_entries">
+    <item>30 segundos</item>
+    <item>1 minuto</item>
+    <item>2 minutos</item>
+    <item>3 minutos</item>
+    <item>5 minutos</item>
+  </string-array>
+</resources>

@@ -28,13 +28,13 @@ final class VfsRootComposite extends StubObject implements VfsRoot {
   }
   
   @Override
-  public VfsDir getParent() {
+  public VfsObject getParent() {
     return null;
   }
 
   @Override
   public VfsObject resolve(Uri uri) throws IOException {
-    if (uri.equals(Uri.EMPTY)) {
+    if (Uri.EMPTY.equals(uri)) {
       return this;
     }
     for (VfsRoot root : subRoots) {

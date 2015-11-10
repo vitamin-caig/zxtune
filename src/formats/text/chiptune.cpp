@@ -3,6 +3,17 @@
 
 namespace Text
 {
+extern const Char ABYSSHIGHESTEXPERIENCE_DECODER_DESCRIPTION[] = {
+  'A','b','y','s','s','\'',' ','H','i','g','h','e','s','t',' ','E','x','p','e','r','i','e','n','c','e',0
+};
+extern const Char ABYSSHIGHESTEXPERIENCE_EDITOR_NEW[] = {
+  'A','b','y','s','s','\'',' ','H','i','g','h','e','s','t',' ','E','x','p','e','r','i','e','n','c','e',' ','v',
+  '2','.','0','0','+',0
+};
+extern const Char ABYSSHIGHESTEXPERIENCE_EDITOR_OLD[] = {
+  'A','b','y','s','s','\'',' ','H','i','g','h','e','s','t',' ','E','x','p','e','r','i','e','n','c','e',' ','v',
+  '1','.','0','0','-','1','.','2','7',0
+};
 extern const Char ASCSOUNDMASTER0_DECODER_DESCRIPTION[] = {
   'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','v','0','.','x',0
 };
@@ -51,14 +62,30 @@ extern const Char EXTREMETRACKER1_DECODER_DESCRIPTION[] = {
 extern const Char FASTTRACKER_DECODER_DESCRIPTION[] = {
   'F','a','s','t',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
+extern const Char GBS_DECODER_DESCRIPTION[] = {
+  'G','a','m','e','B','o','y',' ','S','o','u','n','d',0
+};
 extern const Char GLOBALTRACKER1_EDITOR[] = {
   'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','%','1','%',0
 };
 extern const Char GLOBALTRACKER_DECODER_DESCRIPTION[] = {
   'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
+extern const Char GYM_DECODER_DESCRIPTION[] = {
+  'G','e','n','e','s','i','s',' ','Y','M','2','6','1','2',' ','(','u','n','p','a','c','k','e','d',')',0
+};
+extern const Char HES_DECODER_DESCRIPTION[] = {
+  'H','o','m','e',' ','E','n','t','e','r','t','a','i','n','m','e','n','t',' ','S','y','s','t','e','m',0
+};
 extern const Char MULTITRACK_CONTAINER_DECODER_DESCRIPTION[] = {
   'M','u','l','t','i','t','r','a','c','k',' ','C','o','n','t','a','i','n','e','r',0
+};
+extern const Char NSFE_DECODER_DESCRIPTION[] = {
+  'E','x','t','e','n','d','e','d',' ','N','i','n','t','e','n','d','o',' ','S','o','u','n','d',' ','F','o','r',
+  'm','a','t',0
+};
+extern const Char NSF_DECODER_DESCRIPTION[] = {
+  'N','E','S',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
 };
 extern const Char PRODIGITRACKER_DECODER_DESCRIPTION[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
@@ -102,6 +129,10 @@ extern const Char PSG_DECODER_DESCRIPTION[] = {
 };
 extern const Char SAMPLETRACKER_DECODER_DESCRIPTION[] = {
   'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
+};
+extern const Char SAP_DECODER_DESCRIPTION[] = {
+  'S','l','i','g','h','t',' ','A','t','a','r','i',' ','P','l','a','y','e','r',' ','S','o','u','n','d',' ','F',
+  'o','r','m','a','t',0
 };
 extern const Char SID_DECODER_DESCRIPTION[] = {
   'C','o','m','m','o','d','o','r','e','6','4',' ','R','S','I','D','/','P','S','I','D',0
@@ -147,6 +178,9 @@ extern const Char TFMMUSICMAKER13_DECODER_DESCRIPTION[] = {
 };
 extern const Char TURBOSOUND_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','S','o','u','n','d',0
+};
+extern const Char VGM_DECODER_DESCRIPTION[] = {
+  'V','i','d','e','o',' ','G','a','m','e',' ','M','u','s','i','c',0
 };
 extern const Char VORTEXTRACKER2_DECODER_DESCRIPTION[] = {
   'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','I','I',0

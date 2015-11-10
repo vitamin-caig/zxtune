@@ -29,6 +29,10 @@ public final class IteratorStub implements Iterator {
   public boolean prev() {
     return false;
   }
+  
+  @Override
+  public void release() {
+  }
 
   public static Iterator instance() {
     return Holder.INSTANCE;

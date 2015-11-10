@@ -43,5 +43,7 @@ namespace Formats
 
       Decoder::Ptr CreateDecoder();
     }
+
+    Decoder::Ptr CreateTurboSoundDecoder();
   }
 }

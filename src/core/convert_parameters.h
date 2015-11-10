@@ -20,16 +20,6 @@ namespace Module
     //0- none, 1- minimal, 2- maximal
     const uint_t DEFAULT_OPTIMIZATION = 1;
 
-    //! @brief %Parameter for conversion to raw format
-    //! @see CAP_CONV_RAW
-    struct RawConvertParam : public Parameter
-    {
-      static const uint64_t TYPE_ID = ParamID7<'R', 'a', 'w', 'D', 'a', 't', 'a'>::Value;
-      RawConvertParam() : Parameter(TYPE_ID)
-      {
-      }
-    };
-
     //! @brief %Parameter for conversion to PSG format
     //! @see CAP_CONV_PSG
     struct PSGConvertParam : public Parameter

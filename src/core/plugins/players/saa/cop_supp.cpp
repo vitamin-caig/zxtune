@@ -15,7 +15,6 @@
 #include "core/plugins/players/simple_orderlist.h"
 //library includes
 #include <core/plugin_attrs.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/saa/etracker.h>
 #include <math/numeric.h>
 
@@ -537,7 +536,7 @@ namespace ETracker
   class Factory : public Module::Factory
   {
   public:
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
@@ -558,7 +557,7 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'C', 'O', 'P', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_SAA1099 | CAP_CONV_RAW;
+    const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::SAA1099;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateETrackerDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::ETracker::Factory>();

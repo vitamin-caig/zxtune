@@ -24,6 +24,6 @@ namespace Module
     typedef boost::shared_ptr<const Factory> Ptr;
     virtual ~Factory() {}
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, const Binary::Container& data) const = 0;
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, PropertiesBuilder& properties) const = 0;
   };
 }

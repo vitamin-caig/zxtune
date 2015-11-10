@@ -206,12 +206,11 @@ namespace
           }
           catch (const Error& e)
           {
-            Dbg(" failed");
+            Dbg(" failed:\n%1%", e.ToString());
             if (1 == BackendOptions.size())
             {
               throw;
             }
-            StdOut << e.ToString();
           }
         }
       }

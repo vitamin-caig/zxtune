@@ -73,7 +73,7 @@ namespace
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
+      Parameters::IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
       Require(connect(mixers, SIGNAL(currentIndexChanged(const QString&)), SLOT(MixerChanged(const QString&))));
       Require(connect(devices, SIGNAL(currentIndexChanged(const QString&)), SLOT(DeviceChanged(const QString&))));
     }

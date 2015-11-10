@@ -17,7 +17,7 @@ import android.net.Uri;
 import app.zxtune.R;
 import app.zxtune.playlist.XspfStorage;
 
-final class VfsRootPlaylists implements VfsRoot {
+final class VfsRootPlaylists extends StubObject implements VfsRoot {
 
   private final static String SCHEME = "playlists";
 
@@ -43,7 +43,7 @@ final class VfsRootPlaylists implements VfsRoot {
   }
 
   @Override
-  public VfsDir getParent() {
+  public VfsObject getParent() {
     return null;
   }
 
@@ -60,7 +60,7 @@ final class VfsRootPlaylists implements VfsRoot {
     return SCHEME.equals(uri.getScheme()) && uri.getPathSegments().isEmpty() ? this : null;
   }
 
-  private static class PlaylistFile extends StubObject implements VfsFile {
+  private class PlaylistFile extends StubObject implements VfsFile {
 
     private final Uri uri;
     private final String name;
@@ -78,6 +78,11 @@ final class VfsRootPlaylists implements VfsRoot {
     @Override
     public String getName() {
       return name;
+    }
+    
+    @Override
+    public VfsObject getParent() {
+      return VfsRootPlaylists.this;
     }
 
     @Override

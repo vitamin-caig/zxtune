@@ -11,6 +11,7 @@
 package app.zxtune.playback;
 
 import android.net.Uri;
+import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
 
 public class ItemStub implements Item {
@@ -26,8 +27,8 @@ public class ItemStub implements Item {
   }
 
   @Override
-  public Uri getDataId() {
-    return Uri.EMPTY;
+  public Identifier getDataId() {
+    return Identifier.EMPTY;
   }
 
   @Override

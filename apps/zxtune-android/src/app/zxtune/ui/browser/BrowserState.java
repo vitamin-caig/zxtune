@@ -85,9 +85,21 @@ class BrowserState {
     if (lhScheme != null && lhScheme.equals(rh.getScheme())) {
       final String rhPath = rh.getPath();
       final String lhPath = lh.getPath();
-      return rhPath != null && (lhPath == null || rhPath.startsWith(lhPath));
+      if (rhPath != null) {
+        if (lhPath == null) {
+          return true;
+        } else if (lhPath.equals(rhPath)) {
+          return isNestedSubpath(lh.getFragment(), rh.getFragment());
+        } else {
+          return rhPath.startsWith(lhPath);
+        }
+      }
     }
     return false;
+  }
+  
+  private static boolean isNestedSubpath(String lh, String rh) {
+    return rh != null && (lh == null || rh.startsWith(lh));
   }
   
   private class PathAndPosition {

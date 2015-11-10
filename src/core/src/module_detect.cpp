@@ -50,11 +50,6 @@ namespace Module
     {
     }
 
-    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
-    {
-      return Parameters::Container::Create();
-    }
-
     virtual void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
     {
       Result = holder;
@@ -74,12 +69,12 @@ namespace Module
   };
   
   template<class T>
-  std::size_t DetectByPlugins(typename T::Iterator::Ptr plugins, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
+  std::size_t DetectByPlugins(const Parameters::Accessor& params, typename T::Iterator::Ptr plugins, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
   {
     for (; plugins->IsValid(); plugins->Next())
     {
       const typename T::Ptr plugin = plugins->Get();
-      const Analysis::Result::Ptr result = plugin->Detect(location, callback);
+      const Analysis::Result::Ptr result = plugin->Detect(params, location, callback);
       if (std::size_t usedSize = result->GetMatchedDataSize())
       {
         Dbg("Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize, location->GetPath()->AsString());
@@ -156,30 +151,30 @@ namespace Module
     const Parameters::Accessor::Ptr Properties;
   };
 
-  void Open(ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
+  void Open(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
   {
     using namespace ZXTune;
     const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
-    if (!DetectByPlugins<PlayerPlugin>(usedPlayerPlugins->Enumerate(), location, callback))
+    if (!DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), location, callback))
     {
       throw Error(THIS_LINE, translate("Failed to find module at specified location."));
     }
   }
 
-  Holder::Ptr Open(ZXTune::DataLocation::Ptr location)
+  Holder::Ptr Open(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location)
   {
     const OpenModuleCallback callback;
-    Open(location, callback);
+    Open(params, location, callback);
     return callback.GetResult();
   }
 
-  Holder::Ptr Open(const Binary::Container& data)
+  Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data)
   {
     using namespace ZXTune;
     for (PlayerPlugin::Iterator::Ptr usedPlugins = PlayerPluginsEnumerator::Create()->Enumerate(); usedPlugins->IsValid(); usedPlugins->Next())
     {
       const PlayerPlugin::Ptr plugin = usedPlugins->Get();
-      if (const Holder::Ptr res = plugin->Open(data))
+      if (const Holder::Ptr res = plugin->Open(params, data))
       {
         return res;
       }
@@ -187,16 +182,16 @@ namespace Module
     throw Error(THIS_LINE, translate("Failed to find module at specified location."));
   }
 
-  std::size_t Detect(ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
+  std::size_t Detect(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
   {
     using namespace ZXTune;
     const ArchivePluginsEnumerator::Ptr usedArchivePlugins = ArchivePluginsEnumerator::Create();
-    if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(usedArchivePlugins->Enumerate(), location, callback))
+    if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(params, usedArchivePlugins->Enumerate(), location, callback))
     {
       return usedSize;
     }
     const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
-    return DetectByPlugins<PlayerPlugin>(usedPlayerPlugins->Enumerate(), location, callback);
+    return DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), location, callback);
   }
 
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)

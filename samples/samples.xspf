@@ -69,6 +69,10 @@
   <track>
     <location>Samples/AY-3-8910/Kurztech.ym</location>
   </track>
+  <!-- CO12294 -->
+  <track>
+    <location>Samples/CO12294/Intro.sap</location>
+  </track>
   <!-- DAC/ZX -->
   <track>
     <location>Samples/DAC/ZX/ducktale.chi</location>
@@ -91,13 +95,38 @@
   <track>
     <location>Samples/DAC/ZX/COMETDAY.str</location>
   </track>
+  <!-- DAC/Amiga -->
+  <track>
+    <location>Samples/DAC/Amiga/Stormlord.ahx</location>
+  </track>
+  <!-- HuC6270 -->
+  <track>
+    <location>Samples/HuC6270/raiden.hes</location>
+  </track>
+  <!-- LR35902 -->
+  <track>
+    <location>Samples/LR35902/stripped.gbs</location>
+  </track>
   <!-- MOS6581 -->
   <track>
     <location>Samples/MOS6581/Love_Is_a_Shield.sid</location>
   </track>
   <!-- Multi -->
   <track>
+    <location>Samples/Multi/TheLionKing.gym</location>
+  </track>
+  <track>
     <location>Samples/Multi/CyberMotion.mtc</location>
+  </track>
+  <track>
+    <location>Samples/Multi/EarthwormJim.vgm</location>
+  </track>
+  <!-- RP2A0X -->
+  <track>
+    <location>Samples/RP2A0X/knifus.nsf</location>
+  </track>
+  <track>
+    <location>Samples/RP2A0x/SuperContra.nsfe?#15</location>
   </track>
   <!-- SAA1099 -->
   <track>

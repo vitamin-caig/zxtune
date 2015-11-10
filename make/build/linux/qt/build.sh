@@ -8,6 +8,6 @@ TARGETS="-nomake demos -nomake examples -nomake docs -nomake translations -nomak
 VERSIONS="-opensource -release -static -fast -confirm-license"
 FORMATS="-no-gif -no-libtiff -no-libmng -no-libjpeg -qt-libpng"
 FEATURES="-no-accessibility -no-opengl -no-openvg -no-sql-sqlite -no-qt3support -no-openssl -no-nis -no-cups -no-qdbus -no-dbus -no-gtkstyle -no-glib \
--fontconfig -xrender -xrandr -xfixes -xshape"
+-fontconfig -xrender -xrandr -xfixes -xshape -no-sm"
 PARTS="-no-webkit -no-javascript-jit -no-phonon -no-phonon-backend -no-multimedia -no-audio-backend -no-script -no-scripttools -no-declarative -no-declarative-debug -no-xmlpatterns"
 ./configure -platform ${PLATFORM} -prefix ${PREFIX} $TARGETS $STYLES $VERSIONS $FORMATS $FEATURES $PARTS && make -j `grep -c processor /proc/cpuinfo` && make install

@@ -16,6 +16,7 @@ extern const Char OGG_BACKEND_COMMENT_TAG[];
 extern const Char OGG_BACKEND_ID[];
 extern const Char OGG_BACKEND_TITLE_TAG[];
 extern const Char OSS_BACKEND_ID[];
+extern const Char PAUDIO_BACKEND_ID[];
 extern const Char SDL_BACKEND_ID[];
 extern const Char WAV_BACKEND_ID[];
 extern const Char WIN32_BACKEND_ID[];

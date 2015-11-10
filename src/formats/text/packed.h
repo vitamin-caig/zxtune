@@ -13,6 +13,7 @@ extern const Char ESV_DECODER_DESCRIPTION[];
 extern const Char FDI_DECODER_DESCRIPTION[];
 extern const Char GAMPLUS_DECODER_DESCRIPTION[];
 extern const Char GAM_DECODER_DESCRIPTION[];
+extern const Char GZIP_DECODER_DESCRIPTION[];
 extern const Char HOBETA_DECODER_DESCRIPTION[];
 extern const Char HRUM_DECODER_DESCRIPTION[];
 extern const Char HRUST1_DECODER_DESCRIPTION[];

@@ -25,7 +25,7 @@ namespace AYM
       : Table(table)
       , Regs()
     {
-      Regs[Registers::MIXER] = 0xff;
+      Reset();
     }
 
     void SetDutyCycle(uint_t value, uint_t mask)
@@ -35,9 +35,13 @@ namespace AYM
 
     void Reset()
     {
-      std::fill(Regs.begin(), Regs.end(), 0);
-      Regs[Registers::MIXER] = 0xff;
       Device.Reset();
+      Registers regs;
+      for (uint_t idx = 0; idx < Registers::TOTAL; ++idx)
+      {
+        regs[static_cast<Registers::Index>(idx)] = 0;
+      }
+      SetNewData(regs);
     }
 
     void SetNewData(const Registers& data)

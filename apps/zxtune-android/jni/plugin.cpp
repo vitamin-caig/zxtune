@@ -21,8 +21,7 @@ namespace
   {
     VisitorTraits()
       : OnPlayerPluginMethod()
-      , OnDecoderPluginMethod()
-      , OnMultitrackPluginMethod()
+      , OnContainerPluginMethod()
     {
     }
 
@@ -31,15 +30,12 @@ namespace
       const jclass classType = env->FindClass("app/zxtune/ZXTune$Plugins$Visitor");
       OnPlayerPluginMethod = env->GetMethodID(classType,
         "onPlayerPlugin", "(ILjava/lang/String;Ljava/lang/String;)V");
-      OnDecoderPluginMethod = env->GetMethodID(classType,
-        "onDecoderPlugin", "(Ljava/lang/String;Ljava/lang/String;)V");
-      OnMultitrackPluginMethod = env->GetMethodID(classType,
-        "onMultitrackPlugin", "(Ljava/lang/String;Ljava/lang/String;)V");
+      OnContainerPluginMethod = env->GetMethodID(classType,
+        "onContainerPlugin", "(ILjava/lang/String;Ljava/lang/String;)V");
     }
 
     jmethodID OnPlayerPluginMethod;
-    jmethodID OnDecoderPluginMethod;
-    jmethodID OnMultitrackPluginMethod;
+    jmethodID OnContainerPluginMethod;
   };
 
   static VisitorTraits VISITOR;
@@ -60,18 +56,11 @@ namespace
       Env->CallVoidMethod(Delegate, VISITOR.OnPlayerPluginMethod, devType, id.Get(), descr.Get());
     }
 
-    void OnDecoderPlugin(const String& plugId, const String& plugDescr) const
+    void OnContainerPlugin(jint contType, const String& plugId, const String& plugDescr) const
     {
       const Jni::TempJString id(Env, plugId);
       const Jni::TempJString descr(Env, plugDescr);
-      Env->CallVoidMethod(Delegate, VISITOR.OnDecoderPluginMethod, id.Get(), descr.Get());
-    }
-
-    void OnMultitrackPlugin(const String& plugId, const String& plugDescr) const
-    {
-      const Jni::TempJString id(Env, plugId);
-      const Jni::TempJString descr(Env, plugDescr);
-      Env->CallVoidMethod(Delegate, VISITOR.OnMultitrackPluginMethod, id.Get(), descr.Get());
+      Env->CallVoidMethod(Delegate, VISITOR.OnContainerPluginMethod, contType, id.Get(), descr.Get());
     }
   private:
     JNIEnv* const Env;
@@ -95,17 +84,19 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Plugins_1Enumerate
     const uint_t caps = plug->Capabilities();
     const String id = plug->Id();
     const String desc = plug->Description();
-    if (0 != (caps & ZXTune::CAP_STOR_MODULE))
+
+    //TODO: remove hardcode
+    using namespace ZXTune::Capabilities;
+    switch (caps & Category::MASK)
     {
-      adapter.OnPlayerPlugin(caps & ZXTune::CAP_DEVICE_MASK, id, desc);
-    }
-    else if (0 != (caps & ZXTune::CAP_STOR_CONTAINER))
-    {
-      adapter.OnDecoderPlugin(id, desc);
-    }
-    else if (0 != (caps & ZXTune::CAP_STOR_MULTITRACK))
-    {
-      adapter.OnMultitrackPlugin(id, desc);
+    case Category::MODULE:
+      adapter.OnPlayerPlugin((caps & Module::Device::MASK) >> 4, id, desc);
+      break;
+    case Category::CONTAINER:
+      adapter.OnContainerPlugin((caps & Container::Type::MASK) >> 0, id, desc);
+      break;
+    default:
+      break;
     }
   }
 }

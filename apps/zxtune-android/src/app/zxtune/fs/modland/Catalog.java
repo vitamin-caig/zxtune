@@ -14,21 +14,24 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import android.content.Context;
+import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.VfsCache;
 
 public abstract class Catalog {
 
-  public interface GroupsVisitor {
+  public static abstract class GroupsVisitor {
 
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
     
-    void accept(Group obj);
+    public abstract void accept(Group obj);
   }
 
-  public interface TracksVisitor {
+  public static abstract class TracksVisitor {
 
-    void setCountHint(int size);
+    public void setCountHint(int size) {}
 
-    void accept(Track obj);
+    //too many tracks possible, so enable breaking
+    public abstract boolean accept(Track obj);
   }
 
   public interface Grouping {
@@ -56,6 +59,15 @@ public abstract class Catalog {
      * @throws IOException
      */
     public void queryTracks(int id, TracksVisitor visitor) throws IOException;
+    
+    /**
+     * Query track by name
+     * @param id object identifier
+     * @param filename track filename
+     * @return null if nothing found
+     * @throws IOException
+     */
+    public Track findTrack(int id, String filename) throws IOException;
   }
 
   public abstract Grouping getAuthors();
@@ -70,9 +82,10 @@ public abstract class Catalog {
    */
   public abstract ByteBuffer getTrackContent(String path) throws IOException;
 
-  public static Catalog create(Context context) {
+  public static Catalog create(Context context, HttpProvider http) {
+    final Catalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
-    final Catalog remote = new RemoteCatalog(context);
-    return new CachingCatalog(context, remote, db);
+    final VfsCache cacheDir = VfsCache.create(context, "ftp.modland.com");
+    return new CachingCatalog(remote, db, cacheDir);
   }
 }
