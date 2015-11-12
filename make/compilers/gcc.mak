@@ -88,3 +88,29 @@ analyze:
 analyze_deps: $(depends)
 
 analyze_all: analyze analyze_deps
+
+.PHONY: topsymbols symbolstree websymbolstree
+
+ifneq ($(binary_name)$(dynamic_name),)
+
+$(target).nm.out: $(target)
+	nm -C -S -l $^.pdb > $@
+
+$(target).objdump.out: $(target)
+	objdump -h $^.pdb > $@
+
+tools_dir = $(abspath $(path_step)/make/tools)
+bloat_dir = $(tools_dir)/bloat
+call_bloat_cmd = python $(bloat_dir)/bloat.py --nm-output $(target).nm.out --objdump-output $(target).objdump.out --strip-prefix $(abspath $(path_step))/
+
+topsymbols: $(target).nm.out $(target).objdump.out
+	$(call_bloat_cmd) dump > $(target).topsymbols
+
+$(target).syms.json: $(target).nm.out $(target).objdump.out
+	$(call_bloat_cmd) syms > $@
+
+symbolstree: $(target).syms.json
+
+websymbolstree: $(target).syms.json
+	(cd $(bloat_dir) && python $(tools_dir)/server.py /bloat.json=$(abspath $^))
+endif
