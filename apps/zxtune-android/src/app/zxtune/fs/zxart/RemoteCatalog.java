@@ -24,6 +24,7 @@ import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
+import android.text.Html;
 import android.util.Xml;
 import app.zxtune.Log;
 import app.zxtune.Util;
@@ -359,10 +360,11 @@ final class RemoteCatalog extends Catalog {
         builder.setId(body);
       }
     });
+    //CDATA
     item.getChild("originalFileName").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        builder.setFilename(body);
+        builder.setFilename(Html.fromHtml(body).toString());
       }
     });
     item.getChild("title").setEndTextElementListener(new EndTextElementListener() {
