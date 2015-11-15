@@ -148,6 +148,11 @@ public final class ZXTune {
        * Comment for module
        */
       public final static String COMMENT = "Comment";
+
+      /**
+       * Module strings
+       */
+      public final static String STRINGS = "Strings";
     }
 
     /**

@@ -161,6 +161,11 @@ class PlaylistIterator implements Iterator {
     }
     
     @Override
+    public String getStrings() {
+      return content.getStrings();
+    }
+    
+    @Override
     public TimeStamp getDuration() {
       return meta.getDuration();
     }

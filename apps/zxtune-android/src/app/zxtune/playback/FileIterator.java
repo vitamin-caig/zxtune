@@ -215,6 +215,11 @@ public class FileIterator implements Iterator {
     public String getComment() {
       return module.getProperty(ZXTune.Module.Attributes.COMMENT, EMPTY_STRING);
     }
+    
+    @Override
+    public String getStrings() {
+      return module.getProperty(ZXTune.Module.Attributes.STRINGS, EMPTY_STRING);
+    }
 
     @Override
     public TimeStamp getDuration() {

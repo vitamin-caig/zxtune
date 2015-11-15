@@ -44,6 +44,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
   private final String author;
   private final String program;
   private final String comment;
+  private final String strings;
   private final TimeStamp duration;
 
   private ParcelablePlaybackItem(Item src) {
@@ -53,6 +54,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
     this.author = src.getAuthor();
     this.program = src.getProgram();
     this.comment = src.getComment();
+    this.strings = src.getStrings();
     this.duration = src.getDuration();
   }
 
@@ -63,6 +65,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
     author = in.readString();
     program = in.readString();
     comment = in.readString();
+    strings = in.readString();
     duration = TimeStamp.createFrom(in.readLong(), TimeUnit.MILLISECONDS);
   }
 
@@ -95,6 +98,11 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
   public String getComment() {
     return comment;
   }
+  
+  @Override
+  public String getStrings() {
+    return strings;
+  }
 
   @Override
   public TimeStamp getDuration() {
@@ -114,6 +122,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
     dest.writeString(author);
     dest.writeString(program);
     dest.writeString(comment);
+    dest.writeString(strings);
     dest.writeLong(duration.convertTo(TimeUnit.MILLISECONDS));
   }
 }

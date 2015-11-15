@@ -52,6 +52,11 @@ public class ItemStub implements Item {
   }
 
   @Override
+  public String getStrings() {
+    return EMPTY_STRING;
+  }
+  
+  @Override
   public TimeStamp getDuration() {
     return TimeStamp.EMPTY;
   }

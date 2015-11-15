@@ -49,6 +49,12 @@ public interface Item {
    * @note may be empty
    */
   public String getComment();
+  
+  /**
+   * @return Item's internal strings
+   * @note may be empty
+   */
+  public String getStrings();
 
   /**
    * @return Item's duration
