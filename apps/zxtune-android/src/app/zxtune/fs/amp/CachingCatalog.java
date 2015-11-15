@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
-import app.zxtune.fs.amp.Catalog.FoundTracksVisitor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
@@ -62,7 +61,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Groups cache is empty/expired");
-        remote.queryGroups(new CachingGroupsVisitor());
+        remote.queryGroups(new CachingGroupsVisitor(visitor));
       }
       
       @Override
@@ -89,7 +88,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Authors cache is empty/expired for handleFilter=%s", handleFilter);
-        remote.queryAuthors(handleFilter, new CachingAuthorsVisitor());
+        remote.queryAuthors(handleFilter, new CachingAuthorsVisitor(visitor));
       }
       
       @Override
@@ -116,7 +115,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Authors cache is empty/expired for country=%d", country.id);
-        remote.queryAuthors(country, new CachingAuthorsVisitor(country));
+        remote.queryAuthors(country, new CachingAuthorsVisitor(visitor, country));
       }
       
       @Override
@@ -143,7 +142,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Authors cache is empty/expired for group=%d", group.id);
-        remote.queryAuthors(group, new CachingAuthorsVisitor(group));
+        remote.queryAuthors(group, new CachingAuthorsVisitor(visitor, group));
       }
       
       @Override
@@ -175,7 +174,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Tracks cache is empty/expired for author=%d", author.id);
-        remote.queryTracks(author, new CachingTracksVisitor(author));
+        remote.queryTracks(author, new CachingTracksVisitor(visitor, author));
       }
     });
   }
@@ -211,68 +210,86 @@ final class CachingCatalog extends Catalog {
   
   private class CachingGroupsVisitor extends GroupsVisitor {
     
+    private final GroupsVisitor delegate;
+    
+    CachingGroupsVisitor(GroupsVisitor delegate) {
+      this.delegate = delegate;
+    }
+    
+    @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
+    }
+    
     @Override
     public void accept(Group obj) {
-      try {
-        db.addGroup(obj);
-      } catch (Exception e) {
-        Log.d(TAG, e, "acceptGroup()");
-      }
+      delegate.accept(obj);
+      db.addGroup(obj);
     }
   }
   
   private class CachingAuthorsVisitor extends AuthorsVisitor {
     
+    private final AuthorsVisitor delegate;
     private final Country country;
     private final Group group;
     
-    CachingAuthorsVisitor() {
+    CachingAuthorsVisitor(AuthorsVisitor delegate) {
+      this.delegate = delegate;
       this.country = null;
       this.group = null;
     }
     
-    CachingAuthorsVisitor(Country country) {
+    CachingAuthorsVisitor(AuthorsVisitor delegate, Country country) {
+      this.delegate = delegate;
       this.country = country;
       this.group = null;
     }
     
-    CachingAuthorsVisitor(Group group) {
+    CachingAuthorsVisitor(AuthorsVisitor delegate, Group group) {
+      this.delegate = delegate;
       this.country = null;
       this.group = group;
+    }
+    
+    @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
     }
 
     @Override
     public void accept(Author obj) {
-      try {
-        db.addAuthor(obj);
-        if (country != null) {
-          db.addCountryAuthor(country, obj);
-        }
-        if (group != null) {
-          db.addGroupAuthor(group, obj);
-        }
-      } catch (Exception e) {
-        Log.d(TAG, e, "acceptAuthor()");
+      delegate.accept(obj);
+      db.addAuthor(obj);
+      if (country != null) {
+        db.addCountryAuthor(country, obj);
+      }
+      if (group != null) {
+        db.addGroupAuthor(group, obj);
       }
     }
   }
   
   private class CachingTracksVisitor extends TracksVisitor {
     
+    private final TracksVisitor delegate;
     private final Author author;
     
-    public CachingTracksVisitor(Author author) {
+    public CachingTracksVisitor(TracksVisitor delegate, Author author) {
+      this.delegate = delegate;
       this.author = author;
     }
     
     @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
+    }
+    
+    @Override
     public void accept(Track obj) {
-      try {
-        db.addTrack(obj);
-        db.addAuthorTrack(author, obj);
-      } catch (Exception e) {
-        Log.d(TAG, e, "acceptTrack()");
-      }
+      delegate.accept(obj);
+      db.addTrack(obj);
+      db.addAuthorTrack(author, obj);
     }
   }
 }

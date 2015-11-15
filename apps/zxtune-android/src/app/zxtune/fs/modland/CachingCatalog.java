@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
-import android.content.Context;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
@@ -96,7 +95,7 @@ final class CachingCatalog extends Catalog {
         @Override
         public void queryFromRemote() throws IOException {
           Log.d(TAG, "%s cache is empty/expired for filter=%s", category, filter);
-          remote.query(filter, new CachingGroupsVisitor(category));
+          remote.query(filter, new CachingGroupsVisitor(visitor, category));
         }
       });
     }
@@ -136,7 +135,7 @@ final class CachingCatalog extends Catalog {
         @Override
         public void queryFromRemote() throws IOException {
           Log.d(TAG, "Tracks cache is empty/expired for %s=%d", category, id);
-          remote.queryTracks(id, new CachingTracksVisitor(category, id));
+          remote.queryTracks(id, new CachingTracksVisitor(visitor, category, id));
         }
       });
     }
@@ -174,40 +173,50 @@ final class CachingCatalog extends Catalog {
 
   private class CachingGroupsVisitor extends GroupsVisitor {
 
+    private final GroupsVisitor delegate;
     private final String category;
 
-    CachingGroupsVisitor(String category) {
+    CachingGroupsVisitor(GroupsVisitor delegate, String category) {
+      this.delegate = delegate;
       this.category = category;
+    }
+    
+    @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
     }
 
     @Override
     public void accept(Group obj) {
-      try {
-        db.addGroup(category, obj);
-      } catch (Exception e) {
-        Log.d(TAG, e, "acceptGroup()");
-      }
+      delegate.accept(obj);
+      db.addGroup(category, obj);
     }
   }
 
   private class CachingTracksVisitor extends TracksVisitor {
 
+    private final TracksVisitor delegate;
     private final String category;
     private final int group;
 
-    CachingTracksVisitor(String category, int group) {
+    CachingTracksVisitor(TracksVisitor delegate, String category, int group) {
+      this.delegate = delegate;
       this.category = category;
       this.group = group;
+    }
+    
+    @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
     }
 
     @Override
     public boolean accept(Track obj) {
-      try {
-        db.addTrack(obj);
-        db.addGroupTrack(category, group, obj);
-      } catch (Exception e) {
-        Log.d(TAG, e, "addTrack()");
+      if (!delegate.accept(obj)) {
+        return false;
       }
+      db.addTrack(obj);
+      db.addGroupTrack(category, group, obj);
       return true;
     }
   }

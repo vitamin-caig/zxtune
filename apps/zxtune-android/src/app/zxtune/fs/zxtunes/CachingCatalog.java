@@ -21,7 +21,6 @@ import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
-import app.zxtune.fs.zxtunes.Catalog.FoundTracksVisitor;
 
 final class CachingCatalog extends Catalog {
   
@@ -60,7 +59,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Authors cache is empty/expired");
-        remote.queryAuthors(new CachingAuthorsVisitor());
+        remote.queryAuthors(new CachingAuthorsVisitor(visitor));
       }
     });
   }
@@ -86,7 +85,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Tracks cache is empty/expired for author=%d", author.id);
-        remote.queryAuthorTracks(author, new CachingTracksVisitor(author));
+        remote.queryAuthorTracks(author, new CachingTracksVisitor(visitor, author));
       }
     });
   }
@@ -123,33 +122,45 @@ final class CachingCatalog extends Catalog {
   }
 
   private class CachingAuthorsVisitor extends AuthorsVisitor {
+    
+    private final AuthorsVisitor delegate;
+    
+    CachingAuthorsVisitor(AuthorsVisitor delegate) {
+      this.delegate = delegate;
+    }
+    
+    @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
+    }
 
     @Override
     public void accept(Author obj) {
-      try {
-        db.addAuthor(obj);
-      } catch (Exception e) {
-        Log.d(TAG, e, "acceptAuthor()");
-      }
+      delegate.accept(obj);
+      db.addAuthor(obj);
     }
   }
   
   private class CachingTracksVisitor extends TracksVisitor {
     
+    private final TracksVisitor delegate;
     private final Author author;
     
-    CachingTracksVisitor(Author author) {
+    CachingTracksVisitor(TracksVisitor delegate, Author author) {
+      this.delegate = delegate;
       this.author = author;
     }
     
     @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
+    }
+
+    @Override
     public void accept(Track track) {
-      try {
-        db.addTrack(track);
-        db.addAuthorTrack(author, track);
-      } catch (Exception e) {
-        Log.d(TAG, e, "acceptTrack()");
-      }
+      delegate.accept(track);
+      db.addTrack(track);
+      db.addAuthorTrack(author, track);
     }
   }
 }

@@ -290,7 +290,7 @@ class RemoteCatalog extends Catalog {
   private RootElement createTracksParserRoot(final TracksVisitor visitor) {
     final TrackBuilder builder = new TrackBuilder();
     final RootElement root = createRootElement();
-    root.getChild("results").setEndTextElementListener(new EndTextElementListener() {
+    root.getChild("total_results").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
         final Integer result = asInt(body);

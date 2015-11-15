@@ -65,7 +65,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Authors cache is empty/expired");
-        remote.queryAuthors(new CachingAuthorsVisitor());
+        remote.queryAuthors(new CachingAuthorsVisitor(visitor));
       }
     });
   }
@@ -92,7 +92,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Tracks cache is empty/expired for author=%d", author.id);
-        remote.queryAuthorTracks(author, new CachingTracksVisitor(author));
+        remote.queryAuthorTracks(author, new CachingTracksVisitor(visitor, author));
       }
     });
   }
@@ -118,7 +118,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Parties cache is empty/expired");
-        remote.queryParties(new CachingPartiesVisitor());
+        remote.queryParties(new CachingPartiesVisitor(visitor));
       }
     });
   }
@@ -145,7 +145,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Tracks cache is empty/expired for party=%d", party.id);
-        remote.queryPartyTracks(party, new CachingTracksVisitor(party));
+        remote.queryPartyTracks(party, new CachingTracksVisitor(visitor, party));
       }
     });
   }
@@ -171,7 +171,7 @@ final class CachingCatalog extends Catalog {
       @Override
       public void queryFromRemote() throws IOException {
         Log.d(TAG, "Top tracks cache is empty/expired");
-        remote.queryTopTracks(limit, new CachingTracksVisitor());
+        remote.queryTopTracks(limit, new CachingTracksVisitor(visitor));
       }
     });
   }
@@ -205,61 +205,83 @@ final class CachingCatalog extends Catalog {
   }
 
   private class CachingAuthorsVisitor extends AuthorsVisitor {
+    
+    private final AuthorsVisitor delegate;
+    
+    CachingAuthorsVisitor(AuthorsVisitor delegate) {
+      this.delegate = delegate;
+    }
+    
+    @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
+    }
 
     @Override
     public void accept(Author obj) {
-      try {
-        db.addAuthor(obj);
-      } catch (Exception e) {
-        Log.d(TAG, e, "acceptAuthor()");
-      }
+      delegate.accept(obj);
+      db.addAuthor(obj);
     }
   }
 
   private class CachingPartiesVisitor extends PartiesVisitor {
+    
+    private final PartiesVisitor delegate;
+    
+    CachingPartiesVisitor(PartiesVisitor delegate) {
+      this.delegate = delegate;
+    }
+    
+    @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
+    }
 
     @Override
     public void accept(Party obj) {
-      try {
-        db.addParty(obj);
-      } catch (Exception e) {
-        Log.d(TAG, e, "acceptParty()");
-      }
+      delegate.accept(obj);
+      db.addParty(obj);
     }
   }
 
   private class CachingTracksVisitor extends TracksVisitor {
 
+    private TracksVisitor delegate;
     private final Author author;
     private final Party party;
 
-    CachingTracksVisitor(Author author) {
+    CachingTracksVisitor(TracksVisitor delegate, Author author) {
+      this.delegate = delegate;
       this.author = author;
       this.party = null;
     }
 
-    CachingTracksVisitor(Party party) {
+    CachingTracksVisitor(TracksVisitor delegate, Party party) {
+      this.delegate = delegate;
       this.author = null;
       this.party = party;
     }
 
-    CachingTracksVisitor() {
+    CachingTracksVisitor(TracksVisitor delegate) {
+      this.delegate = delegate;
       this.author = null;
       this.party = null;
+    }
+    
+    @Override
+    public void setCountHint(int count) {
+      delegate.setCountHint(count);
     }
 
     @Override
     public void accept(Track obj) {
-      try {
-        db.addTrack(obj);
-        if (author != null) {
-          db.addAuthorTrack(author, obj);
-        }
-        if (party != null) {
-          db.addPartyTrack(party, obj);
-        }
-      } catch (Exception e) {
-        Log.d(TAG, e, "acceptTrack()");
+      delegate.accept(obj);
+      db.addTrack(obj);
+      if (author != null) {
+        db.addAuthorTrack(author, obj);
+      }
+      if (party != null) {
+        db.addPartyTrack(party, obj);
       }
     }
   }

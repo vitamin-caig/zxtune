@@ -58,6 +58,7 @@ public final class Utils {
         cmd.queryFromRemote();
         lifetime.update();
         transaction.succeed();
+        return;
       } catch (IOException e) {
         remoteError = e;
       } finally {
