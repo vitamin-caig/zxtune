@@ -75,7 +75,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
   
   @Override
-  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+  public synchronized void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.track, menu);
@@ -94,6 +94,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         }
       }
     });
+    bindViewsToConnectedService();
   }
   
   /*
@@ -128,6 +129,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     visualizer = (VisualizerView) view.findViewById(R.id.visualizer);
     info = new InformationView(view);
     ctrls = new PlaybackControlsView(view);
+    bindViewsToConnectedService();
   }
   
   @Override
@@ -152,6 +154,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   @Override
   public synchronized void onServiceConnected(PlaybackService service) {
     this.service = service;
+    Log.d(TAG, "Service connected");
     bindViewsToConnectedService();
   }
   
