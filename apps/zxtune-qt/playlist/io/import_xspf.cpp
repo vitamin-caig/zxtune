@@ -47,31 +47,34 @@ namespace
     LAST_VERSION = 1
   };
 
-  Parameters::NameType PLAYLIST_ENABLED_PROPERTIES[] =
+  bool IsPlaylistEnabledProperty(const Parameters::NameType& name)
   {
-    Playlist::ATTRIBUTE_VERSION,
-    Playlist::ATTRIBUTE_NAME,
+    return name == Playlist::ATTRIBUTE_VERSION
+        || name == Playlist::ATTRIBUTE_NAME
+    ;
   };
 
-  std::string ITEM_DISABLED_PROPERTIES[] =
+  bool IsItemDisabledProperty(const Parameters::NameType& name)
   {
-    Module::ATTR_CRC,
-    Module::ATTR_FIXEDCRC,
-    Module::ATTR_SIZE,
-    Module::ATTR_CONTAINER,
-    Module::ATTR_TYPE,
-    Module::ATTR_VERSION,
-    Module::ATTR_PROGRAM,
-    Module::ATTR_DATE
+    return name == Module::ATTR_CRC
+        || name == Module::ATTR_FIXEDCRC
+        || name == Module::ATTR_SIZE
+        || name == Module::ATTR_CONTAINER
+        || name == Module::ATTR_TYPE
+        || name == Module::ATTR_VERSION
+        || name == Module::ATTR_PROGRAM
+        || name == Module::ATTR_DATE
+    ;
   };
 
   class PropertiesFilter : public Parameters::Visitor
   {
   public:
-    template<class T>
-    PropertiesFilter(Parameters::Visitor& delegate, T propFrom, T propTo, bool match)
+    typedef bool (*PropertyFilter)(const Parameters::NameType&);
+    
+    PropertiesFilter(Parameters::Visitor& delegate, PropertyFilter filter, bool match)
       : Delegate(delegate)
-      , Filter(propFrom, propTo)
+      , Filter(filter)
       , Match(match)
     {
     }
@@ -102,11 +105,11 @@ namespace
   private:
     bool Pass(const Parameters::NameType& name) const
     {
-      return Match == (0 != Filter.count(name));
+      return Match == Filter(name);
     }
   private:
     Parameters::Visitor& Delegate;
-    const std::set<Parameters::NameType> Filter;
+    const PropertyFilter Filter;
     const bool Match;
   };
 
@@ -162,7 +165,7 @@ namespace
         if (tagName == XSPF::EXTENSION_TAG)
         {
           Dbg(" Parsing playlist extension");
-          PropertiesFilter filter(*Properties, PLAYLIST_ENABLED_PROPERTIES, boost::end(PLAYLIST_ENABLED_PROPERTIES), true);
+          PropertiesFilter filter(*Properties, &IsPlaylistEnabledProperty, true);
           ParseExtension(filter);
           Properties->FindValue(Playlist::ATTRIBUTE_VERSION, Version);
         }
@@ -276,7 +279,7 @@ namespace
       else if (attr == XSPF::EXTENSION_TAG)
       {
         Dbg("  parsing extension");
-        PropertiesFilter filter(props, ITEM_DISABLED_PROPERTIES, boost::end(ITEM_DISABLED_PROPERTIES), false);
+        PropertiesFilter filter(props, &IsItemDisabledProperty, false);
         ParseExtension(filter);
       }
       else
