@@ -5,6 +5,17 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3520 from 17.11.2015
+
+[+] Support additional module strings retrieval (e.g. samples/instruments names)
+[*] Fixes in 7zip decoding
+[+] zxtune-android: add http://abrimaal.pro-e.pl/aygor/ online catalogue
+[+] zxtune-android: add http://modarchive.org online catalogue
+[*] zxtune-android: rework module information panel
+[*] zxtune-android: show progress while cache updating of some remote catalogues
+[*] zxtune-android: fixed UI control loosing on orientation change
+[*] zxtune-android: fixed track information decoding for http://zxart.ee catalogue
+
 --- Rev3500 from 30.10.2015
 
 [*] Slight fixes in COP playback
