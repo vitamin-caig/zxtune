@@ -105,17 +105,20 @@ namespace SevenZip
 
   private:
     static SRes DoRead(void *p, void *buf, size_t *size) {
-      SeekStream& self = *static_cast<SeekStream*>(p);
-
-      size_t originalSize = *size;
-      if (originalSize > self.Limit - self.Position)
+      if (size_t originalSize = *size)
       {
-        return SZ_ERROR_READ;
-      }
-      if (originalSize != 0)
-      {
-        std::memcpy(buf, self.Start + self.Position, originalSize);
-        self.Position += originalSize;
+        SeekStream& self = *static_cast<SeekStream*>(p);
+        if (const std::size_t avail = self.Limit - self.Position)
+        {
+          originalSize = std::min<size_t>(originalSize, avail);
+          std::memcpy(buf, self.Start + self.Position, originalSize);
+          self.Position += originalSize;
+          *size = originalSize;
+        }
+        else
+        {
+          return SZ_ERROR_INPUT_EOF;
+        }
       }
       return SZ_OK;
     }
