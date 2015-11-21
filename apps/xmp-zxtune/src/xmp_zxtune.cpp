@@ -15,10 +15,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif//_CRT_SECURE_NO_WARNINGS
-
 #define NOMINMAX
 #include <xmpin.h>
 
@@ -63,26 +59,35 @@ static XMPFUNC_TEXT*	xmpftext;
 static const char* file_types[] =
 {
 	// AY/YM
-	"as0", "asc", "ay", "ayc", "gtr", "$c", "logo1", "psg", "pt1", "pt2", "pt3", "st1", "st3", "stc", "stp", "ts", "vtx", "ym", "ftc", "psc", "sqt",
+	"as0", "asc", "ay", "ayc", "ftc", "gtr", "psc", "psg", "psm", "pt1", "pt2", "pt3", "sqt", "st1", "st3", "stc", "stp", "ts", "vtx", "ym",
 	// dac
-	"pdt", "chi", "str", "dst", "sqd", "et1", "dmm", "669", "amf", "dbm", "dmf", "dtm", "dtt", "emod", "far", "fnk", "gdm", "gtk", "mod", "mtn", "imf", "ims", "it", "liq", "psm", "mdl", "med", "mtm", "okt", "pt36", "ptm", "rtm", "s3m", "sfx", "stim", "stm", "stx", "tcb", "ult", "xm",
+	"ahx", "pdt", "chi", "str", "dst", "sqd", "et1", "dmm", "669", "amf", "dbm", "dmf", "dtm", "dtt", "emod", "far", "fnk", "gdm", "gtk", "mod", "mtn", "imf", "ims", "it", "liq", "mdl", "med", "mtm", "okt", "pt36", "ptm", "rtm", "s3m", "sfx", "stim", "stm", "stx", "tcb", "ult", "xm",
 	// fm
 	"tfc", "tfd", "tf0", "tfe",
 	// Sam Coupe
 	"cop",
 	// C64
 	"sid",
-	// SNES
-	"spc",
+	// NES/SNES
+	"spc", "nsf", "nsfe",
+	// Game Boy
+	"gbs",
+	// Atari
+	"sap",
+	// TurboGrafX
+	"hes",
+	// Multidevice
+	"mtc", "vgm", "gym",
 	// arch
-	"hrp", "scl", "szx", "trd", "cc3", "dsq", "esv", "fdi", "gam", "gamplus", "$m", "$b", "hrm", "bin", "p", "lzs", "msp", "pcd", "td0", "tlz", "tlzp", "trs",
+	"hrp", "scl", "szx", "trd", "cc3", "dsq", "esv", "fdi", "gam", "gamplus", "logo1", "$b", "$c", "$m", "hrm", "bin", "p", "lzs", "msp", "pcd", "td0", "tlz", "tlzp", "trs",
 	// end
 	NULL
 };
-static const char* about_short = "ZXTune Player (rev.2)";
+
+static const char* about_short = "ZXTune Player (rev.3)";
 static const char* about_text = \
 "ZXTune Player (C) 2008 - 2015 by Vitamin/CAIG.\n"
-"based on r3215 feb 25 2015\n"
+"based on r3500 oct 30 2015\n"
 "XMPlay plugin by djdron (C) 2015.\n\n"
 
 "Used source codes from:\n"
@@ -98,7 +103,8 @@ static const char* about_text = \
 "lhasa from Simon Howard\n"
 "libxmp from Claudio Matsuoka\n"
 "libsidplayfp from Simon White, Antti Lankila and Leandro Nini\n"
-"snes_spc from Shay Green\n";
+"snes_spc from Shay Green\n"
+"Game Music Emu from Shay Green and Chris Moeller\n";
 
 enum
 {
@@ -162,13 +168,12 @@ public:
 				modules->push_back(m);
 			}
 			virtual Log::ProgressCallback* GetProgress() const { return NULL; }
-			virtual Parameters::Accessor::Ptr GetPluginsParameters() const { return Parameters::Container::Create(); }
 			Modules* modules;
 			double* length;
 		};
 
 		ModuleDetector md(&input_modules, &length);
-		Module::Detect(ZXTune::CreateLocation(input_file), md);
+		Module::Detect(*params, ZXTune::CreateLocation(input_file), md);
 		if(input_modules.empty())
 		{
 			input_file.reset();
@@ -259,7 +264,7 @@ public:
 	}
 
 public:
-	xmp_zxtune() : length(0.0), single_subsong(false) {}
+	xmp_zxtune() : params(Parameters::Container::Create()), length(0.0), single_subsong(false) {}
 	~xmp_zxtune() { close(); }
 
 	Binary::Container::Ptr	input_file;
@@ -267,6 +272,7 @@ public:
 	Modules					input_modules;
 	Module::Holder::Ptr		input_module;
 	PlayerWrapper::Ptr		input_player;
+	Parameters::Accessor::Ptr params;
 	double length;
 	bool single_subsong;
 };

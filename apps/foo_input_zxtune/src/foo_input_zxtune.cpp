@@ -56,9 +56,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Since foobar2000 v1.0 having at least one of these in your DLL is mandatory to let the troubleshooter tell different versions of your component apart.
 // Note that it is possible to declare multiple components within one DLL, but it's strongly recommended to keep only one declaration per DLL.
 // As for 1.1, the version numbers are used by the component update finder to find updates; for that to work, you must have ONLY ONE declaration per DLL. If there are multiple declarations, the component is assumed to be outdated and a version number of "0" is assumed, to overwrite the component with whatever is currently on the site assuming that it comes with proper version numbers.
-DECLARE_COMPONENT_VERSION("ZX Tune Player", "0.0.4",
-"ZX Tune Player (C) 2008 - 2015 by Vitamin/CAIG.\n"
-"based on r3215 feb 25 2015\n"
+DECLARE_COMPONENT_VERSION("ZX Tune Player", "0.0.5",
+"ZXTune Player (C) 2008 - 2015 by Vitamin/CAIG.\n"
+"based on r3500 oct 30 2015\n"
 "foobar2000 plugin by djdron (C) 2013 - 2015.\n\n"
 
 "Used source codes from:\n"
@@ -75,6 +75,7 @@ DECLARE_COMPONENT_VERSION("ZX Tune Player", "0.0.4",
 "libxmp from Claudio Matsuoka\n"
 "libsidplayfp from Simon White, Antti Lankila and Leandro Nini\n"
 "snes_spc from Shay Green\n"
+"Game Music Emu from Shay Green and Chris Moeller\n"
 );
 
 // This will prevent users from renaming your component around (important for proper troubleshooter behaviors) or loading multiple instances of it.
@@ -83,19 +84,27 @@ VALIDATE_COMPONENT_FILENAME("foo_input_zxtune.dll");
 static const char* file_types[] =
 {
 	// AY/YM
-	"as0", "asc", "ay", "ayc", "gtr", "$c", "logo1", "psg", "pt1", "pt2", "pt3", "st1", "st3", "stc", "stp", "ts", "vtx", "ym", "ftc", "psc", "sqt",
+	"as0", "asc", "ay", "ayc", "ftc", "gtr", "psc", "psg", "psm", "pt1", "pt2", "pt3", "sqt", "st1", "st3", "stc", "stp", "ts", "vtx", "ym",
 	// dac
-	"pdt", "chi", "str", "dst", "sqd", "et1", "dmm", "669", "amf", "dbm", "dmf", "dtm", "dtt", "emod", "far", "fnk", "gdm", "gtk", "mod", "mtn", "imf", "ims", "it", "liq", "psm", "mdl", "med", "mtm", "okt", "pt36", "ptm", "rtm", "s3m", "sfx", "stim", "stm", "stx", "tcb", "ult", "xm",
+	"ahx", "pdt", "chi", "str", "dst", "sqd", "et1", "dmm", "669", "amf", "dbm", "dmf", "dtm", "dtt", "emod", "far", "fnk", "gdm", "gtk", "mod", "mtn", "imf", "ims", "it", "liq", "mdl", "med", "mtm", "okt", "pt36", "ptm", "rtm", "s3m", "sfx", "stim", "stm", "stx", "tcb", "ult", "xm",
 	// fm
 	"tfc", "tfd", "tf0", "tfe",
 	// Sam Coupe
 	"cop",
 	// C64
 	"sid",
-	// SNES
-	"spc",
+	// NES/SNES
+	"spc", "nsf", "nsfe",
+	// Game Boy
+	"gbs",
+	// Atari
+	"sap",
+	// TurboGrafX
+	"hes",
+	// Multidevice
+	"mtc", "vgm", "gym",
 	// arch
-	"hrp", "scl", "szx", "trd", "cc3", "dsq", "esv", "fdi", "gam", "gamplus", "$m", "$b", "hrm", "bin", "p", "lzs", "msp", "pcd", "td0", "tlz", "tlzp", "trs",
+	"hrp", "scl", "szx", "trd", "cc3", "dsq", "esv", "fdi", "gam", "gamplus", "logo1", "$b", "$c", "$m", "hrm", "bin", "p", "lzs", "msp", "pcd", "td0", "tlz", "tlzp", "trs",
 	// end
 	NULL
 };
@@ -144,12 +153,11 @@ public:
 				modules->push_back(m);
 			}
 			virtual Log::ProgressCallback* GetProgress() const { return NULL; }
-			virtual Parameters::Accessor::Ptr GetPluginsParameters() const { return Parameters::Container::Create(); }
 			Modules* modules;
 		};
 
 		ModuleDetector md(&input_modules);
-		Module::Detect(ZXTune::CreateLocation(input_file), md);
+		Module::Detect(*params, ZXTune::CreateLocation(input_file), md);
 		if(input_modules.empty())
 		{
 			input_file.reset();
@@ -208,7 +216,7 @@ public:
 		else
 		{
 			subname = SubName(p_subsong);
-			Module::Holder::Ptr m = Module::Open(ZXTune::OpenLocation(Parameters::Container::Create(), input_file, subname));
+			Module::Holder::Ptr m = Module::Open(*params, ZXTune::OpenLocation(*params, input_file, subname));
 			if(!m)
 				throw exception_io_unsupported_format();
 			mi = m->GetModuleInformation();
@@ -256,7 +264,7 @@ public:
 	void decode_initialize(t_uint32 p_subsong, unsigned p_flags, abort_callback & p_abort)
 	{
 		std::string subname = SubName(p_subsong);
-		input_module = Module::Open(ZXTune::OpenLocation(Parameters::Container::Create(), input_file, subname));
+		input_module = Module::Open(*params, ZXTune::OpenLocation(*params, input_file, subname));
 		if(!input_module)
 			throw exception_io_unsupported_format(); 
 
@@ -309,7 +317,7 @@ public:
 public:
 	pfc::array_t<t_uint8> m_buffer;
 
-	input_zxtune() {}
+	input_zxtune() : params(Parameters::Container::Create()) {}
 	~input_zxtune() { close(); }
 
 	service_ptr_t<file>		m_file;
@@ -325,6 +333,8 @@ public:
 	Modules					input_modules;
 	Module::Holder::Ptr		input_module;
 	PlayerWrapper::Ptr		input_player;
+
+	Parameters::Accessor::Ptr params;
 
 	static_api_ptr_t<metadb> meta_db;
 };

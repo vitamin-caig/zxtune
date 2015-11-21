@@ -16,31 +16,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <core/plugins/containers/plugins.h>
-#include <core/plugins/containers/container_supp_common.h>
-#include <core/plugin_attrs.h>
-#include <formats/archived/decoders.h>
 
 namespace ZXTune
 {
 
-void RegisterContainerPlugins(ArchivePluginsRegistrator& r)
+void RegisterContainerPlugins(ArchivePluginsRegistrator& registrator)
 {
-	using namespace Formats::Archived;
 	//process raw container first
-	RegisterRawContainer(r);
-
+	RegisterRawContainer(registrator);
 //	RegisterArchiveContainers(registrator);
-//	removed rar, zip, lha archives compared to standard RegisterArchiveContainers()
-	r.RegisterPlugin(CreateContainerPlugin("TRD",     CAP_STOR_MULTITRACK | CAP_STOR_PLAIN,	CreateTRDDecoder()));
-	r.RegisterPlugin(CreateContainerPlugin("SCL",     CAP_STOR_MULTITRACK | CAP_STOR_PLAIN,	CreateSCLDecoder()));
-	r.RegisterPlugin(CreateContainerPlugin("HRIP",    CAP_STOR_MULTITRACK,	CreateHripDecoder()));
-	r.RegisterPlugin(CreateContainerPlugin("ZXZIP",   CAP_STOR_MULTITRACK,	CreateZXZipDecoder()));
-	r.RegisterPlugin(CreateContainerPlugin("ZXSTATE", CAP_STOR_MULTITRACK,	CreateZXStateDecoder()));
-
+	RegisterZXArchiveContainers(registrator);
 	//process containers last
-	RegisterAyContainer(r);
-	RegisterSidContainer(r);
-//	RegisterZdataContainer(r);
+	RegisterMultitrackContainers(registrator);
+//	RegisterZdataContainer(registrator);
 }
 
 }
