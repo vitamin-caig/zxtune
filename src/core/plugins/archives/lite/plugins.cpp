@@ -2,7 +2,7 @@
 * 
 * @file
 *
-* @brief  Archive plugins full factory
+* @brief  Archive plugins lite factory
 *
 * @author vitamin.caig@gmail.com
 *
@@ -15,7 +15,8 @@ namespace ZXTune
 {
   void RegisterArchivePlugins(ArchivePluginsRegistrator& registrator)
   {
-    RegisterDepackPlugins(registrator);
+    RegisterMultitrackContainers(registrator);
+    RegisterArchiveContainers(registrator);
     RegisterChiptunePackerPlugins(registrator);
     RegisterDecompilePlugins(registrator);
   }

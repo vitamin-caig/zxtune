@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "archive_supp_common.h"
+#include "packed.h"
 #include "plugins.h"
 //library includes
 #include <core/plugin_attrs.h>

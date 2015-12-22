@@ -2,18 +2,18 @@
 * 
 * @file
 *
-* @brief  Container plugins support
+* @brief  Archive plugins stub factory
 *
 * @author vitamin.caig@gmail.com
 *
 **/
-
-#pragma once
 
 //local includes
 #include <core/plugins/archive_plugins_registrator.h>
 
 namespace ZXTune
 {
-  void RegisterContainerPlugins(ArchivePluginsRegistrator& registrator);
+  void RegisterArchivePlugins(ArchivePluginsRegistrator& /*registrator*/)
+  {
+  }
 }

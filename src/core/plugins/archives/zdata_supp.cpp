@@ -9,7 +9,6 @@
 **/
 
 //local includes
-#include "container_supp_common.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/plugins_types.h"

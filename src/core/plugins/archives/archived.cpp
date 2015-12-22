@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container_supp_common.h"
+#include "archived.h"
 #include "core/src/callback.h"
 #include "core/plugins/plugins_types.h"
 #include "core/plugins/utils.h"
@@ -266,7 +266,7 @@ namespace ZXTune
 
 namespace ZXTune
 {
-  ArchivePlugin::Ptr CreateContainerPlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
+  ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
     const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
     const ArchivePlugin::Ptr result = boost::make_shared<ArchivedContainerPlugin>(description, decoder);

@@ -20,7 +20,7 @@
 #include <debug/log.h>
 #include <sound/sound_parameters.h>
 #include <parameters/convert.h>
-#include <core/plugins/containers/zdata_supp.h>
+#include <core/plugins/archives/zdata_supp.h>
 //std includes
 #include <set>
 //boost includes

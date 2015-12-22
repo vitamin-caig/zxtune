@@ -13,7 +13,6 @@
 #include "player_plugins_enumerator.h"
 #include "registrator.h"
 #include "archives/plugins_list.h"
-#include "containers/plugins_list.h"
 #include "players/plugins_list.h"
 #include "core/src/callback.h"
 //common includes
@@ -72,7 +71,6 @@ namespace ZXTune
     ArchivePluginsContainer()
     {
       const Time::Timer timer;
-      RegisterContainerPlugins(*this);
       RegisterArchivePlugins(*this);
       Dbg("Registered %1% archive plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
     }

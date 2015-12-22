@@ -5,7 +5,7 @@ source_dirs := .
 
 libraries.common = analysis \
                    binary binary_format \
-                   core core_plugins_archives_lite core_plugins_containers_lite core_plugins_players \
+                   core core_plugins_archives_lite core_plugins_players \
                    devices_aym devices_beeper devices_dac devices_fm devices_saa devices_z80 \
                    formats_chiptune formats_packed_archives formats_packed_decompilers formats_archived formats_archived_multitrack formats_multitrack \
                    parameters \

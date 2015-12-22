@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container_supp_common.h"
+#include "archived.h"
 #include <core/src/callback.h>
 #include <core/plugins/archive_plugins_enumerator.h>
 #include <core/plugins/archive_plugins_registrator.h>

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container_supp_common.h"
+#include "archived.h"
 #include "plugins.h"
 //library includes
 #include <core/plugin_attrs.h>
@@ -63,7 +63,7 @@ namespace
   void RegisterPlugin(const ContainerPluginDescription& desc, ArchivePluginsRegistrator& registrator)
   {
     const Formats::Archived::Decoder::Ptr decoder = desc.Create();
-    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(FromStdString(desc.Id), desc.Caps, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(FromStdString(desc.Id), desc.Caps, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }
