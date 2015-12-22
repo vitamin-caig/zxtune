@@ -10,9 +10,6 @@
 
 #pragma once
 
-//local includes
-#include "plugins_types.h"
-
 namespace ZXTune
 {
   template<class PluginType>
@@ -23,7 +20,4 @@ namespace ZXTune
 
     virtual void RegisterPlugin(typename PluginType::Ptr plugin) = 0;
   };
-
-  typedef PluginsRegistrator<ArchivePlugin> ArchivePluginsRegistrator;
-  typedef PluginsRegistrator<PlayerPlugin> PlayerPluginsRegistrator;
 }

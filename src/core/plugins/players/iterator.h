@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <core/module_types.h>
+#include <core/module_track_state.h>
 
 namespace Module
 {

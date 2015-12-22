@@ -11,7 +11,7 @@
 //local includes
 #include "tfm_base_stream.h"
 #include "tfm_plugin.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/streaming.h"
 //library includes
 #include <formats/chiptune/fm/tfd.h>

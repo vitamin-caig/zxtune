@@ -11,7 +11,8 @@
 //local includes
 #include "container_supp_common.h"
 #include "core/plugins/utils.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/archive_plugins_registrator.h"
+#include "core/plugins/plugins_types.h"
 #include "core/src/location.h"
 //common includes
 #include <byteorder.h>

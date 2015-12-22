@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/analyzer.h"
 #include "core/plugins/players/plugin.h"
 //common includes

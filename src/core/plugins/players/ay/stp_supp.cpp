@@ -11,7 +11,7 @@
 //local includes
 #include "aym_plugin.h"
 #include "soundtrackerpro.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 
 namespace ZXTune
 {

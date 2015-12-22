@@ -2,7 +2,7 @@
 * 
 * @file
 *
-* @brief  Module renderer (former Player) interface
+* @brief  Module renderer interface
 *
 * @author vitamin.caig@gmail.com
 *
@@ -11,7 +11,8 @@
 #pragma once
 
 //library includes
-#include <core/module_types.h>
+#include <core/module_analyzer.h>
+#include <core/module_track_state.h>
 
 namespace Module
 {

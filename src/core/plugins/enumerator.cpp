@@ -9,7 +9,8 @@
 **/
 
 //local includes
-#include "enumerator.h"
+#include "archive_plugins_enumerator.h"
+#include "player_plugins_enumerator.h"
 #include "registrator.h"
 #include "archives/plugins_list.h"
 #include "containers/plugins_list.h"

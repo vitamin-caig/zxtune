@@ -12,7 +12,7 @@
 #include "tfm_base.h"
 #include "tfm_base_track.h"
 #include "tfm_plugin.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/simple_orderlist.h"
 //common includes
 #include <contract.h>

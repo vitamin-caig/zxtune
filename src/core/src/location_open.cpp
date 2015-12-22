@@ -10,7 +10,7 @@
 
 //local includes
 #include "location.h"
-#include "core/plugins/enumerator.h"
+#include "core/plugins/archive_plugins_enumerator.h"
 //common includes
 #include <error_tools.h>
 //library includes

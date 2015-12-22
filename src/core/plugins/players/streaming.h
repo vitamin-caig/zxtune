@@ -12,6 +12,8 @@
 
 //local includes
 #include "iterator.h"
+//library includes
+#include <core/module_information.h>
 
 namespace Module
 {

@@ -10,7 +10,7 @@
 
 //local includes
 #include "saa_base.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
 //library includes

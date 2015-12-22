@@ -10,7 +10,7 @@
 
 //local includes
 #include "multi_base.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <contract.h>

@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include <core/plugins/registrator.h>
+#include <core/plugins/archive_plugins_registrator.h>
 
 namespace ZXTune
 {

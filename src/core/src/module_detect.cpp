@@ -10,8 +10,8 @@
 
 //local includes
 #include "callback.h"
-#include "core/plugins/enumerator.h"
-#include "core/plugins/plugins_types.h"
+#include "core/plugins/archive_plugins_enumerator.h"
+#include "core/plugins/player_plugins_enumerator.h"
 #include "core/plugins/players/ay/aym_base.h"
 //common includes
 #include <error.h>

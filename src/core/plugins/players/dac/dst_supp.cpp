@@ -12,7 +12,7 @@
 #include "dac_base.h"
 #include "dac_plugin.h"
 #include "digital.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 //library includes
 #include <formats/chiptune/digital/digitalstudio.h>
 

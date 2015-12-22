@@ -12,7 +12,7 @@
 #include "aym_base.h"
 #include "ts_base.h"
 #include "core/plugins/enumerator.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/tracking.h"
 #include "core/src/callback.h"

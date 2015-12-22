@@ -12,7 +12,7 @@
 #include "aym_base.h"
 #include "aym_base_stream.h"
 #include "aym_plugin.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 //common includes
 #include <contract.h>
 //library includes

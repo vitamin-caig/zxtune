@@ -10,8 +10,8 @@
 
 #pragma once
 
-//local includes
-#include "plugins_types.h"
+//boost includes
+#include <boost/shared_ptr.hpp>
 
 namespace ZXTune
 {
@@ -27,7 +27,4 @@ namespace ZXTune
     //! Enumerate all supported plugins
     static Ptr Create();
   };
-
-  typedef PluginsEnumerator<ArchivePlugin> ArchivePluginsEnumerator;
-  typedef PluginsEnumerator<PlayerPlugin> PlayerPluginsEnumerator;
 }

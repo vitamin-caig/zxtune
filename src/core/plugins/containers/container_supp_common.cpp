@@ -11,6 +11,7 @@
 //local includes
 #include "container_supp_common.h"
 #include "core/src/callback.h"
+#include "core/plugins/plugins_types.h"
 #include "core/plugins/utils.h"
 //library includes
 #include <core/plugin_attrs.h>

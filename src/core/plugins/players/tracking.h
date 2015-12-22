@@ -14,7 +14,8 @@
 #include "iterator.h"
 #include "track_model.h"
 //library includes
-#include <core/module_types.h>
+#include <core/module_information.h>
+#include <core/module_track_state.h>
 #include <formats/chiptune/builder_pattern.h>
 //boost includes
 #include <boost/array.hpp>

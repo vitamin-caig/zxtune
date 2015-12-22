@@ -11,6 +11,7 @@
 //local includes
 #include "plugin.h"
 #include "core/src/callback.h"
+#include <core/plugins/plugins_types.h>
 #include <core/plugin_attrs.h>
 //library includes
 #include <core/module_attrs.h>

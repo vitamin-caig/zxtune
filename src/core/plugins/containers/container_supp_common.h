@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "core/plugins/plugins_types.h"
+#include "core/plugins/archive_plugin.h"
 //library includes
 #include <formats/archived.h>
 

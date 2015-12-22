@@ -11,9 +11,11 @@
 //local includes
 #include "container_supp_common.h"
 #include <core/src/callback.h>
-#include <core/plugins/enumerator.h>
-#include <core/plugins/registrator.h>
+#include <core/plugins/archive_plugins_enumerator.h>
+#include <core/plugins/archive_plugins_registrator.h>
+#include <core/plugins/player_plugins_enumerator.h>
 #include <core/plugins/utils.h>
+#include <core/plugins/plugins_types.h>
 //common includes
 #include <error_tools.h>
 //library includes
