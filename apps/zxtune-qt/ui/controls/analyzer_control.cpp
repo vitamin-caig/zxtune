@@ -14,7 +14,7 @@
 //common includes
 #include <contract.h>
 //library includes
-#include <core/module_types.h>
+#include <core/module_analyzer.h>
 //std includes
 #include <algorithm>
 #include <limits>

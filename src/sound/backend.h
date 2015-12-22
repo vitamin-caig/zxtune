@@ -14,7 +14,8 @@
 #include <error.h>
 #include <iterator.h>
 //library includes
-#include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other
+#include <core/module_analyzer.h>
+#include <core/module_track_state.h>
 #include <sound/gain.h>
 
 namespace Sound

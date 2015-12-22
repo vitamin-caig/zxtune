@@ -11,6 +11,8 @@
 #pragma once
 
 //library includes
+#include <core/module_track_state.h>
+#include <core/module_holder.h>
 #include <sound/backend.h>
 #include <sound/chunk.h>
 

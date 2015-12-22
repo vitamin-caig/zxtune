@@ -22,7 +22,6 @@
 #include <core/core_parameters.h>
 #include <core/module_open.h>
 #include <core/module_holder.h>
-#include <core/module_player.h>
 #include <parameters/container.h>
 #include <platform/version/api.h>
 #include <sound/sound_parameters.h>

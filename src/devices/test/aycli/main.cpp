@@ -2,7 +2,6 @@
 #include <contract.h>
 #include <devices/aym/chip.h>
 #include <core/module_holder.h>
-#include <core/module_player.h>
 #include <core/core_parameters.h>
 #include <parameters/container.h>
 #include <sound/mixer_factory.h>
