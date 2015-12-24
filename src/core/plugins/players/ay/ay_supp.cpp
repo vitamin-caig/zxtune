@@ -11,8 +11,8 @@
 //local includes
 #include "aym_base.h"
 #include "core/plugins/player_plugins_registrator.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/players/duration.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //library includes
@@ -649,7 +649,7 @@ namespace AY
   class DataBuilder : public Formats::Chiptune::AY::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(PropertiesHelper& props)
       : Properties(props)
       , Data(boost::make_shared<ModuleData>())
       , Delegate(Formats::Chiptune::AY::CreateMemoryDumpBuilder())
@@ -676,9 +676,11 @@ namespace AY
       Data->Frames = duration;
       if (fadeout)
       {
+        /*TODO
         Dbg("Using fadeout of %1% frames", fadeout);
         static const Time::Microseconds FADING_STEP(20000);
-        Properties.SetValue(Parameters::ZXTune::Sound::FADEOUT, FADING_STEP.Get() * fadeout);
+        Properties.GetDelegate().SetValue(Parameters::ZXTune::Sound::FADEOUT, FADING_STEP.Get() * fadeout);
+        */
       }
     }
 
@@ -704,7 +706,7 @@ namespace AY
       return Data;
     }
   private:
-    PropertiesBuilder& Properties;
+    PropertiesHelper& Properties;
     const boost::shared_ptr<ModuleData> Data;
     const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
   };
@@ -860,17 +862,18 @@ namespace AY
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       assert(Formats::Chiptune::AY::GetModulesCount(rawData) == 1);
 
-      DataBuilder builder(propBuilder);
+      PropertiesHelper props(*properties);
+      DataBuilder builder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
       {
-        propBuilder.SetSource(*container);
+        props.SetSource(*container);
         const ModuleData::Ptr data = builder.GetResult();
         const uint_t frames = data->Frames ? data->Frames : GetDurationInFrames(params);
-        return boost::make_shared<Holder>(data, CreateStreamInfo(frames), propBuilder.GetResult());
+        return boost::make_shared<Holder>(data, CreateStreamInfo(frames), properties);
       }
       return Holder::Ptr();
     }

@@ -14,6 +14,7 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
@@ -381,17 +382,17 @@ namespace Sid
     const Parameters::Accessor::Ptr Properties;
   };
 
-  bool HasSidContainer(Parameters::Accessor::Ptr params)
+  bool HasSidContainer(const Parameters::Accessor& params)
   {
     Parameters::StringType container;
-    Require(params->FindValue(Module::ATTR_CONTAINER, container));
+    Require(params.FindValue(Module::ATTR_CONTAINER, container));
     return container == "SID" || boost::algorithm::ends_with(container, ">SID");
   }
 
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
@@ -403,31 +404,32 @@ namespace Sid
         const SidTuneInfo& tuneInfo = *tune->getInfo();
         if (tuneInfo.songs() > 1)
         {
-          Require(HasSidContainer(propBuilder.GetResult()));
+          Require(HasSidContainer(*properties));
         }
 
+        PropertiesHelper props(*properties);
         switch (tuneInfo.numberOfInfoStrings())
         {
         default:
         case 3:
           //copyright/publisher really
-          propBuilder.SetComment(FromStdString(tuneInfo.infoString(2)));
+          props.SetComment(FromStdString(tuneInfo.infoString(2)));
         case 2:
-          propBuilder.SetAuthor(FromStdString(tuneInfo.infoString(1)));
+          props.SetAuthor(FromStdString(tuneInfo.infoString(1)));
         case 1:
-          propBuilder.SetTitle(FromStdString(tuneInfo.infoString(0)));
+          props.SetTitle(FromStdString(tuneInfo.infoString(0)));
         case 0:
           break;
         }
         const Binary::Container::Ptr data = rawData.GetSubcontainer(0, tuneInfo.dataFileLen());
         const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, data->Size());
-        propBuilder.SetSource(*source);
+        props.SetSource(*source);
 
         const uint_t fps = tuneInfo.songSpeed() == SidTuneInfo::SPEED_CIA_1A || tuneInfo.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
-        propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(fps).Get());
+        props.SetFramesFrequency(fps);
 
         const Information::Ptr info = boost::make_shared<Information>(GetDuration(params), tune, fps, songIdx);
-        return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
+        return boost::make_shared<Holder>(tune, info, properties);
       }
       catch (const std::exception&)
       {

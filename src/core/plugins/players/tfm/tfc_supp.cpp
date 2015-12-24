@@ -11,6 +11,7 @@
 //local includes
 #include "tfm_base_stream.h"
 #include "tfm_plugin.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/streaming.h"
 //common includes
@@ -124,7 +125,7 @@ namespace TFC
   class DataBuilder : public Formats::Chiptune::TFC::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(PropertiesHelper& props)
      : Properties(props)
      , Data(new ChiptuneData())
      , Channel(0)
@@ -138,7 +139,7 @@ namespace TFC
 
     virtual void SetIntFreq(uint_t freq)
     {
-      Properties.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
+      Properties.SetFramesFrequency(freq);
     }
 
     virtual void SetTitle(const String& title)
@@ -218,7 +219,7 @@ namespace TFC
       return (*Data)[Channel];
     }
   private:
-    PropertiesBuilder& Properties;
+    PropertiesHelper& Properties;
     mutable ChiptuneDataPtr Data;
     uint_t Channel;
     uint_t Frequency[6];
@@ -227,16 +228,17 @@ namespace TFC
   class Factory : public TFM::Factory
   {
   public:
-    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFC::Parse(rawData, dataBuilder))
       {
         const TFM::StreamModel::Ptr data = dataBuilder.GetResult();
         if (data->Size())
         {
-          propBuilder.SetSource(*container);
-          return TFM::CreateStreamedChiptune(data, propBuilder.GetResult());
+          props.SetSource(*container);
+          return TFM::CreateStreamedChiptune(data, properties);
         }
       }
       return TFM::Chiptune::Ptr();

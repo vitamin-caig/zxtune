@@ -11,6 +11,7 @@
 //local includes
 #include "aym_base.h"
 #include "ts_base.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/enumerator.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
@@ -103,7 +104,7 @@ namespace TS
     {
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Module::PropertiesBuilder& properties) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const
     {
       try
       {
@@ -112,8 +113,9 @@ namespace TS
         {
           if (dataBuilder.HasResult())
           {
-            properties.SetSource(*container);
-            const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties.GetResult(),
+            PropertiesHelper props(*properties);
+            props.SetSource(*container);
+            const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties,
               dataBuilder.GetFirst(), dataBuilder.GetSecond());
             return TurboSound::CreateHolder(chiptune);
           }

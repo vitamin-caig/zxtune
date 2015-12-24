@@ -10,6 +10,7 @@
 
 //local includes
 #include "plugin.h"
+#include "properties_helper.h"
 #include "core/src/callback.h"
 #include <core/plugins/plugins_types.h>
 #include <core/plugin_attrs.h>
@@ -45,14 +46,15 @@ namespace ZXTune
       const Binary::Container::Ptr data = inputData->GetData();
       if (Decoder->Check(*data))
       {
-        Module::PropertiesBuilder properties;
-        properties.SetType(Description->Id());
-        properties.SetLocation(*inputData);
+        const Parameters::Container::Ptr properties = Parameters::Container::Create();
+        Module::PropertiesHelper props(*properties);
+        props.SetType(Description->Id());
+        props.SetContainer(inputData->GetPluginsChain()->AsString());
         if (const Module::Holder::Ptr holder = Factory->CreateModule(params, *data, properties))
         {
           callback.ProcessModule(inputData, Description, holder);
           Parameters::IntType usedSize = 0;
-          properties.GetResult()->FindValue(Module::ATTR_SIZE, usedSize);
+          properties->FindValue(Module::ATTR_SIZE, usedSize);
           return Analysis::CreateMatchedResult(static_cast<std::size_t>(usedSize));
         }
       }
@@ -63,8 +65,9 @@ namespace ZXTune
     {
       if (Decoder->Check(data))
       {
-        Module::PropertiesBuilder properties;
-        properties.SetType(Description->Id());
+        const Parameters::Container::Ptr properties = Parameters::Container::Create();
+        Module::PropertiesHelper(*properties)
+          .SetType(Description->Id());
         return Factory->CreateModule(params, data, properties);
       }
       return Module::Holder::Ptr();

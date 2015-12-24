@@ -12,6 +12,8 @@
 #include "tfm_base.h"
 #include "tfm_base_track.h"
 #include "tfm_plugin.h"
+#include "core/plugins/players/properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/simple_orderlist.h"
 //common includes
@@ -98,9 +100,10 @@ namespace TFMMusicMaker
   class DataBuilder : public Formats::Chiptune::TFMMusicMaker::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(PropertiesHelper& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<TFM::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
@@ -108,7 +111,7 @@ namespace TFMMusicMaker
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod)
@@ -274,7 +277,8 @@ namespace TFMMusicMaker
     }
   private:
     const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -1551,13 +1555,14 @@ namespace TFMMusicMaker
     {
     }
 
-    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {

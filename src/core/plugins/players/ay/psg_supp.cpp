@@ -12,6 +12,7 @@
 #include "aym_base.h"
 #include "aym_base_stream.h"
 #include "aym_plugin.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/player_plugins_registrator.h"
 //library includes
 #include <formats/chiptune/aym/psg.h>
@@ -85,15 +86,16 @@ namespace PSG
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       DataBuilder dataBuilder;
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
       {
         if (const AYM::StreamModel::Ptr data = dataBuilder.GetResult())
         {
-          propBuilder.SetSource(*container);
-          return AYM::CreateStreamedChiptune(data, propBuilder.GetResult());
+          PropertiesHelper props(*properties);
+          props.SetSource(*container);
+          return AYM::CreateStreamedChiptune(data, properties);
         }
       }
       return AYM::Chiptune::Ptr();

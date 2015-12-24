@@ -10,6 +10,8 @@
 
 //local includes
 #include "saa_base.h"
+#include "core/plugins/players/properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
@@ -130,9 +132,10 @@ namespace ETracker
   class DataBuilder : public Formats::Chiptune::ETracker::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(PropertiesHelper& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
@@ -140,7 +143,7 @@ namespace ETracker
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -220,7 +223,8 @@ namespace ETracker
     }
   private:
     const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -536,13 +540,14 @@ namespace ETracker
   class Factory : public Module::Factory
   {
   public:
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        const SAA::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        const SAA::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), properties);
         return SAA::CreateHolder(chiptune);
       }
       return Holder::Ptr();

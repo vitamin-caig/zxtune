@@ -12,6 +12,8 @@
 #include "aym_base.h"
 #include "aym_base_track.h"
 #include "aym_plugin.h"
+#include "aym_properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
@@ -107,18 +109,19 @@ namespace ProTracker2
   class DataBuilder : public Formats::Chiptune::ProTracker2::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(AYM::PropertiesHelper& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
-      Properties.SetFreqtable(TABLE_PROTRACKER2);
+      Properties.SetFrequencyTable(TABLE_PROTRACKER2);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -222,7 +225,8 @@ namespace ProTracker2
     }
   private:
     const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    AYM::PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -469,13 +473,14 @@ namespace ProTracker2
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {

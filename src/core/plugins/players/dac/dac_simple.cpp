@@ -2,77 +2,39 @@
 * 
 * @file
 *
-* @brief  Simple DAC-based tracks support
+* @brief  Simple DAC-based tracks support implementation
 *
 * @author vitamin.caig@gmail.com
 *
 **/
 
-#pragma once
-
 //local includes
-#include "dac_base.h"
+#include "dac_simple.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/players/tracking.h"
-#include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/simple_orderlist.h"
 //library includes
 #include <devices/dac/sample_factories.h>
-#include <formats/chiptune/digital/digital.h>
 
 namespace Module
 {
   namespace DAC
   {
-    class ModuleData : public TrackModel
+    class SimpleDataBuilderImpl : public SimpleDataBuilder
     {
     public:
-      typedef boost::shared_ptr<const ModuleData> Ptr;
-
-      ModuleData()
-        : InitialTempo()
-      {
-      }
-
-      virtual uint_t GetInitialTempo() const
-      {
-        return InitialTempo;
-      }
-
-      virtual const OrderList& GetOrder() const
-      {
-        return *Order;
-      }
-
-      virtual const PatternsSet& GetPatterns() const
-      {
-        return *Patterns;
-      }
-
-      uint_t InitialTempo;
-      OrderList::Ptr Order;
-      PatternsSet::Ptr Patterns;
-      SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
-    };
-
-    class DataBuilder : public Formats::Chiptune::Digital::Builder
-    {
-      DataBuilder(PropertiesBuilder& props, const PatternsBuilder& builder)
-        : Data(boost::make_shared<ModuleData>())
+      SimpleDataBuilderImpl(DAC::PropertiesHelper& props, const PatternsBuilder& builder)
+        : Data(boost::make_shared<SimpleModuleData>())
         , Properties(props)
+        , Meta(props)
         , Patterns(builder)
       {
         Data->Patterns = Patterns.GetResult();
       }
-    public:
-      template<uint_t Channels>
-      static std::auto_ptr<DataBuilder> Create(PropertiesBuilder& props)
-      {
-        return std::auto_ptr<DataBuilder>(new DataBuilder(props, PatternsBuilder::Create<Channels>()));
-      }
 
       virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
       {
-        return Properties;
+        return Meta;
       }
 
       virtual void SetInitialTempo(uint_t tempo)
@@ -82,7 +44,7 @@ namespace Module
 
       virtual void SetSamplesFrequency(uint_t freq)
       {
-        Properties.SetSamplesFreq(freq);
+        Properties.SetSamplesFrequency(freq);
       }
 
       virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content, bool is4Bit)
@@ -124,20 +86,26 @@ namespace Module
         Patterns.GetChannel().SetSample(sample);
       }
 
-      ModuleData::Ptr GetResult() const
+      virtual SimpleModuleData::Ptr GetResult() const
       {
         return Data;
       }
     private:
-      const boost::shared_ptr<ModuleData> Data;
-      PropertiesBuilder& Properties;
+      const boost::shared_ptr<SimpleModuleData> Data;
+      DAC::PropertiesHelper& Properties;
+      MetaProperties Meta;
       PatternsBuilder Patterns;
     };
+
+    SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, const PatternsBuilder& builder)
+    {
+      return SimpleDataBuilder::Ptr(new SimpleDataBuilderImpl(props, builder));
+    }
 
     class SimpleDataRenderer : public DAC::DataRenderer
     {
     public:
-      SimpleDataRenderer(ModuleData::Ptr data, uint_t channels)
+      SimpleDataRenderer(SimpleModuleData::Ptr data, uint_t channels)
         : Data(data)
         , Channels(channels)
       {
@@ -192,14 +160,14 @@ namespace Module
         }
       }
     private:
-      const ModuleData::Ptr Data;
+      const SimpleModuleData::Ptr Data;
       const uint_t Channels;
     };
 
     class SimpleChiptune : public DAC::Chiptune
     {
     public:
-      SimpleChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
+      SimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
         : Data(data)
         , Properties(properties)
         , Info(CreateTrackInfo(Data, channels))
@@ -232,10 +200,15 @@ namespace Module
         }
       }
     private:
-      const ModuleData::Ptr Data;
+      const SimpleModuleData::Ptr Data;
       const Parameters::Accessor::Ptr Properties;
       const Information::Ptr Info;
       const uint_t Channels;
     };
+
+    DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
+    {
+      return boost::make_shared<SimpleChiptune>(data, properties, channels);
+    }
   }
 }

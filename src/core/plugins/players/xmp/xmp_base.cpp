@@ -11,6 +11,7 @@
 //common includes
 #include <contract.h>
 //local includes
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //library includes
@@ -465,7 +466,7 @@ namespace Xmp
     const Binary::Format::Ptr Fmt;
   };
   
-  void ParseStrings(const xmp_module& mod, PropertiesBuilder& propBuilder)
+  void ParseStrings(const xmp_module& mod, PropertiesHelper& props)
   {
     Strings::Array strings;
     for (uint_t idx = 0; idx < mod.smp; ++idx)
@@ -476,7 +477,7 @@ namespace Xmp
     {
       strings.push_back(FromStdString(mod.xxi[idx].name));
     }
-    propBuilder.SetStrings(strings);
+    props.SetStrings(strings);
   }
 
   class Factory : public Module::Factory
@@ -487,7 +488,7 @@ namespace Xmp
     {
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
@@ -497,19 +498,20 @@ namespace Xmp
         xmp_frame_info frmInfo;
         ctx->Call(&::xmp_get_frame_info, &frmInfo);
 
-        propBuilder.SetTitle(FromStdString(modInfo.mod->name));
-        propBuilder.SetAuthor(FromStdString(modInfo.mod->author));
-        propBuilder.SetProgram(FromStdString(modInfo.mod->type));
+        PropertiesHelper props(*properties);
+        props.SetTitle(FromStdString(modInfo.mod->name));
+        props.SetAuthor(FromStdString(modInfo.mod->author));
+        props.SetProgram(FromStdString(modInfo.mod->type));
         if (const char* comment = modInfo.comment)
         {
-          propBuilder.SetComment(FromStdString(comment));
+          props.SetComment(FromStdString(comment));
         }
-        ParseStrings(*modInfo.mod, propBuilder);
+        ParseStrings(*modInfo.mod, props);
         const Binary::Container::Ptr data = rawData.GetSubcontainer(0, modInfo.size);
         const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, modInfo.size);
-        propBuilder.SetSource(*source);
+        props.SetSource(*source);
 
-        return boost::make_shared<Holder>(ctx, boost::cref(modInfo), TimeType(frmInfo.total_time), propBuilder.GetResult());
+        return boost::make_shared<Holder>(ctx, boost::cref(modInfo), TimeType(frmInfo.total_time), properties);
       }
       catch (const std::exception&)
       {

@@ -9,9 +9,11 @@
 **/
 
 //local includes
+#include "dac_simple.h"
 #include "dac_plugin.h"
-#include "digital.h"
+#include "dac_properties_helper.h"
 #include "core/plugins/player_plugins_registrator.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/tracking.h"
 //library includes
@@ -42,14 +44,15 @@ namespace ExtremeTracker1
     return step * 3270 / int_t(C_1_STEP_GLISS * 100);
   }
   
-  typedef DAC::ModuleData ModuleData;
+  typedef DAC::SimpleModuleData ModuleData;
 
   class DataBuilder : public Formats::Chiptune::ExtremeTracker1::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(DAC::PropertiesHelper& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
       Data->Patterns = Patterns.GetResult();
@@ -57,7 +60,7 @@ namespace ExtremeTracker1
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -67,7 +70,7 @@ namespace ExtremeTracker1
 
     virtual void SetSamplesFrequency(uint_t freq)
     {
-      Properties.SetSamplesFreq(freq);
+      Properties.SetSamplesFrequency(freq);
     }
 
     virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample)
@@ -123,7 +126,8 @@ namespace ExtremeTracker1
     }
   private:
     const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    DAC::PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
   
@@ -288,13 +292,14 @@ namespace ExtremeTracker1
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      DAC::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ExtremeTracker1::Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {

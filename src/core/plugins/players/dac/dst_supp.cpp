@@ -11,7 +11,7 @@
 //local includes
 #include "dac_base.h"
 #include "dac_plugin.h"
-#include "digital.h"
+#include "dac_simple.h"
 #include "core/plugins/player_plugins_registrator.h"
 //library includes
 #include <formats/chiptune/digital/digitalstudio.h>
@@ -22,19 +22,20 @@ namespace DigitalStudio
 {
   const std::size_t CHANNELS_COUNT = 3;
 
-  typedef DAC::ModuleData ModuleData;
-  typedef DAC::DataBuilder DataBuilder;
+  typedef DAC::SimpleModuleData ModuleData;
+  typedef DAC::SimpleDataBuilder DataBuilder;
 
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      const std::auto_ptr<DataBuilder> dataBuilder = DataBuilder::Create<CHANNELS_COUNT>(propBuilder);
+      DAC::PropertiesHelper props(*properties);
+      const DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(rawData, *dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<DAC::SimpleChiptune>(dataBuilder->GetResult(), propBuilder.GetResult(), CHANNELS_COUNT);
+        props.SetSource(*container);
+        return DAC::CreateSimpleChiptune(dataBuilder->GetResult(), properties, CHANNELS_COUNT);
       }
       else
       {

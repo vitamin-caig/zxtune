@@ -12,13 +12,13 @@
 #include "aym_base.h"
 #include "aym_base_stream.h"
 #include "aym_plugin.h"
+#include "aym_properties_helper.h"
 #include "core/plugins/player_plugins_registrator.h"
 //library includes
 #include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <formats/chiptune/aym/ym.h>
-#include <sound/sound_parameters.h>
 //boost includes
+#include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
 
 namespace Module
@@ -83,7 +83,7 @@ namespace YMVTX
   class DataBuilder : public Formats::Chiptune::YM::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Loop(0)
     {
@@ -96,12 +96,12 @@ namespace YMVTX
 
     virtual void SetChipType(bool ym)
     {
-      Properties.SetValue(Parameters::ZXTune::Core::AYM::TYPE, ym ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY);
+      Properties.SetChipType(ym ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY);
     }
 
     virtual void SetStereoMode(uint_t mode)
     {
-      Properties.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, VtxMode2AymLayout(mode));
+      Properties.SetChannelsLayout(VtxMode2AymLayout(mode));
     }
 
     virtual void SetLoop(uint_t loop)
@@ -116,12 +116,12 @@ namespace YMVTX
 
     virtual void SetClockrate(uint64_t freq)
     {
-      Properties.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, freq);
+      Properties.SetChipFrequency(freq);
     }
 
     virtual void SetIntFreq(uint_t freq)
     {
-      Properties.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
+      Properties.SetFramesFrequency(freq);
     }
 
     virtual void SetTitle(const String& title)
@@ -143,7 +143,7 @@ namespace YMVTX
     {
       if (year)
       {
-        Properties.SetValue(ATTR_DATE, year);
+        Properties.SetDate(boost::lexical_cast<String>(year));
       }
     }
 
@@ -184,7 +184,7 @@ namespace YMVTX
       return Data.back();
     }
   private:
-    PropertiesBuilder& Properties;
+    AYM::PropertiesHelper& Properties;
     mutable RegistersArray Data;
     uint_t Loop;
   };
@@ -197,15 +197,16 @@ namespace YMVTX
     {
     }
 
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         if (const AYM::StreamModel::Ptr data = dataBuilder.GetResult())
         {
-          propBuilder.SetSource(*container);
-          return AYM::CreateStreamedChiptune(data, propBuilder.GetResult());
+          props.SetSource(*container);
+          return AYM::CreateStreamedChiptune(data, properties);
         }
       }
       return AYM::Chiptune::Ptr();

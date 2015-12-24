@@ -12,6 +12,8 @@
 #include "aym_base.h"
 #include "ts_base.h"
 #include "vortex_base.h"
+#include "aym_properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
@@ -32,9 +34,10 @@ namespace ProTracker3
   class DataBuilder : public Formats::Chiptune::ProTracker3::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(AYM::PropertiesHelper& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , PatOffset(Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
@@ -43,7 +46,7 @@ namespace ProTracker3
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetVersion(uint_t version)
@@ -54,7 +57,7 @@ namespace ProTracker3
     virtual void SetNoteTable(Formats::Chiptune::ProTracker3::NoteTable table)
     {
       const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Data->Version);
-      Properties.SetFreqtable(freqTable);
+      Properties.SetFrequencyTable(freqTable);
     }
 
     virtual void SetMode(uint_t mode)
@@ -185,7 +188,8 @@ namespace ProTracker3
     }
   private:
     const ModuleData::RWPtr Data;
-    PropertiesBuilder& Properties;
+    AYM::PropertiesHelper& Properties;
+    MetaProperties Meta;
     uint_t PatOffset;
     PatternsBuilder Patterns;
   };
@@ -392,25 +396,26 @@ namespace ProTracker3
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
+        props.SetSource(*container);
         const uint_t patOffset = dataBuilder.GetPatOffset();
         const ModuleData::RWPtr modData = dataBuilder.GetResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
           //TurboSound modules
-          propBuilder.SetComment(Text::PT3_TURBOSOUND_MODULE);
+          props.SetComment(Text::PT3_TURBOSOUND_MODULE);
           modData->Patterns = CreateTSPatterns(patOffset, modData->Patterns);
-          const TurboSound::Chiptune::Ptr chiptune = boost::make_shared<TSChiptune>(modData, propBuilder.GetResult());
+          const TurboSound::Chiptune::Ptr chiptune = boost::make_shared<TSChiptune>(modData, properties);
           return TurboSound::CreateHolder(chiptune);
         }
         else
         {
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PT3Chiptune>(modData, propBuilder.GetResult());
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PT3Chiptune>(modData, properties);
           return AYM::CreateHolder(chiptune);
         }
       }

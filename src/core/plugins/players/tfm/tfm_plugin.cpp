@@ -56,7 +56,7 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, PropertiesBuilder& properties) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const
     {
       if (const TFM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {

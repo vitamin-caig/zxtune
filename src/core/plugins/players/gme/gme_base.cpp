@@ -10,9 +10,9 @@
 
 //local includes
 #include "core/plugins/player_plugins_registrator.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
@@ -309,51 +309,30 @@ namespace GME
     const EmuCreator CreateEmu;
   };
   
-  const Time::Milliseconds PERIOD = Time::Milliseconds(20);
+  const Time::Milliseconds PERIOD(20);
   
-  Time::Milliseconds GetProperties(const GME& gme, PropertiesBuilder& propBuilder)
+  Time::Milliseconds GetProperties(const GME& gme, PropertiesHelper& props)
   {
     ::track_info_t info;
     gme.GetInfo(info);
     
-    const String& system = OptimizeString(FromStdString(info.system));
-    const String& song = OptimizeString(FromStdString(info.song));
-    const String& game = OptimizeString(FromStdString(info.game));
-    const String& author = OptimizeString(FromStdString(info.author));
-    const String& comment = OptimizeString(FromStdString(info.comment));
-    const String& copyright = OptimizeString(FromStdString(info.copyright));
-    const String& dumper = OptimizeString(FromStdString(info.dumper));
+    const String& system = FromStdString(info.system);
+    const String& song = FromStdString(info.song);
+    const String& game = FromStdString(info.game);
+    const String& author = FromStdString(info.author);
+    const String& comment = FromStdString(info.comment);
+    const String& copyright = FromStdString(info.copyright);
+    const String& dumper = FromStdString(info.dumper);
     
-    if (!system.empty())
-    {
-      propBuilder.SetValue(ATTR_COMPUTER, system);
-    }
-    if (!song.empty())
-    {
-      propBuilder.SetTitle(song);
-      propBuilder.SetProgram(game);
-    }
-    else
-    {
-      propBuilder.SetTitle(game);
-    }
-    if (!author.empty())
-    {
-      propBuilder.SetAuthor(author);
-    }
-    else
-    {
-      propBuilder.SetAuthor(dumper);
-    }
-    if (!comment.empty())
-    {
-      propBuilder.SetComment(comment);
-    }
-    else if (!copyright.empty())
-    {
-      propBuilder.SetComment(copyright);
-    }
-    propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(PERIOD).Get());
+    props.SetComputer(system);
+    props.SetTitle(game);
+    props.SetTitle(song);
+    props.SetProgram(game);
+    props.SetAuthor(dumper);
+    props.SetAuthor(author);
+    props.SetComment(copyright);
+    props.SetComment(comment);
+    props.SetFramesFrequency(Time::GetFrequencyForPeriod(PERIOD));
 
     if (info.length > 0)
     {
@@ -378,27 +357,26 @@ namespace GME
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
         if (const Formats::Multitrack::Container::Ptr container = Decoder->Decode(rawData))
         {
-          const Parameters::Accessor::Ptr props = propBuilder.GetResult();
-        
           if (container->TracksCount() > 1)
           {
-            Require(HasContainer(Desc.Id, props));
+            Require(HasContainer(Desc.Id, properties));
           }
 
           const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
-          const Time::Milliseconds storedDuration = GetProperties(*tune, propBuilder);
+          PropertiesHelper props(*properties);
+          const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
           const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
         
-          propBuilder.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
+          props.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
         
-          return boost::make_shared<Holder>(tune, info, props);
+          return boost::make_shared<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)
@@ -428,22 +406,21 @@ namespace GME
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
         if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
         {
-          const Parameters::Accessor::Ptr props = propBuilder.GetResult();
-
           const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, 0);
-          const Time::Milliseconds storedDuration = GetProperties(*tune, propBuilder);
+          PropertiesHelper props(*properties);
+          const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
           const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
         
-          propBuilder.SetSource(*container);
+          props.SetSource(*container);
         
-          return boost::make_shared<Holder>(tune, info, props);
+          return boost::make_shared<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)

@@ -11,6 +11,7 @@
 //local includes
 #include "tfm_base_stream.h"
 #include "tfm_plugin.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/streaming.h"
 //library includes
@@ -60,7 +61,7 @@ namespace TFD
   class DataBuilder : public Formats::Chiptune::TFD::Builder
   {
   public:
-   explicit DataBuilder(PropertiesBuilder& props)
+   explicit DataBuilder(PropertiesHelper& props)
     : Properties(props)
     , Loop(0)
     , Chip(0)
@@ -119,7 +120,7 @@ namespace TFD
       Offsets.resize(Offsets.size() + count, Data.size());
     }
   private:
-    PropertiesBuilder& Properties;
+    PropertiesHelper& Properties;
     uint_t Loop;
     mutable Devices::TFM::Registers Data;
     mutable OffsetsArray Offsets;
@@ -129,16 +130,17 @@ namespace TFD
   class Factory : public TFM::Factory
   {
   public:
-    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
       {
         const TFM::StreamModel::Ptr data = dataBuilder.GetResult();
         if (data->Size())
         {
-          propBuilder.SetSource(*container);
-          return TFM::CreateStreamedChiptune(data, propBuilder.GetResult());
+          props.SetSource(*container);
+          return TFM::CreateStreamedChiptune(data, properties);
         }
       }
       return TFM::Chiptune::Ptr();

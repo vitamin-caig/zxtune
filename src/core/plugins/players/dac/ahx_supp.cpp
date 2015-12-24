@@ -11,6 +11,7 @@
 //local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/analyzer.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <contract.h>
@@ -378,34 +379,35 @@ namespace AHX
   class DataBuilder : public Formats::Chiptune::AbyssHighestExperience::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Properties(props)
+    explicit DataBuilder(PropertiesHelper& props)
+      : Meta(props)
     {
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
   private:
-    PropertiesBuilder& Properties;
+    MetaProperties Meta;
   };
   
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
-        DataBuilder dataBuilder(propBuilder);
+        PropertiesHelper props(*properties);
+        DataBuilder dataBuilder(props);
         if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AbyssHighestExperience::Parse(rawData, dataBuilder))
         {
-          propBuilder.SetSource(*container);
+          props.SetSource(*container);
 
           const HVL::Ptr tune = boost::make_shared<HVL>(*container);
           const Information::Ptr info = boost::make_shared<Information>(*container);
-          return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
+          return boost::make_shared<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)

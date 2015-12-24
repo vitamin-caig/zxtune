@@ -13,6 +13,7 @@
 #include "core/plugins/players/analyzer.h"
 #include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
+#include <core/plugins/players/properties_helper.h>
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
@@ -306,7 +307,7 @@ namespace SPC
   class DataBuilder : public Formats::Chiptune::SPC::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(PropertiesHelper& props)
       : Properties(props)
     {
     }
@@ -349,7 +350,7 @@ namespace SPC
     
     virtual void SetDumpDate(const String& date)
     {
-      Properties.SetValue(ATTR_DATE, date);
+      Properties.SetDate(date);
     }
     
     virtual void SetIntro(Time::Milliseconds duration)
@@ -392,7 +393,7 @@ namespace SPC
       return total.Get() ? total : Time::Milliseconds(Module::GetDuration(params));
     }
   private:
-    PropertiesBuilder& Properties;
+    PropertiesHelper& Properties;
     String Title;
     String Program;
     String Author;
@@ -405,21 +406,22 @@ namespace SPC
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
-        DataBuilder dataBuilder(propBuilder);
+        PropertiesHelper props(*properties);
+        DataBuilder dataBuilder(props);
         if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SPC::Parse(rawData, dataBuilder))
         {
           const SPC::Ptr tune = boost::make_shared<SPC>(rawData);
-          propBuilder.SetSource(*container);
+          props.SetSource(*container);
+          props.SetFramesFrequency(50);
           const Time::Milliseconds duration = dataBuilder.GetDuration(params);
           const Time::Milliseconds period = Time::Milliseconds(20);
-          propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(period).Get());
           const uint_t frames = duration.Get() / period.Get();
           const Information::Ptr info = CreateStreamInfo(frames);
-          return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
+          return boost::make_shared<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)
