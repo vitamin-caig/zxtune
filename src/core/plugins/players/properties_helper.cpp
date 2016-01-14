@@ -10,10 +10,10 @@
 
 //local includes
 #include "properties_helper.h"
-#include "core/plugins/utils.h"
 //library includes
 #include <core/module_attrs.h>
 #include <sound/sound_parameters.h>
+#include <strings/optimize.h>
 #include <time/stamp.h>
 //boost includes
 #include <boost/algorithm/string/join.hpp>
@@ -24,7 +24,7 @@ namespace Module
 {
   void PropertiesHelper::SetNonEmptyProperty(const String& name, const String& value)
   {
-    const String& optimizedValue = OptimizeString(value);
+    const String& optimizedValue = Strings::Optimize(value);
     if (!optimizedValue.empty())
     {
       Delegate.SetValue(name, optimizedValue);
@@ -75,7 +75,7 @@ namespace Module
   
   void PropertiesHelper::SetStrings(const Strings::Array& strings)
   {
-    String joined = boost::algorithm::join(boost::adaptors::transform(strings, OptimizeString), "\n");
+    String joined = boost::algorithm::join(boost::adaptors::transform(strings, Strings::Optimize), "\n");
     boost::algorithm::trim_all_if(joined, boost::algorithm::is_any_of("\n"));
     if (!joined.empty())
     {
