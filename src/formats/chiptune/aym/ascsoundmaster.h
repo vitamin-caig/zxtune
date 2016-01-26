@@ -116,18 +116,23 @@ namespace Formats
         typedef boost::shared_ptr<const Decoder> Ptr;
 
         virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-        virtual Binary::Container::Ptr InsertMetainformation(const Binary::Container& data, const Dump& info) const = 0;
       };
 
       namespace Ver0
       {
+        Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+        Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, const Dump& info);
+
         Decoder::Ptr CreateDecoder();
-      }
+      };
 
       namespace Ver1
       {
+        Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+        Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, const Dump& info);
+
         Decoder::Ptr CreateDecoder();
-      }
+      };
     }
 
     Decoder::Ptr CreateASCSoundMaster0xDecoder();

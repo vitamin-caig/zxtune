@@ -13,12 +13,15 @@
 #include "formats/chiptune/aym/ascsoundmaster.h"
 //common includes
 #include <byteorder.h>
+#include <contract.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 //boost includes
 #include <boost/array.hpp>
+#include <boost/ref.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
@@ -37,93 +40,96 @@ namespace CompiledASC
 #pragma pack(push,1)
 #endif
   typedef boost::array<uint8_t, 63> InfoData;
-
-  struct Version0
+  
+  PACK_PRE struct PlayerVer0
   {
-    static const String DESCRIPTION;
-    static const std::string FORMAT;
+    uint8_t Padding1[12];
+    uint16_t InitAddr;
+    uint8_t Padding2;
+    uint16_t PlayAddr;
+    uint8_t Padding3;
+    uint16_t ShutAddr;
+    //+20
+    InfoData Information;
+    //+83
+    uint8_t Initialization;
+    uint8_t Padding4[29];
+    uint16_t DataAddr;
 
-    static Formats::Chiptune::ASCSoundMaster::Decoder::Ptr CreateDecoder()
+    std::size_t GetSize() const
     {
-      return Formats::Chiptune::ASCSoundMaster::Ver0::CreateDecoder();
+      const uint_t initAddr = fromLE(InitAddr);
+      const uint_t compileAddr = initAddr - offsetof(PlayerVer0, Initialization);
+      return fromLE(DataAddr) - compileAddr;
     }
+  } PACK_POST;
 
-    PACK_PRE struct Player
-    {
-      uint8_t Padding1[12];
-      uint16_t InitAddr;
-      uint8_t Padding2;
-      uint16_t PlayAddr;
-      uint8_t Padding3;
-      uint16_t ShutAddr;
-      //+20
-      InfoData Information;
-      //+83
-      uint8_t Initialization;
-      uint8_t Padding4[29];
-      uint16_t DataAddr;
-
-      std::size_t GetSize() const
-      {
-        const uint_t initAddr = fromLE(InitAddr);
-        const uint_t compileAddr = initAddr - offsetof(Player, Initialization);
-        return fromLE(DataAddr) - compileAddr;
-      }
-    } PACK_POST;
-  };
-
-  struct Version1 : Version0
+  PACK_PRE struct PlayerVer2
   {
-    static const String DESCRIPTION;
-    static const std::string FORMAT;
+    uint8_t Padding1[20];
+    //+20
+    InfoData Information;
+    //+83
+    uint8_t Initialization;
+    uint8_t Padding2[40];
+    //+124
+    uint16_t DataOffset;
 
-    static Formats::Chiptune::ASCSoundMaster::Decoder::Ptr CreateDecoder()
+    std::size_t GetSize() const
     {
-      return Formats::Chiptune::ASCSoundMaster::Ver1::CreateDecoder();
+      return DataOffset;
     }
-  };
-
-  struct Version2 : Version1
-  {
-    static const String DESCRIPTION;
-    static const std::string FORMAT;
-
-    PACK_PRE struct Player
-    {
-      uint8_t Padding1[20];
-      //+20
-      InfoData Information;
-      //+83
-      uint8_t Initialization;
-      uint8_t Padding2[40];
-      //+124
-      uint16_t DataOffset;
-
-      std::size_t GetSize() const
-      {
-        return DataOffset;
-      }
-    } PACK_POST;
-  };
+  } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(offsetof(Version1::Player, Information) == 20);
-  BOOST_STATIC_ASSERT(offsetof(Version1::Player, Initialization) == 83);
-  BOOST_STATIC_ASSERT(offsetof(Version2::Player, Initialization) == 83);
-  BOOST_STATIC_ASSERT(offsetof(Version2::Player, DataOffset) == 124);
+  BOOST_STATIC_ASSERT(offsetof(PlayerVer0, Information) == 20);
+  BOOST_STATIC_ASSERT(offsetof(PlayerVer0, Initialization) == 83);
+  BOOST_STATIC_ASSERT(offsetof(PlayerVer2, Initialization) == 83);
+  BOOST_STATIC_ASSERT(offsetof(PlayerVer2, DataOffset) == 124);
+  
+  struct PlayerTraits
+  {
+    const std::size_t Size;
+    const std::size_t InfoOffset;
+    
+    template<class Player>
+    explicit PlayerTraits(const Player& player)
+      : Size(player.GetSize())
+      , InfoOffset(offsetof(Player, Information))
+    {
+    }
 
-  const String Version0::DESCRIPTION = String(Text::ASCSOUNDMASTER0_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
-  const String Version1::DESCRIPTION = String(Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
-  const String Version2::DESCRIPTION = String(Text::ASCSOUNDMASTER2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
+    template<class Player>
+    static PlayerTraits Create(const Binary::TypedContainer& data)
+    {
+      const Player* const pl = data.GetField<Player>(0);
+      Require(pl != 0);
+      return PlayerTraits(*pl);
+    }
+  };
+  
+  typedef PlayerTraits (*CreatePlayerFunc)(const Binary::TypedContainer&);
+  typedef Formats::Chiptune::Container::Ptr (*ParseFunc)(const Binary::Container&, Formats::Chiptune::ASCSoundMaster::Builder&);
+  typedef Binary::Container::Ptr (*InsertMetaInfoFunc)(const Binary::Container&, const Dump&);
+  
+  struct VersionTraits
+  {
+    const std::size_t MinSize;
+    const String Description;
+    const std::string Format;
+    const CreatePlayerFunc CreatePlayer;
+    const ParseFunc Parse;
+    const InsertMetaInfoFunc InsertMetaInformation;
+  };
 
-  const std::string ID_FORMAT(
+  const std::string ID_FORMAT =
     "'A'S'M' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
     "?{20}" //title
     "?{4}"  //any text
     "?{20}" //author
-  );
+  ;
 
   const std::string BASE_FORMAT = 
     "?{11}" //unknown
@@ -135,44 +141,67 @@ namespace CompiledASC
     "af"       //xor a
     "?{28}"
   ;
+  
+  const VersionTraits VERSION0 =
+  {
+    sizeof(PlayerVer0),
+    String(Text::ASCSOUNDMASTER0_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX,
+    BASE_FORMAT +
+      //+0x70
+      "11??"     //ld de,ModuleAddr
+      "42"       //ld b,d
+      "4b"       //ld c,e
+      "1a"       //ld a,(de)
+      "13"       //inc de
+      "32??"     //ld (xxx),a
+      "cd??"     //call xxxx
+    ,
+    &PlayerTraits::Create<PlayerVer0>,
+    &Formats::Chiptune::ASCSoundMaster::Ver0::Parse,
+    &Formats::Chiptune::ASCSoundMaster::Ver0::InsertMetaInformation,
+  };
 
-  const std::string Version0::FORMAT = BASE_FORMAT +
-    //+0x70
-    "11??"     //ld de,ModuleAddr
-    "42"       //ld b,d
-    "4b"       //ld c,e
-    "1a"       //ld a,(de)
-    "13"       //inc de
-    "32??"     //ld (xxx),a
-    "cd??"     //call xxxx
-  ;  
+  const VersionTraits VERSION1 =
+  {
+    sizeof(PlayerVer0),
+    String(Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX,
+    BASE_FORMAT +
+      //+0x70
+      "11??"     //ld de,ModuleAddr
+      "42"       //ld b,d
+      "4b"       //ld c,e
+      "1a"       //ld a,(de)
+      "13"       //inc de
+      "32??"     //ld (xxx),a
+      "1a"       //ld a,(de)
+      "13"       //inc de
+      "32??"     //ld (xxx),a
+    ,
+    &PlayerTraits::Create<PlayerVer0>,
+    &Formats::Chiptune::ASCSoundMaster::Ver1::Parse,
+    &Formats::Chiptune::ASCSoundMaster::Ver1::InsertMetaInformation,
+  };
 
-  const std::string Version1::FORMAT = BASE_FORMAT +
-    //+0x70
-    "11??"     //ld de,ModuleAddr
-    "42"       //ld b,d
-    "4b"       //ld c,e
-    "1a"       //ld a,(de)
-    "13"       //inc de
-    "32??"     //ld (xxx),a
-    "1a"       //ld a,(de)
-    "13"       //inc de
-    "32??"     //ld (xxx),a
-  ;
-
-  const std::string Version2::FORMAT =
-    "?{11}"     //padding
-    "184600"
-    "c3??"
-    "c3??"
-    + ID_FORMAT +
-    //+0x53 init
-    "cd??"
-    "3b3b"
-    "?{35}"
-    //+123
-    "11??" //data offset
-  ;
+  const VersionTraits VERSION2 =
+  {
+    sizeof(PlayerVer2),
+    String(Text::ASCSOUNDMASTER2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX,
+      "?{11}"     //padding
+      "184600"
+      "c3??"
+      "c3??"
+      + ID_FORMAT +
+      //+0x53 init
+      "cd??"
+      "3b3b"
+      "?{35}"
+      //+123
+      "11??" //data offset
+    ,
+    &PlayerTraits::Create<PlayerVer2>,
+    &Formats::Chiptune::ASCSoundMaster::Ver1::Parse,
+    &Formats::Chiptune::ASCSoundMaster::Ver1::InsertMetaInformation,
+  };
 
   bool IsInfoEmpty(const InfoData& info)
   {
@@ -192,19 +221,18 @@ namespace Formats
 {
   namespace Packed
   {
-    template<class Version>
     class CompiledASCDecoder : public Decoder
     {
     public:
-      CompiledASCDecoder()
-        : Player(Binary::CreateFormat(Version::FORMAT, sizeof(typename Version::Player)))
-        , Decoder(Version::CreateDecoder())
+      explicit CompiledASCDecoder(const CompiledASC::VersionTraits& version)
+        : Version(version)
+        , Player(Binary::CreateFormat(Version.Format, Version.MinSize))
       {
       }
 
       virtual String GetDescription() const
       {
-        return Version::DESCRIPTION;
+        return Version.Description;
       }
 
       virtual Binary::Format::Ptr GetFormat() const
@@ -220,32 +248,32 @@ namespace Formats
         }
         const Binary::TypedContainer typedData(rawData);
         const std::size_t availSize = rawData.Size();
-        const typename Version::Player& rawPlayer = *typedData.GetField<typename Version::Player>(0);
-        const std::size_t playerSize = rawPlayer.GetSize();
-        if (playerSize >= std::min(availSize, CompiledASC::MAX_PLAYER_SIZE))
+        const CompiledASC::PlayerTraits rawPlayer = Version.CreatePlayer(typedData);
+        if (rawPlayer.Size >= std::min(availSize, CompiledASC::MAX_PLAYER_SIZE))
         {
           Dbg("Invalid player");
           return Container::Ptr();
         }
-        Dbg("Detected player in first %1% bytes", playerSize);
-        const std::size_t modDataSize = std::min(CompiledASC::MAX_MODULE_SIZE, availSize - playerSize);
-        const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
-        const Dump metainfo(rawPlayer.Information.begin(), rawPlayer.Information.end());
-        if (CompiledASC::IsInfoEmpty(rawPlayer.Information))
+        Dbg("Detected player in first %1% bytes", rawPlayer.Size);
+        const std::size_t modDataSize = std::min(CompiledASC::MAX_MODULE_SIZE, availSize - rawPlayer.Size);
+        const Binary::Container::Ptr modData = rawData.GetSubcontainer(rawPlayer.Size, modDataSize);
+        const CompiledASC::InfoData& rawInfo = *typedData.GetField<CompiledASC::InfoData>(rawPlayer.InfoOffset);
+        const Dump metainfo(rawInfo.begin(), rawInfo.end());
+        if (CompiledASC::IsInfoEmpty(rawInfo))
         {
           Dbg("Player has empty metainfo");
-          if (const Binary::Container::Ptr originalModule = Decoder->Decode(*modData))
+          if (const Binary::Container::Ptr originalModule = Version.Parse(*modData, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
           {
             const std::size_t originalSize = originalModule->Size();
-            return CreatePackedContainer(originalModule, playerSize + originalSize);
+            return CreatePackedContainer(originalModule, rawPlayer.Size + originalSize);
           }
         }
-        else if (const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*modData, metainfo))
+        else if (const Binary::Container::Ptr fixedModule = Version.InsertMetaInformation(*modData, metainfo))
         {
-          if (Decoder->Decode(*fixedModule))
+          if (Version.Parse(*fixedModule, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
           {
             const std::size_t originalSize = fixedModule->Size() - metainfo.size();
-            return CreatePackedContainer(fixedModule, playerSize + originalSize);
+            return CreatePackedContainer(fixedModule, rawPlayer.Size + originalSize);
           }
           Dbg("Failed to parse fixed module");
         }
@@ -253,23 +281,23 @@ namespace Formats
         return Container::Ptr();
       }
     private:
+      const CompiledASC::VersionTraits& Version;
       const Binary::Format::Ptr Player;
-      const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr Decoder;
     };
 
     Decoder::Ptr CreateCompiledASC0Decoder()
     {
-      return boost::make_shared<CompiledASCDecoder<CompiledASC::Version0> >();
+      return boost::make_shared<CompiledASCDecoder>(boost::cref(CompiledASC::VERSION0));
     }
 
     Decoder::Ptr CreateCompiledASC1Decoder()
     {
-      return boost::make_shared<CompiledASCDecoder<CompiledASC::Version1> >();
+      return boost::make_shared<CompiledASCDecoder>(boost::cref(CompiledASC::VERSION1));
     }
 
     Decoder::Ptr CreateCompiledASC2Decoder()
     {
-      return boost::make_shared<CompiledASCDecoder<CompiledASC::Version2> >();
+      return boost::make_shared<CompiledASCDecoder>(boost::cref(CompiledASC::VERSION2));
     }
   }//namespace Packed
 }//namespace Formats
