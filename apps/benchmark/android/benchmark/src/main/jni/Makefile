@@ -1,5 +1,5 @@
 dynamic_name := benchmark
-path_step := ../../../..
+path_step := ../../../../../../..
 source_dirs := .
 
 libraries = benchmark 

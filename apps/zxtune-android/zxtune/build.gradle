@@ -1,0 +1,24 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        applicationId "app.zxtune"
+        minSdkVersion 10
+    }
+}
+
+dependencies {
+    compile "com.android.support:appcompat-v7:20.0.+"
+}
+
+apply from: "${treeRoot}/make/android/android.gradle"
+apply from: "${treeRoot}/make/android/nativelibs.gradle"
+
+android {
+    defaultConfig {
+        manifestPlaceholders = [ modarchiveKey: localProperties.getProperty("key.modarchive") ]
+    }
+}

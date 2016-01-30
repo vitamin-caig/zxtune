@@ -1,0 +1,152 @@
+/*
+ * Native libs basic functionality
+ *
+ */
+
+android {
+
+    flavorDimensions "abi"
+
+    productFlavors {
+        fat {
+            dimension "abi"
+            versionCode 0
+            versionName ""
+            ndkConfig.abiFilters "x86", "armeabi", "armeabi-v7a"
+        }
+
+        x86 {
+            dimension "abi"
+            versionCode 1
+            versionName "x86"
+            ndkConfig.abiFilters "x86"
+        }
+
+        /*
+        x86_64 {
+            dimension "abi"
+            versionCode 2
+            versionName "x86-64"
+            ndkConfig.abiFilters "x86-64"
+        }
+
+        mips {
+            dimension "abi"
+            versionCode 3
+            versionName "mips"
+            ndkConfig.abiFilters "mips"
+        }
+
+        mips64 {
+            dimension "abi"
+            versionCode 4
+            versionName "mips64"
+            ndkConfig.abiFilters "mips64"
+        }
+        */
+
+        arm {
+            dimension "abi"
+            versionCode 5
+            versionName "armeabi"
+            ndkConfig.abiFilters "armeabi"
+        }
+
+        arm7 {
+            dimension "abi"
+            versionCode 6
+            versionName "armeabi-v7a"
+            ndkConfig.abiFilters "armeabi-v7a"
+        }
+
+        /*
+        arm64 {
+            dimension "abi"
+            versionCode 7
+            versionName "arm64-v8a"
+            ndkConfig.abiFilters "arm64-8a"
+        }
+        */
+    }
+
+    applicationVariants.all { variant ->
+        def code = defaultConfig.versionCode
+        def name = defaultConfig.versionName
+        def abiFlavor = variant.productFlavors.get(0)
+        if (abiFlavor.versionCode != 0) {
+            code += abiFlavor.versionCode
+            name += "+${abiFlavor.versionCode}"
+        }
+        if (abiFlavor.versionName != "") {
+            name += "_${abiFlavor.versionName}"
+        }
+
+        variant.mergedFlavor.versionCode = code
+        variant.mergedFlavor.versionName = name
+    }
+}
+
+def callMake(cmdline) {
+    def fullCmd = "make platform=android ${cmdline}"
+    def proc = fullCmd.execute()
+    proc.consumeProcessOutput(System.out, System.out)
+    assert 0 == proc.waitFor()
+}
+
+android {
+    applicationVariants.all { variant ->
+        tasks.getByName("compile${variant.name.capitalize()}Ndk").enabled = false
+        def taskName = "nativeLibs${variant.name.capitalize()}"
+        task(taskName) {
+            def libsDir = variant.ndkCompile.soFolder
+            //optimize incremental builds - assume existing soFolder means that all libs are ready
+            outputs.dir libsDir
+            doLast {
+                def cpuCount = Runtime.runtime.availableProcessors()
+                def jniDir = variant.ndkCompile.sourceFolders.first()
+                variant.ndkCompile.abiFilters.each { arch ->
+                    def baseCmd = "arch=${arch} -C ${jniDir}"
+                    callMake("${baseCmd} -j ${cpuCount}")
+                    def dstDir = file("${libsDir}/${arch}")
+                    dstDir.mkdirs()
+                    callMake("${baseCmd} DESTDIR=${dstDir} install")
+                }
+            }
+        }
+        tasks.getByName("package${variant.name.capitalize()}").dependsOn.add(taskName)
+    }
+}
+
+android {
+    ext.publicBuildsDir = "${treeRoot}/Builds/${defaultConfig.versionName}/android"
+
+    task("publicBuild") {
+        def dbgArchive = "${publicBuildsDir}/${project.name}.tar.bz2"
+        outputs.file dbgArchive
+        doLast {
+            def dbgDir = "${publicBuildsDir}/debug"
+            def jniDir = sourceSets.findByName("main").jni.srcDirs.first()
+            productFlavors.findByName("fat").ndkConfig.abiFilters.each { arch ->
+                def pdbDir = file("${dbgDir}/${arch}")
+                pdbDir.mkdirs()
+                callMake("arch=${arch} -C ${jniDir} DESTDIR=${pdbDir} install_debug")
+            }
+            "tar -cjf ${dbgArchive} --remove-files ${dbgDir}".execute().waitFor()
+        }
+    }
+
+    applicationVariants.all { variant ->
+        if (variant.buildType.name == "release") {
+            def taskName = "publicBuild${variant.flavorName.capitalize()}"
+            def suffix = variant.name.capitalize()
+            task(taskName, type: Copy, dependsOn: "assemble${suffix}") {
+                def apks = variant.outputs
+                assert apks.size() == 1
+                from apks.first().outputFile
+                into publicBuildsDir
+                rename ".*", "${project.name}_${variant.mergedFlavor.versionName}.apk"
+            }
+            tasks.getByName("publicBuild").dependsOn.add(taskName)
+        }
+    }
+}

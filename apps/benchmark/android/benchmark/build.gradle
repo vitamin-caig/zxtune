@@ -1,0 +1,14 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        applicationId "app.zxtune.benchmark"
+        minSdkVersion 7
+    }
+}
+
+apply from: "${treeRoot}/make/android/android.gradle"
+apply from: "${treeRoot}/make/android/nativelibs.gradle"

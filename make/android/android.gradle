@@ -1,0 +1,62 @@
+/*
+ * Generic functionality for Android project building
+ *
+ */
+
+
+def makeOutput(cmdline) {
+    return "make --quiet ${cmdline}".execute().text.trim()
+}
+
+def computeVersionCode() {
+    def code = makeOutput("-f ${treeRoot}/make/version.mak version_index")
+    return code.toInteger()
+}
+
+def computeVersionName() {
+    def name = makeOutput("-f ${treeRoot}/make/version.mak version_name")
+    return name
+}
+
+def loadLocalProperties() {
+    def properties = new Properties()
+    properties.load(project.rootProject.file("local.properties").newDataInputStream())
+    return properties
+}
+
+ext {
+    localProperties = loadLocalProperties()
+}
+
+android {
+
+    defaultConfig {
+        versionCode computeVersionCode()
+        versionName computeVersionName()
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("${treeRoot}/make/android/release.keystore")
+            storePassword localProperties.getProperty("key.store.password")
+            keyAlias "release"
+            keyPassword localProperties.getProperty("key.alias.password")
+        }
+    }
+
+    buildTypes {
+        release {
+            //minifyEnabled true
+            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+
+        debug {
+            debuggable true
+        }
+    }
+}

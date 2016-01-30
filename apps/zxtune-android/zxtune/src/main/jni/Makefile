@@ -1,5 +1,5 @@
 dynamic_name := zxtune
-path_step := ../../..
+path_step := ../../../../../..
 
 source_dirs := .
 
