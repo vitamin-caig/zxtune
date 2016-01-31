@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.text.Html;
 import android.text.TextUtils;
 import app.zxtune.fs.HttpProvider;
 
@@ -69,7 +70,7 @@ class RemoteCatalog extends Catalog {
     final Matcher matcher = ENTRIES.matcher(chars);
     while (matcher.find()) {
       final String dirMark = matcher.group(1);
-      final String name = matcher.group(2);
+      final String name = decodeHtml(matcher.group(2));
       if (DIR_MARKUP.equals(dirMark)) {
         visitor.acceptDir(name);
       } else {
@@ -88,5 +89,9 @@ class RemoteCatalog extends Catalog {
       data.position(0);
       return new String(buff, "UTF-8");
     }
+  }
+
+  private static String decodeHtml(String txt) {
+    return Html.fromHtml(txt).toString();
   }
 }
