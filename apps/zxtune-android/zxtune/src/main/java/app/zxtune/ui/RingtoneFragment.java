@@ -57,7 +57,7 @@ public class RingtoneFragment extends DialogFragment {
   }
   
   private void fillDurations(LayoutInflater inflater, ViewGroup container) {
-    
+
     final Uri uri = (Uri) getArguments().getParcelable("url");
     final TimeStamp moduleDuration = TimeStamp.createFrom(getArguments().getLong("duration"), TimeUnit.SECONDS);
 
@@ -68,10 +68,15 @@ public class RingtoneFragment extends DialogFragment {
         dismiss();
       }
     };
-    
-    for (TimeStamp duration : PREDEFINED_DURATIONS) {
+
+    for (int idx = 0; idx < PREDEFINED_DURATIONS.length; ++idx) {
+      TimeStamp duration = PREDEFINED_DURATIONS[idx];
       if (moduleDuration.compareTo(duration) < 0) {
-        break;
+        if (idx == 0) {
+          duration = moduleDuration;
+        } else {
+          break;
+        }
       }
       Log.d(TAG, "Add duration button %s", duration);
       final Button button = (Button) inflater.inflate(R.layout.button, container, false);
