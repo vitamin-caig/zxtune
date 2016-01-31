@@ -119,6 +119,7 @@ class RemoteCatalog extends Catalog {
     final String uri = new ApiUriBuilder(key).setRequest("search_artist").build();
     final RootElement root = createAuthorsParserRoot(visitor);
     loadPages(uri, root);
+    visitor.accept(Author.UNKNOWN);
   }
 
   @Override
