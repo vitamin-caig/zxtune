@@ -43,6 +43,37 @@ struct tmpfilename {
 	struct list_head list;
 };
 
+#define BUFLEN 16384
+
+static void set_md5sum(HIO_HANDLE *f, unsigned char *digest)
+{
+	unsigned char buf[BUFLEN];
+	MD5_CTX ctx;
+	int bytes_read;
+	struct stat st;
+
+	if (hio_stat(f, &st) < 0)
+		return;
+
+	if (st.st_size <= 0) {
+		memset(digest, 0, 16);
+		return;
+	}
+
+	hio_seek(f, 0, SEEK_SET);
+
+	MD5Init(&ctx);
+	while ((bytes_read = hio_read(buf, 1, BUFLEN, f)) > 0) {
+		MD5Update(&ctx, buf, bytes_read);
+	}
+	MD5Final(digest, &ctx);
+}
+
+#ifndef DECRUNCH_MAX
+#define DECRUNCH_MAX 5 /* don't recurse more than this */
+#endif
+
+#if DECRUNCH_MAX > 0
 int decrunch_arc	(FILE *, FILE *);
 int decrunch_arcfs	(FILE *, FILE *);
 int decrunch_sqsh	(FILE *, FILE *);
@@ -91,34 +122,6 @@ enum {
 #else
 #define REDIR_STDERR
 #endif
-
-#define DECRUNCH_MAX 5 /* don't recurse more than this */
-
-#define BUFLEN 16384
-
-static void set_md5sum(HIO_HANDLE *f, unsigned char *digest)
-{
-	unsigned char buf[BUFLEN];
-	MD5_CTX ctx;
-	int bytes_read;
-	struct stat st;
-
-	if (hio_stat(f, &st) < 0)
-		return;
-
-	if (st.st_size <= 0) {
-		memset(digest, 0, 16);
-		return;
-	}
-
-	hio_seek(f, 0, SEEK_SET);
-
-	MD5Init(&ctx);
-	while ((bytes_read = hio_read(buf, 1, BUFLEN, f)) > 0) {
-		MD5Update(&ctx, buf, bytes_read);
-	}
-	MD5Final(digest, &ctx);
-}
 
 static int decrunch(struct list_head *head, FILE **f, char **s, int ttl)
 {
@@ -390,7 +393,7 @@ static int decrunch(struct list_head *head, FILE **f, char **s, int ttl)
 
     return res;
 }
-
+#endif
 
 /*
  * Windows doesn't allow you to unlink an open file, so we changed the
@@ -413,14 +416,15 @@ static void unlink_tempfiles(struct list_head *head)
 	}
 }
 
-
 int xmp_test_module(char *path, struct xmp_test_info *info)
 {
 	HIO_HANDLE *h;
 	struct stat st;
 	char buf[XMP_NAME_SIZE];
 	int i;
+  
 	struct list_head tmpfiles_list;
+  
 	int ret = -XMP_ERROR_FORMAT;;
 
 	if (stat(path, &st) < 0)
@@ -438,10 +442,12 @@ int xmp_test_module(char *path, struct xmp_test_info *info)
 
 	INIT_LIST_HEAD(&tmpfiles_list);
 
+#if DECRUNCH_MAX > 0
 	if (decrunch(&tmpfiles_list, &h->f, &path, DECRUNCH_MAX) < 0) {
 		ret = -XMP_ERROR_DEPACK;
 		goto err;
 	}
+#endif
 
 	if (hio_stat(h, &st) < 0) {/* get size after decrunch */
 		ret = -XMP_ERROR_DEPACK;
@@ -546,9 +552,11 @@ int xmp_load_module(xmp_context opaque, char *path)
 
 	INIT_LIST_HEAD(&tmpfiles_list);
 
+#if DECRUNCH_MAX > 0
 	D_(D_INFO "decrunch");
 	if (decrunch(&tmpfiles_list, &h->f, &path, DECRUNCH_MAX) < 0)
 		goto err_depack;
+#endif
 
 	if (hio_stat(h, &st) < 0)
 		goto err_depack;

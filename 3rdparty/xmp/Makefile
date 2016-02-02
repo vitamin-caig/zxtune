@@ -12,10 +12,12 @@ source_files += $(addprefix src/,\
  load_helpers load hio hmn_extras extras smix)
 
 source_files += $(addprefix src/depackers/,\
- ppdepack unsqsh mmcmp readrle readhuff readlzw \
- unarc arcfs xfd muse unlzx s404_dec \
- unzip gunzip uncompress unxz bunzip2 unlha \
- xz_dec_lzma2 xz_dec_stream oxm vorbis crc32)
+  readlzw readrle)
+
+# ppdepack unsqsh mmcmp readhuff \
+# unarc arcfs xfd muse unlzx s404_dec \
+# unzip gunzip uncompress unxz bunzip2 unlha \
+# xz_dec_lzma2 xz_dec_stream oxm vorbis crc32)
 
 source_files += $(addprefix src/loaders/,\
  common iff itsex asif voltable sample \
@@ -51,7 +53,7 @@ endif
 
 source_files := $(addsuffix .c,$(source_files))
 
-defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS
+defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS DECRUNCH_MAX=0
 windows_definitions += inline=__inline _USE_MATH_DEFINES WIN32 _WINDOWS PATH_MAX=1024
 
 include $(path_step)/makefile.mak
