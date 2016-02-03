@@ -26,6 +26,10 @@ namespace
   const Debug::Stream Dbg("Formats::Packed::Lha");
 }
 
+namespace Formats
+{
+namespace Packed
+{
 namespace Lha
 {
   class Decompressor
@@ -76,38 +80,31 @@ namespace Lha
     }
     return Decompressor::Ptr();
   }
-}
 
-namespace Formats
-{
-  namespace Packed
+  Formats::Packed::Container::Ptr DecodeRawData(const Binary::Container& input, const std::string& method, std::size_t outputSize)
   {
-    namespace Lha
+    if (Formats::Packed::Container::Ptr result = DecodeRawDataAtLeast(input, method, outputSize))
     {
-      Formats::Packed::Container::Ptr DecodeRawData(const Binary::Container& input, const std::string& method, std::size_t outputSize)
+      const std::size_t decoded = result->Size();
+      if (decoded == outputSize)
       {
-        if (Formats::Packed::Container::Ptr result = DecodeRawDataAtLeast(input, method, outputSize))
-        {
-          const std::size_t decoded = result->Size();
-          if (decoded == outputSize)
-          {
-            return result;
-          }
-          const std::size_t originalSize = result->PackedSize();
-          Dbg("Output size mismatch while decoding %1% -> %2% (%3% required)", originalSize, decoded, outputSize);
-        }
-        return Formats::Packed::Container::Ptr();
+        return result;
       }
-
-      Formats::Packed::Container::Ptr DecodeRawDataAtLeast(const Binary::Container& input, const std::string& method, std::size_t sizeHint)
-      {
-        if (const ::Lha::Decompressor::Ptr decompressor = ::Lha::CreateDecompressor(method))
-        {
-          return decompressor->Decode(input, sizeHint);
-        }
-        return Formats::Packed::Container::Ptr();
-      }
+      const std::size_t originalSize = result->PackedSize();
+      Dbg("Output size mismatch while decoding %1% -> %2% (%3% required)", originalSize, decoded, outputSize);
     }
+    return Formats::Packed::Container::Ptr();
   }
-}
+
+  Formats::Packed::Container::Ptr DecodeRawDataAtLeast(const Binary::Container& input, const std::string& method, std::size_t sizeHint)
+  {
+    if (const Lha::Decompressor::Ptr decompressor = Lha::CreateDecompressor(method))
+    {
+      return decompressor->Decode(input, sizeHint);
+    }
+    return Formats::Packed::Container::Ptr();
+  }
+}//namespace Lha
+}//namespace Packed
+}//namespace Formats
 
