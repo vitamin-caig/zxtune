@@ -10,10 +10,10 @@
 
 //local includes
 #include "analyzer.h"
+//common includes
+#include <make_ptr.h>
 //std includes
 #include <algorithm>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -46,6 +46,6 @@ namespace Module
 
   Analyzer::Ptr CreateAnalyzer(Devices::StateSource::Ptr state)
   {
-    return boost::make_shared<DevicesAnalyzer>(state);
+    return MakePtr<DevicesAnalyzer>(state);
   }
 }

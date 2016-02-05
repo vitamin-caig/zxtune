@@ -16,6 +16,7 @@
 //common includes
 #include <contract.h>
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_attrs.h>
 #include <core/module_open.h>
@@ -27,8 +28,6 @@
 #include <parameters/tools.h>
 //std includes
 #include <list>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -379,7 +378,7 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::MULTI;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateMultiTrackContainerDecoder();
-    const Module::MTC::Factory::Ptr factory = boost::make_shared<Module::MTC::Factory>();
+    const Module::MTC::Factory::Ptr factory = MakePtr<Module::MTC::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

@@ -11,13 +11,13 @@
 //local includes
 #include "saa_base.h"
 #include "core/plugins/players/analyzer.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -264,17 +264,17 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return boost::make_shared<SAADataIterator>(iterator, renderer);
+      return MakePtr<SAADataIterator>(iterator, renderer);
     }
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
     {
-      return boost::make_shared<SAARenderer>(params, iterator, device);
+      return MakePtr<SAARenderer>(params, iterator, device);
     }
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
     {
-      return boost::make_shared<SAAHolder>(chiptune);
+      return MakePtr<SAAHolder>(chiptune);
     }
   }
 }

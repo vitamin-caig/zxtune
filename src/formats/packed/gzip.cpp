@@ -12,6 +12,7 @@
 #include "container.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
@@ -195,7 +196,7 @@ namespace Packed
         const Gzip::Footer footer = input.ReadField<Gzip::Footer>();
         Require(result->Size() == fromLE(footer.OriginalSize));
         //TODO: check CRC
-        return CreatePackedContainer(result, input.GetPosition());
+        return CreateContainer(result, input.GetPosition());
       }
       catch (const std::exception&)
       {
@@ -208,7 +209,7 @@ namespace Packed
 
   Decoder::Ptr CreateGzipDecoder()
   {
-    return boost::make_shared<GzipDecoder>();
+    return MakePtr<GzipDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

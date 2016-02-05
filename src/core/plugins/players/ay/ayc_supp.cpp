@@ -16,11 +16,12 @@
 #include "core/plugins/player_plugins_registrator.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
 #include <formats/chiptune/aym/ayc.h>
 //boost includes
-#include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 
 namespace Module
 {
@@ -98,7 +99,7 @@ namespace AYC
     {
       return Data.empty()
         ? AYM::StreamModel::Ptr()
-        : AYM::StreamModel::Ptr(new AYCStreamModel(Data));
+        : MakePtr<AYCStreamModel>(boost::ref(Data));
     }
   private:
     Devices::AYM::Registers::Index Register;
@@ -136,7 +137,7 @@ namespace ZXTune
     const Char ID[] = {'A', 'Y', 'C', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateAYCDecoder();
-    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::AYC::Factory>();
+    const Module::AYM::Factory::Ptr factory = MakePtr<Module::AYC::Factory>();
     const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

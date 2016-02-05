@@ -12,6 +12,7 @@
 #include "zxstate_supp.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
@@ -28,7 +29,6 @@
 //3rd-party includes
 #include <3rdparty/zlib/zlib.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/size.hpp>
 //text include
 #include <formats/text/archived.h>
@@ -741,11 +741,11 @@ namespace Archived
       {
         if (blocks.size() == 1)
         {
-          return boost::make_shared<SingleBlockFile>(Delegate, name, blocks.front());
+          return MakePtr<SingleBlockFile>(Delegate, name, blocks.front());
         }
         else
         {
-          return boost::make_shared<MultiBlockFile>(Delegate, name, blocks);
+          return MakePtr<MultiBlockFile>(Delegate, name, blocks);
         }
       }
     private:
@@ -785,7 +785,7 @@ namespace Archived
         if (!blocks.empty())
         {
           const Binary::Container::Ptr archive = data.GetSubcontainer(0, size);
-          return boost::make_shared<ZXState::Container>(archive, blocks.begin(), blocks.end());
+          return MakePtr<ZXState::Container>(archive, blocks.begin(), blocks.end());
         }
         Dbg("No files found");
       }
@@ -797,7 +797,7 @@ namespace Archived
 
   Decoder::Ptr CreateZXStateDecoder()
   {
-    return boost::make_shared<ZXStateDecoder>();
+    return MakePtr<ZXStateDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

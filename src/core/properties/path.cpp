@@ -10,14 +10,13 @@
 
 //local includes
 #include "path.h"
+//common includes
+#include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_attrs.h>
 #include <io/api.h>
 #include <parameters/visitor.h>
-//common includes
-#include <error_tools.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -139,12 +138,12 @@ namespace Module
     }
     catch (const Error&)
     {
-      return boost::make_shared<UnresolvedPathPropertiesAccessor>(fullpath);
+      return MakePtr<UnresolvedPathPropertiesAccessor>(fullpath);
     }
   }
 
   Parameters::Accessor::Ptr CreatePathProperties(IO::Identifier::Ptr id)
   {
-    return boost::make_shared<PathPropertiesAccessor>(id);
+    return MakePtr<PathPropertiesAccessor>(id);
   }
 }

@@ -8,13 +8,13 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <devices/dac/sample_factories.h>
 //std includes
 #include <cmath>
 #include <numeric>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -162,17 +162,17 @@ namespace Devices
 
     Sample::Ptr CreateU8Sample(Binary::Data::Ptr content, std::size_t loop)
     {
-      return boost::make_shared<U8Sample>(content, loop);
+      return MakePtr<U8Sample>(content, loop);
     }
 
     Sample::Ptr CreateU4Sample(Binary::Data::Ptr content, std::size_t loop)
     {
-      return boost::make_shared<U4Sample>(content, loop);
+      return MakePtr<U4Sample>(content, loop);
     }
 
     Sample::Ptr CreateU4PackedSample(Binary::Data::Ptr content, std::size_t loop)
     {
-      return boost::make_shared<U4PackedSample>(content, loop);
+      return MakePtr<U4PackedSample>(content, loop);
     }
   }
 }

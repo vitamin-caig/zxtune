@@ -16,6 +16,8 @@
 #include "core/plugins/players/properties_meta.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/tracking.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/extremetracker1.h>
@@ -50,7 +52,7 @@ namespace ExtremeTracker1
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
-      : Data(boost::make_shared<ModuleData>())
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
@@ -80,7 +82,7 @@ namespace ExtremeTracker1
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -125,7 +127,7 @@ namespace ExtremeTracker1
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
+    const ModuleData::RWPtr Data;
     DAC::PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
@@ -272,7 +274,7 @@ namespace ExtremeTracker1
     virtual DAC::DataIterator::Ptr CreateDataIterator() const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const DAC::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return DAC::CreateDataIterator(iterator, renderer);
     }
 
@@ -299,7 +301,7 @@ namespace ExtremeTracker1
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ExtremeTracker1::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -318,7 +320,7 @@ namespace ZXTune
     const Char ID[] = {'E', 'T', '1', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateExtremeTracker1Decoder();
-    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::ExtremeTracker1::Factory>();
+    const Module::DAC::Factory::Ptr factory = MakePtr<Module::ExtremeTracker1::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

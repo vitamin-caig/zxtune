@@ -8,6 +8,8 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -17,8 +19,6 @@
 //std includes
 #include <map>
 #include <numeric>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -217,7 +217,7 @@ namespace Archived
         if (file.get())
         {
           const Binary::Container::Ptr data = Data.GetSubcontainer(Blocks.GetOffset(), file->GetPackedSize());
-          return boost::make_shared<File>(Decoder, GetName(), file->GetUnpackedSize(), data);
+          return MakePtr<File>(Decoder, GetName(), file->GetUnpackedSize(), data);
         }
         assert(!"Failed to get file");
         return File::Ptr();
@@ -395,7 +395,7 @@ namespace Archived
       if (const std::size_t totalSize = iter.GetOffset())
       {
         const Binary::Container::Ptr archive = data.GetSubcontainer(0, totalSize);
-        return boost::make_shared<Zip::Container>(FileDecoder, archive, filesCount);
+        return MakePtr<Zip::Container>(FileDecoder, archive, filesCount);
       }
       else
       {
@@ -408,7 +408,7 @@ namespace Archived
 
   Decoder::Ptr CreateZipDecoder()
   {
-    return boost::make_shared<ZipDecoder>();
+    return MakePtr<ZipDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

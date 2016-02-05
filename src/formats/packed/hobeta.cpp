@@ -12,6 +12,7 @@
 #include "container.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -123,7 +124,7 @@ namespace Packed
       const std::size_t dataSize = fromLE(header->Length);
       const std::size_t fullSize = fromLE(header->FullLength);
       const Binary::Container::Ptr subdata = rawData.GetSubcontainer(sizeof(*header), dataSize);
-      return CreatePackedContainer(subdata, fullSize + sizeof(*header));
+      return CreateContainer(subdata, fullSize + sizeof(*header));
     }
   private:
     const Binary::Format::Ptr Format;
@@ -131,7 +132,7 @@ namespace Packed
 
   Decoder::Ptr CreateHobetaDecoder()
   {
-    return boost::make_shared<HobetaDecoder>();
+    return MakePtr<HobetaDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

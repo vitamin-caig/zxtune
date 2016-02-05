@@ -8,6 +8,8 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
@@ -21,7 +23,6 @@
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/scoped_ptr.hpp>
 //text include
 #include <formats/text/packed.h>
@@ -174,7 +175,7 @@ namespace Archived
     class ChainDecoder
     {
     public:
-      typedef boost::shared_ptr<ChainDecoder> Ptr;
+      typedef boost::shared_ptr<const ChainDecoder> Ptr;
 
       explicit ChainDecoder(Binary::Container::Ptr data)
         : Data(data)
@@ -317,7 +318,7 @@ namespace Archived
         if (file.IsSupported() && !Current)
         {
           const FileBlock block(&file, Blocks.GetOffset(), Blocks.GetBlockSize());
-          Current = boost::make_shared<File>(Decoder, block, GetName());
+          Current = MakePtr<File>(Decoder, block, GetName());
         }
         return Current;
       }
@@ -353,7 +354,7 @@ namespace Archived
     {
     public:
       Container(Binary::Container::Ptr data, uint_t filesCount)
-        : Decoder(boost::make_shared<ChainDecoder>(data))
+        : Decoder(MakePtr<ChainDecoder>(data))
         , Delegate(data)
         , FilesCount(filesCount)
       {
@@ -463,7 +464,7 @@ namespace Archived
       if (const std::size_t totalSize = iter.GetOffset())
       {
         const Binary::Container::Ptr archive = data.GetSubcontainer(0, totalSize);
-        return boost::make_shared<Rar::Container>(archive, filesCount);
+        return MakePtr<Rar::Container>(archive, filesCount);
       }
       else
       {
@@ -476,7 +477,7 @@ namespace Archived
 
   Decoder::Ptr CreateRarDecoder()
   {
-    return boost::make_shared<RarDecoder>();
+    return MakePtr<RarDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

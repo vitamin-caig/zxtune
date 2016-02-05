@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -24,7 +25,6 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -998,7 +998,7 @@ loc_0_8262:
 
   Decoder::Ptr CreateETrackerDecoder()
   {
-    return boost::make_shared<ETracker::Decoder>();
+    return MakePtr<ETracker::Decoder>();
   }
 }// namespace Chiptune
 }// namespace Formats

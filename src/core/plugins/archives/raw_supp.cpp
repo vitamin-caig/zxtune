@@ -18,6 +18,7 @@
 #include <core/plugins/plugins_types.h>
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container.h>
 #include <core/module_detect.h>
@@ -33,7 +34,6 @@
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -401,7 +401,7 @@ namespace
 
     ScanDataLocation(DataLocation::Ptr parent, const String& subPlugin, std::size_t offset)
       : Parent(parent)
-      , Subdata(boost::make_shared<ScanDataContainer>(Parent->GetData(), offset))
+      , Subdata(MakePtr<ScanDataContainer>(Parent->GetData(), offset))
       , Subplugin(subPlugin)
     {
     }
@@ -527,7 +527,7 @@ namespace
 
     typename P::Iterator::Ptr Enumerate() const
     {
-      return typename P::Iterator::Ptr(new IteratorImpl(Plugins.begin(), Plugins.end(), Offset));
+      return MakePtr<IteratorImpl>(Plugins.begin(), Plugins.end(), Offset);
     }
 
     std::size_t GetMinimalPluginLookahead() const
@@ -614,7 +614,7 @@ namespace
       {
         const Plugin::Ptr plug = res->GetDescription();
         return 0 != (plug->Capabilities() & Capabilities::Container::Traits::PLAIN)
-          ? boost::make_shared<DoubleAnalyzedArchivePlugin>(res)
+          ? MakePtr<DoubleAnalyzedArchivePlugin>(res)
           : res;
       }
       else
@@ -756,16 +756,16 @@ namespace
 
       const String currentPath = input->GetPath()->AsString();
       Dbg("Detecting modules in raw data at '%1%'", currentPath);
-      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), currentPath));
+      const Log::ProgressCallback::Ptr progress = MakePtr<RawProgressCallback>(callback, static_cast<uint_t>(size), currentPath);
       const Module::DetectCallback& noProgressCallback = Module::CustomProgressDetectCallbackAdapter(callback);
 
       const ArchivePlugin::Iterator::Ptr availableArchives = ArchivePluginsEnumerator::Create()->Enumerate();
       const ArchivePlugin::Iterator::Ptr usedArchives = scanParams.GetDoubleAnalysis()
-        ? ArchivePlugin::Iterator::Ptr(new DoubleAnalysisArchivePlugins(availableArchives))
+        ? MakePtr<DoubleAnalysisArchivePlugins>(availableArchives)
         : availableArchives;
       RawDetectionPlugins usedPlugins(params, PlayerPluginsEnumerator::Create()->Enumerate(), usedArchives, *this);
 
-      ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, Description->Id(), 0);
+      ScanDataLocation::Ptr subLocation = MakePtr<ScanDataLocation>(input, Description->Id(), 0);
 
       while (subLocation->HasToScan(minRawSize))
       {
@@ -777,7 +777,7 @@ namespace
         if (!subLocation.unique())
         {
           Dbg("Sublocation is captured. Duplicate.");
-          subLocation = boost::make_shared<ScanDataLocation>(input, Description->Id(), offset);
+          subLocation = MakePtr<ScanDataLocation>(input, Description->Id(), offset);
         }
         subLocation->Move(std::max(bytesToSkip, SCAN_STEP));
       }
@@ -805,7 +805,7 @@ namespace ZXTune
 {
   void RegisterRawContainer(ArchivePluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new RawScaner());
+    const ArchivePlugin::Ptr plugin = MakePtr<RawScaner>();
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -26,11 +26,14 @@ namespace Playlist
       Parameters::Accessor::Ptr AdjustedParameters;
     };
 
-    typedef std::vector<ContainerItem> ContainerItems;
-    typedef boost::shared_ptr<const ContainerItems> ContainerItemsPtr;
+    struct ContainerItems : std::vector<ContainerItem>
+    {
+      typedef boost::shared_ptr<const ContainerItems> Ptr;
+      typedef boost::shared_ptr<ContainerItems> RWPtr;
+    };
 
     Container::Ptr CreateContainer(Item::DataProvider::Ptr provider,
       Parameters::Accessor::Ptr properties,
-      ContainerItemsPtr items);
+      ContainerItems::Ptr items);
   }
 }

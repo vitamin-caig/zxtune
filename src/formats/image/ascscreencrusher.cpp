@@ -12,6 +12,7 @@
 #include "container.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/image.h>
@@ -223,7 +224,7 @@ namespace Image
         return Container::Ptr();
       }
       ASCScreenCrusher::DataDecoder decoder(rawData);
-      return CreateImageContainer(decoder.GetResult(), decoder.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -231,7 +232,7 @@ namespace Image
 
   Decoder::Ptr CreateASCScreenCrusherDecoder()
   {
-    return boost::make_shared<ASCScreenCrusherDecoder>();
+    return MakePtr<ASCScreenCrusherDecoder>();
   }
 }//namespace Image
 }//namespace Formats

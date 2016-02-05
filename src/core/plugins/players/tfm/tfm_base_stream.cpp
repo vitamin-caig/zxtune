@@ -11,6 +11,8 @@
 //local includes
 #include "tfm_base_stream.h"
 #include "core/plugins/players/streaming.h"
+//common includes
+#include <make_ptr.h>
 
 namespace Module
 {
@@ -86,7 +88,7 @@ namespace Module
       virtual TFM::DataIterator::Ptr CreateDataIterator() const
       {
         const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
-        return boost::make_shared<StreamDataIterator>(iter, Data);
+        return MakePtr<StreamDataIterator>(iter, Data);
       }
     private:
       const StreamModel::Ptr Data;
@@ -96,7 +98,7 @@ namespace Module
 
     Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties)
     {
-      return boost::make_shared<StreamedChiptune>(model, properties);
+      return MakePtr<StreamedChiptune>(model, properties);
     }
   }
 }

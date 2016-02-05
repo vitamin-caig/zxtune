@@ -8,17 +8,15 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <parameters/container.h>
 //std includes
 #include <map>
-//boost includes
-#include <boost/make_shared.hpp>
 
-namespace
+namespace Parameters
 {
-  using namespace Parameters;
-
   template<class T>
   bool FindByName(const std::map<NameType, T>& map, const NameType& name, T& res)
   {
@@ -196,17 +194,14 @@ namespace
     const Accessor::Ptr AccessDelegate;
     const Modifier::Ptr ModifyDelegate;
   };
-}
 
-namespace Parameters
-{
   Container::Ptr Container::Create()
   {
-    return boost::make_shared<StorageContainer>();
+    return MakePtr<StorageContainer>();
   }
 
   Container::Ptr Container::CreateAdapter(Accessor::Ptr accessor, Modifier::Ptr modifier)
   {
-    return boost::make_shared<CompositeContainer>(accessor, modifier);
+    return MakePtr<CompositeContainer>(accessor, modifier);
   }
 }

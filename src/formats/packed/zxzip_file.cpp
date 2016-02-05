@@ -17,6 +17,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -26,8 +27,6 @@
 #include <boost/array.hpp>
 //std includes
 #include <cstring>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -675,7 +674,7 @@ namespace Packed
         return Container::Ptr();
       }
       ZXZip::DispatchedDataDecoder decoder(container);
-      return CreatePackedContainer(decoder.GetDecodedData(), container.GetUsedSize());
+      return CreateContainer(decoder.GetDecodedData(), container.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -683,7 +682,7 @@ namespace Packed
 
   Decoder::Ptr CreateZXZipDecoder()
   {
-    return boost::make_shared<ZXZipDecoder>();
+    return MakePtr<ZXZipDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

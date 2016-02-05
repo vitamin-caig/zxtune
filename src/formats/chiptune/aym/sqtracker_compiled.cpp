@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -24,7 +25,6 @@
 #include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -1029,7 +1029,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateSQTrackerDecoder()
   {
-    return boost::make_shared<SQTracker::Decoder>();
+    return MakePtr<SQTracker::Decoder>();
   }
 }// namespace Chiptune
 }// namespace Formats

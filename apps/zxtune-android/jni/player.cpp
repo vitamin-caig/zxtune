@@ -15,13 +15,14 @@
 #include "player.h"
 #include "properties.h"
 #include "zxtune.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <parameters/merged_accessor.h>
 #include <sound/mixer_factory.h>
 //std includes
 #include <deque>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/type_traits/is_signed.hpp>
 
 namespace
@@ -158,9 +159,9 @@ namespace
     const Parameters::Container::Ptr localParameters = Parameters::Container::Create();
     const Parameters::Accessor::Ptr internalProperties = module->GetModuleProperties();
     const Parameters::Accessor::Ptr properties = Parameters::CreateMergedAccessor(localParameters, internalProperties, globalParameters);
-    const BufferTarget::Ptr buffer = boost::make_shared<BufferTarget>();
+    const BufferTarget::Ptr buffer = MakePtr<BufferTarget>();
     const Module::Renderer::Ptr renderer = module->CreateRenderer(properties, buffer);
-    return boost::make_shared<PlayerControl>(localParameters, renderer, buffer);
+    return MakePtr<PlayerControl>(localParameters, renderer, buffer);
   }
 
   template<class StorageType, class ResultType>

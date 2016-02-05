@@ -11,10 +11,10 @@
 //local includes
 #include "trdos_catalogue.h"
 #include "trdos_utils.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <formats/packed/decoders.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Formats
 {
@@ -111,7 +111,7 @@ namespace Archived
 
   Decoder::Ptr CreateZXZipDecoder()
   {
-    return boost::make_shared<ZXZipDecoder>();
+    return MakePtr<ZXZipDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

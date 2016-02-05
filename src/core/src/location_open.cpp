@@ -13,11 +13,10 @@
 #include "core/plugins/archive_plugins_enumerator.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <src/core/text/core.h>
 
@@ -116,13 +115,13 @@ namespace ZXTune
 {
   DataLocation::Ptr CreateLocation(Binary::Container::Ptr data)
   {
-    return boost::make_shared<UnresolvedLocation>(data);
+    return MakePtr<UnresolvedLocation>(data);
   }
 
   DataLocation::Ptr OpenLocation(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath)
   {
     const ArchivePluginsEnumerator::Ptr usedPlugins = ArchivePluginsEnumerator::Create();
-    DataLocation::Ptr resolvedLocation = boost::make_shared<UnresolvedLocation>(data);
+    DataLocation::Ptr resolvedLocation = MakePtr<UnresolvedLocation>(data);
     const Analysis::Path::Ptr sourcePath = Analysis::ParsePath(subpath, Text::MODULE_SUBPATH_DELIMITER[0]);
     for (Analysis::Path::Ptr unresolved = sourcePath; !unresolved->Empty(); unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))
     {
@@ -139,6 +138,6 @@ namespace ZXTune
 
   DataLocation::Ptr CreateLocation(Binary::Container::Ptr data, const String& plugin, const String& path)
   {
-    return boost::make_shared<GeneratedLocation>(data, plugin, path);
+    return MakePtr<GeneratedLocation>(data, plugin, path);
   }
 }

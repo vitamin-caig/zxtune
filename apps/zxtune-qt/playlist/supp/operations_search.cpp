@@ -14,8 +14,7 @@
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-//boost includes
-#include <boost/make_shared.hpp>
+#include <make_ptr.h>
 //qt includes
 #include <QtCore/QRegExp>
 
@@ -36,7 +35,7 @@ namespace
     SearchVisitor(Predicate::Ptr pred, Log::ProgressCallback& cb)
       : Callback(cb)
       , Pred(pred)
-      , Result(boost::make_shared<Playlist::Model::IndexSet>())
+      , Result(MakeRWPtr<Playlist::Model::IndexSet>())
       , Done(0)
     {
     }
@@ -50,14 +49,14 @@ namespace
       Callback.OnProgress(++Done);
     }
 
-    Playlist::Model::IndexSetPtr GetResult() const
+    Playlist::Model::IndexSet::Ptr GetResult() const
     {
       return Result;
     }
   private:
     Log::ProgressCallback& Callback;
     const Predicate::Ptr Pred;
-    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
+    const Playlist::Model::IndexSet::RWPtr Result;
     uint_t Done;
   };
 
@@ -70,7 +69,7 @@ namespace
       Require(Pred != 0);
     }
 
-    SearchOperation(Playlist::Model::IndexSetPtr items, Predicate::Ptr pred)
+    SearchOperation(Playlist::Model::IndexSet::Ptr items, Predicate::Ptr pred)
       : SelectedItems(items)
       , Pred(pred)
     {
@@ -93,7 +92,7 @@ namespace
       emit ResultAcquired(visitor.GetResult());
     }
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Model::IndexSet::Ptr SelectedItems;
     const Predicate::Ptr Pred;  
   };
 
@@ -179,19 +178,19 @@ namespace
     const QString& pattern = data.Pattern;
     if (0 == pattern.size())
     {
-      const StringPredicate::Ptr str = boost::make_shared<EmptyStringPredicate>();
-      return boost::make_shared<ScopePredicateDispatcher>(str, data.Scope);
+      const StringPredicate::Ptr str = MakePtr<EmptyStringPredicate>();
+      return MakePtr<ScopePredicateDispatcher>(str, data.Scope);
     }
     const bool caseSensitive = 0 != (data.Options & Playlist::Item::Search::CASE_SENSITIVE);
     if (0 != (data.Options & Playlist::Item::Search::REGULAR_EXPRESSION))
     {
-      const StringPredicate::Ptr str = boost::make_shared<RegexStringPredicate>(pattern, caseSensitive);
-      return boost::make_shared<ScopePredicateDispatcher>(str, data.Scope);
+      const StringPredicate::Ptr str = MakePtr<RegexStringPredicate>(pattern, caseSensitive);
+      return MakePtr<ScopePredicateDispatcher>(str, data.Scope);
     }
     else
     {
-      const StringPredicate::Ptr str = boost::make_shared<SimpleStringPredicate>(pattern, caseSensitive);
-      return boost::make_shared<ScopePredicateDispatcher>(str, data.Scope);
+      const StringPredicate::Ptr str = MakePtr<SimpleStringPredicate>(pattern, caseSensitive);
+      return MakePtr<ScopePredicateDispatcher>(str, data.Scope);
     }
   }
 }
@@ -203,13 +202,13 @@ namespace Playlist
     SelectionOperation::Ptr CreateSearchOperation(const Search::Data& data)
     {
       const Predicate::Ptr pred = CreatePredicate(data);
-      return boost::make_shared<SearchOperation>(pred);
+      return MakePtr<SearchOperation>(pred);
     }
 
-    SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSetPtr items, const Search::Data& data)
+    SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSet::Ptr items, const Search::Data& data)
     {
       const Predicate::Ptr pred = CreatePredicate(data);
-      return boost::make_shared<SearchOperation>(items, pred);
+      return MakePtr<SearchOperation>(items, pred);
     }
   }
 }

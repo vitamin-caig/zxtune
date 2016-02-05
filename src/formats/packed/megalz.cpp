@@ -14,13 +14,12 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
 #include <numeric>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -237,7 +236,7 @@ namespace Packed
       }
       const std::size_t size = std::min(MegaLZ::MAX_DECODED_SIZE, rawData.Size());
       MegaLZ::DataDecoder decoder(static_cast<const uint8_t*>(rawData.Start()), size);
-      return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -245,7 +244,7 @@ namespace Packed
 
   Decoder::Ptr CreateMegaLZDecoder()
   {
-    return boost::make_shared<MegaLZDecoder>();
+    return MakePtr<MegaLZDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

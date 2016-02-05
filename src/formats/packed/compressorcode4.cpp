@@ -16,6 +16,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -23,8 +24,6 @@
 //std includes
 #include <algorithm>
 #include <iterator>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -579,7 +578,7 @@ namespace Packed
         return Container::Ptr();
       }
       CompressorCode::DataDecoder<Version> decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -587,12 +586,12 @@ namespace Packed
 
   Decoder::Ptr CreateCompressorCode4Decoder()
   {
-    return boost::make_shared<CompressorCodeDecoder<CompressorCode::Version4> >();
+    return MakePtr<CompressorCodeDecoder<CompressorCode::Version4> >();
   }
 
   Decoder::Ptr CreateCompressorCode4PlusDecoder()
   {
-    return boost::make_shared<CompressorCodeDecoder<CompressorCode::Version4Plus> >();
+    return MakePtr<CompressorCodeDecoder<CompressorCode::Version4Plus> >();
   }
 }//namespace Packed
 }//namespace Formats

@@ -11,10 +11,10 @@
 //local includes
 #include "psg.h"
 #include "soundchip.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <devices/turbosound.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Devices
 {
@@ -100,8 +100,8 @@ namespace TurboSound
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target)
   {
-    const MixerType::Ptr halfMixer = boost::make_shared<HalfLevelMixer>(mixer);
-    return boost::make_shared<AYM::SoundChip<Traits> >(params, halfMixer, target);
+    const MixerType::Ptr halfMixer = MakePtr<HalfLevelMixer>(mixer);
+    return MakePtr<AYM::SoundChip<Traits> >(params, halfMixer, target);
   }
 }
 }

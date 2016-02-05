@@ -14,9 +14,12 @@
 //common includes
 #include <contract.h>
 #include <iterator.h>
+#include <make_ptr.h>
 //std includes
 #include <cctype>
 #include <stack>
+//boost includes
+#include <boost/ref.hpp>
 
 namespace
 {
@@ -521,6 +524,6 @@ namespace Binary
 
   FormatTokensVisitor::Ptr CreatePostfixSynaxCheckAdapter(FormatTokensVisitor& visitor)
   {
-    return FormatTokensVisitor::Ptr(new SyntaxCheck(visitor));
+    return MakePtr<SyntaxCheck>(boost::ref(visitor));
   }
 }

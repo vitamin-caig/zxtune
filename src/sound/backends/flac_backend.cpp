@@ -14,6 +14,7 @@
 #include "gates/flac_api.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <debug/log.h>
@@ -25,7 +26,6 @@
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -249,7 +249,7 @@ namespace Flac
     {
       const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(), boost::bind(&Api::FLAC__stream_encoder_delete, FlacApi, _1));
       SetupEncoder(*encoder);
-      return boost::make_shared<FileStream>(FlacApi, encoder, stream);
+      return MakePtr<FileStream>(FlacApi, encoder, stream);
     }
   private:
     void SetupEncoder(FLAC__StreamEncoder& encoder) const
@@ -288,7 +288,7 @@ namespace Flac
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
-      const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(FlacApi, params);
+      const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(FlacApi, params);
       return CreateFileBackendWorker(params, factory);
     }
   private:
@@ -305,7 +305,7 @@ namespace Sound
     {
       const Flac::Api::Ptr api = Flac::LoadDynamicApi();
       Dbg("Detected Flac library");
-      const BackendWorkerFactory::Ptr factory = boost::make_shared<Flac::BackendWorkerFactory>(api);
+      const BackendWorkerFactory::Ptr factory = MakePtr<Flac::BackendWorkerFactory>(api);
       storage.Register(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)

@@ -12,10 +12,10 @@
 #include "event.h"
 //common includes
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <async/activity.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
 
 namespace
@@ -111,7 +111,7 @@ namespace Async
 {
   Activity::Ptr Activity::Create(Operation::Ptr operation)
   {
-    const ActivityImpl::Ptr result = boost::make_shared<ActivityImpl>(operation);
+    const ActivityImpl::Ptr result = MakePtr<ActivityImpl>(operation);
     result->Start();
     return result;
   }

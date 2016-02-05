@@ -19,13 +19,12 @@
 #include "core/src/callback.h"
 //common includes
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_open.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/aym/turbosound.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -141,7 +140,7 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::TURBOSOUND;
 
     const Formats::Chiptune::TurboSound::Decoder::Ptr decoder = Formats::Chiptune::TurboSound::CreateDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>(decoder);
+    const Module::Factory::Ptr factory = MakePtr<Module::TS::Factory>(decoder);
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

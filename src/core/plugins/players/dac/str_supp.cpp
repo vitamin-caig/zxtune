@@ -12,6 +12,8 @@
 #include "dac_plugin.h"
 #include "dac_simple.h"
 #include "core/plugins/player_plugins_registrator.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <formats/chiptune/digital/sampletracker.h>
 
@@ -62,7 +64,7 @@ namespace ZXTune
     const Char ID[] = {'S', 'T', 'R', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSampleTrackerDecoder();
-    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::SampleTracker::Factory>();
+    const Module::DAC::Factory::Ptr factory = MakePtr<Module::SampleTracker::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

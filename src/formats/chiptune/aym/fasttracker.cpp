@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -26,7 +27,6 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -1197,7 +1197,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateFastTrackerDecoder()
   {
-    return boost::make_shared<FastTracker::Decoder>();
+    return MakePtr<FastTracker::Decoder>();
   }
 }//namespace Chiptune
 }//namespace Formats

@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -23,7 +24,6 @@
 //boost includes
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/archived.h>
 
@@ -549,7 +549,7 @@ namespace Archived
       {
         const NamedDataMap::const_iterator it = Files.find(name);
         return it != Files.end()
-          ? boost::make_shared<File>(it)
+          ? MakePtr<File>(it)
           : File::Ptr();
       }
 
@@ -600,7 +600,7 @@ namespace Archived
       if (!datas.empty())
       {
         const Binary::Container::Ptr archive = data.GetSubcontainer(0, format.GetUsedSize());
-        return boost::make_shared<UMX::Container>(archive, datas.begin(), datas.end());
+        return MakePtr<UMX::Container>(archive, datas.begin(), datas.end());
       }
       Dbg("No files found");
       return Container::Ptr();
@@ -611,7 +611,7 @@ namespace Archived
 
   Decoder::Ptr CreateUMXDecoder()
   {
-    return boost::make_shared<UMXDecoder>();
+    return MakePtr<UMXDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

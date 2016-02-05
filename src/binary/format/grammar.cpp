@@ -12,10 +12,9 @@
 #include "grammar.h"
 //common includes
 #include <pointers.h>
+#include <make_ptr.h>
 //std includes
 #include <cctype>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -169,15 +168,15 @@ namespace
     FormatGrammar()
       : Delegate(LexicalAnalysis::CreateContextIndependentGrammar())
     {
-      Delegate->AddTokenizer(boost::make_shared<SpaceDelimitersTokenizer>());
-      Delegate->AddTokenizer(boost::make_shared<SymbolDelimitersTokenizer>());
-      Delegate->AddTokenizer(boost::make_shared<DecimalNumbersTokenizer>());
-      Delegate->AddTokenizer(boost::make_shared<CharacterTokenizer>());
-      Delegate->AddTokenizer(boost::make_shared<AnyMaskTokenizer>());
-      Delegate->AddTokenizer(boost::make_shared<BinaryMaskTokenizer>());
-      Delegate->AddTokenizer(boost::make_shared<HexadecimalMaskTokenizer>());
-      Delegate->AddTokenizer(boost::make_shared<MultiplicityMaskTokenizer>());
-      Delegate->AddTokenizer(boost::make_shared<OperationTokenizer>());
+      Delegate->AddTokenizer(MakePtr<SpaceDelimitersTokenizer>());
+      Delegate->AddTokenizer(MakePtr<SymbolDelimitersTokenizer>());
+      Delegate->AddTokenizer(MakePtr<DecimalNumbersTokenizer>());
+      Delegate->AddTokenizer(MakePtr<CharacterTokenizer>());
+      Delegate->AddTokenizer(MakePtr<AnyMaskTokenizer>());
+      Delegate->AddTokenizer(MakePtr<BinaryMaskTokenizer>());
+      Delegate->AddTokenizer(MakePtr<HexadecimalMaskTokenizer>());
+      Delegate->AddTokenizer(MakePtr<MultiplicityMaskTokenizer>());
+      Delegate->AddTokenizer(MakePtr<OperationTokenizer>());
     }
 
     void AddTokenizer(LexicalAnalysis::Tokenizer::Ptr tokenizer)

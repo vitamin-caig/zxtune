@@ -13,15 +13,13 @@
 #include "static_expression.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <math/numeric.h>
 //std includes
 #include <limits>
 #include <vector>
-//boost includes
-#include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
 
 namespace
 {
@@ -131,7 +129,7 @@ namespace
       }
       //Each matrix element specifies forward movement of reversily matched pattern for specified symbol. =0 means symbol match
       const std::size_t minScanStep = pattern.FindPrefix(patternSize);
-      return boost::make_shared<FuzzyFormat>(boost::cref(tmp), startOffset, minSize, minScanStep);
+      return MakePtr<FuzzyFormat>(tmp, startOffset, minSize, minScanStep);
     }
   private:
     std::size_t SearchBackward(const uint8_t* data) const
@@ -222,7 +220,7 @@ namespace
           return Ptr();
         }
       }
-      return boost::make_shared<ExactFormat>(boost::cref(tmp), startOffset, minSize);
+      return MakePtr<ExactFormat>(tmp, startOffset, minSize);
     }
   private:
     const std::size_t Offset;

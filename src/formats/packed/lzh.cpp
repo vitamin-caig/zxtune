@@ -13,6 +13,7 @@
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -20,8 +21,6 @@
 //std includes
 #include <algorithm>
 #include <iterator>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -401,7 +400,7 @@ namespace Packed
         return Container::Ptr();
       }
       typename LZH::DataDecoder<Version> decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), container.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -409,12 +408,12 @@ namespace Packed
 
   Decoder::Ptr CreateLZH1Decoder()
   {
-    return boost::make_shared<LZHDecoder<LZH::Version1> >();
+    return MakePtr<LZHDecoder<LZH::Version1> >();
   }
 
   Decoder::Ptr CreateLZH2Decoder()
   {
-    return boost::make_shared<LZHDecoder<LZH::Version2> >();
+    return MakePtr<LZHDecoder<LZH::Version2> >();
   }
 }//namespace Packed
 }//namespace Formats

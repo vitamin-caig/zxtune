@@ -15,13 +15,12 @@
 #include "core/plugins/players/ay/aym_base.h"
 //common includes
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/container.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <src/core/text/plugins.h>
 
@@ -198,8 +197,8 @@ namespace Module
   {
     if (const AYM::Holder::Ptr aym = boost::dynamic_pointer_cast<const AYM::Holder>(delegate))
     {
-      return boost::make_shared<MixedPropertiesAYMHolder>(aym, props);
+      return MakePtr<MixedPropertiesAYMHolder>(aym, props);
     }
-    return boost::make_shared<MixedPropertiesHolder>(delegate, props);
+    return MakePtr<MixedPropertiesHolder>(delegate, props);
   }
 }

@@ -14,14 +14,13 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/ref.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
@@ -265,7 +264,7 @@ namespace Packed
         if (const Binary::Container::Ptr originalModule = Version.Parse(*modData, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
         {
           const std::size_t originalSize = originalModule->Size();
-          return CreatePackedContainer(originalModule, rawPlayer.Size + originalSize);
+          return CreateContainer(originalModule, rawPlayer.Size + originalSize);
         }
       }
       else if (const Binary::Container::Ptr fixedModule = Version.InsertMetaInformation(*modData, metainfo))
@@ -273,7 +272,7 @@ namespace Packed
         if (Version.Parse(*fixedModule, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
         {
           const std::size_t originalSize = fixedModule->Size() - metainfo.size();
-          return CreatePackedContainer(fixedModule, rawPlayer.Size + originalSize);
+          return CreateContainer(fixedModule, rawPlayer.Size + originalSize);
         }
         Dbg("Failed to parse fixed module");
       }
@@ -287,17 +286,17 @@ namespace Packed
 
   Decoder::Ptr CreateCompiledASC0Decoder()
   {
-    return boost::make_shared<CompiledASCDecoder>(boost::cref(CompiledASC::VERSION0));
+    return MakePtr<CompiledASCDecoder>(CompiledASC::VERSION0);
   }
 
   Decoder::Ptr CreateCompiledASC1Decoder()
   {
-    return boost::make_shared<CompiledASCDecoder>(boost::cref(CompiledASC::VERSION1));
+    return MakePtr<CompiledASCDecoder>(CompiledASC::VERSION1);
   }
 
   Decoder::Ptr CreateCompiledASC2Decoder()
   {
-    return boost::make_shared<CompiledASCDecoder>(boost::cref(CompiledASC::VERSION2));
+    return MakePtr<CompiledASCDecoder>(CompiledASC::VERSION2);
   }
 }//namespace Packed
 }//namespace Formats

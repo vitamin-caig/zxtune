@@ -16,6 +16,7 @@
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -24,7 +25,6 @@
 //std includes
 #include <numeric>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
@@ -466,7 +466,7 @@ namespace Packed
         return Container::Ptr();
       }
       Hrust1::DataDecoder decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
+      return CreateContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
     }
   private:
     const Binary::Format::Ptr Format;
@@ -474,7 +474,7 @@ namespace Packed
 
   Decoder::Ptr CreateHrust1Decoder()
   {
-    return boost::make_shared<Hrust1Decoder>();
+    return MakePtr<Hrust1Decoder>();
   }
 }//namespace Packed
 }//namespace Formats

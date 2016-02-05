@@ -12,6 +12,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/container_factories.h>
@@ -25,7 +26,6 @@
 #include <map>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 
 namespace Formats
 {
@@ -69,6 +69,7 @@ namespace Multitrack
     {
     public:
       typedef boost::shared_ptr<const DataBuilder> Ptr;
+      typedef boost::shared_ptr<DataBuilder> RWPtr;
       
       DataBuilder()
         : TracksCount(1)
@@ -206,7 +207,7 @@ namespace Multitrack
       
       virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
       {
-        return boost::make_shared<Container>(Content, Content->Rebuild(StartTrack), idx);
+        return MakePtr<Container>(Content, Content->Rebuild(StartTrack), idx);
       }
     private:
       const DataBuilder::Ptr Content;
@@ -237,9 +238,9 @@ namespace Multitrack
       {
         try
         {
-          const boost::shared_ptr<DataBuilder> builder = boost::make_shared<DataBuilder>();
+          const DataBuilder::RWPtr builder = MakeRWPtr<DataBuilder>();
           const Binary::Container::Ptr data = Parse(rawData, *builder);
-          return boost::make_shared<Container>(builder, data, builder->GetStartTrack());
+          return MakePtr<Container>(builder, data, builder->GetStartTrack());
         }
         catch (const std::exception&)
         {
@@ -310,7 +311,7 @@ namespace Multitrack
 
   Decoder::Ptr CreateSAPDecoder()
   {
-    return boost::make_shared<SAP::Decoder>();
+    return MakePtr<SAP::Decoder>();
   }
 }//namespace Multitrack
 }//namespace Formats

@@ -11,14 +11,13 @@
 //common includes
 #include <contract.h>
 #include <iterator.h>
+#include <make_ptr.h>
 //library includes
 #include <analysis/scanner.h>
 #include <debug/log.h>
 //std includes
 #include <deque>
 #include <list>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -426,6 +425,6 @@ namespace Analysis
 
   Scanner::RWPtr CreateScanner()
   {
-    return boost::make_shared<LinearScanner>();
+    return MakeRWPtr<LinearScanner>();
   }
 }

@@ -13,7 +13,9 @@
 #include "image_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
+#include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/packed.h>
@@ -275,7 +277,7 @@ namespace Packed
       {
         const Formats::ImageBuilder::Ptr builder = CreateSparsedImageBuilder();
         const std::size_t usedSize = DSK::Format(*builder).Parse(rawData);
-        return CreatePackedContainer(builder->GetResult(), usedSize);
+        return CreateContainer(builder->GetResult(), usedSize);
       }
       catch (const std::exception&)
       {
@@ -288,7 +290,7 @@ namespace Packed
 
   Decoder::Ptr CreateDSKDecoder()
   {
-    return boost::make_shared<DSKDecoder>();
+    return MakePtr<DSKDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

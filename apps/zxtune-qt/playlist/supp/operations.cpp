@@ -12,11 +12,12 @@
 #include "operations.h"
 #include "operations_helpers.h"
 #include "storage.h"
+//common includes
+#include <make_ptr.h>
 //std includes
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -198,7 +199,7 @@ namespace
   {
   public:
     IndicesCollector()
-      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+      : Result(MakeRWPtr<Playlist::Model::IndexSet>())
     {
     }
 
@@ -207,12 +208,12 @@ namespace
       Result->insert(index);
     }
 
-    boost::shared_ptr<Playlist::Model::IndexSet> GetResult() const
+    Playlist::Model::IndexSet::Ptr GetResult() const
     {
       return Result;
     }
   private:
-    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
+    const Playlist::Model::IndexSet::RWPtr Result;
   };
 
   template<class T>
@@ -220,7 +221,7 @@ namespace
   {
   public:
     DuplicatesCollector()
-      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+      : Result(MakeRWPtr<Playlist::Model::IndexSet>())
     {
     }
 
@@ -232,13 +233,13 @@ namespace
       }
     }
 
-    boost::shared_ptr<Playlist::Model::IndexSet> GetResult() const
+    Playlist::Model::IndexSet::Ptr GetResult() const
     {
       return Result;
     }
   private:
     std::set<T> Visited;
-    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
+    const Playlist::Model::IndexSet::RWPtr Result;
   };
 
   template<class T>
@@ -246,7 +247,7 @@ namespace
   {
   public:
     ItemsWithDuplicatesCollector()
-      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+      : Result(MakeRWPtr<Playlist::Model::IndexSet>())
     {
     }
 
@@ -260,14 +261,14 @@ namespace
       }
     }
 
-    boost::shared_ptr<Playlist::Model::IndexSet> GetResult() const
+    Playlist::Model::IndexSet::RWPtr GetResult() const
     {
       return Result;
     }
   private:
     typedef typename std::map<T, Playlist::Model::IndexType> PropToIndex;
     PropToIndex Visited;
-    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
+    const Playlist::Model::IndexSet::RWPtr Result;
   };
 
   template<class T>
@@ -319,7 +320,7 @@ namespace
   class SelectDupsOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectDupsOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    explicit SelectDupsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
       : SelectedItems(items)
     {
     }
@@ -332,18 +333,18 @@ namespace
         VisitAsSelectedItems(propertyModel, *SelectedItems, cb, dups);
       }
       //select all rips but delete only nonselected
-      const boost::shared_ptr<Playlist::Model::IndexSet> toRemove = dups.GetResult();
+      const Playlist::Model::IndexSet::RWPtr toRemove = dups.GetResult();
       std::for_each(SelectedItems->begin(), SelectedItems->end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, toRemove.get(), _1));
       emit ResultAcquired(toRemove);
     }
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Model::IndexSet::Ptr SelectedItems;
   };
 
   class SelectDupsInSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectDupsInSelectedOperation(Playlist::Model::IndexSetPtr items)
+    explicit SelectDupsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
       : SelectedItems(items)
     {
     }
@@ -358,7 +359,7 @@ namespace
       emit ResultAcquired(dups.GetResult());
     }
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Model::IndexSet::Ptr SelectedItems;
   };
 
   // Select  ripoffs
@@ -379,7 +380,7 @@ namespace
   class SelectRipOffsOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectRipOffsOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    explicit SelectRipOffsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
       : SelectedItems(items)
     {
     }
@@ -394,13 +395,13 @@ namespace
       emit ResultAcquired(rips.GetResult());
     }
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Model::IndexSet::Ptr SelectedItems;
   };
 
   class SelectRipOffsInSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectRipOffsInSelectedOperation(Playlist::Model::IndexSetPtr items)
+    explicit SelectRipOffsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
       : SelectedItems(items)
     {
     }
@@ -415,14 +416,14 @@ namespace
       emit ResultAcquired(rips.GetResult());
     }
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Model::IndexSet::Ptr SelectedItems;
   };
 
   //other
   class SelectTypesOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    explicit SelectTypesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
       : SelectedItems(items)
     {
     }
@@ -437,13 +438,13 @@ namespace
       emit ResultAcquired(types.GetResult());
     }
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Model::IndexSet::Ptr SelectedItems;
   };
 
   class SelectFilesOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectFilesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    explicit SelectFilesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
       : SelectedItems(items)
     {
     }
@@ -458,14 +459,14 @@ namespace
       emit ResultAcquired(files.GetResult());
     }
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Model::IndexSet::Ptr SelectedItems;
   };
 
   class InvalidModulesCollection : public Playlist::Item::Visitor
   {
   public:
     InvalidModulesCollection()
-      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+      : Result(MakeRWPtr<Playlist::Model::IndexSet>())
     {
     }
 
@@ -478,12 +479,12 @@ namespace
       }
     }
 
-    Playlist::Model::IndexSetPtr GetResult() const
+    Playlist::Model::IndexSet::Ptr GetResult() const
     {
       return Result;
     }
   private:
-    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
+    const Playlist::Model::IndexSet::RWPtr Result;
   };
 
   class SelectUnavailableOperation : public Playlist::Item::SelectionOperation
@@ -493,7 +494,7 @@ namespace
     {
     }
 
-    explicit SelectUnavailableOperation(Playlist::Model::IndexSetPtr items)
+    explicit SelectUnavailableOperation(Playlist::Model::IndexSet::Ptr items)
       : SelectedItems(items)
     {
     }
@@ -505,7 +506,7 @@ namespace
       emit ResultAcquired(invalids.GetResult());
     }
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Model::IndexSet::Ptr SelectedItems;
   };
 }
 
@@ -515,52 +516,52 @@ namespace Playlist
   {
     SelectionOperation::Ptr CreateSelectAllRipOffsOperation()
     {
-      return boost::make_shared<SelectAllRipOffsOperation>();
+      return MakePtr<SelectAllRipOffsOperation>();
     }
 
-    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
     {
-      return boost::make_shared<SelectRipOffsOfSelectedOperation>(items);
+      return MakePtr<SelectRipOffsOfSelectedOperation>(items);
     }
 
-    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
     {
-      return boost::make_shared<SelectRipOffsInSelectedOperation>(items);
+      return MakePtr<SelectRipOffsInSelectedOperation>(items);
     }
 
     SelectionOperation::Ptr CreateSelectAllDuplicatesOperation()
     {
-      return boost::make_shared<SelectAllDupsOperation>();
+      return MakePtr<SelectAllDupsOperation>();
     }
 
-    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
     {
-      return boost::make_shared<SelectDupsOfSelectedOperation>(items);
+      return MakePtr<SelectDupsOfSelectedOperation>(items);
     }
 
-    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
     {
-      return boost::make_shared<SelectDupsInSelectedOperation>(items);
+      return MakePtr<SelectDupsInSelectedOperation>(items);
     }
 
-    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
     {
-      return boost::make_shared<SelectTypesOfSelectedOperation>(items);
+      return MakePtr<SelectTypesOfSelectedOperation>(items);
     }
 
-    SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
     {
-      return boost::make_shared<SelectFilesOfSelectedOperation>(items);
+      return MakePtr<SelectFilesOfSelectedOperation>(items);
     }
 
     SelectionOperation::Ptr CreateSelectAllUnavailableOperation()
     {
-      return boost::make_shared<SelectUnavailableOperation>();
+      return MakePtr<SelectUnavailableOperation>();
     }
 
-    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
     {
-      return boost::make_shared<SelectUnavailableOperation>(items);
+      return MakePtr<SelectUnavailableOperation>(items);
     }
   }
 }

@@ -14,10 +14,10 @@
 #include "core/src/callback.h"
 #include <core/plugins/plugins_types.h>
 #include <core/plugin_attrs.h>
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/module_attrs.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace ZXTune
 {
@@ -82,6 +82,6 @@ namespace ZXTune
     Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
   {
     const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::MODULE);
-    return PlayerPlugin::Ptr(new CommonPlayerPlugin(description, decoder, factory));
+    return MakePtr<CommonPlayerPlugin>(description, decoder, factory);
   }
 }

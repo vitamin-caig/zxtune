@@ -8,9 +8,9 @@
 *
 **/
 
+#include <make_ptr.h>
 #include <async/activity.h>
 #include <boost/thread/thread.hpp>
-#include <boost/make_shared.hpp>
 #include <iostream>
 
 #define FILE_TAG 238D7960
@@ -76,7 +76,7 @@ namespace
 		std::cout << "Test for invalid activity" << std::endl;
 		try
 		{
-		  const Activity::Ptr result = Activity::Create(boost::make_shared<InvalidOperation>());
+		  const Activity::Ptr result = Activity::Create(MakePtr<InvalidOperation>());
 		}
 		catch (const Error& err)
 		{
@@ -93,7 +93,7 @@ namespace
 	void TestActivityErrorResult()
 	{
 		std::cout << "Test for valid activity error result" << std::endl;
-		const Activity::Ptr result = Activity::Create(boost::make_shared<ErrorResultOperation>());
+		const Activity::Ptr result = Activity::Create(MakePtr<ErrorResultOperation>());
     boost::this_thread::sleep(boost::posix_time::milliseconds(100));
     if (result->IsExecuted())
     {
@@ -117,7 +117,7 @@ namespace
 	void TestLongActivity()
   {
     std::cout << "Test for valid long activity" << std::endl;
-    const Activity::Ptr result = Activity::Create(boost::make_shared<LongOperation>());
+    const Activity::Ptr result = Activity::Create(MakePtr<LongOperation>());
     if (!result->IsExecuted())
     {
       throw Error(THIS_LINE, "Activity should be executed now");

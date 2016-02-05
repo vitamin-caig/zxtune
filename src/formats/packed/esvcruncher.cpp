@@ -15,6 +15,7 @@
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -26,7 +27,6 @@
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -449,7 +449,7 @@ namespace Packed
         return Container::Ptr();
       }
       ESVCruncher::DataDecoder decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), container.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -457,7 +457,7 @@ namespace Packed
 
   Decoder::Ptr CreateESVCruncherDecoder()
   {
-    return boost::make_shared<ESVCruncherDecoder>();
+    return MakePtr<ESVCruncherDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

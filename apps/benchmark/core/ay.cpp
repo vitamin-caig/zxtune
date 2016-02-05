@@ -10,11 +10,11 @@
 
 //local includes
 #include "ay.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <sound/matrix_mixer.h>
 #include <time/timer.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -81,7 +81,7 @@ namespace Benchmark
   {
     Devices::AYM::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t soundFreq, Devices::AYM::InterpolationType interpolate)
     {
-      const Devices::AYM::ChipParameters::Ptr params = boost::make_shared<AYParameters>(clockFreq, soundFreq, interpolate);
+      const Devices::AYM::ChipParameters::Ptr params = MakePtr<AYParameters>(clockFreq, soundFreq, interpolate);
       return Devices::AYM::CreateChip(params, Sound::ThreeChannelsMatrixMixer::Create(), Sound::Receiver::CreateStub());
     }
 

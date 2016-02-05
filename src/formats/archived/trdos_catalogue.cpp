@@ -10,6 +10,8 @@
 
 //local includes
 #include "trdos_catalogue.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <strings/format.h>
@@ -18,12 +20,9 @@
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 
-namespace
+namespace TRDos
 {
-  using namespace TRDos;
-
   bool AreFilesMergeable(const File& lh, const File& rh)
   {
     const std::size_t firstSize = lh.GetSize();
@@ -221,7 +220,7 @@ namespace
     {
       if (Data && !Files.empty())
       {
-        return Formats::Archived::Container::Ptr(new CommonCatalogue(Data, Files.begin(), Files.end()));
+        return MakePtr<CommonCatalogue>(Data, Files.begin(), Files.end());
       }
       else
       {
@@ -257,7 +256,7 @@ namespace
         const String newName = gen();
         if (!HasFile(newName))
         {
-          return boost::make_shared<FixedNameFile>(newName, newOne);
+          return MakePtr<FixedNameFile>(newName, newOne);
         }
       }
     }
@@ -383,7 +382,7 @@ namespace
   public:
     virtual MultiFile::Ptr CreateMultiFile(File::Ptr inFile)
     {
-      return boost::make_shared<GenericMultiFile>(inFile);
+      return MakePtr<GenericMultiFile>(inFile);
     }
   };
 
@@ -479,30 +478,27 @@ namespace
   public:
     virtual MultiFile::Ptr CreateMultiFile(File::Ptr inFile)
     {
-      return boost::make_shared<FlatMultiFile>(inFile);
+      return MakePtr<FlatMultiFile>(inFile);
     }
   };
-}
 
-namespace TRDos
-{
   File::Ptr File::Create(Binary::Container::Ptr data, const String& name, std::size_t off, std::size_t size)
   {
-    return boost::make_shared<GenericFile>(data, name, off, size);
+    return MakePtr<GenericFile>(data, name, off, size);
   }
 
   File::Ptr File::CreateReference(const String& name, std::size_t off, std::size_t size)
   {
-    return boost::make_shared<FlatFile>(name, off, size);
+    return MakePtr<FlatFile>(name, off, size);
   }
 
   CatalogueBuilder::Ptr CatalogueBuilder::CreateGeneric()
   {
-    return CatalogueBuilder::Ptr(new GenericCatalogueBuilder());
+    return MakePtr<GenericCatalogueBuilder>();
   }
 
   CatalogueBuilder::Ptr CatalogueBuilder::CreateFlat()
   {
-    return CatalogueBuilder::Ptr(new FlatCatalogueBuilder());
+    return MakePtr<FlatCatalogueBuilder>();
   }
 }

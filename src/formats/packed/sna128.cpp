@@ -12,6 +12,7 @@
 #include "container.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -131,7 +132,7 @@ namespace Packed
         ++idx;
       }
       const std::size_t origSize = pageDuped ? sizeof(src) + sizeof(PageData) : sizeof(src);
-      return CreatePackedContainer(result, origSize);
+      return CreateContainer(result, origSize);
     }
 
     const std::string FORMAT(
@@ -182,7 +183,7 @@ namespace Packed
 
   Decoder::Ptr CreateSna128Decoder()
   {
-    return boost::make_shared<Sna128Decoder>();
+    return MakePtr<Sna128Decoder>();
   }
 }//namespace Packed
 }//namespace Formats

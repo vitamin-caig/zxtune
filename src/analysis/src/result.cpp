@@ -8,10 +8,10 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <analysis/result.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -66,16 +66,16 @@ namespace Analysis
 {
   Result::Ptr CreateMatchedResult(std::size_t matchedSize)
   {
-    return boost::make_shared<CalculatedResult>(matchedSize, 0);
+    return MakePtr<CalculatedResult>(matchedSize, 0);
   }
 
   Result::Ptr CreateUnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data)
   {
-    return boost::make_shared<UnmatchedResult>(format, data);
+    return MakePtr<UnmatchedResult>(format, data);
   }
 
   Result::Ptr CreateUnmatchedResult(std::size_t unmatchedSize)
   {
-    return boost::make_shared<CalculatedResult>(0, unmatchedSize);
+    return MakePtr<CalculatedResult>(0, unmatchedSize);
   }
 }

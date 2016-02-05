@@ -18,6 +18,7 @@
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
@@ -146,7 +147,7 @@ namespace Sid
       , Builder("resid")
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
-      , Analysis(boost::make_shared<Analyzer>(Engine))
+      , Analysis(MakePtr<Analyzer>(Engine))
       , Target(target)
       , SoundParams(Sound::RenderParameters::Create(params))
       , Params(params)
@@ -374,7 +375,7 @@ namespace Sid
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return boost::make_shared<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
   private:
     const TunePtr Tune;
@@ -428,8 +429,8 @@ namespace Sid
         const uint_t fps = tuneInfo.songSpeed() == SidTuneInfo::SPEED_CIA_1A || tuneInfo.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
         props.SetFramesFrequency(fps);
 
-        const Information::Ptr info = boost::make_shared<Information>(GetDuration(params), tune, fps, songIdx);
-        return boost::make_shared<Holder>(tune, info, properties);
+        const Information::Ptr info = MakePtr<Information>(GetDuration(params), tune, fps, songIdx);
+        return MakePtr<Holder>(tune, info, properties);
       }
       catch (const std::exception&)
       {
@@ -447,7 +448,7 @@ namespace ZXTune
     const Char ID[] = {'S', 'I', 'D', 0};
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::MOS6581;
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSIDDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::Sid::Factory>();
+    const Module::Factory::Ptr factory = MakePtr<Module::Sid::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

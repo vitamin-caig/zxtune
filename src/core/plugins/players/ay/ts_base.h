@@ -40,6 +40,7 @@ namespace Module
     {
     public:
       typedef boost::shared_ptr<const Chiptune> Ptr;
+      virtual ~Chiptune() {}
 
       virtual Information::Ptr GetInformation() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;

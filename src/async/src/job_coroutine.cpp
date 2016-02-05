@@ -10,11 +10,11 @@
 
 //local includes
 #include "event.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <async/activity.h>
 #include <async/coroutine.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -139,7 +139,7 @@ namespace
         }
         FinishAction();
       }
-      const Async::Operation::Ptr jobOper = boost::make_shared<CoroutineOperation>(Routine, boost::ref(State));
+      const Async::Operation::Ptr jobOper = MakePtr<CoroutineOperation>(Routine, boost::ref(State));
       Act = Async::Activity::Create(jobOper);
       State.Set(STARTED);
     }
@@ -239,6 +239,6 @@ namespace Async
 {
   Job::Ptr CreateJob(Coroutine::Ptr routine)
   {
-    return boost::make_shared<JobImpl>(routine);
+    return MakePtr<JobImpl>(routine);
   }
 }

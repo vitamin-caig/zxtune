@@ -18,6 +18,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
@@ -30,7 +31,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/weak_ptr.hpp>
 //text includes
@@ -769,10 +769,10 @@ namespace Alsa
       const Identifier deviceId(backend.GetDeviceName());
 
       AlsaObjects res;
-      res.Dev = boost::make_shared<DeviceWrapper>(AlsaApi, deviceId);
+      res.Dev = MakePtr<DeviceWrapper>(AlsaApi, deviceId);
       res.Dev->SetParameters(backend.GetLatency(), *sound);
-      res.Mix = boost::make_shared<Mixer>(AlsaApi, deviceId, backend.GetMixerName());
-      res.Vol = boost::make_shared<VolumeControl>(res.Mix);
+      res.Mix = MakePtr<Mixer>(AlsaApi, deviceId, backend.GetMixerName());
+      res.Vol = MakePtr<VolumeControl>(res.Mix);
       return res;
     }
   private:
@@ -791,7 +791,7 @@ namespace Alsa
     
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
-      return boost::make_shared<BackendWorker>(AlsaApi, params);
+      return MakePtr<BackendWorker>(AlsaApi, params);
     }
   private:
     const Api::Ptr AlsaApi;
@@ -974,7 +974,7 @@ namespace Alsa
 
     static Ptr CreateDefault(Api::Ptr api)
     {
-      return boost::make_shared<DeviceInfo>(api,
+      return MakePtr<DeviceInfo>(api,
         Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT,
         Text::ALSA_BACKEND_DEFAULT_DEVICE,
         Text::ALSA_BACKEND_DEFAULT_DEVICE
@@ -983,7 +983,7 @@ namespace Alsa
 
     static Ptr Create(Api::Ptr api, const CardsIterator& card, const DevicesIterator& dev)
     {
-      return boost::make_shared<DeviceInfo>(api,
+      return MakePtr<DeviceInfo>(api,
         FromStdString(dev.Id()), FromStdString(dev.Name()), FromStdString(card.Name())
         );
     }
@@ -1053,7 +1053,7 @@ namespace Sound
       Dbg("Detected Alsa %1%", api->snd_asoundlib_version());
       if (Alsa::DeviceInfoIterator(api).IsValid())
       {
-        const BackendWorkerFactory::Ptr factory = boost::make_shared<Alsa::BackendWorkerFactory>(api);
+        const BackendWorkerFactory::Ptr factory = MakePtr<Alsa::BackendWorkerFactory>(api);
         storage.Register(Alsa::ID, Alsa::DESCRIPTION, Alsa::CAPABILITIES, factory);
       }
       else
@@ -1080,7 +1080,7 @@ namespace Sound
           TODO: check for previously called snd_lib_error_set_handler(NULL)
         */
         const Api::Ptr api = LoadDynamicApi();
-        return Device::Iterator::Ptr(new DeviceInfoIterator(api));
+        return MakePtr<DeviceInfoIterator>(api);
       }
       catch (const Error& e)
       {

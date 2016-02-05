@@ -20,10 +20,10 @@
 #include "update/parameters.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <math/numeric.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/range/size.hpp>
 //qt includes
@@ -94,7 +94,7 @@ namespace
       IntegerValue::Bind(*playlistCachedFiles, *Options, ZXTuneQT::Playlist::Cache::FILES_LIMIT, ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT);
       IntegerValue::Bind(*playlistCacheLimit, *Options, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT);
       BooleanValue::Bind(*playlistStoreAllProperties, *Options, ZXTuneQT::Playlist::Store::PROPERTIES, ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT);
-      UpdateCheckPeriod = IntegerValue::Bind(*updateCheckPeriod, boost::make_shared<UpdateCheckPeriodComboboxValue>(Options));
+      UpdateCheckPeriod = IntegerValue::Bind(*updateCheckPeriod, MakePtr<UpdateCheckPeriodComboboxValue>(Options));
       BooleanValue::Bind(*appSingleInstance, *Options, ZXTuneQT::SINGLE_INSTANCE, ZXTuneQT::SINGLE_INSTANCE_DEFAULT);
     }
 

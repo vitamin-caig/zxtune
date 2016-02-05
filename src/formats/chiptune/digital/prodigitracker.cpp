@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -26,7 +27,6 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -612,7 +612,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateProDigiTrackerDecoder()
   {
-    return boost::make_shared<ProDigiTracker::Decoder>();
+    return MakePtr<ProDigiTracker::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

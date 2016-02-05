@@ -36,7 +36,6 @@
 #include <strings/template.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/algorithm/string/find.hpp>
 #include <boost/algorithm/string/replace.hpp>
 //qt includes
@@ -596,7 +595,7 @@ namespace
       const Playlist::Model::Ptr model = Controller->GetModel();
       if (const std::size_t itemsCount = model->CountItems())
       {
-        const Playlist::Model::IndexSetPtr items = View->GetSelectedItems();
+        const Playlist::Model::IndexSet::Ptr items = View->GetSelectedItems();
         model->RemoveItems(items);
         if (1 == items->size())
         {
@@ -620,7 +619,7 @@ namespace
       const Playlist::Model::Ptr model = Controller->GetModel();
       if (const std::size_t itemsCount = model->CountItems())
       {
-        const Playlist::Model::IndexSetPtr items = View->GetSelectedItems();
+        const Playlist::Model::IndexSet::Ptr items = View->GetSelectedItems();
         const QStringList& paths = model->GetItemsPaths(*items);
         QByteArray data;
         {
@@ -683,7 +682,7 @@ namespace
         //TODO: extract
         const Playlist::Model::Ptr model = Controller->GetModel();
         op->setParent(model);
-        Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
+        Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)), SLOT(SelectItems(Playlist::Model::IndexSet::Ptr))));
         model->PerformOperation(op);
       }
     }

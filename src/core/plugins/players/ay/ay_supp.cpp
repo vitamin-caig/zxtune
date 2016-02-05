@@ -15,6 +15,8 @@
 #include "core/plugins/players/properties_helper.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -28,8 +30,6 @@
 #include <parameters/tracking_helper.h>
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -205,7 +205,7 @@ namespace AY
 
     static Ptr Create(Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep)
     {
-      return boost::make_shared<DataChannel>(ay, beep);
+      return MakePtr<DataChannel>(ay, beep);
     }
     
     void Reset()
@@ -397,7 +397,7 @@ namespace AY
 
     static Ptr Create(DataChannel::Ptr ayData)
     {
-      return boost::make_shared<PortsPlexer>(ayData);
+      return MakePtr<PortsPlexer>(ayData);
     }
 
     void Reset()
@@ -484,6 +484,7 @@ namespace AY
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : Frames()
@@ -651,7 +652,7 @@ namespace AY
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Properties(props)
-      , Data(boost::make_shared<ModuleData>())
+      , Data(MakeRWPtr<ModuleData>())
       , Delegate(Formats::Chiptune::AY::CreateMemoryDumpBuilder())
     {
     }
@@ -707,7 +708,7 @@ namespace AY
     }
   private:
     PropertiesHelper& Properties;
-    const boost::shared_ptr<ModuleData> Data;
+    const ModuleData::RWPtr Data;
     const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
   };
   
@@ -757,7 +758,7 @@ namespace AY
 
   Devices::Beeper::Device::Ptr CreateBeeper(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
   {
-    const Devices::Beeper::ChipParameters::Ptr beeperParams = boost::make_shared<BeeperParams>(params);
+    const Devices::Beeper::ChipParameters::Ptr beeperParams = MakePtr<BeeperParams>(params);
     return Devices::Beeper::CreateChip(beeperParams, target);
   }
   
@@ -827,7 +828,7 @@ namespace AY
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::Receiver::Ptr mixer = boost::make_shared<MergedSoundReceiver>(target);
+      const Sound::Receiver::Ptr mixer = MakePtr<MergedSoundReceiver>(target);
       const Devices::AYM::Device::Ptr aym = AYM::CreateChip(params, mixer);
       const Devices::Beeper::Device::Ptr beeper = CreateBeeper(params, mixer);
       return CreateRenderer(params, aym, beeper);
@@ -835,7 +836,7 @@ namespace AY
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
     {
-      return CreateRenderer(params, chip, boost::make_shared<StubBeeper>());
+      return CreateRenderer(params, chip, MakePtr<StubBeeper>());
     }
 
     virtual AYM::Chiptune::Ptr GetChiptune() const
@@ -846,12 +847,12 @@ namespace AY
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep) const
     {
       const StateIterator::Ptr iterator = CreateStreamStateIterator(Info);
-      const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(params);
+      const Devices::Z80::ChipParameters::Ptr cpuParams = MakePtr<CPUParameters>(params);
       const DataChannel::Ptr channel = DataChannel::Create(ay, beep);
       const PortsPlexer::Ptr cpuPorts = PortsPlexer::Create(channel);
-      const Computer::Ptr comp = boost::make_shared<Computer>(Data, cpuParams, cpuPorts);
+      const Computer::Ptr comp = MakePtr<Computer>(Data, cpuParams, cpuPorts);
       const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      return boost::make_shared<Renderer>(renderParams, iterator, comp, channel);
+      return MakePtr<Renderer>(renderParams, iterator, comp, channel);
     }
   private:
     const ModuleData::Ptr Data;
@@ -873,7 +874,7 @@ namespace AY
         props.SetSource(*container);
         const ModuleData::Ptr data = builder.GetResult();
         const uint_t frames = data->Frames ? data->Frames : GetDurationInFrames(params);
-        return boost::make_shared<Holder>(data, CreateStreamInfo(frames), properties);
+        return MakePtr<Holder>(data, CreateStreamInfo(frames), properties);
       }
       return Holder::Ptr();
     }
@@ -891,7 +892,7 @@ namespace ZXTune
       | Module::AYM::GetSupportedFormatConvertors();
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateAYEMULDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::AY::Factory>();
+    const Module::Factory::Ptr factory = MakePtr<Module::AY::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

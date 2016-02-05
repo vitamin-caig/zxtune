@@ -12,8 +12,8 @@
 #include "soundtracker.h"
 #include "aym_properties_helper.h"
 #include "core/plugins/players/properties_meta.h"
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 
 namespace Module
 {
@@ -23,7 +23,7 @@ namespace SoundTracker
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
-      : Data(boost::make_shared<ModuleData>())
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
@@ -54,7 +54,7 @@ namespace SoundTracker
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTracker::PositionEntry>& positions)
     {
-      Data->Order = boost::make_shared<OrderListWithTransposition>(positions.begin(), positions.end());
+      Data->Order = MakePtr<OrderListWithTransposition>(positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -104,7 +104,7 @@ namespace SoundTracker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
+    const ModuleData::RWPtr Data;
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
@@ -478,7 +478,7 @@ namespace SoundTracker
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
       const TrackStateIterator::Ptr iter = CreateTrackStateIterator(Data);
-      const DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iter, renderer);
     }
   private:
@@ -502,7 +502,7 @@ namespace SoundTracker
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -515,7 +515,7 @@ namespace SoundTracker
 
   AYM::Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
   {
-    return boost::make_shared<Factory>(decoder);
+    return MakePtr<Factory>(decoder);
   }
 }
 }

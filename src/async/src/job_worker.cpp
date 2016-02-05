@@ -10,11 +10,10 @@
 
 //common includes
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <async/coroutine.h>
 #include <async/worker.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -63,7 +62,7 @@ namespace Async
 {
   Job::Ptr CreateJob(Worker::Ptr worker)
   {
-    const Coroutine::Ptr routine = boost::make_shared<WorkerCoroutine>(worker);
+    const Coroutine::Ptr routine = MakePtr<WorkerCoroutine>(worker);
     return CreateJob(routine);
   }
 }

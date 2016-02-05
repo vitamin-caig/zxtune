@@ -12,6 +12,7 @@
 #include "container.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -296,14 +297,14 @@ namespace Packed
       {
         Require(restSize >= TARGET_SIZE);
         const Binary::Container::Ptr rest = stream.ReadRestData();
-        return CreatePackedContainer(rest->GetSubcontainer(0, TARGET_SIZE), sizeof(hdr) + TARGET_SIZE);
+        return CreateContainer(rest->GetSubcontainer(0, TARGET_SIZE), sizeof(hdr) + TARGET_SIZE);
       }
       Require(restSize > sizeof(FOOTER));
       std::auto_ptr<Dump> res(new Dump(TARGET_SIZE));
       DecodeBlock(stream, restSize - sizeof(FOOTER), *res);
       const uint32_t footer = fromLE(stream.ReadField<uint32_t>());
       Require(footer == FOOTER);
-      return CreatePackedContainer(res, stream.GetPosition());
+      return CreateContainer(res, stream.GetPosition());
     }
 
     struct PlatformTraits
@@ -528,7 +529,7 @@ namespace Packed
         }
         std::memcpy(&res->front() + pageNumber * ZX_PAGE_SIZE, pageSource, ZX_PAGE_SIZE);
       }
-      return CreatePackedContainer(res, stream.GetPosition());
+      return CreateContainer(res, stream.GetPosition());
     }
 
     Formats::Packed::Container::Ptr Version2_0::Decode(Binary::InputStream& stream)
@@ -591,17 +592,17 @@ namespace Packed
     const Binary::Format::Ptr header = Binary::CreateFormat(Z80::Version1_45::HEADER, Z80::Version1_45::MIN_SIZE);
     const Binary::Format::Ptr footer = Binary::CreateFormat(Z80::Version1_45::FOOTER);
     const Binary::Format::Ptr format = Binary::CreateCompositeFormat(header, footer, Z80::Version1_45::MIN_SIZE - 4, Z80::Version1_45::MAX_SIZE - 4);
-    return boost::make_shared<Z80Decoder<Z80::Version1_45> >(format);
+    return MakePtr<Z80Decoder<Z80::Version1_45> >(format);
   }
 
   Decoder::Ptr CreateZ80V20Decoder()
   {
-    return boost::make_shared<Z80Decoder<Z80::Version2_0> >();
+    return MakePtr<Z80Decoder<Z80::Version2_0> >();
   }
 
   Decoder::Ptr CreateZ80V30Decoder()
   {
-    return boost::make_shared<Z80Decoder<Z80::Version3_0> >();
+    return MakePtr<Z80Decoder<Z80::Version3_0> >();
   }
 }//namespace Packed
 }//namespace Formats

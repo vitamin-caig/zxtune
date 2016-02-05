@@ -17,6 +17,7 @@
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
@@ -26,7 +27,6 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/thread/condition_variable.hpp>
 //text includes
 #include "text/backends.h"
@@ -292,7 +292,7 @@ namespace Sdl
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
-      return boost::make_shared<BackendWorker>(SdlApi, params);
+      return MakePtr<BackendWorker>(SdlApi, params);
     }
   private:
     const Api::Ptr SdlApi;
@@ -309,7 +309,7 @@ namespace Sound
       const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
       const SDL_version* const vers = api->SDL_Linked_Version();
       Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
-      const BackendWorkerFactory::Ptr factory = boost::make_shared<Sdl::BackendWorkerFactory>(api);
+      const BackendWorkerFactory::Ptr factory = MakePtr<Sdl::BackendWorkerFactory>(api);
       storage.Register(Sdl::ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, factory);
     }
     catch (const Error& e)

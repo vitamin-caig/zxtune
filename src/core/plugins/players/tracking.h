@@ -13,6 +13,8 @@
 //local includes
 #include "iterator.h"
 #include "track_model.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/module_information.h>
 #include <core/module_track_state.h>
@@ -20,7 +22,6 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -74,6 +75,8 @@ namespace Module
   class MutableLine : public Line
   {
   public:
+    typedef boost::shared_ptr<MutableLine> Ptr;
+    
     virtual void SetTempo(uint_t val) = 0;
     virtual MutableCell& AddChannel(uint_t idx) = 0;
   };
@@ -81,6 +84,8 @@ namespace Module
   class MutablePattern : public Pattern
   {
   public:
+    typedef boost::shared_ptr<MutablePattern> Ptr;
+    
     virtual MutableLine& AddLine(uint_t row) = 0;
     virtual void SetSize(uint_t size) = 0;
   };
@@ -88,6 +93,8 @@ namespace Module
   class MutablePatternsSet : public PatternsSet
   {
   public:
+    typedef boost::shared_ptr<MutablePatternsSet> Ptr;
+    
     virtual MutablePattern& AddPattern(uint_t idx) = 0;
   };
 
@@ -239,7 +246,7 @@ namespace Module
 
     virtual MutableLine& AddLine(uint_t row)
     {
-      const BuilderPtr res = boost::make_shared<MutableLineType>();
+      const MutableLine::Ptr res = MakePtr<MutableLineType>();
       Storage.Add(row, res);
       return *res;
     }
@@ -249,8 +256,7 @@ namespace Module
       Storage.Resize(newSize);
     }
   private:
-    typedef boost::shared_ptr<MutableLineType> BuilderPtr;
-    SparsedObjectsStorage<BuilderPtr> Storage;
+    SparsedObjectsStorage<MutableLine::Ptr> Storage;
   };
 
   template<class MutablePatternType>
@@ -277,13 +283,12 @@ namespace Module
 
     virtual MutablePattern& AddPattern(uint_t idx)
     {
-      const BuilderPtr res = boost::make_shared<MutablePatternType>();
+      const MutablePattern::Ptr res = MakePtr<MutablePatternType>();
       Storage.Add(idx, res);
       return *res;
     }
   private:
-    typedef boost::shared_ptr<MutablePattern> BuilderPtr;
-    SparsedObjectsStorage<BuilderPtr> Storage;
+    SparsedObjectsStorage<MutablePattern::Ptr> Storage;
   };
 
   Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels);
@@ -301,7 +306,7 @@ namespace Module
   class PatternsBuilder : public Formats::Chiptune::PatternBuilder
   {
   public:
-    explicit PatternsBuilder(boost::shared_ptr<MutablePatternsSet> patterns)
+    explicit PatternsBuilder(MutablePatternsSet::Ptr patterns)
       : Patterns(patterns)
       , CurPattern()
       , CurLine()
@@ -370,10 +375,10 @@ namespace Module
       typedef MultichannelMutableLine<ChannelsCount> LineType;
       typedef SparsedMutablePattern<LineType> PatternType;
       typedef SparsedMutablePatternsSet<PatternType> PatternsSetType;
-      return PatternsBuilder(boost::make_shared<PatternsSetType>());
+      return PatternsBuilder(MakePtr<PatternsSetType>());
     }
   private:  
-    const boost::shared_ptr<MutablePatternsSet> Patterns;
+    const MutablePatternsSet::Ptr Patterns;
     MutablePattern* CurPattern;
     MutableLine* CurLine;
     MutableCell* CurChannel;

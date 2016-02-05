@@ -11,6 +11,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
@@ -24,8 +25,6 @@
 #include <list>
 #include <map>
 #include <numeric>
-//boost includes
-#include <boost/make_shared.hpp>
 //text include
 #include <formats/text/archived.h>
 
@@ -366,17 +365,17 @@ namespace Archived
       const Binary::Container::Ptr archiveData = data.GetSubcontainer(0, totalSize);
 
       std::list<File::Ptr> files;
-      const SevenZip::Archive::Ptr archive = boost::make_shared<SevenZip::Archive>(archiveData);
+      const SevenZip::Archive::Ptr archive = MakePtr<SevenZip::Archive>(archiveData);
       for (uint_t idx = 0, lim = archive->GetFilesCount(); idx < lim; ++idx)
       {
         if (archive->IsDir(idx) || 0 == archive->GetFileSize(idx))
         {
           continue;
         }
-        const File::Ptr file = boost::make_shared<SevenZip::File>(archive, idx);
+        const File::Ptr file = MakePtr<SevenZip::File>(archive, idx);
         files.push_back(file);
       }
-      return boost::make_shared<SevenZip::Container>(archiveData, files.begin(), files.end());
+      return MakePtr<SevenZip::Container>(archiveData, files.begin(), files.end());
     }
   private:
     const Binary::Format::Ptr Format;
@@ -384,7 +383,7 @@ namespace Archived
 
   Decoder::Ptr Create7zipDecoder()
   {
-    return boost::make_shared<SevenZipDecoder>();
+    return MakePtr<SevenZipDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

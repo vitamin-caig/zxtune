@@ -11,6 +11,8 @@
 //local includes
 #include "aym_base.h"
 #include "core/plugins/players/analyzer.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <math/numeric.h>
@@ -245,7 +247,7 @@ namespace Module
     const uint_t totalFrames = info->FramesCount();
     const uint_t startFadingFrame = totalFrames - fadeOutFrames;
     Dbg("Fade out for %1% frames starting from %2% frame out of %3%", fadeOutFrames, startFadingFrame, totalFrames);
-    return boost::make_shared<FadeoutFilter>(startFadingFrame, fadeOutFrames, target);
+    return MakePtr<FadeoutFilter>(startFadingFrame, fadeOutFrames, target);
   }
 
   class StubAnalyzer : public Module::Analyzer
@@ -264,7 +266,7 @@ namespace Module
   {
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
     {
-      return boost::make_shared<AYMHolder>(chiptune);
+      return MakePtr<AYMHolder>(chiptune);
     }
 
     Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)
@@ -275,13 +277,13 @@ namespace Module
       }
       else
       {
-        return boost::make_shared<StubAnalyzer>();
+        return MakePtr<StubAnalyzer>();
       }
     }
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
     {
-      return boost::make_shared<AYMRenderer>(params, iterator, device);
+      return MakePtr<AYMRenderer>(params, iterator, device);
     }
     
     Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)

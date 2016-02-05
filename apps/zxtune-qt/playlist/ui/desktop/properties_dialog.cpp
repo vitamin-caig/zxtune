@@ -19,13 +19,13 @@
 //common includes
 #include <contract.h>
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <parameters/merged_accessor.h>
 #include <sound/sound_parameters.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 //qt includes
 #include <QtGui/QAbstractButton>
@@ -110,7 +110,7 @@ namespace
       const Module::Holder::Ptr module = item->GetModule();
       const Parameters::Accessor::Ptr nativeProps = module->GetModuleProperties();
       const Parameters::Container::Ptr adjustedProps = item->GetAdjustedParameters();
-      Properties = boost::make_shared<ItemPropertiesContainer>(adjustedProps, nativeProps);
+      Properties = MakePtr<ItemPropertiesContainer>(adjustedProps, nativeProps);
 
       FillProperties(item->GetCapabilities());
       itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding), itemsLayout->rowCount(), 0);
@@ -257,10 +257,10 @@ namespace Playlist
 
     PropertiesDialog::Ptr PropertiesDialog::Create(QWidget& parent, Item::Data::Ptr item)
     {
-      return boost::make_shared<PropertiesDialogImpl>(boost::ref(parent), item);
+      return MakePtr<PropertiesDialogImpl>(boost::ref(parent), item);
     }
 
-    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Model::IndexSetPtr scope)
+    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Model::IndexSet::Ptr scope)
     {
       if (scope->size() != 1)
       {

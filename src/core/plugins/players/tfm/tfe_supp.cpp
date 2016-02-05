@@ -19,11 +19,11 @@
 //common includes
 #include <contract.h>
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <formats/chiptune/fm/tfmmusicmaker.h>
 #include <math/fixedpoint.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/scoped_ptr.hpp>
 
 namespace Module
@@ -81,6 +81,7 @@ namespace TFMMusicMaker
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : EvenInitialTempo()
@@ -101,7 +102,7 @@ namespace TFMMusicMaker
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-      : Data(boost::make_shared<ModuleData>())
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<TFM::TRACK_CHANNELS>())
@@ -137,7 +138,7 @@ namespace TFMMusicMaker
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -276,7 +277,7 @@ namespace TFMMusicMaker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
+    const ModuleData::RWPtr Data;
     PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
@@ -1401,7 +1402,7 @@ namespace TFMMusicMaker
   public:
     explicit TrackStateIteratorImpl(ModuleData::Ptr data)
       : Data(data)
-      , Cursor(boost::make_shared<TrackStateCursor>(data))
+      , Cursor(MakePtr<TrackStateCursor>(data))
     {
     }
 
@@ -1521,7 +1522,7 @@ namespace TFMMusicMaker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(boost::make_shared<InformationImpl>(Data))
+      , Info(MakePtr<InformationImpl>(Data))
     {
     }
 
@@ -1537,8 +1538,8 @@ namespace TFMMusicMaker
 
     virtual TFM::DataIterator::Ptr CreateDataIterator() const
     {
-      const TrackStateIterator::Ptr iterator = boost::make_shared<TrackStateIteratorImpl>(Data);
-      const TFM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const TrackStateIterator::Ptr iterator = MakePtr<TrackStateIteratorImpl>(Data);
+      const TFM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return TFM::CreateDataIterator(iterator, renderer);
     }
   private:
@@ -1562,7 +1563,7 @@ namespace TFMMusicMaker
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -1583,14 +1584,14 @@ namespace ZXTune
     {
       const Char ID[] = {'T', 'F', '0', 0};
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver05::CreateDecoder();
-      const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
+      const Module::TFM::Factory::Ptr factory = MakePtr<Module::TFMMusicMaker::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Char ID[] = {'T', 'F', 'E', 0};
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver13::CreateDecoder();
-      const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
+      const Module::TFM::Factory::Ptr factory = MakePtr<Module::TFMMusicMaker::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }

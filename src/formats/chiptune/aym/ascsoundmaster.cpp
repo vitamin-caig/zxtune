@@ -16,6 +16,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -28,7 +29,6 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -1336,7 +1336,7 @@ namespace Chiptune
 
       Decoder::Ptr CreateDecoder()
       {
-        return boost::make_shared<VersionedDecoder>(boost::cref(Version0::TRAITS));
+        return MakePtr<VersionedDecoder>(boost::cref(Version0::TRAITS));
       }
     }
     
@@ -1354,7 +1354,7 @@ namespace Chiptune
     
       Decoder::Ptr CreateDecoder()
       {
-        return boost::make_shared<VersionedDecoder>(boost::cref(Version1::TRAITS));
+        return MakePtr<VersionedDecoder>(boost::cref(Version1::TRAITS));
       }
     }
   }//namespace ASCSoundMaster

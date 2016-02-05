@@ -14,14 +14,13 @@
 //common includes
 #include <byteorder.h>
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 //std includes
 #include <cstring>
 #include <numeric>
-//boost includes
-#include <boost/make_shared.hpp>
 //text include
 #include <formats/text/archived.h>
 
@@ -180,7 +179,7 @@ namespace Archived
 
   Decoder::Ptr CreateSCLDecoder()
   {
-    return boost::make_shared<SCLDecoder>();
+    return MakePtr<SCLDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

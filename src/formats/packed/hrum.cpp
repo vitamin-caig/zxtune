@@ -16,6 +16,7 @@
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -24,7 +25,6 @@
 //std includes
 #include <numeric>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
@@ -336,7 +336,7 @@ namespace Packed
         return Container::Ptr();
       }
       Hrum::DataDecoder decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
+      return CreateContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -344,7 +344,7 @@ namespace Packed
 
   Decoder::Ptr CreateHrumDecoder()
   {
-    return boost::make_shared<HrumDecoder>();
+    return MakePtr<HrumDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

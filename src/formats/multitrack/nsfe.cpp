@@ -12,6 +12,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/container_factories.h>
@@ -23,7 +24,6 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 
 namespace Formats
 {
@@ -134,7 +134,7 @@ namespace Multitrack
         InfoChunkFull* const info = safe_ptr_cast<InfoChunkFull*>(&content->front() + infoOffset);
         Require(idx < info->TracksCount);
         info->StartTrack = idx;
-        return boost::make_shared<Container>(info, FixedCrc, Binary::CreateContainer(content));
+        return MakePtr<Container>(info, FixedCrc, Binary::CreateContainer(content));
       }
     private:
       const InfoChunkFull* const Info;
@@ -195,7 +195,7 @@ namespace Multitrack
               fixedCrc = Crc32(data, size, fixedCrc);
             }
           }
-          return boost::make_shared<Container>(info, fixedCrc, input.GetReadData());
+          return MakePtr<Container>(info, fixedCrc, input.GetReadData());
         }
         catch (const std::exception&)
         {
@@ -209,7 +209,7 @@ namespace Multitrack
 
   Decoder::Ptr CreateNSFEDecoder()
   {
-    return boost::make_shared<NSFE::Decoder>();
+    return MakePtr<NSFE::Decoder>();
   }
 }//namespace Multitrack
 }//namespace Formats

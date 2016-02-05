@@ -13,13 +13,13 @@
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -315,7 +315,7 @@ namespace Chiptune
   
   Decoder::Ptr CreateAbyssHighestExperienceDecoder()
   {
-    return boost::make_shared<AbyssHighestExperience::Decoder>();
+    return MakePtr<AbyssHighestExperience::Decoder>();
   }
 }
 }

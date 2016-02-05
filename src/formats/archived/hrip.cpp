@@ -13,13 +13,12 @@
 #include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/packed/decoders.h>
 //std includes
 #include <cstring>
-//boost includes
-#include <boost/make_shared.hpp>
 //text include
 #include <formats/text/archived.h>
 
@@ -211,7 +210,7 @@ namespace Archived
 
   Decoder::Ptr CreateHripDecoder()
   {
-    return boost::make_shared<HripDecoder>();
+    return MakePtr<HripDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

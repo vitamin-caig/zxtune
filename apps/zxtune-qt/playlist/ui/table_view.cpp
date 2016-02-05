@@ -16,11 +16,11 @@
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //qt includes
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QHeaderView>
@@ -156,11 +156,11 @@ namespace
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual Playlist::Model::IndexSetPtr GetSelectedItems() const
+    virtual Playlist::Model::IndexSet::Ptr GetSelectedItems() const
     {
       const QItemSelectionModel* const selection = selectionModel();
       const QModelIndexList& items = selection->selectedRows();
-      const boost::shared_ptr<Playlist::Model::IndexSet> result = boost::make_shared<Playlist::Model::IndexSet>();
+      const Playlist::Model::IndexSet::RWPtr result = MakeRWPtr<Playlist::Model::IndexSet>();
       std::for_each(items.begin(), items.end(),
                     boost::bind(boost::mem_fn<std::pair<Playlist::Model::IndexSet::iterator, bool>, Playlist::Model::IndexSet, const Playlist::Model::IndexSet::value_type&>(&Playlist::Model::IndexSet::insert), result.get(),
           boost::bind(&QModelIndex::row, _1)));
@@ -194,7 +194,7 @@ namespace
       scrollTo(idx, QAbstractItemView::EnsureVisible);
     }
 
-    virtual void SelectItems(Playlist::Model::IndexSetPtr indices)
+    virtual void SelectItems(Playlist::Model::IndexSet::Ptr indices)
     {
       return SelectItems(*indices);
     }
@@ -321,7 +321,7 @@ namespace Playlist
 
     TableView* TableView::Create(QWidget& parent, const Item::StateCallback& callback, QAbstractItemModel& model)
     {
-      REGISTER_METATYPE(Playlist::Model::IndexSetPtr);
+      REGISTER_METATYPE(Playlist::Model::IndexSet::Ptr);
       return new TableViewImpl(parent, callback, model);
     }
   }

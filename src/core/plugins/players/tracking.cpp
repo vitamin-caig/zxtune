@@ -12,9 +12,9 @@
 #include "tracking.h"
 //common includes
 #include <pointers.h>
+#include <make_ptr.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/scoped_ptr.hpp>
 
 namespace Module
@@ -245,7 +245,7 @@ namespace Module
   public:
     explicit TrackStateIteratorImpl(TrackModel::Ptr model)
       : Model(model)
-      , Cursor(boost::make_shared<TrackStateCursor>(model))
+      , Cursor(MakePtr<TrackStateCursor>(model))
     {
     }
 
@@ -364,11 +364,11 @@ namespace Module
 
   Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels)
   {
-    return boost::make_shared<InformationImpl>(model, channels);
+    return MakePtr<InformationImpl>(model, channels);
   }
 
   TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model)
   {
-    return boost::make_shared<TrackStateIteratorImpl>(model);
+    return MakePtr<TrackStateIteratorImpl>(model);
   }
 }

@@ -13,8 +13,12 @@
 #include "core/plugins/players/properties_meta.h"
 #include "core/plugins/players/tracking.h"
 #include "core/plugins/players/simple_orderlist.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <devices/dac/sample_factories.h>
+//boost includes
+#include <boost/ref.hpp>
 
 namespace Module
 {
@@ -24,7 +28,7 @@ namespace Module
     {
     public:
       SimpleDataBuilderImpl(DAC::PropertiesHelper& props, const PatternsBuilder& builder)
-        : Data(boost::make_shared<SimpleModuleData>())
+        : Data(MakeRWPtr<SimpleModuleData>())
         , Properties(props)
         , Meta(props)
         , Patterns(builder)
@@ -56,7 +60,7 @@ namespace Module
 
       virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
       {
-        Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+        Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
       }
 
       virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -91,7 +95,7 @@ namespace Module
         return Data;
       }
     private:
-      const boost::shared_ptr<SimpleModuleData> Data;
+      const SimpleModuleData::RWPtr Data;
       DAC::PropertiesHelper& Properties;
       MetaProperties Meta;
       PatternsBuilder Patterns;
@@ -99,7 +103,7 @@ namespace Module
 
     SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, const PatternsBuilder& builder)
     {
-      return SimpleDataBuilder::Ptr(new SimpleDataBuilderImpl(props, builder));
+      return MakePtr<SimpleDataBuilderImpl>(boost::ref(props), builder);
     }
 
     class SimpleDataRenderer : public DAC::DataRenderer
@@ -188,7 +192,7 @@ namespace Module
       virtual DAC::DataIterator::Ptr CreateDataIterator() const
       {
         const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-        const DAC::DataRenderer::Ptr renderer = boost::make_shared<SimpleDataRenderer>(Data, Channels);
+        const DAC::DataRenderer::Ptr renderer = MakePtr<SimpleDataRenderer>(Data, Channels);
         return DAC::CreateDataIterator(iterator, renderer);
       }
 
@@ -208,7 +212,7 @@ namespace Module
 
     DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
     {
-      return boost::make_shared<SimpleChiptune>(data, properties, channels);
+      return MakePtr<SimpleChiptune>(data, properties, channels);
     }
   }
 }

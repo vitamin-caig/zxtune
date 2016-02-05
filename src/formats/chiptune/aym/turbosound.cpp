@@ -13,12 +13,11 @@
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -154,7 +153,7 @@ namespace Chiptune
     {
     public:
       DecoderImpl()
-        : Format(boost::make_shared<FooterFormat>())
+        : Format(MakePtr<FooterFormat>())
       {
       }
 
@@ -208,7 +207,7 @@ namespace Chiptune
 
     Decoder::Ptr CreateDecoder()
     {
-      return boost::make_shared<DecoderImpl>();
+      return MakePtr<DecoderImpl>();
     }
   }//namespace TurboSound
 

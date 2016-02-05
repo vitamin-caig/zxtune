@@ -10,11 +10,12 @@
 
 //local includes
 #include "storage.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <math/numeric.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 
 namespace
@@ -259,12 +260,12 @@ namespace
 
     virtual Item::Storage::Ptr Clone() const
     {
-      return Item::Storage::Ptr(new LinearStorage(*this));
+      return MakePtr<LinearStorage>(*this);
     }
    
     virtual Model::OldToNewIndexMap::Ptr ResetIndices()
     {
-      const boost::shared_ptr<Model::OldToNewIndexMap> result = boost::make_shared<Model::OldToNewIndexMap>();
+      const Model::OldToNewIndexMap::RWPtr result = MakeRWPtr<Model::OldToNewIndexMap>();
       std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), std::inserter(*result, result->end()), &MakeIndexPair);
       std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), Items.begin(), &UpdateItemIndex);
       return result;
@@ -309,7 +310,7 @@ namespace
 
     virtual Item::Collection::Ptr GetItems() const
     {
-      return boost::make_shared<ItemsCollection>(Items.begin(), Items.end());
+      return MakePtr<ItemsCollection>(Items.begin(), Items.end());
     }
 
     virtual void ForAllItems(Item::Visitor& visitor) const
@@ -573,7 +574,7 @@ namespace Playlist
   {
     Storage::Ptr Storage::Create()
     {
-      return boost::make_shared<LinearStorage>();
+      return MakePtr<LinearStorage>();
     }
   }
 }

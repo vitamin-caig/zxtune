@@ -15,6 +15,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -26,7 +27,6 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -537,7 +537,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateDigitalStudioDecoder()
   {
-    return boost::make_shared<DigitalStudio::Decoder>();
+    return MakePtr<DigitalStudio::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

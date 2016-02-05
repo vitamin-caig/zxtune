@@ -10,10 +10,10 @@
 
 //local includes
 #include "chip.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <devices/tfm.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Devices
 {
@@ -88,7 +88,7 @@ namespace TFM
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
   {
-    return boost::make_shared<TFMChip>(params, target);
+    return MakePtr<TFMChip>(params, target);
   }
 }
 }

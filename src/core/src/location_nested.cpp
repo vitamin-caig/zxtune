@@ -10,8 +10,8 @@
 
 //local includes
 #include "location.h"
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 
 namespace
 {
@@ -55,6 +55,6 @@ namespace ZXTune
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, const String& subPlugin, const String& subPath)
   {
     assert(subData);
-    return boost::make_shared<NestedLocation>(parent, subPlugin, subData, subPath);
+    return MakePtr<NestedLocation>(parent, subPlugin, subData, subPath);
   }
 }

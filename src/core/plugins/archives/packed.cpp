@@ -13,8 +13,8 @@
 #include "core/src/callback.h"
 #include "core/plugins/plugins_types.h"
 #include <core/plugin_attrs.h>
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 //text includes
 #include <core/text/plugins.h>
 
@@ -117,6 +117,6 @@ namespace ZXTune
   ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Packed::Decoder::Ptr decoder)
   {
     const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
-    return ArchivePlugin::Ptr(new CommonArchivePlugin(description, decoder));
+    return MakePtr<CommonArchivePlugin>(description, decoder);
   }
 }

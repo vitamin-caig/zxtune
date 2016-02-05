@@ -12,6 +12,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/container_factories.h>
@@ -22,7 +23,6 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 
 namespace Formats
 {
@@ -152,7 +152,7 @@ namespace Multitrack
         RawHeader* const hdr = safe_ptr_cast<RawHeader*>(&content->front());
         Require(idx < hdr->SongsCount);
         hdr->StartSong = idx + 1;
-        return boost::make_shared<Container>(hdr, Binary::CreateContainer(content));
+        return MakePtr<Container>(hdr, Binary::CreateContainer(content));
       }
     private:
       const RawHeader* const Hdr;
@@ -183,7 +183,7 @@ namespace Multitrack
         if (const RawHeader* hdr = GetHeader(rawData))
         {
           const Binary::Container::Ptr used = rawData.GetSubcontainer(0, std::min(rawData.Size(), MAX_SIZE));
-          return boost::make_shared<Container>(hdr, used);
+          return MakePtr<Container>(hdr, used);
         }
         else
         {
@@ -197,7 +197,7 @@ namespace Multitrack
 
   Decoder::Ptr CreateNSFDecoder()
   {
-    return boost::make_shared<NSF::Decoder>();
+    return MakePtr<NSF::Decoder>();
   }
 }//namespace Multitrack
 }//namespace Formats

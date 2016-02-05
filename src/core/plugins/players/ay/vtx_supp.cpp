@@ -14,12 +14,13 @@
 #include "aym_plugin.h"
 #include "aym_properties_helper.h"
 #include "core/plugins/player_plugins_registrator.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
 #include <formats/chiptune/aym/ym.h>
 //boost includes
 #include <boost/lexical_cast.hpp>
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -30,10 +31,11 @@ namespace YMVTX
   class StreamModel : public AYM::StreamModel
   {
   public:
-    StreamModel(RegistersArray& rh, uint_t loop)
-      : LoopFrame(loop)
+    typedef boost::shared_ptr<StreamModel> RWPtr;
+    
+    StreamModel()
+      : LoopFrame(0)
     {
-      Data.swap(rh);
     }
 
     virtual uint_t Size() const
@@ -50,8 +52,19 @@ namespace YMVTX
     {
       return Data[pos];
     }
+    
+    void SetLoop(uint_t frame)
+    {
+      LoopFrame = frame;
+    }
+    
+    Devices::AYM::Registers& Allocate()
+    {
+      Data.push_back(Devices::AYM::Registers());
+      return Data.back();
+    }
   private:
-    const uint_t LoopFrame;
+    uint_t LoopFrame;
     RegistersArray Data;
   };
 
@@ -85,7 +98,7 @@ namespace YMVTX
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
-      , Loop(0)
+      , Data(MakeRWPtr<StreamModel>())
     {
     }
 
@@ -106,7 +119,7 @@ namespace YMVTX
 
     virtual void SetLoop(uint_t loop)
     {
-      Loop = loop;
+      Data->SetLoop(loop);
     }
 
     virtual void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/)
@@ -159,7 +172,7 @@ namespace YMVTX
 
     virtual void AddData(const Dump& registers)
     {
-      Devices::AYM::Registers& data = Allocate();
+      Devices::AYM::Registers& data = Data->Allocate();
       const uint_t availRegs = std::min<uint_t>(registers.size(), Devices::AYM::Registers::ENV + 1);
       for (uint_t reg = 0, mask = 1; reg != availRegs; ++reg, mask <<= 1)
       {
@@ -173,20 +186,13 @@ namespace YMVTX
 
     AYM::StreamModel::Ptr GetResult() const
     {
-      return Data.empty()
-        ? AYM::StreamModel::Ptr()
-        : AYM::StreamModel::Ptr(new StreamModel(Data, Loop));
-    }
-  private:
-    Devices::AYM::Registers& Allocate()
-    {
-      Data.push_back(Devices::AYM::Registers());
-      return Data.back();
+      return Data->Size()
+        ? Data
+        : AYM::StreamModel::Ptr();
     }
   private:
     AYM::PropertiesHelper& Properties;
-    mutable RegistersArray Data;
-    uint_t Loop;
+    const StreamModel::RWPtr Data;
   };
 
   class Factory : public AYM::Factory
@@ -225,7 +231,7 @@ namespace ZXTune
     const Char ID[] = {'V', 'T', 'X', 0};
 
     const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateVTXDecoder();
-    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+    const Module::AYM::Factory::Ptr factory = MakePtr<Module::YMVTX::Factory>(decoder);
     const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);;
     registrator.RegisterPlugin(plugin);
   }
@@ -236,13 +242,13 @@ namespace ZXTune
     const Char ID[] = {'Y', 'M', 0};
     {
       const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreatePackedYMDecoder();
-      const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+      const Module::AYM::Factory::Ptr factory = MakePtr<Module::YMVTX::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateYMDecoder();
-      const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+      const Module::AYM::Factory::Ptr factory = MakePtr<Module::YMVTX::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);;
       registrator.RegisterPlugin(plugin);
     }

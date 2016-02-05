@@ -12,14 +12,14 @@
 #include "container.h"
 #include "lha_supp.h"
 #include "pack_utils.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/archived.h>
 //3rdparty includes
 #include <3rdparty/lhasa/lib/lha_decoder.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -58,7 +58,7 @@ namespace Lha
       {
         const std::size_t originalSize = input.GetPosition();
         Dbg("Decoded %1% -> %2% bytes", originalSize, outputSize);
-        return CreatePackedContainer(result, originalSize);
+        return CreateContainer(result, originalSize);
       }
       return Formats::Packed::Container::Ptr();
     }
@@ -76,7 +76,7 @@ namespace Lha
   {
     if (LHADecoderType* type = ::lha_decoder_for_name(const_cast<char*>(method.c_str())))
     {
-      return boost::make_shared<LHADecompressor>(type);
+      return MakePtr<LHADecompressor>(type);
     }
     return Decompressor::Ptr();
   }

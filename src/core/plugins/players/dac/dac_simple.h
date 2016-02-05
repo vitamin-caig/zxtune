@@ -24,6 +24,7 @@ namespace Module
     {
     public:
       typedef boost::shared_ptr<const SimpleModuleData> Ptr;
+      typedef boost::shared_ptr<SimpleModuleData> RWPtr;
 
       SimpleModuleData()
         : InitialTempo()

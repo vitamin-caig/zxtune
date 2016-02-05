@@ -8,18 +8,16 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <parameters/merged_accessor.h>
 #include <parameters/visitor.h>
 //std includes
 #include <set>
-//boost includes
-#include <boost/make_shared.hpp>
 
-namespace
+namespace Parameters
 {
-  using namespace Parameters;
-
   class MergedVisitor : public Visitor
   {
   public:
@@ -149,17 +147,14 @@ namespace
     const Accessor::Ptr Second;
     const Accessor::Ptr Third;
   };
-}
 
-namespace Parameters
-{
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
   {
-    return boost::make_shared<DoubleAccessor>(first, second);
+    return MakePtr<DoubleAccessor>(first, second);
   }
 
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third)
   {
-    return boost::make_shared<TripleAccessor>(first, second, third);
+    return MakePtr<TripleAccessor>(first, second, third);
   }
 }

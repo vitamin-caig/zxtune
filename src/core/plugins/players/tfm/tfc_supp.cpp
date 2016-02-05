@@ -17,11 +17,11 @@
 //common includes
 #include <contract.h>
 #include <iterator.h>
+#include <make_ptr.h>
 //library includes
 #include <formats/chiptune/fm/tfc.h>
 #include <sound/sound_parameters.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/algorithm/max_element.hpp>
 //text includes
 #include <core/text/plugins.h>
@@ -79,23 +79,16 @@ namespace TFC
     Devices::FM::Registers Data;
     std::size_t Loop;
   };
-
-  typedef boost::array<ChannelData, 6> ChiptuneData;
-  typedef std::auto_ptr<ChiptuneData> ChiptuneDataPtr;
-
+  
   class ModuleData : public TFM::StreamModel
   {
   public:
-    ModuleData(ChiptuneDataPtr data)
-      : Data(data)
-    {
-    }
-
+    typedef boost::shared_ptr<ModuleData> RWPtr;
+    
     virtual uint_t Size() const
     {
-      const ChiptuneData& data = *Data;
-      const std::size_t sizes[6] = {data[0].GetSize(), data[1].GetSize(), data[2].GetSize(),
-        data[3].GetSize(), data[4].GetSize(), data[5].GetSize()};
+      const std::size_t sizes[6] = {Data[0].GetSize(), Data[1].GetSize(), Data[2].GetSize(),
+        Data[3].GetSize(), Data[4].GetSize(), Data[5].GetSize()};
       return static_cast<uint_t>(*boost::max_element(sizes));
     }
 
@@ -107,28 +100,33 @@ namespace TFC
     virtual void Get(uint_t frameNum, Devices::TFM::Registers& res) const
     {
       Devices::TFM::Registers result;
-      const ChiptuneData& data = *Data;
       for (uint_t idx = 0; idx != 6; ++idx)
       {
         const uint_t chip = idx < 3 ? 0 : 1;
-        for (RangeIterator<Devices::FM::Registers::const_iterator> regs = data[idx].Get(frameNum); regs; ++regs)
+        for (RangeIterator<Devices::FM::Registers::const_iterator> regs = Data[idx].Get(frameNum); regs; ++regs)
         {
           result.push_back(Devices::TFM::Register(chip, *regs));
         }
       }
       res.swap(result);
     }
+    
+    ChannelData& GetChannel(uint_t channel)
+    {
+      return Data[channel];
+    }
   private:
-    const ChiptuneDataPtr Data;  
+    boost::array<ChannelData, 6> Data;  
   };
 
   class DataBuilder : public Formats::Chiptune::TFC::Builder
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-     : Properties(props)
-     , Data(new ChiptuneData())
-     , Channel(0)
+      : Properties(props)
+      , Data(MakeRWPtr<ModuleData>())
+      , Channel(0)
+      , Frequency()
     {
     }
 
@@ -211,18 +209,18 @@ namespace TFC
 
     TFM::StreamModel::Ptr GetResult() const
     {
-      return TFM::StreamModel::Ptr(new ModuleData(Data));
+      return Data;
     }
   private:
     ChannelData& GetChannel()
     {
-      return (*Data)[Channel];
+      return Data->GetChannel(Channel);
     }
   private:
     PropertiesHelper& Properties;
-    mutable ChiptuneDataPtr Data;
+    const ModuleData::RWPtr Data;
     uint_t Channel;
-    uint_t Frequency[6];
+    boost::array<uint_t, 6> Frequency;
   };
 
   class Factory : public TFM::Factory
@@ -255,7 +253,7 @@ namespace ZXTune
     const Char ID[] = {'T', 'F', 'C', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFCDecoder();
-    const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFC::Factory>();
+    const Module::TFM::Factory::Ptr factory = MakePtr<Module::TFC::Factory>();
     const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

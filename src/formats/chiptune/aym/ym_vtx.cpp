@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -25,7 +26,6 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -693,17 +693,17 @@ namespace Chiptune
 
     Decoder::Ptr CreatePackedYMDecoder()
     {
-      return boost::make_shared<YMDecoder>();
+      return MakePtr<YMDecoder>();
     }
 
     Decoder::Ptr CreateYMDecoder()
     {
-      return boost::make_shared<PackedDecoder>();
+      return MakePtr<PackedDecoder>();
     }
 
     Decoder::Ptr CreateVTXDecoder()
     {
-      return boost::make_shared<VTX::Decoder>();
+      return MakePtr<VTX::Decoder>();
     }
   }
 

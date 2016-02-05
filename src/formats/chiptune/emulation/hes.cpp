@@ -12,6 +12,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/chiptune/container.h>
@@ -20,7 +21,6 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -115,7 +115,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateHESDecoder()
   {
-    return boost::make_shared<HES::Decoder>();
+    return MakePtr<HES::Decoder>();
   }
 }
 }

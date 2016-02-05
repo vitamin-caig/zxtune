@@ -16,6 +16,7 @@
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <core/module_attrs.h>
@@ -34,7 +35,6 @@
 //std includes
 #include <map>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 //3rdparty
@@ -62,7 +62,7 @@ namespace GME
   template<class EmuType>
   EmuPtr Create()
   {
-    return boost::make_shared<EmuType>();
+    return EmuPtr(new EmuType());
   }
   
   class GME : public Module::Analyzer
@@ -294,7 +294,7 @@ namespace GME
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return boost::make_shared<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
   private:
     const GME::Ptr Tune;
@@ -368,7 +368,7 @@ namespace GME
             Require(HasContainer(Desc.Id, properties));
           }
 
-          const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
           PropertiesHelper props(*properties);
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
@@ -376,7 +376,7 @@ namespace GME
         
           props.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
         
-          return boost::make_shared<Holder>(tune, info, properties);
+          return MakePtr<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)
@@ -412,7 +412,7 @@ namespace GME
       {
         if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
         {
-          const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, 0);
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, container, 0);
           PropertiesHelper props(*properties);
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
@@ -420,7 +420,7 @@ namespace GME
         
           props.SetSource(*container);
         
-          return boost::make_shared<Holder>(tune, info, properties);
+          return MakePtr<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)
@@ -540,7 +540,7 @@ namespace ZXTune
       const Formats::Multitrack::Decoder::Ptr multi = desc.CreateMultitrackDecoder();
       const uint_t caps = desc.Desc.ChiptuneCaps;
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder(multi);
-      const Module::Factory::Ptr factory = boost::make_shared<Module::GME::MultitrackFactory>(desc.Desc, multi);
+      const Module::Factory::Ptr factory = MakePtr<Module::GME::MultitrackFactory>(desc.Desc, multi);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
@@ -554,7 +554,7 @@ namespace ZXTune
 
       const uint_t caps = desc.Desc.ChiptuneCaps;
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder();
-      const Module::Factory::Ptr factory = boost::make_shared<Module::GME::SingletrackFactory>(desc.Desc, decoder);
+      const Module::Factory::Ptr factory = MakePtr<Module::GME::SingletrackFactory>(desc.Desc, decoder);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }

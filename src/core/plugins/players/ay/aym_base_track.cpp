@@ -10,11 +10,11 @@
 
 //local includes
 #include "aym_base_track.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -154,7 +154,7 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return boost::make_shared<TrackDataIterator>(trackParams, iterator, renderer);
+      return MakePtr<TrackDataIterator>(trackParams, iterator, renderer);
     }
   }
 }

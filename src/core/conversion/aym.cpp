@@ -13,6 +13,7 @@
 #include "core/plugins/players/ay/aym_base.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <core/convert_parameters.h>
@@ -120,35 +121,35 @@ namespace Module
     //convert to PSG
     if (const PSGConvertParam* psg = parameter_cast<PSGConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, psg->Optimization);
+      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(params, psg->Optimization);
       dumper = Devices::AYM::CreatePSGDumper(dumpParams);
       errMessage = translate("Failed to convert to PSG format.");
     }
     //convert to ZX50
     else if (const ZX50ConvertParam* zx50 = parameter_cast<ZX50ConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, zx50->Optimization);
+      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(params, zx50->Optimization);
       dumper = Devices::AYM::CreateZX50Dumper(dumpParams);
       errMessage = translate("Failed to convert to ZX50 format.");
     }
     //convert to debugay
     else if (const DebugAYConvertParam* dbg = parameter_cast<DebugAYConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, dbg->Optimization);
+      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(params, dbg->Optimization);
       dumper = Devices::AYM::CreateDebugDumper(dumpParams);
       errMessage = translate("Failed to convert to debug ay format.");
     }
     //convert to aydump
     else if (const AYDumpConvertParam* aydump = parameter_cast<AYDumpConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, aydump->Optimization);
+      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(params, aydump->Optimization);
       dumper = Devices::AYM::CreateRawStreamDumper(dumpParams);
       errMessage = translate("Failed to convert to raw ay dump.");;
     }
     //convert to fym
     else if (const FYMConvertParam* fym = parameter_cast<FYMConvertParam>(&spec))
     {
-      const Devices::AYM::FYMDumperParameters::Ptr dumpParams = boost::make_shared<FYMDumperParameters>(params, holder.GetModuleInformation()->LoopFrame(), fym->Optimization);
+      const Devices::AYM::FYMDumperParameters::Ptr dumpParams = MakePtr<FYMDumperParameters>(params, holder.GetModuleInformation()->LoopFrame(), fym->Optimization);
       dumper = Devices::AYM::CreateFYMDumper(dumpParams);
       errMessage = translate("Failed to convert to FYM format.");;
     }

@@ -8,14 +8,14 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/emulation/sid.h>
 //std includes
 #include <sstream>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/archived.h>
 
@@ -147,7 +147,7 @@ namespace Archived
           return File::Ptr();
         }
         const Binary::Container::Ptr subData = Formats::Chiptune::SID::FixStartSong(*Delegate, song);
-        return boost::make_shared<File>(name, subData);
+        return MakePtr<File>(name, subData);
       }
 
       virtual uint_t CountFiles() const
@@ -197,7 +197,7 @@ namespace Archived
         return Container::Ptr();
       }
       const Binary::Container::Ptr sidData = rawData.GetSubcontainer(0, rawData.Size());
-      return boost::make_shared<MultiSID::Container>(sidData);
+      return MakePtr<MultiSID::Container>(sidData);
     }
   private:
     const Binary::Format::Ptr Format;
@@ -205,7 +205,7 @@ namespace Archived
 
   Decoder::Ptr CreateSIDDecoder()
   {
-    return boost::make_shared<MultiSIDDecoder>();
+    return MakePtr<MultiSIDDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

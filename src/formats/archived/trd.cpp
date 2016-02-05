@@ -13,6 +13,7 @@
 #include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -21,7 +22,6 @@
 #include <cstring>
 #include <numeric>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 //text include
 #include <formats/text/archived.h>
@@ -283,7 +283,7 @@ namespace Archived
 
   Decoder::Ptr CreateTRDDecoder()
   {
-    return boost::make_shared<TRDDecoder>();
+    return MakePtr<TRDDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

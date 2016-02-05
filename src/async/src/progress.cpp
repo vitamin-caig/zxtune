@@ -8,11 +8,12 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <async/progress.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 
@@ -70,6 +71,6 @@ namespace Async
 {
   Progress::Ptr Progress::Create()
   {
-    return boost::make_shared<SynchronizedProgress>();
+    return MakePtr<SynchronizedProgress>();
   }
 }

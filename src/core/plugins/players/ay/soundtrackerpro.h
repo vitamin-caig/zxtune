@@ -66,6 +66,7 @@ namespace SoundTrackerPro
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : InitialTempo()

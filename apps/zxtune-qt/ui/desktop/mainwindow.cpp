@@ -31,6 +31,7 @@
 #include "update/check.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_attrs.h>
 #include <debug/log.h>
@@ -303,7 +304,7 @@ namespace
 
 MainWindow::Ptr DesktopMainWindow::Create(Parameters::Container::Ptr options)
 {
-  const MainWindow::Ptr res(new DesktopMainWindowImpl(options));
+  const MainWindow::Ptr res = MakePtr<DesktopMainWindowImpl>(options);
   res->show();
   return res;
 }

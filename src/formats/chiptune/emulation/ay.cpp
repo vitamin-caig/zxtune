@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -27,7 +28,6 @@
 #include <list>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -590,18 +590,18 @@ namespace Chiptune
 
     BlobBuilder::Ptr CreateMemoryDumpBuilder()
     {
-      return boost::make_shared<MemoryDumpBuilder>();
+      return MakePtr<MemoryDumpBuilder>();
     }
 
     BlobBuilder::Ptr CreateFileBuilder()
     {
-      return boost::make_shared<FileBuilder>();
+      return MakePtr<FileBuilder>();
     }
   } //namespace AY
 
   Decoder::Ptr CreateAYEMULDecoder()
   {
-    return boost::make_shared<AY::Decoder>();
+    return MakePtr<AY::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

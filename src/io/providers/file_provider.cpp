@@ -15,6 +15,7 @@
 //common includes
 #include <contract.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <debug/log.h>
@@ -28,7 +29,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/range/end.hpp>
@@ -173,7 +173,7 @@ namespace IO
 
     virtual Ptr WithSubpath(const String& subpath) const
     {
-      return boost::make_shared<FileIdentifier>(PathValue, subpath);
+      return MakePtr<FileIdentifier>(PathValue, subpath);
     }
   private:
     String Serialize() const
@@ -223,7 +223,7 @@ namespace IO
 
   Binary::Data::Ptr OpenMemoryMappedFile(const std::string& path)
   {
-    return boost::make_shared<MemoryMappedData>(path);
+    return MakePtr<MemoryMappedData>(path);
   }
 
   Binary::Data::Ptr ReadFileToMemory(std::ifstream& stream, std::size_t size)
@@ -432,7 +432,7 @@ namespace IO
     default:
       Require(false);
     }
-    return boost::make_shared<OutputFileStream>(path);
+    return MakePtr<OutputFileStream>(path);
   }
 
   ///////////////////////////////////////
@@ -474,7 +474,7 @@ namespace IO
       const String path = String::npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
       const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
       return !path.empty() && scheme == SCHEME_FILE
-        ? boost::make_shared<FileIdentifier>(path, subpath)
+        ? MakePtr<FileIdentifier>(path, subpath)
         : Identifier::Ptr();
     }
 
@@ -520,7 +520,7 @@ namespace IO
 
   DataProvider::Ptr CreateFileDataProvider()
   {
-    return boost::make_shared<FileDataProvider>();
+    return MakePtr<FileDataProvider>();
   }
 
   void RegisterFileProvider(ProvidersEnumerator& enumerator)

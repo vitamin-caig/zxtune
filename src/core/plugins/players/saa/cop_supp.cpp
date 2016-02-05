@@ -15,6 +15,8 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/saa/etracker.h>
@@ -101,6 +103,7 @@ namespace ETracker
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : InitialTempo()
@@ -133,7 +136,7 @@ namespace ETracker
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-      : Data(boost::make_shared<ModuleData>())
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
@@ -163,7 +166,7 @@ namespace ETracker
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::ETracker::PositionEntry>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -222,7 +225,7 @@ namespace ETracker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
+    const ModuleData::RWPtr Data;
     PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
@@ -528,7 +531,7 @@ namespace ETracker
     virtual SAA::DataIterator::Ptr CreateDataIterator() const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const SAA::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const SAA::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return SAA::CreateDataIterator(iterator, renderer);
     }
   private:
@@ -547,7 +550,7 @@ namespace ETracker
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        const SAA::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), properties);
+        const SAA::Chiptune::Ptr chiptune = MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
         return SAA::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -565,7 +568,7 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::SAA1099;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateETrackerDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::ETracker::Factory>();
+    const Module::Factory::Ptr factory = MakePtr<Module::ETracker::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

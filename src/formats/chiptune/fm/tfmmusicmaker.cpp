@@ -12,7 +12,9 @@
 #include "tfmmusicmaker.h"
 #include "formats/chiptune/container.h"
 //common includes
+#include <crc.h>
 #include <indices.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -20,7 +22,6 @@
 #include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -1119,7 +1120,7 @@ namespace Chiptune
     {
       Decoder::Ptr CreateDecoder()
       {
-        return boost::make_shared<VersionedDecoder<Version05> >();
+        return MakePtr<VersionedDecoder<Version05> >();
       }
     }
 
@@ -1127,7 +1128,7 @@ namespace Chiptune
     {
       Decoder::Ptr CreateDecoder()
       {
-        return boost::make_shared<VersionedDecoder<Version13> >();
+        return MakePtr<VersionedDecoder<Version13> >();
       }
     }
   }//namespace TFMMusicMaker

@@ -10,6 +10,7 @@
 
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -24,8 +25,6 @@
 #include <list>
 #include <map>
 #include <numeric>
-//boost includes
-#include <boost/make_shared.hpp>
 //text include
 #include <formats/text/archived.h>
 
@@ -170,7 +169,7 @@ namespace Archived
       File::Ptr GetFile() const
       {
         Require(Current != 0);
-        return boost::make_shared<File>(Data, *Current, Position);
+        return MakePtr<File>(Data, *Current, Position);
       }
 
       std::size_t GetOffset() const
@@ -286,7 +285,7 @@ namespace Archived
       if (const std::size_t totalSize = iter.GetOffset())
       {
         const Binary::Container::Ptr archive = data.GetSubcontainer(0, totalSize);
-        return boost::make_shared<Lha::Container>(archive, files.begin(), files.end());
+        return MakePtr<Lha::Container>(archive, files.begin(), files.end());
       }
       else
       {
@@ -299,7 +298,7 @@ namespace Archived
 
   Decoder::Ptr CreateLhaDecoder()
   {
-    return boost::make_shared<LhaDecoder>();
+    return MakePtr<LhaDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

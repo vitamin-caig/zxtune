@@ -10,54 +10,50 @@
 
 //local includes
 #include "paudio_api.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 //boost includes
 #include <boost/range/end.hpp>
-#include <boost/make_shared.hpp>
-
-namespace
-{
-  using namespace Sound::PulseAudio;
-
-  class PulseAudioName : public Platform::SharedLibrary::Name
-  {
-  public:
-    virtual std::string Base() const
-    {
-      return "pulse-simple";
-    }
-    
-    virtual std::vector<std::string> PosixAlternatives() const
-    {
-      static const std::string ALTERNATIVES[] =
-      {
-        "libpulse-simple.so.0",
-        "libpulse-simple.so.0.1",
-        "libpulse-simple.so.0.1.0"
-      };
-      return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
-    }
-    
-    virtual std::vector<std::string> WindowsAlternatives() const
-    {
-      return std::vector<std::string>();
-    }
-  };
-
-<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
-}
 
 namespace Sound
 {
   namespace PulseAudio
   {
+    class LibraryName : public Platform::SharedLibrary::Name
+    {
+    public:
+      virtual std::string Base() const
+      {
+        return "pulse-simple";
+      }
+      
+      virtual std::vector<std::string> PosixAlternatives() const
+      {
+        static const std::string ALTERNATIVES[] =
+        {
+          "libpulse-simple.so.0",
+          "libpulse-simple.so.0.1",
+          "libpulse-simple.so.0.1.0"
+        };
+        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+      }
+      
+      virtual std::vector<std::string> WindowsAlternatives() const
+      {
+        return std::vector<std::string>();
+      }
+    };
+
+<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
+
     Api::Ptr LoadDynamicApi()
     {
-      static const PulseAudioName NAME;
+      static const LibraryName NAME;
       const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
-      return boost::make_shared<DynamicApi>(lib);
+      return MakePtr<DynamicApi>(lib);
     }
   }
 }

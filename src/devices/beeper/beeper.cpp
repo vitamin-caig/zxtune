@@ -8,6 +8,8 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //local includes
 #include <devices/beeper.h>
 #include <devices/details/renderers.h>
@@ -119,7 +121,7 @@ namespace Beeper
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
   {
-    return boost::make_shared<ChipImpl>(params, target);
+    return MakePtr<ChipImpl>(params, target);
   }
 }
 }

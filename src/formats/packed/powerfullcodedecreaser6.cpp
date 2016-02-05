@@ -16,6 +16,7 @@
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -24,7 +25,6 @@
 #include <algorithm>
 #include <iterator>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
@@ -512,7 +512,7 @@ namespace Packed
         return Container::Ptr();
       }
       PowerfullCodeDecreaser6::DataDecoder<Version> decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -520,17 +520,17 @@ namespace Packed
 
   Decoder::Ptr CreatePowerfullCodeDecreaser61Decoder()
   {
-    return boost::make_shared<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version61> >();
+    return MakePtr<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version61> >();
   }
 
   Decoder::Ptr CreatePowerfullCodeDecreaser61iDecoder()
   {
-    return boost::make_shared<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version61i> >();
+    return MakePtr<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version61i> >();
   }
   
   Decoder::Ptr CreatePowerfullCodeDecreaser62Decoder()
   {
-    return boost::make_shared<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version62> >();
+    return MakePtr<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version62> >();
   }
 }//namespace Packed
 }//namespace Formats

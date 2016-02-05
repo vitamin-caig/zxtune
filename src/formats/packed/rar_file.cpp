@@ -12,7 +12,10 @@
 #include "container.h"
 #include "rar_supp.h"
 #include "pack_utils.h"
+//common includes
+#include <make_ptr.h>
 //library includes
+#include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -24,7 +27,6 @@
 #include <memory>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //thirdparty
 #include <3rdparty/unrar/rar.hpp>
 //text includes
@@ -271,7 +273,7 @@ namespace Packed
   public:
     RarDecoder()
       : Format(Binary::CreateFormat(Rar::HEADER_PATTERN))
-      , Decoder(new Rar::DispatchedCompressedFile())
+      , Decoder(MakePtr<Rar::DispatchedCompressedFile>())
     {
     }
 
@@ -292,7 +294,7 @@ namespace Packed
       {
         return Container::Ptr();
       }
-      return CreatePackedContainer(Decoder->Decompress(container), container.GetUsedSize());
+      return CreateContainer(Decoder->Decompress(container), container.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Format;
@@ -301,7 +303,7 @@ namespace Packed
 
   Decoder::Ptr CreateRarDecoder()
   {
-    return boost::make_shared<RarDecoder>();
+    return MakePtr<RarDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

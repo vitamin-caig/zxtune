@@ -12,6 +12,8 @@
 #include <strings/array.h>
 #include <strings/fields.h>
 #include <strings/template.h>
+//common includes
+#include <make_ptr.h>
 //std includes
 #include <algorithm>
 #include <cassert>
@@ -101,7 +103,7 @@ namespace Strings
 
   Template::Ptr Template::Create(const String& templ)
   {
-    return Template::Ptr(new PreprocessingTemplate(templ));
+    return MakePtr<PreprocessingTemplate>(templ);
   }
 
   String Template::Instantiate(const String& templ, const FieldsSource& source)

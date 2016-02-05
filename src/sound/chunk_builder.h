@@ -10,10 +10,10 @@
 
 #pragma once
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <sound/chunk.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Sound
 {
@@ -28,7 +28,7 @@ namespace Sound
 
     void Reserve(std::size_t maxSize)
     {
-      Content = boost::make_shared<Chunk>(maxSize);
+      Content = MakePtr<Chunk>(maxSize);
       Pos = &Content->front();
     }
 

@@ -10,8 +10,6 @@
 
 //local includes
 #include "chip.h"
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Devices
 {

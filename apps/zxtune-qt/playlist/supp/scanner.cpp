@@ -15,12 +15,12 @@
 //common includes
 #include <contract.h>
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <async/coroutine.h>
 #include <debug/log.h>
 #include <time/elapsed.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 #include <boost/thread/mutex.hpp>
 //qt includes
@@ -395,7 +395,7 @@ namespace
   private:
     void CreateQueue()
     {
-      Queue = boost::make_shared<FilesQueue>();
+      Queue = MakePtr<FilesQueue>();
     }
 
     void ScanFile(const QString& name, Log::ProgressCallback& cb)
@@ -449,7 +449,7 @@ namespace
     ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Scanner(parent)
       , Provider(provider)
-      , Routine(boost::make_shared<ScanRoutine>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
+      , Routine(MakePtr<ScanRoutine>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
       , ScanJob(Async::CreateJob(Routine))
     {
       Dbg("Created at %1%", this);

@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <iterator.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -23,7 +24,6 @@
 #include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -793,7 +793,7 @@ namespace Chiptune
     {
       Decoder::Ptr CreateCompiledDecoder()
       {
-        return boost::make_shared<SoundTrackerCompiled::Decoder>();
+        return MakePtr<SoundTrackerCompiled::Decoder>();
       }
     }
   }// namespace SoundTracker

@@ -14,6 +14,7 @@
 #include "formats/chiptune/aym/protracker2.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
@@ -164,7 +165,7 @@ namespace Packed
       const Binary::Container::Ptr fixedModule = builder->GetResult();
       if (Formats::Chiptune::Container::Ptr fixedParsed = Decoder->Decode(*fixedModule))
       {
-        return CreatePackedContainer(fixedParsed, playerSize + fixedParsed->Size());
+        return CreateContainer(fixedParsed, playerSize + fixedParsed->Size());
       }
       Dbg("Failed to parse fixed module");
       return Container::Ptr();
@@ -176,7 +177,7 @@ namespace Packed
 
   Decoder::Ptr CreateCompiledPT24Decoder()
   {
-    return boost::make_shared<CompiledPT24Decoder>();
+    return MakePtr<CompiledPT24Decoder>();
   }
 }//namespace Packed
 }//namespace Formats

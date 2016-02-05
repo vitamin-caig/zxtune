@@ -13,6 +13,7 @@
 #include "formats/chiptune/aym/soundtrackerpro.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
@@ -222,7 +223,7 @@ namespace Packed
         if (const Binary::Container::Ptr originalModule = Decoder->Decode(*modData))
         {
           const std::size_t originalSize = originalModule->Size();
-          return CreatePackedContainer(originalModule, playerSize + originalSize);
+          return CreateContainer(originalModule, playerSize + originalSize);
         }
       }
       else if (const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*modData, metainfo))
@@ -230,7 +231,7 @@ namespace Packed
         if (Decoder->Decode(*fixedModule))
         {
           const std::size_t originalSize = fixedModule->Size() - metainfo.size();
-          return CreatePackedContainer(fixedModule, playerSize + originalSize);
+          return CreateContainer(fixedModule, playerSize + originalSize);
         }
         Dbg("Failed to parse fixed module");
       }
@@ -244,12 +245,12 @@ namespace Packed
 
   Decoder::Ptr CreateCompiledSTP1Decoder()
   {
-    return boost::make_shared<CompiledSTPDecoder<CompiledSTP::Version1> >();
+    return MakePtr<CompiledSTPDecoder<CompiledSTP::Version1> >();
   }
 
   Decoder::Ptr CreateCompiledSTP2Decoder()
   {
-    return boost::make_shared<CompiledSTPDecoder<CompiledSTP::Version2> >();
+    return MakePtr<CompiledSTPDecoder<CompiledSTP::Version2> >();
   }
 }//namespace Packed
 }//namespace Formats

@@ -10,6 +10,7 @@
 
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/container_factories.h>
@@ -20,8 +21,6 @@
 #include <platform/tools.h>
 //std includes
 #include <fstream>
-//boost includes
-#include <boost/make_shared.hpp>
 
 #define FILE_TAG 82AE713A
 
@@ -184,7 +183,7 @@ namespace
     case 1:
       return archives.front();
     default:
-      return boost::make_shared<CompositeArchive>(archives);
+      return MakePtr<CompositeArchive>(archives);
     }
   }
 

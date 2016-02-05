@@ -15,6 +15,7 @@
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <core/module_attrs.h>
@@ -25,8 +26,6 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //3rdparty
 #include <3rdparty/hvl/replay.h>
 
@@ -269,12 +268,12 @@ namespace AHX
     
     TrackState::Ptr MakeTrackState() const
     {
-      return boost::make_shared<TrackState>(Hvl);
+      return MakePtr<TrackState>(Hvl);
     }
 
     Analyzer::Ptr MakeAnalyzer() const
     {
-      return boost::make_shared<Analyzer>(Hvl);
+      return MakePtr<Analyzer>(Hvl);
     } 
   private:
     const HvlPtr Hvl;
@@ -368,7 +367,7 @@ namespace AHX
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return boost::make_shared<Renderer>(Tune, target, params);
+      return MakePtr<Renderer>(Tune, target, params);
     }
   private:
     const HVL::Ptr Tune;
@@ -405,9 +404,9 @@ namespace AHX
         {
           props.SetSource(*container);
 
-          const HVL::Ptr tune = boost::make_shared<HVL>(*container);
-          const Information::Ptr info = boost::make_shared<Information>(*container);
-          return boost::make_shared<Holder>(tune, info, properties);
+          const HVL::Ptr tune = MakePtr<HVL>(*container);
+          const Information::Ptr info = MakePtr<Information>(*container);
+          return MakePtr<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)
@@ -428,7 +427,7 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateAbyssHighestExperienceDecoder();
-    const Module::AHX::Factory::Ptr factory = boost::make_shared<Module::AHX::Factory>();
+    const Module::AHX::Factory::Ptr factory = MakePtr<Module::AHX::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

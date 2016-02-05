@@ -13,6 +13,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 //std includes
@@ -125,7 +126,7 @@ namespace Formats
   {
     PatchedDataBuilder::Ptr PatchedDataBuilder::Create(const Binary::Container& data)
     {
-      return PatchedDataBuilder::Ptr(new Patcher(data));
+      return MakePtr<Patcher>(data);
     }
   }
 }

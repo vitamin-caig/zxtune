@@ -14,6 +14,7 @@
 #include "gates/mp3_api.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <debug/log.h>
@@ -26,7 +27,6 @@
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -272,7 +272,7 @@ namespace Mp3
     {
       const LameContextPtr context = LameContextPtr(LameApi->lame_init(), boost::bind(&Api::lame_close, LameApi, _1));
       SetupContext(*context);
-      return boost::make_shared<FileStream>(LameApi, context, stream);
+      return MakePtr<FileStream>(LameApi, context, stream);
     }
   private:
     void SetupContext(lame_global_flags& ctx) const
@@ -353,7 +353,7 @@ namespace Mp3
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
-      const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(FlacApi, params);
+      const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(FlacApi, params);
       return CreateFileBackendWorker(params, factory);
     }
   private:
@@ -370,7 +370,7 @@ namespace Sound
     {
       const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
       Dbg("Detected LAME library %1%", api->get_lame_version());
-      const BackendWorkerFactory::Ptr factory = boost::make_shared<Mp3::BackendWorkerFactory>(api);
+      const BackendWorkerFactory::Ptr factory = MakePtr<Mp3::BackendWorkerFactory>(api);
       storage.Register(Mp3::ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)

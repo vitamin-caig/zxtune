@@ -12,6 +12,7 @@
 #include <devices/dac.h>
 #include <devices/details/freq_table.h>
 //common includes
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <math/numeric.h>
@@ -22,7 +23,6 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/scoped_array.hpp>
 
 namespace Devices
@@ -230,7 +230,7 @@ namespace DAC
       if (sample)
       {
         Content.resize(std::max(Content.size(), idx + 1));
-        const FastSample::Ptr fast = boost::make_shared<FastSample>(idx, sample);
+        const FastSample::Ptr fast = MakePtr<FastSample>(idx, sample);
         Content[idx] = fast;
         MaxRms = std::max(MaxRms, fast->GetRms());
       }
@@ -615,12 +615,12 @@ namespace DAC
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
   {
-    return boost::make_shared<FixedChannelsChip<3> >(params, mixer, target);
+    return MakePtr<FixedChannelsChip<3> >(params, mixer, target);
   }
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
   {
-    return boost::make_shared<FixedChannelsChip<4> >(params, mixer, target);
+    return MakePtr<FixedChannelsChip<4> >(params, mixer, target);
   }
 }
 }

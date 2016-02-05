@@ -13,13 +13,13 @@
 #include "core/src/callback.h"
 #include "core/plugins/plugins_types.h"
 #include "core/plugins/utils.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <l10n/api.h>
 #include <strings/format.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -269,9 +269,9 @@ namespace ZXTune
   ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
     const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
-    const ArchivePlugin::Ptr result = boost::make_shared<ArchivedContainerPlugin>(description, decoder);
+    const ArchivePlugin::Ptr result = MakePtr<ArchivedContainerPlugin>(description, decoder);
     return 0 != (caps & Capabilities::Container::Traits::ONCEAPPLIED)
-      ? boost::make_shared<OnceAppliedContainerPluginAdapter>(result)
+      ? MakePtr<OnceAppliedContainerPluginAdapter>(result)
       : result;
   }
 

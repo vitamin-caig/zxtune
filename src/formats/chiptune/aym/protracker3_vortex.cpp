@@ -15,6 +15,7 @@
 #include <contract.h>
 #include <crc.h>
 #include <iterator.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
@@ -1598,12 +1599,12 @@ namespace ProTracker3
 
     Decoder::Ptr CreateDecoder()
     {
-      return boost::make_shared<TextDecoder>();
+      return MakePtr<TextDecoder>();
     }
 
     ChiptuneBuilder::Ptr CreateBuilder()
     {
-      return boost::make_shared<TextBuilder>();
+      return MakePtr<TextBuilder>();
     }
   }//VortexTracker2
   }//ProTracker3

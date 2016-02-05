@@ -10,11 +10,11 @@
 
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <analysis/path.h>
 #include <strings/array.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -128,7 +128,7 @@ namespace
     virtual Ptr Extract(const String& startPath) const
     {
       return startPath.empty()
-        ? boost::make_shared<EmptyPath>(Separator)
+        ? MakePtr<EmptyPath>(Separator)
         : Ptr();
     }
   private:
@@ -140,11 +140,11 @@ namespace
   {
     if (from != to)
     {
-      return boost::make_shared<ParsedPath>(separator, from, to);
+      return MakePtr<ParsedPath>(separator, from, to);
     }
     else
     {
-      return boost::make_shared<EmptyPath>(separator);
+      return MakePtr<EmptyPath>(separator);
     }
   }
 }

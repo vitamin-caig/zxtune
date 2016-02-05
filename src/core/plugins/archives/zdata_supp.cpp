@@ -18,6 +18,7 @@
 #include <contract.h>
 #include <crc.h>
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/base64.h>
 #include <binary/compress.h>
@@ -308,7 +309,7 @@ namespace ZXTune
 {
   void RegisterZdataContainer(ArchivePluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new ZdataPlugin());
+    const ArchivePlugin::Ptr plugin = MakePtr<ZdataPlugin>();
     registrator.RegisterPlugin(plugin);
   }
 }

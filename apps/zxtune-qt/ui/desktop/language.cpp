@@ -10,6 +10,8 @@
 
 //local includes
 #include "language.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <l10n/control.h>
 //std includes
@@ -144,7 +146,7 @@ namespace UI
     {
       return res;
     }
-    const Language::Ptr res = boost::make_shared<LanguageInResources>();
+    const Language::Ptr res = MakePtr<LanguageInResources>();
     instance = res;
     return res;
   }

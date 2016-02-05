@@ -12,6 +12,7 @@
 #include "container.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
@@ -289,7 +290,7 @@ namespace Image
         return Container::Ptr();
       }
       LaserCompact40::DataDecoder decoder(container);
-      return CreateImageContainer(decoder.GetResult(), decoder.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -297,7 +298,7 @@ namespace Image
 
   Decoder::Ptr CreateLaserCompact40Decoder()
   {
-    return boost::make_shared<LaserCompact40Decoder>();
+    return MakePtr<LaserCompact40Decoder>();
   }
 }//namespace Image
 }//namespace Formats

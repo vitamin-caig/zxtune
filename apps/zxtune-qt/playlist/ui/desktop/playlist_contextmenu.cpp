@@ -28,8 +28,7 @@
 //common includes
 #include <contract.h>
 #include <error.h>
-//boost includes
-#include <boost/make_shared.hpp>
+#include <make_ptr.h>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QClipboard>
@@ -231,7 +230,7 @@ namespace
 
   Playlist::Item::StatisticTextNotification::Ptr CreateStatisticNotification()
   {
-    return boost::make_shared<StatisticNotification>();
+    return MakePtr<StatisticNotification>();
   }
 
   class ExportResult : public Playlist::Item::ConversionResultNotification
@@ -280,7 +279,7 @@ namespace
 
   Playlist::Item::ConversionResultNotification::Ptr CreateConversionResultNotification()
   {
-    return boost::make_shared<ExportResult>();
+    return MakePtr<ExportResult>();
   }
 
   class ShuffleOperation : public Playlist::Item::StorageModifyOperation
@@ -325,7 +324,7 @@ namespace
     virtual void CropSelected() const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      const boost::shared_ptr<Playlist::Model::IndexSet> unselected = boost::make_shared<Playlist::Model::IndexSet>();
+      const Playlist::Model::IndexSet::RWPtr unselected = MakeRWPtr<Playlist::Model::IndexSet>();
       for (unsigned idx = 0, total = model->CountItems(); idx < total; ++idx)
       {
         if (!SelectedItems->count(idx))
@@ -486,7 +485,7 @@ namespace
 
     virtual void ShuffleAll() const
     {
-      const Playlist::Item::StorageModifyOperation::Ptr op = boost::make_shared<ShuffleOperation>();
+      const Playlist::Item::StorageModifyOperation::Ptr op = MakePtr<ShuffleOperation>();
       Controller.GetModel()->PerformOperation(op);
     }
   private:
@@ -506,14 +505,14 @@ namespace
     void ExecuteRemoveOperation(Playlist::Item::SelectionOperation::Ptr op) const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
+      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)), SLOT(RemoveItems(Playlist::Model::IndexSet::Ptr))));
       model->PerformOperation(op);
     }
 
     void ExecuteSelectOperation(Playlist::Item::SelectionOperation::Ptr op) const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
+      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)), SLOT(SelectItems(Playlist::Model::IndexSet::Ptr))));
       model->PerformOperation(op);
     }
 
@@ -548,7 +547,7 @@ namespace
     Playlist::UI::TableView& View;
     Playlist::Controller& Controller;
     //data
-    Playlist::Model::IndexSetPtr SelectedItems;
+    Playlist::Model::IndexSet::Ptr SelectedItems;
   };
 }
 

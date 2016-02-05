@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -23,7 +24,6 @@
 #include <iterator>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -476,7 +476,7 @@ namespace Packed
         return Container::Ptr();
       }
       TurboLZ::DataDecoder<Version> decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -484,12 +484,12 @@ namespace Packed
 
   Decoder::Ptr CreateTurboLZDecoder()
   {
-    return boost::make_shared<TurboLZDecoder<TurboLZ::Simple> >();
+    return MakePtr<TurboLZDecoder<TurboLZ::Simple> >();
   }
 
   Decoder::Ptr CreateTurboLZProtectedDecoder()
   {
-    return boost::make_shared<TurboLZDecoder<TurboLZ::Protected> >();
+    return MakePtr<TurboLZDecoder<TurboLZ::Protected> >();
   }
 }//namespace Packed
 }//namespace Formats

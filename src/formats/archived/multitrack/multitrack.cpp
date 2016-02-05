@@ -10,10 +10,10 @@
 
 //local includes
 #include "multitrack.h"
+//common includes
+#include <make_ptr.h>
 //std includes
 #include <sstream>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/archived.h>
 
@@ -146,7 +146,7 @@ namespace Archived
         }
         const uint_t idx = song - 1;
         const Binary::Container::Ptr subData = Delegate->WithStartTrackIndex(idx);
-        return boost::make_shared<File>(name, subData);
+        return MakePtr<File>(name, subData);
       }
 
       virtual uint_t CountFiles() const
@@ -182,7 +182,7 @@ namespace Archived
         {
           if (data->TracksCount() > 1)
           {
-            return boost::make_shared<Container>(data);
+            return MakePtr<Container>(data);
           }
         }
         return Container::Ptr();
@@ -195,7 +195,7 @@ namespace Archived
 
   Decoder::Ptr CreateMultitrackArchiveDecoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
   {
-    return boost::make_shared<MultitrackArchives::Decoder>(description, delegate);
+    return MakePtr<MultitrackArchives::Decoder>(description, delegate);
   }
 }//namespace Archived
 }//namespace Formats

@@ -48,7 +48,7 @@ namespace SQDigitalTracker
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
-      : Data(boost::make_shared<ModuleData>())
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
@@ -74,7 +74,7 @@ namespace SQDigitalTracker
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -124,7 +124,7 @@ namespace SQDigitalTracker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
+    const ModuleData::RWPtr Data;
     DAC::PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
@@ -284,7 +284,7 @@ namespace SQDigitalTracker
     virtual DAC::DataIterator::Ptr CreateDataIterator() const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const DAC::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return DAC::CreateDataIterator(iterator, renderer);
     }
 
@@ -311,7 +311,7 @@ namespace SQDigitalTracker
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQDigitalTracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -330,7 +330,7 @@ namespace ZXTune
     const Char ID[] = {'S', 'Q', 'D', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQDigitalTrackerDecoder();
-    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::SQDigitalTracker::Factory>();
+    const Module::DAC::Factory::Ptr factory = MakePtr<Module::SQDigitalTracker::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

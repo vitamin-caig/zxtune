@@ -14,14 +14,14 @@
 #include "syntax.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
+#include <pointers.h>
 //library includes
 #include <math/numeric.h>
 //std includes
 #include <cctype>
 #include <stack>
 #include <vector>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -39,7 +39,8 @@ namespace
 
     static Ptr Create()
     {
-      return boost::make_shared<AnyValueToken>();
+      static const AnyValueToken INSTANCE;
+      return MakeSingletonPointer(INSTANCE);
     }
   };
 
@@ -61,7 +62,7 @@ namespace
       Require(it && SYMBOL_TEXT == *it && ++it);
       const Char val = *it;
       ++it;
-      return boost::make_shared<MatchValueToken>(val);
+      return MakePtr<MatchValueToken>(val);
     }
   private:
     const uint_t Value;
@@ -120,9 +121,9 @@ namespace
       case 0:
         return AnyValueToken::Create();
       case 0xff:
-        return boost::make_shared<MatchValueToken>(value);
+        return MakePtr<MatchValueToken>(value);
       default:
-        return boost::make_shared<MatchMaskToken>(mask, value);
+        return MakePtr<MatchMaskToken>(mask, value);
       }
     }
   private:
@@ -173,7 +174,7 @@ namespace
     {
       Require(it && MULTIPLICITY_TEXT == *it && ++it);
       const uint_t val = ParseNumber(it);
-      return boost::make_shared<MatchMultiplicityToken>(val);
+      return MakePtr<MatchMultiplicityToken>(val);
     }
   private:
     const uint_t Mult;
@@ -238,7 +239,7 @@ namespace
       const uint_t left = GetSingleMatchedValue(*lh);
       const uint_t right = GetSingleMatchedValue(*rh);
       Require(left < right);
-      return boost::make_shared<MatchRangeToken>(left, right);
+      return MakePtr<MatchRangeToken>(left, right);
     }
   private:
     const uint_t From;
@@ -279,7 +280,7 @@ namespace
 
     static Ptr Create(Ptr lh, Ptr rh)
     {
-      return Ptr(new BinaryOperationToken(lh, rh));
+      return MakePtr<BinaryOperationToken>(lh, rh);
     }
   private:
     const Ptr Lh;
@@ -451,6 +452,6 @@ namespace Binary
     Require(firstNotAny != last);
     const Pattern::const_iterator lastNotAny = std::find_if(pat.rbegin(), pat.rend(), std::not1(std::ptr_fun(&IsAnyByte))).base();
     const std::size_t offset = std::distance(first, firstNotAny);
-    return Expression::Ptr(new LinearExpression(offset, firstNotAny, lastNotAny));
+    return MakePtr<LinearExpression>(offset, firstNotAny, lastNotAny);
   }
 }

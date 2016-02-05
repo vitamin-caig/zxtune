@@ -11,12 +11,13 @@
 //local includes
 #include "dac_base.h"
 #include "core/plugins/players/analyzer.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <parameters/tracking_helper.h>
 #include <sound/multichannel_sample.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -212,12 +213,12 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return boost::make_shared<DACDataIterator>(iterator, renderer);
+      return MakePtr<DACDataIterator>(iterator, renderer);
     }
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
     {
-      return boost::make_shared<DACRenderer>(params, iterator, device);
+      return MakePtr<DACRenderer>(params, iterator, device);
     }
   }
 }

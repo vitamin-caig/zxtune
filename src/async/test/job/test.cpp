@@ -12,7 +12,6 @@
 #include <pointers.h>
 #include <async/worker.h>
 #include <boost/thread/thread.hpp>
-#include <boost/make_shared.hpp>
 #include <iostream>
 
 #define FILE_TAG 8D106607

@@ -15,14 +15,13 @@
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
 #include <cstring>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -328,7 +327,7 @@ namespace Packed
         return Container::Ptr();
       }
       GamePacker::DataDecoder<Version> decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Depacker;
@@ -336,12 +335,12 @@ namespace Packed
 
   Decoder::Ptr CreateGamePackerDecoder()
   {
-    return boost::make_shared<GamePackerDecoder<GamePacker::Version1> >();
+    return MakePtr<GamePackerDecoder<GamePacker::Version1> >();
   }
 
   Decoder::Ptr CreateGamePackerPlusDecoder()
   {
-    return boost::make_shared<GamePackerDecoder<GamePacker::Version2> >();
+    return MakePtr<GamePackerDecoder<GamePacker::Version2> >();
   }
 }//namespace Packed
 }//namespace Formats

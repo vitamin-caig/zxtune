@@ -31,6 +31,6 @@ namespace Playlist
     };
 
     TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result);
-    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result);
+    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSet::Ptr items, StatisticTextNotification::Ptr result);
   }
 }

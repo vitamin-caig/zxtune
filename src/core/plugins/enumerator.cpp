@@ -18,6 +18,7 @@
 //common includes
 #include <error_tools.h>
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <core/convert_parameters.h>
@@ -30,8 +31,6 @@
 //std includes
 #include <list>
 #include <map>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -188,11 +187,11 @@ namespace ZXTune
   {
     const ArchivePlugin::Iterator::Ptr archives = ArchivePluginsEnumerator::Create()->Enumerate();
     const PlayerPlugin::Iterator::Ptr players = PlayerPluginsEnumerator::Create()->Enumerate();
-    return boost::make_shared<CompositePluginsIterator>(archives, players);
+    return MakePtr<CompositePluginsIterator>(archives, players);
   }
 
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)
   {
-    return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
+    return MakePtr<SimplePluginDescription>(id, info, capabilities);
   }
 }

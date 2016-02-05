@@ -16,6 +16,7 @@
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -23,8 +24,6 @@
 #include <math/numeric.h>
 //std includes
 #include <cstring>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -336,7 +335,7 @@ namespace Packed
         return Container::Ptr();
       }
       Trush::DataDecoder decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), container.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr DepackerBody;
@@ -345,7 +344,7 @@ namespace Packed
 
   Decoder::Ptr CreateTRUSHDecoder()
   {
-    return boost::make_shared<TrushDecoder>();
+    return MakePtr<TrushDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

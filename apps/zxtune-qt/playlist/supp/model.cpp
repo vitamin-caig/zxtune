@@ -12,6 +12,8 @@
 #include "model.h"
 #include "storage.h"
 #include "ui/utils.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <async/activity.h>
 #include <core/module_attrs.h>
@@ -19,7 +21,6 @@
 #include <math/bitops.h>
 #include <parameters/template.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
@@ -143,7 +144,7 @@ namespace
   template<class R>
   Playlist::Item::Comparer::Ptr CreateComparer(R (Playlist::Item::Data::*func)() const, bool ascending)
   {
-    return boost::make_shared<TypedPlayitemsComparer<R> >(func, ascending);
+    return MakePtr<TypedPlayitemsComparer<R> >(func, ascending);
   }
 
   Playlist::Item::Comparer::Ptr CreateComparerByColumn(int column, bool ascending)
@@ -294,14 +295,14 @@ namespace
     virtual void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
     {
       WaitOperationFinish();
-      const Async::Operation::Ptr wrapper = boost::make_shared<AsyncOperation<Playlist::Item::StorageAccessOperation> >(operation, boost::ref(*this));
+      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageAccessOperation> >(operation, boost::ref(*this));
       AsyncExecution = Async::Activity::Create(wrapper);
     }
 
     virtual void PerformOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
     {
       WaitOperationFinish();
-      const Async::Operation::Ptr wrapper = boost::make_shared<AsyncOperation<Playlist::Item::StorageModifyOperation> >(operation, boost::ref(*this));
+      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageModifyOperation> >(operation, boost::ref(*this));
       AsyncExecution = Async::Activity::Create(wrapper);
     }
 
@@ -351,7 +352,7 @@ namespace
       NotifyAboutIndexChanged(remapping);
     }
 
-    virtual void RemoveItems(IndexSetPtr items)
+    virtual void RemoveItems(IndexSet::Ptr items)
     {
       if (!items || items->empty())
       {
@@ -570,7 +571,7 @@ namespace
       const bool ascending = order == Qt::AscendingOrder;
       if (Playlist::Item::Comparer::Ptr comparer = CreateComparerByColumn(column, ascending))
       {
-        const Playlist::Item::StorageModifyOperation::Ptr op = boost::make_shared<SortOperation>(comparer);
+        const Playlist::Item::StorageModifyOperation::Ptr op = MakePtr<SortOperation>(comparer);
         PerformOperation(op);
       }
     }

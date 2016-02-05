@@ -10,12 +10,12 @@
 
 //local includes
 #include "image_utils.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 //std includes
 #include <map>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -72,6 +72,6 @@ namespace Formats
 
   ImageBuilder::Ptr CreateSparsedImageBuilder()
   {
-    return boost::make_shared<SparsedImageBuilder>();
+    return MakePtr<SparsedImageBuilder>();
   }
 }

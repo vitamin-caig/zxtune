@@ -11,8 +11,8 @@
 //local includes
 #include "psg.h"
 #include "soundchip.h"
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 
 namespace Devices
 {
@@ -31,7 +31,7 @@ namespace AYM
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target)
   {
-    return boost::make_shared<SoundChip<Traits> >(params, mixer, target);
+    return MakePtr<SoundChip<Traits> >(params, mixer, target);
   }
 }
 }

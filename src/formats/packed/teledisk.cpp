@@ -15,6 +15,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
@@ -429,7 +430,7 @@ namespace Packed
       TeleDiskImage::ImageVisitorAdapter visitor(builder);
       if (const std::size_t usedSize = TeleDiskImage::Parse(rawData, visitor))
       {
-        return CreatePackedContainer(builder->GetResult(), usedSize);
+        return CreateContainer(builder->GetResult(), usedSize);
       }
       return Container::Ptr();
     }
@@ -439,7 +440,7 @@ namespace Packed
 
   Decoder::Ptr CreateTeleDiskImageDecoder()
   {
-    return boost::make_shared<TeleDiskImageDecoder>();
+    return MakePtr<TeleDiskImageDecoder>();
   }
 }//namespace TeleDiskImage
 }//namespace Formats

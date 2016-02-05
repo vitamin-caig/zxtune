@@ -15,6 +15,7 @@
 #include "ui/utils.h"
 //common includes
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_attrs.h>
 #include <debug/log.h>
@@ -24,7 +25,6 @@
 #include <cctype>
 #include <set>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 //qt includes
 #include <QtCore/QDir>
@@ -122,7 +122,7 @@ namespace
       , XML(&device)
       , Version(LAST_VERSION)
       , Properties(Parameters::Container::Create())
-      , Items(boost::make_shared<Playlist::IO::ContainerItems>())
+      , Items(MakeRWPtr<Playlist::IO::ContainerItems>())
     {
       Properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(File.baseName()));
     }
@@ -146,7 +146,7 @@ namespace
       return !XML.error();
     }
 
-    Playlist::IO::ContainerItemsPtr GetItems() const
+    Playlist::IO::ContainerItems::Ptr GetItems() const
     {
       return Items;
     }
@@ -343,7 +343,7 @@ namespace
     //context
     Parameters::IntType Version;
     const Parameters::Container::Ptr Properties;
-    const boost::shared_ptr<Playlist::IO::ContainerItems> Items;
+    const Playlist::IO::ContainerItems::RWPtr Items;
   };
 
   Playlist::IO::Container::Ptr CreateXSPFPlaylist(Playlist::Item::DataProvider::Ptr provider,
@@ -362,7 +362,7 @@ namespace
       return Playlist::IO::Container::Ptr();
     }
 
-    const Playlist::IO::ContainerItemsPtr items = reader.GetItems();
+    const Playlist::IO::ContainerItems::Ptr items = reader.GetItems();
     const Parameters::Accessor::Ptr properties = reader.GetProperties();
     Dbg("Parsed %1% items", items->size());
     return Playlist::IO::CreateContainer(provider, properties, items);

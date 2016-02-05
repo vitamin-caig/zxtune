@@ -10,11 +10,10 @@
 
 //local includes
 #include "static_expression.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-//boost includes
-#include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
 
 namespace
 {
@@ -58,7 +57,7 @@ namespace
 
     static Ptr Create(const StaticPattern& expr, std::size_t startOffset, std::size_t minSize)
     {
-      return boost::make_shared<FuzzyMatchOnlyFormat>(boost::cref(expr), startOffset, minSize);
+      return MakePtr<FuzzyMatchOnlyFormat>(expr, startOffset, minSize);
     }
   private:
     const std::size_t Offset;
@@ -106,7 +105,7 @@ namespace
           return Ptr();
         }
       }
-      return boost::make_shared<ExactMatchOnlyFormat>(boost::cref(tmp), startOffset, minSize);
+      return MakePtr<ExactMatchOnlyFormat>(tmp, startOffset, minSize);
     }
   private:
     const std::size_t Offset;

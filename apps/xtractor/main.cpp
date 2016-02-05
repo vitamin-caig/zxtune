@@ -11,6 +11,7 @@
 
 //common includes
 #include <progress_callback.h>
+#include <make_ptr.h>
 //library includes
 #include <analysis/path.h>
 #include <analysis/result.h>
@@ -40,7 +41,6 @@
 #include <set>
 //boost includes
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/join.hpp>
 //text includes
@@ -138,17 +138,17 @@ namespace Analysis
   //since data is required, place it first
   Node::Ptr CreateRootNode(Binary::Container::Ptr data, const String& name)
   {
-    return boost::make_shared<RootNode>(data, name);
+    return MakePtr<RootNode>(data, name);
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name)
   {
-    return boost::make_shared<SubNode>(parent, data, name);
+    return MakePtr<SubNode>(parent, data, name);
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, std::size_t offset)
   {
-    return boost::make_shared<SubNode>(parent, data, Strings::Format("+%1%", offset));
+    return MakePtr<SubNode>(parent, data, Strings::Format("+%1%", offset));
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, std::size_t offset)
@@ -338,7 +338,7 @@ namespace Parsing
 {
   Result::Ptr CreateResult(const String& name, Binary::Container::Ptr data)
   {
-    return boost::make_shared<StaticResult>(name, data);
+    return MakePtr<StaticResult>(name, data);
   }
 }
 
@@ -404,12 +404,12 @@ namespace Parsing
 {
   Parsing::Target::Ptr CreateSaveTarget()
   {
-    return boost::make_shared<SaveTarget>();
+    return MakePtr<SaveTarget>();
   }
 
   Parsing::Target::Ptr CreateStatisticTarget()
   {
-    return boost::make_shared<StatisticTarget>();
+    return MakePtr<StatisticTarget>();
   }
 }
 
@@ -502,17 +502,17 @@ namespace Analysis
 {
   NodeReceiver::Ptr CreateSizeFilter(std::size_t minSize, NodeReceiver::Ptr target)
   {
-    return boost::make_shared<SizeFilter>(minSize, target);
+    return MakePtr<SizeFilter>(minSize, target);
   }
 
   NodeReceiver::Ptr CreateEmptyDataFilter(NodeReceiver::Ptr target)
   {
-    return boost::make_shared<EmptyDataFilter>(target);
+    return MakePtr<EmptyDataFilter>(target);
   }
 
   NodeReceiver::Ptr CreateMatchFilter(const std::string& filter, NodeReceiver::Ptr target)
   {
-    return boost::make_shared<MatchedDataFilter>(filter, target);
+    return MakePtr<MatchedDataFilter>(filter, target);
   }
 }
 
@@ -917,7 +917,7 @@ namespace
     const Parsing::Target::Ptr save = opts.StatisticOutput()
       ? Parsing::CreateStatisticTarget()
       : Parsing::CreateSaveTarget();
-    const Analysis::NodeReceiver::Ptr makeName = boost::make_shared<TargetNamePoint>(opts.TargetNameTemplate(), save);
+    const Analysis::NodeReceiver::Ptr makeName = MakePtr<TargetNamePoint>(opts.TargetNameTemplate(), save);
     const Analysis::NodeReceiver::Ptr storeAll = makeName;
     const Analysis::NodeReceiver::Ptr storeNoEmpty = opts.IgnoreEmptyData()
       ? Analysis::CreateEmptyDataFilter(storeAll)
@@ -965,17 +965,17 @@ namespace
 
   Analysis::NodeTransceiver::Ptr CreateAnalyser(const AnalysisOptions& opts)
   {
-    const Analysis::NodeTransceiver::Ptr analyser = boost::make_shared<AnalysisTarget>();
+    const Analysis::NodeTransceiver::Ptr analyser = MakePtr<AnalysisTarget>();
     const Analysis::NodeReceiver::Ptr input = AsyncWrap<Analysis::Node::Ptr>(opts.AnalysisThreads(), opts.AnalysisDataQueueSize(), analyser);
-    return boost::make_shared<TransceivePipe<Analysis::Node::Ptr> >(input, analyser);
+    return MakePtr<TransceivePipe<Analysis::Node::Ptr> >(input, analyser);
   }
 
   OpenPoint::Ptr CreateSource()
   {
-    const OpenPoint::Ptr open = boost::make_shared<OpenPointImpl>();
-    const boost::shared_ptr<ResolveDirsPoint> resolve = boost::make_shared<ResolveDirsPoint>();
+    const OpenPoint::Ptr open = MakePtr<OpenPointImpl>();
+    const ResolveDirsPoint::Ptr resolve = MakePtr<ResolveDirsPoint>();
     resolve->SetTarget(open);
-    return boost::make_shared<TransceivePipe<String, Analysis::Node::Ptr> >(resolve, open);
+    return MakePtr<TransceivePipe<String, Analysis::Node::Ptr> >(resolve, open);
   }
 
   class Options : public AnalysisOptions

@@ -12,6 +12,7 @@
 #include "container.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
@@ -279,7 +280,7 @@ namespace Packed
         return Container::Ptr();
       }
       FullDiskImage::Decoder decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Format;
@@ -287,7 +288,7 @@ namespace Packed
 
   Decoder::Ptr CreateFullDiskImageDecoder()
   {
-    return boost::make_shared<FullDiskImageDecoder>();
+    return MakePtr<FullDiskImageDecoder>();
   }
 }//namespace Packed
 }//namespace Formats

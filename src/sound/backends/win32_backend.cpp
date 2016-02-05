@@ -17,6 +17,7 @@
 //common includes
 #include <contract.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
@@ -30,7 +31,6 @@
 #include <cstring>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/weak_ptr.hpp>
 //text includes
 #include "text/backends.h"
@@ -308,7 +308,7 @@ namespace Win32
     {
       for (BuffersArray::iterator it = Buffers.begin(), lim = Buffers.end(); it != lim; ++it)
       {
-        *it = boost::make_shared<WaveBuffer>(device);
+        *it = MakePtr<WaveBuffer>(device);
       }
     }
 
@@ -488,9 +488,9 @@ namespace Win32
     {
       WaveOutObjects res;
       const BackendParameters params(*BackendParams);
-      res.Device = boost::make_shared<WaveOutDevice>(WinApi, GetFormat(), params.GetDevice());
-      res.Target = boost::make_shared<CycledWaveBuffer>(res.Device, params.GetBuffers());
-      res.Volume = boost::make_shared<VolumeControl>(res.Device);
+      res.Device = MakePtr<WaveOutDevice>(WinApi, GetFormat(), params.GetDevice());
+      res.Target = MakePtr<CycledWaveBuffer>(res.Device, params.GetBuffers());
+      res.Volume = MakePtr<VolumeControl>(res.Device);
       return res;
     }
   private:
@@ -510,7 +510,7 @@ namespace Win32
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
-      return boost::make_shared<BackendWorker>(WinApi, params);
+      return MakePtr<BackendWorker>(WinApi, params);
     }
   private:
     const Api::Ptr WinApi;
@@ -572,7 +572,7 @@ namespace Win32
     virtual Device::Ptr Get() const
     {
       return IsValid()
-        ? boost::make_shared<WaveDevice>(WinApi, Current)
+        ? MakePtr<WaveDevice>(WinApi, Current)
         : Device::Ptr();
     }
 
@@ -600,7 +600,7 @@ namespace Sound
       const Win32::Api::Ptr api = Win32::LoadDynamicApi();
       if (Win32::DevicesIterator(api).IsValid())
       {
-        const BackendWorkerFactory::Ptr factory = boost::make_shared<Win32::BackendWorkerFactory>(api);
+        const BackendWorkerFactory::Ptr factory = MakePtr<Win32::BackendWorkerFactory>(api);
         storage.Register(Win32::ID, Win32::DESCRIPTION, Win32::CAPABILITIES, factory);
       }
       else
@@ -621,7 +621,7 @@ namespace Sound
       try
       {
         const Api::Ptr api = LoadDynamicApi();
-        return Device::Iterator::Ptr(new DevicesIterator(api));
+        return MakePtr<DevicesIterator>(api);
       }
       catch (const Error& e)
       {

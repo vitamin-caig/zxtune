@@ -8,14 +8,14 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/emulation/ay.h>
 //std includes
 #include <sstream>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/archived.h>
 
@@ -159,7 +159,7 @@ namespace Archived
           return File::Ptr();
         }
         const Binary::Container::Ptr data = builder->Result();
-        return boost::make_shared<File>(name, data);
+        return MakePtr<File>(name, data);
       }
 
       virtual uint_t CountFiles() const
@@ -213,7 +213,7 @@ namespace Archived
       if (maxSize)
       {
         const Binary::Container::Ptr ayData = rawData.GetSubcontainer(0, maxSize);
-        return boost::make_shared<MultiAY::Container>(ayData);
+        return MakePtr<MultiAY::Container>(ayData);
       }
       else
       {
@@ -226,7 +226,7 @@ namespace Archived
 
   Decoder::Ptr CreateAYDecoder()
   {
-    return boost::make_shared<MultiAYDecoder>();
+    return MakePtr<MultiAYDecoder>();
   }
 }//namespace Archived
 }//namespace Formats

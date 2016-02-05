@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <core/convert_parameters.h>
 #include <core/conversion/api.h>
@@ -28,7 +29,6 @@
 #include <algorithm>
 #include <cstring>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -261,7 +261,7 @@ namespace AyLpt
   {
     static const DllName NAME;
     const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
-    return boost::make_shared<DlPortIO>(lib);
+    return MakePtr<DlPortIO>(lib);
   }
 
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
@@ -277,7 +277,7 @@ namespace AyLpt
       static const Module::Conversion::AYDumpConvertParam spec;
       if (const Binary::Data::Ptr data = Module::Convert(*holder, spec, params))
       {
-        return boost::make_shared<BackendWorker>(params, data, Port);
+        return MakePtr<BackendWorker>(params, data, Port);
       }
       throw Error(THIS_LINE, translate("Real AY via LPT is not supported for this module."));
     }
@@ -294,7 +294,7 @@ namespace Sound
     try
     {
       const AyLpt::LptPort::Ptr port = AyLpt::LoadLptLibrary();
-      const BackendWorkerFactory::Ptr factory = boost::make_shared<AyLpt::BackendWorkerFactory>(port);
+      const BackendWorkerFactory::Ptr factory = MakePtr<AyLpt::BackendWorkerFactory>(port);
       storage.Register(AyLpt::ID, AyLpt::DESCRIPTION, AyLpt::CAPABILITIES, factory);
     }
     catch (const Error& e)

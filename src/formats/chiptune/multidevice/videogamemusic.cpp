@@ -12,13 +12,13 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -156,7 +156,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateVideoGameMusicDecoder()
   {
-    return boost::make_shared<VideoGameMusic::Decoder>();
+    return MakePtr<VideoGameMusic::Decoder>();
   }
 }
 }

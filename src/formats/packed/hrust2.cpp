@@ -16,7 +16,9 @@
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
+#include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <formats/packed.h>
@@ -26,7 +28,6 @@
 #include <cstring>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/range/size.hpp>
 //text includes
@@ -622,7 +623,7 @@ namespace Packed
         return Container::Ptr();
       }
       Hrust2::Version1::DataDecoder decoder(container);
-      return CreatePackedContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
+      return CreateContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
     }
   private:
     const Binary::Format::Ptr Format;
@@ -658,7 +659,7 @@ namespace Packed
         return Container::Ptr();
       }
       Hrust2::Version3::DataDecoder decoder(rawData);
-      return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:
     const Binary::Format::Ptr Format;
@@ -666,12 +667,12 @@ namespace Packed
 
   Decoder::Ptr CreateHrust21Decoder()
   {
-    return Decoder::Ptr(new Hrust21Decoder());
+    return MakePtr<Hrust21Decoder>();
   }
 
   Decoder::Ptr CreateHrust23Decoder()
   {
-    return Decoder::Ptr(new Hrust23Decoder());
+    return MakePtr<Hrust23Decoder>();
   }
 }//namespace Packed
 }//namespace Formats
