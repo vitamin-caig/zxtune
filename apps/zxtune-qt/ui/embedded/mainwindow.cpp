@@ -18,7 +18,6 @@
 #include "supp/playback_supp.h"
 //common includes
 #include <contract.h>
-#include <make_ptr.h>
 //std includes
 #include <fstream>
 //boost includes
@@ -179,7 +178,7 @@ namespace
 MainWindow::Ptr EmbeddedMainWindow::Create(Parameters::Container::Ptr options)
 {
   //TODO: create proper window
-  const MainWindow::Ptr res = MakePtr<EmbeddedMainWindowImpl>(options);
+  const MainWindow::Ptr res = new EmbeddedMainWindowImpl(options);
   res->setWindowFlags(Qt::FramelessWindowHint);
   res->showMaximized();
   return res;

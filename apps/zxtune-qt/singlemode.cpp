@@ -14,7 +14,6 @@
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 //boost includes
@@ -228,11 +227,11 @@ SingleModeDispatcher::Ptr SingleModeDispatcher::Create(Parameters::Accessor::Ptr
   if (val != 0)
   {
     Dbg("Working in single instance mode");
-    return MakePtr<SocketBasedSingleModeDispatcher>(argc, argv);
+    return new SocketBasedSingleModeDispatcher(argc, argv);
   }
   else
   {
     Dbg("Working in multiple instances mode");
-    return MakePtr<StubModeDispatcher>(argc, argv);
+    return new StubModeDispatcher(argc, argv);
   }
 }

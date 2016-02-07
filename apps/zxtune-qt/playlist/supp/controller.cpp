@@ -19,8 +19,6 @@
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-//boost includes
-#include <boost/ref.hpp>
 //qt includes
 #include <QtGui/QMessageBox>
 
@@ -190,7 +188,7 @@ namespace
       : Name(name)
       , Scanner(Playlist::Scanner::Create(*this, provider))
       , Model(Playlist::Model::Create(*this))
-      , Iterator(MakePtr<ItemIteratorImpl>(boost::ref(*this), Model))
+      , Iterator(new ItemIteratorImpl(*this, Model))
     {
       //setup connections
       //use direct connection due to possible model locking
