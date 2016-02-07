@@ -27,17 +27,14 @@
 //text include
 #include <formats/text/packed.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Archived::Rar");
-}
-
 namespace Formats
 {
 namespace Archived
 {
   namespace Rar
   {
+    const Debug::Stream Dbg("Formats::Archived::Rar");
+
     struct FileBlock
     {
       const Packed::Rar::FileBlockHeader* Header;

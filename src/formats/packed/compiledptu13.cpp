@@ -25,17 +25,14 @@
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Packed::CompiledPTU13");
-}
-
 namespace Formats
 {
 namespace Packed
 {
   namespace CompiledPTU13
   {
+    const Debug::Stream Dbg("Formats::Packed::CompiledPTU13");
+
     const std::size_t MAX_MODULE_SIZE = 0xb900;
     const std::size_t PLAYER_SIZE = 0x900;
 
@@ -44,7 +41,7 @@ namespace Packed
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    PACK_PRE struct Player
+    PACK_PRE struct RawPlayer
     {
       uint8_t Padding1[0x1b];
       uint16_t PositionsAddr;
@@ -142,6 +139,7 @@ namespace Packed
     virtual Container::Ptr Decode(const Binary::Container& rawData) const
     {
       namespace ProTracker3 = Formats::Chiptune::ProTracker3;
+      using namespace CompiledPTU13;
 
       if (!Player->Match(rawData))
       {
@@ -150,7 +148,7 @@ namespace Packed
       const Binary::TypedContainer typedData(rawData);
       const std::size_t availSize = rawData.Size();
       const std::size_t playerSize = CompiledPTU13::PLAYER_SIZE;
-      const CompiledPTU13::Player& rawPlayer = *typedData.GetField<CompiledPTU13::Player>(0);
+      const CompiledPTU13::RawPlayer& rawPlayer = *typedData.GetField<CompiledPTU13::RawPlayer>(0);
       const uint_t positionsAddr = fromLE(rawPlayer.PositionsAddr);
       if (positionsAddr < playerSize + offsetof(CompiledPTU13::RawHeader, Positions))
       {

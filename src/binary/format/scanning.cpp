@@ -21,10 +21,8 @@
 #include <limits>
 #include <vector>
 
-namespace
+namespace Binary
 {
-  using namespace Binary;
-
   class FuzzyFormat : public FormatDetails
   {
   public:
@@ -84,7 +82,7 @@ namespace
       return MinSize;
     }
 
-    static Ptr Create(const StaticPattern& pattern, std::size_t startOffset, std::size_t minSize)
+    static Ptr Create(const FormatDSL::StaticPattern& pattern, std::size_t startOffset, std::size_t minSize)
     {
       const std::size_t patternSize = pattern.GetSize();
       PatternMatrix tmp(patternSize);
@@ -92,7 +90,7 @@ namespace
       {
         for (std::size_t pos = 0, offset = 1; pos != patternSize; ++pos, ++offset)
         {
-          const StaticToken& tok = pattern.Get(pos);
+          const FormatDSL::StaticToken& tok = pattern.Get(pos);
           if (tok.Match(sym))
           {
             offset = 0;
@@ -204,13 +202,13 @@ namespace
       return MinSize;
     }
 
-    static Ptr TryCreate(const StaticPattern& pattern, std::size_t startOffset, std::size_t minSize)
+    static Ptr TryCreate(const FormatDSL::StaticPattern& pattern, std::size_t startOffset, std::size_t minSize)
     {
       const std::size_t patternSize = pattern.GetSize();
       PatternMatrix tmp(patternSize);
       for (std::size_t idx = 0; idx != patternSize; ++idx)
       {
-        const StaticToken& tok = pattern.Get(idx);
+        const FormatDSL::StaticToken& tok = pattern.Get(idx);
         if (const uint_t* single = tok.GetSingle())
         {
           tmp[idx] = *single;
@@ -228,9 +226,9 @@ namespace
     const PatternMatrix Pattern;
   };
 
-  Format::Ptr CreateFormatFromTokens(const Expression& expr, std::size_t minSize)
+  Format::Ptr CreateScanningFormatFromTokens(const FormatDSL::Expression& expr, std::size_t minSize)
   {
-    const StaticPattern pattern(expr.Tokens());
+    const FormatDSL::StaticPattern pattern(expr.Tokens());
     const std::size_t startOffset = expr.StartOffset();
     if (const Format::Ptr exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
     {
@@ -252,7 +250,7 @@ namespace Binary
 
   Format::Ptr CreateFormat(const std::string& pattern, std::size_t minSize)
   {
-    const Expression::Ptr expr = Expression::Parse(pattern);
-    return CreateFormatFromTokens(*expr, minSize);
+    const FormatDSL::Expression::Ptr expr = FormatDSL::Expression::Parse(pattern);
+    return CreateScanningFormatFromTokens(*expr, minSize);
   }
 }

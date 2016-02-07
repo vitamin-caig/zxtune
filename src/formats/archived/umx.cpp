@@ -27,17 +27,14 @@
 //text includes
 #include <formats/text/archived.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Archived::UMX");
-}
-
 namespace Formats
 {
 namespace Archived
 {
   namespace UMX
   {
+    const Debug::Stream Dbg("Formats::Archived::UMX");
+
     const std::string FORMAT(
       "c1832a9e"  //signature
       "? 00"      //version
@@ -602,7 +599,7 @@ namespace Archived
         const Binary::Container::Ptr archive = data.GetSubcontainer(0, format.GetUsedSize());
         return MakePtr<UMX::Container>(archive, datas.begin(), datas.end());
       }
-      Dbg("No files found");
+      UMX::Dbg("No files found");
       return Container::Ptr();
     }
   private:

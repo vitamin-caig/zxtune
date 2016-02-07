@@ -36,11 +36,6 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
-}
-
 namespace Formats
 {
 namespace Chiptune
@@ -49,6 +44,8 @@ namespace ProTracker3
 {
   namespace VortexTracker2
   {
+    const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
+
     /*
       Common module structure:
 

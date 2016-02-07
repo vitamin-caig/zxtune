@@ -28,13 +28,12 @@
 //text includes
 #include <core/text/plugins.h>
 
-namespace
+namespace ZXTune
+{
+namespace Zdata
 {
   const Debug::Stream Dbg("Core::ZData");
-}
 
-namespace
-{
   typedef boost::array<uint8_t, 2> SignatureType;
 
 #ifdef USE_PRAGMA_PACK
@@ -149,7 +148,7 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(RawMarker) == 6);
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 12);
 
-  const IndexPathComponent ZdataPath(Text::ZDATA_PLUGIN_PREFIX);
+  const IndexPathComponent PATH(Text::ZDATA_PLUGIN_PREFIX);
 
   struct Layout
   {
@@ -238,11 +237,10 @@ namespace
     return Binary::CreateContainer(result);
   }
 }
+}
 
-namespace
+namespace ZXTune
 {
-  using namespace ZXTune;
-
   const Char ID[] = {'Z', 'D', 'A', 'T', 'A', 0};
   const Char* const INFO = Text::ZDATA_PLUGIN_INFO;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
@@ -253,15 +251,15 @@ namespace ZXTune
   DataLocation::Ptr BuildZdataContainer(const Binary::Data& input)
   {
     Binary::DataBuilder builder(input.Size());
-    builder.Add<RawHeader>();
-    const Header hdr = Compress(input, builder);
-    hdr.ToRaw(builder.Get<RawHeader>(0));
-    const Binary::Container::Ptr data = Convert(builder.Get(0), builder.Size());
-    return CreateLocation(data, ID, ZdataPath.Build(hdr.Crc));
+    builder.Add<Zdata::RawHeader>();
+    const Zdata::Header hdr = Zdata::Compress(input, builder);
+    hdr.ToRaw(builder.Get<Zdata::RawHeader>(0));
+    const Binary::Container::Ptr data = Zdata::Convert(builder.Get(0), builder.Size());
+    return CreateLocation(data, ID, Zdata::PATH.Build(hdr.Crc));
   }
 }
 
-namespace
+namespace ZXTune
 {
   class ZdataPlugin : public ArchivePlugin
   {
@@ -290,10 +288,10 @@ namespace
     {
       const String& pathComp = inPath.GetIterator()->Get();
       Parameters::IntType marker;
-      if (ZdataPath.GetIndex(pathComp, marker))
+      if (Zdata::PATH.GetIndex(pathComp, marker))
       {
         const Binary::Data::Ptr rawData = location->GetData();
-        if (const Binary::Container::Ptr decoded = Decode(*rawData, Marker(static_cast<uint32_t>(marker))))
+        if (const Binary::Container::Ptr decoded = Zdata::Decode(*rawData, Zdata::Marker(static_cast<uint32_t>(marker))))
         {
           return CreateNestedLocation(location, decoded, ID, pathComp);
         }
@@ -303,10 +301,7 @@ namespace
   private:
     const Plugin::Ptr Description;
   };
-}
 
-namespace ZXTune
-{
   void RegisterZdataContainer(ArchivePluginsRegistrator& registrator)
   {
     const ArchivePlugin::Ptr plugin = MakePtr<ZdataPlugin>();

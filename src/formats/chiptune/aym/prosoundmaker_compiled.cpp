@@ -30,17 +30,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ProSoundMakerCompiled");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace ProSoundMakerCompiled
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ProSoundMakerCompiled");
+
     using namespace ProSoundMaker;
 
     const std::size_t MIN_SIZE = 256;

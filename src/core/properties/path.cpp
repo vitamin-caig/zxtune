@@ -18,7 +18,7 @@
 #include <io/api.h>
 #include <parameters/visitor.h>
 
-namespace
+namespace Module
 {
   class UnresolvedPathPropertiesAccessor : public Parameters::Accessor
   {

@@ -28,17 +28,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ETracker");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace ETracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ETracker");
+
     const std::size_t MIN_SIZE = 96;
     const std::size_t MAX_SIZE = 0x8000;
     const std::size_t MAX_POSITIONS_COUNT = 255;

@@ -23,14 +23,11 @@
 //text includes
 #include <core/text/core.h>
 
-namespace
+namespace ZXTune
 {
   const Debug::Stream Dbg("Core::ArchivesSupp");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
 
-namespace ZXTune
-{
   class LoggerHelper
   {
   public:

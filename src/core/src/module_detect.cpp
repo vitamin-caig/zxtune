@@ -26,14 +26,11 @@
 
 #define FILE_TAG 006E56AA
 
-namespace
+namespace Module
 {
   const Debug::Stream Dbg("Core::Detection");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
 
-namespace Module
-{
   const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
 
   String EncodeArchivePluginToPath(const String& pluginId)

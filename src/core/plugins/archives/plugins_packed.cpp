@@ -17,7 +17,7 @@
 //boost includes
 #include <boost/range/end.hpp>
 
-namespace
+namespace ZXTune
 {
   typedef Formats::Packed::Decoder::Ptr (*CreateDecoderFunc)();
 
@@ -28,7 +28,6 @@ namespace
     const uint_t Caps;
   };
 
-  using namespace ZXTune;
   using namespace Formats::Packed;
 
   const ArchivePluginDescription DEPACKERS[] =

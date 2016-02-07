@@ -31,15 +31,12 @@
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::AYSupp");
-}
-
 namespace Module
 {
 namespace AY
 {
+  const Debug::Stream Dbg("Core::AYSupp");
+
   class AyDataChannel
   {
   public:

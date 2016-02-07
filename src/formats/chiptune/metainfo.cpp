@@ -20,18 +20,11 @@
 #include <set>
 #include <map>
 
-namespace
+namespace Formats
 {
-  template<class T>
-  void Fix(void* data, int_t delta)
-  {
-    T* const ptr = static_cast<T*>(data);
-    const T val = fromLE(*ptr);
-    const T fixedVal = static_cast<T>(val + delta);
-    *ptr = fromLE(fixedVal);
-  }
-
-  class Patcher : public Formats::Chiptune::PatchedDataBuilder
+namespace Chiptune
+{
+  class Patcher : public PatchedDataBuilder
   {
   public:
     explicit Patcher(const Binary::Container& src)
@@ -76,6 +69,15 @@ namespace
       }
     }
 
+    template<class T>
+    static void Fix(void* data, int_t delta)
+    {
+      T* const ptr = static_cast<T*>(data);
+      const T val = fromLE(*ptr);
+      const T fixedVal = static_cast<T>(val + delta);
+      *ptr = fromLE(fixedVal);
+    }
+
     void ApplyOverwrites(Dump& result) const
     {
       for (BlobsMap::const_iterator it = Overwrites.begin(), lim = Overwrites.end(); it != lim; ++it)
@@ -118,6 +120,7 @@ namespace
     FixesMap LEWordFixes;
     std::size_t SizeAddon;
   };
+}
 }
 
 namespace Formats

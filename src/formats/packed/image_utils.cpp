@@ -17,10 +17,8 @@
 //std includes
 #include <map>
 
-namespace
+namespace Formats
 {
-  using namespace Formats;
-
   bool CompareCHS(const CHS& lh, const CHS& rh)
   {
     return lh.Cylinder == rh.Cylinder

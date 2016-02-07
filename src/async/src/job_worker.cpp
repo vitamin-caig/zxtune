@@ -15,12 +15,12 @@
 #include <async/coroutine.h>
 #include <async/worker.h>
 
-namespace
+namespace Async
 {
-  class WorkerCoroutine : public Async::Coroutine
+  class WorkerCoroutine : public Coroutine
   {
   public:
-    explicit WorkerCoroutine(Async::Worker::Ptr worker)
+    explicit WorkerCoroutine(Worker::Ptr worker)
       : Delegate(worker)
     {
     }
@@ -45,7 +45,7 @@ namespace
       return Delegate->Resume();
     }
 
-    virtual void Execute(Async::Scheduler& sch)
+    virtual void Execute(Scheduler& sch)
     {
       while (!Delegate->IsFinished())
       {
@@ -54,7 +54,7 @@ namespace
       }
     }
   private:
-    const Async::Worker::Ptr Delegate;
+    const Worker::Ptr Delegate;
   };
 }
 

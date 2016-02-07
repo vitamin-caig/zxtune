@@ -31,17 +31,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::DigitalStudio");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace DigitalStudio
   {
+    const Debug::Stream Dbg("Formats::Chiptune::DigitalStudio");
+
     const std::size_t COMPILED_MODULE_SIZE = 0x1c200;
     const std::size_t MODULE_SIZE = 0x1b200;
     const std::size_t MIN_POSITIONS_COUNT = 1;

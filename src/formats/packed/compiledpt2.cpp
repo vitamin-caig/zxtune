@@ -25,17 +25,14 @@
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Packed::CompiledPT24");
-}
-
 namespace Formats
 {
 namespace Packed
 {
   namespace CompiledPT24
   {
+    const Debug::Stream Dbg("Formats::Packed::CompiledPT24");
+
     const std::size_t MAX_MODULE_SIZE = 0x3600;
     const std::size_t PLAYER_SIZE = 0xa45;
     const std::size_t MAX_PATTERNS_COUNT = 32;
@@ -45,7 +42,7 @@ namespace Packed
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    PACK_PRE struct Player
+    PACK_PRE struct RawPlayer
     {
       uint8_t Padding1;
       uint16_t DataAddr;
@@ -126,22 +123,23 @@ namespace Packed
 
     virtual Container::Ptr Decode(const Binary::Container& rawData) const
     {
+      using namespace CompiledPT24;
       if (!Player->Match(rawData))
       {
         return Container::Ptr();
       }
       const Binary::TypedContainer typedData(rawData);
       const std::size_t availSize = rawData.Size();
-      const std::size_t playerSize = CompiledPT24::PLAYER_SIZE;
-      const CompiledPT24::Player& rawPlayer = *typedData.GetField<CompiledPT24::Player>(0);
+      const std::size_t playerSize = PLAYER_SIZE;
+      const RawPlayer& rawPlayer = *typedData.GetField<RawPlayer>(0);
       const uint_t dataAddr = fromLE(rawPlayer.DataAddr);
       if (dataAddr < playerSize)
       {
         Dbg("Invalid compile addr");
         return Container::Ptr();
       }
-      const CompiledPT24::RawHeader& rawHeader = *typedData.GetField<CompiledPT24::RawHeader>(playerSize);
-      const uint_t patternsCount = CompiledPT24::GetPatternsCount(rawHeader, availSize - playerSize);
+      const RawHeader& rawHeader = *typedData.GetField<RawHeader>(playerSize);
+      const uint_t patternsCount = GetPatternsCount(rawHeader, availSize - playerSize);
       if (!patternsCount)
       {
         Dbg("Invalid patterns count");
@@ -149,11 +147,11 @@ namespace Packed
       }
       const uint_t compileAddr = dataAddr - playerSize;
       Dbg("Detected player compiled at %1% (#%1$04x) with %2% patterns", compileAddr, patternsCount);
-      const std::size_t modDataSize = std::min(CompiledPT24::MAX_MODULE_SIZE, availSize - playerSize);
+      const std::size_t modDataSize = std::min(MAX_MODULE_SIZE, availSize - playerSize);
       const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
       const Formats::Chiptune::PatchedDataBuilder::Ptr builder = Formats::Chiptune::PatchedDataBuilder::Create(*modData);
       //fix samples/ornaments offsets
-      for (uint_t idx = offsetof(CompiledPT24::RawHeader, SamplesOffsets); idx != offsetof(CompiledPT24::RawHeader, PatternsOffset); idx += 2)
+      for (uint_t idx = offsetof(RawHeader, SamplesOffsets); idx != offsetof(RawHeader, PatternsOffset); idx += 2)
       {
         builder->FixLEWord(idx, -int_t(dataAddr));
       }

@@ -33,17 +33,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::GlobalTracker");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace GlobalTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::GlobalTracker");
+
     const std::size_t MIN_SIZE = 1500;
     const std::size_t MAX_SIZE = 0x2800;
     const std::size_t MAX_SAMPLES_COUNT = 15;

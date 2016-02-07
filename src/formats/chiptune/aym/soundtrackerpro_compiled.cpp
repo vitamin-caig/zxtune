@@ -31,17 +31,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::SoundTrackerProCompiled");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace SoundTrackerProCompiled
   {
+    const Debug::Stream Dbg("Formats::Chiptune::SoundTrackerProCompiled");
+
     using namespace SoundTrackerPro;
 
     //size and offsets are taken from ~3400 modules analyzing

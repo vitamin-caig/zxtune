@@ -20,17 +20,14 @@
 #include <map>
 #include <numeric>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Archived::Zip");
-}
-
 namespace Formats
 {
 namespace Archived
 {
   namespace Zip
   {
+    const Debug::Stream Dbg("Formats::Archived::Zip");
+
     class File : public Archived::File
     {
     public:

@@ -26,17 +26,14 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Packed::Zip");
-}
-
 namespace Formats
 {
 namespace Packed
 {
   namespace Zip
   {
+    const Debug::Stream Dbg("Formats::Packed::Zip");
+
     //checkers
     const std::string HEADER_PATTERN =
       "504b0304"      //uint32_t Signature;

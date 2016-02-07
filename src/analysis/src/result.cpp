@@ -13,9 +13,9 @@
 //library includes
 #include <analysis/result.h>
 
-namespace
+namespace Analysis
 {
-  class CalculatedResult : public Analysis::Result
+  class CalculatedResult : public Result
   {
   public:
     explicit CalculatedResult(std::size_t matchedSize, std::size_t unmatchedSize)
@@ -38,7 +38,7 @@ namespace
     const std::size_t UnmatchedSize;
   };
 
-  class UnmatchedResult : public Analysis::Result
+  class UnmatchedResult : public Result
   {
   public:
     UnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data)

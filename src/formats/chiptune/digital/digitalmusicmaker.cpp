@@ -30,17 +30,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::DigitalMusicMaker");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace DigitalMusicMaker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::DigitalMusicMaker");
+
     const std::size_t MAX_POSITIONS_COUNT = 0x32;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t PATTERNS_COUNT = 24;

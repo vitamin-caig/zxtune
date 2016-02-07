@@ -23,13 +23,10 @@
 //boost includes
 #include <boost/weak_ptr.hpp>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::AYBase");
-}
-
 namespace Module
 {
+  const Debug::Stream Dbg("Core::AYBase");
+
   class AYMHolder : public AYM::Holder
   {
   public:

@@ -19,7 +19,7 @@
 #include <core/plugin_attrs.h>
 #include <sound/mixer_factory.h>
 
-namespace
+namespace Module
 {
   template<unsigned Channels>
   Devices::DAC::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
@@ -43,10 +43,7 @@ namespace
       return Devices::DAC::Chip::Ptr();
     };
   }
-}
 
-namespace Module
-{
   class DACHolder : public Holder
   {
   public:

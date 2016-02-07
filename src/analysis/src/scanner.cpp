@@ -19,13 +19,10 @@
 #include <deque>
 #include <list>
 
-namespace
-{
-  const Debug::Stream Dbg("Analysis::Scanner");
-}
-
 namespace Analysis
 {
+  const Debug::Stream Dbg("Analysis::Scanner");
+
   using namespace Formats;
 
   template<class DecoderPtrType>
@@ -422,7 +419,10 @@ namespace Analysis
   private:
     DecodersSet Decoders;
   };
+}
 
+namespace Analysis
+{
   Scanner::RWPtr CreateScanner()
   {
     return MakeRWPtr<LinearScanner>();

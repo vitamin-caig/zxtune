@@ -36,17 +36,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ASCSoundMaster");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace ASCSoundMaster
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ASCSoundMaster");
+
     const std::size_t SAMPLES_COUNT = 32;
     const std::size_t MAX_SAMPLE_SIZE = 150;
     const std::size_t ORNAMENTS_COUNT = 32;

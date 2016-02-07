@@ -23,10 +23,10 @@
 #include <stack>
 #include <vector>
 
-namespace
+namespace Binary
 {
-  using namespace Binary;
-
+namespace FormatDSL
+{
   typedef RangeIterator<std::string::const_iterator> PatternIterator;
 
   class AnyValueToken : public Token
@@ -248,7 +248,7 @@ namespace
 
   struct Conjunction
   {
-    bool operator() (bool lh, bool rh) const
+    static bool Execute(bool lh, bool rh)
     {
       return lh && rh;
     }
@@ -256,7 +256,7 @@ namespace
 
   struct Disjunction
   {
-    bool operator() (bool lh, bool rh) const
+    static bool Execute(bool lh, bool rh)
     {
       return lh || rh;
     }
@@ -269,13 +269,12 @@ namespace
     BinaryOperationToken(Ptr lh, Ptr rh)
       : Lh(lh)
       , Rh(rh)
-      , Op()
     {
     }
 
     virtual bool Match(uint_t val) const
     {
-      return Op(Lh->Match(val), Rh->Match(val));
+      return BinOp::Execute(Lh->Match(val), Rh->Match(val));
     }
 
     static Ptr Create(Ptr lh, Ptr rh)
@@ -285,7 +284,6 @@ namespace
   private:
     const Ptr Lh;
     const Ptr Rh;
-    const BinOp Op;
   };
 
   inline std::size_t ParseQuantor(PatternIterator& it)
@@ -440,8 +438,11 @@ namespace
     const Pattern Pat;
   };
 }
+}
 
 namespace Binary
+{
+namespace FormatDSL
 {
   Expression::Ptr Expression::Parse(const std::string& notation)
   {
@@ -454,4 +455,5 @@ namespace Binary
     const std::size_t offset = std::distance(first, firstNotAny);
     return MakePtr<LinearExpression>(offset, firstNotAny, lastNotAny);
   }
+}
 }

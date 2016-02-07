@@ -32,17 +32,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::AY");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace AY
   {
+    const Debug::Stream Dbg("Formats::Chiptune::AY");
+
     const uint8_t SIGNATURE[] = {'Z', 'X', 'A', 'Y'};
   #ifdef USE_PRAGMA_PACK
   #pragma pack(push,1)

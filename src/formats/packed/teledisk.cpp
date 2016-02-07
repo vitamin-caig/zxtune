@@ -29,17 +29,14 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Packed::TeleDiskImage");
-}
-
 namespace Formats
 {
 namespace Packed
 {
   namespace TeleDiskImage
   {
+    const Debug::Stream Dbg("Formats::Packed::TeleDiskImage");
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif

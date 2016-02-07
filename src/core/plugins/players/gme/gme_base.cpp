@@ -46,15 +46,12 @@
 #include <3rdparty/gme/gme/Vgm_Emu.h>
 #include <3rdparty/gme/gme/Gym_Emu.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::GMESupp");
-}
-
 namespace Module
 {
 namespace GME
 {
+  const Debug::Stream Dbg("Core::GMESupp");
+
   typedef boost::shared_ptr< ::Music_Emu> EmuPtr;
 
   typedef EmuPtr (*EmuCreator)();

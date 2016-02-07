@@ -24,15 +24,12 @@
 //boost includes
 #include <boost/unordered_map.hpp>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::SQTSupp");
-}
-
 namespace Module
 {
 namespace SQTracker
 {
+  const Debug::Stream Dbg("Core::SQTSupp");
+
   //supported commands and parameters
   enum CmdType
   {

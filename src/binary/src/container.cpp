@@ -18,7 +18,7 @@
 #include <boost/shared_array.hpp>
 #include <boost/static_assert.hpp>
 
-namespace
+namespace Binary
 {
   inline const void* GetPointer(const Dump& val, std::size_t offset)
   {

@@ -21,17 +21,14 @@
 //3rdparty includes
 #include <3rdparty/lhasa/lib/lha_decoder.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Packed::Lha");
-}
-
 namespace Formats
 {
 namespace Packed
 {
 namespace Lha
 {
+  const Debug::Stream Dbg("Formats::Packed::Lha");
+
   class Decompressor
   {
   public:

@@ -39,7 +39,7 @@
 
 #define FILE_TAG 7E0CBD98
 
-namespace
+namespace ZXTune
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 
@@ -274,10 +274,8 @@ namespace
   };
 }
 
-namespace
+namespace ZXTune
 {
-  using namespace ZXTune;
-
   const Debug::Stream Dbg("Core::RawScaner");
 
   const Char ID[] = {'R', 'A', 'W', 0};
@@ -718,10 +716,8 @@ namespace
   };
 }
 
-namespace
+namespace ZXTune
 {
-  using namespace ZXTune;
-
   class RawScaner : public ArchivePlugin
   {
   public:

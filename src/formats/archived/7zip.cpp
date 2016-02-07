@@ -28,17 +28,14 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Archived::7zip");
-}
-
 namespace Formats
 {
 namespace Archived
 {
   namespace SevenZip
   {
+    const Debug::Stream Dbg("Formats::Archived::7zip");
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif

@@ -13,6 +13,8 @@
 
 namespace Binary
 {
+namespace FormatDSL
+{
   std::size_t StaticPattern::FindSuffix(std::size_t suffixSize) const
   {
     const StaticToken* const suffixBegin = End() - suffixSize;
@@ -90,4 +92,5 @@ namespace Binary
       }
     }
   }
+}
 }

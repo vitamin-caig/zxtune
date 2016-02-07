@@ -26,17 +26,14 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Archived::TRD");
-}
-
 namespace Formats
 {
 namespace Archived
 {
   namespace TRD
   {
+    const Debug::Stream Dbg("Formats::Archived::TRD");
+
     const std::string FORMAT(
       "(00|01|20-7f??????? ??? ?? ? 0x 00-a0){128}"
       //service sector

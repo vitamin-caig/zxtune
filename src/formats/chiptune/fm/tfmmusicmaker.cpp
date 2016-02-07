@@ -25,17 +25,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::TFMMusicMaker");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace TFMMusicMaker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::TFMMusicMaker");
+
     const std::size_t MAX_POSITIONS_COUNT = 256;
     const std::size_t MAX_INSTRUMENTS_COUNT = 255;
     const std::size_t MAX_PATTERNS_COUNT = 256;

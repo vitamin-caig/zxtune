@@ -33,17 +33,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ProTracker3");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace ProTracker3
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ProTracker3");
+
     const std::size_t MIN_SIZE = 200;
     const std::size_t MAX_SIZE = 0xc000;
 

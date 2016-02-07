@@ -13,10 +13,8 @@
 //common includes
 #include <make_ptr.h>
 
-namespace
+namespace ZXTune
 {
-  using namespace ZXTune;
-
   class NestedLocation : public DataLocation
   {
   public:

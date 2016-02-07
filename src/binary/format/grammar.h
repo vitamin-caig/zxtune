@@ -15,6 +15,8 @@
 
 namespace Binary
 {
+namespace FormatDSL
+{
   const LexicalAnalysis::TokenType DELIMITER = 0;
   const LexicalAnalysis::TokenType CONSTANT = 1;
   const LexicalAnalysis::TokenType MASK = 2;
@@ -42,4 +44,5 @@ namespace Binary
   const char DELIMITER_TEXT = ',';
 
   LexicalAnalysis::Grammar::Ptr CreateFormatGrammar();
+}
 }

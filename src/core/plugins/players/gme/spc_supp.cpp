@@ -35,15 +35,12 @@
 #include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
 #include <3rdparty/snesspc/snes_spc/SPC_Filter.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::SIDSupp");
-}
-
 namespace Module
 {
 namespace SPC
 {
+  const Debug::Stream Dbg("Core::SIDSupp");
+
   class SPC : public Module::Analyzer
   {
     static const uint_t SPC_DIVIDER = 1 << 12;

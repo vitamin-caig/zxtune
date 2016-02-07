@@ -16,7 +16,9 @@
 #include <cmath>
 #include <numeric>
 
-namespace
+namespace Devices
+{
+namespace DAC
 {
   const uint_t NO_RMS = uint_t(-1);
 
@@ -49,6 +51,7 @@ namespace
   {
     return AYVolumeTab[inSample >> 4];
   }
+}
 }
 
 namespace Devices

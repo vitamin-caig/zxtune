@@ -33,17 +33,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::FastTracker");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace FastTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::FastTracker");
+
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x3a00;
     const std::size_t SAMPLES_COUNT = 32;

@@ -22,13 +22,10 @@
 
 #define FILE_TAG E8071E22
 
-namespace
-{
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
-
 namespace Module
 {
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+
   // prefix for reverted frequency tables
   const Char REVERT_TABLE_MARK = '~';
 

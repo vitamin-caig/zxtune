@@ -24,17 +24,14 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Archived::SCL");
-}
-
 namespace Formats
 {
 namespace Archived
 {
   namespace SCL
   {
+    const Debug::Stream Dbg("Formats::Archived::SCL");
+
     const std::string FORMAT(
       "'S'I'N'C'L'A'I'R"
       "01-ff"

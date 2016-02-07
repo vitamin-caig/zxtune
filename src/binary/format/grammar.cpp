@@ -16,10 +16,10 @@
 //std includes
 #include <cctype>
 
-namespace
+namespace Binary
 {
-  using namespace Binary;
-
+namespace FormatDSL
+{
   const std::string BINDIGITS("01");
   const std::string DIGITS = BINDIGITS + "23456789";
   const std::string HEXDIGITS = DIGITS + "abcdefABCDEF";
@@ -192,12 +192,16 @@ namespace
     const LexicalAnalysis::Grammar::RWPtr Delegate;
   };
 }
+}
 
 namespace Binary
+{
+namespace FormatDSL
 {
   LexicalAnalysis::Grammar::Ptr CreateFormatGrammar()
   {
     static FormatGrammar grammar;
     return MakeSingletonPointer(grammar);
   }
+}
 }

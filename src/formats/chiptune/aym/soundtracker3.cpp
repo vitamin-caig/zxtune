@@ -31,17 +31,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::SoundTracker3");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace SoundTracker3
   {
+    const Debug::Stream Dbg("Formats::Chiptune::SoundTracker3");
+
     using namespace SoundTracker;
 
     const std::size_t MIN_SIZE = 0x180;

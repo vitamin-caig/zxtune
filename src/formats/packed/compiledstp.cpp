@@ -26,17 +26,14 @@
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Packed::CompiledSTP");
-}
-
 namespace Formats
 {
 namespace Packed
 {
   namespace CompiledSTP
   {
+    const Debug::Stream Dbg("Formats::Packed::CompiledSTP");
+
     const std::size_t MAX_MODULE_SIZE = 0x2800;
     const std::size_t MAX_PLAYER_SIZE = 2000;
 
@@ -48,7 +45,7 @@ namespace Packed
       static const String DESCRIPTION;
       static const std::string FORMAT;
 
-      PACK_PRE struct Player
+      PACK_PRE struct RawPlayer
       {
         uint8_t Padding1;
         uint16_t DataAddr;
@@ -66,7 +63,7 @@ namespace Packed
         std::size_t GetSize() const
         {
           const uint_t initAddr = fromLE(InitAddr);
-          const uint_t compileAddr = initAddr - offsetof(Player, Initialization);
+          const uint_t compileAddr = initAddr - offsetof(RawPlayer, Initialization);
           return fromLE(DataAddr) - compileAddr;
         }
 
@@ -82,7 +79,7 @@ namespace Packed
       static const String DESCRIPTION;
       static const std::string FORMAT;
 
-      PACK_PRE struct Player
+      PACK_PRE struct RawPlayer
       {
         uint8_t Padding1;
         uint16_t InitAddr;
@@ -99,7 +96,7 @@ namespace Packed
         std::size_t GetSize() const
         {
           const uint_t initAddr = fromLE(InitAddr);
-          const uint_t compileAddr = initAddr - offsetof(Player, Initialization);
+          const uint_t compileAddr = initAddr - offsetof(RawPlayer, Initialization);
           return fromLE(DataAddr) - compileAddr;
         }
 
@@ -119,10 +116,10 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(offsetof(Version1::Player, Information) == 17);
-    BOOST_STATIC_ASSERT(offsetof(Version1::Player, Initialization) == 78);
-    BOOST_STATIC_ASSERT(offsetof(Version2::Player, Information) == 8);
-    BOOST_STATIC_ASSERT(offsetof(Version2::Player, Initialization) == 72);
+    BOOST_STATIC_ASSERT(offsetof(Version1::RawPlayer, Information) == 17);
+    BOOST_STATIC_ASSERT(offsetof(Version1::RawPlayer, Initialization) == 78);
+    BOOST_STATIC_ASSERT(offsetof(Version2::RawPlayer, Information) == 8);
+    BOOST_STATIC_ASSERT(offsetof(Version2::RawPlayer, Initialization) == 72);
 
     const String Version1::DESCRIPTION = String(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
     const String Version2::DESCRIPTION = String(Text::SOUNDTRACKERPRO2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
@@ -183,7 +180,7 @@ namespace Packed
   {
   public:
     CompiledSTPDecoder()
-      : Player(Binary::CreateFormat(Version::FORMAT, sizeof(typename Version::Player)))
+      : Player(Binary::CreateFormat(Version::FORMAT, sizeof(typename Version::RawPlayer)))
       , Decoder(Formats::Chiptune::SoundTrackerPro::CreateCompiledModulesDecoder())
     {
     }
@@ -200,13 +197,14 @@ namespace Packed
 
     virtual Container::Ptr Decode(const Binary::Container& rawData) const
     {
+      using namespace CompiledSTP;
       if (!Player->Match(rawData))
       {
         return Container::Ptr();
       }
       const Binary::TypedContainer typedData(rawData);
       const std::size_t availSize = rawData.Size();
-      const typename Version::Player& rawPlayer = *typedData.GetField<typename Version::Player>(0);
+      const typename Version::RawPlayer& rawPlayer = *typedData.GetField<typename Version::RawPlayer>(0);
       const std::size_t playerSize = rawPlayer.GetSize();
       if (playerSize >= std::min(availSize, CompiledSTP::MAX_PLAYER_SIZE))
       {

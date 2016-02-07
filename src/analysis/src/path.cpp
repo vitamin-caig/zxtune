@@ -21,7 +21,7 @@
 //std includes
 #include <cassert>
 
-namespace
+namespace Analysis
 {
   Strings::Array SplitPath(const String& str, Char separator)
   {
@@ -40,9 +40,9 @@ namespace
   }
 
   template<class It>
-  Analysis::Path::Ptr CreatePath(Char separator, It from, It to);
+  Path::Ptr CreatePath(Char separator, It from, It to);
 
-  class ParsedPath : public Analysis::Path
+  class ParsedPath : public Path
   {
   public:
     template<class Iter>
@@ -97,7 +97,7 @@ namespace
     const Char Separator;
   };
 
-  class EmptyPath : public Analysis::Path
+  class EmptyPath : public Path
   {
   public:
     explicit EmptyPath(Char separator)
@@ -122,7 +122,7 @@ namespace
 
     virtual Ptr Append(const String& element) const
     {
-      return Analysis::ParsePath(element, Separator);
+      return ParsePath(element, Separator);
     }
 
     virtual Ptr Extract(const String& startPath) const
@@ -136,7 +136,7 @@ namespace
   };
 
   template<class It>
-  Analysis::Path::Ptr CreatePath(Char separator, It from, It to)
+  Path::Ptr CreatePath(Char separator, It from, It to)
   {
     if (from != to)
     {

@@ -18,7 +18,7 @@
 //boost includes
 #include <boost/range/end.hpp>
 
-namespace
+namespace ZXTune
 {
   typedef Formats::Archived::Decoder::Ptr (*CreateDecoderFunc)();
 
@@ -29,7 +29,6 @@ namespace
     const uint_t Caps;
   };
 
-  using namespace ZXTune;
   using namespace Formats::Archived;
 
   const ContainerPluginDescription UNARCHIVES[] =

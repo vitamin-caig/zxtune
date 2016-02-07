@@ -28,17 +28,14 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Archived::Lha");
-}
-
 namespace Formats
 {
 namespace Archived
 {
   namespace Lha
   {
+    const Debug::Stream Dbg("Formats::Archived::Lha");
+
     const std::string FORMAT(
       "??"        //size+sum/size/size len
       "'-('l|'p)('z|'h|'m)('s|'d|'0-'7)'-" //method, see lha_decoder.c for all available

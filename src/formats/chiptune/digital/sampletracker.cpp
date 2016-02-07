@@ -31,17 +31,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::SampleTracker");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace SampleTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::SampleTracker");
+
     const std::size_t MAX_MODULE_SIZE = 0x87a0;
     const std::size_t MAX_POSITIONS_COUNT = 0x40;
     const std::size_t MAX_PATTERN_SIZE = 64;

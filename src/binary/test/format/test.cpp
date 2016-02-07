@@ -72,7 +72,7 @@ namespace
     std::ostream& Str;
   };
 
-  class SyntaxReportCallback : public Binary::FormatTokensVisitor
+  class SyntaxReportCallback : public Binary::FormatDSL::FormatTokensVisitor
   {
   public:
     explicit SyntaxReportCallback(std::ostream& str)
@@ -110,7 +110,7 @@ namespace
 
   std::string GetGrammar(const std::string& notation)
   {
-    const LexicalAnalysis::Grammar::Ptr grammar = Binary::CreateFormatGrammar();
+    const LexicalAnalysis::Grammar::Ptr grammar = Binary::FormatDSL::CreateFormatGrammar();
     std::ostringstream result;
     GrammarReportCallback cb(result);
     grammar->Analyse(notation, cb);
@@ -123,7 +123,7 @@ namespace
     try
     {
       SyntaxReportCallback cb(result);
-      Binary::ParseFormatNotation(notation, cb);
+      Binary::FormatDSL::ParseFormatNotation(notation, cb);
     }
     catch (const std::exception&)
     {
@@ -137,7 +137,7 @@ namespace
     try
     {
       SyntaxReportCallback cb(result);
-      Binary::ParseFormatNotationPostfix(notation, cb);
+      Binary::FormatDSL::ParseFormatNotationPostfix(notation, cb);
     }
     catch (const std::exception&)
     {
@@ -151,8 +151,8 @@ namespace
     try
     {
       SyntaxReportCallback cb(result);
-      const Binary::FormatTokensVisitor::Ptr adapter = Binary::CreatePostfixSynaxCheckAdapter(cb);
-      Binary::ParseFormatNotationPostfix(notation, *adapter);
+      const Binary::FormatDSL::FormatTokensVisitor::Ptr adapter = Binary::FormatDSL::CreatePostfixSynaxCheckAdapter(cb);
+      Binary::FormatDSL::ParseFormatNotationPostfix(notation, *adapter);
     }
     catch (const std::exception&)
     {

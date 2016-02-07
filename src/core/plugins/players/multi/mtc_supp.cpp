@@ -29,15 +29,12 @@
 //std includes
 #include <list>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::MTCSupp");
-}
-
 namespace Module
 {
 namespace MTC
 {
+  const Debug::Stream Dbg("Core::MTCSupp");
+
   Parameters::Accessor::Ptr CombineProps(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second)
   {
     return first

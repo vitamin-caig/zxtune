@@ -30,17 +30,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ProDigiTracker");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace ProDigiTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ProDigiTracker");
+
     const uint_t ORNAMENTS_COUNT = 11;
     const uint_t SAMPLES_COUNT = 16;
     const uint_t POSITIONS_COUNT = 240;

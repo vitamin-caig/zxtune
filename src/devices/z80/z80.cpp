@@ -21,10 +21,10 @@
 //std includes
 #include <functional>
 
-namespace
+namespace Devices
 {
-  using namespace Devices::Z80;
-
+namespace Z80
+{
   class IOBus
   {
   public:
@@ -398,6 +398,7 @@ namespace
     const boost::shared_ptr<Z80EX_CONTEXT> Context;
     ClockSource Clock;
   };
+}
 }
 
 namespace Devices

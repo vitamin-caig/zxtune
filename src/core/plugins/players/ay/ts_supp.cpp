@@ -26,15 +26,12 @@
 #include <debug/log.h>
 #include <formats/chiptune/aym/turbosound.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::TSSupp");
-}
-
 namespace Module
 {
 namespace TS
 {
+  const Debug::Stream Dbg("Core::TSSupp");
+
   class DataBuilder : public Formats::Chiptune::TurboSound::Builder
   {
   public:

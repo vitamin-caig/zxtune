@@ -25,17 +25,14 @@
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Packed::CompiledASC");
-}
-
 namespace Formats
 {
 namespace Packed
 {
   namespace CompiledASC
   {
+    const Debug::Stream Dbg("Formats::Packed::CompiledASC");
+
     const std::size_t MAX_MODULE_SIZE = 0x3a00;
     const std::size_t MAX_PLAYER_SIZE = 1700;
 
@@ -241,24 +238,25 @@ namespace Packed
 
     virtual Container::Ptr Decode(const Binary::Container& rawData) const
     {
+      using namespace CompiledASC;
       if (!Player->Match(rawData))
       {
         return Container::Ptr();
       }
       const Binary::TypedContainer typedData(rawData);
       const std::size_t availSize = rawData.Size();
-      const CompiledASC::PlayerTraits rawPlayer = Version.CreatePlayer(typedData);
-      if (rawPlayer.Size >= std::min(availSize, CompiledASC::MAX_PLAYER_SIZE))
+      const PlayerTraits rawPlayer = Version.CreatePlayer(typedData);
+      if (rawPlayer.Size >= std::min(availSize, MAX_PLAYER_SIZE))
       {
         Dbg("Invalid player");
         return Container::Ptr();
       }
       Dbg("Detected player in first %1% bytes", rawPlayer.Size);
-      const std::size_t modDataSize = std::min(CompiledASC::MAX_MODULE_SIZE, availSize - rawPlayer.Size);
+      const std::size_t modDataSize = std::min(MAX_MODULE_SIZE, availSize - rawPlayer.Size);
       const Binary::Container::Ptr modData = rawData.GetSubcontainer(rawPlayer.Size, modDataSize);
-      const CompiledASC::InfoData& rawInfo = *typedData.GetField<CompiledASC::InfoData>(rawPlayer.InfoOffset);
+      const InfoData& rawInfo = *typedData.GetField<InfoData>(rawPlayer.InfoOffset);
       const Dump metainfo(rawInfo.begin(), rawInfo.end());
-      if (CompiledASC::IsInfoEmpty(rawInfo))
+      if (IsInfoEmpty(rawInfo))
       {
         Dbg("Player has empty metainfo");
         if (const Binary::Container::Ptr originalModule = Version.Parse(*modData, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))

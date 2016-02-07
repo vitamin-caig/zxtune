@@ -43,15 +43,12 @@
 #include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::SIDSupp");
-}
-
 namespace Module
 {
 namespace Sid
 {
+  const Debug::Stream Dbg("Core::SIDSupp");
+
   typedef boost::shared_ptr<SidTune> TunePtr;
   typedef boost::shared_ptr<sidplayfp> EnginePtr;
 

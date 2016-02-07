@@ -31,17 +31,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ExtremeTracker1");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace ExtremeTracker1
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ExtremeTracker1");
+
     const std::size_t CHANNELS_COUNT = 4;
     const std::size_t MAX_POSITIONS_COUNT = 100;
     const std::size_t MAX_SAMPLES_COUNT = 16;

@@ -25,17 +25,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::SoundTracker");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace SoundTrackerUncompiled
   {
+    const Debug::Stream Dbg("Formats::Chiptune::SoundTracker");
+
     using namespace SoundTracker;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)

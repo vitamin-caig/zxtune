@@ -33,17 +33,14 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Archived::ZXState");
-}
-
 namespace Formats
 {
 namespace Archived
 {
   namespace ZXState
   {
+    const Debug::Stream Dbg("Formats::Archived::ZXState");
+
     const std::string FORMAT(
       "'Z'X'S'T" //signature
       "01"       //major
@@ -774,12 +771,13 @@ namespace Archived
 
     virtual Container::Ptr Decode(const Binary::Container& data) const
     {
+      using namespace ZXState;
       if (!Format->Match(data))
       {
-        return Container::Ptr();
+        return ZXState::Container::Ptr();
       }
-      const ZXState::ChunksSet chunks(data);
-      ZXState::FilledBlocks blocks;
+      const ChunksSet chunks(data);
+      FilledBlocks blocks;
       if (const std::size_t size = chunks.Parse(blocks))
       {
         if (!blocks.empty())
@@ -789,7 +787,7 @@ namespace Archived
         }
         Dbg("No files found");
       }
-      return Container::Ptr();
+      return ZXState::Container::Ptr();
     }
   private:
     const Binary::Format::Ptr Format;

@@ -22,10 +22,8 @@
 
 #define FILE_TAG BCCC5654
 
-namespace
+namespace ZXTune
 {
-  using namespace ZXTune;
-
   const Debug::Stream Dbg("Core");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 

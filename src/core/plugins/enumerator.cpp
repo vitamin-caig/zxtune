@@ -36,14 +36,11 @@
 
 #define FILE_TAG 04EDD719
 
-namespace
+namespace ZXTune
 {
   const Debug::Stream Dbg("Core::Enumerator");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
 
-namespace ZXTune
-{
   template<class PluginType>
   class PluginsContainer : public PluginsRegistrator<PluginType>
                          , public PluginsEnumerator<PluginType>

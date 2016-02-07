@@ -34,15 +34,12 @@
 
 #define FILE_TAG 6972CAAF
 
-namespace
-{
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
-
 namespace Module
 {
 namespace AYM
 {
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+
   //duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const Char letter)
   {

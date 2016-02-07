@@ -17,9 +17,9 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 
-namespace
+namespace Async
 {
-  class SynchronizedProgress : public Async::Progress
+  class SynchronizedProgress : public Progress
   {
   public:
     SynchronizedProgress()

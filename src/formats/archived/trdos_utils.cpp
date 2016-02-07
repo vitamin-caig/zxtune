@@ -16,7 +16,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/range/end.hpp>
 
-namespace
+namespace TRDos
 {
   inline String OptimizeString(const String& str, Char replace = '\?')
   {

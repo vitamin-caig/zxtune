@@ -29,15 +29,12 @@
 //3rdparty
 #include <3rdparty/hvl/replay.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::AHXSupp");
-}
-
 namespace Module
 {
 namespace AHX
 {
+  const Debug::Stream Dbg("Core::AHXSupp");
+
   typedef boost::shared_ptr<hvl_tune> HvlPtr;
   
   HvlPtr LoadModule(const Binary::Data& data)

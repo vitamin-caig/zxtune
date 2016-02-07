@@ -18,7 +18,7 @@
 //boost includes
 #include <boost/mem_fn.hpp>
 
-namespace
+namespace LexicalAnalysis
 {
   struct TokensSet
   {
@@ -26,9 +26,9 @@ namespace
     typedef boost::shared_ptr<TokensSet> RWPtr;
 
     std::string Lexeme;
-    LexicalAnalysis::TokenTypesSet Types;
+    TokenTypesSet Types;
 
-    void Add(const std::string& lexeme, LexicalAnalysis::TokenType type)
+    void Add(const std::string& lexeme, TokenType type)
     {
       if (Empty())
       {
@@ -46,7 +46,7 @@ namespace
       return Types.Empty();
     }
 
-    void Report(LexicalAnalysis::Grammar::Callback& cb) const
+    void Report(Grammar::Callback& cb) const
     {
       Require(!Empty());
       if (Types.Size() == 1)
@@ -59,10 +59,7 @@ namespace
       }
     }
   };
-}
 
-namespace LexicalAnalysis
-{
   class ContextIndependentGrammar : public Grammar
   {
   public:

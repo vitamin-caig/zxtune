@@ -29,17 +29,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::YM");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace YM
   {
+    const Debug::Stream Dbg("Formats::Chiptune::YM");
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif

@@ -24,24 +24,21 @@
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Packed::CompiledST3");
-}
-
 namespace Formats
 {
 namespace Packed
 {
   namespace CompiledST3
   {
+    const Debug::Stream Dbg("Formats::Packed::CompiledST3");
+
     const std::size_t MAX_MODULE_SIZE = 0x4000;
     const std::size_t MAX_PLAYER_SIZE = 0xa00;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    PACK_PRE struct Player
+    PACK_PRE struct RawPlayer
     {
       uint8_t Padding1;
       uint16_t DataAddr;
@@ -58,7 +55,7 @@ namespace Packed
       uint_t GetCompileAddr() const
       {
         const uint_t initAddr = fromLE(InitAddr);
-        return initAddr - offsetof(Player, Initialization);
+        return initAddr - offsetof(RawPlayer, Initialization);
       }
 
       std::size_t GetSize() const
@@ -76,8 +73,8 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(offsetof(Player, Information) == 12);
-    BOOST_STATIC_ASSERT(offsetof(Player, Initialization) == 67); 
+    BOOST_STATIC_ASSERT(offsetof(RawPlayer, Information) == 12);
+    BOOST_STATIC_ASSERT(offsetof(RawPlayer, Initialization) == 67);
 
     const String DESCRIPTION = String(Text::SOUNDTRACKER3_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
@@ -111,7 +108,7 @@ namespace Packed
   {
   public:
     CompiledST3Decoder()
-      : Player(Binary::CreateFormat(CompiledST3::FORMAT, sizeof(CompiledST3::Player)))
+      : Player(Binary::CreateFormat(CompiledST3::FORMAT, sizeof(CompiledST3::RawPlayer)))
     {
     }
 
@@ -127,26 +124,28 @@ namespace Packed
 
     virtual Container::Ptr Decode(const Binary::Container& rawData) const
     {
+      using namespace CompiledST3;
+
       if (!Player->Match(rawData))
       {
         return Container::Ptr();
       }
       const Binary::TypedContainer typedData(rawData);
       const std::size_t availSize = rawData.Size();
-      const CompiledST3::Player& rawPlayer = *typedData.GetField<CompiledST3::Player>(0);
+      const RawPlayer& rawPlayer = *typedData.GetField<RawPlayer>(0);
       const std::size_t playerSize = rawPlayer.GetSize();
-      if (playerSize >= std::min(availSize, CompiledST3::MAX_PLAYER_SIZE))
+      if (playerSize >= std::min(availSize, MAX_PLAYER_SIZE))
       {
         Dbg("Invalid compile addr");
         return Container::Ptr();
       }
       const uint_t compileAddr = rawPlayer.GetCompileAddr();
       Dbg("Detected player compiled at %1% (#%1$04x) in first %2% bytes", compileAddr, playerSize);
-      const std::size_t modDataSize = std::min(availSize - playerSize, CompiledST3::MAX_MODULE_SIZE);
+      const std::size_t modDataSize = std::min(availSize - playerSize, MAX_MODULE_SIZE);
       const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
       const Dump& metainfo = rawPlayer.GetInfo();
       Formats::Chiptune::SoundTracker::Builder& stub = Formats::Chiptune::SoundTracker::GetStubBuilder();
-      if (CompiledST3::IsInfoEmpty(metainfo))
+      if (IsInfoEmpty(metainfo))
       {
         Dbg("Player has empty metainfo");
         if (const Binary::Container::Ptr originalModule = Formats::Chiptune::SoundTracker::Ver3::Parse(*modData, stub))
