@@ -5,6 +5,8 @@ tools.ld ?= $($(platform).$(arch).execprefix)g++
 tools.ar ?= $($(platform).$(arch).execprefix)ar
 tools.objcopy ?= $($(platform).$(arch).execprefix)objcopy
 tools.strip ?= $($(platform).$(arch).execprefix)strip
+tools.nm ?= $($(platform).$(arch).execprefix)nm
+tools.objdump ?= $($(platform).$(arch).execprefix)objdump
 
 LINKER_BEGIN_GROUP ?= -Wl,'-('
 LINKER_END_GROUP ?= -Wl,'-)'
@@ -94,10 +96,10 @@ analyze_all: analyze analyze_deps
 ifneq ($(binary_name)$(dynamic_name),)
 
 $(target).nm.out: $(target)
-	nm -C -S -l $^.pdb > $@
+	$(tools.nm) -C -S -l $^.pdb > $@
 
 $(target).objdump.out: $(target)
-	objdump -h $^.pdb > $@
+	$(tools.objdump) -h $^.pdb > $@
 
 tools_dir = $(abspath $(path_step)/make/tools)
 bloat_dir = $(tools_dir)/bloat

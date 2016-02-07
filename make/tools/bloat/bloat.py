@@ -181,7 +181,7 @@ def parse_cpp_name(name, cppfilt):
             gt = lt
             while val[gt] != '>' or open_tmpl != 0:
                 gt = gt + 1
-            	assert gt < len(val), val
+                assert gt < len(val), val
                 if val[gt] == '<':
                     open_tmpl = open_tmpl + 1
                 if val[gt] == '>':
@@ -265,7 +265,7 @@ def jsonify_tree(tree, name):
     total = 0
     files = 0
 
-    for key, val in tree.iteritems():
+    for key, val in tree.items():
         if key == '$bloat_symbols':
             continue
         if isinstance(val, dict):
@@ -276,7 +276,7 @@ def jsonify_tree(tree, name):
             (size, symbols) = val
             total += size
             assert len(symbols) == 1, symbols.values()[0] == 1
-            symbol = symbol_type_to_human(symbols.keys()[0])
+            symbol = symbol_type_to_human(list(symbols.keys())[0])
             children.append({
                     'name': key + ' ' + format_bytes(size),
                     'data': {
@@ -289,7 +289,7 @@ def jsonify_tree(tree, name):
     dominant_symbol = ''
     if '$bloat_symbols' in tree:
         dominant_symbol = symbol_type_to_human(
-            max(tree['$bloat_symbols'].iteritems(),
+            max(tree['$bloat_symbols'].items(),
                 key=operator.itemgetter(1))[0])
     return {
         'name': name + ' ' + format_bytes(total),
@@ -353,10 +353,10 @@ def dump_sections(objdump):
     sections = jsonify_sections('sections', sections)
     debug_sections = jsonify_sections('debug', debug_sections)
     size = sections['data']['$area'] + debug_sections['data']['$area']
-    print 'var kTree = ' + json.dumps({
+    print('var kTree = ' + json.dumps({
             'name': 'top ' + format_bytes(size),
             'data': { '$area': size },
-            'children': [ debug_sections, sections ]})
+            'children': [ debug_sections, sections ]}))
 
 
 usage="""%prog [options] MODE
@@ -400,12 +400,10 @@ if mode == 'syms':
     try:
         res = subprocess.check_output([opts.cppfilt, 'main'])
         if res.strip() != 'main':
-            print >>sys.stderr, ("%s failed demangling, "
-                                 "output won't be demangled." % opt.cppfilt)
+            print("%s failed demangling, output won't be demangled." % opts.cppfilt, file=sys.stderr)
             opts.cppfilt = None
     except:
-        print >>sys.stderr, ("Could not find c++filt at %s, "
-                             "output won't be demangled." % opt.cppfilt)
+        print("Could not find c++filt at %s, output won't be demangled." % opts.cppfilt, file=sys.stderr)
         opts.cppfilt = None
     dump_nm(nmfile, strip_prefix=opts.strip_prefix, cppfilt=opts.cppfilt)
 elif mode == 'sections':
@@ -424,10 +422,10 @@ elif mode == 'dump':
             path = ''
         if opts.filter and not (opts.filter in sym or opts.filter in path):
             continue
-        print '%6s %s (%s) %s' % (format_bytes(size), sym,
-                                  symbol_type_to_human(type), path)
+        print('%6s %s (%s) %s' % (format_bytes(size), sym,
+                                  symbol_type_to_human(type), path))
         total += size
-    print '%6s %s' % (format_bytes(total), 'total'),
+    print('%6s %s' % (format_bytes(total), 'total'))
 else:
-    print 'unknown mode'
+    print('unknown mode')
     parser.print_usage()
