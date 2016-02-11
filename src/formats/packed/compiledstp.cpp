@@ -181,7 +181,6 @@ namespace Packed
   public:
     CompiledSTPDecoder()
       : Player(Binary::CreateFormat(Version::FORMAT, sizeof(typename Version::RawPlayer)))
-      , Decoder(Formats::Chiptune::SoundTrackerPro::CreateCompiledModulesDecoder())
     {
     }
 
@@ -218,15 +217,15 @@ namespace Packed
       if (CompiledSTP::IsInfoEmpty(metainfo))
       {
         Dbg("Player has empty metainfo");
-        if (const Binary::Container::Ptr originalModule = Decoder->Decode(*modData))
+        if (const Binary::Container::Ptr originalModule = Formats::Chiptune::SoundTrackerPro::ParseCompiled(*modData, Formats::Chiptune::SoundTrackerPro::GetStubBuilder()))
         {
           const std::size_t originalSize = originalModule->Size();
           return CreateContainer(originalModule, playerSize + originalSize);
         }
       }
-      else if (const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*modData, metainfo))
+      else if (const Binary::Container::Ptr fixedModule = Formats::Chiptune::SoundTrackerPro::InsertMetaInformation(*modData, metainfo))
       {
-        if (Decoder->Decode(*fixedModule))
+        if (Formats::Chiptune::SoundTrackerPro::ParseCompiled(*fixedModule, Formats::Chiptune::SoundTrackerPro::GetStubBuilder()))
         {
           const std::size_t originalSize = fixedModule->Size() - metainfo.size();
           return CreateContainer(fixedModule, playerSize + originalSize);
@@ -238,7 +237,6 @@ namespace Packed
     }
   private:
     const Binary::Format::Ptr Player;
-    const Formats::Chiptune::SoundTrackerPro::Decoder::Ptr Decoder;
   };
 
   Decoder::Ptr CreateCompiledSTP1Decoder()
