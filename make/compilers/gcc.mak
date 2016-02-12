@@ -25,7 +25,7 @@ LD_MODE_FLAGS += -pg
 else
 CXX_MODE_FLAGS += -fdata-sections -ffunction-sections
 ifdef release
-LD_MODE_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
+LD_MODE_FLAGS += -Wl,-O3,--gc-sections,--relax
 endif
 endif
 
