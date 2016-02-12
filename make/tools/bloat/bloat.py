@@ -94,7 +94,7 @@ def parse_nm(input):
 def demangle(ident, cppfilt):
     if cppfilt and ident.startswith('_Z'):
         # Demangle names when possible. Mangled names all start with _Z.
-        ident = subprocess.check_output([cppfilt, ident]).strip()
+        ident = subprocess.check_output([cppfilt, ident], universal_newlines=True).strip()
     return ident
 
 
@@ -398,7 +398,7 @@ mode = args[0]
 if mode == 'syms':
     nmfile = open(opts.nmpath, 'r')
     try:
-        res = subprocess.check_output([opts.cppfilt, 'main'])
+        res = subprocess.check_output([opts.cppfilt, 'main'], universal_newlines=True)
         if res.strip() != 'main':
             print("%s failed demangling, output won't be demangled." % opts.cppfilt, file=sys.stderr)
             opts.cppfilt = None
