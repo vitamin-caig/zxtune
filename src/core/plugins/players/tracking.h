@@ -137,97 +137,44 @@ namespace Module
     ChannelsArray Channels;
   };
 
-  //TODO: replace with boost::unordered_set
   template<class T>
   class SparsedObjectsStorage
   {
   public:
-    SparsedObjectsStorage()
-      : Count()
-    {
-    }
-
     const T& Get(uint_t idx) const
     {
-      if (const T* res = Find(idx))
+      if (idx < Objects.size())
       {
-        return *res;
+        return Objects[idx];
       }
       else
       {
-        static const T instance;
-        return instance;
+        static const T STUB;
+        return STUB;
       }
-    }
-
-    const T* Find(uint_t idx) const
-    {
-      if (idx >= Count)
-      {
-        return 0;
-      }
-      const typename ObjectsList::const_iterator it = std::lower_bound(Objects.begin(), Objects.end(), ObjectWithIndex(idx, T()));
-      return it == Objects.end() || it->Index != idx
-        ? 0
-        : &it->Object;
     }
 
     uint_t Size() const
     {
-      return Count;
+      return Objects.size();
     }
 
     void Resize(uint_t newSize)
     {
-      assert(newSize >= Count);
-      Count = newSize;
+      assert(newSize >= Objects.size());
+      Objects.resize(newSize);
     }
 
     void Add(uint_t idx, const T& obj)
     {
-      assert(Objects.end() == std::find(Objects.begin(), Objects.end(), idx));
-      Objects.push_back(ObjectWithIndex(idx, obj));
-      if (idx < Count)
+      if (idx >= Objects.size())
       {
-        std::sort(Objects.begin(), Objects.end());
+        Objects.resize(idx + 1);
       }
-      else
-      {
-        Count = idx + 1;
-      }
+      Objects[idx] = obj;
     }
   private:
-    struct ObjectWithIndex
-    {
-      ObjectWithIndex()
-        : Index()
-        , Object()
-      {
-      }
-
-      ObjectWithIndex(uint_t idx, const T& obj)
-        : Index(idx)
-        , Object(obj)
-      {
-      }
-
-      uint_t Index;
-      T Object;
-
-      bool operator < (const ObjectWithIndex& rh) const
-      {
-        return Index < rh.Index;
-      }
-
-      bool operator == (uint_t idx) const
-      {
-        return Index == idx;
-      }
-    };
-  private:
-    uint_t Count;
-    typedef std::vector<ObjectWithIndex> ObjectsList;
-    ObjectsList Objects;
+    std::vector<T> Objects;
   };
 
   template<class MutableLineType>

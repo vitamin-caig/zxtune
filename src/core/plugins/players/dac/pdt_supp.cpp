@@ -213,7 +213,7 @@ namespace ProDigiTracker
       {
         if (const uint_t* ornament = src.GetOrnament())
         {
-          ornamentState.Object = Data->Ornaments.Find(*ornament);
+          ornamentState.Object = &Data->Ornaments.Get(*ornament);
           ornamentState.Position = 0;
           builder.SetNoteSlide(ornamentState.GetOffset());
         }

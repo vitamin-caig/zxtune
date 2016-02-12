@@ -664,7 +664,7 @@ namespace SQTracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.CurSample = Data->Samples.Find(*sample);
+        dst.CurSample = &Data->Samples.Get(*sample);
         dst.SampleTick = 32;
         dst.SamplePos = 0;
         dst.CurOrnament = 0;
@@ -673,7 +673,7 @@ namespace SQTracker
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.CurOrnament = Data->Ornaments.Find(*ornament);
+        dst.CurOrnament = &Data->Ornaments.Get(*ornament);
         dst.OrnamentTick = 32;
         dst.OrnamentPos = 0;
       }

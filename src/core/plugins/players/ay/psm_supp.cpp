@@ -319,8 +319,8 @@ namespace ProSoundMaker
       {
         ChannelState& state = PlayerState[chan];
         state = ChannelState();
-        state.Smp.Current = Data->Samples.Find(0);
-        state.Orn.Current = Data->Ornaments.Find(0);
+        state.Smp.Current = &Data->Samples.Get(0);
+        state.Orn.Current = &Data->Ornaments.Get(0);
       }
     }
 
@@ -368,14 +368,14 @@ namespace ProSoundMaker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.Smp.Current = Data->Samples.Find(*sample);
+        dst.Smp.Current = &Data->Samples.Get(*sample);
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
         if (*ornament != 0x20 &&
             *ornament != 0x21)
         {
-          dst.Orn.Current = Data->Ornaments.Find(*ornament);
+          dst.Orn.Current = &Data->Ornaments.Get(*ornament);
           dst.Orn.Position = 0;
           dst.Orn.Finished = dst.Orn.Disabled = false;
           dst.Envelope = false;

@@ -289,19 +289,11 @@ namespace SoundTracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        CurSample = Data->Samples.Find(*sample);
-        if (!CurSample)
-        {
-          CurSample = GetStubSample();
-        }
+        CurSample = &Data->Samples.Get(*sample);
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        CurOrnament = Data->Ornaments.Find(*ornament);
-        if (!CurOrnament)
-        {
-          CurOrnament = GetStubOrnament();
-        }
+        CurOrnament = &Data->Ornaments.Get(*ornament);
       }
       EnvState.SetNewState(src);
     }

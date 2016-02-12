@@ -265,10 +265,10 @@ namespace FastTracker
     {
     }
 
-    void Set(const Object* obj)
+    void Set(const Object& obj)
     {
       //do not reset for original position update algo
-      Obj = obj;
+      Obj = &obj;
     }
 
     void Reset()
@@ -413,8 +413,8 @@ namespace FastTracker
 
     virtual void Reset()
     {
-      const Sample* const stubSample = Data->Samples.Find(0);
-      const Ornament* const stubOrnament = Data->Ornaments.Find(0);
+      const Sample& stubSample = Data->Samples.Get(0);
+      const Ornament& stubOrnament = Data->Ornaments.Get(0);
       for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         ChannelState& dst = PlayerState[chan];
@@ -481,11 +481,11 @@ namespace FastTracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleIterator.Set(Data->Samples.Find(*sample));
+        dst.SampleIterator.Set(Data->Samples.Get(*sample));
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentIterator.Set(Data->Ornaments.Find(*ornament));
+        dst.OrnamentIterator.Set(Data->Ornaments.Get(*ornament));
         dst.OrnamentIterator.Reset();
         dst.NoiseAccumulator.Reset();
         dst.NoteAccumulator.Reset();

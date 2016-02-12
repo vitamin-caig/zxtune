@@ -771,7 +771,7 @@ namespace TFMMusicMaker
         const Instrument* newInstrument = GetNewInstrument(src);
         if (!dst.CurInstrument && !newInstrument)
         {
-          newInstrument = Data->Instruments.Find(1);
+          newInstrument = &Data->Instruments.Get(1);
         }
         if (dropEffects && dst.CurInstrument && !newInstrument)
         {
@@ -863,7 +863,7 @@ namespace TFMMusicMaker
     {
       if (const uint_t* instrument = src.GetSample())
       {
-        return Data->Instruments.Find(*instrument);
+        return &Data->Instruments.Get(*instrument);
       }
       else
       {

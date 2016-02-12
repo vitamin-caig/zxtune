@@ -241,9 +241,9 @@ namespace ETracker
     {
     }
 
-    void Set(const Object* obj)
+    void Set(const Object& obj)
     {
-      Obj = obj;
+      Obj = &obj;
       Reset();
     }
 
@@ -312,9 +312,9 @@ namespace ETracker
       {
         ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
-        dst.SampleIterator.Set(&STUB_SAMPLE);
+        dst.SampleIterator.Set(STUB_SAMPLE);
         dst.SampleIterator.Disable();
-        dst.OrnamentIterator.Set(&STUB_ORNAMENT);
+        dst.OrnamentIterator.Set(STUB_ORNAMENT);
         dst.OrnamentIterator.Reset();
       }
       std::fill(Noise.begin(), Noise.end(), 0);
@@ -371,12 +371,12 @@ namespace ETracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleIterator.Set(Data->Samples.Find(*sample));
+        dst.SampleIterator.Set(Data->Samples.Get(*sample));
         dst.OrnamentIterator.Reset();
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentIterator.Set(Data->Ornaments.Find(*ornament));
+        dst.OrnamentIterator.Set(Data->Ornaments.Get(*ornament));
       }
       if (const uint_t* volume = src.GetVolume())
       {
