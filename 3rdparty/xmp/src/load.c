@@ -468,13 +468,13 @@ int xmp_test_module(char *path, struct xmp_test_info *info)
 		fseek(h->f, 0, SEEK_SET);
 		if (format_loader[i]->test(h, buf, 0) == 0) {
 			int is_prowizard = 0;
-
+#ifndef NO_PROWIZARD
 			if (strcmp(format_loader[i]->name, "prowizard") == 0) {
 				fseek(h->f, 0, SEEK_SET);
 				pw_test_format(h->f, buf, 0, info);
 				is_prowizard = 1;
 			}
-
+#endif
 			fclose(h->f);
 
 			unlink_tempfiles(&tmpfiles_list);

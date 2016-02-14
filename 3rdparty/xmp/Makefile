@@ -30,16 +30,19 @@ source_files += $(addprefix src/loaders/,\
  rtm_load dmf_load tcb_load dt_load gtk_load no_load \
  arch_load sym_load dtt_load mgt_load med2_load med3_load \
  med4_load ssmt_load dbm_load umx_load gdm_load \
- coco_load pw_load gal5_load gal4_load mfp_load \
+ coco_load gal5_load gal4_load mfp_load \
  polly_load asylum_load hmn_load)
 
-source_files += $(addprefix src/loaders/prowizard/,\
- prowiz ptktable tuning ac1d di eureka \
- fc-m fuchs fuzzac gmc heatseek kris ksm \
- mp np1 np2 np3 p61a pm10c pm18a \
- pha prun1 prun2 tdd unic unic2 wn zen \
- tp3 p40 xann theplayer pp21 starpack titanics \
- skyt novotrade hrt noiserun)
+# pw_load
+
+#source_files += $(addprefix src/loaders/prowizard/,\
+# prowiz ptktable tuning ac1d di eureka \
+# fc-m fuchs fuzzac gmc heatseek kris ksm \
+# mp np1 np2 np3 p61a pm10c pm18a \
+# pha prun1 prun2 tdd unic unic2 wn zen \
+# tp3 p40 xann theplayer pp21 starpack titanics \
+# skyt novotrade hrt noiserun)
+
 #
 # pm pm01 \
 # pm20 pm40 pp10 pp30 tp1 tp2)
@@ -53,7 +56,7 @@ endif
 
 source_files := $(addsuffix .c,$(source_files))
 
-defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS DECRUNCH_MAX=0
+defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS DECRUNCH_MAX=0 NO_PROWIZARD
 windows_definitions += inline=__inline _USE_MATH_DEFINES WIN32 _WINDOWS PATH_MAX=1024
 
 include $(path_step)/makefile.mak
