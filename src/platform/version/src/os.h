@@ -18,10 +18,10 @@ namespace Platform
     {
 #if defined(_WIN32)
       static const char OS[] = "windows";
-#elif defined(__linux__)
-      static const char OS[] = "linux";
 #elif defined(__ANDROID__)
       static const char OS[] = "android";
+#elif defined(__linux__)
+      static const char OS[] = "linux";
 #elif defined(__APPLE__) && defined(__MACH__)
       static const char OS[] = "macosx";
 #elif defined(__FreeBSD__)
