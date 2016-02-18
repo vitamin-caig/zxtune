@@ -35,6 +35,10 @@ android.armeabi-v7a.boost.version = $(android.boost.version)
 android.armeabi-v7a.cxx.flags = -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -mthumb -finline-limit=64
 android.armeabi-v7a.ld.flags = -march=armv7-a -Wl,--fix-cortex-a8
 android.armeabi-v7a.ld.flags = $(android.x86.ld.flags)
+# arm64-v8a
+android.arm64-v8a.toolchain = $(toolchains.root)/aarch64-linux-android
+android.arm64-v8a.execprefix = $(android.arm64-v8a.toolchain)/bin/aarch64-linux-android-
+android.arm64-v8a.boost.version = $(android.boost.version)
 # mips
 android.mips.toolchain = $(toolchains.root)/mipsel-linux-android
 android.mips.execprefix = $(android.mips.toolchain)/bin/mipsel-linux-android-
