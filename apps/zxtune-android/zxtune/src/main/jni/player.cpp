@@ -208,7 +208,7 @@ namespace
 
 namespace Player
 {
-  int Create(Module::Holder::Ptr module)
+  Player::Storage::HandleType Create(Module::Holder::Ptr module)
   {
     const Player::Control::Ptr ctrl = CreateControl(module);
     Dbg("Player::Create(module=%p)=%p", module.get(), ctrl.get());
