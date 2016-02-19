@@ -120,26 +120,37 @@ namespace Chiptune
     class SamplesSet
     {
     public:
+      SamplesSet()
+        : SamplesTotal()
+        , Samples4Bit()
+      {
+      }
+      
       void Add(uint_t idx, std::size_t loop, Binary::Data::Ptr data)
       {
-        const bool is4bit = CheckIfSample4Bit(static_cast<const uint8_t*>(data->Start()), data->Size());
-        Dbg(" size #%1$05x, loop #%2$04x%3%", data->Size(), loop, is4bit ? " 4bit" : "");
-        Samples.push_back(Description(idx, loop, data, is4bit));
+        Description& desc = Samples[idx];
+        desc = Description(loop, data);
+        Dbg(" size #%1$05x, loop #%2$04x%3%", data->Size(), loop, desc.Is4Bit ? " 4bit" : "");
+        ++SamplesTotal;
+        Samples4Bit += desc.Is4Bit;
       }
 
       bool Is4Bit() const
       {
-        const std::size_t specific = std::count_if(Samples.begin(), Samples.end(), boost::mem_fn(&Description::Is4Bit));
-        Dbg("%1% 4-bit samples out of %2%", specific, Samples.size());
-        return specific >= Samples.size() / 2;
+        Dbg("%1% 4-bit samples out of %2%", Samples4Bit, SamplesTotal);
+        return Samples4Bit >= SamplesTotal / 2;
       }
 
       void Apply(Builder& builder)
       {
         const bool is4Bit = Is4Bit();
-        for (std::vector<Description>::const_iterator it = Samples.begin(), lim = Samples.end(); it != lim; ++it)
+        for (uint_t idx = 0; idx != Samples.size(); ++idx)
         {
-          builder.SetSample(it->Index, it->Loop, it->Content, is4Bit && it->Is4Bit);
+          const Description& desc = Samples[idx];
+          if (desc.Content)
+          {
+            builder.SetSample(idx, desc.Loop, desc.Content, is4Bit && desc.Is4Bit);
+          }
         }
       }
     private:
@@ -156,28 +167,27 @@ namespace Chiptune
       
       struct Description
       {
-        uint_t Index;
         std::size_t Loop;
         Binary::Data::Ptr Content;
         bool Is4Bit;
 
         Description()
-          : Index()
-          , Loop()
+          : Loop()
           , Content()
           , Is4Bit()
         {
         }
 
-        Description(uint_t idx, std::size_t loop, Binary::Data::Ptr content, bool is4bit)
-          : Index(idx)
-          , Loop(loop)
+        Description(std::size_t loop, Binary::Data::Ptr content)
+          : Loop(loop)
           , Content(content)
-          , Is4Bit(is4bit)
+          , Is4Bit(CheckIfSample4Bit(static_cast<const uint8_t*>(content->Start()), content->Size()))
         {
         }
       };
-      std::vector<Description> Samples;
+      boost::array<Description, SAMPLES_COUNT> Samples;
+      uint_t SamplesTotal;
+      uint_t Samples4Bit;
     };
 
     //TODO: extract
