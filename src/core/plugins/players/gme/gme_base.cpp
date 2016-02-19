@@ -301,7 +301,7 @@ namespace GME
 
   struct PluginDescription
   {
-    const String Id;
+    const Char* const Id;
     const uint_t ChiptuneCaps;
     const EmuCreator CreateEmu;
   };

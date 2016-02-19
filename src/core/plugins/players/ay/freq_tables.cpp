@@ -31,7 +31,7 @@ namespace Module
 
   struct FreqTableEntry
   {
-    const String Name;
+    const Char* const Name;
     const FrequencyTable Table;
   };
 
