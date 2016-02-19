@@ -10,6 +10,7 @@
 
 #include <sound/backends/alsa.h>
 #include <sound/backends/dsound.h>
+#include <sound/backends/openal.h>
 #include <sound/backends/win32.h>
 #include <iostream>
 #include <strings/format.h>
@@ -42,6 +43,17 @@ namespace
       std::cout << Strings::Format(" Name: '%1%' Id: '%2%'", device->Name(), device->Id()) << std::endl;
     }
   }
+  
+  void ShowOpenAlDevices()
+  {
+    using namespace Sound::OpenAl;
+    std::cout << "OpenAL devices:" << std::endl;
+    const Strings::Array& devices = EnumerateDevices();
+    for (Strings::Array::const_iterator it = devices.begin(), lim = devices.end(); it != lim; ++it)
+    {
+      std::cout << Strings::Format(" Name: %1%", *it) << std::endl;
+    }
+  }
 
   void ShowWin32Devices()
   {
@@ -59,5 +71,6 @@ int main()
 {
   ShowAlsaDevicesAndMixers();
   ShowDirectSoundDevices();
+  ShowOpenAlDevices();
   ShowWin32Devices();
 }

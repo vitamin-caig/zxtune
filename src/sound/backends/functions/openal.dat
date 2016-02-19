@@ -1,0 +1,28 @@
+DEBUGMODULE=Sound::Backend::OpenAL
+#devices
+ALCdevice* alcOpenDevice(const ALCchar* devicename)
+ALCboolean alcCloseDevice(ALCdevice* device)
+#context
+ALCcontext* alcCreateContext(ALCdevice* device, ALCint* attrlist)
+ALCboolean alcMakeContextCurrent(ALCcontext* context)
+ALCcontext* alcGetCurrentContext()
+void alcDestroyContext(ALCcontext* context)
+#buffers
+void alGenBuffers(ALsizei n, ALuint* buffers)
+void alDeleteBuffers(ALsizei n, ALuint* buffers)
+void alBufferData(ALuint buffer, ALenum format, const ALvoid* data, ALsizei size, ALsizei freq)
+#sources
+void alGenSources(ALsizei n, ALuint* sources)
+void alDeleteSources(ALsizei n, ALuint *sources)
+void alSourceQueueBuffers(ALuint source, ALsizei n, ALuint* buffers)
+void alSourceUnqueueBuffers(ALuint source, ALsizei n, ALuint* buffers)
+void alSourcePlay(ALuint source)
+void alSourceStop(ALuint source)
+void alSourcePause(ALuint source)
+void alGetSourcei(ALuint source, ALenum pname, ALint* value)
+void alSourcef(ALuint source, ALenum pname, ALfloat value)
+void alGetSourcef(ALuint source, ALenum pname, ALfloat* value)
+#other
+const ALchar* alGetString(ALenum param)
+const ALCchar* alcGetString(ALCdevice* device, ALenum param)
+ALenum alGetError(void)

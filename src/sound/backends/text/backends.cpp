@@ -40,6 +40,9 @@ extern const Char OGG_BACKEND_ID[] = {
 extern const Char OGG_BACKEND_TITLE_TAG[] = {
   'T','I','T','L','E',0
 };
+extern const Char OPENAL_BACKEND_ID[] = {
+  'o','p','e','n','a','l',0
+};
 extern const Char OSS_BACKEND_ID[] = {
   'o','s','s',0
 };
