@@ -31,8 +31,6 @@ namespace
   const Debug::Stream Dbg("Playlist::UI::TableView");
 
   //Options
-  const QLatin1String FONT_FAMILY("Arial");
-  const int_t FONT_SIZE = 8;
   const QLatin1String TYPE_TEXT("WWWW");
   const int_t DISPLAYNAME_WIDTH = 320;
   const QLatin1String DURATION_TEXT("77:77.77");
@@ -47,18 +45,16 @@ namespace
   class TableHeader : public QHeaderView
   {
   public:
-    TableHeader(QAbstractItemModel& model, const QFont& font)
-      : QHeaderView(Qt::Horizontal)
+    explicit TableHeader(QWidget& parent)
+      : QHeaderView(Qt::Horizontal, &parent)
     {
       setObjectName(QLatin1String("Columns_v2"));
-      setModel(&model);
-      setFont(font);
       setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       setHighlightSections(false);
       setTextElideMode(Qt::ElideRight);
       setMovable(true);
       setClickable(true);
-      const QFontMetrics fontMetrics(font);
+      const QFontMetrics fontMetrics(font());
       resizeSection(Playlist::Model::COLUMN_TYPE, fontMetrics.width(TYPE_TEXT));
       resizeSection(Playlist::Model::COLUMN_DISPLAY_NAME, DISPLAYNAME_WIDTH);
       resizeSection(Playlist::Model::COLUMN_DURATION, fontMetrics.width(DURATION_TEXT));
@@ -112,12 +108,10 @@ namespace
     TableViewImpl(QWidget& parent, const Playlist::Item::StateCallback& callback,
       QAbstractItemModel& model)
       : Playlist::UI::TableView(parent)
-      , Font(FONT_FAMILY, FONT_SIZE)
     {
       //setup self
       setSortingEnabled(true);
       setItemDelegate(Playlist::UI::TableViewItem::Create(*this, callback));
-      setFont(Font);
       setMinimumSize(256, 128);
       //setup ui
       setAcceptDrops(true);
@@ -133,18 +127,16 @@ namespace
       setGridStyle(Qt::NoPen);
       setWordWrap(false);
       setCornerButtonEnabled(false);
+
       //setup dynamic ui
-      setHorizontalHeader(new TableHeader(model, Font));
-      setModel(&model);
+      setHorizontalHeader(new TableHeader(*this));
       if (QHeaderView* const verHeader = verticalHeader())
       {
-        verHeader->setFont(Font);
         verHeader->setDefaultAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        const QFontMetrics fontMetrics(Font);
-        verHeader->setDefaultSectionSize(verHeader->minimumSectionSize()/*fontMetrics.height()*/);
         verHeader->setResizeMode(QHeaderView::Fixed);
       }
-
+      setModel(&model);
+      
       //signals
       Require(connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&))));
 
@@ -222,8 +214,6 @@ namespace
         scrollTo(items.first(), QAbstractItemView::EnsureVisible);
       }
     }
-  private:
-    QFont Font;
   };
 
   class TableViewItemImpl : public Playlist::UI::TableViewItem
