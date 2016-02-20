@@ -139,7 +139,6 @@ namespace
 
     virtual void paintEvent(QPaintEvent*)
     {
-      const QBrush& back = Palette.window();
       const QBrush& mask = Palette.toolTipText();
       const QBrush& brush = Palette.toolTipBase();
       QPainter painter(this);
@@ -155,10 +154,7 @@ namespace
         {
           continue;
         }
-        const bool prevHigher = band && Levels[band - 1].Value > *level;
-        const bool nextLower = band != bandsCount - 1 && Levels[band + 1].Value < *level;
         const int xleft = band * (BAR_WIDTH + 1);
-        painter.fillRect(xleft + prevHigher, 0, BAR_WIDTH + nextLower, curHeight, back);
         if (const int scaledValue = *level * (curHeight - 1) / 100)
         {
           painter.drawRect(xleft, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1);
