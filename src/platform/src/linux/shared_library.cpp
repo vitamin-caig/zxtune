@@ -90,7 +90,7 @@ namespace Details
     std::vector<std::string> res;
     res.push_back(GetSharedLibraryFilename(name.Base()));
     const std::vector<std::string>& alternatives = name.PosixAlternatives();
-    std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), std::ptr_fun(&GetSharedLibraryFilename));
+    std::copy(alternatives.begin(), alternatives.end(), std::back_inserter(res));
     return res;
   }
 }
