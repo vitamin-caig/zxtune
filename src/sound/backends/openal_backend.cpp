@@ -12,6 +12,7 @@
 #include "openal.h"
 #include "backend_impl.h"
 #include "storage.h"
+#include "volume_control.h"
 #include "gates/openal_api.h"
 //common includes
 #include <byteorder.h>
@@ -424,7 +425,7 @@ namespace OpenAl
 
     virtual VolumeControl::Ptr GetVolumeControl() const
     {
-      return Stat->Vol;
+      return CreateVolumeControlDelegate(Stat->Vol);
     }
   private:
     const Api::Ptr OalApi;
