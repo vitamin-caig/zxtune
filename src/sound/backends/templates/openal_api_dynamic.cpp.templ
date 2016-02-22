@@ -25,6 +25,10 @@ namespace Sound
     class LibraryName : public Platform::SharedLibrary::Name
     {
     public:
+      LibraryName()
+      {
+      }
+
       virtual std::string Base() const
       {
         return "openal";
@@ -35,6 +39,7 @@ namespace Sound
         static const std::string ALTERNATIVES[] =
         {
           "libopenal.so.1",
+          "OpenAL.framework/OpenAL"
         };
         return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
       }

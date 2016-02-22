@@ -25,6 +25,10 @@ namespace Sound
     class LibraryName : public Platform::SharedLibrary::Name
     {
     public:
+      LibraryName()
+      {
+      }
+
       virtual std::string Base() const
       {
         return "ogg";

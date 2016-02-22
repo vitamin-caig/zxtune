@@ -32,6 +32,10 @@ namespace FormatDSL
   class AnyValueToken : public Token
   {
   public:
+    AnyValueToken()
+    {
+    }
+
     virtual bool Match(uint_t /*val*/) const
     {
       return true;

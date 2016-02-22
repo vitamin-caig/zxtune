@@ -333,6 +333,10 @@ namespace
   class ItemFullLocationWriter : public ItemWriter
   {
   public:
+    ItemFullLocationWriter()
+    {
+    }
+
     virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
     {
       saver.SaveModuleLocation(item.GetFullPath());
@@ -358,6 +362,10 @@ namespace
   class ItemContentLocationWriter : public ItemWriter
   {
   public:
+    ItemContentLocationWriter()
+    {
+    }
+
     virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
     {
       if (const Binary::Data::Ptr rawContent = item.GetModuleData())
@@ -387,6 +395,10 @@ namespace
   class ItemShortPropertiesWriter : public ItemWriter
   {
   public:
+    ItemShortPropertiesWriter()
+    {
+    }
+
     virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
     {
       const Parameters::Accessor::Ptr adjustedParams = item.GetAdjustedParameters();
@@ -398,6 +410,10 @@ namespace
   class ItemFullPropertiesWriter : public ItemWriter
   {
   public:
+    ItemFullPropertiesWriter()
+    {
+    }
+
     virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
     {
       if (const Module::Holder::Ptr holder = item.GetModule())

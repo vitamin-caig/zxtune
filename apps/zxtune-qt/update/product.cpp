@@ -23,6 +23,10 @@ namespace
   class CurrentRelease : public Product::Release
   {
   public:
+    CurrentRelease()
+    {
+    }
+
     virtual Product::Release::PlatformTag Platform() const
     {
       const String txt = Platform::Version::GetBuildPlatform();

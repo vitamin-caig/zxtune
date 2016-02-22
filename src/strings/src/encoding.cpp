@@ -51,6 +51,10 @@ namespace
   class CP866Codepage : public Codepage
   {
   public:
+    CP866Codepage()
+    {
+    }
+
     virtual int_t GetWeight(uint8_t s) const
     {
       return (0x20 <= s && s <= 0x40)
@@ -93,6 +97,10 @@ namespace
   class CP1251Codepage : public Codepage
   {
   public:
+    CP1251Codepage()
+    {
+    }
+
     virtual int_t GetWeight(uint8_t s) const
     {
       return (0x20 <= s && s <= 0x40)
@@ -112,6 +120,10 @@ namespace
   class CP1252Codepage : public Codepage
   {
   public:
+    CP1252Codepage()
+    {
+    }
+
     virtual int_t GetWeight(uint8_t s) const
     {
       return (0x20 <= s && s <= 0x7f)
@@ -153,6 +165,10 @@ namespace
   class CP1250Codepage : public Codepage
   {
   public:
+    CP1250Codepage()
+    {
+    }
+
     virtual int_t GetWeight(uint8_t s) const
     {
       return (0x20 <= s && s <= 0x7f)
