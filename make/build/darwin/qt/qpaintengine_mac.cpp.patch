@@ -1,0 +1,10 @@
+343,349c343
+<     CGColorSpaceRef colorSpace = 0;
+<     CMProfileRef displayProfile = 0;
+<     CMError err = CMGetProfileByAVID((CMDisplayIDType)displayID, &displayProfile);
+<     if (err == noErr) {
+<         colorSpace = CGColorSpaceCreateWithPlatformColorSpace(displayProfile);
+<         CMCloseProfile(displayProfile);
+<     }
+---
+>     CGColorSpaceRef colorSpace = CGDisplayCopyColorSpace(displayID);
