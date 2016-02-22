@@ -11,8 +11,8 @@
 #pragma once
 
 //platform-dependent includes
-#include <AL/al.h>
-#include <AL/alc.h>
+#include <OpenAL/al.h>
+#include <OpenAL/alc.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 
