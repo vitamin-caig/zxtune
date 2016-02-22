@@ -21,10 +21,10 @@ namespace Platform
         "msvs"
 #elif defined(__MINGW32__)
         "mingw"
-#elif defined(__GNUC__)
-        "gnuc"
 #elif defined(__clang__)
         "clang"
+#elif defined(__GNUC__)
+        "gnuc"
 #else
         "unknown-toolset"
 #endif

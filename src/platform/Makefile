@@ -6,7 +6,7 @@ include $(path_step)/make/default.mak
 
 ifneq ($(findstring $(platform),windows mingw),)
 source_dirs += src/windows
-else ifneq ($(findstring $(platform),linux dingux macos),)
+else ifneq ($(findstring $(platform),linux dingux darwin),)
 source_dirs += src/linux
 else
 source_dirs += src/$(platform)

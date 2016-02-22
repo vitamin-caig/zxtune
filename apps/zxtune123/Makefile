@@ -6,7 +6,7 @@ source_files := $(addsuffix .cpp,information sound source display cli_app config
 source_files.windows = console_windows.cpp zxtune123.rc
 source_files.mingw = $(source_files.windows)
 source_files.linux = console_linux.cpp
-source_files.macos = $(source_files.linux)
+source_files.darwin = $(source_files.linux)
 source_files.dingux = console_dingux.cpp
 
 text_files := text/text

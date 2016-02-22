@@ -304,27 +304,27 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Управление</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="175"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="145"/>
         <source>Play</source>
         <translation>Старт</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="188"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="158"/>
         <source>Pause</source>
         <translation>Пауза</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="201"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="171"/>
         <source>Stop</source>
         <translation>Стоп</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="214"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="184"/>
         <source>Previous</source>
         <translation>Назад</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="227"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="197"/>
         <source>Next</source>
         <translation>Вперед</translation>
     </message>
