@@ -45,6 +45,7 @@
 #include <3rdparty/gme/gme/Sap_Emu.h>
 #include <3rdparty/gme/gme/Vgm_Emu.h>
 #include <3rdparty/gme/gme/Gym_Emu.h>
+#include <3rdparty/gme/gme/Kss_Emu.h>
 
 namespace Module
 {
@@ -482,6 +483,16 @@ namespace GME
       },
       &Formats::Multitrack::CreateSAPDecoder,
       &Formats::Chiptune::CreateSAPDecoder,
+    },
+    //kssx
+    {
+      {
+        "KSSX",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
+        &Create< ::Kss_Emu>
+      },
+      &Formats::Multitrack::CreateKSSXDecoder,
+      &Formats::Chiptune::CreateKSSXDecoder
     }
   };
   
@@ -513,7 +524,7 @@ namespace GME
       },
       &Formats::Chiptune::CreateVideoGameMusicDecoder
     },
-    //vgm
+    //gym
     {
       {
         "GYM",
@@ -521,6 +532,15 @@ namespace GME
         &Create< ::Gym_Emu>
       },
       &Formats::Chiptune::CreateGYMDecoder
+    },
+    //kss
+    {
+      {
+        "KSS",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
+        &Create< ::Kss_Emu>
+      },
+      &Formats::Chiptune::CreateKSSDecoder
     }
   };
 }

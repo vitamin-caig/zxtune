@@ -57,6 +57,7 @@ namespace ZXTune
     {"NSFE",    &CreateNSFEDecoder,    Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
     {"GBS",     &CreateGBSDecoder,     Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
     {"SAP",     &CreateSAPDecoder,     Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
+    {"KSSX",    &CreateKSSXDecoder,    Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
   };
 
   void RegisterPlugin(const ContainerPluginDescription& desc, ArchivePluginsRegistrator& registrator)
