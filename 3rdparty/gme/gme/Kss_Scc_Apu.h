@@ -7,6 +7,8 @@
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
 
+struct voice_status_t;
+
 class Scc_Apu {
 public:
 // Basics
@@ -36,6 +38,9 @@ public:
 
 	// Set treble equalization
 	void treble_eq( blip_eq_t const& eq )   { synth.treble_eq( eq ); }
+
+	// returns count of elements filled in buf (up to buf_size)
+	int osc_status( voice_status_t* buf, int buf_size ) const;
 
 private:
 	// noncopyable

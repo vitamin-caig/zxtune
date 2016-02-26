@@ -6,6 +6,8 @@
 
 #include <stdio.h>
 
+struct voice_status_t;
+
 class Opl_Apu {
 public:
 	Opl_Apu();
@@ -22,6 +24,9 @@ public:
 	void osc_output( int index, Blip_Buffer* );
 	void set_output( int i, Blip_Buffer* buf, Blip_Buffer* = NULL, Blip_Buffer* = NULL ) { osc_output( 0, buf ); }
 	void end_frame( blip_time_t );
+
+	// returns count of elements filled in buf (up to buf_size)
+	int osc_status( voice_status_t* buf, int buf_size ) const;
 	
 	void write_addr( int data ) { addr = data; }
 	void write_data( blip_time_t, int data );
