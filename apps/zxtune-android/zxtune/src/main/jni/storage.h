@@ -20,12 +20,17 @@ class ObjectsStorage
 {
 public:
   typedef int32_t HandleType;
+  
+  ObjectsStorage()
+    : NextHandle()
+  {
+  }
 
   HandleType Add(PtrType obj)
   {
     if (obj)
     {
-      const HandleType handle = 1 + Storage.size();
+      const HandleType handle = GetNextHandle();
       Storage.insert(typename StorageType::value_type(handle, obj));
       return handle;
     }
@@ -61,6 +66,12 @@ public:
     return Self;
   }
 private:
+  HandleType GetNextHandle()
+  {
+    return ++NextHandle;
+  }
+private:
   typedef std::map<HandleType, PtrType> StorageType;
   StorageType Storage;
+  HandleType NextHandle;
 };
