@@ -13,10 +13,11 @@ LastDistro=
 
 for mode in ${build_modes}
 do
-  Platform=`echo ${mode} | cut -d '-' -f 1`
-  Arch=`echo ${mode} | cut -d '-' -f 2`
-  Packaging=`echo ${mode} | cut -d '-' -f 3`
-  Distro=`echo ${mode} | cut -d '-' -f 4`
+  Traits=(${mode//-/ })
+  Platform=${Traits[0]}
+  Arch=${Traits[1]}
+  Packaging=${Traits[2]}
+  Distro=${Traits[3]}
   no_debuginfo=
   if [ "${LastPlatform}" = ${Platform} -a "${LastArch}" = "${Arch}" -a "${LastDistro}" = "${Distro}" ]; then
     no_debuginfo=1
