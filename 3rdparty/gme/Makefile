@@ -57,7 +57,7 @@ source_files += $(addprefix gme/,Gym_Emu.cpp)
 
 #kss
 source_files += $(addprefix gme/,Kss_Emu.cpp Kss_Core.cpp Kss_Cpu.cpp Kss_Scc_Apu.cpp \
-                  Z80_Cpu.cpp Opl_Apu.cpp Ym3812_Emu.cpp fmopl.cpp \
+                  Z80_Cpu.cpp Opl_Apu.cpp fmopl.cpp \
                  )
  
 include $(path_step)/makefile.mak
