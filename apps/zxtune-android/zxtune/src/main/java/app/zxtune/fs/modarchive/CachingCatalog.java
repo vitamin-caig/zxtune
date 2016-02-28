@@ -26,9 +26,9 @@ final class CachingCatalog extends Catalog {
 
   private final static String TAG = CachingCatalog.class.getName();
 
-  private final TimeStamp AUTHORS_TTL = days(7);
+  private final TimeStamp AUTHORS_TTL = days(2);
   private final TimeStamp GENRES_TTL = days(30);
-  private final TimeStamp TRACKS_TTL = days(7);
+  private final TimeStamp TRACKS_TTL = days(2);
   
   private static TimeStamp days(int val) {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
