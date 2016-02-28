@@ -61,6 +61,8 @@
     <string name="vfs_joshw_smd_description" translatable="false">http://smd.joshw.info</string>
     <string name="vfs_joshw_spc_name" translatable="false">Super Nintendo</string>
     <string name="vfs_joshw_spc_description" translatable="false">http://spc.joshw.info</string>
+    <string name="vfs_joshw_kss_name" translatable="false">MSX/Game Gear</string>
+    <string name="vfs_joshw_kss_description" translatable="false">http://kss.joshw.info</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_root_name" translatable="false">Amiga Music Preservation</string>
     <string name="vfs_amp_root_description" translatable="false">http://amp.dascene.net</string>

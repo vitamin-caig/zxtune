@@ -52,6 +52,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
       new AudiobaseDir("nsf", R.string.vfs_joshw_nsf_name, R.string.vfs_joshw_nsf_description),
       new AudiobaseDir("smd", R.string.vfs_joshw_smd_name, R.string.vfs_joshw_smd_description),
       new AudiobaseDir("spc", R.string.vfs_joshw_spc_name, R.string.vfs_joshw_spc_description),
+      new AudiobaseDir("kss", R.string.vfs_joshw_kss_name, R.string.vfs_joshw_kss_description),
     };
   }
 
@@ -209,11 +210,6 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
       }
       
       @Override
-      public String getName() {
-        return path.get(path.size() - 1);
-      }
-
-      @Override
       public VfsObject getParent() {
         final int parentDepth = path.size() - 1;
         return parentDepth == 1
@@ -242,7 +238,12 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
       MusicSubdir(List<String> path, ByteBuffer content) {
         super(path, content);
       }
-      
+
+      @Override
+      public String getName() {
+        return Uri.decode(path.get(path.size() - 1));
+      }
+
       @Override
       public void enumerate(final Visitor visitor) throws IOException {
         final ByteBuffer content = getContent();
