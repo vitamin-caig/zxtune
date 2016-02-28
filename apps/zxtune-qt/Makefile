@@ -124,7 +124,7 @@ make_bundle:
 	mkdir -p $(macos_bundle)/Contents/MacOS
 	install -s $(target) $(macos_bundle)/Contents/MacOS/$(binary_name)
 	sed 's/@VERSION@/$(root.version.index).0.0/' dist/macos/Info.plist > $(macos_bundle)/Contents/Info.plist
-	$(path_step)/make/tools/mkicns.sh $(theme_resources)/zxtune.png $(macos_bundle)/Contents/Resources/zxtune
+	$(path_step)/make/tools/mkicns.sh $(theme_resources)/zxtune1024.png $(macos_bundle)/Contents/Resources/zxtune
 
 include $(path_step)/samples/samples.mak
 include $(path_step)/3rdparty/install.mak
