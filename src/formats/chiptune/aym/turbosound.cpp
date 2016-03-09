@@ -46,8 +46,6 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
-
     BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
 
     const std::string FOOTER_FORMAT(

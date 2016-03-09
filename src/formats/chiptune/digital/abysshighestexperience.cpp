@@ -31,8 +31,8 @@ namespace Chiptune
   {
     typedef boost::array<uint8_t, 4> IdentifierType;
     
-    const IdentifierType ID0 = {'T', 'H', 'X', 0};
-    const IdentifierType ID1 = {'T', 'H', 'X', 1};
+    const IdentifierType ID0 = {{'T', 'H', 'X', 0}};
+    const IdentifierType ID1 = {{'T', 'H', 'X', 1}};
   
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)

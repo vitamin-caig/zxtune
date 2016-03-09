@@ -137,7 +137,6 @@ namespace ETracker
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Data(MakeRWPtr<ModuleData>())
-      , Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
     {
@@ -226,7 +225,6 @@ namespace ETracker
     }
   private:
     const ModuleData::RWPtr Data;
-    PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
   };

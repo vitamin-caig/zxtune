@@ -33,8 +33,6 @@ namespace Chiptune
     typedef boost::array<uint8_t, 4> SignatureType;
     typedef boost::array<uint8_t, 32> StringType;
 
-    const SignatureType SIGNATURE_GYMX = {{'G', 'Y', 'M', 'X'}};
-
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif

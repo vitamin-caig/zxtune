@@ -32,7 +32,6 @@ namespace Packed
     const std::size_t MIN_DECODED_SIZE = 0x100;
     const std::size_t DEPACKER_SIZE = 110;
     const std::size_t MIN_SIZE = 256;
-    const std::size_t MIN_PACKED_SIZE = MIN_SIZE - DEPACKER_SIZE;
     const std::size_t MAX_DECODED_SIZE = 0xc000;
     //assume that packed data are located right after depacked
     //prologue is ignored due to standard absense

@@ -283,7 +283,6 @@ namespace Archived
     public:
       FileIterator(ChainDecoder::Ptr decoder, const Binary::Container& data)
         : Decoder(decoder)
-        , Data(data)
         , Blocks(data)
       {
         SkipNonFileBlocks();
@@ -342,7 +341,6 @@ namespace Archived
       }
     private:
       const ChainDecoder::Ptr Decoder;
-      const Binary::Container& Data;
       BlocksIterator Blocks;
       mutable File::Ptr Current;
     };

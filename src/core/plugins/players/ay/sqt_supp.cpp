@@ -464,7 +464,6 @@ namespace SQTracker
       , Properties(props)
       , Meta(props)
       , Patterns(SingleChannelPatternsBuilder::Create())
-      , Loop()
     {
       Properties.SetFrequencyTable(TABLE_SQTRACKER);
     }
@@ -564,7 +563,6 @@ namespace SQTracker
     MetaProperties Meta;
     SingleChannelPatternsBuilder Patterns;
     std::vector<Formats::Chiptune::SQTracker::PositionEntry> Positions;
-    uint_t Loop;
   };
 
   struct ChannelState

@@ -64,7 +64,6 @@ namespace Module
       : Base(params, opt)
       , Params(params)
       , Loop(loopFrame)
-      , Optimization(static_cast<Devices::AYM::DumperParameters::Optimization>(opt))
     {
     }
 
@@ -107,7 +106,6 @@ namespace Module
     const BaseDumperParameters Base;
     const Parameters::Accessor::Ptr Params;
     const uint_t Loop;
-    const Devices::AYM::DumperParameters::Optimization Optimization;
   };
 
   //aym-based conversion

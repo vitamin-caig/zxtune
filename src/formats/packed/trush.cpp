@@ -128,7 +128,6 @@ namespace Packed
     const std::size_t MIN_DATA_SIZE = 2;
     const std::size_t MAX_HEAD_SIZE = HEAD_SIZE + 36;//typical signature
     const std::size_t MIN_BODY_SIZE = BODY_SIZE + MIN_DATA_SIZE;
-    const std::size_t MIN_SIZE = HEAD_SIZE + MIN_BODY_SIZE;
 
     class Container
     {

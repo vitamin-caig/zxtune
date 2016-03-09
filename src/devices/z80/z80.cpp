@@ -394,9 +394,9 @@ namespace Z80
     }
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
+    ClockSource Clock;
     const boost::scoped_ptr<IOBus> Bus;
     const boost::shared_ptr<Z80EX_CONTEXT> Context;
-    ClockSource Clock;
   };
 }
 }

@@ -70,9 +70,6 @@ namespace Archived
 
     //header with one entry + one sector + CRC
     const std::size_t MIN_SIZE = sizeof(Header) + BYTES_PER_SECTOR + 4;
-    //header + up to 255 entries for 255 sectors each
-    const std::size_t MODULE_SIZE = sizeof(Header) - sizeof(Entry) +
-      255 * (sizeof(Entry) + 0xff * BYTES_PER_SECTOR) + 4;
 
     BOOST_STATIC_ASSERT(sizeof(Entry) == 14);
     BOOST_STATIC_ASSERT(sizeof(Header) == 23);

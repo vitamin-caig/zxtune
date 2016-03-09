@@ -32,12 +32,6 @@ namespace Chiptune
   {
     typedef boost::array<uint8_t, 4> SignatureType;
 
-    const SignatureType SIGNATURE_HESM = {{'H', 'E', 'S', 'M'}};
-    const SignatureType SIGNATURE_DATA = {{'D', 'A', 'T', 'A'}};
-
-    const uint_t VERSION_MIN = 1;
-    const uint_t VERSION_MAX = 3;
-
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif

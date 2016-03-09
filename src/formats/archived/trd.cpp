@@ -56,7 +56,6 @@ namespace Archived
     const uint_t BYTES_PER_SECTOR = 256;
     const uint_t SECTORS_IN_TRACK = 16;
     const uint_t MAX_FILES_COUNT = 128;
-    const uint_t SERVICE_SECTOR_NUM = 8;
     const std::size_t MIN_SIZE = (SECTORS_IN_TRACK + 1) * BYTES_PER_SECTOR;
 
   #ifdef USE_PRAGMA_PACK

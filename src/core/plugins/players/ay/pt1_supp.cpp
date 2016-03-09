@@ -198,8 +198,6 @@ namespace ProTracker1
     PatternsBuilder Patterns;
   };
 
-  const uint_t LIMITER = ~uint_t(0);
-
   inline uint_t GetVolume(uint_t volume, uint_t level)
   {
     return ((volume * 17 + (volume > 7 ? 1 : 0)) * level + 128) / 256;

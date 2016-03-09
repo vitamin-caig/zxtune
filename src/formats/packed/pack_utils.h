@@ -106,6 +106,7 @@ public:
     , Target(dst)
     , Size(count)
   {
+    (void)Source;//to make compiler happy
   }
 
   bool IsValid() const

@@ -50,8 +50,6 @@ namespace Chiptune
     const std::size_t SAMPLES_ADDR = 0xc000;
     const std::size_t SAMPLES_LIMIT = 0x10000;
 
-    const uint8_t SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
-
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
