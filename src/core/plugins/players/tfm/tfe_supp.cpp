@@ -372,7 +372,7 @@ namespace TFMMusicMaker
     {
       const uint_t prev = Value;
       Value = Addons[Position];
-      if (++Position = Addons.size())
+      if (++Position >= Addons.size())
       {
         Position = 0;
       }
