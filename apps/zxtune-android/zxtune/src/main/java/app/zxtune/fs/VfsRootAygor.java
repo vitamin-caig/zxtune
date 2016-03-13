@@ -127,17 +127,25 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
     public String getName() {
       return path.get(path.size() - 1);
     }
+
+    @Override
+    public VfsObject getParent() {
+      final int depth = path.size();
+      return 1 == depth
+              ? VfsRootAygor.this//root folder
+              : new AyonMusicSubdir(path.subList(0, depth - 1));
+    }
   }
   
   //starting from ayon
   private class AyonMusicSubdir extends AyonMusicObject implements VfsDir {
-    
+
     private ByteBuffer content;
-    
+
     AyonMusicSubdir(String path) {
       super(path);
     }
-    
+
     AyonMusicSubdir(List<String> path) {
       super(path);
     }
@@ -145,14 +153,6 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
     AyonMusicSubdir(List<String> path, ByteBuffer content) {
       super(path);
       this.content = content;
-    }
-    
-    @Override
-    public VfsObject getParent() {
-      final int depth = path.size();
-      return 1 == depth
-          ? VfsRootAygor.this//root folder
-          : new AyonMusicSubdir(path.subList(0, depth - 1));
     }
 
     @Override
@@ -176,8 +176,8 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
       try {
         final ByteBuffer content = catalog.getFileContent(path);
         return catalog.isDirContent(content)
-            ? new AyonMusicSubdir(path, content)
-            : new AyonMusicFile(path, content);
+                ? new AyonMusicSubdir(path, content)
+                : new AyonMusicFile(path, content);
       } catch (IOException e) {
         throw e;
       } catch (Exception e) {
@@ -185,14 +185,14 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
         return null;
       }
     }
-    
+
     private ByteBuffer getContent() throws IOException {
       if (content == null) {
         content = catalog.getFileContent(path);
       }
       return content;
     }
-    
+
     private int getApproxItemsCount(int size) {
       /*
        *  musicians/Q with 1 entry is 888 bytes
@@ -213,47 +213,42 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
       final ArrayList<String> nestedPath = createNestedPath(name);
       return new AyonMusicFile(nestedPath, size);
     }
-    
+
     private ArrayList<String> createNestedPath(String name) {
       final ArrayList<String> result = new ArrayList<String>(path.size() + 1);
       result.addAll(path);
       result.add(name);
       return result;
     }
+  }
     
-    private class AyonMusicFile extends AyonMusicObject implements VfsFile {
-      
-      private String size;
-      private ByteBuffer content;
-      
-      AyonMusicFile(List<String> path, String size) {
-        super(path);
-        this.size = size;
-      }
-      
-      AyonMusicFile(List<String> path, ByteBuffer content) {
-        super(path);
-        this.size = Integer.toString(content.limit());
-        this.content = content;
-      }
+  private class AyonMusicFile extends AyonMusicObject implements VfsFile {
 
-      @Override
-      public VfsObject getParent() {
-        return AyonMusicSubdir.this;
-      }
-      
-      @Override
-      public String getSize() {
-        return size;
-      }
+    private String size;
+    private ByteBuffer content;
 
-      @Override
-      public ByteBuffer getContent() throws IOException {
-        if (content == null) {
-          content = catalog.getFileContent(path);
-        }
-        return content;
+    AyonMusicFile(List<String> path, String size) {
+      super(path);
+      this.size = size;
+    }
+
+    AyonMusicFile(List<String> path, ByteBuffer content) {
+      super(path);
+      this.size = Integer.toString(content.limit());
+      this.content = content;
+    }
+
+    @Override
+    public String getSize() {
+      return size;
+    }
+
+    @Override
+    public ByteBuffer getContent() throws IOException {
+      if (content == null) {
+        content = catalog.getFileContent(path);
       }
+      return content;
     }
   }
 }
