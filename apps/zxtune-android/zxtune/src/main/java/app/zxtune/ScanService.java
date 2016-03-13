@@ -138,7 +138,7 @@ public class ScanService extends IntentService {
       } while (insertThread.isActive() && iter.next());
     } catch (IOException e) {
       error = e;
-      Log.d(TAG, "Scan failed", e);
+      Log.d(TAG, e, "Scan failed");
       insertThread.cancel();
     }
   }
@@ -186,7 +186,7 @@ public class ScanService extends IntentService {
         active.set(false);
         join();
       } catch (InterruptedException e) {
-        Log.d(getName(), "failed to wait for finish", e);
+        Log.d(getName(), e, "failed to wait for finish");
       }
     }
     

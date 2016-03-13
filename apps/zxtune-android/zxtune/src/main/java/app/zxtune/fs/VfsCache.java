@@ -56,7 +56,7 @@ public class VfsCache {
       }
       return result;
     } catch (IOException e) {
-      Log.d(TAG, "Failed to read from cache", e);
+      Log.d(TAG, e, "Failed to read from cache");
     }
     return null;
   }
@@ -75,7 +75,7 @@ public class VfsCache {
       writeTo(file, content);
       return Uri.fromFile(file);
     } else {
-      Log.d(TAG, "Do not cache small content of " + path);
+      Log.d(TAG, "Do not cache small content of %s", path);
       return Uri.EMPTY;
     }
   }
@@ -112,7 +112,7 @@ public class VfsCache {
       Log.d(TAG, "No cached file " + file.getAbsolutePath());
       return null;
     }
-    Log.d(TAG, "Reading cached file " + file.getAbsolutePath());
+    Log.d(TAG, "Reading cached file %s", file.getAbsolutePath());
     final FileInputStream stream = new FileInputStream(file);
     try {
       final FileChannel channel = stream.getChannel();
@@ -128,7 +128,7 @@ public class VfsCache {
 
   static void writeTo(File file, ByteBuffer data) {
     try {
-      Log.d(TAG, "Write cached file " + file.getAbsolutePath());
+      Log.d(TAG, "Write cached file %s", file.getAbsolutePath());
       file.getParentFile().mkdirs();
       final FileOutputStream stream = new FileOutputStream(file);
       try {
@@ -143,7 +143,7 @@ public class VfsCache {
         stream.close();
       }
     } catch (IOException e) {
-      Log.d(TAG, "Failed to write to " + file.getAbsolutePath(), e);
+      Log.d(TAG, e, "Failed to write to %s", file.getAbsolutePath());
       file.delete();
     }
   }

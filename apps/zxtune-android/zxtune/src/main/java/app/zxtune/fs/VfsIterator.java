@@ -49,7 +49,7 @@ public final class VfsIterator {
     this(paths, new ErrorHandler() {
       @Override
       public void onIOError(IOException e) {
-        Log.d(TAG, "Skip I/O error", e);
+        Log.d(TAG, e, "Skip I/O error");
       }
     });
   }
