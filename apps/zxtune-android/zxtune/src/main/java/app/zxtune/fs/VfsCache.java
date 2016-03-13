@@ -34,9 +34,15 @@ public class VfsCache {
     if (primary == null && fallback == null) {
       throw new RuntimeException("No cache directories specified");
     }
-    this.primary = primary != null ? primary : fallback;
-    this.fallback = fallback;
-    this.hasFallback = !primary.equals(fallback) && fallback != null;
+    if (primary != null) {
+      this.primary = primary;
+      this.fallback = fallback;
+      this.hasFallback = !primary.equals(fallback) && fallback != null;
+    } else {
+      this.primary = fallback;
+      this.fallback = null;
+      this.hasFallback = false;
+    }
   }
   
   public static VfsCache create(Context context, String name) {
