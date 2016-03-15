@@ -12,16 +12,18 @@
 #include "tfm_base.h"
 #include "tfm_base_track.h"
 #include "tfm_plugin.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/players/properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/simple_orderlist.h"
 //common includes
 #include <contract.h>
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <formats/chiptune/fm/tfmmusicmaker.h>
 #include <math/fixedpoint.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/scoped_ptr.hpp>
 
 namespace Module
@@ -79,6 +81,7 @@ namespace TFMMusicMaker
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : EvenInitialTempo()
@@ -98,9 +101,10 @@ namespace TFMMusicMaker
   class DataBuilder : public Formats::Chiptune::TFMMusicMaker::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<TFM::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
@@ -108,7 +112,7 @@ namespace TFMMusicMaker
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod)
@@ -134,7 +138,7 @@ namespace TFMMusicMaker
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -273,8 +277,9 @@ namespace TFMMusicMaker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -367,7 +372,7 @@ namespace TFMMusicMaker
     {
       const uint_t prev = Value;
       Value = Addons[Position];
-      if (++Position = Addons.size())
+      if (++Position >= Addons.size())
       {
         Position = 0;
       }
@@ -766,7 +771,7 @@ namespace TFMMusicMaker
         const Instrument* newInstrument = GetNewInstrument(src);
         if (!dst.CurInstrument && !newInstrument)
         {
-          newInstrument = Data->Instruments.Find(1);
+          newInstrument = &Data->Instruments.Get(1);
         }
         if (dropEffects && dst.CurInstrument && !newInstrument)
         {
@@ -858,7 +863,7 @@ namespace TFMMusicMaker
     {
       if (const uint_t* instrument = src.GetSample())
       {
-        return Data->Instruments.Find(*instrument);
+        return &Data->Instruments.Get(*instrument);
       }
       else
       {
@@ -1397,7 +1402,7 @@ namespace TFMMusicMaker
   public:
     explicit TrackStateIteratorImpl(ModuleData::Ptr data)
       : Data(data)
-      , Cursor(boost::make_shared<TrackStateCursor>(data))
+      , Cursor(MakePtr<TrackStateCursor>(data))
     {
     }
 
@@ -1517,7 +1522,7 @@ namespace TFMMusicMaker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(boost::make_shared<InformationImpl>(Data))
+      , Info(MakePtr<InformationImpl>(Data))
     {
     }
 
@@ -1533,8 +1538,8 @@ namespace TFMMusicMaker
 
     virtual TFM::DataIterator::Ptr CreateDataIterator() const
     {
-      const TrackStateIterator::Ptr iterator = boost::make_shared<TrackStateIteratorImpl>(Data);
-      const TFM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const TrackStateIterator::Ptr iterator = MakePtr<TrackStateIteratorImpl>(Data);
+      const TFM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return TFM::CreateDataIterator(iterator, renderer);
     }
   private:
@@ -1551,13 +1556,14 @@ namespace TFMMusicMaker
     {
     }
 
-    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -1578,14 +1584,14 @@ namespace ZXTune
     {
       const Char ID[] = {'T', 'F', '0', 0};
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver05::CreateDecoder();
-      const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
+      const Module::TFM::Factory::Ptr factory = MakePtr<Module::TFMMusicMaker::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Char ID[] = {'T', 'F', 'E', 0};
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver13::CreateDecoder();
-      const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
+      const Module::TFM::Factory::Ptr factory = MakePtr<Module::TFMMusicMaker::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }

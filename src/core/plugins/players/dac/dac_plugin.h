@@ -12,7 +12,7 @@
 
 //local includes
 #include "dac_factory.h"
-#include "core/plugins/plugins_types.h"
+#include "core/plugins/player_plugin.h"
 //library includes
 #include <formats/chiptune.h>
 

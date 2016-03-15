@@ -10,8 +10,10 @@
 
 //local includes
 #include "dac_plugin.h"
-#include "digital.h"
-#include "core/plugins/registrator.h"
+#include "dac_simple.h"
+#include "core/plugins/player_plugins_registrator.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <formats/chiptune/digital/sampletracker.h>
 
@@ -21,8 +23,8 @@ namespace SampleTracker
 {
   const std::size_t CHANNELS_COUNT = 3;
 
-  typedef DAC::ModuleData ModuleData;
-  typedef DAC::DataBuilder DataBuilder;
+  typedef DAC::SimpleModuleData ModuleData;
+  typedef DAC::SimpleDataBuilder DataBuilder;
 
   /*
     0x0016 0x0017 0x0019 0x001a 0x001c 0x001e 0x001f 0x0021 0x0023 0x0025 0x0027 0x002a
@@ -36,13 +38,14 @@ namespace SampleTracker
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      const std::auto_ptr<DataBuilder> dataBuilder = DataBuilder::Create<CHANNELS_COUNT>(propBuilder);
+      DAC::PropertiesHelper props(*properties);
+      const DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<DAC::SimpleChiptune>(dataBuilder->GetResult(), propBuilder.GetResult(), CHANNELS_COUNT);
+        props.SetSource(*container);
+        return DAC::CreateSimpleChiptune(dataBuilder->GetResult(), properties, CHANNELS_COUNT);
       }
       else
       {
@@ -61,7 +64,7 @@ namespace ZXTune
     const Char ID[] = {'S', 'T', 'R', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSampleTrackerDecoder();
-    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::SampleTracker::Factory>();
+    const Module::DAC::Factory::Ptr factory = MakePtr<Module::SampleTracker::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

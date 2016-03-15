@@ -12,22 +12,23 @@
 #include "lexic_analysis.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //std includes
 #include <list>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
 
-namespace
+namespace LexicalAnalysis
 {
   struct TokensSet
   {
     typedef boost::shared_ptr<const TokensSet> Ptr;
+    typedef boost::shared_ptr<TokensSet> RWPtr;
 
     std::string Lexeme;
-    LexicalAnalysis::TokenTypesSet Types;
+    TokenTypesSet Types;
 
-    void Add(const std::string& lexeme, LexicalAnalysis::TokenType type)
+    void Add(const std::string& lexeme, TokenType type)
     {
       if (Empty())
       {
@@ -45,7 +46,7 @@ namespace
       return Types.Empty();
     }
 
-    void Report(LexicalAnalysis::Grammar::Callback& cb) const
+    void Report(Grammar::Callback& cb) const
     {
       Require(!Empty());
       if (Types.Size() == 1)
@@ -58,10 +59,7 @@ namespace
       }
     }
   };
-}
 
-namespace LexicalAnalysis
-{
   class ContextIndependentGrammar : public Grammar
   {
   public:
@@ -89,12 +87,12 @@ namespace LexicalAnalysis
   private:
     TokensSet::Ptr ExtractLongestTokens(std::string::const_iterator lexemeStart, std::string::const_iterator lim) const
     {
-      std::list<boost::shared_ptr<TokensSet> > context;
+      std::list<TokensSet::RWPtr> context;
       std::list<Tokenizer::Ptr> candidates = Sources;
       for (std::string::const_iterator lexemeEnd = lexemeStart + 1; !candidates.empty(); ++lexemeEnd)
       {
         const std::string lexeme(lexemeStart, lexemeEnd);
-        context.push_back(boost::make_shared<TokensSet>());
+        context.push_back(MakeRWPtr<TokensSet>());
         TokensSet& target = *context.back();
         for (std::list<Tokenizer::Ptr>::iterator tokIt = candidates.begin(), tokLim = candidates.end(); tokIt != tokLim;)
         {
@@ -131,6 +129,6 @@ namespace LexicalAnalysis
 
   Grammar::RWPtr CreateContextIndependentGrammar()
   {
-    return boost::make_shared<ContextIndependentGrammar>();
+    return MakeRWPtr<ContextIndependentGrammar>();
   }
 }

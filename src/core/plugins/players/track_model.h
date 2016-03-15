@@ -140,6 +140,7 @@ namespace Module
   {
   public:
     typedef boost::shared_ptr<const OrderList> Ptr;
+    virtual ~OrderList() {}
 
     virtual uint_t GetSize() const = 0;
     virtual uint_t GetPatternIndex(uint_t pos) const = 0;

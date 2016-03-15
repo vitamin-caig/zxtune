@@ -303,7 +303,7 @@ namespace
 
 MainWindow::Ptr DesktopMainWindow::Create(Parameters::Container::Ptr options)
 {
-  const MainWindow::Ptr res(new DesktopMainWindowImpl(options));
+  const MainWindow::Ptr res = new DesktopMainWindowImpl(options);
   res->show();
   return res;
 }

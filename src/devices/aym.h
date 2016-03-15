@@ -16,6 +16,7 @@
 #include <time/stamp.h>
 //boost includes
 #include <boost/array.hpp>
+#include <boost/shared_ptr.hpp>
 
 //supporting for AY/YM-based modules
 namespace Devices

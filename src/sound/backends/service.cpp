@@ -14,6 +14,7 @@
 #include "storage.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
@@ -24,7 +25,6 @@
 //boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/make_shared.hpp>
 
 #define FILE_TAG A6428476
 
@@ -76,6 +76,8 @@ namespace Sound
   class ServiceImpl : public Service, public BackendsStorage
   {
   public:
+    typedef boost::shared_ptr<ServiceImpl> RWPtr;
+    
     explicit ServiceImpl(Parameters::Accessor::Ptr options)
       : Options(options)
     {
@@ -125,14 +127,14 @@ namespace Sound
     virtual void Register(const String& id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory)
     {
       Factories.push_back(FactoryWithId(id, factory));
-      const BackendInformation::Ptr info = boost::make_shared<StaticBackendInformation>(id, description, caps, Error());
+      const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, Error());
       Infos.push_back(info);
       Dbg("Service(%1%): Registered backend %2%", this, id);
     }
 
     virtual void Register(const String& id, const char* description, uint_t caps, const Error& status)
     {
-      const BackendInformation::Ptr info = boost::make_shared<StaticBackendInformation>(id, description, caps, status);
+      const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);
       Infos.push_back(info);
       Dbg("Service(%1%): Registered disabled backend %2%", this, id);
     }
@@ -140,7 +142,7 @@ namespace Sound
     virtual void Register(const String& id, const char* description, uint_t caps)
     {
       const Error status = Error(THIS_LINE, translate("Not supported in current configuration"));
-      const BackendInformation::Ptr info = boost::make_shared<StaticBackendInformation>(id, description, caps, status);
+      const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);
       Infos.push_back(info);
       Dbg("Service(%1%): Registered stub backend %2%", this, id);
     }
@@ -203,21 +205,21 @@ namespace Sound
 
   Service::Ptr CreateSystemService(Parameters::Accessor::Ptr options)
   {
-    const boost::shared_ptr<ServiceImpl> result = boost::make_shared<ServiceImpl>(options);
+    const ServiceImpl::RWPtr result = MakeRWPtr<ServiceImpl>(options);
     RegisterSystemBackends(*result);
     return result;
   }
 
   Service::Ptr CreateFileService(Parameters::Accessor::Ptr options)
   {
-    const boost::shared_ptr<ServiceImpl> result = boost::make_shared<ServiceImpl>(options);
+    const ServiceImpl::RWPtr result = MakeRWPtr<ServiceImpl>(options);
     RegisterFileBackends(*result);
     return result;
   }
 
   Service::Ptr CreateGlobalService(Parameters::Accessor::Ptr options)
   {
-    const boost::shared_ptr<ServiceImpl> result = boost::make_shared<ServiceImpl>(options);
+    const ServiceImpl::RWPtr result = MakeRWPtr<ServiceImpl>(options);
     RegisterAllBackends(*result);
     return result;
   }

@@ -16,6 +16,7 @@
 #include "gates/vorbisenc_api.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <debug/log.h>
@@ -28,7 +29,6 @@
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -255,8 +255,8 @@ namespace Ogg
     FileStream(Vorbis::Api::Ptr api, VorbisInfo::Ptr info, OggBitStream::Ptr stream)
       : VorbisApi(api)
       , Info(info)
-      , Meta(boost::make_shared<MetaData>(VorbisApi))
-      , State(boost::make_shared<VorbisState>(VorbisApi, Info->Get()))
+      , Meta(MakePtr<MetaData>(VorbisApi))
+      , State(MakePtr<VorbisState>(VorbisApi, Info->Get()))
       , Stream(stream)
     {
       Dbg("Stream initialized");
@@ -378,10 +378,10 @@ namespace Ogg
 
     virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
     {
-      const VorbisInfo::Ptr info = boost::make_shared<VorbisInfo>(VorbisApi, VorbisEncApi);
+      const VorbisInfo::Ptr info = MakePtr<VorbisInfo>(VorbisApi, VorbisEncApi);
       SetupInfo(*info);
-      const OggBitStream::Ptr bitStream = boost::make_shared<OggBitStream>(OggApi, stream);
-      return boost::make_shared<FileStream>(VorbisApi, info, bitStream);
+      const OggBitStream::Ptr bitStream = MakePtr<OggBitStream>(OggApi, stream);
+      return MakePtr<FileStream>(VorbisApi, info, bitStream);
     }
   private:
     void SetupInfo(VorbisInfo& info) const
@@ -424,7 +424,7 @@ namespace Ogg
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
-      const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(OggApi, VorbisApi, VorbisEncApi, params);
+      const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(OggApi, VorbisApi, VorbisEncApi, params);
       return CreateFileBackendWorker(params, factory);
     }
   private:
@@ -445,7 +445,7 @@ namespace Sound
       const Vorbis::Api::Ptr vorbisApi = Vorbis::LoadDynamicApi();
       const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
       Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
-      const BackendWorkerFactory::Ptr factory = boost::make_shared<Ogg::BackendWorkerFactory>(oggApi, vorbisApi, vorbisEncApi);
+      const BackendWorkerFactory::Ptr factory = MakePtr<Ogg::BackendWorkerFactory>(oggApi, vorbisApi, vorbisEncApi);
       storage.Register(Ogg::ID, Ogg::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)

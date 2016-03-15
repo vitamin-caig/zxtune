@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -27,15 +28,9 @@
 #include <list>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::AY");
-}
 
 namespace Formats
 {
@@ -43,6 +38,8 @@ namespace Chiptune
 {
   namespace AY
   {
+    const Debug::Stream Dbg("Formats::Chiptune::AY");
+
     const uint8_t SIGNATURE[] = {'Z', 'X', 'A', 'Y'};
   #ifdef USE_PRAGMA_PACK
   #pragma pack(push,1)
@@ -590,18 +587,18 @@ namespace Chiptune
 
     BlobBuilder::Ptr CreateMemoryDumpBuilder()
     {
-      return boost::make_shared<MemoryDumpBuilder>();
+      return MakePtr<MemoryDumpBuilder>();
     }
 
     BlobBuilder::Ptr CreateFileBuilder()
     {
-      return boost::make_shared<FileBuilder>();
+      return MakePtr<FileBuilder>();
     }
   } //namespace AY
 
   Decoder::Ptr CreateAYEMULDecoder()
   {
-    return boost::make_shared<AY::Decoder>();
+    return MakePtr<AY::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

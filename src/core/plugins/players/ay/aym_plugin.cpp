@@ -14,6 +14,8 @@
 #include "aym_parameters.h"
 #include "core/plugins/players/plugin.h"
 #include "core/conversion/aym.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
 
@@ -27,7 +29,7 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, PropertiesBuilder& properties) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const
     {
       if (const AYM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {
@@ -47,7 +49,7 @@ namespace ZXTune
 {
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder, Module::AYM::Factory::Ptr factory)
   {
-    const Module::Factory::Ptr modFactory = boost::make_shared<Module::AYMFactory>(factory);
+    const Module::Factory::Ptr modFactory = MakePtr<Module::AYMFactory>(factory);
     const uint_t ayCaps = Capabilities::Module::Device::AY38910 | Module::AYM::GetSupportedFormatConvertors();
     return CreatePlayerPlugin(id, caps | ayCaps, decoder, modFactory);
   }

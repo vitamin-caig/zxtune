@@ -35,9 +35,9 @@ using boost::uint64_t;
 #define __STDC_CONSTANT_MACROS
 
 /// Unsigned integer type
-typedef boost::uint_fast32_t uint_t;
+typedef unsigned int uint_t;
 /// Signed integer type
-typedef boost::int_fast32_t int_t;
+typedef signed int int_t;
 //@}
 
 /// String-related types

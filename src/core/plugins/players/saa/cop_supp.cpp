@@ -10,9 +10,13 @@
 
 //local includes
 #include "saa_base.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/players/properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/saa/etracker.h>
@@ -99,6 +103,7 @@ namespace ETracker
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : InitialTempo()
@@ -130,9 +135,9 @@ namespace ETracker
   class DataBuilder : public Formats::Chiptune::ETracker::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
-      , Properties(props)
+    explicit DataBuilder(PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
@@ -140,7 +145,7 @@ namespace ETracker
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -160,7 +165,7 @@ namespace ETracker
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::ETracker::PositionEntry>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -219,8 +224,8 @@ namespace ETracker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -234,9 +239,9 @@ namespace ETracker
     {
     }
 
-    void Set(const Object* obj)
+    void Set(const Object& obj)
     {
-      Obj = obj;
+      Obj = &obj;
       Reset();
     }
 
@@ -305,9 +310,9 @@ namespace ETracker
       {
         ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
-        dst.SampleIterator.Set(&STUB_SAMPLE);
+        dst.SampleIterator.Set(STUB_SAMPLE);
         dst.SampleIterator.Disable();
-        dst.OrnamentIterator.Set(&STUB_ORNAMENT);
+        dst.OrnamentIterator.Set(STUB_ORNAMENT);
         dst.OrnamentIterator.Reset();
       }
       std::fill(Noise.begin(), Noise.end(), 0);
@@ -364,12 +369,12 @@ namespace ETracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleIterator.Set(Data->Samples.Find(*sample));
+        dst.SampleIterator.Set(Data->Samples.Get(*sample));
         dst.OrnamentIterator.Reset();
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentIterator.Set(Data->Ornaments.Find(*ornament));
+        dst.OrnamentIterator.Set(Data->Ornaments.Get(*ornament));
       }
       if (const uint_t* volume = src.GetVolume())
       {
@@ -524,7 +529,7 @@ namespace ETracker
     virtual SAA::DataIterator::Ptr CreateDataIterator() const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const SAA::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const SAA::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return SAA::CreateDataIterator(iterator, renderer);
     }
   private:
@@ -536,13 +541,14 @@ namespace ETracker
   class Factory : public Module::Factory
   {
   public:
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        const SAA::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        const SAA::Chiptune::Ptr chiptune = MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
         return SAA::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -560,7 +566,7 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::SAA1099;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateETrackerDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::ETracker::Factory>();
+    const Module::Factory::Ptr factory = MakePtr<Module::ETracker::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

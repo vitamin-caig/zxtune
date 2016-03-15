@@ -12,8 +12,8 @@
 #include "operations_helpers.h"
 #include "operations_statistic.h"
 #include "storage.h"
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 
 namespace
 {
@@ -27,7 +27,7 @@ namespace
     {
     }
 
-    CollectStatisticOperation(Playlist::Model::IndexSetPtr items, Playlist::Item::StatisticTextNotification::Ptr result)
+    CollectStatisticOperation(Playlist::Model::IndexSet::Ptr items, Playlist::Item::StatisticTextNotification::Ptr result)
       : SelectedItems(items)
       , Result(result)
     {
@@ -58,7 +58,7 @@ namespace
       }
     }
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Model::IndexSet::Ptr SelectedItems;
     const Playlist::Item::StatisticTextNotification::Ptr Result;
   };
 }
@@ -69,12 +69,12 @@ namespace Playlist
   {
     TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result)
     {
-      return boost::make_shared<CollectStatisticOperation>(result);
+      return MakePtr<CollectStatisticOperation>(result);
     }
 
-    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result)
+    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSet::Ptr items, StatisticTextNotification::Ptr result)
     {
-      return boost::make_shared<CollectStatisticOperation>(items, result);
+      return MakePtr<CollectStatisticOperation>(items, result);
     }
   }
 }

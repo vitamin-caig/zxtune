@@ -13,7 +13,6 @@
 //local includes
 #include "playlist/supp/data.h"
 //library includes
-#include <core/module_types.h>
 #include <sound/backend.h>
 //qt includes
 #include <QtCore/QThread>

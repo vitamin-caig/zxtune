@@ -27,7 +27,7 @@ namespace Playlist
     public:
       typedef boost::shared_ptr<SelectionOperation> Ptr;
     signals:
-      void ResultAcquired(Playlist::Model::IndexSetPtr);
+      void ResultAcquired(Playlist::Model::IndexSet::Ptr);
     };
 
     class TextResultOperation : public QObject
@@ -42,16 +42,16 @@ namespace Playlist
 
     //rip-offs
     SelectionOperation::Ptr CreateSelectAllRipOffsOperation();
-    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSetPtr items);
-    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items);
+    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSet::Ptr items);
     //duplicates
     SelectionOperation::Ptr CreateSelectAllDuplicatesOperation();
-    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
-    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items);
+    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSet::Ptr items);
     //other
-    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
-    SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items);
+    SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items);
     SelectionOperation::Ptr CreateSelectAllUnavailableOperation();
-    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSet::Ptr items);
   }
 }

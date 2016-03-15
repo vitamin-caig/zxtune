@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+	<key>CFBundleIconFile</key>
+	<string>zxtune.icns</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleGetInfoString</key>
+	<string>QT-based chiptunes player by Vitamin/CAIG</string>
+	<key>CFBundleSignature</key>
+	<string>zxtn</string>
+	<key>CFBundleExecutable</key>
+	<string>zxtune-qt</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>CFBundleIdentifier</key>
+	<string>app.zxtune.macos</string>
+	<key>CFBundleVersion</key>
+	<string>@VERSION@</string>
+</dict>
+</plist>

@@ -37,7 +37,7 @@ namespace
       Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(StartPlayback(Sound::Backend::Ptr))));
       Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(StopPlayback())));
-      volumeLevel->setStyle(new UI::ClickNGoSliderStyle(*volumeLevel));
+      volumeLevel->setStyle(UI::GetStyle());
     }
 
     virtual void StartPlayback(Sound::Backend::Ptr backend)

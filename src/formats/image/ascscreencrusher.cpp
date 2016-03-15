@@ -12,226 +12,227 @@
 #include "container.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/image.h>
 //text includes
 #include <formats/text/image.h>
 
-namespace ASCScreenCrusher
+namespace Formats
 {
-  const std::string DEPACKER_PATTERN(
-   "f3"      //di
-   "cd5200"  //call #0052
-   "3b"      //dec sp
-   "3b"      //dec sp
-   "c1"      //pop bc
-   "219700"  //ld hl,#0097
-   "09"      //add hl,bc
-   "eb"      //ex de,hl
-   "("
-   "21?00"   //ld hl,#00xx
-   "09"      //add hl,bc
-   "73"      //ld (hl),e
-   "23"      //inc hl
-   "72"      //ld (hl),d
-   "){3}"
-   "21be00"  //ld hl,#00be
-   "09"      //add hl,bc
-   "1100?"   //ld de,#4000
-   "d5"      //push de
-  );
-
-  /*
-    @0052 48ROM
-
-    c9 ret
-  */
-
-  const std::size_t DEPACKER_SIZE = 0xc2;
-  const std::size_t MIN_SIZE = DEPACKER_SIZE + 16;
-
-  const std::size_t PIXELS_SIZE = 6144;
-  const std::size_t ATTRS_SIZE = 768;
-
-  class ByteStream
+namespace Image
+{
+  namespace ASCScreenCrusher
   {
-  public:
-    ByteStream(const uint8_t* data, std::size_t size, std::size_t offset)
-      : Start(data)
-      , Cursor(Start + offset)
-      , End(Start + size)
-    {
-    }
+    const std::string DEPACKER_PATTERN(
+     "f3"      //di
+     "cd5200"  //call #0052
+     "3b"      //dec sp
+     "3b"      //dec sp
+     "c1"      //pop bc
+     "219700"  //ld hl,#0097
+     "09"      //add hl,bc
+     "eb"      //ex de,hl
+     "("
+     "21?00"   //ld hl,#00xx
+     "09"      //add hl,bc
+     "73"      //ld (hl),e
+     "23"      //inc hl
+     "72"      //ld (hl),d
+     "){3}"
+     "21be00"  //ld hl,#00be
+     "09"      //add hl,bc
+     "1100?"   //ld de,#4000
+     "d5"      //push de
+    );
 
-    uint8_t GetByte()
-    {
-      Require(Cursor != End);
-      return *Cursor++;
-    }
+    /*
+      @0052 48ROM
 
-    std::size_t GetProcessedBytes() const
-    {
-      return Cursor - Start;
-    }
-  private:
-    const uint8_t* const Start;
-    const uint8_t* Cursor;
-    const uint8_t* const End;
-  };
+      c9 ret
+    */
 
-  class AddrTranslator
-  {
-  public:
-    AddrTranslator(uint_t sizeCode)
-      : AttrBase(256 * sizeCode)
-      , ScrStart((AttrBase & 0x0300) << 3)
-      , ScrLimit((AttrBase ^ 0x1800) & 0xfc00)
-    {
-    }
+    const std::size_t DEPACKER_SIZE = 0xc2;
+    const std::size_t MIN_SIZE = DEPACKER_SIZE + 16;
 
-    std::size_t GetStart() const
-    {
-      return ScrStart;
-    }
+    const std::size_t PIXELS_SIZE = 6144;
+    const std::size_t ATTRS_SIZE = 768;
 
-    std::size_t operator ()(std::size_t virtAddr) const
+    class ByteStream
     {
-      if (virtAddr < ScrLimit)
+    public:
+      ByteStream(const uint8_t* data, std::size_t size, std::size_t offset)
+        : Start(data)
+        , Cursor(Start + offset)
+        , End(Start + size)
       {
-        const std::size_t line = (virtAddr & 0x0007) << 8;
-        const std::size_t row =  (virtAddr & 0x0038) << 2;
-        const std::size_t col =  (virtAddr & 0x07c0) >> 6;
-        return (virtAddr & 0x1800) | line | row | col;
       }
-      else
+
+      uint8_t GetByte()
       {
-        return AttrBase + virtAddr;
+        Require(Cursor != End);
+        return *Cursor++;
       }
-    }
-  private:
-    const std::size_t AttrBase;
-    const std::size_t ScrStart;
-    const std::size_t ScrLimit;
-  };
 
-  class DataDecoder
-  {
-  public:
-    explicit DataDecoder(const Binary::Data& data)
-      : Stream(static_cast<const uint8_t*>(data.Start()), data.Size(), DEPACKER_SIZE)
-    {
-      IsValid = DecodeData();
-    }
-
-    std::auto_ptr<Dump> GetResult()
-    {
-      return IsValid
-        ? Result
-        : std::auto_ptr<Dump>();
-    }
-
-    std::size_t GetUsedSize() const
-    {
-      return Stream.GetProcessedBytes();
-    }
-  private:
-    bool DecodeData()
-    {
-      try
+      std::size_t GetProcessedBytes() const
       {
-        Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
-        std::fill_n(&decoded[PIXELS_SIZE], ATTRS_SIZE, 7);
+        return Cursor - Start;
+      }
+    private:
+      const uint8_t* const Start;
+      const uint8_t* Cursor;
+      const uint8_t* const End;
+    };
 
-        const AddrTranslator translate(0);
+    class AddrTranslator
+    {
+    public:
+      AddrTranslator(uint_t sizeCode)
+        : AttrBase(256 * sizeCode)
+        , ScrStart((AttrBase & 0x0300) << 3)
+        , ScrLimit((AttrBase ^ 0x1800) & 0xfc00)
+      {
+      }
 
-        std::size_t target = 0;
-        for (;;)
+      std::size_t GetStart() const
+      {
+        return ScrStart;
+      }
+
+      std::size_t operator ()(std::size_t virtAddr) const
+      {
+        if (virtAddr < ScrLimit)
         {
-          const uint8_t val = Stream.GetByte();
-          if (val == 0x80)
+          const std::size_t line = (virtAddr & 0x0007) << 8;
+          const std::size_t row =  (virtAddr & 0x0038) << 2;
+          const std::size_t col =  (virtAddr & 0x07c0) >> 6;
+          return (virtAddr & 0x1800) | line | row | col;
+        }
+        else
+        {
+          return AttrBase + virtAddr;
+        }
+      }
+    private:
+      const std::size_t AttrBase;
+      const std::size_t ScrStart;
+      const std::size_t ScrLimit;
+    };
+
+    class DataDecoder
+    {
+    public:
+      explicit DataDecoder(const Binary::Data& data)
+        : Stream(static_cast<const uint8_t*>(data.Start()), data.Size(), DEPACKER_SIZE)
+      {
+        IsValid = DecodeData();
+      }
+
+      std::auto_ptr<Dump> GetResult()
+      {
+        return IsValid
+          ? Result
+          : std::auto_ptr<Dump>();
+      }
+
+      std::size_t GetUsedSize() const
+      {
+        return Stream.GetProcessedBytes();
+      }
+    private:
+      bool DecodeData()
+      {
+        try
+        {
+          Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
+          std::fill_n(&decoded[PIXELS_SIZE], ATTRS_SIZE, 7);
+
+          const AddrTranslator translate(0);
+
+          std::size_t target = 0;
+          for (;;)
           {
-            break;
-          }
-          switch (val & 0xc0)
-          {
-          case 0x80:
-            for (uint8_t len = val & 0x3f; len != 0; --len)
+            const uint8_t val = Stream.GetByte();
+            if (val == 0x80)
             {
-              decoded.at(translate(target++)) = Stream.GetByte();
+              break;
             }
-            break;
-          case 0xc0:
-            for (uint8_t len = (val & 0x3f) + 3, fill = Stream.GetByte(); len != 0; --len)
+            switch (val & 0xc0)
             {
-              decoded.at(translate(target++)) = fill;
-            }
-            break;
-          default:
-            {
-              uint16_t source = target - (256 * (val & 0x07) + Stream.GetByte());
-              for (uint8_t len = ((val & 0xf8) >> 3) + 3; len != 0; --len)
+            case 0x80:
+              for (uint8_t len = val & 0x3f; len != 0; --len)
               {
-                decoded.at(translate(target++)) = decoded.at(translate(source++));
+                decoded.at(translate(target++)) = Stream.GetByte();
+              }
+              break;
+            case 0xc0:
+              for (uint8_t len = (val & 0x3f) + 3, fill = Stream.GetByte(); len != 0; --len)
+              {
+                decoded.at(translate(target++)) = fill;
+              }
+              break;
+            default:
+              {
+                uint16_t source = target - (256 * (val & 0x07) + Stream.GetByte());
+                for (uint8_t len = ((val & 0xf8) >> 3) + 3; len != 0; --len)
+                {
+                  decoded.at(translate(target++)) = decoded.at(translate(source++));
+                }
               }
             }
           }
+          Require(target == decoded.size());
+          Result.reset(new Dump());
+          Result->swap(decoded);
+          return true;
         }
-        Require(target == decoded.size());
-        Result.reset(new Dump());
-        Result->swap(decoded);
-        return true;
-      }
-      catch (const std::exception&)
-      {
-        return false;
-      }
-    }
-  private:
-    bool IsValid;
-    ByteStream Stream;
-    std::auto_ptr<Dump> Result;
-  };
-}
-
-namespace Formats
-{
-  namespace Image
-  {
-    class ASCScreenCrusherDecoder : public Decoder
-    {
-    public:
-      ASCScreenCrusherDecoder()
-        : Depacker(Binary::CreateFormat(ASCScreenCrusher::DEPACKER_PATTERN, ASCScreenCrusher::MIN_SIZE))
-      {
-      }
-
-      virtual String GetDescription() const
-      {
-        return Text::ASCSCREENCRUSHER_DECODER_DESCRIPTION;
-      }
-
-      virtual Binary::Format::Ptr GetFormat() const
-      {
-        return Depacker;
-      }
-
-      virtual Container::Ptr Decode(const Binary::Container& rawData) const
-      {
-        if (!Depacker->Match(rawData))
+        catch (const std::exception&)
         {
-          return Container::Ptr();
+          return false;
         }
-        ASCScreenCrusher::DataDecoder decoder(rawData);
-        return CreateImageContainer(decoder.GetResult(), decoder.GetUsedSize());
       }
     private:
-      const Binary::Format::Ptr Depacker;
+      bool IsValid;
+      ByteStream Stream;
+      std::auto_ptr<Dump> Result;
     };
+  }//namespace ASCScreenCrusher
 
-    Decoder::Ptr CreateASCScreenCrusherDecoder()
+  class ASCScreenCrusherDecoder : public Decoder
+  {
+  public:
+    ASCScreenCrusherDecoder()
+      : Depacker(Binary::CreateFormat(ASCScreenCrusher::DEPACKER_PATTERN, ASCScreenCrusher::MIN_SIZE))
     {
-      return boost::make_shared<ASCScreenCrusherDecoder>();
     }
+
+    virtual String GetDescription() const
+    {
+      return Text::ASCSCREENCRUSHER_DECODER_DESCRIPTION;
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Depacker;
+    }
+
+    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    {
+      if (!Depacker->Match(rawData))
+      {
+        return Container::Ptr();
+      }
+      ASCScreenCrusher::DataDecoder decoder(rawData);
+      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
+    }
+  private:
+    const Binary::Format::Ptr Depacker;
+  };
+
+  Decoder::Ptr CreateASCScreenCrusherDecoder()
+  {
+    return MakePtr<ASCScreenCrusherDecoder>();
   }
-}
+}//namespace Image
+}//namespace Formats

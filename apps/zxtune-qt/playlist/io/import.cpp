@@ -12,8 +12,8 @@
 #include "import.h"
 #include "container_impl.h"
 #include "ui/utils.h"
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 //qt includes
 #include <QtCore/QStringList>
 
@@ -47,7 +47,7 @@ namespace Playlist
 
     Container::Ptr OpenPlainList(Item::DataProvider::Ptr provider, const QStringList& uris)
     {
-      const boost::shared_ptr<ContainerItems> items = boost::make_shared<ContainerItems>();
+      const ContainerItems::RWPtr items = MakeRWPtr<ContainerItems>();
       std::transform(uris.begin(), uris.end(), std::back_inserter(*items), &CreateContainerItem);
       const Parameters::Container::Ptr props = Parameters::Container::Create();
       props->SetValue(ATTRIBUTE_ITEMS, items->size());

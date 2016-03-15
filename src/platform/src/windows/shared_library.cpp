@@ -13,10 +13,9 @@
 //common includes
 #include <contract.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <l10n/api.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //platform includes
 #include <windows.h>
 
@@ -25,8 +24,13 @@
 namespace
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("platform");
+}
 
-  class WindowsSharedLibrary : public Platform::SharedLibrary
+namespace Platform
+{
+namespace Details
+{
+  class WindowsSharedLibrary : public SharedLibrary
   {
   public:
     explicit WindowsSharedLibrary(HMODULE handle)
@@ -68,38 +72,33 @@ namespace
   {
     return name + SUFFIX;
   }
-}
 
-namespace Platform
-{
-  namespace Details
+  Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
   {
-    Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
+    if (HMODULE handle = ::LoadLibrary(fileName.c_str()))
     {
-      if (HMODULE handle = ::LoadLibrary(fileName.c_str()))
-      {
-        res = boost::make_shared<WindowsSharedLibrary>(handle);
-        return Error();
-      }
-      return MakeFormattedError(THIS_LINE,
-        translate("Failed to load dynamic library '%1%' (error code is %2%)."), FromStdString(fileName), GetWindowsError());
+      res = MakePtr<WindowsSharedLibrary>(handle);
+      return Error();
     }
-
-
-    std::string GetSharedLibraryFilename(const std::string& name)
-    {
-      return name.find(SUFFIX) == name.npos
-        ? BuildLibraryFilename(name)
-        : name;
-    }
-
-    std::vector<std::string> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
-    {
-      std::vector<std::string> res;
-      res.push_back(GetSharedLibraryFilename(name.Base()));
-      const std::vector<std::string>& alternatives = name.WindowsAlternatives();
-      std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), std::ptr_fun(&GetSharedLibraryFilename));
-      return res;
-    }
+    return MakeFormattedError(THIS_LINE,
+      translate("Failed to load dynamic library '%1%' (error code is %2%)."), FromStdString(fileName), GetWindowsError());
   }
+
+
+  std::string GetSharedLibraryFilename(const std::string& name)
+  {
+    return name.find(SUFFIX) == name.npos
+      ? BuildLibraryFilename(name)
+      : name;
+  }
+
+  std::vector<std::string> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
+  {
+    std::vector<std::string> res;
+    res.push_back(GetSharedLibraryFilename(name.Base()));
+    const std::vector<std::string>& alternatives = name.WindowsAlternatives();
+    std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), std::ptr_fun(&GetSharedLibraryFilename));
+    return res;
+  }
+}
 }

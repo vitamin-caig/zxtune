@@ -49,6 +49,6 @@ namespace Playlist
     }
 
     SelectionOperation::Ptr CreateSearchOperation(const Search::Data& data);
-    SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSetPtr items, const Search::Data& data);
+    SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSet::Ptr items, const Search::Data& data);
   }
 }

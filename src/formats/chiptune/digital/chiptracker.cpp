@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -27,14 +28,8 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ChipTracker");
-}
 
 namespace Formats
 {
@@ -42,6 +37,8 @@ namespace Chiptune
 {
   namespace ChipTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ChipTracker");
+
     const std::size_t MAX_MODULE_SIZE = 65536;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t MAX_PATTERNS_COUNT = 31;
@@ -49,7 +46,7 @@ namespace Chiptune
     const uint_t SAMPLES_COUNT = 16;
 
     const uint8_t SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
-
+    
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -68,7 +65,7 @@ namespace Chiptune
       } PACK_POST;
       boost::array<SampleDescr, SAMPLES_COUNT> Samples;
       uint8_t Reserved[21];
-      uint8_t SampleNames[SAMPLES_COUNT][8];//unused
+      boost::array<char[8], SAMPLES_COUNT> SampleNames;
       boost::array<uint8_t, 256> Positions;
     } PACK_POST;
 
@@ -281,6 +278,10 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(FromCharArray(Source.Title));
         meta.SetProgram(Strings::Format(Text::CHIPTRACKER_EDITOR, FromCharArray(Source.Version)));
+
+        Strings::Array names(Source.SampleNames.size());
+        std::transform(Source.SampleNames.begin(), Source.SampleNames.end(), names.begin(), &FromCharArray<8>);
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -332,7 +333,7 @@ namespace Chiptune
           }
         }
       }
-
+      
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
@@ -546,7 +547,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateChipTrackerDecoder()
   {
-    return boost::make_shared<ChipTracker::Decoder>();
+    return MakePtr<ChipTracker::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

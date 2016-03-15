@@ -12,9 +12,13 @@
 #include "aym_base.h"
 #include "aym_base_track.h"
 #include "aym_plugin.h"
-#include "core/plugins/registrator.h"
+#include "aym_properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <formats/chiptune/aym/protracker1.h>
 #include <math/numeric.h>
@@ -69,6 +73,7 @@ namespace ProTracker1
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : InitialTempo()
@@ -100,18 +105,19 @@ namespace ProTracker1
   class DataBuilder : public Formats::Chiptune::ProTracker1::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(AYM::PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
-      Properties.SetFreqtable(TABLE_PROTRACKER3_ST);
+      Properties.SetFrequencyTable(TABLE_PROTRACKER3_ST);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -131,7 +137,7 @@ namespace ProTracker1
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -186,12 +192,11 @@ namespace ProTracker1
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    AYM::PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
-
-  const uint_t LIMITER = ~uint_t(0);
 
   inline uint_t GetVolume(uint_t volume, uint_t level)
   {
@@ -372,7 +377,7 @@ namespace ProTracker1
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
@@ -384,13 +389,14 @@ namespace ProTracker1
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker1::Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -409,7 +415,7 @@ namespace ZXTune
     const Char ID[] = {'P', 'T', '1', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker1Decoder();
-    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::ProTracker1::Factory>();
+    const Module::AYM::Factory::Ptr factory = MakePtr<Module::ProTracker1::Factory>();
     const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);;
     registrator.RegisterPlugin(plugin);
   }

@@ -13,13 +13,15 @@
 //local includes
 #include "iterator.h"
 #include "track_model.h"
+//common includes
+#include <make_ptr.h>
 //library includes
-#include <core/module_types.h>
+#include <core/module_information.h>
+#include <core/module_track_state.h>
 #include <formats/chiptune/builder_pattern.h>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -73,6 +75,8 @@ namespace Module
   class MutableLine : public Line
   {
   public:
+    typedef boost::shared_ptr<MutableLine> Ptr;
+    
     virtual void SetTempo(uint_t val) = 0;
     virtual MutableCell& AddChannel(uint_t idx) = 0;
   };
@@ -80,6 +84,8 @@ namespace Module
   class MutablePattern : public Pattern
   {
   public:
+    typedef boost::shared_ptr<MutablePattern> Ptr;
+    
     virtual MutableLine& AddLine(uint_t row) = 0;
     virtual void SetSize(uint_t size) = 0;
   };
@@ -87,6 +93,8 @@ namespace Module
   class MutablePatternsSet : public PatternsSet
   {
   public:
+    typedef boost::shared_ptr<MutablePatternsSet> Ptr;
+    
     virtual MutablePattern& AddPattern(uint_t idx) = 0;
   };
 
@@ -129,97 +137,44 @@ namespace Module
     ChannelsArray Channels;
   };
 
-  //TODO: replace with boost::unordered_set
   template<class T>
   class SparsedObjectsStorage
   {
   public:
-    SparsedObjectsStorage()
-      : Count()
-    {
-    }
-
     const T& Get(uint_t idx) const
     {
-      if (const T* res = Find(idx))
+      if (idx < Objects.size())
       {
-        return *res;
+        return Objects[idx];
       }
       else
       {
-        static const T instance;
-        return instance;
+        static const T STUB;
+        return STUB;
       }
-    }
-
-    const T* Find(uint_t idx) const
-    {
-      if (idx >= Count)
-      {
-        return 0;
-      }
-      const typename ObjectsList::const_iterator it = std::lower_bound(Objects.begin(), Objects.end(), ObjectWithIndex(idx, T()));
-      return it == Objects.end() || it->Index != idx
-        ? 0
-        : &it->Object;
     }
 
     uint_t Size() const
     {
-      return Count;
+      return Objects.size();
     }
 
     void Resize(uint_t newSize)
     {
-      assert(newSize >= Count);
-      Count = newSize;
+      assert(newSize >= Objects.size());
+      Objects.resize(newSize);
     }
 
     void Add(uint_t idx, const T& obj)
     {
-      assert(Objects.end() == std::find(Objects.begin(), Objects.end(), idx));
-      Objects.push_back(ObjectWithIndex(idx, obj));
-      if (idx < Count)
+      if (idx >= Objects.size())
       {
-        std::sort(Objects.begin(), Objects.end());
+        Objects.resize(idx + 1);
       }
-      else
-      {
-        Count = idx + 1;
-      }
+      Objects[idx] = obj;
     }
   private:
-    struct ObjectWithIndex
-    {
-      ObjectWithIndex()
-        : Index()
-        , Object()
-      {
-      }
-
-      ObjectWithIndex(uint_t idx, const T& obj)
-        : Index(idx)
-        , Object(obj)
-      {
-      }
-
-      uint_t Index;
-      T Object;
-
-      bool operator < (const ObjectWithIndex& rh) const
-      {
-        return Index < rh.Index;
-      }
-
-      bool operator == (uint_t idx) const
-      {
-        return Index == idx;
-      }
-    };
-  private:
-    uint_t Count;
-    typedef std::vector<ObjectWithIndex> ObjectsList;
-    ObjectsList Objects;
+    std::vector<T> Objects;
   };
 
   template<class MutableLineType>
@@ -238,7 +193,7 @@ namespace Module
 
     virtual MutableLine& AddLine(uint_t row)
     {
-      const BuilderPtr res = boost::make_shared<MutableLineType>();
+      const MutableLine::Ptr res = MakePtr<MutableLineType>();
       Storage.Add(row, res);
       return *res;
     }
@@ -248,8 +203,7 @@ namespace Module
       Storage.Resize(newSize);
     }
   private:
-    typedef boost::shared_ptr<MutableLineType> BuilderPtr;
-    SparsedObjectsStorage<BuilderPtr> Storage;
+    SparsedObjectsStorage<MutableLine::Ptr> Storage;
   };
 
   template<class MutablePatternType>
@@ -276,13 +230,12 @@ namespace Module
 
     virtual MutablePattern& AddPattern(uint_t idx)
     {
-      const BuilderPtr res = boost::make_shared<MutablePatternType>();
+      const MutablePattern::Ptr res = MakePtr<MutablePatternType>();
       Storage.Add(idx, res);
       return *res;
     }
   private:
-    typedef boost::shared_ptr<MutablePattern> BuilderPtr;
-    SparsedObjectsStorage<BuilderPtr> Storage;
+    SparsedObjectsStorage<MutablePattern::Ptr> Storage;
   };
 
   Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels);
@@ -300,7 +253,7 @@ namespace Module
   class PatternsBuilder : public Formats::Chiptune::PatternBuilder
   {
   public:
-    explicit PatternsBuilder(boost::shared_ptr<MutablePatternsSet> patterns)
+    explicit PatternsBuilder(MutablePatternsSet::Ptr patterns)
       : Patterns(patterns)
       , CurPattern()
       , CurLine()
@@ -369,10 +322,10 @@ namespace Module
       typedef MultichannelMutableLine<ChannelsCount> LineType;
       typedef SparsedMutablePattern<LineType> PatternType;
       typedef SparsedMutablePatternsSet<PatternType> PatternsSetType;
-      return PatternsBuilder(boost::make_shared<PatternsSetType>());
+      return PatternsBuilder(MakePtr<PatternsSetType>());
     }
   private:  
-    const boost::shared_ptr<MutablePatternsSet> Patterns;
+    const MutablePatternsSet::Ptr Patterns;
     MutablePattern* CurPattern;
     MutableLine* CurLine;
     MutableCell* CurChannel;

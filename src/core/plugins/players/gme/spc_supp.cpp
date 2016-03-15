@@ -9,13 +9,15 @@
 **/
 
 //local includes
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/analyzer.h"
 #include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
+#include <core/plugins/players/properties_helper.h>
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
@@ -29,21 +31,16 @@
 #include <sound/render_params.h>
 #include <sound/resampler.h>
 #include <sound/sound_parameters.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //3rdparty
 #include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
 #include <3rdparty/snesspc/snes_spc/SPC_Filter.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Core::SIDSupp");
-}
 
 namespace Module
 {
 namespace SPC
 {
+  const Debug::Stream Dbg("Core::SIDSupp");
+
   class SPC : public Module::Analyzer
   {
     static const uint_t SPC_DIVIDER = 1 << 12;
@@ -295,7 +292,7 @@ namespace SPC
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return boost::make_shared<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
   private:
     const SPC::Ptr Tune;
@@ -306,7 +303,7 @@ namespace SPC
   class DataBuilder : public Formats::Chiptune::SPC::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(PropertiesHelper& props)
       : Properties(props)
     {
     }
@@ -349,7 +346,7 @@ namespace SPC
     
     virtual void SetDumpDate(const String& date)
     {
-      Properties.SetValue(ATTR_DATE, date);
+      Properties.SetDate(date);
     }
     
     virtual void SetIntro(Time::Milliseconds duration)
@@ -392,7 +389,7 @@ namespace SPC
       return total.Get() ? total : Time::Milliseconds(Module::GetDuration(params));
     }
   private:
-    PropertiesBuilder& Properties;
+    PropertiesHelper& Properties;
     String Title;
     String Program;
     String Author;
@@ -405,21 +402,22 @@ namespace SPC
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
-        DataBuilder dataBuilder(propBuilder);
+        PropertiesHelper props(*properties);
+        DataBuilder dataBuilder(props);
         if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SPC::Parse(rawData, dataBuilder))
         {
-          const SPC::Ptr tune = boost::make_shared<SPC>(rawData);
-          propBuilder.SetSource(*container);
+          const SPC::Ptr tune = MakePtr<SPC>(rawData);
+          props.SetSource(*container);
+          props.SetFramesFrequency(50);
           const Time::Milliseconds duration = dataBuilder.GetDuration(params);
           const Time::Milliseconds period = Time::Milliseconds(20);
-          propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(period).Get());
           const uint_t frames = duration.Get() / period.Get();
           const Information::Ptr info = CreateStreamInfo(frames);
-          return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
+          return MakePtr<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)
@@ -440,7 +438,7 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::SPC700;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSPCDecoder();
-    const Module::SPC::Factory::Ptr factory = boost::make_shared<Module::SPC::Factory>();
+    const Module::SPC::Factory::Ptr factory = MakePtr<Module::SPC::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

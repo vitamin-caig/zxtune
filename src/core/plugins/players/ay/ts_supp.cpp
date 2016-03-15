@@ -11,30 +11,27 @@
 //local includes
 #include "aym_base.h"
 #include "ts_base.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/enumerator.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/tracking.h"
 #include "core/src/callback.h"
 //common includes
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_open.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/aym/turbosound.h>
-//boost includes
-#include <boost/make_shared.hpp>
-
-namespace
-{
-  const Debug::Stream Dbg("Core::TSSupp");
-}
 
 namespace Module
 {
 namespace TS
 {
+  const Debug::Stream Dbg("Core::TSSupp");
+
   class DataBuilder : public Formats::Chiptune::TurboSound::Builder
   {
   public:
@@ -103,7 +100,7 @@ namespace TS
     {
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Module::PropertiesBuilder& properties) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const
     {
       try
       {
@@ -112,8 +109,9 @@ namespace TS
         {
           if (dataBuilder.HasResult())
           {
-            properties.SetSource(*container);
-            const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties.GetResult(),
+            PropertiesHelper props(*properties);
+            props.SetSource(*container);
+            const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties,
               dataBuilder.GetFirst(), dataBuilder.GetSecond());
             return TurboSound::CreateHolder(chiptune);
           }
@@ -139,7 +137,7 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::TURBOSOUND;
 
     const Formats::Chiptune::TurboSound::Decoder::Ptr decoder = Formats::Chiptune::TurboSound::CreateDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>(decoder);
+    const Module::Factory::Ptr factory = MakePtr<Module::TS::Factory>(decoder);
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

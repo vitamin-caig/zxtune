@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -24,14 +25,8 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ETracker");
-}
 
 namespace Formats
 {
@@ -39,6 +34,8 @@ namespace Chiptune
 {
   namespace ETracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ETracker");
+
     const std::size_t MIN_SIZE = 96;
     const std::size_t MAX_SIZE = 0x8000;
     const std::size_t MAX_POSITIONS_COUNT = 255;
@@ -998,7 +995,7 @@ loc_0_8262:
 
   Decoder::Ptr CreateETrackerDecoder()
   {
-    return boost::make_shared<ETracker::Decoder>();
+    return MakePtr<ETracker::Decoder>();
   }
 }// namespace Chiptune
 }// namespace Formats

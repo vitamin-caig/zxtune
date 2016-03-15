@@ -24,7 +24,7 @@ text_files := text/text
 
 #base
 libraries.common = analysis async binary binary_format \
-                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers core_properties \
+                  core core_conversion core_plugins_players core_plugins_archives core_properties \
                   devices_aym devices_aym_dumper devices_beeper devices_dac devices_fm devices_saa devices_z80 \
                   formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \
                   io \
@@ -51,6 +51,7 @@ libraries += ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_u
 depends += $(addprefix apps/zxtune-qt/,ui/desktop playlist/ui/desktop ui/conversion ui/preferences update)
 libraries.boost += locale
 mingw_libraries += iconv
+darwin_libraries += iconv
 embedded_files = $(qm_translation_data) $(mo_translation_data)
 endif
 
@@ -116,6 +117,14 @@ $(pkg_root)/gmenu.cfg:
 	clock=430\n\
 	backlight=100\n\
 	" > $@
+
+macos_bundle = $(bins_dir)/$(binary_name).app
+
+make_bundle:
+	mkdir -p $(macos_bundle)/Contents/MacOS
+	install -s $(target) $(macos_bundle)/Contents/MacOS/$(binary_name)
+	sed 's/@VERSION@/$(root.version.index).0.0/' dist/macos/Info.plist > $(macos_bundle)/Contents/Info.plist
+	$(path_step)/make/tools/mkicns.sh $(theme_resources)/zxtune1024.png $(macos_bundle)/Contents/Resources/zxtune
 
 include $(path_step)/samples/samples.mak
 include $(path_step)/3rdparty/install.mak

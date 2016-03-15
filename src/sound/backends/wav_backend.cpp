@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <l10n/api.h>
@@ -24,8 +25,6 @@
 //std includes
 #include <algorithm>
 #include <cstring>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -265,7 +264,7 @@ namespace Wav
     {
       if (const Binary::SeekableOutputStream::Ptr seekable = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
       {
-        return boost::make_shared<FileStream>(RenderingParameters->SoundFreq(), seekable);
+        return MakePtr<FileStream>(RenderingParameters->SoundFreq(), seekable);
       }
       throw Error(THIS_LINE, translate("WAV conversion is not supported on non-seekable streams."));
     }
@@ -278,7 +277,7 @@ namespace Wav
   public:
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
-      const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(params);
+      const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(params);
       return CreateFileBackendWorker(params, factory);
     }
   };
@@ -289,7 +288,7 @@ namespace Sound
 {
   void RegisterWavBackend(BackendsStorage& storage)
   {
-    const BackendWorkerFactory::Ptr factory = boost::make_shared<Wav::BackendWorkerFactory>();
+    const BackendWorkerFactory::Ptr factory = MakePtr<Wav::BackendWorkerFactory>();
     storage.Register(Wav::ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
   }
 }

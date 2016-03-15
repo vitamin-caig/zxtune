@@ -11,11 +11,13 @@
 //common includes
 #include <contract.h>
 //local includes
-#include "core/plugins/registrator.h"
+#include "core/plugins/players/properties_helper.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //library includes
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
+#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/container.h>
 #include <parameters/tracking_helper.h>
@@ -28,8 +30,6 @@
 #include <3rdparty/xmp/include/xmp.h>
 #include <3rdparty/xmp/src/xmp_private.h>
 //boost includes
-#include <boost/ref.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 
 namespace Module
@@ -280,8 +280,8 @@ namespace Xmp
       , Target(target)
       , Params(params)
       , SoundParams(Sound::RenderParameters::Create(params))
-      , Track(boost::make_shared<TrackState>(info, State))
-      , Analysis(boost::make_shared<Analyzer>(info->ChannelsCount(), State))
+      , Track(MakePtr<TrackState>(info, State))
+      , Analysis(MakePtr<Analyzer>(info->ChannelsCount(), State))
       , FrameDuration(info->GetFrameDuration())
       , SoundFreq()
       , Looped(false)
@@ -383,7 +383,7 @@ namespace Xmp
   public:
     explicit Holder(Context::Ptr ctx, const xmp_module_info& modInfo, TimeType duration, Parameters::Accessor::Ptr props)
       : Ctx(ctx)
-      , Info(boost::make_shared<Information>(boost::cref(*modInfo.mod), duration))
+      , Info(MakePtr<Information>(*modInfo.mod, duration))
       , Properties(props)
     {
     }
@@ -400,7 +400,7 @@ namespace Xmp
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return boost::make_shared<Renderer>(Ctx, target, params, Info);
+      return MakePtr<Renderer>(Ctx, target, params, Info);
     }
   private:
     const Context::Ptr Ctx;
@@ -435,7 +435,7 @@ namespace Xmp
   public:
     explicit Decoder(const PluginDescription& desc)
       : Desc(desc)
-      , Fmt(Desc.Format ? Binary::CreateMatchOnlyFormat(Desc.Format) : boost::make_shared<Format>())
+      , Fmt(Desc.Format ? Binary::CreateMatchOnlyFormat(Desc.Format) : MakePtr<Format>())
     {
     }
 
@@ -463,6 +463,20 @@ namespace Xmp
     const PluginDescription& Desc;
     const Binary::Format::Ptr Fmt;
   };
+  
+  void ParseStrings(const xmp_module& mod, PropertiesHelper& props)
+  {
+    Strings::Array strings;
+    for (uint_t idx = 0; idx < mod.smp; ++idx)
+    {
+      strings.push_back(FromStdString(mod.xxs[idx].name));
+    }
+    for (uint_t idx = 0; idx < mod.ins; ++idx)
+    {
+      strings.push_back(FromStdString(mod.xxi[idx].name));
+    }
+    props.SetStrings(strings);
+  }
 
   class Factory : public Module::Factory
   {
@@ -472,28 +486,30 @@ namespace Xmp
     {
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
-        const Context::Ptr ctx = boost::make_shared<Context>(rawData, Desc.Loader);
+        const Context::Ptr ctx = MakePtr<Context>(rawData, Desc.Loader);
         xmp_module_info modInfo;
         ctx->Call(&::xmp_get_module_info, &modInfo);
         xmp_frame_info frmInfo;
         ctx->Call(&::xmp_get_frame_info, &frmInfo);
 
-        propBuilder.SetTitle(FromStdString(modInfo.mod->name));
-        propBuilder.SetAuthor(FromStdString(modInfo.mod->author));
-        propBuilder.SetProgram(FromStdString(modInfo.mod->type));
+        PropertiesHelper props(*properties);
+        props.SetTitle(FromStdString(modInfo.mod->name));
+        props.SetAuthor(FromStdString(modInfo.mod->author));
+        props.SetProgram(FromStdString(modInfo.mod->type));
         if (const char* comment = modInfo.comment)
         {
-          propBuilder.SetComment(FromStdString(comment));
+          props.SetComment(FromStdString(comment));
         }
+        ParseStrings(*modInfo.mod, props);
         const Binary::Container::Ptr data = rawData.GetSubcontainer(0, modInfo.size);
         const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, modInfo.size);
-        propBuilder.SetSource(*source);
+        props.SetSource(*source);
 
-        return boost::make_shared<Holder>(ctx, boost::cref(modInfo), TimeType(frmInfo.total_time), propBuilder.GetResult());
+        return MakePtr<Holder>(ctx, modInfo, TimeType(frmInfo.total_time), properties);
       }
       catch (const std::exception&)
       {
@@ -1003,8 +1019,8 @@ namespace ZXTune
     {
       const Module::Xmp::PluginDescription& desc = *it;
 
-      const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::Xmp::Decoder>(desc);
-      const Module::Factory::Ptr factory = boost::make_shared<Module::Xmp::Factory>(desc);
+      const Formats::Chiptune::Decoder::Ptr decoder = MakePtr<Module::Xmp::Decoder>(desc);
+      const Module::Factory::Ptr factory = MakePtr<Module::Xmp::Factory>(desc);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(FromStdString(desc.Id), CAPS, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }

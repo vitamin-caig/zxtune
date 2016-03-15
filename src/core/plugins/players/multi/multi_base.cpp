@@ -12,6 +12,7 @@
 #include "multi_base.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <parameters/merged_accessor.h>
 #include <parameters/tracking_helper.h>
@@ -23,7 +24,6 @@
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/mem_fn.hpp>
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -61,7 +61,7 @@ namespace Module
       std::transform(renderers.begin(), renderers.end(), delegates.begin(), boost::mem_fn(&Renderer::GetAnalyzer));
       return delegates.size() == 1
            ? delegates.front()
-           : boost::make_shared<MultiAnalyzer>(delegates.begin(), delegates.end());
+           : MakePtr<MultiAnalyzer>(delegates.begin(), delegates.end());
     }
   private:
     const AnalyzersArray Delegates;
@@ -120,7 +120,7 @@ namespace Module
         {
           totalChannelsCount += (*it)->GetModuleInformation()->ChannelsCount();
         }
-        return boost::make_shared<MultiInformation>(holders.front()->GetModuleInformation(), totalChannelsCount);
+        return MakePtr<MultiInformation>(holders.front()->GetModuleInformation(), totalChannelsCount);
       }
     }
   private:
@@ -229,7 +229,7 @@ namespace Module
       
       Sound::Chunk::Ptr Convert(uint_t sources) const
       {
-        const Sound::Chunk::Ptr result = boost::make_shared<Sound::Chunk>(Buffer.size());
+        const Sound::Chunk::Ptr result = MakePtr<Sound::Chunk>(Buffer.size());
         std::transform(Buffer.begin(), Buffer.end(), result->begin(), std::bind2nd(std::mem_fun_ref(&WideSample::Convert), sources));
         return result;
       }
@@ -345,7 +345,7 @@ namespace Module
       std::transform(renderers.begin(), renderers.end(), delegates.begin(), boost::mem_fn(&Renderer::GetTrackState));
       return delegates.size() == 1
            ? delegates.front()
-           : boost::make_shared<MultiTrackState>(delegates.begin(), delegates.end());
+           : MakePtr<MultiTrackState>(delegates.begin(), delegates.end());
     }
   private:
     const TrackStatesArray Delegates;
@@ -410,8 +410,8 @@ namespace Module
       else
       {
         const std::size_t size = holders.size();
-        const CompositeReceiver::Ptr receiver = boost::make_shared<CompositeReceiver>(target);
-        const Parameters::Accessor::Ptr forcedLoop = boost::make_shared<ForcedLoopParam>();
+        const CompositeReceiver::Ptr receiver = MakePtr<CompositeReceiver>(target);
+        const Parameters::Accessor::Ptr forcedLoop = MakePtr<ForcedLoopParam>();
         RenderersArray delegates(size);
         for (std::size_t idx = 0; idx != size; ++idx)
         {
@@ -422,7 +422,7 @@ namespace Module
           delegates[idx] = holder->CreateRenderer(delegateParams, receiver);
         }
         const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-        return boost::make_shared<MultiRenderer>(delegates.begin(), delegates.end(), renderParams, receiver);
+        return MakePtr<MultiRenderer>(delegates.begin(), delegates.end(), renderParams, receiver);
       }
     }
   private:
@@ -482,7 +482,7 @@ namespace Module
       Require(!holders.empty());
       return holders.size() == 1
            ? CreateMixedPropertiesHolder(holders.front(), params)
-           : boost::make_shared<MultiHolder>(params, holders.begin(), holders.end());
+           : MakePtr<MultiHolder>(params, holders.begin(), holders.end());
     }
   }
 }

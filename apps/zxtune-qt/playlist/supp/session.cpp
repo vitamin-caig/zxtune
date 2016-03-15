@@ -14,6 +14,7 @@
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 //std includes
@@ -21,7 +22,6 @@
 #include <list>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtCore/QStringList>
@@ -135,6 +135,6 @@ namespace Playlist
 {
   Session::Ptr Session::Create()
   {
-    return boost::make_shared<FiledSession>();
+    return MakePtr<FiledSession>();
   }
 }

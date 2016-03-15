@@ -10,8 +10,10 @@
 
 //local includes
 #include "soundtracker.h"
-//boost includes
-#include <boost/make_shared.hpp>
+#include "aym_properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
+//common includes
+#include <make_ptr.h>
 
 namespace Module
 {
@@ -20,18 +22,19 @@ namespace SoundTracker
   class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(AYM::PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
-      Properties.SetFreqtable(TABLE_SOUNDTRACKER);
+      Properties.SetFrequencyTable(TABLE_SOUNDTRACKER);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -51,7 +54,7 @@ namespace SoundTracker
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTracker::PositionEntry>& positions)
     {
-      Data->Order = boost::make_shared<OrderListWithTransposition>(positions.begin(), positions.end());
+      Data->Order = MakePtr<OrderListWithTransposition>(positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -101,8 +104,9 @@ namespace SoundTracker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    AYM::PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -285,19 +289,11 @@ namespace SoundTracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        CurSample = Data->Samples.Find(*sample);
-        if (!CurSample)
-        {
-          CurSample = GetStubSample();
-        }
+        CurSample = &Data->Samples.Get(*sample);
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        CurOrnament = Data->Ornaments.Find(*ornament);
-        if (!CurOrnament)
-        {
-          CurOrnament = GetStubOrnament();
-        }
+        CurOrnament = &Data->Ornaments.Get(*ornament);
       }
       EnvState.SetNewState(src);
     }
@@ -474,7 +470,7 @@ namespace SoundTracker
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
       const TrackStateIterator::Ptr iter = CreateTrackStateIterator(Data);
-      const DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iter, renderer);
     }
   private:
@@ -491,13 +487,14 @@ namespace SoundTracker
     {
     }
 
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -510,7 +507,7 @@ namespace SoundTracker
 
   AYM::Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
   {
-    return boost::make_shared<Factory>(decoder);
+    return MakePtr<Factory>(decoder);
   }
 }
 }

@@ -14,6 +14,7 @@
 //common includes
 #include <contract.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 #include <progress_callback.h>
 //library includes
 #include <binary/container_factories.h>
@@ -24,7 +25,6 @@
 //std includes
 #include <cstring>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <io/text/io.h>
@@ -271,7 +271,7 @@ namespace IO
 
     virtual Ptr WithSubpath(const String& subpath) const
     {
-      return boost::make_shared<RemoteIdentifier>(SchemeValue, PathValue, subpath);
+      return MakePtr<RemoteIdentifier>(SchemeValue, PathValue, subpath);
     }
   private:
     String Serialize() const
@@ -346,7 +346,7 @@ namespace IO
       //Path should include scheme and all possible parameters
       const String path = String::npos == subPos ? uri : uri.substr(0, subPos);
       const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
-      return boost::make_shared<RemoteIdentifier>(scheme, path, subpath);
+      return MakePtr<RemoteIdentifier>(scheme, path, subpath);
     }
 
     virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
@@ -380,7 +380,7 @@ namespace IO
 {
   DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api)
   {
-    return boost::make_shared<NetworkDataProvider>(api);
+    return MakePtr<NetworkDataProvider>(api);
   }
 
   void RegisterNetworkProvider(ProvidersEnumerator& enumerator)

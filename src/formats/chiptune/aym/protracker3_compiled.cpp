@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -25,7 +26,6 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -33,17 +33,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ProTracker3");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace ProTracker3
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ProTracker3");
+
     const std::size_t MIN_SIZE = 200;
     const std::size_t MAX_SIZE = 0xc000;
 
@@ -1008,7 +1005,7 @@ namespace Chiptune
 
     Decoder::Ptr CreateDecoder()
     {
-      return boost::make_shared<BinaryDecoder>();
+      return MakePtr<BinaryDecoder>();
     }
   }// namespace ProTracker3
 

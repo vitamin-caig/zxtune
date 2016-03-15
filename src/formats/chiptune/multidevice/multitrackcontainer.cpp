@@ -12,6 +12,7 @@
 #include "multitrackcontainer.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/data_builder.h>
 #include <binary/input_stream.h>
@@ -20,7 +21,6 @@
 #include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -231,12 +231,12 @@ namespace IFF
     
     void OnString(const Identifier::Type& id, const String& str)
     {
-      AddSubSource(boost::make_shared<StringChunkSource>(id, str));
+      AddSubSource(MakePtr<StringChunkSource>(id, str));
     }
     
     virtual void OnChunk(const Identifier::Type& id, Binary::Container::Ptr content)
     {
-      AddSubSource(boost::make_shared<DataChunkSource>(id, content));
+      AddSubSource(MakePtr<DataChunkSource>(id, content));
     }
   };
 }
@@ -314,7 +314,7 @@ namespace Chiptune
     {
     public:
       BlobBuilder()
-        : Tune(boost::make_shared<IFF::DataBuilder>(IFF::Identifier::MTC1))
+        : Tune(MakePtr<IFF::DataBuilder>(IFF::Identifier::MTC1))
         , Context(Tune)
       {
       }
@@ -359,7 +359,7 @@ namespace Chiptune
       virtual void StartTrack(uint_t /*idx*/)
       {
         FinishTrack();
-        Track = boost::make_shared<IFF::DataBuilder>(IFF::Identifier::TRACK);
+        Track = MakePtr<IFF::DataBuilder>(IFF::Identifier::TRACK);
         Context = Track;
       }
       
@@ -394,7 +394,7 @@ namespace Chiptune
 
     ContainerBuilder::Ptr CreateBuilder()
     {
-      return boost::make_shared<BlobBuilder>();
+      return MakePtr<BlobBuilder>();
     }
     
     class MetadataParser : public IFF::Visitor
@@ -552,7 +552,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateMultiTrackContainerDecoder()
   {
-    return boost::make_shared<MultiTrackContainer::Decoder>();
+    return MakePtr<MultiTrackContainer::Decoder>();
   }
 }
 }

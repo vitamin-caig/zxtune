@@ -9,7 +9,10 @@
 **/
 
 //common includes
+#include <make_ptr.h>
 #include <progress_callback.h>
+//boost includes
+#include <boost/ref.hpp>
 
 namespace
 {
@@ -99,11 +102,11 @@ namespace Log
 
   ProgressCallback::Ptr CreatePercentProgressCallback(uint_t total, ProgressCallback& delegate)
   {
-    return ProgressCallback::Ptr(new PercentProgressCallback(total, delegate));
+    return MakePtr<PercentProgressCallback>(total, boost::ref(delegate));
   }
 
   ProgressCallback::Ptr CreateNestedPercentProgressCallback(uint_t total, uint_t current, ProgressCallback& delegate)
   {
-    return ProgressCallback::Ptr(new NestedPercentProgressCallback(total, current, delegate));
+    return MakePtr<NestedPercentProgressCallback>(total, current, boost::ref(delegate));
   }
 }

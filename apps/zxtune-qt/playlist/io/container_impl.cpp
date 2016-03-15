@@ -13,12 +13,12 @@
 //common includes
 #include <contract.h>
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <core/properties/path.h>
 #include <debug/log.h>
 #include <parameters/merged_accessor.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 
 namespace
@@ -180,7 +180,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return boost::make_shared<StubData>(Path, *Params, e);
+        return MakePtr<StubData>(Path, *Params, e);
       }
     }
 
@@ -322,7 +322,7 @@ namespace
   {
   public:
     DelayLoadItemsIterator(Playlist::Item::DataProvider::Ptr provider,
-      Parameters::Accessor::Ptr properties, Playlist::IO::ContainerItemsPtr items)
+      Parameters::Accessor::Ptr properties, Playlist::IO::ContainerItems::Ptr items)
       : Provider(provider)
       , Properties(properties)
       , Items(items)
@@ -338,8 +338,8 @@ namespace
     virtual Playlist::Item::Data::Ptr Get() const
     {
       Require(Current != Items->end());
-      DelayLoadItemProvider::Ptr provider(new DelayLoadItemProvider(Provider, Properties, *Current));
-      return boost::make_shared<DelayLoadItemData>(boost::ref(provider));
+      DelayLoadItemProvider::Ptr provider = MakePtr<DelayLoadItemProvider>(Provider, Properties, *Current);
+      return MakePtr<DelayLoadItemData>(boost::ref(provider));
     }
 
     virtual void Next()
@@ -350,7 +350,7 @@ namespace
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
     const Parameters::Accessor::Ptr Properties;
-    const Playlist::IO::ContainerItemsPtr Items;
+    const Playlist::IO::ContainerItems::Ptr Items;
     Playlist::IO::ContainerItems::const_iterator Current;
   };
 
@@ -359,7 +359,7 @@ namespace
   public:
     ContainerImpl(Playlist::Item::DataProvider::Ptr provider,
       Parameters::Accessor::Ptr properties,
-      Playlist::IO::ContainerItemsPtr items)
+      Playlist::IO::ContainerItems::Ptr items)
       : Provider(provider)
       , Properties(properties)
       , Items(items)
@@ -378,12 +378,12 @@ namespace
 
     virtual Playlist::Item::Collection::Ptr GetItems() const
     {
-      return boost::make_shared<DelayLoadItemsIterator>(Provider, Properties, Items);
+      return MakePtr<DelayLoadItemsIterator>(Provider, Properties, Items);
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
     const Parameters::Accessor::Ptr Properties;
-    const Playlist::IO::ContainerItemsPtr Items;
+    const Playlist::IO::ContainerItems::Ptr Items;
   };
 }
 
@@ -393,9 +393,9 @@ namespace Playlist
   {
     Container::Ptr CreateContainer(Item::DataProvider::Ptr provider,
       Parameters::Accessor::Ptr properties,
-      ContainerItemsPtr items)
+      ContainerItems::Ptr items)
     {
-      return boost::make_shared<ContainerImpl>(provider, properties, items);
+      return MakePtr<ContainerImpl>(provider, properties, items);
     }
   }
 }

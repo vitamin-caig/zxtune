@@ -8,16 +8,17 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 //std includes
 #include <cstring>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/shared_array.hpp>
 #include <boost/static_assert.hpp>
 
-namespace
+namespace Binary
 {
   inline const void* GetPointer(const Dump& val, std::size_t offset)
   {
@@ -63,7 +64,7 @@ namespace
       if (size && offset < Length)
       {
         size = std::min(size, Length - offset);
-        return boost::make_shared<SharedContainer<Value> >(Buffer, Offset + offset, size);
+        return MakePtr<SharedContainer<Value> >(Buffer, Offset + offset, size);
       }
       else
       {
@@ -86,7 +87,7 @@ namespace Binary
   {
     if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : 0)
     {
-      const boost::shared_ptr<Dump> buffer = boost::make_shared<Dump>(byteData, byteData + size);
+      const boost::shared_ptr<const Dump> buffer(new Dump(byteData, byteData + size));
       return CreateContainer(buffer, 0, size);
     }
     else
@@ -99,7 +100,7 @@ namespace Binary
   {
     if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : 0)
     {
-      return boost::make_shared<SharedContainer<const uint8_t*> >(byteData, 0, size);
+      return MakePtr<SharedContainer<const uint8_t*> >(byteData, 0, size);
     }
     else
     {
@@ -123,7 +124,7 @@ namespace Binary
     }
     else if (data && data->Size())
     {
-      return boost::make_shared<SharedContainer<Data::Ptr> >(data, 0, data->Size());
+      return MakePtr<SharedContainer<Data::Ptr> >(data, 0, data->Size());
     }
     else
     {
@@ -135,7 +136,7 @@ namespace Binary
   {
     if (size && data && data->size() >= offset + size)
     {
-      return boost::make_shared<SharedContainer<boost::shared_ptr<const Dump> > >(data, offset, size);
+      return MakePtr<SharedContainer<boost::shared_ptr<const Dump> > >(data, offset, size);
     }
     else
     {

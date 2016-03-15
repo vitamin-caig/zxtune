@@ -9,11 +9,15 @@
 **/
 
 //local includes
-#include "digital.h"
+#include "dac_simple.h"
 #include "dac_plugin.h"
-#include "core/plugins/registrator.h"
+#include "dac_properties_helper.h"
+#include "core/plugins/player_plugins_registrator.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/tracking.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/digitalmusicmaker.h>
@@ -62,11 +66,11 @@ namespace DigitalMusicMaker
     MIX_SAMPLE,
   };
 
-  class ModuleData : public DAC::ModuleData
+  class ModuleData : public DAC::SimpleModuleData
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
-
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     struct MixedChannel
     {
@@ -197,18 +201,19 @@ namespace DigitalMusicMaker
   class DataBuilder : public Formats::Chiptune::DigitalMusicMaker::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(DAC::PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
       Data->Patterns = Patterns.GetResult();
-      Properties.SetSamplesFreq(SAMPLES_FREQ);
+      Properties.SetSamplesFrequency(SAMPLES_FREQ);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -230,7 +235,7 @@ namespace DigitalMusicMaker
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -250,8 +255,9 @@ namespace DigitalMusicMaker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    DAC::PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -666,7 +672,7 @@ namespace DigitalMusicMaker
     virtual DAC::DataIterator::Ptr CreateDataIterator() const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const DAC::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return DAC::CreateDataIterator(iterator, renderer);
     }
 
@@ -686,13 +692,14 @@ namespace DigitalMusicMaker
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      DAC::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalMusicMaker::Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -711,7 +718,7 @@ namespace ZXTune
     const Char ID[] = {'D', 'M', 'M', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateDigitalMusicMakerDecoder();
-    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::DigitalMusicMaker::Factory>();
+    const Module::DAC::Factory::Ptr factory = MakePtr<Module::DigitalMusicMaker::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

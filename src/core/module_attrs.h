@@ -34,6 +34,8 @@ namespace Module
   extern const std::string ATTR_COMMENT;
   //! Internal format version 10 * major + minor
   extern const std::string ATTR_VERSION;
+  //! Strings (e.g. from sample names)
+  extern const std::string ATTR_STRINGS;
   //@}
 
   //@{

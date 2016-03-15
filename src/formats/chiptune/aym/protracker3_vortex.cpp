@@ -15,6 +15,7 @@
 #include <contract.h>
 #include <crc.h>
 #include <iterator.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
@@ -35,11 +36,6 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
-}
-
 namespace Formats
 {
 namespace Chiptune
@@ -48,6 +44,8 @@ namespace ProTracker3
 {
   namespace VortexTracker2
   {
+    const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
+
     /*
       Common module structure:
 
@@ -1324,6 +1322,10 @@ namespace ProTracker3
         Header.Author = ToStdString(author);
       }
 
+      virtual void SetStrings(const Strings::Array& /*strings*/)
+      {
+      }
+      
       virtual void SetVersion(uint_t version)
       {
         Header.Version = version;
@@ -1594,12 +1596,12 @@ namespace ProTracker3
 
     Decoder::Ptr CreateDecoder()
     {
-      return boost::make_shared<TextDecoder>();
+      return MakePtr<TextDecoder>();
     }
 
     ChiptuneBuilder::Ptr CreateBuilder()
     {
-      return boost::make_shared<TextBuilder>();
+      return MakePtr<TextBuilder>();
     }
   }//VortexTracker2
   }//ProTracker3

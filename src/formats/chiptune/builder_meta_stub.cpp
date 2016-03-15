@@ -21,6 +21,7 @@ namespace Formats
       virtual void SetProgram(const String& /*program*/) {}
       virtual void SetTitle(const String& /*title*/) {}
       virtual void SetAuthor(const String& /*author*/) {}
+      virtual void SetStrings(const Strings::Array& /*strings*/) {}
     };
 
     MetaBuilder& GetStubMetaBuilder()

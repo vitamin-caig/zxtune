@@ -10,18 +10,17 @@
 
 //common includes
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <async/coroutine.h>
 #include <async/worker.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
-namespace
+namespace Async
 {
-  class WorkerCoroutine : public Async::Coroutine
+  class WorkerCoroutine : public Coroutine
   {
   public:
-    explicit WorkerCoroutine(Async::Worker::Ptr worker)
+    explicit WorkerCoroutine(Worker::Ptr worker)
       : Delegate(worker)
     {
     }
@@ -46,7 +45,7 @@ namespace
       return Delegate->Resume();
     }
 
-    virtual void Execute(Async::Scheduler& sch)
+    virtual void Execute(Scheduler& sch)
     {
       while (!Delegate->IsFinished())
       {
@@ -55,7 +54,7 @@ namespace
       }
     }
   private:
-    const Async::Worker::Ptr Delegate;
+    const Worker::Ptr Delegate;
   };
 }
 
@@ -63,7 +62,7 @@ namespace Async
 {
   Job::Ptr CreateJob(Worker::Ptr worker)
   {
-    const Coroutine::Ptr routine = boost::make_shared<WorkerCoroutine>(worker);
+    const Coroutine::Ptr routine = MakePtr<WorkerCoroutine>(worker);
     return CreateJob(routine);
   }
 }

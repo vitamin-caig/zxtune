@@ -11,6 +11,7 @@
 #pragma once
 
 //library includes
+#include <core/module_holder.h>
 #include <sound/backend.h>
 #include <strings/array.h>
 

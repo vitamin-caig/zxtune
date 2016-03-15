@@ -14,6 +14,7 @@
 //common includes
 #include <contract.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
 #include <devices/aym/chip.h>
@@ -26,7 +27,6 @@
 #include <cstring>
 #include <numeric>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/range/size.hpp>
 //text includes
@@ -34,15 +34,12 @@
 
 #define FILE_TAG 6972CAAF
 
-namespace
-{
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
-
 namespace Module
 {
 namespace AYM
 {
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+
   //duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const Char letter)
   {
@@ -293,17 +290,17 @@ namespace AYM
 
   Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
   {
-    return boost::make_shared<ChipParametersImpl>(params);
+    return MakePtr<ChipParametersImpl>(params);
   }
 
   TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
   {
-    return boost::make_shared<AYTrackParameters>(params);
+    return MakePtr<AYTrackParameters>(params);
   }
 
   TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params, uint_t idx)
   {
-    return boost::make_shared<TSTrackParameters>(params, idx);
+    return MakePtr<TSTrackParameters>(params, idx);
   }
 }
 }

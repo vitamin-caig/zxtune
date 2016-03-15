@@ -10,11 +10,11 @@
 
 //local includes
 #include "tfm_parameters.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
 #include <sound/render_params.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -52,7 +52,7 @@ namespace TFM
 
   Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
   {
-    return boost::make_shared<ChipParameters>(params);
+    return MakePtr<ChipParameters>(params);
   }
 }
 }

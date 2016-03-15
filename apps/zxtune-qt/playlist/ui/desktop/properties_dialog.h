@@ -36,6 +36,6 @@ namespace Playlist
       void ResetToDefaults();
     };
 
-    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Playlist::Model::IndexSetPtr scope);
+    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Playlist::Model::IndexSet::Ptr scope);
   }
 }

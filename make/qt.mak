@@ -31,10 +31,12 @@ endif
 ifneq (,$(findstring Core,$(libraries.qt)))
 windows_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
 mingw_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32
+darwin.ld.flags += -framework AppKit -framework Security
 endif
 ifneq (,$(findstring Gui,$(libraries.qt)))
 windows_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
 mingw_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
+darwin.ld.flags += -framework Carbon -framework SystemConfiguration
 ifneq ($($(platform).$(arch).qt.version),)
 linux_libraries += freetype Xext Xrender Xrandr Xfixes X11 fontconfig
 dingux_libraries += png

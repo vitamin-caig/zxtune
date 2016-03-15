@@ -16,6 +16,7 @@
 #include "gates/dsound_api.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
@@ -24,7 +25,6 @@
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/range/size.hpp>
@@ -498,9 +498,9 @@ namespace DirectSound
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
       const Time::Milliseconds frameDuration = RenderingParameters->FrameDuration();
-      res.Stream = boost::make_shared<StreamBuffer>(buffer, boost::posix_time::millisec(frameDuration.Get()));
+      res.Stream = MakePtr<StreamBuffer>(buffer, boost::posix_time::millisec(frameDuration.Get()));
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
-      res.Volume = boost::make_shared<VolumeControl>(res.Device, primary);
+      res.Volume = MakePtr<VolumeControl>(res.Device, primary);
       return res;
     }
   private:
@@ -520,7 +520,7 @@ namespace DirectSound
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
-      return boost::make_shared<BackendWorker>(DsApi, params);
+      return MakePtr<BackendWorker>(DsApi, params);
     }
   private:
     const Api::Ptr DsApi;
@@ -575,7 +575,7 @@ namespace DirectSound
     virtual Device::Ptr Get() const
     {
       return IsValid()
-        ? boost::make_shared<DirectSoundDevice>(Current->first, Current->second)
+        ? MakePtr<DirectSoundDevice>(Current->first, Current->second)
         : Device::Ptr();
     }
 
@@ -614,7 +614,7 @@ namespace Sound
       const DirectSound::Api::Ptr api = DirectSound::LoadDynamicApi();
       if (DirectSound::DevicesIterator(api).IsValid())
       {
-        const BackendWorkerFactory::Ptr factory = boost::make_shared<DirectSound::BackendWorkerFactory>(api);
+        const BackendWorkerFactory::Ptr factory = MakePtr<DirectSound::BackendWorkerFactory>(api);
         storage.Register(DirectSound::ID, DirectSound::DESCRIPTION, DirectSound::CAPABILITIES, factory);
       }
       else
@@ -635,7 +635,7 @@ namespace Sound
       try
       {
         const Api::Ptr api = LoadDynamicApi();
-        return Device::Iterator::Ptr(new DevicesIterator(api));
+        return MakePtr<DevicesIterator>(api);
       }
       catch (const Error& e)
       {

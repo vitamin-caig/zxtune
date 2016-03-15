@@ -13,6 +13,7 @@
 //common includes
 #include <contract.h>
 #include <data_streaming.h>
+#include <make_ptr.h>
 //library includes
 #include <async/activity.h>
 #include <async/progress.h>
@@ -58,13 +59,13 @@ namespace Async
     static typename ::DataReceiver<T>::Ptr Create(std::size_t workersCount, std::size_t queueSize, typename ::DataReceiver<T>::Ptr delegate)
     {
       return workersCount
-        ? boost::make_shared<DataReceiver>(workersCount, queueSize, delegate)
+        ? MakePtr<DataReceiver>(workersCount, queueSize, delegate)
         : delegate;
     }
   private:
     void StartAll(std::size_t count)
     {
-      const typename Operation::Ptr op = boost::make_shared<TransceiveOperation>(QueueObject, Statistic, Delegate);
+      const typename Operation::Ptr op = MakePtr<TransceiveOperation>(QueueObject, Statistic, Delegate);
       while (Activities.size() < count)
       {
         const Activity::Ptr act = Activity::Create(op);

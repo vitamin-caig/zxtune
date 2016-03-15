@@ -10,11 +10,11 @@
 
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/locale/gnu_gettext.hpp>
 #include <boost/locale/util.hpp>
 //std includes
@@ -107,7 +107,7 @@ namespace
   public:
     BoostLocaleLibrary()
       : SystemLocale()
-      , CurrentLocale(boost::make_shared<std::locale>())
+      , CurrentLocale(new std::locale())
     {
       Dbg("Current locale is %1%. Encoding is %2%. Translation is %3%", SystemLocale.Name, SystemLocale.Encoding, SystemLocale.Translation);
     }
@@ -157,7 +157,7 @@ namespace
 
     virtual L10n::Vocabulary::Ptr GetVocabulary(const std::string& domain) const
     {
-      return boost::make_shared<DomainVocabulary>(CurrentLocale, domain);
+      return MakePtr<DomainVocabulary>(CurrentLocale, domain);
     }
 
     static BoostLocaleLibrary& Instance()

@@ -11,6 +11,7 @@
 //local includes
 #include "file_backend.h"
 //common includes
+#include <make_ptr.h>
 #include <progress_callback.h>
 //library includes
 #include <async/data_receiver.h>
@@ -23,8 +24,6 @@
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -325,7 +324,7 @@ namespace Sound
 {
   BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
   {
-    return boost::make_shared<File::BackendWorker>(params, factory);
+    return MakePtr<File::BackendWorker>(params, factory);
   }
 }
 

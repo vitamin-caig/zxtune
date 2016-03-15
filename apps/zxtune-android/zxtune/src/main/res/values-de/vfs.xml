@@ -1,0 +1,191 @@
+<resources>
+    <!-- Local -->
+    <string name="vfs_local_root_name">Lokales Dateisystem</string>
+    <string name="vfs_local_root_description">Inhalt des internen und externen Speichers</string>
+    <!-- zxtunes.com -->
+    <string name="vfs_zxtunes_root_name">ZXTUNES Musik-Sammlung</string>
+    <string name="vfs_zxtunes_authors_name">Autoren</string>
+    <string name="vfs_zxtunes_authors_description">ZX Spectrum Musiker Katalog</string>
+    <!-- Playlists -->
+    <string name="vfs_playlists_root_name">Wiedergabelisten</string>
+    <string name="vfs_playlists_root_description">Gespeicherte Wiedergabelisten</string>
+    <!-- ftp.modland.com -->
+    <string name="vfs_modland_root_name">Modland - das größte Modul-Archiv</string>
+    <string name="vfs_modland_root_description">Von http://www.exotica.org.uk</string>
+    <string name="vfs_modland_authors_name">Autoren</string>
+    <string name="vfs_modland_authors_description">Browsen nach Autor</string>
+    <string name="vfs_modland_collections_name">Sammlungen</string>
+    <string name="vfs_modland_collections_description">Navigieren nach Sammlung</string>
+    <string name="vfs_modland_formats_name">Formate</string>
+    <string name="vfs_modland_formats_description">Navigieren nach Format</string>
+    <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
+    <string name="vfs_hvsc_root_description">Von http://www.prg.dtu.dk</string>
+    <!-- zxart.ee -->
+    <string name="vfs_zxart_root_name">ZX-Art - moderne ZX Spectrum Musik</string>
+    <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
+    <string name="vfs_zxart_authors_name">Autoren</string>
+    <string name="vfs_zxart_authors_description">Browsen nach Autor</string>
+    <string name="vfs_zxart_parties_name">Parteien</string>
+    <string name="vfs_zxart_parties_description">Browsen nach Fest</string>
+    <string name="vfs_zxart_toptracks_name">Top-Tonspuren</string>
+    <string name="vfs_zxart_toptracks_description">100 Tonspuren mit höchster Bewertung</string>
+    <string name="vfs_zxart_unknown_year_name">Unbekanntes Jahr</string>
+    <string name="vfs_zxart_compo_unknown">Unbekannter Wettbewerb</string>
+    <string name="vfs_zxart_compo_standard">Standard-Musik-Wettbewerb</string>
+    <string name="vfs_zxart_compo_ay">AY Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_beeper">Piepser Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_copyay">Kopieren AY Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_nocopyay">No-Kopie AY Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_realtime">Echtzeit-Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_realtimeay">Echtzeit-AY Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_realtimebeeper">Echtzeit-Piepser Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_out">Außer Konkurrenz</string>
+    <string name="vfs_zxart_compo_wild">Wild</string>
+    <string name="vfs_zxart_compo_experimental">Experimenteller Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_oldschool">Oldschool-Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_mainstream">Mainstream-Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_progressive">Progressive Musikwettbewerb</string>
+    <!-- joshw.info -->
+    <string name="vfs_joshw_root_description">Verschiedene Archive</string>
+    <!-- amp.dascene.net -->
+    <string name="vfs_amp_handles_name">Spitznamen</string>
+    <string name="vfs_amp_handles_description">Browsen nach Autor</string>
+    <string name="vfs_amp_countries_name">Die Länder</string>
+    <string name="vfs_amp_countries_description">Browsen nach Ländern</string>
+    <string name="vfs_amp_groups_name">Gruppen</string>
+    <string name="vfs_amp_groups_description">Browsen nach Gruppe</string>
+    <string-array name="vfs_amp_countries_list">
+<!--0--><item></item>
+<!--1--><item>Argentinien</item>
+<!--2--><item>Australia</item>
+<!--3--><item>Österreich</item>
+<!--4--><item>Belarus</item>
+<!--5--><item>Belgien</item>
+<!--6--><item>Brasilien</item>
+<!--7--><item>Bulgarien</item>
+<!--8--><item>Kanada</item>
+<!--9--><item>Chile</item>
+<!--10--><item>Costa Rica</item>
+<!--11--><item>Kroatien</item>
+<!--12--><item>Cyprus</item>
+<!--13--><item>Tschechische Republik</item>
+<!--14--><item>Dänemark</item>
+<!--15--><item>Dominikanische Republik</item>
+<!--16--><item>Estland</item>
+<!--17--><item>Finnland</item>
+<!--18--><item>Frankreich</item>
+<!--19--><item>Deutschland</item>
+<!--20--><item>Griechenland</item>
+<!--21--><item>Ungarn</item>
+<!--22--><item>Iceland</item>
+<!--23--><item>Ireland</item>
+<!--24--><item>Isle of Man</item>
+<!--25--><item>Isle of Wight</item>
+<!--26--><item>Israel</item>
+<!--27--><item>Italien</item>
+<!--28--><item>Japan</item>
+<!--29--><item>Jordan</item>
+<!--30--><item>Lichtenstein</item>
+<!--31--><item>Luxemburg</item>
+<!--32--><item>Mazedonien</item>
+<!--33--><item>Malta</item>
+<!--34--><item>Martinique</item>
+<!--35--><item>Mexiko</item>
+<!--36--><item>Neukaledonien</item>
+<!--37--><item>Neuseeland</item>
+<!--38--><item>Nordirland</item>
+<!--39--><item>Norwegen</item>
+<!--40--><item>Polen</item>
+<!--41--><item>Portugal</item>
+<!--42--><item>Quebec</item>
+<!--43--><item>Rumänien</item>
+<!--44--><item>Russland</item>
+<!--45--><item>Scottland</item>
+<!--46--><item>Serbien</item>
+<!--47--><item>Singapur</item>
+<!--48--><item>Slovakia</item>
+<!--49--><item>Slowenien</item>
+<!--50--><item>Südafrika</item>
+<!--51--><item>Spanien</item>
+<!--52--><item>Schweden</item>
+<!--53--><item>Schweiz</item>
+<!--54--><item>Taiwan</item>
+<!--55--><item>Niederlande</item>
+<!--56--><item>Türkei</item>
+<!--57--><item>USA</item>
+<!--58--><item>Ukraine</item>
+<!--59--><item>Großbritannien</item>
+<!--60--><item>Unbekannt</item>
+<!--61--><item>Uruguay</item>
+<!--62--><item>Venezuela</item>
+<!--63--><item>Wales</item>
+<!--64--><item>Jugoslawien (ex)</item>
+<!--65--><item></item>
+<!--66--><item></item>
+<!--67--><item></item>
+<!--68--><item></item>
+<!--69--><item></item>
+<!--70--><item></item>
+<!--71--><item></item>
+<!--72--><item></item>
+<!--73--><item></item>
+<!--74--><item>Korsika</item>
+<!--75--><item></item>
+<!--76--><item></item>
+<!--77--><item></item>
+<!--78--><item></item>
+<!--79--><item>R.I.P</item>
+<!--80--><item></item>
+<!--81--><item></item>
+<!--82--><item></item>
+<!--83--><item></item>
+<!--84--><item></item>
+<!--85--><item></item>
+<!--86--><item>Lettland</item>
+<!--87--><item>Peru</item>
+<!--88--><item></item>
+<!--89--><item></item>
+<!--90--><item></item>
+<!--91--><item></item>
+<!--92--><item>Thailand</item>
+<!--93--><item></item>
+<!--94--><item></item>
+<!--95--><item></item>
+<!--96--><item></item>
+<!--97--><item></item>
+<!--98--><item></item>
+<!--99--><item>Iran</item>
+<!--100--><item></item>
+<!--101--><item>Irak</item>
+<!--102--><item></item>
+<!--103--><item></item>
+<!--104--><item></item>
+<!--105--><item></item>
+<!--106--><item></item>
+<!--107--><item></item>
+<!--108--><item></item>
+<!--109--><item></item>
+<!--110--><item></item>
+<!--111--><item></item>
+<!--112--><item></item>
+<!--113--><item></item>
+<!--114--><item>Paraguay</item>
+<!--115--><item></item>
+<!--116--><item></item>
+<!--117--><item></item>
+<!--118--><item></item>
+<!--119--><item></item>
+<!--120--><item>Malaysia</item>
+<!--121--><item></item>
+<!--122--><item>Guatemala</item>
+    </string-array>
+    <!-- modarchive.org -->
+    <string name="vfs_modarchive_authors_name">Künstler</string>
+    <string name="vfs_modarchive_authors_description">Browsen nach Künstler</string>
+    <string name="vfs_modarchive_genres_name">Genre</string>
+    <string name="vfs_modarchive_genres_description">Browse nach Genre</string>
+    <!-- errors -->
+    <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
+    <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>
+    <string name="file_too_big">Die Datei ist zu groß</string>
+</resources>

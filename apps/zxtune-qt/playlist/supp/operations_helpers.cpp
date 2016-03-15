@@ -40,7 +40,7 @@ namespace Playlist
 {
   namespace Item
   {
-    void ExecuteOperation(const Storage& stor, Model::IndexSetPtr selectedItems, Visitor& visitor, Log::ProgressCallback& cb)
+    void ExecuteOperation(const Storage& stor, Model::IndexSet::Ptr selectedItems, Visitor& visitor, Log::ProgressCallback& cb)
     {
       const std::size_t totalItems = selectedItems ? selectedItems->size() : stor.CountItems();
       const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);

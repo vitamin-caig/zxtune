@@ -10,17 +10,17 @@
 
 //local includes
 #include "dump_builder.h"
-//boost includes
-#include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
+//common includes
+#include <make_ptr.h>
 
-namespace
+namespace Devices
 {
-  using namespace Devices::AYM;
-
+namespace AYM
+{
   class RenderState
   {
   public:
+    typedef boost::shared_ptr<RenderState> Ptr;
     virtual ~RenderState() {}
 
     virtual void Reset() = 0;
@@ -55,7 +55,6 @@ namespace
 
   void ApplyMerge(Registers& dst, const Registers& src)
   {
-
     for (Registers::IndicesIterator it(src); it; ++it)
     {
       const Registers::Index idx = *it;
@@ -123,7 +122,7 @@ namespace
   class FrameDumper : public Dumper
   {
   public:
-    FrameDumper(const Time::Microseconds& frameDuration, FramedDumpBuilder::Ptr builder, std::auto_ptr<RenderState> state)
+    FrameDumper(const Time::Microseconds& frameDuration, FramedDumpBuilder::Ptr builder, RenderState::Ptr state)
       : FrameDuration(frameDuration)
       , Builder(builder)
       , State(state)
@@ -186,28 +185,23 @@ namespace
   private:
     const Stamp FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
-    const std::auto_ptr<RenderState> State;
+    const RenderState::Ptr State;
     mutable uint_t FramesToSkip;
     Stamp NextFrame;
   };
-}
 
-namespace Devices
-{
-  namespace AYM
+  Dumper::Ptr CreateDumper(DumperParameters::Ptr params, FramedDumpBuilder::Ptr builder)
   {
-    Dumper::Ptr CreateDumper(DumperParameters::Ptr params, FramedDumpBuilder::Ptr builder)
+    RenderState::Ptr state;
+    switch (params->OptimizationLevel())
     {
-      std::auto_ptr<RenderState> state;
-      switch (params->OptimizationLevel())
-      {
-      case DumperParameters::NONE:
-        state.reset(new NotOptimizedRenderState());
-        break;
-      default:
-        state.reset(new OptimizedRenderState());
-      }
-      return boost::make_shared<FrameDumper>(params->FrameDuration(), builder, boost::ref(state));
+    case DumperParameters::NONE:
+      state = MakePtr<NotOptimizedRenderState>();
+      break;
+    default:
+      state = MakePtr<OptimizedRenderState>();
     }
+    return MakePtr<FrameDumper>(params->FrameDuration(), builder, state);
   }
+}
 }

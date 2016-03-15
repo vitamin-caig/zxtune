@@ -10,13 +10,13 @@
 
 //common includes
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <l10n/api.h>
 #include <math/numeric.h>
 #include <math/fixedpoint.h>
 #include <sound/gainer.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/integer/static_log2.hpp>
 
 #define FILE_TAG F5996093
@@ -134,6 +134,6 @@ namespace Sound
 {
   FadeGainer::Ptr CreateFadeGainer()
   {
-    return boost::make_shared<FixedPointGainer>();
+    return MakePtr<FixedPointGainer>();
   }
 }

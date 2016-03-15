@@ -12,14 +12,15 @@
 #include "aym_base.h"
 #include "aym_base_stream.h"
 #include "aym_plugin.h"
-#include "core/plugins/registrator.h"
+#include "aym_properties_helper.h"
+#include "core/plugins/player_plugins_registrator.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <formats/chiptune/aym/ym.h>
-#include <sound/sound_parameters.h>
 //boost includes
-#include <boost/make_shared.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace Module
 {
@@ -30,10 +31,11 @@ namespace YMVTX
   class StreamModel : public AYM::StreamModel
   {
   public:
-    StreamModel(RegistersArray& rh, uint_t loop)
-      : LoopFrame(loop)
+    typedef boost::shared_ptr<StreamModel> RWPtr;
+    
+    StreamModel()
+      : LoopFrame(0)
     {
-      Data.swap(rh);
     }
 
     virtual uint_t Size() const
@@ -50,8 +52,19 @@ namespace YMVTX
     {
       return Data[pos];
     }
+    
+    void SetLoop(uint_t frame)
+    {
+      LoopFrame = frame;
+    }
+    
+    Devices::AYM::Registers& Allocate()
+    {
+      Data.push_back(Devices::AYM::Registers());
+      return Data.back();
+    }
   private:
-    const uint_t LoopFrame;
+    uint_t LoopFrame;
     RegistersArray Data;
   };
 
@@ -83,9 +96,9 @@ namespace YMVTX
   class DataBuilder : public Formats::Chiptune::YM::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
+    explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
-      , Loop(0)
+      , Data(MakeRWPtr<StreamModel>())
     {
     }
 
@@ -96,17 +109,17 @@ namespace YMVTX
 
     virtual void SetChipType(bool ym)
     {
-      Properties.SetValue(Parameters::ZXTune::Core::AYM::TYPE, ym ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY);
+      Properties.SetChipType(ym ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY);
     }
 
     virtual void SetStereoMode(uint_t mode)
     {
-      Properties.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, VtxMode2AymLayout(mode));
+      Properties.SetChannelsLayout(VtxMode2AymLayout(mode));
     }
 
     virtual void SetLoop(uint_t loop)
     {
-      Loop = loop;
+      Data->SetLoop(loop);
     }
 
     virtual void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/)
@@ -116,12 +129,12 @@ namespace YMVTX
 
     virtual void SetClockrate(uint64_t freq)
     {
-      Properties.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, freq);
+      Properties.SetChipFrequency(freq);
     }
 
     virtual void SetIntFreq(uint_t freq)
     {
-      Properties.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
+      Properties.SetFramesFrequency(freq);
     }
 
     virtual void SetTitle(const String& title)
@@ -143,7 +156,7 @@ namespace YMVTX
     {
       if (year)
       {
-        Properties.SetValue(ATTR_DATE, year);
+        Properties.SetDate(boost::lexical_cast<String>(year));
       }
     }
 
@@ -159,7 +172,7 @@ namespace YMVTX
 
     virtual void AddData(const Dump& registers)
     {
-      Devices::AYM::Registers& data = Allocate();
+      Devices::AYM::Registers& data = Data->Allocate();
       const uint_t availRegs = std::min<uint_t>(registers.size(), Devices::AYM::Registers::ENV + 1);
       for (uint_t reg = 0, mask = 1; reg != availRegs; ++reg, mask <<= 1)
       {
@@ -173,20 +186,13 @@ namespace YMVTX
 
     AYM::StreamModel::Ptr GetResult() const
     {
-      return Data.empty()
-        ? AYM::StreamModel::Ptr()
-        : AYM::StreamModel::Ptr(new StreamModel(Data, Loop));
+      return Data->Size()
+        ? Data
+        : AYM::StreamModel::Ptr();
     }
   private:
-    Devices::AYM::Registers& Allocate()
-    {
-      Data.push_back(Devices::AYM::Registers());
-      return Data.back();
-    }
-  private:
-    PropertiesBuilder& Properties;
-    mutable RegistersArray Data;
-    uint_t Loop;
+    AYM::PropertiesHelper& Properties;
+    const StreamModel::RWPtr Data;
   };
 
   class Factory : public AYM::Factory
@@ -197,15 +203,16 @@ namespace YMVTX
     {
     }
 
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         if (const AYM::StreamModel::Ptr data = dataBuilder.GetResult())
         {
-          propBuilder.SetSource(*container);
-          return AYM::CreateStreamedChiptune(data, propBuilder.GetResult());
+          props.SetSource(*container);
+          return AYM::CreateStreamedChiptune(data, properties);
         }
       }
       return AYM::Chiptune::Ptr();
@@ -224,7 +231,7 @@ namespace ZXTune
     const Char ID[] = {'V', 'T', 'X', 0};
 
     const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateVTXDecoder();
-    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+    const Module::AYM::Factory::Ptr factory = MakePtr<Module::YMVTX::Factory>(decoder);
     const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);;
     registrator.RegisterPlugin(plugin);
   }
@@ -235,13 +242,13 @@ namespace ZXTune
     const Char ID[] = {'Y', 'M', 0};
     {
       const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreatePackedYMDecoder();
-      const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+      const Module::AYM::Factory::Ptr factory = MakePtr<Module::YMVTX::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateYMDecoder();
-      const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+      const Module::AYM::Factory::Ptr factory = MakePtr<Module::YMVTX::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);;
       registrator.RegisterPlugin(plugin);
     }

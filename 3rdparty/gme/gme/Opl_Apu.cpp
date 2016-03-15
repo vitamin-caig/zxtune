@@ -1,6 +1,7 @@
 #include "Opl_Apu.h"
 
 #include "blargg_source.h"
+#include "gme.h"
 
 #include "ym2413.h"
 #include "fmopl.h"
@@ -176,6 +177,11 @@ void Opl_Apu::end_frame( blip_time_t time )
 
 	if ( output_ )
 		output_->set_modified();
+}
+
+int Opl_Apu::osc_status( voice_status_t* buf, int buf_size ) const
+{
+  return 0;//TODO
 }
 
 void Opl_Apu::run_until( blip_time_t end_time )

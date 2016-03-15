@@ -9,13 +9,14 @@
 **/
 
 //local includes
-#include "core/plugins/registrator.h"
-#include "core/plugins/utils.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <core/module_attrs.h>
@@ -34,7 +35,6 @@
 //std includes
 #include <map>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 //3rdparty
@@ -45,16 +45,14 @@
 #include <3rdparty/gme/gme/Sap_Emu.h>
 #include <3rdparty/gme/gme/Vgm_Emu.h>
 #include <3rdparty/gme/gme/Gym_Emu.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Core::GMESupp");
-}
+#include <3rdparty/gme/gme/Kss_Emu.h>
 
 namespace Module
 {
 namespace GME
 {
+  const Debug::Stream Dbg("Core::GMESupp");
+
   typedef boost::shared_ptr< ::Music_Emu> EmuPtr;
 
   typedef EmuPtr (*EmuCreator)();
@@ -62,7 +60,7 @@ namespace GME
   template<class EmuType>
   EmuPtr Create()
   {
-    return boost::make_shared<EmuType>();
+    return EmuPtr(new EmuType());
   }
   
   class GME : public Module::Analyzer
@@ -294,7 +292,7 @@ namespace GME
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return boost::make_shared<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
   private:
     const GME::Ptr Tune;
@@ -304,56 +302,35 @@ namespace GME
 
   struct PluginDescription
   {
-    const String Id;
+    const Char* const Id;
     const uint_t ChiptuneCaps;
     const EmuCreator CreateEmu;
   };
   
-  const Time::Milliseconds PERIOD = Time::Milliseconds(20);
+  const Time::Milliseconds PERIOD(20);
   
-  Time::Milliseconds GetProperties(const GME& gme, PropertiesBuilder& propBuilder)
+  Time::Milliseconds GetProperties(const GME& gme, PropertiesHelper& props)
   {
     ::track_info_t info;
     gme.GetInfo(info);
     
-    const String& system = OptimizeString(FromStdString(info.system));
-    const String& song = OptimizeString(FromStdString(info.song));
-    const String& game = OptimizeString(FromStdString(info.game));
-    const String& author = OptimizeString(FromStdString(info.author));
-    const String& comment = OptimizeString(FromStdString(info.comment));
-    const String& copyright = OptimizeString(FromStdString(info.copyright));
-    const String& dumper = OptimizeString(FromStdString(info.dumper));
+    const String& system = FromStdString(info.system);
+    const String& song = FromStdString(info.song);
+    const String& game = FromStdString(info.game);
+    const String& author = FromStdString(info.author);
+    const String& comment = FromStdString(info.comment);
+    const String& copyright = FromStdString(info.copyright);
+    const String& dumper = FromStdString(info.dumper);
     
-    if (!system.empty())
-    {
-      propBuilder.SetValue(ATTR_COMPUTER, system);
-    }
-    if (!song.empty())
-    {
-      propBuilder.SetTitle(song);
-      propBuilder.SetProgram(game);
-    }
-    else
-    {
-      propBuilder.SetTitle(game);
-    }
-    if (!author.empty())
-    {
-      propBuilder.SetAuthor(author);
-    }
-    else
-    {
-      propBuilder.SetAuthor(dumper);
-    }
-    if (!comment.empty())
-    {
-      propBuilder.SetComment(comment);
-    }
-    else if (!copyright.empty())
-    {
-      propBuilder.SetComment(copyright);
-    }
-    propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Microseconds(PERIOD).Get());
+    props.SetComputer(system);
+    props.SetTitle(game);
+    props.SetTitle(song);
+    props.SetProgram(game);
+    props.SetAuthor(dumper);
+    props.SetAuthor(author);
+    props.SetComment(copyright);
+    props.SetComment(comment);
+    props.SetFramesFrequency(Time::GetFrequencyForPeriod(PERIOD));
 
     if (info.length > 0)
     {
@@ -378,27 +355,26 @@ namespace GME
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
         if (const Formats::Multitrack::Container::Ptr container = Decoder->Decode(rawData))
         {
-          const Parameters::Accessor::Ptr props = propBuilder.GetResult();
-        
           if (container->TracksCount() > 1)
           {
-            Require(HasContainer(Desc.Id, props));
+            Require(HasContainer(Desc.Id, properties));
           }
 
-          const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
-          const Time::Milliseconds storedDuration = GetProperties(*tune, propBuilder);
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
+          PropertiesHelper props(*properties);
+          const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
           const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
         
-          propBuilder.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
+          props.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
         
-          return boost::make_shared<Holder>(tune, info, props);
+          return MakePtr<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)
@@ -428,22 +404,21 @@ namespace GME
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
         if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
         {
-          const Parameters::Accessor::Ptr props = propBuilder.GetResult();
-
-          const GME::Ptr tune = boost::make_shared<GME>(Desc.CreateEmu, container, 0);
-          const Time::Milliseconds storedDuration = GetProperties(*tune, propBuilder);
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, container, 0);
+          PropertiesHelper props(*properties);
+          const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
           const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
         
-          propBuilder.SetSource(*container);
+          props.SetSource(*container);
         
-          return boost::make_shared<Holder>(tune, info, props);
+          return MakePtr<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)
@@ -508,6 +483,16 @@ namespace GME
       },
       &Formats::Multitrack::CreateSAPDecoder,
       &Formats::Chiptune::CreateSAPDecoder,
+    },
+    //kssx
+    {
+      {
+        "KSSX",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
+        &Create< ::Kss_Emu>
+      },
+      &Formats::Multitrack::CreateKSSXDecoder,
+      &Formats::Chiptune::CreateKSSXDecoder
     }
   };
   
@@ -539,7 +524,7 @@ namespace GME
       },
       &Formats::Chiptune::CreateVideoGameMusicDecoder
     },
-    //vgm
+    //gym
     {
       {
         "GYM",
@@ -547,6 +532,15 @@ namespace GME
         &Create< ::Gym_Emu>
       },
       &Formats::Chiptune::CreateGYMDecoder
+    },
+    //kss
+    {
+      {
+        "KSS",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
+        &Create< ::Kss_Emu>
+      },
+      &Formats::Chiptune::CreateKSSDecoder
     }
   };
 }
@@ -563,7 +557,7 @@ namespace ZXTune
       const Formats::Multitrack::Decoder::Ptr multi = desc.CreateMultitrackDecoder();
       const uint_t caps = desc.Desc.ChiptuneCaps;
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder(multi);
-      const Module::Factory::Ptr factory = boost::make_shared<Module::GME::MultitrackFactory>(desc.Desc, multi);
+      const Module::Factory::Ptr factory = MakePtr<Module::GME::MultitrackFactory>(desc.Desc, multi);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
@@ -577,7 +571,7 @@ namespace ZXTune
 
       const uint_t caps = desc.Desc.ChiptuneCaps;
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder();
-      const Module::Factory::Ptr factory = boost::make_shared<Module::GME::SingletrackFactory>(desc.Desc, decoder);
+      const Module::Factory::Ptr factory = MakePtr<Module::GME::SingletrackFactory>(desc.Desc, decoder);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }

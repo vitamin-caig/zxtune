@@ -36,7 +36,7 @@
 #include <strings/template.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
+#include <boost/algorithm/string/find.hpp>
 #include <boost/algorithm/string/replace.hpp>
 //qt includes
 #include <QtCore/QUrl>
@@ -125,10 +125,31 @@ namespace
       static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
       static const Char LBRACKET[] = {'<', 0};
       static const Char LBRACKET_ESCAPED[] = {'&', 'l', 't', ';', 0};
+      static const Char RBRACKET[] = {'>', 0};
+      static const Char RBRACKET_ESCAPED[] = {'&', 'g', 't', ';', 0};
+      static const Char NEWLINE[] = {'\n', 0};
+      static const Char NEWLINE_ESCAPED[] = {'<', 'b', 'r', '/', '>', 0};
+      static const int MAX_LINES = 16;
       String result = Parent::GetFieldValue(fieldName);
+      TrimLongMultiline(result, MAX_LINES);
       boost::algorithm::replace_all(result, AMPERSAND, AMPERSAND_ESCAPED);
       boost::algorithm::replace_all(result, LBRACKET, LBRACKET_ESCAPED);
+      boost::algorithm::replace_all(result, RBRACKET, RBRACKET_ESCAPED);
+      boost::algorithm::replace_all(result, NEWLINE, NEWLINE_ESCAPED);
       return result;
+    }
+  private:
+    static void TrimLongMultiline(String& result, int maxLines)
+    {
+      static const Char NEWLINE[] = {'\n', 0};
+      static const Char ELLIPSIS[] = {'\n', '<', '.', '.', '.', '>', 0};
+      typedef boost::iterator_range<String::iterator> Range;
+      const Range head = boost::algorithm::find_nth(result, NEWLINE, maxLines / 2 - 1);
+      const Range tail = boost::algorithm::find_nth(result, NEWLINE, -maxLines / 2);
+      if (head.begin() < tail.begin())
+      {
+        boost::algorithm::replace_range(result, Range(head.begin(), tail.begin()), ELLIPSIS);
+      }
     }
   };
 
@@ -152,6 +173,7 @@ namespace
         "<b>Author:</b> [Author]<br/>"
         "<b>Program:</b> [Program]<br/>"
         "[Comment]"
+        "<pre>[Strings]</pre>"
         "</html>"
       );
       return GetTemplate(view);
@@ -573,7 +595,7 @@ namespace
       const Playlist::Model::Ptr model = Controller->GetModel();
       if (const std::size_t itemsCount = model->CountItems())
       {
-        const Playlist::Model::IndexSetPtr items = View->GetSelectedItems();
+        const Playlist::Model::IndexSet::Ptr items = View->GetSelectedItems();
         model->RemoveItems(items);
         if (1 == items->size())
         {
@@ -597,7 +619,7 @@ namespace
       const Playlist::Model::Ptr model = Controller->GetModel();
       if (const std::size_t itemsCount = model->CountItems())
       {
-        const Playlist::Model::IndexSetPtr items = View->GetSelectedItems();
+        const Playlist::Model::IndexSet::Ptr items = View->GetSelectedItems();
         const QStringList& paths = model->GetItemsPaths(*items);
         QByteArray data;
         {
@@ -660,7 +682,7 @@ namespace
         //TODO: extract
         const Playlist::Model::Ptr model = Controller->GetModel();
         op->setParent(model);
-        Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
+        Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)), SLOT(SelectItems(Playlist::Model::IndexSet::Ptr))));
         model->PerformOperation(op);
       }
     }

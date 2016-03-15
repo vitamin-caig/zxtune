@@ -13,13 +13,13 @@
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -31,8 +31,8 @@ namespace Chiptune
   {
     typedef boost::array<uint8_t, 4> IdentifierType;
     
-    const IdentifierType ID0 = {'T', 'H', 'X', 0};
-    const IdentifierType ID1 = {'T', 'H', 'X', 1};
+    const IdentifierType ID0 = {{'T', 'H', 'X', 0}};
+    const IdentifierType ID1 = {{'T', 'H', 'X', 1}};
   
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -195,7 +195,7 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         const std::string& title = Stream.ReadCString(Stream.GetRestSize());
         meta.SetTitle(FromStdString(title));
-        ParseSampleNames();
+        ParseSampleNames(meta);
         if (Source.Identifier == ID0)
         {
           meta.SetProgram(Text::ABYSSHIGHESTEXPERIENCE_EDITOR_OLD);
@@ -206,13 +206,16 @@ namespace Chiptune
         }
       }
       
-      void ParseSampleNames()
+      void ParseSampleNames(MetaBuilder& meta)
       {
         const uint_t count = Source.SamplesCount;
+        Strings::Array names(count);
         for (uint_t smp = 0; smp < count; ++smp)
         {
-          Stream.ReadCString(Stream.GetRestSize());
+          const std::string& name = Stream.ReadCString(Stream.GetRestSize());
+          names[smp] = FromStdString(name);
         }
+        meta.SetStrings(names);
       }
     private:
       Binary::InputStream Stream;
@@ -312,7 +315,7 @@ namespace Chiptune
   
   Decoder::Ptr CreateAbyssHighestExperienceDecoder()
   {
-    return boost::make_shared<AbyssHighestExperience::Decoder>();
+    return MakePtr<AbyssHighestExperience::Decoder>();
   }
 }
 }

@@ -14,6 +14,7 @@
 //common includes
 #include <contract.h>
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <parameters/convert.h>
 #include <parameters/merged_accessor.h>
@@ -454,8 +455,8 @@ namespace
     {
       const Container::Ptr changed = Container::Create();
       const Accessor::Ptr delegate = CreateMergedAccessor(changed, stored);
-      const Modifier::Ptr callback = boost::make_shared<CopyOnWrite>(stored, changed);
-      return boost::make_shared<SettingsSnapshot>(delegate, modifiers.Subscribe(callback));
+      const Modifier::Ptr callback = MakePtr<CopyOnWrite>(stored, changed);
+      return MakePtr<SettingsSnapshot>(delegate, modifiers.Subscribe(callback));
     }
   public:
     const Accessor::Ptr Delegate;
@@ -469,8 +470,8 @@ namespace
     {
       if (!TrackedOptions)
       {
-        const Container::Ptr persistent = boost::make_shared<SettingsContainer>();
-        Options = boost::make_shared<CachedSettingsContainer>(persistent);
+        const Container::Ptr persistent = MakePtr<SettingsContainer>();
+        Options = MakePtr<CachedSettingsContainer>(persistent);
         TrackedOptions = CreatePreChangePropertyTrackedContainer(Options, Modifiers);
       }
       return TrackedOptions;

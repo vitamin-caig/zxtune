@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -27,14 +28,8 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ExtremeTracker1");
-}
 
 namespace Formats
 {
@@ -42,6 +37,8 @@ namespace Chiptune
 {
   namespace ExtremeTracker1
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ExtremeTracker1");
+
     const std::size_t CHANNELS_COUNT = 4;
     const std::size_t MAX_POSITIONS_COUNT = 100;
     const std::size_t MAX_SAMPLES_COUNT = 16;
@@ -434,6 +431,12 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(FromCharArray(Source.Title));
         meta.SetProgram(Version.GetEditorString());
+        Strings::Array names(Source.Samples.size());
+        for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
+        {
+          names[idx] = FromCharArray(Source.Samples[idx].Name);
+        }
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -507,7 +510,7 @@ namespace Chiptune
           }
         }
       }
-
+      
       std::size_t GetSize() const
       {
         return MODULE_SIZE;
@@ -696,7 +699,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateExtremeTracker1Decoder()
   {
-    return boost::make_shared<ExtremeTracker1::Decoder>();
+    return MakePtr<ExtremeTracker1::Decoder>();
   }
 }
 }

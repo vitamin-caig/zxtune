@@ -16,11 +16,11 @@
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/range/size.hpp>
 
@@ -103,7 +103,7 @@ namespace
         ZXTune::Sound::Backends::Mp3::BITRATE_DEFAULT);
       IntegerValue::Bind(*qualityValue, *Options, ZXTune::Sound::Backends::Mp3::QUALITY,
         ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT);
-      IntegerValue::Bind(*channelsMode, boost::make_shared<ChannelModeComboboxValue>(Options));
+      IntegerValue::Bind(*channelsMode, MakePtr<ChannelModeComboboxValue>(Options));
       //fixup
       if (!selectCBR->isChecked() && !selectABR->isChecked() && !selectQuality->isChecked())
       {

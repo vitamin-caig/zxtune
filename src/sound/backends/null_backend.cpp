@@ -11,11 +11,11 @@
 //local includes
 #include "backend_impl.h"
 #include "storage.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -71,7 +71,7 @@ namespace Null
   public:
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr /*params*/, Module::Holder::Ptr /*holder*/) const
     {
-      return boost::make_shared<BackendWorker>();
+      return MakePtr<BackendWorker>();
     }
   };
 }//Null
@@ -81,7 +81,7 @@ namespace Sound
 {
   void RegisterNullBackend(BackendsStorage& storage)
   {
-    const BackendWorkerFactory::Ptr factory = boost::make_shared<Null::BackendWorkerFactory>();
+    const BackendWorkerFactory::Ptr factory = MakePtr<Null::BackendWorkerFactory>();
     storage.Register(Null::ID, Null::DESCRIPTION, CAP_TYPE_STUB, factory);
   }
 }

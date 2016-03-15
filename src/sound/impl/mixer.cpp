@@ -12,6 +12,7 @@
 #include "mixer_core.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <l10n/api.h>
 #include <math/numeric.h>
@@ -19,8 +20,6 @@
 //std includes
 #include <algorithm>
 #include <numeric>
-//boost includes
-#include <boost/make_shared.hpp>
 
 #define FILE_TAG 278565B1
 
@@ -69,24 +68,24 @@ namespace Sound
   template<>
   OneChannelMatrixMixer::Ptr OneChannelMatrixMixer::Create()
   {
-    return boost::make_shared<Mixer<1> >();
+    return MakePtr<Mixer<1> >();
   }
 
   template<>
   TwoChannelsMatrixMixer::Ptr TwoChannelsMatrixMixer::Create()
   {
-    return boost::make_shared<Mixer<2> >();
+    return MakePtr<Mixer<2> >();
   }
 
   template<>
   ThreeChannelsMatrixMixer::Ptr ThreeChannelsMatrixMixer::Create()
   {
-    return boost::make_shared<Mixer<3> >();
+    return MakePtr<Mixer<3> >();
   }
 
   template<>
   FourChannelsMatrixMixer::Ptr FourChannelsMatrixMixer::Create()
   {
-    return boost::make_shared<Mixer<4> >();
+    return MakePtr<Mixer<4> >();
   }
 }

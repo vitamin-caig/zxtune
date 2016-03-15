@@ -11,12 +11,14 @@
 //local includes
 #include "roms.h"
 #include "songlengths.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
+#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
@@ -41,15 +43,12 @@
 #include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::SIDSupp");
-}
-
 namespace Module
 {
 namespace Sid
 {
+  const Debug::Stream Dbg("Core::SIDSupp");
+
   typedef boost::shared_ptr<SidTune> TunePtr;
   typedef boost::shared_ptr<sidplayfp> EnginePtr;
 
@@ -145,7 +144,7 @@ namespace Sid
       , Builder("resid")
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
-      , Analysis(boost::make_shared<Analyzer>(Engine))
+      , Analysis(MakePtr<Analyzer>(Engine))
       , Target(target)
       , SoundParams(Sound::RenderParameters::Create(params))
       , Params(params)
@@ -373,7 +372,7 @@ namespace Sid
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return boost::make_shared<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
   private:
     const TunePtr Tune;
@@ -381,17 +380,17 @@ namespace Sid
     const Parameters::Accessor::Ptr Properties;
   };
 
-  bool HasSidContainer(Parameters::Accessor::Ptr params)
+  bool HasSidContainer(const Parameters::Accessor& params)
   {
     Parameters::StringType container;
-    Require(params->FindValue(Module::ATTR_CONTAINER, container));
+    Require(params.FindValue(Module::ATTR_CONTAINER, container));
     return container == "SID" || boost::algorithm::ends_with(container, ">SID");
   }
 
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
@@ -403,31 +402,32 @@ namespace Sid
         const SidTuneInfo& tuneInfo = *tune->getInfo();
         if (tuneInfo.songs() > 1)
         {
-          Require(HasSidContainer(propBuilder.GetResult()));
+          Require(HasSidContainer(*properties));
         }
 
+        PropertiesHelper props(*properties);
         switch (tuneInfo.numberOfInfoStrings())
         {
         default:
         case 3:
           //copyright/publisher really
-          propBuilder.SetComment(FromStdString(tuneInfo.infoString(2)));
+          props.SetComment(FromStdString(tuneInfo.infoString(2)));
         case 2:
-          propBuilder.SetAuthor(FromStdString(tuneInfo.infoString(1)));
+          props.SetAuthor(FromStdString(tuneInfo.infoString(1)));
         case 1:
-          propBuilder.SetTitle(FromStdString(tuneInfo.infoString(0)));
+          props.SetTitle(FromStdString(tuneInfo.infoString(0)));
         case 0:
           break;
         }
         const Binary::Container::Ptr data = rawData.GetSubcontainer(0, tuneInfo.dataFileLen());
         const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, data->Size());
-        propBuilder.SetSource(*source);
+        props.SetSource(*source);
 
         const uint_t fps = tuneInfo.songSpeed() == SidTuneInfo::SPEED_CIA_1A || tuneInfo.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
-        propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(fps).Get());
+        props.SetFramesFrequency(fps);
 
-        const Information::Ptr info = boost::make_shared<Information>(GetDuration(params), tune, fps, songIdx);
-        return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
+        const Information::Ptr info = MakePtr<Information>(GetDuration(params), tune, fps, songIdx);
+        return MakePtr<Holder>(tune, info, properties);
       }
       catch (const std::exception&)
       {
@@ -445,7 +445,7 @@ namespace ZXTune
     const Char ID[] = {'S', 'I', 'D', 0};
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::MOS6581;
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSIDDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::Sid::Factory>();
+    const Module::Factory::Ptr factory = MakePtr<Module::Sid::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

@@ -11,22 +11,25 @@
 //local includes
 #include "roms.h"
 
-namespace
+namespace Module
+{
+namespace Sid
 {
   const uint8_t KERNAL[] =
   {
 #include "kernal.inc"
   };
-  
+
   const uint8_t BASIC[] =
   {
 #include "basic.inc"
   };
-  
+
   const uint8_t CHARGEN[] =
   {
 #include "chargen.inc"
   };
+}
 }
 
 namespace Module

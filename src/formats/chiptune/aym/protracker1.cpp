@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -24,14 +25,8 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ProTracker1");
-}
 
 namespace Formats
 {
@@ -39,6 +34,8 @@ namespace Chiptune
 {
   namespace ProTracker1
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ProTracker1");
+
     const std::size_t MIN_SIZE = 256;
     const std::size_t MAX_SIZE = 0x2800;
     const std::size_t MAX_POSITIONS_COUNT = 255;
@@ -923,7 +920,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateProTracker1Decoder()
   {
-    return boost::make_shared<ProTracker1::Decoder>();
+    return MakePtr<ProTracker1::Decoder>();
   }
 }// namespace Chiptune
 }// namespace Formats

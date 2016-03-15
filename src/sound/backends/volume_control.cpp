@@ -10,10 +10,11 @@
 
 //local includes
 #include "volume_control.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <l10n/api.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/weak_ptr.hpp>
 
 #define FILE_TAG B368C82C
@@ -56,6 +57,6 @@ namespace Sound
 {
   VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate)
   {
-    return boost::make_shared<VolumeControlDelegate>(delegate);
+    return MakePtr<VolumeControlDelegate>(delegate);
   }
 }

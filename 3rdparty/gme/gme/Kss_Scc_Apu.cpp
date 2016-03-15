@@ -14,6 +14,7 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+#include "gme.h"
 
 // Tones above this frequency are treated as disabled tone at half volume.
 // Power of two is more efficient (avoids division).
@@ -40,6 +41,29 @@ void Scc_Apu::reset()
 		memset( &oscs [i], 0, offsetof (osc_t,output) );
 
 	memset( regs, 0, sizeof regs );
+}
+
+int Scc_Apu::osc_status( voice_status_t* buf, int buf_size ) const
+{
+	int voices = 0;
+	for ( int idx = 0; idx < osc_count && voices < buf_size; ++idx )
+	{
+		if (! (regs [0xAF] & (1 << idx)))
+		{
+			continue;
+		}
+		const osc_t& osc = oscs [idx];
+		const blip_time_t period = (regs [0xA0 + idx * 2 + 1] & 0x0F) * 0x100 + regs [0xA0 + idx * 2] + 1;
+		const int volume = regs [0xAA + idx] & 0x0F;
+		if ( period != 0 && volume != 0 )
+		{
+			buf[voices].level = volume * voice_max_level / 15;
+			buf[voices].divider = period * wave_size;
+			buf[voices].frequency = osc.output->clock_rate();
+			++voices;
+		}
+	}
+	return voices;
 }
 
 Scc_Apu::Scc_Apu()

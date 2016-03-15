@@ -10,24 +10,23 @@
 
 //local includes
 #include "dump_builder.h"
-//library includes
-#include <strings/format.h>
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 //std includes
 #include <algorithm>
 
 namespace
 {
-  using namespace Devices::AYM;
-  
-  const Char FRAME_NUMBER_FORMAT[] = {'%','1','$','0','5','u',' ','\0'};
-
-  char HexSymbol(uint8_t sym)
+  inline char HexSymbol(uint8_t sym)
   {
     return sym >= 10 ? 'A' + sym - 10 : '0' + sym;
   }
+}
 
+namespace Devices
+{
+namespace AYM
+{
   class DebugDumpBuilder : public FramedDumpBuilder
   {
   public:
@@ -38,7 +37,6 @@ namespace
     
     virtual void Initialize()
     {
-      //static const std::string HEADER("##### 000102030405060708090a0b0c0d\n");
       static const std::string HEADER("000102030405060708090a0b0c0d\n");
       Data.assign(HEADER.begin(), HEADER.end());
       FrameNumber = 0;
@@ -57,7 +55,6 @@ namespace
       {
         AddNochangesMessage();
       }
-      AddFrameNumber();
       Dump str(Registers::TOTAL * 2, ' ');
       for (Registers::IndicesIterator it(update); it; ++it)
       {
@@ -71,15 +68,8 @@ namespace
   private:
     void AddNochangesMessage()
     {
-      AddFrameNumber();
       Data.push_back('=');
       AddEndOfFrame();
-    }
-
-    void AddFrameNumber()
-    {
-      //const String number = Strings::Format(FRAME_NUMBER_FORMAT, FrameNumber);
-      //std::copy(number.begin(), number.end(), std::back_inserter(Data));
     }
 
     void AddData(const Dump& str)
@@ -96,16 +86,11 @@ namespace
     Dump Data;
     uint_t FrameNumber;
   };
-}
 
-namespace Devices
-{
-  namespace AYM
+  Dumper::Ptr CreateDebugDumper(DumperParameters::Ptr params)
   {
-    Dumper::Ptr CreateDebugDumper(DumperParameters::Ptr params)
-    {
-      const FramedDumpBuilder::Ptr builder = boost::make_shared<DebugDumpBuilder>();
-      return CreateDumper(params, builder);
-    }
+    const FramedDumpBuilder::Ptr builder = MakePtr<DebugDumpBuilder>();
+    return CreateDumper(params, builder);
   }
+}
 }

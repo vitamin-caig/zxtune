@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
@@ -21,14 +22,8 @@
 #include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::SoundTracker");
-}
 
 namespace Formats
 {
@@ -36,6 +31,8 @@ namespace Chiptune
 {
   namespace SoundTrackerUncompiled
   {
+    const Debug::Stream Dbg("Formats::Chiptune::SoundTracker");
+
     using namespace SoundTracker;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -555,7 +552,7 @@ namespace Chiptune
     {
       Decoder::Ptr CreateUncompiledDecoder()
       {
-        return boost::make_shared<SoundTrackerUncompiled::Decoder>();
+        return MakePtr<SoundTrackerUncompiled::Decoder>();
       }
     }
   }

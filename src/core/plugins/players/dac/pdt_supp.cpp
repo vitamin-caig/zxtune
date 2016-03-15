@@ -9,12 +9,16 @@
 **/
 
 //local includes
+#include "dac_simple.h"
 #include "dac_plugin.h"
-#include "digital.h"
-#include "core/plugins/registrator.h"
+#include "dac_properties_helper.h"
+#include "core/plugins/player_plugins_registrator.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
 #include "core/plugins/players/tracking.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <devices/dac/sample_factories.h>
@@ -33,10 +37,11 @@ namespace ProDigiTracker
   
   typedef SimpleOrnament Ornament;
 
-  class ModuleData : public DAC::ModuleData
+  class ModuleData : public DAC::SimpleModuleData
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     SparsedObjectsStorage<Ornament> Ornaments;
   };
@@ -44,18 +49,19 @@ namespace ProDigiTracker
   class DataBuilder : public Formats::Chiptune::ProDigiTracker::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(DAC::PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<ProDigiTracker::CHANNELS_COUNT>())
     {
       Data->Patterns = Patterns.GetResult();
-      Properties.SetSamplesFreq(SAMPLES_FREQ);
+      Properties.SetSamplesFrequency(SAMPLES_FREQ);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -75,7 +81,7 @@ namespace ProDigiTracker
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -115,8 +121,9 @@ namespace ProDigiTracker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    DAC::PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -206,7 +213,7 @@ namespace ProDigiTracker
       {
         if (const uint_t* ornament = src.GetOrnament())
         {
-          ornamentState.Object = Data->Ornaments.Find(*ornament);
+          ornamentState.Object = &Data->Ornaments.Get(*ornament);
           ornamentState.Position = 0;
           builder.SetNoteSlide(ornamentState.GetOffset());
         }
@@ -246,7 +253,7 @@ namespace ProDigiTracker
     virtual DAC::DataIterator::Ptr CreateDataIterator() const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const DAC::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return DAC::CreateDataIterator(iterator, renderer);
     }
 
@@ -266,13 +273,14 @@ namespace ProDigiTracker
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      DAC::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -291,7 +299,7 @@ namespace ZXTune
     const Char ID[] = {'P', 'D', 'T', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProDigiTrackerDecoder();
-    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::ProDigiTracker::Factory>();
+    const Module::DAC::Factory::Ptr factory = MakePtr<Module::ProDigiTracker::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

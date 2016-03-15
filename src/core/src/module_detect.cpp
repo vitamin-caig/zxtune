@@ -10,31 +10,27 @@
 
 //local includes
 #include "callback.h"
-#include "core/plugins/enumerator.h"
-#include "core/plugins/plugins_types.h"
+#include "core/plugins/archive_plugins_enumerator.h"
+#include "core/plugins/player_plugins_enumerator.h"
 #include "core/plugins/players/ay/aym_base.h"
 //common includes
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/container.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <src/core/text/plugins.h>
 
 #define FILE_TAG 006E56AA
 
-namespace
+namespace Module
 {
   const Debug::Stream Dbg("Core::Detection");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
 
-namespace Module
-{
   const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
 
   String EncodeArchivePluginToPath(const String& pluginId)
@@ -198,8 +194,8 @@ namespace Module
   {
     if (const AYM::Holder::Ptr aym = boost::dynamic_pointer_cast<const AYM::Holder>(delegate))
     {
-      return boost::make_shared<MixedPropertiesAYMHolder>(aym, props);
+      return MakePtr<MixedPropertiesAYMHolder>(aym, props);
     }
-    return boost::make_shared<MixedPropertiesHolder>(delegate, props);
+    return MakePtr<MixedPropertiesHolder>(delegate, props);
   }
 }

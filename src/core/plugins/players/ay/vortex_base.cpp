@@ -10,10 +10,10 @@
 
 //local includes
 #include "vortex_base.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <math/numeric.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -425,7 +425,7 @@ namespace Vortex
 
   AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart)
   {
-    return boost::make_shared<DataRenderer>(data, trackChannelStart);
+    return MakePtr<DataRenderer>(data, trackChannelStart);
   }
 }
 }

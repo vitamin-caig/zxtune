@@ -14,6 +14,7 @@
 //common includes
 #include <error.h>
 #include <iterator.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_attrs.h>
 #include <parameters/merged_accessor.h>
@@ -23,8 +24,6 @@
 //std includes
 #include <map>
 #include <set>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -240,7 +239,7 @@ namespace TurboSound
   {
   public:
     MergedDataIterator(AYM::DataIterator::Ptr first, AYM::DataIterator::Ptr second)
-      : Observer(boost::make_shared<MergedTrackState>(first->GetStateObserver(), second->GetStateObserver()))
+      : Observer(MakePtr<MergedTrackState>(first->GetStateObserver(), second->GetStateObserver()))
       , First(first)
       , Second(second)
     {
@@ -484,12 +483,12 @@ namespace TurboSound
 
     virtual Information::Ptr GetInformation() const
     {
-      return boost::make_shared<MergedModuleInfo>(First->GetInformation(), Second->GetInformation());
+      return MakePtr<MergedModuleInfo>(First->GetInformation(), Second->GetInformation());
     }
 
     virtual Parameters::Accessor::Ptr GetProperties() const
     {
-      const Parameters::Accessor::Ptr mixProps = boost::make_shared<MergedModuleProperties>(First->GetProperties(), Second->GetProperties());
+      const Parameters::Accessor::Ptr mixProps = MakePtr<MergedModuleProperties>(First->GetProperties(), Second->GetProperties());
       return Parameters::CreateMergedAccessor(Properties, mixProps);
     }
 
@@ -497,7 +496,7 @@ namespace TurboSound
     {
       const AYM::DataIterator::Ptr first = First->CreateDataIterator(trackParams[0]);
       const AYM::DataIterator::Ptr second = Second->CreateDataIterator(trackParams[1]);
-      return boost::make_shared<MergedDataIterator>(first, second);
+      return MakePtr<MergedDataIterator>(first, second);
     }
   private:
     const Parameters::Accessor::Ptr Properties;
@@ -543,7 +542,7 @@ namespace TurboSound
   DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams, TrackStateIterator::Ptr iterator,
       const DataRenderersArray& renderers)
   {
-    return boost::make_shared<DoubleDataIterator>(trackParams, iterator, renderers);
+    return MakePtr<DoubleDataIterator>(trackParams, iterator, renderers);
   }
 
   Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device)
@@ -559,17 +558,17 @@ namespace TurboSound
   {
     if (first->GetInformation()->FramesCount() >= second->GetInformation()->FramesCount())
     {
-      return boost::make_shared<MergedChiptune>(params, first, second);
+      return MakePtr<MergedChiptune>(params, first, second);
     }
     else
     {
-      return boost::make_shared<MergedChiptune>(params, second, first);
+      return MakePtr<MergedChiptune>(params, second, first);
     }
   }
 
   Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
   {
-    return boost::make_shared<Renderer>(params, iterator, device);
+    return MakePtr<Renderer>(params, iterator, device);
   }
 
   Renderer::Ptr CreateRenderer(const Chiptune& chiptune, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
@@ -583,7 +582,7 @@ namespace TurboSound
 
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
   {
-    return boost::make_shared<Holder>(chiptune);
+    return MakePtr<Holder>(chiptune);
   }
 }
 }

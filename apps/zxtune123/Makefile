@@ -6,14 +6,14 @@ source_files := $(addsuffix .cpp,information sound source display cli_app config
 source_files.windows = console_windows.cpp zxtune123.rc
 source_files.mingw = $(source_files.windows)
 source_files.linux = console_linux.cpp
-source_files.macos = $(source_files.linux)
+source_files.darwin = $(source_files.linux)
 source_files.dingux = console_dingux.cpp
 
 text_files := text/text
 other_text_files := text/configfile text/cmdline text/messages text/conversion text/cmd_keys_local
 
 libraries.common = analysis async binary binary_format \
-                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers core_properties \
+                  core core_conversion core_plugins_players core_plugins_archives core_properties \
                   debug devices_aym devices_beeper devices_dac devices_aym_dumper devices_fm devices_saa devices_z80 \
                   formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \
                   io \

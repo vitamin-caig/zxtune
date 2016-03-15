@@ -39,7 +39,7 @@ namespace
       Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
       Require(supp.connect(this, SIGNAL(OnSeeking(int)), SLOT(Seek(int))));
-      timePosition->setStyle(new UI::ClickNGoSliderStyle(*timePosition));
+      timePosition->setStyle(UI::GetStyle());
     }
 
     virtual void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item)

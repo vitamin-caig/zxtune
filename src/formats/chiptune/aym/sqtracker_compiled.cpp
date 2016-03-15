@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -24,14 +25,8 @@
 #include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::SQTracker");
-}
 
 namespace Formats
 {
@@ -39,6 +34,8 @@ namespace Chiptune
 {
   namespace SQTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::SQTracker");
+
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x3600;
     const std::size_t MAX_POSITIONS_COUNT = 120;
@@ -1029,7 +1026,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateSQTrackerDecoder()
   {
-    return boost::make_shared<SQTracker::Decoder>();
+    return MakePtr<SQTracker::Decoder>();
   }
 }// namespace Chiptune
 }// namespace Formats

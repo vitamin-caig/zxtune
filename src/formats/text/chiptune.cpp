@@ -77,6 +77,12 @@ extern const Char GYM_DECODER_DESCRIPTION[] = {
 extern const Char HES_DECODER_DESCRIPTION[] = {
   'H','o','m','e',' ','E','n','t','e','r','t','a','i','n','m','e','n','t',' ','S','y','s','t','e','m',0
 };
+extern const Char KSSX_DECODER_DESCRIPTION[] = {
+  'K','S','S',' ','E','x','t','e','n','d','e','d',' ','M','u','s','i','c',' ','F','o','r','m','a','t',0
+};
+extern const Char KSS_DECODER_DESCRIPTION[] = {
+  'K','S','S',' ','M','u','s','i','c',' ','F','o','r','m','a','t',0
+};
 extern const Char MULTITRACK_CONTAINER_DECODER_DESCRIPTION[] = {
   'M','u','l','t','i','t','r','a','c','k',' ','C','o','n','t','a','i','n','e','r',0
 };

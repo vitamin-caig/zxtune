@@ -10,18 +10,18 @@
 
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <analysis/path.h>
 #include <strings/array.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
 //std includes
 #include <cassert>
 
-namespace
+namespace Analysis
 {
   Strings::Array SplitPath(const String& str, Char separator)
   {
@@ -40,9 +40,9 @@ namespace
   }
 
   template<class It>
-  Analysis::Path::Ptr CreatePath(Char separator, It from, It to);
+  Path::Ptr CreatePath(Char separator, It from, It to);
 
-  class ParsedPath : public Analysis::Path
+  class ParsedPath : public Path
   {
   public:
     template<class Iter>
@@ -97,7 +97,7 @@ namespace
     const Char Separator;
   };
 
-  class EmptyPath : public Analysis::Path
+  class EmptyPath : public Path
   {
   public:
     explicit EmptyPath(Char separator)
@@ -122,13 +122,13 @@ namespace
 
     virtual Ptr Append(const String& element) const
     {
-      return Analysis::ParsePath(element, Separator);
+      return ParsePath(element, Separator);
     }
 
     virtual Ptr Extract(const String& startPath) const
     {
       return startPath.empty()
-        ? boost::make_shared<EmptyPath>(Separator)
+        ? MakePtr<EmptyPath>(Separator)
         : Ptr();
     }
   private:
@@ -136,15 +136,15 @@ namespace
   };
 
   template<class It>
-  Analysis::Path::Ptr CreatePath(Char separator, It from, It to)
+  Path::Ptr CreatePath(Char separator, It from, It to)
   {
     if (from != to)
     {
-      return boost::make_shared<ParsedPath>(separator, from, to);
+      return MakePtr<ParsedPath>(separator, from, to);
     }
     else
     {
-      return boost::make_shared<EmptyPath>(separator);
+      return MakePtr<EmptyPath>(separator);
     }
   }
 }

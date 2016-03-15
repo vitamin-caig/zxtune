@@ -10,21 +10,24 @@
 
 //local includes
 #include "dump_builder.h"
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 //std includes
 #include <algorithm>
 #include <iterator>
 
-namespace
+namespace Devices
 {
-  using namespace Devices::AYM;
-
-  const uint8_t NO_R13 = 0xff;
-
+namespace AYM
+{
   class RawDumpBuilder : public FramedDumpBuilder
   {
   public:
+    enum
+    {
+      NO_R13 = 0xff
+    };
+    
     virtual void Initialize()
     {
       Data.clear();
@@ -67,21 +70,16 @@ namespace
   private:
     Dump Data;
   };
-}
 
-namespace Devices
-{
-  namespace AYM
+  FramedDumpBuilder::Ptr CreateRawDumpBuilder()
   {
-    FramedDumpBuilder::Ptr CreateRawDumpBuilder()
-    {
-      return boost::make_shared<RawDumpBuilder>();
-    }
-
-    Dumper::Ptr CreateRawStreamDumper(DumperParameters::Ptr params)
-    {
-      const FramedDumpBuilder::Ptr builder = CreateRawDumpBuilder();
-      return CreateDumper(params, builder);
-    }
+    return MakePtr<RawDumpBuilder>();
   }
+
+  Dumper::Ptr CreateRawStreamDumper(DumperParameters::Ptr params)
+  {
+    const FramedDumpBuilder::Ptr builder = CreateRawDumpBuilder();
+    return CreateDumper(params, builder);
+  }
+}
 }

@@ -1,7 +1,7 @@
 #stub library for lha functionality without formats_packed linking
 library_name := formats_packed_decompilers
 path_step := ../../../..
-source_files := $(wildcard ../compiled*)
+source_files := $(wildcard ../compiled*) ../container.cpp
 
 include $(path_step)/make/default.mak
 

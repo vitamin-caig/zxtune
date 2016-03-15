@@ -178,7 +178,7 @@ namespace
 MainWindow::Ptr EmbeddedMainWindow::Create(Parameters::Container::Ptr options)
 {
   //TODO: create proper window
-  const MainWindow::Ptr res(new EmbeddedMainWindowImpl(options));
+  const MainWindow::Ptr res = new EmbeddedMainWindowImpl(options);
   res->setWindowFlags(Qt::FramelessWindowHint);
   res->showMaximized();
   return res;

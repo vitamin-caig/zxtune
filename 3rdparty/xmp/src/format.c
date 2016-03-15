@@ -70,7 +70,9 @@ const struct format_loader *const format_loader[NUM_FORMATS + 2] = {
 	&mfp_loader,
 	/* &alm_loader, */
 	&polly_loader,
+#ifndef NO_PROWIZARD
 	&pw_loader,
+#endif
 	NULL
 };
 
@@ -82,6 +84,7 @@ char **format_list()
 
 	if (_farray[0] == NULL) {
 		for (count = i = 0; format_loader[i] != NULL; i++) {
+#ifndef NO_PROWIZARD
 			if (strcmp(format_loader[i]->name, "prowizard") == 0) {
 				for (j = 0; pw_format[j] != NULL; j++) {
 					_farray[count++] = pw_format[j]->name;
@@ -89,6 +92,9 @@ char **format_list()
 			} else {
 				_farray[count++] = format_loader[i]->name;
 			}
+#else
+			_farray[count++] = format_loader[i]->name;
+#endif
 		}
 
 		_farray[count] = NULL;

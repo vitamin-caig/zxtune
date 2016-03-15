@@ -12,7 +12,9 @@
 #include "aym_base.h"
 #include "ts_base.h"
 #include "vortex_base.h"
-#include "core/plugins/registrator.h"
+#include "aym_properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
 //common includes
@@ -32,9 +34,10 @@ namespace ProTracker3
   class DataBuilder : public Formats::Chiptune::ProTracker3::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(AYM::PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , PatOffset(Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
@@ -43,7 +46,7 @@ namespace ProTracker3
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetVersion(uint_t version)
@@ -54,7 +57,7 @@ namespace ProTracker3
     virtual void SetNoteTable(Formats::Chiptune::ProTracker3::NoteTable table)
     {
       const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Data->Version);
-      Properties.SetFreqtable(freqTable);
+      Properties.SetFrequencyTable(freqTable);
     }
 
     virtual void SetMode(uint_t mode)
@@ -80,7 +83,7 @@ namespace ProTracker3
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -185,7 +188,8 @@ namespace ProTracker3
     }
   private:
     const ModuleData::RWPtr Data;
-    PropertiesBuilder& Properties;
+    AYM::PropertiesHelper& Properties;
+    MetaProperties Meta;
     uint_t PatOffset;
     PatternsBuilder Patterns;
   };
@@ -252,7 +256,7 @@ namespace ProTracker3
     {
       if (first || second)
       {
-        return boost::make_shared<TSLine>(first, second);
+        return MakePtr<TSLine>(first, second);
       }
       else
       {
@@ -302,7 +306,7 @@ namespace ProTracker3
     {
       const Pattern::Ptr first = Delegate->Get(idx);
       const Pattern::Ptr second = Delegate->Get(Base - 1 - idx);
-      return boost::make_shared<TSPattern>(first, second);
+      return MakePtr<TSPattern>(first, second);
     }
 
     virtual uint_t GetSize() const
@@ -316,7 +320,7 @@ namespace ProTracker3
 
   PatternsSet::Ptr CreateTSPatterns(uint_t patOffset, PatternsSet::Ptr pats)
   {
-    return boost::make_shared<TSPatternsSet>(patOffset, pats);
+    return MakePtr<TSPatternsSet>(patOffset, pats);
   }
 
   class PT3Chiptune : public AYM::Chiptune
@@ -392,25 +396,26 @@ namespace ProTracker3
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
+        props.SetSource(*container);
         const uint_t patOffset = dataBuilder.GetPatOffset();
         const ModuleData::RWPtr modData = dataBuilder.GetResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
           //TurboSound modules
-          propBuilder.SetComment(Text::PT3_TURBOSOUND_MODULE);
+          props.SetComment(Text::PT3_TURBOSOUND_MODULE);
           modData->Patterns = CreateTSPatterns(patOffset, modData->Patterns);
-          const TurboSound::Chiptune::Ptr chiptune = boost::make_shared<TSChiptune>(modData, propBuilder.GetResult());
+          const TurboSound::Chiptune::Ptr chiptune = MakePtr<TSChiptune>(modData, properties);
           return TurboSound::CreateHolder(chiptune);
         }
         else
         {
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PT3Chiptune>(modData, propBuilder.GetResult());
+          const AYM::Chiptune::Ptr chiptune = MakePtr<PT3Chiptune>(modData, properties);
           return AYM::CreateHolder(chiptune);
         }
       }
@@ -432,7 +437,7 @@ namespace ZXTune
       | Module::AYM::GetSupportedFormatConvertors() | Module::Vortex::GetSupportedFormatConvertors();
 
     const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::CreateDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::ProTracker3::Factory>(decoder);
+    const Module::Factory::Ptr factory = MakePtr<Module::ProTracker3::Factory>(decoder);
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
@@ -445,7 +450,7 @@ namespace ZXTune
       | Module::AYM::GetSupportedFormatConvertors() | Module::Vortex::GetSupportedFormatConvertors();
 
     const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::ProTracker3::Factory>(decoder);
+    const Module::Factory::Ptr factory = MakePtr<Module::ProTracker3::Factory>(decoder);
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

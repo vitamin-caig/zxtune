@@ -13,8 +13,6 @@
 #include "supp/options.h"
 #include "ui/state.h"
 #include "ui/utils.h"
-//boost includes
-#include <boost/make_shared.hpp>
 //qt includes
 #include <QtGui/QFileDialog>
 

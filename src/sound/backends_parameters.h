@@ -230,6 +230,27 @@ namespace Parameters
           extern const NameType BLOCKSIZE;
           //@}
         }
+
+        //! @brief %OpenAl backend parameters namespace
+        namespace OpenAl
+        {
+          //! @brief Parameters#ZXTune#Sound#Backends#OpenAl namespace prefix
+          extern const NameType PREFIX;
+
+          //@{
+          //! @name OpenAl backend parameters
+
+          //! Default value
+          const Char DEVICE_DEFAULT[] = {0};
+          //! Device name
+          extern const NameType DEVICE;
+
+          //! Default value
+          const IntType BUFFERS_DEFAULT = 5;
+          //! Buffers count
+          extern const NameType BUFFERS;
+          //@}
+        }
       }
     }
   }

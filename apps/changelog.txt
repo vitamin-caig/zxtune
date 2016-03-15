@@ -5,6 +5,32 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3590 from 14.03.2016
+
+[+] Supported darwin-x86_64 platform
+[+] Added KSS format support
+[*] Decreased size of binaries and packages
+[*] Fixed playback of some HES files
+[*] Fixed playback of arpeggio effect in tf0/tfe formats playback
+[*] zxtune-qt: fixed analyzer bars background
+[+] zxtune-android: added http://kss.joshw.info catalogue
+[*] zxtune-android: fixed Joshw catalogue listing with special symbols
+[*] zxtune-android: support unknown authors' modules listing in Modarchive catalogue
+[*] zxtune-android: fixed ringtone creation for modules shorter than 30s
+[*] zxtune-android: fixed some crashes
+
+
+--- Rev3520 from 17.11.2015
+
+[+] Support additional module strings retrieval (e.g. samples/instruments names)
+[*] Fixes in 7zip decoding
+[+] zxtune-android: add http://abrimaal.pro-e.pl/aygor/ online catalogue
+[+] zxtune-android: add http://modarchive.org online catalogue
+[*] zxtune-android: rework module information panel
+[*] zxtune-android: show progress while cache updating of some remote catalogues
+[*] zxtune-android: fixed UI control loosing on orientation change
+[*] zxtune-android: fixed track information decoding for http://zxart.ee catalogue
+
 --- Rev3500 from 30.10.2015
 
 [*] Slight fixes in COP playback

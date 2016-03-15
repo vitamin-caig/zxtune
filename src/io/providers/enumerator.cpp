@@ -13,6 +13,7 @@
 #include "providers_list.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <io/api.h>
@@ -21,8 +22,6 @@
 #include <algorithm>
 #include <list>
 #include <map>
-//boost includes
-#include <boost/make_shared.hpp>
 
 #define FILE_TAG 03113EE3
 
@@ -100,7 +99,7 @@ namespace IO
 
     virtual Provider::Iterator::Ptr Enumerate() const
     {
-      return Provider::Iterator::Ptr(new RangedObjectIteratorAdapter<ProvidersList::const_iterator, Provider::Ptr>(Providers.begin(), Providers.end()));
+      return MakePtr<RangedObjectIteratorAdapter<ProvidersList::const_iterator, Provider::Ptr> >(Providers.begin(), Providers.end());
     }
   private:
     Identifier::Ptr Resolve(const String& uri) const
@@ -219,6 +218,6 @@ namespace IO
 
   DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status)
   {
-    return boost::make_shared<UnavailableProvider>(id, description, status);
+    return MakePtr<UnavailableProvider>(id, description, status);
   }
 }

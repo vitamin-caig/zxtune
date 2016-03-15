@@ -1,0 +1,5 @@
+ext.treeRoot = file(path_step).canonicalPath
+
+subprojects {
+    project.buildDir "${treeRoot}/pkg/${project.name}"
+}

@@ -9,6 +9,7 @@
 **/
 
 //common includes
+#include <make_ptr.h>
 #include <range_checker.h>
 //std includes
 #include <cassert>
@@ -207,15 +208,15 @@ namespace
 
 RangeChecker::Ptr RangeChecker::CreateSimple(std::size_t limit)
 {
-  return RangeChecker::Ptr(new SimpleRangeChecker(limit));
+  return MakePtr<SimpleRangeChecker>(limit);
 }
 
 RangeChecker::Ptr RangeChecker::Create(std::size_t limit)
 {
-  return RangeChecker::Ptr(new RangeCheckerImpl(limit));
+  return MakePtr<RangeCheckerImpl>(limit);
 }
 
 RangeChecker::Ptr RangeChecker::CreateShared(std::size_t limit)
 {
-  return RangeChecker::Ptr(new SharedRangeChecker(limit));
+  return MakePtr<SharedRangeChecker>(limit);
 }

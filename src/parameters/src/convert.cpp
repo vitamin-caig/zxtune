@@ -103,7 +103,7 @@ namespace
 
     if (negate)
     {
-      var =- var;
+      var = -var;
     }
     do
     {

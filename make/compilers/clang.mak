@@ -11,7 +11,7 @@ LINKER_END_GROUP ?= -Wl,'-)'
 
 #set options according to mode
 ifdef release
-CXX_MODE_FLAGS = -O2 -DNDEBUG -funroll-loops -finline-functions
+CXX_MODE_FLAGS = -O2 -DNDEBUG -funroll-loops
 else
 CXX_MODE_FLAGS = -O0
 endif
@@ -22,9 +22,6 @@ CXX_MODE_FLAGS += -pg
 LD_MODE_FLAGS += -pg
 else
 CXX_MODE_FLAGS += -fdata-sections -ffunction-sections
-ifdef release
-LD_MODE_FLAGS += -Wl,-x
-endif
 endif
 
 #setup PIC code
@@ -46,7 +43,7 @@ DEFINITIONS = $(defines) $($(platform)_definitions)
 INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 
 #setup flags
-CCFLAGS = -mmacosx-version-min=10.8 -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
+CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
 	$(addprefix -D,$(DEFINITIONS) $($(platform).definitions) $($(platform).$(arch).definitions)) \
 	-funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -pipe \
@@ -69,22 +66,5 @@ link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
         $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $($(platform)_libraries))) $(LINKER_END_GROUP)\
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
 
-#specify postlink command- generate pdb file
-postlink_cmd = $(tools.objcopy) --only-keep-debug $@ $@.pdb && sleep 1 && \
-	$(tools.objcopy) --strip-all $@ && sleep 1 && \
-	$(tools.objcopy) --add-gnu-debuglink=$@.pdb $@
-
 #include generated dependensies
 include $(wildcard $(objects_dir)/*.d)
-
-.PHONY: analyze analyze_all
-
-analyze:
-	@echo "Analyzing $(target)" > coverage.log
-	@for i in $(SOURCES);do gcov -lp -o $(objects_dir) $$i >> coverage.log; done
-	@echo `pwd`
-	@perl $(path_step)/make/compilers/gcc_coverage.pl
-
-analyze_deps: $(depends)
-
-analyze_all: analyze analyze_deps

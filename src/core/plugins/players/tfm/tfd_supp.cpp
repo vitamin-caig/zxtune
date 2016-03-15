@@ -11,28 +11,26 @@
 //local includes
 #include "tfm_base_stream.h"
 #include "tfm_plugin.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/players/properties_helper.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/streaming.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <formats/chiptune/fm/tfd.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
 namespace TFD
 {
-  typedef std::vector<std::size_t> OffsetsArray;
-
   class ModuleData : public TFM::StreamModel
   {
   public:
-    ModuleData(Devices::TFM::Registers& data, OffsetsArray& offsets, uint_t loop)
-      : LoopPos(loop)
+    typedef boost::shared_ptr<ModuleData> RWPtr;
+
+    ModuleData()
+      : LoopPos()
     {
-      Data.swap(data);
-      Offsets.swap(offsets);
-      Offsets.push_back(Data.size());
     }
 
     virtual uint_t Size() const
@@ -51,18 +49,39 @@ namespace TFD
       const std::size_t end = Offsets[frameNum + 1];
       res.assign(Data.begin() + start, Data.begin() + end);
     }
+    
+    void Append(std::size_t count)
+    {
+      Offsets.resize(Offsets.size() + count, Data.size());
+    }
+    
+    void AddRegister(const Devices::TFM::Register& reg)
+    {
+     if (!Offsets.empty())
+     {
+       Data.push_back(reg);
+     }
+    }
+    
+    void SetLoop()
+    {
+      if (!Offsets.empty())
+      {
+        LoopPos = static_cast<uint_t>(Offsets.size() - 1);
+      }
+    }
   private:
-    const uint_t LoopPos;
+    uint_t LoopPos;
     Devices::TFM::Registers Data;
-    OffsetsArray Offsets;
+    std::vector<std::size_t> Offsets;
   };
 
   class DataBuilder : public Formats::Chiptune::TFD::Builder
   {
   public:
-   explicit DataBuilder(PropertiesBuilder& props)
+   explicit DataBuilder(PropertiesHelper& props)
     : Properties(props)
-    , Loop(0)
+    , Data(MakeRWPtr<ModuleData>())
     , Chip(0)
    {
    }
@@ -85,7 +104,7 @@ namespace TFD
    virtual void BeginFrames(uint_t count)
    {
      Chip = 0;
-     Append(count);
+     Data->Append(count);
    }
 
    virtual void SelectChip(uint_t idx)
@@ -95,50 +114,38 @@ namespace TFD
 
    virtual void SetLoop()
    {
-     if (!Offsets.empty())
-     {
-       Loop = static_cast<uint_t>(Offsets.size() - 1);
-     }
+     Data->SetLoop();
    }
 
    virtual void SetRegister(uint_t idx, uint_t val)
    {
-     if (!Offsets.empty())
-     {
-       Data.push_back(Devices::TFM::Register(Chip, idx, val));
-     }
+     Data->AddRegister(Devices::TFM::Register(Chip, idx, val));
    }
 
    TFM::StreamModel::Ptr GetResult() const
    {
-     return TFM::StreamModel::Ptr(new ModuleData(Data, Offsets, Loop));
+     return Data;
    }
   private:
-    void Append(std::size_t count)
-    {
-      Offsets.resize(Offsets.size() + count, Data.size());
-    }
-  private:
-    PropertiesBuilder& Properties;
-    uint_t Loop;
-    mutable Devices::TFM::Registers Data;
-    mutable OffsetsArray Offsets;
+    PropertiesHelper& Properties;
+    const ModuleData::RWPtr Data;
     uint_t Chip;
   };
 
   class Factory : public TFM::Factory
   {
   public:
-    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
       {
         const TFM::StreamModel::Ptr data = dataBuilder.GetResult();
         if (data->Size())
         {
-          propBuilder.SetSource(*container);
-          return TFM::CreateStreamedChiptune(data, propBuilder.GetResult());
+          props.SetSource(*container);
+          return TFM::CreateStreamedChiptune(data, properties);
         }
       }
       return TFM::Chiptune::Ptr();
@@ -155,7 +162,7 @@ namespace ZXTune
     const Char ID[] = {'T', 'F', 'D', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFDDecoder();
-    const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFD::Factory>();
+    const Module::TFM::Factory::Ptr factory = MakePtr<Module::TFD::Factory>();
     const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

@@ -12,23 +12,24 @@
 #include "aym_base.h"
 #include "aym_base_track.h"
 #include "aym_plugin.h"
-#include "core/plugins/registrator.h"
+#include "aym_properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/simple_orderlist.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <formats/chiptune/aym/sqtracker.h>
 //boost includes
 #include <boost/unordered_map.hpp>
 
-namespace
-{
-  const Debug::Stream Dbg("Core::SQTSupp");
-}
-
 namespace Module
 {
 namespace SQTracker
 {
+  const Debug::Stream Dbg("Core::SQTSupp");
+
   //supported commands and parameters
   enum CmdType
   {
@@ -172,6 +173,7 @@ namespace SQTracker
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : LoopPosition()
@@ -220,7 +222,7 @@ namespace SQTracker
         newIndices[pos] = newIdx;
         Dbg("Position[%1%] -> %2%", pos, newIdx);
       }
-      return boost::make_shared<SimpleOrderList>(LoopPosition, newIndices.begin(), newIndices.end());
+      return MakePtr<SimpleOrderList>(LoopPosition, newIndices.begin(), newIndices.end());
     }
 
     PatternsSet::Ptr CreateFlatPatterns(const OrderList& order) const
@@ -434,7 +436,7 @@ namespace SQTracker
 
   class SingleChannelPatternsBuilder : public PatternsBuilder
   {
-    SingleChannelPatternsBuilder(boost::shared_ptr<MutablePatternsSet> patterns)
+    SingleChannelPatternsBuilder(MutablePatternsSet::Ptr patterns)
       : PatternsBuilder(patterns)
     {
     }
@@ -450,25 +452,25 @@ namespace SQTracker
       typedef MultichannelMutableLine<1> LineType;
       typedef SparsedMutablePattern<LineType> PatternType;
       typedef SparsedMutablePatternsSet<PatternType> PatternsSetType;
-      return SingleChannelPatternsBuilder(boost::make_shared<PatternsSetType>());
+      return SingleChannelPatternsBuilder(MakePtr<PatternsSetType>());
     }
   };
 
   class DataBuilder : public Formats::Chiptune::SQTracker::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(AYM::PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(SingleChannelPatternsBuilder::Create())
-      , Loop()
     {
-      Properties.SetFreqtable(TABLE_SQTRACKER);
+      Properties.SetFrequencyTable(TABLE_SQTRACKER);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::SQTracker::Sample& sample)
@@ -556,11 +558,11 @@ namespace SQTracker
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    AYM::PropertiesHelper& Properties;
+    MetaProperties Meta;
     SingleChannelPatternsBuilder Patterns;
     std::vector<Formats::Chiptune::SQTracker::PositionEntry> Positions;
-    uint_t Loop;
   };
 
   struct ChannelState
@@ -660,7 +662,7 @@ namespace SQTracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.CurSample = Data->Samples.Find(*sample);
+        dst.CurSample = &Data->Samples.Get(*sample);
         dst.SampleTick = 32;
         dst.SamplePos = 0;
         dst.CurOrnament = 0;
@@ -669,7 +671,7 @@ namespace SQTracker
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.CurOrnament = Data->Ornaments.Find(*ornament);
+        dst.CurOrnament = &Data->Ornaments.Get(*ornament);
         dst.OrnamentTick = 32;
         dst.OrnamentPos = 0;
       }
@@ -821,7 +823,7 @@ namespace SQTracker
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
@@ -833,13 +835,14 @@ namespace SQTracker
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -858,7 +861,7 @@ namespace ZXTune
     const Char ID[] = {'S', 'Q', 'T', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQTrackerDecoder();
-    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::SQTracker::Factory>();
+    const Module::AYM::Factory::Ptr factory = MakePtr<Module::SQTracker::Factory>();
     const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

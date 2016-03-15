@@ -15,11 +15,11 @@
 #include "ui/utils.h"
 //common includes
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <parameters/convert.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
 //qt includes
 #include <QtCore/QByteArray>
@@ -173,7 +173,7 @@ namespace
     const QString name = obj.objectName();
     return name.size() == 0
       ? parent
-      : boost::make_shared<NamespaceContainer>(parent, name.toStdString());
+      : MakePtr<NamespaceContainer>(parent, name.toStdString());
   }
 
   class MainWindowState : public WidgetState
@@ -456,35 +456,35 @@ namespace
     {
       if (QMainWindow* mainWnd = dynamic_cast<QMainWindow*>(&wid))
       {
-        Substates.push_back(boost::make_shared<MainWindowState>(mainWnd, Options));
+        Substates.push_back(MakePtr<MainWindowState>(mainWnd, Options));
       }
       else if (QFileDialog* fileDialog = dynamic_cast<QFileDialog*>(&wid))
       {
-        Substates.push_back(boost::make_shared<FileDialogState>(fileDialog, Options));
+        Substates.push_back(MakePtr<FileDialogState>(fileDialog, Options));
       }
       else if (QDialog* dialog = dynamic_cast<QDialog*>(&wid))
       {
-        Substates.push_back(boost::make_shared<DialogState>(dialog, Options));
+        Substates.push_back(MakePtr<DialogState>(dialog, Options));
       }
       else if (QTabWidget* tabs = dynamic_cast<QTabWidget*>(&wid))
       {
-        Substates.push_back(boost::make_shared<TabWidgetState>(tabs, Options));
+        Substates.push_back(MakePtr<TabWidgetState>(tabs, Options));
       }
       else if (QComboBox* combo = dynamic_cast<QComboBox*>(&wid))
       {
-        Substates.push_back(boost::make_shared<ComboBoxState>(combo, Options));
+        Substates.push_back(MakePtr<ComboBoxState>(combo, Options));
       }
       else if (QHeaderView* headerView = dynamic_cast<QHeaderView*>(&wid))
       {
-        Substates.push_back(boost::make_shared<HeaderViewState>(headerView, Options));
+        Substates.push_back(MakePtr<HeaderViewState>(headerView, Options));
       }
       else if (QAbstractButton* button = dynamic_cast<QAbstractButton*>(&wid))
       {
-        Substates.push_back(boost::make_shared<ButtonState>(button, Options));
+        Substates.push_back(MakePtr<ButtonState>(button, Options));
       }
       else
       {
-        Substates.push_back(boost::make_shared<AnyWidgetState>(&wid, Options));
+        Substates.push_back(MakePtr<AnyWidgetState>(&wid, Options));
       }
     }
 
@@ -507,16 +507,16 @@ namespace UI
 {
   State::Ptr State::Create(const String& category)
   {
-    const Parameters::Container::Ptr container = boost::make_shared<NamespaceContainer>(
+    const Parameters::Container::Ptr container = MakePtr<NamespaceContainer>(
       GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + ToStdString(category));
-    return State::Ptr(new PersistentState(container));
+    return MakePtr<PersistentState>(container);
   }
 
   State::Ptr State::Create(QWidget& root)
   {
-    const Parameters::Container::Ptr container = boost::make_shared<NamespaceContainer>(
+    const Parameters::Container::Ptr container = MakePtr<NamespaceContainer>(
       GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + root.objectName().toStdString());
-    State::Ptr res(new PersistentState(container));
+    State::Ptr res = MakePtr<PersistentState>(container);
     res->AddWidget(root);
     return res;
   }

@@ -34,6 +34,7 @@ $(eval $(call declare_native_backend,directsound,dsound))
 $(eval $(call declare_native_backend,alsa,alsa))
 $(eval $(call declare_native_backend,sdl,sdl))
 $(eval $(call declare_native_backend,pulseaudio,paudio))
+$(eval $(call declare_native_backend,openal,openal))
 
 ifdef support_aylpt
 source_files += aylpt_backend.cpp

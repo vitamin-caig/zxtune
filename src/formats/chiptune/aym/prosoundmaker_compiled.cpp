@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -24,16 +25,10 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/range/size.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ProSoundMakerCompiled");
-}
 
 namespace Formats
 {
@@ -41,6 +36,8 @@ namespace Chiptune
 {
   namespace ProSoundMakerCompiled
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ProSoundMakerCompiled");
+
     using namespace ProSoundMaker;
 
     const std::size_t MIN_SIZE = 256;
@@ -1111,7 +1108,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateProSoundMakerCompiledDecoder()
   {
-    return boost::make_shared<ProSoundMakerCompiled::Decoder>();
+    return MakePtr<ProSoundMakerCompiled::Decoder>();
   }
 }// namespace Chiptune
 }// namespace Formats

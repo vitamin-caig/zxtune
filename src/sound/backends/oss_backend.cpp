@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
@@ -33,7 +34,6 @@
 #include <algorithm>
 #include <cstring>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/thread/thread.hpp>
 //text includes
@@ -393,7 +393,7 @@ namespace Oss
       const BackendParameters backend(*params);
       AutoDescriptor(backend.GetMixerName()).CheckStat();
       AutoDescriptor(backend.GetDeviceName()).CheckStat();
-      return boost::make_shared<BackendWorker>(params);
+      return MakePtr<BackendWorker>(params);
     }
   };
 }//Oss
@@ -403,7 +403,7 @@ namespace Sound
 {
   void RegisterOssBackend(BackendsStorage& storage)
   {
-    const BackendWorkerFactory::Ptr factory = boost::make_shared<Oss::BackendWorkerFactory>();
+    const BackendWorkerFactory::Ptr factory = MakePtr<Oss::BackendWorkerFactory>();
     storage.Register(Oss::ID, Oss::DESCRIPTION, Oss::CAPABILITIES, factory);
   }
 }

@@ -157,9 +157,12 @@ namespace
       {
         for (PerBackendOptions::iterator it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; )
         {
-          if (it->second != NOTUSED_MARK && !it->second.empty())
+          if (it->second != NOTUSED_MARK)
           {
-            Params->SetBackendParameters(it->first, it->second);
+            if (!it->second.empty())
+            {
+              Params->SetBackendParameters(it->first, it->second);
+            }
             ++it;
           }
           else

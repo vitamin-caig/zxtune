@@ -10,8 +10,8 @@
 
 //local includes
 #include "streaming.h"
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 
 namespace Module
 {
@@ -143,7 +143,7 @@ namespace Module
   {
   public:
     explicit StreamStateIterator(Information::Ptr info)
-      : Cursor(boost::make_shared<StreamStateCursor>(info))
+      : Cursor(MakePtr<StreamStateCursor>(info))
     {
     }
 
@@ -177,11 +177,11 @@ namespace Module
 
   Information::Ptr CreateStreamInfo(uint_t frames, uint_t loopFrame)
   {
-    return boost::make_shared<StreamInfo>(frames, loopFrame);
+    return MakePtr<StreamInfo>(frames, loopFrame);
   }
 
   StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info)
   {
-    return boost::make_shared<StreamStateIterator>(info);
+    return MakePtr<StreamStateIterator>(info);
   }
 }

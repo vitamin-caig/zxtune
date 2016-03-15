@@ -9,11 +9,13 @@
 **/
 
 //local includes
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/analyzer.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <core/module_attrs.h>
@@ -24,20 +26,15 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //3rdparty
 #include <3rdparty/hvl/replay.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Core::AHXSupp");
-}
 
 namespace Module
 {
 namespace AHX
 {
+  const Debug::Stream Dbg("Core::AHXSupp");
+
   typedef boost::shared_ptr<hvl_tune> HvlPtr;
   
   HvlPtr LoadModule(const Binary::Data& data)
@@ -268,12 +265,12 @@ namespace AHX
     
     TrackState::Ptr MakeTrackState() const
     {
-      return boost::make_shared<TrackState>(Hvl);
+      return MakePtr<TrackState>(Hvl);
     }
 
     Analyzer::Ptr MakeAnalyzer() const
     {
-      return boost::make_shared<Analyzer>(Hvl);
+      return MakePtr<Analyzer>(Hvl);
     } 
   private:
     const HvlPtr Hvl;
@@ -367,7 +364,7 @@ namespace AHX
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return boost::make_shared<Renderer>(Tune, target, params);
+      return MakePtr<Renderer>(Tune, target, params);
     }
   private:
     const HVL::Ptr Tune;
@@ -378,34 +375,35 @@ namespace AHX
   class DataBuilder : public Formats::Chiptune::AbyssHighestExperience::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Properties(props)
+    explicit DataBuilder(PropertiesHelper& props)
+      : Meta(props)
     {
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
   private:
-    PropertiesBuilder& Properties;
+    MetaProperties Meta;
   };
   
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
-        DataBuilder dataBuilder(propBuilder);
+        PropertiesHelper props(*properties);
+        DataBuilder dataBuilder(props);
         if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AbyssHighestExperience::Parse(rawData, dataBuilder))
         {
-          propBuilder.SetSource(*container);
+          props.SetSource(*container);
 
-          const HVL::Ptr tune = boost::make_shared<HVL>(*container);
-          const Information::Ptr info = boost::make_shared<Information>(*container);
-          return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
+          const HVL::Ptr tune = MakePtr<HVL>(*container);
+          const Information::Ptr info = MakePtr<Information>(*container);
+          return MakePtr<Holder>(tune, info, properties);
         }
       }
       catch (const std::exception& e)
@@ -426,7 +424,7 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateAbyssHighestExperienceDecoder();
-    const Module::AHX::Factory::Ptr factory = boost::make_shared<Module::AHX::Factory>();
+    const Module::AHX::Factory::Ptr factory = MakePtr<Module::AHX::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

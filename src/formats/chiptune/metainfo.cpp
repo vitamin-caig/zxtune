@@ -13,24 +13,18 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 //std includes
 #include <set>
 #include <map>
 
-namespace
+namespace Formats
 {
-  template<class T>
-  void Fix(void* data, int_t delta)
-  {
-    T* const ptr = static_cast<T*>(data);
-    const T val = fromLE(*ptr);
-    const T fixedVal = static_cast<T>(val + delta);
-    *ptr = fromLE(fixedVal);
-  }
-
-  class Patcher : public Formats::Chiptune::PatchedDataBuilder
+namespace Chiptune
+{
+  class Patcher : public PatchedDataBuilder
   {
   public:
     explicit Patcher(const Binary::Container& src)
@@ -73,6 +67,15 @@ namespace
       {
         Fix<uint16_t>(static_cast<void*>(&result[it->first]), it->second);
       }
+    }
+
+    template<class T>
+    static void Fix(void* data, int_t delta)
+    {
+      T* const ptr = static_cast<T*>(data);
+      const T val = fromLE(*ptr);
+      const T fixedVal = static_cast<T>(val + delta);
+      *ptr = fromLE(fixedVal);
     }
 
     void ApplyOverwrites(Dump& result) const
@@ -118,6 +121,7 @@ namespace
     std::size_t SizeAddon;
   };
 }
+}
 
 namespace Formats
 {
@@ -125,7 +129,7 @@ namespace Formats
   {
     PatchedDataBuilder::Ptr PatchedDataBuilder::Create(const Binary::Container& data)
     {
-      return PatchedDataBuilder::Ptr(new Patcher(data));
+      return MakePtr<Patcher>(data);
     }
   }
 }

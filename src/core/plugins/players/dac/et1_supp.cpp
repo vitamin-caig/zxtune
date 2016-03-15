@@ -9,11 +9,15 @@
 **/
 
 //local includes
+#include "dac_simple.h"
 #include "dac_plugin.h"
-#include "digital.h"
-#include "core/plugins/registrator.h"
+#include "dac_properties_helper.h"
+#include "core/plugins/player_plugins_registrator.h"
+#include "core/plugins/players/properties_meta.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/tracking.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/extremetracker1.h>
@@ -42,14 +46,15 @@ namespace ExtremeTracker1
     return step * 3270 / int_t(C_1_STEP_GLISS * 100);
   }
   
-  typedef DAC::ModuleData ModuleData;
+  typedef DAC::SimpleModuleData ModuleData;
 
   class DataBuilder : public Formats::Chiptune::ExtremeTracker1::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(DAC::PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
       Data->Patterns = Patterns.GetResult();
@@ -57,7 +62,7 @@ namespace ExtremeTracker1
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -67,7 +72,7 @@ namespace ExtremeTracker1
 
     virtual void SetSamplesFrequency(uint_t freq)
     {
-      Properties.SetSamplesFreq(freq);
+      Properties.SetSamplesFrequency(freq);
     }
 
     virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample)
@@ -77,7 +82,7 @@ namespace ExtremeTracker1
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -122,8 +127,9 @@ namespace ExtremeTracker1
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    DAC::PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
   
@@ -268,7 +274,7 @@ namespace ExtremeTracker1
     virtual DAC::DataIterator::Ptr CreateDataIterator() const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const DAC::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return DAC::CreateDataIterator(iterator, renderer);
     }
 
@@ -288,13 +294,14 @@ namespace ExtremeTracker1
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      DAC::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ExtremeTracker1::Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -313,7 +320,7 @@ namespace ZXTune
     const Char ID[] = {'E', 'T', '1', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateExtremeTracker1Decoder();
-    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::ExtremeTracker1::Factory>();
+    const Module::DAC::Factory::Ptr factory = MakePtr<Module::ExtremeTracker1::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

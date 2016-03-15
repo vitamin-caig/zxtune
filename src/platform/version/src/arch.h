@@ -12,7 +12,7 @@
 
 #if defined(_M_IX86) || defined(__i386__)
   #include "x86.h"
-#elif defined(_M_ARM) || defined(__arm__)
+#elif defined(_M_ARM) || defined(__arm__) || defined(__aarch64__)
   #include "arm.h"
 #else
 namespace Platform

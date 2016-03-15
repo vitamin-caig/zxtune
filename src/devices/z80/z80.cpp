@@ -10,20 +10,21 @@
 
 //local includes
 #include <devices/z80.h>
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <parameters/tracking_helper.h>
 //3rdparty includes
 #include <3rdparty/z80ex/include/z80ex.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/scoped_ptr.hpp>
 //std includes
 #include <functional>
 
-namespace
+namespace Devices
 {
-  using namespace Devices::Z80;
-
+namespace Z80
+{
   class IOBus
   {
   public:
@@ -393,10 +394,11 @@ namespace
     }
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
+    ClockSource Clock;
     const boost::scoped_ptr<IOBus> Bus;
     const boost::shared_ptr<Z80EX_CONTEXT> Context;
-    ClockSource Clock;
   };
+}
 }
 
 namespace Devices
@@ -405,12 +407,12 @@ namespace Devices
   {
     Chip::Ptr CreateChip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports)
     {
-      return boost::make_shared<Z80Chip>(params, memory, ports);
+      return MakePtr<Z80Chip>(params, memory, ports);
     }
 
     Chip::Ptr CreateChip(ChipParameters::Ptr params, const Dump& memory, ChipIO::Ptr ports)
     {
-      return boost::make_shared<Z80Chip>(params, memory, ports);
+      return MakePtr<Z80Chip>(params, memory, ports);
     }
   }
 }

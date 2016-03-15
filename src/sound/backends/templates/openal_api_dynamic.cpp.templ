@@ -1,0 +1,66 @@
+/**
+*
+* @file
+*
+* @brief  OpenAL subsystem API gate implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
+//local includes
+#include "openal_api.h"
+//common includes
+#include <make_ptr.h>
+//library includes
+#include <debug/log.h>
+#include <platform/shared_library_adapter.h>
+//boost includes
+#include <boost/range/end.hpp>
+
+namespace Sound
+{
+  namespace OpenAl
+  {
+    class LibraryName : public Platform::SharedLibrary::Name
+    {
+    public:
+      LibraryName()
+      {
+      }
+
+      virtual std::string Base() const
+      {
+        return "openal";
+      }
+      
+      virtual std::vector<std::string> PosixAlternatives() const
+      {
+        static const std::string ALTERNATIVES[] =
+        {
+          "libopenal.so.1",
+          "OpenAL.framework/OpenAL"
+        };
+        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+      }
+      
+      virtual std::vector<std::string> WindowsAlternatives() const
+      {
+        static const std::string ALTERNATIVES[] =
+        {
+          "OpenAL32.dll"
+        };
+        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+      }
+    };
+
+<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
+
+    Api::Ptr LoadDynamicApi()
+    {
+      static const LibraryName NAME;
+      const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
+      return MakePtr<DynamicApi>(lib);
+    }
+  }
+}

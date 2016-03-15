@@ -15,6 +15,7 @@
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_attrs.h>
 #include <debug/log.h>
@@ -25,7 +26,6 @@
 #include <sound/render_params.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -157,7 +157,7 @@ namespace PulseAudio
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const
     {
       const String& stream = GetStreamName(*holder);
-      return boost::make_shared<BackendWorker>(PaApi, params, stream);
+      return MakePtr<BackendWorker>(PaApi, params, stream);
     }
   private:
     static String GetStreamName(const Module::Holder& holder)
@@ -187,7 +187,7 @@ namespace Sound
       const PulseAudio::Api::Ptr api = PulseAudio::LoadDynamicApi();
       const char* const version = api->pa_get_library_version();
       Dbg("Detected PulseAudio v%1%", version);
-      const BackendWorkerFactory::Ptr factory = boost::make_shared<PulseAudio::BackendWorkerFactory>(api);
+      const BackendWorkerFactory::Ptr factory = MakePtr<PulseAudio::BackendWorkerFactory>(api);
       storage.Register(PulseAudio::ID, PulseAudio::DESCRIPTION, PulseAudio::CAPABILITIES, factory);
     }
     catch (const Error& e)

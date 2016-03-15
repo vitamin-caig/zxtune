@@ -14,6 +14,7 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+#include "gme.h"
 
 // Emulation inaccuracies:
 // * Noise isn't run when not in use
@@ -168,6 +169,26 @@ void Ay_Apu::write_data_( int addr, int data )
 	}
 	
 	// TODO: same as above for envelope timer, and it also has a divide by two after it
+}
+
+int Ay_Apu::osc_status( voice_status_t* buf, int buf_size ) const
+{
+	int voices = 0;
+	for ( int idx = 0; idx < osc_count && voices < buf_size; ++idx )
+	{
+		const osc_t& osc = oscs [idx];
+		const blip_time_t period = osc.period;
+		const int mixer = regs [7] >> idx;
+		const int volume = regs[8 + idx] & 0x0F;
+		if ( period != 0 && volume != 0 && 0 == (mixer & 0x1) )
+		{
+			buf[voices].level = volume * voice_max_level / 15;
+			buf[voices].divider = 2 * period;
+			buf[voices].frequency = osc.output->clock_rate();
+			++voices;
+		}
+	}
+	return voices;
 }
 
 int const noise_off = 0x08;

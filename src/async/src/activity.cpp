@@ -12,16 +12,14 @@
 #include "event.h"
 //common includes
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <async/activity.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
 
-namespace
+namespace Async
 {
-  using namespace Async;
-
   enum ActivityState
   {
     STOPPED,
@@ -30,25 +28,25 @@ namespace
     STARTED
   };
 
-  class ActivityImpl : public Activity
+  class ThreadActivity : public Activity
   {
   public:
-    typedef boost::shared_ptr<ActivityImpl> Ptr;
+    typedef boost::shared_ptr<ThreadActivity> Ptr;
 
-    explicit ActivityImpl(Operation::Ptr op)
+    explicit ThreadActivity(Operation::Ptr op)
       : Oper(op)
       , State(STOPPED)
     {
     }
 
-    virtual ~ActivityImpl()
+    virtual ~ThreadActivity()
     {
       assert(!IsExecuted() || !"Should call Activity::Wait before stop");
     }
 
     void Start()
     {
-      Thread = boost::thread(std::mem_fun(&ActivityImpl::WorkProc), this);
+      Thread = boost::thread(std::mem_fun(&ThreadActivity::WorkProc), this);
       if (FAILED == State.WaitForAny(INITIALIZED, FAILED))
       {
         Thread.join();
@@ -93,7 +91,7 @@ namespace
     Error LastError;
   };
 
-  class StubActivity : public Async::Activity
+  class StubActivity : public Activity
   {
   public:
     virtual bool IsExecuted() const
@@ -111,7 +109,7 @@ namespace Async
 {
   Activity::Ptr Activity::Create(Operation::Ptr operation)
   {
-    const ActivityImpl::Ptr result = boost::make_shared<ActivityImpl>(operation);
+    const ThreadActivity::Ptr result = MakePtr<ThreadActivity>(operation);
     result->Start();
     return result;
   }

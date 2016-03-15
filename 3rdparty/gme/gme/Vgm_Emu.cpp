@@ -437,6 +437,10 @@ int Vgm_Emu::voices_status_( voice_status_t* buf, int buf_size ) const
 	}
 	for (int chip = 0; voices < buf_size && chip < 2; ++chip)
 	{
+		voices += core.ay[chip].osc_status( buf + voices, buf_size - voices );
+	}
+	for (int chip = 0; voices < buf_size && chip < 2; ++chip)
+	{
 		const Chip_Resampler_Emu<Ym2612_Emu>& emu = core.ym2612[chip];
 		if ( emu.enabled() )
 		{

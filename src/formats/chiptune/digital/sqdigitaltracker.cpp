@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -27,14 +28,8 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::SQDigitalTracker");
-}
 
 namespace Formats
 {
@@ -42,6 +37,8 @@ namespace Chiptune
 {
   namespace SQDigitalTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::SQDigitalTracker");
+
     const std::size_t MAX_MODULE_SIZE = 0x4400 + 8 * 0x4000;
     const std::size_t MAX_POSITIONS_COUNT = 100;
     const std::size_t MAX_PATTERN_SIZE = 64;
@@ -52,8 +49,6 @@ namespace Chiptune
     const std::size_t BIG_SAMPLE_ADDR = 0x8000;
     const std::size_t SAMPLES_ADDR = 0xc000;
     const std::size_t SAMPLES_LIMIT = 0x10000;
-
-    const uint8_t SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -185,7 +180,7 @@ namespace Chiptune
       //+0x213
       uint8_t Padding3[0xed];
       //+0x300
-      boost::array<uint8_t, 8> SampleNames[SAMPLES_COUNT];
+      boost::array<char[8], SAMPLES_COUNT> SampleNames;
       //+0x380
       uint8_t Padding4[0x80];
       //+0x400
@@ -336,6 +331,9 @@ namespace Chiptune
           : String(Source.Title.begin(), Source.Title.end());
         meta.SetTitle(title);
         meta.SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
+        Strings::Array names(SAMPLES_COUNT);
+        std::transform(Source.SampleNames.begin(), Source.SampleNames.end(), names.begin(), &FromCharArray<8>);
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -406,7 +404,7 @@ namespace Chiptune
           }
         }
       }
-
+      
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
@@ -580,7 +578,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateSQDigitalTrackerDecoder()
   {
-    return boost::make_shared<SQDigitalTracker::Decoder>();
+    return MakePtr<SQDigitalTracker::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

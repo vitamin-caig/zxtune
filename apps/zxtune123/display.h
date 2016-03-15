@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <core/module_player.h>
+#include <core/module_holder.h>
 #include <sound/backend.h>
 #include <time/stamp.h>
 //std includes

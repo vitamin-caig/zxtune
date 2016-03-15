@@ -21,7 +21,6 @@
 #include <sound/service.h>
 //boost inlcudes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //qt includes
 #include <QtCore/QTimer>
 

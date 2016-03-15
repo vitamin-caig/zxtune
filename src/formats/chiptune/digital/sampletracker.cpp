@@ -15,6 +15,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -26,15 +27,9 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::SampleTracker");
-}
 
 namespace Formats
 {
@@ -42,6 +37,8 @@ namespace Chiptune
 {
   namespace SampleTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::SampleTracker");
+
     const std::size_t MAX_MODULE_SIZE = 0x87a0;
     const std::size_t MAX_POSITIONS_COUNT = 0x40;
     const std::size_t MAX_PATTERN_SIZE = 64;
@@ -91,7 +88,7 @@ namespace Chiptune
       //+0x18fc
       uint8_t Padding[4];
       //+0x1900
-      boost::array<uint8_t, 10> SampleNames[SAMPLES_COUNT];
+      boost::array<char[10], SAMPLES_COUNT> SampleNames;
       //+0x19a0
       uint8_t Samples[1];
     } PACK_POST;
@@ -140,6 +137,9 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(FromCharArray(Source.Title));
         meta.SetProgram(Text::SAMPLETRACKER_DECODER_DESCRIPTION);
+        Strings::Array names(Source.SampleNames.size());
+        std::transform(Source.SampleNames.begin(), Source.SampleNames.end(), names.begin(), &FromCharArray<10>);
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -193,7 +193,7 @@ namespace Chiptune
         }
         Require(validSamples != 0);
       }
-
+      
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
@@ -399,7 +399,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateSampleTrackerDecoder()
   {
-    return boost::make_shared<SampleTracker::Decoder>();
+    return MakePtr<SampleTracker::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

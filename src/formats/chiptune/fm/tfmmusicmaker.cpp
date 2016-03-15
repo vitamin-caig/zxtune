@@ -12,7 +12,9 @@
 #include "tfmmusicmaker.h"
 #include "formats/chiptune/container.h"
 //common includes
+#include <crc.h>
 #include <indices.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -20,14 +22,8 @@
 #include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::TFMMusicMaker");
-}
 
 namespace Formats
 {
@@ -35,6 +31,8 @@ namespace Chiptune
 {
   namespace TFMMusicMaker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::TFMMusicMaker");
+
     const std::size_t MAX_POSITIONS_COUNT = 256;
     const std::size_t MAX_INSTRUMENTS_COUNT = 255;
     const std::size_t MAX_PATTERNS_COUNT = 256;
@@ -66,7 +64,7 @@ namespace Chiptune
       }
     } PACK_POST;
 
-    typedef boost::array<uint8_t, 16> InstrumentName;
+    typedef char InstrumentName[16];
 
     PACK_PRE struct RawInstrument
     {
@@ -812,6 +810,9 @@ namespace Chiptune
         meta.SetTitle(FromCharArray(Source.Title));
         meta.SetAuthor(FromCharArray(Source.Author));
         builder.SetComment(FromCharArray(Source.Comment));
+        Strings::Array names(Source.InstrumentNames.size());
+        std::transform(Source.InstrumentNames.begin(), Source.InstrumentNames.end(), names.begin(), &FromCharArray<16>);
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& builder) const
@@ -1116,7 +1117,7 @@ namespace Chiptune
     {
       Decoder::Ptr CreateDecoder()
       {
-        return boost::make_shared<VersionedDecoder<Version05> >();
+        return MakePtr<VersionedDecoder<Version05> >();
       }
     }
 
@@ -1124,7 +1125,7 @@ namespace Chiptune
     {
       Decoder::Ptr CreateDecoder()
       {
-        return boost::make_shared<VersionedDecoder<Version13> >();
+        return MakePtr<VersionedDecoder<Version13> >();
       }
     }
   }//namespace TFMMusicMaker

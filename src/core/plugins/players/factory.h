@@ -10,11 +10,10 @@
 
 #pragma once
 
-//local includes
-#include "module_properties.h"
 //library includes
 #include <binary/container.h>
 #include <core/module_holder.h>
+#include <parameters/container.h>
 
 namespace Module
 {
@@ -24,6 +23,6 @@ namespace Module
     typedef boost::shared_ptr<const Factory> Ptr;
     virtual ~Factory() {}
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, PropertiesBuilder& properties) const = 0;
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const = 0;
   };
 }

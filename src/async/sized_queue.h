@@ -12,13 +12,13 @@
 
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <async/queue.h>
 //std includes
 #include <deque>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 
@@ -77,7 +77,7 @@ namespace Async
 
     static typename Queue<T>::Ptr Create(std::size_t size)
     {
-      return boost::make_shared<SizedQueue<T> >(size);
+      return MakePtr<SizedQueue<T> >(size);
     }
   private:
     bool CanPutData() const

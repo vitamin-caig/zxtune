@@ -227,11 +227,11 @@ SingleModeDispatcher::Ptr SingleModeDispatcher::Create(Parameters::Accessor::Ptr
   if (val != 0)
   {
     Dbg("Working in single instance mode");
-    return SingleModeDispatcher::Ptr(new SocketBasedSingleModeDispatcher(argc, argv));
+    return new SocketBasedSingleModeDispatcher(argc, argv);
   }
   else
   {
     Dbg("Working in multiple instances mode");
-    return SingleModeDispatcher::Ptr(new StubModeDispatcher(argc, argv));
+    return new StubModeDispatcher(argc, argv);
   }
 }

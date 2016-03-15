@@ -10,27 +10,22 @@
 
 //local includes
 #include "win32_api.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
-//boost includes
-#include <boost/make_shared.hpp>
-
-namespace
-{
-  using namespace Sound::Win32;
-
-<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
-}
 
 namespace Sound
 {
   namespace Win32
   {
+<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
+
     Api::Ptr LoadDynamicApi()
     {
       const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load("winmm");
-      return boost::make_shared<DynamicApi>(lib);
+      return MakePtr<DynamicApi>(lib);
     }
   }
 }

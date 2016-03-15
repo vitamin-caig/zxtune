@@ -12,7 +12,7 @@ endif
 
 #android
 android.boost.version = 1.58.0
-android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector -fomit-frame-pointer -finline-limit=300 -Wa,--noexecstack
+android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector -fomit-frame-pointer -Wa,--noexecstack
 android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now
 #assume that all the platforms are little-endian
 #this required to use boost which doesn't know anything about __armel__ or __mipsel__
@@ -26,17 +26,19 @@ android.x86.ld.flags = -Wl,--icf=safe
 android.armeabi.toolchain = $(toolchains.root)/armeabi-linux-android
 android.armeabi.execprefix = $(android.armeabi.toolchain)/bin/arm-linux-androideabi-
 android.armeabi.boost.version = $(android.boost.version)
-android.armeabi.cxx.flags = -march=armv5te -mtune=xscale -msoft-float -mthumb
-android.armeabi.definitions = __ARM_ARCH_5__ __ARM_ARCH_5T__ __ARM_ARCH_5E__ __ARM_ARCH_5TE__
+android.armeabi.cxx.flags = -march=armv5te -mtune=xscale -msoft-float -mthumb -finline-limit=64
 android.armeabi.ld.flags = $(android.x86.ld.flags)
 # armeabi-v7a
 android.armeabi-v7a.toolchain = $(android.armeabi.toolchain)
 android.armeabi-v7a.execprefix = $(android.armeabi.execprefix)
 android.armeabi-v7a.boost.version = $(android.boost.version)
-android.armeabi-v7a.cxx.flags = -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -mthumb
+android.armeabi-v7a.cxx.flags = -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -mthumb -finline-limit=64
 android.armeabi-v7a.ld.flags = -march=armv7-a -Wl,--fix-cortex-a8
-android.armeabi-v7a.definitions = $(android.armeabi.definitions)
 android.armeabi-v7a.ld.flags = $(android.x86.ld.flags)
+# arm64-v8a
+android.arm64-v8a.toolchain = $(toolchains.root)/aarch64-linux-android
+android.arm64-v8a.execprefix = $(android.arm64-v8a.toolchain)/bin/aarch64-linux-android-
+android.arm64-v8a.boost.version = $(android.boost.version)
 # mips
 android.mips.toolchain = $(toolchains.root)/mipsel-linux-android
 android.mips.execprefix = $(android.mips.toolchain)/bin/mipsel-linux-android-
@@ -101,3 +103,11 @@ windows.x86.qt.version = 4.8.5
 # x86_64
 windows.x86_64.boost.version = 1.55.0
 windows.x86_64.qt.version = 4.8.5
+
+#darwin
+# x86_64
+darwin.x86_64.boost.version = 1.60.0
+darwin.x86_64.boost.libs.model = -mt
+darwin.x86_64.qt.version = 4.8.6
+#darwin.x86_64.cxx.flags = -m64 -mmmx
+#darwin.x86_64.ld.flags = -m64

@@ -10,17 +10,18 @@
 
 //local includes
 #include "dump_builder.h"
+//common includes
+#include <make_ptr.h>
 //std includes
 #include <algorithm>
 #include <iterator>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 
-namespace
+namespace Devices
 {
-  using namespace Devices::AYM;
-
+namespace AYM
+{
   class ZX50DumpBuilder : public FramedDumpBuilder
   {
   public:
@@ -63,16 +64,11 @@ namespace
   private:
     Dump Data;
   };
-}
 
-namespace Devices
-{
-  namespace AYM
+  Dumper::Ptr CreateZX50Dumper(DumperParameters::Ptr params)
   {
-    Dumper::Ptr CreateZX50Dumper(DumperParameters::Ptr params)
-    {
-      const FramedDumpBuilder::Ptr builder = boost::make_shared<ZX50DumpBuilder>();
-      return CreateDumper(params, builder);
-    }
+    const FramedDumpBuilder::Ptr builder = MakePtr<ZX50DumpBuilder>();
+    return CreateDumper(params, builder);
   }
+}
 }

@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -26,17 +27,11 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::FastTracker");
-}
 
 namespace Formats
 {
@@ -44,6 +39,8 @@ namespace Chiptune
 {
   namespace FastTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::FastTracker");
+
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x3a00;
     const std::size_t SAMPLES_COUNT = 32;
@@ -1197,7 +1194,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateFastTrackerDecoder()
   {
-    return boost::make_shared<FastTracker::Decoder>();
+    return MakePtr<FastTracker::Decoder>();
   }
 }//namespace Chiptune
 }//namespace Formats

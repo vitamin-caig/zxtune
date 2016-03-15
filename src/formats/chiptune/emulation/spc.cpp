@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/container_factories.h>
@@ -27,14 +28,8 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::SPC");
-}
 
 namespace Formats
 {
@@ -42,6 +37,8 @@ namespace Chiptune
 {
   namespace SPC
   {
+    const Debug::Stream Dbg("Formats::Chiptune::SPC");
+
     typedef boost::array<uint8_t, 28> SignatureType;
     const SignatureType SIGNATURE = {{
       'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ',
@@ -602,7 +599,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateSPCDecoder()
   {
-    return boost::make_shared<SPC::Decoder>();
+    return MakePtr<SPC::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

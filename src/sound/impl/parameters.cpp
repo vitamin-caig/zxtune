@@ -167,6 +167,14 @@ namespace Parameters
           extern const NameType COMPRESSION = PREFIX + "compression";
           extern const NameType BLOCKSIZE = PREFIX + "blocksize";
         }
+
+        namespace OpenAl
+        {
+          extern const NameType PREFIX = Backends::PREFIX + "openal";
+
+          extern const NameType DEVICE = PREFIX + "device";
+          extern const NameType BUFFERS = PREFIX + "buffers";
+        }
       }
     }
   }

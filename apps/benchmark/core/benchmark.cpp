@@ -15,9 +15,9 @@
 #include "mixer.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //boost includes
 #include <boost/format.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 
 namespace Benchmark
@@ -136,7 +136,7 @@ namespace Benchmark
         };
         Dump mem(Z80_TEST_IO, boost::end(Z80_TEST_IO));
         mem.resize(65536);
-        const Devices::Z80::Chip::Ptr dev = CreateDevice(UINT64_C(3500000), 24, mem, boost::make_shared<Z80Ports>());
+        const Devices::Z80::Chip::Ptr dev = CreateDevice(UINT64_C(3500000), 24, mem, MakePtr<Z80Ports>());
         return Test(*dev, TEST_DURATION, FRAME_DURATION);
       }
     private:

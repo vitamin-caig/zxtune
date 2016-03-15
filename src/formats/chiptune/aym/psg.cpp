@@ -11,13 +11,13 @@
 //local includes
 #include "psg.h"
 #include "formats/chiptune/container.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 //std includes
 #include <cstring>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -181,7 +181,7 @@ namespace Chiptune
 
   Decoder::Ptr CreatePSGDecoder()
   {
-    return boost::make_shared<PSG::Decoder>();
+    return MakePtr<PSG::Decoder>();
   }
 }//namespace Chiptune
 }//namespace Formats

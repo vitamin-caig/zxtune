@@ -10,8 +10,10 @@
 
 //local includes
 #include "soundtrackerpro.h"
-//boost includes
-#include <boost/make_shared.hpp>
+#include "aym_properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
+//common includes
+#include <make_ptr.h>
 
 namespace Module
 {
@@ -20,18 +22,19 @@ namespace SoundTrackerPro
   class DataBuilder : public Formats::Chiptune::SoundTrackerPro::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(AYM::PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
-      Properties.SetFreqtable(TABLE_SOUNDTRACKER_PRO);
+      Properties.SetFrequencyTable(TABLE_SOUNDTRACKER_PRO);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -51,7 +54,7 @@ namespace SoundTrackerPro
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTrackerPro::PositionEntry>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -111,8 +114,9 @@ namespace SoundTrackerPro
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    AYM::PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -324,7 +328,7 @@ namespace SoundTrackerPro
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
@@ -341,13 +345,14 @@ namespace SoundTrackerPro
     {
     }
 
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -360,7 +365,7 @@ namespace SoundTrackerPro
 
   AYM::Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
   {
-    return boost::make_shared<Factory>(decoder);
+    return MakePtr<Factory>(decoder);
   }
 }
 }

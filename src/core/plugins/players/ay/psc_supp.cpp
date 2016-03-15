@@ -12,8 +12,12 @@
 #include "aym_base.h"
 #include "aym_base_track.h"
 #include "aym_plugin.h"
-#include "core/plugins/registrator.h"
+#include "aym_properties_helper.h"
+#include "core/plugins/players/properties_meta.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/simple_orderlist.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <formats/chiptune/aym/prosoundcreator.h>
 #include <math/numeric.h>
@@ -110,10 +114,10 @@ namespace ProSoundCreator
     {
     }
 
-    void Set(const Object* obj)
+    void Set(const Object& obj)
     {
       //do not reset for original position update algo
-      Obj = obj;
+      Obj = &obj;
     }
 
     void Reset()
@@ -270,6 +274,7 @@ namespace ProSoundCreator
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
+    typedef boost::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : InitialTempo()
@@ -301,18 +306,19 @@ namespace ProSoundCreator
   class DataBuilder : public Formats::Chiptune::ProSoundCreator::Builder
   {
   public:
-    explicit DataBuilder(PropertiesBuilder& props)
-      : Data(boost::make_shared<ModuleData>())
+    explicit DataBuilder(AYM::PropertiesHelper& props)
+      : Data(MakeRWPtr<ModuleData>())
       , Properties(props)
+      , Meta(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
-      Properties.SetFreqtable(TABLE_ASM);
+      Properties.SetFrequencyTable(TABLE_ASM);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return Properties;
+      return Meta;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -332,7 +338,7 @@ namespace ProSoundCreator
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -422,14 +428,15 @@ namespace ProSoundCreator
     {
       Patterns.GetChannel().AddCommand(VOLUME_SLIDE, period, delta);
     }
-
+    
     ModuleData::Ptr GetResult() const
     {
       return Data;
     }
   private:
-    const boost::shared_ptr<ModuleData> Data;
-    PropertiesBuilder& Properties;
+    const ModuleData::RWPtr Data;
+    AYM::PropertiesHelper& Properties;
+    MetaProperties Meta;
     PatternsBuilder Patterns;
   };
 
@@ -470,8 +477,8 @@ namespace ProSoundCreator
 
     virtual void Reset()
     {
-      const Sample* const stubSample = Data->Samples.Find(0);
-      const Ornament* const stubOrnament = Data->Ornaments.Find(0);
+      const Sample& stubSample = Data->Samples.Get(0);
+      const Ornament& stubOrnament = Data->Ornaments.Get(0);
       for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         ChannelState& dst = PlayerState[chan];
@@ -544,11 +551,11 @@ namespace ProSoundCreator
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleIterator.Set(Data->Samples.Find(*sample));
+        dst.SampleIterator.Set(Data->Samples.Get(*sample));
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentIterator.Set(Data->Ornaments.Find(*ornament));
+        dst.OrnamentIterator.Set(Data->Ornaments.Get(*ornament));
       }
       if (const uint_t* volume = src.GetVolume())
       {
@@ -715,7 +722,7 @@ namespace ProSoundCreator
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
@@ -727,13 +734,14 @@ namespace ProSoundCreator
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
-      DataBuilder dataBuilder(propBuilder);
+      AYM::PropertiesHelper props(*properties);
+      DataBuilder dataBuilder(props);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProSoundCreator::Parse(rawData, dataBuilder))
       {
-        propBuilder.SetSource(*container);
-        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        props.SetSource(*container);
+        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
       }
       else
       {
@@ -752,7 +760,7 @@ namespace ZXTune
     const Char ID[] = {'P', 'S', 'C', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProSoundCreatorDecoder();
-    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::ProSoundCreator::Factory>();
+    const Module::AYM::Factory::Ptr factory = MakePtr<Module::ProSoundCreator::Factory>();
     const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);;
     registrator.RegisterPlugin(plugin);
   }

@@ -70,3 +70,7 @@ __cpp> "}//namespace Text\n"
 #paudio backend
 < PAUDIO_BACKEND_ID
 > "paudio"
+
+#openal
+< OPENAL_BACKEND_ID
+> "openal"

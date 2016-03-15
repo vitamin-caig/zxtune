@@ -8,12 +8,12 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <parameters/accessor.h>
 #include <sound/matrix_mixer.h>
 #include <sound/mixer_parameters.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Sound
 {
@@ -101,7 +101,7 @@ namespace Sound
   template<unsigned Channels>
   Parameters::Accessor::Ptr CreateMixerNotificationParametersInternal(Parameters::Accessor::Ptr params, typename FixedChannelsMatrixMixer<Channels>::Ptr mixer)
   {
-    return boost::make_shared<MixerNotificationParameters<FixedChannelsMatrixMixer<Channels> > >(params, mixer);
+    return MakePtr<MixerNotificationParameters<FixedChannelsMatrixMixer<Channels> > >(params, mixer);
   }
 }
 

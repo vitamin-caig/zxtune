@@ -8,19 +8,20 @@
 *
 **/
 
-//common includes
-#include <crc.h>
 //local includes
 #include "multitrack.h"
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <crc.h>
+#include <make_ptr.h>
 
-namespace MultitrackChiptunes
+namespace Formats
 {
-  class Container : public Formats::Chiptune::Container
+namespace Chiptune
+{
+  class MultitrackContainer : public Container
   {
   public:
-    explicit Container(Formats::Multitrack::Container::Ptr data)
+    explicit MultitrackContainer(Formats::Multitrack::Container::Ptr data)
       : Delegate(data)
     {
     }
@@ -55,10 +56,10 @@ namespace MultitrackChiptunes
     const Formats::Multitrack::Container::Ptr Delegate;
   };
 
-  class Decoder : public Formats::Chiptune::Decoder
+  class MultitrackDecoder : public Decoder
   {
   public:
-    Decoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
+    MultitrackDecoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
       : Description(description)
       , Delegate(delegate)
     {
@@ -91,20 +92,15 @@ namespace MultitrackChiptunes
     const String Description;
     const Formats::Multitrack::Decoder::Ptr Delegate;
   };
-}
 
-namespace Formats
-{
-  namespace Chiptune
+  Container::Ptr CreateMultitrackChiptuneContainer(Formats::Multitrack::Container::Ptr delegate)
   {
-    Formats::Chiptune::Container::Ptr CreateMultitrackChiptuneContainer(Formats::Multitrack::Container::Ptr delegate)
-    {
-      return boost::make_shared<MultitrackChiptunes::Container>(delegate);
-    }
-    
-    Formats::Chiptune::Decoder::Ptr CreateMultitrackChiptuneDecoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
-    {
-      return boost::make_shared<MultitrackChiptunes::Decoder>(description, delegate);
-    }
+    return MakePtr<MultitrackContainer>(delegate);
   }
+  
+  Decoder::Ptr CreateMultitrackChiptuneDecoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
+  {
+    return MakePtr<MultitrackDecoder>(description, delegate);
+  }
+}
 }

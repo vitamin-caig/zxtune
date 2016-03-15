@@ -27,6 +27,7 @@ namespace Sound
   void RegisterSdlBackend(BackendsStorage& storage);
   void RegisterAyLptBackend(BackendsStorage& storage);
   void RegisterPulseAudioBackend(BackendsStorage& storage);
+  void RegisterOpenAlBackend(BackendsStorage& storage);
 
   inline void RegisterSystemBackends(BackendsStorage& storage)
   {
@@ -36,6 +37,7 @@ namespace Sound
     RegisterDirectSoundBackend(storage);
     RegisterWin32Backend(storage);
     RegisterSdlBackend(storage);
+    RegisterOpenAlBackend(storage);
     RegisterAyLptBackend(storage);
   }
 

@@ -10,8 +10,8 @@
 
 //local includes
 #include "tfm_base_track.h"
-//boost includes
-#include <boost/make_shared.hpp>
+//common includes
+#include <make_ptr.h>
 
 namespace
 {
@@ -220,7 +220,7 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return boost::make_shared<TrackDataIterator>(iterator, renderer);
+      return MakePtr<TrackDataIterator>(iterator, renderer);
     }
   }
 }

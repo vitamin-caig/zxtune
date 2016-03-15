@@ -54,5 +54,10 @@ source_files += $(addprefix gme/,Vgm_Emu.cpp Vgm_Core.cpp Fir_Resampler.cpp Dual
 source_files += $(addprefix gme/,Gym_Emu.cpp)
 #                 Ym2612_Emu.cpp fm2612.c \
 #                 Sms_Apu.cpp \
+
+#kss
+source_files += $(addprefix gme/,Kss_Emu.cpp Kss_Core.cpp Kss_Cpu.cpp Kss_Scc_Apu.cpp \
+                  Z80_Cpu.cpp Opl_Apu.cpp fmopl.cpp \
+                 )
  
 include $(path_step)/makefile.mak

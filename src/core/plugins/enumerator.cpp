@@ -9,15 +9,16 @@
 **/
 
 //local includes
-#include "enumerator.h"
+#include "archive_plugins_enumerator.h"
+#include "player_plugins_enumerator.h"
 #include "registrator.h"
 #include "archives/plugins_list.h"
-#include "containers/plugins_list.h"
 #include "players/plugins_list.h"
 #include "core/src/callback.h"
 //common includes
 #include <error_tools.h>
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <core/convert_parameters.h>
@@ -30,21 +31,16 @@
 //std includes
 #include <list>
 #include <map>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 
 #define FILE_TAG 04EDD719
 
-namespace
+namespace ZXTune
 {
   const Debug::Stream Dbg("Core::Enumerator");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
 
-namespace ZXTune
-{
   template<class PluginType>
   class PluginsContainer : public PluginsRegistrator<PluginType>
                          , public PluginsEnumerator<PluginType>
@@ -71,7 +67,6 @@ namespace ZXTune
     ArchivePluginsContainer()
     {
       const Time::Timer timer;
-      RegisterContainerPlugins(*this);
       RegisterArchivePlugins(*this);
       Dbg("Registered %1% archive plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
     }
@@ -189,11 +184,11 @@ namespace ZXTune
   {
     const ArchivePlugin::Iterator::Ptr archives = ArchivePluginsEnumerator::Create()->Enumerate();
     const PlayerPlugin::Iterator::Ptr players = PlayerPluginsEnumerator::Create()->Enumerate();
-    return boost::make_shared<CompositePluginsIterator>(archives, players);
+    return MakePtr<CompositePluginsIterator>(archives, players);
   }
 
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)
   {
-    return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
+    return MakePtr<SimplePluginDescription>(id, info, capabilities);
   }
 }

@@ -15,6 +15,7 @@
 #include "playlist/parameters.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 #include <progress_callback.h>
 //library includes
 #include <core/module_attrs.h>
@@ -36,7 +37,6 @@
 #include <deque>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/thread/mutex.hpp>
 //text includes
 #include "text/text.h"
@@ -79,7 +79,7 @@ namespace
 
   DataProvider::Ptr CreateSimpleDataProvider(Parameters::Accessor::Ptr ioParams)
   {
-    return boost::make_shared<SimpleDataProvider>(ioParams);
+    return MakePtr<SimpleDataProvider>(ioParams);
   }
 
   template<class T>
@@ -413,7 +413,7 @@ namespace
       const Binary::Container::Ptr data = Source->GetData();
       const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*CoreParams, data, ToLocal(ModuleId->Subpath()));
       const Module::Holder::Ptr module = Module::Open(*CoreParams, location);
-      const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(module->GetModuleProperties());
+      const Parameters::Accessor::Ptr moduleProps = MakePtr<RecodeStringsAdapter>(module->GetModuleProperties());
       const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
       return Module::CreateMixedPropertiesHolder(module, moduleParams);
@@ -491,6 +491,8 @@ namespace
                  , private Parameters::Modifier
   {
   public:
+    typedef Playlist::Item::Data::Ptr Ptr;
+    
     DataImpl(DynamicAttributesProvider::Ptr attributes,
         const ModuleSource& source,
         Parameters::Container::Ptr adjustedParams,
@@ -681,7 +683,7 @@ namespace
       , Attributes(attributes)
       , CoreParams(coreParams)
       , DataId(dataId)
-      , Source(boost::make_shared<DataSource>(provider, dataId))
+      , Source(MakePtr<DataSource>(provider, dataId))
     {
     }
 
@@ -690,12 +692,12 @@ namespace
       const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const Module::Information::Ptr info = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr moduleProps = boost::make_shared<RecodeStringsAdapter>(holder->GetModuleProperties());
+      const Parameters::Accessor::Ptr moduleProps = MakePtr<RecodeStringsAdapter>(holder->GetModuleProperties());
       const IO::Identifier::Ptr moduleId = DataId->WithSubpath(FromLocal(subPath));
       const Parameters::Accessor::Ptr pathProps = Module::CreatePathProperties(moduleId);
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
-      const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
+      const Playlist::Item::Data::Ptr playitem = MakePtr<DataImpl>(Attributes, itemSource, adjustedParams,
         info->FramesCount(), *lookupModuleProps, decoder->Capabilities());
       Delegate.ProcessItem(playitem);
     }
@@ -716,9 +718,9 @@ namespace
   {
   public:
     explicit DataProviderImpl(Parameters::Accessor::Ptr parameters)
-      : Provider(new CachedDataProvider(parameters))
+      : Provider(MakePtr<CachedDataProvider>(parameters))
       , CoreParams(parameters)
-      , Attributes(boost::make_shared<DynamicAttributesProvider>())
+      , Attributes(MakePtr<DynamicAttributesProvider>())
     {
     }
 
@@ -763,7 +765,7 @@ namespace Playlist
   {
     DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr parameters)
     {
-      return boost::make_shared<DataProviderImpl>(parameters);
+      return MakePtr<DataProviderImpl>(parameters);
     }
   }
 }

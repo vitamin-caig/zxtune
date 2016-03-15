@@ -13,11 +13,10 @@
 //common includes
 #include <contract.h>
 #include <types.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <binary/format_factories.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Binary
 {
@@ -119,6 +118,6 @@ namespace Binary
 {
   Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset)
   {
-    return boost::make_shared<CompositeFormat>(header, footer, minFooterOffset, maxFooterOffset);
+    return MakePtr<CompositeFormat>(header, footer, minFooterOffset, maxFooterOffset);
   }
 }

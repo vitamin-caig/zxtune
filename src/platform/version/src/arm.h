@@ -16,8 +16,10 @@ namespace Platform
   {
     namespace Details
     {
+#if defined(__aarch64__)
+      static const char ARCH[] = "aarch64";
 //fpu type
-#if defined(__arm__) && !defined(__SOFTFP__)
+#elif defined(__arm__) && !defined(__SOFTFP__)
       static const char ARCH[] = "armhf";
 #else
       static const char ARCH[] = "arm";

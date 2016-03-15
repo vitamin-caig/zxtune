@@ -11,10 +11,10 @@
 //local includes
 #include "downloads.h"
 #include "apps/zxtune-qt/ui/utils.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //qt includes
 #include <QtCore/QRegExp>
 
@@ -203,7 +203,7 @@ namespace
         return;
       }
       const QString revision = ContentMatch.cap(CONTENT_REVISION);
-      const Product::Update::Ptr update = boost::make_shared<UpdateDownload>(e, revision);
+      const Product::Update::Ptr update = MakePtr<UpdateDownload>(e, revision);
       Delegate.OnDownload(update);
     }
   private:

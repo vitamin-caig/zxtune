@@ -11,10 +11,10 @@
 //local includes
 #include "tfm_base.h"
 #include "core/plugins/players/analyzer.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <parameters/tracking_helper.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Module
 {
@@ -130,7 +130,7 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
     {
-      return boost::make_shared<TFMRenderer>(params, iterator, device);
+      return MakePtr<TFMRenderer>(params, iterator, device);
     }
   }
 }

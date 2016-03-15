@@ -16,13 +16,13 @@
 #include <cycle_buffer.h>
 #include <error_tools.h>
 #include <progress_callback.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/container.h>
 #include <binary/container_factories.h>
 #include <core/core_parameters.h>
 #include <core/module_open.h>
 #include <core/module_holder.h>
-#include <core/module_player.h>
 #include <parameters/container.h>
 #include <platform/version/api.h>
 #include <sound/sound_parameters.h>
@@ -30,7 +30,6 @@
 #include <map>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/range/end.hpp>
 #include <boost/type_traits/is_signed.hpp>
@@ -220,9 +219,9 @@ namespace
       const Parameters::Container::Ptr params = Parameters::Container::Create();
       //copy initial properties
       holder->GetModuleProperties()->Process(*params);
-      const BufferRender::Ptr buffer = boost::make_shared<BufferRender>();
+      const BufferRender::Ptr buffer = MakePtr<BufferRender>();
       const Module::Renderer::Ptr renderer = holder->CreateRenderer(params, buffer);
-      return boost::make_shared<PlayerWrapper>(params, renderer, buffer);
+      return MakePtr<PlayerWrapper>(params, renderer, buffer);
     }
   private:
     const Parameters::Container::Ptr Params;

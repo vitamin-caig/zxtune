@@ -15,8 +15,8 @@
 #include "ui/state.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 
 namespace
@@ -94,15 +94,15 @@ namespace Playlist
 
     SearchDialog::Ptr SearchDialog::Create(QWidget& parent)
     {
-      return boost::make_shared<SearchDialogImpl>(boost::ref(parent));
+      return MakePtr<SearchDialogImpl>(boost::ref(parent));
     }
 
     Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent)
     {
-      return ExecuteSearchDialog(parent, Model::IndexSetPtr());
+      return ExecuteSearchDialog(parent, Model::IndexSet::Ptr());
     }
 
-    Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, Model::IndexSetPtr scope)
+    Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, Model::IndexSet::Ptr scope)
     {
       const SearchDialog::Ptr dialog = SearchDialog::Create(parent);
       Playlist::Item::Search::Data data;

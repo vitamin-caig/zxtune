@@ -8,11 +8,11 @@
 *
 **/
 
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Sound
 {
@@ -69,7 +69,7 @@ namespace Sound
 {
   RenderParameters::Ptr RenderParameters::Create(Parameters::Accessor::Ptr soundParameters)
   {
-    return boost::make_shared<RenderParametersImpl>(soundParameters);
+    return MakePtr<RenderParametersImpl>(soundParameters);
   }
 
   Time::Microseconds GetFrameDuration(const Parameters::Accessor& params)

@@ -15,6 +15,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -26,15 +27,9 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::DigitalStudio");
-}
 
 namespace Formats
 {
@@ -42,6 +37,8 @@ namespace Chiptune
 {
   namespace DigitalStudio
   {
+    const Debug::Stream Dbg("Formats::Chiptune::DigitalStudio");
+
     const std::size_t COMPILED_MODULE_SIZE = 0x1c200;
     const std::size_t MODULE_SIZE = 0x1b200;
     const std::size_t MIN_POSITIONS_COUNT = 1;
@@ -99,7 +96,7 @@ namespace Chiptune
       //+0xc8
       ZeroesArray Zeroes;
       //+0x100
-      SampleInfo Samples[SAMPLES_COUNT];
+      boost::array<SampleInfo, SAMPLES_COUNT> Samples;
       //+0x200
       uint8_t FirstPage[0x4000];
       //+0x4200
@@ -123,26 +120,37 @@ namespace Chiptune
     class SamplesSet
     {
     public:
+      SamplesSet()
+        : SamplesTotal()
+        , Samples4Bit()
+      {
+      }
+      
       void Add(uint_t idx, std::size_t loop, Binary::Data::Ptr data)
       {
-        const bool is4bit = CheckIfSample4Bit(static_cast<const uint8_t*>(data->Start()), data->Size());
-        Dbg(" size #%1$05x, loop #%2$04x%3%", data->Size(), loop, is4bit ? " 4bit" : "");
-        Samples.push_back(Description(idx, loop, data, is4bit));
+        Description& desc = Samples[idx];
+        desc = Description(loop, data);
+        Dbg(" size #%1$05x, loop #%2$04x%3%", data->Size(), loop, desc.Is4Bit ? " 4bit" : "");
+        ++SamplesTotal;
+        Samples4Bit += desc.Is4Bit;
       }
 
       bool Is4Bit() const
       {
-        const std::size_t specific = std::count_if(Samples.begin(), Samples.end(), boost::mem_fn(&Description::Is4Bit));
-        Dbg("%1% 4-bit samples out of %2%", specific, Samples.size());
-        return specific >= Samples.size() / 2;
+        Dbg("%1% 4-bit samples out of %2%", Samples4Bit, SamplesTotal);
+        return Samples4Bit >= SamplesTotal / 2;
       }
 
       void Apply(Builder& builder)
       {
         const bool is4Bit = Is4Bit();
-        for (std::vector<Description>::const_iterator it = Samples.begin(), lim = Samples.end(); it != lim; ++it)
+        for (uint_t idx = 0; idx != Samples.size(); ++idx)
         {
-          builder.SetSample(it->Index, it->Loop, it->Content, is4Bit && it->Is4Bit);
+          const Description& desc = Samples[idx];
+          if (desc.Content)
+          {
+            builder.SetSample(idx, desc.Loop, desc.Content, is4Bit && desc.Is4Bit);
+          }
         }
       }
     private:
@@ -159,28 +167,27 @@ namespace Chiptune
       
       struct Description
       {
-        uint_t Index;
         std::size_t Loop;
         Binary::Data::Ptr Content;
         bool Is4Bit;
 
         Description()
-          : Index()
-          , Loop()
+          : Loop()
           , Content()
           , Is4Bit()
         {
         }
 
-        Description(uint_t idx, std::size_t loop, Binary::Data::Ptr content, bool is4bit)
-          : Index(idx)
-          , Loop(loop)
+        Description(std::size_t loop, Binary::Data::Ptr content)
+          : Loop(loop)
           , Content(content)
-          , Is4Bit(is4bit)
+          , Is4Bit(CheckIfSample4Bit(static_cast<const uint8_t*>(content->Start()), content->Size()))
         {
         }
       };
-      std::vector<Description> Samples;
+      boost::array<Description, SAMPLES_COUNT> Samples;
+      uint_t SamplesTotal;
+      uint_t Samples4Bit;
     };
 
     //TODO: extract
@@ -212,7 +219,14 @@ namespace Chiptune
       void ParseCommonProperties(Builder& target) const
       {
         target.SetInitialTempo(Source.Tempo);
-        target.GetMetaBuilder().SetTitle(FromCharArray(Source.Title));
+        MetaBuilder& meta = target.GetMetaBuilder();
+        meta.SetTitle(FromCharArray(Source.Title));
+        Strings::Array names(Source.Samples.size());
+        for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
+        {
+          names[idx] = FromCharArray(Source.Samples[idx].Name);
+        }
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -255,7 +269,7 @@ namespace Chiptune
           }
         }
       }
-
+      
       std::size_t GetSize() const
       {
         return IsCompiled ? COMPILED_MODULE_SIZE : MODULE_SIZE;
@@ -530,7 +544,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateDigitalStudioDecoder()
   {
-    return boost::make_shared<DigitalStudio::Decoder>();
+    return MakePtr<DigitalStudio::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

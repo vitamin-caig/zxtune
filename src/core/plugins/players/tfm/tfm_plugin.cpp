@@ -13,6 +13,8 @@
 #include "tfm_base.h"
 #include "tfm_parameters.h"
 #include "core/plugins/players/plugin.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
 
@@ -56,11 +58,11 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, PropertiesBuilder& properties) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const
     {
       if (const TFM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {
-        return boost::make_shared<TFMHolder>(chiptune);
+        return MakePtr<TFMHolder>(chiptune);
       }
       else
       {
@@ -76,7 +78,7 @@ namespace ZXTune
 {
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder, Module::TFM::Factory::Ptr factory)
   {
-    const Module::Factory::Ptr modFactory = boost::make_shared<Module::TFMFactory>(factory);
+    const Module::Factory::Ptr modFactory = MakePtr<Module::TFMFactory>(factory);
     const uint_t tfmCaps = Capabilities::Module::Device::TURBOFM;
     return CreatePlayerPlugin(id, caps | tfmCaps, decoder, modFactory);
   }

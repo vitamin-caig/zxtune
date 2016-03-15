@@ -21,26 +21,29 @@
 
 namespace Binary
 {
-  class Token
+  namespace FormatDSL
   {
-  public:
-    typedef boost::shared_ptr<const Token> Ptr;
-    virtual ~Token() {}
+    class Token
+    {
+    public:
+      typedef boost::shared_ptr<const Token> Ptr;
+      virtual ~Token() {}
 
-    virtual bool Match(uint_t val) const = 0;
-  };
+      virtual bool Match(uint_t val) const = 0;
+    };
 
-  typedef std::vector<Token::Ptr> Pattern;
+    typedef std::vector<Token::Ptr> Pattern;
 
-  class Expression
-  {
-  public:
-    typedef std::auto_ptr<const Expression> Ptr;
-    virtual ~Expression() {}
+    class Expression
+    {
+    public:
+      typedef std::auto_ptr<const Expression> Ptr;
+      virtual ~Expression() {}
 
-    virtual std::size_t StartOffset() const = 0;
-    virtual ObjectIterator<Token::Ptr>::Ptr Tokens() const = 0;
+      virtual std::size_t StartOffset() const = 0;
+      virtual ObjectIterator<Token::Ptr>::Ptr Tokens() const = 0;
 
-    static Ptr Parse(const std::string& notation);
-  };
+      static Ptr Parse(const std::string& notation);
+    };
+  }
 }

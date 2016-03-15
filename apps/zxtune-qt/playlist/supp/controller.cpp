@@ -16,10 +16,9 @@
 //common includes
 #include <contract.h>
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //qt includes
 #include <QtGui/QMessageBox>
 
@@ -271,6 +270,6 @@ namespace Playlist
   Controller::Ptr Controller::Create(const QString& name, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::TextNotification::Ptr);
-    return boost::make_shared<ControllerImpl>(name, provider);
+    return MakePtr<ControllerImpl>(name, provider);
   }
 }

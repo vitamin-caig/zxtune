@@ -12,6 +12,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <pointers.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <formats/chiptune/container.h>
@@ -20,7 +21,6 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -32,8 +32,6 @@ namespace Chiptune
   {
     typedef boost::array<uint8_t, 4> SignatureType;
     typedef boost::array<uint8_t, 32> StringType;
-
-    const SignatureType SIGNATURE_GYMX = {{'G', 'Y', 'M', 'X'}};
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -103,7 +101,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateGYMDecoder()
   {
-    return boost::make_shared<GYM::Decoder>();
+    return MakePtr<GYM::Decoder>();
   }
 }
 }

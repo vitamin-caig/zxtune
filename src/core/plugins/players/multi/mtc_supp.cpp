@@ -10,11 +10,13 @@
 
 //local includes
 #include "multi_base.h"
-#include "core/plugins/registrator.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
+#include "core/plugins/players/properties_helper.h"
 //common includes
 #include <contract.h>
 #include <error.h>
+#include <make_ptr.h>
 //library includes
 #include <core/module_attrs.h>
 #include <core/module_open.h>
@@ -26,18 +28,13 @@
 #include <parameters/tools.h>
 //std includes
 #include <list>
-//boost includes
-#include <boost/make_shared.hpp>
-
-namespace
-{
-  const Debug::Stream Dbg("Core::MTCSupp");
-}
 
 namespace Module
 {
 namespace MTC
 {
+  const Debug::Stream Dbg("Core::MTCSupp");
+
   Parameters::Accessor::Ptr CombineProps(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second)
   {
     return first
@@ -62,8 +59,8 @@ namespace MTC
   class DataBuilder : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
-    DataBuilder(const Parameters::Accessor& params, PropertiesBuilder& propBuilder)
-      : Module(params, propBuilder)
+    DataBuilder(const Parameters::Accessor& params, Parameters::Container::Ptr props)
+      : Module(params, props)
       , CurTrack()
       , CurStream()
       , CurEntity(&Module)
@@ -72,17 +69,17 @@ namespace MTC
 
     virtual void SetAuthor(const String& author)
     {
-      GetCurrentProperties().SetAuthor(author);
+      PropertiesHelper(GetCurrentProperties()).SetAuthor(author);
     }
     
     virtual void SetTitle(const String& title)
     {
-      GetCurrentProperties().SetTitle(title);
+      PropertiesHelper(GetCurrentProperties()).SetTitle(title);
     }
     
     virtual void SetAnnotation(const String& annotation)
     {
-      GetCurrentProperties().SetComment(annotation);
+      PropertiesHelper(GetCurrentProperties()).SetComment(annotation);
     }
     
     virtual void SetProperty(const String& name, const String& value)
@@ -119,7 +116,8 @@ namespace MTC
       virtual Module::Holder::Ptr GetHolder() const = 0;
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual Module::PropertiesBuilder& GetPropertiesBuilder() const = 0;
+      
+      virtual Parameters::Modifier& CreateProperties() = 0;
     };
     
     class StaticPropertiesTrackEntity : public TrackEntity
@@ -127,19 +125,19 @@ namespace MTC
     public:
       virtual Parameters::Accessor::Ptr GetProperties() const
       {
-        return Props ? Props->GetResult() : Parameters::Accessor::Ptr();
+        return Props;
       }
       
-      virtual Module::PropertiesBuilder& GetPropertiesBuilder() const
+      virtual Parameters::Modifier& CreateProperties()
       {
         if (!Props)
         {
-          Props = boost::make_shared<Module::PropertiesBuilder>();
+          Props = Parameters::Container::Create();
         }
         return *Props;
       }
     private:
-      mutable boost::shared_ptr<Module::PropertiesBuilder> Props;
+      Parameters::Container::Ptr Props;
     };
     
     class Stream : public StaticPropertiesTrackEntity
@@ -270,9 +268,9 @@ namespace MTC
     class Tune : public TrackEntity
     {
     public:
-      Tune(const Parameters::Accessor& params, Module::PropertiesBuilder& props)
+      Tune(const Parameters::Accessor& params, Parameters::Container::Ptr properties)
         : Params(params)
-        , Props(props)
+        , Props(properties)
       {
       }
       
@@ -301,12 +299,12 @@ namespace MTC
 
       virtual Parameters::Accessor::Ptr GetProperties() const
       {
-        return Props.GetResult();
+        return Props;
       }
       
-      virtual Module::PropertiesBuilder& GetPropertiesBuilder() const
+      virtual Parameters::Modifier& CreateProperties()
       {
-        return Props;
+        return *Props;
       }
     private:
       static bool CompareByDuration(Module::Holder::Ptr lh, Module::Holder::Ptr rh)
@@ -316,28 +314,27 @@ namespace MTC
       
       void MergeAbsentMetadata(const Parameters::Accessor& toMerge) const
       {
-        const Parameters::Accessor::Ptr cur = Props.GetResult();
         String title, author, comment;
-        if (cur->FindValue(Module::ATTR_TITLE, title)
-         || cur->FindValue(Module::ATTR_AUTHOR, author)
-         || cur->FindValue(Module::ATTR_COMMENT, comment))
+        if (Props->FindValue(Module::ATTR_TITLE, title)
+         || Props->FindValue(Module::ATTR_AUTHOR, author)
+         || Props->FindValue(Module::ATTR_COMMENT, comment))
         {
           return;
         }
         Dbg("No existing metadata found. Merge from longest track.");
-        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, Props, Module::ATTR_TITLE);
-        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, Props, Module::ATTR_AUTHOR);
-        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, Props, Module::ATTR_COMMENT);
+        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, *Props, Module::ATTR_TITLE);
+        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, *Props, Module::ATTR_AUTHOR);
+        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, *Props, Module::ATTR_COMMENT);
       }
     private:
       const Parameters::Accessor& Params;
-      Module::PropertiesBuilder& Props;
+      Parameters::Container::Ptr Props;
       std::list<Track> Tracks;
     };
   private:
-    Module::PropertiesBuilder& GetCurrentProperties()
+    Parameters::Modifier& GetCurrentProperties()
     {
-      return CurEntity->GetPropertiesBuilder();
+      return CurEntity->CreateProperties();
     }
   private:
     Tune Module;
@@ -349,14 +346,14 @@ namespace MTC
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, PropertiesBuilder& propBuilder) const
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
     {
       try
       {
-        DataBuilder dataBuilder(params, propBuilder);
+        DataBuilder dataBuilder(params, properties);
         if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::MultiTrackContainer::Parse(rawData, dataBuilder))
         {
-          propBuilder.SetSource(*container);
+          PropertiesHelper(*properties).SetSource(*container);
           return dataBuilder.GetResult();
         }
       }
@@ -378,7 +375,7 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::MULTI;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateMultiTrackContainerDecoder();
-    const Module::MTC::Factory::Ptr factory = boost::make_shared<Module::MTC::Factory>();
+    const Module::MTC::Factory::Ptr factory = MakePtr<Module::MTC::Factory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

@@ -10,12 +10,11 @@
 
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <math/fixedpoint.h>
 #include <sound/chunk_builder.h>
 #include <sound/resampler.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace Sound
 {
@@ -143,11 +142,11 @@ namespace Sound
     }
     else if (inFreq < outFreq)
     {
-      return boost::make_shared<Upsampler>(inFreq, outFreq, delegate);
+      return MakePtr<Upsampler>(inFreq, outFreq, delegate);
     }
     else
     {
-      return boost::make_shared<Downsampler>(inFreq, outFreq, delegate);
+      return MakePtr<Downsampler>(inFreq, outFreq, delegate);
     }
   }
 }

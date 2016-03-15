@@ -9,17 +9,13 @@
 **/
 
 //common includes
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <parameters/tracking.h>
-//boost includes
-#include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
 
-namespace
+namespace Parameters
 {
-  using namespace Parameters;
-
   class CompositeModifier : public Modifier
   {
   public:
@@ -56,15 +52,12 @@ namespace
     const Modifier::Ptr First;
     const Modifier::Ptr Second;
   };
-}
 
-namespace Parameters
-{
   Container::Ptr CreatePreChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback)
   {
     //TODO: get rid of fake pointers
     const Modifier::Ptr asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
-    const Modifier::Ptr modifier = boost::make_shared<CompositeModifier>(asPtr, delegate);
+    const Modifier::Ptr modifier = MakePtr<CompositeModifier>(asPtr, delegate);
     return Container::CreateAdapter(delegate, modifier);
   }
 
@@ -72,7 +65,7 @@ namespace Parameters
   {
     //TODO: get rid of fake pointers
     const Modifier::Ptr asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
-    const Modifier::Ptr modifier = boost::make_shared<CompositeModifier>(delegate, asPtr);
+    const Modifier::Ptr modifier = MakePtr<CompositeModifier>(delegate, asPtr);
     return Container::CreateAdapter(delegate, modifier);
   }
 }

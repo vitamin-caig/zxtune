@@ -16,6 +16,7 @@
 #include <contract.h>
 #include <indices.h>
 #include <iterator.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
@@ -28,7 +29,6 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -36,17 +36,14 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ProSoundCreator");
-}
-
 namespace Formats
 {
 namespace Chiptune
 {
   namespace ProSoundCreator
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ProSoundCreator");
+
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x4200;
     const std::size_t MAX_SAMPLES_COUNT = 32;
@@ -1245,7 +1242,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateProSoundCreatorDecoder()
   {
-    return boost::make_shared<ProSoundCreator::Decoder>();
+    return MakePtr<ProSoundCreator::Decoder>();
   }
 }//namespace Chiptune
 }//namespace Formats

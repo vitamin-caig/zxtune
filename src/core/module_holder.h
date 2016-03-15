@@ -11,8 +11,9 @@
 #pragma once
 
 //library includes
-#include "plugins/players/renderer.h"
 #include <binary/data.h>
+#include <core/module_information.h>
+#include <core/module_renderer.h>
 #include <parameters/accessor.h>
 #include <sound/receiver.h>
 

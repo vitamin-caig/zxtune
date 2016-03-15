@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
+#include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -26,14 +27,8 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
-
-namespace
-{
-  const Debug::Stream Dbg("Formats::Chiptune::ProDigiTracker");
-}
 
 namespace Formats
 {
@@ -41,6 +36,8 @@ namespace Chiptune
 {
   namespace ProDigiTracker
   {
+    const Debug::Stream Dbg("Formats::Chiptune::ProDigiTracker");
+
     const uint_t ORNAMENTS_COUNT = 11;
     const uint_t SAMPLES_COUNT = 16;
     const uint_t POSITIONS_COUNT = 240;
@@ -64,7 +61,7 @@ namespace Chiptune
 
     PACK_PRE struct Sample
     {
-      uint8_t Name[8];
+      char Name[8];
       uint16_t Start;
       uint16_t Size;
       uint16_t Loop;
@@ -291,6 +288,12 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(FromCharArray(Source.Title));
         meta.SetProgram(Text::PRODIGITRACKER_DECODER_DESCRIPTION);
+        Strings::Array names(Source.Samples.size());
+        for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
+        {
+          names[idx] = FromCharArray(Source.Samples[idx].Name);
+        }
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -339,7 +342,7 @@ namespace Chiptune
           target.SetSample(samIdx, 0, Binary::CreateContainer(&dummy, sizeof(dummy)));
         }
       }
-
+      
       void ParseOrnaments(const Indices& orns, Builder& target) const
       {
         for (Indices::Iterator it = orns.Items(); it; ++it)
@@ -606,7 +609,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateProDigiTrackerDecoder()
   {
-    return boost::make_shared<ProDigiTracker::Decoder>();
+    return MakePtr<ProDigiTracker::Decoder>();
   }
 } //namespace Chiptune
 } //namespace Formats

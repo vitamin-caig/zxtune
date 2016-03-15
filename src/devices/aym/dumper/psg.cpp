@@ -13,25 +13,24 @@
 //std includes
 #include <algorithm>
 #include <iterator>
+#include <make_ptr.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 
-namespace
+namespace Devices
 {
-  using namespace Devices::AYM;
-
-  // command codes
-  enum Codes
-  {
-    INTERRUPT = 0xff,
-    SKIP_INTS = 0xfe,
-    END_MUS = 0xfd
-  };
-
+namespace AYM
+{
   class PSGDumpBuilder : public FramedDumpBuilder
   {
   public:
+    enum CommandCodes
+    {
+      INTERRUPT = 0xff,
+      SKIP_INTS = 0xfe,
+      END_MUS = 0xfd
+    };
+
     virtual void Initialize()
     {
       static const uint8_t HEADER[] =
@@ -83,16 +82,11 @@ namespace
   private:
     Dump Data;
   };
-}
 
-namespace Devices
-{
-  namespace AYM
+  Dumper::Ptr CreatePSGDumper(DumperParameters::Ptr params)
   {
-    Dumper::Ptr CreatePSGDumper(DumperParameters::Ptr params)
-    {
-      const FramedDumpBuilder::Ptr builder = boost::make_shared<PSGDumpBuilder>();
-      return CreateDumper(params, builder);
-    }
+    const FramedDumpBuilder::Ptr builder = MakePtr<PSGDumpBuilder>();
+    return CreateDumper(params, builder);
   }
+}
 }

@@ -13,11 +13,13 @@
 #include "dac_base.h"
 #include "dac_parameters.h"
 #include "core/plugins/players/plugin.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <sound/mixer_factory.h>
 
-namespace
+namespace Module
 {
   template<unsigned Channels>
   Devices::DAC::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
@@ -41,10 +43,7 @@ namespace
       return Devices::DAC::Chip::Ptr();
     };
   }
-}
 
-namespace Module
-{
   class DACHolder : public Holder
   {
   public:
@@ -83,11 +82,11 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, PropertiesBuilder& properties) const
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const
     {
       if (const DAC::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {
-        return boost::make_shared<DACHolder>(chiptune);
+        return MakePtr<DACHolder>(chiptune);
       }
       else
       {
@@ -103,7 +102,7 @@ namespace ZXTune
 {
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::DAC::Factory::Ptr factory)
   {
-    const Module::Factory::Ptr modFactory = boost::make_shared<Module::DACFactory>(factory);
+    const Module::Factory::Ptr modFactory = MakePtr<Module::DACFactory>(factory);
     const uint_t caps = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
     return CreatePlayerPlugin(id, caps, decoder, modFactory);
   }

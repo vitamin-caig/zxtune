@@ -13,6 +13,7 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/container_factories.h>
@@ -22,7 +23,6 @@
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -147,7 +147,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateSIDDecoder()
   {
-    return boost::make_shared<SID::Decoder>();
+    return MakePtr<SID::Decoder>();
   }
 }
 }

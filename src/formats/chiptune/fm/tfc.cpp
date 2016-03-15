@@ -13,6 +13,7 @@
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -20,7 +21,6 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -312,7 +312,7 @@ namespace Chiptune
 
   Decoder::Ptr CreateTFCDecoder()
   {
-    return boost::make_shared<TFC::Decoder>();
+    return MakePtr<TFC::Decoder>();
   }
 }//namespace Chiptune
 }//namespace Formats

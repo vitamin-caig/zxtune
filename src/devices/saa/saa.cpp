@@ -310,7 +310,7 @@ namespace SAA
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
   {
-    return Chip::Ptr(new RegularSAAChip(params, target));
+    return MakePtr<RegularSAAChip>(params, target);
   }
 }
 }

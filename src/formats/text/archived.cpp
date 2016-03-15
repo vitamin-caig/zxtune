@@ -15,6 +15,9 @@ extern const Char GBS_ARCHIVE_DECODER_DESCRIPTION[] = {
 extern const Char HRIP_DECODER_DESCRIPTION[] = {
   'H','r','i','p',' ','(','H','r','u','s','t',' ','R','i','P',' ','a','r','c','h','i','v','e','r',')',0
 };
+extern const Char KSSX_ARCHIVE_DECODER_DESCRIPTION[] = {
+  'M','u','l','t','i','-','K','S','S','X',0
+};
 extern const Char LHA_DECODER_DESCRIPTION[] = {
   'L','H','A',' ','(','L','H','A','r','c',')',0
 };

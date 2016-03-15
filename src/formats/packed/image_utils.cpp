@@ -10,17 +10,15 @@
 
 //local includes
 #include "image_utils.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 //std includes
 #include <map>
-//boost includes
-#include <boost/make_shared.hpp>
 
-namespace
+namespace Formats
 {
-  using namespace Formats;
-
   bool CompareCHS(const CHS& lh, const CHS& rh)
   {
     return lh.Cylinder == rh.Cylinder
@@ -72,6 +70,6 @@ namespace Formats
 
   ImageBuilder::Ptr CreateSparsedImageBuilder()
   {
-    return boost::make_shared<SparsedImageBuilder>();
+    return MakePtr<SparsedImageBuilder>();
   }
 }

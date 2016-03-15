@@ -12,6 +12,7 @@
 #include "backend_impl.h"
 //common includes
 #include <error_tools.h>
+#include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <async/worker.h>
@@ -20,7 +21,6 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 
 #define FILE_TAG B3D60DB5
@@ -289,7 +289,7 @@ namespace Sound
   {
     static StubBackendCallback STUB;
     const BackendCallback::Ptr cb = callback ? callback : MakeSingletonPointer(STUB);
-    return boost::make_shared<CallbackOverWorker>(cb, worker);
+    return MakePtr<CallbackOverWorker>(cb, worker);
   }
 
   class ControlInternal : public PlaybackControl
@@ -352,7 +352,7 @@ namespace Sound
     BackendInternal(BackendWorker::Ptr worker, Module::Renderer::Ptr renderer, Async::Job::Ptr job)
       : Worker(worker)
       , Renderer(renderer)
-      , Control(boost::make_shared<ControlInternal>(job, renderer))
+      , Control(MakePtr<ControlInternal>(job, renderer))
     {
     }
 
@@ -386,12 +386,12 @@ namespace Sound
 {
   Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
   {
-    const Receiver::Ptr target = boost::make_shared<BufferRenderer>(boost::ref(*worker));
+    const Receiver::Ptr target = MakePtr<BufferRenderer>(boost::ref(*worker));
     const Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params, target);
     const BackendCallback::Ptr callback = CreateCallback(origCallback, worker);
-    const Module::Renderer::Ptr renderer = boost::make_shared<RendererWrapper>(origRenderer, callback);
-    const Async::Worker::Ptr asyncWorker = boost::make_shared<AsyncWrapper>(callback, renderer);
+    const Module::Renderer::Ptr renderer = MakePtr<RendererWrapper>(origRenderer, callback);
+    const Async::Worker::Ptr asyncWorker = MakePtr<AsyncWrapper>(callback, renderer);
     const Async::Job::Ptr job = Async::CreateJob(asyncWorker);
-    return boost::make_shared<BackendInternal>(worker, renderer, job);
+    return MakePtr<BackendInternal>(worker, renderer, job);
   }
 }
