@@ -79,6 +79,7 @@ namespace Chiptune
 
     typedef boost::array<uint8_t, 0x38> ZeroesArray;
 
+    //Usually located at #7e00
     PACK_PRE struct Header
     {
       //+0
@@ -361,27 +362,29 @@ namespace Chiptune
         const std::size_t ZX_PAGE_SIZE = 0x4000;
         const std::size_t LO_MEM_ADDR = 0x8000;
         const std::size_t HI_MEM_ADDR = 0xc000;
-        static const std::size_t SAMPLES_OFFSETS[8] = {0x200, 0x7200, 0x0, 0xb200, 0xf200, 0x0, 0x13200, 0x17200};
-        static const std::size_t SAMPLES_OFFSETS_COMPILED[8] = {0x200, 0x8200, 0x0, 0xc200, 0x10200, 0x0, 0x14200, 0x18200};
+        static const std::size_t PAGES_OFFSETS[8] = {0x200, 0x7200, 0x0, 0xb200, 0xf200, 0x0, 0x13200, 0x17200};
+        static const std::size_t PAGES_OFFSETS_COMPILED[8] = {0x200, 0x8200, 0x0, 0xc200, 0x10200, 0x0, 0x14200, 0x18200};
 
         if (info.Size == 0)
         {
+          Dbg(" Empty sample");
           return Binary::Data::Ptr();
         }
-        Require(info.Page >= 0x51 && info.Page <= 0x57);
+        //assume normal 128k machine: normal screen, basic48, nolock
+        Require((info.Page & 0x38) == 0x10);
 
-        const std::size_t* const offsets = IsCompiled ? SAMPLES_OFFSETS_COMPILED : SAMPLES_OFFSETS;
+        const std::size_t* const offsets = IsCompiled ? PAGES_OFFSETS_COMPILED : PAGES_OFFSETS;
 
         const std::size_t pageNumber = info.Page & 0x7;
         Require(0 != offsets[pageNumber]);
 
-        const bool isLoMemSample = 0x7 == pageNumber;
-        const std::size_t BASE_ADDR = isLoMemSample ? LO_MEM_ADDR : HI_MEM_ADDR;
-        const std::size_t MAX_SIZE = isLoMemSample ? 2 * ZX_PAGE_SIZE : ZX_PAGE_SIZE;
-
         const std::size_t sampleStart = fromLE(info.Start);
         const std::size_t sampleSize = fromLE(info.Size);
         const std::size_t sampleLoop = fromLE(info.Loop);
+        
+        const bool isLoMemSample = sampleStart < HI_MEM_ADDR;
+        const std::size_t BASE_ADDR = isLoMemSample ? LO_MEM_ADDR : HI_MEM_ADDR;
+        const std::size_t MAX_SIZE = isLoMemSample ? 2 * ZX_PAGE_SIZE : ZX_PAGE_SIZE;
 
         Require(sampleStart >= BASE_ADDR);
         Require(sampleSize <= MAX_SIZE);
@@ -391,20 +394,19 @@ namespace Chiptune
         const std::size_t sampleOffsetInPage = sampleStart - BASE_ADDR;
         if (isLoMemSample)
         {
-          const bool isLoMemSampleInPage = sampleOffsetInPage >= ZX_PAGE_SIZE;
-          const bool isSplitSample = !isLoMemSampleInPage && sampleOffsetInPage + sampleSize > ZX_PAGE_SIZE;
+          const bool isSplitSample = sampleOffsetInPage + sampleSize > ZX_PAGE_SIZE;
 
           if (isSplitSample)
           {
             const std::size_t firstOffset = offsets[0] + sampleOffsetInPage;
-            const std::size_t firstCopy = ZX_PAGE_SIZE - sampleOffsetInPage;
-            const Binary::Data::Ptr part1 = GetSampleData(firstOffset, firstCopy);
-            Require(part1 != 0);
-            const std::size_t secondOffset = offsets[7];
-            const std::size_t secondCopy = sampleOffsetInPage + sampleSize - ZX_PAGE_SIZE;
+            const std::size_t firstSize = ZX_PAGE_SIZE - sampleOffsetInPage;
+            Require(Ranges->AddRange(firstOffset, firstSize));
+            const Binary::Data::Ptr part1 = RawData.GetSubcontainer(firstOffset, firstSize);
+            const std::size_t secondOffset = offsets[pageNumber];
+            const std::size_t secondSize = sampleOffsetInPage + sampleSize - ZX_PAGE_SIZE;
             Dbg(" Two parts in low memory: #%1$05x..#%2$05x + #%3$05x..#%4$05x", 
-              firstOffset, firstOffset + firstCopy, secondOffset, secondOffset + secondCopy);
-            if (const Binary::Data::Ptr part2 = GetSampleData(secondOffset, secondCopy))
+              firstOffset, firstOffset + firstSize, secondOffset, secondOffset + secondSize);
+            if (const Binary::Data::Ptr part2 = GetSampleData(secondOffset, secondSize))
             {
               Dbg(" Using two parts with sizes #%1$05x + #%2$05x", part1->Size(), part2->Size());
               return CreateCompositeData(*part1, *part2);
@@ -417,9 +419,7 @@ namespace Chiptune
           }
           else
           {
-            const std::size_t dataOffset = isLoMemSampleInPage 
-              ? (offsets[7] + (sampleOffsetInPage - ZX_PAGE_SIZE))
-              : offsets[0] + sampleOffsetInPage;
+            const std::size_t dataOffset = offsets[0] + sampleOffsetInPage;
             Dbg(" One part in low memory: #%1$05x..#%2$05x", 
               dataOffset, dataOffset + sampleSize);
             return GetSampleData(dataOffset, sampleSize);
