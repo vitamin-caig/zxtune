@@ -613,7 +613,14 @@ namespace
     {
       Dbg("Analyze %1%", node->Name());
       NestedScannerTarget target(node, *this, *Target);
-      Scanner->Scan(node->Data(), target);
+      try
+      {
+        Scanner->Scan(node->Data(), target);
+      }
+      catch (const std::exception& e)
+      {
+        std::cout << "Failed to process " << node->Name() << "(" << e.what() << ")\n";
+      }
     }
 
     virtual void Flush()
