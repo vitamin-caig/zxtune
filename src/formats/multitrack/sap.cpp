@@ -207,7 +207,7 @@ namespace Multitrack
       
       virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
       {
-        return MakePtr<Container>(Content, Content->Rebuild(StartTrack), idx);
+        return MakePtr<Container>(Content, Content->Rebuild(idx), idx);
       }
     private:
       const DataBuilder::Ptr Content;
