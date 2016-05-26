@@ -1,3 +1,4 @@
+#include <make_ptr.h>
 #include <binary/data_builder.h>
 #include <formats/packed/decoders.h>
 #include <boost/range/end.hpp>
@@ -53,27 +54,61 @@ namespace
     {"Z80V20",   &CreateZ80V20Decoder                   },
     {"Z80V30",   &CreateZ80V30Decoder                   },
     {"MEGALZ",   &CreateMegaLZDecoder                   },
+    {"DSK",      &CreateDSKDecoder                      },
+    {"GZIP",     &CreateGzipDecoder                     },
+  };
+  
+  class AutoDecoder : public Formats::Packed::Decoder
+  {
+  public:
+    virtual String GetDescription() const
+    {
+      return "Autodetect";
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      throw std::runtime_error("Should not be called");
+    }
+
+    virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
+    {
+      for (const DecoderTraits* trait = DECODERS; trait != boost::end(DECODERS); ++trait)
+      {
+        const Formats::Packed::Decoder::Ptr delegate = (trait->Create)();
+        if (const Formats::Packed::Container::Ptr result = delegate->Decode(rawData))
+        {
+          std::cerr << "Detected " << delegate->GetDescription() << std::endl;
+          return result;
+        }
+      }
+      return Formats::Packed::Container::Ptr();
+    }
   };
   
   std::string GetType(int argc, const char* argv[])
   {
-    if (argc < 2)
+    switch (argc)
     {
-      throw std::runtime_error("Decoder type should be specified (use --help)");
+    case 1:
+      return std::string();
+    case 2:
+      return std::string(argv[1]);
+    default:
+      return "--help";
     }
-    return std::string(argv[1]);
   }
   
   void ShowHelp()
   {
     std::cerr << "Usage:\n"
-                 "  depacker <type>\n\n"
+                 "  depacker [<type>]\n\n"
                  " to decode data from stdin to stdout\n\n";
   }
   
   void ListAvailableTypes()
   {
-    std::cerr << "List of available types:\n";
+    std::cerr << "List of available types to disable detection:\n";
     for (const DecoderTraits* decoder = DECODERS; decoder != boost::end(DECODERS); ++decoder)
     {
       std::cerr << decoder->Id << std::endl;
@@ -82,19 +117,23 @@ namespace
   
   Formats::Packed::Decoder::Ptr CreateDecoder(const std::string& type)
   {
-    for (const DecoderTraits* decoder = DECODERS; decoder != boost::end(DECODERS); ++decoder)
+    if (type == "")
     {
-      if (type == decoder->Id)
-      {
-        return (decoder->Create)();
-      }
+      return MakePtr<AutoDecoder>();
     }
-    if (type == "--help")
+    else if (type == "--help")
     {
       ShowHelp();
     }
     else
     {
+      for (const DecoderTraits* decoder = DECODERS; decoder != boost::end(DECODERS); ++decoder)
+      {
+        if (type == decoder->Id)
+        {
+          return (decoder->Create)();
+        }
+      }
       std::cerr << "Unknown type " << type << std::endl;
     }
     ListAvailableTypes();
@@ -141,10 +180,12 @@ int main(int argc, const char* argv[])
     const std::string type = GetType(argc, argv);
     const Formats::Packed::Decoder::Ptr decoder = CreateDecoder(type);
     const Binary::Container::Ptr input = ReadInput();
-    std::cerr << "Read " << input->Size() << " bytes\n";
-    if (const Binary::Container::Ptr output = decoder->Decode(*input))
+    std::cerr << "Input: " << input->Size() << std::endl;
+    if (const Formats::Packed::Container::Ptr output = decoder->Decode(*input))
     {
+      std::cerr << "Payload: " << output->PackedSize() << std::endl;
       WriteOutput(*output);
+      std::cerr << "Output: " << output->Size() << std::endl;
     }
     else
     {
