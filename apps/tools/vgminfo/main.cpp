@@ -157,6 +157,11 @@ namespace
         ParseSimpleDevice("C352", stream);
         ParseSimpleDevice("GA20", stream);
       }
+      if (gd3)
+      {
+        stream.Seek(gd3 + 0x14);
+        ParseGD3Tags(stream);
+      }
     }
     
     void Dump() const
@@ -172,12 +177,14 @@ namespace
       {
         std::cout << "Framerate: "<< Framerate << "hz" << std::endl;
       }
-      /*
-      if (gd3)
+      if (!Tags.empty())
       {
-        std::cout << "Has gd3 tags" << std::endl;
+        std::cout << "Tags:" << std::endl;
+        for (std::map<String, String>::const_iterator it = Tags.begin(), lim = Tags.end(); it != lim; ++it)
+        {
+          std::cout << "  " << it->first << ": " << it->second << std::endl;
+        }
       }
-      */
     }
   private:
     void ParseSN76489(Stream& stream)
@@ -258,9 +265,59 @@ namespace
       }
       Devices[fullName] = clock;
     }
+    
+    void ParseGD3Tags(Stream& stream)
+    {
+      const uint32_t tag = stream.ReadDword();
+      if (tag != fromLE<uint32_t>(0x20336447))
+      {
+        return;
+      }
+      stream.ReadDword();//ver
+      stream.ReadDword();//size
+      ReadTag("Title(eng)", stream);
+      ReadTag("Title(jap)", stream);
+      ReadTag("Game(eng)", stream);
+      ReadTag("Game(jap)", stream);
+      ReadTag("System(eng)", stream);
+      ReadTag("System(jap)", stream);
+      ReadTag("Author(eng)", stream);
+      ReadTag("Author(jap)", stream);
+      ReadTag("Released", stream);
+      ReadTag("RippedBy", stream);
+      ReadTag("Notes", stream);
+    }
+    
+    void ReadTag(const String& name, Stream& stream)
+    {
+      String value;
+      while (const uint16_t utf = stream.ReadWord())
+      {
+        if (utf <= 0x7f)
+        {
+          value += static_cast<Char>(utf);
+        }
+        else if (utf <= 0x7ff)
+        {
+          value += static_cast<Char>(0xc0 | ((utf & 0x3c0) >> 6));
+          value += static_cast<Char>(0x80 | (utf & 0x3f));
+        }
+        else
+        {
+          value += static_cast<Char>(0xe0 | ((utf & 0xf000) >> 12));
+          value += static_cast<Char>(0x80 | ((utf & 0x0fc0) >> 6));
+          value += static_cast<Char>(0x80 | ((utf & 0x003f)));
+        }
+      }
+      if (!value.empty())
+      {
+        Tags[name] = value;
+      }
+    }
   private:
     uint_t Version;
     uint_t Framerate;
+    std::map<String, String> Tags;
     std::map<String, uint_t> Devices;
   };
 
