@@ -8,6 +8,8 @@ android {
         applicationId "app.zxtune"
         minSdkVersion 10
         targetSdkVersion 17
+        //supported languages
+        resConfigs "en", "de", "ru", "es"
     }
 }
 
