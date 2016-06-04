@@ -2,7 +2,7 @@
  *
  * @file
  *
- * @brief LinearLayout implementation with Checkable interface and functionality support
+ * @brief RelativeLayout implementation with Checkable interface and functionality support
  *
  * @author vitamin.caig@gmail.com
  *
@@ -19,20 +19,20 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Checkable;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
-public class CheckableLinearLayout extends LinearLayout implements Checkable {
+public class CheckableRelativeLayout extends RelativeLayout implements Checkable {
 
   private static final int[] CHECKED_STATE_SET = {android.R.attr.state_checked}; 
   private boolean isChecked;
   private LinkedList<Checkable> delegates;
   private StateListDrawable background;
   
-  public CheckableLinearLayout(Context context) {
+  public CheckableRelativeLayout(Context context) {
     super(context);
   }
 
-  public CheckableLinearLayout(Context context, AttributeSet attrs) {
+  public CheckableRelativeLayout(Context context, AttributeSet attrs) {
     super(context, attrs);
   }
   

@@ -25,9 +25,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
-import app.zxtune.Identifier;
+
 import app.zxtune.R;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.PlaylistQuery;
@@ -104,42 +102,37 @@ public class PlaylistView extends DragSortListView
 
   private class PlaylistCursorAdapter extends DragSortCursorAdapter {
 
-    private final LayoutInflater inflater;
     private DropListener dropListener;
 
     PlaylistCursorAdapter(Context context, Cursor cursor, boolean autoRequery) {
       super(context, cursor, autoRequery);
-      this.inflater = LayoutInflater.from(context);
     }
 
     PlaylistCursorAdapter(Context context, Cursor cursor, int flags) {
       super(context, cursor, flags);
-      this.inflater = LayoutInflater.from(context);
     }
     
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-      final ViewHolder holder = (ViewHolder) view.getTag();
+      final ListItemViewHolder holder = ListItemViewHolder.fromView(view);
       final Item item = new Item(cursor);
       final String title = item.getTitle();
-      if (0 == title.length()) {
+      if (title.isEmpty()) {
         final String filename = item.getLocation().getDisplayFilename();
-        holder.title.setText(filename);
+        holder.setMainText(filename);
       } else {
-        holder.title.setText(title);
+        holder.setMainText(title);
       }
-      holder.author.setText(item.getAuthor());
-      holder.duration.setText(item.getDuration().toString());
+      holder.setAuxText(item.getAuthor());
+      holder.setDetailText(item.getDuration().toString());
       final Uri uri = item.getUri();
       final int icon = state.isPlaying(uri) ? R.drawable.ic_playing : R.drawable.ic_drag_handler;
-      holder.handler.setImageResource(icon);
+      holder.setIcon(icon);
     }
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-      final View view = inflater.inflate(R.layout.playlist_item, parent, false);
-      view.setTag(new ViewHolder(view));
-      return view;
+      return ListItemViewHolder.createView(context, parent);
     }
     
     @Override
@@ -156,18 +149,4 @@ public class PlaylistView extends DragSortListView
     }
   }
 
-  private static class ViewHolder {
-
-    final ImageView handler;
-    final TextView title;
-    final TextView author;
-    final TextView duration;
-
-    ViewHolder(View view) {
-      this.handler = (ImageView) view.findViewById(R.id.playlist_item_handler);
-      this.title = (TextView) view.findViewById(R.id.playlist_item_title);
-      this.author = (TextView) view.findViewById(R.id.playlist_item_author);
-      this.duration = (TextView) view.findViewById(R.id.playlist_item_duration);
-    }
-  }
 }

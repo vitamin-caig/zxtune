@@ -10,60 +10,56 @@
 
 package app.zxtune.ui.browser;
 
-import android.annotation.SuppressLint;
+import android.content.Context;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.view.ViewGroup;
+
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
+import app.zxtune.ui.ListItemViewHolder;
 
-@SuppressLint("Assert")
 class BrowserViewHolder {
 
-  private final ImageView icon;
-  private final TextView name;
-  private final TextView description;
-  private final TextView size;
-  
-  private BrowserViewHolder(View view) {
-    this.icon = (ImageView) view.findViewById(R.id.browser_item_icon);
-    this.name = (TextView) view.findViewById(R.id.browser_item_name);
-    this.description = (TextView) view.findViewById(R.id.browser_item_description);
-    this.size = (TextView) view.findViewById(R.id.browser_item_size);
+  private final ListItemViewHolder delegate;
+
+  private BrowserViewHolder(ListItemViewHolder delegate) {
+    this.delegate = delegate;
   }
-  
-  static BrowserViewHolder create(View view) {
-    return new BrowserViewHolder(view);
+
+  static View createView(Context context, ViewGroup parent) {
+    return ListItemViewHolder.createView(context, parent);
   }
-  
+
+  static BrowserViewHolder fromView(View view) {
+    return new BrowserViewHolder(ListItemViewHolder.fromView(view));
+  }
+
   final void fill(VfsObject obj) {
     setNameDescription(obj);
     if (obj instanceof VfsDir) {
       setIcon(obj);
-      size.setVisibility(View.GONE);
     } else {
-      icon.setVisibility(View.GONE);
       setSize((VfsFile) obj);
     }
   }
 
   private void setNameDescription(VfsObject obj) {
-    name.setText(obj.getName());
-    description.setText(obj.getDescription());
+    delegate.setMainText(obj.getName());
+    delegate.setAuxText(obj.getDescription());
   }
 
   private void setIcon(VfsObject dir) {
     final int iconId = getIcon(dir);
-    icon.setImageResource(iconId);
-    icon.setVisibility(View.VISIBLE);
+    delegate.setIcon(iconId);
+    delegate.setDetailText(null);
   }
 
   private void setSize(VfsFile file) {
-    size.setText(file.getSize());
-    size.setVisibility(View.VISIBLE);
+    delegate.setIcon(null);
+    delegate.setDetailText(file.getSize());
   }
 
   private static int getIcon(VfsObject dir) {

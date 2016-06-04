@@ -15,12 +15,12 @@
         android:fastScrollEnabled="true"
         dslv:use_default_controller="true"
         dslv:drag_start_mode="onDown"
-        dslv:drag_handle_id="@+id/playlist_item_handler"
+        dslv:drag_handle_id="@+id/list_item_icon"
         dslv:sort_enabled="true"
     />
     <!-- disable removal 
         dslv:remove_enabled="true"
-        dslv:fling_handle_id="@+id/playlist_item_handler"
+        dslv:fling_handle_id="@+id/list_item_icon"
     -->
     <TextView
         android:id="@+id/playlist_stub"

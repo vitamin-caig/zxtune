@@ -10,15 +10,14 @@
 
 package app.zxtune.ui.browser;
 
+import android.content.Context;
+import android.view.View;
+import android.view.ViewGroup;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import app.zxtune.R;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
@@ -27,12 +26,12 @@ import app.zxtune.fs.VfsObject;
 //TODO: synchronize?
 class RealBrowserViewModel implements BrowserViewModel {
   
-  private final LayoutInflater inflater;
+  private final Context context;
   private final ArrayList<VfsDir> dirs;
   private final ArrayList<VfsFile> files;
   
   RealBrowserViewModel(Context context) {
-    this.inflater = LayoutInflater.from(context);
+    this.context = context;
     this.dirs = new ArrayList<VfsDir>();
     this.files = new ArrayList<VfsFile>();
   }
@@ -77,16 +76,10 @@ class RealBrowserViewModel implements BrowserViewModel {
   @Override
   //TODO: use explicit multiple view types
   public View getView(int position, View convertView, ViewGroup parent) {
-    View view;
-    BrowserViewHolder holder;
-    if (convertView == null) {
-      view = inflater.inflate(R.layout.browser_item_detailed, parent, false);
-      holder = BrowserViewHolder.create(view);
-      view.setTag(holder);
-    } else {
-      view = convertView;
-      holder = (BrowserViewHolder) convertView.getTag();
-    }
+    final View view = convertView == null
+            ? BrowserViewHolder.createView(context, parent)
+            : convertView;
+    final BrowserViewHolder holder = BrowserViewHolder.fromView(view);
     final int dirsCount = dirs.size();
     if (position < dirsCount) {
       holder.fill(dirs.get(position));
