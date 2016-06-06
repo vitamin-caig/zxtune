@@ -27,7 +27,7 @@ extern const okim6295_interface okim6295_interface_pin7low;*/
 //void okim6295_set_pin7(running_device *device, int pin7);
 
 void okim6295_update(void *, stream_sample_t **outputs, int samples);
-void * device_start_okim6295(int clock);
+void* device_start_okim6295(int clock);
 void device_stop_okim6295(void *);
 void device_reset_okim6295(void *);
 
