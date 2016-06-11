@@ -36,40 +36,39 @@ import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
 /**
+ * API entry point:
+ *   http://api.modarchive.org
+ *
  * Authors:
- *   http://modarchive.org/data/xml-tools.php?key=${key}&request=search_artist&page=${page}
+ *   ${API}/xml-tools.php?key=${key}&request=search_artist&page=${page}
  *   
  * references author's tracks at
- *   http://modarchive.org/data/xml-tools.php?key=${key}&request=view_modules_by_artistid&query=${id}&page=${page}
+ *   ${API}/xml-tools.php?key=${key}&request=view_modules_by_artistid&query=${id}&page=${page}
  *   
  * references tracks at
- *   http://api.modarchive.org/downloads.php?moduleid=${moduleid}
+ *   ${API}/downloads.php?moduleid=${moduleid}
  * 
  * Genres:
- *   http://modarchive.org/data/xml-tools.php?key=${key}&request=view_genres (no paging)
+ *   ${API}/xml-tools.php?key=${key}&request=view_genres (no paging)
  *   
  * references genre's tracks at
- *   http://modarchive.org/data/xml-tools.php?key=${key}&request=search&type=genre&query=${genreid}&page=${page}
+ *   ${API}/xml-tools.php?key=${key}&request=search&type=genre&query=${genreid}&page=${page}
  *   
  * Search:
- *   http://modarchive.org/data/xml-tools.php?key=${key}&request=search&type=filename_or_songtitle&query=*${query}*&page=${page}
+ *   ${API}/xml-tools.php?key=${key}&request=search&type=filename_or_songtitle&query=*${query}*&page=${page}
  */
 
 class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
   
-  private static final String DOWNLOAD_QUERY = "http://api.modarchive.org/downloads.php?moduleid=%d";
-  
   private static class ApiUriBuilder {
     private final Uri.Builder delegate;
-    
-    ApiUriBuilder(String key) {
+
+    private ApiUriBuilder() {
       delegate = new Uri.Builder();
       delegate.scheme("http");
-      delegate.authority("modarchive.org");
-      delegate.path("data/xml-tools.php");
-      delegate.appendQueryParameter("key", key);
+      delegate.authority("api.modarchive.org");
     }
     
     final ApiUriBuilder setRequest(String request) {
@@ -90,9 +89,23 @@ class RemoteCatalog extends Catalog {
       delegate.appendQueryParameter("type", type);
       return this;
     }
-    
+
     final String build() {
       return delegate.build().toString();
+    }
+
+    static ApiUriBuilder forQuery(String key) {
+      final ApiUriBuilder result = new ApiUriBuilder();
+      result.delegate.path("xml-tools.php");
+      result.delegate.appendQueryParameter("key", key);
+      return result;
+    }
+
+    static ApiUriBuilder forDownload(int trackId) {
+      final ApiUriBuilder result = new ApiUriBuilder();
+      result.delegate.path("downloads.php");
+      result.delegate.appendQueryParameter("moduleid", Integer.toString(trackId));
+      return result;
     }
   }
 
@@ -105,7 +118,7 @@ class RemoteCatalog extends Catalog {
     this.key = metaData.getString("key.modarchive");
   }
   
-  private Bundle getAppMetadata(Context context) {
+  private static Bundle getAppMetadata(Context context) {
     try {
       final ApplicationInfo info = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
       return info.metaData;
@@ -116,7 +129,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
-    final String uri = new ApiUriBuilder(key).setRequest("search_artist").build();
+    final String uri = ApiUriBuilder.forQuery(key).setRequest("search_artist").build();
     final RootElement root = createAuthorsParserRoot(visitor);
     loadPages(uri, root);
     visitor.accept(Author.UNKNOWN);
@@ -124,21 +137,21 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryGenres(GenresVisitor visitor) throws IOException {
-    final String uri = new ApiUriBuilder(key).setRequest("view_genres").build();
+    final String uri = ApiUriBuilder.forQuery(key).setRequest("view_genres").build();
     final RootElement root = createGenresParserRoot(visitor);
     loadSinglePage(uri, root);
   }
   
   @Override
   public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
-    final String uri = new ApiUriBuilder(key).setRequest("view_modules_by_artistid").setQuery(author.id).build();
+    final String uri = ApiUriBuilder.forQuery(key).setRequest("view_modules_by_artistid").setQuery(author.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
   }
   
   @Override
   public void queryTracks(Genre genre, TracksVisitor visitor) throws IOException {
-    final String uri = new ApiUriBuilder(key).setRequest("search").setType("genre").setQuery(genre.id).build();
+    final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("genre").setQuery(genre.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
   }
@@ -150,7 +163,7 @@ class RemoteCatalog extends Catalog {
   
   @Override
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
-    final String uri = new ApiUriBuilder(key).setRequest("search").setType("filename_or_songtitle").setQuery("*" + query + "*").build();
+    final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("filename_or_songtitle").setQuery("*" + query + "*").build();
     final RootElement root = createFoundTracksParserRoot(visitor);
     loadPages(uri, root);
   }
@@ -158,7 +171,7 @@ class RemoteCatalog extends Catalog {
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     try {
-      final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
+      final String query = ApiUriBuilder.forDownload(id).build();
       return http.getContent(query);
     } catch (IOException e) {
       Log.d(TAG, e, "getTrackContent(%d)", id);
