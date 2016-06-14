@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+
 import app.zxtune.R;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackControl.TrackMode;
@@ -64,7 +65,7 @@ class PlaybackControlsView {
       public void onClick(View v) {
         final TrackMode[] availModes = TrackMode.values();
         final TrackMode curMode = control.getTrackMode();
-        TrackMode newMode = curMode == availModes[availModes.length - 1]
+        final TrackMode newMode = curMode == availModes[availModes.length - 1]
           ? availModes[0]
           : availModes[curMode.ordinal() + 1];
         control.setTrackMode(newMode);
@@ -76,9 +77,9 @@ class PlaybackControlsView {
       public void onClick(View v) {
         final SequenceMode[] availModes = SequenceMode.values();
         final SequenceMode curMode = control.getSequenceMode();
-        SequenceMode newMode = curMode == availModes[availModes.length - 1]
-          ? availModes[0]
-          : availModes[curMode.ordinal() + 1];
+        final SequenceMode newMode = curMode == availModes[availModes.length - 1]
+                ? availModes[0]
+                : availModes[curMode.ordinal() + 1];
         control.setSequenceMode(newMode);
         updateSequenceModeStatus();
       }
@@ -92,18 +93,26 @@ class PlaybackControlsView {
   }
   
   final void updateStatus(boolean playing) {
-    final int level = playing ? 1 : 0;
-    playPause.getDrawable().setLevel(level);
+    playPause.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
     updateTrackModeStatus();
   }
   
   private void updateTrackModeStatus() {
-    final int level = control.getTrackMode().ordinal();
-    trackMode.getDrawable().setLevel(level);
+    final boolean looped = control.getTrackMode() == TrackMode.LOOPED;
+    trackMode.setImageResource(looped ? R.drawable.ic_track_looped : R.drawable.ic_track_regular);
   }
   
   private void updateSequenceModeStatus() {
-    final int level = control.getSequenceMode().ordinal();
-    sequenceMode.getDrawable().setLevel(level);
+    switch (control.getSequenceMode()) {
+      case LOOPED:
+        sequenceMode.setImageResource(R.drawable.ic_sequence_looped);
+        break;
+      case SHUFFLE:
+        sequenceMode.setImageResource(R.drawable.ic_sequence_shuffle);
+        break;
+      default:
+        sequenceMode.setImageResource(R.drawable.ic_sequence_ordered);
+        break;
+    }
   }
 }
