@@ -1,7 +1,7 @@
 //library includes
 #include <binary/data_builder.h>
-#include <core/module_attrs.h>
 #include <formats/chiptune/multidevice/multitrackcontainer.h>
+#include <module/attributes.h>
 #include <platform/version/api.h>
 #include <strings/format.h>
 //std includes

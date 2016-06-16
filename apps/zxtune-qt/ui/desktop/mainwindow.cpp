@@ -32,7 +32,6 @@
 //common includes
 #include <contract.h>
 //library includes
-#include <core/module_attrs.h>
 #include <debug/log.h>
 #include <platform/version/api.h>
 #include <strings/format.h>

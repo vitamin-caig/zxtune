@@ -17,8 +17,8 @@
 #include <error.h>
 #include <make_ptr.h>
 //library includes
-#include <core/module_attrs.h>
 #include <debug/log.h>
+#include <module/attributes.h>
 #include <parameters/convert.h>
 #include <parameters/serialize.h>
 //std includes

@@ -21,14 +21,14 @@
 //library includes
 #include <async/data_receiver.h>
 #include <async/src/event.h>
-#include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <core/conversion/api.h>
 #include <io/api.h>
 #include <io/template.h>
+#include <module/attributes.h>
+#include <module/conversion/api.h>
+#include <module/conversion/types.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/template.h>
 #include <platform/application.h>

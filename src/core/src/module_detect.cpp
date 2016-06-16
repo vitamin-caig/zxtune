@@ -12,13 +12,13 @@
 #include "callback.h"
 #include "core/plugins/archive_plugins_enumerator.h"
 #include "core/plugins/player_plugins_enumerator.h"
-#include "core/plugins/players/ay/aym_base.h"
 //common includes
 #include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
+#include <module/players/aym/aym_base.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/container.h>
 //text includes

@@ -18,14 +18,14 @@
 #include <make_ptr.h>
 #include <progress_callback.h>
 //library includes
-#include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <core/properties/path.h>
 #include <debug/log.h>
 #include <io/api.h>
+#include <module/attributes.h>
+#include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/template.h>
 #include <parameters/tracking.h>

@@ -17,14 +17,13 @@
 #include <progress_callback.h>
 //library includes
 #include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <core/properties/path.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
+#include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
 #include <platform/application.h>
 #include <strings/array.h>

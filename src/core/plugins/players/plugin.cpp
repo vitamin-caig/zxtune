@@ -10,14 +10,14 @@
 
 //local includes
 #include "plugin.h"
-#include "properties_helper.h"
 #include "core/src/callback.h"
 #include <core/plugins/plugins_types.h>
-#include <core/plugin_attrs.h>
 //common includes
 #include <make_ptr.h>
 //library includes
-#include <core/module_attrs.h>
+#include <core/plugin_attrs.h>
+#include <module/attributes.h>
+#include <module/players/properties_helper.h>
 
 namespace ZXTune
 {

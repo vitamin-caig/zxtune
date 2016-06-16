@@ -18,11 +18,11 @@
 #include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/plugins/utils.h>
 #include <debug/log.h>
 #include <devices/aym/chip.h>
 #include <io/api.h>
+#include <module/attributes.h>
 #include <parameters/serialize.h>
 #include <sound/sound_parameters.h>
 //std includes

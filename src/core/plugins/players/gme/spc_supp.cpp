@@ -10,22 +10,21 @@
 
 //local includes
 #include "core/plugins/player_plugins_registrator.h"
-#include "core/plugins/players/analyzer.h"
-#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
-#include <core/plugins/players/properties_helper.h>
-#include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
 #include <formats/chiptune/emulation/spc.h>
 #include <math/numeric.h>
+#include <module/players/analyzer.h>
+#include <module/players/duration.h>
+#include <module/players/properties_meta.h>
+#include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
@@ -39,7 +38,7 @@ namespace Module
 {
 namespace SPC
 {
-  const Debug::Stream Dbg("Core::SIDSupp");
+  const Debug::Stream Dbg("Core::SPCSupp");
 
   class SPC : public Module::Analyzer
   {

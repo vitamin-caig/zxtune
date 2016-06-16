@@ -16,8 +16,8 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <core/convert_parameters.h>
-#include <core/conversion/api.h>
+#include <module/conversion/api.h>
+#include <module/conversion/types.h>
 #include <debug/log.h>
 #include <devices/aym.h>
 #include <l10n/api.h>

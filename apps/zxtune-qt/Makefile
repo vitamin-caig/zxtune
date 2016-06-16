@@ -24,10 +24,11 @@ text_files := text/text
 
 #base
 libraries.common = analysis async binary binary_format \
-                  core core_conversion core_plugins_players core_plugins_archives core_properties \
+                  core core_plugins_players core_plugins_archives \
                   devices_aym devices_aym_dumper devices_beeper devices_dac devices_fm devices_saa devices_z80 \
                   formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \
                   io \
+                  module module_conversion module_players module_properties \
                   parameters platform platform_application platform_version \
                   resource \
                   sound sound_backends strings \

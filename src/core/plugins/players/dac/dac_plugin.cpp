@@ -10,13 +10,13 @@
 
 //local includes
 #include "dac_plugin.h"
-#include "dac_base.h"
-#include "dac_parameters.h"
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
+#include <module/players/dac/dac_base.h>
+#include <module/players/dac/dac_parameters.h>
 #include <sound/mixer_factory.h>
 
 namespace Module

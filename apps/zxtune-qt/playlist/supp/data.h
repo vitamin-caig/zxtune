@@ -16,7 +16,7 @@
 #include <error.h>
 #include <iterator.h>
 //library includes
-#include <core/module_holder.h>
+#include <module/holder.h>
 #include <parameters/container.h>
 #include <time/duration.h>
 //boost includes

@@ -9,13 +9,9 @@
 **/
 
 //local includes
-#include "aym_base.h"
-#include "ts_base.h"
-#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/enumerator.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-#include "core/plugins/players/tracking.h"
 #include "core/src/callback.h"
 //common includes
 #include <error.h>
@@ -25,6 +21,10 @@
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/aym/turbosound.h>
+#include <module/players/properties_helper.h>
+#include <module/players/tracking.h>
+#include <module/players/aym/aym_base.h>
+#include <module/players/aym/turbosound.h>
 
 namespace Module
 {

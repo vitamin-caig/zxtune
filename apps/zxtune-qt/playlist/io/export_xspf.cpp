@@ -16,8 +16,8 @@
 #include <error_tools.h>
 //library includes
 #include <zxtune.h>
-#include <core/module_attrs.h>
 #include <debug/log.h>
+#include <module/attributes.h>
 #include <sound/sound_parameters.h>
 #include <parameters/convert.h>
 #include <core/plugins/archives/zdata_supp.h>

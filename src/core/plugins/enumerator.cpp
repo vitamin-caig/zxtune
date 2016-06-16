@@ -21,12 +21,11 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
-#include <core/convert_parameters.h>
-#include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <core/module_open.h>
 #include <debug/log.h>
 #include <l10n/api.h>
+#include <module/attributes.h>
 #include <time/timer.h>
 //std includes
 #include <list>

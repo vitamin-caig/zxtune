@@ -11,6 +11,7 @@
 #pragma once
 
 //std includes
+#include <algorithm>
 #include <cstring>
 //boost includes
 #include <boost/noncopyable.hpp>

@@ -8,18 +8,17 @@
 *
 **/
 
-//common includes
-#include <contract.h>
 //local includes
-#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/container.h>
+#include <module/players/properties_helper.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>

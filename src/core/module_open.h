@@ -12,7 +12,7 @@
 
 //library includes
 #include <core/data_location.h>
-#include <core/module_holder.h>
+#include <module/holder.h>
 
 namespace Module
 {

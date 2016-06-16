@@ -15,8 +15,8 @@
 #include <error.h>
 #include <make_ptr.h>
 //library includes
-#include <core/properties/path.h>
 #include <debug/log.h>
+#include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
 //boost includes
 #include <boost/ref.hpp>

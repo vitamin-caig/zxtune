@@ -13,8 +13,8 @@
 //library includes
 #include <binary/container.h>
 #include <core/data_location.h>
-#include <core/module_holder.h>
 #include <core/plugin.h>
+#include <module/holder.h>
 #include <parameters/accessor.h>
 
 //forward declarations

@@ -11,10 +11,10 @@
 #pragma once
 
 //local includes
-#include "factory.h"
 #include "core/plugins/player_plugin.h"
 //library includes
 #include <formats/chiptune.h>
+#include <module/players/factory.h>
 
 namespace ZXTune
 {

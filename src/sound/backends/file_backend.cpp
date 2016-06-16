@@ -15,12 +15,12 @@
 #include <progress_callback.h>
 //library includes
 #include <async/data_receiver.h>
-#include <core/module_attrs.h>
 #include <debug/log.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <io/template.h>
 #include <l10n/api.h>
+#include <module/attributes.h>
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>

@@ -14,13 +14,13 @@
 //library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
-#include <core/module_attrs.h>
 #include <core/plugins_parameters.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/io_parameters.h>
 #include <io/provider.h>
 #include <io/providers_parameters.h>
+#include <module/attributes.h>
 #include <platform/application.h>
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>

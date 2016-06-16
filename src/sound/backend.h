@@ -14,8 +14,8 @@
 #include <error.h>
 #include <iterator.h>
 //library includes
-#include <core/module_analyzer.h>
-#include <core/module_track_state.h>
+#include <module/analyzer.h>
+#include <module/track_state.h>
 #include <sound/gain.h>
 
 namespace Sound

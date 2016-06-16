@@ -16,7 +16,6 @@
 #include <make_ptr.h>
 //library includes
 #include <async/activity.h>
-#include <core/module_attrs.h>
 #include <debug/log.h>
 #include <math/bitops.h>
 #include <parameters/template.h>

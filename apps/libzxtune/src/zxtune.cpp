@@ -22,7 +22,7 @@
 #include <binary/container_factories.h>
 #include <core/core_parameters.h>
 #include <core/module_open.h>
-#include <core/module_holder.h>
+#include <module/holder.h>
 #include <parameters/container.h>
 #include <platform/version/api.h>
 #include <sound/sound_parameters.h>
@@ -278,8 +278,9 @@ ZXTuneHandle ZXTune_OpenModule(ZXTuneHandle data)
 {
   try
   {
+    const Parameters::Container::Ptr params = Parameters::Container::Create();
     const Binary::Container::Ptr src = ContainersCache::Instance().Get(data);
-    const Module::Holder::Ptr result = Module::Open(*src);
+    const Module::Holder::Ptr result = Module::Open(*params, *src);
     return ModulesCache::Instance().Add(result);
   }
   catch (const Error&)

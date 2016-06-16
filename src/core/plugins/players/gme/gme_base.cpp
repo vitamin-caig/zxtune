@@ -10,16 +10,12 @@
 
 //local includes
 #include "core/plugins/player_plugins_registrator.h"
-#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
-#include "core/plugins/players/properties_helper.h"
-#include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
@@ -28,6 +24,10 @@
 #include <formats/chiptune/multitrack/decoders.h>
 #include <formats/chiptune/multitrack/multitrack.h>
 #include <math/numeric.h>
+#include <module/attributes.h>
+#include <module/players/duration.h>
+#include <module/players/properties_helper.h>
+#include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>

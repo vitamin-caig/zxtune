@@ -10,13 +10,13 @@
 
 //local includes
 #include "tfm_plugin.h"
-#include "tfm_base.h"
-#include "tfm_parameters.h"
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
+#include <module/players/tfm/tfm_base.h>
+#include <module/players/tfm/tfm_parameters.h>
 
 namespace Module
 {
