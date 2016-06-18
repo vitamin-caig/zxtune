@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
@@ -100,7 +99,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     final View but = container.getChildAt(idx);
     return but == null
       ? createButton(idx, dir)
-      : updateButton(idx, but, dir);
+      : updateButton((Button) but, dir);
   }
   
   private View createButton(int idx, VfsDir dir) {
@@ -117,35 +116,18 @@ public class BreadCrumbsView extends HorizontalScrollView {
   
   private View createButton(VfsDir dir) {
     final LayoutInflater inflater = LayoutInflater.from(getContext());
-    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
-    if (icon != null) {
-      return updateButton((ImageButton) inflater.inflate(R.layout.image_button, container, false), icon);
-    } else {
-      return updateButton((Button) inflater.inflate(R.layout.button, container, false), dir);
-    }
-  }
-  
-  private View updateButton(int idx, View but, VfsDir dir) {
-    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
-    final boolean hasIcon = icon != null;
-    final boolean canShowIcon = but instanceof ImageButton;
-    if (canShowIcon == hasIcon) {
-      return canShowIcon
-          ? updateButton((ImageButton) but, icon)
-              : updateButton((Button) but, dir);
-    } else {
-      container.removeViewAt(idx);
-      return createButton(idx, dir);
-    }
-  }
-  
-  private View updateButton(ImageButton but, Object icon) {
-    but.setImageResource((Integer) icon);
-    return but;
+    return updateButton((Button) inflater.inflate(R.layout.button, container, false), dir);
   }
   
   private View updateButton(Button but, VfsDir dir) {
-    but.setText(dir.getName());
+    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
+    if (icon != null) {
+      but.setText(null);
+      but.setCompoundDrawablesWithIntrinsicBounds((Integer) icon, 0, 0, 0);
+    } else {
+      but.setText(dir.getName());
+      but.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+    }
     return but;
   }
   
