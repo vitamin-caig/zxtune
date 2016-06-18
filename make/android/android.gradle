@@ -56,5 +56,9 @@ android {
         debug {
             debuggable true
         }
+
+        develop {
+            signingConfig signingConfigs.release
+        }
     }
 }
