@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  style="@style/block_buttons"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
   android:orientation="horizontal"
   >
   <ImageButton
     android:id="@+id/controls_prev"
     android:src="@drawable/ic_prev"
-    style="@style/button"
+    style="@style/Button"
     android:layout_weight="1"
     />
   <ImageButton
     android:id="@+id/controls_play_pause"
     android:src="@drawable/ic_play"
-    style="@style/button"
+    style="@style/Button"
     android:layout_weight="1"
     />
   <ImageButton
     android:id="@+id/controls_next"
     android:src="@drawable/ic_next"
-    style="@style/button"
+    style="@style/Button"
     android:layout_weight="1"
     />
   <ImageButton
     android:id="@+id/controls_sequence_mode"
     android:src="@drawable/ic_sequence_ordered"
-    style="@style/button"
+    style="@style/Button"
     android:layout_weight="1"
     android:layout_marginLeft="@dimen/spacing_full"
     />

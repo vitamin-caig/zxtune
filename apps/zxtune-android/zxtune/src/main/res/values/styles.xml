@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+  <style name="Theme.Dark" parent="Theme.AppCompat">
+  </style>
   <style name="text_main" parent="android:style/TextAppearance.Medium">
     <item name="android:singleLine">true</item>
   </style>
@@ -10,9 +12,14 @@
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">@dimen/item_height</item>
   </style>
-  <style name="button">
+  <style name="Button" parent="android:style/Widget.DeviceDefault.Button.Borderless">
     <item name="android:layout_height">match_parent</item>
     <item name="android:layout_width">wrap_content</item>
+    <item name="android:minWidth">?attr/actionBarSize</item>
+  </style>
+  <style name="Button.Breadcrumbs">
+    <item name="android:drawableRight">@drawable/breadcrumbs_delimiter</item>
+    <item name="android:drawablePadding">1dp</item>
   </style>
   <!-- buttons already has spacing_half margins -->
   <style name="block_buttons" parent="block">

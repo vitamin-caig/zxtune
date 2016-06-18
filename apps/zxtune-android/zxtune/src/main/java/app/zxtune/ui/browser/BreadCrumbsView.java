@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -120,15 +121,25 @@ public class BreadCrumbsView extends HorizontalScrollView {
   }
   
   private View updateButton(Button but, VfsDir dir) {
-    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
-    if (icon != null) {
-      but.setText(null);
-      but.setCompoundDrawablesWithIntrinsicBounds((Integer) icon, 0, 0, 0);
-    } else {
+    final Drawable[] currentImages = but.getCompoundDrawables();
+    final Drawable icon = getIcon(dir);
+    if (icon != currentImages[0]) {
+      but.setCompoundDrawablesWithIntrinsicBounds(icon, currentImages[1], currentImages[2], currentImages[3]);
+      if (icon != null) {
+        but.setText(null);
+      }
+    }
+    if (icon == null) {
       but.setText(dir.getName());
-      but.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
     }
     return but;
+  }
+
+  private Drawable getIcon(VfsDir dir) {
+    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
+    return icon != null
+            ? getResources().getDrawable((Integer) icon)
+            : null;
   }
   
   private void hideButtons(int startId, int endId) {

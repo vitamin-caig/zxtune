@@ -7,7 +7,8 @@
     <LinearLayout
       android:id="@+id/browser_sources"
       android:orientation="horizontal"
-      style="@style/block_buttons"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
       >
       <android.support.v7.widget.SearchView
         android:id="@+id/browser_search"
@@ -17,17 +18,18 @@
         sabd:iconifiedByDefault="true"
         sabd:queryHint="@string/browser_search_hint"
       />
-      <ImageButton
+      <Button
         android:id="@+id/browser_roots"
         android:layout_width="wrap_content"
-        android:src="@drawable/ic_browser_folder"
-        style="@style/button"
+        android:drawableLeft="@drawable/ic_browser_folder"
+        style="@style/Button.Breadcrumbs"
       />
       <app.zxtune.ui.browser.BreadCrumbsView
         android:id="@+id/browser_breadcrumb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-      />
+        android:layout_gravity="center_vertical"
+        />
     </LinearLayout>
     <ProgressBar
         android:id="@+id/browser_loading"
