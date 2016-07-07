@@ -35,9 +35,9 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupingDir groupings[];
 
-  VfsRootAmp(Context context, HttpProvider http) {
+  VfsRootAmp(Context context, HttpProvider http, VfsCache cache) {
     this.context = context;
-    this.catalog = Catalog.create(context, http);
+    this.catalog = Catalog.create(context, http, cache);
     this.groupings = new GroupingDir[] {
         new HandlesDir(),
         new CountriesDir(),

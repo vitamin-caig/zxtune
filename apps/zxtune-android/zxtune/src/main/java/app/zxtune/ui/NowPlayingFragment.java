@@ -381,7 +381,8 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     private Uri createLocalPath(VfsFile file) throws IOException {
-      final VfsCache cache = VfsCache.createExternal(context, "sent");
+      //TODO: rework
+      final VfsCache cache = VfsCache.create(context).createNested("sent");
       final String filename = file.getUri().getLastPathSegment();
       return cache.putAnyCachedFileContent(filename, file.getContent());
     }

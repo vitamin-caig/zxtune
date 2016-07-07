@@ -41,9 +41,9 @@ final class VfsRootHvsc extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupsDir groups[];
 
-  VfsRootHvsc(Context context, HttpProvider http) {
+  VfsRootHvsc(Context context, HttpProvider http, VfsCache cache) {
     this.context = context;
-    this.catalog = Catalog.create(context, http);
+    this.catalog = Catalog.create(http, cache);
     this.groups = new GroupsDir[] {
       new C64MusicRootDir()
     };

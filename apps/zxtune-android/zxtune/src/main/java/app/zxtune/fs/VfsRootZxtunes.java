@@ -35,9 +35,9 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupingDir groups[];
 
-  VfsRootZxtunes(Context context, HttpProvider http) {
+  VfsRootZxtunes(Context context, HttpProvider http, VfsCache cache) {
     this.context = context;
-    this.catalog = Catalog.create(context, http);
+    this.catalog = Catalog.create(context, http, cache);
     this.groups = new GroupingDir[] {
         new AuthorsDir()
     };

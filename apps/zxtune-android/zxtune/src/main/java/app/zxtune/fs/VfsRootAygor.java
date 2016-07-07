@@ -40,9 +40,9 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final AyonMusicSubdir root;
 
-  VfsRootAygor(Context context, HttpProvider http) {
+  VfsRootAygor(Context context, HttpProvider http, VfsCache cache) {
     this.context = context;
-    this.catalog = Catalog.create(context, http);
+    this.catalog = Catalog.create(http, cache);
     this.root = new AyonMusicSubdir(Collections.<String> emptyList());
   }
 

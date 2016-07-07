@@ -106,10 +106,10 @@ public abstract class Catalog {
    */
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
 
-  public static Catalog create(Context context, HttpProvider http) {
+  public static Catalog create(Context context, HttpProvider http, VfsCache cache) {
     final Catalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
-    final VfsCache cacheDir = VfsCache.create(context, "amp.dascene.net");
+    final VfsCache cacheDir = cache.createNested("amp.dascene.net");
     return new CachingCatalog(remote, db, cacheDir);
   }
 }

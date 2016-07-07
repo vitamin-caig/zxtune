@@ -82,10 +82,10 @@ public abstract class Catalog {
    */
   public abstract ByteBuffer getTrackContent(String path) throws IOException;
 
-  public static Catalog create(Context context, HttpProvider http) {
+  public static Catalog create(Context context, HttpProvider http, VfsCache cache) {
     final Catalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
-    final VfsCache cacheDir = VfsCache.create(context, "ftp.modland.com");
+    final VfsCache cacheDir = cache.createNested("ftp.modland.com");
     return new CachingCatalog(remote, db, cacheDir);
   }
 }

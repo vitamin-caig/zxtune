@@ -48,9 +48,9 @@ public abstract class Catalog {
    */
   public abstract void parseDir(ByteBuffer data, DirVisitor visitor) throws IOException;
   
-  public static Catalog create(Context context, HttpProvider http) {
+  public static Catalog create(HttpProvider http, VfsCache cache) {
     final Catalog remote = new RemoteCatalog(http);
-    final VfsCache cacheDir = VfsCache.createExternal(context, "aygor");
+    final VfsCache cacheDir = cache.createNested("aygor");
     return new CachingCatalog(remote, cacheDir);
   }
 }

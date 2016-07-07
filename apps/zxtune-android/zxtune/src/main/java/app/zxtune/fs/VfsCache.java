@@ -25,42 +25,32 @@ public class VfsCache {
   
   private final static String TAG = VfsCache.class.getName();
   private final static int MIN_CACHED_FILE_SIZE = 256;
-  
-  private final File primary;
-  private final File fallback;
-  private final boolean hasFallback;
 
-  private VfsCache(File primary, File fallback) {
-    if (primary == null && fallback == null) {
-      throw new RuntimeException("No cache directories specified");
+  private final File dir;
+
+  private VfsCache(File dir) {
+    if (dir == null) {
+      throw new RuntimeException("No cache directory specified");
     }
-    if (primary != null) {
-      this.primary = primary;
-      this.fallback = fallback;
-      this.hasFallback = !primary.equals(fallback) && fallback != null;
-    } else {
-      this.primary = fallback;
-      this.fallback = null;
-      this.hasFallback = false;
-    }
+    this.dir = dir;
   }
   
-  public static VfsCache create(Context context, String name) {
-    return new VfsCache(getExternalDir(context, name), getInternalDir(context, name));
+  public static VfsCache create(Context context) {
+    final File externalCache = context.getExternalCacheDir();
+    if (externalCache != null) {
+      return new VfsCache(externalCache);
+    }
+    final File internalCache = context.getCacheDir();
+    return new VfsCache(internalCache);
   }
-  
-  public static VfsCache createExternal(Context context, String name) {
-    final File external = getExternalDir(context, name);
-    return new VfsCache(external, external);
+
+  public final VfsCache createNested(String name) {
+    return new VfsCache(getSub(dir, name));
   }
   
   public final ByteBuffer getCachedFileContent(String path) {
     try {
-      ByteBuffer result = readFrom(getPrimaryFile(path));
-      if (result == null && hasFallback) {
-        result = readFrom(getFallbackFile(path));
-      }
-      return result;
+      return readFrom(getFile(path));
     } catch (IOException e) {
       Log.d(TAG, e, "Failed to read from cache");
     }
@@ -77,7 +67,7 @@ public class VfsCache {
   
   public final Uri putCachedFileContent(String path, ByteBuffer content, int minSize) {
     if (content.capacity() >= minSize) {
-      final File file = getOutputFile(path);
+      final File file = getFile(path);
       writeTo(file, content);
       return Uri.fromFile(file);
     } else {
@@ -90,26 +80,10 @@ public class VfsCache {
     return dir != null ? new File(dir, name) : null;
   }
   
-  private static File getExternalDir(Context ctx, String name) {
-    return getSub(ctx.getExternalCacheDir(), name);
-  }
-  
-  private static File getInternalDir(Context ctx, String name) {
-    return getSub(ctx.getCacheDir(), name);
-  }
-  
-  private File getPrimaryFile(String path) {
-    return getSub(primary, path);
-  }
-  
-  private File getFallbackFile(String path) {
-    return getSub(fallback, path); 
+  private File getFile(String path) {
+    return getSub(dir, path);
   }
 
-  private File getOutputFile(String path) {
-    return getPrimaryFile(path);
-  }
-  
   static ByteBuffer readFrom(File file) throws IOException {
     if (file == null) {
       return null;

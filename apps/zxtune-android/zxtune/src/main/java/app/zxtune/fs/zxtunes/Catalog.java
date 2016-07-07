@@ -70,10 +70,10 @@ public abstract class Catalog {
   
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
   
-  public static Catalog create(Context context, HttpProvider http) {
+  public static Catalog create(Context context, HttpProvider http, VfsCache cache) {
     final Catalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
-    final VfsCache cacheDir = VfsCache.create(context, "www.zxtunes.com");
+    final VfsCache cacheDir = cache.createNested("www.zxtunes.com");
     return new CachingCatalog(remote, db, cacheDir);
   }
 }
