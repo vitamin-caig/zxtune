@@ -22,21 +22,36 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 namespace Test
 {
   void OpenFile(const std::string& name, Dump& result)
   {
-    std::ifstream stream(name.c_str(), std::ios::binary);
+    std::vector<std::string> elements;
+    boost::algorithm::split(elements, name, boost::algorithm::is_from_range(':', ':'));
+    elements.resize(3);
+    const std::string& filename = elements.at(0);
+    const std::string& offsetStr = elements.at(1);
+    const std::string& sizeStr = elements.at(2);
+    std::ifstream stream(filename.c_str(), std::ios::binary);
     if (!stream)
     {
       throw std::runtime_error("Failed to open " + name);
     }
+    const std::size_t offset = offsetStr.empty() ? 0 : boost::lexical_cast<std::size_t>(offsetStr);
     stream.seekg(0, std::ios_base::end);
-    const std::size_t size = stream.tellg();
-    stream.seekg(0);
+    const std::size_t fileSize = stream.tellg();
+    const std::size_t size = sizeStr.empty() ? fileSize - offset : boost::lexical_cast<std::size_t>(sizeStr);
+    stream.seekg(offset);
     Dump tmp(size);
     stream.read(safe_ptr_cast<char*>(&tmp[0]), tmp.size());
+    if (!stream)
+    {
+      throw std::runtime_error("Failed to read from file");
+    }
     result.swap(tmp);
     //std::cout << "Read " << size << " bytes from " << name << std::endl;
   }
@@ -92,7 +107,7 @@ namespace Test
       if (checkCorrupted)
       {
         std::unique_ptr<Dump> corruptedDump(new Dump(testdataDump));
-        for (std::size_t count = 0, size = corruptedDump->size(); count != size * 5 / 100; ++count)
+        for (std::size_t count = 0, size = corruptedDump->size(); count != size * 7 / 100; ++count)
         {
           corruptedDump->at(rand() % size) ^= 0xff;
         }
