@@ -55,7 +55,7 @@ namespace Packed
       //+8
       uint16_t DstPacked;
       //+a
-      uint16_t SizeOfPacked;
+      uint16_t SizeOfPacked;//full data size starting from next field excluding last 5 bytes
       //+c
       uint16_t DstAddress;
       //+e
@@ -130,7 +130,7 @@ namespace Packed
       explicit DataDecoder(const Container& container)
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
-        , Stream(Header.BitStream, fromLE(Header.SizeOfPacked))
+        , Stream(Header.BitStream, fromLE(Header.SizeOfPacked) - sizeof(Header.DstAddress))
         , Result(new Dump())
         , Decoded(*Result)
       {
@@ -196,7 +196,8 @@ namespace Packed
             return false;
           }
         }
-        const uint8_t* const lastBytes = Header.BitStream + Stream.GetProcessedBytes();
+        //last bytes are always copied from exact address
+        const uint8_t* const lastBytes = Header.BitStream + fromLE(Header.SizeOfPacked) - sizeof(Header.DstAddress);
         std::copy(lastBytes, lastBytes + LAST_BYTES_COUNT, std::back_inserter(Decoded));
         return true;
       }
