@@ -140,6 +140,7 @@ public class AboutFragment extends DialogFragment {
       addWord(getLayoutRatio(config.screenLayout));
       addWord(getOrientation(config.orientation));
       addWord(getDensity(metrics.densityDpi));
+      addWord(config.locale.toString());
     }
 
     private void addString(String s) {
