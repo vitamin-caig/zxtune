@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="playlist">Seznam skladeb</string>
+  <string name="playlist_empty">Seznam skladeb je prázdný</string>
+  <string name="saved">Uloženo</string>
+  <string name="save_failed">Nepodařilo se uložit: %s</string>
+  <string name="statistics">Statistika</string>
+  <string name="statistics_tracks">Celkem</string>
+  <string name="statistics_duration">Doba trvání</string>
+</resources>

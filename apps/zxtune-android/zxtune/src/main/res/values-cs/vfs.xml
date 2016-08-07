@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Local -->
+    <string name="vfs_local_root_name">Místní souborový systém</string>
+    <string name="vfs_local_root_description">Obsah vnitřních a vnějších úložišť</string>
+    <!-- zxtunes.com -->
+    <string name="vfs_zxtunes_root_name">Hudební sbírka ZXTUNES</string>
+    <string name="vfs_zxtunes_authors_name">Autoři</string>
+    <string name="vfs_zxtunes_authors_description">Přehled hudebníků Spectrum</string>
+    <!-- Playlists -->
+    <string name="vfs_playlists_root_name">Seznamy skladeb</string>
+    <string name="vfs_playlists_root_description">Uložené úložiště se seznamy skladeb</string>
+    <!-- ftp.modland.com -->
+    <string name="vfs_modland_root_name">Modland - největší archiv modulů</string>
+    <string name="vfs_modland_root_description">Přes http://www.exotica.org.uk</string>
+    <string name="vfs_modland_authors_name">Autoři</string>
+    <string name="vfs_modland_authors_description">Procházet podle autora</string>
+    <string name="vfs_modland_collections_name">Sbírky</string>
+    <string name="vfs_modland_collections_description">Procházet podle sbírky</string>
+    <string name="vfs_modland_formats_name">Formáty</string>
+    <string name="vfs_modland_formats_description">Procházet podle formátu</string>
+    <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
+    <string name="vfs_hvsc_root_description">Přes http://www.prg.dtu.dk</string>
+    <!-- zxart.ee -->
+    <string name="vfs_zxart_root_name">ZX-Art - současná hudba ZX Spectrum</string>
+    <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
+    <string name="vfs_zxart_authors_name">Autoři</string>
+    <string name="vfs_zxart_authors_description">Procházet podle autora</string>
+    <string name="vfs_zxart_parties_name">Oslavy</string>
+    <string name="vfs_zxart_parties_description">Procházet podle oslav</string>
+    <string name="vfs_zxart_toptracks_name">Nejlepší zvukové stopy</string>
+    <string name="vfs_zxart_toptracks_description">100 zvukových stop s nejvíce hlasy</string>
+    <string name="vfs_zxart_unknown_year_name">Neznámý rok</string>
+    <string name="vfs_zxart_compo_unknown">Neznámá soutěž</string>
+    <string name="vfs_zxart_compo_standard">Běžná hudební soutěž</string>
+    <string name="vfs_zxart_compo_ay">Hudební soutěž AY</string>
+    <string name="vfs_zxart_compo_beeper">Hudební soutěž pípátko</string>
+    <string name="vfs_zxart_compo_copyay">Kopírovat hudební soutěž AY</string>
+    <string name="vfs_zxart_compo_nocopyay">Žádná kopie hudební soutěže AY</string>
+    <string name="vfs_zxart_compo_realtime">Hudební soutěž ve skutečném čase</string>
+    <string name="vfs_zxart_compo_realtimeay">Hudební soutěž ve skutečném čase AY</string>
+    <string name="vfs_zxart_compo_realtimebeeper">Hudební soutěž ve skutečném čase pípátko</string>
+    <string name="vfs_zxart_compo_out">Mimo soutěž</string>
+    <string name="vfs_zxart_compo_wild">Lovná zvěř</string>
+    <string name="vfs_zxart_compo_experimental">Pokusná hudební soutěž</string>
+    <string name="vfs_zxart_compo_oldschool">Hudební soutěž podle staré školy</string>
+    <string name="vfs_zxart_compo_mainstream">Běžná hudební soutěž</string>
+    <string name="vfs_zxart_compo_progressive">Pokroková hudební soutěž</string>
+    <!-- joshw.info -->
+    <string name="vfs_joshw_root_description">Různé archivy</string>
+    <!-- amp.dascene.net -->
+    <string name="vfs_amp_handles_name">Přezdívky</string>
+    <string name="vfs_amp_handles_description">Procházet podle přezdívky autora</string>
+    <string name="vfs_amp_countries_name">Země</string>
+    <string name="vfs_amp_countries_description">Procházet podle země autora</string>
+    <string name="vfs_amp_groups_name">Skupiny</string>
+    <string name="vfs_amp_groups_description">Procházet podle skupiny autora</string>
+    <string-array name="vfs_amp_countries_list">
+<!--0--><item></item>
+<!--1--><item>Argentina</item>
+<!--2--><item>Austrálie</item>
+<!--3--><item>Rakousko</item>
+<!--4--><item>Bělorusko</item>
+<!--5--><item>Belgie</item>
+<!--6--><item>Brazílie</item>
+<!--7--><item>Bulharsko</item>
+<!--8--><item>Kanada</item>
+<!--9--><item>Chile</item>
+<!--10--><item>Kostarika</item>
+<!--11--><item>Chorvatsko</item>
+<!--12--><item>Kypr</item>
+<!--13--><item>Česká republika</item>
+<!--14--><item>Dánsko</item>
+<!--15--><item>Dominikánská republika</item>
+<!--16--><item>Estonsko</item>
+<!--17--><item>Finsko</item>
+<!--18--><item>Francie</item>
+<!--19--><item>Německo</item>
+<!--20--><item>Řecko</item>
+<!--21--><item>Maďarsko</item>
+<!--22--><item>Island</item>
+<!--23--><item>Irsko</item>
+<!--24--><item>Ostrov Man</item>
+<!--25--><item>Ostrov Wight</item>
+<!--26--><item>Izrael</item>
+<!--27--><item>Itálie</item>
+<!--28--><item>Japonsko</item>
+<!--29--><item>Jordánsko</item>
+<!--30--><item>Lichtenštejnsko</item>
+<!--31--><item>Lucembursko</item>
+<!--32--><item>Makedonie</item>
+<!--33--><item>Malta</item>
+<!--34--><item>Martinik</item>
+<!--35--><item>Mexiko</item>
+<!--36--><item>Nová Kaledonie</item>
+<!--37--><item>Nový Zéland</item>
+<!--38--><item>Severní Irsko</item>
+<!--39--><item>Norsko</item>
+<!--40--><item>Polsko</item>
+<!--41--><item>Portugalsko</item>
+<!--42--><item>Québec</item>
+<!--43--><item>Rumunsko</item>
+<!--44--><item>Rusko</item>
+<!--45--><item>Skotsko</item>
+<!--46--><item>Srbsko</item>
+<!--47--><item>Singapur</item>
+<!--48--><item>Slovensko</item>
+<!--49--><item>Slovinsko</item>
+<!--50--><item>Jižní Afrika</item>
+<!--51--><item>Španělsko</item>
+<!--52--><item>Švédsko</item>
+<!--53--><item>Švýcarsko</item>
+<!--54--><item>Tchaj-wan</item>
+<!--55--><item>Nizozemí</item>
+<!--56--><item>Turecko</item>
+<!--57--><item>USA</item>
+<!--58--><item>Ukrajina</item>
+<!--59--><item>Spojené království</item>
+<!--60--><item>Neznámý</item>
+<!--61--><item>Uruguay</item>
+<!--62--><item>Venezuela</item>
+<!--63--><item>Wales</item>
+<!--64--><item>Jugoslávie (bývalá)</item>
+<!--65--><item></item>
+<!--66--><item></item>
+<!--67--><item></item>
+<!--68--><item></item>
+<!--69--><item></item>
+<!--70--><item></item>
+<!--71--><item></item>
+<!--72--><item></item>
+<!--73--><item></item>
+<!--74--><item>Korsika</item>
+<!--75--><item></item>
+<!--76--><item></item>
+<!--77--><item></item>
+<!--78--><item></item>
+<!--79--><item>Odpočívej v pokoji</item>
+<!--80--><item></item>
+<!--81--><item></item>
+<!--82--><item></item>
+<!--83--><item></item>
+<!--84--><item></item>
+<!--85--><item></item>
+<!--86--><item>Litva</item>
+<!--87--><item>Peru</item>
+<!--88--><item></item>
+<!--89--><item></item>
+<!--90--><item></item>
+<!--91--><item></item>
+<!--92--><item>Thajsko</item>
+<!--93--><item></item>
+<!--94--><item></item>
+<!--95--><item></item>
+<!--96--><item></item>
+<!--97--><item></item>
+<!--98--><item></item>
+<!--99--><item>Írán</item>
+<!--100--><item></item>
+<!--101--><item>Irák</item>
+<!--102--><item></item>
+<!--103--><item></item>
+<!--104--><item></item>
+<!--105--><item></item>
+<!--106--><item></item>
+<!--107--><item></item>
+<!--108--><item></item>
+<!--109--><item></item>
+<!--110--><item></item>
+<!--111--><item></item>
+<!--112--><item></item>
+<!--113--><item></item>
+<!--114--><item>Paraguay</item>
+<!--115--><item></item>
+<!--116--><item></item>
+<!--117--><item></item>
+<!--118--><item></item>
+<!--119--><item></item>
+<!--120--><item>Malajsie</item>
+<!--121--><item></item>
+<!--122--><item>Guatemala</item>
+    </string-array>
+    <!-- aygor -->
+    <!-- modarchive.org -->
+    <string name="vfs_modarchive_authors_name">Umělci</string>
+    <string name="vfs_modarchive_authors_description">Procházet podle umělců</string>
+    <string name="vfs_modarchive_genres_name">Žánry</string>
+    <string name="vfs_modarchive_genres_description">Procházet podle žánrů</string>
+    <!-- errors -->
+    <string name="network_inaccessible">Síť není dostupná</string>
+    <string name="failed_resolve">Podařilo se zrušit %s</string>
+    <string name="file_too_big">Soubor je příliš velký</string>
+</resources>
