@@ -214,17 +214,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
 
     @Override
     public ByteBuffer getContent() throws IOException {
-      final FileInputStream stream = new FileInputStream(object);
-      try {
-        final FileChannel channel = stream.getChannel();
-        try {
-          return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-        } finally {
-          channel.close();
-        }
-      } finally {
-        stream.close();
-      }
+      return VfsCache.readFrom(object);
     }
   }
 }
