@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <termios.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 //std includes
 #include <iostream>

@@ -817,7 +817,7 @@ namespace Alsa
 
     bool IsValid() const
     {
-      return CurHandle;
+      return CurHandle.get();
     }
 
     snd_ctl_t& Handle() const
@@ -1008,7 +1008,7 @@ namespace Alsa
 
     virtual bool IsValid() const
     {
-      return Current;
+      return Current.get();
     }
 
     virtual Device::Ptr Get() const

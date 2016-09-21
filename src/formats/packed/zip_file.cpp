@@ -19,6 +19,7 @@
 #include <debug/log.h>
 #include <formats/packed.h>
 //std includes
+#include <algorithm>
 #include <cassert>
 #include <memory>
 //3rd-party includes

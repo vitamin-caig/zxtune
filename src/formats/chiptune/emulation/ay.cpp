@@ -27,6 +27,7 @@
 #include <array>
 #include <cstring>
 #include <list>
+#include <type_traits>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -394,7 +395,7 @@ namespace Chiptune
       template<class T>
       static void SetPointer(int16_t* ptr, const T obj)
       {
-        static_assert(boost::is_pointer<T>::value, "Should be pointer");
+        static_assert(std::is_pointer<T>::value, "Should be pointer");
         const std::ptrdiff_t offset = safe_ptr_cast<const uint8_t*>(obj) - safe_ptr_cast<const uint8_t*>(ptr);
         assert(offset > 0);//layout data sequentally
         *ptr = fromBE<int16_t>(static_cast<uint16_t>(offset));

@@ -17,9 +17,9 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <core/module_attrs.h>
 #include <debug/log.h>
 #include <l10n/api.h>
+#include <module/attributes.h>
 #include <platform/version/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>

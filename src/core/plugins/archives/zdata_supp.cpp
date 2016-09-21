@@ -25,6 +25,8 @@
 #include <binary/data_builder.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
+//std includes
+#include <algorithm>
 //text includes
 #include <core/text/plugins.h>
 

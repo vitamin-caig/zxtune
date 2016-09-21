@@ -25,6 +25,8 @@
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/sound_parameters.h>
+//std includes
+#include <algorithm>
 
 namespace Module
 {

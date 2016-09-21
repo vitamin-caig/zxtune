@@ -33,7 +33,7 @@
 //std includes
 #include <algorithm>
 #include <cstring>
-#include <thread>
+#include <mutex>
 //text includes
 #include "text/backends.h"
 

@@ -27,6 +27,7 @@
 #include <parameters/serialize.h>
 #include <parameters/tools.h>
 //std includes
+#include <algorithm>
 #include <list>
 
 namespace Module

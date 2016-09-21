@@ -22,6 +22,7 @@
 #include <math/numeric.h>
 //std includes
 #include <array>
+#include <cassert>
 //text includes
 #include <formats/text/chiptune.h>
 
