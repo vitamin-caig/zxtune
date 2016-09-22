@@ -24,8 +24,9 @@
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
-#include <numeric>
 #include <cstring>
+#include <functional>
+#include <numeric>
 //boost includes
 #include <boost/bind.hpp>
 //text includes

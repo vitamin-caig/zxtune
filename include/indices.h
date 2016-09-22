@@ -15,6 +15,7 @@
 #include <types.h>
 //std includes
 #include <algorithm>
+#include <functional>
 #include <vector>
 
 class Indices
