@@ -53,6 +53,11 @@ namespace
     {
       std::cout << "Author: " << author << std::endl;
     }
+    
+    virtual void SetStrings(const Strings::Array& strings)
+    {
+      std::cout << "Strings: [some]" << std::endl;
+    }
 
     virtual void SetInitialTempo(uint_t tempo)
     {
@@ -61,12 +66,27 @@ namespace
 
     virtual void SetSample(uint_t index, const Sample& sample)
     {
-      std::cout << "Sample" << index << std::endl;
+      std::cout << "[Sample" << ToHex(index) << "]\n"
+      "Loop: " << sample.Loop << ".." << sample.LoopLimit << '\n';
+      for (std::vector<Sample::Line>::const_iterator it = sample.Lines.begin(), lim = sample.Lines.end(); it != lim; ++it)
+      {
+        std::cout << "V=" << ToHex(it->Level) << " T=" << it->ToneDeviation << ' ' << 
+          (it->ToneMask ? 'T' : 't') << (it->NoiseMask ? 'N' : 'n') << (it->EnableEnvelope ? 'E' : ' ') << 
+          "A=" << it->Adding << " dV=" << it->VolSlide <<
+          '\n';
+      }
+      std::cout << std::endl;
     }
 
     virtual void SetOrnament(uint_t index, const Ornament& ornament)
     {
-      std::cout << "Ornament" << index << std::endl;
+      std::cout << "[Ornament" << ToHex(index) << "]\n"
+      "Loop: " << ornament.Loop << ".." << ornament.LoopLimit << '\n';
+      for (std::vector<Ornament::Line>::const_iterator it = ornament.Lines.begin(), lim = ornament.Lines.end(); it != lim; ++it)
+      {
+        std::cout << it->NoteAddon << ' ' << it->NoiseAddon << '\n';
+      }
+      std::cout << std::endl;
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -86,9 +106,7 @@ namespace
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      //nn C-1 soETT
-      Line = String(33, ' ');
-      std::cout << std::endl << "Pattern" << index << ':';
+      std::cout << std::endl << "[Pattern" << index << ']' << std::endl;
       return *this;
     }
 
@@ -96,11 +114,17 @@ namespace
     {
       std::cout << Line << std::endl;
       std::cout << size << " lines" << std::endl;
+      Line.clear();
     }
 
     virtual void StartLine(uint_t index)
     {
-      std::cout << Line << std::endl;
+      if (!Line.empty())
+      {
+        std::cout << Line << std::endl;
+      }
+      //nn C-1 SEOVee
+      Line = String(36, ' ');
       Line[0] = '0' + index / 10;
       Line[1] = '0' + index % 10;
     }
@@ -112,7 +136,9 @@ namespace
 
     virtual void StartChannel(uint_t index)
     {
-      ChanPtr = &Line[3 + index * 10];
+      ChanPtr = &Line[3 + index * 11];
+      ChanPtr[0] = ChanPtr[1] = ChanPtr[2] = '-';
+      ChanPtr[4] = ChanPtr[5] = ChanPtr[6] = ChanPtr[7] = ChanPtr[8] = ChanPtr[9] = '.';
     }
 
     virtual void SetRest()
@@ -134,22 +160,22 @@ namespace
     }
     virtual void SetOrnament(uint_t ornament)
     {
-      ChanPtr[5] = ToHex(ornament);
+      ChanPtr[6] = ToHex(ornament);
     }
     virtual void SetVolume(uint_t vol)
     {
-      //TODO
+      ChanPtr[7] = ToHex(vol);
     }
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      ChanPtr[6] = ToHex(type);
+      ChanPtr[5] = ToHex(type);
     }
 
     virtual void SetEnvelopeTone(uint_t value)
     {
-      ChanPtr[7] = ToHex(value / 16);
-      ChanPtr[8] = ToHex(value % 16);
+      ChanPtr[8] = ToHex(value / 16);
+      ChanPtr[9] = ToHex(value % 16);
     }
 
     virtual void SetEnvelope()
@@ -159,7 +185,7 @@ namespace
 
     virtual void SetNoEnvelope()
     {
-      ChanPtr[6] = '0';
+      ChanPtr[5] = '0';
     }
 
     virtual void SetNoise(uint_t val)
