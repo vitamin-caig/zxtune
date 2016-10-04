@@ -42,7 +42,7 @@ namespace Formats
       class BlobBuilder : public Builder
       {
       public:
-        typedef boost::shared_ptr<BlobBuilder> Ptr;
+        typedef std::shared_ptr<BlobBuilder> Ptr;
 
         virtual Binary::Container::Ptr Result() const = 0;
       };

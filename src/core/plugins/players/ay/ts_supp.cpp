@@ -75,7 +75,7 @@ namespace TS
     AYM::Chiptune::Ptr LoadChiptune(std::size_t offset, std::size_t size) const
     {
       const Binary::Container::Ptr content = Data.GetSubcontainer(offset, size);
-      if (const AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const AYM::Holder>(Module::Open(Params, *content)))
+      if (const AYM::Holder::Ptr holder = std::dynamic_pointer_cast<const AYM::Holder>(Module::Open(Params, *content)))
       {
         return holder->GetChiptune();
       }

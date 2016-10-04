@@ -45,7 +45,7 @@ namespace SPC
     static const uint_t SPC_DIVIDER = 1 << 12;
     static const uint_t C_7_FREQ = 2093;
   public:
-    typedef boost::shared_ptr<SPC> Ptr;
+    typedef std::shared_ptr<SPC> Ptr;
     
     explicit SPC(const Binary::Data& data)
       : Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())

@@ -22,8 +22,8 @@ namespace LexicalAnalysis
 {
   struct TokensSet
   {
-    typedef boost::shared_ptr<const TokensSet> Ptr;
-    typedef boost::shared_ptr<TokensSet> RWPtr;
+    typedef std::shared_ptr<const TokensSet> Ptr;
+    typedef std::shared_ptr<TokensSet> RWPtr;
 
     std::string Lexeme;
     TokenTypesSet Types;

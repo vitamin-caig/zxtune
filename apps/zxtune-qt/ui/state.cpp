@@ -38,7 +38,7 @@ namespace
   class WidgetState
   {
   public:
-    typedef boost::shared_ptr<const WidgetState> Ptr;
+    typedef std::shared_ptr<const WidgetState> Ptr;
     virtual ~WidgetState() {}
 
     virtual void Load() const = 0;

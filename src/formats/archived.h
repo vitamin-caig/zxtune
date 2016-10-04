@@ -26,7 +26,7 @@ namespace Formats
     class File
     {
     public:
-      typedef boost::shared_ptr<const File> Ptr;
+      typedef std::shared_ptr<const File> Ptr;
 
       virtual ~File() {}
 
@@ -46,7 +46,7 @@ namespace Formats
     class Container : public Binary::Container
     {
     public:
-      typedef boost::shared_ptr<const Container> Ptr;
+      typedef std::shared_ptr<const Container> Ptr;
 
       //! @brief DIP interface used to get all files inside archive
       class Walker
@@ -75,7 +75,7 @@ namespace Formats
     class Decoder
     {
     public:
-      typedef boost::shared_ptr<const Decoder> Ptr;
+      typedef std::shared_ptr<const Decoder> Ptr;
       virtual ~Decoder() {}
 
       //! @brief Get short decoder description

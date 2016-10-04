@@ -87,7 +87,7 @@ namespace Parameters
   class Integer
   {
   public:
-    typedef boost::shared_ptr<Integer> Ptr;
+    typedef std::shared_ptr<Integer> Ptr;
     virtual ~Integer() {}
 
     virtual int Get() const = 0;

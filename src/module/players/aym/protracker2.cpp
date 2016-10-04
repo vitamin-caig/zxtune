@@ -78,8 +78,8 @@ namespace ProTracker2
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<const ModuleData> Ptr;
-    typedef boost::shared_ptr<ModuleData> RWPtr;
+    typedef std::shared_ptr<const ModuleData> Ptr;
+    typedef std::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : InitialTempo()

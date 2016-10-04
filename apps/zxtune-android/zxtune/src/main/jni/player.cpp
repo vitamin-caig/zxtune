@@ -34,7 +34,7 @@ namespace
   class BufferTarget : public Sound::Receiver
   {
   public:
-    typedef boost::shared_ptr<BufferTarget> Ptr;
+    typedef std::shared_ptr<BufferTarget> Ptr;
 
     virtual void ApplyData(const Sound::Chunk::Ptr& data)
     {

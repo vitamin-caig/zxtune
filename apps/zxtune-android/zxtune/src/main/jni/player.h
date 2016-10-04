@@ -21,7 +21,7 @@ namespace Player
   class Control
   {
   public:
-    typedef boost::shared_ptr<Control> Ptr;
+    typedef std::shared_ptr<Control> Ptr;
     virtual ~Control() {}
 
     virtual uint_t GetPosition() const = 0;

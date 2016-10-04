@@ -21,7 +21,7 @@ namespace Sound
   class BackendWorker
   {
   public:
-    typedef boost::shared_ptr<BackendWorker> Ptr;
+    typedef std::shared_ptr<BackendWorker> Ptr;
     virtual ~BackendWorker() {}
 
     virtual void Startup() = 0;
@@ -36,7 +36,7 @@ namespace Sound
   class BackendWorkerFactory
   {
   public:
-    typedef boost::shared_ptr<const BackendWorkerFactory> Ptr;
+    typedef std::shared_ptr<const BackendWorkerFactory> Ptr;
     virtual ~BackendWorkerFactory() {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const = 0;

@@ -13,9 +13,8 @@
 //library includes
 #include <math/fixedpoint.h>
 //std includes
+#include <memory>
 #include <vector>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Devices
 {
@@ -47,7 +46,7 @@ namespace Devices
   class StateSource
   {
   public:
-    typedef boost::shared_ptr<const StateSource> Ptr;
+    typedef std::shared_ptr<const StateSource> Ptr;
     virtual ~StateSource() {}
 
     virtual void GetState(MultiChannelState& result) const = 0;

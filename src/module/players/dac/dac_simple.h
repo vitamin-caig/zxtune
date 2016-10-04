@@ -23,8 +23,8 @@ namespace Module
     class SimpleModuleData : public TrackModel
     {
     public:
-      typedef boost::shared_ptr<const SimpleModuleData> Ptr;
-      typedef boost::shared_ptr<SimpleModuleData> RWPtr;
+      typedef std::shared_ptr<const SimpleModuleData> Ptr;
+      typedef std::shared_ptr<SimpleModuleData> RWPtr;
 
       SimpleModuleData()
         : InitialTempo()

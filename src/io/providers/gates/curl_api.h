@@ -10,11 +10,11 @@
 
 #pragma once
 
+//std includes
+#include <memory>
 //platform-specific includes
 #include <3rdparty/curl/curl.h>
 #include <3rdparty/curl/easy.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace IO
 {
@@ -23,7 +23,7 @@ namespace IO
     class Api
     {
     public:
-      typedef boost::shared_ptr<Api> Ptr;
+      typedef std::shared_ptr<Api> Ptr;
       virtual ~Api() {}
 
       

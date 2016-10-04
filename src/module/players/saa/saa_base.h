@@ -77,7 +77,7 @@ namespace Module
     class DataRenderer
     {
     public:
-      typedef boost::shared_ptr<DataRenderer> Ptr;
+      typedef std::shared_ptr<DataRenderer> Ptr;
 
       virtual ~DataRenderer() {}
 
@@ -88,7 +88,7 @@ namespace Module
     class DataIterator : public StateIterator
     {
     public:
-      typedef boost::shared_ptr<DataIterator> Ptr;
+      typedef std::shared_ptr<DataIterator> Ptr;
 
       virtual Devices::SAA::Registers GetData() const = 0;
     };
@@ -96,7 +96,7 @@ namespace Module
     class Chiptune
     {
     public:
-      typedef boost::shared_ptr<const Chiptune> Ptr;
+      typedef std::shared_ptr<const Chiptune> Ptr;
       virtual ~Chiptune() {}
 
       virtual Information::Ptr GetInformation() const = 0;

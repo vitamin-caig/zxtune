@@ -29,7 +29,7 @@ namespace Playlist
     class Container
     {
     public:
-      typedef boost::shared_ptr<const Container> Ptr;
+      typedef std::shared_ptr<const Container> Ptr;
 
       virtual ~Container() {}
 

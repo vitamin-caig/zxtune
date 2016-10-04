@@ -50,7 +50,7 @@ namespace Mp3
   const uint_t QUALITY_MIN = 0;
   const uint_t QUALITY_MAX = 9;
 
-  typedef boost::shared_ptr<lame_global_flags> LameContextPtr;
+  typedef std::shared_ptr<lame_global_flags> LameContextPtr;
 
   void CheckLameCall(int res, Error::LocationRef loc)
   {

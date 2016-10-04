@@ -192,7 +192,7 @@ namespace Module
 
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
   {
-    if (const AYM::Holder::Ptr aym = boost::dynamic_pointer_cast<const AYM::Holder>(delegate))
+    if (const AYM::Holder::Ptr aym = std::dynamic_pointer_cast<const AYM::Holder>(delegate))
     {
       return MakePtr<MixedPropertiesAYMHolder>(aym, props);
     }

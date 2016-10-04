@@ -23,7 +23,7 @@ namespace Module
     class DataIterator : public StateIterator
     {
     public:
-      typedef boost::shared_ptr<DataIterator> Ptr;
+      typedef std::shared_ptr<DataIterator> Ptr;
 
       virtual void GetData(Devices::TFM::Registers& res) const = 0;
     };
@@ -31,7 +31,7 @@ namespace Module
     class Chiptune
     {
     public:
-      typedef boost::shared_ptr<const Chiptune> Ptr;
+      typedef std::shared_ptr<const Chiptune> Ptr;
       virtual ~Chiptune() {}
 
       virtual Information::Ptr GetInformation() const = 0;

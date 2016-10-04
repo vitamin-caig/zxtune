@@ -163,7 +163,7 @@ template<class T>
 class ObjectIterator
 {
 public:
-  typedef typename boost::shared_ptr<ObjectIterator<T> > Ptr;
+  typedef typename std::shared_ptr<ObjectIterator<T> > Ptr;
 
   //! Virtual destructor
   virtual ~ObjectIterator() {}

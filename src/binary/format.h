@@ -19,7 +19,7 @@ namespace Binary
   class Format
   {
   public:
-    typedef boost::shared_ptr<const Format> Ptr;
+    typedef std::shared_ptr<const Format> Ptr;
     virtual ~Format() {}
 
     //! @brief Check if input data is data format

@@ -14,6 +14,8 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
+//std includes
+#include <cassert>
 
 namespace Formats
 {

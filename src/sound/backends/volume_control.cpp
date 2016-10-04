@@ -14,8 +14,6 @@
 #include <make_ptr.h>
 //library includes
 #include <l10n/api.h>
-//boost includes
-#include <boost/weak_ptr.hpp>
 
 #define FILE_TAG B368C82C
 
@@ -49,7 +47,7 @@ namespace Sound
       throw Error(THIS_LINE, translate("Failed to set volume in invalid state."));
     }
   private:
-    const boost::weak_ptr<VolumeControl> Delegate;
+    const std::weak_ptr<VolumeControl> Delegate;
   };
 }
 

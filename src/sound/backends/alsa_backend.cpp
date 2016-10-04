@@ -32,7 +32,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/weak_ptr.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -286,19 +285,19 @@ namespace Alsa
   };
   
   template<class T>
-  boost::shared_ptr<T> Allocate(Api::Ptr api, int (Api::*allocFunc)(T**), void (Api::*freeFunc)(T*))
+  std::shared_ptr<T> Allocate(Api::Ptr api, int (Api::*allocFunc)(T**), void (Api::*freeFunc)(T*))
   {
     T* res = 0;
     CheckResult(*api, ((*api).*allocFunc)(&res), THIS_LINE);
     return res
-      ? boost::shared_ptr<T>(res, boost::bind(freeFunc, api, _1))
-      : boost::shared_ptr<T>();
+      ? std::shared_ptr<T>(res, boost::bind(freeFunc, api, _1))
+      : std::shared_ptr<T>();
   }
 
   class DeviceWrapper
   {
   public:
-    typedef boost::shared_ptr<DeviceWrapper> Ptr;
+    typedef std::shared_ptr<DeviceWrapper> Ptr;
 
     DeviceWrapper(Api::Ptr api, const Identifier& id)
       : AlsaApi(api)
@@ -321,14 +320,14 @@ namespace Alsa
 
     void SetParameters(Time::Milliseconds lat, const RenderParameters& params)
     {
-      const boost::shared_ptr<snd_pcm_hw_params_t> hwParams = Allocate<snd_pcm_hw_params_t>(AlsaApi,
+      const std::shared_ptr<snd_pcm_hw_params_t> hwParams = Allocate<snd_pcm_hw_params_t>(AlsaApi,
         &Api::snd_pcm_hw_params_malloc, &Api::snd_pcm_hw_params_free);
       Pcm.CheckedCall(&Api::snd_pcm_hw_params_any, hwParams.get(), THIS_LINE);
 
       const bool canPause = AlsaApi->snd_pcm_hw_params_can_pause(hwParams.get()) != 0;
       Dbg(canPause ? "Hardware support pause" : "Hardware doesn't support pause");
 
-      const boost::shared_ptr<snd_pcm_format_mask_t> fmtMask = Allocate<snd_pcm_format_mask_t>(AlsaApi,
+      const std::shared_ptr<snd_pcm_format_mask_t> fmtMask = Allocate<snd_pcm_format_mask_t>(AlsaApi,
         &Api::snd_pcm_format_mask_malloc, &Api::snd_pcm_format_mask_free);
       AlsaApi->snd_pcm_hw_params_get_format_mask(hwParams.get(), fmtMask.get());
 
@@ -535,7 +534,7 @@ namespace Alsa
   class Mixer
   {
   public:
-    typedef boost::shared_ptr<Mixer> Ptr;
+    typedef std::shared_ptr<Mixer> Ptr;
     
     Mixer(Api::Ptr api, const Identifier& id, const String& mixer)
       : AlsaApi(api)
@@ -661,7 +660,7 @@ namespace Alsa
       Dbg("Volume control is expired");
     }
   private:
-    const boost::weak_ptr<Mixer> Mix;
+    const std::weak_ptr<Mixer> Mix;
   };
 
   class BackendParameters
@@ -797,12 +796,12 @@ namespace Alsa
     const Api::Ptr AlsaApi;
   };
 
-  boost::shared_ptr<snd_ctl_t> OpenDevice(Api::Ptr api, const std::string& deviceName)
+  std::shared_ptr<snd_ctl_t> OpenDevice(Api::Ptr api, const std::string& deviceName)
   {
     snd_ctl_t* ctl = 0;
     return api->snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
-      ? boost::shared_ptr<snd_ctl_t>(ctl, boost::bind(&Api::snd_ctl_close, api, _1))
-      : boost::shared_ptr<snd_ctl_t>();
+      ? std::shared_ptr<snd_ctl_t>(ctl, boost::bind(&Api::snd_ctl_close, api, _1))
+      : std::shared_ptr<snd_ctl_t>();
   }
 
   class CardsIterator
@@ -837,16 +836,16 @@ namespace Alsa
 
     void Next()
     {
-      CurHandle = boost::shared_ptr<snd_ctl_t>();
+      CurHandle = std::shared_ptr<snd_ctl_t>();
       CurName.clear();
       CurId.clear();
-      const boost::shared_ptr<snd_ctl_card_info_t> cardInfo = Allocate<snd_ctl_card_info_t>(AlsaApi,
+      const std::shared_ptr<snd_ctl_card_info_t> cardInfo = Allocate<snd_ctl_card_info_t>(AlsaApi,
         &Api::snd_ctl_card_info_malloc, &Api::snd_ctl_card_info_free);
 
       for (; AlsaApi->snd_card_next(&Index) >= 0 && Index >= 0; )
       {
         const std::string hwId = (boost::format("hw:%i") % Index).str();
-        const boost::shared_ptr<snd_ctl_t> handle = OpenDevice(AlsaApi, hwId);
+        const std::shared_ptr<snd_ctl_t> handle = OpenDevice(AlsaApi, hwId);
         if (!handle)
         {
           continue;
@@ -864,7 +863,7 @@ namespace Alsa
   private:
     const Api::Ptr AlsaApi;
     int Index;
-    boost::shared_ptr<snd_ctl_t> CurHandle;
+    std::shared_ptr<snd_ctl_t> CurHandle;
     std::string CurName;
     std::string CurId;
   };
@@ -898,7 +897,7 @@ namespace Alsa
     void Next()
     {
       CurName.clear();
-      const boost::shared_ptr<snd_pcm_info_t> pcmInfo = Allocate<snd_pcm_info_t>(AlsaApi,
+      const std::shared_ptr<snd_pcm_info_t> pcmInfo = Allocate<snd_pcm_info_t>(AlsaApi,
         &Api::snd_pcm_info_malloc, &Alsa::Api::snd_pcm_info_free);
       for (; Card.IsValid() && AlsaApi->snd_ctl_pcm_next_device(&Card.Handle(), &Index) >= 0 && Index >= 0; )
       {

@@ -27,7 +27,7 @@ namespace PSG
   class StreamModel : public AYM::StreamModel
   {
   public:
-    typedef boost::shared_ptr<StreamModel> RWPtr;
+    typedef std::shared_ptr<StreamModel> RWPtr;
   
     virtual uint_t Size() const
     {

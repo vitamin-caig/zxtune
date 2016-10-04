@@ -19,7 +19,7 @@ namespace Parameters
   {
   public:
     //! Pointer type
-    typedef boost::shared_ptr<Modifier> Ptr;
+    typedef std::shared_ptr<Modifier> Ptr;
 
     //! Remove parameter
     virtual void RemoveValue(const NameType& name) = 0;

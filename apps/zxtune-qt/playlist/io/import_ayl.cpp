@@ -155,8 +155,8 @@ namespace
     };
     struct AYLEntries : public std::vector<AYLEntry>
     {
-      typedef boost::shared_ptr<const AYLEntries> Ptr;
-      typedef boost::shared_ptr<AYLEntries> RWPtr;
+      typedef std::shared_ptr<const AYLEntries> Ptr;
+      typedef std::shared_ptr<AYLEntries> RWPtr;
     };
   public:
     AYLContainer(LinesSource& source, Log::ProgressCallback& cb)

@@ -28,7 +28,7 @@ namespace Z80
   public:
     virtual ~IOBus() {}
 
-    virtual boost::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const = 0;
+    virtual std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const = 0;
   };
   
   class ExtendedIOBus : public IOBus
@@ -41,10 +41,10 @@ namespace Z80
     {
     }
 
-    virtual boost::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const
+    virtual std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const
     {
       ExtendedIOBus* const self = const_cast<ExtendedIOBus*>(this);
-      return boost::shared_ptr<Z80EX_CONTEXT>(
+      return std::shared_ptr<Z80EX_CONTEXT>(
         z80ex_create(&ReadByte, self, &WriteByte, self,
                      &InByte, self, &OutByte, self,
                      &IntRead, self), std::ptr_fun(&z80ex_destroy));
@@ -105,13 +105,13 @@ namespace Z80
     {
     }
 
-    virtual boost::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const
+    virtual std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const
     {
       SimpleIOBus* const self = const_cast<SimpleIOBus*>(this);
       const bool isLimited = Memory.size() < 65536;
       const z80ex_mread_cb read = isLimited ? &ReadByteLimited : &ReadByteUnlimited;
       const z80ex_mwrite_cb write = isLimited ? &WriteByteLimited : &WriteByteUnlimited;
-      return boost::shared_ptr<Z80EX_CONTEXT>(
+      return std::shared_ptr<Z80EX_CONTEXT>(
         z80ex_create(read, self, write, self,
                      &InByte, self, &OutByte, self,
                      &IntRead, self), std::ptr_fun(&z80ex_destroy));
@@ -394,7 +394,7 @@ namespace Z80
     Parameters::TrackingHelper<ChipParameters> Params;
     ClockSource Clock;
     const std::unique_ptr<IOBus> Bus;
-    const boost::shared_ptr<Z80EX_CONTEXT> Context;
+    const std::shared_ptr<Z80EX_CONTEXT> Context;
   };
 }
 }

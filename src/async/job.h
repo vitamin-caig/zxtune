@@ -10,15 +10,15 @@
 
 #pragma once
 
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace Async
 {
   class Job
   {
   public:
-    typedef boost::shared_ptr<Job> Ptr;
+    typedef std::shared_ptr<Job> Ptr;
     virtual ~Job() {}
 
     virtual void Start() = 0;

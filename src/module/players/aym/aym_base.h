@@ -23,7 +23,7 @@ namespace Module
     class Holder : public Module::Holder
     {
     public:
-      typedef boost::shared_ptr<const Holder> Ptr;
+      typedef std::shared_ptr<const Holder> Ptr;
 
       using Module::Holder::CreateRenderer;
       virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const = 0;

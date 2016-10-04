@@ -55,7 +55,7 @@ namespace Archived
         Vtable.read = &Read;
         Vtable.skip = &Skip;
         Vtable.close = 0;
-        Stream = boost::shared_ptr<LHAInputStream>(::lha_input_stream_new(&Vtable, &State), &::lha_input_stream_free);
+        Stream = std::shared_ptr<LHAInputStream>(::lha_input_stream_new(&Vtable, &State), &::lha_input_stream_free);
       }
 
       LHAInputStream* GetStream() const
@@ -87,7 +87,7 @@ namespace Archived
     private:
       Binary::InputStream State;
       LHAInputStreamType Vtable;
-      boost::shared_ptr<LHAInputStream> Stream;
+      std::shared_ptr<LHAInputStream> Stream;
     };
 
     String GetFullPath(const LHAFileHeader& header)
@@ -182,7 +182,7 @@ namespace Archived
     private:
       const Binary::Container& Data;
       const InputStreamWrapper Input;
-      const boost::shared_ptr<LHAReader> Reader;
+      const std::shared_ptr<LHAReader> Reader;
       LHAFileHeader* Current;
       std::size_t Position;
     };

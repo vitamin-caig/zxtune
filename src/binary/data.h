@@ -10,8 +10,8 @@
 
 #pragma once
 
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace Binary
 {
@@ -20,7 +20,7 @@ namespace Binary
   {
   public:
     //! @brief Pointer type
-    typedef boost::shared_ptr<const Data> Ptr;
+    typedef std::shared_ptr<const Data> Ptr;
 
     virtual ~Data() {}
 

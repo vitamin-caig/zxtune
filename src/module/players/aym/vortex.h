@@ -100,8 +100,8 @@ namespace Module
     class ModuleData : public TrackModel
     {
     public:
-      typedef boost::shared_ptr<ModuleData> RWPtr;
-      typedef boost::shared_ptr<const ModuleData> Ptr;
+      typedef std::shared_ptr<ModuleData> RWPtr;
+      typedef std::shared_ptr<const ModuleData> Ptr;
 
       ModuleData()
         : InitialTempo()

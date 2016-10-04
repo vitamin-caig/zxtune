@@ -15,9 +15,9 @@
 //library includes
 #include <math/bitops.h>
 //std includes
+#include <cassert>
+#include <memory>
 #include <string>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace LexicalAnalysis
 {
@@ -72,7 +72,7 @@ namespace LexicalAnalysis
   class Tokenizer
   {
   public:
-    typedef boost::shared_ptr<const Tokenizer> Ptr;
+    typedef std::shared_ptr<const Tokenizer> Ptr;
     virtual ~Tokenizer() {}
 
     virtual TokenType Parse(const std::string& lexeme) const = 0;
@@ -81,8 +81,8 @@ namespace LexicalAnalysis
   class Grammar
   {
   public:
-    typedef boost::shared_ptr<const Grammar> Ptr;
-    typedef boost::shared_ptr<Grammar> RWPtr;
+    typedef std::shared_ptr<const Grammar> Ptr;
+    typedef std::shared_ptr<Grammar> RWPtr;
     virtual ~Grammar() {}
 
     virtual void AddTokenizer(Tokenizer::Ptr src) = 0;

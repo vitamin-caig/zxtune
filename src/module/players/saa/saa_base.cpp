@@ -253,7 +253,7 @@ namespace Module
 
     Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device)
     {
-      if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::SAA::Chip>(device))
+      if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::SAA::Chip>(device))
       {
         return Module::CreateAnalyzer(src);
       }

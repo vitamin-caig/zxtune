@@ -105,8 +105,8 @@ namespace DirectSound
     return res;
   }
 
-  typedef boost::shared_ptr<IDirectSound> DirectSoundPtr;
-  typedef boost::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
+  typedef std::shared_ptr<IDirectSound> DirectSoundPtr;
+  typedef std::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
 
   DirectSoundPtr OpenDevice(Api& api, const String& device)
   {
@@ -143,7 +143,7 @@ namespace DirectSound
     LPDIRECTSOUNDBUFFER rawSecondary = 0;
     CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawSecondary, NULL), THIS_LINE);
     assert(rawSecondary);
-    const boost::shared_ptr<IDirectSoundBuffer> secondary(rawSecondary, &ReleaseRef);
+    const std::shared_ptr<IDirectSoundBuffer> secondary(rawSecondary, &ReleaseRef);
     Dbg("Created");
     return secondary;
   }
@@ -159,7 +159,7 @@ namespace DirectSound
     LPDIRECTSOUNDBUFFER rawPrimary = 0;
     CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawPrimary, NULL), THIS_LINE);
     assert(rawPrimary);
-    const boost::shared_ptr<IDirectSoundBuffer> primary(rawPrimary, &ReleaseRef);
+    const std::shared_ptr<IDirectSoundBuffer> primary(rawPrimary, &ReleaseRef);
     Dbg("Created");
     return primary;
   }
@@ -167,7 +167,7 @@ namespace DirectSound
   class StreamBuffer
   {
   public:
-    typedef boost::shared_ptr<StreamBuffer> Ptr;
+    typedef std::shared_ptr<StreamBuffer> Ptr;
 
     StreamBuffer(DirectSoundBufferPtr buff, boost::posix_time::millisec sleepPeriod)
       : Buff(buff)

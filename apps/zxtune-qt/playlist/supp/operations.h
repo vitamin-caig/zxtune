@@ -25,7 +25,7 @@ namespace Playlist
     {
       Q_OBJECT
     public:
-      typedef boost::shared_ptr<SelectionOperation> Ptr;
+      typedef std::shared_ptr<SelectionOperation> Ptr;
     signals:
       void ResultAcquired(Playlist::Model::IndexSet::Ptr);
     };
@@ -35,7 +35,7 @@ namespace Playlist
     {
       Q_OBJECT
     public:
-      typedef boost::shared_ptr<TextResultOperation> Ptr;
+      typedef std::shared_ptr<TextResultOperation> Ptr;
     signals:
       void ResultAcquired(Playlist::TextNotification::Ptr);
     };

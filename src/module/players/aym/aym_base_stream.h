@@ -20,7 +20,7 @@ namespace Module
     class StreamModel
     {
     public:
-      typedef boost::shared_ptr<const StreamModel> Ptr;
+      typedef std::shared_ptr<const StreamModel> Ptr;
       virtual ~StreamModel() {}
 
       virtual uint_t Size() const = 0;

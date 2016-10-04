@@ -20,7 +20,7 @@ namespace Module
   class StreamStateCursor : public TrackState
   {
   public:
-    typedef boost::shared_ptr<StreamStateCursor> Ptr;
+    typedef std::shared_ptr<StreamStateCursor> Ptr;
 
     explicit StreamStateCursor(Information::Ptr info)
       : Info(info)

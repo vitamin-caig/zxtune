@@ -14,9 +14,10 @@
 #include <types.h>
 //library includes
 #include <time/stamp.h>
+//std includes
+#include <memory>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/shared_ptr.hpp>
 
 //supporting for AY/YM-based modules
 namespace Devices
@@ -172,7 +173,7 @@ namespace Devices
     class Device
     {
     public:
-      typedef boost::shared_ptr<Device> Ptr;
+      typedef std::shared_ptr<Device> Ptr;
       virtual ~Device() {}
 
       /// Render single data chunk

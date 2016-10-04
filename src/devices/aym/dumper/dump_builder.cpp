@@ -20,7 +20,7 @@ namespace AYM
   class RenderState
   {
   public:
-    typedef boost::shared_ptr<RenderState> Ptr;
+    typedef std::shared_ptr<RenderState> Ptr;
     virtual ~RenderState() {}
 
     virtual void Reset() = 0;

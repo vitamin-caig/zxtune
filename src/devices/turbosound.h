@@ -39,7 +39,7 @@ namespace Devices
     class Device
     {
     public:
-      typedef boost::shared_ptr<Device> Ptr;
+      typedef std::shared_ptr<Device> Ptr;
       virtual ~Device() {}
 
       virtual void RenderData(const DataChunk& src) = 0;
@@ -49,7 +49,7 @@ namespace Devices
     class Chip : public Device, public StateSource
     {
     public:
-      typedef boost::shared_ptr<Chip> Ptr;
+      typedef std::shared_ptr<Chip> Ptr;
     };
 
     using AYM::ChipParameters;

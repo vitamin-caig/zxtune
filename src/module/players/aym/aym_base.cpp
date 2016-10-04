@@ -20,8 +20,6 @@
 #include <sound/gainer.h>
 #include <sound/mixer_factory.h>
 #include <sound/sound_parameters.h>
-//boost includes
-#include <boost/weak_ptr.hpp>
 
 namespace Module
 {
@@ -165,7 +163,7 @@ namespace Module
   class FadeoutFilter : public Sound::Receiver
   {
   public:
-    typedef boost::shared_ptr<FadeoutFilter> Ptr;
+    typedef std::shared_ptr<FadeoutFilter> Ptr;
 
     FadeoutFilter(uint_t start, uint_t duration, Sound::FadeGainer::Ptr target)
       : Start(start)
@@ -186,7 +184,7 @@ namespace Module
         if (state->Frame() >= Start)
         {
           Target->SetFading(Sound::Gain::Type(-1), Duration);
-          State = boost::weak_ptr<TrackState>();
+          State.reset();
         }
       }
       Target->Flush();
@@ -200,7 +198,7 @@ namespace Module
     const uint_t Start;
     const uint_t Duration;
     const Sound::FadeGainer::Ptr Target;
-    boost::weak_ptr<const TrackState> State;
+    std::weak_ptr<const TrackState> State;
   };
 
   Sound::FadeGainer::Ptr CreateFadeGainer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
@@ -268,7 +266,7 @@ namespace Module
 
     Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)
     {
-      if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
+      if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::StateSource>(device))
       {
         return Module::CreateAnalyzer(src);
       }

@@ -13,15 +13,13 @@
 //std includes
 #include <string>
 #include <vector>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Platform
 {
   class SharedLibrary
   {
   public:
-    typedef boost::shared_ptr<const SharedLibrary> Ptr;
+    typedef std::shared_ptr<const SharedLibrary> Ptr;
     virtual ~SharedLibrary() {}
 
     virtual void* GetSymbol(const std::string& name) const = 0;

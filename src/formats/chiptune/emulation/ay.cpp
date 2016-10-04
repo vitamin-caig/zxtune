@@ -358,7 +358,7 @@ namespace Chiptune
         std::memset(&data[offset], src, toFill);
       }
     private:
-      boost::shared_ptr<Dump> Data;
+      std::shared_ptr<Dump> Data;
     };
 
     class FileBuilder : public BlobBuilder

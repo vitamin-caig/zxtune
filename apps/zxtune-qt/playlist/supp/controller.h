@@ -83,7 +83,7 @@ namespace Playlist
   class TextNotification
   {
   public:
-    typedef boost::shared_ptr<const TextNotification> Ptr;
+    typedef std::shared_ptr<const TextNotification> Ptr;
     virtual ~TextNotification() {}
 
     virtual QString Category() const = 0;
@@ -95,7 +95,7 @@ namespace Playlist
   {
     Q_OBJECT
   public:
-    typedef boost::shared_ptr<Controller> Ptr;
+    typedef std::shared_ptr<Controller> Ptr;
     typedef ObjectIterator<Ptr> Iterator;
 
     static Ptr Create(const QString& name, Item::DataProvider::Ptr provider);

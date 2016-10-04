@@ -55,7 +55,7 @@ namespace Formats
       class ContainerBuilder : public Builder
       {
       public:
-        typedef boost::shared_ptr<ContainerBuilder> Ptr;
+        typedef std::shared_ptr<ContainerBuilder> Ptr;
         virtual Binary::Data::Ptr GetResult() = 0;
       };
 

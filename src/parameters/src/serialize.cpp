@@ -13,6 +13,8 @@
 #include <parameters/convert.h>
 #include <parameters/serialize.h>
 #include <parameters/visitor.h>
+//std includes
+#include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>

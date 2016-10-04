@@ -12,8 +12,8 @@
 
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace L10n
 {
@@ -23,7 +23,7 @@ namespace L10n
   class Vocabulary
   {
   public:
-    typedef boost::shared_ptr<const Vocabulary> Ptr;
+    typedef std::shared_ptr<const Vocabulary> Ptr;
     virtual ~Vocabulary() {}
 
     //! @brief Retreiving translated or converted text message

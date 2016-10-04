@@ -13,6 +13,8 @@
 //common includes
 #include <crc.h>
 #include <make_ptr.h>
+//std includes
+#include <cassert>
 
 namespace Formats
 {

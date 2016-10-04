@@ -12,8 +12,8 @@
 
 //library includes
 #include <parameters/types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace Parameters
 {
@@ -23,7 +23,7 @@ namespace Parameters
   {
   public:
     //! Pointer type
-    typedef boost::shared_ptr<const Accessor> Ptr;
+    typedef std::shared_ptr<const Accessor> Ptr;
 
     virtual ~Accessor() {}
 

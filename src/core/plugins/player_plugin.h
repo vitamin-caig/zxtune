@@ -22,7 +22,7 @@ namespace ZXTune
   class PlayerPlugin
   {
   public:
-    typedef boost::shared_ptr<const PlayerPlugin> Ptr;
+    typedef std::shared_ptr<const PlayerPlugin> Ptr;
     typedef ObjectIterator<PlayerPlugin::Ptr> Iterator;
     virtual ~PlayerPlugin() {}
 

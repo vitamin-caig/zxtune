@@ -53,7 +53,7 @@ namespace GME
 {
   const Debug::Stream Dbg("Core::GMESupp");
 
-  typedef boost::shared_ptr< ::Music_Emu> EmuPtr;
+  typedef std::shared_ptr< ::Music_Emu> EmuPtr;
 
   typedef EmuPtr (*EmuCreator)();
   
@@ -66,7 +66,7 @@ namespace GME
   class GME : public Module::Analyzer
   {
   public:
-    typedef boost::shared_ptr<GME> Ptr;
+    typedef std::shared_ptr<GME> Ptr;
     
     GME(EmuCreator create, Binary::Data::Ptr data, uint_t track)
       : CreateEmu(create)

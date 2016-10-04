@@ -114,7 +114,7 @@ namespace Packed
     {
       z_stream stream = z_stream();
       Require(Z_OK == ::inflateInit2(&stream, -15));
-      const boost::shared_ptr<void> cleanup(&stream, ::inflateEnd);
+      const std::shared_ptr<void> cleanup(&stream, ::inflateEnd);
       for (;;)
       {
         const std::size_t restIn = input.GetRestSize();

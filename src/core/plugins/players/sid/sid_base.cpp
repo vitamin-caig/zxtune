@@ -39,7 +39,6 @@
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
 #include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
 //boost includes
-#include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -49,8 +48,8 @@ namespace Sid
 {
   const Debug::Stream Dbg("Core::SIDSupp");
 
-  typedef boost::shared_ptr<SidTune> TunePtr;
-  typedef boost::shared_ptr<sidplayfp> EnginePtr;
+  typedef std::shared_ptr<SidTune> TunePtr;
+  typedef std::shared_ptr<sidplayfp> EnginePtr;
 
   void CheckSidplayError(bool ok)
   {
@@ -60,7 +59,7 @@ namespace Sid
   class Analyzer : public Module::Analyzer
   {
   public:
-    typedef boost::shared_ptr<Analyzer> Ptr;
+    typedef std::shared_ptr<Analyzer> Ptr;
 
     explicit Analyzer(EnginePtr engine)
       : Engine(engine)
@@ -140,7 +139,7 @@ namespace Sid
   public:
     Renderer(TunePtr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(tune)
-      , Engine(boost::make_shared<sidplayfp>())
+      , Engine(std::make_shared<sidplayfp>())
       , Builder("resid")
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
@@ -394,7 +393,7 @@ namespace Sid
     {
       try
       {
-        const TunePtr tune = boost::make_shared<SidTune>(static_cast<const uint_least8_t*>(rawData.Start()),
+        const TunePtr tune = std::make_shared<SidTune>(static_cast<const uint_least8_t*>(rawData.Start()),
           static_cast<uint_least32_t>(rawData.Size()));
         CheckSidplayError(tune->getStatus());
         const unsigned songIdx = tune->selectSong(0);

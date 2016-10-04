@@ -69,7 +69,7 @@ namespace TRDos
   class MultiFile : public File
   {
   public:
-    typedef boost::shared_ptr<MultiFile> Ptr;
+    typedef std::shared_ptr<MultiFile> Ptr;
 
     virtual bool Merge(File::Ptr other) = 0;
 

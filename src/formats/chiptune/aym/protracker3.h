@@ -118,7 +118,7 @@ namespace Formats
       class Decoder : public Formats::Chiptune::Decoder
       {
       public:
-        typedef boost::shared_ptr<const Decoder> Ptr;
+        typedef std::shared_ptr<const Decoder> Ptr;
 
         virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
       };
@@ -126,7 +126,7 @@ namespace Formats
       class ChiptuneBuilder : public Builder
       {
       public:
-        typedef boost::shared_ptr<ChiptuneBuilder> Ptr;
+        typedef std::shared_ptr<ChiptuneBuilder> Ptr;
         virtual Binary::Data::Ptr GetResult() const = 0;
       };
 

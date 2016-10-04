@@ -110,7 +110,7 @@ namespace Module
   class Line
   {
   public:
-    typedef boost::shared_ptr<const Line> Ptr;
+    typedef std::shared_ptr<const Line> Ptr;
     virtual ~Line() {}
 
     virtual Cell::Ptr GetChannel(uint_t idx) const = 0;
@@ -121,7 +121,7 @@ namespace Module
   class Pattern
   {
   public:
-    typedef boost::shared_ptr<const Pattern> Ptr;
+    typedef std::shared_ptr<const Pattern> Ptr;
     virtual ~Pattern() {}
 
     virtual Line::Ptr GetLine(uint_t row) const = 0;
@@ -131,7 +131,7 @@ namespace Module
   class PatternsSet
   {
   public:
-    typedef boost::shared_ptr<const PatternsSet> Ptr;
+    typedef std::shared_ptr<const PatternsSet> Ptr;
     virtual ~PatternsSet() {}
 
     virtual Pattern::Ptr Get(uint_t idx) const = 0;
@@ -141,7 +141,7 @@ namespace Module
   class OrderList
   {
   public:
-    typedef boost::shared_ptr<const OrderList> Ptr;
+    typedef std::shared_ptr<const OrderList> Ptr;
     virtual ~OrderList() {}
 
     virtual uint_t GetSize() const = 0;
@@ -152,7 +152,7 @@ namespace Module
   class TrackModel
   {
   public:
-    typedef boost::shared_ptr<const TrackModel> Ptr;
+    typedef std::shared_ptr<const TrackModel> Ptr;
     virtual ~TrackModel() {}
 
     virtual uint_t GetInitialTempo() const = 0;
@@ -163,7 +163,7 @@ namespace Module
   class TrackModelState : public TrackState
   {
   public:
-    typedef boost::shared_ptr<const TrackModelState> Ptr;
+    typedef std::shared_ptr<const TrackModelState> Ptr;
     virtual ~TrackModelState() {}
 
     virtual Pattern::Ptr PatternObject() const = 0;

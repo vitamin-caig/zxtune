@@ -13,9 +13,8 @@
 //library includes
 #include <binary/container_factories.h>
 //std includes
+#include <cassert>
 #include <cstring>
-//boost includes
-#include <boost/shared_array.hpp>
 
 namespace Binary
 {
@@ -86,7 +85,7 @@ namespace Binary
   {
     if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : 0)
     {
-      const boost::shared_ptr<const Dump> buffer(new Dump(byteData, byteData + size));
+      const std::shared_ptr<const Dump> buffer(new Dump(byteData, byteData + size));
       return CreateContainer(buffer, 0, size);
     }
     else
@@ -109,7 +108,7 @@ namespace Binary
 
   Container::Ptr CreateContainer(std::unique_ptr<Dump> data)
   {
-    const boost::shared_ptr<const Dump> buffer(data.release());
+    const std::shared_ptr<const Dump> buffer(data.release());
     const std::size_t size = buffer ? buffer->size() : 0;
     return CreateContainer(buffer, 0, size);
   }
@@ -117,7 +116,7 @@ namespace Binary
   Container::Ptr CreateContainer(Data::Ptr data)
   {
     //cover downcasting
-    if (const Container::Ptr asContainer = boost::dynamic_pointer_cast<const Container>(data))
+    if (const Container::Ptr asContainer = std::dynamic_pointer_cast<const Container>(data))
     {
       return asContainer;
     }
@@ -131,11 +130,11 @@ namespace Binary
     }
   }
 
-  Container::Ptr CreateContainer(boost::shared_ptr<const Dump> data, std::size_t offset, std::size_t size)
+  Container::Ptr CreateContainer(std::shared_ptr<const Dump> data, std::size_t offset, std::size_t size)
   {
     if (size && data && data->size() >= offset + size)
     {
-      return MakePtr<SharedContainer<boost::shared_ptr<const Dump> > >(data, offset, size);
+      return MakePtr<SharedContainer<std::shared_ptr<const Dump> > >(data, offset, size);
     }
     else
     {

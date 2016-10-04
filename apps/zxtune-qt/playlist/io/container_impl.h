@@ -28,8 +28,8 @@ namespace Playlist
 
     struct ContainerItems : std::vector<ContainerItem>
     {
-      typedef boost::shared_ptr<const ContainerItems> Ptr;
-      typedef boost::shared_ptr<ContainerItems> RWPtr;
+      typedef std::shared_ptr<const ContainerItems> Ptr;
+      typedef std::shared_ptr<ContainerItems> RWPtr;
     };
 
     Container::Ptr CreateContainer(Item::DataProvider::Ptr provider,

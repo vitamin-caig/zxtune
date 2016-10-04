@@ -24,7 +24,7 @@ namespace Module
   {
   public:
     //! @brief Pointer type
-    typedef boost::shared_ptr<const Holder> Ptr;
+    typedef std::shared_ptr<const Holder> Ptr;
 
     virtual ~Holder() {}
 

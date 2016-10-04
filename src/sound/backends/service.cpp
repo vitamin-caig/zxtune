@@ -76,7 +76,7 @@ namespace Sound
   class ServiceImpl : public Service, public BackendsStorage
   {
   public:
-    typedef boost::shared_ptr<ServiceImpl> RWPtr;
+    typedef std::shared_ptr<ServiceImpl> RWPtr;
     
     explicit ServiceImpl(Parameters::Accessor::Ptr options)
       : Options(options)

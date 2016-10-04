@@ -20,7 +20,7 @@ namespace Sound
   class FixedChannelsMatrixMixer : public FixedChannelsMixer<Channels>
   {
   public:
-    typedef boost::shared_ptr<FixedChannelsMatrixMixer> Ptr;
+    typedef std::shared_ptr<FixedChannelsMatrixMixer> Ptr;
     typedef boost::array< ::Sound::Gain, Channels> Matrix;
 
     virtual void SetMatrix(const Matrix& data) = 0;

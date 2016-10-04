@@ -68,8 +68,8 @@ namespace Multitrack
     class DataBuilder : public Builder
     {
     public:
-      typedef boost::shared_ptr<const DataBuilder> Ptr;
-      typedef boost::shared_ptr<DataBuilder> RWPtr;
+      typedef std::shared_ptr<const DataBuilder> Ptr;
+      typedef std::shared_ptr<DataBuilder> RWPtr;
       
       DataBuilder()
         : TracksCount(1)

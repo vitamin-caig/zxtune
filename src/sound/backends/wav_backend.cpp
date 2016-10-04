@@ -262,7 +262,7 @@ namespace Wav
 
     virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
     {
-      if (const Binary::SeekableOutputStream::Ptr seekable = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
+      if (const Binary::SeekableOutputStream::Ptr seekable = std::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
       {
         return MakePtr<FileStream>(RenderingParameters->SoundFreq(), seekable);
       }

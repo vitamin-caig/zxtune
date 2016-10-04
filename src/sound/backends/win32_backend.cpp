@@ -31,7 +31,6 @@
 #include <cstring>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/weak_ptr.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -82,15 +81,14 @@ namespace Win32
       }
     }
   private:
-    const boost::shared_ptr<void> Handle;
+    const std::shared_ptr<void> Handle;
   };
 
   //lightweight wrapper around HWAVEOUT handle
   class WaveOutDevice
   {
   public:
-    typedef boost::shared_ptr<WaveOutDevice> Ptr;
-    typedef boost::weak_ptr<WaveOutDevice> WeakPtr;
+    typedef std::shared_ptr<WaveOutDevice> Ptr;
 
     WaveOutDevice(Api::Ptr api, const ::WAVEFORMATEX& format, UINT device)
       : WinApi(api)
@@ -194,7 +192,7 @@ namespace Win32
   class WaveTarget
   {
   public:
-    typedef boost::shared_ptr<WaveTarget> Ptr;
+    typedef std::shared_ptr<WaveTarget> Ptr;
     virtual ~WaveTarget() {}
 
     virtual void Write(const Chunk& buf) = 0;

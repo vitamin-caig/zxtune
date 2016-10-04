@@ -44,7 +44,7 @@ namespace Flac
   const String ID = Text::FLAC_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
 
-  typedef boost::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
+  typedef std::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
 
   void CheckFlacCall(FLAC__bool res, Error::LocationRef loc)
   {
@@ -96,7 +96,7 @@ namespace Flac
     }
   private:
     const Api::Ptr FlacApi;
-    const boost::shared_ptr<FLAC__StreamMetadata> Tags;
+    const std::shared_ptr<FLAC__StreamMetadata> Tags;
   };
 
   class FileStream : public Sound::FileStream
@@ -129,7 +129,7 @@ namespace Flac
     {
       Meta.Encode(*Encoder);
       //real stream initializing should be performed after all set functions
-      if (const Binary::SeekableOutputStream::Ptr seekableStream = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
+      if (const Binary::SeekableOutputStream::Ptr seekableStream = std::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
       {
         Dbg("Using seekable stream for FLAC output");
         CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==

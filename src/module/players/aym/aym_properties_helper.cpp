@@ -12,6 +12,8 @@
 #include "aym_properties_helper.h"
 //core includes
 #include <core/core_parameters.h>
+//std includes
+#include <cassert>
 
 namespace Module
 {

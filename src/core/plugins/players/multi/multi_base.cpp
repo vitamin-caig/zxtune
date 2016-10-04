@@ -131,7 +131,7 @@ namespace Module
   class CompositeReceiver : public Sound::Receiver
   {
   public:
-    typedef boost::shared_ptr<CompositeReceiver> Ptr;
+    typedef std::shared_ptr<CompositeReceiver> Ptr;
     
     explicit CompositeReceiver(Sound::Receiver::Ptr delegate)
       : Delegate(delegate)

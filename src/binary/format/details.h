@@ -18,7 +18,7 @@ namespace Binary
   class FormatDetails : public Format
   {
   public:
-    typedef boost::shared_ptr<const FormatDetails> Ptr;
+    typedef std::shared_ptr<const FormatDetails> Ptr;
 
     virtual std::size_t GetMinSize() const = 0;
   };

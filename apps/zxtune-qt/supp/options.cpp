@@ -24,7 +24,6 @@
 #include <set>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/thread/mutex.hpp>
 //qt includes
 #include <QtCore/QSettings>
@@ -137,7 +136,7 @@ namespace
       ++VersionValue;
     }
   private:
-    typedef boost::shared_ptr<QSettings> SettingsPtr;
+    typedef std::shared_ptr<QSettings> SettingsPtr;
     typedef std::map<QString, SettingsPtr> SettingsStorage;
 
     class Value
@@ -202,7 +201,7 @@ namespace
         }
         else
         {
-          Setup = boost::make_shared<QSettings>(QLatin1String(Text::PROJECT_NAME), rootNamespace);
+          Setup = std::make_shared<QSettings>(QLatin1String(Text::PROJECT_NAME), rootNamespace);
           Storage.insert(SettingsStorage::value_type(rootNamespace, Setup));
         }
       }
@@ -329,7 +328,7 @@ namespace
   class CompositeModifier : public Modifier
   {
   public:
-    typedef boost::shared_ptr<void> Subscription;
+    typedef std::shared_ptr<void> Subscription;
 
     Subscription Subscribe(Modifier::Ptr delegate)
     {

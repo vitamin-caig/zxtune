@@ -23,7 +23,7 @@ namespace
   class Predicate
   {
   public:
-    typedef boost::shared_ptr<const Predicate> Ptr;
+    typedef std::shared_ptr<const Predicate> Ptr;
     virtual ~Predicate() {}
 
     virtual bool Match(const Playlist::Item::Data& data) const = 0;
@@ -99,7 +99,7 @@ namespace
   class StringPredicate
   {
   public:
-    typedef boost::shared_ptr<const StringPredicate> Ptr;
+    typedef std::shared_ptr<const StringPredicate> Ptr;
     virtual ~StringPredicate() {}
 
     virtual bool Match(const String& str) const = 0;

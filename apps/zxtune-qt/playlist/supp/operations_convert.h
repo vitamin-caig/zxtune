@@ -24,7 +24,7 @@ namespace Playlist
     class ConversionResultNotification : public Playlist::TextNotification
     {
     public:
-      typedef boost::shared_ptr<ConversionResultNotification> Ptr;
+      typedef std::shared_ptr<ConversionResultNotification> Ptr;
 
       virtual void AddSucceed() = 0;
       virtual void AddFailedToOpen(const String& path) = 0;

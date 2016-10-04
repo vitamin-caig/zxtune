@@ -19,8 +19,6 @@
 #include <set>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/weak_ptr.hpp>
 //qt includes
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLocale>
@@ -65,10 +63,10 @@ namespace
       return res;
     }
   private:
-    typedef boost::shared_ptr<const Dump> DumpPtr;
+    typedef std::shared_ptr<const Dump> DumpPtr;
     typedef std::set<DumpPtr> DumpsSet;
     typedef std::map<std::string, DumpsSet> LangToDumpsSetMap;
-    typedef boost::shared_ptr<QTranslator> TranslatorPtr;
+    typedef std::shared_ptr<QTranslator> TranslatorPtr;
     typedef std::set<TranslatorPtr> TranslatorsSet;
 
     void UnloadTranslators()
@@ -87,7 +85,7 @@ namespace
 
     static TranslatorPtr CreateTranslator(DumpPtr dump)
     {
-      const TranslatorPtr res = boost::make_shared<QTranslator>();
+      const TranslatorPtr res = std::make_shared<QTranslator>();
       res->load(&dump->front(), static_cast<int>(dump->size()));
       return res;
     }
@@ -141,7 +139,7 @@ namespace UI
   Language::Ptr Language::Create()
   {
     //use slight caching to prevent heavy parsing
-    static boost::weak_ptr<Language> instance;
+    static std::weak_ptr<Language> instance;
     if (Language::Ptr res = instance.lock())
     {
       return res;

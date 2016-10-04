@@ -15,6 +15,7 @@
 //common includes
 #include <contract.h>
 //std includes
+#include <cassert>
 #include <list>
 //qt includes
 #include <QtGui/QLabel>

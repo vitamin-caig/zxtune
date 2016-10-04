@@ -29,7 +29,7 @@ namespace FM
   namespace Details
   {
     typedef int32_t YM2203SampleType;
-    typedef boost::shared_ptr<void> ChipPtr;
+    typedef std::shared_ptr<void> ChipPtr;
 
     static_assert(sizeof(YM2203SampleType) == sizeof(Sound::Sample), "Incompatible sample types");
 

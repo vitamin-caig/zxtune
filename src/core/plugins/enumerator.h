@@ -10,8 +10,8 @@
 
 #pragma once
 
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace ZXTune
 {
@@ -19,7 +19,7 @@ namespace ZXTune
   class PluginsEnumerator
   {
   public:
-    typedef boost::shared_ptr<const PluginsEnumerator> Ptr;
+    typedef std::shared_ptr<const PluginsEnumerator> Ptr;
     virtual ~PluginsEnumerator() {}
 
     virtual typename PluginType::Iterator::Ptr Enumerate() const = 0;

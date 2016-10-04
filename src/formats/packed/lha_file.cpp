@@ -32,7 +32,7 @@ namespace Lha
   class Decompressor
   {
   public:
-    typedef boost::shared_ptr<const Decompressor> Ptr;
+    typedef std::shared_ptr<const Decompressor> Ptr;
     virtual ~Decompressor() {}
 
     virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData, std::size_t outputSize) const = 0;
@@ -49,7 +49,7 @@ namespace Lha
     virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData, std::size_t outputSize) const
     {
       Binary::InputStream input(rawData);
-      const boost::shared_ptr<LHADecoder> decoder(::lha_decoder_new(Type, &ReadData, &input, outputSize), &::lha_decoder_free);
+      const std::shared_ptr<LHADecoder> decoder(::lha_decoder_new(Type, &ReadData, &input, outputSize), &::lha_decoder_free);
       std::unique_ptr<Dump> result(new Dump(outputSize));
       if (const std::size_t decoded = ::lha_decoder_read(decoder.get(), &result->front(), outputSize))
       {

@@ -16,8 +16,6 @@
 //std includes
 #include <memory>
 #include <string>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Binary
 {
@@ -26,7 +24,7 @@ namespace Binary
     class Token
     {
     public:
-      typedef boost::shared_ptr<const Token> Ptr;
+      typedef std::shared_ptr<const Token> Ptr;
       virtual ~Token() {}
 
       virtual bool Match(uint_t val) const = 0;

@@ -25,7 +25,7 @@ namespace Binary
   //! @brief Taking ownership of source data
   Container::Ptr CreateContainer(std::unique_ptr<Dump> data);
   //! @brief Sharing ownership of source data
-  Container::Ptr CreateContainer(boost::shared_ptr<const Dump> data, std::size_t offset, std::size_t size);
+  Container::Ptr CreateContainer(std::shared_ptr<const Dump> data, std::size_t offset, std::size_t size);
   //! @brief Sharing ownership
   Container::Ptr CreateContainer(Data::Ptr data);
 }

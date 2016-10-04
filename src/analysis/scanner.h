@@ -22,8 +22,8 @@ namespace Analysis
   class Scanner
   {
   public:
-    typedef boost::shared_ptr<const Scanner> Ptr;
-    typedef boost::shared_ptr<Scanner> RWPtr;
+    typedef std::shared_ptr<const Scanner> Ptr;
+    typedef std::shared_ptr<Scanner> RWPtr;
 
     virtual ~Scanner() {}
 

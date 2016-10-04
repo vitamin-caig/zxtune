@@ -20,7 +20,7 @@ namespace TRDos
   class File : public Formats::Archived::File
   {
   public:
-    typedef boost::shared_ptr<const File> Ptr;
+    typedef std::shared_ptr<const File> Ptr;
 
     virtual std::size_t GetOffset() const = 0;
 

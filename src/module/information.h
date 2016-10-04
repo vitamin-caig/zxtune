@@ -12,8 +12,8 @@
 
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace Module
 {
@@ -22,7 +22,7 @@ namespace Module
   {
   public:
     //! Pointer type
-    typedef boost::shared_ptr<const Information> Ptr;
+    typedef std::shared_ptr<const Information> Ptr;
 
     virtual ~Information() {}
 

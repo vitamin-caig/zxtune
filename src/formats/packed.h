@@ -24,7 +24,7 @@ namespace Formats
     class Container : public Binary::Container
     {
     public:
-      typedef boost::shared_ptr<const Container> Ptr;
+      typedef std::shared_ptr<const Container> Ptr;
 
       //! @brief Getting size of source data this container was unpacked from
       //! @return Size in bytes
@@ -36,7 +36,7 @@ namespace Formats
     class Decoder
     {
     public:
-      typedef boost::shared_ptr<const Decoder> Ptr;
+      typedef std::shared_ptr<const Decoder> Ptr;
       virtual ~Decoder() {}
 
       //! @brief Get short decoder description

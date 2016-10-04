@@ -24,7 +24,7 @@ namespace UI
   protected:
     explicit SetupConversionDialog(QWidget& parent);
   public:
-    typedef boost::shared_ptr<SetupConversionDialog> Ptr;
+    typedef std::shared_ptr<SetupConversionDialog> Ptr;
 
     static Ptr Create(QWidget& parent);
 

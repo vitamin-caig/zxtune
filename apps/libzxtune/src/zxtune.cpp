@@ -93,7 +93,7 @@ namespace
   class BufferRender : public Sound::Receiver
   {
   public:
-    typedef boost::shared_ptr<BufferRender> Ptr;
+    typedef std::shared_ptr<BufferRender> Ptr;
 
     BufferRender()
       : Buffer(32768)
@@ -155,7 +155,7 @@ namespace
   class PlayerWrapper
   {
   public:
-    typedef boost::shared_ptr<PlayerWrapper> Ptr;
+    typedef std::shared_ptr<PlayerWrapper> Ptr;
 
     PlayerWrapper(Parameters::Container::Ptr params, Module::Renderer::Ptr renderer, BufferRender::Ptr buffer)
       : Params(params)

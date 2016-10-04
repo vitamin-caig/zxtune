@@ -29,7 +29,7 @@ namespace YMVTX
   class StreamModel : public AYM::StreamModel
   {
   public:
-    typedef boost::shared_ptr<StreamModel> RWPtr;
+    typedef std::shared_ptr<StreamModel> RWPtr;
     
     StreamModel()
       : LoopFrame(0)

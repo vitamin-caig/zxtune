@@ -165,7 +165,7 @@ namespace Archived
     class Archive
     {
     public:
-      typedef boost::shared_ptr<const Archive> Ptr;
+      typedef std::shared_ptr<const Archive> Ptr;
 
       explicit Archive(Binary::Data::Ptr data)
         : Stream(data)

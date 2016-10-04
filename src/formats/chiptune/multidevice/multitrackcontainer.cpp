@@ -91,7 +91,7 @@ namespace IFF
   class ChunkSource
   {
   public:
-    typedef boost::shared_ptr<const ChunkSource> Ptr;
+    typedef std::shared_ptr<const ChunkSource> Ptr;
     virtual ~ChunkSource() {}
     
     virtual std::size_t GetSize() const = 0;
@@ -222,7 +222,7 @@ namespace IFF
   class DataBuilder : public Visitor, public CompositeChunkSource
   {
   public:
-    typedef boost::shared_ptr<DataBuilder> Ptr;
+    typedef std::shared_ptr<DataBuilder> Ptr;
     
     explicit DataBuilder(const Identifier::Type& id)
       : CompositeChunkSource(id)

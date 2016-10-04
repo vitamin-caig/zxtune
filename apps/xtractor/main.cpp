@@ -56,7 +56,7 @@ namespace Analysis
   class Node
   {
   public:
-    typedef boost::shared_ptr<const Node> Ptr;
+    typedef std::shared_ptr<const Node> Ptr;
     virtual ~Node() {}
 
     //! Name to distinguish. Can be empty
@@ -293,7 +293,7 @@ namespace Parsing
   class Result
   {
   public:
-    typedef boost::shared_ptr<const Result> Ptr;
+    typedef std::shared_ptr<const Result> Ptr;
     virtual ~Result() {}
 
     virtual String Name() const = 0;

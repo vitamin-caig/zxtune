@@ -14,9 +14,10 @@
 #include <types.h>
 //library includes
 #include <time/oscillator.h>
+//std includes
+#include <memory>
 //boost includes
 #include <boost/array.hpp>
-#include <boost/shared_ptr.hpp>
 
 namespace Devices
 {
@@ -29,7 +30,7 @@ namespace Devices
     class ChipIO
     {
     public:
-      typedef boost::shared_ptr<ChipIO> Ptr;
+      typedef std::shared_ptr<ChipIO> Ptr;
       virtual ~ChipIO() {}
 
       virtual uint8_t Read(uint16_t addr) = 0;
@@ -65,7 +66,7 @@ namespace Devices
     class Chip
     {
     public:
-      typedef boost::shared_ptr<Chip> Ptr;
+      typedef std::shared_ptr<Chip> Ptr;
       virtual ~Chip() {}
 
       virtual void Reset() = 0;
@@ -81,7 +82,7 @@ namespace Devices
     class ChipParameters
     {
     public:
-      typedef boost::shared_ptr<const ChipParameters> Ptr;
+      typedef std::shared_ptr<const ChipParameters> Ptr;
       virtual ~ChipParameters() {}
 
       virtual uint_t Version() const = 0;

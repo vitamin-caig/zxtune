@@ -115,7 +115,7 @@ namespace OpenAl
     }
   private:
     ALCcontext* const Previous;
-    const boost::shared_ptr<ALCcontext> Current;
+    const std::shared_ptr<ALCcontext> Current;
     
   };
   
@@ -294,7 +294,7 @@ namespace OpenAl
     }
     
   private:
-    const boost::shared_ptr<ALCdevice> Dev;
+    const std::shared_ptr<ALCdevice> Dev;
     std::unique_ptr<ActiveContext> Context;
   };
 

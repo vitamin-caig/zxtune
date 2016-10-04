@@ -32,7 +32,7 @@ namespace AHX
 {
   const Debug::Stream Dbg("Core::AHXSupp");
 
-  typedef boost::shared_ptr<hvl_tune> HvlPtr;
+  typedef std::shared_ptr<hvl_tune> HvlPtr;
   
   HvlPtr LoadModule(const Binary::Data& data)
   {
@@ -206,7 +206,7 @@ namespace AHX
   class HVL
   {
   public:
-    typedef boost::shared_ptr<HVL> Ptr;
+    typedef std::shared_ptr<HVL> Ptr;
     
     explicit HVL(const Binary::Data& data)
       : Hvl(LoadModule(data))

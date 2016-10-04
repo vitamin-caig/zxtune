@@ -10,8 +10,8 @@
 
 #pragma once
 
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace Async
 {
@@ -19,7 +19,7 @@ namespace Async
   class Queue
   {
   public:
-    typedef boost::shared_ptr<Queue<T> > Ptr;
+    typedef std::shared_ptr<Queue<T> > Ptr;
 
     virtual ~Queue() {}
 

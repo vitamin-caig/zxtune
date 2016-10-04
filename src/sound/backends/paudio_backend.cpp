@@ -66,7 +66,7 @@ namespace PulseAudio
     virtual void Shutdown()
     {
       Dbg("Shutdown");
-      Device = boost::shared_ptr<pa_simple>();
+      Device = std::shared_ptr<pa_simple>();
     }
 
     virtual void Pause()
@@ -102,13 +102,13 @@ namespace PulseAudio
       return VolumeControl::Ptr();
     }
   private:
-    boost::shared_ptr<pa_simple> OpenDevice() const
+    std::shared_ptr<pa_simple> OpenDevice() const
     {
       const pa_sample_spec format = GetFormat();
       int error = 0;
       if (pa_simple* result = PaApi->pa_simple_new(NULL, Client.c_str(), PA_STREAM_PLAYBACK, NULL, Stream.c_str(), &format, NULL, NULL, &error))
       {
-        return boost::shared_ptr<pa_simple>(result, boost::bind(&Api::pa_simple_free, PaApi, _1));
+        return std::shared_ptr<pa_simple>(result, boost::bind(&Api::pa_simple_free, PaApi, _1));
       }
       throw MakeError(error, THIS_LINE);
     }
@@ -143,7 +143,7 @@ namespace PulseAudio
     const Parameters::Accessor::Ptr Params;
     const String Client;
     const String Stream;
-    boost::shared_ptr<pa_simple> Device;
+    std::shared_ptr<pa_simple> Device;
   };
 
   class BackendWorkerFactory : public Sound::BackendWorkerFactory

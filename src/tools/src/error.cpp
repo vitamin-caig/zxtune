@@ -10,8 +10,6 @@
 
 //common includes
 #include <error_tools.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <tools/text/tools.h>
 
@@ -55,7 +53,7 @@ Error::Error()
 }
 
 Error::Error(LocationRef loc, const String& txt)
-  : ErrorMeta(boost::make_shared<Meta>(loc, txt))
+  : ErrorMeta(std::make_shared<Meta>(loc, txt))
 {
 }
 

@@ -33,7 +33,7 @@ namespace DAC
   class FastSample
   {
   public:
-    typedef boost::shared_ptr<const FastSample> Ptr;
+    typedef std::shared_ptr<const FastSample> Ptr;
 
     //use additional sample for interpolation
     explicit FastSample(std::size_t idx, Sample::Ptr in)

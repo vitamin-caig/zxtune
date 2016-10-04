@@ -13,7 +13,6 @@
 //std includes
 #include <cstddef>
 //boost includes
-#include <boost/shared_ptr.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/is_pointer.hpp>

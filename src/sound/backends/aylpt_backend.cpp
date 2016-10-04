@@ -90,7 +90,7 @@ namespace AyLpt
   class LptPort
   {
   public:
-    typedef boost::shared_ptr<LptPort> Ptr;
+    typedef std::shared_ptr<LptPort> Ptr;
     virtual ~LptPort() {}
 
     virtual void Control(uint_t val) = 0;

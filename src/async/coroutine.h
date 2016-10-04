@@ -26,7 +26,7 @@ namespace Async
   class Coroutine
   {
   public:
-    typedef boost::shared_ptr<Coroutine> Ptr;
+    typedef std::shared_ptr<Coroutine> Ptr;
     virtual ~Coroutine() {}
 
     virtual void Initialize() = 0;

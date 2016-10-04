@@ -26,7 +26,7 @@ namespace Formats
     class Container : public Binary::Container
     {
     public:
-      typedef boost::shared_ptr<const Container> Ptr;
+      typedef std::shared_ptr<const Container> Ptr;
 
       //! @brief Whole data fingerprint
       //! @return Some integer value at least 32-bit
@@ -41,7 +41,7 @@ namespace Formats
     class Decoder
     {
     public:
-      typedef boost::shared_ptr<const Decoder> Ptr;
+      typedef std::shared_ptr<const Decoder> Ptr;
       virtual ~Decoder() {}
 
       //! @brief Get short decoder description

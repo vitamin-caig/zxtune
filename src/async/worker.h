@@ -25,7 +25,7 @@ namespace Async
   class Worker
   {
   public:
-    typedef boost::shared_ptr<Worker> Ptr;
+    typedef std::shared_ptr<Worker> Ptr;
     virtual ~Worker() {}
 
     virtual void Initialize() = 0;

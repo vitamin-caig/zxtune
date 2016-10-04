@@ -121,7 +121,7 @@ namespace Module
   {
     Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device)
     {
-      if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
+      if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::StateSource>(device))
       {
         return Module::CreateAnalyzer(src);
       }

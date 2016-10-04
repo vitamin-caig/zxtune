@@ -21,7 +21,7 @@ namespace Sound
   {
   public:
     //! Pointer type
-    typedef boost::shared_ptr<const Service> Ptr;
+    typedef std::shared_ptr<const Service> Ptr;
     virtual ~Service() {}
 
     //! Enumerate all the registered backends

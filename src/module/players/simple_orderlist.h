@@ -57,7 +57,7 @@ namespace Module
   class SimpleOrderListWithTransposition : public OrderList
   {
   public:
-    typedef boost::shared_ptr<const SimpleOrderListWithTransposition<T> > Ptr;
+    typedef std::shared_ptr<const SimpleOrderListWithTransposition<T> > Ptr;
 
     template<class It>
     SimpleOrderListWithTransposition(uint_t loop, It from, It to)

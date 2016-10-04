@@ -53,7 +53,7 @@ namespace
   class DataProvider
   {
   public:
-    typedef boost::shared_ptr<const DataProvider> Ptr;
+    typedef std::shared_ptr<const DataProvider> Ptr;
 
     virtual ~DataProvider() {}
 
@@ -239,7 +239,7 @@ namespace
   class CachedDataProvider : public DataProvider
   {
   public:
-    typedef boost::shared_ptr<CachedDataProvider> Ptr;
+    typedef std::shared_ptr<CachedDataProvider> Ptr;
 
     explicit CachedDataProvider(Parameters::Accessor::Ptr ioParams)
       : Params(ioParams)
@@ -300,7 +300,7 @@ namespace
   class DataSource
   {
   public:
-    typedef boost::shared_ptr<const DataSource> Ptr;
+    typedef std::shared_ptr<const DataSource> Ptr;
 
     DataSource(CachedDataProvider::Ptr provider, IO::Identifier::Ptr id)
       : Provider(provider)
@@ -461,7 +461,7 @@ namespace
   class DynamicAttributesProvider
   {
   public:
-    typedef boost::shared_ptr<const DynamicAttributesProvider> Ptr;
+    typedef std::shared_ptr<const DynamicAttributesProvider> Ptr;
 
     DynamicAttributesProvider()
       : DisplayNameTemplate(Strings::Template::Create(Text::MODULE_PLAYLIST_FORMAT))

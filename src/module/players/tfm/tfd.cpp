@@ -25,7 +25,7 @@ namespace TFD
   class ModuleData : public TFM::StreamModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
+    typedef std::shared_ptr<ModuleData> RWPtr;
 
     ModuleData()
       : LoopPos()

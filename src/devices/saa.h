@@ -88,7 +88,7 @@ namespace Devices
     class Device
     {
     public:
-      typedef boost::shared_ptr<Device> Ptr;
+      typedef std::shared_ptr<Device> Ptr;
       virtual ~Device() {}
 
       /// render single data chunk
@@ -102,7 +102,7 @@ namespace Devices
     class Chip : public Device, public StateSource
     {
     public:
-      typedef boost::shared_ptr<Chip> Ptr;
+      typedef std::shared_ptr<Chip> Ptr;
     };
 
     enum InterpolationType
@@ -115,7 +115,7 @@ namespace Devices
     class ChipParameters
     {
     public:
-      typedef boost::shared_ptr<const ChipParameters> Ptr;
+      typedef std::shared_ptr<const ChipParameters> Ptr;
 
       virtual ~ChipParameters() {}
 

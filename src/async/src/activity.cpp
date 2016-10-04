@@ -31,7 +31,7 @@ namespace Async
   class ThreadActivity : public Activity
   {
   public:
-    typedef boost::shared_ptr<ThreadActivity> Ptr;
+    typedef std::shared_ptr<ThreadActivity> Ptr;
 
     explicit ThreadActivity(Operation::Ptr op)
       : Oper(op)

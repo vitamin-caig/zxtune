@@ -171,7 +171,7 @@ namespace Archived
     class ChainDecoder
     {
     public:
-      typedef boost::shared_ptr<const ChainDecoder> Ptr;
+      typedef std::shared_ptr<const ChainDecoder> Ptr;
 
       explicit ChainDecoder(Binary::Container::Ptr data)
         : Data(data)

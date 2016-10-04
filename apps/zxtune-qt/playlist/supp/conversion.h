@@ -21,7 +21,7 @@ namespace Playlist
     {
       struct Options
       {
-        typedef boost::shared_ptr<const Options> Ptr;
+        typedef std::shared_ptr<const Options> Ptr;
         
         Options(const String& type, const String& filenameTemplate, Parameters::Accessor::Ptr params)
           : Type(type)

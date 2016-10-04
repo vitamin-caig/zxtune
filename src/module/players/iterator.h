@@ -18,7 +18,7 @@ namespace Module
   class Iterator
   {
   public:
-    typedef boost::shared_ptr<Iterator> Ptr;
+    typedef std::shared_ptr<Iterator> Ptr;
 
     virtual ~Iterator() {}
 
@@ -30,7 +30,7 @@ namespace Module
   class StateIterator : public Iterator
   {
   public:
-    typedef boost::shared_ptr<StateIterator> Ptr;
+    typedef std::shared_ptr<StateIterator> Ptr;
 
     virtual TrackState::Ptr GetStateObserver() const = 0;
   };

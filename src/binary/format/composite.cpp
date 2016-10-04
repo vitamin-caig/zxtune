@@ -22,7 +22,7 @@ namespace Binary
 {
   std::size_t GetSize(Format::Ptr format)
   {
-    if (const FormatDetails::Ptr dtl = boost::dynamic_pointer_cast<const FormatDetails>(format))
+    if (const FormatDetails::Ptr dtl = std::dynamic_pointer_cast<const FormatDetails>(format))
     {
       return dtl->GetMinSize();
     }

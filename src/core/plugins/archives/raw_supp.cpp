@@ -346,7 +346,7 @@ namespace ZXTune
   class ScanDataContainer : public Binary::Container
   {
   public:
-    typedef boost::shared_ptr<ScanDataContainer> Ptr;
+    typedef std::shared_ptr<ScanDataContainer> Ptr;
 
     ScanDataContainer(Binary::Container::Ptr delegate, std::size_t offset)
       : Delegate(delegate)
@@ -395,7 +395,7 @@ namespace ZXTune
   class ScanDataLocation : public DataLocation
   {
   public:
-    typedef boost::shared_ptr<ScanDataLocation> Ptr;
+    typedef std::shared_ptr<ScanDataLocation> Ptr;
 
     ScanDataLocation(DataLocation::Ptr parent, const String& subPlugin, std::size_t offset)
       : Parent(parent)

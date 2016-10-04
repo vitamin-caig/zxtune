@@ -13,17 +13,17 @@
 //library includes
 #include <sound/sample.h>
 //std includes
-#include <vector>
+#include <cassert>
 #include <cstring>
-//boost includes
-#include <boost/shared_ptr.hpp>
+#include <memory>
+#include <vector>
 
 namespace Sound
 {
   //! @brief Block of sound data
   struct Chunk : public std::vector<Sample>
   {
-    typedef boost::shared_ptr<Chunk> Ptr;
+    typedef std::shared_ptr<Chunk> Ptr;
 
     Chunk()
     {

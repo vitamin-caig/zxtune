@@ -63,7 +63,7 @@ namespace Ogg
   class OggBitStream
   {
   public:
-    typedef boost::shared_ptr<OggBitStream> Ptr;
+    typedef std::shared_ptr<OggBitStream> Ptr;
     OggBitStream(Api::Ptr api, Binary::OutputStream::Ptr file)
       : OggApi(api)
       , File(file)
@@ -117,7 +117,7 @@ namespace Ogg
   class MetaData
   {
   public:
-    typedef boost::shared_ptr<MetaData> Ptr;
+    typedef std::shared_ptr<MetaData> Ptr;
 
     explicit MetaData(Vorbis::Api::Ptr api)
       : VorbisApi(api)
@@ -149,7 +149,7 @@ namespace Ogg
   class VorbisState
   {
   public:
-    typedef boost::shared_ptr<VorbisState> Ptr;
+    typedef std::shared_ptr<VorbisState> Ptr;
     VorbisState(Vorbis::Api::Ptr api, vorbis_info* info)
       : VorbisApi(api)
     {
@@ -216,7 +216,7 @@ namespace Ogg
   class VorbisInfo
   {
   public:
-    typedef boost::shared_ptr<VorbisInfo> Ptr;
+    typedef std::shared_ptr<VorbisInfo> Ptr;
     VorbisInfo(Vorbis::Api::Ptr vorbisApi, VorbisEnc::Api::Ptr vorbisEncApi)
       : VorbisApi(vorbisApi)
       , VorbisEncApi(vorbisEncApi)

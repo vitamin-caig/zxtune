@@ -14,6 +14,8 @@
 #include "soundtrackerpro.h"
 //common includes
 #include <indices.h>
+//std includes
+#include <cassert>
 
 namespace Formats
 {

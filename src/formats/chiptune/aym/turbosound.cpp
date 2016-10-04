@@ -120,7 +120,7 @@ namespace Chiptune
     class FooterFormat : public Binary::Format
     {
     public:
-      typedef boost::shared_ptr<const FooterFormat> Ptr;
+      typedef std::shared_ptr<const FooterFormat> Ptr;
 
       FooterFormat()
         : Delegate(Binary::CreateFormat(FOOTER_FORMAT))

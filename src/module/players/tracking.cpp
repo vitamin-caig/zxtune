@@ -59,7 +59,7 @@ namespace Module
   class TrackStateCursor : public TrackModelState
   {
   public:
-    typedef boost::shared_ptr<TrackStateCursor> Ptr;
+    typedef std::shared_ptr<TrackStateCursor> Ptr;
 
     explicit TrackStateCursor(TrackModel::Ptr model)
       : Model(model)

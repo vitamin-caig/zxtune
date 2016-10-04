@@ -14,8 +14,6 @@
 #include <types.h>
 //library includes
 #include <binary/container.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Formats
 {
@@ -44,7 +42,7 @@ namespace Formats
   class ImageBuilder
   {
   public:
-    typedef boost::shared_ptr<ImageBuilder> Ptr;
+    typedef std::shared_ptr<ImageBuilder> Ptr;
     virtual ~ImageBuilder() {}
 
     virtual void SetGeometry(const CHS& geometry) = 0;

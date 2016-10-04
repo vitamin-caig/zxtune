@@ -22,7 +22,7 @@ namespace Devices
     class Dumper : public Device
     {
     public:
-      typedef boost::shared_ptr<Dumper> Ptr;
+      typedef std::shared_ptr<Dumper> Ptr;
 
       virtual void GetDump(Dump& result) const = 0;
     };
@@ -30,7 +30,7 @@ namespace Devices
     class DumperParameters
     {
     public:
-      typedef boost::shared_ptr<const DumperParameters> Ptr;
+      typedef std::shared_ptr<const DumperParameters> Ptr;
       virtual ~DumperParameters() {}
 
       enum Optimization
@@ -51,7 +51,7 @@ namespace Devices
     class FYMDumperParameters : public DumperParameters
     {
     public:
-      typedef boost::shared_ptr<const FYMDumperParameters> Ptr;
+      typedef std::shared_ptr<const FYMDumperParameters> Ptr;
 
       virtual uint64_t ClockFreq() const = 0;
       virtual String Title() const = 0;

@@ -96,7 +96,7 @@ namespace Test
         {
           corruptedDump->at(rand() % size) ^= 0xff;
         }
-        const Binary::Container::Ptr corrupted = Binary::CreateContainer(corruptedDump);
+        const Binary::Container::Ptr corrupted = Binary::CreateContainer(std::move(corruptedDump));
         if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(*corrupted))
         {
           throw std::runtime_error("Failed corrupted");

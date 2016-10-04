@@ -75,7 +75,7 @@ namespace Module
   class MutableLine : public Line
   {
   public:
-    typedef boost::shared_ptr<MutableLine> Ptr;
+    typedef std::shared_ptr<MutableLine> Ptr;
     
     virtual void SetTempo(uint_t val) = 0;
     virtual MutableCell& AddChannel(uint_t idx) = 0;
@@ -84,7 +84,7 @@ namespace Module
   class MutablePattern : public Pattern
   {
   public:
-    typedef boost::shared_ptr<MutablePattern> Ptr;
+    typedef std::shared_ptr<MutablePattern> Ptr;
     
     virtual MutableLine& AddLine(uint_t row) = 0;
     virtual void SetSize(uint_t size) = 0;
@@ -93,7 +93,7 @@ namespace Module
   class MutablePatternsSet : public PatternsSet
   {
   public:
-    typedef boost::shared_ptr<MutablePatternsSet> Ptr;
+    typedef std::shared_ptr<MutablePatternsSet> Ptr;
     
     virtual MutablePattern& AddPattern(uint_t idx) = 0;
   };
@@ -243,7 +243,7 @@ namespace Module
   class TrackStateIterator : public Iterator
   {
   public:
-    typedef boost::shared_ptr<TrackStateIterator> Ptr;
+    typedef std::shared_ptr<TrackStateIterator> Ptr;
 
     virtual TrackModelState::Ptr GetStateObserver() const = 0;
   };

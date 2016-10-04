@@ -12,6 +12,8 @@
 
 //common includes
 #include <pointers.h>
+//std includes
+#include <memory>
 
 //! @brief Template data consuming interface. Instantiated with working data class
 template<class T>
@@ -20,7 +22,7 @@ class DataReceiver
 public:
   typedef T InDataType;
   //! @brief Pointer type
-  typedef typename boost::shared_ptr<DataReceiver<T> > Ptr;
+  typedef typename std::shared_ptr<DataReceiver<T> > Ptr;
 
   virtual ~DataReceiver() {}
 
@@ -55,7 +57,7 @@ class DataTransmitter
 public:
   typedef T OutDataType;
   //! @brief Pointer type
-  typedef typename boost::shared_ptr<DataTransmitter> Ptr;
+  typedef typename std::shared_ptr<DataTransmitter> Ptr;
 
   virtual ~DataTransmitter() {}
 
@@ -69,5 +71,5 @@ class DataTransceiver : public DataReceiver<InType>
 {
 public:
   //! @brief Pointer type.
-  typedef typename boost::shared_ptr<DataTransceiver<InType, OutType> > Ptr;
+  typedef typename std::shared_ptr<DataTransceiver<InType, OutType> > Ptr;
 };

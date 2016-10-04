@@ -12,8 +12,8 @@
 
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 //! @class Error
 //! @brief Error subsystem core class. Can be used as a return value or throw object
@@ -21,7 +21,7 @@ class Error
 {
   // internal types
   struct Meta;
-  typedef boost::shared_ptr<Meta> MetaPtr;
+  typedef std::shared_ptr<Meta> MetaPtr;
 
   void TrueFunc() const
   {

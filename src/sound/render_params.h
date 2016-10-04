@@ -20,7 +20,7 @@ namespace Sound
   class RenderParameters
   {
   public:
-    typedef boost::shared_ptr<const RenderParameters> Ptr;
+    typedef std::shared_ptr<const RenderParameters> Ptr;
 
     virtual ~RenderParameters() {}
 

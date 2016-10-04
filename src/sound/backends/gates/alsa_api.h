@@ -10,11 +10,11 @@
 
 #pragma once
 
+//std includes
+#include <memory>
 //platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Sound
 {
@@ -23,7 +23,7 @@ namespace Sound
     class Api
     {
     public:
-      typedef boost::shared_ptr<Api> Ptr;
+      typedef std::shared_ptr<Api> Ptr;
       virtual ~Api() {}
 
       

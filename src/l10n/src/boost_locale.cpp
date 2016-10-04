@@ -37,7 +37,7 @@ namespace
     }
   };
 
-  typedef boost::shared_ptr<std::locale> LocalePtr;
+  typedef std::shared_ptr<std::locale> LocalePtr;
 
   class DomainVocabulary : public L10n::Vocabulary
   {

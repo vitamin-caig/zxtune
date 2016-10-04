@@ -97,7 +97,7 @@ namespace Module
     class DataRenderer
     {
     public:
-      typedef boost::shared_ptr<DataRenderer> Ptr;
+      typedef std::shared_ptr<DataRenderer> Ptr;
 
       virtual ~DataRenderer() {}
 

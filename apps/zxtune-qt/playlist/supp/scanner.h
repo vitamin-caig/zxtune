@@ -20,7 +20,7 @@ namespace Playlist
   class ScanStatus
   {
   public:
-    typedef boost::shared_ptr<const ScanStatus> Ptr;
+    typedef std::shared_ptr<const ScanStatus> Ptr;
     virtual ~ScanStatus() {}
 
     virtual unsigned DoneFiles() const = 0;

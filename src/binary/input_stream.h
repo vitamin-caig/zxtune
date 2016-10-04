@@ -17,6 +17,7 @@
 #include <pointers.h>
 #include <types.h>
 //std includes
+#include <algorithm>
 #include <cstring>
 
 namespace Binary

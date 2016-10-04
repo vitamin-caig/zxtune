@@ -30,7 +30,7 @@ namespace Devices
     class FramedDumpBuilder : public DumpBuilder
     {
     public:
-      typedef boost::shared_ptr<FramedDumpBuilder> Ptr;
+      typedef std::shared_ptr<FramedDumpBuilder> Ptr;
 
       virtual void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) = 0;
     };

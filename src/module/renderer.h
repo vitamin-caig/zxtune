@@ -21,7 +21,7 @@ namespace Module
   {
   public:
     //! @brief Generic pointer type
-    typedef boost::shared_ptr<Renderer> Ptr;
+    typedef std::shared_ptr<Renderer> Ptr;
 
     virtual ~Renderer() {}
 

@@ -109,7 +109,7 @@ namespace MTC
     class TrackEntity
     {
     public:
-      typedef boost::shared_ptr<TrackEntity> Ptr;
+      typedef std::shared_ptr<TrackEntity> Ptr;
       
       virtual ~TrackEntity() {}
       

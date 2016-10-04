@@ -24,7 +24,7 @@ namespace Module
     class TrackParameters
     {
     public:
-      typedef boost::shared_ptr<const TrackParameters> Ptr;
+      typedef std::shared_ptr<const TrackParameters> Ptr;
 
       virtual ~TrackParameters() {}
 

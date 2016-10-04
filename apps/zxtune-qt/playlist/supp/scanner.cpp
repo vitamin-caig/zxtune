@@ -204,7 +204,7 @@ namespace
                    , public Playlist::ScanStatus
   {
   public:
-    typedef boost::shared_ptr<FilesQueue> Ptr;
+    typedef std::shared_ptr<FilesQueue> Ptr;
 
     FilesQueue()
       : Resolved(Source)
@@ -344,7 +344,7 @@ namespace
                     , public Async::Coroutine
   {
   public:
-    typedef boost::shared_ptr<ScanRoutine> Ptr;
+    typedef std::shared_ptr<ScanRoutine> Ptr;
 
     ScanRoutine(ScannerCallback& cb, Playlist::Item::DataProvider::Ptr provider)
       : Callback(cb)

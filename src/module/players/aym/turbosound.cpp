@@ -547,7 +547,7 @@ namespace TurboSound
 
   Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device)
   {
-    if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
+    if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::StateSource>(device))
     {
       return Module::CreateAnalyzer(src);
     }

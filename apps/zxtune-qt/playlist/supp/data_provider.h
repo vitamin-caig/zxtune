@@ -32,7 +32,7 @@ namespace Playlist
     class DataProvider
     {
     public:
-      typedef boost::shared_ptr<const DataProvider> Ptr;
+      typedef std::shared_ptr<const DataProvider> Ptr;
 
       virtual ~DataProvider() {}
 
