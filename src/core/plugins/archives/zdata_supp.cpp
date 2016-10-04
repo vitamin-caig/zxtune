@@ -34,7 +34,7 @@ namespace Zdata
 {
   const Debug::Stream Dbg("Core::ZData");
 
-  typedef boost::array<uint8_t, 2> SignatureType;
+  typedef std::array<uint8_t, 2> SignatureType;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -60,7 +60,7 @@ namespace Zdata
       return (Data[2] << 16) | (Data[1] << 8) | Data[0];
     }
   private:
-    boost::array<uint8_t, 3> Data;
+    std::array<uint8_t, 3> Data;
   } PACK_POST;
 
   //4 LSBs of signature may be version
@@ -79,8 +79,8 @@ namespace Zdata
     UInt24LE PackedSize;
   } PACK_POST;
 
-  typedef boost::array<char, 8> TxtMarker;
-  typedef boost::array<char, 16> TxtHeader;
+  typedef std::array<char, 8> TxtMarker;
+  typedef std::array<char, 16> TxtHeader;
   
   struct Marker
   {

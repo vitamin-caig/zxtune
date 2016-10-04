@@ -20,10 +20,10 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 //std includes
+#include <array>
 #include <map>
 //boost includes
 #include <boost/algorithm/string/case_conv.hpp>
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/archived.h>
 
@@ -45,7 +45,7 @@ namespace Archived
       "??0000 ????" //imports
     );
 
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE = {{0xc1, 0x83, 0x2a, 0x9e}};
 

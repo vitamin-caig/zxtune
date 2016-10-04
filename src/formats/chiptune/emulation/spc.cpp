@@ -25,8 +25,9 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/chiptune.h>
+//std includes
+#include <array>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/lexical_cast.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -39,7 +40,7 @@ namespace Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SPC");
 
-    typedef boost::array<uint8_t, 28> SignatureType;
+    typedef std::array<uint8_t, 28> SignatureType;
     const SignatureType SIGNATURE = {{
       'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ',
       'S', 'o', 'u', 'n', 'd', ' ', 'F', 'i', 'l', 'e', ' ', 'D', 'a', 't', 'a', ' '
@@ -211,7 +212,7 @@ namespace Chiptune
       uint8_t DSPRegisters[128];
     } PACK_POST;
     
-    typedef boost::array<uint8_t, 4> IFFId;
+    typedef std::array<uint8_t, 4> IFFId;
     const IFFId XID6 = {{'x', 'i', 'd', '6'}};
 
     PACK_PRE struct IFFChunkHeader

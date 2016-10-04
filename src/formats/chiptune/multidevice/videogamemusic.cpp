@@ -17,8 +17,8 @@
 #include <binary/format_factories.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -28,7 +28,7 @@ namespace Chiptune
 {
   namespace VideoGameMusic
   {
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE = {{'V', 'g', 'm', ' '}};
 

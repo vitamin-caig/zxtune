@@ -22,7 +22,7 @@ namespace Devices
 
     using AYM::Stamp;
 
-    typedef boost::array<AYM::Registers, CHIPS> Registers;
+    typedef std::array<AYM::Registers, CHIPS> Registers;
 
     struct DataChunk
     {

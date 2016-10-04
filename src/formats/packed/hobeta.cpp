@@ -19,9 +19,8 @@
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <numeric>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -36,7 +35,7 @@ namespace Packed
 #endif
     PACK_PRE struct Header
     {
-      boost::array<uint8_t, 9> Filename;
+      std::array<uint8_t, 9> Filename;
       uint16_t Start;
       uint16_t Length;
       uint16_t FullLength;

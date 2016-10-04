@@ -12,14 +12,14 @@
 
 //library includes
 #include <sound/sample.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 
 namespace Sound
 {
   template<unsigned Channels>
   struct MultichannelSample
   {
-    typedef boost::array<Sample::Type, Channels> Type;
+    typedef std::array<Sample::Type, Channels> Type;
   };
 }

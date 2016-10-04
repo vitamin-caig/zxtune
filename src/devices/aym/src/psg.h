@@ -202,7 +202,7 @@ namespace AYM
   private:
     const MultiVolumeTable& Table;
     //registers state
-    boost::array<uint_t, Registers::TOTAL> Regs;
+    std::array<uint_t, Registers::TOTAL> Regs;
     //device
     AYMDevice Device;
   };

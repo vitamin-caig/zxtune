@@ -21,7 +21,7 @@ namespace Vortex
 {
   const uint_t LIMITER = ~uint_t(0);
 
-  typedef boost::array<uint8_t, 256> VolumeTable;
+  typedef std::array<uint8_t, 256> VolumeTable;
 
   //Volume table of Pro Tracker 3.3x - 3.4x
   const VolumeTable Vol33_34 =
@@ -146,7 +146,7 @@ namespace Vortex
 
   struct State
   {
-    boost::array<ChannelState, AYM::TRACK_CHANNELS> ChanState;
+    std::array<ChannelState, AYM::TRACK_CHANNELS> ChanState;
     CommonState CommState;
   };
 

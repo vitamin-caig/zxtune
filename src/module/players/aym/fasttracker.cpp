@@ -585,7 +585,7 @@ namespace FastTracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
+    std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
     int_t Transposition;
   };
 

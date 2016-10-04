@@ -18,8 +18,8 @@
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>

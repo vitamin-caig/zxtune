@@ -20,9 +20,8 @@
 #include <formats/multitrack.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 
 namespace Formats
 {
@@ -30,9 +29,9 @@ namespace Multitrack
 {
   namespace GBS
   {
-    typedef boost::array<uint8_t, 3> SignatureType;
+    typedef std::array<uint8_t, 3> SignatureType;
     
-    typedef boost::array<char, 32> StringType;
+    typedef std::array<char, 32> StringType;
 
     const SignatureType SIGNATURE = {{'G', 'B', 'S'}};
 

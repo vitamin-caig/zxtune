@@ -22,9 +22,9 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cctype>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -78,8 +78,8 @@ namespace Chiptune
       uint8_t Length;
       uint8_t Loop;
       uint16_t PatternsOffset;
-      boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       uint8_t Positions[1];//finished by marker
     } PACK_POST;
 
@@ -199,7 +199,7 @@ namespace Chiptune
 
     PACK_PRE struct RawPattern
     {
-      boost::array<uint16_t, 3> Offsets;
+      std::array<uint16_t, 3> Offsets;
 
       bool Check() const
       {
@@ -496,7 +496,7 @@ namespace Chiptune
         return fromLE(*data);
       }
 
-      struct DataCursors : public boost::array<std::size_t, 3>
+      struct DataCursors : public std::array<std::size_t, 3>
       {
         explicit DataCursors(const RawPattern& src)
         {
@@ -531,7 +531,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 3> Channels;
+        std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()
@@ -908,9 +908,9 @@ namespace Chiptune
       "?"          // uint8_t Length;
       "?"          // uint8_t Loop;
       "?00-01"     // uint16_t PatternsOffset;
-      "(?00-bf){32}" //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      "(?00-bf){32}" //std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
       //some of the modules has invalid offsets
-      "(?00-d9){16}" //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      "(?00-d9){16}" //std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       "*3&00-fe"     // at least one position
       "*3"      // next position or limiter (255 % 3 == 0)
     );

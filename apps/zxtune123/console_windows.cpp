@@ -21,8 +21,6 @@
 #include <windows.h>
 //std includes
 #include <cctype>
-//boost includes
-#include <boost/array.hpp>
 
 namespace
 {

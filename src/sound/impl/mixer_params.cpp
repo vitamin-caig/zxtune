@@ -17,7 +17,7 @@
 
 namespace Sound
 {
-  typedef boost::array<Gain::Type, Sample::CHANNELS> MultiConfigValue;
+  typedef std::array<Gain::Type, Sample::CHANNELS> MultiConfigValue;
   const int_t CONFIG_VALUE_PRECISION = 100;
 
   void GetMatrixRow(const Parameters::Accessor& params, uint_t channels, uint_t inChan, MultiConfigValue& out)

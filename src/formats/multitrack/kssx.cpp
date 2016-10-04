@@ -19,9 +19,8 @@
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 
 namespace Formats
 {
@@ -29,7 +28,7 @@ namespace Multitrack
 {
   namespace KSSX
   {
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)

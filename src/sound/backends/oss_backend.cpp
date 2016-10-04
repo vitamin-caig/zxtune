@@ -219,7 +219,7 @@ namespace Oss
       Gain volume;
       if (MixHandle.Valid())
       {
-        boost::array<uint8_t, sizeof(int)> buf;
+        std::array<uint8_t, sizeof(int)> buf;
         MixHandle.Ioctl(SOUND_MIXER_READ_VOLUME, &buf[0], THIS_LINE);
         volume = Gain(Gain::Type(buf[0], MAX_OSS_VOLUME), Gain::Type(buf[1], MAX_OSS_VOLUME));
       }
@@ -236,7 +236,7 @@ namespace Oss
       const boost::mutex::scoped_lock lock(StateMutex);
       if (MixHandle.Valid())
       {
-        boost::array<uint8_t, sizeof(int)> buf = { {0} };
+        std::array<uint8_t, sizeof(int)> buf = { {0} };
         buf[0] = (volume.Left() * MAX_OSS_VOLUME).Integer();
         buf[1] = (volume.Right() * MAX_OSS_VOLUME).Integer();
         MixHandle.Ioctl(SOUND_MIXER_WRITE_VOLUME, &buf[0], THIS_LINE);

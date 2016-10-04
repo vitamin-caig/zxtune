@@ -197,7 +197,7 @@ namespace ChipTracker
 
     void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
     {
-      Gliss.assign(GlissData());
+      Gliss.fill(GlissData());
       if (const Line::Ptr line = state.LineObject())
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
@@ -250,7 +250,7 @@ namespace ChipTracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<GlissData, CHANNELS_COUNT> Gliss;
+    std::array<GlissData, CHANNELS_COUNT> Gliss;
   };
 
   class Chiptune : public DAC::Chiptune

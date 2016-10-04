@@ -15,9 +15,8 @@
 //library includes
 #include <time/stamp.h>
 //std includes
+#include <array>
 #include <memory>
-//boost includes
-#include <boost/array.hpp>
 
 //supporting for AY/YM-based modules
 namespace Devices
@@ -157,7 +156,7 @@ namespace Devices
       };
     private:
       uint16_t Mask;
-      boost::array<uint8_t, TOTAL> Data;
+      std::array<uint8_t, TOTAL> Data;
     };
 
     struct DataChunk

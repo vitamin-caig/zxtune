@@ -20,8 +20,8 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -85,7 +85,7 @@ namespace Chiptune
         uint8_t Envelope;
       } PACK_POST;
 
-      boost::array<Operator, 4> Operators;
+      std::array<Operator, 4> Operators;
     } PACK_POST;
 
     enum Effects
@@ -191,7 +191,7 @@ namespace Chiptune
       uint_t Note;
       uint_t Volume;
       uint_t Instrument;
-      boost::array<Effect, EFFECTS_COUNT> Effects;
+      std::array<Effect, EFFECTS_COUNT> Effects;
 
       Cell()
         : Note()
@@ -219,7 +219,7 @@ namespace Chiptune
 
     struct Line
     {
-      boost::array<Cell, CHANNELS_COUNT> Channels;
+      std::array<Cell, CHANNELS_COUNT> Channels;
 
       uint_t HasData() const
       {
@@ -238,7 +238,7 @@ namespace Chiptune
     template<class CellType>
     PACK_PRE struct RawPatternType
     {
-      boost::array<CellType, CHANNELS_COUNT> Channels;
+      std::array<CellType, CHANNELS_COUNT> Channels;
 
       void GetLine(uint_t idx, Line& result) const
       {
@@ -259,11 +259,11 @@ namespace Chiptune
 
       PACK_PRE struct RawCell
       {
-        boost::array<uint8_t, MAX_PATTERN_SIZE> Notes;
-        boost::array<uint8_t, MAX_PATTERN_SIZE> Volumes;
-        boost::array<uint8_t, MAX_PATTERN_SIZE> Instruments;
-        boost::array<uint8_t, MAX_PATTERN_SIZE> Effects;
-        boost::array<uint8_t, MAX_PATTERN_SIZE> EffectParameters;
+        std::array<uint8_t, MAX_PATTERN_SIZE> Notes;
+        std::array<uint8_t, MAX_PATTERN_SIZE> Volumes;
+        std::array<uint8_t, MAX_PATTERN_SIZE> Instruments;
+        std::array<uint8_t, MAX_PATTERN_SIZE> Effects;
+        std::array<uint8_t, MAX_PATTERN_SIZE> EffectParameters;
 
         void GetCell(uint_t line, Cell& result) const
         {
@@ -300,11 +300,11 @@ namespace Chiptune
         char Author[64];
         char Title[64];
         char Comment[384];
-        boost::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
-        boost::array<InstrumentName, MAX_INSTRUMENTS_COUNT> InstrumentNames;
-        boost::array<RawInstrument, MAX_INSTRUMENTS_COUNT> Instruments;
-        boost::array<uint8_t, MAX_PATTERNS_COUNT> PatternsSizes;
-        boost::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
+        std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
+        std::array<InstrumentName, MAX_INSTRUMENTS_COUNT> InstrumentNames;
+        std::array<RawInstrument, MAX_INSTRUMENTS_COUNT> Instruments;
+        std::array<uint8_t, MAX_PATTERNS_COUNT> PatternsSizes;
+        std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
 
         uint_t GetEvenSpeed() const
         {
@@ -344,14 +344,14 @@ namespace Chiptune
       {
         struct RawEffect
         {
-          boost::array<uint8_t, MAX_PATTERN_SIZE> Code;
-          boost::array<uint8_t, MAX_PATTERN_SIZE> Parameter;
+          std::array<uint8_t, MAX_PATTERN_SIZE> Code;
+          std::array<uint8_t, MAX_PATTERN_SIZE> Parameter;
         };
 
-        boost::array<uint8_t, MAX_PATTERN_SIZE> Notes;
-        boost::array<uint8_t, MAX_PATTERN_SIZE> Volumes;
-        boost::array<uint8_t, MAX_PATTERN_SIZE> Instruments;
-        boost::array<RawEffect, EFFECTS_COUNT> Effects;
+        std::array<uint8_t, MAX_PATTERN_SIZE> Notes;
+        std::array<uint8_t, MAX_PATTERN_SIZE> Volumes;
+        std::array<uint8_t, MAX_PATTERN_SIZE> Instruments;
+        std::array<RawEffect, EFFECTS_COUNT> Effects;
 
         void GetCell(uint_t line, Cell& result) const
         {
@@ -382,11 +382,11 @@ namespace Chiptune
         char Author[64];
         char Title[64];
         char Comment[384];
-        boost::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
-        boost::array<InstrumentName, MAX_INSTRUMENTS_COUNT> InstrumentNames;
-        boost::array<RawInstrument, MAX_INSTRUMENTS_COUNT> Instruments;
-        boost::array<uint8_t, MAX_PATTERNS_COUNT> PatternsSizes;
-        boost::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
+        std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
+        std::array<InstrumentName, MAX_INSTRUMENTS_COUNT> InstrumentNames;
+        std::array<RawInstrument, MAX_INSTRUMENTS_COUNT> Instruments;
+        std::array<uint8_t, MAX_PATTERNS_COUNT> PatternsSizes;
+        std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
 
         uint_t GetEvenSpeed() const
         {

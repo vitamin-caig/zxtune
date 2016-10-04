@@ -29,6 +29,7 @@
 #include <time/duration.h>
 #include <time/timer.h>
 //std includes
+#include <array>
 #include <list>
 #include <map>
 //boost includes
@@ -47,7 +48,7 @@ namespace ZXTune
   class StatisticBuilder
   {
   public:
-    typedef boost::array<std::string, Fields> Line;
+    typedef std::array<std::string, Fields> Line;
 
     StatisticBuilder()
       : Lines()
@@ -101,7 +102,7 @@ namespace ZXTune
     }
   private:
     std::vector<Line> Lines;
-    boost::array<std::size_t, Fields> Widths;
+    std::array<std::size_t, Fields> Widths;
   };
 
   class Statistic
@@ -214,9 +215,9 @@ namespace ZXTune
       }
     };
 
-    static boost::array<std::string, 7> MakeStatLine()
+    static std::array<std::string, 7> MakeStatLine()
     {
-      boost::array<std::string, 7> res;
+      std::array<std::string, 7> res;
       res[0] = "\nDetector";
       res[1] = "Missed detect";
       res[2] = "Total detect";
@@ -227,9 +228,9 @@ namespace ZXTune
       return res;
     }
 
-    static boost::array<std::string, 7> MakeStatLine(const StatItem& item)
+    static std::array<std::string, 7> MakeStatLine(const StatItem& item)
     {
-      boost::array<std::string, 7> res;
+      std::array<std::string, 7> res;
       res[0] = item.Name;
       res[1] = boost::lexical_cast<std::string>(item.Missed);
       res[2] = boost::lexical_cast<std::string>(item.Aimed + item.Missed);

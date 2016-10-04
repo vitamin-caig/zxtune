@@ -24,9 +24,8 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -84,13 +83,13 @@ namespace Chiptune
     PACK_PRE struct Header
     {
       //+0
-      boost::array<uint16_t, 6> EndOfBanks;
+      std::array<uint16_t, 6> EndOfBanks;
       //+0x0c
       uint8_t PatternSize;
       //+0x0d
       uint8_t Padding1;
       //+0x0e
-      boost::array<uint8_t, 0x32> Positions;
+      std::array<uint8_t, 0x32> Positions;
       //+0x40
       uint8_t Tempo;
       //+0x41

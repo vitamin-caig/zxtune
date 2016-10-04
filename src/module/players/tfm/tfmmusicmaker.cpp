@@ -379,7 +379,7 @@ namespace TFMMusicMaker
     }
   private:
     uint_t Position;
-    boost::array<uint_t, 3> Addons;
+    std::array<uint_t, 3> Addons;
     uint_t Value;
   };
 
@@ -611,7 +611,7 @@ namespace TFMMusicMaker
 
     const Instrument* CurInstrument;
     uint_t Algorithm;
-    boost::array<uint_t, OPERATORS_COUNT> TotalLevel;
+    std::array<uint_t, OPERATORS_COUNT> TotalLevel;
     Halftones::Type Note;
     Level::Type Volume;
     bool HasToneChange;
@@ -636,8 +636,8 @@ namespace TFMMusicMaker
     }
 
     bool SpecialMode;
-    boost::array<int_t, OPERATORS_COUNT> ToneOffset;
-    boost::array<ChannelState, TFM::TRACK_CHANNELS> Channels;
+    std::array<int_t, OPERATORS_COUNT> ToneOffset;
+    std::array<ChannelState, TFM::TRACK_CHANNELS> Channels;
   };
 
   class DataRenderer : public TFM::DataRenderer

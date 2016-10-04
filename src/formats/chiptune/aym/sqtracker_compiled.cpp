@@ -23,8 +23,8 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -142,7 +142,7 @@ namespace Chiptune
     {
       uint8_t Loop;
       uint8_t LoopSize;
-      boost::array<int8_t, ORNAMENT_SIZE> Lines;
+      std::array<int8_t, ORNAMENT_SIZE> Lines;
     } PACK_POST;
 
     PACK_PRE struct RawHeader

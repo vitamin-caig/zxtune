@@ -18,9 +18,8 @@
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
+#include <array>
 #include <numeric>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -30,7 +29,7 @@ namespace Packed
 {
   namespace Sna128
   {
-    typedef boost::array<uint8_t, 16384> PageData;
+    typedef std::array<uint8_t, 16384> PageData;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -68,7 +67,7 @@ namespace Packed
     } PACK_POST;
 
     //5,2,0,1,3,4,6,7
-    typedef boost::array<PageData, 8> ResultData;
+    typedef std::array<PageData, 8> ResultData;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif

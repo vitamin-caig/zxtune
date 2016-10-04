@@ -19,8 +19,8 @@
 #include <binary/format_factories.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -28,7 +28,7 @@ namespace IFF
 {
   namespace Identifier
   {
-    typedef boost::array<uint8_t, 4> Type;
+    typedef std::array<uint8_t, 4> Type;
     
     //Generic
     const Type AUTHOR = {{'A', 'U', 'T', 'H'}};

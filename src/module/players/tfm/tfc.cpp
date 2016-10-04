@@ -113,7 +113,7 @@ namespace TFC
       return Data[channel];
     }
   private:
-    boost::array<ChannelData, 6> Data;  
+    std::array<ChannelData, 6> Data;  
   };
 
   class DataBuilder : public Formats::Chiptune::TFC::Builder
@@ -217,7 +217,7 @@ namespace TFC
     PropertiesHelper& Properties;
     const ModuleData::RWPtr Data;
     uint_t Channel;
-    boost::array<uint_t, 6> Frequency;
+    std::array<uint_t, 6> Frequency;
   };
 
   class Factory : public TFM::Factory

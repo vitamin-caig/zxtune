@@ -82,7 +82,7 @@ namespace DigitalMusicMaker
       }
     };
 
-    boost::array<MixedChannel, 64> Mixes;
+    std::array<MixedChannel, 64> Mixes;
   };
 
   class ChannelBuilder : public Formats::Chiptune::DigitalMusicMaker::ChannelBuilder
@@ -645,7 +645,7 @@ namespace DigitalMusicMaker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, CHANNELS_COUNT> Chans;
+    std::array<ChannelState, CHANNELS_COUNT> Chans;
   };
 
   class Chiptune : public DAC::Chiptune

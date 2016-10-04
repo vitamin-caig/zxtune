@@ -22,8 +22,9 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+//std includes
+#include <array>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -76,7 +77,7 @@ namespace Chiptune
 
     PACK_PRE struct RawPattern
     {
-      boost::array<uint16_t, 6> Offsets;
+      std::array<uint16_t, 6> Offsets;
     } PACK_POST;
 
     PACK_PRE struct RawSamplesVolumeDecodeTable
@@ -435,7 +436,7 @@ namespace Chiptune
         return fromLE(*data);
       }
 
-      struct DataCursors : public boost::array<std::size_t, 6>
+      struct DataCursors : public std::array<std::size_t, 6>
       {
         explicit DataCursors(const RawPattern& src)
         {
@@ -468,7 +469,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 6> Channels;
+        std::array<ChannelState, 6> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()

@@ -22,11 +22,10 @@
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cassert>
 #include <limits>
 #include <memory>
-//boost includes
-#include <boost/array.hpp>
 //thirdparty
 #include <3rdparty/unrar/rar.hpp>
 //text includes

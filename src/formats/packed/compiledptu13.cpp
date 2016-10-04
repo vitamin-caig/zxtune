@@ -19,8 +19,8 @@
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
@@ -59,8 +59,8 @@ namespace Packed
       uint8_t Length;
       uint8_t Loop;
       uint16_t PatternsOffset;
-      boost::array<uint16_t, ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
-      boost::array<uint16_t, ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      std::array<uint16_t, ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<uint16_t, ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       uint8_t Positions[1];//finished by marker
     } PACK_POST;
 

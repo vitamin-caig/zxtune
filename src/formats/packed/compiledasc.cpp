@@ -19,8 +19,8 @@
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
@@ -39,7 +39,7 @@ namespace Packed
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    typedef boost::array<uint8_t, 63> InfoData;
+    typedef std::array<uint8_t, 63> InfoData;
     
     PACK_PRE struct PlayerVer0
     {

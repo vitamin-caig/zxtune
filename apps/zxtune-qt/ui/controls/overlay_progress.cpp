@@ -13,9 +13,8 @@
 //library includes
 #include <time/elapsed.h>
 //std includes
+#include <array>
 #include <cmath>
-//boost includes
-#include <boost/array.hpp>
 //qt includes
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
@@ -136,7 +135,7 @@ namespace
   private:
     const QPalette Palette;
     QPoint Center;
-    boost::array<QLineF, STEPS_MAX> Lines;
+    std::array<QLineF, STEPS_MAX> Lines;
     int Value;
     Time::Elapsed RefreshTimeout;
   };

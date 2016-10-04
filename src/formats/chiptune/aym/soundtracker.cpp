@@ -20,8 +20,8 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -54,7 +54,7 @@ namespace Chiptune
 
     PACK_PRE struct RawOrnament
     {
-      boost::array<int8_t, ORNAMENT_SIZE> Offsets;
+      std::array<int8_t, ORNAMENT_SIZE> Offsets;
     } PACK_POST;
 
     PACK_PRE struct RawPattern
@@ -269,8 +269,8 @@ namespace Chiptune
         const RawPattern& src = GetPattern(patIndex);
         const std::size_t patSize = Source.PatternsSize;
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
-        boost::array<EnvState, 3> env;
-        boost::array<ChanState, 3> state;
+        std::array<EnvState, 3> env;
+        std::array<ChanState, 3> state;
         for (uint_t idx = 0; idx < MAX_PATTERN_SIZE; ++idx)
         {
           const RawPattern::Line& srcLine = src.Lines[idx];
@@ -285,7 +285,7 @@ namespace Chiptune
         patBuilder.Finish(patSize);
       }
 
-      static void ParseLine(const RawPattern::Line& srcLine, Builder& builder, boost::array<ChanState, 3>& state, boost::array<EnvState, 3>& env)
+      static void ParseLine(const RawPattern::Line& srcLine, Builder& builder, std::array<ChanState, 3>& state, std::array<EnvState, 3>& env)
       {
         for (uint_t chan = 0; chan < state.size(); ++chan)
         {

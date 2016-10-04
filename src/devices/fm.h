@@ -17,8 +17,8 @@
 #include <devices/state.h>
 #include <sound/receiver.h>
 #include <time/stamp.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 
 namespace Devices
 {

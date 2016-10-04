@@ -23,9 +23,8 @@
 #include <formats/packed/lha_supp.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -40,8 +39,8 @@ namespace Chiptune
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    typedef boost::array<uint8_t, 14> RegistersDump;
-    typedef boost::array<uint8_t, 4> IdentifierType;
+    typedef std::array<uint8_t, 14> RegistersDump;
+    typedef std::array<uint8_t, 4> IdentifierType;
 
     const uint_t CLOCKRATE_MIN = 100000;//100kHz
     const uint_t CLOCKRATE_MAX = 10000000;//10MHz
@@ -118,8 +117,8 @@ namespace Chiptune
     {
       const uint8_t ID[] = {'Y', 'M', '5', '!', 'L', 'e','O', 'n', 'A', 'r', 'D', '!'};
 
-      typedef boost::array<uint8_t, 16> RegistersDump;
-      typedef boost::array<uint8_t, 4> Footer;
+      typedef std::array<uint8_t, 16> RegistersDump;
+      typedef std::array<uint8_t, 4> Footer;
 
       PACK_PRE struct RawHeader
       {

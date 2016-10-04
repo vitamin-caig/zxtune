@@ -22,8 +22,9 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+//std includes
+#include <array>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -64,8 +65,8 @@ namespace Chiptune
       uint8_t Tempo;
       uint8_t Length;
       uint8_t Loop;
-      boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       uint16_t PatternsOffset;
       char Name[30];
       uint8_t Positions[1];
@@ -167,7 +168,7 @@ namespace Chiptune
 
     PACK_PRE struct RawPattern
     {
-      boost::array<uint16_t, 3> Offsets;
+      std::array<uint16_t, 3> Offsets;
 
       bool Check() const
       {
@@ -573,7 +574,7 @@ namespace Chiptune
         return fromLE(*data);
       }
 
-      struct DataCursors : public boost::array<std::size_t, 3>
+      struct DataCursors : public std::array<std::size_t, 3>
       {
         explicit DataCursors(const RawPattern& src)
         {
@@ -608,7 +609,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 3> Channels;
+        std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()
@@ -890,9 +891,9 @@ namespace Chiptune
       "02-ff"      // uint8_t Tempo; 2..15
       "01-ff"      // uint8_t Length;
       "00-fe"      // uint8_t Loop; 0..99
-      //boost::array<uint16_t, 32> SamplesOffsets;
+      //std::array<uint16_t, 32> SamplesOffsets;
       "(?00-36){32}"
-      //boost::array<uint16_t, 16> OrnamentsOffsets;
+      //std::array<uint16_t, 16> OrnamentsOffsets;
       "(?00-36){16}"
       "?00-01" // uint16_t PatternsOffset;
       "?{30}"   // char Name[30];

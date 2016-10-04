@@ -17,9 +17,9 @@
 #include <module/analyzer.h>
 //std includes
 #include <algorithm>
+#include <array>
 #include <limits>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QEvent>
@@ -70,7 +70,7 @@ namespace
     bool Changed;
   };
 
-  typedef boost::array<BandLevel, MAX_BANDS> Analyzed;
+  typedef std::array<BandLevel, MAX_BANDS> Analyzed;
 
   inline void StoreValue(const Module::Analyzer::ChannelState& chan, Analyzed& result)
   {

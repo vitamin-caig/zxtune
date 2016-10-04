@@ -15,9 +15,8 @@
 //library includes
 #include <time/oscillator.h>
 //std includes
+#include <array>
 #include <memory>
-//boost includes
-#include <boost/array.hpp>
 
 namespace Devices
 {
@@ -58,7 +57,7 @@ namespace Devices
         REG_LAST
       };
 
-      typedef boost::array<uint16_t, REG_LAST> Dump;
+      typedef std::array<uint16_t, REG_LAST> Dump;
       Dump Data;
       uint32_t Mask;
     };

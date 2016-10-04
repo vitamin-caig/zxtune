@@ -21,9 +21,8 @@
 #include <formats/multitrack.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 
 namespace Formats
 {
@@ -31,14 +30,14 @@ namespace Multitrack
 {
   namespace NSFE
   {
-    typedef boost::array<uint8_t, 4> ChunkIdType;
+    typedef std::array<uint8_t, 4> ChunkIdType;
     
     const ChunkIdType NSFE = { {'N', 'S', 'F', 'E'} };
     const ChunkIdType INFO = { {'I', 'N', 'F', 'O'} };
     const ChunkIdType DATA = { {'D', 'A', 'T', 'A'} };
     const ChunkIdType NEND = { {'N', 'E', 'N', 'D'} };
     
-    typedef boost::array<char, 32> StringType;
+    typedef std::array<char, 32> StringType;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)

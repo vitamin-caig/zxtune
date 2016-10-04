@@ -23,9 +23,8 @@
 #include <parameters/convert.h>
 #include <strings/array.h>
 //std includes
+#include <array>
 #include <map>
-//boost includes
-#include <boost/array.hpp>
 
 namespace Formats
 {
@@ -45,13 +44,13 @@ namespace Multitrack
       "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' "
      ;
      
-    typedef boost::array<uint8_t, 5> TextSignatureType;
+    typedef std::array<uint8_t, 5> TextSignatureType;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
     const std::string SONGS = "SONGS";
     const std::string DEFSONG = "DEFSONG";
     
-    typedef boost::array<uint8_t, 2> BinarySignatureType;
+    typedef std::array<uint8_t, 2> BinarySignatureType;
     const BinarySignatureType BINARY_SIGNATURE = {{0xff, 0xff}};
      
     const std::size_t MIN_SIZE = 256;

@@ -25,9 +25,8 @@
 #include <math/numeric.h>
 #include <strings/format.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -185,13 +184,13 @@ namespace Chiptune
       //+0x21
       uint8_t Unknown1;
       //+0x22
-      boost::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
+      std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
       //+0x86
-      boost::array<uint8_t, MAX_PATTERNS_COUNT> PatternsSizes;
+      std::array<uint8_t, MAX_PATTERNS_COUNT> PatternsSizes;
       //+0xa6
       uint8_t Unknown2[2];
       //+0xa8
-      boost::array<MemoryDescr, 5> Pages;
+      std::array<MemoryDescr, 5> Pages;
       //+0xbc
       uint8_t EmptySample[0x0f];
       //+0xcb
@@ -199,9 +198,9 @@ namespace Chiptune
       //+0xf7
       uint8_t Zeroes[9];
       //+0x100
-      boost::array<SampleInfo, MAX_SAMPLES_COUNT> Samples;
+      std::array<SampleInfo, MAX_SAMPLES_COUNT> Samples;
       //+0x200
-      boost::array<Pattern, MAX_PATTERNS_COUNT> Patterns;
+      std::array<Pattern, MAX_PATTERNS_COUNT> Patterns;
       //+0x4200
     } PACK_POST;
 

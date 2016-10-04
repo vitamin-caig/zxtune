@@ -16,8 +16,8 @@
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -41,7 +41,7 @@ namespace Chiptune
     const std::size_t MAX_STRING_SIZE = 64;
     const std::size_t MAX_COMMENT_SIZE = 384;
 
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE = { {'T', 'F', 'M', 'D'} };
 

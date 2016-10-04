@@ -16,8 +16,8 @@
 #include <devices/saa.h>
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 
 namespace Devices
 {

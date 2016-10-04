@@ -24,10 +24,10 @@
 #include <debug/log.h>
 #include <strings/format.h>
 //std includes
+#include <array>
 #include <cctype>
 #include <cstring>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -157,7 +157,7 @@ namespace Chiptune
     {
       uint8_t Index;
       uint8_t Size;
-      boost::array<uint16_t, 3> Offsets;//from start of patterns
+      std::array<uint16_t, 3> Offsets;//from start of patterns
     } PACK_POST;
 
     PACK_PRE struct LastRawPattern
@@ -744,7 +744,7 @@ namespace Chiptune
         return *data;
       }
 
-      struct DataCursors : boost::array<std::size_t, 3>
+      struct DataCursors : std::array<std::size_t, 3>
       {
         explicit DataCursors(const RawPattern& pat)
         {
@@ -779,7 +779,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 3> Channels;
+        std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()

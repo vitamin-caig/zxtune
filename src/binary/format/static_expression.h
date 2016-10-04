@@ -15,9 +15,8 @@
 //common includes
 #include <contract.h>
 //std includes
+#include <array>
 #include <vector>
-//boost includes
-#include <boost/array.hpp>
 
 namespace Binary
 {
@@ -106,7 +105,7 @@ namespace Binary
       typedef uint_t ElementType;
       static const std::size_t BitsPerElement = 8 * sizeof(ElementType);
       static const std::size_t ElementsCount = 256 / BitsPerElement;
-      boost::array<ElementType, ElementsCount> Mask;
+      std::array<ElementType, ElementsCount> Mask;
       uint_t Count;
       uint_t Last;
     };

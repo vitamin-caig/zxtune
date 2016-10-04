@@ -286,7 +286,7 @@ namespace TurboSound
       : Delegate0(trackParams[0])
       , Delegate1(trackParams[1])
     {
-      static_assert(TrackParametersArray::static_size == 2, "Invalid layout");
+      static_assert(std::tuple_size<TrackParametersArray>::value == 2, "Invalid layout");
     }
 
     const Parameters::TrackingHelper<AYM::TrackParameters>& operator[] (std::size_t idx) const

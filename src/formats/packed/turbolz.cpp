@@ -21,9 +21,8 @@
 #include <formats/packed.h>
 //std includes
 #include <algorithm>
+#include <array>
 #include <iterator>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -193,7 +192,7 @@ namespace Packed
           return Key[Index];
         }
       private:
-        boost::array<uint8_t, 128> Key;
+        std::array<uint8_t, 128> Key;
         uint8_t& Index;
       };
 #ifdef USE_PRAGMA_PACK

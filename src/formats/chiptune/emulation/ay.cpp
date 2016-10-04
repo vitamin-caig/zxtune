@@ -24,10 +24,10 @@
 #include <debug/log.h>
 #include <formats/chiptune.h>
 //std includes
+#include <array>
 #include <cstring>
 #include <list>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -263,7 +263,7 @@ namespace Chiptune
           Data[0xa] = introutine >> 8; //call routine
         }
       private:
-        boost::array<uint8_t, 13> Data;
+        std::array<uint8_t, 13> Data;
       };
 
       class Im2Player
@@ -286,7 +286,7 @@ namespace Chiptune
           Data[0x3] = init >> 8;
         }
       private:
-        boost::array<uint8_t, 10> Data;
+        std::array<uint8_t, 10> Data;
       };
     public:
       virtual void SetTitle(const String& /*title*/)

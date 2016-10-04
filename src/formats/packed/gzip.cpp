@@ -19,8 +19,8 @@
 #include <binary/input_stream.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //3rd-party includes
 #include <3rdparty/zlib/zlib.h>
 //text includes
@@ -32,7 +32,7 @@ namespace Packed
 {
   namespace Gzip
   {
-    typedef boost::array<uint8_t, 2> SignatureType;
+    typedef std::array<uint8_t, 2> SignatureType;
     
     const SignatureType SIGNATURE = {{ 0x1f, 0x8b }};
     

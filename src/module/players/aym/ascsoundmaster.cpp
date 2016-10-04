@@ -639,7 +639,7 @@ namespace ASCSoundMaster
   private:
     const ModuleData::Ptr Data;
     uint_t EnvelopeTone;
-    boost::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
+    std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 
   class Chiptune : public AYM::Chiptune

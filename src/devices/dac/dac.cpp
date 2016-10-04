@@ -19,9 +19,9 @@
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 //std includes
+#include <array>
 #include <cmath>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 
 namespace Devices
@@ -451,7 +451,7 @@ namespace DAC
         return &Table[0];
       }
     private:
-      boost::array<uint_t, FastSample::Position::PRECISION> Table;
+      std::array<uint_t, FastSample::Position::PRECISION> Table;
     };
   private:
     const Sound::FixedChannelsMixer<Channels>& Mixer;
@@ -608,7 +608,7 @@ namespace DAC
     const Sound::Receiver::Ptr Target;
     SamplesStorage Samples;
     ClockSource Clock;
-    boost::array<ChannelState, Channels> State;
+    std::array<ChannelState, Channels> State;
     RenderersSet<Channels> Renderers;
   };
 

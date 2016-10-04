@@ -18,8 +18,9 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <binary/typed_container.h>
+//std includes
+#include <array>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -30,7 +31,7 @@ namespace Chiptune
 {
   namespace TFC
   {
-    typedef boost::array<uint8_t, 6> SignatureType;
+    typedef std::array<uint8_t, 6> SignatureType;
 
     const SignatureType SIGNATURE = { {'T', 'F', 'M', 'c', 'o', 'm'} };
 
@@ -42,7 +43,7 @@ namespace Chiptune
       SignatureType Sign;
       char Version[3];
       uint8_t IntFreq;
-      boost::array<uint16_t, 6> Offsets;
+      std::array<uint16_t, 6> Offsets;
       uint8_t Reserved[12];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK

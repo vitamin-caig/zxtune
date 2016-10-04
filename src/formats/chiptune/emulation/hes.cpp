@@ -18,9 +18,8 @@
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -30,7 +29,7 @@ namespace Chiptune
 {
   namespace HES
   {
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)

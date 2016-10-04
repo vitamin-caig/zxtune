@@ -12,8 +12,9 @@
 
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
+#include <cassert>
 
 namespace Devices
 {
@@ -50,7 +51,7 @@ namespace Devices
         return Lookup[idx];
       }
     private:
-      boost::array<uint_t, INDEX_MASK + 1> Lookup;
+      std::array<uint_t, INDEX_MASK + 1> Lookup;
     };
 
     const NoiseLookup NoiseTable;

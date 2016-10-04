@@ -20,7 +20,7 @@ namespace Sound
   class MixerCore
   {
   public:
-    typedef boost::array<Gain, ChannelsCount> MatrixType;
+    typedef std::array<Gain, ChannelsCount> MatrixType;
     typedef typename MultichannelSample<ChannelsCount>::Type InType;
 
     MixerCore()
@@ -65,8 +65,8 @@ namespace Sound
   private:
     static const int_t PRECISION = 256;
     typedef Math::FixedPoint<int_t, PRECISION> Coeff;
-    typedef boost::array<Coeff, Sample::CHANNELS> CoeffRow;
-    typedef boost::array<CoeffRow, ChannelsCount> CoeffMatrix;
+    typedef std::array<Coeff, Sample::CHANNELS> CoeffRow;
+    typedef std::array<CoeffRow, ChannelsCount> CoeffMatrix;
     CoeffMatrix Matrix;
   };
 }

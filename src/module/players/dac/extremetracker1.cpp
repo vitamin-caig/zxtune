@@ -247,7 +247,7 @@ namespace ExtremeTracker1
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<GlissData, CHANNELS_COUNT> Gliss;
+    std::array<GlissData, CHANNELS_COUNT> Gliss;
   };
 
   class Chiptune : public DAC::Chiptune

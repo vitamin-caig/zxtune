@@ -12,8 +12,8 @@
 
 //local includes
 #include "freq_table.h"
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 
 namespace Devices
 {
@@ -73,7 +73,7 @@ namespace Devices
       }
     private:
       uint64_t ClockRate;
-      typedef boost::array<uint_t, FreqTable::SIZE> NoteTable;
+      typedef std::array<uint_t, FreqTable::SIZE> NoteTable;
       NoteTable Lookup;
     };
   }

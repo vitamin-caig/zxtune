@@ -23,9 +23,8 @@
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
 //std includes
+#include <array>
 #include <cstring>
 //text includes
 #include <formats/text/packed.h>
@@ -475,7 +474,7 @@ namespace Packed
       }
     };
 
-    typedef boost::array<LZWEntry, 8192> LZWTree;
+    typedef std::array<LZWEntry, 8192> LZWTree;
 
     class ShrinkDataDecoder : public DataDecoder
     {

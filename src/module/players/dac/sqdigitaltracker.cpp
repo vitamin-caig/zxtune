@@ -257,7 +257,7 @@ namespace SQDigitalTracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<VolumeState, CHANNELS_COUNT> Volumes;
+    std::array<VolumeState, CHANNELS_COUNT> Volumes;
   };
 
   class Chiptune : public DAC::Chiptune

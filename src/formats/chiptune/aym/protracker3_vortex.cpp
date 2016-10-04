@@ -24,9 +24,9 @@
 #include <math/numeric.h>
 #include <strings/format.h>
 //std includes
+#include <array>
 #include <cctype>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -774,7 +774,7 @@ namespace ProTracker3
       uint_t Index;
     };
 
-    const boost::array<std::string, 12> NOTES = 
+    const std::array<std::string, 12> NOTES = 
     { {
       "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
     } };
@@ -1074,7 +1074,7 @@ namespace ProTracker3
 
       EnvelopeBase Envelope;
       NoiseBase Noise;
-      boost::array<ChannelObject, 3> Channels;
+      std::array<ChannelObject, 3> Channels;
     };
 
     class PatternObject

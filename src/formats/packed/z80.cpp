@@ -18,9 +18,9 @@
 #include <binary/input_stream.h>
 #include <formats/packed.h>
 //std includes
+#include <array>
 #include <numeric>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>

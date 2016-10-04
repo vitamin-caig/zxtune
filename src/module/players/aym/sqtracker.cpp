@@ -264,7 +264,7 @@ namespace SQTracker
         return Delegates[chan];
       }
     private:
-      boost::array<Line::Ptr, AYM::TRACK_CHANNELS> Delegates;
+      std::array<Line::Ptr, AYM::TRACK_CHANNELS> Delegates;
     };
 
     class MultiPattern
@@ -288,7 +288,7 @@ namespace SQTracker
         return MultiLine(Delegates[0]->GetLine(row), Delegates[1]->GetLine(row), Delegates[2]->GetLine(row));
       }
     private:
-      boost::array<Pattern::Ptr, AYM::TRACK_CHANNELS> Delegates;
+      std::array<Pattern::Ptr, AYM::TRACK_CHANNELS> Delegates;
     };
 
     class MutablePatternHelper
@@ -796,7 +796,7 @@ namespace SQTracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
+    std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 
   class Chiptune : public AYM::Chiptune

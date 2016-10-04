@@ -17,8 +17,8 @@
 #include <devices/state.h>
 #include <sound/receiver.h>
 #include <time/stamp.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 
 namespace Devices
 {
@@ -69,7 +69,7 @@ namespace Devices
       }
 
       uint32_t Mask;
-      boost::array<uint8_t, TOTAL> Data;
+      std::array<uint8_t, TOTAL> Data;
     };
 
     struct DataChunk

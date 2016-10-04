@@ -18,8 +18,8 @@
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -29,7 +29,7 @@ namespace Chiptune
 {
   namespace AbyssHighestExperience
   {
-    typedef boost::array<uint8_t, 4> IdentifierType;
+    typedef std::array<uint8_t, 4> IdentifierType;
     
     const IdentifierType ID0 = {{'T', 'H', 'X', 0}};
     const IdentifierType ID1 = {{'T', 'H', 'X', 1}};
@@ -69,7 +69,7 @@ namespace Chiptune
         uint8_t Track;
         int8_t Transposition;
       } PACK_POST;
-      boost::array<Channel, 4> Channels;
+      std::array<Channel, 4> Channels;
     } PACK_POST;
     
     PACK_PRE struct Note

@@ -19,9 +19,8 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
@@ -55,7 +54,7 @@ namespace Packed
         uint16_t PlayAddr;
         uint8_t Padding4[8];
         //+17
-        boost::array<uint8_t, 53> Information;
+        std::array<uint8_t, 53> Information;
         uint8_t Padding5[8];
         //+78
         uint8_t Initialization;

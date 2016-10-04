@@ -24,9 +24,9 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/mem_fn.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -74,21 +74,21 @@ namespace Chiptune
       //+0
       uint8_t Tempo;
       //+1
-      boost::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
+      std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
       //+0x41
-      boost::array<uint16_t, MAX_POSITIONS_COUNT> PositionsPtrs;
+      std::array<uint16_t, MAX_POSITIONS_COUNT> PositionsPtrs;
       //+0xc1
       char Title[10];
       //+0xcb
       uint8_t LastPositionDoubled;
       //+0xcc
-      boost::array<Pattern, PATTERNS_COUNT> Patterns;
+      std::array<Pattern, PATTERNS_COUNT> Patterns;
       //+0x18dc
       SampleInfo SampleDescriptions[SAMPLES_COUNT];
       //+0x18fc
       uint8_t Padding[4];
       //+0x1900
-      boost::array<char[10], SAMPLES_COUNT> SampleNames;
+      std::array<char[10], SAMPLES_COUNT> SampleNames;
       //+0x19a0
       uint8_t Samples[1];
     } PACK_POST;

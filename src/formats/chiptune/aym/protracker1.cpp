@@ -22,8 +22,9 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+//std includes
+#include <array>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -65,8 +66,8 @@ namespace Chiptune
       uint8_t Tempo;
       uint8_t Length;
       uint8_t Loop;
-      boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       uint16_t PatternsOffset;
       char Name[30];
       uint8_t Positions[1];
@@ -171,7 +172,7 @@ namespace Chiptune
 
     PACK_PRE struct RawPattern
     {
-      boost::array<uint16_t, 3> Offsets;
+      std::array<uint16_t, 3> Offsets;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
@@ -544,7 +545,7 @@ namespace Chiptune
         return *data;
       }
 
-      struct DataCursors : public boost::array<std::size_t, 3>
+      struct DataCursors : public std::array<std::size_t, 3>
       {
         explicit DataCursors(const RawPattern& src)
         {
@@ -579,7 +580,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 3> Channels;
+        std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()
@@ -829,9 +830,9 @@ namespace Chiptune
       "02-0f"      // uint8_t Tempo; 2..15
       "01-ff"      // uint8_t Length;
       "00-fe"      // uint8_t Loop;
-      //boost::array<uint16_t, 16> SamplesOffsets;
+      //std::array<uint16_t, 16> SamplesOffsets;
       "(?00-28){16}"
-      //boost::array<uint16_t, 16> OrnamentsOffsets;
+      //std::array<uint16_t, 16> OrnamentsOffsets;
       "(?00-28){16}"
       "?00-01" // uint16_t PatternsOffset;
       "?{30}"   // char Name[30];

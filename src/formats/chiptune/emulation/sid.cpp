@@ -20,9 +20,8 @@
 #include <binary/format_factories.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -32,7 +31,7 @@ namespace Chiptune
 {
   namespace SID
   {
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE_RSID = {{'R', 'S', 'I', 'D'}};
     const SignatureType SIGNATURE_PSID = {{'P', 'S', 'I', 'D'}};

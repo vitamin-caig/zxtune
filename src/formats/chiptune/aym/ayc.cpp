@@ -19,9 +19,8 @@
 //library includes
 #include <binary/format_factories.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -50,7 +49,7 @@ namespace Chiptune
     PACK_PRE struct Header
     {
       uint16_t Duration;
-      boost::array<BufferDescription, MAX_REGISTERS> Buffers;
+      std::array<BufferDescription, MAX_REGISTERS> Buffers;
       uint8_t Reserved[6];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK

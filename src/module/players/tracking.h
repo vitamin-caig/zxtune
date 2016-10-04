@@ -19,8 +19,10 @@
 #include <formats/chiptune/builder_pattern.h>
 #include <module/information.h>
 #include <module/track_state.h>
+//std includes
+#include <algorithm>
+#include <array>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 
 namespace Module
@@ -133,7 +135,7 @@ namespace Module
     }
   private:
     uint_t Tempo;
-    typedef boost::array<MutableCell, ChannelsCount> ChannelsArray;
+    typedef std::array<MutableCell, ChannelsCount> ChannelsArray;
     ChannelsArray Channels;
   };
 

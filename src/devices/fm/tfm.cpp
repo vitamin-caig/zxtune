@@ -63,8 +63,8 @@ namespace TFM
     {
       MultiChannelState res;
       res.reserve(VOICES);
-      boost::array<uint_t, FM::VOICES> attenuations;
-      boost::array<uint_t, FM::VOICES> periods;
+      std::array<uint_t, FM::VOICES> attenuations;
+      std::array<uint_t, FM::VOICES> periods;
       ::YM2203GetState(Chips[0].get(), &attenuations[0], &periods[0]);
       Helper.ConvertState(attenuations.begin(), periods.begin(), res);
       ::YM2203GetState(Chips[1].get(), &attenuations[0], &periods[0]);
@@ -73,7 +73,7 @@ namespace TFM
     }
   private:
     FM::Details::ChipAdapterHelper Helper;
-    boost::array<FM::Details::ChipPtr, TFM::CHIPS> Chips;
+    std::array<FM::Details::ChipPtr, TFM::CHIPS> Chips;
   };
 
   struct Traits

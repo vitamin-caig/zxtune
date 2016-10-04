@@ -22,8 +22,9 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+//std includes
+#include <array>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -79,13 +80,13 @@ namespace Chiptune
     PACK_PRE struct RawPattern
     {
       uint8_t Number;
-      boost::array<uint16_t, 3> Offsets;
+      std::array<uint16_t, 3> Offsets;
     } PACK_POST;
 
     PACK_PRE struct RawOrnament
     {
       uint8_t Number;
-      boost::array<int8_t, ORNAMENT_SIZE> Data;
+      std::array<int8_t, ORNAMENT_SIZE> Data;
     } PACK_POST;
 
     PACK_PRE struct RawSample
@@ -367,7 +368,7 @@ namespace Chiptune
         return *data;
       }
 
-      struct DataCursors : public boost::array<std::size_t, 3>
+      struct DataCursors : public std::array<std::size_t, 3>
       {
         explicit DataCursors(const RawPattern& src)
         {
@@ -402,7 +403,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 3> Channels;
+        std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()

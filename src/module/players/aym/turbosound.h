@@ -31,8 +31,8 @@ namespace Module
       virtual Devices::TurboSound::Registers GetData() const = 0;
     };
 
-    typedef boost::array<AYM::TrackParameters::Ptr, Devices::TurboSound::CHIPS> TrackParametersArray;
-    typedef boost::array<AYM::DataRenderer::Ptr, Devices::TurboSound::CHIPS> DataRenderersArray;
+    typedef std::array<AYM::TrackParameters::Ptr, Devices::TurboSound::CHIPS> TrackParametersArray;
+    typedef std::array<AYM::DataRenderer::Ptr, Devices::TurboSound::CHIPS> DataRenderersArray;
 
     DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams, TrackStateIterator::Ptr iterator, 
       const DataRenderersArray& renderers);

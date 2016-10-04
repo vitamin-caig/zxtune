@@ -25,9 +25,8 @@
 #include <math/numeric.h>
 #include <strings/format.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -63,10 +62,10 @@ namespace Chiptune
         uint16_t Loop;
         uint16_t Length;
       } PACK_POST;
-      boost::array<SampleDescr, SAMPLES_COUNT> Samples;
+      std::array<SampleDescr, SAMPLES_COUNT> Samples;
       uint8_t Reserved[21];
-      boost::array<char[8], SAMPLES_COUNT> SampleNames;
-      boost::array<uint8_t, 256> Positions;
+      std::array<char[8], SAMPLES_COUNT> SampleNames;
+      std::array<uint8_t, 256> Positions;
     } PACK_POST;
 
     const uint_t NOTE_EMPTY = 0;
@@ -105,7 +104,7 @@ namespace Chiptune
       uint8_t NoteCmd;
     } PACK_POST;
 
-    typedef boost::array<Note, CHANNELS_COUNT> NoteRow;
+    typedef std::array<Note, CHANNELS_COUNT> NoteRow;
 
     //format commands
     enum
@@ -134,12 +133,12 @@ namespace Chiptune
       uint8_t SampParam;
     } PACK_POST;
 
-    typedef boost::array<NoteParam, CHANNELS_COUNT> NoteParamRow;
+    typedef std::array<NoteParam, CHANNELS_COUNT> NoteParamRow;
 
     PACK_PRE struct Pattern
     {
-      boost::array<NoteRow, MAX_PATTERN_SIZE> Notes;
-      boost::array<NoteParamRow, MAX_PATTERN_SIZE> Params;
+      std::array<NoteRow, MAX_PATTERN_SIZE> Notes;
+      std::array<NoteParamRow, MAX_PATTERN_SIZE> Params;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)

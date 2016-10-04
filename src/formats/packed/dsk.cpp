@@ -19,8 +19,8 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/packed.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/packed.h>
 
@@ -33,7 +33,7 @@ namespace Packed
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    typedef boost::array<uint8_t, 34> DiskSignatureType;
+    typedef std::array<uint8_t, 34> DiskSignatureType;
     
     const DiskSignatureType DISK_SIGNATURE =
     {{
@@ -56,7 +56,7 @@ namespace Packed
       }
     } PACK_POST;
 
-    typedef boost::array<uint8_t, 12> TrackSignatureType;
+    typedef std::array<uint8_t, 12> TrackSignatureType;
     
     const TrackSignatureType TRACK_SIGNATURE =
     {{
@@ -84,7 +84,7 @@ namespace Packed
       uint8_t SectorsCount;
       uint8_t GAPLength;
       uint8_t Filler;
-      boost::array<SectorInfo, 29> Sectors;
+      std::array<SectorInfo, 29> Sectors;
     } PACK_POST;
     
     const DiskSignatureType EXTENDED_DISK_SIGNATURE =

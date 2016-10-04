@@ -25,9 +25,9 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -127,12 +127,12 @@ namespace Chiptune
 
     PACK_PRE struct RawPattern
     {
-      boost::array<uint16_t, 3> Offsets;//from start of patterns
+      std::array<uint16_t, 3> Offsets;//from start of patterns
     } PACK_POST;
 
     PACK_PRE struct RawOrnamentsList
     {
-      boost::array<uint16_t, ORNAMENTS_COUNT> Offsets;
+      std::array<uint16_t, ORNAMENTS_COUNT> Offsets;
     } PACK_POST;
 
     PACK_PRE struct RawOrnament
@@ -175,7 +175,7 @@ namespace Chiptune
 
     PACK_PRE struct RawSamplesList
     {
-      boost::array<uint16_t, SAMPLES_COUNT> Offsets;
+      std::array<uint16_t, SAMPLES_COUNT> Offsets;
     } PACK_POST;
 
     PACK_PRE struct RawSample
@@ -743,7 +743,7 @@ namespace Chiptune
         return *data;
       }
 
-      struct DataCursors : public boost::array<std::size_t, 3>
+      struct DataCursors : public std::array<std::size_t, 3>
       {
         DataCursors(const RawPattern& src, std::size_t baseOffset)
         {
@@ -780,7 +780,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 3> Channels;
+        std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()

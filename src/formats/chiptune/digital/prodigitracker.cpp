@@ -24,9 +24,8 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -51,7 +50,7 @@ namespace Chiptune
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    typedef boost::array<int8_t, 16> Ornament;
+    typedef std::array<int8_t, 16> Ornament;
 
     PACK_PRE struct OrnamentLoop
     {
@@ -123,14 +122,14 @@ namespace Chiptune
       uint8_t ParamSample;
     } PACK_POST;
 
-    typedef boost::array<Note, CHANNELS_COUNT> Line;
+    typedef std::array<Note, CHANNELS_COUNT> Line;
 
-    typedef boost::array<Line, PATTERN_SIZE> Pattern;
+    typedef std::array<Line, PATTERN_SIZE> Pattern;
 
     PACK_PRE struct Header
     {
-      boost::array<Ornament, ORNAMENTS_COUNT> Ornaments;
-      boost::array<OrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
+      std::array<Ornament, ORNAMENTS_COUNT> Ornaments;
+      std::array<OrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
       uint8_t Padding1[6];
       char Title[32];
       uint8_t Tempo;
@@ -138,12 +137,12 @@ namespace Chiptune
       uint8_t Loop;
       uint8_t Length;
       uint8_t Padding2[16];
-      boost::array<Sample, SAMPLES_COUNT> Samples;
-      boost::array<uint8_t, POSITIONS_COUNT> Positions;
+      std::array<Sample, SAMPLES_COUNT> Samples;
+      std::array<uint8_t, POSITIONS_COUNT> Positions;
       uint16_t LastDatas[PAGES_COUNT];
       uint8_t FreeRAM;
       uint8_t Padding3[5];
-      boost::array<Pattern, PATTERNS_COUNT> Patterns;
+      std::array<Pattern, PATTERNS_COUNT> Patterns;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
@@ -493,9 +492,9 @@ namespace Chiptune
     }
 
     const std::string FORMAT(
-      //boost::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
+      //std::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
       "(%xxxxxxx0{16}){11}"
-      //boost::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
+      //std::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
       "?{22}"
       //uint8_t Padding1[6];
       "?{6}"
@@ -511,7 +510,7 @@ namespace Chiptune
       "01-f0"
       //uint8_t Padding2[16];
       "00{16}"
-      //boost::array<PDTSample, SAMPLES_COUNT> Samples;
+      //std::array<PDTSample, SAMPLES_COUNT> Samples;
       /*
       uint8_t Name[8];
       uint16_t Start;
@@ -521,7 +520,7 @@ namespace Chiptune
       uint8_t Padding;
       */
       "(???????? ?5x|3x|c0-ff ?00-40 ?5x|3x|c0-ff 00|01|03|04|06|07 00){16}"
-      //boost::array<uint8_t, POSITIONS_COUNT> Positions;
+      //std::array<uint8_t, POSITIONS_COUNT> Positions;
       "(00-1f){240}"
       //uint16_t LastDatas[PAGES_COUNT];
       "(?c0-ff){5}"

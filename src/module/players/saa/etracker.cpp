@@ -497,8 +497,8 @@ namespace ETracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, SAA::TRACK_CHANNELS> PlayerState;
-    boost::array<uint_t, 2> Noise;
+    std::array<ChannelState, SAA::TRACK_CHANNELS> PlayerState;
+    std::array<uint_t, 2> Noise;
     uint_t Transposition;
   };
 

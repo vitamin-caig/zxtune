@@ -24,9 +24,9 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/mem_fn.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -77,7 +77,7 @@ namespace Chiptune
       char Name[8];
     } PACK_POST;
 
-    typedef boost::array<uint8_t, 0x38> ZeroesArray;
+    typedef std::array<uint8_t, 0x38> ZeroesArray;
 
     //Usually located at #7e00
     PACK_PRE struct Header
@@ -85,7 +85,7 @@ namespace Chiptune
       //+0
       uint8_t Loop;
       //+1
-      boost::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
+      std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
       //+0x64
       uint8_t Tempo;
       //+0x65
@@ -97,7 +97,7 @@ namespace Chiptune
       //+0xc8
       ZeroesArray Zeroes;
       //+0x100
-      boost::array<SampleInfo, SAMPLES_COUNT> Samples;
+      std::array<SampleInfo, SAMPLES_COUNT> Samples;
       //+0x200
       uint8_t FirstPage[0x4000];
       //+0x4200
@@ -186,7 +186,7 @@ namespace Chiptune
         {
         }
       };
-      boost::array<Description, SAMPLES_COUNT> Samples;
+      std::array<Description, SAMPLES_COUNT> Samples;
       uint_t SamplesTotal;
       uint_t Samples4Bit;
     };

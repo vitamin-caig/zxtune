@@ -18,6 +18,7 @@
 #include <binary/format_factories.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <limits>
 #include <vector>
 
@@ -26,7 +27,7 @@ namespace Binary
   class FuzzyFormat : public FormatDetails
   {
   public:
-    typedef boost::array<uint8_t, 256> PatternRow;
+    typedef std::array<uint8_t, 256> PatternRow;
     typedef std::vector<PatternRow> PatternMatrix;
 
     FuzzyFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)

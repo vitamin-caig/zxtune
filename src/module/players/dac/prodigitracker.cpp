@@ -225,7 +225,7 @@ namespace ProDigiTracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
+    std::array<OrnamentState, CHANNELS_COUNT> Ornaments;
   };
 
   class Chiptune : public DAC::Chiptune

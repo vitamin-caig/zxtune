@@ -26,9 +26,9 @@
 #include <math/numeric.h>
 #include <strings/format.h>
 //std includes
+#include <array>
 #include <cstring>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -63,7 +63,7 @@ namespace Chiptune
 #endif
     PACK_PRE struct RawPattern
     {
-      boost::array<uint16_t, 3> Offsets;
+      std::array<uint16_t, 3> Offsets;
     } PACK_POST;
 
     PACK_PRE struct RawHeader
@@ -73,9 +73,9 @@ namespace Chiptune
       uint8_t Version;
       uint16_t Address;
       char Title[32];
-      boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      boost::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
+      std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
       uint8_t Length;
       uint8_t Loop;
       uint8_t Positions[1];
@@ -591,7 +591,7 @@ namespace Chiptune
         return *data;
       }
 
-      struct DataCursors : public boost::array<std::size_t, 3>
+      struct DataCursors : public std::array<std::size_t, 3>
       {
         DataCursors(const RawPattern& src, uint_t minOffset, uint_t unfixDelta)
         {
@@ -630,7 +630,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 3> Channels;
+        std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()
@@ -951,9 +951,9 @@ namespace Chiptune
       "10-12"          //uint8_t Version; who knows?
       "??"             //uint16_t Address;
       "?{32}"          //char Title[32];
-      "?{30}"          //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      "?{32}"          //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      "?{192}"         //boost::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
+      "?{30}"          //std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      "?{32}"          //std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      "?{192}"         //std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
       "01-ff"          //uint8_t Length;
       "00-fe"          //uint8_t Loop;
       "*6&00-ba"       //uint8_t Positions[1];
