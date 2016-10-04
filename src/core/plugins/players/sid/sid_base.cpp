@@ -173,7 +173,7 @@ namespace Sid
 
     virtual bool RenderFrame()
     {
-      BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
 
       try
       {

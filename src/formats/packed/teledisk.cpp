@@ -129,12 +129,12 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 12);
-    BOOST_STATIC_ASSERT(sizeof(RawComment) == 10);
-    BOOST_STATIC_ASSERT(sizeof(RawTrack) == 4);
-    BOOST_STATIC_ASSERT(sizeof(RawSector) == 6);
-    BOOST_STATIC_ASSERT(sizeof(RawData) == 3);
-    BOOST_STATIC_ASSERT(sizeof(R2PEntry) == 4);
+    static_assert(sizeof(RawHeader) == 12, "Invalid layout");
+    static_assert(sizeof(RawComment) == 10, "Invalid layout");
+    static_assert(sizeof(RawTrack) == 4, "Invalid layout");
+    static_assert(sizeof(RawSector) == 6, "Invalid layout");
+    static_assert(sizeof(RawData) == 3, "Invalid layout");
+    static_assert(sizeof(R2PEntry) == 4, "Invalid layout");
 
     const uint_t MAX_CYLINDERS_COUNT = 100;
     const uint_t MIN_SIDES_COUNT = 1;

@@ -87,7 +87,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x16);
+    static_assert(sizeof(RawHeader) == 0x16, "Invalid layout");
 
     std::size_t GetSourceFileSize(const RawHeader& header)
     {

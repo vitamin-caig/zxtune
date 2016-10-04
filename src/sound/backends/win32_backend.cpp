@@ -354,7 +354,7 @@ namespace Win32
     virtual Gain GetVolume() const
     {
       boost::array<uint16_t, Sample::CHANNELS> buffer;
-      BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+      static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
       Device->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
       const Gain::Type l(int_t(buffer[0]), MAX_WIN32_VOLUME);
       const Gain::Type r(int_t(buffer[1]), MAX_WIN32_VOLUME);
@@ -372,7 +372,7 @@ namespace Win32
         static_cast<uint16_t>((volume.Left() * MAX_WIN32_VOLUME).Round()),
         static_cast<uint16_t>((volume.Right() * MAX_WIN32_VOLUME).Round())
       }};
-      BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+      static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
       Device->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));
     }
   private:

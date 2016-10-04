@@ -62,7 +62,7 @@ namespace Multitrack
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 128);
+    static_assert(sizeof(RawHeader) == 128, "Invalid layout");
     
     const std::size_t MAX_SIZE = 1048576;
 

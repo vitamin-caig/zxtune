@@ -248,8 +248,8 @@ namespace Packed
       "e60f"          // and 0xf
     );
 
-    BOOST_STATIC_ASSERT(sizeof(Simple::RawHeader) == 0x44);
-    BOOST_STATIC_ASSERT(sizeof(Protected::RawHeader) == 0x88);
+    static_assert(sizeof(Simple::RawHeader) == 0x44, "Invalid layout");
+    static_assert(sizeof(Protected::RawHeader) == 0x88, "Invalid layout");
 
     template<class Version>
     class Container

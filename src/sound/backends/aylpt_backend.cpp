@@ -30,7 +30,6 @@
 #include <cstring>
 //boost includes
 #include <boost/range/end.hpp>
-#include <boost/static_assert.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -76,11 +75,11 @@ namespace AyLpt
     CMD_RESET_STOP = PIN_NORESET | PIN_ADDR | PIN_UNUSED,
   };
 
-  BOOST_STATIC_ASSERT(CMD_SELECT_ADDR == 0xfd);
-  BOOST_STATIC_ASSERT(CMD_SELECT_DATA == 0xf9);
-  BOOST_STATIC_ASSERT(CMD_WRITE_COMMIT == 0xfb);
-  BOOST_STATIC_ASSERT(CMD_RESET_START == 0xf5);
-  BOOST_STATIC_ASSERT(CMD_RESET_STOP == 0xfd);
+  static_assert(CMD_SELECT_ADDR == 0xfd, "Invariant");
+  static_assert(CMD_SELECT_DATA == 0xf9, "Invariant");
+  static_assert(CMD_WRITE_COMMIT == 0xfb, "Invariant");
+  static_assert(CMD_RESET_START == 0xf5, "Invariant");
+  static_assert(CMD_RESET_STOP == 0xfd, "Invariant");
 
   void Delay()
   {

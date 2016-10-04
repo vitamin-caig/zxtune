@@ -190,7 +190,7 @@ namespace Module
       
       Sound::Sample Convert(int_t divisor) const
       {
-        BOOST_STATIC_ASSERT(Sound::Sample::MID == 0);
+        static_assert(Sound::Sample::MID == 0, "Sound samples should be signed");
         return Sound::Sample(Left / divisor, Right / divisor);
       }
     private:

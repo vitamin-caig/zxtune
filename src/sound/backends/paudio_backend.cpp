@@ -115,7 +115,7 @@ namespace PulseAudio
     
     pa_sample_spec GetFormat() const
     {
-      BOOST_STATIC_ASSERT(Sample::BITS == 16 && Sample::MID == 0);
+      static_assert(Sample::BITS == 16 && Sample::MID == 0, "Incompatible sound sample type");
 
       pa_sample_spec format;
       format.channels = Sample::CHANNELS;

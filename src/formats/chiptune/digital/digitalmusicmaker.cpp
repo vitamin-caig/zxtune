@@ -116,10 +116,10 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(MixedLine) == 4);
-    BOOST_STATIC_ASSERT(sizeof(SampleInfo) == 16);
-    BOOST_STATIC_ASSERT(sizeof(Header) == 0x15e);
-    BOOST_STATIC_ASSERT(sizeof(Pattern::Line) == 9);
+    static_assert(sizeof(MixedLine) == 4, "Invalid layout");
+    static_assert(sizeof(SampleInfo) == 16, "Invalid layout");
+    static_assert(sizeof(Header) == 0x15e, "Invalid layout");
+    static_assert(sizeof(Pattern::Line) == 9, "Invalid layout");
 
     const std::size_t MODULE_SIZE = sizeof(Header);
 

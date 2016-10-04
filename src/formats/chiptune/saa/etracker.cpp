@@ -89,8 +89,8 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x1e);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 12);
+    static_assert(sizeof(RawHeader) == 0x1e, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 12, "Invalid layout");
 
     class StubBuilder : public Builder
     {

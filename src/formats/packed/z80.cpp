@@ -245,10 +245,10 @@ namespace Packed
     //at least 3 pages by 16384 bytes each
     const std::size_t Version3_0::MIN_SIZE = sizeof(Version3_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
 
-    BOOST_STATIC_ASSERT(sizeof(Version1_45::Header) == 30);
-    BOOST_STATIC_ASSERT(sizeof(Version2_0::Header) == 55);
-    BOOST_STATIC_ASSERT(sizeof(Version2_0::MemoryPage) == 3);
-    BOOST_STATIC_ASSERT(sizeof(Version3_0::Header) == 86);
+    static_assert(sizeof(Version1_45::Header) == 30, "Invalid layout");
+    static_assert(sizeof(Version2_0::Header) == 55, "Invalid layout");
+    static_assert(sizeof(Version2_0::MemoryPage) == 3, "Invalid layout");
+    static_assert(sizeof(Version3_0::Header) == 86, "Invalid layout");
 
     std::size_t DecodeBlock(const uint8_t* src, std::size_t srcSize, uint8_t* dst, std::size_t dstSize)
     {

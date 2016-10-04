@@ -168,14 +168,14 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 9);
-    BOOST_STATIC_ASSERT(sizeof(RawId) == 55);
-    BOOST_STATIC_ASSERT(sizeof(RawPositions) == 3);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 6);
-    BOOST_STATIC_ASSERT(sizeof(RawSamples) == 3);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnaments) == 3);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 32);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 130);
+    static_assert(sizeof(RawHeader) == 9, "Invalid layout");
+    static_assert(sizeof(RawId) == 55, "Invalid layout");
+    static_assert(sizeof(RawPositions) == 3, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 6, "Invalid layout");
+    static_assert(sizeof(RawSamples) == 3, "Invalid layout");
+    static_assert(sizeof(RawOrnaments) == 3, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 32, "Invalid layout");
+    static_assert(sizeof(RawSample) == 130, "Invalid layout");
 
     class Format
     {

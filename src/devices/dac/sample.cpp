@@ -37,8 +37,8 @@ namespace DAC
 
   inline Sound::Sample::Type FromU8(uint8_t inSample)
   {
-    BOOST_STATIC_ASSERT(Sound::Sample::MID == 0);
-    BOOST_STATIC_ASSERT(Sound::Sample::MAX == 32767);
+    static_assert(Sound::Sample::MID == 0, "Sample should be signed");
+    static_assert(Sound::Sample::MAX == 32767, "Sample should be 16-bit");
     return (Sound::Sample::Type(inSample) - 128) * 256;
   }
 

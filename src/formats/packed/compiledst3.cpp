@@ -73,8 +73,8 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(offsetof(RawPlayer, Information) == 12);
-    BOOST_STATIC_ASSERT(offsetof(RawPlayer, Initialization) == 67);
+    static_assert(offsetof(RawPlayer, Information) == 12, "Invalid layout");
+    static_assert(offsetof(RawPlayer, Initialization) == 67, "Invalid layout");
 
     const String DESCRIPTION = String(Text::SOUNDTRACKER3_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 

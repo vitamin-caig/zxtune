@@ -99,7 +99,7 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(MinimalHeader) == 12);
+    static_assert(sizeof(MinimalHeader) == 12, "Invalid layout");
     
     const std::size_t MIN_SIZE = 256;
 

@@ -99,8 +99,8 @@ namespace Mp3
     virtual void ApplyData(const Chunk::Ptr& data)
     {
       //work with 16-bit
-      BOOST_STATIC_ASSERT(Sample::BITS == 16);
-      BOOST_STATIC_ASSERT(Sample::CHANNELS == 2);
+      static_assert(Sample::BITS == 16, "Incompatible sound sample bits count");
+      static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
       data->ToS16();
       while (const int res = LameApi->lame_encode_buffer_interleaved(Context.get(),
         safe_ptr_cast<short int*>(&data->front()), data->size(), &Encoded[0], Encoded.size()))

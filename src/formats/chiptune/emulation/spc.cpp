@@ -312,13 +312,13 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
     
-    BOOST_STATIC_ASSERT(sizeof(Registers) == 9);
-    BOOST_STATIC_ASSERT(sizeof(ID666TextTag) == 0xd2);
-    BOOST_STATIC_ASSERT(sizeof(ID666BinTag) == 0xd2);
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10180);
-    BOOST_STATIC_ASSERT(sizeof(ExtraRAM) == 0x80);
-    BOOST_STATIC_ASSERT(sizeof(IFFChunkHeader) == 8);
-    BOOST_STATIC_ASSERT(sizeof(SubChunkHeader) == 4);
+    static_assert(sizeof(Registers) == 9, "Invalid layout");
+    static_assert(sizeof(ID666TextTag) == 0xd2, "Invalid layout");
+    static_assert(sizeof(ID666BinTag) == 0xd2, "Invalid layout");
+    static_assert(sizeof(RawHeader) == 0x10180, "Invalid layout");
+    static_assert(sizeof(ExtraRAM) == 0x80, "Invalid layout");
+    static_assert(sizeof(IFFChunkHeader) == 8, "Invalid layout");
+    static_assert(sizeof(SubChunkHeader) == 4, "Invalid layout");
 
     class StubBuilder : public Builder
     {

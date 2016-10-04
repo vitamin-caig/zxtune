@@ -595,7 +595,7 @@ namespace Alsa
       }
       else
       {
-        BOOST_STATIC_ASSERT(Gain::CHANNELS == 2);
+        static_assert(Gain::CHANNELS == 2, "Invalid channels count");
         long minVol = 0, maxVol = 0;
         CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol), THIS_LINE);
         const long volRange = maxVol - minVol;
@@ -615,7 +615,7 @@ namespace Alsa
       }
       if (MixerElement)
       {
-        BOOST_STATIC_ASSERT(Gain::CHANNELS == 2);
+        static_assert(Gain::CHANNELS == 2, "Invalid channels count");
         long minVol = 0, maxVol = 0;
         CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol), THIS_LINE);
         const long volRange = maxVol - minVol;

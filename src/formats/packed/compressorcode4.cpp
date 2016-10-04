@@ -75,7 +75,7 @@ namespace Packed
         return depacker[depackerSize - 1] == RET_CODE;
       }
 
-      BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x1c);
+      static_assert(sizeof(RawHeader) == 0x1c, "Invalid layout");
     };
 
     struct Version4Plus
@@ -122,7 +122,7 @@ namespace Packed
         return *(header.Padding1 + depackerSize - 256 - 1) == 0xc9;
       }
 
-      BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x36);
+      static_assert(sizeof(RawHeader) == 0x36, "Invalid layout");
     };
 
     const String Version4::DESCRIPTION = Text::CC4_DECODER_DESCRIPTION;

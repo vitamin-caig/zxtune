@@ -96,7 +96,7 @@ namespace Chiptune
   #pragma pack(pop)
   #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 0x14);
+    static_assert(sizeof(Header) == 0x14, "Invalid layout");
 
     class Parser
     {
@@ -255,7 +255,7 @@ namespace Chiptune
             0xcd, 0, 0, //call routine (+9)
             0x18, 0xf7 //jr loop
           };
-          BOOST_STATIC_ASSERT(sizeof(Im1Player) == sizeof(PLAYER_TEMPLATE));
+          static_assert(sizeof(Im1Player) == sizeof(PLAYER_TEMPLATE), "Invalid layout");
           std::copy(PLAYER_TEMPLATE, boost::end(PLAYER_TEMPLATE), Data.begin());
           Data[0x2] = init & 0xff;
           Data[0x3] = init >> 8;
@@ -280,7 +280,7 @@ namespace Chiptune
             0x76, //halt
             0x18, 0xfa //jr loop
           };
-          BOOST_STATIC_ASSERT(sizeof(Im2Player) == sizeof(PLAYER_TEMPLATE));
+          static_assert(sizeof(Im2Player) == sizeof(PLAYER_TEMPLATE), "Invalid layout");
           std::copy(PLAYER_TEMPLATE, boost::end(PLAYER_TEMPLATE), Data.begin());
           Data[0x2] = init & 0xff;
           Data[0x3] = init >> 8;
@@ -396,7 +396,7 @@ namespace Chiptune
       template<class T>
       static void SetPointer(int16_t* ptr, const T obj)
       {
-        BOOST_STATIC_ASSERT(boost::is_pointer<T>::value);
+        static_assert(boost::is_pointer<T>::value, "Should be pointer");
         const std::ptrdiff_t offset = safe_ptr_cast<const uint8_t*>(obj) - safe_ptr_cast<const uint8_t*>(ptr);
         assert(offset > 0);//layout data sequentally
         *ptr = fromBE<int16_t>(static_cast<uint16_t>(offset));

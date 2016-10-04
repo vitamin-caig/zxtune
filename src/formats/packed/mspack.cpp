@@ -65,7 +65,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10);
+    static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 

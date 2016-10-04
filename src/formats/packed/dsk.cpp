@@ -111,10 +111,10 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(DiskInformationBlock) == 256);
-    BOOST_STATIC_ASSERT(sizeof(TrackInformationBlock::SectorInfo) == 8);
-    BOOST_STATIC_ASSERT(sizeof(TrackInformationBlock) == 256);
-    BOOST_STATIC_ASSERT(sizeof(ExtendedDiskInformationBlock) == 256);
+    static_assert(sizeof(DiskInformationBlock) == 256, "Invalid layout");
+    static_assert(sizeof(TrackInformationBlock::SectorInfo) == 8, "Invalid layout");
+    static_assert(sizeof(TrackInformationBlock) == 256, "Invalid layout");
+    static_assert(sizeof(ExtendedDiskInformationBlock) == 256, "Invalid layout");
     
     inline std::size_t GetSectorDataSize(uint_t sectorSize)
     {

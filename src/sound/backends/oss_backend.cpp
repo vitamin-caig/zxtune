@@ -351,7 +351,7 @@ namespace Oss
 
       AutoDescriptor tmpMixer(backend.GetMixerName(), O_RDWR);
       AutoDescriptor tmpDevice(backend.GetDeviceName(), O_WRONLY | O_NONBLOCK);
-      BOOST_STATIC_ASSERT(8 == Sample::BITS || 16 == Sample::BITS);
+      static_assert(8 == Sample::BITS || 16 == Sample::BITS, "Incompatible sound sample bits count");
       int tmp = 0;
       tmpDevice.Ioctl(SNDCTL_DSP_GETFMTS, &tmp, THIS_LINE);
       Dbg("Supported formats %1%", tmp);

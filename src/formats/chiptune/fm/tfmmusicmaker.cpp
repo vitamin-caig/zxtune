@@ -435,12 +435,12 @@ namespace Chiptune
       "01-0f|81-8f" //interleave or repeat
     );
 
-    BOOST_STATIC_ASSERT(sizeof(PackedDate) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawInstrument) == 42);
-    BOOST_STATIC_ASSERT(sizeof(Version05::RawPattern) == 7680);
-    BOOST_STATIC_ASSERT(sizeof(Version05::RawHeader) == 1981904);
-    BOOST_STATIC_ASSERT(sizeof(Version13::RawPattern) == 16896);
-    BOOST_STATIC_ASSERT(sizeof(Version13::RawHeader) == 4341209);
+    static_assert(sizeof(PackedDate) == 2, "Invalid layout");
+    static_assert(sizeof(RawInstrument) == 42, "Invalid layout");
+    static_assert(sizeof(Version05::RawPattern) == 7680, "Invalid layout");
+    static_assert(sizeof(Version05::RawHeader) == 1981904, "Invalid layout");
+    static_assert(sizeof(Version13::RawPattern) == 16896, "Invalid layout");
+    static_assert(sizeof(Version13::RawHeader) == 4341209, "Invalid layout");
 
     class StubBuilder : public Builder
     {

@@ -155,8 +155,8 @@ namespace OpenAl
   private:
     static ALenum GetFormat()
     {
-      BOOST_STATIC_ASSERT(Sample::CHANNELS == 1 || Sample::CHANNELS == 2);
-      BOOST_STATIC_ASSERT(Sample::BITS == 8 || Sample::BITS == 16);
+      static_assert(Sample::CHANNELS == 1 || Sample::CHANNELS == 2, "Incompatible sound channels count");
+      static_assert(Sample::BITS == 8 || Sample::BITS == 16, "Incompatible sound sample bits count");
       switch (256 * Sample::CHANNELS + Sample::BITS)
       {
       case 0x108:

@@ -14,7 +14,6 @@
 #include <cstddef>
 //boost includes
 #include <boost/shared_ptr.hpp>
-#include <boost/static_assert.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/is_pointer.hpp>
@@ -25,8 +24,8 @@ template<class T, class F>
 inline T safe_ptr_cast(F from)
 {
   using namespace boost;
-  BOOST_STATIC_ASSERT(is_pointer<F>::value);
-  BOOST_STATIC_ASSERT(is_pointer<T>::value);
+  static_assert(is_pointer<F>::value, "Source type should be pointer");
+  static_assert(is_pointer<T>::value, "Target type should be pointer");
   typedef typename mpl::if_c<is_const<typename remove_pointer<T>::type>::value, const void*, void*>::type MidType;
   return static_cast<T>(static_cast<MidType>(from));
 }

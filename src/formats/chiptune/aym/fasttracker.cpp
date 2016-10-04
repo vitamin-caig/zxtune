@@ -91,7 +91,7 @@ namespace Chiptune
 
       bool HasTitle() const
       {
-        BOOST_STATIC_ASSERT(sizeof(MODULE_ID) == sizeof(Identifier));
+        static_assert(sizeof(MODULE_ID) == sizeof(Identifier), "Invalid layout");
         return 0 == std::memcmp(Identifier, MODULE_ID, sizeof(Identifier));
       }
 
@@ -298,14 +298,14 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawId) == 69);
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 212);
-    BOOST_STATIC_ASSERT(sizeof(RawPosition) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 6);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 3);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament::Line) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 8);
-    BOOST_STATIC_ASSERT(sizeof(RawSample::Line) == 5);
+    static_assert(sizeof(RawId) == 69, "Invalid layout");
+    static_assert(sizeof(RawHeader) == 212, "Invalid layout");
+    static_assert(sizeof(RawPosition) == 2, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 6, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 3, "Invalid layout");
+    static_assert(sizeof(RawOrnament::Line) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample) == 8, "Invalid layout");
+    static_assert(sizeof(RawSample::Line) == 5, "Invalid layout");
 
     class StubBuilder : public Builder
     {

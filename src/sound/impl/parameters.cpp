@@ -16,7 +16,7 @@
 
 namespace
 {
-  BOOST_STATIC_ASSERT(Sound::Gain::CHANNELS == 2);
+  static_assert(Sound::Gain::CHANNELS == 2, "Incompatible sound channels count");
 
   struct MixerValue
   {

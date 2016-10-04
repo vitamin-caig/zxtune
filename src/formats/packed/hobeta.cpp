@@ -46,7 +46,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 17);
+    static_assert(sizeof(Header) == 17, "Invalid layout");
     const std::size_t MIN_SIZE = 0x100;
     const std::size_t MAX_SIZE = 0xff00;
 

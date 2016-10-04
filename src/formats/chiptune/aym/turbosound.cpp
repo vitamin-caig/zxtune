@@ -46,7 +46,7 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
+    static_assert(sizeof(Footer) == 16, "Invalid layout");
 
     const std::string FOOTER_FORMAT(
       "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type

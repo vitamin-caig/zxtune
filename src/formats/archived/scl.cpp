@@ -71,8 +71,8 @@ namespace Archived
     //header with one entry + one sector + CRC
     const std::size_t MIN_SIZE = sizeof(Header) + BYTES_PER_SECTOR + 4;
 
-    BOOST_STATIC_ASSERT(sizeof(Entry) == 14);
-    BOOST_STATIC_ASSERT(sizeof(Header) == 23);
+    static_assert(sizeof(Entry) == 14, "Invalid layout");
+    static_assert(sizeof(Header) == 23, "Invalid layout");
 
     uint_t SumDataSize(uint_t prevSize, const Entry& entry)
     {

@@ -17,11 +17,12 @@
 //std includes
 #include <set>
 //boost includes
-#include <boost/static_assert.hpp>
 #include <boost/type_traits/is_unsigned.hpp>
 
 namespace Strings
 {
+  static_assert(boost::is_unsigned<Char>::value, "Char type should be unsigned");
+
   class FilterFieldsSource : public FieldsSource
   {
   public:
@@ -29,7 +30,6 @@ namespace Strings
       : Delegate(delegate)
       , Table(1 << (8 * sizeof(Char)))
     {
-      BOOST_STATIC_ASSERT(boost::is_unsigned<Char>::value);
       Require(src.size() == tgt.size());
       Require(std::set<Char>(src.begin(), src.end()).size() == src.size());
       for (std::size_t idx = 0; idx != Table.size(); ++idx)
@@ -45,7 +45,6 @@ namespace Strings
       : Delegate(delegate)
       , Table(1 << (8 * sizeof(Char)))
     {
-      BOOST_STATIC_ASSERT(boost::is_unsigned<Char>::value);
       const std::set<Char> srcSymbols(src.begin(), src.end());
       Require(srcSymbols.size() == src.size());
       for (std::size_t idx = 0; idx != Table.size(); ++idx)

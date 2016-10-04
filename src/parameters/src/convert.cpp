@@ -22,7 +22,7 @@ namespace
 
   const IntType RADIX = 10;
 
-  BOOST_STATIC_ASSERT(1 == sizeof(DataType::value_type));
+  static_assert(1 == sizeof(DataType::value_type), "Invalid DataType::value_type");
 
   inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int(*Fun)(int))
   {

@@ -116,10 +116,10 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(offsetof(Version1::RawPlayer, Information) == 17);
-    BOOST_STATIC_ASSERT(offsetof(Version1::RawPlayer, Initialization) == 78);
-    BOOST_STATIC_ASSERT(offsetof(Version2::RawPlayer, Information) == 8);
-    BOOST_STATIC_ASSERT(offsetof(Version2::RawPlayer, Initialization) == 72);
+    static_assert(offsetof(Version1::RawPlayer, Information) == 17, "Invalid layout");
+    static_assert(offsetof(Version1::RawPlayer, Initialization) == 78, "Invalid layout");
+    static_assert(offsetof(Version2::RawPlayer, Information) == 8, "Invalid layout");
+    static_assert(offsetof(Version2::RawPlayer, Initialization) == 72, "Invalid layout");
 
     const String Version1::DESCRIPTION = String(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
     const String Version2::DESCRIPTION = String(Text::SOUNDTRACKERPRO2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;

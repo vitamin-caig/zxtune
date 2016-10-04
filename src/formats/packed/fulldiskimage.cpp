@@ -66,9 +66,9 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 14);
-    BOOST_STATIC_ASSERT(sizeof(RawTrack::Sector) == 7);
-    BOOST_STATIC_ASSERT(sizeof(RawTrack) == 14);
+    static_assert(sizeof(RawHeader) == 14, "Invalid layout");
+    static_assert(sizeof(RawTrack::Sector) == 7, "Invalid layout");
+    static_assert(sizeof(RawTrack) == 14, "Invalid layout");
 
     const std::size_t FDI_MAX_SIZE = 1048576;
     const uint_t MIN_CYLINDERS_COUNT = 40;
@@ -111,7 +111,7 @@ namespace Packed
           return false;
         }
         const RawHeader& header = GetHeader();
-        BOOST_STATIC_ASSERT(sizeof(header.ID) == sizeof(FDI_ID));
+        static_assert(sizeof(header.ID) == sizeof(FDI_ID), "Invalid layout");
         if (0 != std::memcmp(header.ID, FDI_ID, sizeof(FDI_ID)))
         {
           return false;

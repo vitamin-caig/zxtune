@@ -81,8 +81,8 @@ namespace Archived
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 8);
-    BOOST_STATIC_ASSERT(offsetof(BlockHeader, PackedCRC) == 11);
+    static_assert(sizeof(Header) == 8, "Invalid layout");
+    static_assert(offsetof(BlockHeader, PackedCRC) == 11, "Invalid layout");
 
     // crc16 calculating routine
     inline uint_t CalcCRC(const uint8_t* data, std::size_t size)

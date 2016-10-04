@@ -53,7 +53,7 @@ namespace Archived
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 0x20);
+    static_assert(sizeof(Header) == 0x20, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header);
 

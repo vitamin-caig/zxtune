@@ -132,15 +132,15 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 130);
-    BOOST_STATIC_ASSERT(sizeof(RawPosEntry) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 32);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 576);
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 3009 + 576);
-    BOOST_STATIC_ASSERT(offsetof(RawHeader, Positions) == 1950);
-    BOOST_STATIC_ASSERT(offsetof(RawHeader, Length) == 2462);
-    BOOST_STATIC_ASSERT(offsetof(RawHeader, Tempo) == 3007);
-    BOOST_STATIC_ASSERT(offsetof(RawHeader, Patterns) == 3009);
+    static_assert(sizeof(RawSample) == 130, "Invalid layout");
+    static_assert(sizeof(RawPosEntry) == 2, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 32, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 576, "Invalid layout");
+    static_assert(sizeof(RawHeader) == 3009 + 576, "Invalid layout");
+    static_assert(offsetof(RawHeader, Positions) == 1950, "Invalid layout");
+    static_assert(offsetof(RawHeader, Length) == 2462, "Invalid layout");
+    static_assert(offsetof(RawHeader, Tempo) == 3007, "Invalid layout");
+    static_assert(offsetof(RawHeader, Patterns) == 3009, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 

@@ -66,7 +66,7 @@ namespace Flac
 
   inline FlacSample ConvertSample(Sample in)
   {
-    BOOST_STATIC_ASSERT(Sample::MID == 0);
+    static_assert(Sample::MID == 0, "Incompatible sound sample type");
     return FlacSample(in.Left(), in.Right());
   }
 

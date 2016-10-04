@@ -145,8 +145,8 @@ namespace Zdata
   sym: Z      D      ?      ?       ?      ?      ?      ?       ?      ?      ?      ?       ?      ?      ?      ?       e      N      opqr
   */
 
-  BOOST_STATIC_ASSERT(sizeof(RawMarker) == 6);
-  BOOST_STATIC_ASSERT(sizeof(RawHeader) == 12);
+  static_assert(sizeof(RawMarker) == 6, "Invalid layout of RawMarker");
+  static_assert(sizeof(RawHeader) == 12, "Invalid layout of RawHeader");
 
   const IndexPathComponent PATH(Text::ZDATA_PLUGIN_PREFIX);
 

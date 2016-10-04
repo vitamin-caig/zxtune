@@ -172,10 +172,10 @@ namespace Packed
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         };
-        BOOST_STATIC_ASSERT(sizeof(HRUST1_0_PADDING) == 255 - TRDOS_SHORT_ENTRY_SIZE);
-        BOOST_STATIC_ASSERT(sizeof(HRUST1_1_PADDING) == 255 - TRDOS_ENTRY_SIZE);
-        BOOST_STATIC_ASSERT(sizeof(HRUST1_2_PADDING) == 255 - TRDOS_ENTRY_SIZE);
-        BOOST_STATIC_ASSERT(sizeof(HRUST1_3_PADDING) == 255 - TRDOS_ENTRY_SIZE);
+        static_assert(sizeof(HRUST1_0_PADDING) == 255 - TRDOS_SHORT_ENTRY_SIZE, "Invalid layout");
+        static_assert(sizeof(HRUST1_1_PADDING) == 255 - TRDOS_ENTRY_SIZE, "Invalid layout");
+        static_assert(sizeof(HRUST1_2_PADDING) == 255 - TRDOS_ENTRY_SIZE, "Invalid layout");
+        static_assert(sizeof(HRUST1_3_PADDING) == 255 - TRDOS_ENTRY_SIZE, "Invalid layout");
         const uint8_t* const paddingStart = Data + usefulSize;
         const uint8_t* const paddingEnd = Data + resultSize;
         //special case due to distinct offset

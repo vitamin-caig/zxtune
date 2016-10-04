@@ -331,7 +331,7 @@ namespace DirectSound
     virtual Gain GetVolume() const
     {
       const VolPan vols = GetVolumeImpl();
-      BOOST_STATIC_ASSERT(Sample::CHANNELS == 2);
+      static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
       //in hundredths of a decibel
       const int_t attLeft = vols.first - (vols.second > 0 ? vols.second : 0);
       const int_t attRight = vols.first - (vols.second < 0 ? -vols.second : 0);

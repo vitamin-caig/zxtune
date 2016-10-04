@@ -130,10 +130,10 @@ namespace Archived
   #pragma pack(pop)
   #endif
 
-    BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
-    BOOST_STATIC_ASSERT(sizeof(ServiceSector) == BYTES_PER_SECTOR);
-    BOOST_STATIC_ASSERT(sizeof(Sector) == BYTES_PER_SECTOR);
-    BOOST_STATIC_ASSERT(sizeof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK);
+    static_assert(sizeof(CatEntry) == 16, "Invalid layout");
+    static_assert(sizeof(ServiceSector) == BYTES_PER_SECTOR, "Invalid layout");
+    static_assert(sizeof(Sector) == BYTES_PER_SECTOR, "Invalid layout");
+    static_assert(sizeof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK, "Invalid layout");
 
     const Char UNALLOCATED_FILENAME[] = {'$', 'U', 'n', 'a', 'l', 'l', 'o', 'c', 'a', 't', 'e', 'd', 0};
 

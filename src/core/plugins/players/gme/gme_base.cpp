@@ -94,8 +94,8 @@ namespace GME
     
     void Render(uint_t samples, Sound::ChunkBuilder& target)
     {
-      BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
-      BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
+      static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       ::Music_Emu::sample_t* const buffer = safe_ptr_cast< ::Music_Emu::sample_t*>(target.Allocate(samples));
       CheckError(Emu->play(samples * Sound::Sample::CHANNELS, buffer));
     }

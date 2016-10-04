@@ -16,7 +16,6 @@
 #include <cstring>
 //boost includes
 #include <boost/shared_array.hpp>
-#include <boost/static_assert.hpp>
 
 namespace Binary
 {
@@ -81,7 +80,7 @@ namespace Binary
 
 namespace Binary
 {
-  BOOST_STATIC_ASSERT(sizeof(Dump::value_type) == 1);
+  static_assert(sizeof(Dump::value_type) == 1, "Invalid size for Dump::value_type");
 
   Container::Ptr CreateContainer(const void* data, std::size_t size)
   {

@@ -75,8 +75,8 @@ namespace SPC
     
     void Render(uint_t samples, Sound::ChunkBuilder& target)
     {
-      BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
-      BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
+      static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       ::SNES_SPC::sample_t* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(target.Allocate(samples));
       CheckError(Spc.play(samples * Sound::Sample::CHANNELS, buffer));
       Filter.run(buffer, samples * Sound::Sample::CHANNELS);

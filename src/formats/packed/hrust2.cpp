@@ -365,7 +365,7 @@ namespace Packed
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
           };
-          BOOST_STATIC_ASSERT(sizeof(HRUST2_1_PADDING) == 255);
+          static_assert(sizeof(HRUST2_1_PADDING) == 255, "Invalid layout");
           const uint8_t* const paddingStart = Data + usefulSize;
           const uint8_t* const paddingEnd = Data + resultSize;
           if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, boost::end(HRUST2_1_PADDING)))

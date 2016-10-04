@@ -161,7 +161,7 @@ namespace Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        BOOST_STATIC_ASSERT(0 == (sizeof(Line) & (sizeof(Line) - 1)));
+        static_assert(0 == (sizeof(Line) & (sizeof(Line) - 1)), "Invalid layout");
         const uint_t maxLines = 256 / sizeof(Line);
         const Line* const src = safe_ptr_cast<const Line*>(this + 1);
         return src[idx % maxLines];
@@ -188,11 +188,11 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 296);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 6);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawSample::Line) == 4);
+    static_assert(sizeof(RawHeader) == 296, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 6, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample::Line) == 4, "Invalid layout");
 
     class StubBuilder : public Builder
     {

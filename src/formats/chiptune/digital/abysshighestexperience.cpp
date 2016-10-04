@@ -110,12 +110,12 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 14);
-    BOOST_STATIC_ASSERT(sizeof(Subsong) == 2);
-    BOOST_STATIC_ASSERT(sizeof(Position) == 8);
-    BOOST_STATIC_ASSERT(sizeof(Note) == 3);
-    BOOST_STATIC_ASSERT(sizeof(Sample) == 22);
-    BOOST_STATIC_ASSERT(sizeof(Sample::Entry) == 4);
+    static_assert(sizeof(Header) == 14, "Invalid layout");
+    static_assert(sizeof(Subsong) == 2, "Invalid layout");
+    static_assert(sizeof(Position) == 8, "Invalid layout");
+    static_assert(sizeof(Note) == 3, "Invalid layout");
+    static_assert(sizeof(Sample) == 22, "Invalid layout");
+    static_assert(sizeof(Sample::Entry) == 4, "Invalid layout");
     
     const std::size_t MIN_SIZE = sizeof(Header);
     

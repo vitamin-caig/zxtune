@@ -27,9 +27,9 @@
 
 namespace
 {
-  BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
-  BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
-  BOOST_STATIC_ASSERT(boost::is_signed<Sound::Sample::Type>::value);
+  static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+  static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
+  static_assert(boost::is_signed<Sound::Sample::Type>::value, "Incompatible sound sample type");
 
   class BufferTarget : public Sound::Receiver
   {

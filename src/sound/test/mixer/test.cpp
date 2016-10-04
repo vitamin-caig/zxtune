@@ -22,8 +22,6 @@
 
 namespace Sound
 {
-  //BOOST_STATIC_ASSERT(SAMPLE_MIN == 0 && SAMPLE_MID == 32768 && SAMPLE_MAX == 65535);
-
   const int_t THRESHOLD = 5 * (Sample::MAX - Sample::MIN) / 1000;//0.5%
 
   Gain CreateGain(double l, double r)

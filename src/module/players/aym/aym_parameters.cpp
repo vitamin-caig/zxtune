@@ -48,7 +48,7 @@ namespace AYM
       Devices::AYM::CHANNEL_MASK_B,
       Devices::AYM::CHANNEL_MASK_C,
     };
-    BOOST_STATIC_ASSERT(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS));
+    static_assert(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS), "Invalid layout");
     const std::ptrdiff_t pos = std::find(LETTERS, boost::end(LETTERS), letter) - LETTERS;
     if (pos == static_cast<std::ptrdiff_t>(boost::size(LETTERS)))
     {

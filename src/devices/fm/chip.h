@@ -31,7 +31,7 @@ namespace FM
     typedef int32_t YM2203SampleType;
     typedef boost::shared_ptr<void> ChipPtr;
 
-    BOOST_STATIC_ASSERT(sizeof(YM2203SampleType) == sizeof(Sound::Sample));
+    static_assert(sizeof(YM2203SampleType) == sizeof(Sound::Sample), "Incompatible sample types");
 
     class ClockSource
     {

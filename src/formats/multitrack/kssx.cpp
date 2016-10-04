@@ -64,8 +64,8 @@ namespace Multitrack
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10);
-    BOOST_STATIC_ASSERT(sizeof(ExtraHeader) == 0x0c);
+    static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
+    static_assert(sizeof(ExtraHeader) == 0x0c, "Invalid layout");
 
     const std::string FORMAT =
         "'K'S'S'X" //signature

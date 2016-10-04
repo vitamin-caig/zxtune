@@ -13,8 +13,6 @@
 //library includes
 #include <sound/gain.h>
 #include <sound/multichannel_sample.h>
-//boost includes
-#include <boost/static_assert.hpp>
 
 namespace Sound
 {
@@ -50,7 +48,7 @@ namespace Sound
           out[outChan] += row[outChan] * val;
         }
       }
-      BOOST_STATIC_ASSERT(Sample::CHANNELS == 2);
+      static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
       return Sample(out[0].Integer(), out[1].Integer());
     }
 

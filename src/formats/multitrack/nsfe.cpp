@@ -67,9 +67,9 @@ namespace Multitrack
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(ChunkHeader) == 8);
-    BOOST_STATIC_ASSERT(sizeof(InfoChunk) == 8);
-    BOOST_STATIC_ASSERT(sizeof(InfoChunkFull) == 10);
+    static_assert(sizeof(ChunkHeader) == 8, "Invalid layout");
+    static_assert(sizeof(InfoChunk) == 8, "Invalid layout");
+    static_assert(sizeof(InfoChunkFull) == 10, "Invalid layout");
     
     const std::size_t MAX_SIZE = 1048576;
 

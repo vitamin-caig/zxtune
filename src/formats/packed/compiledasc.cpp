@@ -84,10 +84,10 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(offsetof(PlayerVer0, Information) == 20);
-    BOOST_STATIC_ASSERT(offsetof(PlayerVer0, Initialization) == 83);
-    BOOST_STATIC_ASSERT(offsetof(PlayerVer2, Initialization) == 83);
-    BOOST_STATIC_ASSERT(offsetof(PlayerVer2, DataOffset) == 124);
+    static_assert(offsetof(PlayerVer0, Information) == 20, "Invalid layout");
+    static_assert(offsetof(PlayerVer0, Initialization) == 83, "Invalid layout");
+    static_assert(offsetof(PlayerVer2, Initialization) == 83, "Invalid layout");
+    static_assert(offsetof(PlayerVer2, DataOffset) == 124, "Invalid layout");
     
     struct PlayerTraits
     {

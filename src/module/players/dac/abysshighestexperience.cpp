@@ -233,9 +233,9 @@ namespace AHX
     
     void RenderFrame(Sound::ChunkBuilder& target)
     {
-      BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
-      BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
-      BOOST_STATIC_ASSERT(Sound::Sample::MID == 0);
+      static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
+      static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
       target.Reserve(SamplesPerFrame);
       void* const buf = target.Allocate(SamplesPerFrame);
       hvl_DecodeFrame(Hvl.get(), static_cast<int8*>(buf), static_cast<int8*>(buf) + sizeof(Sound::Sample) / 2, sizeof(Sound::Sample));

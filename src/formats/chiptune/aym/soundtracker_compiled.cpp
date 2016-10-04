@@ -139,11 +139,11 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 27);
-    BOOST_STATIC_ASSERT(sizeof(RawPositions) == 3);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 7);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 33);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 99);
+    static_assert(sizeof(RawHeader) == 27, "Invalid layout");
+    static_assert(sizeof(RawPositions) == 3, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 7, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 33, "Invalid layout");
+    static_assert(sizeof(RawSample) == 99, "Invalid layout");
 
     bool IsProgramName(const String& name)
     {

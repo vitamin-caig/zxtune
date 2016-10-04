@@ -51,7 +51,7 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10);
+    static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
 
     const std::string FORMAT =
         "'K'S'C'C" //signature

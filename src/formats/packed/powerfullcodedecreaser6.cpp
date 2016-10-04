@@ -69,7 +69,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-      BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xc9 + 3 + 2);
+      static_assert(sizeof(RawHeader) == 0xc9 + 3 + 2, "Invalid layout");
 
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
     };
@@ -106,7 +106,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-      BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xc1 + 3 + 2);
+      static_assert(sizeof(RawHeader) == 0xc1 + 3 + 2, "Invalid layout");
 
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
     };
@@ -143,7 +143,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-      BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xc4 + 5 + 2);
+      static_assert(sizeof(RawHeader) == 0xc4 + 5 + 2, "Invalid layout");
 
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
     };

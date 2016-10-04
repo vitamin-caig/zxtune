@@ -30,8 +30,8 @@ namespace Devices
 {
 namespace SAA
 {
-  BOOST_STATIC_ASSERT(Registers::TOTAL <= 8 * sizeof(uint_t));
-  BOOST_STATIC_ASSERT(sizeof(Registers) == 32);
+  static_assert(Registers::TOTAL <= 8 * sizeof(uint_t), "Too many registers for mask");
+  static_assert(sizeof(Registers) == 32, "Invalid layout");
 
   class SAARenderer
   {

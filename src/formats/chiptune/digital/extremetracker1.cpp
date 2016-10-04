@@ -205,8 +205,8 @@ namespace Chiptune
       //+0x4200
     } PACK_POST;
 
-    BOOST_STATIC_ASSERT(sizeof(Pattern) == 0x200);
-    BOOST_STATIC_ASSERT(sizeof(Header) == 0x4200);
+    static_assert(sizeof(Pattern) == 0x200, "Invalid layout");
+    static_assert(sizeof(Header) == 0x4200, "Invalid layout");
     
     const std::size_t MODULE_SIZE = 0x1b800;
 

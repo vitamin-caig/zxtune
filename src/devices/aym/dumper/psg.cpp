@@ -41,7 +41,7 @@ namespace AYM
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,//padding
         END_MUS
       };
-      BOOST_STATIC_ASSERT(sizeof(HEADER) == 16 + 1);
+      static_assert(sizeof(HEADER) == 16 + 1, "Invalid header layout");
       Data.assign(HEADER, boost::end(HEADER));
     }
 

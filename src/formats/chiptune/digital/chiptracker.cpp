@@ -145,8 +145,8 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 512);
-    BOOST_STATIC_ASSERT(sizeof(Pattern) == 512);
+    static_assert(sizeof(Header) == 512, "Invalid layout");
+    static_assert(sizeof(Pattern) == 512, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header) + sizeof(Pattern) + 256;//single pattern and single sample
 

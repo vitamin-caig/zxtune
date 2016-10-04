@@ -308,10 +308,10 @@ namespace Xmp
 
     virtual bool RenderFrame()
     {
-      BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
-      BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
-      BOOST_STATIC_ASSERT(Sound::Sample::MID == 0);
-      BOOST_STATIC_ASSERT(sizeof(Sound::Sample) == 4);
+      static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
+      static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
+      static_assert(sizeof(Sound::Sample) == 4, "Incompatible sound sample size");
 
       try
       {

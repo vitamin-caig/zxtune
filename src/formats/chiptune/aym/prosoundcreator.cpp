@@ -113,8 +113,8 @@ namespace Chiptune
 
       bool Check() const
       {
-        BOOST_STATIC_ASSERT(sizeof(PSC_ID_0) == sizeof(Identifier1));
-        BOOST_STATIC_ASSERT(sizeof(PSC_ID_1) == sizeof(Identifier2));
+        static_assert(sizeof(PSC_ID_0) == sizeof(Identifier1), "Invalid layout");
+        static_assert(sizeof(PSC_ID_1) == sizeof(Identifier2), "Invalid layout");
         return 0 == std::memcmp(Identifier1, PSC_ID_0, sizeof(Identifier1))
             && 0 == std::memcmp(Identifier2, PSC_ID_1, sizeof(Identifier2));
       }
@@ -287,11 +287,11 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawId) == 69);
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == sizeof(RawId) + 7);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 8);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 6);
+    static_assert(sizeof(RawId) == 69, "Invalid layout");
+    static_assert(sizeof(RawHeader) == sizeof(RawId) + 7, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 8, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample) == 6, "Invalid layout");
 
     class StubBuilder : public Builder
     {

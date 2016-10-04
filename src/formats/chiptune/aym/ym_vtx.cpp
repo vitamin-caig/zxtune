@@ -529,9 +529,9 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawBasicHeader) == 10);
-    BOOST_STATIC_ASSERT(sizeof(RawNewHeader) == 16);
-    BOOST_STATIC_ASSERT(sizeof(RawOldHeader) == 14);
+    static_assert(sizeof(RawBasicHeader) == 10, "Invalid layout");
+    static_assert(sizeof(RawNewHeader) == 16, "Invalid layout");
+    static_assert(sizeof(RawOldHeader) == 14, "Invalid layout");
 
     template<class HeaderType>
     bool FastCheck(const HeaderType& hdr)

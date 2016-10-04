@@ -72,7 +72,7 @@ namespace Archived
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 36);
+    static_assert(sizeof(RawHeader) == 36, "Invalid layout");
 
     struct Index
     {

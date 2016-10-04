@@ -231,10 +231,10 @@ namespace Packed
       "6f"            // ld l,a
     );
 
-    BOOST_STATIC_ASSERT(sizeof(Version1::RawHeader) == 0x58);
-    BOOST_STATIC_ASSERT(offsetof(Version1::RawHeader, DepackerBody) == 0x17);
-    BOOST_STATIC_ASSERT(sizeof(Version2::RawHeader) == 0x56);
-    BOOST_STATIC_ASSERT(offsetof(Version2::RawHeader, DepackerBody) == 0x17);
+    static_assert(sizeof(Version1::RawHeader) == 0x58, "Invalid layout");
+    static_assert(offsetof(Version1::RawHeader, DepackerBody) == 0x17, "Invalid layout");
+    static_assert(sizeof(Version2::RawHeader) == 0x56, "Invalid layout");
+    static_assert(offsetof(Version2::RawHeader, DepackerBody) == 0x17, "Invalid layout");
 
     template<class Version>
     class Container

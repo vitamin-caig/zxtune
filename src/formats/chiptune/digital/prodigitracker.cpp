@@ -149,12 +149,12 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Ornament) == 16);
-    BOOST_STATIC_ASSERT(sizeof(OrnamentLoop) == 2);
-    BOOST_STATIC_ASSERT(sizeof(Sample) == 16);
-    BOOST_STATIC_ASSERT(sizeof(Note) == 2);
-    BOOST_STATIC_ASSERT(sizeof(Pattern) == 512);
-    BOOST_STATIC_ASSERT(sizeof(Header) == 0x4300);
+    static_assert(sizeof(Ornament) == 16, "Invalid layout");
+    static_assert(sizeof(OrnamentLoop) == 2, "Invalid layout");
+    static_assert(sizeof(Sample) == 16, "Invalid layout");
+    static_assert(sizeof(Note) == 2, "Invalid layout");
+    static_assert(sizeof(Pattern) == 512, "Invalid layout");
+    static_assert(sizeof(Header) == 0x4300, "Invalid layout");
 
     const std::size_t MODULE_SIZE = sizeof(Header) + PAGES_COUNT * ZX_PAGE_SIZE;
 

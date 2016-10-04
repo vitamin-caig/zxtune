@@ -113,7 +113,7 @@ namespace Chiptune
 
       bool Check() const
       {
-        BOOST_STATIC_ASSERT(sizeof(ASC_ID_1) == sizeof(Identifier1));
+        static_assert(sizeof(ASC_ID_1) == sizeof(Identifier1), "Invalid layout");
         return 0 == std::memcmp(Identifier1, ASC_ID_1, sizeof(Identifier1));
       }
 
@@ -253,14 +253,14 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeaderVer0) == 9);
-    BOOST_STATIC_ASSERT(sizeof(RawHeaderVer1) == 10);
-    BOOST_STATIC_ASSERT(sizeof(RawId) == 63);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 6);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnamentsList) == 64);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawSamplesList) == 64);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 3);
+    static_assert(sizeof(RawHeaderVer0) == 9, "Invalid layout");
+    static_assert(sizeof(RawHeaderVer1) == 10, "Invalid layout");
+    static_assert(sizeof(RawId) == 63, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 6, "Invalid layout");
+    static_assert(sizeof(RawOrnamentsList) == 64, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 2, "Invalid layout");
+    static_assert(sizeof(RawSamplesList) == 64, "Invalid layout");
+    static_assert(sizeof(RawSample) == 3, "Invalid layout");
     
     template<class RawHeader>
     std::size_t GetHeaderSize(const RawHeader& hdr)

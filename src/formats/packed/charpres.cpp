@@ -100,7 +100,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x1f);
+    static_assert(sizeof(RawHeader) == 0x1f, "Invalid layout");
 
     class Container
     {
