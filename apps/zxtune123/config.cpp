@@ -153,7 +153,7 @@ namespace
     const String configName(filename.empty() ? Text::CONFIG_FILENAME : filename);
 
     typedef std::basic_ifstream<Char> FileStream;
-    std::auto_ptr<FileStream> configFile(new FileStream(configName.c_str()));
+    std::unique_ptr<FileStream> configFile(new FileStream(configName.c_str()));
     if (!*configFile)
     {
       if (!filename.empty())

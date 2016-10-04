@@ -304,7 +304,7 @@ namespace
     void Exec(const QPoint& pos)
     {
       SelectedItems = View.GetSelectedItems();
-      const std::auto_ptr<QMenu> delegate = CreateMenu();
+      const std::unique_ptr<QMenu> delegate = CreateMenu();
       delegate->exec(pos);
     }
 
@@ -489,16 +489,16 @@ namespace
       Controller.GetModel()->PerformOperation(op);
     }
   private:
-    std::auto_ptr<QMenu> CreateMenu()
+    std::unique_ptr<QMenu> CreateMenu()
     {
       switch (const std::size_t items = SelectedItems->size())
       {
       case 0:
-        return std::auto_ptr<QMenu>(new NoItemsContextMenu(View, *this));
+        return std::unique_ptr<QMenu>(new NoItemsContextMenu(View, *this));
       case 1:
-        return std::auto_ptr<QMenu>(new SingleItemContextMenu(View, *this));
+        return std::unique_ptr<QMenu>(new SingleItemContextMenu(View, *this));
       default:
-        return std::auto_ptr<QMenu>(new MultipleItemsContextMenu(View, *this, items));
+        return std::unique_ptr<QMenu>(new MultipleItemsContextMenu(View, *this, items));
       }
     }
 

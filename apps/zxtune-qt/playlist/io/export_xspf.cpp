@@ -23,8 +23,6 @@
 #include <core/plugins/archives/zdata_supp.h>
 //std includes
 #include <set>
-//boost includes
-#include <boost/scoped_ptr.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -173,7 +171,7 @@ namespace
   private:
     QXmlStreamWriter& XML;
     const AttributesFilter Filter;
-    boost::scoped_ptr<StringPropertySaver> Saver;
+    std::unique_ptr<StringPropertySaver> Saver;
   };
 
   class ItemPropertiesSaver : private Parameters::Visitor
@@ -435,9 +433,9 @@ namespace
   class ItemCompositeWriter : public ItemWriter
   {
   public:
-    ItemCompositeWriter(std::auto_ptr<ItemWriter> loc, std::auto_ptr<ItemWriter> props)
-      : Location(loc)
-      , Properties(props)
+    ItemCompositeWriter(std::unique_ptr<ItemWriter> loc, std::unique_ptr<ItemWriter> props)
+      : Location(std::move(loc))
+      , Properties(std::move(props))
     {
     }
 
@@ -447,14 +445,14 @@ namespace
       Properties->Save(item, saver);
     }
   private:
-    const std::auto_ptr<ItemWriter> Location;
-    const std::auto_ptr<ItemWriter> Properties;
+    const std::unique_ptr<ItemWriter> Location;
+    const std::unique_ptr<ItemWriter> Properties;
   };
 
-  std::auto_ptr<const ItemWriter> CreateWriter(const QString& filename, Playlist::IO::ExportFlags flags)
+  std::unique_ptr<const ItemWriter> CreateWriter(const QString& filename, Playlist::IO::ExportFlags flags)
   {
-    std::auto_ptr<ItemWriter> location;
-    std::auto_ptr<ItemWriter> props;
+    std::unique_ptr<ItemWriter> location;
+    std::unique_ptr<ItemWriter> props;
     if (0 != (flags & Playlist::IO::SAVE_CONTENT))
     {
       location.reset(new ItemContentLocationWriter());
@@ -479,7 +477,7 @@ namespace
         location.reset(new ItemFullLocationWriter());
       }
     }
-    return std::auto_ptr<const ItemWriter>(new ItemCompositeWriter(location, props));
+    return std::unique_ptr<const ItemWriter>(new ItemCompositeWriter(std::move(location), std::move(props)));
   }
 
   class XSPFWriter
@@ -547,7 +545,7 @@ namespace Playlist
       {
         throw Error(THIS_LINE, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
       }
-      const std::auto_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
+      const std::unique_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
       XSPFWriter writer(device, *itemWriter);
       const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
       writer.WriteProperties(*playlistProperties, container->GetItemsCount());

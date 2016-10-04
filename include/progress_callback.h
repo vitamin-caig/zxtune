@@ -22,7 +22,7 @@ namespace Log
   class ProgressCallback
   {
   public:
-    typedef std::auto_ptr<ProgressCallback> Ptr;
+    typedef std::unique_ptr<ProgressCallback> Ptr;
     virtual ~ProgressCallback() {}
 
     virtual void OnProgress(uint_t current) = 0;

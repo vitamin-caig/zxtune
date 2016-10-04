@@ -16,8 +16,6 @@
 #include <parameters/tracking_helper.h>
 //3rdparty includes
 #include <3rdparty/z80ex/include/z80ex.h>
-//boost includes
-#include <boost/scoped_ptr.hpp>
 //std includes
 #include <functional>
 
@@ -395,7 +393,7 @@ namespace Z80
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     ClockSource Clock;
-    const boost::scoped_ptr<IOBus> Bus;
+    const std::unique_ptr<IOBus> Bus;
     const boost::shared_ptr<Z80EX_CONTEXT> Context;
   };
 }

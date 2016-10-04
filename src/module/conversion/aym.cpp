@@ -158,9 +158,9 @@ namespace Module
     {
       const Renderer::Ptr renderer = holder.CreateRenderer(params, dumper);
       while (renderer->RenderFrame()) {}
-      std::auto_ptr<Dump> dst(new Dump());
+      std::unique_ptr<Dump> dst(new Dump());
       dumper->GetDump(*dst);
-      return Binary::CreateContainer(dst);
+      return Binary::CreateContainer(std::move(dst));
     }
     catch (const Error& err)
     {

@@ -129,12 +129,12 @@ namespace Multitrack
       {
         Require(Info != 0);
         const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - static_cast<const uint8_t*>(Delegate->Start());
-        std::auto_ptr<Dump> content(new Dump(Delegate->Size()));
+        std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
         std::memcpy(&content->front(), Delegate->Start(), content->size());
         InfoChunkFull* const info = safe_ptr_cast<InfoChunkFull*>(&content->front() + infoOffset);
         Require(idx < info->TracksCount);
         info->StartTrack = idx;
-        return MakePtr<Container>(info, FixedCrc, Binary::CreateContainer(content));
+        return MakePtr<Container>(info, FixedCrc, Binary::CreateContainer(std::move(content)));
       }
     private:
       const InfoChunkFull* const Info;

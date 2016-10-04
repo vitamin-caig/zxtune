@@ -215,8 +215,8 @@ namespace
 
 namespace Downloads
 {
-  std::auto_ptr<RSS::Visitor> CreateFeedVisitor(const QString& project, Visitor& delegate)
+  std::unique_ptr<RSS::Visitor> CreateFeedVisitor(const QString& project, Visitor& delegate)
   {
-    return std::auto_ptr<RSS::Visitor>(new FeedVisitor(project, delegate));
+    return std::unique_ptr<RSS::Visitor>(new FeedVisitor(project, delegate));
   }
 }

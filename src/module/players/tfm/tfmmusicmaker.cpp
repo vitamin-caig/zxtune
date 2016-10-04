@@ -19,8 +19,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-//boost includes
-#include <boost/scoped_ptr.hpp>
 
 namespace Module
 {
@@ -1141,7 +1139,7 @@ namespace TFMMusicMaker
       }
     }
   private:
-    boost::scoped_ptr<const PlainTrackState> Begin;
+    std::unique_ptr<const PlainTrackState> Begin;
     uint_t Counter;
   };
 
@@ -1445,7 +1443,7 @@ namespace TFMMusicMaker
   private:
     const ModuleData::Ptr Data;
     const TrackStateCursor::Ptr Cursor;
-    boost::scoped_ptr<const PlainTrackState> LoopState;
+    std::unique_ptr<const PlainTrackState> LoopState;
   };
 
   class InformationImpl : public Information

@@ -185,18 +185,18 @@ namespace Chiptune
       }
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*sample*/) {}
-      virtual std::auto_ptr<ChannelBuilder> SetSampleMixin(uint_t /*index*/, uint_t /*period*/)
+      virtual std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t /*index*/, uint_t /*period*/)
       {
-        return std::auto_ptr<ChannelBuilder>(new StubChannelBuilder());
+        return std::unique_ptr<ChannelBuilder>(new StubChannelBuilder());
       }
       virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
       virtual PatternBuilder& StartPattern(uint_t /*index*/)
       {
         return GetStubPatternBuilder();
       }
-      virtual std::auto_ptr<ChannelBuilder> StartChannel(uint_t /*index*/)
+      virtual std::unique_ptr<ChannelBuilder> StartChannel(uint_t /*index*/)
       {
-        return std::auto_ptr<ChannelBuilder>(new StubChannelBuilder());
+        return std::unique_ptr<ChannelBuilder>(new StubChannelBuilder());
       }
     };
 
@@ -225,7 +225,7 @@ namespace Chiptune
         return Delegate.SetSample(index, loop, data);
       }
 
-      virtual std::auto_ptr<ChannelBuilder> SetSampleMixin(uint_t index, uint_t period)
+      virtual std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t index, uint_t period)
       {
         return Delegate.SetSampleMixin(index, period);
       }
@@ -242,7 +242,7 @@ namespace Chiptune
         return Delegate.StartPattern(index);
       }
 
-      virtual std::auto_ptr<ChannelBuilder> StartChannel(uint_t index)
+      virtual std::unique_ptr<ChannelBuilder> StartChannel(uint_t index)
       {
         return Delegate.StartChannel(index);
       }
@@ -309,7 +309,7 @@ namespace Chiptune
         {
           Dbg("Parse mixin %1%", mixIdx);
           const MixedLine& src = Source.Mixings[mixIdx];
-          const std::auto_ptr<ChannelBuilder> dst = target.SetSampleMixin(mixIdx, src.Period);
+          const std::unique_ptr<ChannelBuilder> dst = target.SetSampleMixin(mixIdx, src.Period);
           ParseChannel(src.Mixin, *dst);
         }
       }
@@ -422,7 +422,7 @@ namespace Chiptune
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
           const Pattern::Line::Channel& srcChan = line.Channels[chanNum];
-          std::auto_ptr<ChannelBuilder> dstChan = target.StartChannel(chanNum);
+          std::unique_ptr<ChannelBuilder> dstChan = target.StartChannel(chanNum);
           ParseChannel(srcChan, *dstChan);
           if (srcChan.NoteCommand == SET_TEMPO && srcChan.SampleParam)
           {

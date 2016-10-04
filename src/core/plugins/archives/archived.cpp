@@ -50,17 +50,17 @@ namespace ZXTune
       }
     }
 
-    std::auto_ptr<Module::DetectCallback> CreateNestedCallback() const
+    std::unique_ptr<Module::DetectCallback> CreateNestedCallback() const
     {
       Log::ProgressCallback* const parentProgress = Delegate.GetProgress();
       if (parentProgress && Total < 50)
       {
         Log::ProgressCallback::Ptr nestedProgress = CreateNestedPercentProgressCallback(Total, Current, *parentProgress);
-        return std::auto_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate, nestedProgress));
+        return std::unique_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate, std::move(nestedProgress)));
       }
       else
       {
-        return std::auto_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate));
+        return std::unique_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate));
       }
     }
 
@@ -110,7 +110,7 @@ namespace ZXTune
       {
         const String subPath = file.GetName();
         const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(BaseLocation, subData, SubPlugin, subPath);
-        const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
+        const std::unique_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
         Module::Detect(Params, subLocation, *nestedProgressCallback);
       }
       Logger.Next();

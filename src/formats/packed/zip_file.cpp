@@ -83,7 +83,7 @@ namespace Packed
     private:
       const uint8_t* const Data;
       const std::size_t Size;
-      mutable std::auto_ptr<const CompressedFile> File;
+      mutable std::unique_ptr<const CompressedFile> File;
     };
     
     class DataDecoder
@@ -91,7 +91,7 @@ namespace Packed
     public:
       virtual ~DataDecoder() {}
 
-      virtual std::auto_ptr<Dump> Decompress() const = 0;
+      virtual std::unique_ptr<Dump> Decompress() const = 0;
     };
 
     class StoreDataDecoder : public DataDecoder
@@ -104,17 +104,17 @@ namespace Packed
       {
       }
 
-      virtual std::auto_ptr<Dump> Decompress() const
+      virtual std::unique_ptr<Dump> Decompress() const
       {
         if (Size != DestSize)
         {
           Dbg("Stored file sizes mismatch");
-          return std::auto_ptr<Dump>();
+          return std::unique_ptr<Dump>();
         }
         else
         {
           Dbg("Restore %1% bytes", DestSize);
-          return std::auto_ptr<Dump>(new Dump(Start, Start + DestSize));
+          return std::unique_ptr<Dump>(new Dump(Start, Start + DestSize));
         }
       }
     private:
@@ -133,10 +133,10 @@ namespace Packed
       {
       }
 
-      virtual std::auto_ptr<Dump> Decompress() const
+      virtual std::unique_ptr<Dump> Decompress() const
       {
         Dbg("Inflate %1% -> %2%", Size, DestSize);
-        std::auto_ptr<Dump> res(new Dump(DestSize));
+        std::unique_ptr<Dump> res(new Dump(DestSize));
         switch (const int err = Uncompress(*res))
         {
         case Z_OK:
@@ -153,7 +153,7 @@ namespace Packed
         default:
           Dbg("Unknown error (%1%)", err);
         }
-        return std::auto_ptr<Dump>();
+        return std::unique_ptr<Dump>();
       }
     private:
       int Uncompress(Dump& dst) const
@@ -180,7 +180,7 @@ namespace Packed
       const std::size_t DestSize;
     };
 
-    std::auto_ptr<DataDecoder> CreateDecoder(const LocalFileHeader& header, const CompressedFile& file)
+    std::unique_ptr<DataDecoder> CreateDecoder(const LocalFileHeader& header, const CompressedFile& file)
     {
       const uint8_t* const start = safe_ptr_cast<const uint8_t*>(&header) + header.GetSize();
       const std::size_t size = file.GetPackedSize() - header.GetSize();
@@ -188,14 +188,14 @@ namespace Packed
       switch (fromLE(header.CompressionMethod))
       {
       case 0:
-        return std::auto_ptr<DataDecoder>(new StoreDataDecoder(start, size, outSize));
+        return std::unique_ptr<DataDecoder>(new StoreDataDecoder(start, size, outSize));
         break;
       case 8:
       case 9:
-        return std::auto_ptr<DataDecoder>(new InflatedDataDecoder(start, size, outSize));
+        return std::unique_ptr<DataDecoder>(new InflatedDataDecoder(start, size, outSize));
         break;
       }
-      return std::auto_ptr<DataDecoder>();
+      return std::unique_ptr<DataDecoder>();
     }
    
     class DispatchedDataDecoder : public DataDecoder
@@ -207,18 +207,18 @@ namespace Packed
       {
       }
 
-      virtual std::auto_ptr<Dump> Decompress() const
+      virtual std::unique_ptr<Dump> Decompress() const
       {
         if (!IsValid)
         {
-          return std::auto_ptr<Dump>();
+          return std::unique_ptr<Dump>();
         }
-        std::auto_ptr<Dump> result = Delegate->Decompress();
+        std::unique_ptr<Dump> result = Delegate->Decompress();
         IsValid = result.get() != 0;
         return result;
       }
     private:
-      const std::auto_ptr<DataDecoder> Delegate;
+      const std::unique_ptr<DataDecoder> Delegate;
       mutable bool IsValid;
     };
 
@@ -337,20 +337,20 @@ namespace Packed
       return sizeof(*this) - 1 + fromLE(DataSize);
     }
 
-    std::auto_ptr<const CompressedFile> CompressedFile::Create(const LocalFileHeader& hdr, std::size_t availSize)
+    std::unique_ptr<const CompressedFile> CompressedFile::Create(const LocalFileHeader& hdr, std::size_t availSize)
     {
       assert(availSize > sizeof(hdr));
       if (0 != (fromLE(hdr.Flags) & FILE_ATTRIBUTES_IN_FOOTER))
       {
         if (const LocalFileFooter* footer = FindFooter(hdr, availSize))
         {
-          return std::auto_ptr<const CompressedFile>(new StreamedFile(hdr, *footer));
+          return std::unique_ptr<const CompressedFile>(new StreamedFile(hdr, *footer));
         }
-        return std::auto_ptr<const CompressedFile>();
+        return std::unique_ptr<const CompressedFile>();
       }
       else
       {
-        return std::auto_ptr<const CompressedFile>(new RegularFile(hdr));
+        return std::unique_ptr<const CompressedFile>(new RegularFile(hdr));
       }
     }
   }//namespace Zip

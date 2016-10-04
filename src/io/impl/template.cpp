@@ -17,7 +17,6 @@
 #include <strings/array.h>
 #include <strings/fields.h>
 //boost includes
-#include <boost/ref.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/algorithm/string/join.hpp>
 
@@ -66,7 +65,7 @@ namespace IO
   {
   public:
     explicit FilenameTemplate(Strings::Template::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 
@@ -82,6 +81,6 @@ namespace IO
   Strings::Template::Ptr CreateFilenameTemplate(const String& notation)
   {
     Strings::Template::Ptr delegate = Strings::Template::Create(notation);
-    return MakePtr<FilenameTemplate>(boost::ref(delegate));
+    return MakePtr<FilenameTemplate>(std::move(delegate));
   }
 }

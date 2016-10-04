@@ -85,9 +85,9 @@ namespace Binary
 
     Container::Ptr CaptureResult()
     {
-      return CreateContainer(Content);
+      return CreateContainer(std::move(Content));
     }
   private:
-    std::auto_ptr<Dump> Content;
+    std::unique_ptr<Dump> Content;
   };
 }

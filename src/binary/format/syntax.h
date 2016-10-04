@@ -20,7 +20,7 @@ namespace Binary
     class FormatTokensVisitor
     {
     public:
-      typedef std::auto_ptr<FormatTokensVisitor> Ptr;
+      typedef std::unique_ptr<FormatTokensVisitor> Ptr;
       virtual ~FormatTokensVisitor() {}
 
       virtual void Match(const std::string& val) = 0;

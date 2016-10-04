@@ -314,7 +314,7 @@ namespace File
   private:
     const Parameters::Accessor::Ptr Params;
     const FileStreamFactory::Ptr Factory;
-    std::auto_ptr<StreamSource> Source;
+    std::unique_ptr<StreamSource> Source;
     Receiver::Ptr Stream;
   };
 }//File

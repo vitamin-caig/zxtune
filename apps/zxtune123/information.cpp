@@ -537,7 +537,7 @@ namespace
   };
 }
 
-std::auto_ptr<InformationComponent> InformationComponent::Create()
+std::unique_ptr<InformationComponent> InformationComponent::Create()
 {
-  return std::auto_ptr<InformationComponent>(new Information);
+  return std::unique_ptr<InformationComponent>(new Information);
 }

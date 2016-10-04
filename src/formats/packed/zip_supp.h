@@ -194,7 +194,7 @@ namespace Formats
         virtual std::size_t GetPackedSize() const = 0;
         virtual std::size_t GetUnpackedSize() const = 0;
 
-        static std::auto_ptr<const CompressedFile> Create(const LocalFileHeader& hdr, std::size_t availSize);
+        static std::unique_ptr<const CompressedFile> Create(const LocalFileHeader& hdr, std::size_t availSize);
       };
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)

@@ -29,8 +29,6 @@
 #include <functional>
 //boost includes
 #include <boost/noncopyable.hpp>
-#include <boost/scoped_array.hpp>
-#include <boost/scoped_ptr.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 //text includes
@@ -174,7 +172,7 @@ namespace OpenAl
   private:
     const ALenum Format;
     const uint_t Size;
-    const boost::scoped_array<ALuint> Ids;
+    const std::unique_ptr<ALuint[]> Ids;
   };
   
   class Source : private ApiRef
@@ -277,7 +275,7 @@ namespace OpenAl
     const uint_t Freq;
     const boost::posix_time::millisec SleepPeriod;
     ALuint SrcId;
-    boost::scoped_ptr<Buffers> Queue;
+    std::unique_ptr<Buffers> Queue;
   };
 
   class Device : private ApiRef
@@ -297,7 +295,7 @@ namespace OpenAl
     
   private:
     const boost::shared_ptr<ALCdevice> Dev;
-    boost::scoped_ptr<ActiveContext> Context;
+    std::unique_ptr<ActiveContext> Context;
   };
 
   class BackendParameters
@@ -374,8 +372,8 @@ namespace OpenAl
     {
     }
 
-    const boost::scoped_ptr<Device> Dev;
-    const boost::scoped_ptr<Source> Src;
+    const std::unique_ptr<Device> Dev;
+    const std::unique_ptr<Source> Src;
     const VolumeControl::Ptr Vol;
   };
   
@@ -430,7 +428,7 @@ namespace OpenAl
   private:
     const Api::Ptr OalApi;
     const Parameters::Accessor::Ptr Params;
-    boost::scoped_ptr<State> Stat;
+    std::unique_ptr<State> Stat;
   };
 
   class BackendWorkerFactory : public Sound::BackendWorkerFactory

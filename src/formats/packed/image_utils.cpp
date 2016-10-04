@@ -54,13 +54,13 @@ namespace Formats
 
     virtual Binary::Container::Ptr GetResult() const
     {
-      std::auto_ptr<Dump> result(new Dump(TotalSize));
+      std::unique_ptr<Dump> result(new Dump(TotalSize));
       Dump::iterator dst = result->begin();
       for (SectorsMap::const_iterator it = Sectors.begin(), lim = Sectors.end(); it != lim; ++it)
       {
         dst = std::copy(it->second.begin(), it->second.end(), dst);
       }
-      return Binary::CreateContainer(result);
+      return Binary::CreateContainer(std::move(result));
     }
   private:
     typedef std::map<CHS, Dump, bool(*)(const CHS&, const CHS&)> SectorsMap;

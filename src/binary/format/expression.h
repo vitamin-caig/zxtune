@@ -37,7 +37,7 @@ namespace Binary
     class Expression
     {
     public:
-      typedef std::auto_ptr<const Expression> Ptr;
+      typedef std::unique_ptr<const Expression> Ptr;
       virtual ~Expression() {}
 
       virtual std::size_t StartOffset() const = 0;

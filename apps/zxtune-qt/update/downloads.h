@@ -26,5 +26,5 @@ namespace Downloads
     virtual void OnDownload(Product::Update::Ptr update) = 0;
   };
 
-  std::auto_ptr<RSS::Visitor> CreateFeedVisitor(const QString& project, Visitor& delegate);
+  std::unique_ptr<RSS::Visitor> CreateFeedVisitor(const QString& project, Visitor& delegate);
 }

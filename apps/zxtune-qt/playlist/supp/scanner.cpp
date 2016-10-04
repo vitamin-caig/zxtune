@@ -127,7 +127,7 @@ namespace
     }
   private:
     FilenamesSource& Delegate;
-    std::auto_ptr<QDirIterator> CurDir;
+    std::unique_ptr<QDirIterator> CurDir;
   };
 
   class PrefetchedFilenames : public FilenamesSource

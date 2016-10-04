@@ -29,7 +29,7 @@ namespace boost
 class DisplayComponent
 {
 public:
-  typedef std::auto_ptr<DisplayComponent> Ptr;
+  typedef std::unique_ptr<DisplayComponent> Ptr;
 
   virtual ~DisplayComponent() {}
 

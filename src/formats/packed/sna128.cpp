@@ -111,7 +111,7 @@ namespace Packed
     {
       static const uint_t PAGE_NUM_TO_INDEX[] = {2, 3, 1, 4, 5, 0, 6, 7};
 
-      std::auto_ptr<Dump> result(new Dump(sizeof(ResultData)));
+      std::unique_ptr<Dump> result(new Dump(sizeof(ResultData)));
       const Header& src = *safe_ptr_cast<const Header*>(rawData);
       ResultData& dst = *safe_ptr_cast<ResultData*>(&result->front());
       const uint_t curPage = src.Port7FFD & 7;
@@ -132,7 +132,7 @@ namespace Packed
         ++idx;
       }
       const std::size_t origSize = pageDuped ? sizeof(src) + sizeof(PageData) : sizeof(src);
-      return CreateContainer(result, origSize);
+      return CreateContainer(std::move(result), origSize);
     }
 
     const std::string FORMAT(

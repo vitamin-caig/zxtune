@@ -43,5 +43,5 @@ public:
 
   virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
 
-  static std::auto_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
+  static std::unique_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
 };

@@ -451,7 +451,7 @@ namespace Chiptune
 
       virtual Binary::Container::Ptr Result() const
       {
-        std::auto_ptr<VariableDump> result(new VariableDump());
+        std::unique_ptr<VariableDump> result(new VariableDump());
         //init header
         Header* const header = result->Add(Header());
         std::memset(header, 0, sizeof(*header));
@@ -492,7 +492,7 @@ namespace Chiptune
           SetPointer(&dst->Offset, result->Add(&it->second[0], it->second.size()));
           Dbg("Stored block %1% bytes at %2% stored at %3%", fromBE(dst->Size), fromBE(dst->Address), fromBE(dst->Offset));
         }
-        return Binary::CreateContainer(std::auto_ptr<Dump>(result));
+        return Binary::CreateContainer(std::unique_ptr<Dump>(std::move(result)));
       }
     private:
       String Title;

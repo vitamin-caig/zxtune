@@ -16,8 +16,6 @@
 #include <contract.h>
 //library includes
 #include <debug/log.h>
-//boost includes
-#include <boost/scoped_ptr.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtNetwork/QLocalServer>
@@ -102,7 +100,7 @@ namespace
     {
       while (QLocalSocket* conn = Server->nextPendingConnection())
       {
-        const boost::scoped_ptr<QLocalSocket> holder(conn);
+        const std::unique_ptr<QLocalSocket> holder(conn);
         QStringList cmdline;
         ReadDataFrom(*holder, cmdline);
         Dbg("Slave passed cmdline '%1%'", FromQString(cmdline.join(" ")));
@@ -216,7 +214,7 @@ namespace
     }
 
   private:
-    std::auto_ptr<QLocalServer> Server;
+    std::unique_ptr<QLocalServer> Server;
   };
 }
 

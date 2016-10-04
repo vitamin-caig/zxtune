@@ -44,7 +44,7 @@ namespace Module
   public:
     CustomProgressDetectCallbackAdapter(const DetectCallback& delegate, Log::ProgressCallback::Ptr progress)
       : DetectCallbackDelegate(delegate)
-      , Progress(progress)
+      , Progress(std::move(progress))
     {
     }
 

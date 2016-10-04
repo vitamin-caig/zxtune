@@ -21,7 +21,7 @@
 class RangeChecker
 {
 public:
-  typedef std::auto_ptr<RangeChecker> Ptr;
+  typedef std::unique_ptr<RangeChecker> Ptr;
 
   virtual ~RangeChecker() {}
 

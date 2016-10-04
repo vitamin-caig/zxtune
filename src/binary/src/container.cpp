@@ -107,9 +107,9 @@ namespace Binary
     }
   }
 
-  Container::Ptr CreateContainer(std::auto_ptr<Dump> data)
+  Container::Ptr CreateContainer(std::unique_ptr<Dump> data)
   {
-    const boost::shared_ptr<const Dump> buffer(data);
+    const boost::shared_ptr<const Dump> buffer(data.release());
     const std::size_t size = buffer ? buffer->size() : 0;
     return CreateContainer(buffer, 0, size);
   }

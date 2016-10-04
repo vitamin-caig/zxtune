@@ -54,11 +54,11 @@ namespace Chiptune
     virtual Binary::Container::Ptr GetResult() const
     {
       const uint8_t* const srcData = static_cast<const uint8_t*>(Source.Start());
-      std::auto_ptr<Dump> result(new Dump(srcData, srcData + Source.Size()));
+      std::unique_ptr<Dump> result(new Dump(srcData, srcData + Source.Size()));
       ApplyFixes(*result);
       ApplyOverwrites(*result);
       ApplyInsertions(*result);
-      return Binary::CreateContainer(result);
+      return Binary::CreateContainer(std::move(result));
     }
   private:
     void ApplyFixes(Dump& result) const

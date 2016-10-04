@@ -249,11 +249,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -399,7 +399,7 @@ namespace Packed
       bool IsValid;
       StreamAdapter Stream;
       const uint_t ChunksCount;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
 
@@ -419,11 +419,11 @@ namespace Packed
       {
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return Delegate.get()
           ? Delegate->GetResult()
-          : std::auto_ptr<Dump>();
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -435,7 +435,7 @@ namespace Packed
     private:
       const Version4::RawHeader& Header;
       const std::size_t DataOffset;
-      const std::auto_ptr<RawDataDecoder> Delegate;
+      const std::unique_ptr<RawDataDecoder> Delegate;
     };
 
 
@@ -505,11 +505,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return Delegate.get()
           ? Delegate->GetResult()
-          : std::auto_ptr<Dump>();
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -543,7 +543,7 @@ namespace Packed
       const uint_t DataOffset;
       std::size_t DataSize;
       Dump UnhuffmanData;
-      std::auto_ptr<RawDataDecoder> Delegate;
+      std::unique_ptr<RawDataDecoder> Delegate;
     };
   }//namespace CompressorCode
 

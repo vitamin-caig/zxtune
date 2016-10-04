@@ -138,12 +138,12 @@ namespace Multitrack
       
       virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
       {
-        std::auto_ptr<Dump> content(new Dump(Delegate->Size()));
+        std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
         std::memcpy(&content->front(), Delegate->Start(), content->size());
         RawHeader* const hdr = safe_ptr_cast<RawHeader*>(&content->front());
         Require(idx < hdr->SongsCount);
         hdr->StartSong = idx + 1;
-        return MakePtr<Container>(hdr, Binary::CreateContainer(content));
+        return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
       }
     private:
       const RawHeader* const Hdr;

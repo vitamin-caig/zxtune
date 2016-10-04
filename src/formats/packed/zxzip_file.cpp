@@ -157,7 +157,7 @@ namespace Packed
     public:
       virtual ~DataDecoder() {}
 
-      virtual std::auto_ptr<Dump> GetDecodedData() = 0;
+      virtual std::unique_ptr<Dump> GetDecodedData() = 0;
     };
 
     class StoreDataDecoder : public DataDecoder
@@ -169,11 +169,11 @@ namespace Packed
         assert(STORE == Header.Method);
       }
 
-      virtual std::auto_ptr<Dump> GetDecodedData()
+      virtual std::unique_ptr<Dump> GetDecodedData()
       {
         const uint_t packedSize = fromLE(Header.PackedSize);
         const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
-        std::auto_ptr<Dump> res(new Dump(packedSize));
+        std::unique_ptr<Dump> res(new Dump(packedSize));
         std::memcpy(&(*res)[0], sourceData, packedSize);
         return res;
       }
@@ -330,7 +330,7 @@ namespace Packed
         assert(IMPLODE == Header.Method);
       }
 
-      virtual std::auto_ptr<Dump> GetDecodedData()
+      virtual std::unique_ptr<Dump> GetDecodedData()
       {
         const std::size_t dataSize = GetSourceFileSize(Header);
         const bool isBigFile = dataSize >= 0x1600;
@@ -399,13 +399,13 @@ namespace Packed
               }
             }
           }
-          std::auto_ptr<Dump> res(new Dump());
+          std::unique_ptr<Dump> res(new Dump());
           res->swap(result);
           return res;
         }
         catch (const std::exception&)
         {
-          return std::auto_ptr<Dump>();
+          return std::unique_ptr<Dump>();
         }
       }
     private:
@@ -486,7 +486,7 @@ namespace Packed
         assert(SHRINK == Header.Method);
       }
 
-      virtual std::auto_ptr<Dump> GetDecodedData()
+      virtual std::unique_ptr<Dump> GetDecodedData()
       {
         try
         {
@@ -543,13 +543,13 @@ namespace Packed
               oldCode = code;
             }
           }
-          std::auto_ptr<Dump> res(new Dump());
+          std::unique_ptr<Dump> res(new Dump());
           res->swap(result);
           return res;
         }
         catch (const std::exception&)
         {
-          return std::auto_ptr<Dump>();
+          return std::unique_ptr<Dump>();
         }
       }
     private:
@@ -587,18 +587,18 @@ namespace Packed
       const RawHeader& Header;
     };
 
-    std::auto_ptr<DataDecoder> CreateDecoder(const RawHeader& header)
+    std::unique_ptr<DataDecoder> CreateDecoder(const RawHeader& header)
     {
       switch (header.Method)
       {
       case STORE:
-        return std::auto_ptr<DataDecoder>(new StoreDataDecoder(header));
+        return std::unique_ptr<DataDecoder>(new StoreDataDecoder(header));
       case IMPLODE:
-        return std::auto_ptr<DataDecoder>(new ImplodeDataDecoder(header));
+        return std::unique_ptr<DataDecoder>(new ImplodeDataDecoder(header));
       case SHRINK:
-        return std::auto_ptr<DataDecoder>(new ShrinkDataDecoder(header));
+        return std::unique_ptr<DataDecoder>(new ShrinkDataDecoder(header));
       default:
-        return std::auto_ptr<DataDecoder>();
+        return std::unique_ptr<DataDecoder>();
       };
     };
 
@@ -612,13 +612,13 @@ namespace Packed
       {
       }
 
-      std::auto_ptr<Dump> GetDecodedData()
+      std::unique_ptr<Dump> GetDecodedData()
       {
         if (!IsValid)
         {
-          return std::auto_ptr<Dump>();
+          return std::unique_ptr<Dump>();
         }
-        std::auto_ptr<Dump> result = Delegate->GetDecodedData();
+        std::unique_ptr<Dump> result = Delegate->GetDecodedData();
         while (result.get())
         {
           const std::size_t dataSize = GetSourceFileSize(Header);
@@ -635,11 +635,11 @@ namespace Packed
           return result;
         }
         IsValid = false;
-        return std::auto_ptr<Dump>();
+        return std::unique_ptr<Dump>();
       }
     private:
       const RawHeader& Header;
-      const std::auto_ptr<DataDecoder> Delegate;
+      const std::unique_ptr<DataDecoder> Delegate;
       bool IsValid;
     };
   }//namespace ZXZip

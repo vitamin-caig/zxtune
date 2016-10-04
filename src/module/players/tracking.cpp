@@ -15,7 +15,6 @@
 #include <make_ptr.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/scoped_ptr.hpp>
 
 namespace Module
 {
@@ -293,7 +292,7 @@ namespace Module
   private:
     const TrackModel::Ptr Model;
     const TrackStateCursor::Ptr Cursor;
-    boost::scoped_ptr<const PlainTrackState> LoopState;
+    std::unique_ptr<const PlainTrackState> LoopState;
   };
 
   class InformationImpl : public Information

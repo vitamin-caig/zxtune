@@ -127,12 +127,12 @@ namespace Multitrack
       
       virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
       {
-        std::auto_ptr<Dump> content(new Dump(Delegate->Size()));
+        std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
         std::memcpy(&content->front(), Delegate->Start(), content->size());
         ExtraHeader* const hdr = safe_ptr_cast<ExtraHeader*>(&content->front() + sizeof(RawHeader));
         Require(idx <= hdr->LastTrack);
         hdr->FirstTrack = idx;
-        return MakePtr<Container>(hdr, Binary::CreateContainer(content));
+        return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
       }
     private:
       const ExtraHeader* const Hdr;

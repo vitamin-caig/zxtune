@@ -164,11 +164,11 @@ namespace Packed
         IsValid = DecodeData();
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize()
@@ -239,7 +239,7 @@ namespace Packed
       bool IsValid;
       const RawHeader& Header;
       const std::size_t Limit;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
       std::size_t UsedSize;
     };

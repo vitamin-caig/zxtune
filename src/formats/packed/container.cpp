@@ -60,9 +60,9 @@ namespace Formats
         : Container::Ptr();
     }
 
-    Container::Ptr CreateContainer(std::auto_ptr<Dump> data, std::size_t origSize)
+    Container::Ptr CreateContainer(std::unique_ptr<Dump> data, std::size_t origSize)
     {
-      const Binary::Container::Ptr container = Binary::CreateContainer(data);
+      const Binary::Container::Ptr container = Binary::CreateContainer(std::move(data));
       return CreateContainer(container, origSize);
     }
   }

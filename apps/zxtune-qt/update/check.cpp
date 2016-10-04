@@ -136,7 +136,7 @@ namespace
 
   String GetUserAgent()
   {
-    const std::auto_ptr<Strings::FieldsSource> fields = Platform::Version::CreateVersionFieldsSource();
+    const std::unique_ptr<Strings::FieldsSource> fields = Platform::Version::CreateVersionFieldsSource();
     return Strings::Template::Instantiate(Text::HTTP_USERAGENT, *fields);
   }
 
@@ -454,7 +454,7 @@ namespace
       const QUrl feedUrl(ToQString(Params.GetFeedUrl()));
       const Binary::Data::Ptr feedData = Download(feedUrl, cb);
       UpdateState state;
-      const std::auto_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor(Text::DOWNLOADS_PROJECT_NAME, state);
+      const std::unique_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor(Text::DOWNLOADS_PROJECT_NAME, state);
       RSS::Parse(QByteArray(static_cast<const char*>(feedData->Start()), feedData->Size()), *rss);
       StoreLastCheckTime();
       return state.GetUpdate();
@@ -535,7 +535,7 @@ namespace Update
       UpdateParameters params(GlobalOptions::Instance().Get());
       if (IO::ResolveUri(params.GetFeedUrl()))
       {
-        std::auto_ptr<CheckOperation> res(new UpdateCheckOperation(parent, params));
+        std::unique_ptr<CheckOperation> res(new UpdateCheckOperation(parent, params));
         return res.release();
       }
     }

@@ -29,7 +29,7 @@ namespace
     const std::size_t size = stream.tellg();
     stream.seekg(0);
     Binary::DataBuilder data(size);
-    std::auto_ptr<Dump> tmp(new Dump(size));
+    std::unique_ptr<Dump> tmp(new Dump(size));
     stream.read(static_cast<char*>(data.Allocate(size)), size);
     return data.CaptureResult();
   }

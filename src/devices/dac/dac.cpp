@@ -23,7 +23,6 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
-#include <boost/scoped_array.hpp>
 
 namespace Devices
 {
@@ -165,7 +164,7 @@ namespace DAC
     friend class Iterator;
     const uint_t Index;
     const uint_t Rms;
-    const boost::scoped_array<Sound::Sample::Type> Data;
+    const std::unique_ptr<Sound::Sample::Type[]> Data;
     const std::size_t Size;
     const std::size_t Loop;
   };

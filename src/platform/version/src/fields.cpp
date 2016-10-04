@@ -50,9 +50,9 @@ namespace Platform
       }
     };
 
-    std::auto_ptr<Strings::FieldsSource> CreateVersionFieldsSource()
+    std::unique_ptr<Strings::FieldsSource> CreateVersionFieldsSource()
     {
-      return std::auto_ptr<Strings::FieldsSource>(new VersionFieldsSource());
+      return std::unique_ptr<Strings::FieldsSource>(new VersionFieldsSource());
     }
   }
 }

@@ -91,7 +91,7 @@ namespace Test
       }
       if (checkCorrupted)
       {
-        std::auto_ptr<Dump> corruptedDump(new Dump(testdataDump));
+        std::unique_ptr<Dump> corruptedDump(new Dump(testdataDump));
         for (std::size_t count = 0, size = corruptedDump->size(); count != size * 5 / 100; ++count)
         {
           corruptedDump->at(rand() % size) ^= 0xff;

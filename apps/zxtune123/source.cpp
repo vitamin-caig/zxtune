@@ -241,7 +241,7 @@ namespace
   };
 }
 
-std::auto_ptr<SourceComponent> SourceComponent::Create(Parameters::Container::Ptr configParams)
+std::unique_ptr<SourceComponent> SourceComponent::Create(Parameters::Container::Ptr configParams)
 {
-  return std::auto_ptr<SourceComponent>(new Source(configParams));
+  return std::unique_ptr<SourceComponent>(new Source(configParams));
 }

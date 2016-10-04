@@ -225,11 +225,11 @@ namespace DigitalMusicMaker
       Data->Samples.Add(index, Devices::DAC::CreateU4PackedSample(sample, loop));
     }
 
-    virtual std::auto_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> SetSampleMixin(uint_t index, uint_t period)
+    virtual std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> SetSampleMixin(uint_t index, uint_t period)
     {
       ModuleData::MixedChannel& dst = Data->Mixes[index];
       dst.Period = period;
-      return std::auto_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(dst.Mixin));
+      return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(dst.Mixin));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -243,10 +243,10 @@ namespace DigitalMusicMaker
       return Patterns;
     }
 
-    virtual std::auto_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> StartChannel(uint_t index)
+    virtual std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> StartChannel(uint_t index)
     {
       Patterns.SetChannel(index);
-      return std::auto_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(Patterns.GetChannel()));
+      return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(Patterns.GetChannel()));
     }
 
     ModuleData::Ptr GetResult() const

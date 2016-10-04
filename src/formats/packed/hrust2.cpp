@@ -223,11 +223,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
     private:
       bool DecodeData()
@@ -295,7 +295,7 @@ namespace Packed
       const RawHeader& Header;
       Bitstream Stream;
       bool IsValid;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
 
@@ -399,11 +399,11 @@ namespace Packed
           IsValid = IsValid && DecodeData();
         }
 
-        std::auto_ptr<Dump> GetResult()
+        std::unique_ptr<Dump> GetResult()
         {
           return IsValid
-            ? Result
-            : std::auto_ptr<Dump>();
+            ? std::move(Result)
+            : std::unique_ptr<Dump>();
         }
       private:
         bool DecodeData()
@@ -423,7 +423,7 @@ namespace Packed
       private:
         bool IsValid;
         const FormatHeader& Header;
-        std::auto_ptr<Dump> Result;
+        std::unique_ptr<Dump> Result;
       };
     }
 
@@ -485,7 +485,7 @@ namespace Packed
           const std::size_t totalSize = std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), 
             boost::bind(std::plus<std::size_t>(), _1,
               boost::bind(&Binary::Container::Size, _2)));
-          std::auto_ptr<Dump> result(new Dump(totalSize));
+          std::unique_ptr<Dump> result(new Dump(totalSize));
           std::size_t offset = 0;
           for (std::vector<Binary::Container::Ptr>::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
           {
@@ -493,7 +493,7 @@ namespace Packed
             std::memcpy(&result->at(offset), block->Start(), block->Size());
             offset += block->Size();
           }
-          return Binary::CreateContainer(result);
+          return Binary::CreateContainer(std::move(result));
         }
       private:
         std::vector<Binary::Container::Ptr> Blocks;

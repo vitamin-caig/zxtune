@@ -31,7 +31,7 @@ namespace TRDos
   class CatalogueBuilder
   {
   public:
-    typedef std::auto_ptr<CatalogueBuilder> Ptr;
+    typedef std::unique_ptr<CatalogueBuilder> Ptr;
     virtual ~CatalogueBuilder() {}
 
     virtual void SetRawData(Binary::Container::Ptr data) = 0;

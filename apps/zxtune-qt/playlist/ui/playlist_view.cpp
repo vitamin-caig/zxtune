@@ -626,7 +626,7 @@ namespace
           QDataStream stream(&data, QIODevice::WriteOnly);
           stream << paths;
         }
-        std::auto_ptr<QMimeData> mimeData(new QMimeData());
+        std::unique_ptr<QMimeData> mimeData(new QMimeData());
         mimeData->setData(ITEMS_MIMETYPE, data);
         QApplication::clipboard()->setMimeData(mimeData.release());
       }

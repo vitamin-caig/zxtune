@@ -228,14 +228,14 @@ namespace IO
 
   Binary::Data::Ptr ReadFileToMemory(std::ifstream& stream, std::size_t size)
   {
-    std::auto_ptr<Dump> res(new Dump(size));
+    std::unique_ptr<Dump> res(new Dump(size));
     const std::streampos read = stream.read(safe_ptr_cast<char*>(&res->front()), size).tellg();
     if (static_cast<std::size_t>(read) != size)
     {
       throw MakeFormattedError(THIS_LINE, translate("Failed to read %1% bytes. Actually got %2% bytes."), size, read);
     }
     //TODO: Binary::CreateData
-    return Binary::CreateContainer(res);
+    return Binary::CreateContainer(std::move(res));
   }
 
   //since dingux platform does not support wide strings(???) that boost.filesystem v3 requires, specify adapters in return-style

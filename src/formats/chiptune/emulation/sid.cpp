@@ -137,11 +137,11 @@ namespace Chiptune
     Binary::Container::Ptr FixStartSong(const Binary::Data& data, uint_t idx)
     {
       Require(GetHeader(data));
-      std::auto_ptr<Dump> content(new Dump(data.Size()));
+      std::unique_ptr<Dump> content(new Dump(data.Size()));
       std::memcpy(&content->front(), data.Start(), content->size());
       RawHeader& hdr = *safe_ptr_cast<RawHeader*>(&content->front());
       hdr.StartSong = fromBE<uint16_t>(idx);
-      return Binary::CreateContainer(content);
+      return Binary::CreateContainer(std::move(content));
     }
   }
 

@@ -60,13 +60,13 @@ namespace Formats
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
         virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) = 0;
-        virtual std::auto_ptr<ChannelBuilder> SetSampleMixin(uint_t index, uint_t period) = 0;
+        virtual std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t index, uint_t period) = 0;
         //patterns
         virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
         //! @invariant Channels are built sequentally
-        virtual std::auto_ptr<ChannelBuilder> StartChannel(uint_t index) = 0;
+        virtual std::unique_ptr<ChannelBuilder> StartChannel(uint_t index) = 0;
       };
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);

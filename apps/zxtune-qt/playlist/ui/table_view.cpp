@@ -76,7 +76,7 @@ namespace
     //QWidget's virtuals
     virtual void contextMenuEvent(QContextMenuEvent* event)
     {
-      const std::auto_ptr<QMenu> menu = CreateMenu();
+      const std::unique_ptr<QMenu> menu = CreateMenu();
       if (QAction* res = menu->exec(event->globalPos()))
       {
         const QVariant data = res->data();
@@ -86,9 +86,9 @@ namespace
       event->accept();
     }
   private:
-    std::auto_ptr<QMenu> CreateMenu()
+    std::unique_ptr<QMenu> CreateMenu()
     {
-      std::auto_ptr<QMenu> result(new QMenu(this));
+      std::unique_ptr<QMenu> result(new QMenu(this));
       QAbstractItemModel* const md = model();
       for (int idx = 0, lim = count(); idx != lim; ++idx)
       {

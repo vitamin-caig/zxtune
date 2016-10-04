@@ -113,11 +113,11 @@ namespace
     const Strings::Template::Ptr FileNameTemplate;
   };
   
-  std::auto_ptr<Module::Conversion::Parameter> CreateConversionParameters(const String& mode, const Parameters::Accessor& modeParams)
+  std::unique_ptr<Module::Conversion::Parameter> CreateConversionParameters(const String& mode, const Parameters::Accessor& modeParams)
   {
     Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
     modeParams.FindValue(ToStdString(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
-    std::auto_ptr<Module::Conversion::Parameter> param;
+    std::unique_ptr<Module::Conversion::Parameter> param;
     if (mode == Text::CONVERSION_MODE_PSG)
     {
       param.reset(new Module::Conversion::PSGConvertParam(optimization));
@@ -185,7 +185,7 @@ namespace
     }
   private:
     DisplayComponent& Display;
-    const std::auto_ptr<Module::Conversion::Parameter> ConversionParameter;
+    const std::unique_ptr<Module::Conversion::Parameter> ConversionParameter;
     const HolderAndData::Receiver::Ptr Saver;
   };
 
@@ -504,10 +504,10 @@ namespace
   private:
     const Parameters::Container::Ptr ConfigParams;
     String ConvertParams;
-    std::auto_ptr<InformationComponent> Informer;
-    std::auto_ptr<SourceComponent> Sourcer;
-    std::auto_ptr<SoundComponent> Sounder;
-    std::auto_ptr<DisplayComponent> Display;
+    std::unique_ptr<InformationComponent> Informer;
+    std::unique_ptr<SourceComponent> Sourcer;
+    std::unique_ptr<SoundComponent> Sounder;
+    std::unique_ptr<DisplayComponent> Display;
     uint_t SeekStep;
     uint_t BenchmarkIterations;
   };
@@ -515,8 +515,8 @@ namespace
 
 namespace Platform
 {
-  std::auto_ptr<Application> Application::Create()
+  std::unique_ptr<Application> Application::Create()
   {
-    return std::auto_ptr<Application>(new CLIApplication());
+    return std::unique_ptr<Application>(new CLIApplication());
   }
 }

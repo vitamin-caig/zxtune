@@ -231,7 +231,7 @@ namespace
     }
   private:
     const Sound::Service::Ptr Service;
-    const std::auto_ptr<CommonBackendParameters> Params;
+    const std::unique_ptr<CommonBackendParameters> Params;
     boost::program_options::options_description OptionsDescription;
     PerBackendOptions BackendOptions;
     Strings::Map SoundOptions;
@@ -242,7 +242,7 @@ namespace
   };
 }
 
-std::auto_ptr<SoundComponent> SoundComponent::Create(Parameters::Container::Ptr configParams)
+std::unique_ptr<SoundComponent> SoundComponent::Create(Parameters::Container::Ptr configParams)
 {
-  return std::auto_ptr<SoundComponent>(new Component(configParams));
+  return std::unique_ptr<SoundComponent>(new Component(configParams));
 }

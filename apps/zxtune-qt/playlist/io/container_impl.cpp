@@ -18,8 +18,6 @@
 #include <debug/log.h>
 #include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
-//boost includes
-#include <boost/ref.hpp>
 
 namespace
 {
@@ -161,7 +159,7 @@ namespace
   class DelayLoadItemProvider
   {
   public:
-    typedef std::auto_ptr<const DelayLoadItemProvider> Ptr;
+    typedef std::unique_ptr<const DelayLoadItemProvider> Ptr;
 
     DelayLoadItemProvider(Playlist::Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr playlistParams, const Playlist::IO::ContainerItem& item)
       : Provider(provider)
@@ -205,7 +203,7 @@ namespace
   {
   public:
     explicit DelayLoadItemData(DelayLoadItemProvider::Ptr provider)
-      : Provider(provider)
+      : Provider(std::move(provider))
     {
     }
 
@@ -339,7 +337,7 @@ namespace
     {
       Require(Current != Items->end());
       DelayLoadItemProvider::Ptr provider = MakePtr<DelayLoadItemProvider>(Provider, Properties, *Current);
-      return MakePtr<DelayLoadItemData>(boost::ref(provider));
+      return MakePtr<DelayLoadItemData>(std::move(provider));
     }
 
     virtual void Next()

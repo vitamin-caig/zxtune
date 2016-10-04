@@ -54,8 +54,8 @@ namespace
 
 namespace Platform
 {
-  std::auto_ptr<Application> Application::Create()
+  std::unique_ptr<Application> Application::Create()
   {
-    return std::auto_ptr<Application>(new QTApplication());
+    return std::unique_ptr<Application>(new QTApplication());
   }
 }

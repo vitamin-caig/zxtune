@@ -23,7 +23,6 @@
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/scoped_ptr.hpp>
 //text include
 #include <formats/text/packed.h>
 
@@ -244,7 +243,7 @@ namespace Archived
     private:
       const Binary::Container::Ptr Data;
       const Formats::Packed::Decoder::Ptr StatefulDecoder;
-      mutable boost::scoped_ptr<BlocksIterator> ChainIterator;
+      mutable std::unique_ptr<BlocksIterator> ChainIterator;
     };
 
     class File : public Archived::File

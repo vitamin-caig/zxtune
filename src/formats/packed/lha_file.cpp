@@ -50,12 +50,12 @@ namespace Lha
     {
       Binary::InputStream input(rawData);
       const boost::shared_ptr<LHADecoder> decoder(::lha_decoder_new(Type, &ReadData, &input, outputSize), &::lha_decoder_free);
-      std::auto_ptr<Dump> result(new Dump(outputSize));
+      std::unique_ptr<Dump> result(new Dump(outputSize));
       if (const std::size_t decoded = ::lha_decoder_read(decoder.get(), &result->front(), outputSize))
       {
         const std::size_t originalSize = input.GetPosition();
         Dbg("Decoded %1% -> %2% bytes", originalSize, outputSize);
-        return CreateContainer(result, originalSize);
+        return CreateContainer(std::move(result), originalSize);
       }
       return Formats::Packed::Container::Ptr();
     }

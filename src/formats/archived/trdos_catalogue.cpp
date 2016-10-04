@@ -336,7 +336,7 @@ namespace TRDos
       {
         return Subfiles.front()->GetData();
       }
-      std::auto_ptr<Dump> res(new Dump(GetSize()));
+      std::unique_ptr<Dump> res(new Dump(GetSize()));
       uint8_t* dst = &res->front();
       for (FilesList::const_iterator it = Subfiles.begin(), lim = Subfiles.end(); it != lim; ++it)
       {
@@ -351,7 +351,7 @@ namespace TRDos
         std::memcpy(dst, data->Start(), size);
         dst += size;
       }
-      return Binary::CreateContainer(res);
+      return Binary::CreateContainer(std::move(res));
     }
 
     virtual std::size_t GetOffset() const

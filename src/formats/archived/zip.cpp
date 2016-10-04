@@ -96,14 +96,14 @@ namespace Archived
         return 0;
       }
 
-      std::auto_ptr<const Packed::Zip::CompressedFile> GetFile() const
+      std::unique_ptr<const Packed::Zip::CompressedFile> GetFile() const
       {
         using namespace Packed::Zip;
         if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
         {
           return CompressedFile::Create(*header, Limit - Offset);
         }
-        return std::auto_ptr<const CompressedFile>();
+        return std::unique_ptr<const CompressedFile>();
       }
 
       std::size_t GetOffset() const
@@ -122,7 +122,7 @@ namespace Archived
         using namespace Packed::Zip;
         if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
         {
-          const std::auto_ptr<const CompressedFile> file = CompressedFile::Create(*header, Limit - Offset);
+          const std::unique_ptr<const CompressedFile> file = CompressedFile::Create(*header, Limit - Offset);
           return file.get()
             ? file->GetPackedSize()
             : 0;
@@ -210,7 +210,7 @@ namespace Archived
       File::Ptr GetFile() const
       {
         assert(IsValid());
-        const std::auto_ptr<const Packed::Zip::CompressedFile> file = Blocks.GetFile();
+        const std::unique_ptr<const Packed::Zip::CompressedFile> file = Blocks.GetFile();
         if (file.get())
         {
           const Binary::Container::Ptr data = Data.GetSubcontainer(Blocks.GetOffset(), file->GetPackedSize());
@@ -349,7 +349,7 @@ namespace Archived
       const Formats::Packed::Decoder::Ptr Decoder;
       const Binary::Container::Ptr Delegate;
       const uint_t FilesCount;
-      mutable std::auto_ptr<FileIterator> Iter;
+      mutable std::unique_ptr<FileIterator> Iter;
       typedef std::map<String, File::Ptr> FilesMap;
       mutable FilesMap Files;
     };

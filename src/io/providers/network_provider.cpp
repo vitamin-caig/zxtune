@@ -148,7 +148,7 @@ namespace IO
     //TODO: pass callback to handle progress and other
     Binary::Container::Ptr Download()
     {
-      std::auto_ptr<Dump> result(new Dump());
+      std::unique_ptr<Dump> result(new Dump());
       result->reserve(INITIAL_SIZE);
       Object.SetOption<void*>(CURLOPT_WRITEDATA, result.get(), THIS_LINE);
       Object.Perform(THIS_LINE);
@@ -158,7 +158,7 @@ namespace IO
       {
         throw MakeFormattedError(THIS_LINE, translate("Http error happends: %1%."), retCode);
       }
-      return Binary::CreateContainer(result);
+      return Binary::CreateContainer(std::move(result));
     }
   private:
     static int DebugCallback(CURL* obj, curl_infotype type, char* data, size_t size, void* /*param*/)

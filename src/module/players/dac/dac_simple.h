@@ -55,7 +55,7 @@ namespace Module
     class SimpleDataBuilder : public Formats::Chiptune::Digital::Builder
     {
     public:
-      typedef std::auto_ptr<SimpleDataBuilder> Ptr;
+      typedef std::unique_ptr<SimpleDataBuilder> Ptr;
       
       virtual SimpleModuleData::Ptr GetResult() const = 0;
       

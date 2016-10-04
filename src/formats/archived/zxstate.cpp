@@ -433,7 +433,7 @@ namespace Archived
     {
       Require(blk.Content && blk.IsCompressed);
       const std::size_t targetSize = blk.UncompressedSize == UNKNOWN ? MAX_DECOMPRESS_SIZE : blk.UncompressedSize;
-      std::auto_ptr<Dump> result(new Dump(targetSize));
+      std::unique_ptr<Dump> result(new Dump(targetSize));
 
       z_stream stream = z_stream();
       int res = ::inflateInit(&stream);
@@ -457,7 +457,7 @@ namespace Archived
           if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == doneSize)
           {
             result->resize(doneSize);
-            return Binary::CreateContainer(result);
+            return Binary::CreateContainer(std::move(result));
           }
           Dbg("Uncompressed size mismatch");
         }
@@ -565,7 +565,7 @@ namespace Archived
           const std::size_t unpacked = GetSize();
           Require(unpacked != 0);
           Dbg("Decompressing '%1%' (%2% blocks, %3% butes result)", Name, Blocks.size(), unpacked);
-          std::auto_ptr<Dump> result(new Dump(unpacked));
+          std::unique_ptr<Dump> result(new Dump(unpacked));
           std::size_t target = 0;
           for (DataBlocks::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
           {
@@ -574,7 +574,7 @@ namespace Archived
             std::memcpy(&result->at(target), block->Start(), it->UncompressedSize);
             target += it->UncompressedSize;
           }
-          return Binary::CreateContainer(result);    
+          return Binary::CreateContainer(std::move(result));
         }
         catch (const std::exception&)
         {

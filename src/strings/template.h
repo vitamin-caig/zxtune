@@ -25,7 +25,7 @@ namespace Strings
     static const Char FIELD_END;
 
     //! @brief Pointer type
-    typedef std::auto_ptr<const Template> Ptr;
+    typedef std::unique_ptr<const Template> Ptr;
     //! @brief Virtual destructor
     virtual ~Template() {}
     //! @brief Performing instantiation

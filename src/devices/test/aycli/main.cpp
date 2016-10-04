@@ -214,7 +214,7 @@ namespace
     const Sound::PlaybackControl::Ptr Control;
   };
 
-  std::auto_ptr<Gate> GateInstance;
+  std::unique_ptr<Gate> GateInstance;
 
   template<class Op>
   int call(Op op)

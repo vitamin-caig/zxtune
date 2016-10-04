@@ -780,7 +780,7 @@ namespace
   private:
     const Analysis::Node::Ptr Node;
     mutable IO::Identifier::Ptr RootIdentifier;
-    mutable std::auto_ptr<Strings::Array> Subpath;
+    mutable std::unique_ptr<Strings::Array> Subpath;
   };
 
   class TargetNamePoint : public Analysis::NodeReceiver
@@ -1152,8 +1152,8 @@ private:
 
 namespace Platform
 {
-  std::auto_ptr<Application> Application::Create()
+  std::unique_ptr<Application> Application::Create()
   {
-    return std::auto_ptr<Application>(new MainApplication());
+    return std::unique_ptr<Application>(new MainApplication());
   }
 }

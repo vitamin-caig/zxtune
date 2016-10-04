@@ -300,11 +300,11 @@ namespace Packed
         return CreateContainer(rest->GetSubcontainer(0, TARGET_SIZE), sizeof(hdr) + TARGET_SIZE);
       }
       Require(restSize > sizeof(FOOTER));
-      std::auto_ptr<Dump> res(new Dump(TARGET_SIZE));
+      std::unique_ptr<Dump> res(new Dump(TARGET_SIZE));
       DecodeBlock(stream, restSize - sizeof(FOOTER), *res);
       const uint32_t footer = fromLE(stream.ReadField<uint32_t>());
       Require(footer == FOOTER);
-      return CreateContainer(res, stream.GetPosition());
+      return CreateContainer(std::move(res), stream.GetPosition());
     }
 
     struct PlatformTraits
@@ -498,7 +498,7 @@ namespace Packed
       Require(additionalSize >= readAdditionalSize);
       stream.ReadData(additionalSize - readAdditionalSize);
       const PlatformTraits traits(additionalSize, hdr.HardwareMode, hdr.Port7ffd);
-      std::auto_ptr<Dump> res(new Dump(ZX_PAGE_SIZE * traits.PagesCount()));
+      std::unique_ptr<Dump> res(new Dump(ZX_PAGE_SIZE * traits.PagesCount()));
       Dump curPage(ZX_PAGE_SIZE);
       for (uint_t idx = 0; idx != traits.PagesCount(); ++idx)
       {
@@ -529,7 +529,7 @@ namespace Packed
         }
         std::memcpy(&res->front() + pageNumber * ZX_PAGE_SIZE, pageSource, ZX_PAGE_SIZE);
       }
-      return CreateContainer(res, stream.GetPosition());
+      return CreateContainer(std::move(res), stream.GetPosition());
     }
 
     Formats::Packed::Container::Ptr Version2_0::Decode(Binary::InputStream& stream)

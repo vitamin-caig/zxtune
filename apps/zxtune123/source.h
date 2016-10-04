@@ -49,5 +49,5 @@ public:
   virtual void Initialize() = 0;
   virtual void ProcessItems(OnItemCallback& callback) = 0;
 
-  static std::auto_ptr<SourceComponent> Create(Parameters::Container::Ptr configParams);
+  static std::unique_ptr<SourceComponent> Create(Parameters::Container::Ptr configParams);
 };

@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
     {
       return 0;
     }
-    std::auto_ptr<Dump> rawData(new Dump());
+    std::unique_ptr<Dump> rawData(new Dump());
     Test::OpenFile(argv[2], *rawData);
     const Binary::Container::Ptr data = Binary::CreateContainer(rawData);
     const Formats::Chiptune::ProTracker3::ChiptuneBuilder::Ptr builder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateBuilder();

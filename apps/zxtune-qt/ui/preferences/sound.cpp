@@ -145,7 +145,7 @@ namespace
 
     void AddPage(UI::BackendSettingsWidget* (*factory)(QWidget&))
     {
-      std::auto_ptr<UI::BackendSettingsWidget> wid(factory(*backendGroupBox));
+      std::unique_ptr<UI::BackendSettingsWidget> wid(factory(*backendGroupBox));
       const String id = wid->GetBackendId();
       if (Backends.end() != std::find(Backends.begin(), Backends.end(), id))
       {

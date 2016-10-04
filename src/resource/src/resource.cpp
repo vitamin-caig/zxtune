@@ -53,8 +53,8 @@ namespace
 
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
-      std::auto_ptr<Dump> copy(new Dump(RawData + offset, RawData + std::min(RawSize, offset + size)));
-      return Binary::CreateContainer(copy);
+      std::unique_ptr<Dump> copy(new Dump(RawData + offset, RawData + std::min(RawSize, offset + size)));
+      return Binary::CreateContainer(std::move(copy));
     }
   private:
     const uint8_t* const RawData;
@@ -137,9 +137,9 @@ namespace
     file.seekg(0, std::ios_base::end);
     const std::size_t size = static_cast<std::size_t>(file.tellg());
     file.seekg(0);
-    std::auto_ptr<Dump> tmp(new Dump(size));
+    std::unique_ptr<Dump> tmp(new Dump(size));
     file.read(safe_ptr_cast<char*>(&tmp->front()), size);
-    return Binary::CreateContainer(tmp);
+    return Binary::CreateContainer(std::move(tmp));
   }
 
   Binary::Container::Ptr LoadArchiveContainer()

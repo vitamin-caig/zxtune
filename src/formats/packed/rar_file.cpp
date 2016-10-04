@@ -112,7 +112,7 @@ namespace Packed
     class CompressedFile
     {
     public:
-      typedef std::auto_ptr<const CompressedFile> Ptr;
+      typedef std::unique_ptr<const CompressedFile> Ptr;
       virtual ~CompressedFile() {}
 
       virtual Binary::Container::Ptr Decompress(const Container& container) const = 0;
@@ -172,7 +172,7 @@ namespace Packed
       {
         try
         {
-          std::auto_ptr<Dump> result(new Dump(outSize));
+          std::unique_ptr<Dump> result(new Dump(outSize));
           Stream.SetUnpackToMemory(&result->front(), outSize);
           Decoder.SetDestSize(outSize);
           Decoder.DoUnpack(method, isSolid);
@@ -180,7 +180,7 @@ namespace Packed
           {
             Dbg("Crc mismatch: stored 0x%1$08x, calculated 0x%2$08x", crc, Stream.GetUnpackedCrc());
           }
-          return Binary::CreateContainer(result);
+          return Binary::CreateContainer(std::move(result));
         }
         catch (const std::exception& e)
         {
@@ -215,8 +215,8 @@ namespace Packed
         }
       }
     private:
-      const std::auto_ptr<CompressedFile> Packed;
-      const std::auto_ptr<CompressedFile> Stored;
+      const std::unique_ptr<CompressedFile> Packed;
+      const std::unique_ptr<CompressedFile> Stored;
     };
 
     String FileBlockHeader::GetName() const

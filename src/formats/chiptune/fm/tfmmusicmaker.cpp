@@ -788,7 +788,7 @@ namespace Chiptune
       }
     private:
       ByteStream Stream;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
 

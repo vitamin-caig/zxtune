@@ -31,5 +31,5 @@ public:
   //return true if should exit
   virtual bool Process(class SoundComponent& sound) const = 0;
 
-  static std::auto_ptr<InformationComponent> Create();
+  static std::unique_ptr<InformationComponent> Create();
 };

@@ -92,15 +92,15 @@ namespace DirectSound
     }
   }
 
-  std::auto_ptr<GUID> String2Guid(const String& str)
+  std::unique_ptr<GUID> String2Guid(const String& str)
   {
     if (str.empty())
     {
-      return std::auto_ptr<GUID>();
+      return std::unique_ptr<GUID>();
     }
     std::vector<OLECHAR> strGuid(str.begin(), str.end());
     strGuid.push_back(0);
-    std::auto_ptr<GUID> res(new GUID);
+    std::unique_ptr<GUID> res(new GUID);
     CheckWin32Error(::CLSIDFromString(&strGuid[0], res.get()), THIS_LINE);
     return res;
   }
@@ -112,7 +112,7 @@ namespace DirectSound
   {
     Dbg("OpenDevice(%1%)", device);
     IDirectSound* raw = 0;
-    const std::auto_ptr<GUID> deviceUuid = String2Guid(device);
+    const std::unique_ptr<GUID> deviceUuid = String2Guid(device);
     CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
     const DirectSoundPtr result = DirectSoundPtr(raw, &ReleaseRef);
     CheckWin32Error(result->SetCooperativeLevel(GetWindowHandle(), DSSCL_PRIORITY), THIS_LINE);
