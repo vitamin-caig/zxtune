@@ -35,8 +35,6 @@
 #include <debug/log.h>
 #include <platform/version/api.h>
 #include <strings/format.h>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QUrl>
 #include <QtGui/QApplication>

@@ -26,8 +26,6 @@
 #include <platform/version/fields.h>
 //std includes
 #include <ctime>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QTimer>
 #include <QtGui/QApplication>

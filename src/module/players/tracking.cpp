@@ -13,8 +13,6 @@
 //common includes
 #include <pointers.h>
 #include <make_ptr.h>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Module
 {

@@ -19,8 +19,6 @@
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <time/oscillator.h>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Devices
 {

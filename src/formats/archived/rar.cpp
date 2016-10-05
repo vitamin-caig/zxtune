@@ -21,8 +21,6 @@
 #include <cstring>
 #include <deque>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 //text include
 #include <formats/text/packed.h>
 

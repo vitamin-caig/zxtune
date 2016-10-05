@@ -28,8 +28,6 @@
 //std includes
 #include <array>
 #include <cstring>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 

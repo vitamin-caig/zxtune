@@ -10,8 +10,6 @@
 
 #include <error.h>
 
-#include <boost/bind.hpp>
-
 #include <iostream>
 #include <iomanip>
 

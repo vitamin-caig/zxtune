@@ -29,8 +29,6 @@
 #include <sound/backend.h>
 //std includes
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace
 {

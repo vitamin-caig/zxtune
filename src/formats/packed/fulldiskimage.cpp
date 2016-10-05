@@ -21,8 +21,6 @@
 //std includes
 #include <cstring>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/packed.h>
 

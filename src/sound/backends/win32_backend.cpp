@@ -29,8 +29,6 @@
 //std includes
 #include <algorithm>
 #include <cstring>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include "text/backends.h"
 

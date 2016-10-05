@@ -19,8 +19,6 @@
 //library includes
 #include <parameters/merged_accessor.h>
 #include <sound/service.h>
-//boost inlcudes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QTimer>
 

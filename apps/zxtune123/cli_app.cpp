@@ -43,7 +43,6 @@
 #include <limits>
 #include <numeric>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/program_options.hpp>
 //text includes
 #include "text/text.h"

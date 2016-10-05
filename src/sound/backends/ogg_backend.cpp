@@ -27,8 +27,6 @@
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include "text/backends.h"
 

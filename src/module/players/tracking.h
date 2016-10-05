@@ -22,8 +22,6 @@
 //std includes
 #include <algorithm>
 #include <array>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Module
 {
@@ -116,7 +114,7 @@ namespace Module
 
     virtual uint_t CountActiveChannels() const
     {
-      return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(), boost::bind(&Cell::HasData, _1)));
+      return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(), std::mem_fn(&Cell::HasData)));
     }
 
     virtual uint_t GetTempo() const
