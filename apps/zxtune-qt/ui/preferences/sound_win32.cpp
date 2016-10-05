@@ -22,7 +22,6 @@
 #include <sound/backends/win32.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/function.hpp>
 //text includes
 #include "text/text.h"
 
@@ -110,7 +109,8 @@ namespace
       DeviceChanged(boost::bind(&Device::Id, _1) == curDevice);
     }
 
-    void DeviceChanged(const boost::function<bool(const Device&)>& fun)
+    template<class F>
+    void DeviceChanged(const F& fun)
     {
       const DevicesArray::const_iterator it = std::find_if(Devices.begin(), Devices.end(), fun);
       if (it != Devices.end())

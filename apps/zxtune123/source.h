@@ -16,8 +16,6 @@
 //std includes
 #include <memory>
 #include <stdexcept>
-//boost includes
-#include <boost/function.hpp>
 
 //forward declarations
 namespace boost
