@@ -20,7 +20,6 @@
 #include <math/bitops.h>
 #include <parameters/template.h>
 //boost includes
-#include <boost/ref.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 //qt includes
@@ -294,14 +293,14 @@ namespace
     virtual void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
     {
       WaitOperationFinish();
-      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageAccessOperation> >(operation, boost::ref(*this));
+      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageAccessOperation>>(operation, *this);
       AsyncExecution = Async::Activity::Create(wrapper);
     }
 
     virtual void PerformOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
     {
       WaitOperationFinish();
-      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageModifyOperation> >(operation, boost::ref(*this));
+      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageModifyOperation>>(operation, *this);
       AsyncExecution = Async::Activity::Create(wrapper);
     }
 

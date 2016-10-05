@@ -139,7 +139,7 @@ namespace Async
         }
         FinishAction();
       }
-      const Operation::Ptr jobOper = MakePtr<CoroutineOperation>(Routine, boost::ref(State));
+      const Operation::Ptr jobOper = MakePtr<CoroutineOperation>(Routine, State);
       Act = Activity::Create(jobOper);
       State.Set(STARTED);
     }

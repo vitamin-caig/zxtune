@@ -19,8 +19,6 @@
 #include <core/core_parameters.h>
 #include <formats/chiptune/aym/ayc.h>
 #include <module/players/properties_helper.h>
-//boost includes
-#include <boost/ref.hpp>
 
 namespace Module
 {
@@ -98,7 +96,7 @@ namespace AYC
     {
       return Data.empty()
         ? AYM::StreamModel::Ptr()
-        : MakePtr<AYCStreamModel>(boost::ref(Data));
+        : MakePtr<AYCStreamModel>(Data);
     }
   private:
     Devices::AYM::Registers::Index Register;

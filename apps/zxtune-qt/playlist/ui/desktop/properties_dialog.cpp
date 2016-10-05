@@ -25,8 +25,6 @@
 #include <module/attributes.h>
 #include <parameters/merged_accessor.h>
 #include <sound/sound_parameters.h>
-//boost includes
-#include <boost/ref.hpp>
 //qt includes
 #include <QtGui/QAbstractButton>
 #include <QtGui/QComboBox>
@@ -257,7 +255,7 @@ namespace Playlist
 
     PropertiesDialog::Ptr PropertiesDialog::Create(QWidget& parent, Item::Data::Ptr item)
     {
-      return MakePtr<PropertiesDialogImpl>(boost::ref(parent), item);
+      return MakePtr<PropertiesDialogImpl>(parent, item);
     }
 
     void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Model::IndexSet::Ptr scope)

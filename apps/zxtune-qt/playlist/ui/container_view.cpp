@@ -29,8 +29,6 @@
 #include <debug/log.h>
 //std includes
 #include <cassert>
-//boost includes
-#include <boost/ref.hpp>
 //qt includes
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
@@ -459,7 +457,7 @@ namespace
     
     void StorePlaylistSession()
     {
-      const Playlist::Controller::Iterator::Ptr iter = MakePtr<PlaylistsIterator>(boost::ref(*widgetsContainer));
+      const Playlist::Controller::Iterator::Ptr iter = MakePtr<PlaylistsIterator>(*widgetsContainer);
       Session->Save(iter);
       const uint_t idx = widgetsContainer->indexOf(ActivePlaylistView);
       const uint_t trk = ActivePlaylistView->GetPlaylist()->GetIterator()->GetIndex();

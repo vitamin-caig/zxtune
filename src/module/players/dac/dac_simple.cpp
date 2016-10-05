@@ -17,8 +17,6 @@
 #include <module/players/properties_meta.h>
 #include <module/players/tracking.h>
 #include <module/players/simple_orderlist.h>
-//boost includes
-#include <boost/ref.hpp>
 
 namespace Module
 {
@@ -103,7 +101,7 @@ namespace Module
 
     SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, const PatternsBuilder& builder)
     {
-      return MakePtr<SimpleDataBuilderImpl>(boost::ref(props), builder);
+      return MakePtr<SimpleDataBuilderImpl>(props, builder);
     }
 
     class SimpleDataRenderer : public DAC::DataRenderer

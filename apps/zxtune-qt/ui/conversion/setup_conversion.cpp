@@ -253,7 +253,7 @@ namespace UI
 
   SetupConversionDialog::Ptr SetupConversionDialog::Create(QWidget& parent)
   {
-    return MakePtr<SetupConversionDialogImpl>(boost::ref(parent));
+    return MakePtr<SetupConversionDialogImpl>(parent);
   }
   
   Playlist::Item::Conversion::Options::Ptr GetExportParameters(QWidget& parent)

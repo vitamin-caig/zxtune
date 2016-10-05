@@ -20,8 +20,6 @@
 #include <l10n/api.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//boost includes
-#include <boost/ref.hpp>
 
 #define FILE_TAG B3D60DB5
 
@@ -386,7 +384,7 @@ namespace Sound
 {
   Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
   {
-    const Receiver::Ptr target = MakePtr<BufferRenderer>(boost::ref(*worker));
+    const Receiver::Ptr target = MakePtr<BufferRenderer>(*worker);
     const Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params, target);
     const BackendCallback::Ptr callback = CreateCallback(origCallback, worker);
     const Module::Renderer::Ptr renderer = MakePtr<RendererWrapper>(origRenderer, callback);

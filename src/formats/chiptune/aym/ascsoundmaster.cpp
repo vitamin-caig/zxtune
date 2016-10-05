@@ -1332,7 +1332,7 @@ namespace Chiptune
 
       Decoder::Ptr CreateDecoder()
       {
-        return MakePtr<VersionedDecoder>(boost::cref(Version0::TRAITS));
+        return MakePtr<VersionedDecoder>(Version0::TRAITS);
       }
     }
     
@@ -1350,7 +1350,7 @@ namespace Chiptune
     
       Decoder::Ptr CreateDecoder()
       {
-        return MakePtr<VersionedDecoder>(boost::cref(Version1::TRAITS));
+        return MakePtr<VersionedDecoder>(Version1::TRAITS);
       }
     }
   }//namespace ASCSoundMaster

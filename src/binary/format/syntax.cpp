@@ -18,8 +18,6 @@
 //std includes
 #include <cctype>
 #include <stack>
-//boost includes
-#include <boost/ref.hpp>
 
 namespace Binary
 {
@@ -526,7 +524,7 @@ namespace FormatDSL
 
   FormatTokensVisitor::Ptr CreatePostfixSynaxCheckAdapter(FormatTokensVisitor& visitor)
   {
-    return MakePtr<SyntaxCheck>(boost::ref(visitor));
+    return MakePtr<SyntaxCheck>(visitor);
   }
 }
 }

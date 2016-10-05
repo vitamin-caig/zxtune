@@ -14,7 +14,6 @@
 #include <iomanip>
 
 #include <boost/bind.hpp>
-#include <boost/ref.hpp>
 
 namespace
 {
@@ -300,14 +299,14 @@ namespace
   {
     std::cout << "Test for file provider" << std::endl;
     const IO::DataProvider::Ptr prov = IO::CreateFileDataProvider();
-    std::for_each(FILE_PROVIDER_CASES, std::end(FILE_PROVIDER_CASES), boost::bind(&TestProvider, boost::cref(*prov), _1));
+    std::for_each(FILE_PROVIDER_CASES, std::end(FILE_PROVIDER_CASES), boost::bind(&TestProvider, *prov, _1));
   }
 
   void TestNetworkProvider()
   {
     std::cout << "Test for network provider" << std::endl;
     const IO::DataProvider::Ptr prov = IO::CreateNetworkDataProvider(IO::Curl::Api::Ptr());
-    std::for_each(NETWORK_PROVIDER_CASES, std::end(NETWORK_PROVIDER_CASES), boost::bind(&TestProvider, boost::cref(*prov), _1));
+    std::for_each(NETWORK_PROVIDER_CASES, std::end(NETWORK_PROVIDER_CASES), boost::bind(&TestProvider, *prov, _1));
   }
 }
 

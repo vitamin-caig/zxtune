@@ -22,8 +22,6 @@
 #include <make_ptr.h>
 //library includes
 #include <platform/version/api.h>
-//boost includes
-#include <boost/ref.hpp>
 //text includes
 #include "text/text.h"
 
@@ -144,7 +142,7 @@ namespace
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
       const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);
-      const Playlist::Item::StorageModifyOperation::Ptr op = MakePtr<LoadPlaylistOperation>(provider, filename, boost::ref(*playlist));
+      const Playlist::Item::StorageModifyOperation::Ptr op = MakePtr<LoadPlaylistOperation>(provider, filename, *playlist);
       playlist->GetModel()->PerformOperation(op);
       emit PlaylistCreated(playlist);
     }

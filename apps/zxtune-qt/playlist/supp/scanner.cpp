@@ -21,7 +21,6 @@
 #include <debug/log.h>
 #include <time/elapsed.h>
 //boost includes
-#include <boost/ref.hpp>
 #include <boost/thread/mutex.hpp>
 //qt includes
 #include <QtCore/QDirIterator>
@@ -449,7 +448,7 @@ namespace
     ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Scanner(parent)
       , Provider(provider)
-      , Routine(MakePtr<ScanRoutine>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
+      , Routine(MakePtr<ScanRoutine>(static_cast<ScannerCallback&>(*this), provider))
       , ScanJob(Async::CreateJob(Routine))
     {
       Dbg("Created at %1%", this);
