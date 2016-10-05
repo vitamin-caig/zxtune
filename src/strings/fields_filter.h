@@ -16,12 +16,11 @@
 #include <strings/fields.h>
 //std includes
 #include <set>
-//boost includes
-#include <boost/type_traits/is_unsigned.hpp>
+#include <type_traits>
 
 namespace Strings
 {
-  static_assert(boost::is_unsigned<Char>::value, "Char type should be unsigned");
+  static_assert(std::is_unsigned<Char>::value, "Char type should be unsigned");
 
   class FilterFieldsSource : public FieldsSource
   {
