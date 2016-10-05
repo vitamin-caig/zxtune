@@ -1,7 +1,6 @@
 #include <make_ptr.h>
 #include <binary/data_builder.h>
 #include <formats/packed/decoders.h>
-#include <boost/range/end.hpp>
 #include <stdexcept>
 #include <iostream>
 
@@ -73,9 +72,9 @@ namespace
 
     virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
     {
-      for (const DecoderTraits* trait = DECODERS; trait != boost::end(DECODERS); ++trait)
+      for (const auto& trait : DECODERS)
       {
-        const Formats::Packed::Decoder::Ptr delegate = (trait->Create)();
+        const Formats::Packed::Decoder::Ptr delegate = (trait.Create)();
         if (const Formats::Packed::Container::Ptr result = delegate->Decode(rawData))
         {
           std::cerr << "Detected " << delegate->GetDescription() << std::endl;
@@ -109,9 +108,9 @@ namespace
   void ListAvailableTypes()
   {
     std::cerr << "List of available types to disable detection:\n";
-    for (const DecoderTraits* decoder = DECODERS; decoder != boost::end(DECODERS); ++decoder)
+    for (const auto& trait : DECODERS)
     {
-      std::cerr << decoder->Id << std::endl;
+      std::cerr << trait.Id << std::endl;
     }
   }
   
@@ -127,11 +126,11 @@ namespace
     }
     else
     {
-      for (const DecoderTraits* decoder = DECODERS; decoder != boost::end(DECODERS); ++decoder)
+      for (const auto& decoder : DECODERS)
       {
-        if (type == decoder->Id)
+        if (type == decoder.Id)
         {
-          return (decoder->Create)();
+          return (decoder.Create)();
         }
       }
       std::cerr << "Unknown type " << type << std::endl;

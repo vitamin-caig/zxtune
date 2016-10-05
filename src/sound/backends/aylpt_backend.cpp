@@ -29,7 +29,6 @@
 #include <algorithm>
 #include <cstring>
 //boost includes
-#include <boost/range/end.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -252,7 +251,7 @@ namespace AyLpt
         "inpout32.dll",
         "inpoutx64.dll"
       };
-      return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+      return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
     }
   };
 

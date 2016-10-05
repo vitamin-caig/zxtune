@@ -26,8 +26,6 @@
 #include <array>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/range/end.hpp>
-#include <boost/range/size.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -474,9 +472,9 @@ namespace Chiptune
           const std::size_t gapBegin = sizeof(Source);
           const std::size_t gapEnd = gapBegin + gapSize;
           std::size_t titleBegin = gapBegin;
-          if (gapSize >= sizeof(ID1) && std::equal(ID1, boost::end(ID1), Delegate.GetField<uint8_t>(gapBegin)))
+          if (gapSize >= sizeof(ID1) && std::equal(ID1, std::end(ID1), Delegate.GetField<uint8_t>(gapBegin)))
           {
-            titleBegin += boost::size(ID1);
+            titleBegin += sizeof(ID1);
           }
           if (titleBegin < gapEnd)
           {

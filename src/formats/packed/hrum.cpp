@@ -24,8 +24,6 @@
 #include <math/numeric.h>
 //std includes
 #include <numeric>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -173,7 +171,7 @@ namespace Packed
         static_assert(sizeof(HRUM3_5_PADDING) == 255, "Invalid layout");
         const uint8_t* const paddingStart = Data + usefulSize;
         const uint8_t* const paddingEnd = Data + resultSize;
-        if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUM3_5_PADDING, boost::end(HRUM3_5_PADDING)))
+        if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUM3_5_PADDING, std::end(HRUM3_5_PADDING)))
         {
           if (pad >= MIN_SIGNATURE_MATCH)
           {
@@ -278,7 +276,7 @@ namespace Packed
           }
         }
         //put remaining bytes
-        std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
+        std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
         return true;
       }
     private:

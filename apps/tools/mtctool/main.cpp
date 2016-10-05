@@ -8,8 +8,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Text
 {
@@ -300,9 +298,9 @@ namespace
   {
     std::cout << "Use <mode> without other params to get specific information\n"
                  "Supported modes:" << std::endl;
-    for (const ModeEntry* it = MODES; it != boost::end(MODES); ++it)
+    for (const auto& mode : MODES)
     {
-      std::cout << " " << it->Name << std::endl;
+      std::cout << " " << mode.Name << std::endl;
     }
   }
 }
@@ -319,17 +317,17 @@ int main(int argc, const char* argv[])
     CmdlineIterator arg(argc, argv);
     const std::string mode = *++arg;
     ++arg;
-    for (const ModeEntry* it = MODES; it != boost::end(MODES); ++it)
+    for (const auto& availMode : MODES)
     {
-      if (mode == it->Name)
+      if (mode == availMode.Name)
       {
         if (arg)
         {
-          (it->Func)(arg);
+          (availMode.Func)(arg);
         }
         else
         {
-          std::cout << it->Help;
+          std::cout << availMode.Help;
         }
         return 0;
       }

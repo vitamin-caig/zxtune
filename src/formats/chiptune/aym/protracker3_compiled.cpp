@@ -29,7 +29,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -337,7 +336,7 @@ namespace Chiptune
         }
         else
         {
-          meta.SetTitle(String(id.TrackName, boost::end(id.TrackAuthor)));
+          meta.SetTitle(String(id.TrackName, std::end(id.TrackAuthor)));
         }
         const uint_t version = std::isdigit(Source.Subversion) ? Source.Subversion - '0' : 6;
         builder.SetVersion(version);

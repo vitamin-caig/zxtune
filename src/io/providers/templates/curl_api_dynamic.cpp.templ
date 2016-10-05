@@ -15,8 +15,6 @@
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace IO
 {
@@ -41,7 +39,7 @@ namespace IO
           "libcurl.so.3",
           "libcurl.so.4",
         };
-        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
       virtual std::vector<std::string> WindowsAlternatives() const
@@ -50,7 +48,7 @@ namespace IO
         {
           "libcurl.dll",
         };
-        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
     };
 

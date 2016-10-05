@@ -31,7 +31,6 @@
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/range/end.hpp>
 
 namespace
 {
@@ -125,7 +124,7 @@ namespace
   private:
     void FillFrequences()
     {
-      std::for_each(FREQUENCES, boost::end(FREQUENCES), boost::bind(&SoundOptionsWidget::AddFrequency, this, _1));
+      std::for_each(FREQUENCES, std::end(FREQUENCES), boost::bind(&SoundOptionsWidget::AddFrequency, this, _1));
     }
 
     void AddFrequency(uint_t freq)
@@ -162,8 +161,8 @@ namespace
     
     void SetFrequency(uint_t val)
     {
-      const uint_t* const frq = std::find(FREQUENCES, boost::end(FREQUENCES), val);
-      if (frq != boost::end(FREQUENCES))
+      const uint_t* const frq = std::find(FREQUENCES, std::end(FREQUENCES), val);
+      if (frq != std::end(FREQUENCES))
       {
         soundFrequencyValue->setCurrentIndex(frq - FREQUENCES);
       }

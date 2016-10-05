@@ -37,7 +37,6 @@
 #include <boost/variant/variant.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
-#include <boost/range/end.hpp>
 //text includes
 #include "text/text.h"
 
@@ -416,7 +415,7 @@ namespace
                  Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT),
     };
     StdOut << Text::INFO_LIST_OPTIONS_TITLE << std::endl;
-    std::for_each(OPTIONS, boost::end(OPTIONS), ShowOption);
+    std::for_each(OPTIONS, std::end(OPTIONS), ShowOption);
   }
   
   typedef std::pair<String, String> AttrType;
@@ -452,7 +451,7 @@ namespace
       AttrType(Module::ATTR_CURRENT_LINE, Text::INFO_ATTRIBUTES_CURRENT_LINE)
     };
     StdOut << Text::INFO_LIST_ATTRIBUTES_TITLE << std::endl;
-    std::for_each(ATTRIBUTES, boost::end(ATTRIBUTES), ShowAttribute);
+    std::for_each(ATTRIBUTES, std::end(ATTRIBUTES), ShowAttribute);
   }
   
   void ShowFreqtables()
@@ -472,7 +471,7 @@ namespace
       Module::TABLE_NATURAL_SCALED
     };
     StdOut << Text::INFO_LIST_FREQTABLES_TITLE;
-    std::copy(FREQTABLES, boost::end(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
+    std::copy(FREQTABLES, std::end(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
     StdOut << std::endl;
   }
 

@@ -28,8 +28,6 @@
 #define BUILDING_STATIC
 #include <3rdparty/xmp/include/xmp.h>
 #include <3rdparty/xmp/src/xmp_private.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Module
 {
@@ -1014,10 +1012,8 @@ namespace ZXTune
   void RegisterXMPPlugins(PlayerPluginsRegistrator& registrator)
   {
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
-    for (const Module::Xmp::PluginDescription* it = Module::Xmp::PLUGINS; it != boost::end(Module::Xmp::PLUGINS); ++it)
+    for (const auto& desc : Module::Xmp::PLUGINS)
     {
-      const Module::Xmp::PluginDescription& desc = *it;
-
       const Formats::Chiptune::Decoder::Ptr decoder = MakePtr<Module::Xmp::Decoder>(desc);
       const Module::Factory::Ptr factory = MakePtr<Module::Xmp::Factory>(desc);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(FromStdString(desc.Id), CAPS, decoder, factory);

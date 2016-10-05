@@ -24,8 +24,6 @@
 #include <math/numeric.h>
 //std includes
 #include <array>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -163,7 +161,7 @@ namespace Chiptune
         "S.W.COMPILE V2.0  ",
         "STU SONG COMPILER ",
       };
-      return boost::end(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, boost::end(STANDARD_PROGRAMS), ToStdString(name));
+      return std::end(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, std::end(STANDARD_PROGRAMS), ToStdString(name));
     }
 
     class Format

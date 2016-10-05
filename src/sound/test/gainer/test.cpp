@@ -12,10 +12,9 @@
 #include <math/numeric.h>
 #include <sound/gainer.h>
 #include <sound/chunk_builder.h>
-
+#include <boost/range/size.hpp>
 #include <iostream>
 #include <iomanip>
-#include <boost/range/size.hpp>
 
 #define FILE_TAG B5BAF4C1
 

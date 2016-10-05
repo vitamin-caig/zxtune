@@ -24,8 +24,6 @@
 #include <math/numeric.h>
 //std includes
 #include <numeric>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -179,25 +177,25 @@ namespace Packed
         const uint8_t* const paddingStart = Data + usefulSize;
         const uint8_t* const paddingEnd = Data + resultSize;
         //special case due to distinct offset
-        const std::size_t padv0 = MatchedSize(paddingStart + TRDOS_SHORT_ENTRY_SIZE, paddingEnd, HRUST1_0_PADDING, boost::end(HRUST1_0_PADDING));
+        const std::size_t padv0 = MatchedSize(paddingStart + TRDOS_SHORT_ENTRY_SIZE, paddingEnd, HRUST1_0_PADDING, std::end(HRUST1_0_PADDING));
         if (padv0 >= MIN_SIGNATURE_MATCH)
         {
           //version 1.0 match
           return usefulSize + TRDOS_SHORT_ENTRY_SIZE + padv0;
         }
-        const std::size_t padv1 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_1_PADDING, boost::end(HRUST1_1_PADDING));
+        const std::size_t padv1 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_1_PADDING, std::end(HRUST1_1_PADDING));
         if (padv1 >= EXACT_SIGNATURE_MATCH)
         {
           //version 1.1 match
           return usefulSize + TRDOS_ENTRY_SIZE + padv1;
         }
-        const std::size_t padv2 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_2_PADDING, boost::end(HRUST1_2_PADDING));
+        const std::size_t padv2 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_2_PADDING, std::end(HRUST1_2_PADDING));
         if (padv2 >= EXACT_SIGNATURE_MATCH)
         {
           //version 1.2 match
           return usefulSize + TRDOS_ENTRY_SIZE + padv2;
         }
-        const std::size_t padv3 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_3_PADDING, boost::end(HRUST1_3_PADDING));
+        const std::size_t padv3 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_3_PADDING, std::end(HRUST1_3_PADDING));
         if (padv3 >= EXACT_SIGNATURE_MATCH)
         {
           //version 1.3 match
@@ -404,7 +402,7 @@ namespace Packed
           }
         }
         //put remaining bytes
-        std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
+        std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
         return true;
       }
 

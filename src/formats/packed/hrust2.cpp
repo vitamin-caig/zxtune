@@ -28,8 +28,6 @@
 #include <cstring>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/range/end.hpp>
-#include <boost/range/size.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -116,7 +114,7 @@ namespace Packed
         bool Check() const
         {
           static const uint8_t SIGNATURE[] = {'H', 'r', 's', 't', '2'};
-          return 0 == std::memcmp(ID, SIGNATURE, boost::size(ID));
+          return 0 == std::memcmp(ID, SIGNATURE, sizeof(ID));
         }
 
         std::size_t GetSize() const
@@ -288,7 +286,7 @@ namespace Packed
             }
           }
         }
-        std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
+        std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
         return true;
       }
     private:
@@ -368,7 +366,7 @@ namespace Packed
           static_assert(sizeof(HRUST2_1_PADDING) == 255, "Invalid layout");
           const uint8_t* const paddingStart = Data + usefulSize;
           const uint8_t* const paddingEnd = Data + resultSize;
-          if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, boost::end(HRUST2_1_PADDING)))
+          if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, std::end(HRUST2_1_PADDING)))
           {
             if (pad >= MIN_SIGNATURE_MATCH)
             {

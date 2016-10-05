@@ -15,8 +15,6 @@
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Sound
 {
@@ -41,7 +39,7 @@ namespace Sound
           "libopenal.so.1",
           "OpenAL.framework/OpenAL"
         };
-        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
       virtual std::vector<std::string> WindowsAlternatives() const
@@ -50,7 +48,7 @@ namespace Sound
         {
           "OpenAL32.dll"
         };
-        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
     };
 

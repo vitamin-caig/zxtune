@@ -15,8 +15,6 @@
 //std includes
 #include <algorithm>
 #include <iterator>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Devices
 {
@@ -31,7 +29,7 @@ namespace AYM
       {
         'Z', 'X', '5', '0'
       };
-      Data.assign(HEADER, boost::end(HEADER));
+      Data.assign(HEADER, std::end(HEADER));
     }
 
     virtual void GetResult(Dump& data) const

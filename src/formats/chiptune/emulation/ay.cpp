@@ -27,8 +27,6 @@
 #include <array>
 #include <cstring>
 #include <list>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -256,7 +254,7 @@ namespace Chiptune
             0x18, 0xf7 //jr loop
           };
           static_assert(sizeof(Im1Player) == sizeof(PLAYER_TEMPLATE), "Invalid layout");
-          std::copy(PLAYER_TEMPLATE, boost::end(PLAYER_TEMPLATE), Data.begin());
+          std::copy(PLAYER_TEMPLATE, std::end(PLAYER_TEMPLATE), Data.begin());
           Data[0x2] = init & 0xff;
           Data[0x3] = init >> 8;
           Data[0x9] = introutine & 0xff;
@@ -281,7 +279,7 @@ namespace Chiptune
             0x18, 0xfa //jr loop
           };
           static_assert(sizeof(Im2Player) == sizeof(PLAYER_TEMPLATE), "Invalid layout");
-          std::copy(PLAYER_TEMPLATE, boost::end(PLAYER_TEMPLATE), Data.begin());
+          std::copy(PLAYER_TEMPLATE, std::end(PLAYER_TEMPLATE), Data.begin());
           Data[0x2] = init & 0xff;
           Data[0x3] = init >> 8;
         }
@@ -455,8 +453,8 @@ namespace Chiptune
         //init header
         Header* const header = result->Add(Header());
         std::memset(header, 0, sizeof(*header));
-        std::copy(SIGNATURE, boost::end(SIGNATURE), header->Signature);
-        std::copy(EMUL::SIGNATURE, boost::end(EMUL::SIGNATURE), header->Type);
+        std::copy(SIGNATURE, std::end(SIGNATURE), header->Signature);
+        std::copy(EMUL::SIGNATURE, std::end(EMUL::SIGNATURE), header->Type);
         SetPointer(&header->AuthorOffset, result->Add(Author));
         SetPointer(&header->MiscOffset, result->Add(Comment));
         //init descr

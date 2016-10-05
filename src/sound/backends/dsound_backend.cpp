@@ -25,9 +25,9 @@
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 //boost includes
+#include <boost/range/size.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
-#include <boost/range/size.hpp>
 //text includes
 #include "text/backends.h"
 

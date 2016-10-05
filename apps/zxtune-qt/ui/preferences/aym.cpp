@@ -20,7 +20,6 @@
 #include <core/core_parameters.h>
 #include <sound/sound_parameters.h>
 //boost includes
-#include <boost/range/end.hpp>
 #include <boost/range/size.hpp>
 
 namespace
@@ -59,8 +58,8 @@ namespace
     virtual void OnClockRateChanged(const QString& val)
     {
       const qlonglong num = val.toLongLong();
-      const uint64_t* const preset = std::find(PRESETS, boost::end(PRESETS), num);
-      if (preset == boost::end(PRESETS))
+      const uint64_t* const preset = std::find(PRESETS, std::end(PRESETS), num);
+      if (preset == std::end(PRESETS))
       {
         clockRatePresets->setCurrentIndex(0);//custom
       }

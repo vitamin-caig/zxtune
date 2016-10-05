@@ -16,8 +16,6 @@
 //std includes
 #include <algorithm>
 #include <cassert>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace
 {
@@ -268,11 +266,11 @@ namespace
         looses[cp] = 0;
       }
     }
-    if (const std::size_t maxStraight = *std::max_element(straights, boost::end(straights)))
+    if (const std::size_t maxStraight = *std::max_element(straights, std::end(straights)))
     {
       return CODEPAGES[maxStraight & 0xff];
     }
-    else if (const std::size_t maxLoose = *std::max_element(looses, boost::end(looses)))
+    else if (const std::size_t maxLoose = *std::max_element(looses, std::end(looses)))
     {
       return CODEPAGES[maxLoose & 0xff];
     }

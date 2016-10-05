@@ -89,7 +89,7 @@ namespace Sound
   typename Res::Type MakeSample(Sample::Type in)
   {
     typename Res::Type res;
-    res.assign(in);
+    res.fill(in);
     return res;
   }
 
@@ -97,7 +97,7 @@ namespace Sound
   typename FixedChannelsMatrixMixer<Channels>::Matrix MakeMatrix(const Gain& mg)
   {
     typename FixedChannelsMatrixMixer<Channels>::Matrix res;
-    res.assign(mg);
+    res.fill(mg);
     return res;
   }
 
@@ -151,7 +151,7 @@ namespace Sound
     {
       throw Error(THIS_LINE, str);
     }
-    
+
     assert(boost::size(OUTS) == boost::size(GAINS) * boost::size(INPUTS));
     assert(boost::size(GAINS) == boost::size(GAIN_NAMES));
     assert(boost::size(INPUTS) == boost::size(INPUT_NAMES));

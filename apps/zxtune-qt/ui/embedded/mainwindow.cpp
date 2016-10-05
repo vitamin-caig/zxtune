@@ -20,8 +20,6 @@
 #include <contract.h>
 //std includes
 #include <fstream>
-//boost includes
-#include <boost/range/end.hpp>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QKeyEvent>
@@ -97,7 +95,7 @@ namespace
         //playlist is mandatory and cannot be hidden
         AddWidgetOnLayout(Playlist);
         State->Load();
-        std::for_each(ALL_WIDGETS, boost::end(ALL_WIDGETS), std::bind1st(std::mem_fun(&EmbeddedMainWindowImpl::AddWidgetLayoutControl), this));
+        std::for_each(ALL_WIDGETS, std::end(ALL_WIDGETS), std::bind1st(std::mem_fun(&EmbeddedMainWindowImpl::AddWidgetLayoutControl), this));
       }
 
       //connect root actions

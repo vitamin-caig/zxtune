@@ -32,7 +32,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -642,7 +641,7 @@ namespace Chiptune
           }
           else
           {
-            meta.SetTitle(String(Id.Title, boost::end(Id.Author)));
+            meta.SetTitle(String(Id.Title, std::end(Id.Author)));
           }
         }
       }

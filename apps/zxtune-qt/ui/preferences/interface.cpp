@@ -23,11 +23,10 @@
 #include <make_ptr.h>
 //library includes
 #include <math/numeric.h>
-//boost includes
-#include <boost/range/end.hpp>
-#include <boost/range/size.hpp>
 //qt includes
 #include <QtGui/QRadioButton>
+//boost includes
+#include <boost/range/size.hpp>
 
 namespace
 {
@@ -54,8 +53,8 @@ namespace
       using namespace Parameters;
       Parameters::IntType val = ZXTuneQT::Update::CHECK_PERIOD_DEFAULT;
       Ctr->FindValue(ZXTuneQT::Update::CHECK_PERIOD, val);
-      const Parameters::IntType* const arrPos = std::find(UPDATE_CHECK_PERIODS, boost::end(UPDATE_CHECK_PERIODS), val);
-      return arrPos != boost::end(UPDATE_CHECK_PERIODS)
+      const Parameters::IntType* const arrPos = std::find(UPDATE_CHECK_PERIODS, std::end(UPDATE_CHECK_PERIODS), val);
+      return arrPos != std::end(UPDATE_CHECK_PERIODS)
         ? arrPos - UPDATE_CHECK_PERIODS
         : -1;
     }

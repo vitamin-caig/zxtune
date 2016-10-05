@@ -21,7 +21,6 @@
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 //boost includes
-#include <boost/range/end.hpp>
 #include <boost/range/size.hpp>
 
 namespace
@@ -52,8 +51,8 @@ namespace
       using namespace Parameters;
       Parameters::StringType val = ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT;
       Ctr->FindValue(ZXTune::Sound::Backends::Mp3::CHANNELS, val);
-      const Parameters::StringType* const arrPos = std::find(CHANNEL_MODES, boost::end(CHANNEL_MODES), val);
-      return arrPos != boost::end(CHANNEL_MODES)
+      const Parameters::StringType* const arrPos = std::find(CHANNEL_MODES, std::end(CHANNEL_MODES), val);
+      return arrPos != std::end(CHANNEL_MODES)
         ? arrPos - CHANNEL_MODES
         : -1;
     }

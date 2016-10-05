@@ -31,7 +31,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/range/end.hpp>
 //text includes
 #include <io/text/io.h>
 
@@ -52,7 +51,7 @@ namespace
     };
     const String::size_type dotPos = in.find('.');
     const String filename = in.substr(0, dotPos);
-    if (boost::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, boost::end(DEPRECATED_NAMES), ToStdString(filename)))
+    if (std::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, std::end(DEPRECATED_NAMES), ToStdString(filename)))
     {
       const String restPart = dotPos != String::npos ? in.substr(dotPos) : String();
       return filename + '~' + restPart;
@@ -460,7 +459,7 @@ namespace IO
       {
         SCHEME_FILE
       };
-      return Strings::Set(SCHEMES, boost::end(SCHEMES));
+      return Strings::Set(SCHEMES, std::end(SCHEMES));
     }
 
     virtual Identifier::Ptr Resolve(const String& uri) const

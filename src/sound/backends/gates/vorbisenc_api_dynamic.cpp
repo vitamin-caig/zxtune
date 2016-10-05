@@ -15,8 +15,6 @@
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Sound
 {
@@ -40,7 +38,7 @@ namespace Sound
         {
           "libvorbisenc.so.2",
         };
-        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
       virtual std::vector<std::string> WindowsAlternatives() const

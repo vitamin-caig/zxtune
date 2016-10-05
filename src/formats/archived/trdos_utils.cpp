@@ -14,7 +14,6 @@
 #include <locale_helpers.h>
 //boost includes
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/range/end.hpp>
 
 namespace TRDos
 {
@@ -41,7 +40,7 @@ namespace TRDos
       return fname;
     }
     fname += '.';
-    const char* const invalidSym = std::find_if(type, boost::end(type), std::not1(std::ptr_fun(&IsAlNum)));
+    const char* const invalidSym = std::find_if(type, std::end(type), std::not1(std::ptr_fun(&IsAlNum)));
     fname += String(type, invalidSym);
     return fname;
   }

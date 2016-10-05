@@ -24,8 +24,6 @@
 //std includes
 #include <cctype>
 #include <set>
-//boost includes
-#include <boost/range/end.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtCore/QFile>

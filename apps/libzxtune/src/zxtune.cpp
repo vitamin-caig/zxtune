@@ -30,7 +30,6 @@
 #include <map>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/range/end.hpp>
 #include <boost/type_traits/is_signed.hpp>
 
 namespace Text
@@ -239,8 +238,8 @@ namespace
       Name2Val(Parameters::ZXTune::Core::AYM::CLOCKRATE, Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
       Name2Val(Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT),
     };
-    const Name2Val* const defVal = std::find_if(DEFAULTS, boost::end(DEFAULTS), boost::bind(&Name2Val::first, _1) == name);
-    if (boost::end(DEFAULTS) == defVal)
+    const Name2Val* const defVal = std::find_if(DEFAULTS, std::end(DEFAULTS), boost::bind(&Name2Val::first, _1) == name);
+    if (std::end(DEFAULTS) == defVal)
     {
       return false;
     }

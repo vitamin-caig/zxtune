@@ -24,9 +24,6 @@
 //std includes
 #include <cstring>
 #include <numeric>
-//boost includes
-#include <boost/range/end.hpp>
-#include <boost/range/size.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -49,13 +46,13 @@ namespace AYM
       Devices::AYM::CHANNEL_MASK_C,
     };
     static_assert(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS), "Invalid layout");
-    const std::ptrdiff_t pos = std::find(LETTERS, boost::end(LETTERS), letter) - LETTERS;
-    if (pos == static_cast<std::ptrdiff_t>(boost::size(LETTERS)))
+    const Char* const pos = std::find(LETTERS, std::end(LETTERS), letter);
+    if (pos == std::end(LETTERS))
     {
       throw MakeFormattedError(THIS_LINE,
         translate("Invalid duty cycle mask item: '%1%'."), String(1, letter));
     }
-    return val | MASKS[pos];
+    return val | MASKS[pos - LETTERS];
   }
 
   uint_t String2Mask(const String& str)

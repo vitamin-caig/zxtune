@@ -21,8 +21,6 @@
 //std includes
 #include <cstring>
 #include <numeric>
-//boost includes
-#include <boost/range/end.hpp>
 //text include
 #include <formats/text/archived.h>
 
@@ -109,7 +107,7 @@ namespace Archived
 
       bool IsEmpty() const
       {
-        return boost::end(Content) == std::find_if(Content, boost::end(Content), std::bind2nd(std::not_equal_to<uint8_t>(), 0));
+        return std::none_of(Content, std::end(Content), std::bind2nd(std::not_equal_to<uint8_t>(), 0));
       }
     };
 
@@ -168,7 +166,7 @@ namespace Archived
       std::vector<bool> usedSectors(totalSectors);
       std::fill_n(usedSectors.begin(), SECTORS_IN_TRACK, true);
       uint_t files = 0;
-      for (const CatEntry* catEntry = catalog->Entries; catEntry != boost::end(catalog->Entries) && NOENTRY != catEntry->Name[0]; ++catEntry)
+      for (const CatEntry* catEntry = catalog->Entries; catEntry != std::end(catalog->Entries) && NOENTRY != catEntry->Name[0]; ++catEntry)
       {
         if (!catEntry->SizeInSectors)
         {

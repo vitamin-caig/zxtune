@@ -24,8 +24,6 @@
 //std includes
 #include <algorithm>
 #include <iterator>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -472,7 +470,7 @@ namespace Packed
         {
           return false;
         }
-        std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
+        std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
         return true;
       }
     private:

@@ -24,8 +24,6 @@
 #include <parameters/accessor.h>
 //std includes
 #include <cstring>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <io/text/io.h>
 
@@ -300,7 +298,7 @@ namespace IO
   public:
     explicit NetworkDataProvider(Curl::Api::Ptr api)
       : Api(api)
-      , SupportedSchemes(ALL_SCHEMES, boost::end(ALL_SCHEMES))
+      , SupportedSchemes(ALL_SCHEMES, std::end(ALL_SCHEMES))
     {
     }
 

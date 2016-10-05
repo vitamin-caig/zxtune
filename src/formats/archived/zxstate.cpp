@@ -26,10 +26,10 @@
 #include <map>
 #include <numeric>
 #include <sstream>
-//3rd-party includes
-#include <3rdparty/zlib/zlib.h>
 //boost includes
 #include <boost/range/size.hpp>
+//3rd-party includes
+#include <3rdparty/zlib/zlib.h>
 //text include
 #include <formats/text/archived.h>
 

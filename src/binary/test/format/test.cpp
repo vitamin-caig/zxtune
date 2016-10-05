@@ -15,7 +15,6 @@
 #include <binary/format/syntax.h>
 #include <sstream>
 #include <iostream>
-#include <boost/range/size.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 
 namespace
@@ -196,7 +195,7 @@ namespace
     try
     {
       const Binary::Format::Ptr format = Binary::CreateFormat(notation);
-      const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
+      const Binary::DataAdapter sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
@@ -210,7 +209,7 @@ namespace
     try
     {
       const Binary::Format::Ptr format = Binary::CreateMatchOnlyFormat(notation);
-      const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
+      const Binary::DataAdapter sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
@@ -226,7 +225,7 @@ namespace
       const Binary::Format::Ptr hdr = Binary::CreateFormat(header, minSize);
       const Binary::Format::Ptr foot = Binary::CreateFormat(footer);
       const Binary::Format::Ptr format = Binary::CreateCompositeFormat(hdr, foot, minSize, maxSize);
-      const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
+      const Binary::DataAdapter sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)

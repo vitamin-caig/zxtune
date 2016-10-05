@@ -39,7 +39,6 @@
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
 #include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
 //boost includes
-#include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace Module

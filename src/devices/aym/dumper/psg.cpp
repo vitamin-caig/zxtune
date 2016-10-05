@@ -14,8 +14,6 @@
 #include <algorithm>
 #include <iterator>
 #include <make_ptr.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Devices
 {
@@ -42,7 +40,7 @@ namespace AYM
         END_MUS
       };
       static_assert(sizeof(HEADER) == 16 + 1, "Invalid header layout");
-      Data.assign(HEADER, boost::end(HEADER));
+      Data.assign(HEADER, std::end(HEADER));
     }
 
     virtual void GetResult(Dump& data) const

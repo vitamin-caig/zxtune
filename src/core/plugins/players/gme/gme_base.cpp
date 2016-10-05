@@ -35,7 +35,6 @@
 //std includes
 #include <map>
 //boost includes
-#include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 //3rdparty
 #include <3rdparty/gme/gme/Gbs_Emu.h>
@@ -550,29 +549,23 @@ namespace ZXTune
 {
   void RegisterMultitrackGMEPlugins(PlayerPluginsRegistrator& registrator)
   {
-    for (const Module::GME::MultitrackPluginDescription* it = Module::GME::MULTITRACK_PLUGINS; it != boost::end(Module::GME::MULTITRACK_PLUGINS); ++it)
+    for (const auto& desc : Module::GME::MULTITRACK_PLUGINS)
     {
-      const Module::GME::MultitrackPluginDescription& desc = *it;
-
       const Formats::Multitrack::Decoder::Ptr multi = desc.CreateMultitrackDecoder();
-      const uint_t caps = desc.Desc.ChiptuneCaps;
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder(multi);
       const Module::Factory::Ptr factory = MakePtr<Module::GME::MultitrackFactory>(desc.Desc, multi);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }
   
   void RegisterSingletrackGMEPlugins(PlayerPluginsRegistrator& registrator)
   {
-    for (const Module::GME::SingletrackPluginDescription* it = Module::GME::SINGLETRACK_PLUGINS; it != boost::end(Module::GME::SINGLETRACK_PLUGINS); ++it)
+    for (const auto& desc : Module::GME::SINGLETRACK_PLUGINS)
     {
-      const Module::GME::SingletrackPluginDescription& desc = *it;
-
-      const uint_t caps = desc.Desc.ChiptuneCaps;
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder();
       const Module::Factory::Ptr factory = MakePtr<Module::GME::SingletrackFactory>(desc.Desc, decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

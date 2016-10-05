@@ -20,8 +20,6 @@
 //std includes
 #include <array>
 #include <numeric>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -365,7 +363,7 @@ namespace Packed
         };
 
         Pages = 3;
-        Numbers.assign(VER48_PAGES, boost::end(VER48_PAGES));
+        Numbers.assign(VER48_PAGES, std::end(VER48_PAGES));
       }
 
       void FillSamRamTraits()
@@ -384,7 +382,7 @@ namespace Packed
         };
 
         Pages = 5;
-        Numbers.assign(SAMRAM_PAGES, boost::end(SAMRAM_PAGES));
+        Numbers.assign(SAMRAM_PAGES, std::end(SAMRAM_PAGES));
       }
 
       void Fill128kTraits()
@@ -404,7 +402,7 @@ namespace Packed
           7,  //p10(7) to 1c000
         };
         Pages = 8;
-        Numbers.assign(VER128_PAGES, boost::end(VER128_PAGES));
+        Numbers.assign(VER128_PAGES, std::end(VER128_PAGES));
       }
 
       void Fill256kTraits()
@@ -432,7 +430,7 @@ namespace Packed
           15,
         };
         Pages = 16;
-        Numbers.assign(VER256_PAGES, boost::end(VER256_PAGES));
+        Numbers.assign(VER256_PAGES, std::end(VER256_PAGES));
       }
 
       void FillTraits(Version2_0::HardwareTypes hwMode)
