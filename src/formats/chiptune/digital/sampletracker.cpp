@@ -26,8 +26,6 @@
 //std includes
 #include <array>
 #include <cstring>
-//boost includes
-#include <boost/mem_fn.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 

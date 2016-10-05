@@ -23,7 +23,6 @@
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/mem_fn.hpp>
 
 namespace Module
 {
@@ -58,7 +57,7 @@ namespace Module
     {
       Require(!renderers.empty());
       AnalyzersArray delegates(renderers.size());
-      std::transform(renderers.begin(), renderers.end(), delegates.begin(), boost::mem_fn(&Renderer::GetAnalyzer));
+      std::transform(renderers.begin(), renderers.end(), delegates.begin(), std::mem_fn(&Renderer::GetAnalyzer));
       return delegates.size() == 1
            ? delegates.front()
            : MakePtr<MultiAnalyzer>(delegates.begin(), delegates.end());
@@ -342,7 +341,7 @@ namespace Module
     {
       Require(!renderers.empty());
       TrackStatesArray delegates(renderers.size());
-      std::transform(renderers.begin(), renderers.end(), delegates.begin(), boost::mem_fn(&Renderer::GetTrackState));
+      std::transform(renderers.begin(), renderers.end(), delegates.begin(), std::mem_fn(&Renderer::GetTrackState));
       return delegates.size() == 1
            ? delegates.front()
            : MakePtr<MultiTrackState>(delegates.begin(), delegates.end());
@@ -392,7 +391,7 @@ namespace Module
     virtual void Reset()
     {
       SoundParams.Reset();
-      std::for_each(Delegates.begin(), Delegates.end(), boost::mem_fn(&Renderer::Reset));
+      std::for_each(Delegates.begin(), Delegates.end(), std::mem_fn(&Renderer::Reset));
     }
 
     virtual void SetPosition(uint_t frame)

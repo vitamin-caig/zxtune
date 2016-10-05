@@ -15,8 +15,6 @@
 #include <make_ptr.h>
 //std includes
 #include <list>
-//boost includes
-#include <boost/mem_fn.hpp>
 
 namespace LexicalAnalysis
 {
@@ -116,7 +114,7 @@ namespace LexicalAnalysis
           break;
         }
       }
-      context.remove_if(boost::mem_fn(&TokensSet::Empty));
+      context.remove_if(std::mem_fn(&TokensSet::Empty));
       if (context.empty())
       {
         return TokensSet::Ptr();

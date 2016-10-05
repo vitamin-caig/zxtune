@@ -19,8 +19,6 @@
 //library includes
 #include <debug/log.h>
 #include <parameters/convert.h>
-//boost includes
-#include <boost/mem_fn.hpp>
 //qt includes
 #include <QtCore/QByteArray>
 #include <QtGui/QAbstractButton>
@@ -490,12 +488,12 @@ namespace
 
     virtual void Load() const
     {
-      std::for_each(Substates.begin(), Substates.end(), boost::mem_fn(&WidgetState::Load));
+      std::for_each(Substates.begin(), Substates.end(), std::mem_fn(&WidgetState::Load));
     }
 
     virtual void Save() const
     {
-      std::for_each(Substates.begin(), Substates.end(), boost::mem_fn(&WidgetState::Save));
+      std::for_each(Substates.begin(), Substates.end(), std::mem_fn(&WidgetState::Save));
     }
   private:
     const Parameters::Container::Ptr Options;

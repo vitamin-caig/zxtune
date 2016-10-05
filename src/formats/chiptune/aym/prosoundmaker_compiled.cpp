@@ -291,7 +291,7 @@ namespace Chiptune
       virtual void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop)
       {
         std::vector<uint_t> pats;
-        std::transform(positions.begin(), positions.end(), std::back_inserter(pats), boost::mem_fn(&PositionEntry::PatternIndex));
+        std::transform(positions.begin(), positions.end(), std::back_inserter(pats), std::mem_fn(&PositionEntry::PatternIndex));
         UsedPatterns.Assign(pats.begin(), pats.end());
         Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);

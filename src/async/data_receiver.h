@@ -94,7 +94,7 @@ namespace Async
 
     void CheckWorkersAvailable()
     {
-      if (Activities.end() == std::find_if(Activities.begin(), Activities.end(), boost::mem_fn(&Activity::IsExecuted)))
+      if (Activities.end() == std::find_if(Activities.begin(), Activities.end(), std::mem_fn(&Activity::IsExecuted)))
       {
         const std::list<Error>& errors = WaitAll();
         throw errors.empty()

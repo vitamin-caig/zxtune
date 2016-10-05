@@ -19,8 +19,6 @@
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QHeaderView>
@@ -153,9 +151,10 @@ namespace
       const QItemSelectionModel* const selection = selectionModel();
       const QModelIndexList& items = selection->selectedRows();
       const Playlist::Model::IndexSet::RWPtr result = MakeRWPtr<Playlist::Model::IndexSet>();
-      std::for_each(items.begin(), items.end(),
-                    boost::bind(boost::mem_fn<std::pair<Playlist::Model::IndexSet::iterator, bool>, Playlist::Model::IndexSet, const Playlist::Model::IndexSet::value_type&>(&Playlist::Model::IndexSet::insert), result.get(),
-          boost::bind(&QModelIndex::row, _1)));
+      for (const auto& item : items)
+      {
+        result->insert(item.row());
+      }
       return result;
     }
 
