@@ -130,7 +130,7 @@ namespace Async
 
     virtual void Start()
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
       {
         if (Act->IsExecuted())
@@ -146,7 +146,7 @@ namespace Async
     
     virtual void Pause()
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
       {
         if (Act->IsExecuted())
@@ -160,7 +160,7 @@ namespace Async
     
     virtual void Stop()
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
       {
         return FinishAction();//TODO: wrap error
@@ -170,13 +170,13 @@ namespace Async
 
     virtual bool IsActive() const
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       return Act && Act->IsExecuted();
     }
     
     virtual bool IsPaused() const
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       return Act && Act->IsExecuted() && State.Check(PAUSED);
     }
   private:
@@ -229,7 +229,7 @@ namespace Async
     }
   private:
     const Coroutine::Ptr Routine;
-    mutable boost::mutex Mutex;
+    mutable std::mutex Mutex;
     Event<JobState> State;
     Activity::Ptr Act;
   };

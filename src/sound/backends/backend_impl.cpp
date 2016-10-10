@@ -20,6 +20,8 @@
 #include <l10n/api.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+//std includes
+#include <atomic>
 
 #define FILE_TAG B3D60DB5
 
@@ -122,10 +124,10 @@ namespace Sound
 
     virtual bool RenderFrame()
     {
-      if (SeekRequest != NO_SEEK)
+      const uint_t request = SeekRequest.exchange(NO_SEEK);
+      if (request != NO_SEEK)
       {
-        Delegate->SetPosition(SeekRequest);
-        SeekRequest = NO_SEEK;
+        Delegate->SetPosition(request);
       }
       Callback->OnFrame(*State);
       return Delegate->RenderFrame();
@@ -146,8 +148,7 @@ namespace Sound
     const Module::Renderer::Ptr Delegate;
     const BackendCallback::Ptr Callback;
     const Module::TrackState::Ptr State;
-    //TODO: use atomic variable
-    volatile uint_t SeekRequest;
+    std::atomic<uint_t> SeekRequest;
   };
 
   class AsyncWrapper : public Async::Worker
@@ -251,8 +252,7 @@ namespace Sound
     const BackendWorker::Ptr Delegate;
     const BackendCallback::Ptr Callback;
     const Module::Renderer::Ptr Render;
-    //TODO: atomic variable
-    volatile bool Playing;
+    std::atomic_bool Playing;
   };
 
   class StubBackendCallback : public BackendCallback

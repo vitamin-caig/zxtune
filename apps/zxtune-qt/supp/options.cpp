@@ -21,10 +21,10 @@
 #include <parameters/tools.h>
 #include <parameters/tracking.h>
 //std includes
+#include <mutex>
 #include <set>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/thread/mutex.hpp>
 //qt includes
 #include <QtCore/QSettings>
 //text includes
@@ -332,14 +332,14 @@ namespace
 
     Subscription Subscribe(Modifier::Ptr delegate)
     {
-      const boost::mutex::scoped_lock lock(Guard);
+      const std::lock_guard<std::mutex> lock(Guard);
       Delegates.insert(delegate);
       return Subscription(this, boost::bind(&CompositeModifier::Unsubscribe, _1, delegate));
     }
 
     virtual void SetValue(const NameType& name, IntType val)
     {
-      const boost::mutex::scoped_lock lock(Guard);
+      const std::lock_guard<std::mutex> lock(Guard);
       for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
       {
         (*it)->SetValue(name, val);
@@ -348,7 +348,7 @@ namespace
 
     virtual void SetValue(const NameType& name, const StringType& val)
     {
-      const boost::mutex::scoped_lock lock(Guard);
+      const std::lock_guard<std::mutex> lock(Guard);
       for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
       {
         (*it)->SetValue(name, val);
@@ -357,7 +357,7 @@ namespace
 
     virtual void SetValue(const NameType& name, const DataType& val)
     {
-      const boost::mutex::scoped_lock lock(Guard);
+      const std::lock_guard<std::mutex> lock(Guard);
       for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
       {
         (*it)->SetValue(name, val);
@@ -366,7 +366,7 @@ namespace
 
     virtual void RemoveValue(const NameType& name)
     {
-      const boost::mutex::scoped_lock lock(Guard);
+      const std::lock_guard<std::mutex> lock(Guard);
       for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
       {
         (*it)->RemoveValue(name);
@@ -375,11 +375,11 @@ namespace
   private:
     void Unsubscribe(Modifier::Ptr delegate)
     {
-      const boost::mutex::scoped_lock lock(Guard);
+      const std::lock_guard<std::mutex> lock(Guard);
       Delegates.erase(delegate);
     }
   private:
-    mutable boost::mutex Guard;
+    mutable std::mutex Guard;
     typedef std::set<Modifier::Ptr> ModifiersSet;
     mutable ModifiersSet Delegates;
   };

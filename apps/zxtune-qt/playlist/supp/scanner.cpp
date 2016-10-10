@@ -20,8 +20,8 @@
 #include <async/coroutine.h>
 #include <debug/log.h>
 #include <time/elapsed.h>
-//boost includes
-#include <boost/thread/mutex.hpp>
+//std includes
+#include <mutex>
 //qt includes
 #include <QtCore/QDirIterator>
 #include <QtCore/QStringList>
@@ -215,7 +215,7 @@ namespace
 
     virtual void Add(const QStringList& items)
     {
-      const boost::mutex::scoped_lock lock(Lock);
+      const std::lock_guard<std::mutex> lock(Lock);
       Source.Add(items);
     }
 
@@ -227,7 +227,7 @@ namespace
 
     virtual QString GetNext()
     {
-      const boost::mutex::scoped_lock lock(Lock);
+      const std::lock_guard<std::mutex> lock(Lock);
       return Current = PrefetchedStatistic.GetNext();
     }
 
@@ -252,7 +252,7 @@ namespace
       return Resolved.Empty();
     }
   private:
-    boost::mutex Lock;
+    std::mutex Lock;
     SourceFilenames Source;
     ResolvedFilenames Resolved;
     FilenamesSourceStatistic ResolvedStatistic;

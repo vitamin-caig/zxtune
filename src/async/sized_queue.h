@@ -16,11 +16,12 @@
 //library includes
 #include <async/queue.h>
 //std includes
+#include <atomic>
+#include <condition_variable>
 #include <deque>
+#include <mutex>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
 
 namespace Async
 {
@@ -36,7 +37,7 @@ namespace Async
 
     virtual void Add(T val)
     {
-      boost::mutex::scoped_lock lock(Locker);
+      std::unique_lock<std::mutex> lock(Locker);
       CanPutDataEvent.wait(lock, boost::bind(&SizedQueue::CanPutData, this));
       if (Active)
       {
@@ -47,7 +48,7 @@ namespace Async
 
     virtual bool Get(T& res)
     {
-      boost::mutex::scoped_lock lock(Locker);
+      std::unique_lock<std::mutex> lock(Locker);
       CanGetDataEvent.wait(lock, boost::bind(&SizedQueue::CanGetData, this));
       if (Active)
       {
@@ -62,7 +63,7 @@ namespace Async
 
     virtual void Reset()
     {
-      const boost::mutex::scoped_lock lock(Locker);
+      const std::lock_guard<std::mutex> lock(Locker);
       Container.clear();
       Active = false;
       CanGetDataEvent.notify_all();
@@ -71,7 +72,7 @@ namespace Async
 
     virtual void Flush()
     {
-      boost::mutex::scoped_lock lock(Locker);
+      std::unique_lock<std::mutex> lock(Locker);
       CanPutDataEvent.wait(lock, boost::bind(&ContainerType::empty, &Container));
     }
 
@@ -91,10 +92,10 @@ namespace Async
     }
   private:
     const std::size_t MaxSize;
-    volatile bool Active;
-    mutable boost::mutex Locker;
-    boost::condition_variable CanPutDataEvent;
-    boost::condition_variable CanGetDataEvent;
+    std::atomic_bool Active;
+    mutable std::mutex Locker;
+    std::condition_variable CanPutDataEvent;
+    std::condition_variable CanGetDataEvent;
     typedef std::deque<T> ContainerType;
     ContainerType Container;
   };

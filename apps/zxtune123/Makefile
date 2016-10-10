@@ -27,7 +27,7 @@ libraries.3rdparty = gme hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
 #platform
 windows_libraries = advapi32 ole32 oldnames user32
 mingw_libraries = ole32
-libraries.boost = thread program_options system filesystem
+libraries.boost = filesystem program_options system
 
 manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)

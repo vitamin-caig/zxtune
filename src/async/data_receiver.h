@@ -19,6 +19,7 @@
 #include <async/progress.h>
 #include <async/sized_queue.h>
 //std includes
+#include <algorithm>
 #include <list>
 
 namespace Async

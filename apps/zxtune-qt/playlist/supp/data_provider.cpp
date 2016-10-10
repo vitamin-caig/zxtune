@@ -35,9 +35,9 @@
 #include <strings/template.h>
 //std includes
 #include <deque>
+#include <mutex>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/thread/mutex.hpp>
 //text includes
 #include "text/text.h"
 
@@ -249,7 +249,7 @@ namespace
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       const std::size_t filesLimit = Params.FilesLimit();
       const std::size_t memLimit = Params.MemoryLimit();
       if (filesLimit != 0 && memLimit != 0)
@@ -265,7 +265,7 @@ namespace
 
     void FlushCachedData(const String& dataPath)
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       if (Cache.GetItemsCount())
       {
         Cache.Del(dataPath);
@@ -293,7 +293,7 @@ namespace
   private:
     const CacheParameters Params;
     const DataProvider::Ptr Delegate;
-    mutable boost::mutex Mutex;
+    mutable std::mutex Mutex;
     mutable ObjectsCache<Binary::Container::Ptr> Cache;
   };
 

@@ -19,10 +19,11 @@
 #include <strings/format.h>
 #include <strings/template.h>
 #include <time/duration.h>
+//std includes
+#include <thread>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
-#include <boost/thread/thread.hpp>
 //text includes
 #include "text/text.h"
 
@@ -166,7 +167,7 @@ namespace
     virtual void EndFrame()
     {
       const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
-      boost::this_thread::sleep(boost::posix_time::milliseconds(waitPeriod));
+      std::this_thread::sleep_for(std::chrono::milliseconds(waitPeriod));
       if (!Silent && !Quiet)
       {
         Console::Self().MoveCursorUp(Analyzer ? ScrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);

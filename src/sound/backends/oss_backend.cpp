@@ -33,9 +33,9 @@
 //std includes
 #include <algorithm>
 #include <cstring>
+#include <thread>
 //boost includes
 #include <boost/noncopyable.hpp>
-#include <boost/thread/thread.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -207,7 +207,7 @@ namespace Oss
   class VolumeControl : public Sound::VolumeControl
   {
   public:
-    VolumeControl(boost::mutex& stateMutex, AutoDescriptor& mixer)
+    VolumeControl(std::mutex& stateMutex, AutoDescriptor& mixer)
       : StateMutex(stateMutex), MixHandle(mixer)
     {
     }
@@ -215,7 +215,7 @@ namespace Oss
     virtual Gain GetVolume() const
     {
       Dbg("GetVolume");
-      const boost::mutex::scoped_lock lock(StateMutex);
+      const std::lock_guard<std::mutex> lock(StateMutex);
       Gain volume;
       if (MixHandle.Valid())
       {
@@ -233,7 +233,7 @@ namespace Oss
         throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
       Dbg("SetVolume");
-      const boost::mutex::scoped_lock lock(StateMutex);
+      const std::lock_guard<std::mutex> lock(StateMutex);
       if (MixHandle.Valid())
       {
         std::array<uint8_t, sizeof(int)> buf = { {0} };
@@ -243,7 +243,7 @@ namespace Oss
       }
     }
   private:
-    boost::mutex& StateMutex;
+    std::mutex& StateMutex;
     AutoDescriptor& MixHandle;
   };
 
@@ -378,7 +378,7 @@ namespace Oss
     }
   private:
     const Parameters::Accessor::Ptr Params;
-    boost::mutex StateMutex;
+    std::mutex StateMutex;
     AutoDescriptor MixHandle;
     AutoDescriptor DevHandle;
     int Format;

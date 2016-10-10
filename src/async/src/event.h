@@ -10,10 +10,11 @@
 
 #pragma once
 
+//std includes
+#include <condition_variable>
+#include <mutex>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
 
 namespace Async
 {
@@ -34,7 +35,7 @@ namespace Async
     void Set(Type val)
     {
       {
-        boost::mutex::scoped_lock lock(Mutex);
+        const std::lock_guard<std::mutex> lock(Mutex);
         Value = 1 << val;
       }
       Condition.notify_all();
@@ -70,19 +71,19 @@ namespace Async
 
     void Reset()
     {
-      boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       Value = 0;
     }
 
     bool Check(Type val) const
     {
-      boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       return IsSignalled(1 << val);
     }
   private:
     unsigned WaitInternal(unsigned mask)
     {
-      boost::mutex::scoped_lock lock(Mutex);
+      std::unique_lock<std::mutex> lock(Mutex);
       Condition.wait(lock, boost::bind(&Event::IsSignalled, this, mask));
       return Value;
     }
@@ -93,7 +94,7 @@ namespace Async
     }
   private:
     unsigned Value;
-    mutable boost::mutex Mutex;
-    boost::condition_variable Condition;
+    mutable std::mutex Mutex;
+    std::condition_variable Condition;
   };
 }

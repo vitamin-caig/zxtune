@@ -19,9 +19,9 @@
 #include <debug/log.h>
 #include <math/bitops.h>
 #include <parameters/template.h>
-//boost includes
-#include <boost/thread/locks.hpp>
-#include <boost/thread/shared_mutex.hpp>
+//std includes
+#include <atomic>
+#include <mutex>
 //qt includes
 #include <QtCore/QMimeData>
 #include <QtCore/QSet>
@@ -313,13 +313,13 @@ namespace
     //new virtuals
     virtual unsigned CountItems() const
     {
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const std::lock_guard<std::mutex> lock(SyncAccess);
       return static_cast<unsigned>(Container->CountItems());
     }
 
     virtual Playlist::Item::Data::Ptr GetItem(IndexType index) const
     {
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const std::lock_guard<std::mutex> lock(SyncAccess);
       return Container->GetItem(index);
     }
 
@@ -327,7 +327,7 @@ namespace
     {
       PathsVisitor visitor;
       {
-        const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+        const std::lock_guard<std::mutex> lock(SyncAccess);
         Container->ForSpecifiedItems(items, visitor);
       }
       return visitor.GetResult();
@@ -342,8 +342,7 @@ namespace
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        const std::lock_guard<std::mutex> lock(SyncAccess);
         Container = Playlist::Item::Storage::Create();
         remapping = GetIndicesChanges();
       }
@@ -358,8 +357,7 @@ namespace
       }
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        const std::lock_guard<std::mutex> lock(SyncAccess);
         Container->RemoveItems(*items);
         remapping = GetIndicesChanges();
       }
@@ -371,8 +369,7 @@ namespace
       Dbg("Moving %1% items to row %2%", items.size(), target);
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        const std::lock_guard<std::mutex> lock(SyncAccess);
         Container->MoveItems(items, target);
         remapping = GetIndicesChanges();
       }
@@ -489,13 +486,13 @@ namespace
 
     virtual bool canFetchMore(const QModelIndex& /*index*/) const
     {
-      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
+      const std::lock_guard<std::mutex> lock(SyncAccess);
       return FetchedItemsCount < Container->CountItems();
     }
 
     virtual void fetchMore(const QModelIndex& /*index*/)
     {
-      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
+      const std::lock_guard<std::mutex> lock(SyncAccess);
       const std::size_t nextCount = Container->CountItems();
       beginInsertRows(EMPTY_INDEX, static_cast<int>(FetchedItemsCount), nextCount - 1);
       FetchedItemsCount = nextCount;
@@ -508,7 +505,7 @@ namespace
       {
         return EMPTY_INDEX;
       }
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const std::lock_guard<std::mutex> lock(SyncAccess);
       if (row < static_cast<int>(Container->CountItems()))
       {
         return createIndex(row, column, Container->GetVersion());
@@ -523,7 +520,7 @@ namespace
 
     virtual int rowCount(const QModelIndex& index) const
     {
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const std::lock_guard<std::mutex> lock(SyncAccess);
       return index.isValid()
         ? 0
         : static_cast<int>(FetchedItemsCount);
@@ -554,7 +551,7 @@ namespace
       }
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const std::lock_guard<std::mutex> lock(SyncAccess);
       if (const Playlist::Item::Data::Ptr item = Container->GetItem(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
@@ -576,7 +573,7 @@ namespace
   private:
     virtual void ExecuteOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
     {
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const std::lock_guard<std::mutex> lock(SyncAccess);
       emit OperationStarted();
       try
       {
@@ -592,13 +589,16 @@ namespace
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
         emit OperationStarted();
-        Playlist::Item::Storage::Ptr tmpStorage = Container->Clone();
+        Playlist::Item::Storage::Ptr tmpStorage;
+        {
+          const std::lock_guard<std::mutex> lock(SyncAccess);
+          tmpStorage = Container->Clone();
+        }
         try
         {
           operation->Execute(*tmpStorage, *this);
-          const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+          const std::lock_guard<std::mutex> lock(SyncAccess);
           Container = tmpStorage;
           remapping = GetIndicesChanges();
         }
@@ -644,8 +644,7 @@ namespace
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        const std::lock_guard<std::mutex> lock(SyncAccess);
         Container->Add(val);
         remapping = GetIndicesChanges();
       }
@@ -655,17 +654,16 @@ namespace
     template<class T>
     void Add(const T& val)
     {
-      boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-      const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+      const std::lock_guard<std::mutex> lock(SyncAccess);
       Container->Add(val);
     }
   private:
     const DataProvidersSet Providers;
-    mutable boost::shared_mutex SyncAccess;
+    mutable std::mutex SyncAccess;
     std::size_t FetchedItemsCount;
     Playlist::Item::Storage::Ptr Container;
     Async::Activity::Ptr AsyncExecution;
-    volatile bool Canceled;
+    std::atomic_bool Canceled;
   };
 }
 

@@ -28,10 +28,7 @@
 //std includes
 #include <algorithm>
 #include <cstring>
-//boost includes
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <thread>
 //text includes
 #include "text/backends.h"
 
@@ -80,12 +77,6 @@ namespace AyLpt
   static_assert(CMD_RESET_START == 0xf5, "Invariant");
   static_assert(CMD_RESET_STOP == 0xfd, "Invariant");
 
-  void Delay()
-  {
-    //according to datasheets, maximal timing is reset pulse width 5uS
-    boost::this_thread::sleep(boost::posix_time::microseconds(10));
-  }
-
   class LptPort
   {
   public:
@@ -119,7 +110,8 @@ namespace AyLpt
     {
       Reset();
       Dbg("Successfull start");
-      FrameDuration = boost::posix_time::microseconds(Params->FrameDuration().Get());
+      NextFrameTime = std::chrono::steady_clock::now();
+      FrameDuration = std::chrono::microseconds(Params->FrameDuration().Get());
     }
 
     virtual void Shutdown()
@@ -172,19 +164,15 @@ namespace AyLpt
 
     void WaitForNextFrame()
     {
-      if (NextFrameTime.is_not_a_date_time())
-      {
-        NextFrameTime = boost::get_system_time();
-      }
-      else
-      {
-        boost::mutex::scoped_lock lock(Mutex);
-        //prevent spurious wakeup
-        while (Event.timed_wait(lock, NextFrameTime)) {}
-      }
-      NextFrameTime += FrameDuration;
+      std::this_thread::sleep_until(NextFrameTime);
     }
 
+    static void Delay()
+    {
+      //according to datasheets, maximal timing is reset pulse width 5uS
+      std::this_thread::sleep_for(std::chrono::microseconds(10));
+    }
+   
     void WriteRegisters(const uint8_t* data)
     {
       for (uint_t idx = 0; idx <= Devices::AYM::Registers::ENV; ++idx)
@@ -201,10 +189,8 @@ namespace AyLpt
     const Sound::RenderParameters::Ptr Params;
     const Binary::Data::Ptr Data;
     const LptPort::Ptr Port;
-    boost::mutex Mutex;
-    boost::condition_variable Event;
-    boost::system_time NextFrameTime;
-    boost::posix_time::time_duration FrameDuration;
+    std::chrono::steady_clock::time_point NextFrameTime;
+    std::chrono::microseconds FrameDuration;
   };
 
   class DlPortIO : public LptPort

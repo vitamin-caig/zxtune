@@ -15,8 +15,9 @@
 #include <make_ptr.h>
 //library includes
 #include <async/activity.h>
-//boost includes
-#include <boost/thread/thread.hpp>
+//std includes
+#include <cassert>
+#include <thread>
 
 namespace Async
 {
@@ -46,7 +47,7 @@ namespace Async
 
     void Start()
     {
-      Thread = boost::thread(std::mem_fun(&ThreadActivity::WorkProc), this);
+      Thread = std::thread(std::mem_fun(&ThreadActivity::WorkProc), this);
       if (FAILED == State.WaitForAny(INITIALIZED, FAILED))
       {
         Thread.join();
@@ -63,7 +64,10 @@ namespace Async
 
     virtual void Wait()
     {
-      Thread.join();
+      if (Thread.joinable())
+      {
+        Thread.join();
+      }
       ThrowIfError(LastError);
     }
   private:
@@ -87,7 +91,7 @@ namespace Async
   private:
     const Operation::Ptr Oper;
     Event<ActivityState> State;
-    boost::thread Thread;
+    std::thread Thread;
     Error LastError;
   };
 

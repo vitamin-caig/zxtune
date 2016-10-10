@@ -39,7 +39,7 @@ libraries.3rdparty = gme hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
 libraries += playlist_ui playlist_supp playlist_io ui_common
 depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui)
 
-libraries.boost = thread system filesystem
+libraries.boost = filesystem system
 
 libraries.qt = Gui Core Network
 

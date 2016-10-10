@@ -12,10 +12,11 @@
 #include <make_ptr.h>
 //library includes
 #include <async/progress.h>
+//std
+#include <condition_variable>
+#include <mutex>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
 
 namespace Async
 {
@@ -30,20 +31,20 @@ namespace Async
 
     virtual void Produce(uint_t items)
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       Produced += items;
     }
 
     virtual void Consume(uint_t items)
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       Consumed += items;
       NotifyIfComplete();
     }
 
     virtual void WaitForComplete() const
     {
-      boost::mutex::scoped_lock lock(Mutex);
+      std::unique_lock<std::mutex> lock(Mutex);
       Complete.wait(lock, boost::bind(&SynchronizedProgress::IsComplete, this));
     }
   private:
@@ -62,8 +63,8 @@ namespace Async
   private:
     uint_t Produced;
     uint_t Consumed;
-    mutable boost::mutex Mutex;
-    mutable boost::condition_variable Complete;
+    mutable std::mutex Mutex;
+    mutable std::condition_variable Complete;
   };
 }
 

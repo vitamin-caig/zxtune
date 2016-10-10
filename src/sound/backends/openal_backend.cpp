@@ -27,10 +27,9 @@
 #include <sound/render_params.h>
 //std includes
 #include <functional>
+#include <thread>
 //boost includes
 #include <boost/noncopyable.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -181,7 +180,7 @@ namespace OpenAl
     explicit Source(Api& api, uint_t freq, uint_t buffersCount, Time::Milliseconds sleepPeriod)
       : ApiRef(api)
       , Freq(freq)
-      , SleepPeriod(sleepPeriod.Get())
+      , SleepPeriod(std::chrono::milliseconds(sleepPeriod.Get()))
     {
       Dbg("Create source");
       OalApi.alGetError();
@@ -250,7 +249,7 @@ namespace OpenAl
           CheckError(THIS_LINE);
           return freeBuf;
         }
-        boost::this_thread::sleep(SleepPeriod);
+        std::this_thread::sleep_for(SleepPeriod);
       }
     }
     
@@ -273,7 +272,7 @@ namespace OpenAl
     }
   private:
     const uint_t Freq;
-    const boost::posix_time::millisec SleepPeriod;
+    const std::chrono::milliseconds SleepPeriod;
     ALuint SrcId;
     std::unique_ptr<Buffers> Queue;
   };

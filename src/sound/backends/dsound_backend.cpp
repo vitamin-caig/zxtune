@@ -24,10 +24,10 @@
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
+//std includes
+#include <thread>
 //boost includes
 #include <boost/range/size.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -169,7 +169,7 @@ namespace DirectSound
   public:
     typedef std::shared_ptr<StreamBuffer> Ptr;
 
-    StreamBuffer(DirectSoundBufferPtr buff, boost::posix_time::millisec sleepPeriod)
+    StreamBuffer(DirectSoundBufferPtr buff, std::chrono::milliseconds sleepPeriod)
       : Buff(buff)
       , SleepPeriod(sleepPeriod)
       , BuffSize(0)
@@ -297,11 +297,11 @@ namespace DirectSound
 
     void Wait() const
     {
-      boost::this_thread::sleep(SleepPeriod);
+      std::this_thread::sleep_for(SleepPeriod);
     }
   private:
     const DirectSoundBufferPtr Buff;
-    const boost::posix_time::millisec SleepPeriod;
+    const std::chrono::milliseconds SleepPeriod;
     std::size_t BuffSize;
     std::size_t Cursor;
   };
@@ -498,7 +498,7 @@ namespace DirectSound
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
       const Time::Milliseconds frameDuration = RenderingParameters->FrameDuration();
-      res.Stream = MakePtr<StreamBuffer>(buffer, boost::posix_time::millisec(frameDuration.Get()));
+      res.Stream = MakePtr<StreamBuffer>(buffer, std::chrono::milliseconds(frameDuration.Get()));
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
       res.Volume = MakePtr<VolumeControl>(res.Device, primary);
       return res;
