@@ -22,8 +22,6 @@
 #include <array>
 #include <cmath>
 #include <functional>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Devices
 {
@@ -534,8 +532,7 @@ namespace DAC
       {
         RenderChunksTill(src.TimeStamp);
       }
-      std::for_each(src.Data.begin(), src.Data.end(),
-        boost::bind(&FixedChannelsChip::UpdateChannelState, this, _1));
+      UpdateChannelState(src);
     }
 
     virtual void UpdateState(const DataChunk& src)
@@ -545,8 +542,7 @@ namespace DAC
       {
         DropChunksTill(src.TimeStamp);
       }
-      std::for_each(src.Data.begin(), src.Data.end(),
-        boost::bind(&FixedChannelsChip::UpdateChannelState, this, _1));
+      UpdateChannelState(src);
     }
 
     virtual void GetState(MultiChannelState& state) const
@@ -597,11 +593,14 @@ namespace DAC
       const uint_t samples = Clock.Advance(stamp);
       Renderers.DropData(samples);
     }
-
-    void UpdateChannelState(const ChannelData& state)
+    
+    void UpdateChannelState(const DataChunk& chunk)
     {
-      assert(state.Channel < State.size());
-      State[state.Channel].Update(Samples, Clock, state);
+      for (const auto& state : chunk.Data)
+      {
+        assert(state.Channel < State.size());
+        State[state.Channel].Update(Samples, Clock, state);
+      }
     }
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
