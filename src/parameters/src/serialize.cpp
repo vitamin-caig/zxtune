@@ -15,9 +15,6 @@
 #include <parameters/visitor.h>
 //std includes
 #include <algorithm>
-//boost includes
-#include <boost/bind.hpp>
-#include <boost/ref.hpp>
 
 namespace
 {
@@ -43,10 +40,8 @@ namespace
     }
   };
 
-  void SetValue(Visitor& visitor, const Strings::Map::value_type& pair)
+  void SetValue(Visitor& visitor, const NameType& name, const String& val)
   {
-    const NameType& name = pair.first;
-    const String& val = pair.second;
     IntType asInt;
     DataType asData;
     StringType asString;
@@ -69,8 +64,10 @@ namespace Parameters
 {
   void Convert(const Strings::Map& map, Visitor& visitor)
   {
-    std::for_each(map.begin(), map.end(), 
-      boost::bind(&SetValue, boost::ref(visitor), _1));
+    for (const auto& entry : map)
+    {
+      SetValue(visitor, entry.first, entry.second);
+    }
   }
 
   void Convert(const Accessor& ac, Strings::Map& strings)
