@@ -31,7 +31,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
-#include <boost/noncopyable.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -109,7 +108,7 @@ namespace Alsa
   };
 
   template<class T>
-  class AutoHandle : public boost::noncopyable
+  class AutoHandle
   {
   public:
     AutoHandle(Api::Ptr api, const String& name)
@@ -118,6 +117,8 @@ namespace Alsa
       , Handle(0)
     {
     }
+    
+    AutoHandle(const AutoHandle&) = delete;
 
     T* Get() const
     {

@@ -34,8 +34,6 @@
 #include <algorithm>
 #include <cstring>
 #include <thread>
-//boost includes
-#include <boost/noncopyable.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -57,7 +55,7 @@ namespace Oss
 
   const int_t MAX_OSS_VOLUME = 100;
 
-  class AutoDescriptor : public boost::noncopyable
+  class AutoDescriptor
   {
   public:
     AutoDescriptor()
@@ -78,6 +76,8 @@ namespace Oss
       CheckResult(Valid(), THIS_LINE);
       Dbg("Opened device '%1%'", Name);
     }
+    
+    AutoDescriptor(const AutoDescriptor&) = delete;
 
     ~AutoDescriptor()
     {

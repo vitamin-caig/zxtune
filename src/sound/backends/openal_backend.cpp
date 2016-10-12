@@ -28,8 +28,6 @@
 //std includes
 #include <functional>
 #include <thread>
-//boost includes
-#include <boost/noncopyable.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -52,13 +50,15 @@ namespace OpenAl
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
   
-  class ApiRef : private boost::noncopyable
+  class ApiRef
   {
   public:
     explicit ApiRef(Api& api)
       : OalApi(api)
     {
     }
+    
+    ApiRef(const ApiRef&) = delete;
     
     void CheckError(Error::LocationRef loc) const
     {
