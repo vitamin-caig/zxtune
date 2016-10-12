@@ -12,11 +12,9 @@
 #include <make_ptr.h>
 //library includes
 #include <async/progress.h>
-//std
+//std includes
 #include <condition_variable>
 #include <mutex>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Async
 {
@@ -45,7 +43,7 @@ namespace Async
     virtual void WaitForComplete() const
     {
       std::unique_lock<std::mutex> lock(Mutex);
-      Complete.wait(lock, boost::bind(&SynchronizedProgress::IsComplete, this));
+      Complete.wait(lock, [this] () {return IsComplete();});
     }
   private:
     void NotifyIfComplete()

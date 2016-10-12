@@ -13,8 +13,6 @@
 //std includes
 #include <condition_variable>
 #include <mutex>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Async
 {
@@ -84,7 +82,7 @@ namespace Async
     unsigned WaitInternal(unsigned mask)
     {
       std::unique_lock<std::mutex> lock(Mutex);
-      Condition.wait(lock, boost::bind(&Event::IsSignalled, this, mask));
+      Condition.wait(lock, [this, mask] () {return IsSignalled(mask);});
       return Value;
     }
 

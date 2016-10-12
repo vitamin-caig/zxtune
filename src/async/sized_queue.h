@@ -20,8 +20,6 @@
 #include <condition_variable>
 #include <deque>
 #include <mutex>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Async
 {
@@ -38,7 +36,7 @@ namespace Async
     virtual void Add(T val)
     {
       std::unique_lock<std::mutex> lock(Locker);
-      CanPutDataEvent.wait(lock, boost::bind(&SizedQueue::CanPutData, this));
+      CanPutDataEvent.wait(lock, [this] () {return CanPutData();});
       if (Active)
       {
         Container.push_back(val);
@@ -49,7 +47,7 @@ namespace Async
     virtual bool Get(T& res)
     {
       std::unique_lock<std::mutex> lock(Locker);
-      CanGetDataEvent.wait(lock, boost::bind(&SizedQueue::CanGetData, this));
+      CanGetDataEvent.wait(lock, [this] () {return CanGetData();});
       if (Active)
       {
         Require(!Container.empty());
@@ -73,7 +71,7 @@ namespace Async
     virtual void Flush()
     {
       std::unique_lock<std::mutex> lock(Locker);
-      CanPutDataEvent.wait(lock, boost::bind(&ContainerType::empty, &Container));
+      CanPutDataEvent.wait(lock, [this] () {return Container.empty();});
     }
 
     static typename Queue<T>::Ptr Create(std::size_t size)

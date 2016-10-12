@@ -40,6 +40,7 @@
 #include <numeric>
 #include <set>
 //boost includes
+#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/join.hpp>
