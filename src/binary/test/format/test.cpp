@@ -16,7 +16,6 @@
 #include <sstream>
 #include <iostream>
 #include <functional>
-#include <boost/range/algorithm/for_each.hpp>
 
 namespace
 {
@@ -1026,8 +1025,14 @@ int main()
 {
   try
   {
-    boost::for_each(TESTS, std::ptr_fun(&ExecuteTest));
-    boost::for_each(COMPOSITE_TESTS, std::ptr_fun(&ExecuteCompositeTest));
+    for (const auto& test : TESTS)
+    {
+      ExecuteTest(test);
+    }
+    for (const auto& test : COMPOSITE_TESTS)
+    {
+      ExecuteCompositeTest(test);
+    }
   }
   catch (int code)
   {
