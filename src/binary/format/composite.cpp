@@ -17,6 +17,8 @@
 //library includes
 #include <binary/data_adapter.h>
 #include <binary/format_factories.h>
+//std includes
+#include <algorithm>
 
 namespace Binary
 {

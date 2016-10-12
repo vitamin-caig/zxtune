@@ -92,9 +92,10 @@ namespace Zdata
     TxtMarker Encode() const
     {
       const RawMarker in = {SIGNATURE, fromLE(Value)};
-      const uint8_t* const inData = in.Signature.begin();
+      const auto inData = in.Signature.data();
       TxtMarker out;
-      Binary::Base64::Encode(inData, inData + sizeof(in), out.begin(), out.end());
+      const auto outData = out.data();
+      Binary::Base64::Encode(inData, inData + sizeof(in), outData, outData + out.size());
       return out;
     }
 
@@ -113,8 +114,9 @@ namespace Zdata
     static Header Decode(const TxtHeader& in)
     {
       RawHeader out;
-      uint8_t* const outData = out.Signature.begin();
-      Binary::Base64::Decode(in.begin(), in.end(), outData, outData + sizeof(out));
+      const auto inData = in.data();
+      const auto outData = out.Signature.data();
+      Binary::Base64::Decode(inData, inData + in.size(), outData, outData + sizeof(out));
       Require(out.Signature == SIGNATURE);
       return Header(fromLE(out.Crc), out.OriginalSize, out.PackedSize);
     }

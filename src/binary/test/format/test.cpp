@@ -15,6 +15,7 @@
 #include <binary/format/syntax.h>
 #include <sstream>
 #include <iostream>
+#include <functional>
 #include <boost/range/algorithm/for_each.hpp>
 
 namespace

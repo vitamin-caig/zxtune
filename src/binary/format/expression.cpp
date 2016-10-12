@@ -20,6 +20,7 @@
 #include <math/numeric.h>
 //std includes
 #include <cctype>
+#include <functional>
 #include <stack>
 #include <vector>
 

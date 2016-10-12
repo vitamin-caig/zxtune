@@ -15,6 +15,8 @@
 //common includes
 #include <types.h>
 #include <pointers.h>
+//std includes
+#include <algorithm>
 
 namespace Binary
 {

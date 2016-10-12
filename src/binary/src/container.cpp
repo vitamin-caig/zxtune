@@ -13,6 +13,7 @@
 //library includes
 #include <binary/container_factories.h>
 //std includes
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 

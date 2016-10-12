@@ -85,7 +85,7 @@ namespace
         QString::fromAscii("%1%").arg(Value));
 
       const int totalSteps = std::min(STEPS_MAX, Value * STEPS_MAX / 100 + 1);
-      painter.drawLines(Lines.begin(), totalSteps);
+      painter.drawLines(Lines.data(), totalSteps);
     }
 
     virtual void mouseReleaseEvent(QMouseEvent* event)

@@ -21,6 +21,7 @@
 //std includes
 #include <array>
 #include <cmath>
+#include <functional>
 //boost includes
 #include <boost/bind.hpp>
 
@@ -552,11 +553,11 @@ namespace DAC
     {
       MultiChannelState res;
       res.reserve(State.size());
-      for (const ChannelState* it = State.begin(), *lim = State.end(); it != lim; ++it)
+      for (const auto& chan : State)
       {
-        if (it->Enabled)
+        if (chan.Enabled)
         {
-          res.push_back(it->Analyze(Samples.GetMaxRms()));
+          res.push_back(chan.Analyze(Samples.GetMaxRms()));
         }
       }
       res.swap(state);

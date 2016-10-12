@@ -15,6 +15,7 @@
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/emulation/ay.h>
 //std includes
+#include <algorithm>
 #include <sstream>
 //text includes
 #include <formats/text/archived.h>

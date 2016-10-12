@@ -21,6 +21,7 @@
 #include <sound/sound_parameters.h>
 //std includes
 #include <algorithm>
+#include <functional>
 //boost includes
 #include <boost/bind.hpp>
 

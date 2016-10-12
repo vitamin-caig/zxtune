@@ -829,7 +829,7 @@ namespace ProTracker3
     private:
       uint_t AsInt() const
       {
-        const std::string* const notePos = std::find(NOTES.begin(), NOTES.end(), Val.substr(0, 2));
+        const auto notePos = std::find(NOTES.begin(), NOTES.end(), Val.substr(0, 2));
         Require(notePos != NOTES.end());
         const uint_t halftone = notePos - NOTES.begin();
         const char octave = Val[2];

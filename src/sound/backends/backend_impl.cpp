@@ -252,7 +252,7 @@ namespace Sound
     const BackendWorker::Ptr Delegate;
     const BackendCallback::Ptr Callback;
     const Module::Renderer::Ptr Render;
-    std::atomic_bool Playing;
+    std::atomic<bool> Playing;
   };
 
   class StubBackendCallback : public BackendCallback

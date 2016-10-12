@@ -663,7 +663,7 @@ namespace
     std::size_t FetchedItemsCount;
     Playlist::Item::Storage::Ptr Container;
     Async::Activity::Ptr AsyncExecution;
-    std::atomic_bool Canceled;
+    std::atomic<bool> Canceled;
   };
 }
 

@@ -14,6 +14,8 @@
 #include <contract.h>
 #include <crc.h>
 #include <pointers.h>
+//std includes
+#include <algorithm>
 
 namespace Module
 {

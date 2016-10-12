@@ -14,6 +14,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 //std includes
+#include <functional>
 #include <list>
 
 namespace LexicalAnalysis

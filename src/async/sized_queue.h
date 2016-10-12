@@ -92,7 +92,8 @@ namespace Async
     }
   private:
     const std::size_t MaxSize;
-    std::atomic_bool Active;
+    //std::atomic_bool does not work in MSVC
+    std::atomic<bool> Active;
     mutable std::mutex Locker;
     std::condition_variable CanPutDataEvent;
     std::condition_variable CanGetDataEvent;

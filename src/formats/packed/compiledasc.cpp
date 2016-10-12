@@ -209,9 +209,9 @@ namespace Packed
       //20 - author
       //4  - ignore
       //20 - title
-      const uint8_t* const authorStart = info.begin() + 19;
-      const uint8_t* const ignoreStart = authorStart + 20;
-      const uint8_t* const titleStart = ignoreStart + 4;
+      const auto authorStart = info.begin() + 19;
+      const auto ignoreStart = authorStart + 20;
+      const auto titleStart = ignoreStart + 4;
       return ignoreStart == std::find_if(authorStart, ignoreStart, std::bind2nd(std::greater<Char>(), Char(' ')))
           && info.end() == std::find_if(titleStart, info.end(), std::bind2nd(std::greater<Char>(), Char(' ')));
     }

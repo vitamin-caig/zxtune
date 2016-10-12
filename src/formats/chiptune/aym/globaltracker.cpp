@@ -858,7 +858,8 @@ namespace Chiptune
       END,
     };
 
-    std::size_t GetStart(const uint16_t* begin, const uint16_t* end, std::size_t start)
+    template<class It>
+    std::size_t GetStart(It begin, It end, std::size_t start)
     {
       std::vector<std::size_t> offsets;
       std::transform(begin, end, std::back_inserter(offsets), &fromLE<uint16_t>);

@@ -18,6 +18,7 @@
 #include <binary/format_factories.h>
 #include <formats/packed/decoders.h>
 //std includes
+#include <algorithm>
 #include <cstring>
 //text include
 #include <formats/text/archived.h>

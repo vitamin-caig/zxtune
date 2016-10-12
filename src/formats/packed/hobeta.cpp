@@ -20,6 +20,7 @@
 #include <math/numeric.h>
 //std includes
 #include <array>
+#include <functional>
 #include <numeric>
 //text includes
 #include <formats/text/packed.h>
