@@ -16,14 +16,14 @@ namespace
     explicit Stream(const std::string& filename)
       : Delegate(filename.c_str(), std::ios::binary)
     {
-      Require(Delegate);
+      Require(!!Delegate);
     }
     
     template<class T>
     T ReadData()
     {
       T res = 0;
-      Require(Delegate.read(safe_ptr_cast<char*>(&res), sizeof(res)));
+      Require(!!Delegate.read(safe_ptr_cast<char*>(&res), sizeof(res)));
       return res;
     }
     
@@ -44,18 +44,18 @@ namespace
     
     void Skip(std::ptrdiff_t size)
     {
-      Require(Delegate.seekg(size, std::ios_base::cur));
+      Require(!!Delegate.seekg(size, std::ios_base::cur));
     }
     
     void Seek(std::size_t pos)
     {
-      Require(Delegate.seekg(pos));
+      Require(!!Delegate.seekg(pos));
     }
     
     uint_t ReadVersion()
     {
       uint8_t vers[4] = {0};
-      Require(Delegate.read(safe_ptr_cast<char*>(vers), sizeof(vers)));
+      Require(!!Delegate.read(safe_ptr_cast<char*>(vers), sizeof(vers)));
       return (vers[0] & 15) + 10 *(vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
     }
     

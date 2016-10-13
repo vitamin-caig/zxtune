@@ -54,6 +54,10 @@ namespace
       std::cout << "Author: " << author << std::endl;
     }
     
+    virtual void SetStrings(const Strings::Array& /*strings*/)
+    {
+    }
+    
     //Builder
     virtual void SetInitialTempo(uint_t tempo)
     {
@@ -179,7 +183,7 @@ int main(int argc, char* argv[])
     }
     std::unique_ptr<Dump> rawData(new Dump());
     Test::OpenFile(argv[2], *rawData);
-    const Binary::Container::Ptr data = Binary::CreateContainer(rawData);
+    const Binary::Container::Ptr data = Binary::CreateContainer(std::move(rawData));
     const std::string type(argv[1]);
     STDumpBuilder builder;
     const Formats::Chiptune::SoundTracker::Decoder::Ptr decoder = CreateDecoder(type);

@@ -200,7 +200,8 @@ namespace Module
     {
       Plain.Quirk = 0;
       Plain.Line = line;
-      if (CurLineObject = CurPatternObject->GetLine(Plain.Line))
+      CurLineObject = CurPatternObject->GetLine(Plain.Line);
+      if (CurLineObject)
       {
         if (uint_t tempo = CurLineObject->GetTempo())
         {

@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     }
     std::unique_ptr<Dump> rawData(new Dump());
     Test::OpenFile(argv[2], *rawData);
-    const Binary::Container::Ptr data = Binary::CreateContainer(rawData);
+    const Binary::Container::Ptr data = Binary::CreateContainer(std::move(rawData));
     const Formats::Chiptune::ProTracker3::ChiptuneBuilder::Ptr builder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateBuilder();
     const std::string type(argv[1]);
     const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = CreateDecoder(type);

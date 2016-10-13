@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
     }
     std::unique_ptr<Dump> rawData(new Dump());
     Test::OpenFile(argv[2], *rawData);
-    const Binary::Container::Ptr data = Binary::CreateContainer(rawData);
+    const Binary::Container::Ptr data = Binary::CreateContainer(std::move(rawData));
     const std::string type(argv[1]);
     ASCDumpBuilder builder;
     if (type == "as0")

@@ -579,7 +579,8 @@ namespace Packed
               break;
             }
           }
-          if (Result = target.GetResult())
+          Result = target.GetResult();
+          if (Result)
           {
             UsedSize = offset;
           }

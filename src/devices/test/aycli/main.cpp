@@ -1,9 +1,9 @@
 #include <api_dynamic.h>
 #include <contract.h>
 #include <devices/aym/chip.h>
-#include <core/module_holder.h>
 #include <core/core_parameters.h>
 #include <parameters/container.h>
+#include <module/holder.h>
 #include <sound/mixer_factory.h>
 #include <sound/backends/storage.h>
 #include <sound/backends/backends_list.h>

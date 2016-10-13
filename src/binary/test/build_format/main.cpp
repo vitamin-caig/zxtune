@@ -60,12 +60,12 @@ namespace
     return val >= 10 ? (val - 10 + 'a') : (val + '0');
   }
   
-  struct Binary
+  struct BinaryMask
   {
     uint_t Zeroes;
     uint_t Ones;
     
-    Binary() : Zeroes(), Ones()
+    BinaryMask() : Zeroes(), Ones()
     {
     }
     
@@ -193,7 +193,7 @@ namespace
         Dbg("Using ranges format");
         return HomogeniousToString(Ranges);
       }
-      const std::size_t binaries = std::count_if(Binaries.begin(), Binaries.end(), std::mem_fun_ref(&Binary::IsThis));
+      const std::size_t binaries = std::count_if(Binaries.begin(), Binaries.end(), std::mem_fun_ref(&BinaryMask::IsThis));
       if (binaries == Binaries.size())
       {
         Dbg("", "Using binary format");
@@ -263,7 +263,7 @@ namespace
       for (std::size_t idx = 0; idx != Ranges.size(); ++idx)
       {
         const Range& rng = Ranges[idx];
-        const Binary& bin = Binaries[idx];
+        const BinaryMask& bin = Binaries[idx];
         Dbg("Range=(%1%..%2%) Bin=(%3$02x/%4$02x)", rng.Min, rng.Max, bin.Zeroes, bin.Ones);
         if (!rng.IsThis() && !bin.IsThis())
         {
@@ -300,7 +300,7 @@ namespace
     }
   private:
     std::vector<Range> Ranges;
-    std::vector<Binary> Binaries;
+    std::vector<BinaryMask> Binaries;
     std::vector<Bitmask> Bitmasks;
   };
   

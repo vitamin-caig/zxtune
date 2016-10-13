@@ -1295,7 +1295,8 @@ namespace TFMMusicMaker
 
     void LoadLine()
     {
-      if (CurLineObject = CurPatternObject->GetLine(Plain.Line))
+      CurLineObject = CurPatternObject->GetLine(Plain.Line);
+      if (CurLineObject)
       {
         LoadNewLoopTempoParameters();
       }

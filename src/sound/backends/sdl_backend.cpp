@@ -88,7 +88,7 @@ namespace Sdl
       std::unique_lock<std::mutex> lock(BufferMutex);
       while (FillIter->BytesToPlay)
       {
-        PlayedEvent.wait(locker);
+        PlayedEvent.wait(lock);
       }
       FillIter->Data.swap(buffer);
       FillIter->BytesToPlay = FillIter->Data.size() * sizeof(FillIter->Data.front());
@@ -104,7 +104,7 @@ namespace Sdl
         //wait for data
         while (!PlayIter->BytesToPlay)
         {
-          FilledEvent.wait(locker);
+          FilledEvent.wait(lock);
         }
         const uint_t inBuffer = PlayIter->Data.size() * sizeof(PlayIter->Data.front());
         const uint_t toCopy = std::min<uint_t>(len, PlayIter->BytesToPlay);
