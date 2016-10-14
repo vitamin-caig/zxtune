@@ -66,13 +66,13 @@ namespace
       BooleanValue::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES, ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
     }
 
-    virtual ~FilenameTemplateWidgetImpl()
+    ~FilenameTemplateWidgetImpl() override
     {
       UpdateRecentItemsLists();
       State->Save();
     }
 
-    virtual QString GetFilenameTemplate() const
+    QString GetFilenameTemplate() const override
     {
       const QString name = FileTemplate->currentText();
       if (0 == name.size())
@@ -90,7 +90,7 @@ namespace
       return name;
     }
 
-    virtual void OnBrowseDirectory()
+    void OnBrowseDirectory() override
     {
       QString dir = DirectoryName->currentText();
       if (UI::OpenFolderDialog(dirSelectionGroup->title(), dir))
@@ -100,7 +100,7 @@ namespace
       }
     }
 
-    virtual void OnClickHint(const QString& hint)
+    void OnClickHint(const QString& hint) override
     {
       QLineEdit* const editor = FileTemplate->lineEdit();
       editor->setText(editor->text() + hint);

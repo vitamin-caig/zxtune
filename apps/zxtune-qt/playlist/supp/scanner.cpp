@@ -53,17 +53,17 @@ namespace
                         , public FilenamesSource
   {
   public:
-    virtual void Add(const QStringList& items)
+    void Add(const QStringList& items) override
     {
       Items.append(items);
     }
 
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return Items.isEmpty();
     }
 
-    virtual QString GetNext()
+    QString GetNext() override
     {
       Require(!Items.isEmpty());
       return Items.takeFirst();
@@ -80,12 +80,12 @@ namespace
     {
     }
 
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return NoCurrentDir() && Delegate.Empty();
     }
 
-    virtual QString GetNext()
+    QString GetNext() override
     {
       while (NoCurrentDir())
       {
@@ -139,12 +139,12 @@ namespace
     {
     }
 
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return Cache.isEmpty() && Delegate.Empty();
     }
 
-    virtual QString GetNext()
+    QString GetNext() override
     {
       Prefetch();
       Require(!Cache.isEmpty());
@@ -178,12 +178,12 @@ namespace
     {
     }
 
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return Delegate.Empty();
     }
 
-    virtual QString GetNext()
+    QString GetNext() override
     {
       ++GotFilenames;
       return Delegate.GetNext();
@@ -213,41 +213,41 @@ namespace
     {
     }
 
-    virtual void Add(const QStringList& items)
+    void Add(const QStringList& items) override
     {
       const std::lock_guard<std::mutex> lock(Lock);
       Source.Add(items);
     }
 
     //FilenamesSource
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return Prefetched.Empty();
     }
 
-    virtual QString GetNext()
+    QString GetNext() override
     {
       const std::lock_guard<std::mutex> lock(Lock);
       return Current = PrefetchedStatistic.GetNext();
     }
 
     //ScanStatus
-    virtual unsigned DoneFiles() const
+    unsigned DoneFiles() const override
     {
       return PrefetchedStatistic.Get();
     }
 
-    virtual unsigned FoundFiles() const
+    unsigned FoundFiles() const override
     {
       return ResolvedStatistic.Get();
     }
 
-    virtual QString CurrentFile() const
+    QString CurrentFile() const override
     {
       return Current;
     }
 
-    virtual bool SearchFinished() const
+    bool SearchFinished() const override
     {
       return Resolved.Empty();
     }
@@ -284,17 +284,17 @@ namespace
     {
     }
 
-    virtual Parameters::Container::Ptr CreateInitialAdjustedParameters() const
+    Parameters::Container::Ptr CreateInitialAdjustedParameters() const override
     {
       return Parameters::Container::Create();
     }
 
-    virtual void ProcessItem(Playlist::Item::Data::Ptr item)
+    void ProcessItem(Playlist::Item::Data::Ptr item) override
     {
       Callback.OnItem(item);
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return &Progress;
     }
@@ -315,7 +315,7 @@ namespace
     {
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       if (ReportTimeout())
       {
@@ -324,7 +324,7 @@ namespace
       }
     }
 
-    virtual void OnProgress(uint_t current, const String& message)
+    void OnProgress(uint_t current, const String& message) override
     {
       if (ReportTimeout())
       {
@@ -352,31 +352,31 @@ namespace
       CreateQueue();
     }
 
-    virtual void Add(const QStringList& items)
+    void Add(const QStringList& items) override
     {
       Queue->Add(items);
     }
 
-    virtual void Initialize()
+    void Initialize() override
     {
       Callback.OnScanStart(Queue);
     }
 
-    virtual void Finalize()
+    void Finalize() override
     {
       Callback.OnScanEnd();
       CreateQueue();
     }
 
-    virtual void Suspend()
+    void Suspend() override
     {
     }
 
-    virtual void Resume()
+    void Resume() override
     {
     }
 
-    virtual void Execute(Async::Scheduler& sched)
+    void Execute(Async::Scheduler& sched) override
     {
       ProgressCallbackAdapter cb(Callback, sched);
       while (!Queue->Empty())
@@ -454,19 +454,19 @@ namespace
       Dbg("Created at %1%", this);
     }
 
-    virtual ~ScannerImpl()
+    ~ScannerImpl() override
     {
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual void AddItems(const QStringList& items)
+    void AddItems(const QStringList& items) override
     {
       Dbg("Added %1% items to %2%", items.size(), this);
       Routine->Add(items);
       ScanJob->Start();
     }
 
-    virtual void PasteItems(const QStringList& items)
+    void PasteItems(const QStringList& items) override
     {
       Dbg("Paste %1% items to %2%", items.size(), this);
       //TODO: optimize
@@ -474,7 +474,7 @@ namespace
       emit ItemsFound(container->GetItems());
     }
 
-    virtual void Pause(bool pause)
+    void Pause(bool pause) override
     {
       Dbg(pause ? "Pausing %1%" : "Resuming %1%", this);
       if (pause)
@@ -487,43 +487,43 @@ namespace
       }
     }
 
-    virtual void Stop()
+    void Stop() override
     {
       Dbg("Stopping %1%", this);
       ScanJob->Stop();
     }
   private:
-    virtual void OnItem(Playlist::Item::Data::Ptr item)
+    void OnItem(Playlist::Item::Data::Ptr item) override
     {
       emit ItemFound(item);
     }
 
-    virtual void OnItems(Playlist::Item::Collection::Ptr items)
+    void OnItems(Playlist::Item::Collection::Ptr items) override
     {
       emit ItemsFound(items);
     }
 
-    virtual void OnScanStart(Playlist::ScanStatus::Ptr status)
+    void OnScanStart(Playlist::ScanStatus::Ptr status) override
     {
       emit ScanStarted(status);
     }
 
-    virtual void OnProgress(unsigned progress)
+    void OnProgress(unsigned progress) override
     {
       emit ScanProgressChanged(progress);
     }
 
-    virtual void OnMessage(const QString& message)
+    void OnMessage(const QString& message) override
     {
       emit ScanMessageChanged(message);
     }
 
-    virtual void OnError(const Error& err)
+    void OnError(const Error& err) override
     {
       emit ErrorOccurred(err);
     }
 
-    virtual void OnScanEnd()
+    void OnScanEnd() override
     {
       emit ScanStopped();
     }

@@ -91,7 +91,7 @@ namespace
       State->Load();
     }
 
-    virtual Playlist::Item::Conversion::Options::Ptr Execute()
+    Playlist::Item::Conversion::Options::Ptr Execute() override
     {
       if (exec())
       {
@@ -103,7 +103,7 @@ namespace
       }
     }
 
-    virtual void UpdateDescriptions()
+    void UpdateDescriptions() override
     {
       UpdateTargetDescription();
       UpdateFormatDescription();
@@ -111,7 +111,7 @@ namespace
     }
 
     //QWidgets virtuals
-    virtual void closeEvent(QCloseEvent* event)
+    void closeEvent(QCloseEvent* event) override
     {
       State->Save();
       event->accept();

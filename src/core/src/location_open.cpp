@@ -47,17 +47,17 @@ namespace ZXTune
     {
     }
 
-    virtual Binary::Container::Ptr GetData() const
+    Binary::Container::Ptr GetData() const override
     {
       return Data;
     }
 
-    virtual Analysis::Path::Ptr GetPath() const
+    Analysis::Path::Ptr GetPath() const override
     {
       return CreateEmptyPath();
     }
 
-    virtual Analysis::Path::Ptr GetPluginsChain() const
+    Analysis::Path::Ptr GetPluginsChain() const override
     {
       return CreateEmptyPluginsChain();
     }
@@ -75,17 +75,17 @@ namespace ZXTune
     {
     }
 
-    virtual Binary::Container::Ptr GetData() const
+    Binary::Container::Ptr GetData() const override
     {
       return Data;
     }
 
-    virtual Analysis::Path::Ptr GetPath() const
+    Analysis::Path::Ptr GetPath() const override
     {
       return Path;
     }
 
-    virtual Analysis::Path::Ptr GetPluginsChain() const
+    Analysis::Path::Ptr GetPluginsChain() const override
     {
       return Plugins;
     }

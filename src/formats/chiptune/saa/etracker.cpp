@@ -96,27 +96,27 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
-      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
-      virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) {}
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
+      void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) override {}
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
-      virtual void SetAttenuation(uint_t /*vol*/) {}
-      virtual void SetSwapSampleChannels(bool /*swapSamples*/) {}
-      virtual void SetEnvelope(uint_t /*value*/) {}
-      virtual void SetNoise(uint_t /*type*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
+      void SetAttenuation(uint_t /*vol*/) override {}
+      void SetSwapSampleChannels(bool /*swapSamples*/) override {}
+      void SetEnvelope(uint_t /*value*/) override {}
+      void SetNoise(uint_t /*type*/) override {}
     };
 
     class StatisticCollectingBuilder : public Builder
@@ -130,29 +130,29 @@ namespace Chiptune
       {
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
       }
 
-      virtual void SetSample(uint_t index, const Sample& sample)
+      void SetSample(uint_t index, const Sample& sample) override
       {
         assert(index == 0 || UsedSamples.Contain(index));
         return Delegate.SetSample(index, sample);
       }
 
-      virtual void SetOrnament(uint_t index, const Ornament& ornament)
+      void SetOrnament(uint_t index, const Ornament& ornament) override
       {
         assert(index == 0 || UsedOrnaments.Contain(index));
         return Delegate.SetOrnament(index, ornament);
       }
 
-      virtual void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop)
+      void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) override
       {
         UsedPatterns.Clear();
         for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
@@ -163,55 +163,55 @@ namespace Chiptune
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         return Delegate.StartChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         return Delegate.SetRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         return Delegate.SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
-      virtual void SetOrnament(uint_t ornament)
+      void SetOrnament(uint_t ornament) override
       {
         UsedOrnaments.Insert(ornament);
         return Delegate.SetOrnament(ornament);
       }
 
-      virtual void SetAttenuation(uint_t vol)
+      void SetAttenuation(uint_t vol) override
       {
         return Delegate.SetAttenuation(vol);
       }
 
-      virtual void SetSwapSampleChannels(bool swapChannels)
+      void SetSwapSampleChannels(bool swapChannels) override
       {
         return Delegate.SetSwapSampleChannels(swapChannels);
       }
 
-      virtual void SetEnvelope(uint_t value)
+      void SetEnvelope(uint_t value) override
       {
         return Delegate.SetEnvelope(value);
       }
 
-      virtual void SetNoise(uint_t type)
+      void SetNoise(uint_t type) override
       {
         return Delegate.SetNoise(type);
       }
@@ -923,22 +923,22 @@ loc_0_8262:
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::ETRACKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData) && FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

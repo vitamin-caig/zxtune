@@ -47,17 +47,17 @@ namespace Binary
       assert(Length);
     }
 
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return Address;
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return Length;
     }
 
-    virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
       assert(offset + size <= Length);
       if (size && offset < Length)

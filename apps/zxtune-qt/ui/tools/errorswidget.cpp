@@ -111,7 +111,7 @@ namespace
       setToolTip(ToQStringFromLocal(err.ToString()));
     }
 
-    void paintEvent(QPaintEvent*)
+    void paintEvent(QPaintEvent*) override
     {
       QPainter p(this);
       QFontMetrics fm(font());
@@ -153,31 +153,31 @@ namespace
       UpdateUI();
     }
 
-    virtual void AddError(const Error& err)
+    void AddError(const Error& err) override
     {
       Errors.Add(err);
       UpdateUI();
     }
 
-    virtual void Previous()
+    void Previous() override
     {
       Errors.Backward();
       UpdateUI();
     }
 
-    virtual void Next()
+    void Next() override
     {
       Errors.Forward();
       UpdateUI();
     }
 
-    virtual void Dismiss()
+    void Dismiss() override
     {
       Errors.Remove();
       UpdateUI();
     }
 
-    virtual void DismissAll()
+    void DismissAll() override
     {
       Errors.Clear();
       UpdateUI();

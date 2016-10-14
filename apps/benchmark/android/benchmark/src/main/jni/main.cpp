@@ -51,7 +51,7 @@ namespace
       Debug("JavaVisitorAdapter(Check=%p, Pass=%p)", Check, Pass);
     }
     
-    virtual void OnPerformanceTest(const Benchmark::PerformanceTest& test)
+    void OnPerformanceTest(const Benchmark::PerformanceTest& test) override
     {
       const std::string category = test.Category();
       const std::string name = test.Name();

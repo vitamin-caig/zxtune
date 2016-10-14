@@ -224,27 +224,27 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
-      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
-      virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) {}
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
+      void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) override {}
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
-      virtual void SetEnvelope(uint_t /*type*/, uint_t /*value*/) {}
-      virtual void SetNoEnvelope() {}
-      virtual void SetGliss(uint_t /*target*/) {}
-      virtual void SetVolume(uint_t /*vol*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
+      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
+      void SetNoEnvelope() override {}
+      void SetGliss(uint_t /*target*/) override {}
+      void SetVolume(uint_t /*vol*/) override {}
     };
 
     uint_t GetUnfixDelta(const RawHeader& hdr, const RawId& id, const RawPattern& firstPattern)
@@ -883,28 +883,28 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::SOUNDTRACKERPROCOMPILED_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Header;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Header->Match(rawData) && SoundTrackerProCompiled::Check(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return ParseCompiled(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const override
       {
         return ParseCompiled(rawData, target);
       }

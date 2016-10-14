@@ -32,12 +32,12 @@ namespace
 	class InvalidOperation : public Operation
 	{
 	public:
-		virtual void Prepare()
+		void Prepare() override
 		{
 			throw FailedToPrepareError();
 		}
 		
-		virtual void Execute()
+		void Execute() override
 		{
 			throw Error(THIS_LINE, "Should not be called");
 		}
@@ -46,11 +46,11 @@ namespace
 	class ErrorResultOperation : public Operation
 	{
 	public:
-		virtual void Prepare()
+		void Prepare() override
 		{
 		}
 		
-		virtual void Execute()
+		void Execute() override
 		{
 			throw FailedToExecuteError();
 		}
@@ -59,11 +59,11 @@ namespace
   class LongOperation : public Operation
   {
   public:
-    virtual void Prepare()
+    void Prepare() override
     {
     }
 
-    virtual void Execute()
+    void Execute() override
     {
       std::cout << "    start long activity" << std::endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));

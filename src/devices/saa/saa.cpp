@@ -250,7 +250,7 @@ namespace SAA
       RegularSAAChip::Reset();
     }
 
-    virtual void RenderData(const DataChunk& src)
+    void RenderData(const DataChunk& src) override
     {
       if (Clock.HasSamplesBefore(src.TimeStamp))
       {
@@ -260,14 +260,14 @@ namespace SAA
       PSG.SetNewData(src.Data);
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       PSG.Reset();
       Renderers.Reset();
     }
 
-    virtual void GetState(MultiChannelState& state) const
+    void GetState(MultiChannelState& state) const override
     {
       MultiChannelState res;
       PSG.GetState(res);

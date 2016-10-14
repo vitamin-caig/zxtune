@@ -35,12 +35,12 @@ namespace Benchmark
       {
       }
 
-      virtual std::string Category() const
+      std::string Category() const override
       {
         return "AY chip emulation";
       }
 
-      virtual std::string Name() const
+      std::string Name() const override
       {
         switch (Interpolate)
         {
@@ -56,7 +56,7 @@ namespace Benchmark
         }
       }
 
-      virtual double Execute() const
+      double Execute() const override
       {
         const Devices::AYM::Chip::Ptr dev = CreateDevice(1750000, SOUND_FREQ, Interpolate);
         return Test(*dev, TEST_DURATION, FRAME_DURATION);
@@ -78,17 +78,17 @@ namespace Benchmark
     class MemoryPerformanceTest : public Benchmark::PerformanceTest
     {
     public:
-      virtual std::string Category() const
+      std::string Category() const override
       {
         return "Z80 emulation";
       }
 
-      virtual std::string Name() const
+      std::string Name() const override
       {
         return "Memory access";
       }
 
-      virtual double Execute() const
+      double Execute() const override
       {
         static const uint8_t Z80_TEST_MEM[] =
         {
@@ -112,17 +112,17 @@ namespace Benchmark
     class IoPerformanceTest : public Benchmark::PerformanceTest
     {
     public:
-      virtual std::string Category() const
+      std::string Category() const override
       {
         return "Z80 emulation";
       }
 
-      virtual std::string Name() const
+      std::string Name() const override
       {
         return "I/O ports access";
       }
 
-      virtual double Execute() const
+      double Execute() const override
       {
         static const uint8_t Z80_TEST_IO[] =
         {
@@ -142,13 +142,13 @@ namespace Benchmark
       class Z80Ports : public Devices::Z80::ChipIO
       {
       public:
-        virtual uint8_t Read(uint16_t addr)
+        uint8_t Read(uint16_t addr) override
         {
           Require(addr == 0);
           return 0x00;
         }
 
-        virtual void Write(const Devices::Z80::Oscillator& stamp, uint16_t addr, uint8_t data)
+        void Write(const Devices::Z80::Oscillator& stamp, uint16_t addr, uint8_t data) override
         {
           Require(addr == 0);
           Require(data == 0x00);
@@ -176,17 +176,17 @@ namespace Benchmark
       {
       }
 
-      virtual std::string Category() const
+      std::string Category() const override
       {
         return "Mixer";
       }
 
-      virtual std::string Name() const
+      std::string Name() const override
       {
         return (boost::format("%u-channels") % Channels).str();
       }
 
-      virtual double Execute() const
+      double Execute() const override
       {
         return Test(Channels, TEST_DURATION, SOUND_FREQ);
       }

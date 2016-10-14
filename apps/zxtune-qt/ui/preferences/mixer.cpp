@@ -37,13 +37,13 @@ namespace
       Require(connect(channelValue, SIGNAL(valueChanged(int)), SIGNAL(valueChanged(int))));
     }
 
-    virtual void setValue(int val)
+    void setValue(int val) override
     {
       channelValue->setValue(val);
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {
@@ -92,7 +92,7 @@ namespace
       Require(connect(&parent, SIGNAL(valueChanged(int)), SLOT(SetValue(int))));
     }
 
-    virtual void SetValue(int value)
+    void SetValue(int value) override
     {
       Container.SetValue(Name, value);
     }

@@ -23,7 +23,7 @@ namespace AYM
   class ZX50DumpBuilder : public FramedDumpBuilder
   {
   public:
-    virtual void Initialize()
+    void Initialize() override
     {
       static const Dump::value_type HEADER[] = 
       {
@@ -32,12 +32,12 @@ namespace AYM
       Data.assign(HEADER, std::end(HEADER));
     }
 
-    virtual void GetResult(Dump& data) const
+    void GetResult(Dump& data) const override
     {
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update)
+    void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update) override
     {
       assert(framesPassed);
 

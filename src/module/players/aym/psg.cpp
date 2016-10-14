@@ -29,17 +29,17 @@ namespace PSG
   public:
     typedef std::shared_ptr<StreamModel> RWPtr;
   
-    virtual uint_t Size() const
+    uint_t Size() const override
     {
       return static_cast<uint_t>(Data.size());
     }
 
-    virtual uint_t Loop() const
+    uint_t Loop() const override
     {
       return 0;
     }
 
-    virtual Devices::AYM::Registers Get(uint_t pos) const
+    Devices::AYM::Registers Get(uint_t pos) const override
     {
       return Data[pos];
     }
@@ -67,12 +67,12 @@ namespace PSG
     {
     }
     
-    virtual void AddChunks(std::size_t count)
+    void AddChunks(std::size_t count) override
     {
       Data->Append(count);
     }
 
-    virtual void SetRegister(uint_t reg, uint_t val)
+    void SetRegister(uint_t reg, uint_t val) override
     {
       if (reg < Devices::AYM::Registers::TOTAL)
       {
@@ -96,7 +96,7 @@ namespace PSG
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       DataBuilder dataBuilder;
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))

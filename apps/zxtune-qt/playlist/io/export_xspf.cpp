@@ -128,7 +128,7 @@ namespace
     {
     }
 
-    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
     {
       if (Filter && !Filter(name))
       {
@@ -138,7 +138,7 @@ namespace
       SaveProperty(name, val);
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
     {
       if (Filter && !Filter(name))
       {
@@ -148,7 +148,7 @@ namespace
       SaveProperty(name, val);
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
     {
       if (Filter && !Filter(name))
       {
@@ -242,11 +242,11 @@ namespace
       Element.Text(XSPF::ITEM_LOCATION_TAG, DataToQString(QUrl(location).toEncoded()));
     }
 
-    virtual void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
+    void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/) override
     {
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
     {
       const String value = Parameters::ConvertToString(val);
       const QString valStr = ConvertString(value);
@@ -267,7 +267,7 @@ namespace
       }
     }
 
-    virtual void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/)
+    void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/) override
     {
     }
   private:
@@ -335,7 +335,7 @@ namespace
     {
     }
 
-    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
       saver.SaveModuleLocation(item.GetFullPath());
     }
@@ -349,7 +349,7 @@ namespace
     {
     }
 
-    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
       saver.SaveModuleLocation(item.GetFullPath(), Root);
     }
@@ -364,7 +364,7 @@ namespace
     {
     }
 
-    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
       if (const Binary::Data::Ptr rawContent = item.GetModuleData())
       {
@@ -397,7 +397,7 @@ namespace
     {
     }
 
-    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
       const Parameters::Accessor::Ptr adjustedParams = item.GetAdjustedParameters();
       saver.SaveStubModuleProperties(*adjustedParams);
@@ -412,7 +412,7 @@ namespace
     {
     }
 
-    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
       if (const Module::Holder::Ptr holder = item.GetModule())
       {
@@ -439,7 +439,7 @@ namespace
     {
     }
 
-    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
       Location->Save(item, saver);
       Properties->Save(item, saver);

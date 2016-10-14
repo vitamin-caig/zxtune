@@ -27,12 +27,12 @@ namespace Sound
       {
       }
 
-      virtual std::string Base() const
+      std::string Base() const override
       {
         return "FLAC";
       }
       
-      virtual std::vector<std::string> PosixAlternatives() const
+      std::vector<std::string> PosixAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {
@@ -42,7 +42,7 @@ namespace Sound
         return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
-      virtual std::vector<std::string> WindowsAlternatives() const
+      std::vector<std::string> WindowsAlternatives() const override
       {
         return std::vector<std::string>();
       }
@@ -59,13 +59,13 @@ namespace Sound
         Dbg("Library loaded");
       }
 
-      virtual ~DynamicApi()
+      ~DynamicApi() override
       {
         Dbg("Library unloaded");
       }
 
       
-      virtual FLAC__StreamEncoder* FLAC__stream_encoder_new(void)
+      FLAC__StreamEncoder* FLAC__stream_encoder_new(void) override
       {
         static const char NAME[] = "FLAC__stream_encoder_new";
         typedef FLAC__StreamEncoder* ( *FunctionType)();
@@ -73,7 +73,7 @@ namespace Sound
         return func();
       }
       
-      virtual void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
+      void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder) override
       {
         static const char NAME[] = "FLAC__stream_encoder_delete";
         typedef void ( *FunctionType)(FLAC__StreamEncoder *);
@@ -81,7 +81,7 @@ namespace Sound
         return func(encoder);
       }
       
-      virtual FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder, FLAC__bool value)
+      FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder, FLAC__bool value) override
       {
         static const char NAME[] = "FLAC__stream_encoder_set_verify";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamEncoder *, FLAC__bool);
@@ -89,7 +89,7 @@ namespace Sound
         return func(encoder, value);
       }
       
-      virtual FLAC__bool FLAC__stream_encoder_set_channels(FLAC__StreamEncoder *encoder, unsigned value)
+      FLAC__bool FLAC__stream_encoder_set_channels(FLAC__StreamEncoder *encoder, unsigned value) override
       {
         static const char NAME[] = "FLAC__stream_encoder_set_channels";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamEncoder *, unsigned);
@@ -97,7 +97,7 @@ namespace Sound
         return func(encoder, value);
       }
       
-      virtual FLAC__bool FLAC__stream_encoder_set_bits_per_sample(FLAC__StreamEncoder *encoder, unsigned value)
+      FLAC__bool FLAC__stream_encoder_set_bits_per_sample(FLAC__StreamEncoder *encoder, unsigned value) override
       {
         static const char NAME[] = "FLAC__stream_encoder_set_bits_per_sample";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamEncoder *, unsigned);
@@ -105,7 +105,7 @@ namespace Sound
         return func(encoder, value);
       }
       
-      virtual FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *encoder, unsigned value)
+      FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *encoder, unsigned value) override
       {
         static const char NAME[] = "FLAC__stream_encoder_set_sample_rate";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamEncoder *, unsigned);
@@ -113,7 +113,7 @@ namespace Sound
         return func(encoder, value);
       }
       
-      virtual FLAC__bool FLAC__stream_encoder_set_compression_level(FLAC__StreamEncoder *encoder, unsigned value)
+      FLAC__bool FLAC__stream_encoder_set_compression_level(FLAC__StreamEncoder *encoder, unsigned value) override
       {
         static const char NAME[] = "FLAC__stream_encoder_set_compression_level";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamEncoder *, unsigned);
@@ -121,7 +121,7 @@ namespace Sound
         return func(encoder, value);
       }
       
-      virtual FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *encoder, unsigned value)
+      FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *encoder, unsigned value) override
       {
         static const char NAME[] = "FLAC__stream_encoder_set_blocksize";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamEncoder *, unsigned);
@@ -129,7 +129,7 @@ namespace Sound
         return func(encoder, value);
       }
       
-      virtual FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks)
+      FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks) override
       {
         static const char NAME[] = "FLAC__stream_encoder_set_metadata";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamEncoder *, FLAC__StreamMetadata **, unsigned);
@@ -137,7 +137,7 @@ namespace Sound
         return func(encoder, metadata, num_blocks);
       }
       
-      virtual FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteCallback write_callback, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderTellCallback tell_callback, FLAC__StreamEncoderMetadataCallback metadata_callback, void *client_data)
+      FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteCallback write_callback, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderTellCallback tell_callback, FLAC__StreamEncoderMetadataCallback metadata_callback, void *client_data) override
       {
         static const char NAME[] = "FLAC__stream_encoder_init_stream";
         typedef FLAC__StreamEncoderInitStatus ( *FunctionType)(FLAC__StreamEncoder *, FLAC__StreamEncoderWriteCallback, FLAC__StreamEncoderSeekCallback, FLAC__StreamEncoderTellCallback, FLAC__StreamEncoderMetadataCallback, void *);
@@ -145,7 +145,7 @@ namespace Sound
         return func(encoder, write_callback, seek_callback, tell_callback, metadata_callback, client_data);
       }
       
-      virtual FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
+      FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder) override
       {
         static const char NAME[] = "FLAC__stream_encoder_finish";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamEncoder *);
@@ -153,7 +153,7 @@ namespace Sound
         return func(encoder);
       }
       
-      virtual FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples)
+      FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples) override
       {
         static const char NAME[] = "FLAC__stream_encoder_process_interleaved";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamEncoder *, const FLAC__int32[], unsigned);
@@ -161,7 +161,7 @@ namespace Sound
         return func(encoder, buffer, samples);
       }
       
-      virtual FLAC__StreamMetadata* FLAC__metadata_object_new(FLAC__MetadataType type)
+      FLAC__StreamMetadata* FLAC__metadata_object_new(FLAC__MetadataType type) override
       {
         static const char NAME[] = "FLAC__metadata_object_new";
         typedef FLAC__StreamMetadata* ( *FunctionType)(FLAC__MetadataType);
@@ -169,7 +169,7 @@ namespace Sound
         return func(type);
       }
       
-      virtual void FLAC__metadata_object_delete(FLAC__StreamMetadata *object)
+      void FLAC__metadata_object_delete(FLAC__StreamMetadata *object) override
       {
         static const char NAME[] = "FLAC__metadata_object_delete";
         typedef void ( *FunctionType)(FLAC__StreamMetadata *);
@@ -177,7 +177,7 @@ namespace Sound
         return func(object);
       }
       
-      virtual FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, const char *field_value)
+      FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, const char *field_value) override
       {
         static const char NAME[] = "FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamMetadata_VorbisComment_Entry *, const char *, const char *);
@@ -185,7 +185,7 @@ namespace Sound
         return func(entry, field_name, field_value);
       }
       
-      virtual FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
+      FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy) override
       {
         static const char NAME[] = "FLAC__metadata_object_vorbiscomment_append_comment";
         typedef FLAC__bool ( *FunctionType)(FLAC__StreamMetadata *, FLAC__StreamMetadata_VorbisComment_Entry, FLAC__bool);
@@ -193,7 +193,7 @@ namespace Sound
         return func(object, entry, copy);
       }
       
-      virtual FLAC__StreamEncoderState 	FLAC__stream_encoder_get_state(const FLAC__StreamEncoder *encoder)
+      FLAC__StreamEncoderState 	FLAC__stream_encoder_get_state(const FLAC__StreamEncoder *encoder) override
       {
         static const char NAME[] = "FLAC__stream_encoder_get_state";
         typedef FLAC__StreamEncoderState 	( *FunctionType)(const FLAC__StreamEncoder *);

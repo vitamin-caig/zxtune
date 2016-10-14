@@ -190,17 +190,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::HRIP_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       //implies FastCheck
       return Hrip::ParseArchive(data);

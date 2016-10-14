@@ -52,17 +52,17 @@ namespace Module
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Tune->GetInformation();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Tune->GetProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
       const DAC::DataIterator::Ptr iterator = Tune->CreateDataIterator();
@@ -82,7 +82,7 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (const DAC::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {

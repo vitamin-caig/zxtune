@@ -446,49 +446,49 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
 
-      virtual void SetTempo(uint_t /*evenTempo*/, uint_t /*oddTempo*/, uint_t /*interleavePeriod*/) {}
-      virtual void SetDate(const Date& /*created*/, const Date& /*saved*/) {}
-      virtual void SetComment(const String& /*comment*/) {}
+      void SetTempo(uint_t /*evenTempo*/, uint_t /*oddTempo*/, uint_t /*interleavePeriod*/) override {}
+      void SetDate(const Date& /*created*/, const Date& /*saved*/) override {}
+      void SetComment(const String& /*comment*/) override {}
 
-      virtual void SetInstrument(uint_t /*index*/, const Instrument& /*instrument*/) {}
+      void SetInstrument(uint_t /*index*/, const Instrument& /*instrument*/) override {}
       //patterns
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
+      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
 
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
 
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetKeyOff() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetVolume(uint_t /*vol*/) {}
-      virtual void SetInstrument(uint_t /*ins*/) {}
-      virtual void SetArpeggio(uint_t /*add1*/, uint_t /*add2*/) {}
-      virtual void SetSlide(int_t /*step*/) {}
-      virtual void SetPortamento(int_t /*step*/) {}
-      virtual void SetVibrato(uint_t /*speed*/, uint_t /*depth*/) {}
-      virtual void SetTotalLevel(uint_t /*op*/, uint_t /*value*/) {}
-      virtual void SetVolumeSlide(uint_t /*up*/, uint_t /*down*/) {}
-      virtual void SetSpecialMode(bool /*on*/) {}
-      virtual void SetToneOffset(uint_t /*op*/, uint_t /*offset*/) {}
-      virtual void SetMultiple(uint_t /*op*/, uint_t /*val*/) {}
-      virtual void SetOperatorsMixing(uint_t /*mask*/) {}
-      virtual void SetLoopStart() {}
-      virtual void SetLoopEnd(uint_t /*additionalCount*/) {}
-      virtual void SetPane(uint_t /*pane*/) {}
-      virtual void SetNoteRetrig(uint_t /*period*/) {}
-      virtual void SetNoteCut(uint_t /*quirk*/) {}
-      virtual void SetNoteDelay(uint_t /*quirk*/) {}
-      virtual void SetDropEffects() {}
-      virtual void SetFeedback(uint_t /*val*/) {}
-      virtual void SetTempoInterleave(uint_t /*val*/) {}
-      virtual void SetTempoValues(uint_t /*even*/, uint_t /*odd*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetKeyOff() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetVolume(uint_t /*vol*/) override {}
+      void SetInstrument(uint_t /*ins*/) override {}
+      void SetArpeggio(uint_t /*add1*/, uint_t /*add2*/) override {}
+      void SetSlide(int_t /*step*/) override {}
+      void SetPortamento(int_t /*step*/) override {}
+      void SetVibrato(uint_t /*speed*/, uint_t /*depth*/) override {}
+      void SetTotalLevel(uint_t /*op*/, uint_t /*value*/) override {}
+      void SetVolumeSlide(uint_t /*up*/, uint_t /*down*/) override {}
+      void SetSpecialMode(bool /*on*/) override {}
+      void SetToneOffset(uint_t /*op*/, uint_t /*offset*/) override {}
+      void SetMultiple(uint_t /*op*/, uint_t /*val*/) override {}
+      void SetOperatorsMixing(uint_t /*mask*/) override {}
+      void SetLoopStart() override {}
+      void SetLoopEnd(uint_t /*additionalCount*/) override {}
+      void SetPane(uint_t /*pane*/) override {}
+      void SetNoteRetrig(uint_t /*period*/) override {}
+      void SetNoteCut(uint_t /*quirk*/) override {}
+      void SetNoteDelay(uint_t /*quirk*/) override {}
+      void SetDropEffects() override {}
+      void SetFeedback(uint_t /*val*/) override {}
+      void SetTempoInterleave(uint_t /*val*/) override {}
+      void SetTempoValues(uint_t /*even*/, uint_t /*odd*/) override {}
     };
 
     class StatisticCollectingBuilder : public Builder
@@ -502,167 +502,167 @@ namespace Chiptune
         UsedInstruments.Insert(1);
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod)
+      void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod) override
       {
         return Delegate.SetTempo(evenTempo, oddTempo, interleavePeriod);
       }
 
-      virtual void SetDate(const Date& created, const Date& saved)
+      void SetDate(const Date& created, const Date& saved) override
       {
         return Delegate.SetDate(created, saved);
       }
 
-      virtual void SetComment(const String& comment)
+      void SetComment(const String& comment) override
       {
         return Delegate.SetComment(comment);
       }
 
-      virtual void SetInstrument(uint_t index, const Instrument& instrument)
+      void SetInstrument(uint_t index, const Instrument& instrument) override
       {
         assert(UsedInstruments.Contain(index));
         return Delegate.SetInstrument(index, instrument);
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         Delegate.StartChannel(index);
       }
 
-      virtual void SetKeyOff()
+      void SetKeyOff() override
       {
         return Delegate.SetKeyOff();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         return Delegate.SetNote(note);
       }
 
-      virtual void SetVolume(uint_t vol)
+      void SetVolume(uint_t vol) override
       {
         return Delegate.SetVolume(vol);
       }
 
-      virtual void SetInstrument(uint_t ins)
+      void SetInstrument(uint_t ins) override
       {
         UsedInstruments.Insert(ins);
         return Delegate.SetInstrument(ins);
       }
 
-      virtual void SetArpeggio(uint_t add1, uint_t add2)
+      void SetArpeggio(uint_t add1, uint_t add2) override
       {
         return Delegate.SetArpeggio(add1, add2);
       }
 
-      virtual void SetSlide(int_t step)
+      void SetSlide(int_t step) override
       {
         return Delegate.SetSlide(step);
       }
 
-      virtual void SetPortamento(int_t step)
+      void SetPortamento(int_t step) override
       {
         return Delegate.SetPortamento(step);
       }
 
-      virtual void SetVibrato(uint_t speed, uint_t depth)
+      void SetVibrato(uint_t speed, uint_t depth) override
       {
         return Delegate.SetVibrato(speed, depth);
       }
 
-      virtual void SetTotalLevel(uint_t op, uint_t value)
+      void SetTotalLevel(uint_t op, uint_t value) override
       {
         return Delegate.SetTotalLevel(op, value);
       }
 
-      virtual void SetVolumeSlide(uint_t up, uint_t down)
+      void SetVolumeSlide(uint_t up, uint_t down) override
       {
         return Delegate.SetVolumeSlide(up, down);
       }
 
-      virtual void SetSpecialMode(bool on)
+      void SetSpecialMode(bool on) override
       {
         return Delegate.SetSpecialMode(on);
       }
 
-      virtual void SetToneOffset(uint_t op, uint_t offset)
+      void SetToneOffset(uint_t op, uint_t offset) override
       {
         return Delegate.SetToneOffset(op, offset);
       }
 
-      virtual void SetMultiple(uint_t op, uint_t val)
+      void SetMultiple(uint_t op, uint_t val) override
       {
         return Delegate.SetMultiple(op, val);
       }
 
-      virtual void SetOperatorsMixing(uint_t mask)
+      void SetOperatorsMixing(uint_t mask) override
       {
         return Delegate.SetOperatorsMixing(mask);
       }
 
-      virtual void SetLoopStart()
+      void SetLoopStart() override
       {
         return Delegate.SetLoopStart();
       }
 
-      virtual void SetLoopEnd(uint_t additionalCount)
+      void SetLoopEnd(uint_t additionalCount) override
       {
         return Delegate.SetLoopEnd(additionalCount);
       }
 
-      virtual void SetPane(uint_t pane)
+      void SetPane(uint_t pane) override
       {
         return Delegate.SetPane(pane);
       }
 
-      virtual void SetNoteRetrig(uint_t period)
+      void SetNoteRetrig(uint_t period) override
       {
         return Delegate.SetNoteRetrig(period);
       }
 
-      virtual void SetNoteCut(uint_t quirk)
+      void SetNoteCut(uint_t quirk) override
       {
         return Delegate.SetNoteCut(quirk);
       }
 
-      virtual void SetNoteDelay(uint_t quirk)
+      void SetNoteDelay(uint_t quirk) override
       {
         return Delegate.SetNoteDelay(quirk);
       }
 
-      virtual void SetDropEffects()
+      void SetDropEffects() override
       {
         return Delegate.SetDropEffects();
       }
 
-      virtual void SetFeedback(uint_t val)
+      void SetFeedback(uint_t val) override
       {
         return Delegate.SetFeedback(val);
       }
 
-      virtual void SetTempoInterleave(uint_t val)
+      void SetTempoInterleave(uint_t val) override
       {
         return Delegate.SetTempoInterleave(val);
       }
 
-      virtual void SetTempoValues(uint_t even, uint_t odd)
+      void SetTempoValues(uint_t even, uint_t odd) override
       {
         return Delegate.SetTempoValues(even, odd);
       }
@@ -1058,22 +1058,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Version::DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -1083,7 +1083,7 @@ namespace Chiptune
         return Parse(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         try
         {

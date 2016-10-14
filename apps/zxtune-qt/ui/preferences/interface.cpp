@@ -48,7 +48,7 @@ namespace
     {
     }
 
-    virtual int Get() const
+    int Get() const override
     {
       using namespace Parameters;
       Parameters::IntType val = ZXTuneQT::Update::CHECK_PERIOD_DEFAULT;
@@ -59,7 +59,7 @@ namespace
         : -1;
     }
 
-    virtual void Set(int val)
+    void Set(int val) override
     {
       if (Math::InRange<int>(val, 0, boost::size(UPDATE_CHECK_PERIODS) - 1))
       {
@@ -67,7 +67,7 @@ namespace
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Ctr->RemoveValue(Parameters::ZXTuneQT::Update::CHECK_PERIOD);
     }
@@ -97,7 +97,7 @@ namespace
       BooleanValue::Bind(*appSingleInstance, *Options, ZXTuneQT::SINGLE_INSTANCE, ZXTuneQT::SINGLE_INSTANCE_DEFAULT);
     }
 
-    virtual void OnLanguageChanged(int idx)
+    void OnLanguageChanged(int idx) override
     {
       const QString lang = languageSelect->itemData(idx).toString();
       Language->Set(lang);
@@ -105,7 +105,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

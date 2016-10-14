@@ -39,7 +39,7 @@ namespace Details
       Require(Handle != 0);
     }
 
-    virtual ~WindowsSharedLibrary()
+    ~WindowsSharedLibrary() override
     {
       if (Handle)
       {
@@ -47,7 +47,7 @@ namespace Details
       }
     }
 
-    virtual void* GetSymbol(const std::string& name) const
+    void* GetSymbol(const std::string& name) const override
     {
       if (void* res = reinterpret_cast<void*>(::GetProcAddress(Handle, name.c_str())))
       {

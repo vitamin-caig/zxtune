@@ -86,12 +86,12 @@ namespace
       ;
     }
 
-    virtual const boost::program_options::options_description& GetOptionsDescription() const
+    const boost::program_options::options_description& GetOptionsDescription() const override
     {
       return Options;
     }
 
-    virtual void Message(const String& msg)
+    void Message(const String& msg) override
     {
       if (!Silent)
       {
@@ -99,7 +99,7 @@ namespace
       }
     }
 
-    virtual void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration)
+    void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration) override
     {
       const Module::Information::Ptr info = module->GetModuleInformation();
       const Parameters::Accessor::Ptr props = module->GetModuleProperties();
@@ -126,7 +126,7 @@ namespace
           Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(), info->ChannelsCount());
     }
 
-    virtual uint_t BeginFrame(Sound::PlaybackControl::State state)
+    uint_t BeginFrame(Sound::PlaybackControl::State state) override
     {
       const uint_t curFrame = TrackState->Frame();
       if (Silent || Quiet)
@@ -164,7 +164,7 @@ namespace
       return curFrame;
     }
 
-    virtual void EndFrame()
+    void EndFrame() override
     {
       const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
       std::this_thread::sleep_for(std::chrono::milliseconds(waitPeriod));

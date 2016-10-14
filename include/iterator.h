@@ -183,18 +183,18 @@ template<class T>
 class ObjectIteratorStub : public ObjectIterator<T>
 {
 public:
-  virtual bool IsValid() const
+  bool IsValid() const override
   {
     return false;
   }
 
-  virtual T Get() const
+  T Get() const override
   {
     assert(!"Should not be called");
     return T();
   }
 
-  virtual void Next()
+  void Next() override
   {
     assert(!"Should not be called");
   }
@@ -216,18 +216,18 @@ public:
   {
   }
 
-  virtual bool IsValid() const
+  bool IsValid() const override
   {
     return Range;
   }
 
-  virtual V Get() const
+  V Get() const override
   {
     assert(Range);
     return *Range;
   }
 
-  virtual void Next()
+  void Next() override
   {
     assert(Range);
     ++Range;

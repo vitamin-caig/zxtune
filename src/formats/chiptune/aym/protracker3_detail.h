@@ -45,130 +45,130 @@ namespace Formats
           UsedOrnaments.Insert(DEFAULT_ORNAMENT);
         }
 
-        virtual MetaBuilder& GetMetaBuilder()
+        MetaBuilder& GetMetaBuilder() override
         {
           return Delegate.GetMetaBuilder();
         }
 
-        virtual void SetVersion(uint_t version)
+        void SetVersion(uint_t version) override
         {
           return Delegate.SetVersion(version);
         }
 
-        virtual void SetNoteTable(NoteTable table)
+        void SetNoteTable(NoteTable table) override
         {
           return Delegate.SetNoteTable(table);
         }
 
-        virtual void SetMode(uint_t mode)
+        void SetMode(uint_t mode) override
         {
           Mode = mode;
           return Delegate.SetMode(mode);
         }
 
-        virtual void SetInitialTempo(uint_t tempo)
+        void SetInitialTempo(uint_t tempo) override
         {
           return Delegate.SetInitialTempo(tempo);
         }
 
-        virtual void SetSample(uint_t index, const Sample& sample)
+        void SetSample(uint_t index, const Sample& sample) override
         {
           AvailableSamples.Insert(index);
           return Delegate.SetSample(index, sample);
         }
 
-        virtual void SetOrnament(uint_t index, const Ornament& ornament)
+        void SetOrnament(uint_t index, const Ornament& ornament) override
         {
           AvailableOrnaments.Insert(index);
           return Delegate.SetOrnament(index, ornament);
         }
 
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+        void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
         {
           UsedPatterns.Assign(positions.begin(), positions.end());
           Require(!UsedPatterns.Empty());
           return Delegate.SetPositions(positions, loop);
         }
 
-        virtual PatternBuilder& StartPattern(uint_t index)
+        PatternBuilder& StartPattern(uint_t index) override
         {
           AvailablePatterns.Insert(index);
           return Delegate.StartPattern(index);
         }
 
-        virtual void StartChannel(uint_t index)
+        void StartChannel(uint_t index) override
         {
           return Delegate.StartChannel(index);
         }
 
-        virtual void SetRest()
+        void SetRest() override
         {
           return Delegate.SetRest();
         }
 
-        virtual void SetNote(uint_t note)
+        void SetNote(uint_t note) override
         {
           return Delegate.SetNote(note);
         }
 
-        virtual void SetSample(uint_t sample)
+        void SetSample(uint_t sample) override
         {
           UsedSamples.Insert(sample);
           return Delegate.SetSample(sample);
         }
 
-        virtual void SetOrnament(uint_t ornament)
+        void SetOrnament(uint_t ornament) override
         {
           UsedOrnaments.Insert(ornament);
           return Delegate.SetOrnament(ornament);
         }
 
-        virtual void SetVolume(uint_t vol)
+        void SetVolume(uint_t vol) override
         {
           return Delegate.SetVolume(vol);
         }
 
-        virtual void SetGlissade(uint_t period, int_t val)
+        void SetGlissade(uint_t period, int_t val) override
         {
           return Delegate.SetGlissade(period, val);
         }
 
-        virtual void SetNoteGliss(uint_t period, int_t val, uint_t limit)
+        void SetNoteGliss(uint_t period, int_t val, uint_t limit) override
         {
           return Delegate.SetNoteGliss(period, val, limit);
         }
 
-        virtual void SetSampleOffset(uint_t offset)
+        void SetSampleOffset(uint_t offset) override
         {
           return Delegate.SetSampleOffset(offset);
         }
 
-        virtual void SetOrnamentOffset(uint_t offset)
+        void SetOrnamentOffset(uint_t offset) override
         {
           return Delegate.SetOrnamentOffset(offset);
         }
 
-        virtual void SetVibrate(uint_t ontime, uint_t offtime)
+        void SetVibrate(uint_t ontime, uint_t offtime) override
         {
           return Delegate.SetVibrate(ontime, offtime);
         }
 
-        virtual void SetEnvelopeSlide(uint_t period, int_t val)
+        void SetEnvelopeSlide(uint_t period, int_t val) override
         {
           return Delegate.SetEnvelopeSlide(period, val);
         }
 
-        virtual void SetEnvelope(uint_t type, uint_t value)
+        void SetEnvelope(uint_t type, uint_t value) override
         {
           return Delegate.SetEnvelope(type, value);
         }
 
-        virtual void SetNoEnvelope()
+        void SetNoEnvelope() override
         {
           return Delegate.SetNoEnvelope();
         }
 
-        virtual void SetNoiseBase(uint_t val)
+        void SetNoiseBase(uint_t val) override
         {
           return Delegate.SetNoiseBase(val);
         }

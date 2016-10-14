@@ -17,7 +17,7 @@ namespace
   class DesktopWidgetsFactory : public WidgetsFactory
   {
   public:
-    virtual MainWindow::Ptr CreateMainWindow(Parameters::Container::Ptr options) const
+    MainWindow::Ptr CreateMainWindow(Parameters::Container::Ptr options) const override
     {
       return DesktopMainWindow::Create(options);
     }

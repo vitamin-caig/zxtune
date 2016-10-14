@@ -24,7 +24,7 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
     {
       Delegate.OnItem(index, data);
       Callback.OnProgress(++Done);

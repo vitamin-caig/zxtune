@@ -161,30 +161,30 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
       //samples+ornaments
-      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
-      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
+      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
       //patterns
-      virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) {}
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) override {}
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
-      virtual void SetTempoAddon(uint_t /*add*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
-      virtual void SetEnvelope(uint_t /*type*/, uint_t /*value*/) {}
-      virtual void SetGlissade(int_t /*step*/) {}
-      virtual void SetAttenuation(uint_t /*att*/) {}
-      virtual void SetAttenuationAddon(int_t /*add*/) {}
-      virtual void SetGlobalAttenuation(uint_t /*att*/) {}
-      virtual void SetGlobalAttenuationAddon(int_t /*add*/) {}
+      void SetTempoAddon(uint_t /*add*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
+      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
+      void SetGlissade(int_t /*step*/) override {}
+      void SetAttenuation(uint_t /*att*/) override {}
+      void SetAttenuationAddon(int_t /*add*/) override {}
+      void SetGlobalAttenuation(uint_t /*att*/) override {}
+      void SetGlobalAttenuationAddon(int_t /*add*/) override {}
     };
 
     class StatisticCollectingBuilder : public Builder
@@ -198,24 +198,24 @@ namespace Chiptune
       {
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetSample(uint_t index, const Sample& sample)
+      void SetSample(uint_t index, const Sample& sample) override
       {
         assert(UsedSamples.Contain(index));
         return Delegate.SetSample(index, sample);
       }
 
-      virtual void SetOrnament(uint_t index, const Ornament& ornament)
+      void SetOrnament(uint_t index, const Ornament& ornament) override
       {
         assert(UsedOrnaments.Contain(index));
         return Delegate.SetOrnament(index, ornament);
       }
 
-      virtual void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop)
+      void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) override
       {
         UsedPatterns.Clear();
         for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
@@ -229,65 +229,65 @@ namespace Chiptune
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
       }
 
-      virtual void SetTempoAddon(uint_t add)
+      void SetTempoAddon(uint_t add) override
       {
         return Delegate.SetTempoAddon(add);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         return Delegate.SetRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         return Delegate.SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
-      virtual void SetOrnament(uint_t ornament)
+      void SetOrnament(uint_t ornament) override
       {
         UsedOrnaments.Insert(ornament);
         return Delegate.SetOrnament(ornament);
       }
 
-      virtual void SetEnvelope(uint_t type, uint_t value)
+      void SetEnvelope(uint_t type, uint_t value) override
       {
         return Delegate.SetEnvelope(type, value);
       }
 
-      virtual void SetGlissade(int_t step)
+      void SetGlissade(int_t step) override
       {
         return Delegate.SetGlissade(step);
       }
 
-      virtual void SetAttenuation(uint_t att)
+      void SetAttenuation(uint_t att) override
       {
         return Delegate.SetAttenuation(att);
       }
 
-      virtual void SetAttenuationAddon(int_t add)
+      void SetAttenuationAddon(int_t add) override
       {
         return Delegate.SetAttenuationAddon(add);
       }
 
-      virtual void SetGlobalAttenuation(uint_t att)
+      void SetGlobalAttenuation(uint_t att) override
       {
         return Delegate.SetGlobalAttenuation(att);
       }
 
-      virtual void SetGlobalAttenuationAddon(int_t add)
+      void SetGlobalAttenuationAddon(int_t add) override
       {
         return Delegate.SetGlobalAttenuationAddon(add);
       }
@@ -953,22 +953,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::SQTRACKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData) && FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

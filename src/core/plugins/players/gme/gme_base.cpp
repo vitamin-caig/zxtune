@@ -112,7 +112,7 @@ namespace GME
       }
     }
     
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    void GetState(std::vector<ChannelState>& channels) const override
     {
       std::vector<voice_status_t> voices(Emu->voice_count());
       const int actual = Emu->voices_status(&voices[0], voices.size());
@@ -181,17 +181,17 @@ namespace GME
       ApplyParameters();
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return State;
     }
 
-    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    Module::Analyzer::Ptr GetAnalyzer() const override
     {
       return Tune;
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       try
       {
@@ -211,7 +211,7 @@ namespace GME
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       try
       {
@@ -225,7 +225,7 @@ namespace GME
       }
     }
 
-    virtual void SetPosition(uint_t frame)
+    void SetPosition(uint_t frame) override
     {
       try
       {
@@ -279,17 +279,17 @@ namespace GME
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    Module::Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
@@ -354,7 +354,7 @@ namespace GME
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -403,7 +403,7 @@ namespace GME
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {

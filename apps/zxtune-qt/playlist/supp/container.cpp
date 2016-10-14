@@ -45,17 +45,17 @@ namespace
       Properties->SetValue(Playlist::ATTRIBUTE_CREATOR, Platform::Version::GetProgramVersionString());
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual unsigned GetItemsCount() const
+    unsigned GetItemsCount() const override
     {
       return Storage.CountItems();
     }
 
-    virtual Playlist::Item::Collection::Ptr GetItems() const
+    Playlist::Item::Collection::Ptr GetItems() const override
     {
       return Storage.GetItems();
     }
@@ -74,7 +74,7 @@ namespace
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& storage, Log::ProgressCallback& cb) override
     {
       const Playlist::IO::Container::Ptr container = MakePtr<ContainerImpl>(Name, storage);
       try
@@ -103,7 +103,7 @@ namespace
     }
 
     //do not track progress since view may not be created
-    virtual void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
+    void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb) override
     {
       if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, Filename, cb))
       {
@@ -131,14 +131,14 @@ namespace
     {
     }
 
-    virtual Playlist::Controller::Ptr CreatePlaylist(const QString& name) const
+    Playlist::Controller::Ptr CreatePlaylist(const QString& name) const override
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
       const Playlist::Controller::Ptr ctrl = Playlist::Controller::Create(name, provider);
       return ctrl;
     }
 
-    virtual void OpenPlaylist(const QString& filename)
+    void OpenPlaylist(const QString& filename) override
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
       const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);

@@ -46,12 +46,12 @@ namespace Module
     {
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
+    void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const override
     {
       Result = holder;
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return 0;
     }
@@ -90,17 +90,17 @@ namespace Module
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Delegate->GetModuleInformation();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
     }
@@ -118,27 +118,27 @@ namespace Module
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Delegate->GetModuleInformation();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), chip);
     }
 
-    virtual AYM::Chiptune::Ptr GetChiptune() const
+    AYM::Chiptune::Ptr GetChiptune() const override
     {
       return Delegate->GetChiptune();
     }

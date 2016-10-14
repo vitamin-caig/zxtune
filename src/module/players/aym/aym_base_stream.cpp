@@ -29,27 +29,27 @@ namespace Module
       {
       }
 
-      virtual void Reset()
+      void Reset() override
       {
         Delegate->Reset();
       }
 
-      virtual bool IsValid() const
+      bool IsValid() const override
       {
         return Delegate->IsValid();
       }
 
-      virtual void NextFrame(bool looped)
+      void NextFrame(bool looped) override
       {
         Delegate->NextFrame(looped);
       }
 
-      virtual TrackState::Ptr GetStateObserver() const
+      TrackState::Ptr GetStateObserver() const override
       {
         return State;
       }
 
-      virtual Devices::AYM::Registers GetData() const
+      Devices::AYM::Registers GetData() const override
       {
         return Delegate->IsValid()
           ? Data->Get(State->Frame())
@@ -71,17 +71,17 @@ namespace Module
       {
       }
 
-      virtual Information::Ptr GetInformation() const
+      Information::Ptr GetInformation() const override
       {
         return Info;
       }
 
-      virtual Parameters::Accessor::Ptr GetProperties() const
+      Parameters::Accessor::Ptr GetProperties() const override
       {
         return Properties;
       }
 
-      virtual DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr /*trackParams*/) const
+      DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr /*trackParams*/) const override
       {
         const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
         return MakePtr<StreamDataIterator>(iter, Data);

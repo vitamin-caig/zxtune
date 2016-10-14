@@ -51,24 +51,18 @@ namespace
       Require(connect(devices, SIGNAL(currentIndexChanged(const QString&)), SLOT(DeviceChanged(const QString&))));
     }
 
-    virtual Parameters::Container::Ptr GetSettings() const
-    {
-      //TODO
-      return Parameters::Container::Ptr();
-    }
-
-    virtual String GetBackendId() const
+    String GetBackendId() const override
     {
       static const Char ID[] = {'d', 's', 'o', 'u', 'n', 'd', '\0'};
       return ID;
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       return nameGroup->title();
     }
 
-    virtual void DeviceChanged(const QString& name)
+    void DeviceChanged(const QString& name) override
     {
       const String& id = LocalFromQString(name);
       Dbg("Selecting device '%1%'", id);
@@ -86,7 +80,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

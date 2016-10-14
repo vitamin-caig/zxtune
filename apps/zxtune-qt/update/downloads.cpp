@@ -64,7 +64,7 @@ namespace
     {
     }
 
-    virtual Product::Release::PlatformTag Platform() const
+    Product::Release::PlatformTag Platform() const override
     {
       if (Entry.HtmlContent.contains(OPSYS_WINDOWS))
       {
@@ -90,7 +90,7 @@ namespace
       }
     }
 
-    virtual Product::Release::ArchitectureTag Architecture() const
+    Product::Release::ArchitectureTag Architecture() const override
     {
       //check x86_64 first
       if (Entry.HtmlContent.contains(PLATFORM_X86_64))
@@ -120,17 +120,17 @@ namespace
       }
     }
 
-    virtual QString Version() const
+    QString Version() const override
     {
       return VersionValue;
     }
 
-    virtual QDate Date() const
+    QDate Date() const override
     {
       return Entry.Updated;
     }
 
-    virtual Product::Update::PackagingTag Packaging() const
+    Product::Update::PackagingTag Packaging() const override
     {
       const QString file = Entry.DirectLink.toString();
       if (file.endsWith(TYPE_ZIP))
@@ -159,17 +159,17 @@ namespace
       }
     }
 
-    virtual QString Title() const
+    QString Title() const override
     {
       return Entry.Title;
     }
 
-    virtual QUrl Description() const
+    QUrl Description() const override
     {
       return Entry.AlternateLink;
     }
 
-    virtual QUrl Package() const
+    QUrl Package() const override
     {
       return Entry.DirectLink;
     }
@@ -188,7 +188,7 @@ namespace
     {
     }
 
-    virtual void OnEntry(const RSS::Entry& e)
+    void OnEntry(const RSS::Entry& e) override
     {
       Dbg("Feed entry '%1%'", FromQString(e.Title));
       if (-1 == ContentMatch.indexIn(e.HtmlContent))

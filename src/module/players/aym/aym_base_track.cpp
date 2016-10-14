@@ -31,29 +31,29 @@ namespace Module
       {
       }
 
-      virtual void Reset()
+      void Reset() override
       {
         Params.Reset();
         Delegate->Reset();
         Render->Reset();
       }
 
-      virtual bool IsValid() const
+      bool IsValid() const override
       {
         return Delegate->IsValid();
       }
 
-      virtual void NextFrame(bool looped)
+      void NextFrame(bool looped) override
       {
         Delegate->NextFrame(looped);
       }
 
-      virtual TrackState::Ptr GetStateObserver() const
+      TrackState::Ptr GetStateObserver() const override
       {
         return State;
       }
 
-      virtual Devices::AYM::Registers GetData() const
+      Devices::AYM::Registers GetData() const override
       {
         return Delegate->IsValid()
           ? GetCurrentChunk()

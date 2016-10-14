@@ -145,7 +145,7 @@ namespace Test
     {
     }
 
-    virtual void OnFile(const Formats::Archived::File& file) const
+    void OnFile(const Formats::Archived::File& file) const override
     {
       std::cout << " checking " << file.GetName() << std::endl;
       if (Files.empty() || file.GetName() != Files.front())

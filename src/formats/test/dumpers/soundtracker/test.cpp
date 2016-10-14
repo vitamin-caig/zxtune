@@ -33,48 +33,48 @@ namespace
   {
   public:
     //Builder
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return *this;
     }
 
     //MetaBuilder
-    virtual void SetProgram(const String& program)
+    void SetProgram(const String& program) override
     {
       std::cout << "Program: " << program << std::endl;
     }
 
-    virtual void SetTitle(const String& program)
+    void SetTitle(const String& program) override
     {
       std::cout << "Title: " << program << std::endl;
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       std::cout << "Author: " << author << std::endl;
     }
     
-    virtual void SetStrings(const Strings::Array& /*strings*/)
+    void SetStrings(const Strings::Array& /*strings*/) override
     {
     }
     
     //Builder
-    virtual void SetInitialTempo(uint_t tempo)
+    void SetInitialTempo(uint_t tempo) override
     {
       std::cout << "Tempo: " << tempo << std::endl;
     }
 
-    virtual void SetSample(uint_t index, const Sample& sample)
+    void SetSample(uint_t index, const Sample& sample) override
     {
       std::cout << "Sample" << index << std::endl;
     }
 
-    virtual void SetOrnament(uint_t index, const Ornament& ornament)
+    void SetOrnament(uint_t index, const Ornament& ornament) override
     {
       std::cout << "Ornament" << index << std::endl;
     }
 
-    virtual void SetPositions(const std::vector<PositionEntry>& positions)
+    void SetPositions(const std::vector<PositionEntry>& positions) override
     {
       std::cout << "Positions: ";
       for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
@@ -84,7 +84,7 @@ namespace
       std::cout << std::endl;
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       //nn C-1 soETT
       Line = String(33, ' ');
@@ -93,57 +93,57 @@ namespace
     }
     
     //PatternBuilder
-    virtual void Finish(uint_t size)
+    void Finish(uint_t size) override
     {
       std::cout << Line << std::endl;
       std::cout << size << " lines" << std::endl;
     }
 
-    virtual void StartLine(uint_t index)
+    void StartLine(uint_t index) override
     {
       std::cout << Line << std::endl;
       Line[0] = '0' + index / 10;
       Line[1] = '0' + index % 10;
     }
     
-    virtual void SetTempo(uint_t /*tempo*/)
+    void SetTempo(uint_t /*tempo*/) override
     {
     }
 
     //Builder
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       ChanPtr = &Line[3 + index * 10];
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       ChanPtr[0] = 'R';
       ChanPtr[1] = '-';
       ChanPtr[2] = '-';
     }
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       const std::string str = GetNote(note);
       ChanPtr[0] = str[0];
       ChanPtr[1] = str[1];
       ChanPtr[2] = str[2];
     }
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       ChanPtr[4] = ToHex(sample);
     }
-    virtual void SetOrnament(uint_t ornament)
+    void SetOrnament(uint_t ornament) override
     {
       ChanPtr[5] = ToHex(ornament);
     }
-    virtual void SetEnvelope(uint_t type, uint_t value)
+    void SetEnvelope(uint_t type, uint_t value) override
     {
       ChanPtr[6] = ToHex(type);
       ChanPtr[7] = ToHex(value / 16);
       ChanPtr[8] = ToHex(value % 16);
     }
-    virtual void SetNoEnvelope()
+    void SetNoEnvelope() override
     {
       ChanPtr[6] = '0';
     }

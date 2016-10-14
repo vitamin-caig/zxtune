@@ -53,7 +53,7 @@ namespace
     {
     }
 
-    virtual int_t GetWeight(uint8_t s) const
+    int_t GetWeight(uint8_t s) const override
     {
       return (0x20 <= s && s <= 0x40)
           || (0x80 <= s && s <= 0xaf)
@@ -61,7 +61,7 @@ namespace
       ;
     }
 
-    virtual uint_t Translate(uint8_t s) const
+    uint_t Translate(uint8_t s) const override
     {
       assert(0 != GetWeight(s));
       if (0x80 <= s && s <= 0xaf)
@@ -99,14 +99,14 @@ namespace
     {
     }
 
-    virtual int_t GetWeight(uint8_t s) const
+    int_t GetWeight(uint8_t s) const override
     {
       return (0x20 <= s && s <= 0x40)
           || (0xc0 <= s)
       ;
     }
     
-    virtual uint_t Translate(uint8_t s) const
+    uint_t Translate(uint8_t s) const override
     {
       assert(0 != GetWeight(s));
       return 0xc0 <= s
@@ -122,13 +122,13 @@ namespace
     {
     }
 
-    virtual int_t GetWeight(uint8_t s) const
+    int_t GetWeight(uint8_t s) const override
     {
       return (0x20 <= s && s <= 0x7f)
           || Decoded(s) != 0;
     }
     
-    virtual uint_t Translate(uint8_t s) const
+    uint_t Translate(uint8_t s) const override
     {
       if (const uint_t d = Decoded(s))
       {
@@ -167,13 +167,13 @@ namespace
     {
     }
 
-    virtual int_t GetWeight(uint8_t s) const
+    int_t GetWeight(uint8_t s) const override
     {
       return (0x20 <= s && s <= 0x7f)
           || Decoded(s) != 0;
     }
     
-    virtual uint_t Translate(uint8_t s) const
+    uint_t Translate(uint8_t s) const override
     {
       if (const uint_t d = Decoded(s))
       {

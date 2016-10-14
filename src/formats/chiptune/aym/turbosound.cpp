@@ -59,8 +59,8 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetFirstSubmoduleLocation(std::size_t /*offset*/, std::size_t /*size*/) {}
-      virtual void SetSecondSubmoduleLocation(std::size_t /*offset*/, std::size_t /*size*/) {}
+      void SetFirstSubmoduleLocation(std::size_t /*offset*/, std::size_t /*size*/) override {}
+      void SetSecondSubmoduleLocation(std::size_t /*offset*/, std::size_t /*size*/) override {}
     };
 
     class ModuleTraits
@@ -127,13 +127,13 @@ namespace Chiptune
       {
       }
 
-      virtual bool Match(const Binary::Data& data) const
+      bool Match(const Binary::Data& data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.Matched();
       }
 
-      virtual std::size_t NextMatchOffset(const Binary::Data& data) const
+      std::size_t NextMatchOffset(const Binary::Data& data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.NextOffset();
@@ -155,28 +155,28 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::TURBOSOUND_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const override
       {
         const ModuleTraits& traits = Format->GetTraits(rawData);
 

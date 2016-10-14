@@ -53,17 +53,17 @@ namespace
     {
     }
 
-    virtual void TokenMatched(const std::string& lexeme, LexicalAnalysis::TokenType type)
+    void TokenMatched(const std::string& lexeme, LexicalAnalysis::TokenType type) override
     {
       Str << TOKENS[type] << '(' << lexeme << ") ";
     }
 
-    virtual void MultipleTokensMatched(const std::string& lexeme, const LexicalAnalysis::TokenTypesSet& /*types*/)
+    void MultipleTokensMatched(const std::string& lexeme, const LexicalAnalysis::TokenTypesSet& /*types*/) override
     {
       Str << "X(" << lexeme << ") ";
     }
 
-    virtual void AnalysisError(const std::string& notation, std::size_t position)
+    void AnalysisError(const std::string& notation, std::size_t position) override
     {
       Str << notation.substr(0, position) << " >" << notation.substr(position);
     }
@@ -79,27 +79,27 @@ namespace
     {
     }
 
-    virtual void Match(const std::string& val)
+    void Match(const std::string& val) override
     {
       Str << val << ' ';
     }
 
-    virtual void GroupStart()
+    void GroupStart() override
     {
       Str << "( ";
     }
 
-    virtual void GroupEnd()
+    void GroupEnd() override
     {
       Str << ") ";
     }
 
-    virtual void Quantor(uint_t count)
+    void Quantor(uint_t count) override
     {
       Str << '{' << count << "} ";
     }
 
-    virtual void Operation(const std::string& op)
+    void Operation(const std::string& op) override
     {
       Str << op << ' ';
     }

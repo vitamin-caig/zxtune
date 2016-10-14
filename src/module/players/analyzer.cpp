@@ -25,7 +25,7 @@ namespace Module
     {
     }
 
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    void GetState(std::vector<ChannelState>& channels) const override
     {
       Devices::MultiChannelState in;
       Delegate->GetState(in);

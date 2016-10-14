@@ -28,17 +28,17 @@ namespace Module
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Tune->GetInformation();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Tune->GetProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       const Devices::TFM::ChipParameters::Ptr chipParams = TFM::CreateChipParameters(params);
       const Devices::TFM::Chip::Ptr chip = Devices::TFM::CreateChip(chipParams, target);
@@ -58,7 +58,7 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (const TFM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {

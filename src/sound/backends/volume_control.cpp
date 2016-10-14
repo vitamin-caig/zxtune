@@ -29,7 +29,7 @@ namespace Sound
     {
     }
 
-    virtual Gain GetVolume() const
+    Gain GetVolume() const override
     {
       if (const VolumeControl::Ptr delegate = Delegate.lock())
       {
@@ -38,7 +38,7 @@ namespace Sound
       throw Error(THIS_LINE, translate("Failed to get volume in invalid state."));
     }
 
-    virtual void SetVolume(const Gain& volume)
+    void SetVolume(const Gain& volume) override
     {
       if (const VolumeControl::Ptr delegate = Delegate.lock())
       {

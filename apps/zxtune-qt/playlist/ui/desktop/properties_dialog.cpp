@@ -44,47 +44,47 @@ namespace
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Merged->Version();
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       return Merged->FindValue(name, val);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       return Merged->FindValue(name, val);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
     {
       return Merged->FindValue(name, val);
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       return Merged->Process(visitor);
     }
 
-    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
     {
       return Adjusted->SetValue(name, val);
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
     {
       return Adjusted->SetValue(name, val);
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
     {
       return Adjusted->SetValue(name, val);
     }
 
-    virtual void RemoveValue(const Parameters::NameType& name)
+    void RemoveValue(const Parameters::NameType& name) override
     {
       return Adjusted->RemoveValue(name);
     }
@@ -116,7 +116,7 @@ namespace
       Require(connect(buttons, SIGNAL(clicked(QAbstractButton*)), SLOT(ButtonClicked(QAbstractButton*))));
     }
 
-    virtual void ButtonClicked(QAbstractButton* button)
+    void ButtonClicked(QAbstractButton* button) override
     {
       switch (buttons->buttonRole(button))
       {

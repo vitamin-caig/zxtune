@@ -146,12 +146,12 @@ namespace
       ;
     }
 
-    virtual const boost::program_options::options_description& GetOptionsDescription() const
+    const boost::program_options::options_description& GetOptionsDescription() const override
     {
       return OptionsDescription;
     }
 
-    virtual void ParseParameters()
+    void ParseParameters() override
     {
       Parameters::Container::Ptr soundParameters = Parameters::Container::Create();
       {
@@ -177,11 +177,11 @@ namespace
       Params->SetLooped(Looped);
     }
 
-    void Initialize()
+    void Initialize() override
     {
     }
 
-    virtual Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint, Sound::BackendCallback::Ptr callback)
+    Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint, Sound::BackendCallback::Ptr callback) override
     {
       if (!typeHint.empty())
       {
@@ -220,12 +220,12 @@ namespace
       throw Error(THIS_LINE, Text::SOUND_ERROR_NO_BACKEND);
     }
 
-    virtual Time::Microseconds GetFrameDuration() const
+    Time::Microseconds GetFrameDuration() const override
     {
       return Params->GetFrameDuration();
     }
 
-    virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const
+    Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const override
     {
       return Service->EnumerateBackends();
     }

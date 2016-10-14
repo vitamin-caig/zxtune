@@ -131,7 +131,7 @@ namespace FM
         BaseChip::Reset();
       }
 
-      virtual void RenderData(const typename ChipTraits::DataChunkType& src)
+      void RenderData(const typename ChipTraits::DataChunkType& src) override
       {
         if (const uint_t samples = Clock.AdvanceTo(src.TimeStamp))
         {
@@ -141,7 +141,7 @@ namespace FM
         Adapter.WriteRegisters(src.Data);
       }
 
-      virtual void Reset()
+      void Reset() override
       {
         Params.Reset();
         Adapter.Reset();
@@ -149,7 +149,7 @@ namespace FM
         SynchronizeParameters();
       }
 
-      virtual void GetState(MultiChannelState& state) const
+      void GetState(MultiChannelState& state) const override
       {
         Adapter.GetState(state);
       }

@@ -388,7 +388,7 @@ namespace DAC
     {
     }
 
-    virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target)
+    void RenderData(uint_t samples, Sound::ChunkBuilder& target) override
     {
       typename Sound::MultichannelSample<Channels>::Type result;
       for (uint_t counter = samples; counter != 0; --counter)
@@ -417,7 +417,7 @@ namespace DAC
     {
     }
 
-    virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target)
+    void RenderData(uint_t samples, Sound::ChunkBuilder& target) override
     {
       static const CosineTable COSTABLE;
       typename Sound::MultichannelSample<Channels>::Type result;
@@ -520,12 +520,12 @@ namespace DAC
     }
 
     /// Set sample for work
-    virtual void SetSample(uint_t idx, Sample::Ptr sample)
+    void SetSample(uint_t idx, Sample::Ptr sample) override
     {
       Samples.Add(idx, sample);
     }
 
-    virtual void RenderData(const DataChunk& src)
+    void RenderData(const DataChunk& src) override
     {
       SynchronizeParameters();
       if (Clock.GetCurrentTime() < src.TimeStamp)
@@ -535,7 +535,7 @@ namespace DAC
       UpdateChannelState(src);
     }
 
-    virtual void UpdateState(const DataChunk& src)
+    void UpdateState(const DataChunk& src) override
     {
       SynchronizeParameters();
       if (Clock.GetCurrentTime() < src.TimeStamp)
@@ -545,7 +545,7 @@ namespace DAC
       UpdateChannelState(src);
     }
 
-    virtual void GetState(MultiChannelState& state) const
+    void GetState(MultiChannelState& state) const override
     {
       MultiChannelState res;
       res.reserve(State.size());
@@ -560,7 +560,7 @@ namespace DAC
     }
 
     /// reset internal state to initial
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       Clock.Reset();

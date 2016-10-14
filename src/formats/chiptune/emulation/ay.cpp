@@ -185,13 +185,13 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetAuthor(const String& /*author*/) {}
-      virtual void SetComment(const String& /*comment*/) {}
-      virtual void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) {}
-      virtual void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) {}
-      virtual void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) {}
-      virtual void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) {}
+      void SetTitle(const String& /*title*/) override {}
+      void SetAuthor(const String& /*author*/) override {}
+      void SetComment(const String& /*comment*/) override {}
+      void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) override {}
+      void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) override {}
+      void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) override {}
+      void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) override {}
     };
 
     const std::string HEADER_FORMAT(
@@ -213,22 +213,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::AY_EMUL_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return GetModulesCount(rawData) == 1;
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, 0, stub);
@@ -288,27 +288,27 @@ namespace Chiptune
         std::array<uint8_t, 10> Data;
       };
     public:
-      virtual void SetTitle(const String& /*title*/)
+      void SetTitle(const String& /*title*/) override
       {
       }
 
-      virtual void SetAuthor(const String& /*author*/)
+      void SetAuthor(const String& /*author*/) override
       {
       }
 
-      virtual void SetComment(const String& /*comment*/)
+      void SetComment(const String& /*comment*/) override
       {
       }
 
-      virtual void SetDuration(uint_t /*total*/, uint_t /*fadeout*/)
+      void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) override
       {
       }
 
-      virtual void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/)
+      void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) override
       {
       }
 
-      virtual void SetRoutines(uint16_t init, uint16_t play)
+      void SetRoutines(uint16_t init, uint16_t play) override
       {
         assert(init);
         if (play)
@@ -323,14 +323,14 @@ namespace Chiptune
         }
       }
 
-      virtual void AddBlock(uint16_t addr, const void* src, std::size_t size)
+      void AddBlock(uint16_t addr, const void* src, std::size_t size) override
       {
         Dump& data = AllocateData();
         const std::size_t toCopy = std::min(size, data.size() - addr);
         std::memcpy(&data[addr], src, toCopy);
       }
 
-      virtual Binary::Container::Ptr Result() const
+      Binary::Container::Ptr Result() const override
       {
         return Data
           ? Binary::CreateContainer(Data, 0, Data->size())
@@ -408,47 +408,47 @@ namespace Chiptune
       {
       }
 
-      virtual void SetTitle(const String& title)
+      void SetTitle(const String& title) override
       {
         Title = title;
       }
 
-      virtual void SetAuthor(const String& author)
+      void SetAuthor(const String& author) override
       {
         Author = author;
       }
 
-      virtual void SetComment(const String& comment)
+      void SetComment(const String& comment) override
       {
         Comment = comment;
       }
 
-      virtual void SetDuration(uint_t total, uint_t fadeout)
+      void SetDuration(uint_t total, uint_t fadeout) override
       {
         Duration = static_cast<uint16_t>(total);
         Fadeout = static_cast<uint16_t>(fadeout);
       }
 
-      virtual void SetRegisters(uint16_t reg, uint16_t sp)
+      void SetRegisters(uint16_t reg, uint16_t sp) override
       {
         Register = reg;
         StackPointer = sp;
       }
 
-      virtual void SetRoutines(uint16_t init, uint16_t play)
+      void SetRoutines(uint16_t init, uint16_t play) override
       {
         InitRoutine = init;
         PlayRoutine = play;
       }
 
-      virtual void AddBlock(uint16_t addr, const void* data, std::size_t size)
+      void AddBlock(uint16_t addr, const void* data, std::size_t size) override
       {
         const uint8_t* const fromCopy = static_cast<const uint8_t*>(data);
         const std::size_t toCopy = std::min(size, std::size_t(0x10000 - addr));
         Blocks.push_back(BlocksList::value_type(addr, Dump(fromCopy, fromCopy + toCopy)));
       }
 
-      virtual Binary::Container::Ptr Result() const
+      Binary::Container::Ptr Result() const override
       {
         std::unique_ptr<VariableDump> result(new VariableDump());
         //init header

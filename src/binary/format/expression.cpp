@@ -37,7 +37,7 @@ namespace FormatDSL
     {
     }
 
-    virtual bool Match(uint_t /*val*/) const
+    bool Match(uint_t /*val*/) const override
     {
       return true;
     }
@@ -57,7 +57,7 @@ namespace FormatDSL
     {
     }
 
-    virtual bool Match(uint_t val) const
+    bool Match(uint_t val) const override
     {
       return val == Value;
     }
@@ -83,7 +83,7 @@ namespace FormatDSL
       Require(Mask != 0 && Mask != 0xff);
     }
 
-    virtual bool Match(uint_t val) const
+    bool Match(uint_t val) const override
     {
       return (Mask & val) == Value;
     }
@@ -170,7 +170,7 @@ namespace FormatDSL
       Require(Mult > 0 && Mult < 128);
     }
 
-    virtual bool Match(uint_t val) const
+    bool Match(uint_t val) const override
     {
       return 0 == (val % Mult);
     }
@@ -234,7 +234,7 @@ namespace FormatDSL
     {
     }
 
-    virtual bool Match(uint_t val) const
+    bool Match(uint_t val) const override
     {
       return Math::InRange(val, From, To);
     }
@@ -277,7 +277,7 @@ namespace FormatDSL
     {
     }
 
-    virtual bool Match(uint_t val) const
+    bool Match(uint_t val) const override
     {
       return BinOp::Execute(Lh->Match(val), Rh->Match(val));
     }
@@ -357,25 +357,25 @@ namespace FormatDSL
   class TokensFactory : public FormatTokensVisitor
   {
   public:
-    virtual void Match(const std::string& val)
+    void Match(const std::string& val) override
     {
       Result.push_back(ParseSingleToken(val));
       Require(!IsNoByte(Result.back()));
     }
 
-    virtual void GroupStart()
+    void GroupStart() override
     {
       GroupBegins.push(Result.size());
     }
 
-    virtual void GroupEnd()
+    void GroupEnd() override
     {
       Require(!GroupBegins.empty());
       Groups.push(std::make_pair(GroupBegins.top(), Result.size()));
       GroupBegins.pop();
     }
 
-    virtual void Quantor(uint_t count)
+    void Quantor(uint_t count) override
     {
       Require(count != 0);
       Require(!Result.empty());
@@ -395,7 +395,7 @@ namespace FormatDSL
       }
     }
 
-    virtual void Operation(const std::string& op)
+    void Operation(const std::string& op) override
     {
       Result.push_back(ParseOperation(op, Result));
       Require(!IsNoByte(Result.back()));
@@ -429,12 +429,12 @@ namespace FormatDSL
     {
     }
 
-    virtual std::size_t StartOffset() const
+    std::size_t StartOffset() const override
     {
       return Offset;
     }
 
-    virtual ObjectIterator<Token::Ptr>::Ptr Tokens() const
+    ObjectIterator<Token::Ptr>::Ptr Tokens() const override
     {
       return CreateRangedObjectIteratorAdapter(Pat.begin(), Pat.end());
     }

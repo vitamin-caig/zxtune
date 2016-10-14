@@ -48,7 +48,7 @@ namespace Sound
       Require(freqIn < freqOut);
     }
     
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(const Chunk::Ptr& data) override
     {
       ChunkBuilder builder;
       builder.Reserve(1 + (FixedStep(data->size()) / Step).Round());
@@ -79,7 +79,7 @@ namespace Sound
       Delegate->ApplyData(builder.GetResult());
     }
     
-    virtual void Flush()
+    void Flush() override
     {
       Delegate->Flush();
     }
@@ -100,7 +100,7 @@ namespace Sound
       Require(freqIn > freqOut);
     }
 
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(const Chunk::Ptr& data) override
     {
       ChunkBuilder builder;
       builder.Reserve(1 + (Step * data->size()).Round());
@@ -123,7 +123,7 @@ namespace Sound
       Delegate->ApplyData(builder.GetResult());
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Delegate->Flush();
     }

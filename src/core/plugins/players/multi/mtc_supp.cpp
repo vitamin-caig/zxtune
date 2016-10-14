@@ -68,35 +68,35 @@ namespace MTC
     {
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       PropertiesHelper(GetCurrentProperties()).SetAuthor(author);
     }
     
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       PropertiesHelper(GetCurrentProperties()).SetTitle(title);
     }
     
-    virtual void SetAnnotation(const String& annotation)
+    void SetAnnotation(const String& annotation) override
     {
       PropertiesHelper(GetCurrentProperties()).SetComment(annotation);
     }
     
-    virtual void SetProperty(const String& name, const String& value)
+    void SetProperty(const String& name, const String& value) override
     {
       Strings::Map props;
       props[name] = value;
       Parameters::Convert(props, GetCurrentProperties());
     }
     
-    virtual void StartTrack(uint_t idx)
+    void StartTrack(uint_t idx) override
     {
       Dbg("Start track %1%", idx);
       CurEntity = CurTrack = Module.AddTrack(idx);
     }
     
-    virtual void SetData(Binary::Container::Ptr data)
+    void SetData(Binary::Container::Ptr data) override
     {
       Dbg("Set track data");
       CurEntity = CurStream = CurTrack->AddStream(data);
@@ -124,12 +124,12 @@ namespace MTC
     class StaticPropertiesTrackEntity : public TrackEntity
     {
     public:
-      virtual Parameters::Accessor::Ptr GetProperties() const
+      Parameters::Accessor::Ptr GetProperties() const override
       {
         return Props;
       }
       
-      virtual Parameters::Modifier& CreateProperties()
+      Parameters::Modifier& CreateProperties() override
       {
         if (!Props)
         {
@@ -149,7 +149,7 @@ namespace MTC
       {
       }
       
-      virtual Module::Holder::Ptr GetHolder() const
+      Module::Holder::Ptr GetHolder() const override
       {
         Require(IsValid());
         return Holder;
@@ -222,7 +222,7 @@ namespace MTC
         return &Streams.back();
       }
     
-      virtual Module::Holder::Ptr GetHolder() const
+      Module::Holder::Ptr GetHolder() const override
       {
         //each track requires its own properties to create renderer (e.g. notetable)
         const Stream& stream = SelectStream();
@@ -231,7 +231,7 @@ namespace MTC
         return Module::CreateMixedPropertiesHolder(holder, props);
       }
       
-      virtual Parameters::Accessor::Ptr GetProperties() const
+      Parameters::Accessor::Ptr GetProperties() const override
       {
         const Stream& stream = SelectStream();
         return CombineProps(stream.GetProperties(), StaticPropertiesTrackEntity::GetProperties());
@@ -282,7 +282,7 @@ namespace MTC
         return &Tracks.back();
       }
       
-      virtual Module::Holder::Ptr GetHolder() const
+      Module::Holder::Ptr GetHolder() const override
       {
         const std::size_t tracksCount = Tracks.size();
         Dbg("Merge %1% tracks together", tracksCount);
@@ -298,12 +298,12 @@ namespace MTC
         return Module::Multi::CreateHolder(GetProperties(), holders);
       }
 
-      virtual Parameters::Accessor::Ptr GetProperties() const
+      Parameters::Accessor::Ptr GetProperties() const override
       {
         return Props;
       }
       
-      virtual Parameters::Modifier& CreateProperties()
+      Parameters::Modifier& CreateProperties() override
       {
         return *Props;
       }
@@ -347,7 +347,7 @@ namespace MTC
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {

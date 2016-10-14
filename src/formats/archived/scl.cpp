@@ -152,17 +152,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::SCL_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       //implies SCL::FastCheck
       return SCL::ParseArchive(data);

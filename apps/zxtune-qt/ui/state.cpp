@@ -54,47 +54,47 @@ namespace
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Delegate->Version();
     }
 
-    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
     {
       Delegate->SetValue(Prefix + name, val);
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
     {
       Delegate->SetValue(Prefix + name, val);
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
     {
       Delegate->SetValue(Prefix + name, val);
     }
 
-    virtual void RemoveValue(const Parameters::NameType& name)
+    void RemoveValue(const Parameters::NameType& name) override
     {
       Delegate->RemoveValue(Prefix + name);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       return Delegate->FindValue(Prefix + name, val);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       return Delegate->FindValue(Prefix + name, val);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
     {
       return Delegate->FindValue(Prefix + name, val);
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       NamespacedVisitor namedVisitor(Prefix, visitor);
       Delegate->Process(namedVisitor);
@@ -109,17 +109,17 @@ namespace
       {
       }
 
-      virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+      void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
       {
         FilterValue(name, val);
       }
 
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+      void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
       {
         FilterValue(name, val);
       }
 
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+      void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
       {
         FilterValue(name, val);
       }
@@ -184,13 +184,13 @@ namespace
     {
     }
 
-    virtual void Load() const
+    void Load() const override
     {
       Wnd.restoreGeometry(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY));
       Wnd.restoreState(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT), PARAMETERS_VERSION);
     }
 
-    virtual void Save() const
+    void Save() const override
     {
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY, Wnd.saveGeometry());
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT, Wnd.saveState(PARAMETERS_VERSION));
@@ -210,12 +210,12 @@ namespace
     {
     }
 
-    virtual void Load() const
+    void Load() const override
     {
       Wnd.restoreGeometry(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY));
     }
 
-    virtual void Save() const
+    void Save() const override
     {
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY, Wnd.saveGeometry());
     }
@@ -234,12 +234,12 @@ namespace
     {
     }
 
-    virtual void Load() const
+    void Load() const override
     {
       Wnd.restoreState(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT));
     }
 
-    virtual void Save() const
+    void Save() const override
     {
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT, Wnd.saveState());
     }
@@ -257,14 +257,14 @@ namespace
     {
     }
 
-    virtual void Load() const
+    void Load() const override
     {
       Parameters::IntType idx = 0;
       Container->FindValue(Parameters::ZXTuneQT::UI::PARAM_INDEX, idx);
       Wid.setCurrentIndex(idx);
     }
 
-    virtual void Save() const
+    void Save() const override
     {
       Container->SetValue(Parameters::ZXTuneQT::UI::PARAM_INDEX, Wid.currentIndex());
     }
@@ -282,7 +282,7 @@ namespace
     {
     }
 
-    virtual void Load() const
+    void Load() const override
     {
       Parameters::IntType size = 0;
       if (Container->FindValue(Parameters::ZXTuneQT::UI::PARAM_SIZE, size) && size)
@@ -299,7 +299,7 @@ namespace
       }
     }
 
-    virtual void Save() const
+    void Save() const override
     {
       const Parameters::IntType size = Wid.count();
       Container->SetValue(Parameters::ZXTuneQT::UI::PARAM_SIZE, size);
@@ -361,7 +361,7 @@ namespace
     {
     }
 
-    virtual void Load() const
+    void Load() const override
     {
       //do not load sorting-related data
       const AutoBlockSignal blockstate(View);
@@ -372,7 +372,7 @@ namespace
       }
     }
 
-    virtual void Save() const
+    void Save() const override
     {
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT, View.saveState());
     }
@@ -391,7 +391,7 @@ namespace
     {
     }
 
-    virtual void Load() const
+    void Load() const override
     {
       Parameters::IntType val = 0;
       if (Container->FindValue(Name, val))
@@ -400,7 +400,7 @@ namespace
       }
     }
 
-    virtual void Save() const
+    void Save() const override
     {
       Container->SetValue(Name, Wid.isChecked());
     }
@@ -419,7 +419,7 @@ namespace
     {
     }
 
-    virtual void Load() const
+    void Load() const override
     {
       Parameters::IntType val;
       if (!Wid.restoreGeometry(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY)))
@@ -432,7 +432,7 @@ namespace
       }
     }
 
-    virtual void Save() const
+    void Save() const override
     {
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY, Wid.saveGeometry());
       Container->SetValue(Parameters::ZXTuneQT::UI::PARAM_VISIBLE, Wid.isVisible());
@@ -450,7 +450,7 @@ namespace
     {
     }
 
-    virtual void AddWidget(QWidget& wid)
+    void AddWidget(QWidget& wid) override
     {
       if (QMainWindow* mainWnd = dynamic_cast<QMainWindow*>(&wid))
       {
@@ -486,12 +486,12 @@ namespace
       }
     }
 
-    virtual void Load() const
+    void Load() const override
     {
       std::for_each(Substates.begin(), Substates.end(), std::mem_fn(&WidgetState::Load));
     }
 
-    virtual void Save() const
+    void Save() const override
     {
       std::for_each(Substates.begin(), Substates.end(), std::mem_fn(&WidgetState::Save));
     }

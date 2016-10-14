@@ -58,7 +58,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

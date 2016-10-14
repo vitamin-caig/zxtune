@@ -9,13 +9,13 @@
         Dbg("Library loaded");
       }
 
-      virtual ~DynamicApi()
+      ~DynamicApi() override
       {
         Dbg("Library unloaded");
       }
 
       <TMPL_LOOP NAME=FUNCTIONS>
-      virtual <TMPL_VAR NAME=DECLARATION>
+      <TMPL_VAR NAME=DECLARATION> override
       {
         static const char NAME[] = "<TMPL_VAR NAME=NAME>";
         typedef <TMPL_VAR NAME=RETTYPE>(<TMPL_VAR NAME=CALLTYPE> *FunctionType)(<TMPL_VAR NAME=PARAMTYPES>);

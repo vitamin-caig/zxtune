@@ -749,22 +749,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::SOUNDTRACKERCOMPILED_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData) && Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -774,7 +774,7 @@ namespace Chiptune
         return ParseCompiled(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return ParseCompiled(data, target);
       }

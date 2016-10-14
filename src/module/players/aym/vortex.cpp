@@ -162,12 +162,12 @@ namespace Vortex
     {
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       PlayerState = State();
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
     {
       if (0 == state.Quirk())
       {

@@ -102,14 +102,14 @@ namespace
       Require(connect(&Timer, SIGNAL(timeout()), SLOT(UpdateState())));
     }
 
-    virtual void InitState(Sound::Backend::Ptr player)
+    void InitState(Sound::Backend::Ptr player) override
     {
       Analyzer = player->GetAnalyzer();
       CloseState();
       Timer.start();
     }
 
-    virtual void UpdateState()
+    void UpdateState() override
     {
       if (isVisible())
       {
@@ -120,7 +120,7 @@ namespace
       }
     }
 
-    void CloseState()
+    void CloseState() override
     {
       std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Set), 0));
       DoRepaint();
@@ -128,7 +128,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {
@@ -137,7 +137,7 @@ namespace
       AnalyzerControl::changeEvent(event);
     }
 
-    virtual void paintEvent(QPaintEvent*)
+    void paintEvent(QPaintEvent*) override
     {
       const QBrush& mask = Palette.toolTipText();
       const QBrush& brush = Palette.toolTipBase();

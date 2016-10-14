@@ -327,12 +327,12 @@ namespace ZXTune
     {
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       OnProgress(current, Text);
     }
 
-    virtual void OnProgress(uint_t current, const String& message)
+    void OnProgress(uint_t current, const String& message) override
     {
       if (Delegate.get())
       {
@@ -357,17 +357,17 @@ namespace ZXTune
     {
     }
 
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return OriginalData + Offset;
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return OriginalSize - Offset;
     }
 
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
       return Delegate->GetSubcontainer(offset + Offset, size);
     }
@@ -405,12 +405,12 @@ namespace ZXTune
     {
     }
 
-    virtual Binary::Container::Ptr GetData() const
+    Binary::Container::Ptr GetData() const override
     {
       return Subdata;
     }
 
-    virtual Analysis::Path::Ptr GetPath() const
+    Analysis::Path::Ptr GetPath() const override
     {
       const Analysis::Path::Ptr parentPath = Parent->GetPath();
       if (std::size_t offset = Subdata->GetOffset())
@@ -421,7 +421,7 @@ namespace ZXTune
       return parentPath;
     }
 
-    virtual Analysis::Path::Ptr GetPluginsChain() const
+    Analysis::Path::Ptr GetPluginsChain() const override
     {
       const Analysis::Path::Ptr parentPlugins = Parent->GetPluginsChain();
       if (Subdata->GetOffset())
@@ -483,18 +483,18 @@ namespace ZXTune
         SkipUnaffected();
       }
 
-      virtual bool IsValid() const
+      bool IsValid() const override
       {
         return Cur != Lim;
       }
 
-      virtual typename P::Ptr Get() const
+      typename P::Ptr Get() const override
       {
         assert(Cur != Lim);
         return Cur->Plugin;
       }
 
-      virtual void Next()
+      void Next() override
       {
         assert(Cur != Lim);
         ++Cur;
@@ -564,17 +564,17 @@ namespace ZXTune
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Delegate->GetDescription();
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Delegate->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
     {
       const Analysis::Result::Ptr result = Delegate->Detect(params, inputData, callback);
       if (const std::size_t matched = result->GetMatchedDataSize())
@@ -584,9 +584,9 @@ namespace ZXTune
       return result;
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& params,
+    DataLocation::Ptr Open(const Parameters::Accessor& params,
                                    DataLocation::Ptr inputData,
-                                   const Analysis::Path& pathToOpen) const
+                                   const Analysis::Path& pathToOpen) const override
     {
       return Delegate->Open(params, inputData, pathToOpen);
     }
@@ -602,12 +602,12 @@ namespace ZXTune
     {
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Delegate->IsValid();
     }
 
-    virtual ArchivePlugin::Ptr Get() const
+    ArchivePlugin::Ptr Get() const override
     {
       if (const ArchivePlugin::Ptr res = Delegate->Get())
       {
@@ -622,7 +622,7 @@ namespace ZXTune
       }
     }
 
-    virtual void Next()
+    void Next() override
     {
       return Delegate->Next();
     }
@@ -727,17 +727,17 @@ namespace ZXTune
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Binary::Format::Ptr();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const override
     {
       const Binary::Container::Ptr rawData = input->GetData();
       const std::size_t size = rawData->Size();
@@ -781,7 +781,7 @@ namespace ZXTune
       return Analysis::CreateMatchedResult(size);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
       std::size_t offset = 0;

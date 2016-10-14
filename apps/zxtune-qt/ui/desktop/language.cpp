@@ -29,7 +29,7 @@ namespace
   class QtTranslationLibrary : public L10n::Library
   {
   public:
-    virtual void AddTranslation(const L10n::Translation& trans)
+    void AddTranslation(const L10n::Translation& trans) override
     {
       static const std::string QM_FILE("qm");
 
@@ -40,7 +40,7 @@ namespace
       Translations[trans.Language].insert(DumpPtr(new Dump(trans.Data)));
     }
 
-    virtual void SelectTranslation(const std::string& translation)
+    void SelectTranslation(const std::string& translation) override
     {
       UnloadTranslators();
       const LangToDumpsSetMap::const_iterator it = Translations.find(translation);
@@ -51,7 +51,7 @@ namespace
       L10n::Library::Instance().SelectTranslation(translation);
     }
 
-    virtual L10n::Vocabulary::Ptr GetVocabulary(const std::string& /*domain*/) const
+    L10n::Vocabulary::Ptr GetVocabulary(const std::string& /*domain*/) const override
     {
       return L10n::Vocabulary::Ptr();
     }
@@ -102,7 +102,7 @@ namespace
       L10n::LoadTranslationsFromResources(Lib);
     }
 
-    virtual QStringList GetAvailable() const
+    QStringList GetAvailable() const override
     {
       const std::vector<std::string> lng = Lib.EnumerateLanguages();
       QStringList res;
@@ -111,14 +111,14 @@ namespace
       return res;
     }
 
-    virtual QString GetSystem() const
+    QString GetSystem() const override
     {
       QString curLang = QLocale::system().name();
       curLang.truncate(curLang.lastIndexOf(QLatin1Char('_')));//$(lang)_$(country)
       return curLang;
     }
 
-    virtual void Set(const QString& lang)
+    void Set(const QString& lang) override
     {
       if (lang != Lang)
       {

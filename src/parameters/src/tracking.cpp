@@ -25,25 +25,25 @@ namespace Parameters
     {
     }
 
-    virtual void SetValue(const NameType& name, IntType val)
+    void SetValue(const NameType& name, IntType val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);
     }
 
-    virtual void SetValue(const NameType& name, const StringType& val)
+    void SetValue(const NameType& name, const StringType& val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);
     }
 
-    virtual void SetValue(const NameType& name, const DataType& val)
+    void SetValue(const NameType& name, const DataType& val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);
     }
 
-    virtual void RemoveValue(const NameType& name)
+    void RemoveValue(const NameType& name) override
     {
       First->RemoveValue(name);
       Second->RemoveValue(name);

@@ -35,27 +35,27 @@ namespace Parameters
     }
 
     //accessor virtuals
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return VersionValue;
     }
 
-    virtual bool FindValue(const NameType& name, IntType& val) const
+    bool FindValue(const NameType& name, IntType& val) const override
     {
       return FindByName(Integers, name, val);
     }
 
-    virtual bool FindValue(const NameType& name, StringType& val) const
+    bool FindValue(const NameType& name, StringType& val) const override
     {
       return FindByName(Strings, name, val);
     }
 
-    virtual bool FindValue(const NameType& name, DataType& val) const
+    bool FindValue(const NameType& name, DataType& val) const override
     {
       return FindByName(Datas, name, val);
     }
 
-    virtual void Process(Visitor& visitor) const
+    void Process(Visitor& visitor) const override
     {
       for (IntegerMap::const_iterator it = Integers.begin(), lim = Integers.end(); it != lim; ++it)
       {
@@ -72,7 +72,7 @@ namespace Parameters
     }
 
     //visitor virtuals
-    virtual void SetValue(const NameType& name, IntType val)
+    void SetValue(const NameType& name, IntType val) override
     {
       if (Set(Integers[name], val) | Strings.erase(name) | Datas.erase(name))
       {
@@ -80,7 +80,7 @@ namespace Parameters
       }
     }
 
-    virtual void SetValue(const NameType& name, const StringType& val)
+    void SetValue(const NameType& name, const StringType& val) override
     {
       if (Integers.erase(name) | Set(Strings[name], val) | Datas.erase(name))
       {
@@ -88,7 +88,7 @@ namespace Parameters
       }
     }
 
-    virtual void SetValue(const NameType& name, const DataType& val)
+    void SetValue(const NameType& name, const DataType& val) override
     {
       if (Integers.erase(name) | Strings.erase(name) | Set(Datas[name], val))
       {
@@ -97,7 +97,7 @@ namespace Parameters
     }
 
     //modifier virtuals
-    virtual void RemoveValue(const NameType& name)
+    void RemoveValue(const NameType& name) override
     {
       if (Integers.erase(name) | Strings.erase(name) | Datas.erase(name))
       {
@@ -144,49 +144,49 @@ namespace Parameters
     }
 
     //accessor virtuals
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return AccessDelegate->Version();
     }
 
-    virtual bool FindValue(const NameType& name, IntType& val) const
+    bool FindValue(const NameType& name, IntType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, StringType& val) const
+    bool FindValue(const NameType& name, StringType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, DataType& val) const
+    bool FindValue(const NameType& name, DataType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }
 
-    virtual void Process(Visitor& visitor) const
+    void Process(Visitor& visitor) const override
     {
       return AccessDelegate->Process(visitor);
     }
 
     //visitor virtuals
-    virtual void SetValue(const NameType& name, IntType val)
+    void SetValue(const NameType& name, IntType val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
 
-    virtual void SetValue(const NameType& name, const StringType& val)
+    void SetValue(const NameType& name, const StringType& val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
 
-    virtual void SetValue(const NameType& name, const DataType& val)
+    void SetValue(const NameType& name, const DataType& val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
 
     //modifier virtuals
-    virtual void RemoveValue(const NameType& name)
+    void RemoveValue(const NameType& name) override
     {
       return ModifyDelegate->RemoveValue(name);
     }

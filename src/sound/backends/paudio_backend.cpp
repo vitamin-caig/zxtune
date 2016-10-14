@@ -56,20 +56,20 @@ namespace PulseAudio
     {
     }
 
-    virtual void Startup()
+    void Startup() override
     {
       Dbg("Starting playback");
 
       Device = OpenDevice();
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Dbg("Shutdown");
       Device = std::shared_ptr<pa_simple>();
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Dbg("Pause");
       int error = 0;
@@ -79,16 +79,16 @@ namespace PulseAudio
       }
     }
 
-    virtual void Resume()
+    void Resume() override
     {
       Dbg("Resume");
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    void FrameStart(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    void FrameFinish(Chunk::Ptr buffer) override
     {
       int error = 0;
       if (PaApi->pa_simple_write(Device.get(), &buffer->front(), buffer->size() * sizeof(buffer->front()), &error) < 0)
@@ -97,7 +97,7 @@ namespace PulseAudio
       }
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return VolumeControl::Ptr();
     }
@@ -154,7 +154,7 @@ namespace PulseAudio
     {
     }
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const override
     {
       const String& stream = GetStreamName(*holder);
       return MakePtr<BackendWorker>(PaApi, params, stream);

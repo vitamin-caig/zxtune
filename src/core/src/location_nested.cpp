@@ -26,17 +26,17 @@ namespace ZXTune
     {
     }
 
-    virtual Binary::Container::Ptr GetData() const
+    Binary::Container::Ptr GetData() const override
     {
       return SubData;
     }
 
-    virtual Analysis::Path::Ptr GetPath() const
+    Analysis::Path::Ptr GetPath() const override
     {
       return Parent->GetPath()->Append(Subpath);
     }
 
-    virtual Analysis::Path::Ptr GetPluginsChain() const
+    Analysis::Path::Ptr GetPluginsChain() const override
     {
       return Parent->GetPluginsChain()->Append(SubPlugin);
     }

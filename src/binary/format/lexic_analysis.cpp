@@ -62,12 +62,12 @@ namespace LexicalAnalysis
   class ContextIndependentGrammar : public Grammar
   {
   public:
-    virtual void AddTokenizer(Tokenizer::Ptr src)
+    void AddTokenizer(Tokenizer::Ptr src) override
     {
       Sources.push_back(src);
     }
 
-    virtual void Analyse(const std::string& notation, Callback& cb) const
+    void Analyse(const std::string& notation, Callback& cb) const override
     {
       for (std::string::const_iterator cursor = notation.begin(), lim = notation.end(); cursor != lim; )
       {

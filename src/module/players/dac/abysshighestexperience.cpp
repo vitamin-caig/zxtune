@@ -57,22 +57,22 @@ namespace AHX
     {
     }
 
-    virtual uint_t PositionsCount() const
+    uint_t PositionsCount() const override
     {
       return Hvl->ht_PositionNr;
     }
 
-    virtual uint_t LoopPosition() const
+    uint_t LoopPosition() const override
     {
       return Hvl->ht_PosJump;
     }
 
-    virtual uint_t PatternsCount() const
+    uint_t PatternsCount() const override
     {
       return Hvl->ht_TrackNr;//????
     }
 
-    virtual uint_t FramesCount() const
+    uint_t FramesCount() const override
     {
       if (!CachedFramesCount)
       {
@@ -81,7 +81,7 @@ namespace AHX
       return CachedFramesCount;
     }
 
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       if (!CachedLoopFrame)
       {
@@ -90,12 +90,12 @@ namespace AHX
       return CachedLoopFrame;
     }
     
-    virtual uint_t ChannelsCount() const
+    uint_t ChannelsCount() const override
     {
       return Hvl->ht_Channels;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return Hvl->ht_Tempo;
     }
@@ -126,42 +126,42 @@ namespace AHX
     {
     }
 
-    virtual uint_t Position() const
+    uint_t Position() const override
     {
       return Hvl->ht_PosNr;
     }
 
-    virtual uint_t Pattern() const
+    uint_t Pattern() const override
     {
       return Hvl->ht_PosNr;//TODO
     }
 
-    virtual uint_t PatternSize() const
+    uint_t PatternSize() const override
     {
       return Hvl->ht_TrackLength;
     }
 
-    virtual uint_t Line() const
+    uint_t Line() const override
     {
       return Hvl->ht_NoteNr;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return Hvl->ht_Tempo;
     }
 
-    virtual uint_t Quirk() const
+    uint_t Quirk() const override
     {
       return Hvl->ht_Tempo - Hvl->ht_StepWaitFrames;
     }
 
-    virtual uint_t Frame() const
+    uint_t Frame() const override
     {
       return Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier;
     }
 
-    virtual uint_t Channels() const
+    uint_t Channels() const override
     {
       uint_t result = 0;
       for (uint_t idx = 0, lim = Hvl->ht_Channels; idx != lim; ++idx)
@@ -182,7 +182,7 @@ namespace AHX
     {
     }
 
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    void GetState(std::vector<ChannelState>& channels) const override
     {
       std::vector<ChannelState> result;
       result.reserve(Hvl->ht_Channels);
@@ -286,17 +286,17 @@ namespace AHX
       ApplyParameters();
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return Tune->MakeTrackState();
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    Analyzer::Ptr GetAnalyzer() const override
     {
       return Tune->MakeAnalyzer();
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       try
       {
@@ -313,13 +313,13 @@ namespace AHX
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       SoundParams.Reset();
       Tune->Reset();
     }
 
-    virtual void SetPosition(uint_t frame)
+    void SetPosition(uint_t frame) override
     {
       Tune->Seek(frame);
     }
@@ -349,17 +349,17 @@ namespace AHX
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    Module::Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return MakePtr<Renderer>(Tune, target, params);
     }
@@ -377,7 +377,7 @@ namespace AHX
     {
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
@@ -388,7 +388,7 @@ namespace AHX
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {

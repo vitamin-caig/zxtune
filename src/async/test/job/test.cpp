@@ -53,31 +53,31 @@ namespace
     {
     }
     
-    virtual void Initialize()
+    void Initialize() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << InitError << ")" << std::endl;
       ThrowIfError(InitError);
     }
     
-    virtual void Finalize()
+    void Finalize() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << FinalError << ")" << std::endl;
       ThrowIfError(FinalError);
     }
 
-    virtual void Suspend()
+    void Suspend() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << SuspendError << ")" << std::endl;
       ThrowIfError(SuspendError);
     }
     
-    virtual void Resume()
+    void Resume() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << ResumeError << ")" << std::endl;
       ThrowIfError(ResumeError);
     }
 
-    virtual void ExecuteCycle()
+    void ExecuteCycle() override
     {
 #ifndef NDEBUG
       std::cerr << " " << __FUNCTION__ << " called (" << ExecError << ")" << std::endl;
@@ -85,7 +85,7 @@ namespace
       ThrowIfError(ExecError);
     }
     
-    virtual bool IsFinished() const
+    bool IsFinished() const override
     {
 #ifndef NDEBUG
       std::cerr << " " << __FUNCTION__ << " called (" << Finished << ")" << std::endl;

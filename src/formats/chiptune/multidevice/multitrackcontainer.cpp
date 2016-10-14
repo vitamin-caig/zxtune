@@ -114,12 +114,12 @@ namespace IFF
     {
     }
     
-    virtual std::size_t GetSize() const
+    std::size_t GetSize() const override
     {
       return sizeof(ChunkHeader) + Math::Align(Size(), ALIGNMENT);
     }
 
-    virtual void GetResult(Binary::DataBuilder& builder) const
+    void GetResult(Binary::DataBuilder& builder) const override
     {
       const std::size_t size = Size();
       ChunkHeader& hdr = builder.Add<ChunkHeader>();
@@ -146,12 +146,12 @@ namespace IFF
     {
     }
   protected:
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return Data->Size();
     }
     
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return Data->Start();
     }
@@ -168,12 +168,12 @@ namespace IFF
     {
     }
   protected:
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return Data.size() * sizeof(Data[0]);
     }
     
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return Data.data();
     }
@@ -198,12 +198,12 @@ namespace IFF
       TotalSize += subSize;
     }
     
-    virtual std::size_t GetSize() const
+    std::size_t GetSize() const override
     {
       return sizeof(ChunkHeader) + TotalSize;
     }
     
-    virtual void GetResult(Binary::DataBuilder& builder) const
+    void GetResult(Binary::DataBuilder& builder) const override
     {
       ChunkHeader& hdr = builder.Add<ChunkHeader>();
       hdr.Id = Id;
@@ -234,7 +234,7 @@ namespace IFF
       AddSubSource(MakePtr<StringChunkSource>(id, str));
     }
     
-    virtual void OnChunk(const Identifier::Type& id, Binary::Container::Ptr content)
+    void OnChunk(const Identifier::Type& id, Binary::Container::Ptr content) override
     {
       AddSubSource(MakePtr<DataChunkSource>(id, content));
     }
@@ -250,13 +250,13 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetAuthor(const String& /*author*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetAnnotation(const String& /*annotation*/) {}
-      virtual void SetProperty(const String& /*name*/, const String& /*value*/) {}
+      void SetAuthor(const String& /*author*/) override {}
+      void SetTitle(const String& /*title*/) override {}
+      void SetAnnotation(const String& /*annotation*/) override {}
+      void SetProperty(const String& /*name*/, const String& /*value*/) override {}
 
-      virtual void StartTrack(uint_t /*idx*/) {}
-      virtual void SetData(Binary::Container::Ptr /*data*/) {}
+      void StartTrack(uint_t /*idx*/) override {}
+      void SetData(Binary::Container::Ptr /*data*/) override {}
     };
 
     bool FastCheck(const Binary::Container& rawData)
@@ -286,22 +286,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::MULTITRACK_CONTAINER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
@@ -319,7 +319,7 @@ namespace Chiptune
       {
       }
       
-      virtual void SetAuthor(const String& author)
+      void SetAuthor(const String& author) override
       {
         if (!author.empty())
         {
@@ -327,7 +327,7 @@ namespace Chiptune
         }
       }
       
-      virtual void SetTitle(const String& title)
+      void SetTitle(const String& title) override
       {
         if (!title.empty())
         {
@@ -335,7 +335,7 @@ namespace Chiptune
         }
       }
       
-      virtual void SetAnnotation(const String& annotation)
+      void SetAnnotation(const String& annotation) override
       {
         if (!annotation.empty())
         {
@@ -343,7 +343,7 @@ namespace Chiptune
         }
       }
 
-      virtual void SetProperty(const String& name, const String& value)
+      void SetProperty(const String& name, const String& value) override
       {
         Require(String::npos == name.find_first_of(PROPERTY_DELIMITER));
         if (!value.empty())
@@ -356,20 +356,20 @@ namespace Chiptune
         }
       }
 
-      virtual void StartTrack(uint_t /*idx*/)
+      void StartTrack(uint_t /*idx*/) override
       {
         FinishTrack();
         Track = MakePtr<IFF::DataBuilder>(IFF::Identifier::TRACK);
         Context = Track;
       }
       
-      virtual void SetData(Binary::Container::Ptr data)
+      void SetData(Binary::Container::Ptr data) override
       {
         Require(Context == Track);
         Track->OnChunk(IFF::Identifier::DATA, data);
       }
         
-      virtual Binary::Data::Ptr GetResult()
+      Binary::Data::Ptr GetResult() override
       {
         FinishTrack();
         Binary::DataBuilder builder(Tune->GetSize());
@@ -405,7 +405,7 @@ namespace Chiptune
       {
       }
       
-      virtual void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content)
+      void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content) override
       {
         if (!content)
         {
@@ -445,7 +445,7 @@ namespace Chiptune
       {
       }
       
-      virtual void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content)
+      void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content) override
       {
         if (id == IFF::Identifier::DATA)
         {
@@ -472,7 +472,7 @@ namespace Chiptune
       {
       }
       
-      virtual void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content)
+      void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content) override
       {
         if (id == IFF::Identifier::TRACK)
         {
@@ -506,7 +506,7 @@ namespace Chiptune
       {
       }
 
-      virtual void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content)
+      void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content) override
       {
         Require(id == IFF::Identifier::MTC1);
         Require(!!content);

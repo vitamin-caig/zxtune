@@ -57,14 +57,14 @@ namespace Details
     {
     }
 
-    virtual void Render(StampType tillTime, uint_t samples, Sound::ChunkBuilder& target)
+    void Render(StampType tillTime, uint_t samples, Sound::ChunkBuilder& target) override
     {
       FinishPreviousSample(target);
       RenderMultipleSamples(samples - 1, target);
       StartNextSample(FastStamp(tillTime.Get()));
     }
 
-    virtual void Render(StampType tillTime, Sound::ChunkBuilder& target)
+    void Render(StampType tillTime, Sound::ChunkBuilder& target) override
     {
       const FastStamp end(tillTime.Get());
       if (Clock.HasSamplesBefore(end))

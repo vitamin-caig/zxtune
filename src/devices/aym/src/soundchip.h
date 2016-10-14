@@ -36,7 +36,7 @@ namespace AYM
       SoundChip::Reset();
     }
 
-    virtual void RenderData(const typename Traits::DataChunkType& src)
+    void RenderData(const typename Traits::DataChunkType& src) override
     {
       if (Clock.HasSamplesBefore(src.TimeStamp))
       {
@@ -46,7 +46,7 @@ namespace AYM
       PSG.SetNewData(src.Data);
     }
 
-    virtual void RenderData(const std::vector<typename Traits::DataChunkType>& src)
+    void RenderData(const std::vector<typename Traits::DataChunkType>& src) override
     {
       if (src.empty())
       {
@@ -77,14 +77,14 @@ namespace AYM
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       PSG.Reset();
       Renderers.Reset();
     }
 
-    virtual void GetState(MultiChannelState& state) const
+    void GetState(MultiChannelState& state) const override
     {
       MultiChannelState res;
       res.reserve(Traits::VOICES);

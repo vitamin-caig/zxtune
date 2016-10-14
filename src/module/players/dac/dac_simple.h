@@ -31,17 +31,17 @@ namespace Module
       {
       }
 
-      virtual uint_t GetInitialTempo() const
+      uint_t GetInitialTempo() const override
       {
         return InitialTempo;
       }
 
-      virtual const OrderList& GetOrder() const
+      const OrderList& GetOrder() const override
       {
         return *Order;
       }
 
-      virtual const PatternsSet& GetPatterns() const
+      const PatternsSet& GetPatterns() const override
       {
         return *Patterns;
       }

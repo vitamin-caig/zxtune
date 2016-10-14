@@ -405,7 +405,7 @@ namespace AYEMUL
       Channel->SetBlocked(blocked);
     }
 
-    virtual uint8_t Read(uint16_t port)
+    uint8_t Read(uint16_t port) override
     {
       if (Current)
       {
@@ -417,7 +417,7 @@ namespace AYEMUL
       }
     }
 
-    virtual void Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
+    void Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data) override
     {
       if (Current)
       {
@@ -450,12 +450,12 @@ namespace AYEMUL
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Params->Version();
     }
     
-    virtual uint_t IntTicks() const
+    uint_t IntTicks() const override
     {
       using namespace Parameters::ZXTune::Core::Z80;
       Parameters::IntType intTicks = INT_TICKS_DEFAULT;
@@ -463,7 +463,7 @@ namespace AYEMUL
       return static_cast<uint_t>(intTicks);
     }
 
-    virtual uint64_t ClockFreq() const
+    uint64_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core;
       Parameters::IntType cpuClock = Z80::CLOCKRATE_DEFAULT;
@@ -566,17 +566,17 @@ namespace AYEMUL
     {
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return State;
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    Analyzer::Ptr GetAnalyzer() const override
     {
       return Device->GetAnalyzer();
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       if (Iterator->IsValid())
       {
@@ -589,7 +589,7 @@ namespace AYEMUL
       return Iterator->IsValid();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       Iterator->Reset();
@@ -599,7 +599,7 @@ namespace AYEMUL
       Looped = false;
     }
 
-    virtual void SetPosition(uint_t frameNum)
+    void SetPosition(uint_t frameNum) override
     {
       uint_t curFrame = State->Frame();
       if (frameNum < curFrame)
@@ -651,22 +651,22 @@ namespace AYEMUL
     {
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       Properties.SetTitle(title);
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       Properties.SetAuthor(author);
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       Properties.SetComment(comment);
     }
 
-    virtual void SetDuration(uint_t duration, uint_t fadeout)
+    void SetDuration(uint_t duration, uint_t fadeout) override
     {
       Data->Frames = duration;
       if (fadeout)
@@ -679,18 +679,18 @@ namespace AYEMUL
       }
     }
 
-    virtual void SetRegisters(uint16_t reg, uint16_t sp)
+    void SetRegisters(uint16_t reg, uint16_t sp) override
     {
       Data->Registers = reg;
       Data->StackPointer = sp;
     }
 
-    virtual void SetRoutines(uint16_t init, uint16_t play)
+    void SetRoutines(uint16_t init, uint16_t play) override
     {
       Delegate->SetRoutines(init, play);
     }
 
-    virtual void AddBlock(uint16_t addr, const void* src, std::size_t size)
+    void AddBlock(uint16_t addr, const void* src, std::size_t size) override
     {
       Delegate->AddBlock(addr, src, size);
     }
@@ -709,11 +709,11 @@ namespace AYEMUL
   class StubBeeper : public Devices::Beeper::Device
   {
   public:
-    virtual void RenderData(const std::vector<Devices::Beeper::DataChunk>& /*src*/)
+    void RenderData(const std::vector<Devices::Beeper::DataChunk>& /*src*/) override
     {
     }
 
-    virtual void Reset()
+    void Reset() override
     {
     }
   };
@@ -727,12 +727,12 @@ namespace AYEMUL
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Params->Version();
     }
 
-    virtual uint64_t ClockFreq() const
+    uint64_t ClockFreq() const override
     {
       const uint_t MIN_Z80_TICKS_PER_OUTPUT = 10;
       using namespace Parameters::ZXTune::Core;
@@ -741,7 +741,7 @@ namespace AYEMUL
       return static_cast<uint_t>(cpuClock) / MIN_Z80_TICKS_PER_OUTPUT;
     }
 
-    virtual uint_t SoundFreq() const
+    uint_t SoundFreq() const override
     {
       return SoundParams->SoundFreq();
     }
@@ -764,7 +764,7 @@ namespace AYEMUL
     {
     }
     
-    virtual void ApplyData(const Sound::Chunk::Ptr& chunk)
+    void ApplyData(const Sound::Chunk::Ptr& chunk) override
     {
       if (Storage)
       {
@@ -787,7 +787,7 @@ namespace AYEMUL
       }
     }
     
-    virtual void Flush()
+    void Flush() override
     {
     }
   private:
@@ -810,17 +810,17 @@ namespace AYEMUL
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       const Sound::Receiver::Ptr mixer = MakePtr<MergedSoundReceiver>(target);
       const Devices::AYM::Device::Ptr aym = AYM::CreateChip(params, mixer);
@@ -828,12 +828,12 @@ namespace AYEMUL
       return CreateRenderer(params, aym, beeper);
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
     {
       return CreateRenderer(params, chip, MakePtr<StubBeeper>());
     }
 
-    virtual AYM::Chiptune::Ptr GetChiptune() const
+    AYM::Chiptune::Ptr GetChiptune() const override
     {
       return AYM::Chiptune::Ptr();
     }
@@ -857,7 +857,7 @@ namespace AYEMUL
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       assert(Formats::Chiptune::AY::GetModulesCount(rawData) == 1);
 

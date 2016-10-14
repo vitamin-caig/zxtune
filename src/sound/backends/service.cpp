@@ -47,22 +47,22 @@ namespace Sound
     {
     }
 
-    virtual String Id() const
+    String Id() const override
     {
       return IdValue;
     }
 
-    virtual String Description() const
+    String Description() const override
     {
       return translate(DescrValue);
     }
 
-    virtual uint_t Capabilities() const
+    uint_t Capabilities() const override
     {
       return CapsValue;
     }
 
-    virtual Error Status() const
+    Error Status() const override
     {
       return StatusValue;
     }
@@ -83,12 +83,12 @@ namespace Sound
     {
     }
 
-    virtual BackendInformation::Iterator::Ptr EnumerateBackends() const
+    BackendInformation::Iterator::Ptr EnumerateBackends() const override
     {
       return CreateRangedObjectIteratorAdapter(Infos.begin(), Infos.end());
     }
 
-    virtual Strings::Array GetAvailableBackends() const
+    Strings::Array GetAvailableBackends() const override
     {
       const Strings::Array order = GetOrder();
       Strings::Array available = GetAvailable();
@@ -106,7 +106,7 @@ namespace Sound
       return result;
     }
 
-    virtual Backend::Ptr CreateBackend(const String& backendId, Module::Holder::Ptr module, BackendCallback::Ptr callback) const
+    Backend::Ptr CreateBackend(const String& backendId, Module::Holder::Ptr module, BackendCallback::Ptr callback) const override
     {
       try
       {
@@ -124,7 +124,7 @@ namespace Sound
       }
     }
 
-    virtual void Register(const String& id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory)
+    void Register(const String& id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory) override
     {
       Factories.push_back(FactoryWithId(id, factory));
       const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, Error());
@@ -132,14 +132,14 @@ namespace Sound
       Dbg("Service(%1%): Registered backend %2%", this, id);
     }
 
-    virtual void Register(const String& id, const char* description, uint_t caps, const Error& status)
+    void Register(const String& id, const char* description, uint_t caps, const Error& status) override
     {
       const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);
       Infos.push_back(info);
       Dbg("Service(%1%): Registered disabled backend %2%", this, id);
     }
 
-    virtual void Register(const String& id, const char* description, uint_t caps)
+    void Register(const String& id, const char* description, uint_t caps) override
     {
       const Error status = Error(THIS_LINE, translate("Not supported in current configuration"));
       const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);

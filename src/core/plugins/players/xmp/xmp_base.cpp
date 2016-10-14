@@ -121,37 +121,37 @@ namespace Xmp
     {
     }
 
-    virtual uint_t PositionsCount() const
+    uint_t PositionsCount() const override
     {
       return Info.len;
     }
 
-    virtual uint_t LoopPosition() const
+    uint_t LoopPosition() const override
     {
       return Info.rst;
     }
 
-    virtual uint_t PatternsCount() const
+    uint_t PatternsCount() const override
     {
       return Info.pat;
     }
 
-    virtual uint_t FramesCount() const
+    uint_t FramesCount() const override
     {
       return Frames;
     }
 
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       return 0;//TODO
     }
 
-    virtual uint_t ChannelsCount() const
+    uint_t ChannelsCount() const override
     {
       return Info.chn;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return Info.spd;
     }
@@ -188,42 +188,42 @@ namespace Xmp
     {
     }
 
-    virtual uint_t Position() const
+    uint_t Position() const override
     {
       return State->pos;
     }
 
-    virtual uint_t Pattern() const
+    uint_t Pattern() const override
     {
       return State->pattern;
     }
 
-    virtual uint_t PatternSize() const
+    uint_t PatternSize() const override
     {
       return PatternSizes[State->pattern];
     }
 
-    virtual uint_t Line() const
+    uint_t Line() const override
     {
       return State->row;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return State->speed;
     }
 
-    virtual uint_t Quirk() const
+    uint_t Quirk() const override
     {
       return State->frame;//???
     }
 
-    virtual uint_t Frame() const
+    uint_t Frame() const override
     {
       return TimeType(State->time).Get() / FrameDuration.Get();
     }
 
-    virtual uint_t Channels() const
+    uint_t Channels() const override
     {
       return State->virt_used;//????
     }
@@ -242,7 +242,7 @@ namespace Xmp
     {
     }
 
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    void GetState(std::vector<ChannelState>& channels) const override
     {
       //difference between libxmp and regular spectrum formats is 2 octaves
       const int C2OFFSET = 24;
@@ -289,22 +289,22 @@ namespace Xmp
       Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
     }
 
-    virtual ~Renderer()
+    ~Renderer() override
     {
       Ctx->Call(&::xmp_end_player);
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return Track;
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    Analyzer::Ptr GetAnalyzer() const override
     {
       return Analysis;
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
@@ -332,13 +332,13 @@ namespace Xmp
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       Ctx->Call(&::xmp_restart_module);
     }
 
-    virtual void SetPosition(uint_t frame)
+    void SetPosition(uint_t frame) override
     {
       Ctx->Call(&::xmp_seek_time, static_cast<int>(FrameDuration.Get() * frame));
     }
@@ -385,17 +385,17 @@ namespace Xmp
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    Module::Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return MakePtr<Renderer>(Ctx, target, params, Info);
     }
@@ -409,12 +409,12 @@ namespace Xmp
   class Format : public Binary::Format
   {
   public:
-    virtual bool Match(const Binary::Data& /*data*/) const
+    bool Match(const Binary::Data& /*data*/) const override
     {
       return true;
     }
 
-    virtual std::size_t NextMatchOffset(const Binary::Data& data) const
+    std::size_t NextMatchOffset(const Binary::Data& data) const override
     {
       return data.Size();
     }
@@ -436,23 +436,23 @@ namespace Xmp
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return xmp_get_loader_name(Desc.Loader);
     }
 
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Fmt;
     }
 
-    virtual bool Check(const Binary::Container& rawData) const
+    bool Check(const Binary::Container& rawData) const override
     {
       return Fmt->Match(rawData);
     }
 
-    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const
+    Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
     {
       return Formats::Chiptune::Container::Ptr();//TODO
     }
@@ -483,7 +483,7 @@ namespace Xmp
     {
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {

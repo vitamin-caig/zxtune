@@ -50,7 +50,7 @@ namespace
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
     }
 
-    virtual void InitState(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
+    void InitState(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item) override
     {
       const Playlist::Item::Capabilities& caps = item->GetCapabilities();
       AYMOptions->setVisible(caps.IsAYM());
@@ -68,7 +68,7 @@ namespace
       }
     }
 
-    virtual void UpdateState()
+    void UpdateState() override
     {
       if (isVisible() && AdjustedParameters)
       {
@@ -80,14 +80,14 @@ namespace
       }
     }
 
-    virtual void CloseState()
+    void CloseState() override
     {
       SetEnabled(false);
       AdjustedParameters = Parameters::Accessor::Ptr();
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

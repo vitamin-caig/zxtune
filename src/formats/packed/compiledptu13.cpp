@@ -126,17 +126,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return CompiledPTU13::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Player;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       namespace ProTracker3 = Formats::Chiptune::ProTracker3;
       using namespace CompiledPTU13;

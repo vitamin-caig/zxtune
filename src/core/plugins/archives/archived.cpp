@@ -89,7 +89,7 @@ namespace ZXTune
     {
     }
 
-    virtual void OnFile(const Formats::Archived::File& file) const
+    void OnFile(const Formats::Archived::File& file) const override
     {
       const String& name = file.GetName();
       const std::size_t size = file.GetSize();
@@ -133,17 +133,17 @@ namespace ZXTune
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Decoder->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const override
     {
       const Binary::Container::Ptr rawData = input->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -158,7 +158,7 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const Binary::Container::Ptr rawData = location->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -210,17 +210,17 @@ namespace ZXTune
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Delegate->GetDescription();
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Delegate->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
     {
       if (SelfIsVisited(*inputData->GetPluginsChain()))
       {
@@ -232,7 +232,7 @@ namespace ZXTune
       }
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Analysis::Path& pathToOpen) const
+    DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Analysis::Path& pathToOpen) const override
     {
       if (SelfIsVisited(*inputData->GetPluginsChain()))
       {

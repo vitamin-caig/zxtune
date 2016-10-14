@@ -70,17 +70,17 @@ namespace Devices
       {
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return SizeValue;
       }
 
-      virtual std::size_t Loop() const
+      std::size_t Loop() const override
       {
         return LoopValue;
       }
 
-      virtual uint_t Rms() const
+      uint_t Rms() const override
       {
         if (RmsValue == NO_RMS)
         {
@@ -110,7 +110,7 @@ namespace Devices
       {
       }
 
-      virtual Sound::Sample::Type Get(std::size_t pos) const
+      Sound::Sample::Type Get(std::size_t pos) const override
       {
         return pos < SizeValue
           ? FromU8(StartValue[pos])
@@ -126,7 +126,7 @@ namespace Devices
       {
       }
 
-      virtual Sound::Sample::Type Get(std::size_t pos) const
+      Sound::Sample::Type Get(std::size_t pos) const override
       {
         return pos < SizeValue
           ? FromU4Lo(StartValue[pos])
@@ -142,7 +142,7 @@ namespace Devices
       {
       }
 
-      virtual Sound::Sample::Type Get(std::size_t pos) const
+      Sound::Sample::Type Get(std::size_t pos) const override
       {
         if (pos < SizeValue * 2)
         {
@@ -157,7 +157,7 @@ namespace Devices
         }
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return SizeValue * 2;
       }

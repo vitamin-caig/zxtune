@@ -27,23 +27,23 @@ namespace
   class StubControl : public Sound::PlaybackControl
   {
   public:
-    virtual void Play()
+    void Play() override
     {
     }
 
-    virtual void Pause()
+    void Pause() override
     {
     }
 
-    virtual void Stop()
+    void Stop() override
     {
     }
 
-    virtual void SetPosition(uint_t /*frame*/)
+    void SetPosition(uint_t /*frame*/) override
     {
     }
     
-    virtual State GetCurrentState() const
+    State GetCurrentState() const override
     {
       return STOPPED;
     }
@@ -71,7 +71,7 @@ namespace
       Require(connect(&Timer, SIGNAL(timeout()), SIGNAL(OnUpdateState())));
     }
 
-    virtual void SetDefaultItem(Playlist::Item::Data::Ptr item)
+    void SetDefaultItem(Playlist::Item::Data::Ptr item) override
     {
       if (Backend)
       {
@@ -80,7 +80,7 @@ namespace
       LoadItem(item);
     }
 
-    virtual void SetItem(Playlist::Item::Data::Ptr item)
+    void SetItem(Playlist::Item::Data::Ptr item) override
     {
       try
       {
@@ -95,14 +95,14 @@ namespace
       }
     }
 
-    virtual void ResetItem()
+    void ResetItem() override
     {
       Stop();
       Control = StubControl::Instance();
       Backend.reset();
     }
 
-    virtual void Play()
+    void Play() override
     {
       try
       {
@@ -114,7 +114,7 @@ namespace
       }
     }
 
-    virtual void Stop()
+    void Stop() override
     {
       try
       {
@@ -126,7 +126,7 @@ namespace
       }
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       try
       {
@@ -146,7 +146,7 @@ namespace
       }
     }
 
-    virtual void Seek(int frame)
+    void Seek(int frame) override
     {
       try
       {
@@ -159,31 +159,31 @@ namespace
     }
 
     //BackendCallback
-    virtual void OnStart()
+    void OnStart() override
     {
       emit OnStartModule(Backend, Item);
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
+    void OnFrame(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void OnStop()
+    void OnStop() override
     {
       emit OnStopModule();
     }
 
-    virtual void OnPause()
+    void OnPause() override
     {
       emit OnPauseModule();
     }
 
-    virtual void OnResume()
+    void OnResume() override
     {
       emit OnResumeModule();
     }
 
-    virtual void OnFinish()
+    void OnFinish() override
     {
       emit OnFinishModule();
     }

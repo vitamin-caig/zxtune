@@ -27,12 +27,12 @@ namespace IO
       {
       }
 
-      virtual std::string Base() const
+      std::string Base() const override
       {
         return "curl";
       }
       
-      virtual std::vector<std::string> PosixAlternatives() const
+      std::vector<std::string> PosixAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {
@@ -42,7 +42,7 @@ namespace IO
         return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
-      virtual std::vector<std::string> WindowsAlternatives() const
+      std::vector<std::string> WindowsAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {

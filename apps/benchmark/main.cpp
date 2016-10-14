@@ -16,7 +16,7 @@ namespace
   class ExecuteTestsVisitor : public Benchmark::TestsVisitor
   {
   public:
-    virtual void OnPerformanceTest(const Benchmark::PerformanceTest& test)
+    void OnPerformanceTest(const Benchmark::PerformanceTest& test) override
     {
       const std::string cat = test.Category();
       if (cat != LastCategory)

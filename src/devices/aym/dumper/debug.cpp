@@ -35,19 +35,19 @@ namespace AYM
     {
     }
     
-    virtual void Initialize()
+    void Initialize() override
     {
       static const std::string HEADER("000102030405060708090a0b0c0d\n");
       Data.assign(HEADER.begin(), HEADER.end());
       FrameNumber = 0;
     }
 
-    virtual void GetResult(Dump& data) const
+    void GetResult(Dump& data) const override
     {
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update)
+    void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update) override
     {
       Data.reserve(Data.size() + framesPassed * 32);
       assert(framesPassed);

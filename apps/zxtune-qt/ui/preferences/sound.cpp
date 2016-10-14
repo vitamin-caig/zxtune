@@ -77,13 +77,13 @@ namespace
       Require(connect(moveDown, SIGNAL(released()), SLOT(MoveBackendDown())));
     }
 
-    virtual void ChangeSoundFrequency(int idx)
+    void ChangeSoundFrequency(int idx) override
     {
       const qlonglong val = FREQUENCES[idx];
       Options->SetValue(Parameters::ZXTune::Sound::FREQUENCY, val);
     }
     
-    virtual void SelectBackend(int idx)
+    void SelectBackend(int idx) override
     {
       const String id = Backends[idx];
       for (std::map<String, QWidget*>::const_iterator it = SetupPages.begin(), lim = SetupPages.end(); it != lim; ++it)
@@ -93,7 +93,7 @@ namespace
       settingsHint->setVisible(0 == SetupPages.count(id));
     }
     
-    virtual void MoveBackendUp()
+    void MoveBackendUp() override
     {
       if (const int row = backendsList->currentRow())
       {
@@ -102,7 +102,7 @@ namespace
       }
     }
     
-    virtual void MoveBackendDown()
+    void MoveBackendDown() override
     {
       const int row = backendsList->currentRow();
       if (Math::InRange(row, 0, int(Backends.size() - 2)))
@@ -113,7 +113,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

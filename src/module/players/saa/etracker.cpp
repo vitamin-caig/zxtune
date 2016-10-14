@@ -106,17 +106,17 @@ namespace ETracker
     {
     }
 
-    virtual uint_t GetInitialTempo() const
+    uint_t GetInitialTempo() const override
     {
       return InitialTempo;
     }
 
-    virtual const OrderList& GetOrder() const
+    const OrderList& GetOrder() const override
     {
       return *Order;
     }
 
-    virtual const PatternsSet& GetPatterns() const
+    const PatternsSet& GetPatterns() const override
     {
       return *Patterns;
     }
@@ -139,78 +139,78 @@ namespace ETracker
       Data->Patterns = Patterns.GetResult();
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetInitialTempo(uint_t tempo)
+    void SetInitialTempo(uint_t tempo) override
     {
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, const Formats::Chiptune::ETracker::Sample& sample)
+    void SetSample(uint_t index, const Formats::Chiptune::ETracker::Sample& sample) override
     {
       Data->Samples.Add(index, Sample(sample));
     }
 
-    virtual void SetOrnament(uint_t index, const Formats::Chiptune::ETracker::Ornament& ornament)
+    void SetOrnament(uint_t index, const Formats::Chiptune::ETracker::Ornament& ornament) override
     {
       Data->Ornaments.Add(index, Ornament(ornament));
     }
 
-    virtual void SetPositions(const std::vector<Formats::Chiptune::ETracker::PositionEntry>& positions, uint_t loop)
+    void SetPositions(const std::vector<Formats::Chiptune::ETracker::PositionEntry>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       Patterns.GetChannel().SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       Patterns.GetChannel().SetNote(note);
     }
 
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       Patterns.GetChannel().SetSample(sample);
     }
 
-    virtual void SetOrnament(uint_t ornament)
+    void SetOrnament(uint_t ornament) override
     {
       Patterns.GetChannel().SetOrnament(ornament);
     }
 
-    virtual void SetAttenuation(uint_t vol)
+    void SetAttenuation(uint_t vol) override
     {
       Patterns.GetChannel().SetVolume(15 - vol);
     }
 
-    virtual void SetSwapSampleChannels(bool swapChannels)
+    void SetSwapSampleChannels(bool swapChannels) override
     {
       Patterns.GetChannel().AddCommand(SWAPCHANNELS, swapChannels);
     }
 
-    virtual void SetEnvelope(uint_t value)
+    void SetEnvelope(uint_t value) override
     {
       Patterns.GetChannel().AddCommand(ENVELOPE, value);
     }
 
-    virtual void SetNoise(uint_t type)
+    void SetNoise(uint_t type) override
     {
       Patterns.GetChannel().AddCommand(NOISE, type);
     }
@@ -298,7 +298,7 @@ namespace ETracker
       Reset();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       static const Sample STUB_SAMPLE;
       static const Ornament STUB_ORNAMENT;
@@ -315,7 +315,7 @@ namespace ETracker
       Transposition = 0;
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, SAA::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, SAA::TrackBuilder& track) override
     {
       if (0 == state.Quirk())
       {
@@ -512,17 +512,17 @@ namespace ETracker
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual SAA::DataIterator::Ptr CreateDataIterator() const
+    SAA::DataIterator::Ptr CreateDataIterator() const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const SAA::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
@@ -537,7 +537,7 @@ namespace ETracker
   class Factory : public Module::Factory
   {
   public:
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

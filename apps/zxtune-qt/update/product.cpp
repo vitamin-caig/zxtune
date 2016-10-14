@@ -25,7 +25,7 @@ namespace
     {
     }
 
-    virtual Product::Release::PlatformTag Platform() const
+    Product::Release::PlatformTag Platform() const override
     {
       const String txt = Platform::Version::GetBuildPlatform();
       if (txt == "windows")
@@ -50,7 +50,7 @@ namespace
       }
     }
 
-    virtual Product::Release::ArchitectureTag Architecture() const
+    Product::Release::ArchitectureTag Architecture() const override
     {
       const String txt = Platform::Version::GetBuildArchitecture();
       if (txt == "x86")
@@ -79,12 +79,12 @@ namespace
       }
     }
 
-    virtual QString Version() const
+    QString Version() const override
     {
       return ToQString(Platform::Version::GetProgramVersion());
     }
 
-    virtual QDate Date() const
+    QDate Date() const override
     {
       return QDate::fromString(ToQString(Platform::Version::GetBuildDate()), Qt::SystemLocaleShortDate);
     }

@@ -83,17 +83,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return FileDecoder->GetDescription();
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return FileDecoder->GetFormat();
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!FileDecoder->GetFormat()->Match(data))
       {

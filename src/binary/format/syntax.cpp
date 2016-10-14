@@ -74,7 +74,7 @@ namespace FormatDSL
     {
     }
 
-    virtual const State* Transition(const Token& tok, FormatTokensVisitor& visitor) const
+    const State* Transition(const Token& tok, FormatTokensVisitor& visitor) const override
     {
       switch (tok.Type)
       {
@@ -145,7 +145,7 @@ namespace FormatDSL
     {
     }
 
-    virtual const State* Transition(const Token& tok, FormatTokensVisitor& visitor) const
+    const State* Transition(const Token& tok, FormatTokensVisitor& visitor) const override
     {
       if (tok.Type == CONSTANT)
       {
@@ -168,7 +168,7 @@ namespace FormatDSL
     {
     }
 
-    virtual const State* Transition(const Token& tok, FormatTokensVisitor& /*visitor*/) const
+    const State* Transition(const Token& tok, FormatTokensVisitor& /*visitor*/) const override
     {
       Require(tok.Type == OPERATION);
       Require(tok.Value == std::string(1, QUANTOR_END));
@@ -184,7 +184,7 @@ namespace FormatDSL
     {
     }
 
-    virtual const State* Transition(const Token& /*token*/, FormatTokensVisitor& /*visitor*/) const
+    const State* Transition(const Token& /*token*/, FormatTokensVisitor& /*visitor*/) const override
     {
       return this;
     }
@@ -223,18 +223,18 @@ namespace FormatDSL
     {
     }
 
-    virtual void TokenMatched(const std::string& lexeme, LexicalAnalysis::TokenType type)
+    void TokenMatched(const std::string& lexeme, LexicalAnalysis::TokenType type) override
     {
       CurState = CurState->Transition(Token(type, lexeme), Visitor);
       Require(CurState != State::Error());
     }
 
-    virtual void MultipleTokensMatched(const std::string& /*lexeme*/, const LexicalAnalysis::TokenTypesSet& /*types*/)
+    void MultipleTokensMatched(const std::string& /*lexeme*/, const LexicalAnalysis::TokenTypesSet& /*types*/) override
     {
       Require(false);
     }
 
-    virtual void AnalysisError(const std::string& /*notation*/, std::size_t /*position*/)
+    void AnalysisError(const std::string& /*notation*/, std::size_t /*position*/) override
     {
       Require(false);
     }
@@ -308,7 +308,7 @@ namespace FormatDSL
     {
     }
 
-    virtual void Match(const std::string& val)
+    void Match(const std::string& val) override
     {
       if (LastIsMatch)
       {
@@ -318,7 +318,7 @@ namespace FormatDSL
       LastIsMatch = true;
     }
 
-    virtual void GroupStart()
+    void GroupStart() override
     {
       FlushOperations();
       Ops.push(Operator(GROUP_START));
@@ -326,7 +326,7 @@ namespace FormatDSL
       LastIsMatch = false;
     }
 
-    virtual void GroupEnd()
+    void GroupEnd() override
     {
       FlushOperations();
       Require(!Ops.empty() && Ops.top().Value() == GROUP_START);
@@ -335,14 +335,14 @@ namespace FormatDSL
       LastIsMatch = false;
     }
 
-    virtual void Quantor(uint_t count)
+    void Quantor(uint_t count) override
     {
       FlushOperations();
       Delegate.Quantor(count);
       LastIsMatch = false;
     }
 
-    virtual void Operation(const std::string& op)
+    void Operation(const std::string& op) override
     {
       const Operator newOp(op);
       FlushOperations(newOp);
@@ -408,19 +408,19 @@ namespace FormatDSL
     {
     }
 
-    virtual void Match(const std::string& val)
+    void Match(const std::string& val) override
     {
       Delegate.Match(val);
       ++Position;
     }
 
-    virtual void GroupStart()
+    void GroupStart() override
     {
       GroupStarts.push(Position);
       Delegate.GroupStart();
     }
 
-    virtual void GroupEnd()
+    void GroupEnd() override
     {
       Require(!GroupStarts.empty());
       Require(GroupStarts.top() != Position);
@@ -429,14 +429,14 @@ namespace FormatDSL
       Delegate.GroupEnd();
     }
 
-    virtual void Quantor(uint_t count)
+    void Quantor(uint_t count) override
     {
       Require(Position != 0);
       Require(count != 0);
       Delegate.Quantor(count);
     }
 
-    virtual void Operation(const std::string& op)
+    void Operation(const std::string& op) override
     {
       const std::size_t usedVals = Operator(op).Parameters();
       CheckAvailableParameters(usedVals, Position);

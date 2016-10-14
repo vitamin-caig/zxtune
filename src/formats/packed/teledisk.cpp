@@ -166,7 +166,7 @@ namespace Packed
     class StubImageVisitor : public ImageVisitor
     {
     public:
-      virtual void OnSector(const Formats::CHS& /*loc*/, const uint8_t* /*rawData*/, std::size_t rawSize, SectorDataType type, std::size_t targetSize)
+      void OnSector(const Formats::CHS& /*loc*/, const uint8_t* /*rawData*/, std::size_t rawSize, SectorDataType type, std::size_t targetSize) override
       {
         switch (type)
         {
@@ -233,7 +233,7 @@ namespace Packed
       {
       }
 
-      virtual void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type, std::size_t targetSize)
+      void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type, std::size_t targetSize) override
       {
         Dump result;
         switch (type)
@@ -407,17 +407,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::TELEDISKIMAGE_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

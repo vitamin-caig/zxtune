@@ -85,7 +85,7 @@ namespace Sound
     {
     }
     
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(const Chunk::Ptr& data) override
     {
       if (Check(data->front().Left(), ToCompare.Left()) && Check(data->front().Right(), ToCompare.Right()))
       {
@@ -99,7 +99,7 @@ namespace Sound
       }
     }
     
-    virtual void Flush()
+    void Flush() override
     {
     }
     

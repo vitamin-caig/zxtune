@@ -72,7 +72,7 @@ namespace Sid
       Analysis.SetClockAndDivisor(rate, 16777216);
     }
 
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    void GetState(std::vector<ChannelState>& channels) const override
     {
       unsigned freqs[6], levels[6];
       const unsigned count = Engine->getState(freqs, levels);
@@ -159,17 +159,17 @@ namespace Sid
       CheckSidplayError(Engine->load(tune.get()));
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return State;
     }
 
-    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    Module::Analyzer::Ptr GetAnalyzer() const override
     {
       return Analysis;
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
 
@@ -190,14 +190,14 @@ namespace Sid
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       SoundParams.Reset();
       Engine->stop();
       Iterator->Reset();
     }
 
-    virtual void SetPosition(uint_t frame)
+    void SetPosition(uint_t frame) override
     {
       SeekEngine(frame);
       Module::SeekIterator(*Iterator, frame);
@@ -293,22 +293,22 @@ namespace Sid
     {
     }
 
-    virtual uint_t PositionsCount() const
+    uint_t PositionsCount() const override
     {
       return 1;
     }
 
-    virtual uint_t LoopPosition() const
+    uint_t LoopPosition() const override
     {
       return 0;
     }
 
-    virtual uint_t PatternsCount() const
+    uint_t PatternsCount() const override
     {
       return 0;
     }
 
-    virtual uint_t FramesCount() const
+    uint_t FramesCount() const override
     {
       if (!Frames)
       {
@@ -317,17 +317,17 @@ namespace Sid
       return Frames;
     }
 
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       return 0;
     }
 
-    virtual uint_t ChannelsCount() const
+    uint_t ChannelsCount() const override
     {
       return 1;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return 1;
     }
@@ -358,17 +358,17 @@ namespace Sid
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    Module::Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
@@ -388,7 +388,7 @@ namespace Sid
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {

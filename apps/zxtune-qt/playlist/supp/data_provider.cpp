@@ -68,7 +68,7 @@ namespace
     {
     }
 
-    virtual Binary::Container::Ptr GetData(const String& dataPath) const
+    Binary::Container::Ptr GetData(const String& dataPath) const override
     {
       const String& localEncodingPath = ToLocal(dataPath);
       return IO::OpenData(localEncodingPath, *Params, Log::ProgressCallback::Stub());
@@ -247,7 +247,7 @@ namespace
     {
     }
 
-    virtual Binary::Container::Ptr GetData(const String& dataPath) const
+    Binary::Container::Ptr GetData(const String& dataPath) const override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       const std::size_t filesLimit = Params.FilesLimit();
@@ -335,17 +335,17 @@ namespace
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Delegate->Version();
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       return Delegate->FindValue(name, val);
     }
     
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       if (Delegate->FindValue(name, val))
       {
@@ -358,12 +358,12 @@ namespace
       }
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
     {
       return Delegate->FindValue(name, val);
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       RecodeVisitorAdapter adapter(visitor);
       Delegate->Process(adapter);
@@ -377,17 +377,17 @@ namespace
       {
       }
 
-      virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+      void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
       {
         Delegate.SetValue(name, val);
       }
 
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+      void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
       {
         Delegate.SetValue(name, Strings::ToAutoUtf8(val));
       }
 
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+      void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
       {
         Delegate.SetValue(name, val);
       }
@@ -511,7 +511,7 @@ namespace
       LoadProperties(moduleProps);
     }
 
-    virtual Module::Holder::Ptr GetModule() const
+    Module::Holder::Ptr GetModule() const override
     {
       try
       {
@@ -525,79 +525,79 @@ namespace
       return Module::Holder::Ptr();
     }
 
-    virtual Binary::Data::Ptr GetModuleData() const
+    Binary::Data::Ptr GetModuleData() const override
     {
       return Source.GetModuleData(Size);
     }
     
-    virtual Parameters::Container::Ptr GetAdjustedParameters() const
+    Parameters::Container::Ptr GetAdjustedParameters() const override
     {
       const Parameters::Modifier& cb = *this;
       return Parameters::CreatePostChangePropertyTrackedContainer(AdjustedParams, const_cast<Parameters::Modifier&>(cb));
     }
 
-    virtual Playlist::Item::Capabilities GetCapabilities() const
+    Playlist::Item::Capabilities GetCapabilities() const override
     {
       return Caps;
     }
 
     //playlist-related properties
-    virtual Error GetState() const
+    Error GetState() const override
     {
       return State;
     }
 
-    virtual String GetFullPath() const
+    String GetFullPath() const override
     {
       return Source.GetFullPath();
     }
 
-    virtual String GetFilePath() const
+    String GetFilePath() const override
     {
       return Source.GetFilePath();
     }
 
-    virtual String GetType() const
+    String GetType() const override
     {
       return Type;
     }
 
-    virtual String GetDisplayName() const
+    String GetDisplayName() const override
     {
       return DisplayName;
     }
 
-    virtual Time::MillisecondsDuration GetDuration() const
+    Time::MillisecondsDuration GetDuration() const override
     {
       return Duration;
     }
 
-    virtual String GetAuthor() const
+    String GetAuthor() const override
     {
       return Author;
     }
 
-    virtual String GetTitle() const
+    String GetTitle() const override
     {
       return Title;
     }
 
-    virtual String GetComment() const
+    String GetComment() const override
     {
       return Comment;
     }
     
-    virtual uint32_t GetChecksum() const
+    uint32_t GetChecksum() const override
     {
       return Checksum;
     }
 
-    virtual uint32_t GetCoreChecksum() const
+    uint32_t GetCoreChecksum() const override
     {
       return CoreChecksum;
     }
 
-    virtual std::size_t GetSize() const
+    std::size_t GetSize() const override
     {
       return Size;
     }
@@ -611,22 +611,22 @@ namespace
       return Parameters::Accessor::Ptr();
     }
   private:
-    virtual void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
+    void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    virtual void SetValue(const Parameters::NameType& /*name*/, const Parameters::StringType& /*val*/)
+    void SetValue(const Parameters::NameType& /*name*/, const Parameters::StringType& /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    virtual void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/)
+    void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    virtual void RemoveValue(const Parameters::NameType& /*name*/)
+    void RemoveValue(const Parameters::NameType& /*name*/) override
     {
       OnPropertyChanged();
     }
@@ -687,7 +687,7 @@ namespace
     {
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const
+    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const override
     {
       const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
@@ -702,7 +702,7 @@ namespace
       Delegate.ProcessItem(playitem);
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return Delegate.GetProgress();
     }
@@ -724,7 +724,7 @@ namespace
     {
     }
 
-    virtual void DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const
+    void DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const override
     {
       const IO::Identifier::Ptr id = IO::ResolveUri(path);
 
@@ -742,7 +742,7 @@ namespace
       }
     }
 
-    virtual void OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const
+    void OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const override
     {
       const IO::Identifier::Ptr id = IO::ResolveUri(path);
 

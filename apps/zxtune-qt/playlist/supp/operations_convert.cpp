@@ -47,12 +47,12 @@ namespace
     {
     }
 
-    virtual void OnStart()
+    void OnStart() override
     {
       Event.Reset();
     }
 
-    virtual void OnFrame(const Module::TrackState& state)
+    void OnFrame(const Module::TrackState& state) override
     {
       try
       {
@@ -64,20 +64,20 @@ namespace
       }
     }
 
-    virtual void OnStop()
+    void OnStop() override
     {
       Event.Set(STOPPED);
     }
 
-    virtual void OnPause()
+    void OnPause() override
     {
     }
 
-    virtual void OnResume()
+    void OnResume() override
     {
     }
 
-    virtual void OnFinish()
+    void OnFinish() override
     {
     }
 
@@ -107,7 +107,7 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
       const String path = data->GetFullPath();
       if (Module::Holder::Ptr holder = data->GetModule())
@@ -163,7 +163,7 @@ namespace
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
       ConvertVisitor visitor(totalItems, Type, Service, cb, Result);
@@ -205,13 +205,13 @@ namespace
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       ExecuteOperation(stor, SelectedItems, *this, cb);
       emit ResultAcquired(Result);
     }
   private:
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
       const String path = data->GetFullPath();
       if (const Module::Holder::Ptr holder = data->GetModule())

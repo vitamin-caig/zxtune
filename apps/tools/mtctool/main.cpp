@@ -153,33 +153,33 @@ namespace
   class Printer : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       std::cout << Padding << "Author: " << author << std::endl;
     }
     
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       std::cout << Padding << "Title: " << title << std::endl;
     }
     
-    virtual void SetAnnotation(const String& annotation)
+    void SetAnnotation(const String& annotation) override
     {
       std::cout << Padding << "Annotation: " << annotation << std::endl;
     }
 
-    virtual void SetProperty(const String& name, const String& value)
+    void SetProperty(const String& name, const String& value) override
     {
       std::cout << Padding << name << "=" << value << std::endl;
     }
 
-    virtual void StartTrack(uint_t idx)
+    void StartTrack(uint_t idx) override
     {
       std::cout << " Track " << idx << std::endl;
       Padding.assign(2, ' ');
     }
    
-    virtual void SetData(Binary::Container::Ptr data)
+    void SetData(Binary::Container::Ptr data) override
     {
       std::cout << Padding << "Data of size " << data->Size() << std::endl;
     }
@@ -204,10 +204,10 @@ namespace
     {
     }
     
-    virtual void SetAuthor(const String& /*author*/) {}
-    virtual void SetTitle(const String& /*title*/) {}
-    virtual void SetAnnotation(const String& /*annotation*/) {}
-    virtual void SetProperty(const String& name, const String& value)
+    void SetAuthor(const String& /*author*/) override {}
+    void SetTitle(const String& /*title*/) override {}
+    void SetAnnotation(const String& /*annotation*/) override {}
+    void SetProperty(const String& name, const String& value) override
     {
       if (name == Module::ATTR_FILENAME)
       {
@@ -215,14 +215,14 @@ namespace
       }
     }
 
-    virtual void StartTrack(uint_t idx)
+    void StartTrack(uint_t idx) override
     {
       Flush();
       LastTrackIdx = idx;
       LastDataIdx = 0;
     }
    
-    virtual void SetData(Binary::Container::Ptr data)
+    void SetData(Binary::Container::Ptr data) override
     {
       Flush();
       LastData = data;

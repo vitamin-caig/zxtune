@@ -55,7 +55,7 @@ namespace
       Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION, ZXTune::Core::AYM::INTERPOLATION_DEFAULT);
     }
 
-    virtual void OnClockRateChanged(const QString& val)
+    void OnClockRateChanged(const QString& val) override
     {
       const qlonglong num = val.toLongLong();
       const uint64_t* const preset = std::find(PRESETS, std::end(PRESETS), num);
@@ -69,7 +69,7 @@ namespace
       }
     }
 
-    virtual void OnClockRatePresetChanged(int idx)
+    void OnClockRatePresetChanged(int idx) override
     {
       if (idx != 0)
       {
@@ -79,7 +79,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

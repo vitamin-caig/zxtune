@@ -228,28 +228,28 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
-      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
-      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
-      virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) {}
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
+      void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) override {}
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
       virtual void StartLine(uint_t /*index*/) {}
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
-      virtual void SetVolume(uint_t /*volume*/) {}
-      virtual void DisableOrnament() {}
-      virtual void SetEnvelopeType(uint_t /*type*/) {}
-      virtual void SetEnvelopeTone(uint_t /*tone*/) {}
-      virtual void SetEnvelopeNote(uint_t /*note*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
+      void SetVolume(uint_t /*volume*/) override {}
+      void DisableOrnament() override {}
+      void SetEnvelopeType(uint_t /*type*/) override {}
+      void SetEnvelopeTone(uint_t /*tone*/) override {}
+      void SetEnvelopeNote(uint_t /*note*/) override {}
     };
 
     class StatisticCollectingBuilder : public Builder
@@ -267,12 +267,12 @@ namespace Chiptune
         UsedOrnaments.Insert(0);
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetSample(uint_t index, const Sample& sample)
+      void SetSample(uint_t index, const Sample& sample) override
       {
         assert(index == 0 || UsedSamples.Contain(index));
         if (IsSampleSounds(sample))
@@ -282,13 +282,13 @@ namespace Chiptune
         return Delegate.SetSample(index, sample);
       }
 
-      virtual void SetOrnament(uint_t index, const Ornament& ornament)
+      void SetOrnament(uint_t index, const Ornament& ornament) override
       {
         assert(index == 0 || UsedOrnaments.Contain(index));
         return Delegate.SetOrnament(index, ornament);
       }
 
-      virtual void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop)
+      void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) override
       {
         std::vector<uint_t> pats;
         std::transform(positions.begin(), positions.end(), std::back_inserter(pats), std::mem_fn(&PositionEntry::PatternIndex));
@@ -297,35 +297,35 @@ namespace Chiptune
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         return Delegate.StartChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         return Delegate.SetRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         NonEmptyPatterns = true;
         return Delegate.SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
-      virtual void SetOrnament(uint_t ornament)
+      void SetOrnament(uint_t ornament) override
       {
         if (ornament != 0x20 && ornament != 0x21)
         {
@@ -334,27 +334,27 @@ namespace Chiptune
         return Delegate.SetOrnament(ornament);
       }
 
-      virtual void SetVolume(uint_t volume)
+      void SetVolume(uint_t volume) override
       {
         return Delegate.SetVolume(volume);
       }
 
-      virtual void DisableOrnament()
+      void DisableOrnament() override
       {
         return Delegate.DisableOrnament();
       }
 
-      virtual void SetEnvelopeType(uint_t type)
+      void SetEnvelopeType(uint_t type) override
       {
         return Delegate.SetEnvelopeType(type);
       }
 
-      virtual void SetEnvelopeTone(uint_t tone)
+      void SetEnvelopeTone(uint_t tone) override
       {
         return Delegate.SetEnvelopeTone(tone);
       }
 
-      virtual void SetEnvelopeNote(uint_t delta)
+      void SetEnvelopeNote(uint_t delta) override
       {
         return Delegate.SetEnvelopeNote(delta);
       }
@@ -1027,22 +1027,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::PROSOUNDMAKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData) && FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

@@ -43,6 +43,7 @@ namespace Devices
       virtual ~Device() {}
 
       virtual void RenderData(const DataChunk& src) = 0;
+      virtual void RenderData(const std::vector<DataChunk>& src) = 0;
       virtual void Reset() = 0;
     };
 

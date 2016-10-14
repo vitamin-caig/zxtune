@@ -28,7 +28,7 @@ namespace
     {
     }
 
-    virtual bool AddRange(std::size_t offset, std::size_t size)
+    bool AddRange(std::size_t offset, std::size_t size) override
     {
       const std::size_t endPos = offset + size;
       if (endPos > Limit)
@@ -40,7 +40,7 @@ namespace
       return true;
     }
 
-    virtual Range GetAffectedRange() const
+    Range GetAffectedRange() const override
     {
       return Result.first == Limit
         ? Range(0, 0)
@@ -60,7 +60,7 @@ namespace
     {
     }
 
-    virtual bool AddRange(std::size_t offset, std::size_t size)
+    bool AddRange(std::size_t offset, std::size_t size) override
     {
       if (!Base.AddRange(offset, size))
       {
@@ -105,7 +105,7 @@ namespace
       return true;
     }
 
-    virtual Range GetAffectedRange() const
+    Range GetAffectedRange() const override
     {
       return Ranges.empty()
         ? Range(0, 0)
@@ -152,7 +152,7 @@ namespace
     {
     }
 
-    virtual bool AddRange(std::size_t offset, std::size_t size)
+    bool AddRange(std::size_t offset, std::size_t size) override
     {
       if (!Base.AddRange(offset, size))
       {
@@ -194,7 +194,7 @@ namespace
       return true;
    }
 
-    virtual Range GetAffectedRange() const
+    Range GetAffectedRange() const override
     {
       return Ranges.empty()
         ? Range(0, 0)

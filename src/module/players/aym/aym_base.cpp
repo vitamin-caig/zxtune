@@ -33,22 +33,22 @@ namespace Module
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Tune->GetInformation();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Tune->GetProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return AYM::CreateRenderer(*this, params, target);
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
     {
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(trackParams);
@@ -56,7 +56,7 @@ namespace Module
       return AYM::CreateRenderer(soundParams, iterator, chip);
     }
 
-    virtual AYM::Chiptune::Ptr GetChiptune() const
+    AYM::Chiptune::Ptr GetChiptune() const override
     {
       return Tune;
     }
@@ -81,17 +81,17 @@ namespace Module
 #endif
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return Iterator->GetStateObserver();
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    Analyzer::Ptr GetAnalyzer() const override
     {
       return AYM::CreateAnalyzer(Device);
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       if (Iterator->IsValid())
       {
@@ -108,7 +108,7 @@ namespace Module
       return Iterator->IsValid();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       Iterator->Reset();
@@ -118,7 +118,7 @@ namespace Module
       Looped = false;
     }
 
-    virtual void SetPosition(uint_t frameNum)
+    void SetPosition(uint_t frameNum) override
     {
       const TrackState::Ptr state = Iterator->GetStateObserver();
       uint_t curFrame = state->Frame();
@@ -172,12 +172,12 @@ namespace Module
     {
     }
 
-    virtual void ApplyData(const Sound::Chunk::Ptr& chunk)
+    void ApplyData(const Sound::Chunk::Ptr& chunk) override
     {
       Target->ApplyData(chunk);
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       if (const TrackState::Ptr state = State.lock())
       {
@@ -248,7 +248,7 @@ namespace Module
   class StubAnalyzer : public Module::Analyzer
   {
   public:
-    virtual void GetState(std::vector<Module::Analyzer::ChannelState>& channels) const
+    void GetState(std::vector<Module::Analyzer::ChannelState>& channels) const override
     {
       channels.clear();
     }

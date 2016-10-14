@@ -28,42 +28,42 @@ namespace
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return 1;
     }
 
-    virtual uint64_t ClockFreq() const
+    uint64_t ClockFreq() const override
     {
       return Clock;
     }
 
-    virtual uint_t SoundFreq() const
+    uint_t SoundFreq() const override
     {
       return Sound;
     }
 
-    virtual Devices::AYM::ChipType Type() const
+    Devices::AYM::ChipType Type() const override
     {
       return Devices::AYM::TYPE_AY38910;
     }
 
-    virtual Devices::AYM::InterpolationType Interpolation() const
+    Devices::AYM::InterpolationType Interpolation() const override
     {
       return Interpolate;
     }
 
-    virtual uint_t DutyCycleValue() const
+    uint_t DutyCycleValue() const override
     {
       return 50;
     }
 
-    virtual uint_t DutyCycleMask() const
+    uint_t DutyCycleMask() const override
     {
       return 0;
     }
 
-    virtual Devices::AYM::LayoutType Layout() const
+    Devices::AYM::LayoutType Layout() const override
     {
       return Devices::AYM::LAYOUT_ABC;
     }

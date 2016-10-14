@@ -37,7 +37,7 @@ namespace Strings
       ParseTemplate(templ);
     }
 
-    virtual String Instantiate(const FieldsSource& src) const
+    String Instantiate(const FieldsSource& src) const override
     {
       Array resultFields(Fields.size());
       std::transform(Fields.begin(), Fields.end(), resultFields.begin(), boost::bind(&FieldsSource::GetFieldValue, &src, _1));

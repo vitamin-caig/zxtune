@@ -39,13 +39,13 @@ namespace
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
     }
 
-    virtual void InitState(Sound::Backend::Ptr player)
+    void InitState(Sound::Backend::Ptr player) override
     {
       TrackState = player->GetTrackState();
       CloseState();
     }
 
-    virtual void UpdateState()
+    void UpdateState() override
     {
       if (isVisible())
       {
@@ -58,7 +58,7 @@ namespace
       }
     }
 
-    virtual void CloseState()
+    void CloseState() override
     {
       textPosition->setText(EMPTY_TEXT);
       textPattern->setText(EMPTY_TEXT);
@@ -69,7 +69,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

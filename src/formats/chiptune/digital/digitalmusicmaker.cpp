@@ -152,48 +152,48 @@ namespace Chiptune
     class StubChannelBuilder : public ChannelBuilder
     {
     public:
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetVolume(uint_t /*volume*/) {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetVolume(uint_t /*volume*/) override {}
 
-      virtual void SetFloat(int_t /*direction*/) {}
-      virtual void SetFloatParam(uint_t /*step*/) {}
-      virtual void SetVibrato() {}
-      virtual void SetVibratoParams(uint_t /*step*/, uint_t /*period*/) {}
-      virtual void SetArpeggio() {}
-      virtual void SetArpeggioParams(uint_t /*step*/, uint_t /*period*/) {}
-      virtual void SetSlide(int_t /*direction*/) {}
-      virtual void SetSlideParams(uint_t /*step*/, uint_t /*period*/) {}
-      virtual void SetDoubleNote() {}
-      virtual void SetDoubleNoteParam(uint_t /*period*/) {}
-      virtual void SetVolumeAttack() {}
-      virtual void SetVolumeAttackParams(uint_t /*limit*/, uint_t /*period*/) {}
-      virtual void SetVolumeDecay() {}
-      virtual void SetVolumeDecayParams(uint_t /*limit*/, uint_t /*period*/) {}
-      virtual void SetMixSample(uint_t /*idx*/) {}
-      virtual void SetNoEffects() {}
+      void SetFloat(int_t /*direction*/) override {}
+      void SetFloatParam(uint_t /*step*/) override {}
+      void SetVibrato() override {}
+      void SetVibratoParams(uint_t /*step*/, uint_t /*period*/) override {}
+      void SetArpeggio() override {}
+      void SetArpeggioParams(uint_t /*step*/, uint_t /*period*/) override {}
+      void SetSlide(int_t /*direction*/) override {}
+      void SetSlideParams(uint_t /*step*/, uint_t /*period*/) override {}
+      void SetDoubleNote() override {}
+      void SetDoubleNoteParam(uint_t /*period*/) override {}
+      void SetVolumeAttack() override {}
+      void SetVolumeAttackParams(uint_t /*limit*/, uint_t /*period*/) override {}
+      void SetVolumeDecay() override {}
+      void SetVolumeDecayParams(uint_t /*limit*/, uint_t /*period*/) override {}
+      void SetMixSample(uint_t /*idx*/) override {}
+      void SetNoEffects() override {}
     };
 
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*sample*/) {}
-      virtual std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t /*index*/, uint_t /*period*/)
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*sample*/) override {}
+      std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t /*index*/, uint_t /*period*/) override
       {
         return std::unique_ptr<ChannelBuilder>(new StubChannelBuilder());
       }
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
-      virtual std::unique_ptr<ChannelBuilder> StartChannel(uint_t /*index*/)
+      std::unique_ptr<ChannelBuilder> StartChannel(uint_t /*index*/) override
       {
         return std::unique_ptr<ChannelBuilder>(new StubChannelBuilder());
       }
@@ -209,39 +209,39 @@ namespace Chiptune
       {
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
       }
 
-      virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data)
+      void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data) override
       {
         return Delegate.SetSample(index, loop, data);
       }
 
-      virtual std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t index, uint_t period)
+      std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t index, uint_t period) override
       {
         return Delegate.SetSampleMixin(index, period);
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         return Delegate.StartPattern(index);
       }
 
-      virtual std::unique_ptr<ChannelBuilder> StartChannel(uint_t index)
+      std::unique_ptr<ChannelBuilder> StartChannel(uint_t index) override
       {
         return Delegate.StartChannel(index);
       }
@@ -590,22 +590,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData) && Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

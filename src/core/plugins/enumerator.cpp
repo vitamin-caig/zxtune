@@ -45,14 +45,14 @@ namespace ZXTune
                          , public PluginsEnumerator<PluginType>
   {
   public:
-    virtual void RegisterPlugin(typename PluginType::Ptr plugin)
+    void RegisterPlugin(typename PluginType::Ptr plugin) override
     {
       const Plugin::Ptr description = plugin->GetDescription();
       Plugins.push_back(plugin);
       Dbg("Registered %1%", description->Id());
     }
 
-    virtual typename PluginType::Iterator::Ptr Enumerate() const
+    typename PluginType::Iterator::Ptr Enumerate() const override
     {
       return CreateRangedObjectIteratorAdapter(Plugins.begin(), Plugins.end());
     }
@@ -92,17 +92,17 @@ namespace ZXTune
     {
     }
 
-    virtual String Id() const
+    String Id() const override
     {
       return ID;
     }
 
-    virtual String Description() const
+    String Description() const override
     {
       return Info;
     }
 
-    virtual uint_t Capabilities() const
+    uint_t Capabilities() const override
     {
       return Caps;
     }
@@ -123,17 +123,17 @@ namespace ZXTune
       Check(Players);
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Archives || Players;
     }
 
-    virtual Plugin::Ptr Get() const
+    Plugin::Ptr Get() const override
     {
       return (Archives ? Archives->Get()->GetDescription() : Players->Get()->GetDescription());
     }
 
-    virtual void Next()
+    void Next() override
     {
       if (Archives)
       {

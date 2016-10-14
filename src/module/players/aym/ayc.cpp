@@ -34,17 +34,17 @@ namespace AYC
       Data.swap(rh);
     }
 
-    virtual uint_t Size() const
+    uint_t Size() const override
     {
       return static_cast<uint_t>(Data.size());
     }
 
-    virtual uint_t Loop() const
+    uint_t Loop() const override
     {
       return 0;
     }
 
-    virtual Devices::AYM::Registers Get(uint_t pos) const
+    Devices::AYM::Registers Get(uint_t pos) const override
     {
       return Data[pos];
     }
@@ -61,20 +61,20 @@ namespace AYC
     {
     }
     
-    virtual void SetFrames(std::size_t count)
+    void SetFrames(std::size_t count) override
     {
       Require(Data.empty());
       Data.resize(count);
     }
     
-    virtual void StartChannel(uint_t idx)
+    void StartChannel(uint_t idx) override
     {
       Require(idx < Devices::AYM::Registers::TOTAL);
       Register = static_cast<Devices::AYM::Registers::Index>(idx);
       Frame = 0;
     }
     
-    virtual void AddValues(const Dump& values)
+    void AddValues(const Dump& values) override
     {
       Require(Register < Devices::AYM::Registers::TOTAL);
       Require(Frame + values.size() <= Data.size());
@@ -107,7 +107,7 @@ namespace AYC
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       DataBuilder dataBuilder;
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AYC::Parse(rawData, dataBuilder))

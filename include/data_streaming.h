@@ -39,8 +39,8 @@ template<class T>
 class StubDataReceiver : public DataReceiver<T>
 {
 public:
-  virtual void ApplyData(const T&) {}
-  virtual void Flush() {}
+  void ApplyData(const T&) override {}
+  void Flush() override {}
 };
 
 template<class T>

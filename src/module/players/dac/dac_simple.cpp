@@ -34,61 +34,61 @@ namespace Module
         Data->Patterns = Patterns.GetResult();
       }
 
-      virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+      Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
       {
         return Meta;
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         Data->InitialTempo = tempo;
       }
 
-      virtual void SetSamplesFrequency(uint_t freq)
+      void SetSamplesFrequency(uint_t freq) override
       {
         Properties.SetSamplesFrequency(freq);
       }
 
-      virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content, bool is4Bit)
+      void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content, bool is4Bit) override
       {
         Data->Samples.Add(index, is4Bit
           ? Devices::DAC::CreateU4Sample(content, loop)
           : Devices::DAC::CreateU8Sample(content, loop));
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
       {
         Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
       }
 
-      virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+      Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
       {
         Patterns.SetPattern(index);
         return Patterns;
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         Patterns.SetChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         Patterns.GetChannel().SetEnabled(false);
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         Patterns.GetChannel().SetEnabled(true);
         Patterns.GetChannel().SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         Patterns.GetChannel().SetSample(sample);
       }
 
-      virtual SimpleModuleData::Ptr GetResult() const
+      SimpleModuleData::Ptr GetResult() const override
       {
         return Data;
       }
@@ -113,11 +113,11 @@ namespace Module
       {
       }
 
-      virtual void Reset()
+      void Reset() override
       {
       }
 
-      virtual void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
+      void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
       {
         if (0 == state.Quirk())
         {
@@ -177,24 +177,24 @@ namespace Module
       {
       }
 
-      virtual Information::Ptr GetInformation() const
+      Information::Ptr GetInformation() const override
       {
         return Info;
       }
 
-      virtual Parameters::Accessor::Ptr GetProperties() const
+      Parameters::Accessor::Ptr GetProperties() const override
       {
         return Properties;
       }
 
-      virtual DAC::DataIterator::Ptr CreateDataIterator() const
+      DAC::DataIterator::Ptr CreateDataIterator() const override
       {
         const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
         const DAC::DataRenderer::Ptr renderer = MakePtr<SimpleDataRenderer>(Data, Channels);
         return DAC::CreateDataIterator(iterator, renderer);
       }
 
-      virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const
+      void GetSamples(Devices::DAC::Chip::Ptr chip) const override
       {
         for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
         {

@@ -492,12 +492,12 @@ namespace
       ;
     }
     
-    virtual const boost::program_options::options_description& GetOptionsDescription() const
+    const boost::program_options::options_description& GetOptionsDescription() const override
     {
       return OptionsDescription;
     }
     
-    virtual bool Process(SoundComponent& sound) const
+    bool Process(SoundComponent& sound) const override
     {
       if (EnumPlugins)
       {

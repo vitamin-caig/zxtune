@@ -42,65 +42,65 @@ namespace ProTracker3
       Data->Patterns = Patterns.GetResult();
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetVersion(uint_t version)
+    void SetVersion(uint_t version) override
     {
       Properties.SetVersion(3, Data->Version = version);
     }
 
-    virtual void SetNoteTable(Formats::Chiptune::ProTracker3::NoteTable table)
+    void SetNoteTable(Formats::Chiptune::ProTracker3::NoteTable table) override
     {
       const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Data->Version);
       Properties.SetFrequencyTable(freqTable);
     }
 
-    virtual void SetMode(uint_t mode)
+    void SetMode(uint_t mode) override
     {
       PatOffset = mode;
     }
 
-    virtual void SetInitialTempo(uint_t tempo)
+    void SetInitialTempo(uint_t tempo) override
     {
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker3::Sample& sample)
+    void SetSample(uint_t index, const Formats::Chiptune::ProTracker3::Sample& sample) override
     {
       //TODO: use common types
       Data->Samples.Add(index, Vortex::Sample(sample.Loop, sample.Lines.begin(), sample.Lines.end()));
     }
 
-    virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker3::Ornament& ornament)
+    void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker3::Ornament& ornament) override
     {
       Data->Ornaments.Add(index, Vortex::Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
-    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       Patterns.GetChannel().SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       MutableCell& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
@@ -114,63 +114,63 @@ namespace ProTracker3
       }
     }
 
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       Patterns.GetChannel().SetSample(sample);
     }
 
-    virtual void SetOrnament(uint_t ornament)
+    void SetOrnament(uint_t ornament) override
     {
       Patterns.GetChannel().SetOrnament(ornament);
     }
 
-    virtual void SetVolume(uint_t vol)
+    void SetVolume(uint_t vol) override
     {
       Patterns.GetChannel().SetVolume(vol);
     }
 
-    virtual void SetGlissade(uint_t period, int_t val)
+    void SetGlissade(uint_t period, int_t val) override
     {
       Patterns.GetChannel().AddCommand(Vortex::GLISS, period, val);
     }
 
-    virtual void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/)
+    void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/) override
     {
       //ignore limit
       Patterns.GetChannel().AddCommand(Vortex::GLISS_NOTE, period, val);
     }
 
-    virtual void SetSampleOffset(uint_t offset)
+    void SetSampleOffset(uint_t offset) override
     {
       Patterns.GetChannel().AddCommand(Vortex::SAMPLEOFFSET, offset);
     }
 
-    virtual void SetOrnamentOffset(uint_t offset)
+    void SetOrnamentOffset(uint_t offset) override
     {
       Patterns.GetChannel().AddCommand(Vortex::ORNAMENTOFFSET, offset);
     }
 
-    virtual void SetVibrate(uint_t ontime, uint_t offtime)
+    void SetVibrate(uint_t ontime, uint_t offtime) override
     {
       Patterns.GetChannel().AddCommand(Vortex::VIBRATE, ontime, offtime);
     }
 
-    virtual void SetEnvelopeSlide(uint_t period, int_t val)
+    void SetEnvelopeSlide(uint_t period, int_t val) override
     {
       Patterns.GetChannel().AddCommand(Vortex::SLIDEENV, period, val);
     }
 
-    virtual void SetEnvelope(uint_t type, uint_t value)
+    void SetEnvelope(uint_t type, uint_t value) override
     {
       Patterns.GetChannel().AddCommand(Vortex::ENVELOPE, type, value);
     }
 
-    virtual void SetNoEnvelope()
+    void SetNoEnvelope() override
     {
       Patterns.GetChannel().AddCommand(Vortex::NOENVELOPE);
     }
 
-    virtual void SetNoiseBase(uint_t val)
+    void SetNoiseBase(uint_t val) override
     {
       Patterns.GetChannel().AddCommand(Vortex::NOISEBASE, val);
     }
@@ -198,17 +198,17 @@ namespace ProTracker3
     {
     }
   public:
-    virtual Cell::Ptr GetChannel(uint_t /*idx*/) const
+    Cell::Ptr GetChannel(uint_t /*idx*/) const override
     {
       return Cell::Ptr();
     }
 
-    virtual uint_t CountActiveChannels() const
+    uint_t CountActiveChannels() const override
     {
       return 0;
     }
 
-    virtual uint_t GetTempo() const
+    uint_t GetTempo() const override
     {
       return 0;
     }
@@ -229,19 +229,19 @@ namespace ProTracker3
     {
     }
 
-    virtual Cell::Ptr GetChannel(uint_t idx) const
+    Cell::Ptr GetChannel(uint_t idx) const override
     {
       return idx < AYM::TRACK_CHANNELS
         ? First->GetChannel(idx)
         : Second->GetChannel(idx - AYM::TRACK_CHANNELS);
     }
 
-    virtual uint_t CountActiveChannels() const
+    uint_t CountActiveChannels() const override
     {
       return First->CountActiveChannels() + Second->CountActiveChannels();
     }
 
-    virtual uint_t GetTempo() const
+    uint_t GetTempo() const override
     {
       if (const uint_t tempo = Second->GetTempo())
       {
@@ -275,14 +275,14 @@ namespace ProTracker3
     {
     }
 
-    virtual Line::Ptr GetLine(uint_t row) const
+    Line::Ptr GetLine(uint_t row) const override
     {
       const Line::Ptr first = First->GetLine(row);
       const Line::Ptr second = Second->GetLine(row);
       return TSLine::Create(first, second);
     }
 
-    virtual uint_t GetSize() const
+    uint_t GetSize() const override
     {
       return std::min(First->GetSize(), Second->GetSize());
     }
@@ -300,14 +300,14 @@ namespace ProTracker3
     {
     }
 
-    virtual Pattern::Ptr Get(uint_t idx) const
+    Pattern::Ptr Get(uint_t idx) const override
     {
       const Pattern::Ptr first = Delegate->Get(idx);
       const Pattern::Ptr second = Delegate->Get(Base - 1 - idx);
       return MakePtr<TSPattern>(first, second);
     }
 
-    virtual uint_t GetSize() const
+    uint_t GetSize() const override
     {
       return Delegate->GetSize();
     }
@@ -331,17 +331,17 @@ namespace ProTracker3
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const AYM::DataRenderer::Ptr renderer = CreateDataRenderer(Data, 0);
@@ -364,17 +364,17 @@ namespace ProTracker3
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual TurboSound::DataIterator::Ptr CreateDataIterator(const TurboSound::TrackParametersArray& trackParams) const
+    TurboSound::DataIterator::Ptr CreateDataIterator(const TurboSound::TrackParametersArray& trackParams) const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const TurboSound::DataRenderersArray renderers = {{Vortex::CreateDataRenderer(Data, 0), Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS)}};
@@ -394,7 +394,7 @@ namespace ProTracker3
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

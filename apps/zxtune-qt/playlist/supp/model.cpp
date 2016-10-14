@@ -46,7 +46,7 @@ namespace
   class DummyDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetData(const Playlist::Item::Data& /*item*/, unsigned /*column*/) const
+    QVariant GetData(const Playlist::Item::Data& /*item*/, unsigned /*column*/) const override
     {
       return QVariant();
     }
@@ -61,7 +61,7 @@ namespace
   class DisplayDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const
+    QVariant GetData(const Playlist::Item::Data& item, unsigned column) const override
     {
       switch (column)
       {
@@ -126,7 +126,7 @@ namespace
     {
     }
 
-    bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const
+    bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const override
     {
       const T val1 = (lh.*Getter)();
       const T val2 = (rh.*Getter)();
@@ -184,7 +184,7 @@ namespace
     {
     }
 
-    bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const
+    bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const override
     {
       Callback.OnProgress(++Done);
       return Delegate.CompareItems(lh, rh);
@@ -203,7 +203,7 @@ namespace
     {
     }
 
-    virtual void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
+    void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb) override
     {
       const uint_t totalItems = storage.CountItems();
       //according to STL spec: The number of comparisons is approximately N log N, where N is the list's size. Assume that log is binary.
@@ -236,11 +236,11 @@ namespace
     {
     }
 
-    virtual void Prepare()
+    void Prepare() override
     {
     }
 
-    virtual void Execute()
+    void Execute() override
     {
       Delegate.ExecuteOperation(Op);
     }
@@ -252,7 +252,7 @@ namespace
   class PathsVisitor : public Playlist::Item::Visitor
   {
   public:
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
       if (!data->GetState())
       {
@@ -285,45 +285,45 @@ namespace
       Dbg("Created at %1%", this);
     }
 
-    virtual ~ModelImpl()
+    ~ModelImpl() override
     {
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
+    void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation) override
     {
       WaitOperationFinish();
       const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageAccessOperation>>(operation, *this);
       AsyncExecution = Async::Activity::Create(wrapper);
     }
 
-    virtual void PerformOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
+    void PerformOperation(Playlist::Item::StorageModifyOperation::Ptr operation) override
     {
       WaitOperationFinish();
       const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageModifyOperation>>(operation, *this);
       AsyncExecution = Async::Activity::Create(wrapper);
     }
 
-    virtual void WaitOperationFinish()
+    void WaitOperationFinish() override
     {
       AsyncExecution->Wait();
       Canceled = false;
     }
 
     //new virtuals
-    virtual unsigned CountItems() const
+    unsigned CountItems() const override
     {
       const std::lock_guard<std::mutex> lock(SyncAccess);
       return static_cast<unsigned>(Container->CountItems());
     }
 
-    virtual Playlist::Item::Data::Ptr GetItem(IndexType index) const
+    Playlist::Item::Data::Ptr GetItem(IndexType index) const override
     {
       const std::lock_guard<std::mutex> lock(SyncAccess);
       return Container->GetItem(index);
     }
 
-    virtual QStringList GetItemsPaths(const IndexSet& items) const
+    QStringList GetItemsPaths(const IndexSet& items) const override
     {
       PathsVisitor visitor;
       {
@@ -333,12 +333,12 @@ namespace
       return visitor.GetResult();
     }
 
-    virtual unsigned GetVersion() const
+    unsigned GetVersion() const override
     {
       return Container->GetVersion();
     }
 
-    virtual void Clear()
+    void Clear() override
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
@@ -349,7 +349,7 @@ namespace
       NotifyAboutIndexChanged(remapping);
     }
 
-    virtual void RemoveItems(IndexSet::Ptr items)
+    void RemoveItems(IndexSet::Ptr items) override
     {
       if (!items || items->empty())
       {
@@ -364,7 +364,7 @@ namespace
       NotifyAboutIndexChanged(remapping);
     }
 
-    virtual void MoveItems(const IndexSet& items, IndexType target)
+    void MoveItems(const IndexSet& items, IndexType target) override
     {
       Dbg("Moving %1% items to row %2%", items.size(), target);
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
@@ -376,7 +376,7 @@ namespace
       NotifyAboutIndexChanged(remapping);
     }
 
-    virtual void AddItem(Playlist::Item::Data::Ptr item)
+    void AddItem(Playlist::Item::Data::Ptr item) override
     {
       //Called for each item found during scan, so notify only first time
       if (0 == CountItems())
@@ -389,12 +389,12 @@ namespace
       }
     }
 
-    virtual void AddItems(Playlist::Item::Collection::Ptr items)
+    void AddItems(Playlist::Item::Collection::Ptr items) override
     {
       AddAndNotify(items);
     }
 
-    virtual void CancelLongOperation()
+    void CancelLongOperation() override
     {
       Canceled = true;
       AsyncExecution->Wait();
@@ -403,14 +403,14 @@ namespace
     //base model virtuals
 
     /* Drag'n'Drop support*/
-    virtual Qt::DropActions supportedDropActions() const
+    Qt::DropActions supportedDropActions() const override
     {
       return Qt::MoveAction;
     }
     
     //required for drag/drop enabling
     //do not pay attention on item state
-    virtual Qt::ItemFlags flags(const QModelIndex& index) const
+    Qt::ItemFlags flags(const QModelIndex& index) const override
     {
       const Qt::ItemFlags defaultFlags = Playlist::Model::flags(index);
       const Qt::ItemFlags invalidFlags = Qt::ItemIsDropEnabled | defaultFlags;
@@ -422,14 +422,14 @@ namespace
       return validFlags;
     }
 
-    virtual QStringList mimeTypes() const
+    QStringList mimeTypes() const override
     {
       QStringList types;
       types << INDICES_MIMETYPE;
       return types;
     }
 
-    virtual QMimeData* mimeData(const QModelIndexList& indices) const
+    QMimeData* mimeData(const QModelIndexList& indices) const override
     {
       QMimeData* const mimeData = new QMimeData();
       QByteArray encodedData;
@@ -448,7 +448,7 @@ namespace
       return mimeData;
     }
 
-    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int /*row*/, int /*column*/, const QModelIndex& parent)
+    bool dropMimeData(const QMimeData* data, Qt::DropAction action, int /*row*/, int /*column*/, const QModelIndex& parent) override
     {
       if (action == Qt::IgnoreAction)
       {
@@ -484,13 +484,13 @@ namespace
 
     /* end of Drag'n'Drop support */
 
-    virtual bool canFetchMore(const QModelIndex& /*index*/) const
+    bool canFetchMore(const QModelIndex& /*index*/) const override
     {
       const std::lock_guard<std::mutex> lock(SyncAccess);
       return FetchedItemsCount < Container->CountItems();
     }
 
-    virtual void fetchMore(const QModelIndex& /*index*/)
+    void fetchMore(const QModelIndex& /*index*/) override
     {
       const std::lock_guard<std::mutex> lock(SyncAccess);
       const std::size_t nextCount = Container->CountItems();
@@ -499,7 +499,7 @@ namespace
       endInsertRows();
     }
 
-    virtual QModelIndex index(int row, int column, const QModelIndex& parent) const
+    QModelIndex index(int row, int column, const QModelIndex& parent) const override
     {
       if (parent.isValid())
       {
@@ -513,12 +513,12 @@ namespace
       return EMPTY_INDEX;
     }
 
-    virtual QModelIndex parent(const QModelIndex& /*index*/) const
+    QModelIndex parent(const QModelIndex& /*index*/) const override
     {
       return EMPTY_INDEX;
     }
 
-    virtual int rowCount(const QModelIndex& index) const
+    int rowCount(const QModelIndex& index) const override
     {
       const std::lock_guard<std::mutex> lock(SyncAccess);
       return index.isValid()
@@ -526,14 +526,14 @@ namespace
         : static_cast<int>(FetchedItemsCount);
     }
 
-    virtual int columnCount(const QModelIndex& index) const
+    int columnCount(const QModelIndex& index) const override
     {
       return index.isValid()
         ? 0
         : COLUMNS_COUNT;
     }
 
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override
     {
       if (Qt::Vertical == orientation && Qt::DisplayRole == role)
       {
@@ -543,7 +543,7 @@ namespace
       return QVariant();
     }
 
-    virtual QVariant data(const QModelIndex& index, int role) const
+    QVariant data(const QModelIndex& index, int role) const override
     {
       if (!index.isValid())
       {
@@ -560,7 +560,7 @@ namespace
       return QVariant();
     }
 
-    virtual void sort(int column, Qt::SortOrder order)
+    void sort(int column, Qt::SortOrder order) override
     {
       Dbg("Sort data in column=%1% by order=%2%", column, order);
       const bool ascending = order == Qt::AscendingOrder;
@@ -571,7 +571,7 @@ namespace
       }
     }
   private:
-    virtual void ExecuteOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
+    void ExecuteOperation(Playlist::Item::StorageAccessOperation::Ptr operation) override
     {
       const std::lock_guard<std::mutex> lock(SyncAccess);
       emit OperationStarted();
@@ -585,7 +585,7 @@ namespace
       emit OperationStopped();
     }
 
-    virtual void ExecuteOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
+    void ExecuteOperation(Playlist::Item::StorageModifyOperation::Ptr operation) override
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
@@ -625,7 +625,7 @@ namespace
       }
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       emit OperationProgressChanged(current);
       if (Canceled)
@@ -634,7 +634,7 @@ namespace
       }
     }
 
-    virtual void OnProgress(uint_t current, const String& /*message*/)
+    void OnProgress(uint_t current, const String& /*message*/) override
     {
       OnProgress(current);
     }

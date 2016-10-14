@@ -24,17 +24,17 @@ namespace
                         , public Visitor
   {
   public:
-    virtual void SetValue(const NameType& name, IntType val)
+    void SetValue(const NameType& name, IntType val) override
     {
       insert(value_type(name.FullPath(), ConvertToString(val)));
     }
 
-    virtual void SetValue(const NameType& name, const StringType& val)
+    void SetValue(const NameType& name, const StringType& val) override
     {
       insert(value_type(name.FullPath(), ConvertToString(val)));
     }
 
-    virtual void SetValue(const NameType& name, const DataType& val)
+    void SetValue(const NameType& name, const DataType& val) override
     {
       insert(value_type(name.FullPath(), ConvertToString(val)));
     }

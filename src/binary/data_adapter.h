@@ -24,12 +24,12 @@ namespace Binary
     {
     }
 
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return StartValue;
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return SizeValue;
     }

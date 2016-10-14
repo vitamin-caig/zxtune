@@ -88,7 +88,7 @@ namespace SPC
     }
     
     //http://wiki.superfamicom.org/snes/show/SPC700+Reference
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    void GetState(std::vector<ChannelState>& channels) const override
     {
       const DspProperties dsp(Spc);
       const uint_t noise = dsp.GetNoiseChannels();
@@ -192,17 +192,17 @@ namespace SPC
       ApplyParameters();
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return State;
     }
 
-    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    Module::Analyzer::Ptr GetAnalyzer() const override
     {
       return Tune;
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       try
       {
@@ -221,14 +221,14 @@ namespace SPC
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       SoundParams.Reset();
       Tune->Reset();
       Iterator->Reset();
     }
 
-    virtual void SetPosition(uint_t frame)
+    void SetPosition(uint_t frame) override
     {
       SeekTune(frame);
       Module::SeekIterator(*Iterator, frame);
@@ -279,17 +279,17 @@ namespace SPC
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    Module::Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
@@ -307,11 +307,11 @@ namespace SPC
     {
     }
 
-    virtual void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/)
+    void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/) override
     {
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       if (Title.empty())
       {
@@ -319,7 +319,7 @@ namespace SPC
       }
     }
     
-    virtual void SetGame(const String& game)
+    void SetGame(const String& game) override
     {
       if (Program.empty())
       {
@@ -327,7 +327,7 @@ namespace SPC
       }
     }
     
-    virtual void SetDumper(const String& dumper)
+    void SetDumper(const String& dumper) override
     {
       if (Author.empty())
       {
@@ -335,7 +335,7 @@ namespace SPC
       }
     }
     
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       if (Comment.empty())
       {
@@ -343,40 +343,40 @@ namespace SPC
       }
     }
     
-    virtual void SetDumpDate(const String& date)
+    void SetDumpDate(const String& date) override
     {
       Properties.SetDate(date);
     }
     
-    virtual void SetIntro(Time::Milliseconds duration)
+    void SetIntro(Time::Milliseconds duration) override
     {
       Intro = std::max(Intro, duration);
     }
     
-    virtual void SetLoop(Time::Milliseconds duration)
+    void SetLoop(Time::Milliseconds duration) override
     {
       Loop = duration;
     }
     
-    virtual void SetFade(Time::Milliseconds duration)
+    void SetFade(Time::Milliseconds duration) override
     {
       Fade = duration;
     }
     
-    virtual void SetArtist(const String& artist)
+    void SetArtist(const String& artist) override
     {
       Properties.SetAuthor(Author = artist);
     }
     
-    virtual void SetRAM(const void* /*data*/, std::size_t /*size*/)
+    void SetRAM(const void* /*data*/, std::size_t /*size*/) override
     {
     }
     
-    virtual void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/)
+    void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) override
     {
     }
     
-    virtual void SetExtraRAM(const void* /*data*/, std::size_t /*size*/)
+    void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) override
     {
     }
     
@@ -401,7 +401,7 @@ namespace SPC
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {

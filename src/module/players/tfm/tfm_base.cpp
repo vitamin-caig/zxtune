@@ -35,17 +35,17 @@ namespace Module
 #endif
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return Iterator->GetStateObserver();
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    Analyzer::Ptr GetAnalyzer() const override
     {
       return TFM::CreateAnalyzer(Device);
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       if (Iterator->IsValid())
       {
@@ -62,7 +62,7 @@ namespace Module
       return Iterator->IsValid();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       Iterator->Reset();
@@ -72,7 +72,7 @@ namespace Module
       Looped = false;
     }
 
-    virtual void SetPosition(uint_t frameNum)
+    void SetPosition(uint_t frameNum) override
     {
       const TrackState::Ptr state = Iterator->GetStateObserver();
       uint_t curFrame = state->Frame();

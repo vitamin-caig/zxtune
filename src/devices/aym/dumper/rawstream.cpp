@@ -28,17 +28,17 @@ namespace AYM
       NO_R13 = 0xff
     };
     
-    virtual void Initialize()
+    void Initialize() override
     {
       Data.clear();
     }
 
-    virtual void GetResult(Dump& data) const
+    void GetResult(Dump& data) const override
     {
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update)
+    void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) override
     {
       assert(framesPassed);
       Data.reserve(Data.size() + framesPassed * Registers::TOTAL);

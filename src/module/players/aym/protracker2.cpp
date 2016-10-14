@@ -86,17 +86,17 @@ namespace ProTracker2
     {
     }
 
-    virtual uint_t GetInitialTempo() const
+    uint_t GetInitialTempo() const override
     {
       return InitialTempo;
     }
 
-    virtual const OrderList& GetOrder() const
+    const OrderList& GetOrder() const override
     {
       return *Order;
     }
 
-    virtual const PatternsSet& GetPatterns() const
+    const PatternsSet& GetPatterns() const override
     {
       return *Patterns;
     }
@@ -121,48 +121,48 @@ namespace ProTracker2
       Properties.SetFrequencyTable(TABLE_PROTRACKER2);
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetInitialTempo(uint_t tempo)
+    void SetInitialTempo(uint_t tempo) override
     {
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker2::Sample& sample)
+    void SetSample(uint_t index, const Formats::Chiptune::ProTracker2::Sample& sample) override
     {
       Data->Samples.Add(index, Sample(sample));
     }
 
-    virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker2::Ornament& ornament)
+    void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker2::Ornament& ornament) override
     {
       Data->Ornaments.Add(index, Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
-    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       Patterns.GetChannel().SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       MutableCell& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
@@ -176,47 +176,47 @@ namespace ProTracker2
       }
     }
 
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       Patterns.GetChannel().SetSample(sample);
     }
 
-    virtual void SetOrnament(uint_t ornament)
+    void SetOrnament(uint_t ornament) override
     {
       Patterns.GetChannel().SetOrnament(ornament);
     }
 
-    virtual void SetVolume(uint_t vol)
+    void SetVolume(uint_t vol) override
     {
       Patterns.GetChannel().SetVolume(vol);
     }
 
-    virtual void SetGlissade(int_t val)
+    void SetGlissade(int_t val) override
     {
       Patterns.GetChannel().AddCommand(GLISS, val);
     }
 
-    virtual void SetNoteGliss(int_t val, uint_t limit)
+    void SetNoteGliss(int_t val, uint_t limit) override
     {
       Patterns.GetChannel().AddCommand(GLISS_NOTE, val, limit);
     }
 
-    virtual void SetNoGliss()
+    void SetNoGliss() override
     {
       Patterns.GetChannel().AddCommand(NOGLISS);
     }
 
-    virtual void SetEnvelope(uint_t type, uint_t value)
+    void SetEnvelope(uint_t type, uint_t value) override
     {
       Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
     }
 
-    virtual void SetNoEnvelope()
+    void SetNoEnvelope() override
     {
       Patterns.GetChannel().AddCommand(NOENVELOPE);
     }
 
-    virtual void SetNoiseAddon(int_t val)
+    void SetNoiseAddon(int_t val) override
     {
       Patterns.GetChannel().AddCommand(NOISE_ADD, val);
     }
@@ -271,12 +271,12 @@ namespace ProTracker2
     {
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
     {
       if (0 == state.Quirk())
       {
@@ -450,17 +450,17 @@ namespace ProTracker2
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
@@ -475,7 +475,7 @@ namespace ProTracker2
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

@@ -100,7 +100,7 @@ namespace
       }
     }
 
-    virtual String GetSelectedId() const
+    String GetSelectedId() const override
     {
       const IdToButton::const_iterator it =
         std::find_if(Buttons.begin(), Buttons.end(),
@@ -115,7 +115,7 @@ namespace
       }
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       const IdToButton::const_iterator it =
         std::find_if(Buttons.begin(), Buttons.end(),

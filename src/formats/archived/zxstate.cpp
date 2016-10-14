@@ -509,17 +509,17 @@ namespace Archived
           Name, Block.UncompressedSize, block.Size, Block.IsCompressed);
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Block.UncompressedSize;
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '%1%' (%2% -> %3%)", Name, Block.Size, Block.UncompressedSize);
         return ExtractData(Block);
@@ -548,17 +548,17 @@ namespace Archived
         Dbg("Created file '%1%', contains from %2% parts", Name, Blocks.size());
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), &SumBlocksSize);
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         try
         {
@@ -623,13 +623,13 @@ namespace Archived
                        , public ChunksVisitor
     {
     public:
-      virtual bool Visit(const Chunk& ch)
+      bool Visit(const Chunk& ch) override
       {
         Dbg("Skipping useless '%1%'", GenerateChunkName(ch));
         return true;
       }
 
-      virtual bool Visit(const Chunk& ch, const DataBlockDescription& blk)
+      bool Visit(const Chunk& ch, const DataBlockDescription& blk) override
       {
         const String& name = GenerateChunkName(ch);
         Dbg("Single block '%1%'", name);
@@ -637,7 +637,7 @@ namespace Archived
         return true;
       }
 
-      virtual bool Visit(const Chunk& ch, uint_t idx, const DataBlockDescription& blk)
+      bool Visit(const Chunk& ch, uint_t idx, const DataBlockDescription& blk) override
       {
         const String& name = GenerateChunkName(ch, idx);
         Dbg("Single indexed block '%1%'", name);
@@ -646,7 +646,7 @@ namespace Archived
         return true;
       }
 
-      virtual bool Visit(const Chunk& ch, const String& suffix, const DataBlockDescription& blk)
+      bool Visit(const Chunk& ch, const String& suffix, const DataBlockDescription& blk) override
       {
         const String& name = GenerateChunkName(ch, suffix);
         Dbg("Single suffixed block '%1%'", name);
@@ -696,23 +696,23 @@ namespace Archived
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
         for (NamedBlocksMap::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
         {
@@ -721,7 +721,7 @@ namespace Archived
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
         const NamedBlocksMap::const_iterator it = Blocks.find(name);
         return it != Blocks.end()
@@ -729,7 +729,7 @@ namespace Archived
           : File::Ptr();
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return static_cast<uint_t>(Blocks.size());
       }
@@ -759,17 +759,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::ZXSTATE_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       using namespace ZXState;
       if (!Format->Match(data))

@@ -40,7 +40,7 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
     {
       if (Pred->Match(*data))
       {
@@ -76,7 +76,7 @@ namespace
       Require(Pred != 0);
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
       const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
@@ -116,7 +116,7 @@ namespace
     {
     }
 
-    virtual bool Match(const Playlist::Item::Data& data) const
+    bool Match(const Playlist::Item::Data& data) const override
     {
       return (MatchTitle && Pred->Match(data.GetTitle()))
           || (MatchAuthor && Pred->Match(data.GetAuthor()))
@@ -133,7 +133,7 @@ namespace
   class EmptyStringPredicate : public StringPredicate
   {
   public:
-    virtual bool Match(const String& str) const
+    bool Match(const String& str) const override
     {
       return str.empty();
     }
@@ -148,7 +148,7 @@ namespace
     {
     }
 
-    virtual bool Match(const String& str) const
+    bool Match(const String& str) const override
     {
       return ToQString(str).contains(Pattern, Mode);
     }
@@ -165,7 +165,7 @@ namespace
     {
     }
 
-    virtual bool Match(const String& str) const
+    bool Match(const String& str) const override
     {
       return ToQString(str).contains(Pattern);
     }

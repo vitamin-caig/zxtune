@@ -76,7 +76,7 @@ namespace Multitrack
       {
       }
       
-      virtual void SetProperty(const String& name, const String& value)
+      void SetProperty(const String& name, const String& value) override
       {
         if (name == DEFSONG)
         {
@@ -90,7 +90,7 @@ namespace Multitrack
         Lines.push_back(name + " " + value);
       }
       
-      virtual void SetBlock(const uint_t start, const uint8_t* data, std::size_t size)
+      void SetBlock(const uint_t start, const uint8_t* data, std::size_t size) override
       {
         Blocks[start].assign(data, data + size);
       }
@@ -173,38 +173,38 @@ namespace Multitrack
       }
       
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
       
       //Formats::Multitrack::Container
-      virtual uint_t FixedChecksum() const
+      uint_t FixedChecksum() const override
       {
         return Content->GetFixedCrc(StartTrack);
       }
 
-      virtual uint_t TracksCount() const
+      uint_t TracksCount() const override
       {
         return Content->GetTracksCount();
       }
 
-      virtual uint_t StartTrackIndex() const
+      uint_t StartTrackIndex() const override
       {
         return StartTrack;
       }
       
-      virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
+      Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
         return MakePtr<Container>(Content, Content->Rebuild(idx), idx);
       }
@@ -223,17 +223,17 @@ namespace Multitrack
       {
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         try
         {

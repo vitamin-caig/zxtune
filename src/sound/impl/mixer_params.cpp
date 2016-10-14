@@ -62,7 +62,7 @@ namespace Sound
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       const uint_t newVers = Params->Version();
       if (newVers != LastVersion)
@@ -73,22 +73,22 @@ namespace Sound
       return newVers;
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       return Params->FindValue(name, val);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       return Params->FindValue(name, val);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
     {
       return Params->FindValue(name, val);
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       return Params->Process(visitor);
     }

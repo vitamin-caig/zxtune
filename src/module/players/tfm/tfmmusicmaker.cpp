@@ -104,164 +104,164 @@ namespace TFMMusicMaker
       Data->Patterns = Patterns.GetResult();
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod)
+    void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod) override
     {
       Data->EvenInitialTempo = evenTempo;
       Data->OddInitialTempo = oddTempo;
       Data->InitialTempoInterleave = interleavePeriod;
     }
 
-    virtual void SetDate(const Formats::Chiptune::TFMMusicMaker::Date& /*created*/, const Formats::Chiptune::TFMMusicMaker::Date& /*saved*/)
+    void SetDate(const Formats::Chiptune::TFMMusicMaker::Date& /*created*/, const Formats::Chiptune::TFMMusicMaker::Date& /*saved*/) override
     {
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       Properties.SetComment(comment);
     }
 
-    virtual void SetInstrument(uint_t index, const Formats::Chiptune::TFMMusicMaker::Instrument& instrument)
+    void SetInstrument(uint_t index, const Formats::Chiptune::TFMMusicMaker::Instrument& instrument) override
     {
       Data->Instruments.Add(index, instrument);
     }
 
-    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
     }
 
-    virtual void SetKeyOff()
+    void SetKeyOff() override
     {
       Patterns.GetChannel().SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       Patterns.GetChannel().SetNote(note);
     }
 
-    virtual void SetVolume(uint_t vol)
+    void SetVolume(uint_t vol) override
     {
       Patterns.GetChannel().SetVolume(vol);
     }
 
-    virtual void SetInstrument(uint_t ins)
+    void SetInstrument(uint_t ins) override
     {
       Patterns.GetChannel().SetSample(ins);
     }
 
-    virtual void SetArpeggio(uint_t add1, uint_t add2)
+    void SetArpeggio(uint_t add1, uint_t add2) override
     {
       Patterns.GetChannel().AddCommand(ARPEGGIO, add1, add2);
     }
 
-    virtual void SetSlide(int_t step)
+    void SetSlide(int_t step) override
     {
       Patterns.GetChannel().AddCommand(TONESLIDE, step);
     }
 
-    virtual void SetPortamento(int_t step)
+    void SetPortamento(int_t step) override
     {
       Patterns.GetChannel().AddCommand(PORTAMENTO, step);
     }
 
-    virtual void SetVibrato(uint_t speed, uint_t depth)
+    void SetVibrato(uint_t speed, uint_t depth) override
     {
       Patterns.GetChannel().AddCommand(VIBRATO, speed, depth);
     }
 
-    virtual void SetTotalLevel(uint_t op, uint_t value)
+    void SetTotalLevel(uint_t op, uint_t value) override
     {
       Patterns.GetChannel().AddCommand(LEVEL, op, value);
     }
 
-    virtual void SetVolumeSlide(uint_t up, uint_t down)
+    void SetVolumeSlide(uint_t up, uint_t down) override
     {
       Patterns.GetChannel().AddCommand(VOLSLIDE, up, down);
     }
 
-    virtual void SetSpecialMode(bool on)
+    void SetSpecialMode(bool on) override
     {
       Patterns.GetChannel().AddCommand(SPECMODE, on);
     }
 
-    virtual void SetToneOffset(uint_t op, uint_t offset)
+    void SetToneOffset(uint_t op, uint_t offset) override
     {
       Patterns.GetChannel().AddCommand(TONEOFFSET, op, offset);
     }
 
-    virtual void SetMultiple(uint_t op, uint_t val)
+    void SetMultiple(uint_t op, uint_t val) override
     {
       Patterns.GetChannel().AddCommand(MULTIPLE, op, val);
     }
 
-    virtual void SetOperatorsMixing(uint_t mask)
+    void SetOperatorsMixing(uint_t mask) override
     {
       Patterns.GetChannel().AddCommand(MIXING, mask);
     }
 
-    virtual void SetLoopStart()
+    void SetLoopStart() override
     {
       Patterns.GetChannel().AddCommand(LOOP_START);
     }
 
-    virtual void SetLoopEnd(uint_t additionalCount)
+    void SetLoopEnd(uint_t additionalCount) override
     {
       Patterns.GetChannel().AddCommand(LOOP_STOP, additionalCount);
     }
 
-    virtual void SetPane(uint_t pane)
+    void SetPane(uint_t pane) override
     {
       Patterns.GetChannel().AddCommand(PANE, pane);
     }
 
-    virtual void SetNoteRetrig(uint_t period)
+    void SetNoteRetrig(uint_t period) override
     {
       Patterns.GetChannel().AddCommand(NOTERETRIG, period);
     }
 
-    virtual void SetNoteCut(uint_t quirk)
+    void SetNoteCut(uint_t quirk) override
     {
       Patterns.GetChannel().AddCommand(NOTECUT, quirk);
     }
 
-    virtual void SetNoteDelay(uint_t quirk)
+    void SetNoteDelay(uint_t quirk) override
     {
       Patterns.GetChannel().AddCommand(NOTEDELAY, quirk);
     }
 
-    virtual void SetDropEffects()
+    void SetDropEffects() override
     {
       Patterns.GetChannel().AddCommand(DROPEFFECTS);
     }
 
-    virtual void SetFeedback(uint_t val)
+    void SetFeedback(uint_t val) override
     {
       Patterns.GetChannel().AddCommand(FEEDBACK, val);
     }
 
-    virtual void SetTempoInterleave(uint_t val)
+    void SetTempoInterleave(uint_t val) override
     {
       Patterns.GetChannel().AddCommand(TEMPO_INTERLEAVE, val);
     }
 
-    virtual void SetTempoValues(uint_t even, uint_t odd)
+    void SetTempoValues(uint_t even, uint_t odd) override
     {
       Patterns.GetChannel().AddCommand(TEMPO_VALUES, even, odd);
     }
@@ -648,12 +648,12 @@ namespace TFMMusicMaker
     {
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       State = PlayerState();
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, TFM::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, TFM::TrackBuilder& track) override
     {
       const uint_t quirk = state.Quirk();
       if (0 == quirk)
@@ -1055,12 +1055,12 @@ namespace TFMMusicMaker
     {
     }
   public:
-    virtual Line::Ptr GetLine(uint_t /*row*/) const
+    Line::Ptr GetLine(uint_t /*row*/) const override
     {
       return Line::Ptr();
     }
 
-    virtual uint_t GetSize() const
+    uint_t GetSize() const override
     {
       return 0;
     }
@@ -1158,53 +1158,53 @@ namespace TFMMusicMaker
     }
 
     //TrackState
-    virtual uint_t Position() const
+    uint_t Position() const override
     {
       return Plain.Position;
     }
 
-    virtual uint_t Pattern() const
+    uint_t Pattern() const override
     {
       return Plain.Pattern;
     }
 
-    virtual uint_t PatternSize() const
+    uint_t PatternSize() const override
     {
       return CurPatternObject->GetSize();
     }
 
-    virtual uint_t Line() const
+    uint_t Line() const override
     {
       return Plain.Line;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return Plain.GetTempo();
     }
 
-    virtual uint_t Quirk() const
+    uint_t Quirk() const override
     {
       return Plain.Quirk;
     }
 
-    virtual uint_t Frame() const
+    uint_t Frame() const override
     {
       return Plain.Frame;
     }
 
-    virtual uint_t Channels() const
+    uint_t Channels() const override
     {
       return CurLineObject ? CurLineObject->CountActiveChannels() : 0;
     }
 
     //TrackModelState
-    virtual Pattern::Ptr PatternObject() const
+    Pattern::Ptr PatternObject() const override
     {
       return CurPatternObject;
     }
 
-    virtual Line::Ptr LineObject() const
+    Line::Ptr LineObject() const override
     {
       return CurLineObject;
     }
@@ -1401,17 +1401,17 @@ namespace TFMMusicMaker
     {
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Cursor->Reset();
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Cursor->IsValid();
     }
 
-    virtual void NextFrame(bool looped)
+    void NextFrame(bool looped) override
     {
       if (!Cursor->IsValid())
       {
@@ -1423,7 +1423,7 @@ namespace TFMMusicMaker
       }
     }
 
-    virtual TrackModelState::Ptr GetStateObserver() const
+    TrackModelState::Ptr GetStateObserver() const override
     {
       return Cursor;
     }
@@ -1456,39 +1456,39 @@ namespace TFMMusicMaker
     {
     }
 
-    virtual uint_t PositionsCount() const
+    uint_t PositionsCount() const override
     {
       return Data->Order->GetSize();
     }
 
-    virtual uint_t LoopPosition() const
+    uint_t LoopPosition() const override
     {
       return Data->Order->GetLoopPosition();
     }
 
-    virtual uint_t PatternsCount() const
+    uint_t PatternsCount() const override
     {
       return Data->Patterns->GetSize();
     }
 
-    virtual uint_t FramesCount() const
+    uint_t FramesCount() const override
     {
       Initialize();
       return Frames;
     }
 
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       Initialize();
       return LoopFrameNum;
     }
 
-    virtual uint_t ChannelsCount() const
+    uint_t ChannelsCount() const override
     {
       return TFM::TRACK_CHANNELS;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return Data->EvenInitialTempo;
     }
@@ -1521,17 +1521,17 @@ namespace TFMMusicMaker
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual TFM::DataIterator::Ptr CreateDataIterator() const
+    TFM::DataIterator::Ptr CreateDataIterator() const override
     {
       const TrackStateIterator::Ptr iterator = MakePtr<TrackStateIteratorImpl>(Data);
       const TFM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
@@ -1551,7 +1551,7 @@ namespace TFMMusicMaker
     {
     }
 
-    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

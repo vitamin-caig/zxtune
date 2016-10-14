@@ -212,7 +212,7 @@ namespace Oss
     {
     }
 
-    virtual Gain GetVolume() const
+    Gain GetVolume() const override
     {
       Dbg("GetVolume");
       const std::lock_guard<std::mutex> lock(StateMutex);
@@ -226,7 +226,7 @@ namespace Oss
       return volume;
     }
 
-    virtual void SetVolume(const Gain& volume)
+    void SetVolume(const Gain& volume) override
     {
       if (!volume.IsNormalized())
       {
@@ -282,24 +282,24 @@ namespace Oss
     {
     }
 
-    virtual ~BackendWorker()
+    ~BackendWorker() override
     {
       assert(!DevHandle.Valid() || !"OssBackend should be stopped before destruction.");
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return VolumeController;
     }
 
-    virtual void Startup()
+    void Startup() override
     {
       assert(!MixHandle.Valid() && !DevHandle.Valid());
       SetupDevices(DevHandle, MixHandle, Format);
       Dbg("Successfully opened");
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       DevHandle.Close();
       MixHandle.Close();
@@ -307,19 +307,19 @@ namespace Oss
       Dbg("Successfully closed");
     }
 
-    virtual void Pause()
+    void Pause() override
     {
     }
 
-    virtual void Resume()
+    void Resume() override
     {
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    void FrameStart(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    void FrameFinish(Chunk::Ptr buffer) override
     {
       switch (Format)
       {
@@ -388,7 +388,7 @@ namespace Oss
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       const BackendParameters backend(*params);
       AutoDescriptor(backend.GetMixerName()).CheckStat();

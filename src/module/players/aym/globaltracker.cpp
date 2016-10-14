@@ -75,17 +75,17 @@ namespace GlobalTracker
     {
     }
 
-    virtual uint_t GetInitialTempo() const
+    uint_t GetInitialTempo() const override
     {
       return InitialTempo;
     }
 
-    virtual const OrderList& GetOrder() const
+    const OrderList& GetOrder() const override
     {
       return *Order;
     }
 
-    virtual const PatternsSet& GetPatterns() const
+    const PatternsSet& GetPatterns() const override
     {
       return *Patterns;
     }
@@ -110,74 +110,74 @@ namespace GlobalTracker
       Properties.SetFrequencyTable(TABLE_PROTRACKER3_ST);
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetInitialTempo(uint_t tempo)
+    void SetInitialTempo(uint_t tempo) override
     {
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, const Formats::Chiptune::GlobalTracker::Sample& sample)
+    void SetSample(uint_t index, const Formats::Chiptune::GlobalTracker::Sample& sample) override
     {
       Data->Samples.Add(index, Sample(sample));
     }
 
-    virtual void SetOrnament(uint_t index, const Formats::Chiptune::GlobalTracker::Ornament& ornament)
+    void SetOrnament(uint_t index, const Formats::Chiptune::GlobalTracker::Ornament& ornament) override
     {
       Data->Ornaments.Add(index, SimpleOrnament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
-    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       Patterns.GetChannel().SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       Patterns.GetChannel().SetEnabled(true);
       Patterns.GetChannel().SetNote(note);
     }
 
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       Patterns.GetChannel().SetSample(sample);
     }
 
-    virtual void SetOrnament(uint_t ornament)
+    void SetOrnament(uint_t ornament) override
     {
       Patterns.GetChannel().SetOrnament(ornament);
     }
 
-    virtual void SetVolume(uint_t vol)
+    void SetVolume(uint_t vol) override
     {
       Patterns.GetChannel().SetVolume(vol);
     }
 
-    virtual void SetEnvelope(uint_t type, uint_t value)
+    void SetEnvelope(uint_t type, uint_t value) override
     {
       Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
     }
 
-    virtual void SetNoEnvelope()
+    void SetNoEnvelope() override
     {
       Patterns.GetChannel().AddCommand(NOENVELOPE);
     }
@@ -220,12 +220,12 @@ namespace GlobalTracker
     {
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
     {
       if (0 == state.Quirk())
       {
@@ -364,17 +364,17 @@ namespace GlobalTracker
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
@@ -389,7 +389,7 @@ namespace GlobalTracker
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

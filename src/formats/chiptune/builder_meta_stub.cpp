@@ -18,10 +18,10 @@ namespace Formats
     class StubMetaBuilder : public MetaBuilder
     {
     public:
-      virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetAuthor(const String& /*author*/) {}
-      virtual void SetStrings(const Strings::Array& /*strings*/) {}
+      void SetProgram(const String& /*program*/) override {}
+      void SetTitle(const String& /*title*/) override {}
+      void SetAuthor(const String& /*author*/) override {}
+      void SetStrings(const Strings::Array& /*strings*/) override {}
     };
 
     MetaBuilder& GetStubMetaBuilder()

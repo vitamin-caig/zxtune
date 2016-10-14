@@ -32,30 +32,30 @@ namespace Module
       FillCurrentData();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Delegate->Reset();
       Render->Reset();
       FillCurrentData();
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Delegate->IsValid();
     }
 
-    virtual void NextFrame(bool looped)
+    void NextFrame(bool looped) override
     {
       Delegate->NextFrame(looped);
       FillCurrentData();
     }
 
-    virtual TrackState::Ptr GetStateObserver() const
+    TrackState::Ptr GetStateObserver() const override
     {
       return State;
     }
 
-    virtual void GetData(Devices::DAC::Channels& res) const
+    void GetData(Devices::DAC::Channels& res) const override
     {
       res.assign(CurrentData.begin(), CurrentData.end());
     }
@@ -97,17 +97,17 @@ namespace Module
 #endif
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return Iterator->GetStateObserver();
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    Analyzer::Ptr GetAnalyzer() const override
     {
       return CreateAnalyzer(Device);
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       if (Iterator->IsValid())
       {
@@ -124,7 +124,7 @@ namespace Module
       return Iterator->IsValid();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       Iterator->Reset();
@@ -134,7 +134,7 @@ namespace Module
       Looped = false;
     }
 
-    virtual void SetPosition(uint_t frameNum)
+    void SetPosition(uint_t frameNum) override
     {
       const TrackState::Ptr state = Iterator->GetStateObserver();
       uint_t curFrame = state->Frame();

@@ -46,21 +46,21 @@ namespace
       Require(connect(&parent, SIGNAL(toggled(bool)), SLOT(Set(bool))));
     }
 
-    virtual void Set(bool value)
+    void Set(bool value) override
     {
       const Parameters::IntType val = value ? OneValue : 0;
       Dbg("%1%=%2%", Name.FullPath(), val);
       Container.SetValue(Name, val);
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       const AutoBlockSignal block(Parent);
       Container.RemoveValue(Name);
       Reload();
     }
 
-    virtual void Reload()
+    void Reload() override
     {
       Parent.setChecked(GetValue());
     }
@@ -93,7 +93,7 @@ namespace
       Require(connect(&parent, SIGNAL(toggled(bool)), SLOT(Set(bool))));
     }
 
-    virtual void Set(bool value)
+    void Set(bool value) override
     {
       if (value)
       {
@@ -102,14 +102,14 @@ namespace
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       const AutoBlockSignal block(Parent);
       Container.RemoveValue(Name);
       Reload();
     }
 
-    virtual void Reload()
+    void Reload() override
     {
       Parent.setChecked(GetValue() == Value);
     }
@@ -164,20 +164,20 @@ namespace
       ConnectChanges(Parent, *this);
     }
 
-    virtual void Set(int value)
+    void Set(int value) override
     {
       Dbg("%1%=%2%", Name.FullPath(), value);
       Container.SetValue(Name, value);
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       const AutoBlockSignal block(Parent);
       Container.RemoveValue(Name);
       Reload();
     }
 
-    virtual void Reload()
+    void Reload() override
     {
       SetWidgetValue(Parent, GetValue());
     }
@@ -208,19 +208,19 @@ namespace
       ConnectChanges(Parent, *this);
     }
 
-    virtual void Set(int value)
+    void Set(int value) override
     {
       Value->Set(value);
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       const AutoBlockSignal block(Parent);
       Value->Reset();
       Reload();
     }
 
-    virtual void Reload()
+    void Reload() override
     {
       SetWidgetValue(Parent, Value->Get());
     }
@@ -244,7 +244,7 @@ namespace
     }
 
 
-    virtual void Set(const QString& value)
+    void Set(const QString& value) override
     {
       const Parameters::IntType val = value.toLongLong();
       if (Math::InRange(val, Traits.Min, Traits.Max))
@@ -254,14 +254,14 @@ namespace
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       const AutoBlockSignal block(Parent);
       Container.RemoveValue(Traits.Name);
       Reload();
     }
 
-    virtual void Reload()
+    void Reload() override
     {
       const Parameters::IntType val = GetValue();
       if (Math::InRange(val, Traits.Min, Traits.Max))
@@ -300,21 +300,21 @@ namespace
       Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));
     }
 
-    virtual void Set(const QString& value)
+    void Set(const QString& value) override
     {
       const Parameters::StringType& val = FromQString(value);
       Dbg("%1%=%2%", Name.FullPath(), val);
       Container.SetValue(Name, val);
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       const AutoBlockSignal block(Parent);
       Container.RemoveValue(Name);
       Reload();
     }
 
-    virtual void Reload()
+    void Reload() override
     {
       Parent.setText(ToQString(GetValue()));
     }

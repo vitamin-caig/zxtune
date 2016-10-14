@@ -56,64 +56,64 @@ namespace SQDigitalTracker
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetInitialTempo(uint_t tempo)
+    void SetInitialTempo(uint_t tempo) override
     {
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample)
+    void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) override
     {
       Data->Samples.Add(index, Devices::DAC::CreateU8Sample(sample, loop));
     }
 
-    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       Patterns.GetChannel().SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       Patterns.GetChannel().SetEnabled(true);
       Patterns.GetChannel().SetNote(note);
     }
 
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       Patterns.GetChannel().SetSample(sample);
     }
 
-    virtual void SetVolume(uint_t volume)
+    void SetVolume(uint_t volume) override
     {
       Patterns.GetChannel().SetVolume(volume);
     }
 
-    virtual void SetVolumeSlidePeriod(uint_t period)
+    void SetVolumeSlidePeriod(uint_t period) override
     {
       Patterns.GetChannel().AddCommand(VOLUME_SLIDE_PERIOD, period);
     }
 
-    virtual void SetVolumeSlideDirection(int_t direction)
+    void SetVolumeSlideDirection(int_t direction) override
     {
       Patterns.GetChannel().AddCommand(VOLUME_SLIDE, direction);
     }
@@ -173,12 +173,12 @@ namespace SQDigitalTracker
       Reset();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       std::fill(Volumes.begin(), Volumes.end(), VolumeState());
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
     {
       SynthesizeChannelsData(track);
       if (0 == state.Quirk())
@@ -270,24 +270,24 @@ namespace SQDigitalTracker
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual DAC::DataIterator::Ptr CreateDataIterator() const
+    DAC::DataIterator::Ptr CreateDataIterator() const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return DAC::CreateDataIterator(iterator, renderer);
     }
 
-    virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const
+    void GetSamples(Devices::DAC::Chip::Ptr chip) const override
     {
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
@@ -303,7 +303,7 @@ namespace SQDigitalTracker
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       DAC::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

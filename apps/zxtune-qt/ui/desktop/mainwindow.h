@@ -23,7 +23,7 @@ public:
   static MainWindow::Ptr Create(Parameters::Container::Ptr options);
 
 public slots:
-  virtual void SetCmdline(const QStringList& args) = 0;
+  void SetCmdline(const QStringList& args) override = 0;
 
 private slots:
   virtual void StartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;

@@ -37,7 +37,7 @@ namespace SampleTracker
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       DAC::PropertiesHelper props(*properties);
       const DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);

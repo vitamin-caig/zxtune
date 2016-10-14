@@ -30,7 +30,7 @@ namespace IO
     {
     }
 
-    virtual String GetFieldValue(const String& fieldName) const
+    String GetFieldValue(const String& fieldName) const override
     {
       const String res = Delegate.GetFieldValue(fieldName);
       return res.empty()
@@ -69,7 +69,7 @@ namespace IO
     {
     }
 
-    virtual String Instantiate(const Strings::FieldsSource& source) const
+    String Instantiate(const Strings::FieldsSource& source) const override
     {
       const FilenameFieldsFilter filter(source);
       return Delegate->Instantiate(filter);

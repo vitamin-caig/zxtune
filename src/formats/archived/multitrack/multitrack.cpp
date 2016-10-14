@@ -32,17 +32,17 @@ namespace Archived
       {
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Data->Size();
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         return Data;
       }
@@ -104,23 +104,23 @@ namespace Archived
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
         for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
         {
@@ -132,7 +132,7 @@ namespace Archived
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
         const Filename filename(Text::MULTITRACK_FILENAME_PREFIX, name);
         if (!filename.IsValid())
@@ -149,7 +149,7 @@ namespace Archived
         return MakePtr<File>(name, subData);
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return Delegate->TracksCount();
       }
@@ -166,17 +166,17 @@ namespace Archived
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Description;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Delegate->GetFormat();
       }
 
-      virtual Container::Ptr Decode(const Binary::Container& rawData) const
+      Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (const Formats::Multitrack::Container::Ptr data = Delegate->Decode(rawData))
         {

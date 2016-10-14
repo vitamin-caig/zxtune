@@ -28,17 +28,17 @@ namespace Module
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return 1;
     }
 
-    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
+    bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const override
     {
       return false;
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       if (name == ATTR_FULLPATH)
       {
@@ -48,12 +48,12 @@ namespace Module
       return false;
     }
 
-    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
+    bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const override
     {
       return false;
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       visitor.SetValue(ATTR_FULLPATH, Uri);
     }
@@ -69,17 +69,17 @@ namespace Module
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return 1;
     }
 
-    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
+    bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const override
     {
       return false;
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       if (name == ATTR_SUBPATH)
       {
@@ -109,12 +109,12 @@ namespace Module
       return false;
     }
 
-    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
+    bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const override
     {
       return false;
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       visitor.SetValue(ATTR_SUBPATH, Id->Subpath());
       visitor.SetValue(ATTR_FILENAME, Id->Filename());

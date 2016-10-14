@@ -41,7 +41,7 @@ namespace TS
     {
     }
 
-    virtual void SetFirstSubmoduleLocation(std::size_t offset, std::size_t size)
+    void SetFirstSubmoduleLocation(std::size_t offset, std::size_t size) override
     {
       if (!(First = LoadChiptune(offset, size)))
       {
@@ -49,7 +49,7 @@ namespace TS
       }
     }
 
-    virtual void SetSecondSubmoduleLocation(std::size_t offset, std::size_t size)
+    void SetSecondSubmoduleLocation(std::size_t offset, std::size_t size) override
     {
       if (!(Second = LoadChiptune(offset, size)))
       {
@@ -100,7 +100,7 @@ namespace TS
     {
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       try
       {

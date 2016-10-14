@@ -95,7 +95,7 @@ namespace Sound
     {
     }
 
-    virtual void ApplyData(const Chunk::Ptr& in)
+    void ApplyData(const Chunk::Ptr& in) override
     {
       for (Chunk::iterator it = in->begin(), lim = in->end(); it != lim; ++it)
       {
@@ -105,22 +105,22 @@ namespace Sound
       return Delegate->ApplyData(in);
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Delegate->Flush();
     }
 
-    virtual void SetTarget(Receiver::Ptr delegate)
+    void SetTarget(Receiver::Ptr delegate) override
     {
       Delegate = delegate ? delegate : Receiver::CreateStub();
     }
 
-    virtual void SetGain(Gain::Type gain)
+    void SetGain(Gain::Type gain) override
     {
       Core.SetGain(gain);
     }
 
-    virtual void SetFading(Gain::Type delta, uint_t step)
+    void SetFading(Gain::Type delta, uint_t step) override
     {
       Core.SetFading(delta, step);
     }

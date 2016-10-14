@@ -37,7 +37,7 @@ namespace Sound
       }
 
       
-      virtual HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param)
+      HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param) override
       {
         static const char NAME[] = "DirectSoundEnumerateA";
         typedef HRESULT (WINAPI *FunctionType)(LPDSENUMCALLBACKA, LPVOID);
@@ -45,7 +45,7 @@ namespace Sound
         return func(cb, param);
       }
       
-      virtual HRESULT DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter)
+      HRESULT DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter) override
       {
         static const char NAME[] = "DirectSoundCreate";
         typedef HRESULT (WINAPI *FunctionType)(LPCGUID, LPDIRECTSOUND*, LPUNKNOWN);

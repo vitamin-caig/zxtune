@@ -42,14 +42,14 @@ namespace
       timePosition->setStyle(UI::GetStyle());
     }
 
-    virtual void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item)
+    void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item) override
     {
       Item = item;
       TrackState = player->GetTrackState();
       timePosition->setRange(0, Item->GetDuration().GetCount());
     }
 
-    virtual void UpdateState()
+    void UpdateState() override
     {
       if (!isVisible())
       {
@@ -67,19 +67,19 @@ namespace
       timeDisplay->setText(ToQString(GetTimeString(curFrame)));
     }
 
-    virtual void CloseState()
+    void CloseState() override
     {
       timePosition->setRange(0, 0);
       timeDisplay->setText(QLatin1String("-:-.-"));
     }
 
-    virtual void EndSeeking()
+    void EndSeeking() override
     {
       OnSeeking(timePosition->value());
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

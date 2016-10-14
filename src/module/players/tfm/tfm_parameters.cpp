@@ -29,19 +29,19 @@ namespace TFM
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Params->Version();
     }
 
-    virtual uint64_t ClockFreq() const
+    uint64_t ClockFreq() const override
     {
       Parameters::IntType val = Parameters::ZXTune::Core::FM::CLOCKRATE_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::FM::CLOCKRATE, val);
       return val;
     }
 
-    virtual uint_t SoundFreq() const
+    uint_t SoundFreq() const override
     {
       return SoundParams->SoundFreq();
     }

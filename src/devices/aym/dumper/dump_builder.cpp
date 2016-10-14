@@ -65,28 +65,28 @@ namespace AYM
   class NotOptimizedRenderState : public RenderState
   {
   public:
-    virtual void Reset()
+    void Reset() override
     {
       Base = Registers();
       Delta = Registers();
     }
 
-    virtual void Add(const Registers& delta)
+    void Add(const Registers& delta) override
     {
       ApplyMerge(Delta, delta);
     }
 
-    virtual Registers GetBase() const
+    Registers GetBase() const override
     {
       return Base;
     }
 
-    virtual Registers GetDelta() const
+    Registers GetDelta() const override
     {
       return Delta;
     }
 
-    void CommitDelta()
+    void CommitDelta() override
     {
       ApplyMerge(Base, Delta);
       Delta = Registers();
@@ -99,7 +99,7 @@ namespace AYM
   class OptimizedRenderState : public NotOptimizedRenderState
   {
   public:
-    virtual void Add(const Registers& delta)
+    void Add(const Registers& delta) override
     {
       for (Registers::IndicesIterator it(delta); it; ++it)
       {
@@ -132,7 +132,7 @@ namespace AYM
       Reset();
     }
 
-    virtual void RenderData(const DataChunk& src)
+    void RenderData(const DataChunk& src) override
     {
       if (!(src.TimeStamp < NextFrame))
       {
@@ -141,7 +141,7 @@ namespace AYM
       State->Add(src.Data);
     }
 
-    virtual void RenderData(const std::vector<DataChunk>& src)
+    void RenderData(const std::vector<DataChunk>& src) override
     {
       for (std::vector<DataChunk>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
       {
@@ -149,7 +149,7 @@ namespace AYM
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Builder->Initialize();
       State->Reset();
@@ -157,7 +157,7 @@ namespace AYM
       NextFrame = FrameDuration;
     }
 
-    virtual void GetDump(Dump& result) const
+    void GetDump(Dump& result) const override
     {
       if (FramesToSkip)
       {

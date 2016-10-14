@@ -33,25 +33,25 @@ namespace Chiptune
     {
     }
 
-    virtual void InsertData(std::size_t offset, const Dump& data)
+    void InsertData(std::size_t offset, const Dump& data) override
     {
       Require(Insertions.insert(BlobsMap::value_type(offset, data)).second);
       SizeAddon += data.size();
     }
 
-    virtual void OverwriteData(std::size_t offset, const Dump& data)
+    void OverwriteData(std::size_t offset, const Dump& data) override
     {
       Require(offset + data.size() <= Source.Size());
       Require(Overwrites.insert(BlobsMap::value_type(offset, data)).second);
     }
 
-    virtual void FixLEWord(std::size_t offset, int_t delta)
+    void FixLEWord(std::size_t offset, int_t delta) override
     {
       Require(offset + sizeof(uint16_t) <= Source.Size());
       Require(LEWordFixes.insert(FixesMap::value_type(offset, delta)).second);
     }
 
-    virtual Binary::Container::Ptr GetResult() const
+    Binary::Container::Ptr GetResult() const override
     {
       const uint8_t* const srcData = static_cast<const uint8_t*>(Source.Start());
       std::unique_ptr<Dump> result(new Dump(srcData, srcData + Source.Size()));

@@ -54,18 +54,18 @@ namespace
       }
     }
 
-    virtual bool StartMaster()
+    bool StartMaster() override
     {
       return true;
     }
 
-    virtual QStringList GetCmdline() const
+    QStringList GetCmdline() const override
     {
       return Cmdline;
     }
 
   protected:
-    virtual void SlaveStarted() {}
+    void SlaveStarted() override {}
   protected:
     QStringList Cmdline;
   };
@@ -78,7 +78,7 @@ namespace
     {
     }
 
-    virtual bool StartMaster()
+    bool StartMaster() override
     {
       QLocalSocket socket;
       socket.connectToServer(SERVER_NAME, QLocalSocket::WriteOnly);
@@ -96,7 +96,7 @@ namespace
     }
 
   private:
-    virtual void SlaveStarted()
+    void SlaveStarted() override
     {
       while (QLocalSocket* conn = Server->nextPendingConnection())
       {

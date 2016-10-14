@@ -601,17 +601,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::HRUST21_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {
@@ -637,17 +637,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::HRUST23_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

@@ -36,17 +36,17 @@ namespace YMVTX
     {
     }
 
-    virtual uint_t Size() const
+    uint_t Size() const override
     {
       return static_cast<uint_t>(Data.size());
     }
 
-    virtual uint_t Loop() const
+    uint_t Loop() const override
     {
       return LoopFrame;
     }
 
-    virtual Devices::AYM::Registers Get(uint_t pos) const
+    Devices::AYM::Registers Get(uint_t pos) const override
     {
       return Data[pos];
     }
@@ -100,57 +100,57 @@ namespace YMVTX
     {
     }
 
-    virtual void SetVersion(const String& version)
+    void SetVersion(const String& version) override
     {
       Properties.SetVersion(version);
     }
 
-    virtual void SetChipType(bool ym)
+    void SetChipType(bool ym) override
     {
       Properties.SetChipType(ym ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY);
     }
 
-    virtual void SetStereoMode(uint_t mode)
+    void SetStereoMode(uint_t mode) override
     {
       Properties.SetChannelsLayout(VtxMode2AymLayout(mode));
     }
 
-    virtual void SetLoop(uint_t loop)
+    void SetLoop(uint_t loop) override
     {
       Data->SetLoop(loop);
     }
 
-    virtual void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/)
+    void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/) override
     {
       //TODO:
     }
 
-    virtual void SetClockrate(uint64_t freq)
+    void SetClockrate(uint64_t freq) override
     {
       Properties.SetChipFrequency(freq);
     }
 
-    virtual void SetIntFreq(uint_t freq)
+    void SetIntFreq(uint_t freq) override
     {
       Properties.SetFramesFrequency(freq);
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       Properties.SetTitle(title);
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       Properties.SetAuthor(author);
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       Properties.SetComment(comment);
     }
 
-    virtual void SetYear(uint_t year)
+    void SetYear(uint_t year) override
     {
       if (year)
       {
@@ -158,17 +158,17 @@ namespace YMVTX
       }
     }
 
-    virtual void SetProgram(const String& /*program*/)
+    void SetProgram(const String& /*program*/) override
     {
       //TODO
     }
 
-    virtual void SetEditor(const String& editor)
+    void SetEditor(const String& editor) override
     {
       Properties.SetProgram(editor);
     }
 
-    virtual void AddData(const Dump& registers)
+    void AddData(const Dump& registers) override
     {
       Devices::AYM::Registers& data = Data->Allocate();
       const uint_t availRegs = std::min<uint_t>(registers.size(), Devices::AYM::Registers::ENV + 1);
@@ -201,7 +201,7 @@ namespace YMVTX
     {
     }
 
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

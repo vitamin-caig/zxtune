@@ -68,13 +68,13 @@ namespace
     {
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       static const String EMPTY;
       OnProgress(current, EMPTY);
     }
 
-    virtual void OnProgress(uint_t current, const String& message)
+    void OnProgress(uint_t current, const String& message) override
     {
       if (ReportTimeout())
       {
@@ -118,7 +118,7 @@ namespace
     {
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
+    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const override
     {
       const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(Module::CreatePathProperties(subId), Params);
@@ -126,7 +126,7 @@ namespace
       Callback.ProcessItem(location->GetData(), result);
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return ProgressCallback.get();
     }
@@ -155,12 +155,12 @@ namespace
       ;
     }
 
-    virtual const boost::program_options::options_description& GetOptionsDescription() const
+    const boost::program_options::options_description& GetOptionsDescription() const override
     {
       return OptionsDescription;
     }
 
-    virtual void ParseParameters()
+    void ParseParameters() override
     {
       if (!ProvidersOptions.empty())
       {
@@ -187,7 +187,7 @@ namespace
     }
 
     // throw
-    virtual void Initialize()
+    void Initialize() override
     {
       if (Files.empty())
       {
@@ -195,7 +195,7 @@ namespace
       }
     }
 
-    virtual void ProcessItems(OnItemCallback& callback)
+    void ProcessItems(OnItemCallback& callback) override
     {
       for (Strings::Array::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {

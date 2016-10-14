@@ -72,7 +72,7 @@ namespace
     }
 
     //QWidget's virtuals
-    virtual void contextMenuEvent(QContextMenuEvent* event)
+    void contextMenuEvent(QContextMenuEvent* event) override
     {
       const std::unique_ptr<QMenu> menu = CreateMenu();
       if (QAction* res = menu->exec(event->globalPos()))
@@ -141,12 +141,12 @@ namespace
       Dbg("Created at %1%", this);
     }
 
-    virtual ~TableViewImpl()
+    ~TableViewImpl() override
     {
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual Playlist::Model::IndexSet::Ptr GetSelectedItems() const
+    Playlist::Model::IndexSet::Ptr GetSelectedItems() const override
     {
       const QItemSelectionModel* const selection = selectionModel();
       const QModelIndexList& items = selection->selectedRows();
@@ -158,7 +158,7 @@ namespace
       return result;
     }
 
-    virtual void SelectItems(const Playlist::Model::IndexSet& indices)
+    void SelectItems(const Playlist::Model::IndexSet& indices) override
     {
       setEnabled(true);
       QAbstractItemModel* const curModel = model();
@@ -178,19 +178,19 @@ namespace
       }
     }
 
-    virtual void MoveToTableRow(unsigned index)
+    void MoveToTableRow(unsigned index) override
     {
       QAbstractItemModel* const curModel = model();
       const QModelIndex idx = curModel->index(index, 0);
       scrollTo(idx, QAbstractItemView::EnsureVisible);
     }
 
-    virtual void SelectItems(Playlist::Model::IndexSet::Ptr indices)
+    void SelectItems(Playlist::Model::IndexSet::Ptr indices) override
     {
       return SelectItems(*indices);
     }
 
-    virtual void ActivateItem(const QModelIndex& index)
+    void ActivateItem(const QModelIndex& index) override
     {
       if (index.isValid())
       {
@@ -200,7 +200,7 @@ namespace
     }
     
     //Qt natives
-    virtual void keyboardSearch(const QString& search)
+    void keyboardSearch(const QString& search) override
     {
       QAbstractItemView::keyboardSearch(search);
       const QItemSelectionModel* const selection = selectionModel();
@@ -226,7 +226,7 @@ namespace
     {
     }
 
-    virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
     {
       QStyleOptionViewItem fixedOption(option);
       FillItemStyle(index, fixedOption);

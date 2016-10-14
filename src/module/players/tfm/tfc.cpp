@@ -82,19 +82,19 @@ namespace TFC
   public:
     typedef std::shared_ptr<ModuleData> RWPtr;
     
-    virtual uint_t Size() const
+    uint_t Size() const override
     {
       const std::size_t sizes[6] = {Data[0].GetSize(), Data[1].GetSize(), Data[2].GetSize(),
         Data[3].GetSize(), Data[4].GetSize(), Data[5].GetSize()};
       return static_cast<uint_t>(*boost::max_element(sizes));
     }
 
-    virtual uint_t Loop() const
+    uint_t Loop() const override
     {
       return 0;
     }
 
-    virtual void Get(uint_t frameNum, Devices::TFM::Registers& res) const
+    void Get(uint_t frameNum, Devices::TFM::Registers& res) const override
     {
       Devices::TFM::Registers result;
       for (uint_t idx = 0; idx != 6; ++idx)
@@ -127,65 +127,65 @@ namespace TFC
     {
     }
 
-    virtual void SetVersion(const String& version)
+    void SetVersion(const String& version) override
     {
       Properties.SetProgram(Text::TFC_COMPILER_VERSION + version);
     }
 
-    virtual void SetIntFreq(uint_t freq)
+    void SetIntFreq(uint_t freq) override
     {
       Properties.SetFramesFrequency(freq);
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       Properties.SetTitle(title);
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       Properties.SetAuthor(author);
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       Properties.SetComment(comment);
     }
 
-    virtual void StartChannel(uint_t idx)
+    void StartChannel(uint_t idx) override
     {
       Channel = idx;
     }
 
-    virtual void StartFrame()
+    void StartFrame() override
     {
       GetChannel().AddFrame();
     }
 
-    virtual void SetSkip(uint_t count)
+    void SetSkip(uint_t count) override
     {
       GetChannel().AddFrames(count);
     }
 
-    virtual void SetLoop()
+    void SetLoop() override
     {
       GetChannel().SetLoop();
     }
 
-    virtual void SetSlide(uint_t slide)
+    void SetSlide(uint_t slide) override
     {
       const uint_t oldFreq = Frequency[Channel];
       const uint_t newFreq = (oldFreq & 0xff00) | ((oldFreq + slide) & 0xff);
       SetFreq(newFreq);
     }
 
-    virtual void SetKeyOff()
+    void SetKeyOff() override
     {
       const uint_t key = Channel < 3 ? Channel : Channel + 1;
       SetRegister(0x28, key);
     }
 
-    virtual void SetFreq(uint_t freq)
+    void SetFreq(uint_t freq) override
     {
       Frequency[Channel] = freq;
       const uint_t chan = Channel % 3;
@@ -193,12 +193,12 @@ namespace TFC
       SetRegister(0xa0 + chan, freq & 0xff);
     }
 
-    virtual void SetRegister(uint_t idx, uint_t val)
+    void SetRegister(uint_t idx, uint_t val) override
     {
       GetChannel().AddRegister(Devices::FM::Register(idx, val));
     }
 
-    virtual void SetKeyOn()
+    void SetKeyOn() override
     {
       const uint_t key = Channel < 3 ? Channel : Channel + 1;
       SetRegister(0x28, 0xf0 | key);
@@ -223,7 +223,7 @@ namespace TFC
   class Factory : public TFM::Factory
   {
   public:
-    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

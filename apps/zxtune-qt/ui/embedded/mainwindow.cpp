@@ -115,12 +115,12 @@ namespace
       Playlist->Setup();
     }
 
-    virtual void SetCmdline(const QStringList& /*args*/)
+    void SetCmdline(const QStringList& /*args*/) override
     {
     }
 
     //qwidget virtuals
-    virtual void keyPressEvent(QKeyEvent* event)
+    void keyPressEvent(QKeyEvent* event) override
     {
       if (event->key() == Qt::Key_Pause)
       {
@@ -129,7 +129,7 @@ namespace
       QWidget::keyPressEvent(event);
     }
 
-    virtual void keyReleaseEvent(QKeyEvent* event)
+    void keyReleaseEvent(QKeyEvent* event) override
     {
       if (event->key() == Qt::Key_Pause)
       {
@@ -138,7 +138,7 @@ namespace
       QWidget::keyPressEvent(event);
     }
 
-    virtual void closeEvent(QCloseEvent* event)
+    void closeEvent(QCloseEvent* event) override
     {
       Backlight.Enable();
       State->Save();

@@ -260,22 +260,22 @@ namespace Ogg
       Dbg("Stream initialized");
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       Meta->AddTag(Text::OGG_BACKEND_TITLE_TAG, title);
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       Meta->AddTag(Text::OGG_BACKEND_AUTHOR_TAG, author);
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       Meta->AddTag(Text::OGG_BACKEND_COMMENT_TAG, comment);
     }
 
-    virtual void FlushMetadata()
+    void FlushMetadata() override
     {
       ogg_packet id, meta, code;
       CheckVorbisCall(VorbisApi->vorbis_analysis_headerout(State->Get(), Meta->Get(), &id, &meta, &code), THIS_LINE);
@@ -285,13 +285,13 @@ namespace Ogg
       Stream->Flush();
     }
 
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(const Chunk::Ptr& data) override
     {
       State->Encode(*data);
       State->Save(*Stream);
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       State->Flush();
       State->Save(*Stream);
@@ -369,12 +369,12 @@ namespace Ogg
     {
     }
 
-    virtual String GetId() const
+    String GetId() const override
     {
       return ID;
     }
 
-    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
+    FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
       const VorbisInfo::Ptr info = MakePtr<VorbisInfo>(VorbisApi, VorbisEncApi);
       SetupInfo(*info);
@@ -420,7 +420,7 @@ namespace Ogg
     {
     }
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(OggApi, VorbisApi, VorbisEncApi, params);
       return CreateFileBackendWorker(params, factory);

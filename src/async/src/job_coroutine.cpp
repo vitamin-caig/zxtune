@@ -56,12 +56,12 @@ namespace Async
     {
     }
 
-    virtual void Prepare()
+    void Prepare() override
     {
       return Routine->Initialize();
     }
     
-    virtual void Execute()
+    void Execute() override
     {
       try
       {
@@ -85,7 +85,7 @@ namespace Async
       Routine->Finalize();
     }
 
-    virtual void Yield()
+    void Yield() override
     {
       switch (State.WaitForAny(STOPPING, PAUSING, STARTED))
       {
@@ -120,7 +120,7 @@ namespace Async
     {
     }
 
-    virtual ~CoroutineJob()
+    ~CoroutineJob() override
     {
       if (Act)
       {
@@ -128,7 +128,7 @@ namespace Async
       }
     }
 
-    virtual void Start()
+    void Start() override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
@@ -144,7 +144,7 @@ namespace Async
       State.Set(STARTED);
     }
     
-    virtual void Pause()
+    void Pause() override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
@@ -158,7 +158,7 @@ namespace Async
       return PauseStopped();
     }
     
-    virtual void Stop()
+    void Stop() override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
@@ -168,13 +168,13 @@ namespace Async
       return StopStopped();
     }
 
-    virtual bool IsActive() const
+    bool IsActive() const override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       return Act && Act->IsExecuted();
     }
     
-    virtual bool IsPaused() const
+    bool IsPaused() const override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       return Act && Act->IsExecuted() && State.Check(PAUSED);

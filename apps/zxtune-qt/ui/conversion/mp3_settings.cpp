@@ -46,7 +46,7 @@ namespace
     {
     }
 
-    virtual int Get() const
+    int Get() const override
     {
       using namespace Parameters;
       Parameters::StringType val = ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT;
@@ -57,7 +57,7 @@ namespace
         : -1;
     }
 
-    virtual void Set(int val)
+    void Set(int val) override
     {
       if (Math::InRange<int>(val, 0, boost::size(CHANNEL_MODES) - 1))
       {
@@ -65,7 +65,7 @@ namespace
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Ctr->RemoveValue(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS);
     }
@@ -110,13 +110,13 @@ namespace
       }
     }
 
-    virtual String GetBackendId() const
+    String GetBackendId() const override
     {
       static const Char ID[] = {'m', 'p', '3', '\0'};
       return ID;
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       QString descr = GetBitrateDescription();
       if (0 != channelsMode->currentIndex())

@@ -26,7 +26,7 @@ namespace Parameters
     {
     }
 
-    virtual void SetValue(const NameType& name, IntType val)
+    void SetValue(const NameType& name, IntType val) override
     {
       if (DoneIntegers.insert(name).second)
       {
@@ -34,7 +34,7 @@ namespace Parameters
       }
     }
 
-    virtual void SetValue(const NameType& name, const StringType& val)
+    void SetValue(const NameType& name, const StringType& val) override
     {
       if (DoneStrings.insert(name).second)
       {
@@ -42,7 +42,7 @@ namespace Parameters
       }
     }
 
-    virtual void SetValue(const NameType& name, const DataType& val)
+    void SetValue(const NameType& name, const DataType& val) override
     {
       if (DoneDatas.insert(name).second)
       {
@@ -65,30 +65,30 @@ namespace Parameters
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return First->Version() + Second->Version();
     }
 
-    virtual bool FindValue(const NameType& name, IntType& val) const
+    bool FindValue(const NameType& name, IntType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, StringType& val) const
+    bool FindValue(const NameType& name, StringType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, DataType& val) const
+    bool FindValue(const NameType& name, DataType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val);
     }
 
-    virtual void Process(Visitor& visitor) const
+    void Process(Visitor& visitor) const override
     {
       MergedVisitor mergedVisitor(visitor);
       First->Process(mergedVisitor);
@@ -109,33 +109,33 @@ namespace Parameters
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return First->Version() + Second->Version() + Third->Version();
     }
 
-    virtual bool FindValue(const NameType& name, IntType& val) const
+    bool FindValue(const NameType& name, IntType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val) ||
              Third->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, StringType& val) const
+    bool FindValue(const NameType& name, StringType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val) ||
              Third->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, DataType& val) const
+    bool FindValue(const NameType& name, DataType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val) ||
              Third->FindValue(name, val);
     }
 
-    virtual void Process(Visitor& visitor) const
+    void Process(Visitor& visitor) const override
     {
       MergedVisitor mergedVisitor(visitor);
       First->Process(mergedVisitor);

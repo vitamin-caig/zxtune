@@ -99,12 +99,12 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Sound::Chunk::Ptr& data)
+    void ApplyData(const Sound::Chunk::Ptr& data) override
     {
       Buffer.Put(data->begin(), data->size());
     }
 
-    virtual void Flush()
+    void Flush() override
     {
     }
 

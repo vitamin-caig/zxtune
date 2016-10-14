@@ -74,29 +74,29 @@ namespace Mp3
       Dbg("Stream initialized");
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       const std::string titleC = title;//TODO
       LameApi->id3tag_set_title(Context.get(), titleC.c_str());
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       const std::string authorC = author;//TODO
       LameApi->id3tag_set_artist(Context.get(), authorC.c_str());
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       const std::string commentC = comment;//TODO
       LameApi->id3tag_set_comment(Context.get(), commentC.c_str());
     }
 
-    virtual void FlushMetadata()
+    void FlushMetadata() override
     {
     }
 
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(const Chunk::Ptr& data) override
     {
       //work with 16-bit
       static_assert(Sample::BITS == 16, "Incompatible sound sample bits count");
@@ -121,7 +121,7 @@ namespace Mp3
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       while (const int res = LameApi->lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
       {
@@ -263,12 +263,12 @@ namespace Mp3
     {
     }
 
-    virtual String GetId() const
+    String GetId() const override
     {
       return ID;
     }
 
-    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
+    FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
       const LameContextPtr context = LameContextPtr(LameApi->lame_init(), boost::bind(&Api::lame_close, LameApi, _1));
       SetupContext(*context);
@@ -351,7 +351,7 @@ namespace Mp3
     {
     }
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(FlacApi, params);
       return CreateFileBackendWorker(params, factory);

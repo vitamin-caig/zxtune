@@ -64,13 +64,13 @@ namespace
     }
 
     //QWidgets virtuals
-    virtual void closeEvent(QCloseEvent* event)
+    void closeEvent(QCloseEvent* event) override
     {
       State->Save();
       event->accept();
     }
 
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

@@ -1260,22 +1260,22 @@ namespace ProTracker3
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::VORTEXTRACKER2_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -1285,7 +1285,7 @@ namespace ProTracker3
         return ParseText(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return ParseText(data, target);
       }
@@ -1303,54 +1303,54 @@ namespace ProTracker3
       {
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return *this;
       }
 
-      virtual void SetProgram(const String& /*program*/)
+      void SetProgram(const String& /*program*/) override
       {
       }
 
-      virtual void SetTitle(const String& title)
+      void SetTitle(const String& title) override
       {
         Header.Title = ToStdString(title);
       }
 
-      virtual void SetAuthor(const String& author)
+      void SetAuthor(const String& author) override
       {
         Header.Author = ToStdString(author);
       }
 
-      virtual void SetStrings(const Strings::Array& /*strings*/)
+      void SetStrings(const Strings::Array& /*strings*/) override
       {
       }
       
-      virtual void SetVersion(uint_t version)
+      void SetVersion(uint_t version) override
       {
         Header.Version = version;
       }
 
-      virtual void SetNoteTable(NoteTable table)
+      void SetNoteTable(NoteTable table) override
       {
         Header.Table = table;
       }
 
-      virtual void SetMode(uint_t /*mode*/)
+      void SetMode(uint_t /*mode*/) override
       {
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         Header.Tempo = tempo;
       }
 
-      virtual void SetSample(uint_t index, const Sample& sample)
+      void SetSample(uint_t index, const Sample& sample) override
       {
         Samples.push_back(SampleObject(sample, index));
       }
 
-      virtual void SetOrnament(uint_t index, const Ornament& ornament)
+      void SetOrnament(uint_t index, const Ornament& ornament) override
       {
         if (index != DEFAULT_ORNAMENT)
         {
@@ -1358,65 +1358,65 @@ namespace ProTracker3
         }
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
       {
         Header.PlayOrder = LoopedList<uint_t>(loop, positions);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         Context.SetPattern(index);
         return *this;
       }
 
-      virtual void Finish(uint_t size)
+      void Finish(uint_t size) override
       {
         Context.FinishPattern(size);
       }
 
-      virtual void StartLine(uint_t index)
+      void StartLine(uint_t index) override
       {
         Context.SetLine(index);
       }
 
-      virtual void SetTempo(uint_t tempo)
+      void SetTempo(uint_t tempo) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.TEMPO;
         cmd.Param = tempo;
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         Context.SetChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         Context.CurChannel->Note = NoteObject::CreateRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         Context.CurChannel->Note = NoteObject(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         Context.CurChannel->Parameters.Sample = NoteParametersObject::SampleNumber(sample);
       }
 
-      virtual void SetOrnament(uint_t ornament)
+      void SetOrnament(uint_t ornament) override
       {
         Context.CurChannel->Parameters.Ornament = NoteParametersObject::OrnamentNumber(ornament);
       }
 
-      virtual void SetVolume(uint_t vol)
+      void SetVolume(uint_t vol) override
       {
         Context.CurChannel->Parameters.Volume = NoteParametersObject::VolumeLevel(vol);
       }
 
-      virtual void SetGlissade(uint_t period, int_t val)
+      void SetGlissade(uint_t period, int_t val) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Period = period;
@@ -1432,7 +1432,7 @@ namespace ProTracker3
         }
       }
 
-      virtual void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/)
+      void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.GLISS_NOTE;
@@ -1440,28 +1440,28 @@ namespace ProTracker3
         cmd.Param = Math::Absolute(val);
       }
 
-      virtual void SetSampleOffset(uint_t offset)
+      void SetSampleOffset(uint_t offset) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.OFFSET_SAMPLE;
         cmd.Param = offset;
       }
 
-      virtual void SetOrnamentOffset(uint_t offset)
+      void SetOrnamentOffset(uint_t offset) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.OFFSET_ORNAMENT;
         cmd.Param = offset;
       }
 
-      virtual void SetVibrate(uint_t ontime, uint_t offtime)
+      void SetVibrate(uint_t ontime, uint_t offtime) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.VIBRATE;
         cmd.Param = 16 * ontime + offtime;
       }
 
-      virtual void SetEnvelopeSlide(uint_t period, int_t val)
+      void SetEnvelopeSlide(uint_t period, int_t val) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Period = period;
@@ -1477,23 +1477,23 @@ namespace ProTracker3
         }
       }
 
-      virtual void SetEnvelope(uint_t type, uint_t value)
+      void SetEnvelope(uint_t type, uint_t value) override
       {
         Context.CurChannel->Parameters.Envelope = type;
         Context.CurLine->Envelope = value;
       }
 
-      virtual void SetNoEnvelope()
+      void SetNoEnvelope() override
       {
         Context.CurChannel->Parameters.Envelope = 15;
       }
 
-      virtual void SetNoiseBase(uint_t val)
+      void SetNoiseBase(uint_t val) override
       {
         Context.SetNoiseBase(val);
       }
 
-      virtual Binary::Data::Ptr GetResult() const
+      Binary::Data::Ptr GetResult() const override
       {
         std::string res = Header.AsString();
         for (std::vector<OrnamentObject>::const_iterator it = Ornaments.begin(), lim = Ornaments.end(); it != lim; ++it)

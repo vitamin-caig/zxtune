@@ -79,12 +79,12 @@ namespace
       Dbg("%1% stored playlists", Files.size());
     }
 
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return Files.empty();
     }
 
-    virtual void Load(Playlist::Container::Ptr container)
+    void Load(Playlist::Container::Ptr container) override
     {
       for (QStringList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
@@ -95,7 +95,7 @@ namespace
       }
     }
 
-    virtual void Save(Playlist::Controller::Iterator::Ptr it)
+    void Save(Playlist::Controller::Iterator::Ptr it) override
     {
       const QStringList& newFiles = SaveFiles(it);
       Dbg("Saved %1% playlists", newFiles.size());

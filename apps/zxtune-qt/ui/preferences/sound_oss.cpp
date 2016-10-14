@@ -41,24 +41,18 @@ namespace
       Parameters::StringValue::Bind(*mixer, *Options, MIXER, MIXER_DEFAULT);
     }
 
-    virtual Parameters::Container::Ptr GetSettings() const
-    {
-      //TODO
-      return Parameters::Container::Ptr();
-    }
-
-    virtual String GetBackendId() const
+    String GetBackendId() const override
     {
       static const Char ID[] = {'o', 's', 's', '\0'};
       return ID;
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       return nameGroup->title();
     }
 
-    virtual void DeviceSelected()
+    void DeviceSelected() override
     {
       QString devFile = device->text();
       if (OpenFileDialog(UI::OssSettingsWidget::tr("Select device"), devFile))
@@ -67,7 +61,7 @@ namespace
       }
     }
 
-    virtual void MixerSelected()
+    void MixerSelected() override
     {
       QString mixFile = mixer->text();
       if (OpenFileDialog(UI::OssSettingsWidget::tr("Select mixer"), mixFile))
@@ -77,7 +71,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

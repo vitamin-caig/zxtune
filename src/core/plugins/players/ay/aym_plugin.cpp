@@ -29,7 +29,7 @@ namespace Module
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (const AYM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {

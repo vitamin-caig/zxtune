@@ -113,17 +113,17 @@ namespace FastTracker
     {
     }
 
-    virtual uint_t GetInitialTempo() const
+    uint_t GetInitialTempo() const override
     {
       return InitialTempo;
     }
 
-    virtual const OrderList& GetOrder() const
+    const OrderList& GetOrder() const override
     {
       return *Order;
     }
 
-    virtual const PatternsSet& GetPatterns() const
+    const PatternsSet& GetPatterns() const override
     {
       return *Patterns;
     }
@@ -148,48 +148,48 @@ namespace FastTracker
       Properties.SetFrequencyTable(TABLE_PROTRACKER3_ST);
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetInitialTempo(uint_t tempo)
+    void SetInitialTempo(uint_t tempo) override
     {
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, const Formats::Chiptune::FastTracker::Sample& sample)
+    void SetSample(uint_t index, const Formats::Chiptune::FastTracker::Sample& sample) override
     {
       Data->Samples.Add(index, Sample(sample));
     }
 
-    virtual void SetOrnament(uint_t index, const Formats::Chiptune::FastTracker::Ornament& ornament)
+    void SetOrnament(uint_t index, const Formats::Chiptune::FastTracker::Ornament& ornament) override
     {
       Data->Ornaments.Add(index, Ornament(ornament));
     }
 
-    virtual void SetPositions(const std::vector<Formats::Chiptune::FastTracker::PositionEntry>& positions, uint_t loop)
+    void SetPositions(const std::vector<Formats::Chiptune::FastTracker::PositionEntry>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       Patterns.GetChannel().SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       MutableCell& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
@@ -203,42 +203,42 @@ namespace FastTracker
       }
     }
 
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       Patterns.GetChannel().SetSample(sample);
     }
 
-    virtual void SetOrnament(uint_t ornament)
+    void SetOrnament(uint_t ornament) override
     {
       Patterns.GetChannel().SetOrnament(ornament);
     }
 
-    virtual void SetVolume(uint_t vol)
+    void SetVolume(uint_t vol) override
     {
       Patterns.GetChannel().SetVolume(vol);
     }
 
-    virtual void SetEnvelope(uint_t type, uint_t tone)
+    void SetEnvelope(uint_t type, uint_t tone) override
     {
       Patterns.GetChannel().AddCommand(ENVELOPE, int_t(type), int_t(tone));
     }
 
-    virtual void SetNoEnvelope()
+    void SetNoEnvelope() override
     {
       Patterns.GetChannel().AddCommand(ENVELOPE_OFF);
     }
 
-    virtual void SetNoise(uint_t val)
+    void SetNoise(uint_t val) override
     {
       Patterns.GetChannel().AddCommand(NOISE, val);
     }
 
-    virtual void SetSlide(uint_t step)
+    void SetSlide(uint_t step) override
     {
       Patterns.GetChannel().AddCommand(SLIDE, int_t(step));
     }
 
-    virtual void SetNoteSlide(uint_t step)
+    void SetNoteSlide(uint_t step) override
     {
       Patterns.GetChannel().AddCommand(SLIDE_NOTE, int_t(step));
     }
@@ -410,7 +410,7 @@ namespace FastTracker
       Reset();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       const Sample& stubSample = Data->Samples.Get(0);
       const Ornament& stubOrnament = Data->Ornaments.Get(0);
@@ -426,7 +426,7 @@ namespace FastTracker
       Transposition = 0;
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
     {
       if (0 == state.Quirk())
       {
@@ -599,17 +599,17 @@ namespace FastTracker
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
@@ -624,7 +624,7 @@ namespace FastTracker
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

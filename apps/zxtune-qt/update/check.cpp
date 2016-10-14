@@ -52,12 +52,12 @@ namespace
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return 1;
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       if (name == Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING)
       {
@@ -70,7 +70,7 @@ namespace
       }
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       if (!UserAgent.empty() && name == Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT)
       {
@@ -83,12 +83,12 @@ namespace
       }
     }
 
-    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
+    bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const override
     {
       return false;
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       visitor.SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 1);
       if (!UserAgent.empty())
@@ -114,7 +114,7 @@ namespace
       Progress.setValue(0);
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       if (Progress.wasCanceled())
       {
@@ -124,7 +124,7 @@ namespace
       Progress.setValue(current);
     }
 
-    virtual void OnProgress(uint_t current, const String& /*message*/)
+    void OnProgress(uint_t current, const String& /*message*/) override
     {
       OnProgress(current);
     }
@@ -251,7 +251,7 @@ namespace
       }
     }
 
-    virtual void OnDownload(Product::Update::Ptr update)
+    void OnDownload(Product::Update::Ptr update) override
     {
       const Product::Update::TypeTag type = Product::GetUpdateType(update->Platform(), update->Architecture(), update->Packaging());
       Dbg("Update %1%, type %2%", FromQString(update->Title()), type);
@@ -385,7 +385,7 @@ namespace
       QTimer::singleShot(CHECK_UPDATE_DELAY * 1000, this, SLOT(ExecuteBackground()));
     }
 
-    virtual void Execute()
+    void Execute() override
     {
       try
       {
@@ -410,7 +410,7 @@ namespace
       }
     }
 
-    virtual void ExecuteBackground()
+    void ExecuteBackground() override
     {
       try
       {

@@ -27,12 +27,12 @@ namespace Sound
       {
       }
 
-      virtual std::string Base() const
+      std::string Base() const override
       {
         return "openal";
       }
       
-      virtual std::vector<std::string> PosixAlternatives() const
+      std::vector<std::string> PosixAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {
@@ -42,7 +42,7 @@ namespace Sound
         return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
-      virtual std::vector<std::string> WindowsAlternatives() const
+      std::vector<std::string> WindowsAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {
@@ -63,13 +63,13 @@ namespace Sound
         Dbg("Library loaded");
       }
 
-      virtual ~DynamicApi()
+      ~DynamicApi() override
       {
         Dbg("Library unloaded");
       }
 
       
-      virtual ALCdevice* alcOpenDevice(const ALCchar* devicename)
+      ALCdevice* alcOpenDevice(const ALCchar* devicename) override
       {
         static const char NAME[] = "alcOpenDevice";
         typedef ALCdevice* ( *FunctionType)(const ALCchar*);
@@ -77,7 +77,7 @@ namespace Sound
         return func(devicename);
       }
       
-      virtual ALCboolean alcCloseDevice(ALCdevice* device)
+      ALCboolean alcCloseDevice(ALCdevice* device) override
       {
         static const char NAME[] = "alcCloseDevice";
         typedef ALCboolean ( *FunctionType)(ALCdevice*);
@@ -85,7 +85,7 @@ namespace Sound
         return func(device);
       }
       
-      virtual ALCcontext* alcCreateContext(ALCdevice* device, ALCint* attrlist)
+      ALCcontext* alcCreateContext(ALCdevice* device, ALCint* attrlist) override
       {
         static const char NAME[] = "alcCreateContext";
         typedef ALCcontext* ( *FunctionType)(ALCdevice*, ALCint*);
@@ -93,7 +93,7 @@ namespace Sound
         return func(device, attrlist);
       }
       
-      virtual ALCboolean alcMakeContextCurrent(ALCcontext* context)
+      ALCboolean alcMakeContextCurrent(ALCcontext* context) override
       {
         static const char NAME[] = "alcMakeContextCurrent";
         typedef ALCboolean ( *FunctionType)(ALCcontext*);
@@ -101,7 +101,7 @@ namespace Sound
         return func(context);
       }
       
-      virtual ALCcontext* alcGetCurrentContext()
+      ALCcontext* alcGetCurrentContext() override
       {
         static const char NAME[] = "alcGetCurrentContext";
         typedef ALCcontext* ( *FunctionType)();
@@ -109,7 +109,7 @@ namespace Sound
         return func();
       }
       
-      virtual void alcDestroyContext(ALCcontext* context)
+      void alcDestroyContext(ALCcontext* context) override
       {
         static const char NAME[] = "alcDestroyContext";
         typedef void ( *FunctionType)(ALCcontext*);
@@ -117,7 +117,7 @@ namespace Sound
         return func(context);
       }
       
-      virtual void alGenBuffers(ALsizei n, ALuint* buffers)
+      void alGenBuffers(ALsizei n, ALuint* buffers) override
       {
         static const char NAME[] = "alGenBuffers";
         typedef void ( *FunctionType)(ALsizei, ALuint*);
@@ -125,7 +125,7 @@ namespace Sound
         return func(n, buffers);
       }
       
-      virtual void alDeleteBuffers(ALsizei n, ALuint* buffers)
+      void alDeleteBuffers(ALsizei n, ALuint* buffers) override
       {
         static const char NAME[] = "alDeleteBuffers";
         typedef void ( *FunctionType)(ALsizei, ALuint*);
@@ -133,7 +133,7 @@ namespace Sound
         return func(n, buffers);
       }
       
-      virtual void alBufferData(ALuint buffer, ALenum format, const ALvoid* data, ALsizei size, ALsizei freq)
+      void alBufferData(ALuint buffer, ALenum format, const ALvoid* data, ALsizei size, ALsizei freq) override
       {
         static const char NAME[] = "alBufferData";
         typedef void ( *FunctionType)(ALuint, ALenum, const ALvoid*, ALsizei, ALsizei);
@@ -141,7 +141,7 @@ namespace Sound
         return func(buffer, format, data, size, freq);
       }
       
-      virtual void alGenSources(ALsizei n, ALuint* sources)
+      void alGenSources(ALsizei n, ALuint* sources) override
       {
         static const char NAME[] = "alGenSources";
         typedef void ( *FunctionType)(ALsizei, ALuint*);
@@ -149,7 +149,7 @@ namespace Sound
         return func(n, sources);
       }
       
-      virtual void alDeleteSources(ALsizei n, ALuint *sources)
+      void alDeleteSources(ALsizei n, ALuint *sources) override
       {
         static const char NAME[] = "alDeleteSources";
         typedef void ( *FunctionType)(ALsizei, ALuint *);
@@ -157,7 +157,7 @@ namespace Sound
         return func(n, sources);
       }
       
-      virtual void alSourceQueueBuffers(ALuint source, ALsizei n, ALuint* buffers)
+      void alSourceQueueBuffers(ALuint source, ALsizei n, ALuint* buffers) override
       {
         static const char NAME[] = "alSourceQueueBuffers";
         typedef void ( *FunctionType)(ALuint, ALsizei, ALuint*);
@@ -165,7 +165,7 @@ namespace Sound
         return func(source, n, buffers);
       }
       
-      virtual void alSourceUnqueueBuffers(ALuint source, ALsizei n, ALuint* buffers)
+      void alSourceUnqueueBuffers(ALuint source, ALsizei n, ALuint* buffers) override
       {
         static const char NAME[] = "alSourceUnqueueBuffers";
         typedef void ( *FunctionType)(ALuint, ALsizei, ALuint*);
@@ -173,7 +173,7 @@ namespace Sound
         return func(source, n, buffers);
       }
       
-      virtual void alSourcePlay(ALuint source)
+      void alSourcePlay(ALuint source) override
       {
         static const char NAME[] = "alSourcePlay";
         typedef void ( *FunctionType)(ALuint);
@@ -181,7 +181,7 @@ namespace Sound
         return func(source);
       }
       
-      virtual void alSourceStop(ALuint source)
+      void alSourceStop(ALuint source) override
       {
         static const char NAME[] = "alSourceStop";
         typedef void ( *FunctionType)(ALuint);
@@ -189,7 +189,7 @@ namespace Sound
         return func(source);
       }
       
-      virtual void alSourcePause(ALuint source)
+      void alSourcePause(ALuint source) override
       {
         static const char NAME[] = "alSourcePause";
         typedef void ( *FunctionType)(ALuint);
@@ -197,7 +197,7 @@ namespace Sound
         return func(source);
       }
       
-      virtual void alGetSourcei(ALuint source, ALenum pname, ALint* value)
+      void alGetSourcei(ALuint source, ALenum pname, ALint* value) override
       {
         static const char NAME[] = "alGetSourcei";
         typedef void ( *FunctionType)(ALuint, ALenum, ALint*);
@@ -205,7 +205,7 @@ namespace Sound
         return func(source, pname, value);
       }
       
-      virtual void alSourcef(ALuint source, ALenum pname, ALfloat value)
+      void alSourcef(ALuint source, ALenum pname, ALfloat value) override
       {
         static const char NAME[] = "alSourcef";
         typedef void ( *FunctionType)(ALuint, ALenum, ALfloat);
@@ -213,7 +213,7 @@ namespace Sound
         return func(source, pname, value);
       }
       
-      virtual void alGetSourcef(ALuint source, ALenum pname, ALfloat* value)
+      void alGetSourcef(ALuint source, ALenum pname, ALfloat* value) override
       {
         static const char NAME[] = "alGetSourcef";
         typedef void ( *FunctionType)(ALuint, ALenum, ALfloat*);
@@ -221,7 +221,7 @@ namespace Sound
         return func(source, pname, value);
       }
       
-      virtual const ALchar* alGetString(ALenum param)
+      const ALchar* alGetString(ALenum param) override
       {
         static const char NAME[] = "alGetString";
         typedef const ALchar* ( *FunctionType)(ALenum);
@@ -229,7 +229,7 @@ namespace Sound
         return func(param);
       }
       
-      virtual const ALCchar* alcGetString(ALCdevice* device, ALenum param)
+      const ALCchar* alcGetString(ALCdevice* device, ALenum param) override
       {
         static const char NAME[] = "alcGetString";
         typedef const ALCchar* ( *FunctionType)(ALCdevice*, ALenum);
@@ -237,7 +237,7 @@ namespace Sound
         return func(device, param);
       }
       
-      virtual ALenum alGetError(void)
+      ALenum alGetError(void) override
       {
         static const char NAME[] = "alGetError";
         typedef ALenum ( *FunctionType)();

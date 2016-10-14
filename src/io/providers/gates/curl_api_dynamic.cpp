@@ -27,12 +27,12 @@ namespace IO
       {
       }
 
-      virtual std::string Base() const
+      std::string Base() const override
       {
         return "curl";
       }
       
-      virtual std::vector<std::string> PosixAlternatives() const
+      std::vector<std::string> PosixAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {
@@ -42,7 +42,7 @@ namespace IO
         return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
-      virtual std::vector<std::string> WindowsAlternatives() const
+      std::vector<std::string> WindowsAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {
@@ -69,7 +69,7 @@ namespace IO
       }
 
       
-      virtual char* curl_version()
+      char* curl_version() override
       {
         static const char NAME[] = "curl_version";
         typedef char* ( *FunctionType)();
@@ -77,7 +77,7 @@ namespace IO
         return func();
       }
       
-      virtual CURL *curl_easy_init()
+      CURL *curl_easy_init() override
       {
         static const char NAME[] = "curl_easy_init";
         typedef CURL *( *FunctionType)();
@@ -85,7 +85,7 @@ namespace IO
         return func();
       }
       
-      virtual void curl_easy_cleanup(CURL *curl)
+      void curl_easy_cleanup(CURL *curl) override
       {
         static const char NAME[] = "curl_easy_cleanup";
         typedef void ( *FunctionType)(CURL *);
@@ -93,7 +93,7 @@ namespace IO
         return func(curl);
       }
       
-      virtual CURLcode curl_easy_perform(CURL *curl)
+      CURLcode curl_easy_perform(CURL *curl) override
       {
         static const char NAME[] = "curl_easy_perform";
         typedef CURLcode ( *FunctionType)(CURL *);
@@ -101,7 +101,7 @@ namespace IO
         return func(curl);
       }
       
-      virtual const char *curl_easy_strerror(CURLcode errornum)
+      const char *curl_easy_strerror(CURLcode errornum) override
       {
         static const char NAME[] = "curl_easy_strerror";
         typedef const char *( *FunctionType)(CURLcode);
@@ -109,7 +109,7 @@ namespace IO
         return func(errornum);
       }
       
-      virtual CURLcode curl_easy_setopt(CURL *curl, CURLoption option, int intParam)
+      CURLcode curl_easy_setopt(CURL *curl, CURLoption option, int intParam) override
       {
         static const char NAME[] = "curl_easy_setopt";
         typedef CURLcode ( *FunctionType)(CURL *, CURLoption, int);
@@ -117,7 +117,7 @@ namespace IO
         return func(curl, option, intParam);
       }
       
-      virtual CURLcode curl_easy_setopt(CURL *curl, CURLoption option, const char* strParam)
+      CURLcode curl_easy_setopt(CURL *curl, CURLoption option, const char* strParam) override
       {
         static const char NAME[] = "curl_easy_setopt";
         typedef CURLcode ( *FunctionType)(CURL *, CURLoption, const char*);
@@ -125,7 +125,7 @@ namespace IO
         return func(curl, option, strParam);
       }
       
-      virtual CURLcode curl_easy_setopt(CURL *curl, CURLoption option, void* opaqueParam)
+      CURLcode curl_easy_setopt(CURL *curl, CURLoption option, void* opaqueParam) override
       {
         static const char NAME[] = "curl_easy_setopt";
         typedef CURLcode ( *FunctionType)(CURL *, CURLoption, void*);
@@ -133,7 +133,7 @@ namespace IO
         return func(curl, option, opaqueParam);
       }
       
-      virtual CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, void* opaqueResult)
+      CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, void* opaqueResult) override
       {
         static const char NAME[] = "curl_easy_getinfo";
         typedef CURLcode ( *FunctionType)(CURL *, CURLINFO, void*);

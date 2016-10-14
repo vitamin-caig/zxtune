@@ -106,17 +106,17 @@ namespace ProSoundMaker
     {
     }
 
-    virtual uint_t GetInitialTempo() const
+    uint_t GetInitialTempo() const override
     {
       return InitialTempo;
     }
 
-    virtual const OrderList& GetOrder() const
+    const OrderList& GetOrder() const override
     {
       return *Order;
     }
 
-    virtual const PatternsSet& GetPatterns() const
+    const PatternsSet& GetPatterns() const override
     {
       return *Patterns;
     }
@@ -141,69 +141,69 @@ namespace ProSoundMaker
       Properties.SetFrequencyTable(TABLE_PROSOUNDMAKER);
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetSample(uint_t index, const Formats::Chiptune::ProSoundMaker::Sample& sample)
+    void SetSample(uint_t index, const Formats::Chiptune::ProSoundMaker::Sample& sample) override
     {
       Data->Samples.Add(index, Sample(sample));
     }
 
-    virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProSoundMaker::Ornament& ornament)
+    void SetOrnament(uint_t index, const Formats::Chiptune::ProSoundMaker::Ornament& ornament) override
     {
       Data->Ornaments.Add(index, Ornament(ornament));
     }
 
-    virtual void SetPositions(const std::vector<Formats::Chiptune::ProSoundMaker::PositionEntry>& positions, uint_t loop)
+    void SetPositions(const std::vector<Formats::Chiptune::ProSoundMaker::PositionEntry>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       Patterns.GetChannel().SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       Patterns.GetChannel().SetEnabled(true);
       Patterns.GetChannel().SetNote(note);
     }
 
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       Patterns.GetChannel().SetSample(sample);
     }
 
-    virtual void SetOrnament(uint_t ornament)
+    void SetOrnament(uint_t ornament) override
     {
       Patterns.GetChannel().SetOrnament(ornament);
     }
 
-    virtual void SetVolume(uint_t volume)
+    void SetVolume(uint_t volume) override
     {
       Patterns.GetChannel().SetVolume(volume);
     }
 
-    virtual void DisableOrnament()
+    void DisableOrnament() override
     {
       Patterns.GetChannel().AddCommand(NOORNAMENT);
     }
 
-    virtual void SetEnvelopeType(uint_t type)
+    void SetEnvelopeType(uint_t type) override
     {
       MutableCell& channel = Patterns.GetChannel();
       if (Command* cmd = channel.FindCommand(ENVELOPE))
@@ -216,7 +216,7 @@ namespace ProSoundMaker
       }
     }
 
-    virtual void SetEnvelopeTone(uint_t tone)
+    void SetEnvelopeTone(uint_t tone) override
     {
       MutableCell& channel = Patterns.GetChannel();
       if (Command* cmd = channel.FindCommand(ENVELOPE))
@@ -229,7 +229,7 @@ namespace ProSoundMaker
       }
     }
 
-    virtual void SetEnvelopeNote(uint_t note)
+    void SetEnvelopeNote(uint_t note) override
     {
       MutableCell& channel = Patterns.GetChannel();
       if (Command* cmd = channel.FindCommand(ENVELOPE))
@@ -312,7 +312,7 @@ namespace ProSoundMaker
       Reset();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
@@ -323,7 +323,7 @@ namespace ProSoundMaker
       }
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
     {
       if (0 == state.Quirk())
       {
@@ -539,17 +539,17 @@ namespace ProSoundMaker
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
@@ -564,7 +564,7 @@ namespace ProSoundMaker
   class Factory : public AYM::Factory
   {
   public:
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

@@ -77,7 +77,7 @@ namespace
     {
     }
 
-    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
     {
       if (Pass(name))
       {
@@ -85,7 +85,7 @@ namespace
       }
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
     {
       if (Pass(name))
       {
@@ -93,7 +93,7 @@ namespace
       }
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
     {
       if (Pass(name))
       {

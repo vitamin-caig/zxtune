@@ -160,23 +160,23 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
-      virtual void SetOrnament(uint_t /*index*/, std::size_t /*loop*/, const std::vector<int_t>& /*ornament*/) {}
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) override {}
+      void SetOrnament(uint_t /*index*/, std::size_t /*loop*/, const std::vector<int_t>& /*ornament*/) override {}
+      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
     };
 
     class StatisticCollectionBuilder : public Builder
@@ -190,60 +190,60 @@ namespace Chiptune
       {
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
       }
 
-      virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data)
+      void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data) override
       {
         return Delegate.SetSample(index, loop, data);
       }
 
-      virtual void SetOrnament(uint_t index, std::size_t loop, const std::vector<int_t>& ornament)
+      void SetOrnament(uint_t index, std::size_t loop, const std::vector<int_t>& ornament) override
       {
         return Delegate.SetOrnament(index, loop, ornament);
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         return Delegate.StartPattern(index);
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         return Delegate.StartChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         return Delegate.SetRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         return Delegate.SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
-      virtual void SetOrnament(uint_t ornament)
+      void SetOrnament(uint_t ornament) override
       {
         UsedOrnaments.Insert(ornament);
         return Delegate.SetOrnament(ornament);
@@ -538,22 +538,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::PRODIGITRACKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData) && Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

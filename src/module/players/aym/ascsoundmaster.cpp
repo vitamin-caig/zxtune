@@ -133,17 +133,17 @@ namespace ASCSoundMaster
     {
     }
 
-    virtual uint_t GetInitialTempo() const
+    uint_t GetInitialTempo() const override
     {
       return InitialTempo;
     }
 
-    virtual const OrderList& GetOrder() const
+    const OrderList& GetOrder() const override
     {
       return *Order;
     }
 
-    virtual const PatternsSet& GetPatterns() const
+    const PatternsSet& GetPatterns() const override
     {
       return *Patterns;
     }
@@ -168,48 +168,48 @@ namespace ASCSoundMaster
       Properties.SetFrequencyTable(TABLE_ASM);
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetInitialTempo(uint_t tempo)
+    void SetInitialTempo(uint_t tempo) override
     {
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, const Formats::Chiptune::ASCSoundMaster::Sample& sample)
+    void SetSample(uint_t index, const Formats::Chiptune::ASCSoundMaster::Sample& sample) override
     {
       Data->Samples.Add(index, Sample(sample));
     }
 
-    virtual void SetOrnament(uint_t index, const Formats::Chiptune::ASCSoundMaster::Ornament& ornament)
+    void SetOrnament(uint_t index, const Formats::Chiptune::ASCSoundMaster::Ornament& ornament) override
     {
       Data->Ornaments.Add(index, Ornament(ornament));
     }
 
-    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual void StartChannel(uint_t index)
+    void StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       Patterns.GetChannel().SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       if (!Patterns.GetChannel().FindCommand(BREAK_SAMPLE))
       {
@@ -228,22 +228,22 @@ namespace ASCSoundMaster
       }
     }
 
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       Patterns.GetChannel().SetSample(sample);
     }
 
-    virtual void SetOrnament(uint_t ornament)
+    void SetOrnament(uint_t ornament) override
     {
       Patterns.GetChannel().SetOrnament(ornament);
     }
 
-    virtual void SetVolume(uint_t vol)
+    void SetVolume(uint_t vol) override
     {
       Patterns.GetChannel().SetVolume(vol);
     }
 
-    virtual void SetEnvelopeType(uint_t type)
+    void SetEnvelopeType(uint_t type) override
     {
       if (Command* cmd = Patterns.GetChannel().FindCommand(ENVELOPE))
       {
@@ -255,7 +255,7 @@ namespace ASCSoundMaster
       }
     }
 
-    virtual void SetEnvelopeTone(uint_t tone)
+    void SetEnvelopeTone(uint_t tone) override
     {
       if (Command* cmd = Patterns.GetChannel().FindCommand(ENVELOPE))
       {
@@ -268,47 +268,47 @@ namespace ASCSoundMaster
       }
     }
 
-    virtual void SetEnvelope()
+    void SetEnvelope() override
     {
       Patterns.GetChannel().AddCommand(ENVELOPE_ON);
     }
 
-    virtual void SetNoEnvelope()
+    void SetNoEnvelope() override
     {
       Patterns.GetChannel().AddCommand(ENVELOPE_OFF);
     }
 
-    virtual void SetNoise(uint_t val)
+    void SetNoise(uint_t val) override
     {
       Patterns.GetChannel().AddCommand(NOISE, val);
     }
 
-    virtual void SetContinueSample()
+    void SetContinueSample() override
     {
       Patterns.GetChannel().AddCommand(CONT_SAMPLE);
     }
 
-    virtual void SetContinueOrnament()
+    void SetContinueOrnament() override
     {
       Patterns.GetChannel().AddCommand(CONT_ORNAMENT);
     }
 
-    virtual void SetGlissade(int_t val)
+    void SetGlissade(int_t val) override
     {
       Patterns.GetChannel().AddCommand(GLISS, val);
     }
 
-    virtual void SetSlide(int_t steps, bool useToneSliding)
+    void SetSlide(int_t steps, bool useToneSliding) override
     {
       Patterns.GetChannel().AddCommand(SLIDE, steps, useToneSliding);
     }
 
-    virtual void SetVolumeSlide(uint_t period, int_t delta)
+    void SetVolumeSlide(uint_t period, int_t delta) override
     {
       Patterns.GetChannel().AddCommand(AMPLITUDE_SLIDE, period, delta);
     }
 
-    virtual void SetBreakSample()
+    void SetBreakSample() override
     {
       Patterns.GetChannel().AddCommand(BREAK_SAMPLE);
     }
@@ -378,12 +378,12 @@ namespace ASCSoundMaster
     {
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
     {
       if (0 == state.Quirk())
       {
@@ -652,17 +652,17 @@ namespace ASCSoundMaster
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
@@ -682,7 +682,7 @@ namespace ASCSoundMaster
     {
     }
 
-    virtual AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

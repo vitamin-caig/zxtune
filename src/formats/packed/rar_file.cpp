@@ -120,7 +120,7 @@ namespace Packed
     class StoredFile : public CompressedFile
     {
     public:
-      virtual Binary::Container::Ptr Decompress(const Container& container) const
+      Binary::Container::Ptr Decompress(const Container& container) const override
       {
         const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
         const std::size_t offset = fromLE(header.Size);
@@ -150,7 +150,7 @@ namespace Packed
         Decoder.Init();
       }
 
-      virtual Binary::Container::Ptr Decompress(const Container& container) const
+      Binary::Container::Ptr Decompress(const Container& container) const override
       {
         const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
         assert(0x30 != header.Method);
@@ -201,7 +201,7 @@ namespace Packed
       {
       }
 
-      virtual Binary::Container::Ptr Decompress(const Container& container) const
+      Binary::Container::Ptr Decompress(const Container& container) const override
       {
         const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
         if (header.IsStored())
@@ -276,17 +276,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::RAR_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       const Rar::Container container(rawData);
       if (!container.FastCheck())

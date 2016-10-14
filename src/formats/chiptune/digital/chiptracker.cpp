@@ -152,26 +152,26 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) override {}
+      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
 
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
 
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetSlide(int_t /*step*/) {}
-      virtual void SetSampleOffset(uint_t /*offset*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetSlide(int_t /*step*/) override {}
+      void SetSampleOffset(uint_t /*offset*/) override {}
     };
 
     class StatisticCollectionBuilder : public Builder
@@ -184,60 +184,60 @@ namespace Chiptune
       {
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
       }
 
-      virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data)
+      void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data) override
       {
         return Delegate.SetSample(index, loop, data);
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         return Delegate.StartPattern(index);
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         return Delegate.StartChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         return Delegate.SetRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         return Delegate.SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
-      virtual void SetSlide(int_t step)
+      void SetSlide(int_t step) override
       {
         return Delegate.SetSlide(step);
       }
 
-      virtual void SetSampleOffset(uint_t offset)
+      void SetSampleOffset(uint_t offset) override
       {
         return Delegate.SetSampleOffset(offset);
       }
@@ -477,22 +477,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::CHIPTRACKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData) && Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

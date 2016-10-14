@@ -31,20 +31,20 @@ namespace
     {
     }
 
-    virtual Parameters::Container::Ptr CreateInitialAdjustedParameters() const
+    Parameters::Container::Ptr CreateInitialAdjustedParameters() const override
     {
       const Parameters::Container::Ptr res = Parameters::Container::Create();
       Params.Process(*res);
       return res;
     }
 
-    virtual void ProcessItem(Playlist::Item::Data::Ptr item)
+    void ProcessItem(Playlist::Item::Data::Ptr item) override
     {
       assert(!Item);
       Item = item;
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return 0;
     }
@@ -70,83 +70,83 @@ namespace
     }
 
     //common
-    virtual Module::Holder::Ptr GetModule() const
+    Module::Holder::Ptr GetModule() const override
     {
       return Module::Holder::Ptr();
     }
 
-    virtual Binary::Data::Ptr GetModuleData() const
+    Binary::Data::Ptr GetModuleData() const override
     {
       return Binary::Data::Ptr();
     }
     
-    virtual Parameters::Container::Ptr GetAdjustedParameters() const
+    Parameters::Container::Ptr GetAdjustedParameters() const override
     {
       return Params;
     }
 
-    virtual Playlist::Item::Capabilities GetCapabilities() const
+    Playlist::Item::Capabilities GetCapabilities() const override
     {
       return Playlist::Item::Capabilities(0);
     }
 
     //playlist-related
-    virtual Error GetState() const
+    Error GetState() const override
     {
       return State;
     }
 
-    virtual String GetFullPath() const
+    String GetFullPath() const override
     {
       return Path;
     }
 
-    virtual String GetFilePath() const
+    String GetFilePath() const override
     {
       return Path;
     }
 
-    virtual String GetType() const
+    String GetType() const override
     {
       return String();
     }
 
-    virtual String GetDisplayName() const
+    String GetDisplayName() const override
     {
       return Path;
     }
 
-    virtual Time::MillisecondsDuration GetDuration() const
+    Time::MillisecondsDuration GetDuration() const override
     {
       return Time::MillisecondsDuration();
     }
 
-    virtual String GetAuthor() const
+    String GetAuthor() const override
     {
       return String();
     }
 
-    virtual String GetTitle() const
+    String GetTitle() const override
     {
       return String();
     }
     
-    virtual String GetComment() const
+    String GetComment() const override
     {
       return String();
     }
 
-    virtual uint32_t GetChecksum() const
+    uint32_t GetChecksum() const override
     {
       return 0;
     }
 
-    virtual uint32_t GetCoreChecksum() const
+    uint32_t GetCoreChecksum() const override
     {
       return 0;
     }
 
-    virtual std::size_t GetSize() const
+    std::size_t GetSize() const override
     {
       return 0;
     }
@@ -208,96 +208,96 @@ namespace
     }
 
     //common
-    virtual Module::Holder::Ptr GetModule() const
+    Module::Holder::Ptr GetModule() const override
     {
       AcquireDelegate();
       return Delegate->GetModule();
     }
     
-    virtual Binary::Data::Ptr GetModuleData() const
+    Binary::Data::Ptr GetModuleData() const override
     {
       AcquireDelegate();
       return Delegate->GetModuleData();
     }
 
-    virtual Parameters::Container::Ptr GetAdjustedParameters() const
+    Parameters::Container::Ptr GetAdjustedParameters() const override
     {
       return Provider.get() ? Provider->GetParameters() : Delegate->GetAdjustedParameters();
     }
 
-    virtual Playlist::Item::Capabilities GetCapabilities() const
+    Playlist::Item::Capabilities GetCapabilities() const override
     {
       AcquireDelegate();
       return Delegate->GetCapabilities();
     }
 
     //playlist-related
-    virtual Error GetState() const
+    Error GetState() const override
     {
       AcquireDelegate();
       return Delegate->GetState();
     }
 
-    virtual String GetFullPath() const
+    String GetFullPath() const override
     {
       return Provider.get() ? Provider->GetPath() : Delegate->GetFullPath();
     }
 
-    virtual String GetFilePath() const
+    String GetFilePath() const override
     {
       AcquireDelegate();
       return Delegate->GetFilePath();
     }
 
-    virtual String GetType() const
+    String GetType() const override
     {
       AcquireDelegate();
       return Delegate->GetType();
     }
 
-    virtual String GetDisplayName() const
+    String GetDisplayName() const override
     {
       AcquireDelegate();
       return Delegate->GetDisplayName();
     }
 
-    virtual Time::MillisecondsDuration GetDuration() const
+    Time::MillisecondsDuration GetDuration() const override
     {
       AcquireDelegate();
       return Delegate->GetDuration();
     }
 
-    virtual String GetAuthor() const
+    String GetAuthor() const override
     {
       AcquireDelegate();
       return Delegate->GetAuthor();
     }
 
-    virtual String GetTitle() const
+    String GetTitle() const override
     {
       AcquireDelegate();
       return Delegate->GetTitle();
     }
 
-    virtual String GetComment() const
+    String GetComment() const override
     {
       AcquireDelegate();
       return Delegate->GetComment();
     }
 
-    virtual uint32_t GetChecksum() const
+    uint32_t GetChecksum() const override
     {
       AcquireDelegate();
       return Delegate->GetChecksum();
     }
 
-    virtual uint32_t GetCoreChecksum() const
+    uint32_t GetCoreChecksum() const override
     {
       AcquireDelegate();
       return Delegate->GetCoreChecksum();
     }
 
-    virtual std::size_t GetSize() const
+    std::size_t GetSize() const override
     {
       AcquireDelegate();
       return Delegate->GetSize();
@@ -328,19 +328,19 @@ namespace
     {
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Current != Items->end();
     }
 
-    virtual Playlist::Item::Data::Ptr Get() const
+    Playlist::Item::Data::Ptr Get() const override
     {
       Require(Current != Items->end());
       DelayLoadItemProvider::Ptr provider = MakePtr<DelayLoadItemProvider>(Provider, Properties, *Current);
       return MakePtr<DelayLoadItemData>(std::move(provider));
     }
 
-    virtual void Next()
+    void Next() override
     {
       Require(Current != Items->end());
       ++Current;
@@ -364,17 +364,17 @@ namespace
     {
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual unsigned GetItemsCount() const
+    unsigned GetItemsCount() const override
     {
       return static_cast<unsigned>(Items->size());
     }
 
-    virtual Playlist::Item::Collection::Ptr GetItems() const
+    Playlist::Item::Collection::Ptr GetItems() const override
     {
       return MakePtr<DelayLoadItemsIterator>(Provider, Properties, Items);
     }

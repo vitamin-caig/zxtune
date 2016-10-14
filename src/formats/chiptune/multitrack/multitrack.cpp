@@ -27,28 +27,28 @@ namespace Chiptune
     }
 
     //Binary::Container
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return Delegate->Start();
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return Delegate->Size();
     }
 
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
       return Delegate->GetSubcontainer(offset, size);
     }
 
     //Formats::Chiptune::Container
-    virtual uint_t Checksum() const
+    uint_t Checksum() const override
     {
       return Crc32(static_cast<const uint8_t*>(Delegate->Start()), Delegate->Size());
     }
 
-    virtual uint_t FixedChecksum() const
+    uint_t FixedChecksum() const override
     {
       return Delegate->FixedChecksum();
     }
@@ -65,22 +65,22 @@ namespace Chiptune
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Delegate->GetFormat();
     }
     
-    virtual bool Check(const Binary::Container& rawData) const
+    bool Check(const Binary::Container& rawData) const override
     {
       return Delegate->Check(rawData);
     }
 
-    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+    Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (const Formats::Multitrack::Container::Ptr data = Delegate->Decode(rawData))
       {

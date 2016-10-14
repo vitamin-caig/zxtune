@@ -168,7 +168,7 @@ namespace Packed
         assert(STORE == Header.Method);
       }
 
-      virtual std::unique_ptr<Dump> GetDecodedData()
+      std::unique_ptr<Dump> GetDecodedData() override
       {
         const uint_t packedSize = fromLE(Header.PackedSize);
         const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
@@ -329,7 +329,7 @@ namespace Packed
         assert(IMPLODE == Header.Method);
       }
 
-      virtual std::unique_ptr<Dump> GetDecodedData()
+      std::unique_ptr<Dump> GetDecodedData() override
       {
         const std::size_t dataSize = GetSourceFileSize(Header);
         const bool isBigFile = dataSize >= 0x1600;
@@ -485,7 +485,7 @@ namespace Packed
         assert(SHRINK == Header.Method);
       }
 
-      virtual std::unique_ptr<Dump> GetDecodedData()
+      std::unique_ptr<Dump> GetDecodedData() override
       {
         try
         {
@@ -611,7 +611,7 @@ namespace Packed
       {
       }
 
-      std::unique_ptr<Dump> GetDecodedData()
+      std::unique_ptr<Dump> GetDecodedData() override
       {
         if (!IsValid)
         {
@@ -651,17 +651,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::ZXZIP_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Depacker;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Depacker->Match(rawData))
       {

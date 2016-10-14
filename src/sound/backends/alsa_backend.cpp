@@ -640,7 +640,7 @@ namespace Alsa
     {
     }
 
-    virtual Gain GetVolume() const
+    Gain GetVolume() const override
     {
       Dbg("GetVolume");
       if (const Mixer::Ptr obj = Mix.lock())
@@ -651,7 +651,7 @@ namespace Alsa
       return Gain();
     }
 
-    virtual void SetVolume(const Gain& volume)
+    void SetVolume(const Gain& volume) override
     {
       Dbg("SetVolume");
       if (const Mixer::Ptr obj = Mix.lock())
@@ -710,19 +710,19 @@ namespace Alsa
     {
     }
 
-    virtual ~BackendWorker()
+    ~BackendWorker() override
     {
       assert(!Objects.Dev || !"AlsaBackend was destroyed without stopping");
     }
 
-    virtual void Startup()
+    void Startup() override
     {
       Dbg("Starting");
       Objects = OpenDevices();
       Dbg("Started");
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Dbg("Stopping");
       Objects.Vol.reset();
@@ -731,26 +731,26 @@ namespace Alsa
       Dbg("Stopped");
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Objects.Dev->Pause();
     }
 
-    virtual void Resume()
+    void Resume() override
     {
       Objects.Dev->Resume();
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    void FrameStart(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    void FrameFinish(Chunk::Ptr buffer) override
     {
       Objects.Dev->Write(*buffer);
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return CreateVolumeControlDelegate(Objects.Vol);
     }
@@ -789,7 +789,7 @@ namespace Alsa
     {
     }
     
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       return MakePtr<BackendWorker>(AlsaApi, params);
     }
@@ -937,22 +937,22 @@ namespace Alsa
     {
     }
 
-    virtual String Id() const
+    String Id() const override
     {
       return IdValue;
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       return NameValue;
     }
 
-    virtual String CardName() const
+    String CardName() const override
     {
       return CardNameValue;
     }
 
-    virtual Strings::Array Mixers() const
+    Strings::Array Mixers() const override
     {
       try
       {
@@ -1006,17 +1006,17 @@ namespace Alsa
     {
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Current.get();
     }
 
-    virtual Device::Ptr Get() const
+    Device::Ptr Get() const override
     {
       return Current;
     }
 
-    virtual void Next()
+    void Next() override
     {
       Current = Device::Ptr();
       while (Cards.IsValid())

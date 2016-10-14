@@ -20,7 +20,7 @@ namespace Binary
   class MatchOnlyFormatBase : public Format
   {
   public:
-    virtual std::size_t NextMatchOffset(const Data& data) const
+    std::size_t NextMatchOffset(const Data& data) const override
     {
       return data.Size();
     }
@@ -36,7 +36,7 @@ namespace Binary
     {
     }
 
-    virtual bool Match(const Data& data) const
+    bool Match(const Data& data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -75,7 +75,7 @@ namespace Binary
     {
     }
 
-    virtual bool Match(const Data& data) const
+    bool Match(const Data& data) const override
     {
       if (data.Size() < MinSize)
       {

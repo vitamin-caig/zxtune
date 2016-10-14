@@ -60,7 +60,7 @@ namespace
     {
     }
 
-    virtual void OnResource(const String& name)
+    void OnResource(const String& name) override
     {
       L10n::Translation trans;
       if (ParseFilename(name, trans))

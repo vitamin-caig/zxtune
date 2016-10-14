@@ -33,7 +33,7 @@ namespace Async
     {
     }
 
-    virtual void Add(T val)
+    void Add(T val) override
     {
       std::unique_lock<std::mutex> lock(Locker);
       CanPutDataEvent.wait(lock, [this] () {return CanPutData();});
@@ -44,7 +44,7 @@ namespace Async
       }
     }
 
-    virtual bool Get(T& res)
+    bool Get(T& res) override
     {
       std::unique_lock<std::mutex> lock(Locker);
       CanGetDataEvent.wait(lock, [this] () {return CanGetData();});
@@ -59,7 +59,7 @@ namespace Async
       return false;
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       const std::lock_guard<std::mutex> lock(Locker);
       Container.clear();
@@ -68,7 +68,7 @@ namespace Async
       CanPutDataEvent.notify_all();
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       std::unique_lock<std::mutex> lock(Locker);
       CanPutDataEvent.wait(lock, [this] () {return Container.empty();});

@@ -40,7 +40,7 @@ namespace Async
     {
     }
 
-    virtual ~ThreadActivity()
+    ~ThreadActivity() override
     {
       assert(!IsExecuted() || !"Should call Activity::Wait before stop");
     }
@@ -57,12 +57,12 @@ namespace Async
       State.Set(STARTED);
     }
 
-    virtual bool IsExecuted() const
+    bool IsExecuted() const override
     {
       return State.Check(STARTED);
     }
 
-    virtual void Wait()
+    void Wait() override
     {
       if (Thread.joinable())
       {
@@ -98,12 +98,12 @@ namespace Async
   class StubActivity : public Activity
   {
   public:
-    virtual bool IsExecuted() const
+    bool IsExecuted() const override
     {
       return false;
     }
 
-    virtual void Wait()
+    void Wait() override
     {
     }
   };

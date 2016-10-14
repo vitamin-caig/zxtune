@@ -106,12 +106,12 @@ namespace AYM
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Params->Version();
     }
 
-    virtual uint64_t ClockFreq() const
+    uint64_t ClockFreq() const override
     {
       Parameters::IntType val = Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val) &&
@@ -123,26 +123,26 @@ namespace AYM
       return val;
     }
 
-    virtual uint_t SoundFreq() const
+    uint_t SoundFreq() const override
     {
       return SoundParams->SoundFreq();
     }
 
-    virtual Devices::AYM::ChipType Type() const
+    Devices::AYM::ChipType Type() const override
     {
       Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::TYPE_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::AYM::TYPE, intVal);
       return static_cast<Devices::AYM::ChipType>(intVal);
     }
 
-    virtual Devices::AYM::InterpolationType Interpolation() const
+    Devices::AYM::InterpolationType Interpolation() const override
     {
       Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::INTERPOLATION_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, intVal);
       return static_cast<Devices::AYM::InterpolationType>(intVal);
     }
 
-    virtual uint_t DutyCycleValue() const
+    uint_t DutyCycleValue() const override
     {
       Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT;
       const bool found = Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intVal);
@@ -155,7 +155,7 @@ namespace AYM
       return static_cast<uint_t>(intVal);
     }
 
-    virtual uint_t DutyCycleMask() const
+    uint_t DutyCycleMask() const override
     {
       Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal))
@@ -170,7 +170,7 @@ namespace AYM
       return 0;
     }
 
-    virtual Devices::AYM::LayoutType Layout() const
+    Devices::AYM::LayoutType Layout() const override
     {
       Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
@@ -203,12 +203,12 @@ namespace AYM
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Params->Version();
     }
 
-    virtual void FreqTable(FrequencyTable& table) const
+    void FreqTable(FrequencyTable& table) const override
     {
       Parameters::StringType newName;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newName))
@@ -244,12 +244,12 @@ namespace AYM
       Require(Index <= 1);
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Params->Version();
     }
 
-    virtual void FreqTable(FrequencyTable& table) const
+    void FreqTable(FrequencyTable& table) const override
     {
       Parameters::StringType newName;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newName))

@@ -86,7 +86,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const HolderAndData& data)
+    void ApplyData(const HolderAndData& data) override
     {
       try
       {
@@ -103,7 +103,7 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
     }
   private:
@@ -158,7 +158,7 @@ namespace
     {
     }
     
-    virtual void ApplyData(const HolderAndData& data)
+    void ApplyData(const HolderAndData& data) override
     {
       const Module::Holder::Ptr holder = data.Holder;
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
@@ -178,7 +178,7 @@ namespace
       }
     }
     
-    virtual void Flush()
+    void Flush() override
     {
       Saver->Flush();
     }
@@ -206,12 +206,12 @@ namespace
       Pipe = Async::DataReceiver<HolderAndData>::Create(1, 1000, target);
     }
 
-    virtual ~Convertor()
+    ~Convertor() override
     {
       Pipe->Flush();
     }
 
-    virtual void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder)
+    void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder) override
     {
       HolderAndData pair;
       pair.Holder = holder;
@@ -225,28 +225,28 @@ namespace
   class FinishPlaybackCallback : public Sound::BackendCallback
   {
   public:
-    virtual void OnStart()
+    void OnStart() override
     {
       Event.Reset();
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
+    void OnFrame(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void OnStop()
+    void OnStop() override
     {
     }
 
-    virtual void OnPause()
+    void OnPause() override
     {
     }
 
-    virtual void OnResume()
+    void OnResume() override
     {
     }
 
-    virtual void OnFinish()
+    void OnFinish() override
     {
       Event.Set(1);
     }
@@ -269,7 +269,7 @@ namespace
     {
     }
 
-    virtual void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder)
+    void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder) override
     {
       const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
@@ -314,7 +314,7 @@ namespace
     {
     }
 
-    virtual int Run(int argc, const char* argv[])
+    int Run(int argc, const char* argv[]) override
     {
       try
       {
@@ -412,7 +412,7 @@ namespace
       }
     }
 
-    virtual void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder)
+    void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder) override
     {
       const Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
       const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();

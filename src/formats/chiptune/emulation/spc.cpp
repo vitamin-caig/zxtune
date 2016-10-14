@@ -324,20 +324,20 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetGame(const String& /*game*/) {}
-      virtual void SetDumper(const String& /*dumper*/) {}
-      virtual void SetComment(const String& /*comment*/) {}
-      virtual void SetDumpDate(const String& /*date*/) {}
-      virtual void SetIntro(Time::Milliseconds /*duration*/) {}
-      virtual void SetLoop(Time::Milliseconds /*duration*/) {}
-      virtual void SetFade(Time::Milliseconds /*duration*/) {}
-      virtual void SetArtist(const String& /*artist*/) {}
+      void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/) override {}
+      void SetTitle(const String& /*title*/) override {}
+      void SetGame(const String& /*game*/) override {}
+      void SetDumper(const String& /*dumper*/) override {}
+      void SetComment(const String& /*comment*/) override {}
+      void SetDumpDate(const String& /*date*/) override {}
+      void SetIntro(Time::Milliseconds /*duration*/) override {}
+      void SetLoop(Time::Milliseconds /*duration*/) override {}
+      void SetFade(Time::Milliseconds /*duration*/) override {}
+      void SetArtist(const String& /*artist*/) override {}
       
-      virtual void SetRAM(const void* /*data*/, std::size_t /*size*/) {}
-      virtual void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) {}
-      virtual void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) {}
+      void SetRAM(const void* /*data*/, std::size_t /*size*/) override {}
+      void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) override {}
+      void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) override {}
     };
     
     //used nes_spc library doesn't support another versions
@@ -363,22 +363,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::SPC_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);

@@ -53,22 +53,22 @@ namespace Analysis
       Require(from != to);
     }
 
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return false;
     }
 
-    virtual String AsString() const
+    String AsString() const override
     {
       return JoinPath(Components, Separator);
     }
 
-    virtual Iterator::Ptr GetIterator() const
+    Iterator::Ptr GetIterator() const override
     {
       return CreateRangedObjectIteratorAdapter(Components.begin(), Components.end());
     }
 
-    virtual Ptr Append(const String& element) const
+    Ptr Append(const String& element) const override
     {
       const Strings::Array& newOne = SplitPath(element, Separator);
       Strings::Array result(Components.size() + newOne.size());
@@ -77,7 +77,7 @@ namespace Analysis
       return CreatePath(Separator, result.begin(), result.end());
     }
 
-    virtual Ptr Extract(const String& startPath) const
+    Ptr Extract(const String& startPath) const override
     {
       const Strings::Array& subSplitted = SplitPath(startPath, Separator);
       if (subSplitted.size() > Components.size())
@@ -105,27 +105,27 @@ namespace Analysis
     {
     }
 
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return true;
     }
 
-    virtual String AsString() const
+    String AsString() const override
     {
       return String();
     }
 
-    virtual Iterator::Ptr GetIterator() const
+    Iterator::Ptr GetIterator() const override
     {
       return Iterator::CreateStub();
     }
 
-    virtual Ptr Append(const String& element) const
+    Ptr Append(const String& element) const override
     {
       return ParsePath(element, Separator);
     }
 
-    virtual Ptr Extract(const String& startPath) const
+    Ptr Extract(const String& startPath) const override
     {
       return startPath.empty()
         ? MakePtr<EmptyPath>(Separator)

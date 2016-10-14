@@ -43,30 +43,30 @@ namespace Module
         FillCurrentData();
       }
 
-      virtual void Reset()
+      void Reset() override
       {
         Delegate->Reset();
         Render->Reset();
         FillCurrentData();
       }
 
-      virtual bool IsValid() const
+      bool IsValid() const override
       {
         return Delegate->IsValid();
       }
 
-      virtual void NextFrame(bool looped)
+      void NextFrame(bool looped) override
       {
         Delegate->NextFrame(looped);
         FillCurrentData();
       }
 
-      virtual TrackState::Ptr GetStateObserver() const
+      TrackState::Ptr GetStateObserver() const override
       {
         return State;
       }
 
-      void GetData(Devices::TFM::Registers& res) const
+      void GetData(Devices::TFM::Registers& res) const override
       {
         res.assign(CurrentData.begin(), CurrentData.end());
       }

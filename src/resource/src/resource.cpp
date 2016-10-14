@@ -41,17 +41,17 @@ namespace
     {
     }
 
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return RawData;
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return RawSize;
     }
 
-    virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
       std::unique_ptr<Dump> copy(new Dump(RawData + offset, RawData + std::min(RawSize, offset + size)));
       return Binary::CreateContainer(std::move(copy));
@@ -71,22 +71,22 @@ namespace
     {
     }
 
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return 0;
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return 0;
     }
 
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t /*offset*/, std::size_t /*size*/) const
+    Binary::Container::Ptr GetSubcontainer(std::size_t /*offset*/, std::size_t /*size*/) const override
     {
       return Binary::Container::Ptr();
     }
 
-    virtual void ExploreFiles(const Formats::Archived::Container::Walker& walker) const
+    void ExploreFiles(const Formats::Archived::Container::Walker& walker) const override
     {
       for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
       {
@@ -94,7 +94,7 @@ namespace
       }
     }
 
-    virtual Formats::Archived::File::Ptr FindFile(const String& name) const
+    Formats::Archived::File::Ptr FindFile(const String& name) const override
     {
       for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
       {
@@ -106,7 +106,7 @@ namespace
       return Formats::Archived::File::Ptr();
     }
 
-    virtual uint_t CountFiles() const
+    uint_t CountFiles() const override
     {
       uint_t res = 0;
       for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
@@ -231,7 +231,7 @@ namespace
       {
       }
 
-      virtual void OnFile(const Formats::Archived::File& file) const
+      void OnFile(const Formats::Archived::File& file) const override
       {
         return Delegate.OnResource(file.GetName());
       }

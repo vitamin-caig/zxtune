@@ -40,7 +40,7 @@ namespace Binary
     {
     }
 
-    virtual bool Match(const Data& data) const
+    bool Match(const Data& data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -51,7 +51,7 @@ namespace Binary
       return 0 == SearchBackward(typedDataLast);
     }
 
-    virtual std::size_t NextMatchOffset(const Data& data) const
+    std::size_t NextMatchOffset(const Data& data) const override
     {
       const std::size_t size = data.Size();
       if (size < MinSize)
@@ -78,7 +78,7 @@ namespace Binary
       return size;
     }
 
-    virtual std::size_t GetMinSize() const
+    std::size_t GetMinSize() const override
     {
       return MinSize;
     }
@@ -169,7 +169,7 @@ namespace Binary
     {
     }
 
-    virtual bool Match(const Data& data) const
+    bool Match(const Data& data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -181,7 +181,7 @@ namespace Binary
       return std::equal(patternStart, patternEnd, typedDataStart);
     }
 
-    virtual std::size_t NextMatchOffset(const Data& data) const
+    std::size_t NextMatchOffset(const Data& data) const override
     {
       const std::size_t size = data.Size();
       if (size < MinSize)
@@ -198,7 +198,7 @@ namespace Binary
         : size;
     }
 
-    virtual std::size_t GetMinSize() const
+    std::size_t GetMinSize() const override
     {
       return MinSize;
     }

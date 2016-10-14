@@ -31,54 +31,54 @@ namespace Formats
         {
         }
 
-        virtual MetaBuilder& GetMetaBuilder()
+        MetaBuilder& GetMetaBuilder() override
         {
           return Delegate.GetMetaBuilder();
         }
 
-        virtual void SetInitialTempo(uint_t tempo)
+        void SetInitialTempo(uint_t tempo) override
         {
           return Delegate.SetInitialTempo(tempo);
         }
 
-        virtual void SetSamplesFrequency(uint_t freq)
+        void SetSamplesFrequency(uint_t freq) override
         {
           return Delegate.SetSamplesFrequency(freq);
         }
 
-        virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data, bool is4Bit)
+        void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data, bool is4Bit) override
         {
           return Delegate.SetSample(index, loop, data, is4Bit);
         }
 
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+        void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
         {
           UsedPatterns.Assign(positions.begin(), positions.end());
           Require(!UsedPatterns.Empty());
           return Delegate.SetPositions(positions, loop);
         }
 
-        virtual PatternBuilder& StartPattern(uint_t index)
+        PatternBuilder& StartPattern(uint_t index) override
         {
           return Delegate.StartPattern(index);
         }
 
-        virtual void StartChannel(uint_t index)
+        void StartChannel(uint_t index) override
         {
           return Delegate.StartChannel(index);
         }
 
-        virtual void SetRest()
+        void SetRest() override
         {
           return Delegate.SetRest();
         }
 
-        virtual void SetNote(uint_t note)
+        void SetNote(uint_t note) override
         {
           return Delegate.SetNote(note);
         }
 
-        virtual void SetSample(uint_t sample)
+        void SetSample(uint_t sample) override
         {
           UsedSamples.Insert(sample);
           return Delegate.SetSample(sample);

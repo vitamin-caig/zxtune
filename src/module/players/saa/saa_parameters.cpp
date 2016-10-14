@@ -29,24 +29,24 @@ namespace SAA
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Params->Version();
     }
 
-    virtual uint64_t ClockFreq() const
+    uint64_t ClockFreq() const override
     {
       Parameters::IntType val = Parameters::ZXTune::Core::SAA::CLOCKRATE_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::SAA::CLOCKRATE, val);
       return val;
     }
 
-    virtual uint_t SoundFreq() const
+    uint_t SoundFreq() const override
     {
       return SoundParams->SoundFreq();
     }
 
-    virtual Devices::SAA::InterpolationType Interpolation() const
+    Devices::SAA::InterpolationType Interpolation() const override
     {
       Parameters::IntType intVal = Parameters::ZXTune::Core::SAA::INTERPOLATION_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::SAA::INTERPOLATION, intVal);

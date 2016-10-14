@@ -48,7 +48,7 @@ namespace TurboSound
       {
       }
 
-      virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+      void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
       {
         if (DoneIntegers.insert(name).second)
         {
@@ -56,7 +56,7 @@ namespace TurboSound
         }
       }
 
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+      void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
       {
         const StringsValuesMap::iterator it = Strings.find(name);
         if (it == Strings.end())
@@ -69,7 +69,7 @@ namespace TurboSound
         }
       }
 
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+      void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
       {
         if (DoneDatas.insert(name).second)
         {
@@ -98,17 +98,17 @@ namespace TurboSound
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return 1;
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       String val1, val2;
       const bool res1 = First->FindValue(name, val1);
@@ -125,12 +125,12 @@ namespace TurboSound
       return res1 || res2;
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       MergedStringsVisitor mergedVisitor(visitor);
       First->Process(mergedVisitor);
@@ -150,31 +150,31 @@ namespace TurboSound
       , Second(rh)
     {
     }
-    virtual uint_t PositionsCount() const
+    uint_t PositionsCount() const override
     {
       return First->PositionsCount();
     }
-    virtual uint_t LoopPosition() const
+    uint_t LoopPosition() const override
     {
       return First->LoopPosition();
     }
-    virtual uint_t PatternsCount() const
+    uint_t PatternsCount() const override
     {
       return First->PatternsCount() + Second->PatternsCount();
     }
-    virtual uint_t FramesCount() const
+    uint_t FramesCount() const override
     {
       return First->FramesCount();
     }
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       return First->LoopFrame();
     }
-    virtual uint_t ChannelsCount() const
+    uint_t ChannelsCount() const override
     {
       return First->ChannelsCount() + Second->ChannelsCount();
     }
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return std::min(First->Tempo(), Second->Tempo());
     }
@@ -191,42 +191,42 @@ namespace TurboSound
     {
     }
 
-    virtual uint_t Position() const
+    uint_t Position() const override
     {
       return First->Position();
     }
 
-    virtual uint_t Pattern() const
+    uint_t Pattern() const override
     {
       return First->Pattern();
     }
 
-    virtual uint_t PatternSize() const
+    uint_t PatternSize() const override
     {
       return First->PatternSize();
     }
 
-    virtual uint_t Line() const
+    uint_t Line() const override
     {
       return First->Line();
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return First->Tempo();
     }
 
-    virtual uint_t Quirk() const
+    uint_t Quirk() const override
     {
       return First->Quirk();
     }
 
-    virtual uint_t Frame() const
+    uint_t Frame() const override
     {
       return First->Frame();
     }
 
-    virtual uint_t Channels() const
+    uint_t Channels() const override
     {
       return First->Channels() + Second->Channels();
     }
@@ -245,29 +245,29 @@ namespace TurboSound
     {
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       First->Reset();
       Second->Reset();
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return First->IsValid() && Second->IsValid();
     }
 
-    virtual void NextFrame(bool looped)
+    void NextFrame(bool looped) override
     {
       First->NextFrame(looped);
       Second->NextFrame(true);
     }
 
-    virtual TrackState::Ptr GetStateObserver() const
+    TrackState::Ptr GetStateObserver() const override
     {
       return Observer;
     }
 
-    virtual Devices::TurboSound::Registers GetData() const
+    Devices::TurboSound::Registers GetData() const override
     {
       const Devices::TurboSound::Registers res = {{First->GetData(), Second->GetData()}};
       return res;
@@ -314,7 +314,7 @@ namespace TurboSound
     {
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Delegate->Reset();
       for (uint_t idx = 0; idx != Devices::TurboSound::CHIPS; ++idx)
@@ -324,22 +324,22 @@ namespace TurboSound
       }
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Delegate->IsValid();
     }
 
-    virtual void NextFrame(bool looped)
+    void NextFrame(bool looped) override
     {
       Delegate->NextFrame(looped);
     }
 
-    virtual TrackState::Ptr GetStateObserver() const
+    TrackState::Ptr GetStateObserver() const override
     {
       return State;
     }
 
-    virtual Devices::TurboSound::Registers GetData() const
+    Devices::TurboSound::Registers GetData() const override
     {
       return Delegate->IsValid()
         ? GetCurrentChunk()
@@ -392,17 +392,17 @@ namespace TurboSound
 #endif
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return Iterator->GetStateObserver();
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    Analyzer::Ptr GetAnalyzer() const override
     {
       return TurboSound::CreateAnalyzer(Device);
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       if (Iterator->IsValid())
       {
@@ -419,7 +419,7 @@ namespace TurboSound
       return Iterator->IsValid();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       Iterator->Reset();
@@ -429,7 +429,7 @@ namespace TurboSound
       Looped = false;
     }
 
-    virtual void SetPosition(uint_t frameNum)
+    void SetPosition(uint_t frameNum) override
     {
       const TrackState::Ptr state = Iterator->GetStateObserver();
       uint_t curFrame = state->Frame();
@@ -481,18 +481,18 @@ namespace TurboSound
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return MakePtr<MergedModuleInfo>(First->GetInformation(), Second->GetInformation());
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       const Parameters::Accessor::Ptr mixProps = MakePtr<MergedModuleProperties>(First->GetProperties(), Second->GetProperties());
       return Parameters::CreateMergedAccessor(Properties, mixProps);
     }
 
-    virtual DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams) const
+    DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams) const override
     {
       const AYM::DataIterator::Ptr first = First->CreateDataIterator(trackParams[0]);
       const AYM::DataIterator::Ptr second = Second->CreateDataIterator(trackParams[1]);
@@ -512,17 +512,17 @@ namespace TurboSound
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Tune->GetInformation();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Tune->GetProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return TurboSound::CreateRenderer(*Tune, params, target);
     }

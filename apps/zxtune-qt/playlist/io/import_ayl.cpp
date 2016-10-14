@@ -297,7 +297,7 @@ namespace
       return Offset;
     }
 
-    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
     {
       const String nameStr = FromStdString(name.FullPath());
       Dbg("  property %1%=%2%", nameStr, val);
@@ -321,7 +321,7 @@ namespace
       //ignore "Loop", "Length", "Time"
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
     {
       const String nameStr = FromStdString(name.FullPath());
       Dbg("  property %1%='%2%'", nameStr, val);
@@ -363,7 +363,7 @@ namespace
       //ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
     {
       //try to process as string
       Delegate.SetValue(name, Parameters::ConvertToString(val));

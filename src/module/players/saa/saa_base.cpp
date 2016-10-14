@@ -30,30 +30,30 @@ namespace Module
       FillCurrentData();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Delegate->Reset();
       Render->Reset();
       FillCurrentData();
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Delegate->IsValid();
     }
 
-    virtual void NextFrame(bool looped)
+    void NextFrame(bool looped) override
     {
       Delegate->NextFrame(looped);
       FillCurrentData();
     }
 
-    virtual TrackState::Ptr GetStateObserver() const
+    TrackState::Ptr GetStateObserver() const override
     {
       return State;
     }
 
-    virtual Devices::SAA::Registers GetData() const
+    Devices::SAA::Registers GetData() const override
     {
       return CurrentData;
     }
@@ -91,17 +91,17 @@ namespace Module
 #endif
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return Iterator->GetStateObserver();
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    Analyzer::Ptr GetAnalyzer() const override
     {
       return SAA::CreateAnalyzer(Device);
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       if (Iterator->IsValid())
       {
@@ -118,7 +118,7 @@ namespace Module
       return Iterator->IsValid();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       Iterator->Reset();
@@ -128,7 +128,7 @@ namespace Module
       Looped = false;
     }
 
-    virtual void SetPosition(uint_t frameNum)
+    void SetPosition(uint_t frameNum) override
     {
       const TrackState::Ptr state = Iterator->GetStateObserver();
       uint_t curFrame = state->Frame();
@@ -178,17 +178,17 @@ namespace Module
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Tune->GetInformation();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Tune->GetProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       const Devices::SAA::ChipParameters::Ptr chipParams = SAA::CreateChipParameters(params);
       const Devices::SAA::Chip::Ptr chip = Devices::SAA::CreateChip(chipParams, target);

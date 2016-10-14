@@ -40,7 +40,7 @@ namespace Module
     {
     }
 
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    void GetState(std::vector<ChannelState>& channels) const override
     {
       std::vector<ChannelState> result;
       result.reserve(MaxBands);
@@ -77,31 +77,31 @@ namespace Module
     {
     }
     
-    virtual uint_t PositionsCount() const
+    uint_t PositionsCount() const override
     {
       return Delegate->PositionsCount();
     }
-    virtual uint_t LoopPosition() const
+    uint_t LoopPosition() const override
     {
       return Delegate->LoopPosition();
     }
-    virtual uint_t PatternsCount() const
+    uint_t PatternsCount() const override
     {
       return Delegate->PatternsCount();
     }
-    virtual uint_t FramesCount() const
+    uint_t FramesCount() const override
     {
       return Delegate->FramesCount();
     }
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       return Delegate->LoopFrame();
     }
-    virtual uint_t ChannelsCount() const
+    uint_t ChannelsCount() const override
     {
       return TotalChannelsCount;
     }
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return Delegate->Tempo();
     }
@@ -139,7 +139,7 @@ namespace Module
     {
     }
     
-    virtual void ApplyData(const Sound::Chunk::Ptr& data)
+    void ApplyData(const Sound::Chunk::Ptr& data) override
     {
       if (DoneStreams++)
       {
@@ -151,7 +151,7 @@ namespace Module
       }
     }
     
-    virtual void Flush()
+    void Flush() override
     {
     }
 
@@ -258,12 +258,12 @@ namespace Module
   class ForcedLoopParam : public Parameters::Accessor
   {
   public:
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return 1;
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       if (name == Parameters::ZXTune::Sound::LOOPED)
       {
@@ -276,17 +276,17 @@ namespace Module
       }
     }
 
-    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::StringType& /*val*/) const
+    bool FindValue(const Parameters::NameType& /*name*/, Parameters::StringType& /*val*/) const override
     {
       return false;
     }
 
-    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
+    bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const override
     {
       return false;
     }
 
-    virtual void Process(class Parameters::Visitor& visitor) const
+    void Process(class Parameters::Visitor& visitor) const override
     {
       visitor.SetValue(Parameters::ZXTune::Sound::LOOPED, 1);
     }
@@ -300,35 +300,35 @@ namespace Module
     {
     }
     
-    virtual uint_t Position() const
+    uint_t Position() const override
     {
       return Delegates.front()->Position();
     }
-    virtual uint_t Pattern() const
+    uint_t Pattern() const override
     {
       return Delegates.front()->Pattern();
     }
-    virtual uint_t PatternSize() const
+    uint_t PatternSize() const override
     {
       return Delegates.front()->PatternSize();
     }
-    virtual uint_t Line() const
+    uint_t Line() const override
     {
       return Delegates.front()->Line();
     }
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return Delegates.front()->Tempo();
     }
-    virtual uint_t Quirk() const
+    uint_t Quirk() const override
     {
       return Delegates.front()->Quirk();
     }
-    virtual uint_t Frame() const
+    uint_t Frame() const override
     {
       return Delegates.front()->Frame();
     }
-    virtual uint_t Channels() const
+    uint_t Channels() const override
     {
       uint_t res = 0;
       for (TrackStatesArray::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
@@ -364,17 +364,17 @@ namespace Module
       ApplyParameters();
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return State;
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    Analyzer::Ptr GetAnalyzer() const override
     {
       return Analysis;
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       ApplyParameters();
       bool result = true;
@@ -389,13 +389,13 @@ namespace Module
       return result;
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       SoundParams.Reset();
       std::for_each(Delegates.begin(), Delegates.end(), std::mem_fn(&Renderer::Reset));
     }
 
-    virtual void SetPosition(uint_t frame)
+    void SetPosition(uint_t frame) override
     {
       std::for_each(Delegates.begin(), Delegates.end(), boost::bind(&Renderer::SetPosition, _1, frame));
     }
@@ -452,17 +452,17 @@ namespace Module
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return MultiRenderer::Create(params, Delegates, target);
     }

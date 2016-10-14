@@ -164,7 +164,7 @@ namespace Module
   {
   public:
     typedef std::shared_ptr<const TrackModelState> Ptr;
-    virtual ~TrackModelState() {}
+    ~TrackModelState() override {}
 
     virtual Pattern::Ptr PatternObject() const = 0;
     virtual Line::Ptr LineObject() const = 0;

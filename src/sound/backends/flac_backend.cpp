@@ -110,22 +110,22 @@ namespace Flac
     {
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       Meta.AddTag(Text::OGG_BACKEND_TITLE_TAG, title);
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       Meta.AddTag(Text::OGG_BACKEND_AUTHOR_TAG, author);
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       Meta.AddTag(Text::OGG_BACKEND_COMMENT_TAG, comment);
     }
 
-    virtual void FlushMetadata()
+    void FlushMetadata() override
     {
       Meta.Encode(*Encoder);
       //real stream initializing should be performed after all set functions
@@ -144,7 +144,7 @@ namespace Flac
       Dbg("Stream initialized");
     }
 
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(const Chunk::Ptr& data) override
     {
       if (const std::size_t samples = data->size())
       {
@@ -154,7 +154,7 @@ namespace Flac
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       CheckFlacCall(FlacApi->FLAC__stream_encoder_finish(Encoder.get()), THIS_LINE);
       Dbg("Stream flushed");
@@ -240,12 +240,12 @@ namespace Flac
     {
     }
 
-    virtual String GetId() const
+    String GetId() const override
     {
       return ID;
     }
 
-    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
+    FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
       const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(), boost::bind(&Api::FLAC__stream_encoder_delete, FlacApi, _1));
       SetupEncoder(*encoder);
@@ -286,7 +286,7 @@ namespace Flac
     {
     }
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(FlacApi, params);
       return CreateFileBackendWorker(params, factory);

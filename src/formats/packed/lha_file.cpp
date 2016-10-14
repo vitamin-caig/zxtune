@@ -46,7 +46,7 @@ namespace Lha
     {
     }
 
-    virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData, std::size_t outputSize) const
+    Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData, std::size_t outputSize) const override
     {
       Binary::InputStream input(rawData);
       const std::shared_ptr<LHADecoder> decoder(::lha_decoder_new(Type, &ReadData, &input, outputSize), &::lha_decoder_free);

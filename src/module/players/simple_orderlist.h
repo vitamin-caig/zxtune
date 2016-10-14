@@ -34,17 +34,17 @@ namespace Module
     {
     }
 
-    virtual uint_t GetSize() const
+    uint_t GetSize() const override
     {
       return static_cast<uint_t>(Order.size());
     }
 
-    virtual uint_t GetPatternIndex(uint_t pos) const
+    uint_t GetPatternIndex(uint_t pos) const override
     {
       return Order[pos];
     }
 
-    virtual uint_t GetLoopPosition() const
+    uint_t GetLoopPosition() const override
     {
       return Loop;
     }
@@ -73,17 +73,17 @@ namespace Module
     {
     }
 
-    virtual uint_t GetSize() const
+    uint_t GetSize() const override
     {
       return static_cast<uint_t>(Positions.size());
     }
 
-    virtual uint_t GetPatternIndex(uint_t pos) const
+    uint_t GetPatternIndex(uint_t pos) const override
     {
       return Positions[pos].PatternIndex;
     }
 
-    virtual uint_t GetLoopPosition() const
+    uint_t GetLoopPosition() const override
     {
       return Loop;
     }

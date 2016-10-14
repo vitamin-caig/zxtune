@@ -29,24 +29,24 @@ namespace Module
       {
       }
 
-      virtual uint_t Version() const
+      uint_t Version() const override
       {
         return Params->Version();
       }
 
-      virtual uint_t BaseSampleFreq() const
+      uint_t BaseSampleFreq() const override
       {
         Parameters::IntType intVal = 0;
         Params->FindValue(Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY, intVal);
         return static_cast<uint_t>(intVal);
       }
 
-      virtual uint_t SoundFreq() const
+      uint_t SoundFreq() const override
       {
         return SoundParams->SoundFreq();
       }
 
-      virtual bool Interpolate() const
+      bool Interpolate() const override
       {
         Parameters::IntType intVal = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
         Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal);

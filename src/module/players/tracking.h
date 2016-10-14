@@ -108,27 +108,27 @@ namespace Module
     {
     }
 
-    virtual Cell::Ptr GetChannel(uint_t idx) const
+    Cell::Ptr GetChannel(uint_t idx) const override
     {
       return Channels[idx].HasData() ? &Channels[idx] : 0;
     }
 
-    virtual uint_t CountActiveChannels() const
+    uint_t CountActiveChannels() const override
     {
       return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(), std::mem_fn(&Cell::HasData)));
     }
 
-    virtual uint_t GetTempo() const
+    uint_t GetTempo() const override
     {
       return Tempo;
     }
 
-    virtual void SetTempo(uint_t val)
+    void SetTempo(uint_t val) override
     {
       Tempo = val;
     }
 
-    virtual MutableCell& AddChannel(uint_t idx)
+    MutableCell& AddChannel(uint_t idx) override
     {
       return Channels[idx];
     }
@@ -182,24 +182,24 @@ namespace Module
   class SparsedMutablePattern : public MutablePattern
   {
   public:
-    virtual Line::Ptr GetLine(uint_t row) const
+    Line::Ptr GetLine(uint_t row) const override
     {
       return Storage.Get(row);
     }
 
-    virtual uint_t GetSize() const
+    uint_t GetSize() const override
     {
       return Storage.Size();
     }
 
-    virtual MutableLine& AddLine(uint_t row)
+    MutableLine& AddLine(uint_t row) override
     {
       const MutableLine::Ptr res = MakePtr<MutableLineType>();
       Storage.Add(row, res);
       return *res;
     }
 
-    virtual void SetSize(uint_t newSize)
+    void SetSize(uint_t newSize) override
     {
       Storage.Resize(newSize);
     }
@@ -211,12 +211,12 @@ namespace Module
   class SparsedMutablePatternsSet : public MutablePatternsSet
   {
   public:
-    virtual Pattern::Ptr Get(uint_t idx) const
+    Pattern::Ptr Get(uint_t idx) const override
     {
       return Storage.Get(idx);
     }
 
-    virtual uint_t GetSize() const
+    uint_t GetSize() const override
     {
       uint_t res = 0;
       for (uint_t idx = 0; idx != Storage.Size(); ++idx)
@@ -229,7 +229,7 @@ namespace Module
       return res;
     }
 
-    virtual MutablePattern& AddPattern(uint_t idx)
+    MutablePattern& AddPattern(uint_t idx) override
     {
       const MutablePattern::Ptr res = MakePtr<MutablePatternType>();
       Storage.Add(idx, res);
@@ -262,17 +262,17 @@ namespace Module
     {
     }
 
-    virtual void Finish(uint_t size)
+    void Finish(uint_t size) override
     {
       FinishPattern(size);
     }
 
-    virtual void StartLine(uint_t index)
+    void StartLine(uint_t index) override
     {
       SetLine(index);
     }
 
-    virtual void SetTempo(uint_t tempo)
+    void SetTempo(uint_t tempo) override
     {
       GetLine().SetTempo(tempo);
     }

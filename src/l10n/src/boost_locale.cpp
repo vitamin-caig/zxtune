@@ -49,22 +49,22 @@ namespace
       Dbg("Created vocabulary for domain '%1%'", domain);
     }
 
-    virtual String GetText(const char* text) const
+    String GetText(const char* text) const override
     {
       return boost::locale::dgettext<Char>(Domain.c_str(), text, *Locale);
     }
 
-    virtual String GetText(const char* single, const char* plural, int count) const
+    String GetText(const char* single, const char* plural, int count) const override
     {
       return boost::locale::dngettext<Char>(Domain.c_str(), single, plural, count, *Locale);
     }
 
-    virtual String GetText(const char* context, const char* text) const
+    String GetText(const char* context, const char* text) const override
     {
       return boost::locale::dpgettext<Char>(Domain.c_str(), context, text, *Locale);
     }
 
-    virtual String GetText(const char* context, const char* single, const char* plural, int count) const
+    String GetText(const char* context, const char* single, const char* plural, int count) const override
     {
       return boost::locale::dnpgettext<Char>(Domain.c_str(), context, single, plural, count, *Locale);
     }
@@ -112,7 +112,7 @@ namespace
       Dbg("Current locale is %1%. Encoding is %2%. Translation is %3%", SystemLocale.Name, SystemLocale.Encoding, SystemLocale.Translation);
     }
 
-    virtual void AddTranslation(const L10n::Translation& trans)
+    void AddTranslation(const L10n::Translation& trans) override
     {
       if (trans.Type != TYPE_MO)
       {
@@ -133,7 +133,7 @@ namespace
       Dbg("Added translation %1% in %2% bytes", filename, trans.Data.size());
     }
 
-    virtual void SelectTranslation(const std::string& translation)
+    void SelectTranslation(const std::string& translation) override
     {
       using namespace boost::locale;
       try
@@ -155,7 +155,7 @@ namespace
       Dbg("Selected unknown translation %1%", translation);
     }
 
-    virtual L10n::Vocabulary::Ptr GetVocabulary(const std::string& domain) const
+    L10n::Vocabulary::Ptr GetVocabulary(const std::string& domain) const override
     {
       return MakePtr<DomainVocabulary>(CurrentLocale, domain);
     }

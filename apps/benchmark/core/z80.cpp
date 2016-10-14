@@ -26,17 +26,17 @@ namespace
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return 1;
     }
 
-    virtual uint_t IntTicks() const
+    uint_t IntTicks() const override
     {
       return Int;
     }
 
-    virtual uint64_t ClockFreq() const
+    uint64_t ClockFreq() const override
     {
       return Clock;
     }

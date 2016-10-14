@@ -212,27 +212,27 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSamplesFrequency(uint_t /*freq*/) {}
-      virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSamplesFrequency(uint_t /*freq*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) override {}
+      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
 
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
 
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetVolume(uint_t /*volume*/) {}
-      virtual void SetGliss(int_t /*gliss*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetVolume(uint_t /*volume*/) override {}
+      void SetGliss(int_t /*gliss*/) override {}
     };
 
     class StatisticCollectionBuilder : public Builder
@@ -245,65 +245,65 @@ namespace Chiptune
       {
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
       }
 
-      virtual void SetSamplesFrequency(uint_t freq)
+      void SetSamplesFrequency(uint_t freq) override
       {
         return Delegate.SetSamplesFrequency(freq);
       }
       
-      virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data)
+      void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data) override
       {
         return Delegate.SetSample(index, loop, data);
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         return Delegate.StartPattern(index);
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         return Delegate.StartChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         return Delegate.SetRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         return Delegate.SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
-      virtual void SetVolume(uint_t volume)
+      void SetVolume(uint_t volume) override
       {
         return Delegate.SetVolume(volume);
       }
 
-      virtual void SetGliss(int_t gliss)
+      void SetGliss(int_t gliss) override
       {
         return Delegate.SetGliss(gliss);
       }
@@ -635,22 +635,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::EXTREMETRACKER1_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

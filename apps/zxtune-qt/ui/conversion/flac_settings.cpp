@@ -44,13 +44,13 @@ namespace
         ZXTune::Sound::Backends::Flac::COMPRESSION_DEFAULT);
     }
 
-    virtual String GetBackendId() const
+    String GetBackendId() const override
     {
       static const Char ID[] = {'f', 'l', 'a', 'c', '\0'};
       return ID;
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       return Translate(QT_TRANSLATE_NOOP("FlacSettings", "Compression %1")).arg(compressionValue->value());
     }

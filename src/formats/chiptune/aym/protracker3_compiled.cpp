@@ -217,36 +217,36 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
-      virtual void SetVersion(uint_t /*version*/) {}
-      virtual void SetNoteTable(NoteTable /*table*/) {}
-      virtual void SetMode(uint_t /*mode*/) {}
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
-      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      void SetVersion(uint_t /*version*/) override {}
+      void SetNoteTable(NoteTable /*table*/) override {}
+      void SetMode(uint_t /*mode*/) override {}
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
+      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
-      virtual void SetVolume(uint_t /*vol*/) {}
-      virtual void SetGlissade(uint_t /*period*/, int_t /*val*/) {}
-      virtual void SetNoteGliss(uint_t /*period*/, int_t /*val*/, uint_t /*limit*/) {}
-      virtual void SetSampleOffset(uint_t /*offset*/) {}
-      virtual void SetOrnamentOffset(uint_t /*offset*/) {}
-      virtual void SetVibrate(uint_t /*ontime*/, uint_t /*offtime*/) {}
-      virtual void SetEnvelopeSlide(uint_t /*period*/, int_t /*val*/) {}
-      virtual void SetEnvelope(uint_t /*type*/, uint_t /*value*/) {}
-      virtual void SetNoEnvelope() {}
-      virtual void SetNoiseBase(uint_t /*val*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
+      void SetVolume(uint_t /*vol*/) override {}
+      void SetGlissade(uint_t /*period*/, int_t /*val*/) override {}
+      void SetNoteGliss(uint_t /*period*/, int_t /*val*/, uint_t /*limit*/) override {}
+      void SetSampleOffset(uint_t /*offset*/) override {}
+      void SetOrnamentOffset(uint_t /*offset*/) override {}
+      void SetVibrate(uint_t /*ontime*/, uint_t /*offtime*/) override {}
+      void SetEnvelopeSlide(uint_t /*period*/, int_t /*val*/) override {}
+      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
+      void SetNoEnvelope() override {}
+      void SetNoiseBase(uint_t /*val*/) override {}
     };
 
     class RangesMap
@@ -922,22 +922,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::PROTRACKER3_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData) && FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -947,7 +947,7 @@ namespace Chiptune
         return Formats::Chiptune::ProTracker3::Parse(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return Formats::Chiptune::ProTracker3::Parse(data, target);
       }

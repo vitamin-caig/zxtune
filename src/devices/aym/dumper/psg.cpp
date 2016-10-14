@@ -29,7 +29,7 @@ namespace AYM
       END_MUS = 0xfd
     };
 
-    virtual void Initialize()
+    void Initialize() override
     {
       static const uint8_t HEADER[] =
       {
@@ -43,12 +43,12 @@ namespace AYM
       Data.assign(HEADER, std::end(HEADER));
     }
 
-    virtual void GetResult(Dump& data) const
+    void GetResult(Dump& data) const override
     {
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update)
+    void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update) override
     {
       assert(framesPassed);
 

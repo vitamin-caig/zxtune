@@ -84,17 +84,17 @@ namespace
     {
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       return NameVal;
     }
 
-    virtual Binary::Container::Ptr Data() const
+    Binary::Container::Ptr Data() const override
     {
       return DataVal;
     }
 
-    virtual Analysis::Node::Ptr Parent() const
+    Analysis::Node::Ptr Parent() const override
     {
       return Analysis::Node::Ptr();
     }
@@ -113,17 +113,17 @@ namespace
     {
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       return NameVal;
     }
 
-    virtual Binary::Container::Ptr Data() const
+    Binary::Container::Ptr Data() const override
     {
       return DataVal;
     }
 
-    virtual Analysis::Node::Ptr Parent() const
+    Analysis::Node::Ptr Parent() const override
     {
       return ParentVal;
     }
@@ -320,12 +320,12 @@ namespace
     {
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       return NameVal;
     }
 
-    virtual Binary::Container::Ptr Data() const
+    Binary::Container::Ptr Data() const override
     {
       return DataVal;
     }
@@ -354,7 +354,7 @@ namespace
       Params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 2);
     }
 
-    virtual void ApplyData(const Parsing::Result::Ptr& result)
+    void ApplyData(const Parsing::Result::Ptr& result) override
     {
       try
       {
@@ -369,7 +369,7 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
     }
   private:
@@ -385,13 +385,13 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Parsing::Result::Ptr& data)
+    void ApplyData(const Parsing::Result::Ptr& data) override
     {
       ++Total;
       TotalSize += data->Data()->Size();
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       std::cout << Strings::Format(Text::STATISTIC_OUTPUT, Total, TotalSize) << std::endl;
     }
@@ -425,7 +425,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& result)
+    void ApplyData(const Analysis::Node::Ptr& result) override
     {
       const Binary::Container::Ptr data = result->Data();
       if (data->Size() >= MinSize)
@@ -434,7 +434,7 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
@@ -451,7 +451,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& result)
+    void ApplyData(const Analysis::Node::Ptr& result) override
     {
       const Binary::Container::Ptr data = result->Data();
       const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
@@ -462,7 +462,7 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
@@ -479,7 +479,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& result)
+    void ApplyData(const Analysis::Node::Ptr& result) override
     {
       const Binary::Container::Ptr data = result->Data();
       const std::size_t size = data->Size();
@@ -489,7 +489,7 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
@@ -529,7 +529,7 @@ namespace
     {
     }
 
-    virtual void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset, Formats::Archived::Container::Ptr data)
+    void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset, Formats::Archived::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
@@ -538,7 +538,7 @@ namespace
       data->ExploreFiles(walker);
     }
 
-    virtual void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset, Formats::Packed::Container::Ptr data)
+    void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset, Formats::Packed::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->PackedSize(), offset);
@@ -546,7 +546,7 @@ namespace
       ToScan.ApplyData(packNode);
     }
 
-    virtual void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data)
+    void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->OriginalSize(), offset);
@@ -554,7 +554,7 @@ namespace
       ToStore.ApplyData(imageNode);
     }
 
-    virtual void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data)
+    void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
@@ -562,7 +562,7 @@ namespace
       ToStore.ApplyData(chiptuneNode);
     }
 
-    virtual void Apply(std::size_t offset, Binary::Container::Ptr data)
+    void Apply(std::size_t offset, Binary::Container::Ptr data) override
     {
       Dbg("Unresolved %1% bytes at %2%", data->Size(), offset);
       const Analysis::Node::Ptr rawNode = Analysis::CreateSubnode(Root, data, offset);
@@ -578,7 +578,7 @@ namespace
       {
       }
 
-      virtual void OnFile(const Formats::Archived::File& file) const
+      void OnFile(const Formats::Archived::File& file) const override
       {
         if (const Binary::Container::Ptr data = file.GetData())
         {
@@ -610,7 +610,7 @@ namespace
       Formats::Chiptune::FillScanner(*Scanner);
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& node)
+    void ApplyData(const Analysis::Node::Ptr& node) override
     {
       Dbg("Analyze %1%", node->Name());
       NestedScannerTarget target(node, *this, *Target);
@@ -624,12 +624,12 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
 
-    virtual void SetTarget(Analysis::NodeReceiver::Ptr target)
+    void SetTarget(Analysis::NodeReceiver::Ptr target) override
     {
       Target = target;
     }
@@ -654,7 +654,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const String& filename)
+    void ApplyData(const String& filename) override
     {
       try
       {
@@ -669,12 +669,12 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Analyse->Flush();
     }
 
-    virtual void SetTarget(Analysis::NodeReceiver::Ptr analyse)
+    void SetTarget(Analysis::NodeReceiver::Ptr analyse) override
     {
       assert(analyse);
       Analyse = analyse;
@@ -692,7 +692,7 @@ namespace
     {
     }
 
-    virtual String GetFieldValue(const String& fieldName) const
+    String GetFieldValue(const String& fieldName) const override
     {
       static const Char SUBPATH_DELIMITER[] = {'/', 0};
       static const Char FLATPATH_DELIMITER[] = {'_', 0};
@@ -793,7 +793,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& node)
+    void ApplyData(const Analysis::Node::Ptr& node) override
     {
       const PathTemplate fields(node);
       const String filename = Template->Instantiate(fields);
@@ -801,7 +801,7 @@ namespace
       Target->ApplyData(result);
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
@@ -818,23 +818,23 @@ namespace
     {
     }
 
-    virtual ~Valve()
+    ~Valve() override
     {
       //break possible cycles
       Target = Analysis::NodeReceiver::CreateStub();
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& data)
+    void ApplyData(const Analysis::Node::Ptr& data) override
     {
       Target->ApplyData(data);
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
 
-    virtual void SetTarget(Analysis::NodeReceiver::Ptr target)
+    void SetTarget(Analysis::NodeReceiver::Ptr target) override
     {
       assert(target);
       Target = target;
@@ -851,7 +851,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const String& filename)
+    void ApplyData(const String& filename) override
     {
       const boost::filesystem::path path(filename);
       if (boost::filesystem::is_directory(path))
@@ -864,12 +864,12 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
 
-    virtual void SetTarget(StringsReceiver::Ptr target)
+    void SetTarget(StringsReceiver::Ptr target) override
     {
       Target = target;
     }
@@ -952,17 +952,17 @@ namespace
     {
     }
 
-    virtual void ApplyData(const InType& data)
+    void ApplyData(const InType& data) override
     {
       Input->ApplyData(data);
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Input->Flush();
     }
 
-    virtual void SetTarget(typename DataReceiver<OutType>::Ptr target)
+    void SetTarget(typename DataReceiver<OutType>::Ptr target) override
     {
       Output->SetTarget(target);
     }
@@ -1017,47 +1017,47 @@ namespace
        ;
     }
 
-    virtual std::size_t AnalysisThreads() const
+    std::size_t AnalysisThreads() const override
     {
       return AnalysisThreadsValue;
     }
 
-    virtual std::size_t AnalysisDataQueueSize() const
+    std::size_t AnalysisDataQueueSize() const override
     {
       return AnalysisDataQueueSizeValue;
     }
 
-    virtual String TargetNameTemplate() const
+    String TargetNameTemplate() const override
     {
       return TargetNameTemplateValue;
     }
 
-    virtual bool IgnoreEmptyData() const
+    bool IgnoreEmptyData() const override
     {
       return IgnoreEmptyDataValue;
     }
 
-    virtual std::size_t MinDataSize() const
+    std::size_t MinDataSize() const override
     {
       return MinDataSizeValue;
     }
 
-    virtual std::string FormatFilter() const
+    std::string FormatFilter() const override
     {
       return FormatFilterValue;
     }
 
-    virtual std::size_t SaveThreadsCount() const
+    std::size_t SaveThreadsCount() const override
     {
       return SaveThreadsCountValue;
     }
 
-    virtual std::size_t SaveDataQueueSize() const
+    std::size_t SaveDataQueueSize() const override
     {
       return SaveDataQueueSizeValue;
     }
 
-    virtual bool StatisticOutput() const
+    bool StatisticOutput() const override
     {
       return StatisticOutputValue;
     }
@@ -1087,7 +1087,7 @@ public:
   {
   }
   
-  virtual int Run(int argc, const char* argv[])
+  int Run(int argc, const char* argv[]) override
   {
     Strings::Array paths;
     if (!ParseCmdline(argc, argv, paths))

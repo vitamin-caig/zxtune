@@ -39,12 +39,12 @@ namespace Sound
       std::fill(LastMatrix.begin(), LastMatrix.end(), INVALID_GAIN);
     }
 
-    virtual Sample ApplyData(const typename Base::InDataType& in) const
+    Sample ApplyData(const typename Base::InDataType& in) const override
     {
       return Core.Mix(in);
     }
 
-    virtual void SetMatrix(const typename Base::Matrix& data)
+    void SetMatrix(const typename Base::Matrix& data) override
     {
       const typename Base::Matrix::const_iterator it = std::find_if(data.begin(), data.end(), std::not1(std::mem_fun_ref(&Gain::IsNormalized)));
       if (it != data.end())

@@ -55,7 +55,7 @@ namespace
       }
     }
     
-    virtual ~LinuxConsole()
+    ~LinuxConsole() override
     {
       //not throw
       if (IsConsoleIn)
@@ -64,7 +64,7 @@ namespace
       }
     }
     
-    virtual SizeType GetSize() const
+    SizeType GetSize() const override
     {
       if (!IsConsoleOut)
       {
@@ -83,7 +83,7 @@ namespace
 #endif
     }
     
-    virtual void MoveCursorUp(uint_t lines)
+    void MoveCursorUp(uint_t lines) override
     {
       if (IsConsoleOut)
       {
@@ -91,7 +91,7 @@ namespace
       }
     }
 
-    virtual uint_t GetPressedKey() const
+    uint_t GetPressedKey() const override
     {
       if (!IsConsoleIn)
       {
@@ -129,7 +129,7 @@ namespace
       };
     }
     
-    virtual void WaitForKeyRelease() const
+    void WaitForKeyRelease() const override
     {
       if (IsConsoleIn)
       {

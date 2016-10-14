@@ -43,7 +43,7 @@ namespace
       SetToolTip();
     }
 
-    virtual void UpdateProgress(int progress)
+    void UpdateProgress(int progress) override
     {
       if (progress != Value)
       {
@@ -53,7 +53,7 @@ namespace
     }
 
     //QWidget virtuals
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {
@@ -62,7 +62,7 @@ namespace
       OverlayProgress::changeEvent(event);
     }
 
-    virtual void paintEvent(QPaintEvent*)
+    void paintEvent(QPaintEvent*) override
     {
       FillGeometry();
 
@@ -88,7 +88,7 @@ namespace
       painter.drawLines(Lines.data(), totalSteps);
     }
 
-    virtual void mouseReleaseEvent(QMouseEvent* event)
+    void mouseReleaseEvent(QMouseEvent* event) override
     {
       if (event->button() == Qt::LeftButton)
       {

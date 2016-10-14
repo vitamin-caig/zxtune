@@ -372,38 +372,38 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
-      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
+      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
 
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
 
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
-      virtual void SetVolume(uint_t /*vol*/) {}
-      virtual void SetEnvelopeType(uint_t /*type*/) {}
-      virtual void SetEnvelopeTone(uint_t /*tone*/) {}
-      virtual void SetEnvelope() {}
-      virtual void SetNoEnvelope() {}
-      virtual void SetNoise(uint_t /*val*/) {}
-      virtual void SetContinueSample() {}
-      virtual void SetContinueOrnament() {}
-      virtual void SetGlissade(int_t /*val*/) {}
-      virtual void SetSlide(int_t /*steps*/, bool /*useToneSliding*/) {}
-      virtual void SetVolumeSlide(uint_t /*period*/, int_t /*delta*/) {}
-      virtual void SetBreakSample() {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
+      void SetVolume(uint_t /*vol*/) override {}
+      void SetEnvelopeType(uint_t /*type*/) override {}
+      void SetEnvelopeTone(uint_t /*tone*/) override {}
+      void SetEnvelope() override {}
+      void SetNoEnvelope() override {}
+      void SetNoise(uint_t /*val*/) override {}
+      void SetContinueSample() override {}
+      void SetContinueOrnament() override {}
+      void SetGlissade(int_t /*val*/) override {}
+      void SetSlide(int_t /*steps*/, bool /*useToneSliding*/) override {}
+      void SetVolumeSlide(uint_t /*period*/, int_t /*delta*/) override {}
+      void SetBreakSample() override {}
     };
 
     Builder& GetStubBuilder()
@@ -425,124 +425,124 @@ namespace Chiptune
         UsedOrnaments.Insert(0);
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
       }
 
-      virtual void SetSample(uint_t index, const Sample& sample)
+      void SetSample(uint_t index, const Sample& sample) override
       {
         assert(UsedSamples.Contain(index));
         return Delegate.SetSample(index, sample);
       }
 
-      virtual void SetOrnament(uint_t index, const Ornament& ornament)
+      void SetOrnament(uint_t index, const Ornament& ornament) override
       {
         assert(index == 0 || UsedOrnaments.Contain(index));
         return Delegate.SetOrnament(index, ornament);
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         Delegate.StartChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         return Delegate.SetRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         return Delegate.SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
-      virtual void SetOrnament(uint_t ornament)
+      void SetOrnament(uint_t ornament) override
       {
         UsedOrnaments.Insert(ornament);
         return Delegate.SetOrnament(ornament);
       }
 
-      virtual void SetVolume(uint_t vol)
+      void SetVolume(uint_t vol) override
       {
         return Delegate.SetVolume(vol);
       }
 
-      virtual void SetEnvelopeType(uint_t type)
+      void SetEnvelopeType(uint_t type) override
       {
         return Delegate.SetEnvelopeType(type);
       }
 
-      virtual void SetEnvelopeTone(uint_t tone)
+      void SetEnvelopeTone(uint_t tone) override
       {
         return Delegate.SetEnvelopeTone(tone);
       }
 
-      virtual void SetEnvelope()
+      void SetEnvelope() override
       {
         return Delegate.SetEnvelope();
       }
 
-      virtual void SetNoEnvelope()
+      void SetNoEnvelope() override
       {
         return Delegate.SetNoEnvelope();
       }
 
-      virtual void SetNoise(uint_t val)
+      void SetNoise(uint_t val) override
       {
         return Delegate.SetNoise(val);
       }
 
-      virtual void SetContinueSample()
+      void SetContinueSample() override
       {
         return Delegate.SetContinueSample();
       }
 
-      virtual void SetContinueOrnament()
+      void SetContinueOrnament() override
       {
         return Delegate.SetContinueOrnament();
       }
 
-      virtual void SetGlissade(int_t val)
+      void SetGlissade(int_t val) override
       {
         return Delegate.SetGlissade(val);
       }
 
-      virtual void SetSlide(int_t steps, bool useToneSliding)
+      void SetSlide(int_t steps, bool useToneSliding) override
       {
         return Delegate.SetSlide(steps, useToneSliding);
       }
 
-      virtual void SetVolumeSlide(uint_t period, int_t delta)
+      void SetVolumeSlide(uint_t period, int_t delta) override
       {
         return Delegate.SetVolumeSlide(period, delta);
       }
 
-      virtual void SetBreakSample()
+      void SetBreakSample() override
       {
         return Delegate.SetBreakSample();
       }
@@ -1288,28 +1288,28 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Version.Description;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Header;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Header->Match(rawData) && ASCSoundMaster::Check(Version, rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return ASCSoundMaster::Parse(Version, rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return ASCSoundMaster::Parse(Version, data, target);
       }

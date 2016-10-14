@@ -39,17 +39,17 @@ namespace Archived
       {
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Size;
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '%1%'", Name);
         return Decoder.Decode(*Data);
@@ -257,23 +257,23 @@ namespace Archived
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
         FillCache();
         for (FilesMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
@@ -282,7 +282,7 @@ namespace Archived
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
         if (const File::Ptr file = FindCachedFile(name))
         {
@@ -291,7 +291,7 @@ namespace Archived
         return FindNonCachedFile(name);
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return FilesCount;
       }
@@ -363,17 +363,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return FileDecoder->GetDescription();
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return FileDecoder->GetFormat();
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!FileDecoder->GetFormat()->Match(data))
       {

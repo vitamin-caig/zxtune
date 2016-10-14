@@ -273,22 +273,22 @@ namespace ZXTune
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Binary::Format::Ptr();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input, const Module::DetectCallback& /*callback*/) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input, const Module::DetectCallback& /*callback*/) const override
     {
       return Analysis::CreateUnmatchedResult(input->GetData()->Size());
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
       Parameters::IntType marker;

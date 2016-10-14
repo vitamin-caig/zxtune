@@ -136,7 +136,7 @@ namespace
       MultiPlaylist->Setup();
     }
 
-    virtual void SetCmdline(const QStringList& args)
+    void SetCmdline(const QStringList& args) override
     {
       if (this->sender())
       {
@@ -150,7 +150,7 @@ namespace
       }
     }
 
-    virtual void StartModule(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
+    void StartModule(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item) override
     {
       setWindowTitle(ToQString(Strings::Format(Text::TITLE_FORMAT,
         Platform::Version::GetProgramTitle(),
@@ -158,63 +158,63 @@ namespace
       Playing = true;
     }
 
-    virtual void StopModule()
+    void StopModule() override
     {
       Playing = false;
       setWindowTitle(ToQString(Platform::Version::GetProgramTitle()));
     }
     
-    virtual void ShowPreferences()
+    void ShowPreferences() override
     {
       UI::ShowPreferencesDialog(*this, Playing);
     }
 
-    virtual void ShowComponentsInformation()
+    void ShowComponentsInformation() override
     {
       UI::ShowComponentsInformation(*this);
     }
 
-    virtual void ShowAboutProgram()
+    void ShowAboutProgram() override
     {
       UI::ShowProgramInformation(*this);
     }
 
-    virtual void ShowAboutQt()
+    void ShowAboutQt() override
     {
       QMessageBox::aboutQt(this);
     }
 
-    virtual void VisitHelp()
+    void VisitHelp() override
     {
       const QLatin1String siteUrl(Text::HELP_URL);
       QDesktopServices::openUrl(QUrl(siteUrl));
     }
 
-    virtual void VisitSite()
+    void VisitSite() override
     {
       const QLatin1String siteUrl(Text::PROGRAM_SITE);
       QDesktopServices::openUrl(QUrl(siteUrl));
     }
 
-    virtual void VisitFAQ()
+    void VisitFAQ() override
     {
       const QLatin1String faqUrl(Text::FAQ_URL);
       QDesktopServices::openUrl(QUrl(faqUrl));
     }
 
-    virtual void ReportIssue()
+    void ReportIssue() override
     {
       const QLatin1String faqUrl(Text::REPORT_BUG_URL);
       QDesktopServices::openUrl(QUrl(faqUrl));
     }
 
-    virtual void ShowError(const Error& err)
+    void ShowError(const Error& err) override
     {
       ShowErrorMessage(QString(), err);
     }
 
     //QWidgets virtuals
-    virtual void closeEvent(QCloseEvent* event)
+    void closeEvent(QCloseEvent* event) override
     {
       Playback->Stop();
       State->Save();
@@ -222,7 +222,7 @@ namespace
       event->accept();
     }
     
-    virtual bool event(QEvent* event)
+    bool event(QEvent* event) override
     {
       const bool res = ::MainWindow::event(event);
       if (event && QEvent::LanguageChange == event->type())
@@ -232,7 +232,7 @@ namespace
       return res;
     }
 
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

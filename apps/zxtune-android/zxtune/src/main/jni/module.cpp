@@ -52,8 +52,8 @@ namespace
     {
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/,
-      Module::Holder::Ptr holder) const
+    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/,
+      Module::Holder::Ptr holder) const override
     {
       const jmethodID methodId = GetMethodId();
       const Jni::TempJString subpath(Env, location->GetPath()->AsString());
@@ -62,7 +62,7 @@ namespace
       CheckException();
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return 0;
     }

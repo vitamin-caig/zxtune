@@ -254,17 +254,17 @@ namespace Archived
       {
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Block.GetUnpackedSize();
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '%1%' started at %2%", Name, Block.Offset);
         return Decoder->DecodeBlock(Block);
@@ -354,23 +354,23 @@ namespace Archived
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
         for (FileIterator iter(Decoder, *Delegate); !iter.IsEof(); iter.Next())
         {
@@ -383,7 +383,7 @@ namespace Archived
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
         for (FileIterator iter(Decoder, *Delegate); !iter.IsEof(); iter.Next())
         {
@@ -395,7 +395,7 @@ namespace Archived
         return File::Ptr();
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return FilesCount;
       }
@@ -427,17 +427,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::RAR_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!Format->Match(data))
       {

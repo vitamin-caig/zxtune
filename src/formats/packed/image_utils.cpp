@@ -40,11 +40,11 @@ namespace Formats
     {
     }
 
-    virtual void SetGeometry(const CHS& /*geometry*/)
+    void SetGeometry(const CHS& /*geometry*/) override
     {
     }
 
-    virtual void SetSector(const CHS& location, const Dump& data)
+    void SetSector(const CHS& location, const Dump& data) override
     {
       if (Sectors.insert(SectorsMap::value_type(location, data)).second)
       {
@@ -52,7 +52,7 @@ namespace Formats
       }
     }
 
-    virtual Binary::Container::Ptr GetResult() const
+    Binary::Container::Ptr GetResult() const override
     {
       std::unique_ptr<Dump> result(new Dump(TotalSize));
       Dump::iterator dst = result->begin();

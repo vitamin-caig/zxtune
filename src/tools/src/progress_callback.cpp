@@ -17,11 +17,11 @@ namespace
   class StubProgressCallback : public Log::ProgressCallback
   {
   public:
-    virtual void OnProgress(uint_t /*current*/)
+    void OnProgress(uint_t /*current*/) override
     {
     }
 
-    virtual void OnProgress(uint_t /*current*/, const String& /*message*/)
+    void OnProgress(uint_t /*current*/, const String& /*message*/) override
     {
     }
   };
@@ -41,13 +41,13 @@ namespace
     {
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       const int_t curProg = ScaleToPercent(Total, current);
       Delegate.OnProgress(curProg);
     }
 
-    virtual void OnProgress(uint_t current, const String& message)
+    void OnProgress(uint_t current, const String& message) override
     {
       const int_t curProg = ScaleToPercent(Total, current);
       Delegate.OnProgress(curProg, message);
@@ -67,13 +67,13 @@ namespace
     {
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       const int_t curProg = ScaleToProgress(current);
       Delegate.OnProgress(curProg);
     }
 
-    virtual void OnProgress(uint_t current, const String& message)
+    void OnProgress(uint_t current, const String& message) override
     {
       const int_t curProg = ScaleToProgress(current);
       Delegate.OnProgress(curProg, message);

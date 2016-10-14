@@ -32,7 +32,7 @@ namespace
     {
     }
 
-    virtual int Run(int argc, const char* argv[])
+    int Run(int argc, const char* argv[]) override
     {
       QApplication qapp(argc, const_cast<char**>(argv));
       qapp.setOrganizationName(QLatin1String(Text::PROJECT_NAME));

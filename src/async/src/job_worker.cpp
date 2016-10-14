@@ -25,27 +25,27 @@ namespace Async
     {
     }
 
-    virtual void Initialize()
+    void Initialize() override
     {
       return Delegate->Initialize();
     }
 
-    virtual void Finalize()
+    void Finalize() override
     {
       return Delegate->Finalize();
     }
 
-    virtual void Suspend()
+    void Suspend() override
     {
       return Delegate->Suspend();
     }
 
-    virtual void Resume()
+    void Resume() override
     {
       return Delegate->Resume();
     }
 
-    virtual void Execute(Scheduler& sch)
+    void Execute(Scheduler& sch) override
     {
       while (!Delegate->IsFinished())
       {

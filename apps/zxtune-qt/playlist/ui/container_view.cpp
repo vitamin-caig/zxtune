@@ -50,18 +50,18 @@ namespace
       GetNext();
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Current.get() != 0;
     }
 
-    virtual Playlist::Controller::Ptr Get() const
+    Playlist::Controller::Ptr Get() const override
     {
       assert(IsValid());
       return Current;
     }
 
-    virtual void Next()
+    void Next() override
     {
       assert(IsValid());
       GetNext();
@@ -129,12 +129,12 @@ namespace
       Dbg("Created at %1%", this);
     }
 
-    virtual ~ContainerViewImpl()
+    ~ContainerViewImpl() override
     {
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual void Setup()
+    void Setup() override
     {
       if (Session->Empty())
       {
@@ -150,7 +150,7 @@ namespace
       }
     }
 
-    virtual void Teardown()
+    void Teardown() override
     {
       for (PlaylistsIterator it(*widgetsContainer); it.IsValid(); it.Next())
       {
@@ -159,78 +159,78 @@ namespace
       StorePlaylistSession();
     }
 
-    virtual void Open(const QStringList& items)
+    void Open(const QStringList& items) override
     {
       Playlist::UI::View& pl = GetEmptyPlaylist();
       pl.AddItems(items);
       QTimer::singleShot(1000, pl.GetPlaylist()->GetIterator(), SLOT(Reset()));
     }
 
-    virtual QMenu* GetActionsMenu() const
+    QMenu* GetActionsMenu() const override
     {
       return ActionsMenu;
     }
 
-    virtual void Play()
+    void Play() override
     {
       Playlist::UI::View& pl = GetActivePlaylist();
       pl.Play();
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Playlist::UI::View& pl = GetActivePlaylist();
       pl.Pause();
     }
 
-    virtual void Stop()
+    void Stop() override
     {
       Playlist::UI::View& pl = GetActivePlaylist();
       pl.Stop();
     }
 
-    virtual void Finish()
+    void Finish() override
     {
       Playlist::UI::View& pl = GetActivePlaylist();
       pl.Finish();
     }
 
-    virtual void Next()
+    void Next() override
     {
       Playlist::UI::View& pl = GetActivePlaylist();
       pl.Next();
     }
 
-    virtual void Prev()
+    void Prev() override
     {
       Playlist::UI::View& pl = GetActivePlaylist();
       pl.Prev();
     }
 
-    virtual void Clear()
+    void Clear() override
     {
       Playlist::UI::View& pl = GetVisiblePlaylist();
       pl.Clear();
     }
 
-    virtual void AddFiles()
+    void AddFiles() override
     {
       Playlist::UI::View& pl = GetVisiblePlaylist();
       pl.AddFiles();
     }
 
-    virtual void AddFolder()
+    void AddFolder() override
     {
       Playlist::UI::View& pl = GetVisiblePlaylist();
       pl.AddFolder();
     }
 
-    virtual void CreatePlaylist()
+    void CreatePlaylist() override
     {
       CreateAnonymousPlaylist();
     }
 
-    virtual void LoadPlaylist()
+    void LoadPlaylist() override
     {
       QString file;
       if (UI::OpenSingleFileDialog(actionLoadPlaylist->text(),
@@ -240,24 +240,24 @@ namespace
       }
     }
 
-    virtual void SavePlaylist()
+    void SavePlaylist() override
     {
       Playlist::UI::View& pl = GetVisiblePlaylist();
       pl.Save();
     }
 
-    virtual void RenamePlaylist()
+    void RenamePlaylist() override
     {
       Playlist::UI::View& pl = GetVisiblePlaylist();
       pl.Rename();
     }
 
-    virtual void CloseCurrentPlaylist()
+    void CloseCurrentPlaylist() override
     {
       ClosePlaylist(widgetsContainer->currentIndex());
     }
 
-    virtual void ClosePlaylist(int index)
+    void ClosePlaylist(int index) override
     {
       Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
       view->hide();//to save layout
@@ -275,7 +275,7 @@ namespace
     }
 
     //qwidget virtuals
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {
@@ -286,22 +286,22 @@ namespace
       Playlist::UI::ContainerView::changeEvent(event);
     }
 
-    virtual void contextMenuEvent(QContextMenuEvent* event)
+    void contextMenuEvent(QContextMenuEvent* event) override
     {
       ActionsMenu->exec(event->globalPos());
     }
 
-    virtual void mouseDoubleClickEvent(QMouseEvent* /*event*/)
+    void mouseDoubleClickEvent(QMouseEvent* /*event*/) override
     {
       CreatePlaylist();
     }
   private:
-    virtual void CreatePlaylist(Playlist::Controller::Ptr ctrl)
+    void CreatePlaylist(Playlist::Controller::Ptr ctrl) override
     {
       RegisterPlaylist(ctrl);
     }
 
-    virtual void RenamePlaylist(const QString& name)
+    void RenamePlaylist(const QString& name) override
     {
       if (QObject* sender = this->sender())
       {
@@ -315,7 +315,7 @@ namespace
       }
     }
 
-    virtual void ActivateItem(Playlist::Item::Data::Ptr /*item*/)
+    void ActivateItem(Playlist::Item::Data::Ptr /*item*/) override
     {
       if (QObject* sender = this->sender())
       {

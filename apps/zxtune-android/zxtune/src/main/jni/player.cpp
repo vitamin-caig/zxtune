@@ -34,12 +34,12 @@ namespace
   public:
     typedef std::shared_ptr<BufferTarget> Ptr;
 
-    virtual void ApplyData(const Sound::Chunk::Ptr& data)
+    void ApplyData(const Sound::Chunk::Ptr& data) override
     {
       Buffers.push_back(Buff(data));
     }
 
-    virtual void Flush()
+    void Flush() override
     {
     }
 
@@ -93,12 +93,12 @@ namespace
     {
     }
     
-    virtual uint_t GetPosition() const
+    uint_t GetPosition() const override
     {
       return TrackState->Frame();
     }
 
-    virtual uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const
+    uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const override
     {
       typedef std::vector<Module::Analyzer::ChannelState> ChannelsState;
       ChannelsState result;
@@ -112,12 +112,12 @@ namespace
       return doneEntries;
     }
 
-    virtual Parameters::Container::Ptr GetParameters() const
+    Parameters::Container::Ptr GetParameters() const override
     {
       return Params;
     }
     
-    virtual bool Render(uint_t samples, int16_t* buffer)
+    bool Render(uint_t samples, int16_t* buffer) override
     {
       for (;;)
       {
@@ -139,7 +139,7 @@ namespace
       return samples == 0;
     }
 
-    virtual void Seek(uint_t frame)
+    void Seek(uint_t frame) override
     {
       Renderer->SetPosition(frame);
     }

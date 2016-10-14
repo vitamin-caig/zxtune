@@ -228,7 +228,7 @@ namespace Archived
       {
       }
 
-      virtual void OnFile(const String& filename, std::size_t offset, std::size_t size)
+      void OnFile(const String& filename, std::size_t offset, std::size_t size) override
       {
         const TRDos::File::Ptr file = TRDos::File::CreateReference(filename, offset, size);
         Builder.AddFile(file);
@@ -246,17 +246,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::TRD_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!Format->Match(data))
       {

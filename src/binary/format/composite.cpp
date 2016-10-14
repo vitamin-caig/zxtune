@@ -47,7 +47,7 @@ namespace Binary
       Require(MinFooterOffset <= MaxFooterOffset);
     }
 
-    virtual bool Match(const Data& data) const
+    bool Match(const Data& data) const override
     {
       const std::size_t size = data.Size();
       if (size < MinFooterOffset + FooterSize)
@@ -64,7 +64,7 @@ namespace Binary
       return searchSize != SearchFooter(searchStart, searchSize);
     }
 
-    virtual std::size_t NextMatchOffset(const Data& data) const
+    std::size_t NextMatchOffset(const Data& data) const override
     {
       const uint8_t* const start = static_cast<const uint8_t*>(data.Start());
       const std::size_t limit = data.Size();

@@ -55,13 +55,13 @@ namespace
       State->Load();
     }
 
-    virtual ~SearchDialogImpl()
+    ~SearchDialogImpl() override
     {
       UpdateRecent(*Pattern);
       State->Save();
     }
 
-    virtual bool Execute(Playlist::Item::Search::Data& res)
+    bool Execute(Playlist::Item::Search::Data& res) override
     {     
       if (!exec())
       {

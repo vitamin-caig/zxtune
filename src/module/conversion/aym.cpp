@@ -40,12 +40,12 @@ namespace Module
     {
     }
 
-    virtual Time::Microseconds FrameDuration() const
+    Time::Microseconds FrameDuration() const override
     {
       return SndParams->FrameDuration();
     }
 
-    virtual Devices::AYM::DumperParameters::Optimization OptimizationLevel() const
+    Devices::AYM::DumperParameters::Optimization OptimizationLevel() const override
     {
       return Optimization;
     }
@@ -64,38 +64,38 @@ namespace Module
     {
     }
 
-    virtual Time::Microseconds FrameDuration() const
+    Time::Microseconds FrameDuration() const override
     {
       return Base.FrameDuration();
     }
 
-    virtual Devices::AYM::DumperParameters::Optimization OptimizationLevel() const
+    Devices::AYM::DumperParameters::Optimization OptimizationLevel() const override
     {
       return Base.OptimizationLevel();
     }
 
-    virtual uint64_t ClockFreq() const
+    uint64_t ClockFreq() const override
     {
       Parameters::IntType val = Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
       return val;
     }
 
-    virtual String Title() const
+    String Title() const override
     {
       String title;
       Params->FindValue(Module::ATTR_TITLE, title);
       return title;
     }
 
-    virtual String Author() const
+    String Author() const override
     {
       String author;
       Params->FindValue(Module::ATTR_AUTHOR, author);
       return author;
     }
 
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       return Loop;
     }

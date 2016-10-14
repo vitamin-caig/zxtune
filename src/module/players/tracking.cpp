@@ -22,12 +22,12 @@ namespace Module
     {
     }
   public:
-    virtual Line::Ptr GetLine(uint_t /*row*/) const
+    Line::Ptr GetLine(uint_t /*row*/) const override
     {
       return Line::Ptr();
     }
 
-    virtual uint_t GetSize() const
+    uint_t GetSize() const override
     {
       return 0;
     }
@@ -68,53 +68,53 @@ namespace Module
     }
 
     //TrackState
-    virtual uint_t Position() const
+    uint_t Position() const override
     {
       return Plain.Position;
     }
 
-    virtual uint_t Pattern() const
+    uint_t Pattern() const override
     {
       return Plain.Pattern;
     }
 
-    virtual uint_t PatternSize() const
+    uint_t PatternSize() const override
     {
       return CurPatternObject->GetSize();
     }
 
-    virtual uint_t Line() const
+    uint_t Line() const override
     {
       return Plain.Line;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return Plain.Tempo;
     }
 
-    virtual uint_t Quirk() const
+    uint_t Quirk() const override
     {
       return Plain.Quirk;
     }
 
-    virtual uint_t Frame() const
+    uint_t Frame() const override
     {
       return Plain.Frame;
     }
 
-    virtual uint_t Channels() const
+    uint_t Channels() const override
     {
       return CurLineObject ? CurLineObject->CountActiveChannels() : 0;
     }
 
     //TrackModelState
-    virtual Pattern::Ptr PatternObject() const
+    Pattern::Ptr PatternObject() const override
     {
       return CurPatternObject;
     }
 
-    virtual Line::Ptr LineObject() const
+    Line::Ptr LineObject() const override
     {
       return CurLineObject;
     }
@@ -248,17 +248,17 @@ namespace Module
     }
 
     //iterator functions
-    virtual void Reset()
+    void Reset() override
     {
       Cursor->Reset();
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Cursor->IsValid();
     }
 
-    virtual void NextFrame(bool looped)
+    void NextFrame(bool looped) override
     {
       if (!Cursor->IsValid())
       {
@@ -270,7 +270,7 @@ namespace Module
       }
     }
 
-    virtual TrackModelState::Ptr GetStateObserver() const
+    TrackModelState::Ptr GetStateObserver() const override
     {
       return Cursor;
     }
@@ -304,39 +304,39 @@ namespace Module
     {
     }
 
-    virtual uint_t PositionsCount() const
+    uint_t PositionsCount() const override
     {
       return Model->GetOrder().GetSize();
     }
 
-    virtual uint_t LoopPosition() const
+    uint_t LoopPosition() const override
     {
       return Model->GetOrder().GetLoopPosition();
     }
 
-    virtual uint_t PatternsCount() const
+    uint_t PatternsCount() const override
     {
       return Model->GetPatterns().GetSize();
     }
 
-    virtual uint_t FramesCount() const
+    uint_t FramesCount() const override
     {
       Initialize();
       return Frames;
     }
 
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       Initialize();
       return LoopFrameNum;
     }
 
-    virtual uint_t ChannelsCount() const
+    uint_t ChannelsCount() const override
     {
       return Channels;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return Model->GetInitialTempo();
     }

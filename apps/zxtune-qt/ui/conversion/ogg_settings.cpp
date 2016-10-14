@@ -58,13 +58,13 @@ namespace
       }
     }
 
-    virtual String GetBackendId() const
+    String GetBackendId() const override
     {
       static const Char ID[] = {'o', 'g', 'g', '\0'};
       return ID;
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       if (selectQuality->isChecked())
       {

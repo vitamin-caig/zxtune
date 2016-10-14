@@ -36,20 +36,20 @@ namespace Async
       StartAll(workersCount);
     }
 
-    virtual ~DataReceiver()
+    ~DataReceiver() override
     {
       QueueObject->Reset();
       WaitAll();
     }
 
-    virtual void ApplyData(const T& data)
+    void ApplyData(const T& data) override
     {
       CheckWorkersAvailable();
       Statistic->Produce(1);
       QueueObject->Add(data);
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       CheckWorkersAvailable();
       //may not flush queue
@@ -114,11 +114,11 @@ namespace Async
       {
       }
 
-      virtual void Prepare()
+      void Prepare() override
       {
       }
 
-      virtual void Execute()
+      void Execute() override
       {
         T val;
         while (QueueObject->Get(val))

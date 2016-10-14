@@ -27,20 +27,20 @@ namespace Async
     {
     }
 
-    virtual void Produce(uint_t items)
+    void Produce(uint_t items) override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       Produced += items;
     }
 
-    virtual void Consume(uint_t items)
+    void Consume(uint_t items) override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       Consumed += items;
       NotifyIfComplete();
     }
 
-    virtual void WaitForComplete() const
+    void WaitForComplete() const override
     {
       std::unique_lock<std::mutex> lock(Mutex);
       Complete.wait(lock, [this] () {return IsComplete();});

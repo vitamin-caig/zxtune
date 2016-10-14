@@ -18,9 +18,9 @@ namespace Formats
     class StubPatternBuilder : public PatternBuilder
     {
     public:
-      virtual void Finish(uint_t /*size*/) {}
-      virtual void StartLine(uint_t /*index*/) {}
-      virtual void SetTempo(uint_t /*tempo*/) {}
+      void Finish(uint_t /*size*/) override {}
+      void StartLine(uint_t /*index*/) override {}
+      void SetTempo(uint_t /*tempo*/) override {}
     };
 
     PatternBuilder& GetStubPatternBuilder()

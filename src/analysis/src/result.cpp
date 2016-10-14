@@ -24,12 +24,12 @@ namespace Analysis
     {
     }
 
-    virtual std::size_t GetMatchedDataSize() const
+    std::size_t GetMatchedDataSize() const override
     {
       return MatchedSize;
     }
 
-    virtual std::size_t GetLookaheadOffset() const
+    std::size_t GetLookaheadOffset() const override
     {
       return UnmatchedSize;
     }
@@ -47,12 +47,12 @@ namespace Analysis
     {
     }
 
-    virtual std::size_t GetMatchedDataSize() const
+    std::size_t GetMatchedDataSize() const override
     {
       return 0;
     }
 
-    virtual std::size_t GetLookaheadOffset() const
+    std::size_t GetLookaheadOffset() const override
     {
       return Format->NextMatchOffset(*RawData);
     }

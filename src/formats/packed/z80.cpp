@@ -555,17 +555,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Version::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
+    Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

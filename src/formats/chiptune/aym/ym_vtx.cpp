@@ -216,21 +216,21 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetVersion(const String& /*version*/) {}
-      virtual void SetChipType(bool /*ym*/) {}
-      virtual void SetStereoMode(uint_t /*mode*/) {}
-      virtual void SetLoop(uint_t /*loop*/) {}
-      virtual void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/) {}
-      virtual void SetClockrate(uint64_t /*freq*/) {}
-      virtual void SetIntFreq(uint_t /*freq*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetAuthor(const String& /*author*/) {}
-      virtual void SetComment(const String& /*comment*/) {}
-      virtual void SetYear(uint_t /*year*/) {}
-      virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetEditor(const String& /*editor*/) {}
+      void SetVersion(const String& /*version*/) override {}
+      void SetChipType(bool /*ym*/) override {}
+      void SetStereoMode(uint_t /*mode*/) override {}
+      void SetLoop(uint_t /*loop*/) override {}
+      void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/) override {}
+      void SetClockrate(uint64_t /*freq*/) override {}
+      void SetIntFreq(uint_t /*freq*/) override {}
+      void SetTitle(const String& /*title*/) override {}
+      void SetAuthor(const String& /*author*/) override {}
+      void SetComment(const String& /*comment*/) override {}
+      void SetYear(uint_t /*year*/) override {}
+      void SetProgram(const String& /*program*/) override {}
+      void SetEditor(const String& /*editor*/) override {}
 
-      virtual void AddData(const Dump& /*registers*/) {}
+      void AddData(const Dump& /*registers*/) override {}
     };
 
     bool FastCheck(const Binary::Container& rawData)
@@ -411,22 +411,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::YM_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -436,7 +436,7 @@ namespace Chiptune
         return ParseUnpacked(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return ParseUnpacked(data, target);
       }
@@ -452,22 +452,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::YM_PACKED_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -477,7 +477,7 @@ namespace Chiptune
         return ParsePacked(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return ParsePacked(data, target);
       }
@@ -649,28 +649,28 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::VTX_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return ParseVTX(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return ParseVTX(data, target);
       }

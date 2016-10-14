@@ -93,103 +93,103 @@ namespace DigitalMusicMaker
     {
     }
 
-    virtual void SetRest()
+    void SetRest() override
     {
       Target.SetEnabled(false);
     }
 
-    virtual void SetNote(uint_t note)
+    void SetNote(uint_t note) override
     {
       Target.SetEnabled(true);
       Target.SetNote(note);
     }
 
-    virtual void SetSample(uint_t sample)
+    void SetSample(uint_t sample) override
     {
       Target.SetSample(sample);
     }
 
-    virtual void SetVolume(uint_t volume)
+    void SetVolume(uint_t volume) override
     {
       Target.SetVolume(volume);
     }
 
-    virtual void SetFloat(int_t direction)
+    void SetFloat(int_t direction) override
     {
       Target.AddCommand(FREQ_FLOAT, direction);
     }
 
-    virtual void SetFloatParam(uint_t step)
+    void SetFloatParam(uint_t step) override
     {
       Target.AddCommand(FREQ_FLOAT, 0, step);
     }
 
-    virtual void SetVibrato()
+    void SetVibrato() override
     {
       Target.AddCommand(VIBRATO, true);
     }
 
-    virtual void SetVibratoParams(uint_t step, uint_t period)
+    void SetVibratoParams(uint_t step, uint_t period) override
     {
       Target.AddCommand(VIBRATO, false, step, period);
     }
 
-    virtual void SetArpeggio()
+    void SetArpeggio() override
     {
       Target.AddCommand(ARPEGGIO, true);
     }
 
-    virtual void SetArpeggioParams(uint_t step, uint_t period)
+    void SetArpeggioParams(uint_t step, uint_t period) override
     {
       Target.AddCommand(ARPEGGIO, false, step, period);
     }
 
-    virtual void SetSlide(int_t direction)
+    void SetSlide(int_t direction) override
     {
       Target.AddCommand(TONE_SLIDE, direction);
     }
 
-    virtual void SetSlideParams(uint_t step, uint_t period)
+    void SetSlideParams(uint_t step, uint_t period) override
     {
       Target.AddCommand(TONE_SLIDE, 0, step, period);
     }
 
-    virtual void SetDoubleNote()
+    void SetDoubleNote() override
     {
       Target.AddCommand(DOUBLE_NOTE, true);
     }
 
-    virtual void SetDoubleNoteParam(uint_t period)
+    void SetDoubleNoteParam(uint_t period) override
     {
       Target.AddCommand(DOUBLE_NOTE, false, period);
     }
 
-    virtual void SetVolumeAttack()
+    void SetVolumeAttack() override
     {
       Target.AddCommand(VOL_ATTACK, true);
     }
 
-    virtual void SetVolumeAttackParams(uint_t limit, uint_t period)
+    void SetVolumeAttackParams(uint_t limit, uint_t period) override
     {
       Target.AddCommand(VOL_ATTACK, false, limit, period);
     }
 
-    virtual void SetVolumeDecay()
+    void SetVolumeDecay() override
     {
       Target.AddCommand(VOL_DECAY, true);
     }
 
-    virtual void SetVolumeDecayParams(uint_t limit, uint_t period)
+    void SetVolumeDecayParams(uint_t limit, uint_t period) override
     {
       Target.AddCommand(VOL_DECAY, false, limit, period);
     }
 
-    virtual void SetMixSample(uint_t idx)
+    void SetMixSample(uint_t idx) override
     {
       Target.AddCommand(MIX_SAMPLE, idx);
     }
 
-    virtual void SetNoEffects()
+    void SetNoEffects() override
     {
       Target.AddCommand(EMPTY_CMD);
     }
@@ -210,40 +210,40 @@ namespace DigitalMusicMaker
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
     }
 
-    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
 
-    virtual void SetInitialTempo(uint_t tempo)
+    void SetInitialTempo(uint_t tempo) override
     {
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample)
+    void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) override
     {
       Data->Samples.Add(index, Devices::DAC::CreateU4PackedSample(sample, loop));
     }
 
-    virtual std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> SetSampleMixin(uint_t index, uint_t period)
+    std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> SetSampleMixin(uint_t index, uint_t period) override
     {
       ModuleData::MixedChannel& dst = Data->Mixes[index];
       dst.Period = period;
       return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(dst.Mixin));
     }
 
-    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
     {
       Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
     }
 
-    virtual std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> StartChannel(uint_t index)
+    std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> StartChannel(uint_t index) override
     {
       Patterns.SetChannel(index);
       return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(Patterns.GetChannel()));
@@ -618,12 +618,12 @@ namespace DigitalMusicMaker
       Reset();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       std::fill(Chans.begin(), Chans.end(), ChannelState());
     }
 
-    virtual void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
     {
       const Line::Ptr line = 0 == state.Quirk() ? state.LineObject() : Line::Ptr();
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
@@ -658,24 +658,24 @@ namespace DigitalMusicMaker
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    Information::Ptr GetInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual DAC::DataIterator::Ptr CreateDataIterator() const
+    DAC::DataIterator::Ptr CreateDataIterator() const override
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
       return DAC::CreateDataIterator(iterator, renderer);
     }
 
-    virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const
+    void GetSamples(Devices::DAC::Chip::Ptr chip) const override
     {
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
@@ -691,7 +691,7 @@ namespace DigitalMusicMaker
   class Factory : public DAC::Factory
   {
   public:
-    virtual DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       DAC::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

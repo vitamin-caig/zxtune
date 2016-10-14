@@ -30,42 +30,42 @@ namespace Module
     }
 
     //status functions
-    virtual uint_t Position() const
+    uint_t Position() const override
     {
       return 0;
     }
 
-    virtual uint_t Pattern() const
+    uint_t Pattern() const override
     {
       return 0;
     }
 
-    virtual uint_t PatternSize() const
+    uint_t PatternSize() const override
     {
       return 0;
     }
 
-    virtual uint_t Line() const
+    uint_t Line() const override
     {
       return 0;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return 1;
     }
 
-    virtual uint_t Quirk() const
+    uint_t Quirk() const override
     {
       return 0;
     }
 
-    virtual uint_t Frame() const
+    uint_t Frame() const override
     {
       return CurFrame;
     }
 
-    virtual uint_t Channels() const
+    uint_t Channels() const override
     {
       return STREAM_CHANNELS;
     }
@@ -106,31 +106,31 @@ namespace Module
       , Loop(loopFrame)
     {
     }
-    virtual uint_t PositionsCount() const
+    uint_t PositionsCount() const override
     {
       return 1;
     }
-    virtual uint_t LoopPosition() const
+    uint_t LoopPosition() const override
     {
       return 0;
     }
-    virtual uint_t PatternsCount() const
+    uint_t PatternsCount() const override
     {
       return 0;
     }
-    virtual uint_t FramesCount() const
+    uint_t FramesCount() const override
     {
       return TotalFrames;
     }
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       return Loop;
     }
-    virtual uint_t ChannelsCount() const
+    uint_t ChannelsCount() const override
     {
       return STREAM_CHANNELS;
     }
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return 1;
     }
@@ -148,17 +148,17 @@ namespace Module
     }
 
     //iterator functions
-    virtual void Reset()
+    void Reset() override
     {
       Cursor->Reset();
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Cursor->IsValid();
     }
 
-    virtual void NextFrame(bool looped)
+    void NextFrame(bool looped) override
     {
       Cursor->NextFrame();
       if (!Cursor->IsValid() && looped)
@@ -167,7 +167,7 @@ namespace Module
       }
     }
 
-    virtual TrackState::Ptr GetStateObserver() const
+    TrackState::Ptr GetStateObserver() const override
     {
       return Cursor;
     }

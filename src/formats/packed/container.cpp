@@ -31,22 +31,22 @@ namespace Formats
         assert(origSize && delegate && delegate->Size());
       }
 
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
-      virtual std::size_t PackedSize() const
+      std::size_t PackedSize() const override
       {
         return OriginalSize;
       }

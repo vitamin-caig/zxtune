@@ -105,7 +105,7 @@ namespace Packed
       {
       }
 
-      virtual std::unique_ptr<Dump> Decompress() const
+      std::unique_ptr<Dump> Decompress() const override
       {
         if (Size != DestSize)
         {
@@ -134,7 +134,7 @@ namespace Packed
       {
       }
 
-      virtual std::unique_ptr<Dump> Decompress() const
+      std::unique_ptr<Dump> Decompress() const override
       {
         Dbg("Inflate %1% -> %2%", Size, DestSize);
         std::unique_ptr<Dump> res(new Dump(DestSize));
@@ -208,7 +208,7 @@ namespace Packed
       {
       }
 
-      virtual std::unique_ptr<Dump> Decompress() const
+      std::unique_ptr<Dump> Decompress() const override
       {
         if (!IsValid)
         {
@@ -231,12 +231,12 @@ namespace Packed
       {
       }
 
-      virtual std::size_t GetPackedSize() const
+      std::size_t GetPackedSize() const override
       {
         return Header.GetSize() + fromLE(Header.Attributes.CompressedSize);
       }
 
-      virtual std::size_t GetUnpackedSize() const
+      std::size_t GetUnpackedSize() const override
       {
         return fromLE(Header.Attributes.UncompressedSize);
       }
@@ -253,12 +253,12 @@ namespace Packed
       {
       }
 
-      virtual std::size_t GetPackedSize() const
+      std::size_t GetPackedSize() const override
       {
         return Header.GetSize() + fromLE(Footer.Attributes.CompressedSize) + sizeof(Footer);
       }
 
-      virtual std::size_t GetUnpackedSize() const
+      std::size_t GetUnpackedSize() const override
       {
         return fromLE(Footer.Attributes.UncompressedSize);
       }
@@ -364,17 +364,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::ZIP_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Depacker;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Depacker->Match(rawData))
       {

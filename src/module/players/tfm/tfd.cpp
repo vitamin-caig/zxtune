@@ -32,17 +32,17 @@ namespace TFD
     {
     }
 
-    virtual uint_t Size() const
+    uint_t Size() const override
     {
       return static_cast<uint_t>(Offsets.size() - 1);
     }
 
-    virtual uint_t Loop() const
+    uint_t Loop() const override
     {
       return LoopPos;
     }
 
-    virtual void Get(uint_t frameNum, Devices::TFM::Registers& res) const
+    void Get(uint_t frameNum, Devices::TFM::Registers& res) const override
     {
       const std::size_t start = Offsets[frameNum];
       const std::size_t end = Offsets[frameNum + 1];
@@ -85,38 +85,38 @@ namespace TFD
    {
    }
 
-   virtual void SetTitle(const String& title)
+   void SetTitle(const String& title) override
    {
      Properties.SetTitle(title);
    }
 
-   virtual void SetAuthor(const String& author)
+   void SetAuthor(const String& author) override
    {
      Properties.SetAuthor(author);
    }
 
-   virtual void SetComment(const String& comment)
+   void SetComment(const String& comment) override
    {
      Properties.SetComment(comment);
    }
 
-   virtual void BeginFrames(uint_t count)
+   void BeginFrames(uint_t count) override
    {
      Chip = 0;
      Data->Append(count);
    }
 
-   virtual void SelectChip(uint_t idx)
+   void SelectChip(uint_t idx) override
    {
      Chip = idx;
    }
 
-   virtual void SetLoop()
+   void SetLoop() override
    {
      Data->SetLoop();
    }
 
-   virtual void SetRegister(uint_t idx, uint_t val)
+   void SetRegister(uint_t idx, uint_t val) override
    {
      Data->AddRegister(Devices::TFM::Register(Chip, idx, val));
    }
@@ -134,7 +134,7 @@ namespace TFD
   class Factory : public TFM::Factory
   {
   public:
-    virtual TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);

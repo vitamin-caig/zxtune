@@ -56,7 +56,7 @@ namespace Beeper
     {
     }
     
-    virtual void RenderData(const std::vector<DataChunk>& src)
+    void RenderData(const std::vector<DataChunk>& src) override
     {
       if (src.empty())
       {
@@ -87,7 +87,7 @@ namespace Beeper
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       PSG.Reset();

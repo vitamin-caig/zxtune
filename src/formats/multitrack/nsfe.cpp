@@ -93,38 +93,38 @@ namespace Multitrack
       }
       
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
       
       //Formats::Multitrack::Container
-      virtual uint_t FixedChecksum() const
+      uint_t FixedChecksum() const override
       {
         return FixedCrc;
       }
 
-      virtual uint_t TracksCount() const
+      uint_t TracksCount() const override
       {
         return Info ? Info->TracksCount : 1;
       }
 
-      virtual uint_t StartTrackIndex() const
+      uint_t StartTrackIndex() const override
       {
         return Info ? Info->StartTrack - 1 : 0;
       }
       
-      virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
+      Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
         Require(Info != 0);
         const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - static_cast<const uint8_t*>(Delegate->Start());
@@ -149,17 +149,17 @@ namespace Multitrack
       {
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
