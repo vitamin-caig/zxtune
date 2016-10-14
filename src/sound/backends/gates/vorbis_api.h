@@ -23,7 +23,7 @@ namespace Sound
     {
     public:
       typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      virtual ~Api() = default;
 
       
       virtual int vorbis_block_clear(vorbis_block *vb) = 0;

@@ -26,7 +26,7 @@ namespace IO
   public:
     typedef std::shared_ptr<const Identifier> Ptr;
 
-    virtual ~Identifier() {}
+    virtual ~Identifier() = default;
 
     //! @return Full identifier
     virtual String Full() const = 0;

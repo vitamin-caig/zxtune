@@ -20,7 +20,7 @@ namespace Devices
     class DumpBuilder
     {
     public:
-      virtual ~DumpBuilder() {}
+      virtual ~DumpBuilder() = default;
 
       virtual void Initialize() = 0;
 

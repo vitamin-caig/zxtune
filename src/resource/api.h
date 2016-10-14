@@ -22,7 +22,7 @@ namespace Resource
   class Visitor
   {
   public:
-    virtual ~Visitor() {}
+    virtual ~Visitor() = default;
 
     virtual void OnResource(const String& name) = 0;
   };

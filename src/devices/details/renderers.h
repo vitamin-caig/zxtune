@@ -23,7 +23,7 @@ namespace Details
   class Renderer
   {
   public:
-    virtual ~Renderer() {}
+    virtual ~Renderer() = default;
 
     virtual void Render(StampType tillTime, uint_t samples, Sound::ChunkBuilder& target) = 0;
     virtual void Render(StampType tillTime, Sound::ChunkBuilder& target) = 0;

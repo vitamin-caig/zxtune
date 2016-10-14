@@ -112,7 +112,7 @@ namespace Packed
     {
     public:
       typedef std::unique_ptr<const CompressedFile> Ptr;
-      virtual ~CompressedFile() {}
+      virtual ~CompressedFile() = default;
 
       virtual Binary::Container::Ptr Decompress(const Container& container) const = 0;
     };

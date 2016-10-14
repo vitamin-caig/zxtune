@@ -21,7 +21,7 @@ namespace Module
     {
     public:
       typedef std::shared_ptr<const StreamModel> Ptr;
-      virtual ~StreamModel() {}
+      virtual ~StreamModel() = default;
 
       virtual uint_t Size() const = 0;
       virtual uint_t Loop() const = 0;

@@ -61,7 +61,7 @@ namespace Formats
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;

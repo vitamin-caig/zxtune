@@ -166,7 +166,7 @@ public:
   typedef typename std::shared_ptr<ObjectIterator<T> > Ptr;
 
   //! Virtual destructor
-  virtual ~ObjectIterator() {}
+  virtual ~ObjectIterator() = default;
 
   //! Check if accessor is valid
   virtual bool IsValid() const = 0;

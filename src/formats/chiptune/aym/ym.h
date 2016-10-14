@@ -25,7 +25,7 @@ namespace Formats
       {
       public:
         typedef std::shared_ptr<Builder> Ptr;
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         //YMx
         virtual void SetVersion(const String& version) = 0;

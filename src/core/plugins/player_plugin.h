@@ -24,7 +24,7 @@ namespace ZXTune
   public:
     typedef std::shared_ptr<const PlayerPlugin> Ptr;
     typedef ObjectIterator<PlayerPlugin::Ptr> Iterator;
-    virtual ~PlayerPlugin() {}
+    virtual ~PlayerPlugin() = default;
 
     virtual Plugin::Ptr GetDescription() const = 0; 
     virtual Binary::Format::Ptr GetFormat() const = 0;

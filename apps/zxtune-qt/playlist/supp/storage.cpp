@@ -43,10 +43,7 @@ namespace
     }
 
     ItemsContainer(const ItemsContainer& rh)
-      : Parent(rh)
-      , Size(rh.Size)
-    {
-    }
+      = default;
 
     Parent::size_type size() const
     {
@@ -112,7 +109,7 @@ namespace
   class IteratorContainerWalker
   {
   public:
-    virtual ~IteratorContainerWalker() {}
+    virtual ~IteratorContainerWalker() = default;
 
     virtual void OnItem(IteratorType it) = 0;
   };

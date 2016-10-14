@@ -56,7 +56,7 @@ namespace FormatDSL
   class State
   {
   public:
-    virtual ~State() {}
+    virtual ~State() = default;
 
     virtual const State* Transition(const Token& tok, FormatTokensVisitor& visitor) const = 0;
 

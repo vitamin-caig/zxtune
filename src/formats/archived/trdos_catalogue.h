@@ -32,7 +32,7 @@ namespace TRDos
   {
   public:
     typedef std::unique_ptr<CatalogueBuilder> Ptr;
-    virtual ~CatalogueBuilder() {}
+    virtual ~CatalogueBuilder() = default;
 
     virtual void SetRawData(Binary::Container::Ptr data) = 0;
     virtual void AddFile(File::Ptr file) = 0;

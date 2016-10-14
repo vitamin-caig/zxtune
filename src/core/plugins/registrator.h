@@ -16,7 +16,7 @@ namespace ZXTune
   class PluginsRegistrator
   {
   public:
-    virtual ~PluginsRegistrator() {}
+    virtual ~PluginsRegistrator() = default;
 
     virtual void RegisterPlugin(typename PluginType::Ptr plugin) = 0;
   };

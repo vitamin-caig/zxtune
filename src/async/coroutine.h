@@ -18,7 +18,7 @@ namespace Async
   class Scheduler
   {
   public:
-    virtual ~Scheduler() {}
+    virtual ~Scheduler() = default;
 
     virtual void Yield() = 0;
   };
@@ -27,7 +27,7 @@ namespace Async
   {
   public:
     typedef std::shared_ptr<Coroutine> Ptr;
-    virtual ~Coroutine() {}
+    virtual ~Coroutine() = default;
 
     virtual void Initialize() = 0;
     virtual void Finalize() = 0;

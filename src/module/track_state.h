@@ -24,7 +24,7 @@ namespace Module
     //! Pointer type
     typedef std::shared_ptr<const TrackState> Ptr;
 
-    virtual ~TrackState() {}
+    virtual ~TrackState() = default;
 
     //! Current position (up to Information::PositionsCount)
     virtual uint_t Position() const = 0;

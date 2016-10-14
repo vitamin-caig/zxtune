@@ -21,7 +21,7 @@ namespace UI
   {
   public:
     typedef std::shared_ptr<Language> Ptr;
-    virtual ~Language() {}
+    virtual ~Language() = default;
 
     virtual QStringList GetAvailable() const = 0;
     virtual QString GetSystem() const = 0;

@@ -38,7 +38,7 @@ namespace
   class RowDataProvider
   {
   public:
-    virtual ~RowDataProvider() {}
+    virtual ~RowDataProvider() = default;
 
     virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const = 0;
   };
@@ -221,7 +221,7 @@ namespace
   class OperationTarget
   {
   public:
-    virtual ~OperationTarget() {}
+    virtual ~OperationTarget() = default;
 
     virtual void ExecuteOperation(typename OpType::Ptr op) = 0;
   };

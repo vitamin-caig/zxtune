@@ -154,7 +154,7 @@ namespace Packed
     class DataDecoder
     {
     public:
-      virtual ~DataDecoder() {}
+      virtual ~DataDecoder() = default;
 
       virtual std::unique_ptr<Dump> GetDecodedData() = 0;
     };

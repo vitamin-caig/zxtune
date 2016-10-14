@@ -111,7 +111,7 @@ namespace Module
   {
   public:
     typedef std::shared_ptr<const Line> Ptr;
-    virtual ~Line() {}
+    virtual ~Line() = default;
 
     virtual Cell::Ptr GetChannel(uint_t idx) const = 0;
     virtual uint_t CountActiveChannels() const = 0;
@@ -122,7 +122,7 @@ namespace Module
   {
   public:
     typedef std::shared_ptr<const Pattern> Ptr;
-    virtual ~Pattern() {}
+    virtual ~Pattern() = default;
 
     virtual Line::Ptr GetLine(uint_t row) const = 0;
     virtual uint_t GetSize() const = 0;
@@ -132,7 +132,7 @@ namespace Module
   {
   public:
     typedef std::shared_ptr<const PatternsSet> Ptr;
-    virtual ~PatternsSet() {}
+    virtual ~PatternsSet() = default;
 
     virtual Pattern::Ptr Get(uint_t idx) const = 0;
     virtual uint_t GetSize() const = 0;
@@ -142,7 +142,7 @@ namespace Module
   {
   public:
     typedef std::shared_ptr<const OrderList> Ptr;
-    virtual ~OrderList() {}
+    virtual ~OrderList() = default;
 
     virtual uint_t GetSize() const = 0;
     virtual uint_t GetPatternIndex(uint_t pos) const = 0;
@@ -153,7 +153,7 @@ namespace Module
   {
   public:
     typedef std::shared_ptr<const TrackModel> Ptr;
-    virtual ~TrackModel() {}
+    virtual ~TrackModel() = default;
 
     virtual uint_t GetInitialTempo() const = 0;
     virtual const OrderList& GetOrder() const = 0;
@@ -164,7 +164,6 @@ namespace Module
   {
   public:
     typedef std::shared_ptr<const TrackModelState> Ptr;
-    ~TrackModelState() override {}
 
     virtual Pattern::Ptr PatternObject() const = 0;
     virtual Line::Ptr LineObject() const = 0;

@@ -25,7 +25,7 @@ namespace Formats
       {
       public:
         typedef std::shared_ptr<Builder> Ptr;
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual void SetFirstSubmoduleLocation(std::size_t offset, std::size_t size) = 0;
         virtual void SetSecondSubmoduleLocation(std::size_t offset, std::size_t size) = 0;

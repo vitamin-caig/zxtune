@@ -88,7 +88,7 @@ namespace Parameters
   {
   public:
     typedef std::shared_ptr<Integer> Ptr;
-    virtual ~Integer() {}
+    virtual ~Integer() = default;
 
     virtual int Get() const = 0;
     virtual void Set(int val) = 0;

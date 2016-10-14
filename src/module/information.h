@@ -24,7 +24,7 @@ namespace Module
     //! Pointer type
     typedef std::shared_ptr<const Information> Ptr;
 
-    virtual ~Information() {}
+    virtual ~Information() = default;
 
     //! Total positions
     virtual uint_t PositionsCount() const = 0;

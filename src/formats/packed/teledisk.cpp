@@ -158,7 +158,7 @@ namespace Packed
     class ImageVisitor
     {
     public:
-      virtual ~ImageVisitor() {}
+      virtual ~ImageVisitor() = default;
 
       virtual void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type, std::size_t targetSize) = 0;
     };

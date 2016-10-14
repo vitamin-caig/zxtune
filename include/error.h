@@ -73,22 +73,14 @@ public:
 #endif
   //@{
   //! @name Error initializers
-  Error();//success
+  Error() = default;//success
 
   //! @code
   //! return Error(THIS_LINE, ERROR_TEXT);
   //! @endcode
   Error(LocationRef loc, const String& text);
 
-  Error(const Error& rh) : ErrorMeta(rh.ErrorMeta)
-  {
-  }
-
-  Error& operator = (const Error& rh)
-  {
-    ErrorMeta = rh.ErrorMeta;
-    return *this;
-  }
+  Error(const Error& rh) = default;
   //@}
 
   //@{

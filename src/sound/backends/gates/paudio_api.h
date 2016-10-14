@@ -23,7 +23,7 @@ namespace Sound
     {
     public:
       typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      virtual ~Api() = default;
 
       
       virtual const char* pa_get_library_version(void) = 0;

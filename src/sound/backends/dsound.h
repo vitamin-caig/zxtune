@@ -23,7 +23,7 @@ namespace Sound
     public:
       typedef std::shared_ptr<const Device> Ptr;
       typedef ObjectIterator<Ptr> Iterator;
-      virtual ~Device() {}
+      virtual ~Device() = default;
 
       virtual String Id() const = 0;
       virtual String Name() const = 0;

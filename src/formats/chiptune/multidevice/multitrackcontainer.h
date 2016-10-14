@@ -24,7 +24,7 @@ namespace Formats
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         /*
           Can be called to any of the entity (Module -> Track)

@@ -26,7 +26,7 @@ namespace ZXTune
     typedef ObjectIterator<Plugin::Ptr> Iterator;
 
     //! Virtual destructor
-    virtual ~Plugin() {}
+    virtual ~Plugin() = default;
 
     //! Identification string
     virtual String Id() const = 0;

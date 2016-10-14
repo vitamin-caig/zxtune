@@ -25,7 +25,7 @@ namespace boost
 class InformationComponent
 {
 public:
-  virtual ~InformationComponent() {}
+  virtual ~InformationComponent() = default;
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
   //return true if should exit

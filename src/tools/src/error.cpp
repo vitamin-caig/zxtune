@@ -48,10 +48,6 @@ struct Error::Meta
   MetaPtr Suberror;
 };
 
-Error::Error()
-{
-}
-
 Error::Error(LocationRef loc, const String& txt)
   : ErrorMeta(std::make_shared<Meta>(loc, txt))
 {

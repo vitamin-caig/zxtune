@@ -23,7 +23,7 @@ namespace Sound
     {
     public:
       typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      virtual ~Api() = default;
 
       
       virtual int ogg_stream_init(ogg_stream_state *os, int serialno) = 0;

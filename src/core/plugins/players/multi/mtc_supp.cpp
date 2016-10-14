@@ -112,7 +112,7 @@ namespace MTC
     public:
       typedef std::shared_ptr<TrackEntity> Ptr;
       
-      virtual ~TrackEntity() {}
+      virtual ~TrackEntity() = default;
       
       virtual Module::Holder::Ptr GetHolder() const = 0;
 

@@ -138,7 +138,7 @@ namespace Archived
     class Visitor
     {
     public:
-      virtual ~Visitor() {}
+      virtual ~Visitor() = default;
 
       virtual void OnFile(const String& name, std::size_t offset, std::size_t size) = 0;
     };

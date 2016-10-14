@@ -25,7 +25,7 @@ namespace Formats
       {
       public:
         typedef std::shared_ptr<Builder> Ptr;
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual void AddChunks(std::size_t count) = 0;
         virtual void SetRegister(uint_t reg, uint_t val) = 0;

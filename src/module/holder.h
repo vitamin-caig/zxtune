@@ -26,7 +26,7 @@ namespace Module
     //! @brief Pointer type
     typedef std::shared_ptr<const Holder> Ptr;
 
-    virtual ~Holder() {}
+    virtual ~Holder() = default;
 
     //! @brief Retrieving info about loaded module
     virtual Information::Ptr GetModuleInformation() const = 0;

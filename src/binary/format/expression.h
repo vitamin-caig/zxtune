@@ -25,7 +25,7 @@ namespace Binary
     {
     public:
       typedef std::shared_ptr<const Token> Ptr;
-      virtual ~Token() {}
+      virtual ~Token() = default;
 
       virtual bool Match(uint_t val) const = 0;
     };
@@ -36,7 +36,7 @@ namespace Binary
     {
     public:
       typedef std::unique_ptr<const Expression> Ptr;
-      virtual ~Expression() {}
+      virtual ~Expression() = default;
 
       virtual std::size_t StartOffset() const = 0;
       virtual ObjectIterator<Token::Ptr>::Ptr Tokens() const = 0;

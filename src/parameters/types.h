@@ -41,9 +41,7 @@ namespace Parameters
     //! @brief Delimiter between namespaces in parameters' names
     static const char NAMESPACE_DELIMITER = '.';
   public:
-    NameType()
-    {
-    }
+    NameType() = default;
 
     /*explicit*/NameType(const std::string& path)
       : Path(path)
@@ -112,10 +110,7 @@ namespace Parameters
     }
 
     NameType& operator = (const NameType& rh)
-    {
-      Path = rh.Path;
-      return *this;
-    }
+    = default;
 
     std::string FullPath() const
     {

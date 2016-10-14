@@ -66,7 +66,7 @@ namespace Devices
     public:
       typedef std::shared_ptr<const ChipParameters> Ptr;
 
-      virtual ~ChipParameters() {}
+      virtual ~ChipParameters() = default;
 
       virtual uint_t Version() const = 0;
 

@@ -31,7 +31,7 @@ class DisplayComponent
 public:
   typedef std::unique_ptr<DisplayComponent> Ptr;
 
-  virtual ~DisplayComponent() {}
+  virtual ~DisplayComponent() = default;
 
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;

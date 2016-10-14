@@ -30,7 +30,7 @@ namespace Devices
     {
     public:
       typedef std::shared_ptr<ChipIO> Ptr;
-      virtual ~ChipIO() {}
+      virtual ~ChipIO() = default;
 
       virtual uint8_t Read(uint16_t addr) = 0;
       virtual void Write(const Oscillator& timeStamp, uint16_t addr, uint8_t data) = 0;
@@ -66,7 +66,7 @@ namespace Devices
     {
     public:
       typedef std::shared_ptr<Chip> Ptr;
-      virtual ~Chip() {}
+      virtual ~Chip() = default;
 
       virtual void Reset() = 0;
       virtual void Interrupt() = 0;
@@ -82,7 +82,7 @@ namespace Devices
     {
     public:
       typedef std::shared_ptr<const ChipParameters> Ptr;
-      virtual ~ChipParameters() {}
+      virtual ~ChipParameters() = default;
 
       virtual uint_t Version() const = 0;
       virtual uint_t IntTicks() const = 0;

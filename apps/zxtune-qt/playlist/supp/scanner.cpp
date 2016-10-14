@@ -35,7 +35,7 @@ namespace
   class FilenamesTarget
   {
   public:
-    virtual ~FilenamesTarget() {}
+    virtual ~FilenamesTarget() = default;
 
     virtual void Add(const QStringList& items) = 0;
   };
@@ -43,7 +43,7 @@ namespace
   class FilenamesSource
   {
   public:
-    virtual ~FilenamesSource() {}
+    virtual ~FilenamesSource() = default;
 
     virtual bool Empty() const = 0;
     virtual QString GetNext() = 0;
@@ -264,7 +264,7 @@ namespace
   class ScannerCallback
   {
   public:
-    virtual ~ScannerCallback() {}
+    virtual ~ScannerCallback() = default;
 
     virtual void OnItem(Playlist::Item::Data::Ptr item) = 0;
     virtual void OnItems(Playlist::Item::Collection::Ptr items) = 0;

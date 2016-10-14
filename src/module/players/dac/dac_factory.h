@@ -24,7 +24,7 @@ namespace Module
     {
     public:
       typedef std::shared_ptr<const Factory> Ptr;
-      virtual ~Factory() {}
+      virtual ~Factory() = default;
 
       virtual Chiptune::Ptr CreateChiptune(const Binary::Container& data, Parameters::Container::Ptr properties) const = 0;
     };

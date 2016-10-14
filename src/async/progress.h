@@ -21,7 +21,7 @@ namespace Async
   {
   public:
     typedef std::shared_ptr<Progress> Ptr;
-    virtual ~Progress() {}
+    virtual ~Progress() = default;
 
     virtual void Produce(uint_t items) = 0;
     virtual void Consume(uint_t items) = 0;

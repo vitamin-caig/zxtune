@@ -25,7 +25,7 @@ namespace Parameters
     //! Pointer type
     typedef std::shared_ptr<const Accessor> Ptr;
 
-    virtual ~Accessor() {}
+    virtual ~Accessor() = default;
 
     //! Content version
     virtual uint_t Version() const = 0;

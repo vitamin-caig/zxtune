@@ -22,7 +22,7 @@ namespace Analysis
   {
   public:
     typedef std::shared_ptr<const Result> Ptr;
-    virtual ~Result() {}
+    virtual ~Result() = default;
 
     //! @brief Returns data size that is processed in current data position
     //! @return Size of input data format detected

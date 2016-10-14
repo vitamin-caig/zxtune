@@ -20,7 +20,7 @@ namespace ZXTune
   {
   public:
     typedef std::shared_ptr<const PluginsEnumerator> Ptr;
-    virtual ~PluginsEnumerator() {}
+    virtual ~PluginsEnumerator() = default;
 
     virtual typename PluginType::Iterator::Ptr Enumerate() const = 0;
 

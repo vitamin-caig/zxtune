@@ -64,7 +64,7 @@ namespace Devices
     {
     public:
       typedef std::shared_ptr<Device> Ptr;
-      virtual ~Device() {}
+      virtual ~Device() = default;
 
       virtual void RenderData(const DataChunk& src) = 0;
       virtual void Reset() = 0;

@@ -20,7 +20,7 @@ namespace Platform
   {
   public:
     typedef std::shared_ptr<const SharedLibrary> Ptr;
-    virtual ~SharedLibrary() {}
+    virtual ~SharedLibrary() = default;
 
     virtual void* GetSymbol(const std::string& name) const = 0;
 
@@ -32,7 +32,7 @@ namespace Platform
     class Name
     {
     public:
-      virtual ~Name() {}
+      virtual ~Name() = default;
       
       virtual std::string Base() const = 0;
       virtual std::vector<std::string> PosixAlternatives() const = 0;

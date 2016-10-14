@@ -30,7 +30,7 @@ namespace boost
 class SoundComponent
 {
 public:
-  virtual ~SoundComponent() {}
+  virtual ~SoundComponent() = default;
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
   virtual void ParseParameters() = 0;

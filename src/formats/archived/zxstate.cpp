@@ -68,7 +68,7 @@ namespace Archived
     class ChunksVisitor
     {
     public:
-      virtual ~ChunksVisitor() {}
+      virtual ~ChunksVisitor() = default;
 
       virtual bool Visit(const Chunk& ch) = 0;
       virtual bool Visit(const Chunk& ch, const DataBlockDescription& blk) = 0;

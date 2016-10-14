@@ -21,7 +21,7 @@ namespace Downloads
   class Visitor
   {
   public:
-    virtual ~Visitor() {}
+    virtual ~Visitor() = default;
 
     virtual void OnDownload(Product::Update::Ptr update) = 0;
   };

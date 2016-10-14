@@ -25,12 +25,12 @@ namespace
   class PropertyModel
   {
   public:
-    virtual ~PropertyModel() {}
+    virtual ~PropertyModel() = default;
 
     class Visitor
     {
     public:
-      virtual ~Visitor() {}
+      virtual ~Visitor() = default;
 
       virtual void OnItem(Playlist::Model::IndexType index, const T& val) = 0;
     };

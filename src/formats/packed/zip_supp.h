@@ -189,7 +189,7 @@ namespace Formats
       class CompressedFile
       {
       public:
-        virtual ~CompressedFile() {}
+        virtual ~CompressedFile() = default;
 
         virtual std::size_t GetPackedSize() const = 0;
         virtual std::size_t GetUnpackedSize() const = 0;

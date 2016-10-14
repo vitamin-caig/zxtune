@@ -28,7 +28,7 @@ namespace Formats
     public:
       typedef std::shared_ptr<const File> Ptr;
 
-      virtual ~File() {}
+      virtual ~File() = default;
 
       //! @brief Get archived file name
       //! @note In case of directories storing support, name will contain path separators
@@ -52,7 +52,7 @@ namespace Formats
       class Walker
       {
       public:
-        virtual ~Walker() {}
+        virtual ~Walker() = default;
 
         //! @brief Called on each visited file
         virtual void OnFile(const File& file) const = 0;
@@ -76,7 +76,7 @@ namespace Formats
     {
     public:
       typedef std::shared_ptr<const Decoder> Ptr;
-      virtual ~Decoder() {}
+      virtual ~Decoder() = default;
 
       //! @brief Get short decoder description
       virtual String GetDescription() const = 0;

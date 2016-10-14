@@ -42,7 +42,7 @@ namespace Playlist
     class StateCallback
     {
     public:
-      virtual ~StateCallback() {}
+      virtual ~StateCallback() = default;
 
       virtual State GetState(const QModelIndex& index) const = 0;
     };
@@ -84,7 +84,7 @@ namespace Playlist
   {
   public:
     typedef std::shared_ptr<const TextNotification> Ptr;
-    virtual ~TextNotification() {}
+    virtual ~TextNotification() = default;
 
     virtual QString Category() const = 0;
     virtual QString Text() const = 0;

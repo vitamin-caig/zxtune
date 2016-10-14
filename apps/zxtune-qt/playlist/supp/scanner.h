@@ -21,7 +21,7 @@ namespace Playlist
   {
   public:
     typedef std::shared_ptr<const ScanStatus> Ptr;
-    virtual ~ScanStatus() {}
+    virtual ~ScanStatus() = default;
 
     virtual unsigned DoneFiles() const = 0;
     virtual unsigned FoundFiles() const = 0;

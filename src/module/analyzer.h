@@ -24,7 +24,7 @@ namespace Module
     //! Pointer type
     typedef std::shared_ptr<const Analyzer> Ptr;
 
-    virtual ~Analyzer() {}
+    virtual ~Analyzer() = default;
 
     struct ChannelState
     {

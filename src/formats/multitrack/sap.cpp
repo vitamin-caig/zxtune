@@ -58,7 +58,7 @@ namespace Multitrack
     class Builder
     {
     public:
-      virtual ~Builder() {}
+      virtual ~Builder() = default;
 
       virtual void SetProperty(const String& name, const String& value) = 0;
       virtual void SetBlock(const uint_t start, const uint8_t* data, std::size_t size) = 0;

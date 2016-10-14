@@ -29,7 +29,7 @@ namespace Sound
     //! Iterator type
     typedef ObjectIterator<Ptr> Iterator;
 
-    virtual ~BackendInformation() {}
+    virtual ~BackendInformation() = default;
 
     //! Short spaceless identifier
     virtual String Id() const = 0;
@@ -48,7 +48,7 @@ namespace Sound
     //! @brief Pointer types
     typedef std::shared_ptr<VolumeControl> Ptr;
 
-    virtual ~VolumeControl() {}
+    virtual ~VolumeControl() = default;
 
     //! @brief Getting current hardware mixer volume
     //! @return Result volume
@@ -68,7 +68,7 @@ namespace Sound
     //! @brief Pointer type
     typedef std::shared_ptr<PlaybackControl> Ptr;
 
-    virtual ~PlaybackControl() {}
+    virtual ~PlaybackControl() = default;
 
     //! @brief Starting playback after stop or pause
     //! @throw Error in case of error
@@ -113,7 +113,7 @@ namespace Sound
     //! @brief Pointer type
     typedef std::shared_ptr<const Backend> Ptr;
 
-    virtual ~Backend() {}
+    virtual ~Backend() = default;
 
     //! @brief Current tracking status
     virtual Module::TrackState::Ptr GetTrackState() const = 0;
@@ -133,7 +133,7 @@ namespace Sound
   {
   public:
     typedef std::shared_ptr<BackendCallback> Ptr;
-    virtual ~BackendCallback() {}
+    virtual ~BackendCallback() = default;
 
     virtual void OnStart() = 0;
     virtual void OnFrame(const Module::TrackState& state) = 0;

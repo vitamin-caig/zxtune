@@ -16,7 +16,7 @@
 class GlobalOptions
 {
 public:
-  virtual ~GlobalOptions() {}
+  virtual ~GlobalOptions() = default;
 
   virtual Parameters::Container::Ptr Get() const = 0;
   virtual Parameters::Accessor::Ptr GetSnapshot() const = 0;

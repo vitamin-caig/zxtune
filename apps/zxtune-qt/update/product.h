@@ -23,7 +23,7 @@ namespace Product
   class Release
   {
   public:
-    virtual ~Release() {}
+    virtual ~Release() = default;
 
     enum PlatformTag
     {

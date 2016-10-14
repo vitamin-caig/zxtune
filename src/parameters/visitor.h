@@ -24,7 +24,7 @@ namespace Parameters
     //! Pointer type
     typedef std::shared_ptr<Visitor> Ptr;
 
-    virtual ~Visitor() {}
+    virtual ~Visitor() = default;
 
     //! Add/modify integer parameter
     virtual void SetValue(const NameType& name, IntType val) = 0;

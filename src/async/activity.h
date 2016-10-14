@@ -19,7 +19,7 @@ namespace Async
   {
   public:
     typedef std::shared_ptr<Operation> Ptr;
-    virtual ~Operation() {}
+    virtual ~Operation() = default;
 
     virtual void Prepare() = 0;
     virtual void Execute() = 0;
@@ -29,7 +29,7 @@ namespace Async
   {
   public:
     typedef std::shared_ptr<Activity> Ptr;
-    virtual ~Activity() {}
+    virtual ~Activity() = default;
 
     virtual bool IsExecuted() const = 0;
     //! @throw Error if Operation execution failed

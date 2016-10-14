@@ -43,7 +43,7 @@ namespace Formats
   {
   public:
     typedef std::shared_ptr<ImageBuilder> Ptr;
-    virtual ~ImageBuilder() {}
+    virtual ~ImageBuilder() = default;
 
     virtual void SetGeometry(const CHS& geometry) = 0;
     virtual void SetSector(const CHS& location, const Dump& data) = 0;

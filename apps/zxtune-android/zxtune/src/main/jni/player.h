@@ -22,7 +22,7 @@ namespace Player
   {
   public:
     typedef std::shared_ptr<Control> Ptr;
-    virtual ~Control() {}
+    virtual ~Control() = default;
 
     virtual uint_t GetPosition() const = 0;
     virtual uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const = 0;

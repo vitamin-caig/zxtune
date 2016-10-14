@@ -23,7 +23,7 @@ namespace Sound
     {
     public:
       typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      virtual ~Api() = default;
 
       
       virtual char* SDL_GetError(void) = 0;

@@ -31,7 +31,7 @@ namespace Devices
     {
     public:
       typedef std::shared_ptr<const DumperParameters> Ptr;
-      virtual ~DumperParameters() {}
+      virtual ~DumperParameters() = default;
 
       enum Optimization
       {

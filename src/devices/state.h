@@ -47,7 +47,7 @@ namespace Devices
   {
   public:
     typedef std::shared_ptr<const StateSource> Ptr;
-    virtual ~StateSource() {}
+    virtual ~StateSource() = default;
 
     virtual void GetState(MultiChannelState& result) const = 0;
   };

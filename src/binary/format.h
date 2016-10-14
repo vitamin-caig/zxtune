@@ -20,7 +20,7 @@ namespace Binary
   {
   public:
     typedef std::shared_ptr<const Format> Ptr;
-    virtual ~Format() {}
+    virtual ~Format() = default;
 
     //! @brief Check if input data is data format
     //! @param data Data to be checked

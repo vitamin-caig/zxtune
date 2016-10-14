@@ -21,7 +21,7 @@ namespace Async
   public:
     typedef std::shared_ptr<Queue<T> > Ptr;
 
-    virtual ~Queue() {}
+    virtual ~Queue() = default;
 
     //! @brief Enqueue object
     virtual void Add(T val) = 0;

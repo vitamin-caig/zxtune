@@ -58,7 +58,7 @@ namespace Analysis
   {
   public:
     typedef std::shared_ptr<const Node> Ptr;
-    virtual ~Node() {}
+    virtual ~Node() = default;
 
     //! Name to distinguish. Can be empty
     virtual String Name() const = 0;
@@ -295,7 +295,7 @@ namespace Parsing
   {
   public:
     typedef std::shared_ptr<const Result> Ptr;
-    virtual ~Result() {}
+    virtual ~Result() = default;
 
     virtual String Name() const = 0;
     virtual Binary::Container::Ptr Data() const = 0;
@@ -900,7 +900,7 @@ namespace
   class TargetOptions
   {
   public:
-    virtual ~TargetOptions() {}
+    virtual ~TargetOptions() = default;
 
     virtual String TargetNameTemplate() const = 0;
     virtual bool IgnoreEmptyData() const = 0;
@@ -914,7 +914,7 @@ namespace
   class AnalysisOptions
   {
   public:
-    virtual ~AnalysisOptions() {}
+    virtual ~AnalysisOptions() = default;
 
     virtual std::size_t AnalysisThreads() const = 0;
     virtual std::size_t AnalysisDataQueueSize() const = 0;

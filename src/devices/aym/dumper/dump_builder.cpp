@@ -21,7 +21,7 @@ namespace AYM
   {
   public:
     typedef std::shared_ptr<RenderState> Ptr;
-    virtual ~RenderState() {}
+    virtual ~RenderState() = default;
 
     virtual void Reset() = 0;
 

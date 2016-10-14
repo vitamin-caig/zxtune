@@ -29,7 +29,7 @@ namespace IO
     typedef ObjectIterator<Provider::Ptr> Iterator;
 
     //! Virtual destructor
-    virtual ~Provider() {}
+    virtual ~Provider() = default;
 
     //! Provider's identifier
     virtual String Id() const = 0;

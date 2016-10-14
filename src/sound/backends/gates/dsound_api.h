@@ -24,7 +24,7 @@ namespace Sound
     {
     public:
       typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      virtual ~Api() = default;
 
       
       virtual HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param) = 0;

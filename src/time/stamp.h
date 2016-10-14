@@ -39,10 +39,7 @@ namespace Time
     }
 
     //from the same type
-    Stamp(const Stamp& rh)
-      : Value(rh.Value)
-    {
-    }
+    Stamp(const Stamp& rh) = default;
 
     bool operator < (const Stamp& rh) const
     {

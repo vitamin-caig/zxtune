@@ -19,7 +19,7 @@ namespace Async
   {
   public:
     typedef std::shared_ptr<Job> Ptr;
-    virtual ~Job() {}
+    virtual ~Job() = default;
 
     virtual void Start() = 0;
     virtual void Pause() = 0;

@@ -33,7 +33,7 @@ namespace Lha
   {
   public:
     typedef std::shared_ptr<const Decompressor> Ptr;
-    virtual ~Decompressor() {}
+    virtual ~Decompressor() = default;
 
     virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData, std::size_t outputSize) const = 0;
   };

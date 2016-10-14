@@ -31,7 +31,7 @@ namespace Playlist
     {
     public:
       typedef std::shared_ptr<StorageAccessOperation> Ptr;
-      virtual ~StorageAccessOperation() {}
+      virtual ~StorageAccessOperation() = default;
 
       virtual void Execute(const Storage& storage, Log::ProgressCallback& cb) = 0;
     };
@@ -40,7 +40,7 @@ namespace Playlist
     {
     public:
       typedef std::shared_ptr<StorageModifyOperation> Ptr;
-      virtual ~StorageModifyOperation() {}
+      virtual ~StorageModifyOperation() = default;
 
       virtual void Execute(Storage& storage, Log::ProgressCallback& cb) = 0;
     };

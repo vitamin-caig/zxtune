@@ -24,7 +24,7 @@ namespace IO
     {
     public:
       typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      virtual ~Api() = default;
 
       
       virtual char* curl_version() = 0;

@@ -33,7 +33,7 @@ namespace IO
   class ProvidersEnumerator
   {
   public:
-    virtual ~ProvidersEnumerator() {}
+    virtual ~ProvidersEnumerator() = default;
     //registration
     virtual void RegisterProvider(DataProvider::Ptr provider) = 0;
 

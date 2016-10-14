@@ -29,7 +29,7 @@ namespace Playlist
     public:
       typedef std::shared_ptr<const Data> Ptr;
 
-      virtual ~Data() {}
+      virtual ~Data() = default;
 
       //common
       virtual Module::Holder::Ptr GetModule() const = 0;

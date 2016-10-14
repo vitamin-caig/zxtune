@@ -22,7 +22,7 @@ namespace Playlist
     class DetectParameters
     {
     public:
-      virtual ~DetectParameters() {}
+      virtual ~DetectParameters() = default;
 
       virtual Parameters::Container::Ptr CreateInitialAdjustedParameters() const = 0;
       virtual void ProcessItem(Data::Ptr item) = 0;
@@ -34,7 +34,7 @@ namespace Playlist
     public:
       typedef std::shared_ptr<const DataProvider> Ptr;
 
-      virtual ~DataProvider() {}
+      virtual ~DataProvider() = default;
 
       virtual void DetectModules(const String& path, DetectParameters& detectParams) const = 0;
 

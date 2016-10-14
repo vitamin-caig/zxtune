@@ -24,7 +24,7 @@ namespace Formats
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual void SetTitle(const String& title) = 0;
         virtual void SetAuthor(const String& author) = 0;

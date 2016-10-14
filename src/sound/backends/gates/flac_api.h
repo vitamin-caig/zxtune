@@ -24,7 +24,7 @@ namespace Sound
     {
     public:
       typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      virtual ~Api() = default;
 
       
       virtual FLAC__StreamEncoder* FLAC__stream_encoder_new(void) = 0;

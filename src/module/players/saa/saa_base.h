@@ -79,7 +79,7 @@ namespace Module
     public:
       typedef std::shared_ptr<DataRenderer> Ptr;
 
-      virtual ~DataRenderer() {}
+      virtual ~DataRenderer() = default;
 
       virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
       virtual void Reset() = 0;
@@ -97,7 +97,7 @@ namespace Module
     {
     public:
       typedef std::shared_ptr<const Chiptune> Ptr;
-      virtual ~Chiptune() {}
+      virtual ~Chiptune() = default;
 
       virtual Information::Ptr GetInformation() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;

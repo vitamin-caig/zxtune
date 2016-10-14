@@ -21,7 +21,7 @@ namespace Strings
   class FieldsSource
   {
   public:
-    virtual ~FieldsSource() {}
+    virtual ~FieldsSource() = default;
 
     virtual String GetFieldValue(const String& fieldName) const = 0;
   };

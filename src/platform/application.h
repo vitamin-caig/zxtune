@@ -25,7 +25,7 @@ namespace Platform
   class Application
   {
   public:
-    virtual ~Application() {}
+    virtual ~Application() = default;
 
     virtual int Run(int argc, const char* argv[]) = 0;
 

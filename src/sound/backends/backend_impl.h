@@ -22,7 +22,7 @@ namespace Sound
   {
   public:
     typedef std::shared_ptr<BackendWorker> Ptr;
-    virtual ~BackendWorker() {}
+    virtual ~BackendWorker() = default;
 
     virtual void Startup() = 0;
     virtual void Shutdown() = 0;
@@ -37,7 +37,7 @@ namespace Sound
   {
   public:
     typedef std::shared_ptr<const BackendWorkerFactory> Ptr;
-    virtual ~BackendWorkerFactory() {}
+    virtual ~BackendWorkerFactory() = default;
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const = 0;
   };

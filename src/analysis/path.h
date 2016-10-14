@@ -23,7 +23,7 @@ namespace Analysis
     typedef std::shared_ptr<const Path> Ptr;
     typedef ObjectIterator<String> Iterator;
 
-    virtual ~Path() {}
+    virtual ~Path() = default;
 
     //! @brief Check if path is empty
     //! @return true if no significant elements

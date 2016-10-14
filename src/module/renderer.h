@@ -23,7 +23,7 @@ namespace Module
     //! @brief Generic pointer type
     typedef std::shared_ptr<Renderer> Ptr;
 
-    virtual ~Renderer() {}
+    virtual ~Renderer() = default;
 
     //! @brief Current tracking status
     virtual TrackState::Ptr GetTrackState() const = 0;

@@ -20,7 +20,7 @@ namespace Benchmark
   class PerformanceTest
   {
   public:
-    virtual ~PerformanceTest() {}
+    virtual ~PerformanceTest() = default;
 
     virtual std::string Category() const = 0;
     virtual std::string Name() const = 0;
@@ -31,7 +31,7 @@ namespace Benchmark
   class TestsVisitor
   {
   public:
-    virtual ~TestsVisitor() {}
+    virtual ~TestsVisitor() = default;
 
     virtual void OnPerformanceTest(const PerformanceTest& test) = 0;
   };

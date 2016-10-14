@@ -26,9 +26,7 @@ namespace Module
       {
       }
 
-      virtual ~Parameter() //to use polymorphic ptr
-      {
-      }
+      virtual ~Parameter() = default;
 
       //! Conversion target id
       const uint64_t ID;

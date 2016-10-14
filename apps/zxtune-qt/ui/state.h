@@ -22,7 +22,7 @@ namespace UI
   {
   public:
     typedef std::unique_ptr<State> Ptr;
-    virtual ~State() {}
+    virtual ~State() = default;
 
     virtual void AddWidget(QWidget& w) = 0;
 

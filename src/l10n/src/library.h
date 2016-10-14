@@ -24,7 +24,7 @@ namespace L10n
   {
   public:
     typedef std::shared_ptr<const Vocabulary> Ptr;
-    virtual ~Vocabulary() {}
+    virtual ~Vocabulary() = default;
 
     //! @brief Retreiving translated or converted text message
     virtual String GetText(const char* text) const = 0;
@@ -55,7 +55,7 @@ namespace L10n
   class Library
   {
   public:
-    virtual ~Library() {}
+    virtual ~Library() = default;
 
     virtual void AddTranslation(const Translation& trans) = 0;
 

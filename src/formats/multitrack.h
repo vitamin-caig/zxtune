@@ -44,7 +44,7 @@ namespace Formats
     {
     public:
       typedef std::shared_ptr<const Decoder> Ptr;
-      virtual ~Decoder() {}
+      virtual ~Decoder() = default;
       
       //! @brief Get approximate format description to search in raw binary data
       //! @invariant Cannot be empty

@@ -373,7 +373,7 @@ namespace DAC
   class Renderer
   {
   public:
-    virtual ~Renderer() {}
+    virtual ~Renderer() = default;
 
     virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target) = 0;
   };

@@ -73,7 +73,7 @@ namespace LexicalAnalysis
   {
   public:
     typedef std::shared_ptr<const Tokenizer> Ptr;
-    virtual ~Tokenizer() {}
+    virtual ~Tokenizer() = default;
 
     virtual TokenType Parse(const std::string& lexeme) const = 0;
   };
@@ -83,14 +83,14 @@ namespace LexicalAnalysis
   public:
     typedef std::shared_ptr<const Grammar> Ptr;
     typedef std::shared_ptr<Grammar> RWPtr;
-    virtual ~Grammar() {}
+    virtual ~Grammar() = default;
 
     virtual void AddTokenizer(Tokenizer::Ptr src) = 0;
     
     class Callback
     {
     public:
-      virtual ~Callback() {}
+      virtual ~Callback() = default;
 
       virtual void TokenMatched(const std::string& lexeme, TokenType type) = 0;
       virtual void MultipleTokensMatched(const std::string& lexeme, const TokenTypesSet& types) = 0;

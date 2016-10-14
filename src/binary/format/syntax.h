@@ -21,7 +21,7 @@ namespace Binary
     {
     public:
       typedef std::unique_ptr<FormatTokensVisitor> Ptr;
-      virtual ~FormatTokensVisitor() {}
+      virtual ~FormatTokensVisitor() = default;
 
       virtual void Match(const std::string& val) = 0;
       virtual void GroupStart() = 0;

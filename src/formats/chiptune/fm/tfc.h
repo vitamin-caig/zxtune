@@ -25,7 +25,7 @@ namespace Formats
       {
       public:
         typedef std::shared_ptr<Builder> Ptr;
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual void SetVersion(const String& version) = 0;
         virtual void SetIntFreq(uint_t freq) = 0;

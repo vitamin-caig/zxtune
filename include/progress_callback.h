@@ -23,7 +23,7 @@ namespace Log
   {
   public:
     typedef std::unique_ptr<ProgressCallback> Ptr;
-    virtual ~ProgressCallback() {}
+    virtual ~ProgressCallback() = default;
 
     virtual void OnProgress(uint_t current) = 0;
     virtual void OnProgress(uint_t current, const String& message) = 0;

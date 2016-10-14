@@ -55,7 +55,7 @@ namespace
   public:
     typedef std::shared_ptr<const DataProvider> Ptr;
 
-    virtual ~DataProvider() {}
+    virtual ~DataProvider() = default;
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const = 0;
   };

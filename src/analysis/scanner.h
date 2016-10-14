@@ -25,7 +25,7 @@ namespace Analysis
     typedef std::shared_ptr<const Scanner> Ptr;
     typedef std::shared_ptr<Scanner> RWPtr;
 
-    virtual ~Scanner() {}
+    virtual ~Scanner() = default;
 
     virtual void AddDecoder(Formats::Archived::Decoder::Ptr decoder) = 0;
     virtual void AddDecoder(Formats::Packed::Decoder::Ptr decoder) = 0;
@@ -35,7 +35,7 @@ namespace Analysis
     class Target
     {
     public:
-      virtual ~Target() {}
+      virtual ~Target() = default;
 
       virtual void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset, Formats::Archived::Container::Ptr data) = 0;
       virtual void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset, Formats::Packed::Container::Ptr data) = 0;

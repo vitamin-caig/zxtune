@@ -25,7 +25,7 @@ namespace Formats
       class ChannelBuilder
       {
       public:
-        virtual ~ChannelBuilder() {}
+        virtual ~ChannelBuilder() = default;
 
         virtual void SetRest() = 0;
         virtual void SetNote(uint_t note) = 0;
@@ -53,7 +53,7 @@ namespace Formats
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         //common properties

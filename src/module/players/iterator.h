@@ -20,7 +20,7 @@ namespace Module
   public:
     typedef std::shared_ptr<Iterator> Ptr;
 
-    virtual ~Iterator() {}
+    virtual ~Iterator() = default;
 
     virtual void Reset() = 0;
     virtual bool IsValid() const = 0;

@@ -26,7 +26,7 @@ namespace Module
     public:
       typedef std::shared_ptr<const TrackParameters> Ptr;
 
-      virtual ~TrackParameters() {}
+      virtual ~TrackParameters() = default;
 
       virtual uint_t Version() const = 0;
       virtual void FreqTable(FrequencyTable& table) const = 0;

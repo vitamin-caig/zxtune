@@ -60,7 +60,7 @@ namespace IFF
   class Visitor
   {
   public:
-    virtual ~Visitor() {}
+    virtual ~Visitor() = default;
     
     virtual void OnChunk(const Identifier::Type& id, Binary::Container::Ptr content) = 0;
   };
@@ -92,7 +92,7 @@ namespace IFF
   {
   public:
     typedef std::shared_ptr<const ChunkSource> Ptr;
-    virtual ~ChunkSource() {}
+    virtual ~ChunkSource() = default;
     
     virtual std::size_t GetSize() const = 0;
     virtual void GetResult(Binary::DataBuilder& builder) const = 0;

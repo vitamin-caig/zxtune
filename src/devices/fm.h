@@ -70,7 +70,7 @@ namespace Devices
     {
     public:
       typedef std::shared_ptr<Device> Ptr;
-      virtual ~Device() {}
+      virtual ~Device() = default;
 
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
@@ -91,7 +91,7 @@ namespace Devices
     public:
       typedef std::shared_ptr<const ChipParameters> Ptr;
 
-      virtual ~ChipParameters() {}
+      virtual ~ChipParameters() = default;
 
       virtual uint_t Version() const = 0;
       virtual uint64_t ClockFreq() const = 0;

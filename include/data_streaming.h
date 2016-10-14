@@ -24,7 +24,7 @@ public:
   //! @brief Pointer type
   typedef typename std::shared_ptr<DataReceiver<T> > Ptr;
 
-  virtual ~DataReceiver() {}
+  virtual ~DataReceiver() = default;
 
   //! @brief Data consuming point
   virtual void ApplyData(const T& data) = 0;
@@ -59,7 +59,7 @@ public:
   //! @brief Pointer type
   typedef typename std::shared_ptr<DataTransmitter> Ptr;
 
-  virtual ~DataTransmitter() {}
+  virtual ~DataTransmitter() = default;
 
   virtual void SetTarget(typename DataReceiver<T>::Ptr target) = 0;
 };

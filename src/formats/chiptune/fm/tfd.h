@@ -25,7 +25,7 @@ namespace Formats
       {
       public:
         typedef std::shared_ptr<Builder> Ptr;
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual void SetTitle(const String& title) = 0;
         virtual void SetAuthor(const String& author) = 0;

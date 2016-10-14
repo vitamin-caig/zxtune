@@ -26,7 +26,7 @@ namespace Z80
   class IOBus
   {
   public:
-    virtual ~IOBus() {}
+    virtual ~IOBus() = default;
 
     virtual std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const = 0;
   };

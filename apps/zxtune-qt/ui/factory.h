@@ -18,7 +18,7 @@
 class WidgetsFactory
 {
 public:
-  virtual ~WidgetsFactory() {}
+  virtual ~WidgetsFactory() = default;
   
   //main window
   virtual MainWindow::Ptr CreateMainWindow(Parameters::Container::Ptr options) const = 0;

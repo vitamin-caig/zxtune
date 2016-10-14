@@ -110,7 +110,7 @@ namespace Devices
     public:
       typedef std::shared_ptr<Chip> Ptr;
 
-      ~Chip() override {}
+      ~Chip() override = default;
 
       /// Set sample for work
       virtual void SetSample(uint_t idx, Sample::Ptr sample) = 0;
@@ -130,7 +130,7 @@ namespace Devices
     public:
       typedef std::shared_ptr<const ChipParameters> Ptr;
 
-      virtual ~ChipParameters() {}
+      virtual ~ChipParameters() = default;
 
       virtual uint_t Version() const = 0;
       virtual uint_t BaseSampleFreq() const = 0;

@@ -37,7 +37,7 @@ namespace Formats
     {
     public:
       typedef std::shared_ptr<const Decoder> Ptr;
-      virtual ~Decoder() {}
+      virtual ~Decoder() = default;
 
       //! @brief Get short decoder description
       virtual String GetDescription() const = 0;

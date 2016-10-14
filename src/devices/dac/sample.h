@@ -21,7 +21,7 @@ namespace Devices
     {
     public:
       typedef std::shared_ptr<const Sample> Ptr;
-      virtual ~Sample() {}
+      virtual ~Sample() = default;
 
       virtual Sound::Sample::Type Get(std::size_t pos) const = 0;
       virtual std::size_t Size() const = 0;

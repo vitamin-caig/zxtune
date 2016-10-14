@@ -22,7 +22,7 @@ namespace Binary
     //! @brief Pointer type
     typedef std::shared_ptr<const Data> Ptr;
 
-    virtual ~Data() {}
+    virtual ~Data() = default;
 
     //! @brief Raw data accessible for at least Size() bytes
     //! @invariant Should not change after first call

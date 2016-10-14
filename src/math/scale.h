@@ -98,11 +98,7 @@ namespace Math
     {
     }
 
-    ScaleFunctor(const ScaleFunctor<uint64_t>& rh)
-      : Range(rh.Range)
-      , UnsafeScaleMask(rh.UnsafeScaleMask)
-    {
-    }
+    ScaleFunctor(const ScaleFunctor<uint64_t>& rh) = default;
 
     uint64_t operator()(uint64_t value) const
     {

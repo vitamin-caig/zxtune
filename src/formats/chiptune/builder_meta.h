@@ -22,7 +22,7 @@ namespace Formats
     class MetaBuilder
     {
     public:
-      virtual ~MetaBuilder() {}
+      virtual ~MetaBuilder() = default;
 
       virtual void SetProgram(const String& program) = 0;
       virtual void SetTitle(const String& title) = 0;

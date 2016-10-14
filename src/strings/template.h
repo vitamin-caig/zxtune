@@ -27,7 +27,7 @@ namespace Strings
     //! @brief Pointer type
     typedef std::unique_ptr<const Template> Ptr;
     //! @brief Virtual destructor
-    virtual ~Template() {}
+    virtual ~Template() = default;
     //! @brief Performing instantiation
     virtual String Instantiate(const class FieldsSource& source) const = 0;
 

@@ -31,7 +31,7 @@ namespace Playlist
     public:
       typedef std::shared_ptr<const Container> Ptr;
 
-      virtual ~Container() {}
+      virtual ~Container() = default;
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual unsigned GetItemsCount() const = 0;

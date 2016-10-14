@@ -323,7 +323,7 @@ namespace
   class ItemWriter
   {
   public:
-    virtual ~ItemWriter() {}
+    virtual ~ItemWriter() = default;
 
     virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const = 0;
   };

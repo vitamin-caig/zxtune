@@ -79,7 +79,7 @@ namespace Module
     public:
       typedef std::shared_ptr<DataRenderer> Ptr;
 
-      virtual ~DataRenderer() {}
+      virtual ~DataRenderer() = default;
 
       virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
       virtual void Reset() = 0;

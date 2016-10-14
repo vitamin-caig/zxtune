@@ -33,7 +33,7 @@ namespace IO
   class FileCreatingParameters
   {
   public:
-    virtual ~FileCreatingParameters() {}
+    virtual ~FileCreatingParameters() = default;
 
     virtual OverwriteMode Overwrite() const = 0;
     virtual bool CreateDirectories() const = 0;

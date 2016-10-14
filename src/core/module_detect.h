@@ -29,7 +29,7 @@ namespace Module
   class DetectCallback
   {
   public:
-    virtual ~DetectCallback() {}
+    virtual ~DetectCallback() = default;
 
     //! @brief Process module
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const = 0;

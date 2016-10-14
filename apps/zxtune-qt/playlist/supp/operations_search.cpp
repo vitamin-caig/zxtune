@@ -24,7 +24,7 @@ namespace
   {
   public:
     typedef std::shared_ptr<const Predicate> Ptr;
-    virtual ~Predicate() {}
+    virtual ~Predicate() = default;
 
     virtual bool Match(const Playlist::Item::Data& data) const = 0;
   };
@@ -100,7 +100,7 @@ namespace
   {
   public:
     typedef std::shared_ptr<const StringPredicate> Ptr;
-    virtual ~StringPredicate() {}
+    virtual ~StringPredicate() = default;
 
     virtual bool Match(const String& str) const = 0;
   };

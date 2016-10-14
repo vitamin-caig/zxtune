@@ -2,7 +2,7 @@
     {
     public:
       typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      virtual ~Api() = default;
 
       <TMPL_LOOP NAME=FUNCTIONS>
       virtual <TMPL_VAR NAME=DECLARATION> = 0;</TMPL_LOOP>

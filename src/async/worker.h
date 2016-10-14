@@ -26,7 +26,7 @@ namespace Async
   {
   public:
     typedef std::shared_ptr<Worker> Ptr;
-    virtual ~Worker() {}
+    virtual ~Worker() = default;
 
     virtual void Initialize() = 0;
     virtual void Finalize() = 0;

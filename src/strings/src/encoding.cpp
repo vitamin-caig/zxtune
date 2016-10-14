@@ -32,7 +32,7 @@ namespace
   class Codepage
   {
   public:
-    virtual ~Codepage() {}
+    virtual ~Codepage() = default;
     
     virtual int_t GetWeight(uint8_t symbol) const = 0;
     virtual uint_t Translate(uint8_t symbol) const = 0;
