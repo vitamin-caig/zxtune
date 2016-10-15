@@ -33,7 +33,7 @@ final class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
-  private static final String SITE = "http://www.zxtunes.com/";
+  private static final String SITE = "http://zxtunes.com/";
   private static final String API = SITE + "xml.php?";
   private static final String ALL_AUTHORS_QUERY = API + "scope=authors&fields=nickname,name,tracks";
   //return nothing really, but required for more logical model
