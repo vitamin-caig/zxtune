@@ -16,6 +16,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -58,7 +59,7 @@ final class Database {
         ");";
       ;
       
-      Authors(SQLiteOpenHelper helper) {
+      Authors(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -92,7 +93,7 @@ final class Database {
           "size INTEGER NOT NULL" +
           ");";
 
-      Tracks(SQLiteOpenHelper helper) {
+      Tracks(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -122,7 +123,7 @@ final class Database {
       final static String NAME = "author_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      AuthorTracks(SQLiteOpenHelper helper) {
+      AuthorTracks(DBProvider helper) {
         super(helper, NAME, 32);
       }
       
@@ -150,7 +151,7 @@ final class Database {
         ");";
       ;
 
-      Genres(SQLiteOpenHelper helper) {
+      Genres(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -171,7 +172,7 @@ final class Database {
       final static String NAME = "genre_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      GenreTracks(SQLiteOpenHelper helper) {
+      GenreTracks(DBProvider helper) {
         super(helper, NAME, 32);
       }
       
@@ -185,7 +186,7 @@ final class Database {
     }
   }
 
-  private final Helper helper;
+  private final DBProvider helper;
   private final Tables.Authors authors;
   private final Tables.AuthorTracks authorTracks;
   private final Tables.Genres genres;
@@ -195,7 +196,7 @@ final class Database {
   private final String findQuery;
 
   Database(Context context) {
-    this.helper = Helper.create(context);
+    this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorTracks = new Tables.AuthorTracks(helper);
     this.genres = new Tables.Genres(helper);

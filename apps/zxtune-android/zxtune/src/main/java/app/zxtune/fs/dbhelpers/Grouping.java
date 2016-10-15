@@ -29,7 +29,7 @@ public class Grouping extends Objects {
     return String.format(Locale.US, "CREATE TABLE %s (%s INTEGER PRIMARY KEY);", tableName, Fields._id.name());
   }
   
-  public Grouping(SQLiteOpenHelper helper, String tableName, int bitsForObject) {
+  public Grouping(DBProvider helper, String tableName, int bitsForObject) {
     super(helper, tableName, Fields.values().length);
     this.tableName = tableName;
     this.bitsForObject = bitsForObject;

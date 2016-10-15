@@ -20,6 +20,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -63,7 +64,7 @@ final class Database {
               + " INTEGER);";
       }
 
-      Groups(SQLiteOpenHelper helper, String name) {
+      Groups(DBProvider helper, String name) {
         super(helper, name, Fields.values().length);
       }
       
@@ -115,7 +116,7 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
               + " INTEGER PRIMARY KEY, " + Fields.path + " TEXT NOT NULL, " + Fields.size + " INTEGER);";
       
-      Tracks(SQLiteOpenHelper helper) {
+      Tracks(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -145,20 +146,20 @@ final class Database {
         return createQuery(name(category));
       }
       
-      GroupTracks(SQLiteOpenHelper helper, String category) {
+      GroupTracks(DBProvider helper, String category) {
         super(helper, name(category), 32);
       }
     }
   }
 
-  private final Helper helper;
+  private final DBProvider helper;
   private final HashMap<String, Tables.Groups> groups;
   private final HashMap<String, Tables.GroupTracks> groupTracks;
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
 
   Database(Context context) {
-    this.helper = Helper.create(context);
+    this.helper = new DBProvider(Helper.create(context));
     this.groups = new HashMap<String, Tables.Groups>();
     this.groupTracks = new HashMap<String, Tables.GroupTracks>();
     for (String group : Tables.LIST) {

@@ -48,7 +48,7 @@ public class Timestamps {
   private final SQLiteStatement queryStatement;
   private final SQLiteStatement updateStatement;
   
-  public Timestamps(SQLiteOpenHelper helper) {
+  public Timestamps(DBProvider helper) {
     this.queryStatement = helper.getReadableDatabase().compileStatement(Table.QUERY_STATEMENT);
     this.updateStatement = helper.getWritableDatabase().compileStatement(Table.INSERT_STATEMENT);
   }

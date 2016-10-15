@@ -17,6 +17,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.amp.Catalog.AuthorsVisitor;
+import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -64,7 +65,7 @@ final class Database {
         ");";
       ;
       
-      Authors(SQLiteOpenHelper helper) {
+      Authors(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -98,7 +99,7 @@ final class Database {
           "size INTEGER NOT NULL" +
           ");";
 
-      Tracks(SQLiteOpenHelper helper) {
+      Tracks(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -127,7 +128,7 @@ final class Database {
       final static String NAME = "author_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      AuthorTracks(SQLiteOpenHelper helper) {
+      AuthorTracks(DBProvider helper) {
         super(helper, NAME, 32);
       }
       
@@ -145,7 +146,7 @@ final class Database {
       final static String NAME = "country_authors";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      CountryAuthors(SQLiteOpenHelper helper) {
+      CountryAuthors(DBProvider helper) {
         super(helper, NAME, 32);
       }
       
@@ -172,7 +173,7 @@ final class Database {
         ");";
       ;
 
-      Groups(SQLiteOpenHelper helper) {
+      Groups(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -192,7 +193,7 @@ final class Database {
       final static String NAME = "group_authors";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      GroupAuthors(SQLiteOpenHelper helper) {
+      GroupAuthors(DBProvider helper) {
         super(helper, NAME, 32);
       }
       
@@ -206,7 +207,7 @@ final class Database {
     }
   }
 
-  private final Helper helper;
+  private final DBProvider helper;
   private final Tables.CountryAuthors countryAuthors;
   private final Tables.GroupAuthors groupAuthors;
   private final Tables.Groups groups;
@@ -217,7 +218,7 @@ final class Database {
   private final String findQuery;
 
   Database(Context context) {
-    this.helper = Helper.create(context);
+    this.helper = new DBProvider(Helper.create(context));
     this.countryAuthors = new Tables.CountryAuthors(helper);
     this.groupAuthors = new Tables.GroupAuthors(helper);
     this.groups = new Tables.Groups(helper);

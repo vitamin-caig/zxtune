@@ -20,13 +20,13 @@ public class Objects {
   private final int fields;
   private final SQLiteStatement insertStatement;
   
-  public Objects(SQLiteOpenHelper helper, String name, String mode, int fields) {
+  public Objects(DBProvider helper, String name, String mode, int fields) {
     final String statement = makeInsertStatement(mode, name, fields);
     this.fields = fields;
     this.insertStatement = helper.getWritableDatabase().compileStatement(statement);
   }
 
-  public Objects(SQLiteOpenHelper helper, String name, int fields) {
+  public Objects(DBProvider helper, String name, int fields) {
     this(helper, name, "REPLACE", fields);
   }
   

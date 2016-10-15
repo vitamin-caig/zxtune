@@ -16,6 +16,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -63,7 +64,7 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
           + " TEXT);";
 
-      Authors(SQLiteOpenHelper helper) {
+      Authors(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -91,7 +92,7 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.name + " TEXT NOT NULL, " + Fields.year
           + " INTEGER NOT NULL);";
 
-      Parties(SQLiteOpenHelper helper) {
+      Parties(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -120,7 +121,7 @@ final class Database {
           + " TEXT, " + Fields.votes + " TEXT, " + Fields.duration + " INTEGER, " + Fields.year
           + " INTEGER, " + Fields.compo + " TEXT, " + Fields.partyplace + " INTEGER);";
       
-      Tracks(SQLiteOpenHelper helper) {
+      Tracks(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -154,7 +155,7 @@ final class Database {
       final static String NAME = "authors_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      AuthorsTracks(SQLiteOpenHelper helper) {
+      AuthorsTracks(DBProvider helper) {
         super(helper, NAME, 32);
       }
 
@@ -172,7 +173,7 @@ final class Database {
       final static String NAME = "parties_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      PartiesTracks(SQLiteOpenHelper helper) {
+      PartiesTracks(DBProvider helper) {
         super(helper, NAME, 32);
       }
 
@@ -186,7 +187,7 @@ final class Database {
     }
   }
 
-  private final Helper helper;
+  private final DBProvider helper;
   private final Tables.Authors authors;
   private final Tables.AuthorsTracks authorsTracks;
   private final Tables.Parties parties;
@@ -196,7 +197,7 @@ final class Database {
   private final String findQuery;
 
   Database(Context context) {
-    this.helper = Helper.create(context);
+    this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorsTracks = new Tables.AuthorsTracks(helper);
     this.parties = new Tables.Parties(helper);
