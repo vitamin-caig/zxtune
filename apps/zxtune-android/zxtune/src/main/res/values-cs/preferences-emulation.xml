@@ -51,5 +51,8 @@
     <item>2 minuty</item>
     <item>3 minuty</item>
     <item>5 minut</item>
+    <item>10 minut</item>
+    <item>15 minut</item>
+    <item>30 minut</item>
   </string-array>
 </resources>
