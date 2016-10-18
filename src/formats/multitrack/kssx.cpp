@@ -50,7 +50,7 @@ namespace Multitrack
     PACK_PRE struct ExtraHeader
     {
       uint32_t DataSize;
-      uint32_t Unused;
+      uint32_t Reserved;
       uint16_t FirstTrack;
       uint16_t LastTrack;
       /* Optional part
@@ -75,11 +75,14 @@ namespace Multitrack
         "??"       //play address
         "?"        //start bank
         "?"        //extra banks
-        "0c-10"    //extra header size
-        "?"        //extra chips
+        "00|0c-10" //extra header size
+        "%0x0xxxxx"//extra chips
      ;
+    const ExtraHeader STUB_EXTRA_HEADER = {~uint32_t(0), 0, 0, 0};
      
     const std::size_t MIN_SIZE = sizeof(RawHeader) + sizeof(ExtraHeader);
+    
+    const uint_t MAX_TRACKS_COUNT = 256;
 
     class Container : public Formats::Multitrack::Container
     {
@@ -127,6 +130,7 @@ namespace Multitrack
       
       Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
+        Require(Hdr != &STUB_EXTRA_HEADER);
         std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
         std::memcpy(&content->front(), Delegate->Start(), content->size());
         ExtraHeader* const hdr = safe_ptr_cast<ExtraHeader*>(&content->front() + sizeof(RawHeader));
@@ -165,13 +169,17 @@ namespace Multitrack
         }
         const std::size_t availSize = rawData.Size();
         const RawHeader* const hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
+        const ExtraHeader* const extraHdr = hdr->ExtraHeaderSize != 0 ? safe_ptr_cast<const ExtraHeader*>(hdr + 1) : &STUB_EXTRA_HEADER;
+        if (fromLE(extraHdr->LastTrack) > MAX_TRACKS_COUNT - 1 || extraHdr->Reserved != 0)
+        {
+          return Formats::Multitrack::Container::Ptr();
+        }
         const std::size_t headersSize = sizeof(*hdr) + hdr->ExtraHeaderSize;
         const std::size_t bankSize = 0 != (hdr->ExtraBanks & 0x80) ? 8192 : 16384;
         const uint_t banksCount = hdr->ExtraBanks & 0x7f;
         const std::size_t totalSize = headersSize + fromLE(hdr->InitialDataSize) + bankSize * banksCount;
         //GME support truncated files
         const Binary::Container::Ptr used = rawData.GetSubcontainer(0, std::min(availSize, totalSize));
-        const ExtraHeader* const extraHdr = safe_ptr_cast<const ExtraHeader*>(hdr + 1);
         return MakePtr<Container>(extraHdr, used);
       }
     private:
