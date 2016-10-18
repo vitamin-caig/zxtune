@@ -98,6 +98,7 @@ namespace
     void ResetItem() override
     {
       Stop();
+      Item.reset();
       Control = StubControl::Instance();
       Backend.reset();
     }
