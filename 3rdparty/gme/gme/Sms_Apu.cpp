@@ -76,7 +76,8 @@ int Sms_Apu::osc_status( voice_status_t* buf, int buf_size ) const
 	{
 		const bool noise = idx == noise_osc;
 		const Osc& osc = oscs [idx];
-		if (!osc.output)
+		const Blip_Buffer* const out = osc.output;
+		if (!out)
 		{
 			continue;
 		}
@@ -100,7 +101,7 @@ int Sms_Apu::osc_status( voice_status_t* buf, int buf_size ) const
 		if ( vol != 0 && period != 0 )
 		{
 			voice_status_t& voice = buf[voices];
-			voice.frequency = osc.output->clock_rate();
+			voice.frequency = out->clock_rate();
 			voice.level = vol * voice_max_level / 64;
 			voice.divider = noise ? period : period * 2;//phase
 			++voices;
