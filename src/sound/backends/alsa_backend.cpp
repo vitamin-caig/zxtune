@@ -111,9 +111,9 @@ namespace Alsa
   class AutoHandle
   {
   public:
-    AutoHandle(Api::Ptr api, const String& name)
-      : AlsaApi(api)
-      , Name(name)
+    AutoHandle(Api::Ptr api, String name)
+      : AlsaApi(std::move(api))
+      , Name(std::move(name))
       , Handle(0)
     {
     }
@@ -400,7 +400,7 @@ namespace Alsa
   {
   public:
     MixerElementsIterator(Api::Ptr api, snd_mixer_t& mixer)
-      : AlsaApi(api)
+      : AlsaApi(std::move(api))
       , Current(AlsaApi->snd_mixer_first_elem(&mixer))
     {
       SkipNotsupported();
@@ -705,8 +705,8 @@ namespace Alsa
   {
   public:
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : AlsaApi(api)
-      , Params(params)
+      : AlsaApi(std::move(api))
+      , Params(std::move(params))
     {
     }
 
@@ -785,7 +785,7 @@ namespace Alsa
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : AlsaApi(api)
+      : AlsaApi(std::move(api))
     {
     }
     
@@ -809,7 +809,7 @@ namespace Alsa
   {
   public:
     explicit CardsIterator(Api::Ptr api)
-      : AlsaApi(api)
+      : AlsaApi(std::move(api))
       , Index(-1)
     {
       Next();
@@ -873,7 +873,7 @@ namespace Alsa
   {
   public:
     DevicesIterator(Api::Ptr api, const CardsIterator& card)
-      : AlsaApi(api)
+      : AlsaApi(std::move(api))
       , Card(card)
       , Index(-1)
     {
@@ -929,11 +929,11 @@ namespace Alsa
   class DeviceInfo : public Device
   {
   public:
-    DeviceInfo(Api::Ptr api, const String& id, const String& name, const String& cardName)
-      : AlsaApi(api)
-      , IdValue(id)
-      , NameValue(name)
-      , CardNameValue(cardName)
+    DeviceInfo(Api::Ptr api, String id, String name, String cardName)
+      : AlsaApi(std::move(api))
+      , IdValue(std::move(id))
+      , NameValue(std::move(name))
+      , CardNameValue(std::move(cardName))
     {
     }
 

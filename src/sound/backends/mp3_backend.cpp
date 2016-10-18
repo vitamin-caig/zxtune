@@ -66,9 +66,9 @@ namespace Mp3
   {
   public:
     FileStream(Api::Ptr api, LameContextPtr context, Binary::OutputStream::Ptr stream)
-      : LameApi(api)
-      , Stream(stream)
-      , Context(context)
+      : LameApi(std::move(api))
+      , Stream(std::move(stream))
+      , Context(std::move(context))
       , Encoded(INITIAL_ENCODED_BUFFER_SIZE)
     {
       Dbg("Stream initialized");
@@ -173,7 +173,7 @@ namespace Mp3
   {
   public:
     explicit StreamParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -258,8 +258,8 @@ namespace Mp3
   {
   public:
     FileStreamFactory(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : LameApi(api)
-      , Params(params)
+      : LameApi(std::move(api))
+      , Params(std::move(params))
     {
     }
 
@@ -347,7 +347,7 @@ namespace Mp3
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : FlacApi(api)
+      : FlacApi(std::move(api))
     {
     }
 

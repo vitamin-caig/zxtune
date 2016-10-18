@@ -219,17 +219,17 @@ namespace
 
   struct OptionDesc
   {
-    OptionDesc(const Parameters::NameType& name, const String& descr, const ValueType& def)
+    OptionDesc(const Parameters::NameType& name, String descr, ValueType def)
       : Name(FromStdString(name.FullPath()))
-      , Desc(descr)
-      , Default(def)
+      , Desc(std::move(descr))
+      , Default(std::move(def))
     {
     }
 
-    OptionDesc(const String& name, const String& descr, const ValueType& def)
-      : Name(name)
-      , Desc(descr)
-      , Default(def)
+    OptionDesc(String name, String descr, ValueType def)
+      : Name(std::move(name))
+      , Desc(std::move(descr))
+      , Default(std::move(def))
     {
     }
 

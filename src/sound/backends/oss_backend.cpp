@@ -63,15 +63,15 @@ namespace Oss
     {
     }
     
-    explicit AutoDescriptor(const std::string& name)
-      : Name(name)
+    explicit AutoDescriptor(std::string name)
+      : Name(std::move(name))
       , Handle(-1)
     {
     }
     
-    AutoDescriptor(const std::string& name, int mode)
-      : Name(name)
-      , Handle(::open(name.c_str(), mode, 0))
+    AutoDescriptor(std::string name, int mode)
+      : Name(std::move(name))
+      , Handle(::open(Name.c_str(), mode, 0))
     {
       CheckResult(Valid(), THIS_LINE);
       Dbg("Opened device '%1%'", Name);
@@ -276,7 +276,7 @@ namespace Oss
   {
   public:
     explicit BackendWorker(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
       , Format(-1)
       , VolumeController(new VolumeControl(StateMutex, MixHandle))
     {

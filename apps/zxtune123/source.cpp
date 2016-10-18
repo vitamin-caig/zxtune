@@ -111,8 +111,8 @@ namespace
   {
   public:
     DetectCallback(Parameters::Accessor::Ptr params, IO::Identifier::Ptr id, OnItemCallback& callback, bool showLogs)
-      : Params(params)
-      , Id(id)
+      : Params(std::move(params))
+      , Id(std::move(id))
       , Callback(callback)
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : 0)
     {
@@ -141,7 +141,7 @@ namespace
   {
   public:
     Source(Parameters::Container::Ptr configParams)
-      : Params(configParams)
+      : Params(std::move(configParams))
       , OptionsDescription(Text::INPUT_SECTION)
       , ShowProgress(false)
       , YM(false)

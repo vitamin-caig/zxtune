@@ -22,6 +22,8 @@
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/range/size.hpp>
+//std includes
+#include <utility>
 
 namespace
 {
@@ -42,7 +44,7 @@ namespace
   {
   public:
     explicit ChannelModeComboboxValue(Parameters::Container::Ptr ctr)
-      : Ctr(ctr)
+      : Ctr(std::move(ctr))
     {
     }
 

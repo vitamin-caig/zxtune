@@ -314,8 +314,8 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::TypedContainer& data)
-        : Delegate(data)
+      explicit Format(Binary::TypedContainer data)
+        : Delegate(std::move(data))
         , Ranges(Delegate.GetSize())
         , Source(GetServiceObject<RawHeader>(0, 0))
         , Id(GetObject<RawId>(sizeof(Source)))

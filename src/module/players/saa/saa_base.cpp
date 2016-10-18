@@ -16,6 +16,8 @@
 #include <math/numeric.h>
 #include <module/players/analyzer.h>
 #include <parameters/tracking_helper.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -23,9 +25,9 @@ namespace Module
   {
   public:
     SAADataIterator(TrackStateIterator::Ptr delegate, SAA::DataRenderer::Ptr renderer)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , State(Delegate->GetStateObserver())
-      , Render(renderer)
+      , Render(std::move(renderer))
     {
       FillCurrentData();
     }
@@ -79,8 +81,8 @@ namespace Module
   public:
     SAARenderer(Sound::RenderParameters::Ptr params, SAA::DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
       : Params(params)
-      , Iterator(iterator)
-      , Device(device)
+      , Iterator(std::move(iterator))
+      , Device(std::move(device))
       , FrameDuration()
       , Looped()
     {
@@ -174,7 +176,7 @@ namespace Module
   {
   public:
     explicit SAAHolder(SAA::Chiptune::Ptr chiptune)
-      : Tune(chiptune)
+      : Tune(std::move(chiptune))
     {
     }
 

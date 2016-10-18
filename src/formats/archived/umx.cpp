@@ -511,7 +511,7 @@ namespace Archived
     {
     public:
       Container(Binary::Container::Ptr delegate, NamedDataMap::const_iterator begin, NamedDataMap::const_iterator end)
-        : Delegate(delegate)
+        : Delegate(std::move(delegate))
         , Files(begin, end)
       {
       }

@@ -182,7 +182,7 @@ namespace
     {
     public:
       explicit Iterator(AYLEntries::Ptr container)
-        : Container(container)
+        : Container(std::move(container))
         , Delegate(Container->begin(), Container->end())
       {
       }

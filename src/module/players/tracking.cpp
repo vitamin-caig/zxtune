@@ -60,7 +60,7 @@ namespace Module
     typedef std::shared_ptr<TrackStateCursor> Ptr;
 
     explicit TrackStateCursor(TrackModel::Ptr model)
-      : Model(model)
+      : Model(std::move(model))
       , Order(Model->GetOrder())
       , Patterns(Model->GetPatterns())
     {
@@ -298,7 +298,7 @@ namespace Module
   {
   public:
     InformationImpl(TrackModel::Ptr model, uint_t channels)
-      : Model(model)
+      : Model(std::move(model))
       , Channels(channels)
       , Frames(), LoopFrameNum()
     {

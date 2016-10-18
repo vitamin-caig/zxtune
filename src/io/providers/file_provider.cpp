@@ -129,9 +129,9 @@ namespace IO
   class FileIdentifier : public Identifier
   {
   public:
-    FileIdentifier(const boost::filesystem::path& path, const String& subpath)
-      : PathValue(path)
-      , SubpathValue(subpath)
+    FileIdentifier(boost::filesystem::path path, String subpath)
+      : PathValue(std::move(path))
+      , SubpathValue(std::move(subpath))
       , FullValue(Serialize())
     {
       Require(!PathValue.empty());

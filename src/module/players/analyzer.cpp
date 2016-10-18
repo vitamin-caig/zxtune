@@ -14,6 +14,7 @@
 #include <make_ptr.h>
 //std includes
 #include <algorithm>
+#include <utility>
 
 namespace Module
 {
@@ -21,7 +22,7 @@ namespace Module
   {
   public:
     explicit DevicesAnalyzer(Devices::StateSource::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 

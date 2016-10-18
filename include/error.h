@@ -118,7 +118,7 @@ public:
   String ToString() const throw();
   //@}
 private:
-  Error(MetaPtr ptr) : ErrorMeta(ptr)
+  Error(MetaPtr ptr) : ErrorMeta(std::move(ptr))
   {
   }
 private:

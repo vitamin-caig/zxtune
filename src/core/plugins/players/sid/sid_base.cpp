@@ -61,7 +61,7 @@ namespace Sid
     typedef std::shared_ptr<Analyzer> Ptr;
 
     explicit Analyzer(EnginePtr engine)
-      : Engine(engine)
+      : Engine(std::move(engine))
     {
     }
 
@@ -101,7 +101,7 @@ namespace Sid
   {
   public:
     explicit SidParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -140,10 +140,10 @@ namespace Sid
       : Tune(tune)
       , Engine(std::make_shared<sidplayfp>())
       , Builder("resid")
-      , Iterator(iterator)
+      , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
       , Analysis(MakePtr<Analyzer>(Engine))
-      , Target(target)
+      , Target(std::move(target))
       , SoundParams(Sound::RenderParameters::Create(params))
       , Params(params)
       , Config(Engine->config())
@@ -286,7 +286,7 @@ namespace Sid
   public:
     Information(const TimeType defaultDuration, TunePtr tune, uint_t fps, uint_t songIdx)
       : DefaultDuration(defaultDuration)
-      , Tune(tune)
+      , Tune(std::move(tune))
       , Fps(fps)
       , SongIdx(songIdx)
       , Frames()
@@ -352,9 +352,9 @@ namespace Sid
   {
   public:
     Holder(TunePtr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
-      : Tune(tune)
-      , Info(info)
-      , Properties(props)
+      : Tune(std::move(tune))
+      , Info(std::move(info))
+      , Properties(std::move(props))
     {
     }
 

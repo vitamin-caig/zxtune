@@ -255,7 +255,7 @@ namespace Module
   {
   public:
     explicit PatternsBuilder(MutablePatternsSet::Ptr patterns)
-      : Patterns(patterns)
+      : Patterns(std::move(patterns))
       , CurPattern()
       , CurLine()
       , CurChannel()

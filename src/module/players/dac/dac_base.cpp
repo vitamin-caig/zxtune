@@ -25,9 +25,9 @@ namespace Module
   {
   public:
     DACDataIterator(TrackStateIterator::Ptr delegate, DAC::DataRenderer::Ptr renderer)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , State(Delegate->GetStateObserver())
-      , Render(renderer)
+      , Render(std::move(renderer))
     {
       FillCurrentData();
     }
@@ -85,8 +85,8 @@ namespace Module
   public:
     DACRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
       : Params(params)
-      , Iterator(iterator)
-      , Device(device)
+      , Iterator(std::move(iterator))
+      , Device(std::move(device))
       , FrameDuration()
       , Looped()
     {

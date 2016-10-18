@@ -124,7 +124,7 @@ class RangeIterator
   }
 public:
   RangeIterator(C from, C to)
-    : Cur(from), Lim(to)
+    : Cur(std::move(from)), Lim(std::move(to))
   {
   }
 

@@ -13,6 +13,8 @@
 //common includes
 #include <crc.h>
 #include <make_ptr.h>
+//std includes
+#include <utility>
 
 namespace Formats
 {
@@ -22,7 +24,7 @@ namespace Chiptune
   {
   public:
     explicit MultitrackContainer(Formats::Multitrack::Container::Ptr data)
-      : Delegate(data)
+      : Delegate(std::move(data))
     {
     }
 
@@ -59,9 +61,9 @@ namespace Chiptune
   class MultitrackDecoder : public Decoder
   {
   public:
-    MultitrackDecoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
-      : Description(description)
-      , Delegate(delegate)
+    MultitrackDecoder(String description, Formats::Multitrack::Decoder::Ptr delegate)
+      : Description(std::move(description))
+      , Delegate(std::move(delegate))
     {
     }
 

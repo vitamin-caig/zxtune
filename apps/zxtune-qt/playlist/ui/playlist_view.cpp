@@ -91,7 +91,7 @@ namespace
   {
   public:
     explicit PlaylistOptionsWrapper(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -318,7 +318,7 @@ namespace
     ViewImpl(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
       : Playlist::UI::View(parent)
       , LayoutState(UI::State::Create(Parameters::ZXTuneQT::Playlist::NAMESPACE_NAME))
-      , Controller(playlist)
+      , Controller(std::move(playlist))
       , Options(PlaylistOptionsWrapper(params))
       , State(*Controller->GetModel(), *Controller->GetIterator())
       , View(Playlist::UI::TableView::Create(*this, State, *new RetranslateModel(*Controller->GetModel())))

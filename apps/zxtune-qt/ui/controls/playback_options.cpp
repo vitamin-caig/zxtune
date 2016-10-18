@@ -29,7 +29,7 @@ namespace
   public:
     PlaybackOptionsImpl(QWidget& parent, PlaybackSupport& supp, Parameters::Container::Ptr params)
       : ::PlaybackOptions(parent)
-      , Params(params)
+      , Params(std::move(params))
     {
       //setup self
       setupUi(this);

@@ -65,7 +65,7 @@ namespace
   {
   public:
     CommonBackendParameters(Parameters::Container::Ptr config)
-      : Params(config)
+      : Params(std::move(config))
     {
     }
 

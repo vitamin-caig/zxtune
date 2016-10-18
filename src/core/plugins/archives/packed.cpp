@@ -15,6 +15,8 @@
 #include <core/plugin_attrs.h>
 //common includes
 #include <make_ptr.h>
+//std includes
+#include <utility>
 //text includes
 #include <core/text/plugins.h>
 
@@ -80,8 +82,8 @@ namespace ZXTune
   {
   public:
     CommonArchivePlugin(Plugin::Ptr descr, Formats::Packed::Decoder::Ptr decoder)
-      : Description(descr)
-      , Decoder(decoder)
+      : Description(std::move(descr))
+      , Decoder(std::move(decoder))
     {
     }
 

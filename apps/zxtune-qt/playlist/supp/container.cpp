@@ -96,7 +96,7 @@ namespace
   {
   public:
     LoadPlaylistOperation(Playlist::Item::DataProvider::Ptr provider, const QString& filename, Playlist::Controller& ctrl)
-      : Provider(provider)
+      : Provider(std::move(provider))
       , Filename(filename)
       , Controller(ctrl)
     {
@@ -127,7 +127,7 @@ namespace
   {
   public:
     explicit PlaylistContainer(Parameters::Accessor::Ptr parameters)
-      : Params(parameters)
+      : Params(std::move(parameters))
     {
     }
 

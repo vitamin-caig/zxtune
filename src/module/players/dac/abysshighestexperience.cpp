@@ -122,7 +122,7 @@ namespace AHX
   {
   public:
     explicit TrackState(HvlPtr hvl)
-      : Hvl(hvl)
+      : Hvl(std::move(hvl))
     {
     }
 
@@ -178,7 +178,7 @@ namespace AHX
   {
   public:
     explicit Analyzer(HvlPtr hvl)
-      : Hvl(hvl)
+      : Hvl(std::move(hvl))
     {
     }
 
@@ -278,8 +278,8 @@ namespace AHX
   {
   public:
     Renderer(HVL::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(tune)
-      , Target(target)
+      : Tune(std::move(tune))
+      , Target(std::move(target))
       , SoundParams(Sound::RenderParameters::Create(params))
       , Looped()
     {
@@ -343,9 +343,9 @@ namespace AHX
   {
   public:
     Holder(HVL::Ptr tune, Module::Information::Ptr info, Parameters::Accessor::Ptr props)
-      : Tune(tune)
-      , Info(info)
-      , Properties(props)
+      : Tune(std::move(tune))
+      , Info(std::move(info))
+      , Properties(std::move(props))
     {
     }
 

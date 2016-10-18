@@ -43,8 +43,8 @@ namespace Parameters
   public:
     NameType() = default;
 
-    /*explicit*/NameType(const std::string& path)
-      : Path(path)
+    /*explicit*/NameType(std::string path)
+      : Path(std::move(path))
     {
     }
 
@@ -104,13 +104,12 @@ namespace Parameters
         : NameType();
     }
 
-    NameType operator + (const std::string& rh) const
+    NameType operator + (std::string rh) const
     {
-      return operator + (NameType(rh));
+      return operator + (NameType(std::move(rh)));
     }
 
-    NameType& operator = (const NameType& rh)
-    = default;
+    NameType& operator = (const NameType& rh) = default;
 
     std::string FullPath() const
     {

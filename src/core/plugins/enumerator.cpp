@@ -85,9 +85,9 @@ namespace ZXTune
   class SimplePluginDescription : public Plugin
   {
   public:
-    SimplePluginDescription(const String& id, const String& info, uint_t capabilities)
-      : ID(id)
-      , Info(info)
+    SimplePluginDescription(String  id, String  info, uint_t capabilities)
+      : ID(std::move(id))
+      , Info(std::move(info))
       , Caps(capabilities)
     {
     }
@@ -116,8 +116,8 @@ namespace ZXTune
   {
   public:
     CompositePluginsIterator(ArchivePlugin::Iterator::Ptr archives, PlayerPlugin::Iterator::Ptr players)
-      : Archives(archives)
-      , Players(players)
+      : Archives(std::move(archives))
+      , Players(std::move(players))
     {
       Check(Archives);
       Check(Players);

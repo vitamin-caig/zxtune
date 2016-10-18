@@ -500,13 +500,13 @@ namespace Archived
     class SingleBlockFile : public Archived::File
     {
     public:
-      SingleBlockFile(Binary::Container::Ptr archive, const String& name, const DataBlockDescription& block)
-        : Data(archive)
-        , Name(name)
-        , Block(block)
+      SingleBlockFile(Binary::Container::Ptr archive, String name, DataBlockDescription  block)
+        : Data(std::move(archive))
+        , Name(std::move(name))
+        , Block(std::move(block))
       {
         Dbg("Created file '%1%', size=%2%, packed size=%3%, compression=%4%",
-          Name, Block.UncompressedSize, block.Size, Block.IsCompressed);
+          Name, Block.UncompressedSize, Block.Size, Block.IsCompressed);
       }
 
       String GetName() const override
@@ -540,10 +540,10 @@ namespace Archived
     class MultiBlockFile : public Archived::File
     {
     public:
-      MultiBlockFile(Binary::Container::Ptr archive, const String& name, const DataBlocks& blocks)
-        : Data(archive)
-        , Name(name)
-        , Blocks(blocks)
+      MultiBlockFile(Binary::Container::Ptr archive, String name, DataBlocks blocks)
+        : Data(std::move(archive))
+        , Name(std::move(name))
+        , Blocks(std::move(blocks))
       {
         Dbg("Created file '%1%', contains from %2% parts", Name, Blocks.size());
       }
@@ -689,9 +689,9 @@ namespace Archived
     class Container : public Archived::Container
     {
     public:
-      Container(Binary::Container::Ptr archive, NamedBlocksMap::const_iterator begin, NamedBlocksMap::const_iterator end)
-        : Delegate(archive)
-        , Blocks(begin, end)
+      Container(Binary::Container::Ptr archive, NamedBlocksMap blocks)
+        : Delegate(std::move(archive))
+        , Blocks(std::move(blocks))
       {
       }
 
@@ -783,7 +783,7 @@ namespace Archived
         if (!blocks.empty())
         {
           const Binary::Container::Ptr archive = data.GetSubcontainer(0, size);
-          return MakePtr<ZXState::Container>(archive, blocks.begin(), blocks.end());
+          return MakePtr<ZXState::Container>(archive, blocks);
         }
         Dbg("No files found");
       }

@@ -14,6 +14,7 @@
 #include <parameters/container.h>
 //std includes
 #include <map>
+#include <utility>
 
 namespace Parameters
 {
@@ -138,8 +139,8 @@ namespace Parameters
   {
   public:
     CompositeContainer(Accessor::Ptr accessor, Modifier::Ptr modifier)
-      : AccessDelegate(accessor)
-      , ModifyDelegate(modifier)
+      : AccessDelegate(std::move(accessor))
+      , ModifyDelegate(std::move(modifier))
     {
     }
 

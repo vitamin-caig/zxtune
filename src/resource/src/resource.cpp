@@ -66,8 +66,8 @@ namespace
   class CompositeArchive : public Formats::Archived::Container
   {
   public:
-    explicit CompositeArchive(const ArchivesSet& delegates)
-      : Delegates(delegates)
+    explicit CompositeArchive(ArchivesSet delegates)
+      : Delegates(std::move(delegates))
     {
     }
 

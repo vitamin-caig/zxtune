@@ -93,8 +93,8 @@ namespace TurboSound
     };
   public:
     MergedModuleProperties(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second)
-      : First(first)
-      , Second(second)
+      : First(std::move(first))
+      , Second(std::move(second))
     {
     }
 
@@ -146,8 +146,8 @@ namespace TurboSound
   {
   public:
     MergedModuleInfo(Information::Ptr lh, Information::Ptr rh)
-      : First(lh)
-      , Second(rh)
+      : First(std::move(lh))
+      , Second(std::move(rh))
     {
     }
     uint_t PositionsCount() const override
@@ -187,7 +187,7 @@ namespace TurboSound
   {
   public:
     MergedTrackState(TrackState::Ptr first, TrackState::Ptr second)
-      : First(first), Second(second)
+      : First(std::move(first)), Second(std::move(second))
     {
     }
 
@@ -306,10 +306,10 @@ namespace TurboSound
   class DoubleDataIterator : public DataIterator
   {
   public:
-    DoubleDataIterator(const TrackParametersArray& trackParams, TrackStateIterator::Ptr iterator, const DataRenderersArray& renderers)
-      : Delegate(iterator)
+    DoubleDataIterator(const TrackParametersArray& trackParams, TrackStateIterator::Ptr iterator, DataRenderersArray renderers)
+      : Delegate(std::move(iterator))
       , State(Delegate->GetStateObserver())
-      , Renderers(renderers)
+      , Renderers(std::move(renderers))
       , Params(trackParams)
     {
     }
@@ -380,8 +380,8 @@ namespace TurboSound
   public:
     Renderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
       : Params(params)
-      , Iterator(iterator)
-      , Device(device)
+      , Iterator(std::move(iterator))
+      , Device(std::move(device))
       , FrameDuration()
       , Looped()
     {
@@ -475,9 +475,9 @@ namespace TurboSound
   {
   public:
     MergedChiptune(Parameters::Accessor::Ptr props, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
-      : Properties(props)
-      , First(first)
-      , Second(second)
+      : Properties(std::move(props))
+      , First(std::move(first))
+      , Second(std::move(second))
     {
     }
 
@@ -508,7 +508,7 @@ namespace TurboSound
   {
   public:
     explicit Holder(Chiptune::Ptr chiptune)
-      : Tune(chiptune)
+      : Tune(std::move(chiptune))
     {
     }
 

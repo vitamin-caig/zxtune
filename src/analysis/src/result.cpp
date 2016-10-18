@@ -12,6 +12,8 @@
 #include <make_ptr.h>
 //library includes
 #include <analysis/result.h>
+//std includes
+#include <utility>
 
 namespace Analysis
 {
@@ -42,8 +44,8 @@ namespace Analysis
   {
   public:
     UnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data)
-      : Format(format)
-      , RawData(data)
+      : Format(std::move(format))
+      , RawData(std::move(data))
     {
     }
 

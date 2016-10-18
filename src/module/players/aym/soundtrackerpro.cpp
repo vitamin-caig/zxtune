@@ -38,8 +38,8 @@ namespace SoundTrackerPro
     {
     }
 
-    Sample(const Formats::Chiptune::SoundTrackerPro::Sample& rh)
-      : Formats::Chiptune::SoundTrackerPro::Sample(rh)
+    Sample(Formats::Chiptune::SoundTrackerPro::Sample rh)
+      : Formats::Chiptune::SoundTrackerPro::Sample(std::move(rh))
     {
     }
 
@@ -222,7 +222,7 @@ namespace SoundTrackerPro
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-      : Data(data)
+      : Data(std::move(data))
     {
     }
 
@@ -386,8 +386,8 @@ namespace SoundTrackerPro
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
@@ -418,7 +418,7 @@ namespace SoundTrackerPro
   {
   public:
     explicit Factory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
-      : Decoder(decoder)
+      : Decoder(std::move(decoder))
     {
     }
 

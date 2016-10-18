@@ -272,7 +272,7 @@ namespace DAC
       , Note()
       , NoteSlide()
       , FreqSlide()
-      , Source(sample)
+      , Source(std::move(sample))
       , Level(1)
     {
     }
@@ -511,8 +511,8 @@ namespace DAC
   public:
     FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer, Sound::Receiver::Ptr target)
       : Params(params)
-      , Mixer(mixer)
-      , Target(target)
+      , Mixer(std::move(mixer))
+      , Target(std::move(target))
       , Clock()
       , Renderers(*Mixer, &State[0])
     {

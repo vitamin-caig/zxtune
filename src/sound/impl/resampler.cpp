@@ -16,6 +16,8 @@
 #include <sound/chunk_builder.h>
 #include <sound/resampler.h>
 
+#include <utility>
+
 namespace Sound
 {
   typedef Math::FixedPoint<int_t, 256> FixedStep;
@@ -42,7 +44,7 @@ namespace Sound
   {
   public:
     Upsampler(uint_t freqIn, uint_t freqOut, Receiver::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , Step(freqIn, freqOut)
     {
       Require(freqIn < freqOut);
@@ -94,7 +96,7 @@ namespace Sound
   {
   public:
     Downsampler(uint_t freqIn, uint_t freqOut, Receiver::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , Step(freqOut, freqIn)
     {
       Require(freqIn > freqOut);

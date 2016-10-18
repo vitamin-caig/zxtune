@@ -15,6 +15,8 @@
 //library includes
 #include <module/players/analyzer.h>
 #include <parameters/tracking_helper.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -23,8 +25,8 @@ namespace Module
   public:
     TFMRenderer(Sound::RenderParameters::Ptr params, TFM::DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
       : Params(params)
-      , Iterator(iterator)
-      , Device(device)
+      , Iterator(std::move(iterator))
+      , Device(std::move(device))
       , FrameDuration()
       , Looped()
     {

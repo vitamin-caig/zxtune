@@ -321,7 +321,7 @@ namespace
   {
   public:
     explicit SelectDupsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
@@ -345,7 +345,7 @@ namespace
   {
   public:
     explicit SelectDupsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
@@ -381,7 +381,7 @@ namespace
   {
   public:
     explicit SelectRipOffsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
@@ -402,7 +402,7 @@ namespace
   {
   public:
     explicit SelectRipOffsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
@@ -424,7 +424,7 @@ namespace
   {
   public:
     explicit SelectTypesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
@@ -445,7 +445,7 @@ namespace
   {
   public:
     explicit SelectFilesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
@@ -495,7 +495,7 @@ namespace
     }
 
     explicit SelectUnavailableOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 

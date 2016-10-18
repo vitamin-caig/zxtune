@@ -180,8 +180,8 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::TypedContainer& data)
-        : Delegate(data)
+      explicit Format(Binary::TypedContainer data)
+        : Delegate(std::move(data))
         , Source(*Delegate.GetField<RawHeader>(0))
         , Id(*Delegate.GetField<RawId>(sizeof(Source)))
         , TotalRanges(RangeChecker::CreateSimple(Delegate.GetSize()))

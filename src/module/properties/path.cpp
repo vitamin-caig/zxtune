@@ -23,8 +23,8 @@ namespace Module
   class UnresolvedPathPropertiesAccessor : public Parameters::Accessor
   {
   public:
-    explicit UnresolvedPathPropertiesAccessor(const String& uri)
-      : Uri(uri)
+    explicit UnresolvedPathPropertiesAccessor(String uri)
+      : Uri(std::move(uri))
     {
     }
 
@@ -65,7 +65,7 @@ namespace Module
   {
   public:
     explicit PathPropertiesAccessor(IO::Identifier::Ptr id)
-      : Id(id)
+      : Id(std::move(id))
     {
     }
 

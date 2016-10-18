@@ -40,8 +40,8 @@ namespace GlobalTracker
     {
     }
 
-    Sample(const Formats::Chiptune::GlobalTracker::Sample& rh)
-      : Formats::Chiptune::GlobalTracker::Sample(rh)
+    Sample(Formats::Chiptune::GlobalTracker::Sample rh)
+      : Formats::Chiptune::GlobalTracker::Sample(std::move(rh))
     {
     }
 
@@ -216,7 +216,7 @@ namespace GlobalTracker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-       : Data(data)
+       : Data(std::move(data))
     {
     }
 
@@ -358,8 +358,8 @@ namespace GlobalTracker
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }

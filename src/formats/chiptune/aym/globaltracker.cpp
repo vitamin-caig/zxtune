@@ -418,8 +418,8 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::TypedContainer& data)
-        : Delegate(data)
+      explicit Format(Binary::TypedContainer data)
+        : Delegate(std::move(data))
         , Ranges(Delegate.GetSize())
         , Source(*Delegate.GetField<RawHeader>(0))
         , HeaderSize(sizeof(Source) - 1 + Source.Length)

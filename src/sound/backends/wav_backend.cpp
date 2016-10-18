@@ -167,7 +167,7 @@ namespace Wav
   {
   public:
     FileStream(uint_t soundFreq, Binary::SeekableOutputStream::Ptr stream)
-      : Stream(stream)
+      : Stream(std::move(stream))
       , DoneBytes(0)
     {
       //init struct

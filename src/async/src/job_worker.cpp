@@ -14,6 +14,8 @@
 //library includes
 #include <async/coroutine.h>
 #include <async/worker.h>
+//std includes
+#include <utility>
 
 namespace Async
 {
@@ -21,7 +23,7 @@ namespace Async
   {
   public:
     explicit WorkerCoroutine(Worker::Ptr worker)
-      : Delegate(worker)
+      : Delegate(std::move(worker))
     {
     }
 

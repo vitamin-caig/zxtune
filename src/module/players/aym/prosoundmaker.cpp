@@ -43,8 +43,8 @@ namespace ProSoundMaker
     {
     }
 
-    Sample(const Formats::Chiptune::ProSoundMaker::Sample& rh)
-      : Formats::Chiptune::ProSoundMaker::Sample(rh)
+    Sample(Formats::Chiptune::ProSoundMaker::Sample rh)
+      : Formats::Chiptune::ProSoundMaker::Sample(std::move(rh))
     {
     }
 
@@ -72,8 +72,8 @@ namespace ProSoundMaker
     {
     }
 
-    Ornament(const Formats::Chiptune::ProSoundMaker::Ornament& rh)
-      : Formats::Chiptune::ProSoundMaker::Ornament(rh)
+    Ornament(Formats::Chiptune::ProSoundMaker::Ornament rh)
+      : Formats::Chiptune::ProSoundMaker::Ornament(std::move(rh))
     {
     }
 
@@ -307,7 +307,7 @@ namespace ProSoundMaker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-       : Data(data)
+       : Data(std::move(data))
     {
       Reset();
     }
@@ -533,8 +533,8 @@ namespace ProSoundMaker
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }

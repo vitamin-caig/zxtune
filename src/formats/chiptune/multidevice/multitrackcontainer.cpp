@@ -21,6 +21,7 @@
 #include <math/numeric.h>
 //std includes
 #include <array>
+#include <utility>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -109,8 +110,8 @@ namespace IFF
   class BlobChunkSourceBase : public ChunkSource
   {
   public:
-    explicit BlobChunkSourceBase(const Identifier::Type& id)
-      : Id(id)
+    explicit BlobChunkSourceBase(Identifier::Type id)
+      : Id(std::move(id))
     {
     }
     
@@ -140,9 +141,9 @@ namespace IFF
   class DataChunkSource : public BlobChunkSourceBase
   {
   public:
-    DataChunkSource(const Identifier::Type& id, Binary::Data::Ptr data)
-      : BlobChunkSourceBase(id)
-      , Data(data)
+    DataChunkSource(Identifier::Type id, Binary::Data::Ptr data)
+      : BlobChunkSourceBase(std::move(id))
+      , Data(std::move(data))
     {
     }
   protected:
@@ -162,9 +163,9 @@ namespace IFF
   class StringChunkSource : public BlobChunkSourceBase
   {
   public:
-    StringChunkSource(const Identifier::Type& id, const String& str)
-      : BlobChunkSourceBase(id)
-      , Data(str)
+    StringChunkSource(Identifier::Type id, String str)
+      : BlobChunkSourceBase(std::move(id))
+      , Data(std::move(str))
     {
     }
   protected:
@@ -184,8 +185,8 @@ namespace IFF
   class CompositeChunkSource : public ChunkSource
   {
   public:
-    explicit CompositeChunkSource(const Identifier::Type& id)
-      : Id(id)
+    explicit CompositeChunkSource(Identifier::Type id)
+      : Id(std::move(id))
       , TotalSize()
     {
     }

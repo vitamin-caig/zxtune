@@ -20,6 +20,7 @@
 //std includes
 #include <algorithm>
 #include <iterator>
+#include <utility>
 
 namespace Devices
 {
@@ -44,7 +45,7 @@ namespace AYM
   {
   public:
     explicit FYMBuilder(FYMDumperParameters::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
       , Delegate(CreateRawDumpBuilder())
     {
     }

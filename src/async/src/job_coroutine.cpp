@@ -15,6 +15,8 @@
 //library includes
 #include <async/activity.h>
 #include <async/coroutine.h>
+//std includes
+#include <utility>
 
 namespace Async
 {
@@ -51,7 +53,7 @@ namespace Async
   {
   public:
     CoroutineOperation(Coroutine::Ptr routine, Event<JobState>& state)
-      : Routine(routine)
+      : Routine(std::move(routine))
       , State(state)
     {
     }
@@ -116,7 +118,7 @@ namespace Async
   {
   public:
     explicit CoroutineJob(Coroutine::Ptr routine)
-      : Routine(routine)
+      : Routine(std::move(routine))
     {
     }
 

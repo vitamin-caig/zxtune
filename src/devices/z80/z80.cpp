@@ -36,8 +36,8 @@ namespace Z80
   public:
     ExtendedIOBus(const Oscillator& clock, ChipIO::Ptr memory, ChipIO::Ptr ports)
       : Clock(clock)
-      , Memory(memory)
-      , Ports(ports)
+      , Memory(std::move(memory))
+      , Ports(std::move(ports))
     {
     }
 
@@ -97,11 +97,11 @@ namespace Z80
   class SimpleIOBus : public IOBus
   {
   public:
-    SimpleIOBus(const Oscillator& clock, const Dump& memory, ChipIO::Ptr ports)
+    SimpleIOBus(const Oscillator& clock, Dump memory, ChipIO::Ptr ports)
       : Clock(clock)
-      , Memory(memory)
+      , Memory(std::move(memory))
       , RawMemory(&Memory.front())
-      , Ports(ports)
+      , Ports(std::move(ports))
     {
     }
 

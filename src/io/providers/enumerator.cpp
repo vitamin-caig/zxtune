@@ -130,8 +130,8 @@ namespace IO
   class UnavailableProvider : public DataProvider
   {
   public:
-    UnavailableProvider(const String& id, const char* descr, const Error& status)
-      : IdValue(id)
+    UnavailableProvider(String id, const char* descr, const Error& status)
+      : IdValue(std::move(id))
       , DescrValue(descr)
       , StatusValue(status)
     {

@@ -63,8 +63,8 @@ namespace Ogg
   public:
     typedef std::shared_ptr<OggBitStream> Ptr;
     OggBitStream(Api::Ptr api, Binary::OutputStream::Ptr file)
-      : OggApi(api)
-      , File(file)
+      : OggApi(std::move(api))
+      , File(std::move(file))
     {
       CheckVorbisCall(OggApi->ogg_stream_init(&Stream, std::time(0)), THIS_LINE);
     }
@@ -118,7 +118,7 @@ namespace Ogg
     typedef std::shared_ptr<MetaData> Ptr;
 
     explicit MetaData(Vorbis::Api::Ptr api)
-      : VorbisApi(api)
+      : VorbisApi(std::move(api))
     {
       VorbisApi->vorbis_comment_init(&Data);
     }
@@ -149,7 +149,7 @@ namespace Ogg
   public:
     typedef std::shared_ptr<VorbisState> Ptr;
     VorbisState(Vorbis::Api::Ptr api, vorbis_info* info)
-      : VorbisApi(api)
+      : VorbisApi(std::move(api))
     {
       VorbisApi->vorbis_analysis_init(&State, info);
       VorbisApi->vorbis_block_init(&State, &Block);
@@ -216,8 +216,8 @@ namespace Ogg
   public:
     typedef std::shared_ptr<VorbisInfo> Ptr;
     VorbisInfo(Vorbis::Api::Ptr vorbisApi, VorbisEnc::Api::Ptr vorbisEncApi)
-      : VorbisApi(vorbisApi)
-      , VorbisEncApi(vorbisEncApi)
+      : VorbisApi(std::move(vorbisApi))
+      , VorbisEncApi(std::move(vorbisEncApi))
     {
       VorbisApi->vorbis_info_init(&Data);
     }
@@ -251,11 +251,11 @@ namespace Ogg
   {
   public:
     FileStream(Vorbis::Api::Ptr api, VorbisInfo::Ptr info, OggBitStream::Ptr stream)
-      : VorbisApi(api)
-      , Info(info)
+      : VorbisApi(std::move(api))
+      , Info(std::move(info))
       , Meta(MakePtr<MetaData>(VorbisApi))
       , State(MakePtr<VorbisState>(VorbisApi, Info->Get()))
-      , Stream(stream)
+      , Stream(std::move(stream))
     {
       Dbg("Stream initialized");
     }
@@ -308,7 +308,7 @@ namespace Ogg
   {
   public:
     explicit StreamParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -362,10 +362,10 @@ namespace Ogg
   {
   public:
     FileStreamFactory(Api::Ptr oggApi, Vorbis::Api::Ptr vorbisApi, VorbisEnc::Api::Ptr vorbisEncApi, Parameters::Accessor::Ptr params)
-      : OggApi(oggApi)
-      , VorbisApi(vorbisApi)
-      , VorbisEncApi(vorbisEncApi)
-      , Params(params)
+      : OggApi(std::move(oggApi))
+      , VorbisApi(std::move(vorbisApi))
+      , VorbisEncApi(std::move(vorbisEncApi))
+      , Params(std::move(params))
     {
     }
 
@@ -414,9 +414,9 @@ namespace Ogg
   {
   public:
     BackendWorkerFactory(Api::Ptr oggApi, Vorbis::Api::Ptr vorbisApi, VorbisEnc::Api::Ptr vorbisEncApi)
-      : OggApi(oggApi)
-      , VorbisApi(vorbisApi)
-      , VorbisEncApi(vorbisEncApi)
+      : OggApi(std::move(oggApi))
+      , VorbisApi(std::move(vorbisApi))
+      , VorbisEncApi(std::move(vorbisEncApi))
     {
     }
 

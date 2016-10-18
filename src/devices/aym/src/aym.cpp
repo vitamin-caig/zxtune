@@ -13,6 +13,8 @@
 #include "soundchip.h"
 //common includes
 #include <make_ptr.h>
+//std includes
+#include <utility>
 
 namespace Devices
 {

@@ -199,7 +199,7 @@ namespace
   {
   public:
     explicit SortOperation(Playlist::Item::Comparer::Ptr comparer)
-      : Comparer(comparer)
+      : Comparer(std::move(comparer))
     {
     }
 
@@ -231,7 +231,7 @@ namespace
   {
   public:
     AsyncOperation(typename OpType::Ptr op, OperationTarget<OpType>& executor)
-      : Op(op)
+      : Op(std::move(op))
       , Delegate(executor)
     {
     }

@@ -17,6 +17,8 @@
 #include <core/plugin_attrs.h>
 #include <module/players/tfm/tfm_base.h>
 #include <module/players/tfm/tfm_parameters.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -24,7 +26,7 @@ namespace Module
   {
   public:
     explicit TFMHolder(TFM::Chiptune::Ptr chiptune)
-      : Tune(chiptune)
+      : Tune(std::move(chiptune))
     {
     }
 
@@ -54,7 +56,7 @@ namespace Module
   {
   public:
     explicit TFMFactory(TFM::Factory::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 

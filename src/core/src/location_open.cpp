@@ -43,7 +43,7 @@ namespace ZXTune
   {
   public:
     explicit UnresolvedLocation(Binary::Container::Ptr data)
-      : Data(data)
+      : Data(std::move(data))
     {
     }
 
@@ -69,7 +69,7 @@ namespace ZXTune
   {
   public:
     GeneratedLocation(Binary::Container::Ptr data, const String& plugin, const String& path)
-      : Data(data)
+      : Data(std::move(data))
       , Path(Analysis::ParsePath(path, Text::MODULE_SUBPATH_DELIMITER[0]))
       , Plugins(Analysis::ParsePath(plugin, Text::MODULE_CONTAINERS_DELIMITER[0]))
     {

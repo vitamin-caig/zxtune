@@ -69,7 +69,7 @@ namespace GME
     
     GME(EmuCreator create, Binary::Data::Ptr data, uint_t track)
       : CreateEmu(create)
-      , Data(data)
+      , Data(std::move(data))
       , Track(track)
       , SoundFreq(0)
     {
@@ -171,11 +171,11 @@ namespace GME
   {
   public:
     Renderer(GME::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(tune)
-      , Iterator(iterator)
+      : Tune(std::move(tune))
+      , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
       , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(target)
+      , Target(std::move(target))
       , Looped()
     {
       ApplyParameters();
@@ -273,9 +273,9 @@ namespace GME
   {
   public:
     Holder(GME::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
-      : Tune(tune)
-      , Info(info)
-      , Properties(props)
+      : Tune(std::move(tune))
+      , Info(std::move(info))
+      , Properties(std::move(props))
     {
     }
 
@@ -348,9 +348,9 @@ namespace GME
   class MultitrackFactory : public Module::Factory
   {
   public:
-    MultitrackFactory(const PluginDescription& desc, Formats::Multitrack::Decoder::Ptr decoder)
-      : Desc(desc)
-      , Decoder(decoder)
+    MultitrackFactory(PluginDescription desc, Formats::Multitrack::Decoder::Ptr decoder)
+      : Desc(std::move(desc))
+      , Decoder(std::move(decoder))
     {
     }
     
@@ -397,9 +397,9 @@ namespace GME
   class SingletrackFactory : public Module::Factory
   {
   public:
-    SingletrackFactory(const PluginDescription& desc, Formats::Chiptune::Decoder::Ptr decoder)
-      : Desc(desc)
-      , Decoder(decoder)
+    SingletrackFactory(PluginDescription desc, Formats::Chiptune::Decoder::Ptr decoder)
+      : Desc(std::move(desc))
+      , Decoder(std::move(decoder))
     {
     }
     

@@ -272,8 +272,8 @@ namespace FormatDSL
   {
   public:
     BinaryOperationToken(Ptr lh, Ptr rh)
-      : Lh(lh)
-      , Rh(rh)
+      : Lh(std::move(lh))
+      , Rh(std::move(rh))
     {
     }
 

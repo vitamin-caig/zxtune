@@ -64,7 +64,7 @@ namespace
   {
   public:
     explicit SimpleDataProvider(Parameters::Accessor::Ptr ioParams)
-      : Params(ioParams)
+      : Params(std::move(ioParams))
     {
     }
 
@@ -112,8 +112,8 @@ namespace
       {
       }
 
-      Item(const String& id, T val)
-        : Id(id)
+      Item(String id, T val)
+        : Id(std::move(id))
         , Value(val)
         , Weight(ObjectTraits<T>::Weight(val))
       {
@@ -214,7 +214,7 @@ namespace
   {
   public:
     explicit CacheParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -303,8 +303,8 @@ namespace
     typedef std::shared_ptr<const DataSource> Ptr;
 
     DataSource(CachedDataProvider::Ptr provider, IO::Identifier::Ptr id)
-      : Provider(provider)
-      , DataId(id)
+      : Provider(std::move(provider))
+      , DataId(std::move(id))
     {
     }
 
@@ -331,7 +331,7 @@ namespace
   {
   public:
     explicit RecodeStringsAdapter(Parameters::Accessor::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 
@@ -402,9 +402,9 @@ namespace
   {
   public:
     ModuleSource(Parameters::Accessor::Ptr coreParams, DataSource::Ptr source, IO::Identifier::Ptr moduleId)
-      : CoreParams(coreParams)
-      , Source(source)
-      , ModuleId(moduleId)
+      : CoreParams(std::move(coreParams))
+      , Source(std::move(source))
+      , ModuleId(std::move(moduleId))
     {
     }
 
@@ -494,14 +494,14 @@ namespace
     typedef Playlist::Item::Data::Ptr Ptr;
     
     DataImpl(DynamicAttributesProvider::Ptr attributes,
-        const ModuleSource& source,
+        ModuleSource source,
         Parameters::Container::Ptr adjustedParams,
         uint_t frames, const Parameters::Accessor& moduleProps,
         uint_t caps)
       : Caps(caps)
-      , Attributes(attributes)
-      , Source(source)
-      , AdjustedParams(adjustedParams)
+      , Attributes(std::move(attributes))
+      , Source(std::move(source))
+      , AdjustedParams(std::move(adjustedParams))
       , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
       , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
       , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
@@ -680,8 +680,8 @@ namespace
                             DynamicAttributesProvider::Ptr attributes,
                             CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, IO::Identifier::Ptr dataId)
       : Delegate(delegate)
-      , Attributes(attributes)
-      , CoreParams(coreParams)
+      , Attributes(std::move(attributes))
+      , CoreParams(std::move(coreParams))
       , DataId(dataId)
       , Source(MakePtr<DataSource>(provider, dataId))
     {

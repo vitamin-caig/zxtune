@@ -25,6 +25,7 @@
 #include <limits>
 #include <memory>
 #include <numeric>
+#include <utility>
 
 namespace Devices
 {
@@ -243,7 +244,7 @@ namespace SAA
   public:
     RegularSAAChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
       : Params(params)
-      , Target(target)
+      , Target(std::move(target))
       , Clock()
       , Renderers(Clock, PSG)
     {

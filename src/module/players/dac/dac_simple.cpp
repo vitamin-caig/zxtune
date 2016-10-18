@@ -17,6 +17,8 @@
 #include <module/players/properties_meta.h>
 #include <module/players/tracking.h>
 #include <module/players/simple_orderlist.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -25,11 +27,11 @@ namespace Module
     class SimpleDataBuilderImpl : public SimpleDataBuilder
     {
     public:
-      SimpleDataBuilderImpl(DAC::PropertiesHelper& props, const PatternsBuilder& builder)
+      SimpleDataBuilderImpl(DAC::PropertiesHelper& props, PatternsBuilder builder)
         : Data(MakeRWPtr<SimpleModuleData>())
         , Properties(props)
         , Meta(props)
-        , Patterns(builder)
+        , Patterns(std::move(builder))
       {
         Data->Patterns = Patterns.GetResult();
       }
@@ -108,7 +110,7 @@ namespace Module
     {
     public:
       SimpleDataRenderer(SimpleModuleData::Ptr data, uint_t channels)
-        : Data(data)
+        : Data(std::move(data))
         , Channels(channels)
       {
       }
@@ -170,8 +172,8 @@ namespace Module
     {
     public:
       SimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
-        : Data(data)
-        , Properties(properties)
+        : Data(std::move(data))
+        , Properties(std::move(properties))
         , Info(CreateTrackInfo(Data, channels))
         , Channels(channels)
       {

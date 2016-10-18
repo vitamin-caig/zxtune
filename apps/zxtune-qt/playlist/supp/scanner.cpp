@@ -347,7 +347,7 @@ namespace
 
     ScanRoutine(ScannerCallback& cb, Playlist::Item::DataProvider::Ptr provider)
       : Callback(cb)
-      , Provider(provider)
+      , Provider(std::move(provider))
     {
       CreateQueue();
     }

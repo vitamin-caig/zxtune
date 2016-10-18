@@ -12,6 +12,8 @@
 #include "tfm_base_track.h"
 //common includes
 #include <make_ptr.h>
+//std includes
+#include <utility>
 
 namespace
 {
@@ -36,9 +38,9 @@ namespace Module
     {
     public:
       TrackDataIterator(TrackStateIterator::Ptr delegate, DataRenderer::Ptr renderer)
-        : Delegate(delegate)
+        : Delegate(std::move(delegate))
         , State(Delegate->GetStateObserver())
-        , Render(renderer)
+        , Render(std::move(renderer))
       {
         FillCurrentData();
       }

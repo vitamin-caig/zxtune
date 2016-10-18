@@ -199,7 +199,7 @@ namespace AYM
   {
   public:
     explicit AYTrackParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -238,7 +238,7 @@ namespace AYM
   {
   public:
     TSTrackParameters(Parameters::Accessor::Ptr params, uint_t idx)
-      : Params(params)
+      : Params(std::move(params))
       , Index(idx)
     {
       Require(Index <= 1);

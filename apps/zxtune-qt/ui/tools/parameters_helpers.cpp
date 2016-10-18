@@ -82,12 +82,12 @@ namespace
   class StringSetValue : public ExclusiveValue
   {
   public:
-    StringSetValue(QAbstractButton& parent, Parameters::Container& ctr, const Parameters::NameType& name, const Parameters::StringType& value)
+    StringSetValue(QAbstractButton& parent, Parameters::Container& ctr, const Parameters::NameType& name, Parameters::StringType value)
       : ExclusiveValue(parent)
       , Parent(parent)
       , Container(ctr)
       , Name(name)
-      , Value(value)
+      , Value(std::move(value))
     {
       StringSetValue::Reload();
       Require(connect(&parent, SIGNAL(toggled(bool)), SLOT(Set(bool))));
@@ -202,7 +202,7 @@ namespace
     IntegerValueControl(Holder& parent, Integer::Ptr val)
       : IntegerValue(parent)
       , Parent(parent)
-      , Value(val)
+      , Value(std::move(val))
     {
       IntegerValueControl<Holder>::Reload();
       ConnectChanges(Parent, *this);
@@ -232,11 +232,11 @@ namespace
   class BigIntegerValueImpl : public BigIntegerValue
   {
   public:
-    BigIntegerValueImpl(QLineEdit& parent, Parameters::Container& ctr, const IntegerTraits& traits)
+    BigIntegerValueImpl(QLineEdit& parent, Parameters::Container& ctr, IntegerTraits traits)
       : BigIntegerValue(parent)
       , Parent(parent)
       , Container(ctr)
-      , Traits(traits)
+      , Traits(std::move(traits))
     {
       BigIntegerValueImpl::Reload();
       Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));
@@ -289,12 +289,12 @@ namespace
   class StringValueImpl : public StringValue
   {
   public:
-    StringValueImpl(QLineEdit& parent, Parameters::Container& ctr, const Parameters::NameType& name, const Parameters::StringType& defValue)
+    StringValueImpl(QLineEdit& parent, Parameters::Container& ctr, const Parameters::NameType& name, Parameters::StringType defValue)
       : StringValue(parent)
       , Parent(parent)
       , Container(ctr)
       , Name(name)
-      , Default(defValue)
+      , Default(std::move(defValue))
     {
       StringValueImpl::Reload();
       Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));

@@ -36,7 +36,7 @@ int main()
   std::cout << "---- Test for Parameters::NameType" << std::endl;
   {
     using namespace Parameters;
-    const NameType zero;
+    const NameType zero{};
     const NameType one("one");
     const NameType two("one.two");
     const NameType three("one.two.three");

@@ -24,6 +24,8 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <time/stamp.h>
+//std includes
+#include <utility>
 //3rdparty includes
 #define BUILDING_STATIC
 #include <3rdparty/xmp/include/xmp.h>
@@ -115,8 +117,8 @@ namespace Xmp
   public:
     typedef std::shared_ptr<const Information> Ptr;
 
-    Information(const xmp_module& module, TimeType duration)
-      : Info(module)
+    Information(xmp_module module, TimeType duration)
+      : Info(std::move(module))
       , Frames(duration.Get() / GetFrameDuration().Get())
     {
     }
@@ -184,7 +186,7 @@ namespace Xmp
     TrackState(Information::Ptr info, StatePtr state)
       : PatternSizes(info->GetPatternSizes())
       , FrameDuration(info->GetFrameDuration())
-      , State(state)
+      , State(std::move(state))
     {
     }
 
@@ -238,7 +240,7 @@ namespace Xmp
   public:
     Analyzer(uint_t channels, StatePtr state)
       : Channels(channels)
-      , State(state)
+      , State(std::move(state))
     {
     }
 
@@ -272,9 +274,9 @@ namespace Xmp
   {
   public:
     Renderer(Context::Ptr ctx, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params, Information::Ptr info)
-      : Ctx(ctx)
+      : Ctx(std::move(ctx))
       , State(new xmp_frame_info())
-      , Target(target)
+      , Target(std::move(target))
       , Params(params)
       , SoundParams(Sound::RenderParameters::Create(params))
       , Track(MakePtr<TrackState>(info, State))
@@ -379,9 +381,9 @@ namespace Xmp
   {
   public:
     explicit Holder(Context::Ptr ctx, const xmp_module_info& modInfo, TimeType duration, Parameters::Accessor::Ptr props)
-      : Ctx(ctx)
+      : Ctx(std::move(ctx))
       , Info(MakePtr<Information>(*modInfo.mod, duration))
-      , Properties(props)
+      , Properties(std::move(props))
     {
     }
 

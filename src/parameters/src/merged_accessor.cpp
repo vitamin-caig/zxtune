@@ -15,6 +15,7 @@
 #include <parameters/visitor.h>
 //std includes
 #include <set>
+#include <utility>
 
 namespace Parameters
 {
@@ -60,8 +61,8 @@ namespace Parameters
   {
   public:
     DoubleAccessor(Accessor::Ptr first, Accessor::Ptr second)
-      : First(first)
-      , Second(second)
+      : First(std::move(first))
+      , Second(std::move(second))
     {
     }
 
@@ -103,9 +104,9 @@ namespace Parameters
   {
   public:
     TripleAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third)
-      : First(first)
-      , Second(second)
-      , Third(third)
+      : First(std::move(first))
+      , Second(std::move(second))
+      , Third(std::move(third))
     {
     }
 

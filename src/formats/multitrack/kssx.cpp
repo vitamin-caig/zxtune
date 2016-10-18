@@ -21,6 +21,7 @@
 //std includes
 #include <array>
 #include <cstring>
+#include <utility>
 
 namespace Formats
 {
@@ -85,7 +86,7 @@ namespace Multitrack
     public:
       Container(const ExtraHeader* hdr, Binary::Container::Ptr data)
         : Hdr(hdr)
-        , Delegate(data)
+        , Delegate(std::move(data))
       {
       }
       

@@ -644,7 +644,7 @@ namespace TFMMusicMaker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-      : Data(data)
+      : Data(std::move(data))
     {
     }
 
@@ -1451,7 +1451,7 @@ namespace TFMMusicMaker
   {
   public:
     InformationImpl(ModuleData::Ptr data)
-      : Data(data)
+      : Data(std::move(data))
       , Frames(), LoopFrameNum()
     {
     }
@@ -1515,8 +1515,8 @@ namespace TFMMusicMaker
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(MakePtr<InformationImpl>(Data))
     {
     }
@@ -1547,7 +1547,7 @@ namespace TFMMusicMaker
   {
   public:
     explicit Factory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder)
-      : Decoder(decoder)
+      : Decoder(std::move(decoder))
     {
     }
 

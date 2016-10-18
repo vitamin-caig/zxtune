@@ -18,6 +18,8 @@
 #include <core/plugin_attrs.h>
 #include <module/players/aym/aym_base.h>
 #include <module/players/aym/aym_parameters.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -25,7 +27,7 @@ namespace Module
   {
   public:
     explicit AYMFactory(AYM::Factory::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 

@@ -29,7 +29,7 @@ namespace Module
   {
   public:
     explicit AYMHolder(AYM::Chiptune::Ptr chiptune)
-      : Tune(chiptune)
+      : Tune(std::move(chiptune))
     {
     }
 
@@ -69,8 +69,8 @@ namespace Module
   public:
     AYMRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
       : Params(params)
-      , Iterator(iterator)
-      , Device(device)
+      , Iterator(std::move(iterator))
+      , Device(std::move(device))
       , FrameDuration()
       , Looped()
     {
@@ -168,7 +168,7 @@ namespace Module
     FadeoutFilter(uint_t start, uint_t duration, Sound::FadeGainer::Ptr target)
       : Start(start)
       , Duration(duration)
-      , Target(target)
+      , Target(std::move(target))
     {
     }
 

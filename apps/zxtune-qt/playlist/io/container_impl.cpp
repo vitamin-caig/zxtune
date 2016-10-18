@@ -61,8 +61,8 @@ namespace
   class StubData : public Playlist::Item::Data
   {
   public:
-    StubData(const String& path, const Parameters::Accessor& params, const Error& state)
-      : Path(path)
+    StubData(String path, const Parameters::Accessor& params, const Error& state)
+      : Path(std::move(path))
       , Params(Parameters::Container::Create())
       , State(state)
     {
@@ -162,7 +162,7 @@ namespace
     typedef std::unique_ptr<const DelayLoadItemProvider> Ptr;
 
     DelayLoadItemProvider(Playlist::Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr playlistParams, const Playlist::IO::ContainerItem& item)
-      : Provider(provider)
+      : Provider(std::move(provider))
       , Params(Parameters::CreateMergedAccessor(Module::CreatePathProperties(item.Path), item.AdjustedParameters, playlistParams))
       , Path(item.Path)
     {
@@ -321,9 +321,9 @@ namespace
   public:
     DelayLoadItemsIterator(Playlist::Item::DataProvider::Ptr provider,
       Parameters::Accessor::Ptr properties, Playlist::IO::ContainerItems::Ptr items)
-      : Provider(provider)
-      , Properties(properties)
-      , Items(items)
+      : Provider(std::move(provider))
+      , Properties(std::move(properties))
+      , Items(std::move(items))
       , Current(Items->begin())
     {
     }
@@ -358,9 +358,9 @@ namespace
     ContainerImpl(Playlist::Item::DataProvider::Ptr provider,
       Parameters::Accessor::Ptr properties,
       Playlist::IO::ContainerItems::Ptr items)
-      : Provider(provider)
-      , Properties(properties)
-      , Items(items)
+      : Provider(std::move(provider))
+      , Properties(std::move(properties))
+      , Items(std::move(items))
     {
     }
 

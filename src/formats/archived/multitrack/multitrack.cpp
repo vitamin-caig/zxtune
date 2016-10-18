@@ -14,6 +14,7 @@
 #include <make_ptr.h>
 //std includes
 #include <sstream>
+#include <utility>
 //text includes
 #include <formats/text/archived.h>
 
@@ -26,9 +27,9 @@ namespace Archived
     class File : public Archived::File
     {
     public:
-      File(const String& name, Binary::Container::Ptr data)
-        : Name(name)
-        , Data(data)
+      File(String name, Binary::Container::Ptr data)
+        : Name(std::move(name))
+        , Data(std::move(data))
       {
       }
 
@@ -99,7 +100,7 @@ namespace Archived
     {
     public:
       explicit Container(Formats::Multitrack::Container::Ptr data)
-        : Delegate(data)
+        : Delegate(std::move(data))
       {
       }
 
@@ -160,9 +161,9 @@ namespace Archived
     class Decoder : public Archived::Decoder
     {
     public:
-      Decoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
-        : Description(description)
-        , Delegate(delegate)
+      Decoder(String description, Formats::Multitrack::Decoder::Ptr delegate)
+        : Description(std::move(description))
+        , Delegate(std::move(delegate))
       {
       }
 

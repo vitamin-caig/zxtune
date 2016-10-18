@@ -96,7 +96,7 @@ namespace TS
   {
   public:
     explicit Factory(Formats::Chiptune::TurboSound::Decoder::Ptr decoder)
-      : Decoder(decoder)
+      : Decoder(std::move(decoder))
     {
     }
 

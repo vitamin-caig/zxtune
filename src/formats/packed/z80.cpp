@@ -20,6 +20,7 @@
 //std includes
 #include <array>
 #include <numeric>
+#include <utility>
 //text includes
 #include <formats/text/packed.h>
 
@@ -551,7 +552,7 @@ namespace Packed
     }
 
     explicit Z80Decoder(Binary::Format::Ptr format)
-      : Format(format)
+      : Format(std::move(format))
     {
     }
 

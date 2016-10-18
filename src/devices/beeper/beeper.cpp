@@ -14,6 +14,8 @@
 #include <devices/beeper.h>
 #include <devices/details/renderers.h>
 #include <parameters/tracking_helper.h>
+//std includes
+#include <utility>
 
 namespace Devices
 {
@@ -49,7 +51,7 @@ namespace Beeper
   public:
     ChipImpl(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
       : Params(params)
-      , Target(target)
+      , Target(std::move(target))
       , Renderer(Clock, PSG)
       , ClockFreq()
       , SoundFreq()

@@ -60,8 +60,8 @@ namespace ProSoundCreator
     {
     }
 
-    Sample(const Formats::Chiptune::ProSoundCreator::Sample& rh)
-      : Formats::Chiptune::ProSoundCreator::Sample(rh)
+    Sample(Formats::Chiptune::ProSoundCreator::Sample rh)
+      : Formats::Chiptune::ProSoundCreator::Sample(std::move(rh))
     {
     }
 
@@ -84,8 +84,8 @@ namespace ProSoundCreator
     {
     }
 
-    Ornament(const Formats::Chiptune::ProSoundCreator::Ornament& rh)
-      : Formats::Chiptune::ProSoundCreator::Ornament(rh)
+    Ornament(Formats::Chiptune::ProSoundCreator::Ornament rh)
+      : Formats::Chiptune::ProSoundCreator::Ornament(std::move(rh))
     {
     }
 
@@ -467,7 +467,7 @@ namespace ProSoundCreator
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-       : Data(data)
+       : Data(std::move(data))
        , EnvelopeTone()
        , NoiseBase()
     {
@@ -702,8 +702,8 @@ namespace ProSoundCreator
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }

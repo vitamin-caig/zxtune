@@ -23,13 +23,13 @@ namespace
   public:
     explicit CollectStatisticOperation(Playlist::Item::StatisticTextNotification::Ptr result)
       : SelectedItems()
-      , Result(result)
+      , Result(std::move(result))
     {
     }
 
     CollectStatisticOperation(Playlist::Model::IndexSet::Ptr items, Playlist::Item::StatisticTextNotification::Ptr result)
-      : SelectedItems(items)
-      , Result(result)
+      : SelectedItems(std::move(items))
+      , Result(std::move(result))
     {
     }
 

@@ -270,8 +270,8 @@ namespace ProTracker3
   {
   public:
     TSPattern(Pattern::Ptr first, Pattern::Ptr second)
-      : First(first)
-      , Second(second)
+      : First(std::move(first))
+      , Second(std::move(second))
     {
     }
 
@@ -296,7 +296,7 @@ namespace ProTracker3
   public:
     TSPatternsSet(uint_t base, PatternsSet::Ptr delegate)
       : Base(base)
-      , Delegate(delegate)
+      , Delegate(std::move(delegate))
     {
     }
 
@@ -325,8 +325,8 @@ namespace ProTracker3
   {
   public:
     PT3Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
@@ -358,8 +358,8 @@ namespace ProTracker3
   {
   public:
     TSChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(data, TurboSound::TRACK_CHANNELS))
     {
     }
@@ -390,7 +390,7 @@ namespace ProTracker3
   {
   public:
     explicit Factory(Formats::Chiptune::ProTracker3::Decoder::Ptr decoder)
-      : Decoder(decoder)
+      : Decoder(std::move(decoder))
     {
     }
 

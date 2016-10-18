@@ -15,6 +15,8 @@
 //library includes
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -25,9 +27,9 @@ namespace Module
     public:
       TrackDataIterator(TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, DataRenderer::Ptr renderer)
         : Params(trackParams)
-        , Delegate(delegate)
+        , Delegate(std::move(delegate))
         , State(Delegate->GetStateObserver())
-        , Render(renderer)
+        , Render(std::move(renderer))
       {
       }
 

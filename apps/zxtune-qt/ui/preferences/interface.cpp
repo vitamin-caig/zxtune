@@ -27,6 +27,7 @@
 #include <QtGui/QRadioButton>
 //boost includes
 #include <boost/range/size.hpp>
+#include <utility>
 
 namespace
 {
@@ -44,7 +45,7 @@ namespace
   {
   public:
     explicit UpdateCheckPeriodComboboxValue(Parameters::Container::Ptr ctr)
-      : Ctr(ctr)
+      : Ctr(std::move(ctr))
     {
     }
 

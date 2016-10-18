@@ -31,11 +31,11 @@ namespace Archived
     class File : public Archived::File
     {
     public:
-      File(const Packed::Decoder& decoder, const String& name, std::size_t size, Binary::Container::Ptr data)
+      File(const Packed::Decoder& decoder, String name, std::size_t size, Binary::Container::Ptr data)
         : Decoder(decoder)
-        , Name(name)
+        , Name(std::move(name))
         , Size(size)
-        , Data(data)
+        , Data(std::move(data))
       {
       }
 
@@ -249,8 +249,8 @@ namespace Archived
     {
     public:
       Container(Packed::Decoder::Ptr decoder, Binary::Container::Ptr data, uint_t filesCount)
-        : Decoder(decoder)
-        , Delegate(data)
+        : Decoder(std::move(decoder))
+        , Delegate(std::move(data))
         , FilesCount(filesCount)
       {
         Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());

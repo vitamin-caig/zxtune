@@ -17,6 +17,8 @@
 #include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
+//std includes
+#include <utility>
 //boost includes
 #include <boost/lexical_cast.hpp>
 
@@ -197,7 +199,7 @@ namespace YMVTX
   {
   public:
     explicit Factory(Formats::Chiptune::YM::Decoder::Ptr decoder)
-      : Decoder(decoder)
+      : Decoder(std::move(decoder))
     {
     }
 

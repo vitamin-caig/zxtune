@@ -38,7 +38,7 @@ namespace AYEMUL
   {
   public:
     explicit AyDataChannel(Devices::AYM::Device::Ptr chip)
-      : Chip(chip)
+      : Chip(std::move(chip))
       , Register()
       , Blocked()
     {
@@ -134,7 +134,7 @@ namespace AYEMUL
   {
   public:
     explicit BeeperDataChannel(Devices::Beeper::Device::Ptr chip)
-      : Chip(chip)
+      : Chip(std::move(chip))
       , State(false)
       , Blocked(false)
     {
@@ -253,7 +253,7 @@ namespace AYEMUL
   {
   public:
     explicit ZXAYPort(DataChannel::Ptr chan)
-      : Channel(chan)
+      : Channel(std::move(chan))
     {
     }
 
@@ -311,7 +311,7 @@ namespace AYEMUL
   {
   public:
     explicit CPCAYPort(DataChannel::Ptr channel)
-      : Channel(channel)
+      : Channel(std::move(channel))
       , Data()
       , Selector()
     {
@@ -446,7 +446,7 @@ namespace AYEMUL
   {
   public:
     explicit CPUParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -513,9 +513,9 @@ namespace AYEMUL
     typedef std::shared_ptr<Computer> Ptr; 
 
     Computer(ModuleData::Ptr data, Devices::Z80::ChipParameters::Ptr params, PortsPlexer::Ptr cpuPorts)
-      : Data(data)
-      , Params(params)
-      , CPUPorts(cpuPorts)
+      : Data(std::move(data))
+      , Params(std::move(params))
+      , CPUPorts(std::move(cpuPorts))
       , CPU(Data->CreateCPU(Params, CPUPorts))
     {
     }
@@ -557,9 +557,9 @@ namespace AYEMUL
   public:
     Renderer(Sound::RenderParameters::Ptr params, StateIterator::Ptr iterator, Computer::Ptr comp, DataChannel::Ptr device)
       : Params(params)
-      , Iterator(iterator)
-      , Comp(comp)
-      , Device(device)
+      , Iterator(std::move(iterator))
+      , Comp(std::move(comp))
+      , Device(std::move(device))
       , State(Iterator->GetStateObserver())
       , FrameDuration()
       , Looped()
@@ -760,7 +760,7 @@ namespace AYEMUL
   {
   public:
     explicit MergedSoundReceiver(Sound::Receiver::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
     
@@ -804,9 +804,9 @@ namespace AYEMUL
   {
   public:
     Holder(ModuleData::Ptr data, Information::Ptr info, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Info(info)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Info(std::move(info))
+      , Properties(std::move(properties))
     {
     }
 

@@ -14,6 +14,8 @@
 #include <make_ptr.h>
 //library includes
 #include <math/numeric.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -155,7 +157,7 @@ namespace Vortex
   {
   public:
     DataRenderer(ModuleData::Ptr data, uint_t trackChannelStart)
-      : Data(data)
+      : Data(std::move(data))
       , Version(Data->Version)
       , VolTable(Version <= 4 ? Vol33_34 : Vol35)
       , TrackChannelStart(trackChannelStart)

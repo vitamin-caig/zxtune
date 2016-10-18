@@ -15,6 +15,8 @@
 //library includes
 #include <core/core_parameters.h>
 #include <sound/render_params.h>
+//std includes
+#include <utility>
 
 namespace Module
 {

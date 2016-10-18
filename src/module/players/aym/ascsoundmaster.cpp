@@ -61,8 +61,8 @@ namespace ASCSoundMaster
     {
     }
 
-    Sample(const Formats::Chiptune::ASCSoundMaster::Sample& rh)
-      : Formats::Chiptune::ASCSoundMaster::Sample(rh)
+    Sample(Formats::Chiptune::ASCSoundMaster::Sample rh)
+      : Formats::Chiptune::ASCSoundMaster::Sample(std::move(rh))
     {
     }
 
@@ -95,8 +95,8 @@ namespace ASCSoundMaster
     {
     }
 
-    Ornament(const Formats::Chiptune::ASCSoundMaster::Ornament& rh)
-      : Formats::Chiptune::ASCSoundMaster::Ornament(rh)
+    Ornament(Formats::Chiptune::ASCSoundMaster::Ornament rh)
+      : Formats::Chiptune::ASCSoundMaster::Ornament(std::move(rh))
     {
     }
 
@@ -373,7 +373,7 @@ namespace ASCSoundMaster
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-      : Data(data)
+      : Data(std::move(data))
       , EnvelopeTone(0)
     {
     }
@@ -646,8 +646,8 @@ namespace ASCSoundMaster
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
@@ -678,7 +678,7 @@ namespace ASCSoundMaster
   {
   public:
     explicit Factory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
-      : Decoder(decoder)
+      : Decoder(std::move(decoder))
     {
     }
 

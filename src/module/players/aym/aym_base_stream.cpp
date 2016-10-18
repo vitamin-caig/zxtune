@@ -14,6 +14,8 @@
 #include <make_ptr.h>
 //library includes
 #include <module/players/streaming.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -23,9 +25,9 @@ namespace Module
     {
     public:
       StreamDataIterator(StateIterator::Ptr delegate, StreamModel::Ptr data)
-        : Delegate(delegate)
+        : Delegate(std::move(delegate))
         , State(Delegate->GetStateObserver())
-        , Data(data)
+        , Data(std::move(data))
       {
       }
 
@@ -65,8 +67,8 @@ namespace Module
     {
     public:
       StreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties)
-        : Data(model)
-        , Properties(properties)
+        : Data(std::move(model))
+        , Properties(std::move(properties))
         , Info(CreateStreamInfo(Data->Size(), Data->Loop()))
       {
       }

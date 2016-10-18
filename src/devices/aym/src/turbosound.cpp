@@ -15,6 +15,8 @@
 #include <make_ptr.h>
 //library includes
 #include <devices/turbosound.h>
+//std includes
+#include <utility>
 
 namespace Devices
 {
@@ -83,7 +85,7 @@ namespace TurboSound
   {
   public:
     explicit HalfLevelMixer(MixerType::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , DelegateRef(*Delegate)
     {
     }

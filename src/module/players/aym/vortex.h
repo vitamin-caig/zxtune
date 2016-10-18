@@ -41,8 +41,8 @@ namespace Module
       {
       }
 
-      Sample(const Formats::Chiptune::ProTracker3::Sample& rh)
-        : Formats::Chiptune::ProTracker3::Sample(rh)
+      Sample(Formats::Chiptune::ProTracker3::Sample rh)
+        : Formats::Chiptune::ProTracker3::Sample(std::move(rh))
       {
       }
 

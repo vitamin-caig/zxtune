@@ -181,11 +181,11 @@ namespace SPC
   {
   public:
     Renderer(SPC::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(tune)
-      , Iterator(iterator)
+      : Tune(std::move(tune))
+      , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
       , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(target)
+      , Target(std::move(target))
       , Looped()
       , SamplesPerFrame()
     {
@@ -273,9 +273,9 @@ namespace SPC
   {
   public:
     Holder(SPC::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
-      : Tune(tune)
-      , Info(info)
-      , Properties(props)
+      : Tune(std::move(tune))
+      , Info(std::move(info))
+      , Properties(std::move(props))
     {
     }
 

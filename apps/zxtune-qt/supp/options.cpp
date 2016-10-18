@@ -220,7 +220,7 @@ namespace
   {
   public:
     explicit CachedSettingsContainer(Container::Ptr delegate)
-      : Persistent(delegate)
+      : Persistent(std::move(delegate))
       , Temporary(Container::Create())
     {
     }
@@ -388,8 +388,8 @@ namespace
   {
   public:
     CopyOnWrite(Accessor::Ptr stored, Container::Ptr changed)
-      : Stored(stored)
-      , Changed(changed)
+      : Stored(std::move(stored))
+      , Changed(std::move(changed))
     {
     }
 
@@ -420,8 +420,8 @@ namespace
   {
   public:
     SettingsSnapshot(Accessor::Ptr delegate, CompositeModifier::Subscription subscription)
-      : Delegate(delegate)
-      , Subscription(subscription)
+      : Delegate(std::move(delegate))
+      , Subscription(std::move(subscription))
     {
     }
 

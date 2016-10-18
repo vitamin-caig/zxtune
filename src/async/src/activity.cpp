@@ -35,7 +35,7 @@ namespace Async
     typedef std::shared_ptr<ThreadActivity> Ptr;
 
     explicit ThreadActivity(Operation::Ptr op)
-      : Oper(op)
+      : Oper(std::move(op))
       , State(STOPPED)
     {
     }

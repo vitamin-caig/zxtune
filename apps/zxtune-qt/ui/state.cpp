@@ -49,7 +49,7 @@ namespace
   {
   public:
     NamespaceContainer(Parameters::Container::Ptr delegate, const Parameters::NameType& prefix)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , Prefix(prefix)
     {
     }
@@ -180,7 +180,7 @@ namespace
     MainWindowState(QMainWindow* wnd, Parameters::Container::Ptr ctr)
       : Wnd(*wnd)
       //store in 'main' namespace
-      , Container(ctr)
+      , Container(std::move(ctr))
     {
     }
 
@@ -206,7 +206,7 @@ namespace
     DialogState(QDialog* wnd, Parameters::Container::Ptr ctr)
       : Wnd(*wnd)
       //store in 'main' namespace
-      , Container(ctr)
+      , Container(std::move(ctr))
     {
     }
 
@@ -230,7 +230,7 @@ namespace
     FileDialogState(QFileDialog* wnd, Parameters::Container::Ptr ctr)
       : Wnd(*wnd)
       //store in 'main' namespace
-      , Container(ctr)
+      , Container(std::move(ctr))
     {
     }
 
@@ -386,7 +386,7 @@ namespace
   public:
     ButtonState(QAbstractButton* wid, Parameters::Container::Ptr ctr)
       : Wid(*wid)
-      , Container(ctr)
+      , Container(std::move(ctr))
       , Name(FromQString(Wid.objectName()))
     {
     }
@@ -446,7 +446,7 @@ namespace
   {
   public:
     explicit PersistentState(Parameters::Container::Ptr ctr)
-      : Options(ctr)
+      : Options(std::move(ctr))
     {
     }
 

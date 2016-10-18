@@ -12,6 +12,8 @@
 #include <error_tools.h>
 //text includes
 #include <tools/text/tools.h>
+//std includes
+#include <utility>
 
 namespace
 {
@@ -35,8 +37,8 @@ namespace
 // implementation of error's core used to keep data
 struct Error::Meta
 {
-  Meta(LocationRef loc, const String& txt)
-    : Location(loc), Text(txt)
+  Meta(LocationRef loc, String txt)
+    : Location(std::move(loc)), Text(std::move(txt))
   {
   }
 

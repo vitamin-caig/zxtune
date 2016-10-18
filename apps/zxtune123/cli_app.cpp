@@ -154,7 +154,7 @@ namespace
     ConvertEndpoint(DisplayComponent& display, const String& mode, const Parameters::Accessor& modeParams, HolderAndData::Receiver::Ptr saver)
       : Display(display)
       , ConversionParameter(CreateConversionParameters(mode, modeParams))
-      , Saver(saver)
+      , Saver(std::move(saver))
     {
     }
     

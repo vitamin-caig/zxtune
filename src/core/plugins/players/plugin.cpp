@@ -18,6 +18,8 @@
 #include <core/plugin_attrs.h>
 #include <module/attributes.h>
 #include <module/players/properties_helper.h>
+//std includes
+#include <utility>
 
 namespace ZXTune
 {
@@ -25,9 +27,9 @@ namespace ZXTune
   {
   public:
     CommonPlayerPlugin(Plugin::Ptr descr, Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
-      : Description(descr)
-      , Decoder(decoder)
-      , Factory(factory)
+      : Description(std::move(descr))
+      , Decoder(std::move(decoder))
+      , Factory(std::move(factory))
     {
     }
 

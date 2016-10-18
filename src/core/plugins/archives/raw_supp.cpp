@@ -398,10 +398,10 @@ namespace ZXTune
   public:
     typedef std::shared_ptr<ScanDataLocation> Ptr;
 
-    ScanDataLocation(DataLocation::Ptr parent, const String& subPlugin, std::size_t offset)
-      : Parent(parent)
+    ScanDataLocation(DataLocation::Ptr parent, String subPlugin, std::size_t offset)
+      : Parent(std::move(parent))
       , Subdata(MakePtr<ScanDataContainer>(Parent->GetData(), offset))
-      , Subplugin(subPlugin)
+      , Subplugin(std::move(subPlugin))
     {
     }
 
@@ -460,7 +460,7 @@ namespace ZXTune
       std::size_t Offset;
 
       explicit PluginEntry(typename P::Ptr plugin)
-        : Plugin(plugin)
+        : Plugin(std::move(plugin))
         , Offset()
       {
       }
@@ -476,8 +476,8 @@ namespace ZXTune
     {
     public:
       IteratorImpl(typename PluginsList::const_iterator it, typename PluginsList::const_iterator lim, std::size_t offset)
-        : Cur(it)
-        , Lim(lim)
+        : Cur(std::move(it))
+        , Lim(std::move(lim))
         , Offset(offset)
       {
         SkipUnaffected();
@@ -560,7 +560,7 @@ namespace ZXTune
   {
   public:
     explicit DoubleAnalyzedArchivePlugin(ArchivePlugin::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 
@@ -598,7 +598,7 @@ namespace ZXTune
   {
   public:
     explicit DoubleAnalysisArchivePlugins(ArchivePlugin::Iterator::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 

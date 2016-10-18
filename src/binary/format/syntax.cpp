@@ -18,6 +18,7 @@
 //std includes
 #include <cctype>
 #include <stack>
+#include <utility>
 
 namespace Binary
 {
@@ -46,9 +47,9 @@ namespace FormatDSL
     {
     }
 
-    Token(LexicalAnalysis::TokenType type, const std::string& lexeme)
+    Token(LexicalAnalysis::TokenType type, std::string lexeme)
       : Type(type)
-      , Value(lexeme)
+      , Value(std::move(lexeme))
     {
     }
   };
@@ -254,8 +255,8 @@ namespace FormatDSL
     {
     }
 
-    explicit Operator(const std::string& op)
-      : Val(op)
+    explicit Operator(std::string op)
+      : Val(std::move(op))
       , Prec(0)
     {
       Require(!Val.empty());

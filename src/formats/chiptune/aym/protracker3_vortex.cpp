@@ -331,15 +331,15 @@ namespace ProTracker3
         }
       }
 
-      explicit SectionHeader(const std::string& category)
-        : Category(category)
+      explicit SectionHeader(std::string category)
+        : Category(std::move(category))
         , Index(NO_INDEX)
         , Valid(true)
       {
       }
 
-      SectionHeader(const std::string& category, int_t idx)
-        : Category(category)
+      SectionHeader(std::string category, int_t idx)
+        : Category(std::move(category))
         , Index(idx)
         , Valid(true)
       {
@@ -409,8 +409,8 @@ namespace ProTracker3
         Loop = resLoop == NO_LOOP ? 0 : resLoop;
       }
 
-      LoopedList(uint_t loop, const std::vector<T>& vals)
-        : Parent(vals)
+      LoopedList(uint_t loop, std::vector<T> vals)
+        : Parent(std::move(vals))
         , Loop(loop)
       {
         Require(Math::InRange<std::size_t>(loop, 0, Parent::size() - 1));
@@ -531,9 +531,9 @@ namespace ProTracker3
           Value = boost::algorithm::trim_copy(second);
         }
 
-        Entry(const std::string& name, const std::string& value)
-          : Name(name)
-          , Value(value)
+        Entry(std::string name, std::string value)
+          : Name(std::move(name))
+          , Value(std::move(value))
         {
         }
 
@@ -566,8 +566,8 @@ namespace ProTracker3
         Lines = llist;
       }
 
-      OrnamentObject(const Ornament& orn, uint_t index)
-        : Ornament(orn)
+      OrnamentObject(Ornament orn, uint_t index)
+        : Ornament(std::move(orn))
         , Index(index)
       {
       }
@@ -617,8 +617,8 @@ namespace ProTracker3
         Loop = loop;
       }
 
-      SampleObject(const Sample& sam, uint_t idx)
-        : Sample(sam)
+      SampleObject(Sample sam, uint_t idx)
+        : Sample(std::move(sam))
         , Index(idx)
       {
       }
@@ -674,8 +674,8 @@ namespace ProTracker3
           }
         }
 
-        LineObject(const Line& src, bool looped)
-          : Sample::Line(src)
+        LineObject(Line src, bool looped)
+          : Sample::Line(std::move(src))
           , Looped(looped)
         {
         }

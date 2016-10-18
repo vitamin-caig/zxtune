@@ -44,8 +44,8 @@ namespace ProTracker1
     {
     }
 
-    Sample(const Formats::Chiptune::ProTracker1::Sample& rh)
-      : Formats::Chiptune::ProTracker1::Sample(rh)
+    Sample(Formats::Chiptune::ProTracker1::Sample rh)
+      : Formats::Chiptune::ProTracker1::Sample(std::move(rh))
     {
     }
 
@@ -224,7 +224,7 @@ namespace ProTracker1
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-       : Data(data)
+       : Data(std::move(data))
     {
     }
 
@@ -357,8 +357,8 @@ namespace ProTracker1
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }

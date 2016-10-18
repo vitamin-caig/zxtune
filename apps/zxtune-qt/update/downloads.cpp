@@ -58,8 +58,8 @@ namespace
   class UpdateDownload : public Product::Update
   {
   public:
-    UpdateDownload(const RSS::Entry& entry, const QString& version)
-      : Entry(entry)
+    UpdateDownload(RSS::Entry entry, const QString& version)
+      : Entry(std::move(entry))
       , VersionValue(version)
     {
     }

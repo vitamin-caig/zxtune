@@ -97,13 +97,13 @@ namespace
   class ConvertVisitor : public Playlist::Item::Visitor
   {
   public:
-    ConvertVisitor(uint_t totalItems, const String& type, Sound::Service::Ptr service, Log::ProgressCallback& cb, Playlist::Item::ConversionResultNotification::Ptr result)
+    ConvertVisitor(uint_t totalItems, String type, Sound::Service::Ptr service, Log::ProgressCallback& cb, Playlist::Item::ConversionResultNotification::Ptr result)
       : TotalItems(totalItems)
       , DoneItems(0)
       , Callback(cb)
-      , Type(type)
-      , Service(service)
-      , Result(result)
+      , Type(std::move(type))
+      , Service(std::move(service))
+      , Result(std::move(result))
     {
     }
 
@@ -155,11 +155,11 @@ namespace
   {
   public:
     SoundFormatConvertOperation(Playlist::Model::IndexSet::Ptr items,
-      const String& type, Sound::Service::Ptr service, Playlist::Item::ConversionResultNotification::Ptr result)
-      : SelectedItems(items)
-      , Type(type)
-      , Service(service)
-      , Result(result)
+      String type, Sound::Service::Ptr service, Playlist::Item::ConversionResultNotification::Ptr result)
+      : SelectedItems(std::move(items))
+      , Type(std::move(type))
+      , Service(std::move(service))
+      , Result(std::move(result))
     {
     }
 
@@ -192,16 +192,16 @@ namespace
     ExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
       : SelectedItems()
       , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
-      , Params(params)
-      , Result(result)
+      , Params(std::move(params))
+      , Result(std::move(result))
     {
     }
 
     ExportOperation(Playlist::Model::IndexSet::Ptr items, const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
       , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
-      , Params(params)
-      , Result(result)
+      , Params(std::move(params))
+      , Result(std::move(result))
     {
     }
 

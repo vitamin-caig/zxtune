@@ -53,8 +53,8 @@ namespace SQTracker
     {
     }
 
-    Sample(const Formats::Chiptune::SQTracker::Sample& rh)
-      : Formats::Chiptune::SQTracker::Sample(rh)
+    Sample(Formats::Chiptune::SQTracker::Sample rh)
+      : Formats::Chiptune::SQTracker::Sample(std::move(rh))
     {
     }
 
@@ -82,8 +82,8 @@ namespace SQTracker
     {
     }
 
-    Ornament(const Formats::Chiptune::SQTracker::Ornament& rh)
-      : Formats::Chiptune::SQTracker::Ornament(rh)
+    Ornament(Formats::Chiptune::SQTracker::Ornament rh)
+      : Formats::Chiptune::SQTracker::Ornament(std::move(rh))
     {
     }
 
@@ -599,7 +599,7 @@ namespace SQTracker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-       : Data(data)
+       : Data(std::move(data))
     {
     }
 
@@ -803,8 +803,8 @@ namespace SQTracker
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }

@@ -31,7 +31,7 @@ namespace Async
     DataReceiver(std::size_t workersCount, std::size_t queueSize, typename ::DataReceiver<T>::Ptr delegate)
       : QueueObject(SizedQueue<T>::Create(queueSize))
       , Statistic(Progress::Create())
-      , Delegate(delegate)
+      , Delegate(std::move(delegate))
     {
       StartAll(workersCount);
     }
@@ -108,9 +108,9 @@ namespace Async
     {
     public:
       TransceiveOperation(typename Queue<T>::Ptr queue, Progress::Ptr stat, typename DataReceiver<T>::Ptr target)
-        : QueueObject(queue)
-        , Statistic(stat)
-        , Target(target)
+        : QueueObject(std::move(queue))
+        , Statistic(std::move(stat))
+        , Target(std::move(target))
       {
       }
 

@@ -23,6 +23,7 @@
 //std includes
 #include <array>
 #include <cstring>
+#include <utility>
 
 namespace Formats
 {
@@ -88,7 +89,7 @@ namespace Multitrack
       Container(const InfoChunkFull* info, uint32_t fixedCrc, Binary::Container::Ptr data)
         : Info(info)
         , FixedCrc(fixedCrc)
-        , Delegate(data)
+        , Delegate(std::move(data))
       {
       }
       

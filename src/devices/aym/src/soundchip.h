@@ -27,8 +27,8 @@ namespace AYM
   public:
     SoundChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target)
       : Params(params)
-      , Mixer(mixer)
-      , Target(target)
+      , Mixer(std::move(mixer))
+      , Target(std::move(target))
       , PSG(VolTable)
       , Clock()
       , Renderers(Clock, PSG)

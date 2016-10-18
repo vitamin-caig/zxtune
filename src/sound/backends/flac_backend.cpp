@@ -74,7 +74,7 @@ namespace Flac
   {
   public:
     explicit MetaData(Api::Ptr api)
-      : FlacApi(api)
+      : FlacApi(std::move(api))
       , Tags(FlacApi->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT), boost::bind(&Api::FLAC__metadata_object_delete, FlacApi, _1))
     {
     }
@@ -104,9 +104,9 @@ namespace Flac
   public:
     FileStream(Api::Ptr api, EncoderPtr encoder, Binary::OutputStream::Ptr stream)
       : FlacApi(api)
-      , Encoder(encoder)
+      , Encoder(std::move(encoder))
       , Meta(api)
-      , Stream(stream)
+      , Stream(std::move(stream))
     {
     }
 
@@ -204,7 +204,7 @@ namespace Flac
   {
   public:
     explicit StreamParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -235,8 +235,8 @@ namespace Flac
   {
   public:
     FileStreamFactory(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : FlacApi(api)
-      , Params(params)
+      : FlacApi(std::move(api))
+      , Params(std::move(params))
     {
     }
 
@@ -282,7 +282,7 @@ namespace Flac
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : FlacApi(api)
+      : FlacApi(std::move(api))
     {
     }
 

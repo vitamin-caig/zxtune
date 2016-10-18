@@ -14,6 +14,8 @@
 #include <parameters/accessor.h>
 #include <sound/matrix_mixer.h>
 #include <sound/mixer_parameters.h>
+//std includes
+#include <utility>
 
 namespace Sound
 {
@@ -57,7 +59,7 @@ namespace Sound
   public:
     MixerNotificationParameters(Parameters::Accessor::Ptr params, typename MixerType::Ptr mixer)
       : Params(params)
-      , Mixer(mixer)
+      , Mixer(std::move(mixer))
       , LastVersion(~params->Version())
     {
     }

@@ -145,7 +145,7 @@ namespace MTC
     {
     public:
       explicit Stream(Module::Holder::Ptr holder)
-        : Holder(holder)
+        : Holder(std::move(holder))
       {
       }
       
@@ -271,7 +271,7 @@ namespace MTC
     public:
       Tune(const Parameters::Accessor& params, Parameters::Container::Ptr properties)
         : Params(params)
-        , Props(properties)
+        , Props(std::move(properties))
       {
       }
       

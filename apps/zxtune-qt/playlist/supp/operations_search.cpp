@@ -34,7 +34,7 @@ namespace
   public:
     SearchVisitor(Predicate::Ptr pred, Log::ProgressCallback& cb)
       : Callback(cb)
-      , Pred(pred)
+      , Pred(std::move(pred))
       , Result(MakeRWPtr<Playlist::Model::IndexSet>())
       , Done(0)
     {
@@ -64,14 +64,14 @@ namespace
   {
   public:
     explicit SearchOperation(Predicate::Ptr pred)
-      : Pred(pred)
+      : Pred(std::move(pred))
     {
       Require(Pred != 0);
     }
 
     SearchOperation(Playlist::Model::IndexSet::Ptr items, Predicate::Ptr pred)
-      : SelectedItems(items)
-      , Pred(pred)
+      : SelectedItems(std::move(items))
+      , Pred(std::move(pred))
     {
       Require(Pred != 0);
     }
@@ -109,7 +109,7 @@ namespace
   {
   public:
     ScopePredicateDispatcher(StringPredicate::Ptr pred, uint_t scope)
-      : Pred(pred)
+      : Pred(std::move(pred))
       , MatchTitle(0 != (scope & Playlist::Item::Search::TITLE))
       , MatchAuthor(0 != (scope & Playlist::Item::Search::AUTHOR))
       , MatchPath(0 != (scope & Playlist::Item::Search::PATH))

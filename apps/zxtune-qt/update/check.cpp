@@ -26,6 +26,7 @@
 #include <platform/version/fields.h>
 //std includes
 #include <ctime>
+#include <utility>
 //qt includes
 #include <QtCore/QTimer>
 #include <QtGui/QApplication>
@@ -43,8 +44,8 @@ namespace
   class IOParameters : public Parameters::Accessor
   {
   public:
-    explicit IOParameters(const String& userAgent)
-      : UserAgent(userAgent)
+    explicit IOParameters(String userAgent)
+      : UserAgent(std::move(userAgent))
     {
     }
 
@@ -341,7 +342,7 @@ namespace
   {
   public:
     explicit UpdateParameters(Parameters::Container::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -377,9 +378,9 @@ namespace
   class UpdateCheckOperation : public Update::CheckOperation
   {
   public:
-    UpdateCheckOperation(QWidget& parent, const UpdateParameters& params)
+    UpdateCheckOperation(QWidget& parent, UpdateParameters params)
       : Parent(parent)
-      , Params(params)
+      , Params(std::move(params))
     {
       setParent(&parent);
       QTimer::singleShot(CHECK_UPDATE_DELAY * 1000, this, SLOT(ExecuteBackground()));

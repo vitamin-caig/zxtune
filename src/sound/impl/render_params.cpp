@@ -14,13 +14,15 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 
+#include <utility>
+
 namespace Sound
 {
   class RenderParametersImpl : public RenderParameters
   {
   public:
     explicit RenderParametersImpl(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 

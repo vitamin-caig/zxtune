@@ -172,7 +172,7 @@ namespace Archived
       typedef std::shared_ptr<const ChainDecoder> Ptr;
 
       explicit ChainDecoder(Binary::Container::Ptr data)
-        : Data(data)
+        : Data(std::move(data))
         , StatefulDecoder(Packed::CreateRarDecoder())
         , ChainIterator(new BlocksIterator(*Data))
       {
@@ -247,10 +247,10 @@ namespace Archived
     class File : public Archived::File
     {
     public:
-      File(ChainDecoder::Ptr decoder, const FileBlock& block, const String& name)
-        : Decoder(decoder)
-        , Block(block)
-        , Name(name)
+      File(ChainDecoder::Ptr decoder, FileBlock block, String name)
+        : Decoder(std::move(decoder))
+        , Block(std::move(block))
+        , Name(std::move(name))
       {
       }
 
@@ -279,7 +279,7 @@ namespace Archived
     {
     public:
       FileIterator(ChainDecoder::Ptr decoder, const Binary::Container& data)
-        : Decoder(decoder)
+        : Decoder(std::move(decoder))
         , Blocks(data)
       {
         SkipNonFileBlocks();

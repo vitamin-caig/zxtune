@@ -69,7 +69,7 @@ namespace Analysis
 
       PositionAndDecoder(std::size_t pos, DecoderPtrType decoder)
         : Position(pos)
-        , Decoder(decoder)
+        , Decoder(std::move(decoder))
       {
       }
 

@@ -85,8 +85,8 @@ namespace Module
   {
   public:
     MixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
-      : Delegate(delegate)
-      , Properties(props)
+      : Delegate(std::move(delegate))
+      , Properties(std::move(props))
     {
     }
 
@@ -113,8 +113,8 @@ namespace Module
   {
   public:
     MixedPropertiesAYMHolder(AYM::Holder::Ptr delegate, Parameters::Accessor::Ptr props)
-      : Delegate(delegate)
-      , Properties(props)
+      : Delegate(std::move(delegate))
+      , Properties(std::move(props))
     {
     }
 

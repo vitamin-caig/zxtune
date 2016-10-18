@@ -31,12 +31,12 @@ namespace ZXTune
   class LoggerHelper
   {
   public:
-    LoggerHelper(uint_t total, const Module::DetectCallback& delegate, const String& plugin, const String& path)
+    LoggerHelper(uint_t total, const Module::DetectCallback& delegate, String plugin, String path)
       : Total(total)
       , Delegate(delegate)
       , Progress(CreateProgressCallback(delegate, Total))
-      , Id(plugin)
-      , Path(path)
+      , Id(std::move(plugin))
+      , Path(std::move(path))
       , Current()
     {
     }
@@ -80,11 +80,11 @@ namespace ZXTune
   class ContainerDetectCallback : public Formats::Archived::Container::Walker
   {
   public:
-    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, const String& plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
+    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, String plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
       : Params(params)
       , MaxSize(maxSize)
-      , BaseLocation(location)
-      , SubPlugin(plugin)
+      , BaseLocation(std::move(location))
+      , SubPlugin(std::move(plugin))
       , Logger(count, callback, SubPlugin, BaseLocation->GetPath()->AsString())
     {
     }
@@ -127,8 +127,8 @@ namespace ZXTune
   {
   public:
     ArchivedContainerPlugin(Plugin::Ptr descr, Formats::Archived::Decoder::Ptr decoder)
-      : Description(descr)
-      , Decoder(decoder)
+      : Description(std::move(descr))
+      , Decoder(std::move(decoder))
       , SupportDirectories(0 != (Description->Capabilities() & Capabilities::Container::Traits::DIRECTORIES))
     {
     }
@@ -205,7 +205,7 @@ namespace ZXTune
   {
   public:
     explicit OnceAppliedContainerPluginAdapter(ArchivePlugin::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , Id(Delegate->GetDescription()->Id())
     {
     }

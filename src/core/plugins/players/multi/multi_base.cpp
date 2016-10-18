@@ -72,7 +72,7 @@ namespace Module
   {
   public:
     MultiInformation(Information::Ptr delegate, uint_t totalChannelsCount)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , TotalChannelsCount(totalChannelsCount)
     {
     }
@@ -134,7 +134,7 @@ namespace Module
     typedef std::shared_ptr<CompositeReceiver> Ptr;
     
     explicit CompositeReceiver(Sound::Receiver::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , DoneStreams()
     {
     }
@@ -357,7 +357,7 @@ namespace Module
     MultiRenderer(RenderersArray::const_iterator begin, RenderersArray::const_iterator end, Sound::RenderParameters::Ptr renderParams, CompositeReceiver::Ptr target)
       : Delegates(begin, end)
       , SoundParams(renderParams)
-      , Target(target)
+      , Target(std::move(target))
       , State(MultiTrackState::Create(Delegates))
       , Analysis(MultiAnalyzer::Create(Delegates))
     {
@@ -446,7 +446,7 @@ namespace Module
   {
   public:
     MultiHolder(Parameters::Accessor::Ptr props, Multi::HoldersArray::const_iterator begin, Multi::HoldersArray::const_iterator end)
-      : Properties(props)
+      : Properties(std::move(props))
       , Delegates(begin, end)
       , Info(MultiInformation::Create(Delegates))
     {

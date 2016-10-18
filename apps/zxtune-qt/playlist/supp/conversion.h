@@ -23,10 +23,10 @@ namespace Playlist
       {
         typedef std::shared_ptr<const Options> Ptr;
         
-        Options(const String& type, const String& filenameTemplate, Parameters::Accessor::Ptr params)
-          : Type(type)
-          , FilenameTemplate(filenameTemplate)
-          , Params(params)
+        Options(String type, String filenameTemplate, Parameters::Accessor::Ptr params)
+          : Type(std::move(type))
+          , FilenameTemplate(std::move(filenameTemplate))
+          , Params(std::move(params))
         {
         }
         

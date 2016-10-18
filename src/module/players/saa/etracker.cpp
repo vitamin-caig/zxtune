@@ -42,8 +42,8 @@ namespace ETracker
     {
     }
 
-    Sample(const Formats::Chiptune::ETracker::Sample& rh)
-      : Formats::Chiptune::ETracker::Sample(rh)
+    Sample(Formats::Chiptune::ETracker::Sample rh)
+      : Formats::Chiptune::ETracker::Sample(std::move(rh))
     {
     }
 
@@ -72,8 +72,8 @@ namespace ETracker
     {
     }
 
-    Ornament(const Formats::Chiptune::ETracker::Ornament& rh)
-      : Formats::Chiptune::ETracker::Ornament(rh)
+    Ornament(Formats::Chiptune::ETracker::Ornament rh)
+      : Formats::Chiptune::ETracker::Ornament(std::move(rh))
     {
     }
 
@@ -291,7 +291,7 @@ namespace ETracker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-       : Data(data)
+       : Data(std::move(data))
        , Noise()
        , Transposition()
     {
@@ -506,8 +506,8 @@ namespace ETracker
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, SAA::TRACK_CHANNELS))
     {
     }

@@ -12,6 +12,8 @@
 #include "streaming.h"
 //common includes
 #include <make_ptr.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -23,7 +25,7 @@ namespace Module
     typedef std::shared_ptr<StreamStateCursor> Ptr;
 
     explicit StreamStateCursor(Information::Ptr info)
-      : Info(info)
+      : Info(std::move(info))
       , CurFrame()
     {
       Reset();

@@ -25,6 +25,7 @@
 //std includes
 #include <array>
 #include <map>
+#include <utility>
 
 namespace Formats
 {
@@ -166,8 +167,8 @@ namespace Multitrack
     {
     public:
       Container(DataBuilder::Ptr content, Binary::Container::Ptr delegate, uint_t startTrack)
-        : Content(content)
-        , Delegate(delegate)
+        : Content(std::move(content))
+        , Delegate(std::move(delegate))
         , StartTrack(startTrack)
       {
       }

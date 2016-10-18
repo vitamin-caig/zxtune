@@ -61,7 +61,7 @@ namespace IO
   {
   public:
     explicit CurlObject(Curl::Api::Ptr api)
-      : Api(api)
+      : Api(std::move(api))
       , Object(Api->curl_easy_init())
     {
       Dbg("Curl(%1%): created", Object);
@@ -226,10 +226,10 @@ namespace IO
   class RemoteIdentifier : public Identifier
   {
   public:
-    RemoteIdentifier(const String& scheme, const String& path, const String& subpath)
-      : SchemeValue(scheme)
-      , PathValue(path)
-      , SubpathValue(subpath)
+    RemoteIdentifier(String scheme, String path, String subpath)
+      : SchemeValue(std::move(scheme))
+      , PathValue(std::move(path))
+      , SubpathValue(std::move(subpath))
       , FullValue(Serialize())
     {
       Require(!SchemeValue.empty() && !PathValue.empty());
@@ -297,7 +297,7 @@ namespace IO
   {
   public:
     explicit NetworkDataProvider(Curl::Api::Ptr api)
-      : Api(api)
+      : Api(std::move(api))
       , SupportedSchemes(ALL_SCHEMES, std::end(ALL_SCHEMES))
     {
     }

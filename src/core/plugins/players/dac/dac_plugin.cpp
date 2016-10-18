@@ -18,6 +18,8 @@
 #include <module/players/dac/dac_base.h>
 #include <module/players/dac/dac_parameters.h>
 #include <sound/mixer_factory.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -48,7 +50,7 @@ namespace Module
   {
   public:
     explicit DACHolder(DAC::Chiptune::Ptr chiptune)
-      : Tune(chiptune)
+      : Tune(std::move(chiptune))
     {
     }
 
@@ -78,7 +80,7 @@ namespace Module
   {
   public:
     explicit DACFactory(DAC::Factory::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 

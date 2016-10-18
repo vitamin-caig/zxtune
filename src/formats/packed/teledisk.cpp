@@ -229,7 +229,7 @@ namespace Packed
     {
     public:
       explicit ImageVisitorAdapter(Formats::ImageBuilder::Ptr builder)
-        : Builder(builder)
+        : Builder(std::move(builder))
       {
       }
 

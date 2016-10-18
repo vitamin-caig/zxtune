@@ -79,9 +79,9 @@ namespace TRDos
   class FixedNameFile : public File
   {
   public:
-    FixedNameFile(const String& newName, File::Ptr delegate)
-      : FixedName(newName)
-      , Delegate(delegate)
+    FixedNameFile(String newName, File::Ptr delegate)
+      : FixedName(std::move(newName))
+      , Delegate(std::move(delegate))
     {
     }
 
@@ -112,8 +112,8 @@ namespace TRDos
   class NamesGenerator
   {
   public:
-    explicit NamesGenerator(const String& name)
-      : Name(name)
+    explicit NamesGenerator(String name)
+      : Name(std::move(name))
       , Idx(1)
     {
     }
@@ -147,7 +147,7 @@ namespace TRDos
   public:
     template<class T>
     CommonCatalogue(Binary::Container::Ptr data, T from, T to)
-      : Delegate(data)
+      : Delegate(std::move(data))
       , Files(from, to)
     {
       assert(Delegate);
@@ -275,9 +275,9 @@ namespace TRDos
   class GenericFile : public File
   {
   public:
-    GenericFile(Binary::Container::Ptr data, const String& name, std::size_t off, std::size_t size)
-      : Data(data)
-      , Name(name)
+    GenericFile(Binary::Container::Ptr data, String name, std::size_t off, std::size_t size)
+      : Data(std::move(data))
+      , Name(std::move(name))
       , Offset(off)
       , Size(size)
     {
@@ -390,8 +390,8 @@ namespace TRDos
   class FlatFile : public File
   {
   public:
-    FlatFile(const String& name, std::size_t off, std::size_t size)
-      : Name(name)
+    FlatFile(String name, std::size_t off, std::size_t size)
+      : Name(std::move(name))
       , Offset(off)
       , Size(size)
     {

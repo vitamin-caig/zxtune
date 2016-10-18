@@ -49,8 +49,8 @@ namespace FastTracker
     {
     }
 
-    Sample(const Formats::Chiptune::FastTracker::Sample& rh)
-      : Formats::Chiptune::FastTracker::Sample(rh)
+    Sample(Formats::Chiptune::FastTracker::Sample rh)
+      : Formats::Chiptune::FastTracker::Sample(std::move(rh))
     {
     }
 
@@ -78,8 +78,8 @@ namespace FastTracker
     {
     }
 
-    Ornament(const Formats::Chiptune::FastTracker::Ornament& rh)
-      : Formats::Chiptune::FastTracker::Ornament(rh)
+    Ornament(Formats::Chiptune::FastTracker::Ornament rh)
+      : Formats::Chiptune::FastTracker::Ornament(std::move(rh))
     {
     }
 
@@ -404,7 +404,7 @@ namespace FastTracker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-      : Data(data)
+      : Data(std::move(data))
       , Transposition()
     {
       Reset();
@@ -593,8 +593,8 @@ namespace FastTracker
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }

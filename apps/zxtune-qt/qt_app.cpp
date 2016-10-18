@@ -20,6 +20,8 @@
 #include <platform/version/api.h>
 //qt includes
 #include <QtGui/QApplication>
+//std includes
+#include <utility>
 //text includes
 #include "text/text.h"
 

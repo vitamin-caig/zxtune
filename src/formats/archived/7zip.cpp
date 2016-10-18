@@ -95,7 +95,7 @@ namespace Archived
     {
     public:
       explicit SeekStream(Binary::Data::Ptr data)
-        : Data(data)
+        : Data(std::move(data))
         , Start(static_cast<const uint8_t*>(Data->Start()))
         , Limit(Data->Size())
         , Position()
@@ -245,7 +245,7 @@ namespace Archived
     {
     public:
       File(Archive::Ptr archive, uint_t idx)
-        : Arch(archive)
+        : Arch(std::move(archive))
         , Idx(idx)
         , Name(Arch->GetFileName(Idx))
         , Size(Arch->GetFileSize(Idx))
@@ -280,7 +280,7 @@ namespace Archived
     public:
       template<class It>
       Container(Binary::Container::Ptr data, It begin, It end)
-        : Delegate(data)
+        : Delegate(std::move(data))
       {
         for (It it = begin; it != end; ++it)
         {

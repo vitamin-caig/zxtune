@@ -13,6 +13,8 @@
 #include <pointers.h>
 //library includes
 #include <parameters/tracking.h>
+//std includes
+#include <utility>
 
 namespace Parameters
 {
@@ -20,8 +22,8 @@ namespace Parameters
   {
   public:
     CompositeModifier(Modifier::Ptr first, Modifier::Ptr second)
-      : First(first)
-      , Second(second)
+      : First(std::move(first))
+      , Second(std::move(second))
     {
     }
 

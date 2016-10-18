@@ -48,11 +48,11 @@ namespace PulseAudio
   class BackendWorker : public Sound::BackendWorker
   {
   public:
-    BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params, const String& stream)
-      : PaApi(api)
-      , Params(params)
+    BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params, String stream)
+      : PaApi(std::move(api))
+      , Params(std::move(params))
       , Client(Platform::Version::GetProgramTitle())//TODO: think about another solution...
-      , Stream(stream)
+      , Stream(std::move(stream))
     {
     }
 
@@ -150,7 +150,7 @@ namespace PulseAudio
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : PaApi(api)
+      : PaApi(std::move(api))
     {
     }
 

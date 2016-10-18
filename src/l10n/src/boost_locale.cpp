@@ -42,11 +42,11 @@ namespace
   class DomainVocabulary : public L10n::Vocabulary
   {
   public:
-    DomainVocabulary(LocalePtr locale, const std::string& domain)
-      : Locale(locale)
-      , Domain(domain)
+    DomainVocabulary(LocalePtr locale, std::string domain)
+      : Locale(std::move(locale))
+      , Domain(std::move(domain))
     {
-      Dbg("Created vocabulary for domain '%1%'", domain);
+      Dbg("Created vocabulary for domain '%1%'", Domain);
     }
 
     String GetText(const char* text) const override

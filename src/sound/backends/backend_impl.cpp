@@ -57,8 +57,8 @@ namespace Sound
   {
   public:
     CallbackOverWorker(BackendCallback::Ptr delegate, BackendWorker::Ptr worker)
-      : Delegate(delegate)
-      , Worker(worker)
+      : Delegate(std::move(delegate))
+      , Worker(std::move(worker))
     {
     }
 
@@ -105,8 +105,8 @@ namespace Sound
   {
   public:
     RendererWrapper(Module::Renderer::Ptr delegate, BackendCallback::Ptr callback)
-      : Delegate(delegate)
-      , Callback(callback)
+      : Delegate(std::move(delegate))
+      , Callback(std::move(callback))
       , State(Delegate->GetTrackState())
       , SeekRequest(NO_SEEK)
     {
@@ -155,8 +155,8 @@ namespace Sound
   {
   public:
     AsyncWrapper(BackendCallback::Ptr callback, Module::Renderer::Ptr render)
-      : Callback(callback)
-      , Render(render)
+      : Callback(std::move(callback))
+      , Render(std::move(render))
       , Playing(false)
     {
     }
@@ -294,8 +294,8 @@ namespace Sound
   {
   public:
     ControlInternal(Async::Job::Ptr job, Module::Renderer::Ptr renderer)
-      : Job(job)
-      , Renderer(renderer)
+      : Job(std::move(job))
+      , Renderer(std::move(renderer))
     {
     }
 
@@ -348,7 +348,7 @@ namespace Sound
   {
   public:
     BackendInternal(BackendWorker::Ptr worker, Module::Renderer::Ptr renderer, Async::Job::Ptr job)
-      : Worker(worker)
+      : Worker(std::move(worker))
       , Renderer(renderer)
       , Control(MakePtr<ControlInternal>(job, renderer))
     {

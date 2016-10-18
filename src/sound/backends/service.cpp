@@ -39,8 +39,8 @@ namespace Sound
   class StaticBackendInformation : public BackendInformation
   {
   public:
-    StaticBackendInformation(const String& id, const char* descr, uint_t caps, const Error& status)
-      : IdValue(id)
+    StaticBackendInformation(String id, const char* descr, uint_t caps, const Error& status)
+      : IdValue(std::move(id))
       , DescrValue(descr)
       , CapsValue(caps)
       , StatusValue(status)
@@ -79,7 +79,7 @@ namespace Sound
     typedef std::shared_ptr<ServiceImpl> RWPtr;
     
     explicit ServiceImpl(Parameters::Accessor::Ptr options)
-      : Options(options)
+      : Options(std::move(options))
     {
     }
 
@@ -189,9 +189,9 @@ namespace Sound
       {
       }
 
-      FactoryWithId(const String& id, BackendWorkerFactory::Ptr factory)
-        : Id(id)
-        , Factory(factory)
+      FactoryWithId(String id, BackendWorkerFactory::Ptr factory)
+        : Id(std::move(id))
+        , Factory(std::move(factory))
       {
       }
 

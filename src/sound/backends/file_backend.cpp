@@ -130,9 +130,9 @@ namespace File
   class FileParameters
   {
   public:
-    FileParameters(Parameters::Accessor::Ptr params, const String& id)
-      : Params(params)
-      , Id(id)
+    FileParameters(Parameters::Accessor::Ptr params, String id)
+      : Params(std::move(params))
+      , Id(std::move(id))
     {
     }
 
@@ -260,8 +260,8 @@ namespace File
   {
   public:
     BackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
-      : Params(params)
-      , Factory(factory)
+      : Params(std::move(params))
+      , Factory(std::move(factory))
       , Stream(Receiver::CreateStub())
     {
     }

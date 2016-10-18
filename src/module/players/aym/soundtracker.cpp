@@ -36,8 +36,8 @@ namespace SoundTracker
     {
     }
 
-    Sample(const Formats::Chiptune::SoundTracker::Sample& rh)
-      : Formats::Chiptune::SoundTracker::Sample(rh)
+    Sample(Formats::Chiptune::SoundTracker::Sample rh)
+      : Formats::Chiptune::SoundTracker::Sample(std::move(rh))
     {
     }
 
@@ -339,7 +339,7 @@ namespace SoundTracker
   struct ChannelState
   {
     explicit ChannelState(ModuleData::Ptr data, uint_t& envType, uint_t& envTone)
-      : Data(data)
+      : Data(std::move(data))
       , Note()
       , CurSample(GetStubSample())
       , CurOrnament(GetStubOrnament())
@@ -444,7 +444,7 @@ namespace SoundTracker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-      : Data(data)
+      : Data(std::move(data))
       , StateA(Data, EnvType, EnvTone)
       , StateB(Data, EnvType, EnvTone)
       , StateC(Data, EnvType, EnvTone)
@@ -531,8 +531,8 @@ namespace SoundTracker
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
@@ -563,7 +563,7 @@ namespace SoundTracker
   {
   public:
     explicit Factory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
-      : Decoder(decoder)
+      : Decoder(std::move(decoder))
     {
     }
 

@@ -78,9 +78,9 @@ namespace
   class RootNode : public Analysis::Node
   {
   public:
-    RootNode(Binary::Container::Ptr data, const String& name)
-      : DataVal(data)
-      , NameVal(name)
+    RootNode(Binary::Container::Ptr data, String name)
+      : DataVal(std::move(data))
+      , NameVal(std::move(name))
     {
     }
 
@@ -106,10 +106,10 @@ namespace
   class SubNode : public Analysis::Node
   {
   public:
-    SubNode(Analysis::Node::Ptr parent, Binary::Container::Ptr data, const String& name)
-      : ParentVal(parent)
-      , DataVal(data)
-      , NameVal(name)
+    SubNode(Analysis::Node::Ptr parent, Binary::Container::Ptr data, String name)
+      : ParentVal(std::move(parent))
+      , DataVal(std::move(data))
+      , NameVal(std::move(name))
     {
     }
 
@@ -314,9 +314,9 @@ namespace
   class StaticResult : public Parsing::Result
   {
   public:
-    StaticResult(const String& name, Binary::Container::Ptr data)
-      : NameVal(name)
-      , DataVal(data)
+    StaticResult(String name, Binary::Container::Ptr data)
+      : NameVal(std::move(name))
+      , DataVal(std::move(data))
     {
     }
 
@@ -421,7 +421,7 @@ namespace
   public:
     SizeFilter(std::size_t minSize, Analysis::NodeReceiver::Ptr target)
       : MinSize(minSize)
-      , Target(target)
+      , Target(std::move(target))
     {
     }
 
@@ -447,7 +447,7 @@ namespace
   {
   public:
     explicit EmptyDataFilter(Analysis::NodeReceiver::Ptr target)
-      : Target(target)
+      : Target(std::move(target))
     {
     }
 
@@ -475,7 +475,7 @@ namespace
   public:
     MatchedDataFilter(const std::string& format, Analysis::NodeReceiver::Ptr target)
       : Format(Binary::CreateFormat(format))
-      , Target(target)
+      , Target(std::move(target))
     {
     }
 
@@ -523,7 +523,7 @@ namespace
   {
   public:
     NestedScannerTarget(Analysis::Node::Ptr root, Analysis::NodeReceiver& toScan, Analysis::NodeReceiver& toStore)
-      : Root(root)
+      : Root(std::move(root))
       , ToScan(toScan)
       , ToStore(toStore)
     {
@@ -574,7 +574,7 @@ namespace
     public:
       ScanFiles(Analysis::NodeReceiver& toScan, Analysis::Node::Ptr node)
         : ToScan(toScan)
-        , ArchiveNode(node)
+        , ArchiveNode(std::move(node))
       {
       }
 
@@ -688,7 +688,7 @@ namespace
   {
   public:
     explicit PathTemplate(Analysis::Node::Ptr node)
-      : Node(node)
+      : Node(std::move(node))
     {
     }
 
@@ -789,7 +789,7 @@ namespace
   public:
     TargetNamePoint(const String& nameTemplate, Parsing::Target::Ptr target)
       : Template(Strings::Template::Create(nameTemplate))
-      , Target(target)
+      , Target(std::move(target))
     {
     }
 
@@ -814,7 +814,7 @@ namespace
   {
   public:
     explicit Valve(Analysis::NodeReceiver::Ptr target = Analysis::NodeReceiver::CreateStub())
-      : Target(target)
+      : Target(std::move(target))
     {
     }
 
@@ -947,8 +947,8 @@ namespace
   {
   public:
     TransceivePipe(typename DataReceiver<InType>::Ptr input, typename DataTransmitter<OutType>::Ptr output)
-      : Input(input)
-      , Output(output)
+      : Input(std::move(input))
+      , Output(std::move(output))
     {
     }
 

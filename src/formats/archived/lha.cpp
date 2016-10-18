@@ -192,7 +192,7 @@ namespace Archived
     public:
       template<class It>
       Container(Binary::Container::Ptr data, It begin, It end)
-        : Delegate(data)
+        : Delegate(std::move(data))
       {
         for (It it = begin; it != end; ++it)
         {

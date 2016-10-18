@@ -12,6 +12,8 @@
 #include "dump_builder.h"
 //common includes
 #include <make_ptr.h>
+//std includes
+#include <utility>
 
 namespace Devices
 {
@@ -124,8 +126,8 @@ namespace AYM
   public:
     FrameDumper(const Time::Microseconds& frameDuration, FramedDumpBuilder::Ptr builder, RenderState::Ptr state)
       : FrameDuration(frameDuration)
-      , Builder(builder)
-      , State(state)
+      , Builder(std::move(builder))
+      , State(std::move(state))
       , FramesToSkip(0)
       , NextFrame()
     {

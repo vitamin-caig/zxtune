@@ -168,7 +168,7 @@ namespace SQDigitalTracker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-      : Data(data)
+      : Data(std::move(data))
     {
       Reset();
     }
@@ -264,8 +264,8 @@ namespace SQDigitalTracker
   {
   public:
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
     {
     }
