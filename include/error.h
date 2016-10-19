@@ -80,7 +80,11 @@ public:
   //! @endcode
   Error(LocationRef loc, const String& text);
 
-  Error(const Error& rh) = default;
+  Error(const Error&) = default;
+  Error(Error&&) = default;
+  
+  Error& operator = (const Error&) = default;
+  Error& operator = (Error&&) = default;
   //@}
 
   //@{
@@ -118,7 +122,7 @@ public:
   String ToString() const throw();
   //@}
 private:
-  Error(MetaPtr ptr) : ErrorMeta(std::move(ptr))
+  explicit Error(MetaPtr ptr) : ErrorMeta(std::move(ptr))
   {
   }
 private:
