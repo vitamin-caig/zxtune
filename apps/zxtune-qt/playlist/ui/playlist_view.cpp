@@ -326,7 +326,7 @@ namespace
     {
       //setup ui
       setAcceptDrops(true);
-      if (QVBoxLayout* const layout = new QVBoxLayout(this))
+      if (const auto layout = new QVBoxLayout(this))
       {
         layout->setSpacing(1);
         layout->setMargin(1);

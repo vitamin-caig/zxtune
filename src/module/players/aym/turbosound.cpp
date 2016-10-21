@@ -79,9 +79,9 @@ namespace TurboSound
 
       void ProcessRestStrings() const
       {
-        for (StringsValuesMap::const_iterator it = Strings.begin(), lim = Strings.end(); it != lim; ++it)
+        for (const auto& str : Strings)
         {
-          Delegate.SetValue(it->first, it->second);
+          Delegate.SetValue(str.first, str.second);
         }
       }
     private:

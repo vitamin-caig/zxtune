@@ -545,7 +545,7 @@ namespace Chiptune
           Require(Math::InRange(samOffset, minOffset, maxOffset));
           const std::size_t availSize = maxOffset - samOffset;
           const RawSample* const src = Delegate.GetField<RawSample>(samOffset);
-          Require(src != 0);
+          Require(src != nullptr);
           const std::size_t usedSize = src->GetUsedSize();
           if (usedSize <= availSize)
           {
@@ -584,7 +584,7 @@ namespace Chiptune
           Require(Math::InRange(ornOffset, minOffset, maxOffset));
           const std::size_t availSize = Delegate.GetSize() - ornOffset;
           const RawOrnament* src = Delegate.GetField<RawOrnament>(ornOffset);
-          Require(src != 0);
+          Require(src != nullptr);
           const std::size_t usedSize = src->GetUsedSize();
           if (usedSize <= availSize)
           {
@@ -644,7 +644,7 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 

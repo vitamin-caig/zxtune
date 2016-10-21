@@ -36,7 +36,7 @@ namespace Details
     explicit LinuxSharedLibrary(void* handle)
       : Handle(handle)
     {
-      Require(Handle != 0);
+      Require(Handle != nullptr);
     }
 
     ~LinuxSharedLibrary() override

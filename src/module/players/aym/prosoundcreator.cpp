@@ -134,7 +134,7 @@ namespace ProSoundCreator
     {
       return Position < Obj->GetSize()
         ? &Obj->GetLine(Position)
-        : 0;
+        : nullptr;
     }
 
     void SetBreakLoop(bool brk)

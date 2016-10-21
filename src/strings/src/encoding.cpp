@@ -227,9 +227,9 @@ namespace
   {
     assert(!str.empty());
     Weight result;
-    for (std::string::const_iterator it = str.begin(), lim = str.end(); it != lim; ++it)
+    for (auto c : str)
     {
-      result.Add(cp.GetWeight(*it));
+      result.Add(cp.GetWeight(c));
     }
     return result;
   }
@@ -276,7 +276,7 @@ namespace
     }
     else
     {
-      return 0;
+      return nullptr;
     }
   }
   
@@ -284,9 +284,8 @@ namespace
   {
     std::string result;
     result.reserve(local.size());
-    for (std::string::const_iterator it = local.begin(), lim = local.end(); it != lim; ++it)
+    for (uint8_t sym : local)
     {
-      const uint8_t sym = *it;
       if (IsAscii(sym))
       {
         result += static_cast<std::string::value_type>(sym);

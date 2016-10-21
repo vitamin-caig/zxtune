@@ -50,7 +50,7 @@ namespace ProSoundMaker
 
     const uint_t* GetLoop() const
     {
-      return Loop ? &*Loop : 0;
+      return Loop ? &*Loop : nullptr;
     }
 
     uint_t GetSize() const
@@ -79,7 +79,7 @@ namespace ProSoundMaker
 
     const uint_t* GetLoop() const
     {
-      return Loop ? &*Loop : 0;
+      return Loop ? &*Loop : nullptr;
     }
 
     uint_t GetSize() const
@@ -256,7 +256,7 @@ namespace ProSoundMaker
   struct SampleState
   {
     SampleState()
-      : Current(0)
+      : Current(nullptr)
       , Position(0)
       , LoopsCount(0)
     {
@@ -270,7 +270,7 @@ namespace ProSoundMaker
   struct OrnamentState
   {
     OrnamentState()
-      : Current(0)
+      : Current(nullptr)
       , Position(0)
       , Finished()
       , Disabled()

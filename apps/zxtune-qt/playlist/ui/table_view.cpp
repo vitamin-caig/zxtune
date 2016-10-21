@@ -164,10 +164,10 @@ namespace
       QAbstractItemModel* const curModel = model();
       QItemSelectionModel* const selectModel = selectionModel();
       QItemSelection selection;
-      for (Playlist::Model::IndexSet::const_iterator it = indices.begin(), lim = indices.end(); it != lim; ++it)
+      for (auto index : indices)
       {
-        const QModelIndex left = curModel->index(*it, 0);
-        const QModelIndex right = curModel->index(*it, Playlist::Model::COLUMNS_COUNT - 1);
+        const QModelIndex left = curModel->index(index, 0);
+        const QModelIndex right = curModel->index(index, Playlist::Model::COLUMNS_COUNT - 1);
         const QItemSelection sel(left, right);
         selection.merge(sel, QItemSelectionModel::Select);
       }

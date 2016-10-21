@@ -38,7 +38,7 @@ public:
   struct Location
   {
     //! Default constructor
-    Location() : Tag(0), File(0), Function(0), Line(0)
+    Location() : Tag(0), File(nullptr), Function(nullptr), Line(0)
     {
     }
     //! Full parameters list constructor

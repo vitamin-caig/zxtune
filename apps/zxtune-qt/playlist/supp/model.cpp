@@ -431,11 +431,11 @@ namespace
 
     QMimeData* mimeData(const QModelIndexList& indices) const override
     {
-      QMimeData* const mimeData = new QMimeData();
+      std::unique_ptr<QMimeData> mimeData(new QMimeData());
       QByteArray encodedData;
       {
         QDataStream stream(&encodedData, QIODevice::WriteOnly);
-        foreach (const QModelIndex& index, indices)
+        for (const QModelIndex& index : indices)
         {
           if (index.isValid())
           {
@@ -445,7 +445,7 @@ namespace
       }
 
       mimeData->setData(INDICES_MIMETYPE, encodedData);
-      return mimeData;
+      return mimeData.release();
     }
 
     bool dropMimeData(const QMimeData* data, Qt::DropAction action, int /*row*/, int /*column*/, const QModelIndex& parent) override
@@ -686,14 +686,14 @@ namespace Playlist
     {
       return &it->second;
     }
-    return 0;
+    return nullptr;
   }
 
   const Model::IndexType* Model::OldToNewIndexMap::FindNewSuitableIndex(IndexType oldIdx) const
   {
     if (empty())
     {
-      return 0;
+      return nullptr;
     }
     if (const Model::IndexType* direct = FindNewIndex(oldIdx))
     {
@@ -716,6 +716,6 @@ namespace Playlist
       }
     }
     assert(!"Invalid case");
-    return 0;
+    return nullptr;
   }
 }

@@ -61,27 +61,27 @@ namespace Module
 
     const bool* GetEnabled() const
     {
-      return 0 != (Mask & ENABLED) ? &Enabled : 0;
+      return 0 != (Mask & ENABLED) ? &Enabled : nullptr;
     }
 
     const uint_t* GetNote() const
     {
-      return 0 != (Mask & NOTE) ? &Note : 0;
+      return 0 != (Mask & NOTE) ? &Note : nullptr;
     }
 
     const uint_t* GetSample() const
     {
-      return 0 != (Mask & SAMPLENUM) ? &SampleNum : 0;
+      return 0 != (Mask & SAMPLENUM) ? &SampleNum : nullptr;
     }
 
     const uint_t* GetOrnament() const
     {
-      return 0 != (Mask & ORNAMENTNUM) ? &OrnamentNum : 0;
+      return 0 != (Mask & ORNAMENTNUM) ? &OrnamentNum : nullptr;
     }
 
     const uint_t* GetVolume() const
     {
-      return 0 != (Mask & VOLUME) ? &Volume : 0;
+      return 0 != (Mask & VOLUME) ? &Volume : nullptr;
     }
 
     CommandsIterator GetCommands() const

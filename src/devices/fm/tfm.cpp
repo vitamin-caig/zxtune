@@ -44,9 +44,8 @@ namespace TFM
 
     void WriteRegisters(const Devices::TFM::Registers& regs)
     {
-      for (Registers::const_iterator it = regs.begin(), lim = regs.end(); it != lim; ++it)
+      for (const auto& reg : regs)
       {
-        const Register reg = *it;
         ::YM2203WriteRegs(Chips[reg.Chip()].get(), reg.Index(), reg.Value());
       }
     }

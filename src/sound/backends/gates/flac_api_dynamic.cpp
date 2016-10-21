@@ -65,7 +65,7 @@ namespace Sound
       }
 
       
-      FLAC__StreamEncoder* FLAC__stream_encoder_new(void) override
+      FLAC__StreamEncoder* FLAC__stream_encoder_new() override
       {
         static const char NAME[] = "FLAC__stream_encoder_new";
         typedef FLAC__StreamEncoder* ( *FunctionType)();

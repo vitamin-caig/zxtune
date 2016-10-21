@@ -306,7 +306,7 @@ namespace SQTracker
       {
         if (Row != row)
         {
-          CurrentLine = 0;
+          CurrentLine = nullptr;
           Row = row;
         }
       }
@@ -651,8 +651,8 @@ namespace SQTracker
       {
         if (!*enabled)
         {
-          dst.CurSample = 0;
-          dst.CurOrnament = 0;
+          dst.CurSample = nullptr;
+          dst.CurOrnament = nullptr;
         }
       }
       if (const uint_t* note = src.GetNote())
@@ -664,7 +664,7 @@ namespace SQTracker
         dst.CurSample = &Data->Samples.Get(*sample);
         dst.SampleTick = 32;
         dst.SamplePos = 0;
-        dst.CurOrnament = 0;
+        dst.CurOrnament = nullptr;
         dst.Envelope = false;
         dst.Glissade = 0;
       }
@@ -788,8 +788,8 @@ namespace SQTracker
         dst.SamplePos = dst.CurSample->GetLoop();
         if (dst.SamplePos == 32)
         {
-          dst.CurSample = 0;
-          dst.CurOrnament = 0;
+          dst.CurSample = nullptr;
+          dst.CurOrnament = nullptr;
         }
       }
       dst.Sliding += dst.Glissade;

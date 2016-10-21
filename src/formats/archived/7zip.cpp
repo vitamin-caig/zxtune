@@ -79,7 +79,7 @@ namespace Archived
       }
       static void* MyAlloc(void* /*p*/, size_t size)
       {
-        return size ? malloc(size) : 0;
+        return size ? malloc(size) : nullptr;
       }
 
       static void MyFree(void* /*p*/, void* address)
@@ -176,7 +176,7 @@ namespace Archived
 
       ~Archive()
       {
-        LzmaContext::Allocator()->Free(0, Cache.OutBuffer);
+        LzmaContext::Allocator()->Free(nullptr, Cache.OutBuffer);
         SzArEx_Free(&Db, LzmaContext::Allocator());
       }
 
@@ -187,7 +187,7 @@ namespace Archived
 
       String GetFileName(uint_t idx) const
       {
-        const size_t nameLen = SzArEx_GetFileNameUtf16(&Db, idx, 0);
+        const size_t nameLen = SzArEx_GetFileNameUtf16(&Db, idx, nullptr);
         Require(nameLen > 0);
         std::vector<UInt16> buf(nameLen);
         UInt16* const data = &buf[0];
@@ -230,7 +230,7 @@ namespace Archived
 
         UnpackCache()
           : BlockIndex(~UInt32(0))
-          , OutBuffer(0)
+          , OutBuffer(nullptr)
           , OutBufferSize(0)
         {
         }
@@ -308,9 +308,9 @@ namespace Archived
       //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
-        for (FilesMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+        for (const auto& file : Files)
         {
-          walker.OnFile(*it->second);
+          walker.OnFile(*file.second);
         }
       }
 

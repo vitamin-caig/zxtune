@@ -104,7 +104,7 @@ namespace Sound
         return func(vi);
       }
       
-      const char *vorbis_version_string(void) override
+      const char *vorbis_version_string() override
       {
         static const char NAME[] = "vorbis_version_string";
         typedef const char *( *FunctionType)();

@@ -106,7 +106,7 @@ namespace PulseAudio
     {
       const pa_sample_spec format = GetFormat();
       int error = 0;
-      if (pa_simple* result = PaApi->pa_simple_new(NULL, Client.c_str(), PA_STREAM_PLAYBACK, NULL, Stream.c_str(), &format, NULL, NULL, &error))
+      if (pa_simple* result = PaApi->pa_simple_new(nullptr, Client.c_str(), PA_STREAM_PLAYBACK, nullptr, Stream.c_str(), &format, nullptr, nullptr, &error))
       {
         return std::shared_ptr<pa_simple>(result, boost::bind(&Api::pa_simple_free, PaApi, _1));
       }

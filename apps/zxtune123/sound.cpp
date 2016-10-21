@@ -155,7 +155,7 @@ namespace
     {
       Parameters::Container::Ptr soundParameters = Parameters::Container::Create();
       {
-        for (PerBackendOptions::iterator it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; )
+        for (auto it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; )
         {
           if (it->second != NOTUSED_MARK)
           {

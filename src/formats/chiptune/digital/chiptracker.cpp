@@ -348,7 +348,7 @@ namespace Chiptune
         const std::size_t patStart = sizeof(Header) + idx * sizeof(Pattern);
         const Binary::TypedContainer data(RawData);
         const Pattern* const src = data.GetField<Pattern>(patStart);
-        Require(src != 0);
+        Require(src != nullptr);
         //due to quite complex structure, patter lines are not optimized
         uint_t lineNum = 0;
         for (; lineNum < MAX_PATTERN_SIZE ; ++lineNum)

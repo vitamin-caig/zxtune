@@ -87,7 +87,7 @@ Error::Location Error::GetLocation() const
 
 Error::operator Error::BoolType() const
 {
-  return ErrorMeta ? &Error::TrueFunc : 0;
+  return ErrorMeta ? &Error::TrueFunc : nullptr;
 }
 
 bool Error::operator ! () const

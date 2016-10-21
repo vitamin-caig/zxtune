@@ -57,9 +57,9 @@ namespace Strings
     String GetFieldValue(const String& fieldName) const override
     {
       String val = Delegate.GetFieldValue(fieldName);
-      for (String::iterator it = val.begin(), lim = val.end(); it != lim; ++it)
+      for (auto& it : val)
       {
-        *it = Table[*it];
+        it = Table[it];
       }
       return val;
     }

@@ -63,7 +63,7 @@ namespace Formats
         {
           return Id == T::SIGNATURE
             ? static_cast<const T*>(this)
-            : 0;
+            : nullptr;
         }
       } PACK_POST;
 

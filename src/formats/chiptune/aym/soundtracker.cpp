@@ -238,7 +238,7 @@ namespace Chiptune
       const RawPattern& GetPattern(uint_t index) const
       {
         const RawPattern* const src = Delegate.GetField<RawPattern>(offsetof(RawHeader, Patterns) + index * sizeof(RawPattern));
-        Require(src != 0);
+        Require(src != nullptr);
         return *src;
       }
 

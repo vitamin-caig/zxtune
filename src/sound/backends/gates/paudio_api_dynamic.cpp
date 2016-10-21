@@ -66,7 +66,7 @@ namespace Sound
       }
 
       
-      const char* pa_get_library_version(void) override
+      const char* pa_get_library_version() override
       {
         static const char NAME[] = "pa_get_library_version";
         typedef const char* ( *FunctionType)();

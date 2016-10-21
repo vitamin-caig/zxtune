@@ -15,6 +15,7 @@
 //std includes
 #include <array>
 #include <cmath>
+#include <utility>
 //qt includes
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>

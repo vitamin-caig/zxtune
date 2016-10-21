@@ -35,6 +35,8 @@
 #include <debug/log.h>
 #include <platform/version/api.h>
 #include <strings/format.h>
+//std includes
+#include <utility>
 //qt includes
 #include <QtCore/QUrl>
 #include <QtGui/QApplication>
@@ -246,7 +248,7 @@ namespace
 
     WidgetOnToolbar AddWidgetOnToolbar(QWidget* widget, bool lastInRow)
     {
-      QToolBar* const toolBar = new QToolBar(this);
+      const auto toolBar = new QToolBar(this);
       toolBar->setObjectName(widget->objectName());
       QSizePolicy sizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
       sizePolicy.setHorizontalStretch(0);

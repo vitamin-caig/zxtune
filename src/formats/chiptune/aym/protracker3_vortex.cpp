@@ -508,9 +508,9 @@ namespace ProTracker3
         str += Entry("NoteTable", ToString(static_cast<uint_t>(Table))).AsString();
         str += Entry("Speed", ToString(Tempo)).AsString();
         str += Entry("PlayOrder", PlayOrder.AsString()).AsString();
-        for (std::vector<Entry>::const_iterator it = OtherFields.begin(), lim = OtherFields.end(); it != lim; ++it)
+        for (const auto& field : OtherFields)
         {
-          str += it->AsString();
+          str += field.AsString();
         }
         str += '\n';
         return str;
@@ -1117,9 +1117,9 @@ namespace ProTracker3
       std::string AsString() const
       {
         std::string res = SectionHeader("Pattern", Index).AsString();
-        for (std::vector<PatternLineObject>::const_iterator it = Lines.begin(), lim = Lines.end(); it != lim; ++it)
+        for (const auto& line : Lines)
         {
-          res += it->AsString();
+          res += line.AsString();
         }
         res += '\n';
         return res;
@@ -1496,17 +1496,17 @@ namespace ProTracker3
       Binary::Data::Ptr GetResult() const override
       {
         std::string res = Header.AsString();
-        for (std::vector<OrnamentObject>::const_iterator it = Ornaments.begin(), lim = Ornaments.end(); it != lim; ++it)
+        for (const auto& ornament : Ornaments)
         {
-          res += it->AsString();
+          res += ornament.AsString();
         }
-        for (std::vector<SampleObject>::const_iterator it = Samples.begin(), lim = Samples.end(); it != lim; ++it)
+        for (const auto& sample : Samples)
         {
-          res += it->AsString();
+          res += sample.AsString();
         }
-        for (std::vector<PatternObject>::const_iterator it = Patterns.begin(), lim = Patterns.end(); it != lim; ++it)
+        for (const auto& pattern : Patterns)
         {
-          res += it->AsString();
+          res += pattern.AsString();
         }
         return Binary::CreateContainer(res.data(), res.size());
       }
@@ -1532,8 +1532,8 @@ namespace ProTracker3
         {
           Patterns.push_back(PatternObject(idx));
           CurPattern = &Patterns.back();
-          CurLine = 0;
-          CurChannel = 0;
+          CurLine = nullptr;
+          CurChannel = nullptr;
           CurNoiseBase = 0;
         }
 
@@ -1551,8 +1551,8 @@ namespace ProTracker3
         void FinishPattern(uint_t size)
         {
           FitTo(size);
-          CurLine = 0;
-          CurPattern = 0;
+          CurLine = nullptr;
+          CurPattern = nullptr;
         }
         
         void SetNoiseBase(uint_t val)
@@ -1583,7 +1583,7 @@ namespace ProTracker3
         {
           CurLine = &CurPattern->AddLine();
           CurLine->Noise = CurNoiseBase;
-          CurChannel = 0;
+          CurChannel = nullptr;
         }
       };
       

@@ -71,20 +71,19 @@ namespace Beeper
         const uint_t samples = Clock.SamplesTill(end);
         Sound::ChunkBuilder builder;
         builder.Reserve(samples);
-        for (std::vector<DataChunk>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+        for (const auto& chunk : src)
         {
-          const DataChunk& chunk = *it;
           Renderer.Render(chunk.TimeStamp, builder);
-          PSG.SetNewData(it->Level);
+          PSG.SetNewData(chunk.Level);
         }
         Target->ApplyData(builder.GetResult());
         Target->Flush();
       }
       else
       {
-        for (std::vector<DataChunk>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+        for (const auto& chunk : src)
         {
-          PSG.SetNewData(it->Level);
+          PSG.SetNewData(chunk.Level);
         }
       }
     }

@@ -52,7 +52,7 @@ namespace
 
     bool IsValid() const override
     {
-      return Current.get() != 0;
+      return Current.get() != nullptr;
     }
 
     Playlist::Controller::Ptr Get() const override
@@ -88,9 +88,9 @@ namespace
   {
     const QDir appDir(QCoreApplication::applicationDirPath());
     const QFileInfoList files = appDir.entryInfoList(QStringList("*.xspf"), QDir::Files | QDir::Readable, QDir::Name);
-    for (QFileInfoList::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
+    for (const auto& file : files)
     {
-      container.OpenPlaylist(it->absoluteFilePath());
+      container.OpenPlaylist(file.absoluteFilePath());
     }
   }
 
@@ -104,7 +104,7 @@ namespace
       , Container(Playlist::Container::Create(parameters))
       , Session(Playlist::Session::Create())
       , ActionsMenu(new QMenu(this))
-      , ActivePlaylistView(0)
+      , ActivePlaylistView(nullptr)
     {
       //setup self
       setupUi(this);
@@ -268,7 +268,7 @@ namespace
       if (view == ActivePlaylistView)
       {
         emit Deactivated();
-        ActivePlaylistView = 0;
+        ActivePlaylistView = nullptr;
         SwitchToLastPlaylist();
       }
       view->deleteLater();
@@ -385,7 +385,7 @@ namespace
     void SwitchTo(Playlist::UI::View* plView)
     {
       Dbg("Switch playlist %1% -> %2%", ActivePlaylistView, plView);
-      const bool wasPrevious = ActivePlaylistView != 0;
+      const bool wasPrevious = ActivePlaylistView != nullptr;
       if (wasPrevious)
       {
         const Playlist::Item::Iterator::Ptr iter = ActivePlaylistView->GetPlaylist()->GetIterator();

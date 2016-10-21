@@ -16,6 +16,8 @@
 #include "ui/tools/parameters_helpers.h"
 //library includes
 #include <core/core_parameters.h>
+//std includes
+#include <utility>
 
 namespace
 {

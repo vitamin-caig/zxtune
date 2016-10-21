@@ -54,7 +54,7 @@ namespace Archived
       {
         Vtable.read = &Read;
         Vtable.skip = &Skip;
-        Vtable.close = 0;
+        Vtable.close = nullptr;
         Stream = std::shared_ptr<LHAInputStream>(::lha_input_stream_new(&Vtable, &State), &::lha_input_stream_free);
       }
 
@@ -147,25 +147,25 @@ namespace Archived
 
       bool IsValid() const
       {
-        return Current != 0;
+        return Current != nullptr;
       }
 
       bool IsDir() const
       {
         static const char DIR_TYPE[] = "-lhd-";
-        Require(Current != 0);
+        Require(Current != nullptr);
         return 0 == std::strcmp(DIR_TYPE, Current->compress_method);
       }
 
       bool IsEmpty() const
       {
-        Require(Current != 0);
+        Require(Current != nullptr);
         return 0 == Current->compressed_length || Position + Current->compressed_length > Data.Size();
       }
 
       File::Ptr GetFile() const
       {
-        Require(Current != 0);
+        Require(Current != nullptr);
         return MakePtr<File>(Data, *Current, Position);
       }
 
@@ -220,9 +220,9 @@ namespace Archived
       //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
-        for (FilesMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+        for (const auto& file : Files)
         {
-          walker.OnFile(*it->second);
+          walker.OnFile(*file.second);
         }
       }
 

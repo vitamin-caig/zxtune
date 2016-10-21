@@ -471,7 +471,7 @@ namespace DAC
 
     void Reset()
     {
-      Current = 0;
+      Current = nullptr;
     }
 
     void SetInterpolation(bool type)

@@ -169,9 +169,9 @@ namespace
       std::cout << 
         "Version: " << Version / 100 << '.' << Version % 100 << std::endl <<
         "Devices: " << std::endl;
-      for (std::map<String, uint_t>::const_iterator it = Devices.begin(), lim = Devices.end(); it != lim; ++it)
+      for (const auto& dev : Devices)
       {
-        std::cout << "  " << it->first << " (" << it->second << "hz)" << std::endl;
+        std::cout << "  " << dev.first << " (" << dev.second << "hz)" << std::endl;
       }
       if (Framerate)
       {
@@ -180,9 +180,9 @@ namespace
       if (!Tags.empty())
       {
         std::cout << "Tags:" << std::endl;
-        for (std::map<String, String>::const_iterator it = Tags.begin(), lim = Tags.end(); it != lim; ++it)
+        for (const auto& tag : Tags)
         {
-          std::cout << "  " << it->first << ": " << it->second << std::endl;
+          std::cout << "  " << tag.first << ": " << tag.second << std::endl;
         }
       }
     }
@@ -353,9 +353,9 @@ namespace
     void Dump() const
     {
       std::cout << "Used commands:" << std::endl;
-      for (std::set<String>::const_iterator it = Commands.begin(), lim = Commands.end(); it != lim; ++it)
+      for (const auto& cmd : Commands)
       {
-        std::cout << "  " << *it << std::endl;
+        std::cout << "  " << cmd << std::endl;
       }
     }
   private:
@@ -429,7 +429,7 @@ namespace
         {0xe0, 0xe0, 4, "pcm/offset"},
         {0xe1, 0xe1, 4, "c352"},
         {0xe2, 0xff, 4, "reserved32"},
-        {0, 0, 0, 0}
+        {0, 0, 0, nullptr}
       };
 
       for (const FixedCmd* cmd = COMMANDS; cmd->Name; ++cmd)

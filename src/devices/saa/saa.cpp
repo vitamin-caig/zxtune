@@ -195,7 +195,7 @@ namespace SAA
       Clock.Reset();
       ClockFreq = 0;
       SoundFreq = 0;
-      Current = 0;
+      Current = nullptr;
     }
 
     void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
@@ -272,9 +272,9 @@ namespace SAA
     {
       MultiChannelState res;
       PSG.GetState(res);
-      for (MultiChannelState::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
+      for (auto& state : res)
       {
-        it->Band = Analyser.GetBandByPeriod(it->Band);
+        state.Band = Analyser.GetBandByPeriod(state.Band);
       }
       state.swap(res);
     }

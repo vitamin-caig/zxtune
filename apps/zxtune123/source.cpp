@@ -114,7 +114,7 @@ namespace
       : Params(std::move(params))
       , Id(std::move(id))
       , Callback(callback)
-      , ProgressCallback(showLogs ? new ProgressCallbackImpl() : 0)
+      , ProgressCallback(showLogs ? new ProgressCallbackImpl() : nullptr)
     {
     }
 

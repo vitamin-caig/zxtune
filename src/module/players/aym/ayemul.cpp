@@ -111,7 +111,7 @@ namespace AYEMUL
     Devices::AYM::DataChunk* GetChunk(const Devices::AYM::Stamp& timeStamp)
     {
       return Blocked
-        ? 0
+        ? nullptr
         : &AllocateChunk(timeStamp);
     }
 

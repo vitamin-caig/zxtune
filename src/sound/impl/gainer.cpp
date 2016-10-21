@@ -97,9 +97,9 @@ namespace Sound
 
     void ApplyData(const Chunk::Ptr& in) override
     {
-      for (Chunk::iterator it = in->begin(), lim = in->end(); it != lim; ++it)
+      for (auto& val : *in)
       {
-        *it = Core.Apply(*it);
+        val = Core.Apply(val);
       }
       Core.ApplyStep();
       return Delegate->ApplyData(in);

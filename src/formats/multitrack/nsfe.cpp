@@ -127,7 +127,7 @@ namespace Multitrack
       
       Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
-        Require(Info != 0);
+        Require(Info != nullptr);
         const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - static_cast<const uint8_t*>(Delegate->Start());
         std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
         std::memcpy(&content->front(), Delegate->Start(), content->size());
@@ -170,7 +170,7 @@ namespace Multitrack
         {
           Binary::InputStream input(rawData);
           Require(input.ReadField<ChunkIdType>() == NSFE);
-          const InfoChunkFull* info = 0;
+          const InfoChunkFull* info = nullptr;
           uint32_t fixedCrc = 0;
           for (;;)
           {

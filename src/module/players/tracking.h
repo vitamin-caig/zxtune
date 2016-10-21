@@ -69,7 +69,7 @@ namespace Module
       const CommandsArray::iterator it = std::find(Commands.begin(), Commands.end(), type);
       return it != Commands.end()
         ? &*it
-        : 0;
+        : nullptr;
     }
   };
 
@@ -110,7 +110,7 @@ namespace Module
 
     Cell::Ptr GetChannel(uint_t idx) const override
     {
-      return Channels[idx].HasData() ? &Channels[idx] : 0;
+      return Channels[idx].HasData() ? &Channels[idx] : nullptr;
     }
 
     uint_t CountActiveChannels() const override
@@ -280,14 +280,14 @@ namespace Module
     void SetPattern(uint_t idx)
     {
       CurPattern = &Patterns->AddPattern(idx);
-      CurLine = 0;
-      CurChannel = 0;
+      CurLine = nullptr;
+      CurChannel = nullptr;
     }
 
     void SetLine(uint_t idx)
     {
       CurLine = &CurPattern->AddLine(idx);
-      CurChannel = 0;
+      CurChannel = nullptr;
     }
 
     void SetChannel(uint_t idx)
@@ -298,8 +298,8 @@ namespace Module
     void FinishPattern(uint_t size)
     {
       CurPattern->SetSize(size);
-      CurLine = 0;
-      CurPattern = 0;
+      CurLine = nullptr;
+      CurPattern = nullptr;
     }
 
     MutableLine& GetLine() const

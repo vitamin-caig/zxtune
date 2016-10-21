@@ -87,9 +87,9 @@ namespace Strings
     String SubstFields(const Array& fields) const
     {
       String res;
-      for (PartEntries::const_iterator it = Entries.begin(), lim = Entries.end(); it != lim; ++it)
+      for (const auto& entry : Entries)
       {
-        res += (it->second ? fields : FixedStrings)[it->first];
+        res += (entry.second ? fields : FixedStrings)[entry.first];
       }
       return res;
     }

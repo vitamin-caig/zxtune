@@ -417,7 +417,7 @@ namespace Packed
           }
           RawDataDecoder decoder(Header.Stream, fromLE(Header.PackedSize));
           Result = decoder.GetResult();
-          return 0 != Result.get();
+          return nullptr != Result.get();
         }
       private:
         bool IsValid;
@@ -486,9 +486,8 @@ namespace Packed
               boost::bind(&Binary::Container::Size, _2)));
           std::unique_ptr<Dump> result(new Dump(totalSize));
           std::size_t offset = 0;
-          for (std::vector<Binary::Container::Ptr>::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+          for (const auto& block : Blocks)
           {
-            const Binary::Container::Ptr block = *it;
             std::memcpy(&result->at(offset), block->Start(), block->Size());
             offset += block->Size();
           }

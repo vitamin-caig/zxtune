@@ -206,11 +206,11 @@ namespace
     {
       std::transform(AnalyzerData.begin(), AnalyzerData.end(), AnalyzerData.begin(),
         std::bind2nd(std::minus<int_t>(), fallspeed));
-      for (std::vector<Module::Analyzer::ChannelState>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
+      for (const auto& state : inState)
       {
-        if (it->Band < AnalyzerData.size())
+        if (state.Band < AnalyzerData.size())
         {
-          AnalyzerData[it->Band] = it->Level;
+          AnalyzerData[state.Band] = state.Level;
         }
       }
       std::replace_if(AnalyzerData.begin(), AnalyzerData.end(), std::bind2nd(std::less<int_t>(), 0), 0);

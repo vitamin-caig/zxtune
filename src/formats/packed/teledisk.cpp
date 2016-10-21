@@ -268,7 +268,7 @@ namespace Packed
       const T& Get()
       {
         const T* const res = Data.GetField<T>(Offset);
-        Require(res != 0);
+        Require(res != nullptr);
         Offset += sizeof(*res);
         return *res;
       }
@@ -278,7 +278,7 @@ namespace Packed
         Require(size != 0);
         const uint8_t* const first = Data.GetField<uint8_t>(Offset);
         const uint8_t* const last = Data.GetField<uint8_t>(Offset + size - 1);
-        Require(first != 0 && last != 0);
+        Require(first != nullptr && last != nullptr);
         Offset += size;
         return first;
       }

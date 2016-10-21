@@ -114,7 +114,7 @@ namespace Alsa
     AutoHandle(Api::Ptr api, String name)
       : AlsaApi(std::move(api))
       , Name(std::move(name))
-      , Handle(0)
+      , Handle(nullptr)
     {
     }
     
@@ -156,7 +156,7 @@ namespace Alsa
   protected:
     T* Release()
     {
-      T* tmp = 0;
+      T* tmp = nullptr;
       std::swap(tmp, Handle);
       Name.clear();
       return tmp;
@@ -245,7 +245,7 @@ namespace Alsa
 
     void Open()
     {
-      Require(Handle == 0);
+      Require(Handle == nullptr);
       Dbg("Opening PCM device '%1%'", Name);
       CheckResult(AlsaApi->snd_pcm_open(&Handle, Name.c_str(),
         SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
@@ -288,7 +288,7 @@ namespace Alsa
   template<class T>
   std::shared_ptr<T> Allocate(Api::Ptr api, int (Api::*allocFunc)(T**), void (Api::*freeFunc)(T*))
   {
-    T* res = 0;
+    T* res = nullptr;
     CheckResult(*api, ((*api).*allocFunc)(&res), THIS_LINE);
     return res
       ? std::shared_ptr<T>(res, boost::bind(freeFunc, api, _1))
@@ -408,7 +408,7 @@ namespace Alsa
 
     bool IsValid() const
     {
-      return Current != 0;
+      return Current != nullptr;
     }
 
     snd_mixer_elem_t* Get() const
@@ -507,7 +507,7 @@ namespace Alsa
     {
       Dbg("Attaching to mixer device '%1%'", Name);
       MixDev.CheckedCall(&Api::snd_mixer_attach, Name.c_str(), THIS_LINE);
-      MixDev.CheckedCall(&Api::snd_mixer_selem_register, static_cast<snd_mixer_selem_regopt*>(0), static_cast<snd_mixer_class_t**>(0), THIS_LINE);
+      MixDev.CheckedCall(&Api::snd_mixer_selem_register, static_cast<snd_mixer_selem_regopt*>(nullptr), static_cast<snd_mixer_class_t**>(nullptr), THIS_LINE);
       MixDev.CheckedCall(&Api::snd_mixer_load, THIS_LINE);
     }
 
@@ -540,7 +540,7 @@ namespace Alsa
     Mixer(Api::Ptr api, const Identifier& id, const String& mixer)
       : AlsaApi(api)
       , Attached(api, id.GetCard())
-      , MixerElement(0)
+      , MixerElement(nullptr)
     {
 
       Dbg("Opening mixer '%1%'", mixer);
@@ -583,7 +583,7 @@ namespace Alsa
 
     void Close()
     {
-      MixerElement = 0;
+      MixerElement = nullptr;
       Attached.Close();
     }
 
@@ -799,7 +799,7 @@ namespace Alsa
 
   std::shared_ptr<snd_ctl_t> OpenDevice(Api::Ptr api, const std::string& deviceName)
   {
-    snd_ctl_t* ctl = 0;
+    snd_ctl_t* ctl = nullptr;
     return api->snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
       ? std::shared_ptr<snd_ctl_t>(ctl, boost::bind(&Api::snd_ctl_close, api, _1))
       : std::shared_ptr<snd_ctl_t>();

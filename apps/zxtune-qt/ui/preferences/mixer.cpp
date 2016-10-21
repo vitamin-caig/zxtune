@@ -13,6 +13,8 @@
 #include "mixer.ui.h"
 //common includes
 #include <contract.h>
+//std includes
+#include <utility>
 
 namespace
 {

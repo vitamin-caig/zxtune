@@ -66,14 +66,14 @@ namespace
     explicit SearchOperation(Predicate::Ptr pred)
       : Pred(std::move(pred))
     {
-      Require(Pred != 0);
+      Require(Pred != nullptr);
     }
 
     SearchOperation(Playlist::Model::IndexSet::Ptr items, Predicate::Ptr pred)
       : SelectedItems(std::move(items))
       , Pred(std::move(pred))
     {
-      Require(Pred != 0);
+      Require(Pred != nullptr);
     }
 
     void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override

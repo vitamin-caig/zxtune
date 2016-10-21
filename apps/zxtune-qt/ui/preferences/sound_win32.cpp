@@ -106,7 +106,7 @@ namespace
     template<class F>
     void DeviceChanged(const F& fun)
     {
-      const DevicesArray::const_iterator it = std::find_if(Devices.begin(), Devices.end(), fun);
+      const auto it = std::find_if(Devices.begin(), Devices.end(), fun);
       if (it != Devices.end())
       {
         devices->setCurrentIndex(it - Devices.begin());

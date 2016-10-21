@@ -113,7 +113,7 @@ namespace Devices
 
         operator BoolType () const
         {
-          return IsValid() ? &IndicesIterator::IsValid : 0;
+          return IsValid() ? &IndicesIterator::IsValid : nullptr;
         }
 
         Index operator * () const

@@ -41,16 +41,16 @@ namespace Platform
     const std::vector<std::string> filenames = Details::GetSharedLibraryFilenames(name);
     Error resError = MakeFormattedError(THIS_LINE,
       translate("Failed to load dynamic library '%1%' by any of the alternative names."), FromStdString(name.Base()));
-    for (std::vector<std::string>::const_iterator it = filenames.begin(), lim = filenames.end(); it != lim; ++it)
+    for (const auto& file : filenames)
     {
       SharedLibrary::Ptr res;
-      if (const Error& err = Details::LoadSharedLibrary(*it, res))
+      if (const Error& err = Details::LoadSharedLibrary(file, res))
       {
         resError.AddSuberror(err);
       }
       else
       {
-        Dbg("Loaded '%1%' (as '%2%')", name.Base(), *it);
+        Dbg("Loaded '%1%' (as '%2%')", name.Base(), file);
         return res;
       }
     }

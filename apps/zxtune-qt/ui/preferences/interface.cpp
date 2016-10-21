@@ -25,9 +25,10 @@
 #include <math/numeric.h>
 //qt includes
 #include <QtGui/QRadioButton>
+//std includes
+#include <utility>
 //boost includes
 #include <boost/range/size.hpp>
-#include <utility>
 
 namespace
 {
@@ -119,9 +120,8 @@ namespace
     void SetupLanguages()
     {
       const QStringList& langs = Language->GetAvailable();
-      for (QStringList::const_iterator it = langs.begin(), lim = langs.end(); it != lim; ++it)
+      for (const auto& id : langs)
       {
-        const QString& id(*it);
         const QString& name(QLocale(id).nativeLanguageName());
         languageSelect->addItem(name, id);
       }

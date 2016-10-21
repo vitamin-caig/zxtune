@@ -66,7 +66,7 @@ namespace Ogg
       : OggApi(std::move(api))
       , File(std::move(file))
     {
-      CheckVorbisCall(OggApi->ogg_stream_init(&Stream, std::time(0)), THIS_LINE);
+      CheckVorbisCall(OggApi->ogg_stream_init(&Stream, std::time(nullptr)), THIS_LINE);
     }
 
     ~OggBitStream()
@@ -185,7 +185,7 @@ namespace Ogg
       while (const int blkRes = VorbisApi->vorbis_analysis_blockout(&State, &Block))
       {
         CheckVorbisCall(blkRes, THIS_LINE);
-        CheckVorbisCall(VorbisApi->vorbis_analysis(&Block, 0), THIS_LINE);
+        CheckVorbisCall(VorbisApi->vorbis_analysis(&Block, nullptr), THIS_LINE);
         CheckVorbisCall(VorbisApi->vorbis_bitrate_addblock(&Block), THIS_LINE);
         while (const int pcktRes = VorbisApi->vorbis_bitrate_flushpacket(&State, &packet))
         {

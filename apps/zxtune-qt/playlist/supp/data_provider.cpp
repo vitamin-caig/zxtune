@@ -203,7 +203,7 @@ namespace
         }
         return &Items.front();
       }
-      return 0;
+      return nullptr;
     }
   private:
     ItemsList Items;

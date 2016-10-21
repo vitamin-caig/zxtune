@@ -59,20 +59,19 @@ namespace AYM
         const uint_t samples = Clock.SamplesTill(end);
         Sound::ChunkBuilder builder;
         builder.Reserve(samples);
-        for (typename std::vector<typename Traits::DataChunkType>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+        for (const auto& chunk : src)
         {
-          const typename Traits::DataChunkType& chunk = *it;
           Renderers.Render(chunk.TimeStamp, builder);
-          PSG.SetNewData(it->Data);
+          PSG.SetNewData(chunk.Data);
         }
         Target->ApplyData(builder.GetResult());
         Target->Flush();
       }
       else
       {
-        for (typename std::vector<typename Traits::DataChunkType>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+        for (const auto& chunk : src)
         {
-          PSG.SetNewData(it->Data);
+          PSG.SetNewData(chunk.Data);
         }
       }
     }
@@ -89,9 +88,9 @@ namespace AYM
       MultiChannelState res;
       res.reserve(Traits::VOICES);
       PSG.GetState(res);
-      for (MultiChannelState::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
+      for (auto & re : res)
       {
-        it->Band = Analyser.GetBandByPeriod(it->Band);
+        re.Band = Analyser.GetBandByPeriod(re.Band);
       }
       state.swap(res);
     }

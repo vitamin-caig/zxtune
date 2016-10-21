@@ -209,7 +209,7 @@ namespace Archived
 
       const std::vector<bool>::iterator begin = usedSectors.begin();
       const std::vector<bool>::iterator firstFree = std::find(usedSectors.rbegin(), usedSectors.rend(), true).base();
-      const std::vector<bool>::iterator limit = validSize ? usedSectors.end() : firstFree;
+      const auto limit = validSize ? usedSectors.end() : firstFree;
       if (validSize && firstFree != limit)
       {
         //do not pay attention to free sector info in service sector

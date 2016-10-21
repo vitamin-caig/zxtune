@@ -176,8 +176,8 @@ namespace
       if (const std::streamsize lineSize = configFile->gcount())
       {
         std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
-        std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
-          std::not1(std::ptr_fun<int, int>(&std::isspace))));
+        auto beginof = std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
+          std::not1(std::ptr_fun<int, int>(&std::isspace)));
         if (beginof != endof && *beginof != Char('#'))
         {
           if (!lines.empty())

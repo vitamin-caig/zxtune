@@ -132,7 +132,7 @@ public:
 
   operator BoolType () const
   {
-    return Cur != Lim ? &RangeIterator<C>::TrueFunc : 0;
+    return Cur != Lim ? &RangeIterator<C>::TrueFunc : nullptr;
   }
 
   typename std::iterator_traits<C>::reference operator * () const

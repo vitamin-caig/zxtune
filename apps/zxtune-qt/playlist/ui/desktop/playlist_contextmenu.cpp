@@ -83,7 +83,7 @@ namespace
 
   QString ModulesCount(uint_t count)
   {
-    return Playlist::UI::ItemsContextMenu::tr("%n item(s)", 0, static_cast<int>(count));
+    return Playlist::UI::ItemsContextMenu::tr("%n item(s)", nullptr, static_cast<int>(count));
   }
 
   QString QFileSystemModelTranslate(const char* msg)
@@ -174,18 +174,18 @@ namespace
       result.append(Playlist::UI::ItemsContextMenu::tr("Invalid: %1").arg(ModulesCount(Invalids)));
       result.append(Playlist::UI::ItemsContextMenu::tr("Total duration: %1").arg(ToQString(Duration.ToString())));
       result.append(Playlist::UI::ItemsContextMenu::tr("Total size: %1").arg(MemorySize(Size)));
-      result.append(Playlist::UI::ItemsContextMenu::tr("%n different modules' type(s)", 0, Types.size()));
-      result.append(Playlist::UI::ItemsContextMenu::tr("%n files referenced", 0, Paths.size()));
+      result.append(Playlist::UI::ItemsContextMenu::tr("%n different modules' type(s)", nullptr, Types.size()));
+      result.append(Playlist::UI::ItemsContextMenu::tr("%n files referenced", nullptr, Paths.size()));
       return result.join(LINE_BREAK);
     }
 
     QString Details() const override
     {
       QStringList result;
-      for (std::map<String, std::size_t>::const_iterator it = Types.begin(), lim = Types.end(); it != lim; ++it)
+      for (const auto& type : Types)
       {
         result.append(QString::fromAscii("%1: %2")
-          .arg(ToQString(it->first)).arg(ModulesCount(it->second)));
+          .arg(ToQString(type.first)).arg(ModulesCount(type.second)));
       }
       return result.join(LINE_BREAK);
     }

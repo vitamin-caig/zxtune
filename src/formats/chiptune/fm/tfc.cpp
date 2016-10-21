@@ -251,7 +251,7 @@ namespace Chiptune
       const T& Get(std::size_t offset) const
       {
         const T* const ptr = Delegate.GetField<T>(offset);
-        Require(ptr != 0);
+        Require(ptr != nullptr);
         Min = std::min(Min, offset);
         Max = std::max(Max, offset + sizeof(T));
         return *ptr;

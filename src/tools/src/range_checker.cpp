@@ -72,7 +72,7 @@ namespace
         return true;
       }
       // regular iterator for simplification- compiler gets regular iterator from Ranges member
-      RangeMap::iterator bound = Ranges.upper_bound(offset);
+      auto bound = Ranges.upper_bound(offset);
       if (bound == Ranges.end()) //to end
       {
         --bound;
@@ -117,7 +117,7 @@ namespace
       if (bound != Ranges.begin())
       {
         //try to merge with previous
-        RangeMap::iterator prev = bound;
+        auto prev = bound;
         --prev;
         assert(prev->first + prev->second <= bound->first);
         if (prev->first + prev->second == bound->first)
@@ -128,7 +128,7 @@ namespace
         }
       }
       //try to merge with next
-      RangeMap::iterator next = bound;
+      auto next = bound;
       if (++next != Ranges.end())
       {
         assert(bound->first + bound->second <= next->first);
@@ -159,7 +159,7 @@ namespace
         return false;
       }
       const std::size_t endPos = offset + size;
-      RangeMap::iterator bound = Ranges.upper_bound(offset);
+      auto bound = Ranges.upper_bound(offset);
       if (bound != Ranges.end() &&
           endPos > bound->first)
       {

@@ -77,16 +77,16 @@ namespace Multitrack
     {
       if (rawData.Size() < MIN_SIZE)
       {
-        return 0;
+        return nullptr;
       }
       const RawHeader* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
       if (hdr->Signature != SIGNATURE)
       {
-        return 0;
+        return nullptr;
       }
       if (!hdr->SongsCount || !hdr->StartSong)
       {
-        return 0;
+        return nullptr;
       }
       return hdr;
     }

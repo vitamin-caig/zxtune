@@ -105,7 +105,7 @@ namespace Packed
       static PlayerTraits Create(const Binary::TypedContainer& data)
       {
         const Player* const pl = data.GetField<Player>(0);
-        Require(pl != 0);
+        Require(pl != nullptr);
         return PlayerTraits(*pl);
       }
     };

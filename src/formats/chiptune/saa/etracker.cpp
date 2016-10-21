@@ -155,9 +155,9 @@ namespace Chiptune
       void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) override
       {
         UsedPatterns.Clear();
-        for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
+        for (const auto& pos : positions)
         {
-          UsedPatterns.Insert(it->PatternIndex);
+          UsedPatterns.Insert(pos.PatternIndex);
         }
         Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
@@ -298,11 +298,11 @@ namespace Chiptune
 
       uint_t DecodeLen(uint_t code) const
       {
-        for (std::vector<CodeAndLen>::const_iterator it = Lenghts.begin(), lim = Lenghts.end(); it != lim; ++it)
+        for (auto len : Lenghts)
         {
-          if (it->Code == code)
+          if (len.Code == code)
           {
-            return it->Len;
+            return len.Len;
           }
         }
         return 0;
@@ -422,7 +422,7 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 
@@ -431,7 +431,7 @@ namespace Chiptune
         const std::size_t size = sizeof(uint16_t);
         const std::size_t offset = base + idx * size;
         const uint16_t* const data = Delegate.GetField<uint16_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         Ranges.AddService(offset, size);
         return fromLE(*data);
       }

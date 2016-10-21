@@ -64,7 +64,7 @@ namespace
 
     Log::ProgressCallback* GetProgress() const override
     {
-      return 0;
+      return nullptr;
     }
   private:
     jmethodID GetMethodId() const

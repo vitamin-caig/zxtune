@@ -172,9 +172,9 @@ namespace TRDos
     //Archive::Container
     void ExploreFiles(const Formats::Archived::Container::Walker& walker) const override
     {
-      for (FilesList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      for (const auto& file : Files)
       {
-        walker.OnFile(**it);
+        walker.OnFile(*file);
       }
     }
 
@@ -338,9 +338,8 @@ namespace TRDos
       }
       std::unique_ptr<Dump> res(new Dump(GetSize()));
       uint8_t* dst = &res->front();
-      for (FilesList::const_iterator it = Subfiles.begin(), lim = Subfiles.end(); it != lim; ++it)
+      for (const auto& file : Subfiles)
       {
-        const File::Ptr file = *it;
         const Binary::Container::Ptr data = file->GetData();
         if (!data)
         {

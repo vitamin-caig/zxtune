@@ -91,9 +91,9 @@ namespace Archived
         {
           return fromLE(rawBlock->Signature) == T::SIGNATURE
             ? rawBlock
-            : 0;
+            : nullptr;
         }
-        return 0;
+        return nullptr;
       }
 
       std::unique_ptr<const Packed::Zip::CompressedFile> GetFile() const

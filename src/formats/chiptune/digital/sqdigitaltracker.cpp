@@ -74,7 +74,7 @@ namespace Chiptune
           const uint8_t* GetNewTempo() const
           {
             return 62 == NoteCmd
-              ? &SampleEffect : 0;
+              ? &SampleEffect : nullptr;
           }
 
           bool IsEndOfPattern() const
@@ -85,7 +85,7 @@ namespace Chiptune
           const uint8_t* GetVolumeSlidePeriod() const
           {
             return 64 == NoteCmd
-              ? &SampleEffect : 0;
+              ? &SampleEffect : nullptr;
           }
 
           int_t GetVolumeSlideDirection() const

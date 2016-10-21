@@ -107,16 +107,16 @@ namespace Chiptune
     {
       if (rawData.Size() < sizeof(RawHeader))
       {
-        return 0;
+        return nullptr;
       }
       const RawHeader* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
       if (hdr->Signature != SIGNATURE_PSID && hdr->Signature != SIGNATURE_RSID)
       {
-        return 0;
+        return nullptr;
       }
       if (!Math::InRange<uint_t>(fromBE(hdr->Version), VERSION_MIN, VERSION_MAX))
       {
-        return 0;
+        return nullptr;
       }
       return hdr;
     }

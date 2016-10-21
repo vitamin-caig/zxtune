@@ -45,11 +45,11 @@ namespace
   {
     res.resize((val.size() - 1) / 2);
     String::const_iterator src = val.begin();
-    for (DataType::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
+    for (auto& re : res)
     {
       const DataType::value_type highNibble = FromHex(*++src);
       const DataType::value_type lowNibble = FromHex(*++src);
-      *it = highNibble * 16 | lowNibble;
+      re = highNibble * 16 | lowNibble;
     }
   }
 
@@ -63,9 +63,8 @@ namespace
   {
     String res(dmp.size() * 2 + 1, DATA_PREFIX);
     String::iterator dstit = res.begin();
-    for (DataType::const_iterator srcit = dmp.begin(), srclim = dmp.end(); srcit != srclim; ++srcit)
+    for (auto val : dmp)
     {
-      const DataType::value_type val = *srcit;
       *++dstit = ToHex(val >> 4);
       *++dstit = ToHex(val & 15);
     }

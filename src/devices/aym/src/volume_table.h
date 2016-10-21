@@ -23,8 +23,8 @@ namespace AYM
   {
   public:
     MultiVolumeTable()
-      : Table(0)
-      , Layout(0)
+      : Table(nullptr)
+      , Layout(nullptr)
     {
     }
 
@@ -98,7 +98,7 @@ namespace AYM
         { {2, 0, 1} }, //CAB
       };
       return type == LAYOUT_MONO
-        ? 0
+        ? nullptr
         : LAYOUTS + type;
     }
 

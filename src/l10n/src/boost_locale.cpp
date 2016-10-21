@@ -33,7 +33,7 @@ namespace
       const typename std::map<K, V>::const_iterator it = std::map<K, V>::find(key), limit = std::map<K, V>::end();
       return it != limit
         ? &it->second
-        : 0;
+        : nullptr;
     }
   };
 
@@ -141,7 +141,7 @@ namespace
         if (const gnu_gettext::messages_info* info = Locales.Find(translation))
         {
           message_format<Char>* const facet = gnu_gettext::create_messages_facet<Char>(*info);
-          Require(facet != 0);
+          Require(facet != nullptr);
           *CurrentLocale = std::locale(std::locale::classic(), facet);
           Dbg("Selected translation %1%", translation);
           return;

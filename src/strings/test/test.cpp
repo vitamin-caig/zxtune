@@ -29,7 +29,7 @@ namespace
     
     String GetFieldValue(const String& name) const override
     {
-      const Strings::Map::const_iterator it = Map.find(name);
+      const auto it = Map.find(name);
       return it == Map.end() ? Policy::GetFieldValue(name) : it->second;
     }
   private:

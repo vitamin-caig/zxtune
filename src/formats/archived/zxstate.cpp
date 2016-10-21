@@ -404,13 +404,13 @@ namespace Archived
           const std::size_t rest = Stream.GetRestSize();
           if (rest < sizeof(Chunk))
           {
-            return 0;
+            return nullptr;
           }
           const Chunk& chunk = Stream.ReadField<Chunk>();
           const std::size_t chunkSize = fromLE(chunk.Size);
           if (rest < sizeof(Chunk) + chunkSize)
           {
-            return 0;
+            return nullptr;
           }
           Stream.ReadData(chunkSize);
           return &chunk;
@@ -567,12 +567,12 @@ namespace Archived
           Dbg("Decompressing '%1%' (%2% blocks, %3% butes result)", Name, Blocks.size(), unpacked);
           std::unique_ptr<Dump> result(new Dump(unpacked));
           std::size_t target = 0;
-          for (DataBlocks::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+          for (const auto& block : Blocks)
           {
-            const Binary::Container::Ptr block = ExtractData(*it);
-            Require(block && block->Size() == it->UncompressedSize);
-            std::memcpy(&result->at(target), block->Start(), it->UncompressedSize);
-            target += it->UncompressedSize;
+            const Binary::Container::Ptr data = ExtractData(block);
+            Require(data && data->Size() == block.UncompressedSize);
+            std::memcpy(&result->at(target), data->Start(), block.UncompressedSize);
+            target += block.UncompressedSize;
           }
           return Binary::CreateContainer(std::move(result));
         }
@@ -714,9 +714,9 @@ namespace Archived
       //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
-        for (NamedBlocksMap::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+        for (const auto& block : Blocks)
         {
-          const File::Ptr file = CreateFileOnBlocks(it->first, it->second);
+          const File::Ptr file = CreateFileOnBlocks(block.first, block.second);
           walker.OnFile(*file);
         }
       }

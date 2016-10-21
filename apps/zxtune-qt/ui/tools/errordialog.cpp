@@ -13,6 +13,8 @@
 #include "ui/utils.h"
 //qt includes
 #include <QtGui/QMessageBox>
+//std includes
+#include <utility>
 
 void ShowErrorMessage(const QString& title, const Error& err)
 {

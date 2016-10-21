@@ -19,6 +19,7 @@
 //std includes
 #include <ctime>
 #include <numeric>
+#include <utility>
 
 namespace
 {
@@ -43,7 +44,7 @@ namespace
     void StartPlayback(Sound::Backend::Ptr backend) override
     {
       Controller = backend->GetVolumeControl();
-      setEnabled(Controller != 0);
+      setEnabled(Controller != nullptr);
     }
 
     void UpdateState() override

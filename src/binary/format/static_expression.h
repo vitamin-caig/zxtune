@@ -61,7 +61,7 @@ namespace Binary
       {
         return Count == 1
           ? &Last
-          : 0;
+          : nullptr;
       }
 
       static bool AreIntersected(const StaticToken& lh, const StaticToken& rh)

@@ -424,7 +424,7 @@ namespace Chiptune
       {
         const std::size_t offset = fromLE(Source.PositionsOffset);
         const RawPositions* const positions = Delegate.GetField<RawPositions>(offset);
-        Require(positions != 0);
+        Require(positions != nullptr);
         const uint_t length = positions->Length;
         Require(length != 0);
         Ranges.AddService(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
@@ -442,7 +442,7 @@ namespace Chiptune
       {
         const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.SamplesOffset))) - UnfixDelta;
         const RawObject* const obj = Delegate.GetField<RawObject>(offset);
-        Require(obj != 0);
+        Require(obj != nullptr);
         const RawSample* const res = safe_ptr_cast<const RawSample*>(obj);
         Ranges.Add(offset, res->GetUsedSize());
         return *res;
@@ -452,7 +452,7 @@ namespace Chiptune
       {
         const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.OrnamentsOffset))) - UnfixDelta;
         const RawObject* const obj = Delegate.GetField<RawObject>(offset);
-        Require(obj != 0);
+        Require(obj != nullptr);
         const RawOrnament* const res = safe_ptr_cast<const RawOrnament*>(obj);
         Ranges.Add(offset, res->GetUsedSize());
         return *res;
@@ -462,7 +462,7 @@ namespace Chiptune
       const T& GetObject(uint_t offset) const
       {
         const T* const src = Delegate.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         Ranges.Add(offset, sizeof(T));
         return *src;
       }
@@ -472,7 +472,7 @@ namespace Chiptune
       {
         const std::size_t offset = baseOffset + index * sizeof(T);
         const T* const src = Delegate.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         Ranges.AddService(offset, sizeof(T));
         return *src;
       }
@@ -480,7 +480,7 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 
@@ -826,7 +826,7 @@ namespace Chiptune
     bool Check(const Binary::TypedContainer& data)
     {
       const RawHeader* const hdr = data.GetField<RawHeader>(0);
-      if (0 == hdr)
+      if (nullptr == hdr)
       {
         return false;
       }

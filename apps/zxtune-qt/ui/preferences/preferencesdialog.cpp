@@ -24,6 +24,8 @@
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
+//std includes
+#include <utility>
 //qt includes
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDialogButtonBox>

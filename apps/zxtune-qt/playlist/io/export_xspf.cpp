@@ -122,7 +122,7 @@ namespace
       ElementHelper Extension;
     };
   public:
-    ExtendedPropertiesSaver(QXmlStreamWriter& xml, AttributesFilter filter = 0)
+    ExtendedPropertiesSaver(QXmlStreamWriter& xml, AttributesFilter filter = nullptr)
       : XML(xml)
       , Filter(filter)
     {

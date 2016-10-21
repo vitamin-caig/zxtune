@@ -591,7 +591,7 @@ namespace TFMMusicMaker
   struct ChannelState
   {
     ChannelState()
-      : CurInstrument(0)
+      : CurInstrument(nullptr)
       , Algorithm(NO_VALUE)
       , TotalLevel()
       , Note(Halftones::Stub())
@@ -695,7 +695,7 @@ namespace TFMMusicMaker
 
     void GetNewChannelState(const Cell& src, ChannelState& dst, TFM::TrackBuilder& track, TFM::ChannelBuilder& channel)
     {
-      const int_t* multiplies[OPERATORS_COUNT] = {0, 0, 0, 0};
+      const int_t* multiplies[OPERATORS_COUNT] = {nullptr, nullptr, nullptr, nullptr};
       bool dropEffects = false;
       bool hasPortamento = false;
       bool hasOpMixer = false;
@@ -861,7 +861,7 @@ namespace TFMMusicMaker
       }
       else
       {
-        return 0;
+        return nullptr;
       }
     }
 
@@ -1126,7 +1126,7 @@ namespace TFMMusicMaker
     {
       if (Counter >= repeatCount)
       {
-        return 0;
+        return nullptr;
       }
       else
       {
@@ -1228,7 +1228,7 @@ namespace TFMMusicMaker
       Plain.TempoInterleavePeriod = Data->InitialTempoInterleave;
       Plain.TempoInterleaveCounter = 0;
       SetPosition(0);
-      NextLineState = 0;
+      NextLineState = nullptr;
     }
 
     void SetState(const PlainTrackState& state)
@@ -1342,7 +1342,7 @@ namespace TFMMusicMaker
       Plain.OddTempo = state.OddTempo;
       Plain.TempoInterleavePeriod = state.TempoInterleavePeriod;
       Plain.TempoInterleaveCounter = state.TempoInterleaveCounter;
-      NextLineState = 0;
+      NextLineState = nullptr;
     }
 
     void LoadNewLoopTempoParameters()

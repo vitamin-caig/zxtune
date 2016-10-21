@@ -65,7 +65,7 @@ namespace Sound
       }
 
       
-      const char * snd_asoundlib_version (void) override
+      const char * snd_asoundlib_version () override
       {
         static const char NAME[] = "snd_asoundlib_version";
         typedef const char * ( *FunctionType)();
@@ -81,7 +81,7 @@ namespace Sound
         return func(errnum);
       }
       
-      int snd_config_update_free_global (void) override
+      int snd_config_update_free_global () override
       {
         static const char NAME[] = "snd_config_update_free_global";
         typedef int ( *FunctionType)();

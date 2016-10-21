@@ -29,7 +29,7 @@ namespace
 {
   QString Translate(const char* msg)
   {
-    return QApplication::translate("Mp3Settings", msg, 0, QApplication::UnicodeUTF8);
+    return QApplication::translate("Mp3Settings", msg, nullptr, QApplication::UnicodeUTF8);
   }
 
   const Parameters::StringType CHANNEL_MODES[] =

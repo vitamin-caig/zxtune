@@ -491,7 +491,7 @@ namespace
         return;
       }
       assert(!indices.count(destination));
-      ItemsContainer::iterator delimiter = GetIteratorByIndex(destination);
+      auto delimiter = GetIteratorByIndex(destination);
 
       ItemsContainer movedItems;
       {
@@ -532,9 +532,8 @@ namespace
       {
         Playlist::Model::IndexType lastIndex = *indices.begin();
         IteratorType lastIterator = GetIteratorByIndex(lastIndex);
-        for (Playlist::Model::IndexSet::const_iterator idxIt = indices.begin(), idxLim = indices.end(); idxIt != idxLim; ++idxIt)
+        for (auto curIndex : indices)
         {
-          const Playlist::Model::IndexType curIndex = *idxIt;
           assert(curIndex >= lastIndex);
           if (const Playlist::Model::IndexType delta = curIndex - lastIndex)
           {

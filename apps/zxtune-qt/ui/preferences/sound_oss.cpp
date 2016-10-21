@@ -19,6 +19,8 @@
 #include <sound/backends_parameters.h>
 //qt includes
 #include <QtGui/QFileDialog>
+//std includes
+#include <utility>
 
 namespace
 {

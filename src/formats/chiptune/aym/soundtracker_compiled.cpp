@@ -326,7 +326,7 @@ namespace Chiptune
       {
         const std::size_t offset = fromLE(Source.PositionsOffset);
         const RawPositions* const positions = Delegate.GetField<RawPositions>(offset);
-        Require(positions != 0);
+        Require(positions != nullptr);
         const uint_t length = positions->Length + 1;
         AddRange(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
         const RawPositions::PosEntry* const firstEntry = positions->Data;
@@ -354,7 +354,7 @@ namespace Chiptune
       {
         const std::size_t offset = baseOffset + index * sizeof(T);
         const T* const src = Delegate.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         AddRange(offset, sizeof(T));
         return *src;
       }
@@ -362,7 +362,7 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 
@@ -656,7 +656,7 @@ namespace Chiptune
       const std::size_t size = std::min(rawData.Size(), MAX_SIZE);
       const Binary::TypedContainer data(rawData, size);
       const RawHeader* const hdr = data.GetField<RawHeader>(0);
-      if (0 == hdr)
+      if (nullptr == hdr)
       {
         return false;
       }
@@ -684,11 +684,11 @@ namespace Chiptune
       {
         return false;
       }
-      if (0 == data.GetField<RawOrnament>(areas.GetAreaAddress(ORNAMENTS)))
+      if (nullptr == data.GetField<RawOrnament>(areas.GetAreaAddress(ORNAMENTS)))
       {
         return false;
       }
-      if (0 == data.GetField<RawPattern>(areas.GetAreaAddress(PATTERNS)))
+      if (nullptr == data.GetField<RawPattern>(areas.GetAreaAddress(PATTERNS)))
       {
         return false;
       }

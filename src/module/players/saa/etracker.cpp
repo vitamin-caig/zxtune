@@ -255,7 +255,7 @@ namespace ETracker
     {
       return Position < Obj->GetSize()
         ? &Obj->GetLine(Position)
-        : 0;
+        : nullptr;
     }
 
     void Next()

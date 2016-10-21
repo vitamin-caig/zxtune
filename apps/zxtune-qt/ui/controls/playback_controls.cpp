@@ -16,6 +16,7 @@
 #include <contract.h>
 //std includes
 #include <cassert>
+#include <utility>
 //qt includes
 #include <QtGui/QMenu>
 

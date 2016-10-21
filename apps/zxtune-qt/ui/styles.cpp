@@ -13,6 +13,8 @@
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QProxyStyle>
+//std includes
+#include <utility>
 
 namespace UI
 {

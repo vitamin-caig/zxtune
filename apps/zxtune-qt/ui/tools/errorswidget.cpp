@@ -20,6 +20,8 @@
 //qt includes
 #include <QtGui/QLabel>
 #include <QtGui/QPainter>
+//std includes
+#include <utility>
 
 namespace
 {

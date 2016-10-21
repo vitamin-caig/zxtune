@@ -302,7 +302,7 @@ namespace Chiptune
       static HeaderTraits Create(const Binary::TypedContainer& data)
       {
         const RawHeader* const hdr = data.GetField<RawHeader>(0);
-        Require(hdr != 0);
+        Require(hdr != nullptr);
         return HeaderTraits(*hdr);
       }
     };
@@ -721,7 +721,7 @@ namespace Chiptune
       const T& GetObject(std::size_t offset) const
       {
         const T* const src = Data.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         Ranges.Add(offset, sizeof(T));
         return *src;
       }
@@ -730,7 +730,7 @@ namespace Chiptune
       const T& GetServiceObject(std::size_t offset) const
       {
         const T* const src = Data.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         Ranges.AddService(offset, sizeof(T));
         return *src;
       }
@@ -738,7 +738,7 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Data.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 

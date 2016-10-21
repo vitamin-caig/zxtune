@@ -119,14 +119,10 @@
 </context>
 <context>
     <name>Playlist::UI::ItemsContextMenu</name>
-    <message numerus="yes">
+    <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="86"/>
         <source>%n item(s)</source>
-        <translation>
-            <numerusform>%n модуль</numerusform>
-            <numerusform>%n модуля</numerusform>
-            <numerusform>%n модулей</numerusform>
-        </translation>
+        <translation type="unfinished">%n модуль</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="167"/>
@@ -138,14 +134,10 @@
         <source>Total duration: %1</source>
         <translation>Общее время: %1</translation>
     </message>
-    <message numerus="yes">
+    <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="177"/>
         <source>%n different modules&apos; type(s)</source>
-        <translation>
-            <numerusform>%n тип модулей</numerusform>
-            <numerusform>%n типа модулей</numerusform>
-            <numerusform>%n типов модулей</numerusform>
-        </translation>
+        <translation type="unfinished">%n тип модулей</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="173"/>
@@ -162,14 +154,10 @@
         <source>Total size: %1</source>
         <translation>Общий размер: %1</translation>
     </message>
-    <message numerus="yes">
+    <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="178"/>
         <source>%n files referenced</source>
-        <translation>
-            <numerusform>%n файл</numerusform>
-            <numerusform>%n файла</numerusform>
-            <numerusform>%n файлов</numerusform>
-        </translation>
+        <translation type="unfinished">%n файл</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="246"/>

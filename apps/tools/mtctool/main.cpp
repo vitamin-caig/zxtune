@@ -80,7 +80,7 @@ namespace
     typedef void (*BoolType)();
     operator BoolType () const
     {
-      return IsValid() ? &std::abort : 0;
+      return IsValid() ? &std::abort : nullptr;
     }
   private:
     bool IsValid() const

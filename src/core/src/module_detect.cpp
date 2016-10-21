@@ -53,7 +53,7 @@ namespace Module
 
     Log::ProgressCallback* GetProgress() const override
     {
-      return 0;
+      return nullptr;
     }
 
     Holder::Ptr GetResult() const

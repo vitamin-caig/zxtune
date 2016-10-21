@@ -78,9 +78,8 @@ namespace AYC
     {
       Require(Register < Devices::AYM::Registers::TOTAL);
       Require(Frame + values.size() <= Data.size());
-      for (Dump::const_iterator it = values.begin(), lim = values.end(); it != lim; ++it)
+      for (auto val : values)
       {
-        const uint8_t val = *it;
         if (Register != Devices::AYM::Registers::ENV || val != 0xff)
         {
           Data[Frame++][Register] = val;

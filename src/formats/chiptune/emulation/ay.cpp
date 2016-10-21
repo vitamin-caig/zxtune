@@ -113,7 +113,7 @@ namespace Chiptune
       const T& GetField(std::size_t offset) const
       {
         const T* const res = Delegate.GetField<T>(offset);
-        Require(res != 0);
+        Require(res != nullptr);
         Require(Ranges->AddRange(offset, sizeof(T)));
         return *res;
       }
@@ -483,7 +483,7 @@ namespace Chiptune
         }
         SetPointer(&data->BlocksOffset, blockPtrs.front());
         //fill blocks
-        for (BlocksList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it, blockPtrs.pop_front())
+        for (auto it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it, blockPtrs.pop_front())
         {
           EMUL::ModuleBlock* const dst = blockPtrs.front();
           dst->Address = fromBE<uint16_t>(it->first);

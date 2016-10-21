@@ -338,7 +338,7 @@ namespace Archived
           const std::size_t offset = exp.SerialOffset.Value;
           const std::size_t size = exp.SerialSize.Value;
           const Binary::Container::Ptr entryData = Data.GetSubcontainer(offset, size);
-          Require(entryData.get() != 0);
+          Require(entryData.get() != nullptr);
           InputStream stream(fromLE(Header.PackageVersion), *entryData);
           ReadProperties(stream);
           const ClassName& cls = GetClass(exp.Class);
@@ -477,14 +477,12 @@ namespace Archived
       std::vector<ImportEntry> Imports;
     };
 
-    typedef std::map<String, Binary::Container::Ptr> NamedDataMap;
-
     class File : public Archived::File
     {
     public:
-      explicit File(NamedDataMap::const_iterator it)
-        : Name(it->first)
-        , Data(it->second)
+      File(String name, Binary::Container::Ptr data)
+        : Name(std::move(name))
+        , Data(std::move(data))
       {
       }
 
@@ -507,12 +505,14 @@ namespace Archived
       const Binary::Container::Ptr Data;
     };
 
+    typedef std::map<String, Binary::Container::Ptr> NamedDataMap;
+
     class Container : public Archived::Container
     {
     public:
-      Container(Binary::Container::Ptr delegate, NamedDataMap::const_iterator begin, NamedDataMap::const_iterator end)
+      Container(Binary::Container::Ptr delegate, NamedDataMap files)
         : Delegate(std::move(delegate))
-        , Files(begin, end)
+        , Files(std::move(files))
       {
       }
 
@@ -535,18 +535,18 @@ namespace Archived
       //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
-        for (NamedDataMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+        for (const auto& it : Files)
         {
-          const File file(it);
+          const File file(it.first, it.second);
           walker.OnFile(file);
         }
       }
 
       File::Ptr FindFile(const String& name) const override
       {
-        const NamedDataMap::const_iterator it = Files.find(name);
+        const auto it = Files.find(name);
         return it != Files.end()
-          ? MakePtr<File>(it)
+          ? MakePtr<File>(it->first, it->second)
           : File::Ptr();
       }
 
@@ -597,7 +597,7 @@ namespace Archived
       if (!datas.empty())
       {
         const Binary::Container::Ptr archive = data.GetSubcontainer(0, format.GetUsedSize());
-        return MakePtr<UMX::Container>(archive, datas.begin(), datas.end());
+        return MakePtr<UMX::Container>(std::move(archive), std::move(datas));
       }
       UMX::Dbg("No files found");
       return Container::Ptr();

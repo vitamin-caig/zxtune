@@ -515,7 +515,7 @@ namespace Packed
         }
         Require(isPageValid);
         const std::size_t pageSize = fromLE(page.DataSize);
-        const uint8_t* pageSource = 0;
+        const uint8_t* pageSource = nullptr;
         if (pageSize == page.UNCOMPRESSED)
         {
           pageSource = stream.ReadData(ZX_PAGE_SIZE);

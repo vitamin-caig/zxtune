@@ -284,7 +284,7 @@ namespace FastTracker
     {
       return Position < Obj->GetSize()
         ? &Obj->GetLine(Position)
-        : 0;
+        : nullptr;
     }
 
     void Next()

@@ -52,7 +52,7 @@ namespace PSG
     Devices::AYM::Registers* CurFrame()
     {
       return Data.empty()
-        ? 0
+        ? nullptr
         : &Data.back();
     }
   private:

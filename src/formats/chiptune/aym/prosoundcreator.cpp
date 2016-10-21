@@ -635,7 +635,7 @@ namespace Chiptune
         for (std::size_t offset = fromLE(Source.PositionsOffset);; offset += sizeof(RawPattern))
         {
           const LastRawPattern* const last = Delegate.GetField<LastRawPattern>(offset);
-          Require(last != 0);
+          Require(last != nullptr);
           if (last->Marker == END_POSITION_MARKER)
           {
             const std::size_t tailSize = std::min(Delegate.GetSize() - offset, sizeof(RawPattern));
@@ -722,7 +722,7 @@ namespace Chiptune
       const T& GetObject(std::size_t offset) const
       {
         const T* const src = Delegate.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         Ranges.Add(offset, sizeof(T));
         return *src;
       }
@@ -731,7 +731,7 @@ namespace Chiptune
       const T& GetServiceObject(std::size_t offset) const
       {
         const T* const src = Delegate.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         Ranges.AddService(offset, sizeof(T));
         return *src;
       }
@@ -739,7 +739,7 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 

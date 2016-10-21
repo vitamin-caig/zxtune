@@ -70,9 +70,9 @@ namespace Chiptune
     inline String DateFromInteger(uint_t val)
     {
       String result(8, ' ');
-      for (uint_t pos = 0; pos < result.size(); ++pos)
+      for (char & pos : result)
       {
-        result[pos] = '0' + (val & 15);
+        pos = '0' + (val & 15);
         val >>= 4;
       }
       return result;
@@ -509,7 +509,7 @@ namespace Chiptune
           for (std::size_t pos = 0; pos < typed.GetSize(); )
           {
             const SubChunkHeader* const hdr = typed.GetField<SubChunkHeader>(pos);
-            Require(hdr != 0);
+            Require(hdr != nullptr);
             if (hdr->ID == 0 && 0 != (pos % 4))
             {
               //in despite of official format description, subchunks can be not aligned by 4 byte boundary

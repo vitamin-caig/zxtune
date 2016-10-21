@@ -19,11 +19,13 @@
 //library includes
 #include <sound/backends_parameters.h>
 
+#include <utility>
+
 namespace
 {
   QString Translate(const char* msg)
   {
-    return QApplication::translate("FlacSettings", msg, 0, QApplication::UnicodeUTF8);
+    return QApplication::translate("FlacSettings", msg, nullptr, QApplication::UnicodeUTF8);
   }
 
   class FLACSettingsWidget : public UI::BackendSettingsWidget

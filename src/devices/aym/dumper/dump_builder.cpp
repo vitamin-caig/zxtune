@@ -145,9 +145,9 @@ namespace AYM
 
     void RenderData(const std::vector<DataChunk>& src) override
     {
-      for (std::vector<DataChunk>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+      for (const auto& chunk : src)
       {
-        RenderData(*it);
+        RenderData(chunk);
       }
     }
 

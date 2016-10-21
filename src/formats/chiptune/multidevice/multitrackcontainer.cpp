@@ -209,9 +209,9 @@ namespace IFF
       ChunkHeader& hdr = builder.Add<ChunkHeader>();
       hdr.Id = Id;
       hdr.DataSize = fromBE<uint32_t>(TotalSize);
-      for (std::vector<ChunkSource::Ptr>::const_iterator it = Sources.begin(), lim = Sources.end(); it != lim; ++it)
+      for (const auto& src : Sources)
       {
-        (*it)->GetResult(builder);
+        src->GetResult(builder);
       }
     }
   private:

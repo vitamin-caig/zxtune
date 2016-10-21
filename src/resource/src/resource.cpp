@@ -73,7 +73,7 @@ namespace
 
     const void* Start() const override
     {
-      return 0;
+      return nullptr;
     }
 
     std::size_t Size() const override
@@ -88,17 +88,17 @@ namespace
 
     void ExploreFiles(const Formats::Archived::Container::Walker& walker) const override
     {
-      for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        (*it)->ExploreFiles(walker);
+        delegate->ExploreFiles(walker);
       }
     }
 
     Formats::Archived::File::Ptr FindFile(const String& name) const override
     {
-      for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        if (const Formats::Archived::File::Ptr res = (*it)->FindFile(name))
+        if (const Formats::Archived::File::Ptr res = delegate->FindFile(name))
         {
           return res;
         }
@@ -109,9 +109,9 @@ namespace
     uint_t CountFiles() const override
     {
       uint_t res = 0;
-      for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        res += (*it)->CountFiles();
+        res += delegate->CountFiles();
       }
       return res;
     }

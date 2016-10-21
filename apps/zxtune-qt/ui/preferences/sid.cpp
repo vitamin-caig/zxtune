@@ -19,6 +19,8 @@
 //library includes
 #include <core/core_parameters.h>
 #include <sound/sound_parameters.h>
+//std includes
+#include <utility>
 
 namespace
 {

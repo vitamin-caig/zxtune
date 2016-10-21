@@ -63,7 +63,7 @@ namespace
     {
       bool oldc = false;
       std::swap(Changed, oldc);
-      return oldc ? &Value : 0;
+      return oldc ? &Value : nullptr;
     }
 
     uint_t Value;

@@ -15,6 +15,8 @@
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
+//std includes
+#include <utility>
 //qt includes
 #include <QtGui/QGridLayout>
 #include <QtGui/QLabel>

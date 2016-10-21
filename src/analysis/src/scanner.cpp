@@ -55,9 +55,9 @@ namespace Analysis
     void Reset()
     {
       StorageType other;
-      for (typename StorageType::iterator it = Storage.begin(), lim = Storage.end(); it != lim; ++it)
+      for (const auto& entry : Storage)
       {
-        other.push_back(PositionAndDecoder(0, it->Decoder));
+        other.push_back(PositionAndDecoder(0, entry.Decoder));
       }
       Storage.swap(other);
     }

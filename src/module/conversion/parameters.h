@@ -87,7 +87,7 @@ namespace Module
     template<class T>
     const T* parameter_cast(const Parameter* in)
     {
-      return in->ID == T::TYPE_ID ? safe_ptr_cast<const T*>(in) : 0;
+      return in->ID == T::TYPE_ID ? safe_ptr_cast<const T*>(in) : nullptr;
     }
   }
 }

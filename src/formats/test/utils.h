@@ -60,10 +60,10 @@ namespace Test
   {
     std::cout << "Test for packed '" << decoder.GetDescription() << "'" << std::endl;
     const Binary::Container::Ptr etalon = Binary::CreateContainer(&etalonDump[0], etalonDump.size());
-    for (std::map<std::string, Dump>::const_iterator it = tests.begin(), lim = tests.end(); it != lim; ++it)
+    for (const auto & test : tests)
     {
-      const std::string& testname = it->first;
-      const Dump& testdataDump = it->second;
+      const std::string& testname = test.first;
+      const Dump& testdataDump = test.second;
       const Binary::Container::Ptr testdata = Binary::CreateContainer(&testdataDump[0], testdataDump.size());
       std::cout << " testing " << testname << std::endl;
       const Binary::Format::Ptr format = decoder.GetFormat();
@@ -129,9 +129,9 @@ namespace Test
     Dump reference;
     OpenFile(etalon, reference);
     std::map<std::string, Dump> testData;
-    for (std::vector<std::string>::const_iterator it = tests.begin(), lim = tests.end(); it != lim; ++it)
+    for (const auto & test : tests)
     {
-      OpenFile(*it, testData[*it]);
+      OpenFile(test, testData[test]);
     }
     TestPacked(decoder, reference, testData, checkCorrupted);
   }

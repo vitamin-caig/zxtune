@@ -300,7 +300,7 @@ namespace Packed
 
       uint_t ReadByTree(const std::vector<SFTEntry>& tree)
       {
-        std::vector<SFTEntry>::const_iterator it = tree.begin();
+        auto it = tree.begin();
         for (uint_t bits = 0, result = 0; ;)
         {
           result |= GetBit() << bits++;
@@ -435,7 +435,7 @@ namespace Packed
         assert(InvertBits(0x180) == 0x180);
         assert(InvertBits(0x8000) == 1);
         uint_t code = 0, codeIncrement = 0, lastBits = 0;
-        for (std::vector<SFTEntry>::reverse_iterator it = tree.rbegin(), lim = tree.rend(); it != lim; ++it)
+        for (auto it = tree.rbegin(), lim = tree.rend(); it != lim; ++it)
         {
           code += codeIncrement;
           it->Code = InvertBits(code);
@@ -495,7 +495,7 @@ namespace Packed
           LZWTree tree;
           ResetTree(tree);
 
-          LZWTree::iterator lastFree = tree.begin() + LZWEntry::LIMITER;
+          auto lastFree = tree.begin() + LZWEntry::LIMITER;
 
           uint_t codeSize = 9;
           uint_t oldCode = stream.GetBits(codeSize);

@@ -77,9 +77,9 @@ namespace
     void SetPositions(const std::vector<PositionEntry>& positions) override
     {
       std::cout << "Positions: ";
-      for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
+      for (auto position : positions)
       {
-        std::cout << it->PatternIndex << "(" << it->Transposition << ") ";
+        std::cout << position.PatternIndex << "(" << position.Transposition << ") ";
       }
       std::cout << std::endl;
     }

@@ -31,6 +31,8 @@
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/join.hpp>
+//std includes
+#include <utility>
 
 namespace
 {

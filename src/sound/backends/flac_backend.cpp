@@ -133,13 +133,13 @@ namespace Flac
       {
         Dbg("Using seekable stream for FLAC output");
         CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
-          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, 0, seekableStream.get()), THIS_LINE);
+          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, nullptr, seekableStream.get()), THIS_LINE);
       }
       else
       {
         Dbg("Using non-seekable stream for FLAC output");
         CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
-          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, 0, 0, 0, Stream.get()), THIS_LINE);
+          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, nullptr, nullptr, nullptr, Stream.get()), THIS_LINE);
       }
       Dbg("Stream initialized");
     }

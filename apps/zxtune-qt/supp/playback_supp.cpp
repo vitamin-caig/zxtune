@@ -219,11 +219,11 @@ namespace
       const Sound::BackendCallback::Ptr cb(static_cast<Sound::BackendCallback*>(this), NullDeleter<Sound::BackendCallback>());
       std::list<Error> errors;
       const Strings::Array systemBackends = Service->GetAvailableBackends();
-      for (Strings::Array::const_iterator it = systemBackends.begin(), lim = systemBackends.end(); it != lim; ++it)
+      for (const auto& id : systemBackends)
       {
         try
         {
-          return Service->CreateBackend(*it, module, cb);
+          return Service->CreateBackend(id, module, cb);
         }
         catch (const Error& err)
         {
@@ -236,9 +236,9 @@ namespace
 
     void ReportErrors(const std::list<Error>& errors)
     {
-      for (std::list<Error>::const_iterator it = errors.begin(), lim = errors.end(); it != lim; ++it)
+      for (const auto& err : errors)
       {
-        emit ErrorOccurred(*it);
+        emit ErrorOccurred(err);
       }
     }
   private:

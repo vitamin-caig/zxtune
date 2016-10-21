@@ -15,6 +15,8 @@
 #include "ui/utils.h"
 //qt includes
 #include <QtGui/QFileDialog>
+//std includes
+#include <utility>
 
 namespace
 {

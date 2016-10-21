@@ -11,6 +11,8 @@
 //local includes
 #include "ui/factory.h"
 #include "mainwindow.h"
+//std includes
+#include <utility>
 
 namespace
 {

@@ -84,7 +84,7 @@ namespace Binary
 
   Container::Ptr CreateContainer(const void* data, std::size_t size)
   {
-    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : 0)
+    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : nullptr)
     {
       const std::shared_ptr<const Dump> buffer(new Dump(byteData, byteData + size));
       return CreateContainer(buffer, 0, size);
@@ -97,7 +97,7 @@ namespace Binary
 
   Container::Ptr CreateNonCopyContainer(const void* data, std::size_t size)
   {
-    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : 0)
+    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : nullptr)
     {
       return MakePtr<SharedContainer<const uint8_t*> >(byteData, 0, size);
     }

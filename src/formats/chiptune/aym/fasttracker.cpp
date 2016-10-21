@@ -374,9 +374,9 @@ namespace Chiptune
       {
         Require(!positions.empty());
         UsedPatterns.Clear();
-        for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
+        for (const auto& pos : positions)
         {
-          UsedPatterns.Insert(it->PatternIndex);
+          UsedPatterns.Insert(pos.PatternIndex);
         }
         return Delegate.SetPositions(positions, loop);
       }
@@ -590,7 +590,7 @@ namespace Chiptune
           const std::size_t samOffset = fromLE(Source.SamplesOffsets[samIdx]) - BaseAddr;
           const std::size_t availSize = Delegate.GetSize() - samOffset;
           const RawSample* const src = Delegate.GetField<RawSample>(samOffset);
-          Require(src != 0);
+          Require(src != nullptr);
           Require(src->GetLoopLimit() <= src->GetSize());
           Require(src->GetLoop() <= src->GetLoopLimit());
           const std::size_t usedSize = src->GetUsedSize();
@@ -618,7 +618,7 @@ namespace Chiptune
           const std::size_t ornOffset = fromLE(Source.OrnamentsOffsets[ornIdx]) - BaseAddr;
           const std::size_t availSize = Delegate.GetSize() - ornOffset;
           const RawOrnament* const src = Delegate.GetField<RawOrnament>(ornOffset);
-          Require(src != 0);
+          Require(src != nullptr);
           Require(src->GetLoopLimit() <= src->GetSize());
           Require(src->GetLoop() <= src->GetLoopLimit());
           const std::size_t usedSize = src->GetUsedSize();
@@ -658,7 +658,7 @@ namespace Chiptune
       const T& GetServiceObject(std::size_t offset) const
       {
         const T* const src = Delegate.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         Ranges.AddService(offset, sizeof(T));
         return *src;
       }
@@ -666,14 +666,14 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 
       uint_t PeekLEWord(std::size_t offset) const
       {
         const uint16_t* const data = Delegate.GetField<uint16_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return fromLE(*data);
       }
 

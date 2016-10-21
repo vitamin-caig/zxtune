@@ -262,7 +262,7 @@ namespace Sid
 
     void AdvanceEngine(uint_t framesToPlay)
     {
-      Engine->play(0, framesToPlay * SamplesPerFrame * Sound::Sample::CHANNELS);
+      Engine->play(nullptr, framesToPlay * SamplesPerFrame * Sound::Sample::CHANNELS);
     }
   private:
     const TunePtr Tune;

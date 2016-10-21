@@ -63,37 +63,37 @@ namespace Devices
 
       const bool* GetEnabled() const
       {
-        return 0 != (Mask & ENABLED) ? &Enabled : 0;
+        return 0 != (Mask & ENABLED) ? &Enabled : nullptr;
       }
 
       const uint_t* GetNote() const
       {
-        return 0 != (Mask & NOTE) ? &Note : 0;
+        return 0 != (Mask & NOTE) ? &Note : nullptr;
       }
 
       const int_t* GetNoteSlide() const
       {
-        return 0 != (Mask & NOTESLIDE) ? &NoteSlide : 0;
+        return 0 != (Mask & NOTESLIDE) ? &NoteSlide : nullptr;
       }
 
       const int_t* GetFreqSlideHz() const
       {
-        return 0 != (Mask & FREQSLIDEHZ) ? &FreqSlideHz : 0;
+        return 0 != (Mask & FREQSLIDEHZ) ? &FreqSlideHz : nullptr;
       }
 
       const uint_t* GetSampleNum() const
       {
-        return 0 != (Mask & SAMPLENUM) ? &SampleNum : 0;
+        return 0 != (Mask & SAMPLENUM) ? &SampleNum : nullptr;
       }
 
       const uint_t* GetPosInSample() const
       {
-        return 0 != (Mask & POSINSAMPLE) ? &PosInSample : 0;
+        return 0 != (Mask & POSINSAMPLE) ? &PosInSample : nullptr;
       }
 
       const LevelType* GetLevel() const
       {
-        return 0 != (Mask & LEVEL) ? &Level : 0;
+        return 0 != (Mask & LEVEL) ? &Level : nullptr;
       }
     };
 

@@ -44,10 +44,10 @@ namespace Module
     {
       std::vector<ChannelState> result;
       result.reserve(MaxBands);
-      for (AnalyzersArray::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
         std::vector<ChannelState> portion;
-        (*it)->GetState(portion);
+        delegate->GetState(portion);
         std::copy(portion.begin(), portion.end(), std::back_inserter(result));
       }
       MaxBands = std::max(MaxBands, result.size());
@@ -116,9 +116,9 @@ namespace Module
       else
       {
         uint_t totalChannelsCount = 0;
-        for (Multi::HoldersArray::const_iterator it = holders.begin(), lim = holders.end(); it != lim; ++it)
+        for (const auto& holder : holders)
         {
-          totalChannelsCount += (*it)->GetModuleInformation()->ChannelsCount();
+          totalChannelsCount += holder->GetModuleInformation()->ChannelsCount();
         }
         return MakePtr<MultiInformation>(holders.front()->GetModuleInformation(), totalChannelsCount);
       }
@@ -331,9 +331,9 @@ namespace Module
     uint_t Channels() const override
     {
       uint_t res = 0;
-      for (TrackStatesArray::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        res += (*it)->Channels();
+        res += delegate->Channels();
       }
       return res;
     }

@@ -39,11 +39,11 @@ namespace Sound
   class StaticBackendInformation : public BackendInformation
   {
   public:
-    StaticBackendInformation(String id, const char* descr, uint_t caps, const Error& status)
+    StaticBackendInformation(String id, const char* descr, uint_t caps, Error  status)
       : IdValue(std::move(id))
       , DescrValue(descr)
       , CapsValue(caps)
-      , StatusValue(status)
+      , StatusValue(std::move(status))
     {
     }
 
@@ -93,9 +93,9 @@ namespace Sound
       const Strings::Array order = GetOrder();
       Strings::Array available = GetAvailable();
       Strings::Array result;
-      for (Strings::Array::const_iterator it = order.begin(), lim = order.end(); it != lim; ++it)
+      for (const auto& id : order)
       {
-        const Strings::Array::iterator avIt = std::find(available.begin(), available.end(), *it);
+        const Strings::Array::iterator avIt = std::find(available.begin(), available.end(), id);
         if (avIt != available.end())
         {
           result.push_back(*avIt);
@@ -159,9 +159,8 @@ namespace Sound
     Strings::Array GetAvailable() const
     {
       Strings::Array ids;
-      for (std::vector<BackendInformation::Ptr>::const_iterator it = Infos.begin(), lim = Infos.end(); it != lim; ++it)
+      for (const auto& info : Infos)
       {
-        const BackendInformation::Ptr info = *it;
         if (!info->Status())
         {
           ids.push_back(info->Id());

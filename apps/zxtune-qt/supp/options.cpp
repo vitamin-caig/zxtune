@@ -340,36 +340,36 @@ namespace
     void SetValue(const NameType& name, IntType val) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
-      for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        (*it)->SetValue(name, val);
+        delegate->SetValue(name, val);
       }
     }
 
     void SetValue(const NameType& name, const StringType& val) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
-      for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        (*it)->SetValue(name, val);
+        delegate->SetValue(name, val);
       }
     }
 
     void SetValue(const NameType& name, const DataType& val) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
-      for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        (*it)->SetValue(name, val);
+        delegate->SetValue(name, val);
       }
     }
 
     void RemoveValue(const NameType& name) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
-      for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        (*it)->RemoveValue(name);
+        delegate->RemoveValue(name);
       }
     }
   private:

@@ -71,9 +71,9 @@ namespace Formats
         {
           Require(!positions.empty());
           UsedPatterns.Clear();
-          for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
+          for (const auto pos : positions)
           {
-            UsedPatterns.Insert(it->PatternIndex);
+            UsedPatterns.Insert(pos.PatternIndex);
           }
           return Delegate.SetPositions(positions, loop);
         }

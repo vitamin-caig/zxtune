@@ -28,7 +28,7 @@ namespace
 
   unsigned Randomized(unsigned idx, unsigned total)
   {
-    ::srand(::time(0) * idx);
+    ::srand(::time(nullptr) * idx);
     return ::rand() % total;
   }
 

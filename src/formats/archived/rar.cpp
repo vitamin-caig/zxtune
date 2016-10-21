@@ -90,7 +90,7 @@ namespace Archived
         const Packed::Rar::ArchiveBlockHeader& block = *Container.GetField<Packed::Rar::ArchiveBlockHeader>(Offset);
         return !block.IsExtended() && Packed::Rar::ArchiveBlockHeader::TYPE == block.Type
           ? &block
-          : 0;
+          : nullptr;
       }
     
       const Packed::Rar::FileBlockHeader* GetFileHeader() const
@@ -100,9 +100,9 @@ namespace Archived
         {
           return block->IsValid()
             ? block
-            : 0;
+            : nullptr;
         }
-        return 0;
+        return nullptr;
       }
 
       std::size_t GetOffset() const

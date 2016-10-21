@@ -27,6 +27,7 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QMessageBox>
 #include <QtGui/QVBoxLayout>
+#include <utility>
 
 namespace
 {
@@ -121,13 +122,13 @@ namespace
   public:
     explicit FilenameTemplateDialog(QWidget& parent)
       : QDialog(&parent)
-      , TemplateBuilder(0)
+      , TemplateBuilder(nullptr)
     {
       TemplateBuilder = UI::FilenameTemplateWidget::Create(*this);
-      QDialogButtonBox* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
+      const auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
       Require(connect(buttons, SIGNAL(accepted()), this, SLOT(accept())));
       Require(connect(buttons, SIGNAL(rejected()), this, SLOT(reject())));
-      QVBoxLayout* const layout = new QVBoxLayout(this);
+      const auto layout = new QVBoxLayout(this);
       layout->setContentsMargins(4, 4, 4, 4);
       layout->setSpacing(4);
       layout->addWidget(TemplateBuilder);

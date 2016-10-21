@@ -109,9 +109,9 @@ namespace Multitrack
       uint_t GetFixedCrc(uint_t startTrack) const
       {
         uint32_t crc = startTrack;
-        for (std::map<uint_t, Dump>::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+        for (const auto& blk : Blocks)
         {
-          crc = Crc32(&it->second.front(), it->second.size(), crc);
+          crc = Crc32(&blk.second.front(), blk.second.size(), crc);
         }
         return crc;
       }
@@ -130,9 +130,9 @@ namespace Multitrack
     private:
       void DumpTextPart(Binary::DataBuilder& builder) const
       {
-        for (Strings::Array::const_iterator it = Lines.begin(), lim = Lines.end(); it != lim; ++it)
+        for (const auto& line : Lines)
         {
-          AddString(*it, builder);
+          AddString(line, builder);
         }
       }
       
@@ -146,14 +146,14 @@ namespace Multitrack
       
       void DumpBinaryPart(Binary::DataBuilder& builder) const
       {
-        for (std::map<uint_t, Dump>::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+        for (const auto& blk : Blocks)
         {
-          const uint_t addr = it->first;
-          const std::size_t size = it->second.size();
+          const uint_t addr = blk.first;
+          const std::size_t size = blk.second.size();
           builder.Add(fromLE<uint16_t>(addr));
           builder.Add(fromLE<uint16_t>(addr + size - 1));
           uint8_t* const dst = static_cast<uint8_t*>(builder.Allocate(size));
-          std::copy(it->second.begin(), it->second.end(), dst);
+          std::copy(blk.second.begin(), blk.second.end(), dst);
         }
       }
     private:

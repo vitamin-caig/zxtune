@@ -246,9 +246,9 @@ namespace
       , UpdateRank(~std::size_t(0))
     {
       Dbg("Supported update types: %1% items", CurTypes.size());
-      for (std::vector<Product::Update::TypeTag>::const_iterator it = CurTypes.begin(), lim = CurTypes.end(); it != lim; ++it)
+      for (auto type : CurTypes)
       {
-        Dbg(" %1%", *it);
+        Dbg(" %1%", type);
       }
     }
 
@@ -472,7 +472,7 @@ namespace
       msg.append(update.Title());
       if (const int ageInDays = update.Date().daysTo(QDate::currentDate()))
       {
-        msg.append(Update::CheckOperation::tr("%1 (%n day(s) ago)", 0, ageInDays).arg(update.Date().toString(Qt::DefaultLocaleLongDate)));
+        msg.append(Update::CheckOperation::tr("%1 (%n day(s) ago)", nullptr, ageInDays).arg(update.Date().toString(Qt::DefaultLocaleLongDate)));
       }
       msg.append(QString("<a href=\"%1\">%2</a>").arg(update.Description().toString()).arg(Update::CheckOperation::tr("Download manually")));
       return QMessageBox::question(&Parent, title, msg.join("<br/>"), QMessageBox::Save | QMessageBox::Cancel);
@@ -503,7 +503,7 @@ namespace
 
     void StoreLastCheckTime() const
     {
-      Params.SetLastCheckTime(std::time(0));
+      Params.SetLastCheckTime(std::time(nullptr));
     }
 
     bool CheckPeriodExpired() const
@@ -511,7 +511,7 @@ namespace
       if (const unsigned period = Params.GetCheckPeriod())
       {
         const std::time_t lastCheck = Params.GetLastCheckTime();
-        const std::time_t now = std::time(0);
+        const std::time_t now = std::time(nullptr);
         return now > lastCheck + period;
       }
       else
@@ -541,6 +541,6 @@ namespace Update
     catch (const Error&)
     {
     }
-    return 0;
+    return nullptr;
   }
 };

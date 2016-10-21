@@ -58,17 +58,17 @@ namespace Parameters
 
     void Process(Visitor& visitor) const override
     {
-      for (IntegerMap::const_iterator it = Integers.begin(), lim = Integers.end(); it != lim; ++it)
+      for (const auto& i : Integers)
       {
-        visitor.SetValue(it->first, it->second);
+        visitor.SetValue(i.first, i.second);
       }
-      for (StringMap::const_iterator it = Strings.begin(), lim = Strings.end(); it != lim; ++it)
+      for (const auto& s : Strings)
       {
-        visitor.SetValue(it->first, it->second);
+        visitor.SetValue(s.first, s.second);
       }
-      for (DataMap::const_iterator it = Datas.begin(), lim = Datas.end(); it != lim; ++it)
+      for (const auto& d : Datas)
       {
-        visitor.SetValue(it->first, it->second);
+        visitor.SetValue(d.first, d.second);
       }
     }
 

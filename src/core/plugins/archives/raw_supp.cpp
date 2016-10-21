@@ -76,9 +76,9 @@ namespace ZXTune
     std::string Get() const
     {
       std::string res;
-      for (typename std::vector<Line>::const_iterator it = Lines.begin(), lim = Lines.end(); it != lim; ++it)
+      for (const auto& line : Lines)
       {
-        res += ToString(*it);
+        res += ToString(line);
       }
       return res;
     }

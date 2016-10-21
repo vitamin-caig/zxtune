@@ -93,7 +93,7 @@ namespace LexicalAnalysis
         const std::string lexeme(lexemeStart, lexemeEnd);
         context.push_back(MakeRWPtr<TokensSet>());
         TokensSet& target = *context.back();
-        for (std::list<Tokenizer::Ptr>::iterator tokIt = candidates.begin(), tokLim = candidates.end(); tokIt != tokLim;)
+        for (auto tokIt = candidates.begin(), tokLim = candidates.end(); tokIt != tokLim;)
         {
           const Tokenizer::Ptr tokenizer = *tokIt;
           switch (const TokenType result = tokenizer->Parse(lexeme))

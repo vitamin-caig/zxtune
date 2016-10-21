@@ -106,7 +106,7 @@ namespace
   private:
     bool NoCurrentDir() const
     {
-      return 0 == CurDir.get() || !CurDir->hasNext();
+      return nullptr == CurDir.get() || !CurDir->hasNext();
     }
 
     static bool IsDir(const QString& name)
@@ -122,7 +122,7 @@ namespace
 
     void CloseDir()
     {
-      CurDir.reset(0);
+      CurDir.reset(nullptr);
     }
   private:
     FilenamesSource& Delegate;

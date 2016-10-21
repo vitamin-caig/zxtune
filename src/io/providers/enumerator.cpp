@@ -49,9 +49,9 @@ namespace IO
       Providers.push_back(provider);
       Dbg("Registered provider '%1%'", provider->Id());
       const Strings::Set& schemes = provider->Schemes();
-      for (Strings::Set::const_iterator it = schemes.begin(), lim = schemes.end(); it != lim; ++it)
+      for (const auto& scheme : schemes)
       {
-        Schemes.insert(std::make_pair(*it, provider));
+        Schemes.insert(std::make_pair(scheme, provider));
       }
     }
 
@@ -104,9 +104,9 @@ namespace IO
   private:
     Identifier::Ptr Resolve(const String& uri) const
     {
-      for (ProvidersList::const_iterator it = Providers.begin(), lim = Providers.end(); it != lim; ++it)
+      for (const auto& provider : Providers)
       {
-        if (const Identifier::Ptr res = (*it)->Resolve(uri))
+        if (const Identifier::Ptr res = provider->Resolve(uri))
         {
           return res;
         }
@@ -119,7 +119,7 @@ namespace IO
       const SchemeToProviderMap::const_iterator it = Schemes.find(scheme);
       return it != Schemes.end()
         ? it->second.get()
-        : 0;
+        : nullptr;
     }
   private:
     ProvidersList Providers;
@@ -130,10 +130,10 @@ namespace IO
   class UnavailableProvider : public DataProvider
   {
   public:
-    UnavailableProvider(String id, const char* descr, const Error& status)
+    UnavailableProvider(String id, const char* descr, Error status)
       : IdValue(std::move(id))
       , DescrValue(descr)
-      , StatusValue(status)
+      , StatusValue(std::move(status))
     {
     }
 

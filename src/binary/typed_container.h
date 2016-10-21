@@ -38,7 +38,7 @@ namespace Binary
     {
       return offset + sizeof(T) <= Size
         ? safe_ptr_cast<const T*>(Start + offset)
-        : 0;
+        : nullptr;
     }
 
     std::size_t GetSize() const

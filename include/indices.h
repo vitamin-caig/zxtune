@@ -114,7 +114,7 @@ public:
 
     operator BoolType () const
     {
-      return IsValid() ? &Iterator::IsValid : 0;
+      return IsValid() ? &Iterator::IsValid : nullptr;
     }
 
     uint_t operator * () const

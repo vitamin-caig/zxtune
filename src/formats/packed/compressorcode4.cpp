@@ -415,7 +415,7 @@ namespace Packed
         , DataOffset(0x14 + fromLE(Header.RestDepackerSize))
         , Delegate(container.FastCheck()
           ? new RawDataDecoder(Header.Padding1 + DataOffset, container.GetAvailableData() - DataOffset, fromLE(Header.ChunksCount))
-          : 0)
+          : nullptr)
       {
       }
 

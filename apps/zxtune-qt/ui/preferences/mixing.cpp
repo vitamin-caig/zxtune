@@ -19,6 +19,8 @@
 #include <sound/sample.h>
 //qt includes
 #include <QtGui/QLabel>
+//std includes
+#include <utility>
 
 namespace
 {

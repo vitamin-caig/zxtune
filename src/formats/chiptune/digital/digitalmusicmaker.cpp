@@ -371,7 +371,7 @@ namespace Chiptune
           Require((srcSample.Bank & 0xf8) == 0x50);
           const uint_t bankIdx = srcSample.Bank & 0x07;
           const Binary::Container::Ptr bankData = regions[bankIdx];
-          Require(bankData != 0);
+          Require(bankData != nullptr);
           const std::size_t offsetInBank = sampleStart - SAMPLES_ADDR;
           const std::size_t limitInBank = sampleEnd - SAMPLES_ADDR;
           const std::size_t sampleSize = limitInBank - offsetInBank;

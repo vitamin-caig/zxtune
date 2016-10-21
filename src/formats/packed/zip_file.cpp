@@ -215,7 +215,7 @@ namespace Packed
           return std::unique_ptr<Dump>();
         }
         std::unique_ptr<Dump> result = Delegate->Decompress();
-        IsValid = result.get() != 0;
+        IsValid = result.get() != nullptr;
         return result;
       }
     private:
@@ -281,12 +281,12 @@ namespace Packed
         const uint8_t* const found = std::search(seekPos, seekEnd, rawSignature, rawSignature + sizeof(signature));
         if (found == seekEnd)
         {
-          return 0;
+          return nullptr;
         }
         const std::size_t offset = found - seekStart;
         if (offset + sizeof(LocalFileFooter) > size)
         {
-          return 0;
+          return nullptr;
         }
         const LocalFileFooter& result = *safe_ptr_cast<const LocalFileFooter*>(found);
         if (fromLE(result.Attributes.CompressedSize) + header.GetSize() == offset)
@@ -295,7 +295,7 @@ namespace Packed
         }
         seekPos = found + sizeof(signature);
       }
-      return 0;
+      return nullptr;
     }
 
     bool LocalFileHeader::IsValid() const

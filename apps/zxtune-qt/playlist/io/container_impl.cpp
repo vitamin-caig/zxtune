@@ -46,7 +46,7 @@ namespace
 
     Log::ProgressCallback* GetProgress() const override
     {
-      return 0;
+      return nullptr;
     }
 
     Playlist::Item::Data::Ptr GetItem() const
@@ -61,10 +61,10 @@ namespace
   class StubData : public Playlist::Item::Data
   {
   public:
-    StubData(String path, const Parameters::Accessor& params, const Error& state)
+    StubData(String path, const Parameters::Accessor& params, Error state)
       : Path(std::move(path))
       , Params(Parameters::Container::Create())
-      , State(state)
+      , State(std::move(state))
     {
       params.Process(*Params);
     }

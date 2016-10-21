@@ -68,11 +68,11 @@ namespace
     {
       std::cout << "[Sample" << ToHex(index) << "]\n"
       "Loop: " << sample.Loop << ".." << sample.LoopLimit << '\n';
-      for (std::vector<Sample::Line>::const_iterator it = sample.Lines.begin(), lim = sample.Lines.end(); it != lim; ++it)
+      for (const auto & it : sample.Lines)
       {
-        std::cout << "V=" << ToHex(it->Level) << " T=" << it->ToneDeviation << ' ' << 
-          (it->ToneMask ? 'T' : 't') << (it->NoiseMask ? 'N' : 'n') << (it->EnableEnvelope ? 'E' : ' ') << 
-          "A=" << it->Adding << " dV=" << it->VolSlide <<
+        std::cout << "V=" << ToHex(it.Level) << " T=" << it.ToneDeviation << ' ' << 
+          (it.ToneMask ? 'T' : 't') << (it.NoiseMask ? 'N' : 'n') << (it.EnableEnvelope ? 'E' : ' ') << 
+          "A=" << it.Adding << " dV=" << it.VolSlide <<
           '\n';
       }
       std::cout << std::endl;
@@ -82,9 +82,9 @@ namespace
     {
       std::cout << "[Ornament" << ToHex(index) << "]\n"
       "Loop: " << ornament.Loop << ".." << ornament.LoopLimit << '\n';
-      for (std::vector<Ornament::Line>::const_iterator it = ornament.Lines.begin(), lim = ornament.Lines.end(); it != lim; ++it)
+      for (auto it : ornament.Lines)
       {
-        std::cout << it->NoteAddon << ' ' << it->NoiseAddon << '\n';
+        std::cout << it.NoteAddon << ' ' << it.NoiseAddon << '\n';
       }
       std::cout << std::endl;
     }

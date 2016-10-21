@@ -123,7 +123,7 @@ int main()
   
   try
   {
-    Target* tgt = 0;
+    Target* tgt = nullptr;
     Receiver::Ptr receiver(tgt = new Target);
     const FadeGainer::Ptr gainer = CreateFadeGainer();
     gainer->SetTarget(receiver);

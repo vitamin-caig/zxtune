@@ -18,6 +18,8 @@
 #include <contract.h>
 //library includes
 #include <core/plugins_parameters.h>
+//std includes
+#include <utility>
 
 namespace
 {

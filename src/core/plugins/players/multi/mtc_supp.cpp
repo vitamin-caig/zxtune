@@ -218,7 +218,7 @@ namespace MTC
       Stream* AddStream(Binary::Container::Ptr data)
       {
         Streams.push_back(Stream(OpenModule(data)));
-        SelectedStream = 0;
+        SelectedStream = nullptr;
         return &Streams.back();
       }
     

@@ -191,14 +191,14 @@ namespace
 
     void AddStringProperty(const QString& title, const Parameters::NameType& name)
     {
-      QLineEdit* const wid = new QLineEdit(this);
+      const auto wid = new QLineEdit(this);
       Parameters::Value* const value = Parameters::StringValue::Bind(*wid, *Properties, name, Parameters::StringType());
       AddProperty(title, wid, value);
     }
 
     void AddSetProperty(const QString& title, const Parameters::NameType& name, const QStringList& values)
     {
-      QComboBox* const wid = new QComboBox(this);
+      const auto wid = new QComboBox(this);
       wid->addItems(values);
       Parameters::Value* const value = Parameters::IntegerValue::Bind(*wid, *Properties, name, -1);
       AddProperty(title, wid, value);
@@ -206,14 +206,14 @@ namespace
 
     void AddIntegerProperty(const QString& title, const Parameters::IntegerTraits& traits)
     {
-      QLineEdit* const wid = new QLineEdit(this);
+      const auto wid = new QLineEdit(this);
       Parameters::Value* const value = Parameters::BigIntegerValue::Bind(*wid, *Properties, traits);
       AddProperty(title, wid, value);
     }
 
     void AddProperty(const QString& title, QWidget* widget, Parameters::Value* value)
     {
-      QToolButton* const resetButton = new QToolButton(this);
+      const auto resetButton = new QToolButton(this);
       resetButton->setArrowType(Qt::DownArrow);
       resetButton->setToolTip(Playlist::UI::PropertiesDialog::tr("Reset value"));
       const int row = itemsLayout->rowCount();
@@ -229,7 +229,7 @@ namespace
       Parameters::StringType value;
       if (Properties->FindValue(name, value))
       {
-        QTextBrowser* const strings = new QTextBrowser(this);
+        const auto strings = new QTextBrowser(this);
         QFont font;
         font.setFamily(QString::fromLatin1("Courier New"));
         strings->setFont(font);

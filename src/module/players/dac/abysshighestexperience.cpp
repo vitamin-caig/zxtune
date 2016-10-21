@@ -43,7 +43,7 @@ namespace AHX
       initialized = true;
     }
     const HvlPtr result = HvlPtr(hvl_LoadTune(static_cast<const uint8*>(data.Start()), data.Size(), 4, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT), &hvl_FreeTune);
-    Require(result.get() != 0);
+    Require(result.get() != nullptr);
     return result;
   }
   

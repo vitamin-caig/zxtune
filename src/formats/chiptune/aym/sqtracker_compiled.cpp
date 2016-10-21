@@ -218,11 +218,11 @@ namespace Chiptune
       void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) override
       {
         UsedPatterns.Clear();
-        for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
+        for (const auto& pos : positions)
         {
-          for (uint_t chan = 0; chan != 3; ++chan)
+          for (const auto& chan : pos.Channels)
           {
-            UsedPatterns.Insert(it->Channels[chan].Pattern);
+            UsedPatterns.Insert(chan.Pattern);
           }
         }
         Require(!UsedPatterns.Empty());
@@ -480,7 +480,7 @@ namespace Chiptune
       const T& GetServiceObject(std::size_t offset) const
       {
         const T* const src = Delegate.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         Ranges.AddService(offset, sizeof(T));
         return *src;
       }
@@ -489,7 +489,7 @@ namespace Chiptune
       const T& GetObject(std::size_t offset) const
       {
         const T* const src = Delegate.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         Ranges.Add(offset, sizeof(T));
         return *src;
       }
@@ -497,7 +497,7 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 
@@ -902,7 +902,7 @@ namespace Chiptune
     bool FastCheck(const Binary::TypedContainer& data)
     {
       const RawHeader* const hdr = data.GetField<RawHeader>(0);
-      if (0 == hdr)
+      if (nullptr == hdr)
       {
         return false;
       }

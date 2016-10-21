@@ -216,10 +216,10 @@ namespace
     void AddSoundTypes()
     {
       const Strings::Array& types = UI::SupportedFormatsWidget::GetSoundTypes();
-      for (Strings::Array::const_iterator it = types.begin(), lim = types.end(); it != lim; ++it)
+      for (const auto &type : types)
       {
-        Types.push_back(*it);
-        Filters << MakeFilter(ToQString(*it));
+        Types.push_back(type);
+        Filters << MakeFilter(ToQString(type));
       }
     }
     
