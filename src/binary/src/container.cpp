@@ -39,7 +39,7 @@ namespace Binary
   {
   public:
     SharedContainer(Value arr, std::size_t offset, std::size_t size)
-      : Buffer(arr)
+      : Buffer(std::move(arr))
       , Address(GetPointer(*arr, offset))
       , Offset(offset)
       , Length(size)
@@ -86,8 +86,8 @@ namespace Binary
   {
     if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : nullptr)
     {
-      const std::shared_ptr<const Dump> buffer(new Dump(byteData, byteData + size));
-      return CreateContainer(buffer, 0, size);
+      std::shared_ptr<const Dump> buffer(new Dump(byteData, byteData + size));
+      return CreateContainer(std::move(buffer), 0, size);
     }
     else
     {
@@ -109,21 +109,21 @@ namespace Binary
 
   Container::Ptr CreateContainer(std::unique_ptr<Dump> data)
   {
-    const std::shared_ptr<const Dump> buffer(data.release());
+    std::shared_ptr<const Dump> buffer(data.release());
     const std::size_t size = buffer ? buffer->size() : 0;
-    return CreateContainer(buffer, 0, size);
+    return CreateContainer(std::move(buffer), 0, size);
   }
 
   Container::Ptr CreateContainer(Data::Ptr data)
   {
     //cover downcasting
-    if (const Container::Ptr asContainer = std::dynamic_pointer_cast<const Container>(data))
+    if (Container::Ptr asContainer = std::dynamic_pointer_cast<const Container>(data))
     {
-      return asContainer;
+      return std::move(asContainer);
     }
-    else if (data && data->Size())
+    else if (const auto size = data ? data->Size() : 0)
     {
-      return MakePtr<SharedContainer<Data::Ptr> >(data, 0, data->Size());
+      return MakePtr<SharedContainer<Data::Ptr> >(std::move(data), 0, size);
     }
     else
     {
@@ -135,7 +135,7 @@ namespace Binary
   {
     if (size && data && data->size() >= offset + size)
     {
-      return MakePtr<SharedContainer<std::shared_ptr<const Dump> > >(data, offset, size);
+      return MakePtr<SharedContainer<std::shared_ptr<const Dump> > >(std::move(data), offset, size);
     }
     else
     {

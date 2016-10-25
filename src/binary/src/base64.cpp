@@ -206,7 +206,7 @@ namespace Binary
       Dump result(outSize);
       uint8_t* out = &result[0];
       Decode(in, in + inSize, out, out + outSize);
-      return result;
+      return std::move(result);
     }
   }
 }
