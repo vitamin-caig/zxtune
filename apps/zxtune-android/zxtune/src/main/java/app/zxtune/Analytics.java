@@ -94,6 +94,21 @@ public class Analytics {
     send(event);
   }
 
+  public static void sendSocialEvent(String method, String app, Item item) {
+    final Identifier id = item.getDataId();
+    final Uri location = id.getFullLocation();
+    final boolean fromBrowser = item.getId().equals(location);
+
+    final CustomEvent event = new CustomEvent("Social");
+    fillSource(event, location);
+    event.putCustomAttribute("Method", method)
+            .putCustomAttribute("Application", app)
+            .putCustomAttribute("MethodDetailed", method + "/" + app)
+            .putCustomAttribute("Library", fromBrowser ? "Browser" : "Playlist")
+    ;
+    send(event);
+  }
+
   private static void fillSource(CustomEvent event, Uri path) {
     String scheme = path.getScheme();
     if (scheme == null) {

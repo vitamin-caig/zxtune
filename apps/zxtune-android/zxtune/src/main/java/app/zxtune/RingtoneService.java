@@ -108,10 +108,12 @@ public class RingtoneService extends IntentService {
         convert(item, howMuch, target);
         final String title = setAsRingtone(item, howMuch, target);
         showNotification(title);
+        Analytics.sendSocialEvent("Ringtone", "app.zxtune", item);
       } finally {
         item.release();
       }
     } catch (Exception e) {
+      Log.w(TAG, e, "Failed to create ringtone");
       makeToast(e);
     }
   }
@@ -163,7 +165,7 @@ public class RingtoneService extends IntentService {
     final Uri ringtoneUri = createOrUpdateRingtone(values);
     
     RingtoneManager.setActualDefaultRingtoneUri(this, RingtoneManager.TYPE_RINGTONE, ringtoneUri);
-    
+
     return values.getAsString(MediaStore.MediaColumns.TITLE);
   }
   

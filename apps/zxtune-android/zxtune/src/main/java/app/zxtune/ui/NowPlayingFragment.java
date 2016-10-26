@@ -16,6 +16,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -27,6 +28,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
@@ -50,6 +53,10 @@ import app.zxtune.playback.VisualizerStub;
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
   private final static String TAG = NowPlayingFragment.class.getName();
+  private final static int REQUEST_SHARE = 1;
+  private final static int REQUEST_SEND = 2;
+  private final static String EXTRA_ITEM = TAG + ".EXTRA_LOCATION";
+
   private PlaybackService service;
   private Callback callback;
   private Releaseable callbackConnection;
@@ -131,6 +138,28 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     info = new InformationView(view);
     ctrls = new PlaybackControlsView(view);
     bindViewsToConnectedService();
+  }
+
+  private void pickAndSend(Intent data, CharSequence title, int code) {
+    final Intent picker = new Intent(Intent.ACTION_PICK_ACTIVITY);
+    picker.putExtra(Intent.EXTRA_TITLE, title);
+    picker.putExtra(Intent.EXTRA_INTENT, data);
+    startActivityForResult(picker, code);
+  }
+
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    final boolean isShare = requestCode == REQUEST_SHARE;
+    final boolean isSend = requestCode == REQUEST_SEND;
+    if (data != null && (isShare || isSend)) {
+      final String method = isShare ? "Share" : "Send";
+      final String appName = data.getComponent().getPackageName();
+      final Item item = (Item) data.getParcelableExtra(EXTRA_ITEM);
+      Analytics.sendSocialEvent(method, appName, item);
+
+      data.removeExtra(EXTRA_ITEM);
+      startActivity(data);
+    }
   }
   
   @Override
@@ -257,11 +286,11 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
           break;
         case R.id.action_send:
           final Intent toSend = data.makeSendIntent();
-          startActivity(Intent.createChooser(toSend, item.getTitle()));
+          pickAndSend(toSend, item.getTitle(), REQUEST_SEND);
           break;
         case R.id.action_share:
           final Intent toShare = data.makeShareIntent();
-          startActivity(Intent.createChooser(toShare, item.getTitle()));
+          pickAndSend(toShare, item.getTitle(), REQUEST_SHARE);
           break;
         case R.id.action_make_ringtone:
           final DialogFragment fragment = RingtoneFragment.createInstance(data.getItem());
@@ -334,10 +363,11 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       return result;
     }
     
-    private static Intent makeIntent(String mime) {
+    private Intent makeIntent(String mime) {
       final Intent result = new Intent(Intent.ACTION_SEND);
       result.setType(mime);
       result.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+      result.putExtra(EXTRA_ITEM, (Parcelable) item);
       return result;
     }
     
