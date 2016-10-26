@@ -258,4 +258,8 @@ public final class VfsArchive {
       return null;
     }
   }
+
+  public static boolean checkIfArchive(VfsDir dir) {
+    return dir instanceof ArchiveRoot || dir instanceof ArchiveDir;
+  }
 }

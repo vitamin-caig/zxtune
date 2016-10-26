@@ -18,6 +18,7 @@ import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.R;
@@ -85,11 +86,7 @@ public class BrowserController {
 
   public final void browseDir(VfsDir dir) {
     setCurrentDir(dir);
-  }
-
-  //TODO: think about another solution
-  public final void browseArchiveRoot(VfsDir dir) {
-    setCurrentDir(dir);
+    Analytics.sendBrowseEvent(dir);
   }
 
   private void setCurrentDir(VfsDir dir) {

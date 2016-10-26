@@ -63,7 +63,7 @@ class ArchiveLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Ar
     if (control == null) {
       return;
     } else if (result instanceof VfsDir) {
-      control.browseArchiveRoot((VfsDir) result);
+      control.browseDir((VfsDir) result);
     } else {
       control.archiveLoadingFinished(playCmd);
     }

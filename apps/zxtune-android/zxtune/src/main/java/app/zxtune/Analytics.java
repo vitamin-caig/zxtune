@@ -10,9 +10,12 @@ import com.crashlytics.android.ndk.CrashlyticsNdk;
 
 import java.util.List;
 
+import app.zxtune.fs.VfsArchive;
+import app.zxtune.fs.VfsDir;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlayableItem;
+
 import io.fabric.sdk.android.Fabric;
 
 public class Analytics {
@@ -72,8 +75,30 @@ public class Analytics {
     send(event);
   }
 
+  public static void sendBrowseEvent(VfsDir dir) {
+    sendCommonBrowserEvent("Browse", dir);
+  }
+
+  private static void sendCommonBrowserEvent(String type, VfsDir dir) {
+    final Uri path = dir.getUri();
+    final Identifier id = new Identifier(path);
+    final int archiveDepth = id.getSubpathComponents().length;
+    final int depth = path.getPathSegments().size() + archiveDepth;
+    final boolean isArchive = archiveDepth != 0 || VfsArchive.checkIfArchive(dir);
+
+    final CustomEvent event = new CustomEvent(type);
+    fillSource(event, path);
+    event.putCustomAttribute("Depth", depth)
+            .putCustomAttribute("Type", isArchive ? "Archive" : "Folder")
+    ;
+    send(event);
+  }
+
   private static void fillSource(CustomEvent event, Uri path) {
-    final String scheme = path.getScheme();
+    String scheme = path.getScheme();
+    if (scheme == null) {
+      scheme = "root";
+    }
     final List<String> segments = path.getPathSegments();
     final String pathStart = segments.isEmpty() ? "" : segments.get(0);
     event.putCustomAttribute("Source", scheme);
