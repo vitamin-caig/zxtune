@@ -25,6 +25,7 @@ public final class Log {
 
   public static void w(String tag, Throwable e, String msg) {
     android.util.Log.w(tag, msg, e);
+    Analytics.logException(e);
   }
 
   public static void w(String tag, Throwable e, String msg, Object... params) {

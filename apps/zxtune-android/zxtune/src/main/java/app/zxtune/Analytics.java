@@ -15,4 +15,8 @@ public class Analytics {
   public static void initialize(Context ctx) {
     Fabric.with(ctx, new Crashlytics(), new CrashlyticsNdk(), new Answers());
   }
+
+  public static void logException(Throwable e) {
+    Crashlytics.logException(e);
+  }
 }
