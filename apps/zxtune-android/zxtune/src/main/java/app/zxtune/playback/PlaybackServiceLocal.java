@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
@@ -61,6 +62,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
     this.holder = new Holder();
+    this.callbacks.add(new Analytics.PlaybackEventsCallback());
   }
 
   @Override
