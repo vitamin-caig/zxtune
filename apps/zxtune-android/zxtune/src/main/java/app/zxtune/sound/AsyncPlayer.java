@@ -83,7 +83,7 @@ final public class AsyncPlayer implements Player {
           stateGuard.wait();
           break;
         } catch (InterruptedException e) {
-          Log.d(TAG, e, "Interrupted while waiting for state change");
+          Log.w(TAG, e, "Interrupted while waiting for state change");
         }
       }
     }
@@ -142,7 +142,7 @@ final public class AsyncPlayer implements Player {
         playThread.join();
         playThread = null;
       } catch (InterruptedException e) {
-        Log.d(TAG, e, "Interrupted while stop");
+        Log.w(TAG, e, "Interrupted while stop");
       }
     }
 

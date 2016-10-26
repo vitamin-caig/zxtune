@@ -115,7 +115,7 @@ class PlaylistIterator implements Iterator {
       
       @Override
       public void onIOError(IOException e) {
-        Log.d(TAG, e, "Ignore I/O error");
+        Log.w(TAG, e, "Ignore I/O error");
       }
     });
   }

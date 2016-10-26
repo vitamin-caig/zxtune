@@ -48,7 +48,7 @@ public class HttpProvider {
       Log.d(TAG, "Fetch %d bytes via %s", result.getContentLength(), uri);
       return result;
     } catch (IOException e) {
-      Log.d(TAG, e, "Fetch %s", uri);
+      Log.d(TAG, "Fetch %s: %s", uri, e.toString());
       throw e;
     }
   }

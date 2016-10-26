@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.modland.Catalog;
 import app.zxtune.fs.modland.Group;
@@ -119,7 +118,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   }
   
   @Override
-  public void enumerate(Visitor visitor) throws IOException {
+  public void enumerate(Visitor visitor) {
     for (GroupsDir group : groups) {
       visitor.onDir(group);
     }
@@ -132,8 +131,9 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     } else if (Storage.checkUri(uri)) {
       final Track track = new Track(uri.getEncodedPath(), 0);
       return new FreeTrackFile(track);
+    } else {
+      return null;
     }
-    return null;
   }
 
   private Uri.Builder rootUri() {
@@ -265,18 +265,11 @@ final class VfsRootModland extends StubObject implements VfsRoot {
         if (POS_LETTER == path.size() - 1) {
           return this;
         } else {
-          try {
-            final int id = Integer.parseInt(uri.getQueryParameter(PARAM_ID));
-            final Group obj = group.query(id);
-            return obj != null
-                    ? new GroupDir(obj).resolve(uri, path)
-                    : null;
-          } catch (IOException e) {
-            throw e;
-          } catch (Exception e) {
-            Log.d(TAG, e, "resolve %s", uri);
-            return null;
-          }
+          final int id = Integer.parseInt(uri.getQueryParameter(PARAM_ID));
+          final Group obj = group.query(id);
+          return obj != null
+                  ? new GroupDir(obj).resolve(uri, path)
+                  : null;
         }
       }
 

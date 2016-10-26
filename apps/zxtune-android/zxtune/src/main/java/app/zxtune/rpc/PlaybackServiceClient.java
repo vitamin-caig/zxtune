@@ -54,7 +54,7 @@ public final class PlaybackServiceClient implements PlaybackService {
     try {
       return delegate.getNowPlaying();
     } catch (RemoteException e) {
-      Log.d(TAG, e, "getNowPlaying()");
+      Log.w(TAG, e, "getNowPlaying()");
       return ItemStub.instance();
     }
   }
@@ -64,7 +64,7 @@ public final class PlaybackServiceClient implements PlaybackService {
     try {
       delegate.setNowPlaying(uris);
     } catch (RemoteException e) {
-      Log.d(TAG, e, "setNowPlaying()");
+      Log.w(TAG, e, "setNowPlaying()");
     }
   }
   
@@ -94,7 +94,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.subscribe(callbackDelegate);
       } catch (RemoteException e) {
-        Log.d(TAG, e, "subscribe()");
+        Log.w(TAG, e, "subscribe()");
         callbacks.remove(callback);
       }
     }
@@ -106,7 +106,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.unsubscribe(callbackDelegate);
       } catch (RemoteException e) {
-        Log.d(TAG, e, "unsubscribe()");
+        Log.w(TAG, e, "unsubscribe()");
         callbacks.add(callback);
       }
     }
@@ -119,7 +119,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.add(uris);
       } catch (RemoteException e) {
-        Log.d(TAG, e, "add()");
+        Log.w(TAG, e, "add()");
       }
     }
 
@@ -128,7 +128,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.delete(ids);
       } catch (RemoteException e) {
-        Log.d(TAG, e, "delete()");
+        Log.w(TAG, e, "delete()");
       }
     }
     
@@ -137,7 +137,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.deleteAll();
       } catch (RemoteException e) {
-        Log.d(TAG, e, "deleteAll()");
+        Log.w(TAG, e, "deleteAll()");
       }
     }
 
@@ -146,7 +146,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.move(id, delta);
       } catch (RemoteException e) {
-        Log.d(TAG, e, "move()");
+        Log.w(TAG, e, "move()");
       }
     }
     
@@ -155,7 +155,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.sort(field.name(), order.name());
       } catch (RemoteException e) {
-        Log.d(TAG, e, "sort()");
+        Log.w(TAG, e, "sort()");
       }
     }
   }
@@ -167,7 +167,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.play();
       } catch (RemoteException e) {
-        Log.d(TAG, e, "play()");
+        Log.w(TAG, e, "play()");
       }
     }
     
@@ -176,7 +176,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.stop();
       } catch (RemoteException e) {
-        Log.d(TAG, e, "stop()");
+        Log.w(TAG, e, "stop()");
       }
     }
     
@@ -185,7 +185,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         return delegate.isPlaying();
       } catch (RemoteException e) {
-        Log.d(TAG, e, "isPlaying()");
+        Log.w(TAG, e, "isPlaying()");
         return false;
       }
     }
@@ -195,7 +195,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.next();
       } catch (RemoteException e) {
-        Log.d(TAG, e, "next()");
+        Log.w(TAG, e, "next()");
       }
     }
     
@@ -204,7 +204,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.prev();
       } catch (RemoteException e) {
-        Log.d(TAG, e, "prev()");
+        Log.w(TAG, e, "prev()");
       }
     }
     
@@ -213,7 +213,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         return TrackMode.values()[delegate.getTrackMode()];
       } catch (RemoteException e) {
-        Log.d(TAG, e, "getTrackMode()");
+        Log.w(TAG, e, "getTrackMode()");
         return TrackMode.REGULAR;
       }
     }
@@ -223,7 +223,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.setTrackMode(mode.ordinal());
       } catch (RemoteException e) {
-        Log.d(TAG, e, "setTrackMode()");
+        Log.w(TAG, e, "setTrackMode()");
       }
     }
 
@@ -232,7 +232,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         return SequenceMode.values()[delegate.getSequenceMode()];
       } catch (RemoteException e) {
-        Log.d(TAG, e, "getSequenceMode()");
+        Log.w(TAG, e, "getSequenceMode()");
         return SequenceMode.ORDERED;
       }
     }
@@ -242,7 +242,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.setSequenceMode(mode.ordinal());
       } catch (RemoteException e) {
-        Log.d(TAG, e, "setSequenceMode()");
+        Log.w(TAG, e, "setSequenceMode()");
       }
     }
   }
@@ -254,7 +254,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         return TimeStamp.createFrom(delegate.getDuration(), TimeUnit.MILLISECONDS);
       } catch (RemoteException e) {
-        Log.d(TAG, e, "getDuration()");
+        Log.w(TAG, e, "getDuration()");
         return TimeStamp.EMPTY;
       }
     }
@@ -264,7 +264,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         return TimeStamp.createFrom(delegate.getPosition(), TimeUnit.MILLISECONDS);
       } catch (RemoteException e) {
-        Log.d(TAG, e, "getPosition()");
+        Log.w(TAG, e, "getPosition()");
         return TimeStamp.EMPTY;
       }
     }
@@ -274,7 +274,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.setPosition(pos.convertTo(TimeUnit.MILLISECONDS));
       } catch (RemoteException e) {
-        Log.d(TAG, e, "setPosition()");
+        Log.w(TAG, e, "setPosition()");
       }
     }
   }
@@ -293,7 +293,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       } catch (DeadObjectException e) {
         throw new IllegalStateException(e);
       } catch (RemoteException e) {
-        Log.d(TAG, e, "getSpectrum()");
+        Log.w(TAG, e, "getSpectrum()");
         return 0;
       }
     }

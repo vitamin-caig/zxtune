@@ -93,7 +93,7 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
             ViewGroup.LayoutParams.WRAP_CONTENT);
       }
     } catch (Exception e) {
-      Log.d(TAG, e, "Error binding view");
+      Log.w(TAG, e, "Error binding view");
     }
 
     //if dependency is false from the beginning, disable the seek bar
@@ -118,7 +118,7 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
 
       seekBar.setProgress(currentValue);
     } catch (Exception e) {
-      Log.d(TAG, e, "Error updating seek bar preference");
+      Log.w(TAG, e, "Error updating seek bar preference");
     }
   }
 
@@ -162,7 +162,7 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
       try {
         temp = (Integer) defaultValue;
       } catch (Exception e) {
-        Log.d(TAG, e, "Invalid default value: %s", defaultValue);
+        Log.w(TAG, e, "Invalid default value: %s", defaultValue);
       }
 
       persistInt(temp);

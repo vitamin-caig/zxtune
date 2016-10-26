@@ -188,7 +188,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
     public void enumerate(Visitor visitor) throws IOException {
       final File[] files = object.listFiles();
       if (files == null) {
-        throw new IOException("Failed to enumerate files in directory");
+        throw new IOException("Failed to enumerate files at " + object.getAbsolutePath());
       }
       visitor.onItemsCount(files.length);
       for (File file : files) {

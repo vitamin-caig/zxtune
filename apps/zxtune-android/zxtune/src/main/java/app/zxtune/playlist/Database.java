@@ -258,7 +258,7 @@ public class Database {
         db.setTransactionSuccessful();
         return;
       } catch (SQLiteException e) {
-        Log.d(TAG, e, "upgradeFromVer1");
+        Log.w(TAG, e, "upgradeFromVer1");
       } finally {
         db.endTransaction();
       }

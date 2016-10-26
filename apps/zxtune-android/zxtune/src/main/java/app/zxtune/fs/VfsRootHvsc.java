@@ -25,7 +25,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.hvsc.Catalog;
 
@@ -79,7 +78,7 @@ final class VfsRootHvsc extends StubObject implements VfsRoot {
   }
   
   @Override
-  public void enumerate(Visitor visitor) throws IOException {
+  public void enumerate(Visitor visitor) {
     for (GroupsDir group : groups) {
       visitor.onDir(group);
     }
@@ -239,18 +238,11 @@ final class VfsRootHvsc extends StubObject implements VfsRoot {
         if (POS_SUBDIR == lastPathComponent) {
           return this;
         } else {
-          try {
-            final List<String> subpath = path.subList(POS_SUBDIR, path.size());
-            final ByteBuffer content = catalog.getFileContent(subpath);
-            return catalog.isDirContent(content)
-                ? new C64MusicSubdir(subpath, content)
-                : new C64MusicFile(subpath, content);
-          } catch (IOException e) {
-            throw e;
-          } catch (Exception e) {
-            Log.d(TAG, e, "resolve %s", uri);
-            return null;
-          }
+          final List<String> subpath = path.subList(POS_SUBDIR, path.size());
+          final ByteBuffer content = catalog.getFileContent(subpath);
+          return catalog.isDirContent(content)
+              ? new C64MusicSubdir(subpath, content)
+              : new C64MusicFile(subpath, content);
         }
       }
       

@@ -10,12 +10,15 @@
 
 package app.zxtune.fs;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import android.net.Uri;
 
+import app.zxtune.Log;
+
 final class VfsRootComposite extends StubObject implements VfsRoot {
+
+  private static final String TAG = VfsRootComposite.class.getName();
   
   private final ArrayList<VfsRoot> subRoots;
   
@@ -33,14 +36,18 @@ final class VfsRootComposite extends StubObject implements VfsRoot {
   }
 
   @Override
-  public VfsObject resolve(Uri uri) throws IOException {
+  public VfsObject resolve(Uri uri) {
     if (Uri.EMPTY.equals(uri)) {
       return this;
     }
     for (VfsRoot root : subRoots) {
-      final VfsObject obj = root.resolve(uri);
-      if (obj != null) {
-        return obj;
+      try {
+        final VfsObject obj = root.resolve(uri);
+        if (obj != null) {
+          return obj;
+        }
+      } catch (Exception e) {
+        Log.w(TAG, e, "Failed to resolve %s", uri.toString());
       }
     }
     return null;

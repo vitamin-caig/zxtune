@@ -189,7 +189,7 @@ public class VisualizerView extends View {
         update();
         looper.postDelayed(this, 100);
       } catch (IllegalStateException e) {
-        Log.d(TAG, e, "UpdateViewTask");
+        Log.w(TAG, e, "UpdateViewTask");
       }
     }
     

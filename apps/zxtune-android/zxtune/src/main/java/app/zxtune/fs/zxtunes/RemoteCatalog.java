@@ -82,7 +82,7 @@ final class RemoteCatalog extends Catalog {
       final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
       return http.getContent(query);
     } catch (IOException e) {
-      Log.d(TAG, e, "getModuleContent(%d)", id);
+      Log.w(TAG, e, "getModuleContent(%d)", id);
       throw e;
     }
   }

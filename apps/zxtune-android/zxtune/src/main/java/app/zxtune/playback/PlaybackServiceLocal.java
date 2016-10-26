@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
@@ -225,7 +226,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
       Log.d(TAG, "Executor shut down");
     } catch (InterruptedException e) {
-      Log.d(TAG, e, "Failed to shutdown executor");
+      Log.w(TAG, e, "Failed to shutdown executor");
     }
   }
   
@@ -238,7 +239,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
           callbacks.onIOStatusChanged(true);
           cmd.execute();
         } catch (Exception e) {//IOException|InterruptedException
-          Log.d(TAG, e, cmd.getClass().getName());
+          Log.w(TAG, e, cmd.getClass().getName());
           final Throwable cause = e.getCause();
           final String msg = cause != null ? cause.getMessage() : e.getMessage();
           callbacks.onError(msg);
@@ -428,7 +429,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void onError(Exception e) {
-      Log.d(TAG, e, "Error occurred");
+      Log.w(TAG, e, "Error occurred");
     }
   }
   

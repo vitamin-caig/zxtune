@@ -100,6 +100,7 @@ public final class Provider extends ContentProvider {
       }
       return Query.archiveUriFor(path);
     } catch (IOException e) {
+      Log.w(TAG, e, "InsertToArchive");
     }
     return null;
   }

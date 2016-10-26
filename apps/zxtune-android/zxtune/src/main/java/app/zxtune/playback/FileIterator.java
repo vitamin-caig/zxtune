@@ -131,7 +131,7 @@ public class FileIterator implements Iterator {
       } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
       Log.d(TAG, "Executor shut down");
     } catch (InterruptedException e) {
-      Log.d(TAG, e, "Failed to shutdown executor");
+      Log.w(TAG, e, "Failed to shutdown executor");
     }
   }
   

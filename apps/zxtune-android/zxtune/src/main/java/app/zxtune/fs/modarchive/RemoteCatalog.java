@@ -170,13 +170,8 @@ class RemoteCatalog extends Catalog {
   
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
-    try {
-      final String query = ApiUriBuilder.forDownload(id).build();
-      return http.getContent(query);
-    } catch (IOException e) {
-      Log.d(TAG, e, "getTrackContent(%d)", id);
-      throw e;
-    }
+    final String query = ApiUriBuilder.forDownload(id).build();
+    return http.getContent(query);
   }
   
   private RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {

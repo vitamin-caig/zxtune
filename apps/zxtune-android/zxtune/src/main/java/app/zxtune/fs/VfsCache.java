@@ -29,9 +29,6 @@ public class VfsCache {
   private final File dir;
 
   private VfsCache(File dir) {
-    if (dir == null) {
-      throw new RuntimeException("No cache directory specified");
-    }
     this.dir = dir;
   }
   
@@ -41,58 +38,61 @@ public class VfsCache {
       return new VfsCache(externalCache);
     }
     final File internalCache = context.getCacheDir();
-    return new VfsCache(internalCache);
+    if (internalCache != null) {
+      return new VfsCache(internalCache);
+    }
+    Log.w(TAG, new IOException("No cache dirs found"), "No cache");
+    return new VfsCache(null);
   }
 
   public final VfsCache createNested(String name) {
-    return new VfsCache(getSub(dir, name));
+    return new VfsCache(getSub(name));
   }
   
   public final ByteBuffer getCachedFileContent(String path) {
     try {
-      return readFrom(getFile(path));
+      final File file = getSub(path);
+      if (file == null || !file.isFile()) {
+        Log.d(TAG, "No cached file %s", file.getAbsolutePath());
+        return null;
+      }
+      Log.d(TAG, "Reading cached file %s", file.getAbsolutePath());
+      return readFrom(file);
     } catch (IOException e) {
-      Log.d(TAG, e, "Failed to read from cache");
+      Log.w(TAG, e, "Failed to read from cache");
     }
     return null;
   }
 
   public final void putCachedFileContent(String path, ByteBuffer content) {
-    putCachedFileContent(path, content, MIN_CACHED_FILE_SIZE);
+    if (content.capacity() >= MIN_CACHED_FILE_SIZE) {
+      putAnyCachedFileContent(path, content);
+    } else {
+      Log.d(TAG, "Do not cache small content of %s", path);
+    }
   }
   
   public final Uri putAnyCachedFileContent(String path, ByteBuffer content) {
-    return putCachedFileContent(path, content, 1);
-  }
-  
-  public final Uri putCachedFileContent(String path, ByteBuffer content, int minSize) {
-    if (content.capacity() >= minSize) {
-      final File file = getFile(path);
-      writeTo(file, content);
-      return Uri.fromFile(file);
-    } else {
-      Log.d(TAG, "Do not cache small content of %s", path);
-      return Uri.EMPTY;
+    final File file = getSub(path);
+    if (file != null) {
+      Log.d(TAG, "Write cached file %s", file.getAbsolutePath());
+      try {
+        file.getParentFile().mkdirs();
+        writeTo(file, content);
+        return Uri.fromFile(file);
+      } catch (IOException e) {
+        Log.w(TAG, e, "Failed to write to %s", file.getAbsolutePath());
+        file.delete();
+      }
     }
+    return Uri.EMPTY;
   }
   
-  private static File getSub(File dir, String name) {
-    return dir != null ? new File(dir, name) : null;
-  }
-  
-  private File getFile(String path) {
-    return getSub(dir, path);
+  private File getSub(String path) {
+    return dir != null ? new File(dir, path) : null;
   }
 
   static ByteBuffer readFrom(File file) throws IOException {
-    if (file == null) {
-      return null;
-    }
-    if (!file.isFile()) {
-      Log.d(TAG, "No cached file " + file.getAbsolutePath());
-      return null;
-    }
-    Log.d(TAG, "Reading cached file %s", file.getAbsolutePath());
     final FileInputStream stream = new FileInputStream(file);
     try {
       final FileChannel channel = stream.getChannel();
@@ -112,7 +112,7 @@ public class VfsCache {
       try {
         return readMemoryMapped(channel);
       } catch (IOException e) {
-        Log.d(TAG, e, "Failed to read using MMAP. Use fallback");
+        Log.w(TAG, e, "Failed to read using MMAP. Use fallback");
         //http://stackoverflow.com/questions/8553158/prevent-outofmemory-when-using-java-nio-mappedbytebuffer
         System.gc();
         System.runFinalization();
@@ -132,25 +132,18 @@ public class VfsCache {
     return direct;
   }
 
-  static void writeTo(File file, ByteBuffer data) {
+  private static void writeTo(File file, ByteBuffer data) throws IOException {
+    final FileOutputStream stream = new FileOutputStream(file);
     try {
-      Log.d(TAG, "Write cached file %s", file.getAbsolutePath());
-      file.getParentFile().mkdirs();
-      final FileOutputStream stream = new FileOutputStream(file);
+      final FileChannel chan = stream.getChannel();
       try {
-        final FileChannel chan = stream.getChannel();
-        try {
-          chan.write(data);
-        } finally {
-          data.position(0);
-          chan.close();
-        }
+        chan.write(data);
       } finally {
-        stream.close();
+        data.position(0);
+        chan.close();
       }
-    } catch (IOException e) {
-      Log.d(TAG, e, "Failed to write to %s", file.getAbsolutePath());
-      file.delete();
+    } finally {
+      stream.close();
     }
   }
 }

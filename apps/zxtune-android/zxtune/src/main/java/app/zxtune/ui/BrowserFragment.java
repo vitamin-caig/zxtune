@@ -27,6 +27,9 @@ import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ProgressBar;
+
+import java.io.IOException;
+
 import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
@@ -110,7 +113,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     position.setDirSelectionListener(new BreadCrumbsView.DirSelectionListener() {
       @Override
       public void onDirSelection(VfsDir dir) {
-        controller.setCurrentDir(dir);
+        controller.browseDir(dir);
       }
     });
     return position;
@@ -121,7 +124,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     roots.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        controller.setCurrentDir(Vfs.getRoot());
+        controller.browseDir(Vfs.getRoot());
       }
     });
   }
@@ -237,7 +240,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
       final Object obj = parent.getItemAtPosition(position);
       if (obj instanceof VfsDir) {
-        controller.setCurrentDir((VfsDir) obj);
+        controller.browseDir((VfsDir) obj);
       } else if (obj instanceof VfsFile) {
         final Runnable playCmd = new Runnable() {
           final Uri[] toPlay = getUrisFrom(position, 100);

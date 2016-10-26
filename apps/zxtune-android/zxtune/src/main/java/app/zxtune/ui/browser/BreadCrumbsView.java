@@ -10,11 +10,13 @@
 
 package app.zxtune.ui.browser;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -64,7 +66,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
   }
 
   public final void setDir(VfsDir dir) {
-    if (dir == null || dir == Vfs.getRoot()) {
+    if (dir == null || Uri.EMPTY.equals(dir.getUri())) {
       hideButtons(0, container.getChildCount());
     } else {
       final ArrayList<VfsDir> elems = new ArrayList<VfsDir>();

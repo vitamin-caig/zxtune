@@ -86,19 +86,16 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   }
 
   @Override
-  public VfsObject resolve(Uri uri) throws IOException {
-    try {
-      if (Identifier.isFromRoot(uri)) {
-        final List<String> path = uri.getPathSegments();
-        return resolve(uri, path);
-      }
-    } catch (Exception e) {
-      Log.d(TAG, e, "resolve(%s)", uri);
+  public VfsObject resolve(Uri uri) {
+    if (Identifier.isFromRoot(uri)) {
+      final List<String> path = uri.getPathSegments();
+      return resolve(uri, path);
+    } else {
+      return null;
     }
-    return null;
   }
 
-  private VfsObject resolve(Uri uri, List<String> path) throws IOException {
+  private VfsObject resolve(Uri uri, List<String> path) {
     final String category = Identifier.findCategory(path);
     if (category == null) {
       return this;
@@ -121,7 +118,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     abstract String getPath();
 
-    abstract VfsObject resolve(Uri uri, List<String> path) throws IOException;
+    abstract VfsObject resolve(Uri uri, List<String> path);
   }
 
   private class AuthorsDir extends GroupingDir {
@@ -171,7 +168,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    public VfsObject resolve(Uri uri, List<String> path) {
       // use plain resolving to avoid deep hierarchy
       // check most frequent cases first
       final Track track = Identifier.findAuthorTrack(uri, path);
@@ -354,7 +351,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    public VfsObject resolve(Uri uri, List<String> path) {
       final Track track = Identifier.findPartyTrack(uri, path);
       if (track != null) {
         return new PartyTrackFile(uri, track);
@@ -484,6 +481,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       try {
         return CompoIdentifier.valueOf(val);
       } catch (IllegalArgumentException e) {
+        Log.w(TAG, e, "Invalid compo %s", val);
         return CompoIdentifier.unknown;
       }
     }
@@ -603,7 +601,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    public VfsObject resolve(Uri uri, List<String> path) {
       final Track track = Identifier.findTopTrack(uri, path);
       return track != null
           ? new TopTrackFile(uri, track)

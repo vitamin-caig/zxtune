@@ -64,7 +64,7 @@ public class RingtoneService extends IntentService {
   }
   
   private void makeToast(Exception e) {
-    Log.d(TAG, e, "Failed to create ringtone");
+    Log.w(TAG, e, "Failed to create ringtone");
     final Throwable cause = e.getCause();
     final String msg = cause != null ? cause.getMessage() : e.getMessage();
     final String txt = getString(R.string.ringtone_creating_failed, msg);

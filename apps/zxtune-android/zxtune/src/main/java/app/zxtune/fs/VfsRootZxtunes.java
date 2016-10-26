@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 import android.content.Context;
 import android.net.Uri;
 import android.util.SparseIntArray;
-import app.zxtune.Log;
+
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.zxtunes.Author;
@@ -83,19 +83,16 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   }
 
   @Override
-  public VfsObject resolve(Uri uri) throws IOException {
-    try {
-      if (Identifier.isFromRoot(uri)) {
-        final List<String> path = uri.getPathSegments();
-        return resolve(uri, path);
-      }
-    } catch (Exception e) {
-      Log.d(TAG, e, "resolve(%s)", uri);
+  public VfsObject resolve(Uri uri) {
+    if (Identifier.isFromRoot(uri)) {
+      final List<String> path = uri.getPathSegments();
+      return resolve(uri, path);
+    } else {
+      return null;
     }
-    return null;
   }
 
-  private VfsObject resolve(Uri uri, List<String> path) throws IOException {
+  private VfsObject resolve(Uri uri, List<String> path) {
     final String category = Identifier.findCategory(path);
     if (category == null) {
       return this;
@@ -118,7 +115,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     abstract String getPath();
 
-    abstract VfsObject resolve(Uri uri, List<String> path) throws IOException;
+    abstract VfsObject resolve(Uri uri, List<String> path);
   };
 
   private class AuthorsDir extends GroupingDir {
@@ -168,7 +165,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     }
 
     @Override
-    final VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    final VfsObject resolve(Uri uri, List<String> path) {
       // use plain resolving with most frequent cases first
       final Track track = Identifier.findTrack(uri, path);
       if (track != null) {

@@ -110,6 +110,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         return super.onOptionsItemSelected(item);
       }
     } catch (IOException e) {
+      Log.w(TAG, e, "onOptionsItemSelected");
       final Throwable cause = e.getCause();
       final String msg = cause != null ? cause.getMessage() : e.getMessage();
       Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
@@ -306,7 +307,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       try {
         return null != getRemotePage();
       } catch (IOException e) {
-        Log.d(TAG, e, "Failed to get remote page");
+        Log.w(TAG, e, "Failed to get remote page");
         return false;
       }
     }
