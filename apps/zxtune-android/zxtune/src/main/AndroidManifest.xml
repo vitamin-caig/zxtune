@@ -11,6 +11,7 @@
   <supports-screens android:largeScreens="true" android:xlargeScreens="true"/>
   <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:allowBackup="true" android:theme="@style/Theme.Dark">
     <meta-data android:name="key.modarchive" android:value="${modarchiveKey}"/>
+    <meta-data android:name="io.fabric.ApiKey" android:value="${crashlyticsKey}" />
     <activity android:name=".MainActivity" android:label="@string/app_name">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
