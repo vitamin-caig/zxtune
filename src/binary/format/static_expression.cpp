@@ -2,7 +2,7 @@
 *
 * @file
 *
-* @brief  Static token helpers implementation
+* @brief  Static predicates helpers implementation
 *
 * @author vitamin.caig@gmail.com
 *
@@ -17,11 +17,11 @@ namespace FormatDSL
 {
   std::size_t StaticPattern::FindSuffix(std::size_t suffixSize) const
   {
-    const StaticToken* const suffixBegin = End() - suffixSize;
-    const StaticToken* const suffixEnd = End();
+    const StaticPredicate* const suffixBegin = End() - suffixSize;
+    const StaticPredicate* const suffixEnd = End();
     const std::size_t patternSize = GetSize();
     const std::size_t startOffset = 1;
-    const StaticToken* start = suffixBegin - startOffset;
+    const StaticPredicate* start = suffixBegin - startOffset;
     for (std::size_t offset = startOffset; ; ++offset, --start)
     {
       const std::size_t windowSize = suffixSize + offset;
@@ -30,7 +30,7 @@ namespace FormatDSL
         //pattern:  ......sssssss
         //suffix:        xssssss
         //offset=1
-        if (std::equal(suffixBegin, suffixEnd, start, &StaticToken::AreIntersected))
+        if (std::equal(suffixBegin, suffixEnd, start, &StaticPredicate::AreIntersected))
         {
           return offset;
         }
@@ -46,7 +46,7 @@ namespace FormatDSL
         //suffix:  xssssss
         //out of pattern=2
         const std::size_t outOfPattern = windowSize - patternSize;
-        if (std::equal(suffixBegin + outOfPattern, suffixEnd, Begin(), &StaticToken::AreIntersected))
+        if (std::equal(suffixBegin + outOfPattern, suffixEnd, Begin(), &StaticPredicate::AreIntersected))
         {
           return offset;
         }
@@ -56,11 +56,11 @@ namespace FormatDSL
 
   std::size_t StaticPattern::FindPrefix(std::size_t prefixSize) const
   {
-    const StaticToken* const prefixBegin = Begin();
-    const StaticToken* const prefixEnd = Begin() + prefixSize;
+    const StaticPredicate* const prefixBegin = Begin();
+    const StaticPredicate* const prefixEnd = Begin() + prefixSize;
     const std::size_t patternSize = GetSize();
     const std::size_t startOffset = 1;
-    const StaticToken* start = prefixBegin + startOffset;
+    const StaticPredicate* start = prefixBegin + startOffset;
     for (std::size_t offset = startOffset; ; ++offset, ++start)
     {
       const std::size_t windowSize = prefixSize + offset;
@@ -69,7 +69,7 @@ namespace FormatDSL
         //pattern: ssssss...
         //prefix:   sssssx
         //offset=1
-        if (std::equal(prefixBegin, prefixEnd, start, &StaticToken::AreIntersected))
+        if (std::equal(prefixBegin, prefixEnd, start, &StaticPredicate::AreIntersected))
         {
           return offset;
         }
@@ -85,7 +85,7 @@ namespace FormatDSL
         //prefix:    sssx
         //out of pattern=2
         const std::size_t outOfPattern = windowSize - patternSize;
-        if (std::equal(prefixBegin, prefixEnd - outOfPattern, start, &StaticToken::AreIntersected))
+        if (std::equal(prefixBegin, prefixEnd - outOfPattern, start, &StaticPredicate::AreIntersected))
         {
           return offset;
         }

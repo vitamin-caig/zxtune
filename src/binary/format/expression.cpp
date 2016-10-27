@@ -30,10 +30,10 @@ namespace FormatDSL
 {
   typedef RangeIterator<std::string::const_iterator> PatternIterator;
 
-  class AnyValueToken : public Token
+  class AnyValuePredicate : public Predicate
   {
   public:
-    AnyValueToken()
+    AnyValuePredicate()
     {
     }
 
@@ -44,15 +44,15 @@ namespace FormatDSL
 
     static Ptr Create()
     {
-      static const AnyValueToken INSTANCE;
+      static const AnyValuePredicate INSTANCE;
       return MakeSingletonPointer(INSTANCE);
     }
   };
 
-  class MatchValueToken : public Token
+  class MatchValuePredicate : public Predicate
   {
   public:
-    explicit MatchValueToken(uint_t value)
+    explicit MatchValuePredicate(uint_t value)
       : Value(value)
     {
     }
@@ -67,16 +67,16 @@ namespace FormatDSL
       Require(it && SYMBOL_TEXT == *it && ++it);
       const Char val = *it;
       ++it;
-      return MakePtr<MatchValueToken>(val);
+      return MakePtr<MatchValuePredicate>(val);
     }
   private:
     const uint_t Value;
   };
 
-  class MatchMaskToken : public Token
+  class MatchMaskPredicate : public Predicate
   {
   public:
-    MatchMaskToken(uint_t mask, uint_t value)
+    MatchMaskPredicate(uint_t mask, uint_t value)
       : Mask(mask)
       , Value(value)
     {
@@ -124,11 +124,11 @@ namespace FormatDSL
       switch (mask)
       {
       case 0:
-        return AnyValueToken::Create();
+        return AnyValuePredicate::Create();
       case 0xff:
-        return MakePtr<MatchValueToken>(value);
+        return MakePtr<MatchValuePredicate>(value);
       default:
-        return MakePtr<MatchMaskToken>(mask, value);
+        return MakePtr<MatchMaskPredicate>(mask, value);
       }
     }
   private:
@@ -161,10 +161,10 @@ namespace FormatDSL
     return res;
   }
 
-  class MatchMultiplicityToken : public Token
+  class MatchMultiplicityPredicate : public Predicate
   {
   public:
-    MatchMultiplicityToken(uint_t mult)
+    MatchMultiplicityPredicate(uint_t mult)
       : Mult(mult)
     {
       Require(Mult > 0 && Mult < 128);
@@ -179,19 +179,19 @@ namespace FormatDSL
     {
       Require(it && MULTIPLICITY_TEXT == *it && ++it);
       const uint_t val = ParseNumber(it);
-      return MakePtr<MatchMultiplicityToken>(val);
+      return MakePtr<MatchMultiplicityPredicate>(val);
     }
   private:
     const uint_t Mult;
   };
 
-  uint_t GetSingleMatchedValue(const Token& tok)
+  uint_t GetSingleMatchedValue(const Predicate& pred)
   {
     const int_t NO_MATCHES = -1;
     int_t val = NO_MATCHES;
     for (uint_t idx = 0; idx != 256; ++idx)
     {
-      if (tok.Match(idx))
+      if (pred.Match(idx))
       {
         Require(NO_MATCHES == val);
         val = idx;
@@ -201,11 +201,11 @@ namespace FormatDSL
     return static_cast<uint_t>(val);
   }
 
-  bool IsAnyByte(Token::Ptr tok)
+  bool IsAnyByte(Predicate::Ptr pred)
   {
     for (uint_t idx = 0; idx != 256; ++idx)
     {
-      if (!tok->Match(idx))
+      if (!pred->Match(idx))
       {
         return false;
       }
@@ -213,11 +213,11 @@ namespace FormatDSL
     return true;
   }
 
-  bool IsNoByte(Token::Ptr tok)
+  bool IsNoByte(Predicate::Ptr pred)
   {
     for (uint_t idx = 0; idx != 256; ++idx)
     {
-      if (tok->Match(idx))
+      if (pred->Match(idx))
       {
         return false;
       }
@@ -225,10 +225,10 @@ namespace FormatDSL
     return true;
   }
 
-  class MatchRangeToken : public Token
+  class MatchRangePredicate : public Predicate
   {
   public:
-    MatchRangeToken(uint_t from, uint_t to)
+    MatchRangePredicate(uint_t from, uint_t to)
       : From(from)
       , To(to)
     {
@@ -244,7 +244,7 @@ namespace FormatDSL
       const uint_t left = GetSingleMatchedValue(*lh);
       const uint_t right = GetSingleMatchedValue(*rh);
       Require(left < right);
-      return MakePtr<MatchRangeToken>(left, right);
+      return MakePtr<MatchRangePredicate>(left, right);
     }
   private:
     const uint_t From;
@@ -268,10 +268,10 @@ namespace FormatDSL
   };
 
   template<class BinOp>
-  class BinaryOperationToken : public Token
+  class BinaryOperationPredicate : public Predicate
   {
   public:
-    BinaryOperationToken(Ptr lh, Ptr rh)
+    BinaryOperationPredicate(Ptr lh, Ptr rh)
       : Lh(std::move(lh))
       , Rh(std::move(rh))
     {
@@ -284,7 +284,7 @@ namespace FormatDSL
 
     static Ptr Create(Ptr lh, Ptr rh)
     {
-      return MakePtr<BinaryOperationToken>(lh, rh);
+      return MakePtr<BinaryOperationPredicate>(lh, rh);
     }
   private:
     const Ptr Lh;
@@ -300,7 +300,7 @@ namespace FormatDSL
     return mult;
   }
 
-  Token::Ptr ParseSingleToken(const std::string& txt)
+  Predicate::Ptr ParseSinglePredicate(const std::string& txt)
   {
     PatternIterator it(txt.begin(), txt.end());
     Require(it);
@@ -308,20 +308,18 @@ namespace FormatDSL
     {
     case ANY_BYTE_TEXT:
       ++it;
-      return AnyValueToken::Create();
+      return AnyValuePredicate::Create();
     case SYMBOL_TEXT:
-      return MatchValueToken::Create(it);
+      return MatchValuePredicate::Create(it);
     case MULTIPLICITY_TEXT:
-      return MatchMultiplicityToken::Create(it);
+      return MatchMultiplicityPredicate::Create(it);
     case BINARY_MASK_TEXT:
     default:
-      return MatchMaskToken::Create(it);
+      return MatchMaskPredicate::Create(it);
     }
   }
 
-  typedef std::vector<Token::Ptr> Pattern;
-
-  Token::Ptr ParseOperation(const std::string& txt, Pattern& pat)
+  Predicate::Ptr ParseOperation(const std::string& txt, Pattern& pat)
   {
     Require(!txt.empty());
     if (txt[0] == RANGE_TEXT ||
@@ -329,37 +327,37 @@ namespace FormatDSL
         txt[0] == DISJUNCTION_TEXT)
     {
       Require(pat.size() >= 2);
-      const Token::Ptr rh = pat.back();
+      const Predicate::Ptr rh = pat.back();
       pat.pop_back();
-      const Token::Ptr lh = pat.back();
+      const Predicate::Ptr lh = pat.back();
       pat.pop_back();
       if (txt[0] == RANGE_TEXT)
       {
-        const Token::Ptr res = MatchRangeToken::Create(lh, rh);
+        const Predicate::Ptr res = MatchRangePredicate::Create(lh, rh);
         Require(!IsAnyByte(res));
         return res;
       }
       else if (txt[0] == CONJUNCTION_TEXT)
       {
-        return BinaryOperationToken<Conjunction>::Create(lh, rh);
+        return BinaryOperationPredicate<Conjunction>::Create(lh, rh);
       }
       else if (txt[0] == DISJUNCTION_TEXT)
       {
-        const Token::Ptr res = BinaryOperationToken<Disjunction>::Create(lh, rh);
+        const Predicate::Ptr res = BinaryOperationPredicate<Disjunction>::Create(lh, rh);
         Require(!IsAnyByte(res));
         return res;
       }
     }
     Require(false);
-    return Token::Ptr();
+    return Predicate::Ptr();
   }
 
-  class TokensFactory : public FormatTokensVisitor
+  class PredicatesFactory : public FormatTokensVisitor
   {
   public:
     void Match(const std::string& val) override
     {
-      Result.push_back(ParseSingleToken(val));
+      Result.push_back(ParseSinglePredicate(val));
       Require(!IsNoByte(Result.back()));
     }
 
@@ -414,7 +412,7 @@ namespace FormatDSL
 
   Pattern CompilePattern(const std::string& textPattern)
   {
-    TokensFactory factory;
+    PredicatesFactory factory;
     const FormatTokensVisitor::Ptr check = CreatePostfixSynaxCheckAdapter(factory);
     ParseFormatNotationPostfix(textPattern, *check);
     return factory.GetResult();
@@ -434,7 +432,7 @@ namespace FormatDSL
       return Offset;
     }
 
-    ObjectIterator<Token::Ptr>::Ptr Tokens() const override
+    ObjectIterator<Predicate::Ptr>::Ptr Predicates() const override
     {
       return CreateRangedObjectIteratorAdapter(Pat.begin(), Pat.end());
     }

@@ -2,7 +2,7 @@
 *
 * @file
 *
-* @brief  Static token helpers
+* @brief  Static predicates helpers
 *
 * @author vitamin.caig@gmail.com
 *
@@ -22,24 +22,24 @@ namespace Binary
 {
   namespace FormatDSL
   {
-    class StaticToken
+    class StaticPredicate
     {
     public:
-      explicit StaticToken(FormatDSL::Token::Ptr tok)
+      explicit StaticPredicate(FormatDSL::Predicate::Ptr pred)
         : Mask()
         , Count()
         , Last()
       {
         for (uint_t idx = 0; idx != 256; ++idx)
         {
-          if (tok->Match(idx))
+          if (pred->Match(idx))
           {
             Set(idx);
           }
         }
       }
 
-      explicit StaticToken(uint_t val)
+      explicit StaticPredicate(uint_t val)
         : Mask()
         , Count()
         , Last()
@@ -64,7 +64,7 @@ namespace Binary
           : nullptr;
       }
 
-      static bool AreIntersected(const StaticToken& lh, const StaticToken& rh)
+      static bool AreIntersected(const StaticPredicate& lh, const StaticPredicate& rh)
       {
         if (lh.IsAny() || rh.IsAny())
         {
@@ -113,11 +113,11 @@ namespace Binary
     class StaticPattern
     {
     public:
-      explicit StaticPattern(ObjectIterator<Token::Ptr>::Ptr iter)
+      explicit StaticPattern(ObjectIterator<Predicate::Ptr>::Ptr iter)
       {
         for (; iter->IsValid(); iter->Next())
         {
-          Data.push_back(StaticToken(iter->Get()));
+          Data.push_back(StaticPredicate(iter->Get()));
         }
       }
 
@@ -126,7 +126,7 @@ namespace Binary
         return Data.size();
       }
 
-      const StaticToken& Get(std::size_t idx) const
+      const StaticPredicate& Get(std::size_t idx) const
       {
         return Data[idx];
       }
@@ -136,17 +136,17 @@ namespace Binary
       //return forward offset
       std::size_t FindPrefix(std::size_t prefixSize) const;
     private:
-      const StaticToken* Begin() const
+      const StaticPredicate* Begin() const
       {
         return &Data.front();
       }
 
-      const StaticToken* End() const
+      const StaticPredicate* End() const
       {
         return &Data.back() + 1;
       }
     private:
-      std::vector<StaticToken> Data;
+      std::vector<StaticPredicate> Data;
     };
   }
 }

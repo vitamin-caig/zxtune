@@ -21,16 +21,16 @@ namespace Binary
 {
   namespace FormatDSL
   {
-    class Token
+    class Predicate
     {
     public:
-      typedef std::shared_ptr<const Token> Ptr;
-      virtual ~Token() = default;
+      typedef std::shared_ptr<const Predicate> Ptr;
+      virtual ~Predicate() = default;
 
       virtual bool Match(uint_t val) const = 0;
     };
 
-    typedef std::vector<Token::Ptr> Pattern;
+    typedef std::vector<Predicate::Ptr> Pattern;
 
     class Expression
     {
@@ -39,7 +39,7 @@ namespace Binary
       virtual ~Expression() = default;
 
       virtual std::size_t StartOffset() const = 0;
-      virtual ObjectIterator<Token::Ptr>::Ptr Tokens() const = 0;
+      virtual ObjectIterator<Predicate::Ptr>::Ptr Predicates() const = 0;
 
       static Ptr Parse(const std::string& notation);
     };

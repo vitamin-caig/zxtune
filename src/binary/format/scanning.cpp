@@ -91,8 +91,8 @@ namespace Binary
       {
         for (std::size_t pos = 0, offset = 1; pos != patternSize; ++pos, ++offset)
         {
-          const FormatDSL::StaticToken& tok = pattern.Get(pos);
-          if (tok.Match(sym))
+          const FormatDSL::StaticPredicate& pred = pattern.Get(pos);
+          if (pred.Match(sym))
           {
             offset = 0;
           }
@@ -209,8 +209,8 @@ namespace Binary
       PatternMatrix tmp(patternSize);
       for (std::size_t idx = 0; idx != patternSize; ++idx)
       {
-        const FormatDSL::StaticToken& tok = pattern.Get(idx);
-        if (const uint_t* single = tok.GetSingle())
+        const FormatDSL::StaticPredicate& pred = pattern.Get(idx);
+        if (const uint_t* single = pred.GetSingle())
         {
           tmp[idx] = *single;
         }
@@ -227,9 +227,9 @@ namespace Binary
     const PatternMatrix Pattern;
   };
 
-  Format::Ptr CreateScanningFormatFromTokens(const FormatDSL::Expression& expr, std::size_t minSize)
+  Format::Ptr CreateScanningFormatFromPredicates(const FormatDSL::Expression& expr, std::size_t minSize)
   {
-    const FormatDSL::StaticPattern pattern(expr.Tokens());
+    const FormatDSL::StaticPattern pattern(expr.Predicates());
     const std::size_t startOffset = expr.StartOffset();
     if (const Format::Ptr exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
     {
@@ -252,6 +252,6 @@ namespace Binary
   Format::Ptr CreateFormat(const std::string& pattern, std::size_t minSize)
   {
     const FormatDSL::Expression::Ptr expr = FormatDSL::Expression::Parse(pattern);
-    return CreateScanningFormatFromTokens(*expr, minSize);
+    return CreateScanningFormatFromPredicates(*expr, minSize);
   }
 }
