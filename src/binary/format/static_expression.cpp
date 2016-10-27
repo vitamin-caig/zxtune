@@ -35,13 +35,13 @@ namespace FormatDSL
           return offset;
         }
       }
+      else if (patternSize == offset)
+      {
+        //all suffix is out of pattern
+        return offset;
+      }
       else
       {
-        if (patternSize == offset)
-        {
-          //all suffix is out of pattern
-          return offset;
-        }
         //pattern:   .......
         //suffix:  xssssss
         //out of pattern=2

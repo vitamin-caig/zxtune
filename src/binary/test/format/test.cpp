@@ -150,7 +150,7 @@ namespace
     try
     {
       SyntaxReportCallback cb(result);
-      const Binary::FormatDSL::FormatTokensVisitor::Ptr adapter = Binary::FormatDSL::CreatePostfixSynaxCheckAdapter(cb);
+      const Binary::FormatDSL::FormatTokensVisitor::Ptr adapter = Binary::FormatDSL::CreatePostfixSyntaxCheckAdapter(cb);
       Binary::FormatDSL::ParseFormatNotationPostfix(notation, *adapter);
     }
     catch (const std::exception&)

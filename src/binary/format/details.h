@@ -18,8 +18,6 @@ namespace Binary
   class FormatDetails : public Format
   {
   public:
-    typedef std::shared_ptr<const FormatDetails> Ptr;
-
     virtual std::size_t GetMinSize() const = 0;
   };
 }

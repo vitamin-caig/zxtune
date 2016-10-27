@@ -40,7 +40,7 @@ namespace Binary
   public:
     SharedContainer(Value arr, std::size_t offset, std::size_t size)
       : Buffer(std::move(arr))
-      , Address(GetPointer(*arr, offset))
+      , Address(GetPointer(*Buffer, offset))
       , Offset(offset)
       , Length(size)
     {
@@ -119,7 +119,7 @@ namespace Binary
     //cover downcasting
     if (Container::Ptr asContainer = std::dynamic_pointer_cast<const Container>(data))
     {
-      return std::move(asContainer);
+      return asContainer;
     }
     else if (const auto size = data ? data->Size() : 0)
     {

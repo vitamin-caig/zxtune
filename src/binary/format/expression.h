@@ -11,9 +11,9 @@
 #pragma once
 
 //common includes
-#include <iterator.h>
 #include <types.h>
 //std includes
+#include <list>
 #include <memory>
 #include <string>
 
@@ -39,7 +39,7 @@ namespace Binary
       virtual ~Expression() = default;
 
       virtual std::size_t StartOffset() const = 0;
-      virtual ObjectIterator<Predicate::Ptr>::Ptr Predicates() const = 0;
+      virtual const Pattern& Predicates() const = 0;
 
       static Ptr Parse(const std::string& notation);
     };

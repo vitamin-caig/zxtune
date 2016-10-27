@@ -523,7 +523,7 @@ namespace FormatDSL
     rpn.Flush();
   }
 
-  FormatTokensVisitor::Ptr CreatePostfixSynaxCheckAdapter(FormatTokensVisitor& visitor)
+  FormatTokensVisitor::Ptr CreatePostfixSyntaxCheckAdapter(FormatTokensVisitor& visitor)
   {
     return MakePtr<SyntaxCheck>(visitor);
   }

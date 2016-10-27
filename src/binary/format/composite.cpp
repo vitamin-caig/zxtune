@@ -22,9 +22,9 @@
 
 namespace Binary
 {
-  std::size_t GetSize(Format::Ptr format)
+  std::size_t GetSize(const Format& format)
   {
-    if (const FormatDetails::Ptr dtl = std::dynamic_pointer_cast<const FormatDetails>(format))
+    if (const auto dtl = dynamic_cast<const FormatDetails*>(&format))
     {
       return dtl->GetMinSize();
     }
@@ -38,11 +38,11 @@ namespace Binary
   {
   public:
     CompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset)
-      : Header(header)
-      , Footer(footer)
-      , MinFooterOffset(std::max(minFooterOffset, GetSize(header)))
+      : Header(std::move(header))
+      , Footer(std::move(footer))
+      , MinFooterOffset(std::max(minFooterOffset, GetSize(*Header)))
       , MaxFooterOffset(maxFooterOffset)
-      , FooterSize(GetSize(footer))
+      , FooterSize(GetSize(*Footer))
     {
       Require(MinFooterOffset <= MaxFooterOffset);
     }
@@ -120,6 +120,6 @@ namespace Binary
 {
   Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset)
   {
-    return MakePtr<CompositeFormat>(header, footer, minFooterOffset, maxFooterOffset);
+    return MakePtr<CompositeFormat>(std::move(header), std::move(footer), minFooterOffset, maxFooterOffset);
   }
 }

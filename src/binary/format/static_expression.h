@@ -25,14 +25,14 @@ namespace Binary
     class StaticPredicate
     {
     public:
-      explicit StaticPredicate(FormatDSL::Predicate::Ptr pred)
+      explicit StaticPredicate(const FormatDSL::Predicate& pred)
         : Mask()
         , Count()
         , Last()
       {
         for (uint_t idx = 0; idx != 256; ++idx)
         {
-          if (pred->Match(idx))
+          if (pred.Match(idx))
           {
             Set(idx);
           }
@@ -46,6 +46,8 @@ namespace Binary
       {
         Set(val);
       }
+      
+      StaticPredicate(StaticPredicate&&) = default;
 
       bool Match(uint_t val) const
       {
@@ -113,14 +115,17 @@ namespace Binary
     class StaticPattern
     {
     public:
-      explicit StaticPattern(ObjectIterator<Predicate::Ptr>::Ptr iter)
+      explicit StaticPattern(const Pattern& pat)
       {
-        for (; iter->IsValid(); iter->Next())
+        Data.reserve(pat.size());
+        for (const auto& pred : pat)
         {
-          Data.push_back(StaticPredicate(iter->Get()));
+          Data.push_back(StaticPredicate(*pred));
         }
       }
-
+      
+      StaticPattern(StaticPattern&&) = default;
+      
       std::size_t GetSize() const
       {
         return Data.size();

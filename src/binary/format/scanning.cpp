@@ -30,13 +30,13 @@ namespace Binary
     typedef std::array<uint8_t, 256> PatternRow;
     typedef std::vector<PatternRow> PatternMatrix;
 
-    FuzzyFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
+    FuzzyFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
       , MinScanStep(minScanStep)
-      , Pat(mtx.rbegin(), mtx.rend())
-      , PatRBegin(&Pat[0])
-      , PatREnd(PatRBegin + Pat.size())
+      , Pat(std::move(mtx))
+      , PatRBegin(&Pat.back())
+      , PatREnd(&Pat.front() - 1)
     {
     }
 
@@ -128,20 +128,21 @@ namespace Binary
       }
       //Each matrix element specifies forward movement of reversily matched pattern for specified symbol. =0 means symbol match
       const std::size_t minScanStep = pattern.FindPrefix(patternSize);
-      return MakePtr<FuzzyFormat>(tmp, startOffset, minSize, minScanStep);
+      return MakePtr<FuzzyFormat>(std::move(tmp), startOffset, minSize, minScanStep);
     }
   private:
     std::size_t SearchBackward(const uint8_t* data) const
     {
-      if (const std::size_t offset = (*PatRBegin)[*data])
+      auto it = PatRBegin;
+      if (const std::size_t offset = (*it)[*data])
       {
         return offset;
       }
+      --it;
       --data;
-      for (const PatternRow* it = PatRBegin + 1; it != PatREnd; ++it, --data)
+      for (; it != PatREnd; --it, --data)
       {
-        const PatternRow& row = *it;
-        if (const std::size_t offset = row[*data])
+        if (const std::size_t offset = (*it)[*data])
         {
           return offset;
         }
@@ -162,10 +163,10 @@ namespace Binary
   public:
     typedef std::vector<uint8_t> PatternMatrix;
 
-    ExactFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize)
+    ExactFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize)
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
-      , Pattern(mtx)
+      , Pattern(std::move(mtx))
     {
     }
 
@@ -219,7 +220,7 @@ namespace Binary
           return Ptr();
         }
       }
-      return MakePtr<ExactFormat>(tmp, startOffset, minSize);
+      return MakePtr<ExactFormat>(std::move(tmp), startOffset, minSize);
     }
   private:
     const std::size_t Offset;
@@ -231,7 +232,7 @@ namespace Binary
   {
     const FormatDSL::StaticPattern pattern(expr.Predicates());
     const std::size_t startOffset = expr.StartOffset();
-    if (const Format::Ptr exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
+    if (Format::Ptr exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
     {
       return exact;
     }

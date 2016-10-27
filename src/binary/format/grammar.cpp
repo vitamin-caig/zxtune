@@ -181,7 +181,7 @@ namespace FormatDSL
 
     void AddTokenizer(LexicalAnalysis::Tokenizer::Ptr tokenizer) override
     {
-      return Delegate->AddTokenizer(tokenizer);
+      return Delegate->AddTokenizer(std::move(tokenizer));
     }
 
     void Analyse(const std::string& notation, LexicalAnalysis::Grammar::Callback& cb) const override

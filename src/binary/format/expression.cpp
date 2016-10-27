@@ -14,6 +14,7 @@
 #include "syntax.h"
 //common includes
 #include <contract.h>
+#include <iterator.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
@@ -65,7 +66,7 @@ namespace FormatDSL
     static Ptr Create(PatternIterator& it)
     {
       Require(it && SYMBOL_TEXT == *it && ++it);
-      const Char val = *it;
+      const char val = *it;
       ++it;
       return MakePtr<MatchValuePredicate>(val);
     }
@@ -164,10 +165,10 @@ namespace FormatDSL
   class MatchMultiplicityPredicate : public Predicate
   {
   public:
-    MatchMultiplicityPredicate(uint_t mult)
+    explicit MatchMultiplicityPredicate(uint_t mult)
       : Mult(mult)
     {
-      Require(Mult > 0 && Mult < 128);
+      Require(Mult < 128);
     }
 
     bool Match(uint_t val) const override
@@ -201,11 +202,11 @@ namespace FormatDSL
     return static_cast<uint_t>(val);
   }
 
-  bool IsAnyByte(Predicate::Ptr pred)
+  bool IsAnyByte(const Predicate& pred)
   {
     for (uint_t idx = 0; idx != 256; ++idx)
     {
-      if (!pred->Match(idx))
+      if (!pred.Match(idx))
       {
         return false;
       }
@@ -213,16 +214,21 @@ namespace FormatDSL
     return true;
   }
 
-  bool IsNoByte(Predicate::Ptr pred)
+  bool IsNoByte(const Predicate& pred)
   {
     for (uint_t idx = 0; idx != 256; ++idx)
     {
-      if (pred->Match(idx))
+      if (pred.Match(idx))
       {
         return false;
       }
     }
     return true;
+  }
+  
+  bool NotAnyByte(const Predicate::Ptr& p)
+  {
+    return !IsAnyByte(*p);
   }
 
   class MatchRangePredicate : public Predicate
@@ -239,10 +245,10 @@ namespace FormatDSL
       return Math::InRange(val, From, To);
     }
 
-    static Ptr Create(Ptr lh, Ptr rh)
+    static Ptr Create(const Predicate& lh, const Predicate& rh)
     {
-      const uint_t left = GetSingleMatchedValue(*lh);
-      const uint_t right = GetSingleMatchedValue(*rh);
+      const uint_t left = GetSingleMatchedValue(lh);
+      const uint_t right = GetSingleMatchedValue(rh);
       Require(left < right);
       return MakePtr<MatchRangePredicate>(left, right);
     }
@@ -253,17 +259,17 @@ namespace FormatDSL
 
   struct Conjunction
   {
-    static bool Execute(bool lh, bool rh)
+    static bool Execute(uint_t val, const Predicate& lh, const Predicate& rh)
     {
-      return lh && rh;
+      return lh.Match(val) && rh.Match(val);
     }
   };
 
   struct Disjunction
   {
-    static bool Execute(bool lh, bool rh)
+    static bool Execute(uint_t val, const Predicate& lh, const Predicate& rh)
     {
-      return lh || rh;
+      return lh.Match(val) || rh.Match(val);
     }
   };
 
@@ -279,12 +285,12 @@ namespace FormatDSL
 
     bool Match(uint_t val) const override
     {
-      return BinOp::Execute(Lh->Match(val), Rh->Match(val));
+      return BinOp::Execute(val, *Lh, *Rh);
     }
 
     static Ptr Create(Ptr lh, Ptr rh)
     {
-      return MakePtr<BinaryOperationPredicate>(lh, rh);
+      return MakePtr<BinaryOperationPredicate>(std::move(lh), std::move(rh));
     }
   private:
     const Ptr Lh;
@@ -327,25 +333,21 @@ namespace FormatDSL
         txt[0] == DISJUNCTION_TEXT)
     {
       Require(pat.size() >= 2);
-      const Predicate::Ptr rh = pat.back();
+      auto rh = std::move(pat.back());
       pat.pop_back();
-      const Predicate::Ptr lh = pat.back();
+      auto lh = std::move(pat.back());
       pat.pop_back();
       if (txt[0] == RANGE_TEXT)
       {
-        const Predicate::Ptr res = MatchRangePredicate::Create(lh, rh);
-        Require(!IsAnyByte(res));
-        return res;
+        return MatchRangePredicate::Create(*lh, *rh);
       }
       else if (txt[0] == CONJUNCTION_TEXT)
       {
-        return BinaryOperationPredicate<Conjunction>::Create(lh, rh);
+        return BinaryOperationPredicate<Conjunction>::Create(std::move(lh), std::move(rh));
       }
       else if (txt[0] == DISJUNCTION_TEXT)
       {
-        const Predicate::Ptr res = BinaryOperationPredicate<Disjunction>::Create(lh, rh);
-        Require(!IsAnyByte(res));
-        return res;
+        return BinaryOperationPredicate<Disjunction>::Create(std::move(lh), std::move(rh));
       }
     }
     Require(false);
@@ -358,7 +360,7 @@ namespace FormatDSL
     void Match(const std::string& val) override
     {
       Result.push_back(ParseSinglePredicate(val));
-      Require(!IsNoByte(Result.back()));
+      Require(!IsNoByte(*Result.back()));
     }
 
     void GroupStart() override
@@ -380,7 +382,9 @@ namespace FormatDSL
       Pattern dup;
       if (!Groups.empty() && Groups.top().second == Result.size())
       {
-        dup.assign(Result.begin() + Groups.top().first, Result.end());
+        auto start = Result.begin();
+        std::advance(start, Groups.top().first);
+        dup.assign(start, Result.end());
         Groups.pop();
       }
       else
@@ -395,14 +399,15 @@ namespace FormatDSL
 
     void Operation(const std::string& op) override
     {
-      Result.push_back(ParseOperation(op, Result));
-      Require(!IsNoByte(Result.back()));
+      Result.emplace_back(ParseOperation(op, Result));
+      Require(!IsAnyByte(*Result.back()));
+      Require(!IsNoByte(*Result.back()));
     }
 
-    Pattern GetResult() const
+    Pattern CaptureResult()
     {
       Require(GroupBegins.empty());
-      return Result;
+      return std::move(Result);
     }
   private:
     Pattern Result;
@@ -413,17 +418,17 @@ namespace FormatDSL
   Pattern CompilePattern(const std::string& textPattern)
   {
     PredicatesFactory factory;
-    const FormatTokensVisitor::Ptr check = CreatePostfixSynaxCheckAdapter(factory);
+    const FormatTokensVisitor::Ptr check = CreatePostfixSyntaxCheckAdapter(factory);
     ParseFormatNotationPostfix(textPattern, *check);
-    return factory.GetResult();
+    return factory.CaptureResult();
   }
 
   class LinearExpression : public Expression
   {
   public:
-    LinearExpression(std::size_t offset, Pattern::const_iterator from, Pattern::const_iterator to)
+    LinearExpression(std::size_t offset, Pattern pat)
       : Offset(offset)
-      , Pat(from, to)
+      , Pat(std::move(pat))
     {
     }
 
@@ -432,9 +437,9 @@ namespace FormatDSL
       return Offset;
     }
 
-    ObjectIterator<Predicate::Ptr>::Ptr Predicates() const override
+    const Pattern& Predicates() const override
     {
-      return CreateRangedObjectIteratorAdapter(Pat.begin(), Pat.end());
+      return Pat;
     }
   private:
     const std::size_t Offset;
@@ -449,14 +454,16 @@ namespace FormatDSL
 {
   Expression::Ptr Expression::Parse(const std::string& notation)
   {
-    const Pattern& pat = CompilePattern(notation);
-    const Pattern::const_iterator first = pat.begin();
-    const Pattern::const_iterator last = pat.end();
-    const Pattern::const_iterator firstNotAny = std::find_if(first, last, std::not1(std::ptr_fun(&IsAnyByte)));
+    auto pat = CompilePattern(notation);
+    const auto first = pat.begin();
+    const auto last = pat.end();
+    const auto firstNotAny = std::find_if(first, last, &NotAnyByte);
     Require(firstNotAny != last);
-    const Pattern::const_iterator lastNotAny = std::find_if(pat.rbegin(), pat.rend(), std::not1(std::ptr_fun(&IsAnyByte))).base();
+    const auto lastNotAny = std::find_if(pat.rbegin(), pat.rend(), &NotAnyByte).base();
     const std::size_t offset = std::distance(first, firstNotAny);
-    return MakePtr<LinearExpression>(offset, firstNotAny, lastNotAny);
+    pat.erase(lastNotAny, pat.end());
+    pat.erase(pat.begin(), firstNotAny);
+    return MakePtr<LinearExpression>(offset, std::move(pat));
   }
 }
 }

@@ -72,7 +72,7 @@ namespace LexicalAnalysis
   class Tokenizer
   {
   public:
-    typedef std::shared_ptr<const Tokenizer> Ptr;
+    typedef std::unique_ptr<const Tokenizer> Ptr;
     virtual ~Tokenizer() = default;
 
     virtual TokenType Parse(const std::string& lexeme) const = 0;

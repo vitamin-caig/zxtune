@@ -32,6 +32,6 @@ namespace Binary
 
     void ParseFormatNotation(const std::string& notation, FormatTokensVisitor& visitor);
     void ParseFormatNotationPostfix(const std::string& notation, FormatTokensVisitor& visitor);
-    FormatTokensVisitor::Ptr CreatePostfixSynaxCheckAdapter(FormatTokensVisitor& visitor);
+    FormatTokensVisitor::Ptr CreatePostfixSyntaxCheckAdapter(FormatTokensVisitor& visitor);
   }
 }
