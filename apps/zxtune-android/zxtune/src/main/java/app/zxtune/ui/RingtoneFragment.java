@@ -39,7 +39,6 @@ public class RingtoneFragment extends DialogFragment {
   static DialogFragment createInstance(Item item) {
     final Bundle args = new Bundle();
     args.putParcelable("url", item.getDataId().getFullLocation());
-    args.putLong("duration", item.getDuration().convertTo(TimeUnit.SECONDS));
     final DialogFragment result = new RingtoneFragment();
     result.setArguments(args);
     return result;
@@ -59,31 +58,19 @@ public class RingtoneFragment extends DialogFragment {
   private void fillDurations(LayoutInflater inflater, ViewGroup container) {
 
     final Uri uri = (Uri) getArguments().getParcelable("url");
-    final TimeStamp moduleDuration = TimeStamp.createFrom(getArguments().getLong("duration"), TimeUnit.SECONDS);
 
     final Button.OnClickListener listener = new Button.OnClickListener() {
       @Override
       public void onClick(View v) {
-        RingtoneService.execute(getActivity(), uri, (TimeStamp) v.getTag());
+        final String tag = (String) v.getTag();
+        final Integer tagValue = Integer.valueOf(tag);
+        RingtoneService.execute(getActivity(), uri, TimeStamp.createFrom(tagValue, TimeUnit.SECONDS));
         dismiss();
       }
     };
-
-    for (int idx = 0; idx < PREDEFINED_DURATIONS.length; ++idx) {
-      TimeStamp duration = PREDEFINED_DURATIONS[idx];
-      if (moduleDuration.compareTo(duration) < 0) {
-        if (idx == 0) {
-          duration = moduleDuration;
-        } else {
-          break;
-        }
-      }
-      Log.d(TAG, "Add duration button %s", duration);
-      final Button button = (Button) inflater.inflate(R.layout.button, container, false);
-      button.setText(duration.toString());
-      button.setTag(duration);
+    for (int idx = 0, lim = container.getChildCount(); idx != lim; ++idx) {
+      final Button button = (Button) container.getChildAt(idx);
       button.setOnClickListener(listener);
-      container.addView(button);
     }
   }
 }

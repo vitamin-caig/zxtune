@@ -224,6 +224,7 @@ public class RingtoneService extends IntentService {
       this.player = player;
       this.limit = limit;
       player.setPosition(0);
+      player.setProperty(ZXTune.Properties.Sound.LOOPED, 1);
     }
     
     @Override
