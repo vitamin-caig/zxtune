@@ -124,6 +124,12 @@ public class Analytics {
     event.putCustomAttribute("SourceDetailed", scheme + "/" + pathStart);
   }
 
+  public static void sendUIEvent(String action) {
+    final CustomEvent event = new CustomEvent("UI");
+    event.putCustomAttribute("Action", action);
+    send(event);
+  }
+
   private static void send(CustomEvent event) {
     Answers.getInstance().logCustom(event);
     Log.d(TAG, event.toString());

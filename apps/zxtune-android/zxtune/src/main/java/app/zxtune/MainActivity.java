@@ -163,6 +163,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   private void showPreferences() {
     final Intent intent = new Intent(this, PreferencesActivity.class);
     startActivity(intent);
+    Analytics.sendUIEvent("Preferences");
   }
   
   private void rateApplication() {
@@ -174,6 +175,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
         Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
       }
     }
+    Analytics.sendUIEvent("Rate");
   }
   
   private boolean safeStartActivity(Intent intent) {
@@ -188,6 +190,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   private void showAbout() {
     final DialogFragment fragment = AboutFragment.createInstance();
     fragment.show(getSupportFragmentManager(), "about");
+    Analytics.sendUIEvent("About");
   }
   
   private void quit() {
