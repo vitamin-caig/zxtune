@@ -73,6 +73,7 @@ public class BrowserController {
       loaderManager.destroyLoader(LOADER_ID);
       final LoaderManager.LoaderCallbacks<?> cb = SearchingLoaderCallback.create(this, currentDir, query);
       loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
+      Analytics.sendSearchEvent(currentDir);
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to search");
       listing.showError(e);

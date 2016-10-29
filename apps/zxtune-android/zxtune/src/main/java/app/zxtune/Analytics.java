@@ -79,6 +79,10 @@ public class Analytics {
     sendCommonBrowserEvent("Browse", dir);
   }
 
+  public static void sendSearchEvent(VfsDir dir) {
+    sendCommonBrowserEvent("Search", dir);
+  }
+
   private static void sendCommonBrowserEvent(String type, VfsDir dir) {
     final Uri path = dir.getUri();
     final Identifier id = new Identifier(path);
