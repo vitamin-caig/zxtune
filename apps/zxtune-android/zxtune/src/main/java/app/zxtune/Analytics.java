@@ -130,6 +130,17 @@ public class Analytics {
     send(event);
   }
 
+  public static void sendPlaylistEvent(String action, Object parameter) {
+    final CustomEvent event = new CustomEvent("Playlist");
+    event.putCustomAttribute("Action", action);
+    if (parameter instanceof String) {
+      event.putCustomAttribute(action, (String) parameter);
+    } else if (parameter instanceof Number) {
+      event.putCustomAttribute(action, (Number) parameter);
+    }
+    send(event);
+  }
+
   private static void send(CustomEvent event) {
     Answers.getInstance().logCustom(event);
     Log.d(TAG, event.toString());
