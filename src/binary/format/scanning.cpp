@@ -112,11 +112,12 @@ namespace Binary
 
        Due to high complexity of precise detection, simple increasing is used
       */
+      const auto& offsets = pattern.GetSuffixOffsets();
       for (std::size_t pos = 0; pos != patternSize - 1; ++pos)
       {
         FuzzyFormat::PatternRow& row = tmp[pos];
         const std::size_t suffixLen = patternSize - pos - 1;
-        const std::size_t offset = pattern.FindSuffix(suffixLen);
+        const std::size_t offset = offsets[suffixLen];
         const std::size_t availOffset = std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
         for (uint_t sym = 0; sym != 256; ++sym)
         {

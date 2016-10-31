@@ -136,8 +136,8 @@ namespace Binary
         return Data[idx];
       }
 
-      //return back offset
-      std::size_t FindSuffix(std::size_t suffixSize) const;
+      //return back offsets of suffixes
+      std::vector<std::size_t> GetSuffixOffsets() const;
       //return forward offset
       std::size_t FindPrefix(std::size_t prefixSize) const;
     private:
@@ -150,6 +150,8 @@ namespace Binary
       {
         return &Data.back() + 1;
       }
+
+      std::size_t FindMaxSuffixMatchSize(std::size_t offset) const;
     private:
       std::vector<StaticPredicate> Data;
     };
