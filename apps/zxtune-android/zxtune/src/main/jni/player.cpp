@@ -34,9 +34,9 @@ namespace
   public:
     typedef std::shared_ptr<BufferTarget> Ptr;
 
-    void ApplyData(const Sound::Chunk::Ptr& data) override
+    void ApplyData(Sound::Chunk::Ptr data) override
     {
-      Buffers.push_back(Buff(data));
+      Buffers.emplace_back(std::move(data));
     }
 
     void Flush() override
@@ -62,7 +62,7 @@ namespace
     struct Buff
     {
       explicit Buff(Sound::Chunk::Ptr data)
-        : Data(data)
+        : Data(std::move(data))
         , Avail(data->size())
       {
       }

@@ -170,7 +170,7 @@ namespace FM
         Sound::ChunkBuilder builder;
         builder.Reserve(samples);
         Adapter.RenderSamples(samples, builder);
-        Target->ApplyData(builder.GetResult());
+        Target->ApplyData(builder.CaptureResult());
         Target->Flush();
       }
     private:

@@ -764,26 +764,26 @@ namespace AYEMUL
     {
     }
     
-    void ApplyData(const Sound::Chunk::Ptr& chunk) override
+    void ApplyData(Sound::Chunk::Ptr chunk) override
     {
       if (Storage)
       {
         if (chunk->size() <= Storage->size())
         {
           std::transform(chunk->begin(), chunk->end(), Storage->begin(), Storage->begin(), &MaxSample);
-          Delegate->ApplyData(Storage);
+          Delegate->ApplyData(std::move(Storage));
         }
         else
         {
           std::transform(Storage->begin(), Storage->end(), chunk->begin(), chunk->begin(), &MaxSample);
-          Delegate->ApplyData(chunk);
+          Delegate->ApplyData(std::move(chunk));
         }
         Delegate->Flush();
         Storage.reset();
       }
       else
       {
-        Storage = chunk;
+        Storage = std::move(chunk);
       }
     }
     

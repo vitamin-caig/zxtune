@@ -297,7 +297,7 @@ namespace File
     void FrameFinish(Chunk::Ptr buffer) override
     {
       assert(Stream);
-      Stream->ApplyData(buffer);
+      Stream->ApplyData(std::move(buffer));
     }
 
     VolumeControl::Ptr GetVolumeControl() const override

@@ -139,23 +139,23 @@ namespace Analysis
   //since data is required, place it first
   Node::Ptr CreateRootNode(Binary::Container::Ptr data, const String& name)
   {
-    return MakePtr<RootNode>(data, name);
+    return MakePtr<RootNode>(std::move(data), name);
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name)
   {
-    return MakePtr<SubNode>(parent, data, name);
+    return MakePtr<SubNode>(std::move(parent), std::move(data), name);
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, std::size_t offset)
   {
-    return MakePtr<SubNode>(parent, data, Strings::Format("+%1%", offset));
+    return MakePtr<SubNode>(std::move(parent), std::move(data), Strings::Format("+%1%", offset));
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, std::size_t offset)
   {
-    const Node::Ptr intermediate = CreateSubnode(parent, data, offset);
-    return CreateSubnode(intermediate, data, name);
+    auto intermediate = CreateSubnode(parent, data, offset);
+    return CreateSubnode(std::move(intermediate), std::move(data), name);
   }
 }
 
@@ -294,7 +294,7 @@ namespace Parsing
   class Result
   {
   public:
-    typedef std::shared_ptr<const Result> Ptr;
+    typedef std::unique_ptr<const Result> Ptr;
     virtual ~Result() = default;
 
     virtual String Name() const = 0;
@@ -354,7 +354,7 @@ namespace
       Params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 2);
     }
 
-    void ApplyData(const Parsing::Result::Ptr& result) override
+    void ApplyData(Parsing::Result::Ptr result) override
     {
       try
       {
@@ -385,7 +385,7 @@ namespace
     {
     }
 
-    void ApplyData(const Parsing::Result::Ptr& data) override
+    void ApplyData(Parsing::Result::Ptr data) override
     {
       ++Total;
       TotalSize += data->Data()->Size();
@@ -425,12 +425,11 @@ namespace
     {
     }
 
-    void ApplyData(const Analysis::Node::Ptr& result) override
+    void ApplyData(Analysis::Node::Ptr result) override
     {
-      const Binary::Container::Ptr data = result->Data();
-      if (data->Size() >= MinSize)
+      if (result->Data()->Size() >= MinSize)
       {
-        Target->ApplyData(result);
+        Target->ApplyData(std::move(result));
       }
     }
 
@@ -451,14 +450,14 @@ namespace
     {
     }
 
-    void ApplyData(const Analysis::Node::Ptr& result) override
+    void ApplyData(Analysis::Node::Ptr result) override
     {
       const Binary::Container::Ptr data = result->Data();
       const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
       const uint8_t* const end = begin + data->Size();
       if (end != std::find_if(begin, end, std::bind1st(std::not_equal_to<uint8_t>(), *begin)))
       {
-        Target->ApplyData(result);
+        Target->ApplyData(std::move(result));
       }
     }
 
@@ -479,13 +478,13 @@ namespace
     {
     }
 
-    void ApplyData(const Analysis::Node::Ptr& result) override
+    void ApplyData(Analysis::Node::Ptr result) override
     {
       const Binary::Container::Ptr data = result->Data();
       const std::size_t size = data->Size();
       if (Format->Match(*data) || size != Format->NextMatchOffset(*data))
       {
-        Target->ApplyData(result);
+        Target->ApplyData(std::move(result));
       }
     }
 
@@ -533,8 +532,8 @@ namespace
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
-      const Analysis::Node::Ptr archNode = Analysis::CreateSubnode(Root, data, name, offset);
-      const ScanFiles walker(ToScan, archNode);
+      auto archNode = Analysis::CreateSubnode(Root, std::move(data), name, offset);
+      const ScanFiles walker(ToScan, std::move(archNode));
       data->ExploreFiles(walker);
     }
 
@@ -542,31 +541,31 @@ namespace
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->PackedSize(), offset);
-      const Analysis::Node::Ptr packNode = Analysis::CreateSubnode(Root, data, name, offset);
-      ToScan.ApplyData(packNode);
+      auto packNode = Analysis::CreateSubnode(Root, std::move(data), name, offset);
+      ToScan.ApplyData(std::move(packNode));
     }
 
     void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->OriginalSize(), offset);
-      const Analysis::Node::Ptr imageNode = Analysis::CreateSubnode(Root, data, Strings::Format("+%1%.image", offset));
-      ToStore.ApplyData(imageNode);
+      auto imageNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+%1%.image", offset));
+      ToStore.ApplyData(std::move(imageNode));
     }
 
     void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
-      const Analysis::Node::Ptr chiptuneNode = Analysis::CreateSubnode(Root, data, Strings::Format("+%1%.chiptune", offset));
-      ToStore.ApplyData(chiptuneNode);
+      auto chiptuneNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+%1%.chiptune", offset));
+      ToStore.ApplyData(std::move(chiptuneNode));
     }
 
     void Apply(std::size_t offset, Binary::Container::Ptr data) override
     {
       Dbg("Unresolved %1% bytes at %2%", data->Size(), offset);
-      const Analysis::Node::Ptr rawNode = Analysis::CreateSubnode(Root, data, offset);
-      ToStore.ApplyData(rawNode);
+      auto rawNode = Analysis::CreateSubnode(Root, std::move(data), offset);
+      ToStore.ApplyData(std::move(rawNode));
     }
   private:
     class ScanFiles : public Formats::Archived::Container::Walker
@@ -584,8 +583,8 @@ namespace
         {
           const String name = file.GetName();
           Dbg("Processing %1%", name);
-          const Analysis::Node::Ptr fileNode = Analysis::CreateSubnode(ArchiveNode, data, name);
-          ToScan.ApplyData(fileNode);
+          auto fileNode = Analysis::CreateSubnode(ArchiveNode, data, name);
+          ToScan.ApplyData(std::move(fileNode));
         }
       }
     private:
@@ -610,7 +609,7 @@ namespace
       Formats::Chiptune::FillScanner(*Scanner);
     }
 
-    void ApplyData(const Analysis::Node::Ptr& node) override
+    void ApplyData(Analysis::Node::Ptr node) override
     {
       Dbg("Analyze %1%", node->Name());
       NestedScannerTarget target(node, *this, *Target);
@@ -654,14 +653,14 @@ namespace
     {
     }
 
-    void ApplyData(const String& filename) override
+    void ApplyData(String filename) override
     {
       try
       {
         Dbg("Opening '%1%'", filename);
         const Binary::Container::Ptr data = IO::OpenData(filename, *Params, Log::ProgressCallback::Stub());
-        const Analysis::Node::Ptr root = Analysis::CreateRootNode(data, filename);
-        Analyse->ApplyData(root);
+        auto root = Analysis::CreateRootNode(data, filename);
+        Analyse->ApplyData(std::move(root));
       }
       catch (const Error& e)
       {
@@ -793,12 +792,12 @@ namespace
     {
     }
 
-    void ApplyData(const Analysis::Node::Ptr& node) override
+    void ApplyData(Analysis::Node::Ptr node) override
     {
       const PathTemplate fields(node);
       const String filename = Template->Instantiate(fields);
-      const Parsing::Result::Ptr result = Parsing::CreateResult(filename, node->Data());
-      Target->ApplyData(result);
+      auto result = Parsing::CreateResult(filename, node->Data());
+      Target->ApplyData(std::move(result));
     }
 
     void Flush() override
@@ -824,9 +823,9 @@ namespace
       Target = Analysis::NodeReceiver::CreateStub();
     }
 
-    void ApplyData(const Analysis::Node::Ptr& data) override
+    void ApplyData(Analysis::Node::Ptr data) override
     {
-      Target->ApplyData(data);
+      Target->ApplyData(std::move(data));
     }
 
     void Flush() override
@@ -851,7 +850,7 @@ namespace
     {
     }
 
-    void ApplyData(const String& filename) override
+    void ApplyData(String filename) override
     {
       const boost::filesystem::path path(filename);
       if (boost::filesystem::is_directory(path))
@@ -952,9 +951,9 @@ namespace
     {
     }
 
-    void ApplyData(const InType& data) override
+    void ApplyData(InType data) override
     {
-      Input->ApplyData(data);
+      Input->ApplyData(std::move(data));
     }
 
     void Flush() override

@@ -211,7 +211,7 @@ namespace SPC
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
         Tune->Render(SamplesPerFrame, builder);
-        Resampler->ApplyData(builder.GetResult());
+        Resampler->ApplyData(builder.CaptureResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }

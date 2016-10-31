@@ -144,7 +144,7 @@ namespace Flac
       Dbg("Stream initialized");
     }
 
-    void ApplyData(const Chunk::Ptr& data) override
+    void ApplyData(Chunk::Ptr data) override
     {
       if (const std::size_t samples = data->size())
       {

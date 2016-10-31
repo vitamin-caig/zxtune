@@ -180,7 +180,7 @@ namespace Sid
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
         Engine->play(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
-        Target->ApplyData(builder.GetResult());
+        Target->ApplyData(builder.CaptureResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }

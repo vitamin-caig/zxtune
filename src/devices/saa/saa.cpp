@@ -297,7 +297,7 @@ namespace SAA
       Sound::ChunkBuilder builder;
       builder.Reserve(samples);
       Renderers.Render(stamp, samples, builder);
-      Target->ApplyData(builder.GetResult());
+      Target->ApplyData(builder.CaptureResult());
       Target->Flush();
     }
   private:

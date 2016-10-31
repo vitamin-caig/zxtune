@@ -23,7 +23,7 @@ namespace Sound
   //! @brief Block of sound data
   struct Chunk : public std::vector<Sample>
   {
-    typedef std::shared_ptr<Chunk> Ptr;
+    typedef std::unique_ptr<Chunk> Ptr;
 
     Chunk()
     {

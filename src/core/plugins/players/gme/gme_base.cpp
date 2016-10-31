@@ -201,7 +201,7 @@ namespace GME
         const uint_t samplesPerFrame = SoundParams->SamplesPerFrame();
         builder.Reserve(samplesPerFrame);
         Tune->Render(samplesPerFrame, builder);
-        Target->ApplyData(builder.GetResult());
+        Target->ApplyData(builder.CaptureResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }

@@ -42,11 +42,11 @@ namespace Async
       WaitAll();
     }
 
-    void ApplyData(const T& data) override
+    void ApplyData(T data) override
     {
       CheckWorkersAvailable();
       Statistic->Produce(1);
-      QueueObject->Add(data);
+      QueueObject->Add(std::move(data));
     }
 
     void Flush() override
@@ -90,14 +90,14 @@ namespace Async
         }
         Activities.pop_front();
       }
-      return result;
+      return std::move(result);
     }
 
     void CheckWorkersAvailable()
     {
       if (Activities.end() == std::find_if(Activities.begin(), Activities.end(), std::mem_fn(&Activity::IsExecuted)))
       {
-        const std::list<Error>& errors = WaitAll();
+        const auto& errors = WaitAll();
         throw errors.empty()
           ? Error()//TODO
           : *errors.begin();
@@ -123,7 +123,7 @@ namespace Async
         T val;
         while (QueueObject->Get(val))
         {
-          Target->ApplyData(val);
+          Target->ApplyData(std::move(val));
           Statistic->Consume(1);
         }
       }

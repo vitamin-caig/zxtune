@@ -95,14 +95,14 @@ namespace Sound
     {
     }
 
-    void ApplyData(const Chunk::Ptr& in) override
+    void ApplyData(Chunk::Ptr in) override
     {
       for (auto& val : *in)
       {
         val = Core.Apply(val);
       }
       Core.ApplyStep();
-      return Delegate->ApplyData(in);
+      return Delegate->ApplyData(std::move(in));
     }
 
     void Flush() override

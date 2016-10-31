@@ -139,7 +139,7 @@ namespace Module
     {
     }
     
-    void ApplyData(const Sound::Chunk::Ptr& data) override
+    void ApplyData(Sound::Chunk::Ptr data) override
     {
       if (DoneStreams++)
       {
@@ -229,9 +229,9 @@ namespace Module
       
       Sound::Chunk::Ptr Convert(uint_t sources) const
       {
-        const Sound::Chunk::Ptr result = MakePtr<Sound::Chunk>(Buffer.size());
+        auto result = MakePtr<Sound::Chunk>(Buffer.size());
         std::transform(Buffer.begin(), Buffer.end(), result->begin(), std::bind2nd(std::mem_fun_ref(&WideSample::Convert), sources));
-        return result;
+        return std::move(result);
       }
     private:
       std::size_t GetDataSize(const Sound::Chunk& data) const

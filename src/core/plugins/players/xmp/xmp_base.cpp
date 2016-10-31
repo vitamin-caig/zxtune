@@ -324,7 +324,7 @@ namespace Xmp
           const std::size_t samples = bytes / sizeof(Sound::Sample);
           builder.Reserve(samples);
           std::memcpy(builder.Allocate(samples), State->buffer, bytes);
-          Target->ApplyData(builder.GetResult());
+          Target->ApplyData(builder.CaptureResult());
         }
         return Looped || State->loop_count == 0;
       }

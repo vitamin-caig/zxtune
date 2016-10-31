@@ -96,7 +96,7 @@ namespace Mp3
     {
     }
 
-    void ApplyData(const Chunk::Ptr& data) override
+    void ApplyData(Chunk::Ptr data) override
     {
       //work with 16-bit
       static_assert(Sample::BITS == 16, "Incompatible sound sample bits count");

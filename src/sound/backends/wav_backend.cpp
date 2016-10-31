@@ -211,7 +211,7 @@ namespace Wav
     {
     }
 
-    void ApplyData(const Chunk::Ptr& data) override
+    void ApplyData(Chunk::Ptr data) override
     {
       if (Sample::BITS == 16)
       {

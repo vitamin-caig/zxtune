@@ -85,7 +85,7 @@ namespace Sound
     {
     }
     
-    void ApplyData(const Chunk::Ptr& data) override
+    void ApplyData(Chunk::Ptr data) override
     {
       if (Check(data->front().Left(), ToCompare.Left()) && Check(data->front().Right(), ToCompare.Right()))
       {
@@ -156,7 +156,7 @@ int main()
         ChunkBuilder builder;
         builder.Reserve(1);
         builder.Add(Sample(INPUTS[input], INPUTS[input]));
-        gainer->ApplyData(builder.GetResult());
+        gainer->ApplyData(builder.CaptureResult());
       }
     }
     std::cout << " Succeed!" << std::endl;

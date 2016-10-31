@@ -86,7 +86,7 @@ namespace
     {
     }
 
-    void ApplyData(const HolderAndData& data) override
+    void ApplyData(HolderAndData data) override
     {
       try
       {
@@ -158,7 +158,7 @@ namespace
     {
     }
     
-    void ApplyData(const HolderAndData& data) override
+    void ApplyData(HolderAndData data) override
     {
       const Module::Holder::Ptr holder = data.Holder;
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
@@ -167,7 +167,7 @@ namespace
         HolderAndData converted;
         converted.Holder = holder;
         converted.Data = result;
-        Saver->ApplyData(converted);
+        Saver->ApplyData(std::move(converted));
       }
       else
       {
@@ -216,7 +216,7 @@ namespace
       HolderAndData pair;
       pair.Holder = holder;
       pair.Data = data;
-      Pipe->ApplyData(pair);
+      Pipe->ApplyData(std::move(pair));
     }
   private:
     HolderAndData::Receiver::Ptr Pipe;

@@ -18,7 +18,7 @@
 
 namespace Binary
 {
-  typedef DataReceiver<Data> OutputStream;
+  typedef DataReceiver<const Data&> OutputStream;
 
   class SeekableOutputStream : public OutputStream
   {

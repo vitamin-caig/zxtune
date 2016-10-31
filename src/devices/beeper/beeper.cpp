@@ -76,7 +76,7 @@ namespace Beeper
           Renderer.Render(chunk.TimeStamp, builder);
           PSG.SetNewData(chunk.Level);
         }
-        Target->ApplyData(builder.GetResult());
+        Target->ApplyData(builder.CaptureResult());
         Target->Flush();
       }
       else

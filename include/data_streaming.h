@@ -27,7 +27,7 @@ public:
   virtual ~DataReceiver() = default;
 
   //! @brief Data consuming point
-  virtual void ApplyData(const T& data) = 0;
+  virtual void ApplyData(T data) = 0;
   //! @brief Flushing all possible accumulated data
   virtual void Flush() = 0;
 
@@ -39,7 +39,7 @@ template<class T>
 class StubDataReceiver : public DataReceiver<T>
 {
 public:
-  void ApplyData(const T&) override {}
+  void ApplyData(T) override {}
   void Flush() override {}
 };
 

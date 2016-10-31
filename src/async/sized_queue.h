@@ -39,7 +39,7 @@ namespace Async
       CanPutDataEvent.wait(lock, [this] () {return CanPutData();});
       if (Active)
       {
-        Container.push_back(val);
+        Container.emplace_back(std::move(val));
         CanGetDataEvent.notify_one();
       }
     }
@@ -51,7 +51,7 @@ namespace Async
       if (Active)
       {
         Require(!Container.empty());
-        res = Container.front();
+        res = std::move(Container.front());
         Container.pop_front();
         CanPutDataEvent.notify_one();
         return true;
