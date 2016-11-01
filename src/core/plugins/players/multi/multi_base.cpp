@@ -34,8 +34,8 @@ namespace Module
   class MultiAnalyzer : public Module::Analyzer
   {
   public:
-    MultiAnalyzer(AnalyzersArray::const_iterator begin, AnalyzersArray::const_iterator end)
-      : Delegates(begin, end)
+    explicit MultiAnalyzer(AnalyzersArray delegates)
+      : Delegates(std::move(delegates))
       , MaxBands(4 * Delegates.size())//approx
     {
     }
@@ -55,12 +55,11 @@ namespace Module
     
     static Ptr Create(const RenderersArray& renderers)
     {
-      Require(!renderers.empty());
-      AnalyzersArray delegates(renderers.size());
+      const auto count = renderers.size();
+      Require(count > 1);
+      AnalyzersArray delegates(count);
       std::transform(renderers.begin(), renderers.end(), delegates.begin(), std::mem_fn(&Renderer::GetAnalyzer));
-      return delegates.size() == 1
-           ? delegates.front()
-           : MakePtr<MultiAnalyzer>(delegates.begin(), delegates.end());
+      return MakePtr<MultiAnalyzer>(std::move(delegates));
     }
   private:
     const AnalyzersArray Delegates;
@@ -107,20 +106,14 @@ namespace Module
     
     static Ptr Create(const Multi::HoldersArray& holders)
     {
-      Require(!holders.empty());
-      if (holders.size() == 1)
+      const auto count = holders.size();
+      Require(count > 1);
+      uint_t totalChannelsCount = 0;
+      for (const auto& holder : holders)
       {
-        return holders.front()->GetModuleInformation();
+        totalChannelsCount += holder->GetModuleInformation()->ChannelsCount();
       }
-      else
-      {
-        uint_t totalChannelsCount = 0;
-        for (const auto& holder : holders)
-        {
-          totalChannelsCount += holder->GetModuleInformation()->ChannelsCount();
-        }
-        return MakePtr<MultiInformation>(holders.front()->GetModuleInformation(), totalChannelsCount);
-      }
+      return MakePtr<MultiInformation>(holders.front()->GetModuleInformation(), totalChannelsCount);
     }
   private:
     const Information::Ptr Delegate;
@@ -294,8 +287,8 @@ namespace Module
   class MultiTrackState : public TrackState
   {
   public:
-    MultiTrackState(TrackStatesArray::const_iterator begin, TrackStatesArray::const_iterator end)
-      : Delegates(begin, end)
+    explicit MultiTrackState(TrackStatesArray delegates)
+      : Delegates(std::move(delegates))
     {
     }
     
@@ -339,12 +332,11 @@ namespace Module
     
     static Ptr Create(const RenderersArray& renderers)
     {
-      Require(!renderers.empty());
-      TrackStatesArray delegates(renderers.size());
+      const auto count = renderers.size();
+      Require(count > 1);
+      TrackStatesArray delegates(count);
       std::transform(renderers.begin(), renderers.end(), delegates.begin(), std::mem_fn(&Renderer::GetTrackState));
-      return delegates.size() == 1
-           ? delegates.front()
-           : MakePtr<MultiTrackState>(delegates.begin(), delegates.end());
+      return MakePtr<MultiTrackState>(std::move(delegates));
     }
   private:
     const TrackStatesArray Delegates;
@@ -353,8 +345,8 @@ namespace Module
   class MultiRenderer : public Renderer
   {
   public:
-    MultiRenderer(RenderersArray::const_iterator begin, RenderersArray::const_iterator end, Sound::RenderParameters::Ptr renderParams, CompositeReceiver::Ptr target)
-      : Delegates(begin, end)
+    MultiRenderer(RenderersArray delegates, Sound::RenderParameters::Ptr renderParams, CompositeReceiver::Ptr target)
+      : Delegates(std::move(delegates))
       , SoundParams(renderParams)
       , Target(std::move(target))
       , State(MultiTrackState::Create(Delegates))
@@ -401,28 +393,21 @@ namespace Module
     
     static Ptr Create(Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders, Sound::Receiver::Ptr target)
     {
-      Require(!holders.empty());
-      if (holders.size() == 1)
+      const auto count = holders.size();
+      Require(count > 1);
+      const CompositeReceiver::Ptr receiver = MakePtr<CompositeReceiver>(target);
+      const Parameters::Accessor::Ptr forcedLoop = MakePtr<ForcedLoopParam>();
+      RenderersArray delegates(count);
+      for (std::size_t idx = 0; idx != count; ++idx)
       {
-        return holders.front()->CreateRenderer(params, target);
+        const auto& holder = holders[idx];
+        auto delegateParams = idx == 0
+          ? params
+          : Parameters::CreateMergedAccessor(forcedLoop, params);
+        delegates[idx] = holder->CreateRenderer(std::move(delegateParams), receiver);
       }
-      else
-      {
-        const std::size_t size = holders.size();
-        const CompositeReceiver::Ptr receiver = MakePtr<CompositeReceiver>(target);
-        const Parameters::Accessor::Ptr forcedLoop = MakePtr<ForcedLoopParam>();
-        RenderersArray delegates(size);
-        for (std::size_t idx = 0; idx != size; ++idx)
-        {
-          const Holder::Ptr holder = holders[idx];
-          const Parameters::Accessor::Ptr delegateParams = idx == 0
-            ? params
-            : Parameters::CreateMergedAccessor(forcedLoop, params);
-          delegates[idx] = holder->CreateRenderer(delegateParams, receiver);
-        }
-        const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-        return MakePtr<MultiRenderer>(delegates.begin(), delegates.end(), renderParams, receiver);
-      }
+      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+      return MakePtr<MultiRenderer>(std::move(delegates), renderParams, receiver);
     }
   private:
     void ApplyParameters()
@@ -444,9 +429,9 @@ namespace Module
   class MultiHolder : public Holder
   {
   public:
-    MultiHolder(Parameters::Accessor::Ptr props, Multi::HoldersArray::const_iterator begin, Multi::HoldersArray::const_iterator end)
+    MultiHolder(Parameters::Accessor::Ptr props, Multi::HoldersArray delegates)
       : Properties(std::move(props))
-      , Delegates(begin, end)
+      , Delegates(std::move(delegates))
       , Info(MultiInformation::Create(Delegates))
     {
     }
@@ -481,7 +466,7 @@ namespace Module
       Require(!holders.empty());
       return holders.size() == 1
            ? CreateMixedPropertiesHolder(holders.front(), params)
-           : MakePtr<MultiHolder>(params, holders.begin(), holders.end());
+           : MakePtr<MultiHolder>(params, holders);
     }
   }
 }
