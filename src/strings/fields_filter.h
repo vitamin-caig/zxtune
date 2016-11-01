@@ -56,7 +56,7 @@ namespace Strings
 
     String GetFieldValue(const String& fieldName) const override
     {
-      String val = Delegate.GetFieldValue(fieldName);
+      auto val = Delegate.GetFieldValue(fieldName);
       for (auto& it : val)
       {
         it = Table[it];
