@@ -100,11 +100,9 @@ namespace
 
     uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const override
     {
-      typedef std::vector<Module::Analyzer::ChannelState> ChannelsState;
-      ChannelsState result;
-      Analyser->GetState(result);
+      const auto& result = Analyser->GetState();
       uint_t doneEntries = 0;
-      for (ChannelsState::const_iterator it = result.begin(), lim = result.end(); it != lim && doneEntries != maxEntries; ++it, ++doneEntries)
+      for (auto it = result.begin(), lim = result.end(); it != lim && doneEntries != maxEntries; ++it, ++doneEntries)
       {
         bands[doneEntries] = it->Band;
         levels[doneEntries] = it->Level;

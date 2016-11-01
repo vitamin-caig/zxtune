@@ -545,7 +545,7 @@ namespace DAC
       UpdateChannelState(src);
     }
 
-    void GetState(MultiChannelState& state) const override
+    MultiChannelState GetState() const override
     {
       MultiChannelState res;
       res.reserve(State.size());
@@ -556,7 +556,7 @@ namespace DAC
           res.push_back(chan.Analyze(Samples.GetMaxRms()));
         }
       }
-      res.swap(state);
+      return res;
     }
 
     /// reset internal state to initial

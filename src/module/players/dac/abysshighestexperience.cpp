@@ -182,7 +182,7 @@ namespace AHX
     {
     }
 
-    void GetState(std::vector<ChannelState>& channels) const override
+    std::vector<ChannelState> GetState() const override
     {
       std::vector<ChannelState> result;
       result.reserve(Hvl->ht_Channels);
@@ -197,7 +197,7 @@ namespace AHX
           result.push_back(state);
         }
       }
-      channels.swap(result);
+      return result;
     }
   private:
     const HvlPtr Hvl;

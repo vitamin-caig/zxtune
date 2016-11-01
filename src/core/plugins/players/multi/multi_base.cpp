@@ -40,18 +40,17 @@ namespace Module
     {
     }
 
-    void GetState(std::vector<ChannelState>& channels) const override
+    std::vector<ChannelState> GetState() const override
     {
       std::vector<ChannelState> result;
       result.reserve(MaxBands);
       for (const auto& delegate : Delegates)
       {
-        std::vector<ChannelState> portion;
-        delegate->GetState(portion);
+        const auto& portion = delegate->GetState();
         std::copy(portion.begin(), portion.end(), std::back_inserter(result));
       }
       MaxBands = std::max(MaxBands, result.size());
-      channels.swap(result);
+      return std::move(result);
     }
     
     static Ptr Create(const RenderersArray& renderers)

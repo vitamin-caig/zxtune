@@ -72,7 +72,7 @@ namespace Sid
       Analysis.SetClockAndDivisor(rate, 16777216);
     }
 
-    void GetState(std::vector<ChannelState>& channels) const override
+    std::vector<ChannelState> GetState() const override
     {
       unsigned freqs[6], levels[6];
       const unsigned count = Engine->getState(freqs, levels);
@@ -83,7 +83,7 @@ namespace Sid
         res.Band = Analysis.GetBandByScaledFrequency(freqs[chan]);
         res.Level = levels[chan] * 100 / 15;
       }
-      channels.swap(result);
+      return std::move(result);
     }
   private:
     const EnginePtr Engine;

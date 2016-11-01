@@ -154,8 +154,7 @@ namespace
         ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
-          std::vector<Module::Analyzer::ChannelState> curAnalyze;
-          Analyzer->GetState(curAnalyze);
+          const auto& curAnalyze = Analyzer->GetState();
           AnalyzerData.resize(ScrSize.first);
           UpdateAnalyzer(curAnalyze, 10);
           ShowAnalyzer(spectrumHeight);

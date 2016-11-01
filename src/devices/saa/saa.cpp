@@ -268,7 +268,7 @@ namespace SAA
       Renderers.Reset();
     }
 
-    void GetState(MultiChannelState& state) const override
+    MultiChannelState GetState() const override
     {
       MultiChannelState res;
       PSG.GetState(res);
@@ -276,7 +276,7 @@ namespace SAA
       {
         state.Band = Analyser.GetBandByPeriod(state.Band);
       }
-      state.swap(res);
+      return res;
     }
   private:
     void SynchronizeParameters()

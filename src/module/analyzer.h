@@ -28,16 +28,10 @@ namespace Module
 
     struct ChannelState
     {
-      ChannelState()
-        : Band()
-        , Level()
-      {
-      }
-
       uint_t Band;
       uint_t Level;
     };
 
-    virtual void GetState(std::vector<ChannelState>& channels) const = 0;
+    virtual std::vector<ChannelState> GetState() const = 0;
   };
 }

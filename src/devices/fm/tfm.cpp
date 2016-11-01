@@ -60,7 +60,7 @@ namespace TFM
       Helper.ConvertSamples(outRaw, outRaw + count, out);
     }
 
-    void GetState(MultiChannelState& state) const
+    MultiChannelState GetState() const
     {
       MultiChannelState res;
       res.reserve(VOICES);
@@ -70,7 +70,7 @@ namespace TFM
       Helper.ConvertState(attenuations.data(), periods.data(), res);
       ::YM2203GetState(Chips[1].get(), &attenuations[0], &periods[0]);
       Helper.ConvertState(attenuations.data(), periods.data(), res);
-      state.swap(res);
+      return res;
     }
   private:
     FM::Details::ChipAdapterHelper Helper;

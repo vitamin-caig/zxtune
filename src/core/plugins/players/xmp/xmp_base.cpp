@@ -244,7 +244,7 @@ namespace Xmp
     {
     }
 
-    void GetState(std::vector<ChannelState>& channels) const override
+    std::vector<ChannelState> GetState() const override
     {
       //difference between libxmp and regular spectrum formats is 2 octaves
       const int C2OFFSET = 24;
@@ -263,7 +263,7 @@ namespace Xmp
           result.push_back(chan);
         }
       }
-      channels.swap(result);
+      return std::move(result);
     }
   private:
     const uint_t Channels;

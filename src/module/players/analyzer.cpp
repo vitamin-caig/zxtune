@@ -26,20 +26,17 @@ namespace Module
     {
     }
 
-    void GetState(std::vector<ChannelState>& channels) const override
+    std::vector<ChannelState> GetState() const override
     {
-      Devices::MultiChannelState in;
-      Delegate->GetState(in);
-      channels.resize(in.size());
-      std::transform(in.begin(), in.end(), channels.begin(), &ConvertState);
+      const auto& in = Delegate->GetState();
+      std::vector<ChannelState> out(in.size());
+      std::transform(in.begin(), in.end(), out.begin(), &ConvertState);
+      return std::move(out);
     }
   private:
     static ChannelState ConvertState(const Devices::ChannelState& in)
     {
-      ChannelState out;
-      out.Band = in.Band;
-      out.Level = in.Level.Raw();
-      return out;
+      return {in.Band, in.Level.Raw()};
     }
   private:
     const Devices::StateSource::Ptr Delegate;

@@ -88,7 +88,7 @@ namespace SPC
     }
     
     //http://wiki.superfamicom.org/snes/show/SPC700+Reference
-    void GetState(std::vector<ChannelState>& channels) const override
+    std::vector<ChannelState> GetState() const override
     {
       const DspProperties dsp(Spc);
       const uint_t noise = dsp.GetNoiseChannels();
@@ -114,7 +114,7 @@ namespace SPC
         state.Band = Analysis.GetBandByScaledFrequency(pitch);
         result.push_back(state);
       }
-      channels.swap(result);
+      return std::move(result);
     }
   private:
     inline static void CheckError(::blargg_err_t err)

@@ -248,9 +248,9 @@ namespace Module
   class StubAnalyzer : public Module::Analyzer
   {
   public:
-    void GetState(std::vector<Module::Analyzer::ChannelState>& channels) const override
+    std::vector<Module::Analyzer::ChannelState> GetState() const override
     {
-      channels.clear();
+      return {};
     }
   };
 }

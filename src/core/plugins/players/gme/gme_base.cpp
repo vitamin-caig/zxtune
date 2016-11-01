@@ -112,21 +112,20 @@ namespace GME
       }
     }
     
-    void GetState(std::vector<ChannelState>& channels) const override
+    std::vector<ChannelState> GetState() const override
     {
       std::vector<voice_status_t> voices(Emu->voice_count());
       const int actual = Emu->voices_status(&voices[0], voices.size());
-      std::vector<ChannelState> result;
+      std::vector<ChannelState> result(actual);
       for (int chan = 0; chan < actual; ++chan)
       {
         const voice_status_t& in = voices[chan];
         Devices::Details::AnalysisMap& analysis = GetAnalysisFor(in.frequency);
-        ChannelState state;
+        ChannelState& state = result[chan];
         state.Level = in.level * 100 / voice_max_level;
         state.Band = analysis.GetBandByPeriod(in.divider);
-        result.push_back(state);
       }
-      channels.swap(result);
+      return std::move(result);
     }
   private:
     inline static void CheckError(::blargg_err_t err)

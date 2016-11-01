@@ -149,9 +149,9 @@ namespace FM
         SynchronizeParameters();
       }
 
-      void GetState(MultiChannelState& state) const override
+      MultiChannelState GetState() const override
       {
-        Adapter.GetState(state);
+        return Adapter.GetState();
       }
     private:
       void SynchronizeParameters()
