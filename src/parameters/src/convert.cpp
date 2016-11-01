@@ -114,7 +114,8 @@ namespace
     {
       res += '-';
     }
-    return String(res.rbegin(), res.rend());
+    std::reverse(res.begin(), res.end());
+    return res;
   }
 
   inline bool IsQuoted(const String& str)

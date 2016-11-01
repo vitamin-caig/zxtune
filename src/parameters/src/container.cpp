@@ -203,6 +203,6 @@ namespace Parameters
 
   Container::Ptr Container::CreateAdapter(Accessor::Ptr accessor, Modifier::Ptr modifier)
   {
-    return MakePtr<CompositeContainer>(accessor, modifier);
+    return MakePtr<CompositeContainer>(std::move(accessor), std::move(modifier));
   }
 }

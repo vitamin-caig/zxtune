@@ -58,16 +58,16 @@ namespace Parameters
   Container::Ptr CreatePreChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback)
   {
     //TODO: get rid of fake pointers
-    const Modifier::Ptr asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
-    const Modifier::Ptr modifier = MakePtr<CompositeModifier>(asPtr, delegate);
-    return Container::CreateAdapter(delegate, modifier);
+    auto asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
+    auto modifier = MakePtr<CompositeModifier>(std::move(asPtr), delegate);
+    return Container::CreateAdapter(std::move(delegate), std::move(modifier));
   }
 
   Container::Ptr CreatePostChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback)
   {
     //TODO: get rid of fake pointers
-    const Modifier::Ptr asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
-    const Modifier::Ptr modifier = MakePtr<CompositeModifier>(delegate, asPtr);
-    return Container::CreateAdapter(delegate, modifier);
+    auto asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
+    auto modifier = MakePtr<CompositeModifier>(delegate, std::move(asPtr));
+    return Container::CreateAdapter(std::move(delegate), std::move(modifier));
   }
 }

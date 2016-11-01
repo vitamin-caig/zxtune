@@ -151,11 +151,11 @@ namespace Parameters
 
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
   {
-    return MakePtr<DoubleAccessor>(first, second);
+    return MakePtr<DoubleAccessor>(std::move(first), std::move(second));
   }
 
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third)
   {
-    return MakePtr<TripleAccessor>(first, second, third);
+    return MakePtr<TripleAccessor>(std::move(first), std::move(second), std::move(third));
   }
 }
