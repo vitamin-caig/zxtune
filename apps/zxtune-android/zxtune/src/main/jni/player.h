@@ -21,7 +21,7 @@ namespace Player
   class Control
   {
   public:
-    typedef std::shared_ptr<Control> Ptr;
+    typedef std::unique_ptr<Control> Ptr;
     virtual ~Control() = default;
 
     virtual uint_t GetPosition() const = 0;

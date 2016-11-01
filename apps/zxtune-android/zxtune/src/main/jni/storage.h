@@ -31,7 +31,7 @@ public:
     if (obj)
     {
       const HandleType handle = GetNextHandle();
-      Storage.insert(typename StorageType::value_type(handle, obj));
+      Storage.insert(typename StorageType::value_type(handle, std::move(obj)));
       return handle;
     }
     else
@@ -40,20 +40,21 @@ public:
     }
   }
 
-  PtrType Get(HandleType handle) const
+  const PtrType& Get(HandleType handle) const
   {
-    const typename StorageType::const_iterator it = Storage.find(handle);
+    static const PtrType NullPtr;
+    const auto it = Storage.find(handle);
     return it != Storage.end()
       ? it->second
-      : PtrType();
+      : NullPtr;
   }
 
   PtrType Fetch(HandleType handle)
   {
-    const typename StorageType::iterator it = Storage.find(handle);
+    const auto it = Storage.find(handle);
     if (it != Storage.end())
     {
-      const PtrType res = it->second;
+      auto res = std::move(it->second);
       Storage.erase(it);
       return res;
     }

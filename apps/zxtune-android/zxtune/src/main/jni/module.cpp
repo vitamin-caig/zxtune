@@ -29,11 +29,11 @@ namespace
     try
     {
       const Parameters::Accessor::Ptr options = Parameters::GlobalOptions();
-      const Module::Holder::Ptr module = subpath.empty()
+      auto module = subpath.empty()
           ? Module::Open(*options, *data)
           : Module::Open(*options, ZXTune::OpenLocation(*options, data, subpath));
       Dbg("Module::Create(data=%p, subpath=%s)=%p", data.get(), subpath, module.get());
-      return Module::Storage::Instance().Add(module);
+      return Module::Storage::Instance().Add(std::move(module));
     }
     catch (const Error&)
     {
@@ -57,7 +57,7 @@ namespace
     {
       const jmethodID methodId = GetMethodId();
       const Jni::TempJString subpath(Env, location->GetPath()->AsString());
-      const int handle = Module::Storage::Instance().Add(holder);
+      const int handle = Module::Storage::Instance().Add(std::move(holder));
       Env->CallNonvirtualVoidMethod(Delegate, CallbackClass, methodId, subpath.Get(), handle);
       CheckException();
     }
@@ -94,8 +94,8 @@ namespace
 
   void DetectModules(Binary::Container::Ptr data, Module::DetectCallback& cb)
   {
-    const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
-    Module::Detect(*Parameters::GlobalOptions(), location, cb);
+    auto location = ZXTune::CreateLocation(std::move(data));
+    Module::Detect(*Parameters::GlobalOptions(), std::move(location), cb);
   }
 }
 
@@ -106,8 +106,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
   const void* addr = env->GetDirectBufferAddress(buffer);
   if (capacity && addr)
   {
-    const Binary::Container::Ptr data = Binary::CreateNonCopyContainer(addr, capacity);
-    return CreateModule(data, Jni::MakeString(env, subpath));
+    return CreateModule(Binary::CreateNonCopyContainer(addr, capacity), Jni::MakeString(env, subpath));
   }
   else
   {
@@ -122,11 +121,10 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Detect
   const void* addr = env->GetDirectBufferAddress(buffer);
   if (capacity && addr)
   {
-    const Binary::Container::Ptr data = Binary::CreateNonCopyContainer(addr, capacity);
     DetectCallback callbackAdapter(env, cb);
     try
     {
-      DetectModules(data, callbackAdapter);
+      DetectModules(Binary::CreateNonCopyContainer(addr, capacity), callbackAdapter);
     }
     catch (jthrowable e)
     {
@@ -140,7 +138,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Detect
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1GetDuration
   (JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
 {
-  if (const Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  if (const auto& module = Module::Storage::Instance().Get(moduleHandle))
   {
     return module->GetModuleInformation()->FramesCount();
   }
@@ -150,9 +148,9 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1GetDuration
 JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lang_String_2J
   (JNIEnv* env, jclass /*self*/, jint moduleHandle, jstring propName, jlong defVal)
 {
-  if (const Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  if (const auto& module = Module::Storage::Instance().Get(moduleHandle))
   {
-    const Parameters::Accessor::Ptr params = module->GetModuleProperties();
+    const auto& params = module->GetModuleProperties();
     const Jni::PropertiesReadHelper props(env, *params);
     return props.Get(propName, defVal);
   }
@@ -162,9 +160,9 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lang_
 JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lang_String_2Ljava_lang_String_2
   (JNIEnv* env, jclass /*self*/, jint moduleHandle, jstring propName, jstring defVal)
 {
-  if (const Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  if (const auto& module = Module::Storage::Instance().Get(moduleHandle))
   {
-    const Parameters::Accessor::Ptr params = module->GetModuleProperties();
+    const auto& params = module->GetModuleProperties();
     const Jni::PropertiesReadHelper props(env, *params);
     return props.Get(propName, defVal);
   }
@@ -175,7 +173,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
   (JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
 {
   Dbg("Module::CreatePlayer(handle=%x)", moduleHandle);
-  if (const Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  if (const auto& module = Module::Storage::Instance().Get(moduleHandle))
   {
     return Player::Create(module);
   }
