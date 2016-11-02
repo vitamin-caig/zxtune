@@ -204,7 +204,7 @@ namespace Chiptune
 
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) override {}
-      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
@@ -242,14 +242,14 @@ namespace Chiptune
 
       void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data) override
       {
-        return Delegate.SetSample(index, loop, data);
+        return Delegate.SetSample(index, loop, std::move(data));
       }
 
-      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(positions, loop);
+        return Delegate.SetPositions(std::move(positions), loop);
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -337,9 +337,9 @@ namespace Chiptune
 
       void ParsePositions(Builder& target) const
       {
-        const std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + Source.LastPosition + 1);
-        target.SetPositions(positions, Source.Loop);
+        std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + Source.LastPosition + 1);
         Dbg("Positions: %1%, loop to %2%", positions.size(), unsigned(Source.Loop));
+        target.SetPositions(std::move(positions), Source.Loop);
       }
 
       void ParsePatterns(const Indices& pats, Builder& target) const
@@ -390,12 +390,12 @@ namespace Chiptune
           const std::pair<std::size_t, std::size_t>& offsetSize = regions[bank];
           const std::size_t size = std::min(SAMPLES_LIMIT - rawAddr, offsetSize.second);
           const std::size_t offset = offsetSize.first + rawAddr - sampleBase;
-          if (const Binary::Data::Ptr sample = GetSample(offset, size))
+          if (auto sample = GetSample(offset, size))
           {
             Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", 
               samIdx, rawAddr, rawLoop, sample->Size(), uint_t(info.Bank));
             const std::size_t loop = info.IsLooped ? rawLoop - sampleBase : sample->Size();
-            target.SetSample(samIdx, loop, sample);
+            target.SetSample(samIdx, loop, std::move(sample));
           }
           else
           {

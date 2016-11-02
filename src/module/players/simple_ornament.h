@@ -25,17 +25,15 @@ namespace Module
     {
     }
 
-    template<class It>
-    SimpleOrnament(uint_t loop, It from, It to)
+    SimpleOrnament(uint_t loop, std::vector<int_t> lines)
       : Loop(loop)
-      , Lines(from, to)
+      , Lines(std::move(lines))
     {
     }
-
-    template<class It>
-    SimpleOrnament(It from, It to)
+    
+    explicit SimpleOrnament(std::vector<int_t> lines)
       : Loop(0)
-      , Lines(from, to)
+      , Lines(std::move(lines))
     {
     }
 

@@ -148,8 +148,8 @@ namespace Chiptune
         std::vector<uint_t> positions(positionsCount);
         std::transform(Source.Positions.begin(), Source.Positions.begin() + positionsCount, positions.begin(),
           std::bind2nd(std::minus<uint8_t>(), uint8_t(1)));
-        target.SetPositions(positions, 0);
         Dbg("Positions: %1%", positions.size());
+        target.SetPositions(std::move(positions), 0);
       }
 
       void ParsePatterns(const Indices& pats, Builder& target) const
@@ -173,9 +173,9 @@ namespace Chiptune
         for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          if (const Binary::Data::Ptr content = GetSample(samIdx))
+          if (auto content = GetSample(samIdx))
           {
-            target.SetSample(samIdx, content->Size(), content, false);
+            target.SetSample(samIdx, content->Size(), std::move(content), false);
             ++validSamples;
           }
           else

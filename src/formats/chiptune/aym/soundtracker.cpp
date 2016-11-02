@@ -172,8 +172,8 @@ namespace Chiptune
           dst.PatternIndex = src.Pattern - 1;
           dst.Transposition = src.Transposition;
         }
-        builder.SetPositions(positions);
         Dbg("Positions: %1% entries", positions.size());
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -202,9 +202,7 @@ namespace Chiptune
           Dbg("Parse sample %1%", samIdx);
           if (samIdx)
           {
-            Sample result;
-            ParseSample(Source.Samples[samIdx - 1], result);
-            builder.SetSample(samIdx, result);
+            builder.SetSample(samIdx, ParseSample(Source.Samples[samIdx - 1]));
           }
           else
           {
@@ -224,9 +222,7 @@ namespace Chiptune
         {
           const uint_t ornIdx = *it;
           Dbg("Parse ornament %1%", ornIdx);
-          const RawOrnament& src = Source.Ornaments[ornIdx];
-          const Ornament result(src.Offsets.begin(), src.Offsets.end());
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, ParseOrnament(Source.Ornaments[ornIdx]));
         }
       }
 
@@ -383,8 +379,9 @@ namespace Chiptune
         return HALFTONES[halftone] + NOTES_PER_OCTAVE * octave;
       }
 
-      static void ParseSample(const RawSample& src, Sample& dst)
+      static Sample ParseSample(const RawSample& src)
       {
+        Sample dst;
         dst.Lines.resize(SAMPLE_SIZE);
         for (uint_t idx = 0; idx < SAMPLE_SIZE; ++idx)
         {
@@ -398,6 +395,14 @@ namespace Chiptune
         }
         dst.Loop = std::min<uint_t>(src.Loop, SAMPLE_SIZE);
         dst.LoopLimit = std::min<uint_t>(src.Loop + src.LoopSize + 1, SAMPLE_SIZE);
+        return dst;
+      }
+
+      static Ornament ParseOrnament(const RawOrnament& src)
+      {
+        Ornament dst;
+        dst.Lines.assign(src.Offsets.begin(), src.Offsets.end());
+        return dst;
       }
     private:
       const Binary::TypedContainer Delegate;
@@ -526,9 +531,9 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
-      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
-      void SetPositions(const std::vector<PositionEntry>& /*positions*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
+      void SetPositions(std::vector<PositionEntry> /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();

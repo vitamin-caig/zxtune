@@ -64,17 +64,17 @@ namespace
       std::cout << "Tempo: " << tempo << std::endl;
     }
 
-    void SetSample(uint_t index, const Sample& sample) override
+    void SetSample(uint_t index, Sample sample) override
     {
       std::cout << "Sample" << index << std::endl;
     }
 
-    void SetOrnament(uint_t index, const Ornament& ornament) override
+    void SetOrnament(uint_t index, Ornament ornament) override
     {
       std::cout << "Ornament" << index << std::endl;
     }
 
-    void SetPositions(const std::vector<PositionEntry>& positions) override
+    void SetPositions(std::vector<PositionEntry> positions) override
     {
       std::cout << "Positions: ";
       for (auto position : positions)

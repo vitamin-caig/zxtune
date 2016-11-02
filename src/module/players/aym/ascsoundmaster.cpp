@@ -178,19 +178,19 @@ namespace ASCSoundMaster
       Data->InitialTempo = tempo;
     }
 
-    void SetSample(uint_t index, const Formats::Chiptune::ASCSoundMaster::Sample& sample) override
+    void SetSample(uint_t index, Formats::Chiptune::ASCSoundMaster::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(sample));
+      Data->Samples.Add(index, Sample(std::move(sample)));
     }
 
-    void SetOrnament(uint_t index, const Formats::Chiptune::ASCSoundMaster::Ornament& ornament) override
+    void SetOrnament(uint_t index, Formats::Chiptune::ASCSoundMaster::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(ornament));
+      Data->Ornaments.Add(index, Ornament(std::move(ornament)));
     }
 
-    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
     {
-      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

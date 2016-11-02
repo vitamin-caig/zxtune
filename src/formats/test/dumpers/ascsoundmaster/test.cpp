@@ -64,7 +64,7 @@ namespace
       std::cout << "Tempo: " << tempo << std::endl;
     }
 
-    void SetSample(uint_t index, const Sample& sample) override
+    void SetSample(uint_t index, Sample sample) override
     {
       std::cout << "[Sample" << ToHex(index) << "]\n"
       "Loop: " << sample.Loop << ".." << sample.LoopLimit << '\n';
@@ -78,7 +78,7 @@ namespace
       std::cout << std::endl;
     }
 
-    void SetOrnament(uint_t index, const Ornament& ornament) override
+    void SetOrnament(uint_t index, Ornament ornament) override
     {
       std::cout << "[Ornament" << ToHex(index) << "]\n"
       "Loop: " << ornament.Loop << ".." << ornament.LoopLimit << '\n';
@@ -89,7 +89,7 @@ namespace
       std::cout << std::endl;
     }
 
-    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
     {
       std::cout << "Positions: ";
       for (uint_t idx = 0, lim = positions.size(); idx != lim; ++idx)

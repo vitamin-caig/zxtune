@@ -101,9 +101,9 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
-      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
-      void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
+      void SetPositions(std::vector<PositionEntry> /*positions*/, uint_t /*loop*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -140,19 +140,19 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, const Sample& sample) override
+      void SetSample(uint_t index, Sample sample) override
       {
         assert(index == 0 || UsedSamples.Contain(index));
-        return Delegate.SetSample(index, sample);
+        return Delegate.SetSample(index, std::move(sample));
       }
 
-      void SetOrnament(uint_t index, const Ornament& ornament) override
+      void SetOrnament(uint_t index, Ornament ornament) override
       {
         assert(index == 0 || UsedOrnaments.Contain(index));
-        return Delegate.SetOrnament(index, ornament);
+        return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) override
+      void SetPositions(std::vector<PositionEntry> positions, uint_t loop) override
       {
         UsedPatterns.Clear();
         for (const auto& pos : positions)
@@ -160,7 +160,7 @@ namespace Chiptune
           UsedPatterns.Insert(pos.PatternIndex);
         }
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(positions, loop);
+        return Delegate.SetPositions(std::move(positions), loop);
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -357,8 +357,8 @@ namespace Chiptune
           }
         }
         Require(!positions.empty());
-        builder.SetPositions(positions, loop);
         Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
+        builder.SetPositions(std::move(positions), loop);
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -381,9 +381,7 @@ namespace Chiptune
           const uint_t samIdx = *it;
           Dbg("Parse sample %1%", samIdx);
           const std::size_t samOffset = ReadWord(samplesTable, samIdx);
-          Sample result;
-          ParseSample(samOffset, result);
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, ParseSample(samOffset));
         }
       }
 
@@ -396,9 +394,7 @@ namespace Chiptune
           const uint_t ornIdx = *it;
           Dbg("Parse ornament %1%", ornIdx);
           const std::size_t ornOffset = ReadWord(ornamentsTable, ornIdx);
-          Ornament result;
-          ParseOrnament(ornOffset, result);
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, ParseOrnament(ornOffset));
         }
       }
 
@@ -643,9 +639,9 @@ namespace Chiptune
         Ranges.Add(start, cursor - start);
       }
 
-      void ParseSample(std::size_t start, Sample& dst) const
+      Sample ParseSample(std::size_t start) const
       {
-        dst.Lines.clear();
+        Sample dst;
         dst.Loop = ~uint_t(0);
         std::size_t cursor = start;
         Sample::Line line;
@@ -713,6 +709,7 @@ namespace Chiptune
         }
         Ranges.Add(start, cursor - start);
         dst.Loop = std::min<uint_t>(dst.Loop, dst.Lines.size());
+        return dst;
       }
 
       static void DecodeLevel(uint_t val, Sample::Line& line)
@@ -760,9 +757,9 @@ loc_0_8262:
 		jr	loc_0_829F
 */
 
-      void ParseOrnament(std::size_t start, Ornament& dst) const
+      Ornament ParseOrnament(std::size_t start) const
       {
-        dst.Lines.clear();
+        Ornament dst;
         dst.Loop = ~uint_t(0);
         std::size_t cursor = start;
         uint_t line = 0;
@@ -793,6 +790,7 @@ loc_0_8262:
         }
         Ranges.Add(start, cursor - start);
         dst.Loop = std::min<uint_t>(dst.Loop, dst.Lines.size());
+        return dst;
       }
     private:
       const Binary::TypedContainer& Delegate;

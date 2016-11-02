@@ -205,8 +205,8 @@ namespace Chiptune
           dst.Transposition = src.Transposition;
           positions.push_back(dst);
         }
-        builder.SetPositions(positions);
         Dbg("Positions: %1% entries", positions.size());
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -257,9 +257,7 @@ namespace Chiptune
           }
           doneSams.Insert(samIdx);
           Dbg("Parse sample %1%", samIdx);
-          Sample result;
-          ParseSample(src, result);
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, ParseSample(src));
           if (doneSams.Count() == samples.Count())
           {
             return;
@@ -294,8 +292,7 @@ namespace Chiptune
           }
           doneOrns.Insert(ornIdx);
           Dbg("Parse ornament %1%", ornIdx);
-          const Ornament result(src.Data.begin(), src.Data.end());
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, ParseOrnament(src));
           if (doneOrns.Count() == ornaments.Count())
           {
             return;
@@ -544,8 +541,9 @@ namespace Chiptune
         }
       }
 
-      static void ParseSample(const RawSample& src, Sample& dst)
+      static Sample ParseSample(const RawSample& src)
       {
+        Sample dst;
         dst.Lines.resize(SAMPLE_SIZE);
         for (uint_t idx = 0; idx < SAMPLE_SIZE; ++idx)
         {
@@ -559,6 +557,14 @@ namespace Chiptune
         }
         dst.Loop = std::min<uint_t>(src.Loop, SAMPLE_SIZE);
         dst.LoopLimit = std::min<uint_t>(src.Loop + src.LoopSize + 1, SAMPLE_SIZE);
+        return dst;
+      }
+      
+      static Ornament ParseOrnament(const RawOrnament& src)
+      {
+        Ornament dst;
+        dst.Lines.assign(src.Data.begin(), src.Data.end());
+        return dst;
       }
 
       void AddRange(std::size_t offset, std::size_t size) const

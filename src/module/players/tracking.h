@@ -166,13 +166,13 @@ namespace Module
       Objects.resize(newSize);
     }
 
-    void Add(uint_t idx, const T& obj)
+    void Add(uint_t idx, T obj)
     {
       if (idx >= Objects.size())
       {
         Objects.resize(idx + 1);
       }
-      Objects[idx] = obj;
+      Objects[idx] = std::move(obj);
     }
   private:
     std::vector<T> Objects;

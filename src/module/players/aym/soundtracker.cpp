@@ -122,19 +122,19 @@ namespace SoundTracker
       Data->InitialTempo = tempo;
     }
 
-    void SetSample(uint_t index, const Formats::Chiptune::SoundTracker::Sample& sample) override
+    void SetSample(uint_t index, Formats::Chiptune::SoundTracker::Sample sample) override
     {
-      Data->Samples.Add(index, sample);
+      Data->Samples.Add(index, Sample(std::move(sample)));
     }
 
-    void SetOrnament(uint_t index, const Formats::Chiptune::SoundTracker::Ornament& ornament) override
+    void SetOrnament(uint_t index, Formats::Chiptune::SoundTracker::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(ornament.begin(), ornament.end()));
+      Data->Ornaments.Add(index, Ornament(std::move(ornament.Lines)));
     }
 
-    void SetPositions(const std::vector<Formats::Chiptune::SoundTracker::PositionEntry>& positions) override
+    void SetPositions(std::vector<Formats::Chiptune::SoundTracker::PositionEntry> positions) override
     {
-      Data->Order = MakePtr<OrderListWithTransposition>(positions.begin(), positions.end());
+      Data->Order = MakePtr<OrderListWithTransposition>(std::move(positions));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

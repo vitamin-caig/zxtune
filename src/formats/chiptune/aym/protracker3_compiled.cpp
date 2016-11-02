@@ -225,9 +225,9 @@ namespace Chiptune
       void SetNoteTable(NoteTable /*table*/) override {}
       void SetMode(uint_t /*mode*/) override {}
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
-      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
-      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
+      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -365,8 +365,8 @@ namespace Chiptune
         }
         Require(Math::InRange<std::size_t>(positions.size(), 1, MAX_POSITIONS_COUNT));
         const uint_t loop = Source.Loop;
-        builder.SetPositions(positions, loop);
         Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.size(), loop, uint_t(Source.Length));
+        builder.SetPositions(std::move(positions), loop);
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -422,7 +422,7 @@ namespace Chiptune
               Dbg("Stub sample %1%", samIdx);
             }
           }
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, std::move(result));
         }
         Require(hasValidSamples || hasPartialSamples);
       }
@@ -460,7 +460,7 @@ namespace Chiptune
               Dbg("Stub ornament %1%", ornIdx);
             }
           }
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, std::move(result));
         }
       }
 

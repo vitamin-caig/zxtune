@@ -221,7 +221,7 @@ namespace SQTracker
         newIndices[pos] = newIdx;
         Dbg("Position[%1%] -> %2%", pos, newIdx);
       }
-      return MakePtr<SimpleOrderList>(LoopPosition, newIndices.begin(), newIndices.end());
+      return MakePtr<SimpleOrderList>(LoopPosition, std::move(newIndices));
     }
 
     PatternsSet::Ptr CreateFlatPatterns(const OrderList& order) const
@@ -472,20 +472,20 @@ namespace SQTracker
       return Meta;
     }
 
-    void SetSample(uint_t index, const Formats::Chiptune::SQTracker::Sample& sample) override
+    void SetSample(uint_t index, Formats::Chiptune::SQTracker::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(sample));
+      Data->Samples.Add(index, Sample(std::move(sample)));
     }
 
-    void SetOrnament(uint_t index, const Formats::Chiptune::SQTracker::Ornament& ornament) override
+    void SetOrnament(uint_t index, Formats::Chiptune::SQTracker::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(ornament));
+      Data->Ornaments.Add(index, Ornament(std::move(ornament)));
     }
 
-    void SetPositions(const std::vector<Formats::Chiptune::SQTracker::PositionEntry>& positions, uint_t loop) override
+    void SetPositions(std::vector<Formats::Chiptune::SQTracker::PositionEntry> positions, uint_t loop) override
     {
       Data->LoopPosition = loop;
-      Data->Positions = positions;
+      Data->Positions = std::move(positions);
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

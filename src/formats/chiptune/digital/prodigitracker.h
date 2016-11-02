@@ -32,9 +32,9 @@ namespace Formats
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
         virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) = 0;
-        virtual void SetOrnament(uint_t index, std::size_t loop, const std::vector<int_t>& ornament) = 0;
+        virtual void SetOrnament(uint_t index, std::size_t loop, std::vector<int_t> ornament) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
+        virtual void SetPositions(std::vector<uint_t> positions, uint_t loop) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

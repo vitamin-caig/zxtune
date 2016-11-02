@@ -378,9 +378,9 @@ namespace Chiptune
       }
 
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
-      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
-      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
+      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
@@ -435,23 +435,23 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, const Sample& sample) override
+      void SetSample(uint_t index, Sample sample) override
       {
         assert(UsedSamples.Contain(index));
-        return Delegate.SetSample(index, sample);
+        return Delegate.SetSample(index, std::move(sample));
       }
 
-      void SetOrnament(uint_t index, const Ornament& ornament) override
+      void SetOrnament(uint_t index, Ornament ornament) override
       {
         assert(index == 0 || UsedOrnaments.Contain(index));
-        return Delegate.SetOrnament(index, ornament);
+        return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(positions, loop);
+        return Delegate.SetPositions(std::move(positions), loop);
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -682,8 +682,7 @@ namespace Chiptune
           const std::size_t curOffset = fromLE(list.Offsets[samIdx]);
           Require(curOffset > prevOffset);
           Require(0 == (curOffset - prevOffset) % sizeof(RawSample::Line));
-          const Sample& result = ParseSample(baseOffset + curOffset);
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, ParseSample(baseOffset + curOffset));
           prevOffset = curOffset;
         }
       }
@@ -701,8 +700,7 @@ namespace Chiptune
           const std::size_t curOffset = fromLE(list.Offsets[ornIdx]);
           Require(curOffset > prevOffset);
           Require(0 == (curOffset - prevOffset) % sizeof(RawOrnament::Line));
-          const Ornament& result = ParseOrnament(baseOffset + curOffset);
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, ParseOrnament(baseOffset + curOffset));
           prevOffset = curOffset;
         }
       }

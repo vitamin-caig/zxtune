@@ -229,9 +229,9 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
-      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
-      void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
+      void SetPositions(std::vector<PositionEntry> /*positions*/, uint_t /*loop*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -356,8 +356,8 @@ namespace Chiptune
           positions.push_back(dst);
         }
         const uint_t loop = PeekByte(fromLE(Source.PositionsOffset) + offsetof(RawPositions, Loop));
-        builder.SetPositions(positions, loop);
         Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
+        builder.SetPositions(std::move(positions), loop);
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -385,9 +385,7 @@ namespace Chiptune
           const uint_t samIdx = *it;
           Dbg("Parse sample %1%", samIdx);
           const RawSample& src = GetSample(samIdx);
-          Sample result;
-          ParseSample(src, result);
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, ParseSample(src));
         }
         //mark possible samples offsets as used
         const std::size_t samplesOffsets = fromLE(Source.SamplesOffset);
@@ -402,9 +400,7 @@ namespace Chiptune
           const uint_t ornIdx = *it;
           Dbg("Parse ornament %1%", ornIdx);
           const RawOrnament& src = GetOrnament(ornIdx);
-          Ornament result;
-          ParseOrnament(src, result);
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, ParseOrnament(src));
         }
       }
 
@@ -682,8 +678,9 @@ namespace Chiptune
         }
       }
 
-      static void ParseSample(const RawSample& src, Sample& dst)
+      static Sample ParseSample(const RawSample& src)
       {
+        Sample dst;
         const uint_t size = src.GetSize();
         dst.Lines.resize(size);
         for (uint_t idx = 0; idx < size; ++idx)
@@ -698,10 +695,12 @@ namespace Chiptune
           res.Vibrato = line.GetVibrato();
         }
         dst.Loop = std::min<int_t>(src.Loop, size);
+        return dst;
       }
 
-      static void ParseOrnament(const RawOrnament& src, Ornament& dst)
+      static Ornament ParseOrnament(const RawOrnament& src)
       {
+        Ornament dst;
         const uint_t size = src.GetSize();
         dst.Lines.resize(size);
         for (uint_t idx = 0; idx < size; ++idx)
@@ -709,6 +708,7 @@ namespace Chiptune
           dst.Lines[idx] = src.GetLine(idx);
         }
         dst.Loop = std::min<int_t>(src.Loop, size);
+        return dst;
       }
     private:
       const Binary::TypedContainer Delegate;

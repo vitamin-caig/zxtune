@@ -318,8 +318,9 @@ namespace Chiptune
         }
       } PACK_POST;
 
-      static void ParseInstrumentOperator(const RawInstrument::Operator& in, Instrument::Operator& out)
+      static Instrument::Operator ParseInstrumentOperator(const RawInstrument::Operator& in)
       {
+        Instrument::Operator out;
         out.Multiple = in.Multiple;
         out.Detune = in.Detune;
         out.TotalLevel = in.TotalLevel ^ 0x7f;
@@ -330,6 +331,7 @@ namespace Chiptune
         out.Release = in.ReleaseRate;
         out.SustainLevel = in.SustainLevel;
         out.EnvelopeType = in.Envelope;
+        return out;
       }
     };
 
@@ -400,8 +402,9 @@ namespace Chiptune
         }
       } PACK_POST;
 
-      static void ParseInstrumentOperator(const RawInstrument::Operator& in, Instrument::Operator& out)
+      static Instrument::Operator ParseInstrumentOperator(const RawInstrument::Operator& in)
       {
+        Instrument::Operator out;
         out.Multiple = in.Multiple;
         out.Detune = in.Detune;
         out.TotalLevel = in.TotalLevel ^ 0x7f;
@@ -412,6 +415,7 @@ namespace Chiptune
         out.Release = in.ReleaseRate ^ 0x0f;
         out.SustainLevel = in.SustainLevel;
         out.EnvelopeType = in.Envelope;
+        return out;
       }
     };
 
@@ -455,9 +459,9 @@ namespace Chiptune
       void SetDate(const Date& /*created*/, const Date& /*saved*/) override {}
       void SetComment(const String& /*comment*/) override {}
 
-      void SetInstrument(uint_t /*index*/, const Instrument& /*instrument*/) override {}
+      void SetInstrument(uint_t /*index*/, Instrument /*instrument*/) override {}
       //patterns
-      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
@@ -522,17 +526,17 @@ namespace Chiptune
         return Delegate.SetComment(comment);
       }
 
-      void SetInstrument(uint_t index, const Instrument& instrument) override
+      void SetInstrument(uint_t index, Instrument instrument) override
       {
         assert(UsedInstruments.Contain(index));
-        return Delegate.SetInstrument(index, instrument);
+        return Delegate.SetInstrument(index, std::move(instrument));
       }
 
-      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(positions, loop);
+        return Delegate.SetPositions(std::move(positions), loop);
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -819,10 +823,10 @@ namespace Chiptune
       void ParsePositions(Builder& builder) const
       {
         const std::size_t positionsCount = Source.PositionsCount ? Source.PositionsCount : MAX_POSITIONS_COUNT;
-        const std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + positionsCount);
+        std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + positionsCount);
         const uint_t loop = Source.LoopPosition;
-        builder.SetPositions(positions, loop);
         Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
+        builder.SetPositions(std::move(positions), loop);
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -846,9 +850,7 @@ namespace Chiptune
         {
           const uint_t insIdx = *it;
           Dbg("Parse instrument %1%", insIdx);
-          Instrument result;
-          ParseInstrument(Source.Instruments[insIdx - 1], result);
-          builder.SetInstrument(insIdx, result);
+          builder.SetInstrument(insIdx, ParseInstrument(Source.Instruments[insIdx - 1]));
         }
       }
     private:
@@ -1030,14 +1032,16 @@ namespace Chiptune
         };
       }
 
-      static void ParseInstrument(const RawInstrument& in, Instrument& out)
+      static Instrument ParseInstrument(const RawInstrument& in)
       {
+        Instrument out;
         out.Algorithm = in.Algorithm;
         out.Feedback = in.Feedback;
         for (uint_t op = 0; op != 4; ++op)
         {
-          Version::ParseInstrumentOperator(in.Operators[op], out.Operators[op]);
+          out.Operators[op] = Version::ParseInstrumentOperator(in.Operators[op]);
         }
+        return out;
       }
     private:
       const typename Version::RawHeader& Source;

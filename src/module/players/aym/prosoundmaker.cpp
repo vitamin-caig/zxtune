@@ -146,19 +146,19 @@ namespace ProSoundMaker
       return Meta;
     }
 
-    void SetSample(uint_t index, const Formats::Chiptune::ProSoundMaker::Sample& sample) override
+    void SetSample(uint_t index, Formats::Chiptune::ProSoundMaker::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(sample));
+      Data->Samples.Add(index, Sample(std::move(sample)));
     }
 
-    void SetOrnament(uint_t index, const Formats::Chiptune::ProSoundMaker::Ornament& ornament) override
+    void SetOrnament(uint_t index, Formats::Chiptune::ProSoundMaker::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(ornament));
+      Data->Ornaments.Add(index, Ornament(std::move(ornament)));
     }
 
-    void SetPositions(const std::vector<Formats::Chiptune::ProSoundMaker::PositionEntry>& positions, uint_t loop) override
+    void SetPositions(std::vector<Formats::Chiptune::ProSoundMaker::PositionEntry> positions, uint_t loop) override
     {
-      Data->Order = MakePtr<OrderListWithTransposition>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<OrderListWithTransposition>(loop, std::move(positions));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

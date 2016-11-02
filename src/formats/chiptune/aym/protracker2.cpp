@@ -191,9 +191,9 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
-      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
-      void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
+      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -235,23 +235,23 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, const Sample& sample) override
+      void SetSample(uint_t index, Sample sample) override
       {
         assert(UsedSamples.Contain(index));
-        return Delegate.SetSample(index, sample);
+        return Delegate.SetSample(index, std::move(sample));
       }
 
-      void SetOrnament(uint_t index, const Ornament& ornament) override
+      void SetOrnament(uint_t index, Ornament ornament) override
       {
         assert(UsedOrnaments.Contain(index));
-        return Delegate.SetOrnament(index, ornament);
+        return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
       {
         UsedPatterns.Assign(positions.begin(), positions.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(positions, loop);
+        return Delegate.SetPositions(std::move(positions), loop);
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -433,10 +433,10 @@ namespace Chiptune
         const uint8_t* const startPos = Source.Positions;
         const uint8_t* const endPos = std::find(startPos, startPos + MAX_POSITIONS_COUNT + 1, POS_END_MARKER);
         Require(Math::InRange<std::size_t>(endPos - startPos, 1, MAX_POSITIONS_COUNT));
-        const std::vector<uint_t> positions(startPos, endPos);
+        std::vector<uint_t> positions(startPos, endPos);
         const uint_t loop = Source.Loop;
-        builder.SetPositions(positions, loop);
         Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.size(), loop, uint_t(Source.Length));
+        builder.SetPositions(std::move(positions), loop);
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -497,7 +497,7 @@ namespace Chiptune
             const RawSample::Line& invalidLine = *Delegate.GetField<RawSample::Line>(0);
             result.Lines.push_back(ParseSampleLine(invalidLine));
           }
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, std::move(result));
         }
         Require(hasValidSamples || hasPartialSamples);
       }
@@ -539,7 +539,7 @@ namespace Chiptune
             Dbg("Parse invalid ornament %1%", ornIdx);
             result.Lines.push_back(*Delegate.GetField<RawOrnament::Line>(0));
           }
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, std::move(result));
         }
       }
 

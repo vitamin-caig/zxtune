@@ -315,9 +315,9 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
-      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
-      void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
+      void SetPositions(std::vector<PositionEntry> /*positions*/, uint_t /*loop*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -358,19 +358,19 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, const Sample& sample) override
+      void SetSample(uint_t index, Sample sample) override
       {
         assert(UsedSamples.Contain(index));
-        return Delegate.SetSample(index, sample);
+        return Delegate.SetSample(index, std::move(sample));
       }
 
-      void SetOrnament(uint_t index, const Ornament& ornament) override
+      void SetOrnament(uint_t index, Ornament ornament) override
       {
         assert(UsedOrnaments.Contain(index));
-        return Delegate.SetOrnament(index, ornament);
+        return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) override
+      void SetPositions(std::vector<PositionEntry> positions, uint_t loop) override
       {
         Require(!positions.empty());
         UsedPatterns.Clear();
@@ -378,7 +378,7 @@ namespace Chiptune
         {
           UsedPatterns.Insert(pos.PatternIndex);
         }
-        return Delegate.SetPositions(positions, loop);
+        return Delegate.SetPositions(std::move(positions), loop);
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -558,8 +558,8 @@ namespace Chiptune
           positions.push_back(res);
         }
         const uint_t loop = Source.Loop;
-        builder.SetPositions(positions, loop);
         Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
+        builder.SetPositions(std::move(positions), loop);
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -597,9 +597,7 @@ namespace Chiptune
           Require(usedSize <= availSize);
           Dbg("Parse sample %1%", samIdx);
           Ranges.AddService(samOffset, usedSize);
-          Sample result;
-          ParseSample(*src, src->GetLoopLimit(), result);
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, ParseSample(*src, src->GetLoopLimit()));
           if (src->GetLoopLimit() > 1 || !src->GetLine(0).IsEmpty())
           {
             ++nonEmptySamplesCount;
@@ -614,7 +612,6 @@ namespace Chiptune
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          Ornament result;
           const std::size_t ornOffset = fromLE(Source.OrnamentsOffsets[ornIdx]) - BaseAddr;
           const std::size_t availSize = Delegate.GetSize() - ornOffset;
           const RawOrnament* const src = Delegate.GetField<RawOrnament>(ornOffset);
@@ -625,8 +622,7 @@ namespace Chiptune
           Require(usedSize <= availSize);
           Dbg("Parse ornament %1%", ornIdx);
           Ranges.AddService(ornOffset, usedSize);
-          ParseOrnament(*src, src->GetLoopLimit(), result);
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, ParseOrnament(*src, src->GetLoopLimit()));
         }
         for (uint_t ornIdx = ornaments.Maximum() + 1; ornIdx < ORNAMENTS_COUNT; ++ornIdx)
         {
@@ -887,16 +883,18 @@ namespace Chiptune
         }
       }
 
-      static void ParseSample(const RawSample& src, uint_t size, Sample& dst)
+      static Sample ParseSample(const RawSample& src, uint_t size)
       {
+        Sample dst;
         Require(size <= MAX_SAMPLE_SIZE);
-        dst.Lines.resize(size);
+        dst.Lines.reserve(size);
         for (uint_t idx = 0; idx < size; ++idx)
         {
           const RawSample::Line& line = src.GetLine(idx);
-          dst.Lines[idx] = ParseSampleLine(line);
+          dst.Lines.emplace_back(ParseSampleLine(line));
         }
         dst.Loop = std::min<uint_t>(src.GetLoop(), dst.Lines.size());
+        return dst;
       }
 
       static Sample::Line ParseSampleLine(const RawSample::Line& src)
@@ -916,16 +914,18 @@ namespace Chiptune
         return result;
       }
 
-      static void ParseOrnament(const RawOrnament& src, uint_t size, Ornament& dst)
+      static Ornament ParseOrnament(const RawOrnament& src, uint_t size)
       {
+        Ornament dst;
         Require(size <= MAX_ORNAMENT_SIZE);
-        dst.Lines.resize(size);
+        dst.Lines.reserve(size);
         for (uint_t idx = 0; idx < size; ++idx)
         {
           const RawOrnament::Line& line = src.GetLine(idx);
-          dst.Lines[idx] = ParseOrnamentLine(line);
+          dst.Lines.emplace_back(ParseOrnamentLine(line));
         }
         dst.Loop = std::min<uint_t>(src.GetLoop(), dst.Lines.size());
+        return dst;
       }
 
       static Ornament::Line ParseOrnamentLine(const RawOrnament::Line& src)

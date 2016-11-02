@@ -125,14 +125,14 @@ namespace TFMMusicMaker
       Properties.SetComment(comment);
     }
 
-    void SetInstrument(uint_t index, const Formats::Chiptune::TFMMusicMaker::Instrument& instrument) override
+    void SetInstrument(uint_t index, Formats::Chiptune::TFMMusicMaker::Instrument instrument) override
     {
-      Data->Instruments.Add(index, instrument);
+      Data->Instruments.Add(index, std::move(instrument));
     }
 
-    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
     {
-      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

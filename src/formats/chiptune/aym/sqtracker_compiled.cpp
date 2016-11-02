@@ -166,10 +166,10 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       //samples+ornaments
-      void SetSample(uint_t /*index*/, const Sample& /*sample*/) override {}
-      void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
       //patterns
-      void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(std::vector<PositionEntry> /*positions*/, uint_t /*loop*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -203,19 +203,19 @@ namespace Chiptune
         return Delegate.GetMetaBuilder();
       }
 
-      void SetSample(uint_t index, const Sample& sample) override
+      void SetSample(uint_t index, Sample sample) override
       {
         assert(UsedSamples.Contain(index));
-        return Delegate.SetSample(index, sample);
+        return Delegate.SetSample(index, std::move(sample));
       }
 
-      void SetOrnament(uint_t index, const Ornament& ornament) override
+      void SetOrnament(uint_t index, Ornament ornament) override
       {
         assert(UsedOrnaments.Contain(index));
-        return Delegate.SetOrnament(index, ornament);
+        return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) override
+      void SetPositions(std::vector<PositionEntry> positions, uint_t loop) override
       {
         UsedPatterns.Clear();
         for (const auto& pos : positions)
@@ -226,7 +226,7 @@ namespace Chiptune
           }
         }
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(positions, loop);
+        return Delegate.SetPositions(std::move(positions), loop);
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -421,8 +421,8 @@ namespace Chiptune
             break;
           }
         }
-        builder.SetPositions(result, loopPos);
         Dbg("Positions: %1% entries, loop to %2%", result.size(), loopPos);
+        builder.SetPositions(std::move(result), loopPos);
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -443,8 +443,7 @@ namespace Chiptune
           Dbg("Parse sample %1%", samIdx);
           Sample result;
           const RawSample& src = GetSample(samIdx);
-          ParseSample(src, result);
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, ParseSample(src));
         }
       }
 
@@ -461,8 +460,7 @@ namespace Chiptune
           Dbg("Parse ornament %1%", ornIdx);
           Ornament result;
           const RawOrnament& src = GetOrnament(ornIdx);
-          ParseOrnament(src, result);
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, ParseOrnament(src));
         }
       }
 
@@ -725,8 +723,9 @@ namespace Chiptune
         dst.EnabledEffects = src.GetEnableEffects();
       }
 
-      static void ParseSample(const RawSample& src, Sample& dst)
+      static Sample ParseSample(const RawSample& src)
       {
+        Sample dst;
         dst.Lines.resize(SAMPLE_SIZE);
         for (uint_t idx = 0; idx < SAMPLE_SIZE; ++idx)
         {
@@ -740,13 +739,16 @@ namespace Chiptune
         }
         dst.Loop = std::min<uint_t>(src.Loop, SAMPLE_SIZE);
         dst.LoopSize = std::min<uint_t>(src.LoopSize, SAMPLE_SIZE - dst.Loop);
+        return dst;
       }
 
-      static void ParseOrnament(const RawOrnament& src, Ornament& dst)
+      static Ornament ParseOrnament(const RawOrnament& src)
       {
+        Ornament dst;
         dst.Lines.assign(src.Lines.begin(), src.Lines.end());
         dst.Loop = std::min<uint_t>(src.Loop, ORNAMENT_SIZE);
         dst.LoopSize = std::min<uint_t>(src.LoopSize, ORNAMENT_SIZE - dst.Loop);
+        return dst;
       }
     private:
       const Binary::TypedContainer Delegate;

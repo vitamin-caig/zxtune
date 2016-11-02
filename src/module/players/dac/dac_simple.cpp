@@ -54,13 +54,13 @@ namespace Module
       void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content, bool is4Bit) override
       {
         Data->Samples.Add(index, is4Bit
-          ? Devices::DAC::CreateU4Sample(content, loop)
-          : Devices::DAC::CreateU8Sample(content, loop));
+          ? Devices::DAC::CreateU4Sample(std::move(content), loop)
+          : Devices::DAC::CreateU8Sample(std::move(content), loop));
       }
 
-      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
       {
-        Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
+        Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
       }
 
       Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

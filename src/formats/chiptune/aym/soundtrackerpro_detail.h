@@ -55,19 +55,19 @@ namespace Formats
           return Delegate.SetInitialTempo(tempo);
         }
 
-        void SetSample(uint_t index, const Sample& sample) override
+        void SetSample(uint_t index, Sample sample) override
         {
           assert(UsedSamples.Contain(index));
-          return Delegate.SetSample(index, sample);
+          return Delegate.SetSample(index, std::move(sample));
         }
 
-        void SetOrnament(uint_t index, const Ornament& ornament) override
+        void SetOrnament(uint_t index, Ornament ornament) override
         {
           assert(UsedOrnaments.Contain(index));
-          return Delegate.SetOrnament(index, ornament);
+          return Delegate.SetOrnament(index, std::move(ornament));
         }
 
-        void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) override
+        void SetPositions(std::vector<PositionEntry> positions, uint_t loop) override
         {
           Require(!positions.empty());
           UsedPatterns.Clear();
@@ -75,7 +75,7 @@ namespace Formats
           {
             UsedPatterns.Insert(pos.PatternIndex);
           }
-          return Delegate.SetPositions(positions, loop);
+          return Delegate.SetPositions(std::move(positions), loop);
         }
 
         PatternBuilder& StartPattern(uint_t index) override

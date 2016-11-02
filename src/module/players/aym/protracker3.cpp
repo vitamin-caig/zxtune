@@ -68,20 +68,20 @@ namespace ProTracker3
       Data->InitialTempo = tempo;
     }
 
-    void SetSample(uint_t index, const Formats::Chiptune::ProTracker3::Sample& sample) override
+    void SetSample(uint_t index, Formats::Chiptune::ProTracker3::Sample sample) override
     {
       //TODO: use common types
-      Data->Samples.Add(index, Vortex::Sample(sample.Loop, sample.Lines.begin(), sample.Lines.end()));
+      Data->Samples.Add(index, Vortex::Sample(std::move(sample)));
     }
 
-    void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker3::Ornament& ornament) override
+    void SetOrnament(uint_t index, Formats::Chiptune::ProTracker3::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Vortex::Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
+      Data->Ornaments.Add(index, Vortex::Ornament(ornament.Loop, std::move(ornament.Lines)));
     }
 
-    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
     {
-      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

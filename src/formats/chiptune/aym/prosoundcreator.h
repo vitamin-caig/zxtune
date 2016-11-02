@@ -45,6 +45,12 @@ namespace Formats
           bool LoopEnd;
         };
 
+        Sample() = default;
+        Sample(const Sample&) = delete;
+        Sample& operator = (const Sample&) = delete;
+        Sample(Sample&&) = default;
+        Sample& operator = (Sample&&) = default;
+
         std::vector<Line> Lines;
       };
 
@@ -63,6 +69,12 @@ namespace Formats
           bool LoopEnd;
         };
 
+        Ornament() = default;
+        Ornament(const Ornament&) = delete;
+        Ornament& operator = (const Ornament&) = delete;
+        Ornament(Ornament&&) = default;
+        Ornament& operator = (Ornament&&) = default;
+
         std::vector<Line> Lines;
       };
 
@@ -75,10 +87,10 @@ namespace Formats
         //common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
-        virtual void SetSample(uint_t index, const Sample& sample) = 0;
-        virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;
+        virtual void SetSample(uint_t index, Sample sample) = 0;
+        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
+        virtual void SetPositions(std::vector<uint_t> positions, uint_t loop) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

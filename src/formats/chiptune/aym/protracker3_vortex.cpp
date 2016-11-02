@@ -1190,13 +1190,11 @@ namespace ProTracker3
           }
           if (const SectionHeader ornHdr = OrnamentObject::ParseHeader(line))
           {
-            const OrnamentObject orn(ornHdr, Source);
-            Target.SetOrnament(orn.GetIndex(), orn);
+            Target.SetOrnament(ornHdr.GetIndex(), OrnamentObject(ornHdr, Source));
           }
           else if (const SectionHeader samHdr = SampleObject::ParseHeader(line))
           {
-            const SampleObject sam(samHdr, Source);
-            Target.SetSample(sam.GetIndex(), sam);
+            Target.SetSample(samHdr.GetIndex(), SampleObject(samHdr, Source));
           }
           else if (const SectionHeader patHdr = PatternObject::ParseHeader(line))
           {
@@ -1345,22 +1343,22 @@ namespace ProTracker3
         Header.Tempo = tempo;
       }
 
-      void SetSample(uint_t index, const Sample& sample) override
+      void SetSample(uint_t index, Sample sample) override
       {
-        Samples.push_back(SampleObject(sample, index));
+        Samples.push_back(SampleObject(std::move(sample), index));
       }
 
-      void SetOrnament(uint_t index, const Ornament& ornament) override
+      void SetOrnament(uint_t index, Ornament ornament) override
       {
         if (index != DEFAULT_ORNAMENT)
         {
-          Ornaments.push_back(OrnamentObject(ornament, index));
+          Ornaments.push_back(OrnamentObject(std::move(ornament), index));
         }
       }
 
-      void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
       {
-        Header.PlayOrder = LoopedList<uint_t>(loop, positions);
+        Header.PlayOrder = LoopedList<uint_t>(loop, std::move(positions));
       }
 
       PatternBuilder& StartPattern(uint_t index) override

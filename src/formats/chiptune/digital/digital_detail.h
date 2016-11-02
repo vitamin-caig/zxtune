@@ -48,14 +48,14 @@ namespace Formats
 
         void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data, bool is4Bit) override
         {
-          return Delegate.SetSample(index, loop, data, is4Bit);
+          return Delegate.SetSample(index, loop, std::move(data), is4Bit);
         }
 
-        void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+        void SetPositions(std::vector<uint_t> positions, uint_t loop) override
         {
           UsedPatterns.Assign(positions.begin(), positions.end());
           Require(!UsedPatterns.Empty());
-          return Delegate.SetPositions(positions, loop);
+          return Delegate.SetPositions(std::move(positions), loop);
         }
 
         PatternBuilder& StartPattern(uint_t index) override

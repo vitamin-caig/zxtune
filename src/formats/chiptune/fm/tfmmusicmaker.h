@@ -53,7 +53,7 @@ namespace Formats
 
         uint_t Algorithm;
         uint_t Feedback;
-        Operator Operators[4];
+        std::array<Operator, 4> Operators;
       };
 
       struct Date
@@ -78,9 +78,9 @@ namespace Formats
         virtual void SetDate(const Date& created, const Date& saved) = 0;
         virtual void SetComment(const String& comment) = 0;
 
-        virtual void SetInstrument(uint_t index, const Instrument& instrument) = 0;
+        virtual void SetInstrument(uint_t index, Instrument instrument) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
+        virtual void SetPositions(std::vector<uint_t> positions, uint_t loop) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

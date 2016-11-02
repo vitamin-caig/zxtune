@@ -222,7 +222,7 @@ namespace DigitalMusicMaker
 
     void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) override
     {
-      Data->Samples.Add(index, Devices::DAC::CreateU4PackedSample(sample, loop));
+      Data->Samples.Add(index, Devices::DAC::CreateU4PackedSample(std::move(sample), loop));
     }
 
     std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> SetSampleMixin(uint_t index, uint_t period) override
@@ -232,9 +232,9 @@ namespace DigitalMusicMaker
       return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(dst.Mixin));
     }
 
-    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
     {
-      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

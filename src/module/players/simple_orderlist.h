@@ -20,17 +20,9 @@ namespace Module
   class SimpleOrderList : public OrderList
   {
   public:
-    template<class It>
-    SimpleOrderList(uint_t loop, It from, It to)
+    SimpleOrderList(uint_t loop, std::vector<uint_t> order)
       : Loop(loop)
-      , Order(from, to)
-    {
-    }
-
-    template<class It>
-    SimpleOrderList(It from, It to)
-      : Loop(0)
-      , Order(from, to)
+      , Order(std::move(order))
     {
     }
 
@@ -59,17 +51,15 @@ namespace Module
   public:
     typedef std::shared_ptr<const SimpleOrderListWithTransposition<T> > Ptr;
 
-    template<class It>
-    SimpleOrderListWithTransposition(uint_t loop, It from, It to)
+    SimpleOrderListWithTransposition(uint_t loop, std::vector<T> positions)
       : Loop(loop)
-      , Positions(from, to)
+      , Positions(std::move(positions))
     {
     }
-
-    template<class It>
-    SimpleOrderListWithTransposition(It from, It to)
+    
+    explicit SimpleOrderListWithTransposition(std::vector<T> positions)
       : Loop(0)
-      , Positions(from, to)
+      , Positions(std::move(positions))
     {
     }
 

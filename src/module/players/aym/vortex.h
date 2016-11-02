@@ -46,13 +46,6 @@ namespace Module
       {
       }
 
-      template<class Iterator>
-      Sample(uint_t loop, Iterator from, Iterator to)
-      {
-        Loop = loop;
-        Lines.assign(from, to);
-      }
-
       uint_t GetLoop() const
       {
         return Loop;

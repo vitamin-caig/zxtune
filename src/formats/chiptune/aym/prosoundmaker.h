@@ -43,6 +43,11 @@ namespace Formats
         {
         }
 
+        Sample(const Sample&) = delete;
+        Sample& operator = (const Sample&) = delete;
+        Sample(Sample&&) = default;
+        Sample& operator = (Sample&&) = default;
+
         boost::optional<uint_t> Loop;
         uint_t VolumeDeltaPeriod;
         int_t VolumeDeltaValue;
@@ -54,6 +59,11 @@ namespace Formats
         Ornament()
         {
         }
+
+        Ornament(const Ornament&) = delete;
+        Ornament& operator = (const Ornament&) = delete;
+        Ornament(Ornament&&) = default;
+        Ornament& operator = (Ornament&&) = default;
 
         boost::optional<uint_t> Loop;
         std::vector<int_t> Lines;
@@ -76,10 +86,10 @@ namespace Formats
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         //samples+ornaments
-        virtual void SetSample(uint_t index, const Sample& sample) = 0;
-        virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;
+        virtual void SetSample(uint_t index, Sample sample) = 0;
+        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) = 0;
+        virtual void SetPositions(std::vector<PositionEntry> positions, uint_t loop) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

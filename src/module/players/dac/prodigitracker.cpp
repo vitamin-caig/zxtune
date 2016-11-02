@@ -69,17 +69,17 @@ namespace ProDigiTracker
 
     void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) override
     {
-      Data->Samples.Add(index, Devices::DAC::CreateU8Sample(sample, loop));
+      Data->Samples.Add(index, Devices::DAC::CreateU8Sample(std::move(sample), loop));
     }
 
-    void SetOrnament(uint_t index, std::size_t loop, const std::vector<int_t>& ornament) override
+    void SetOrnament(uint_t index, std::size_t loop, std::vector<int_t> ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(loop, ornament.begin(), ornament.end()));
+      Data->Ornaments.Add(index, Ornament(loop, std::move(ornament)));
     }
 
-    void SetPositions(const std::vector<uint_t>& positions, uint_t loop) override
+    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
     {
-      Data->Order = MakePtr<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
