@@ -31,11 +31,11 @@ namespace DigitalStudio
     DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       DAC::PropertiesHelper props(*properties);
-      const DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(rawData, *dataBuilder))
+      DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);
+      if (const auto container = Formats::Chiptune::DigitalStudio::Parse(rawData, *dataBuilder))
       {
         props.SetSource(*container);
-        return DAC::CreateSimpleChiptune(dataBuilder->GetResult(), properties, CHANNELS_COUNT);
+        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), properties, CHANNELS_COUNT);
       }
       else
       {

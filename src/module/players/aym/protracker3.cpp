@@ -33,13 +33,12 @@ namespace ProTracker3
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
-      : Data(MakeRWPtr<ModuleData>())
-      , Properties(props)
+      : Properties(props)
       , Meta(props)
       , PatOffset(Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Data(MakeRWPtr<ModuleData>())
     {
-      Data->Patterns = Patterns.GetResult();
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -180,16 +179,17 @@ namespace ProTracker3
       return PatOffset;
     }
 
-    ModuleData::RWPtr GetResult() const
+    ModuleData::RWPtr CaptureResult()
     {
-      return Data;
+      Data->Patterns = Patterns.CaptureResult();
+      return std::move(Data);
     }
   private:
-    const ModuleData::RWPtr Data;
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
     uint_t PatOffset;
     PatternsBuilder Patterns;
+    ModuleData::RWPtr Data;
   };
 
   class StubLine : public Line
@@ -198,9 +198,9 @@ namespace ProTracker3
     {
     }
   public:
-    Cell::Ptr GetChannel(uint_t /*idx*/) const override
+    const Cell* GetChannel(uint_t /*idx*/) const override
     {
-      return Cell::Ptr();
+      return nullptr;
     }
 
     uint_t CountActiveChannels() const override
@@ -213,23 +213,25 @@ namespace ProTracker3
       return 0;
     }
 
-    static Ptr Create()
+    static const Line* Create()
     {
-      static StubLine instance;
-      return MakeSingletonPointer(instance);
+      static const StubLine instance;
+      return &instance;
     }
   };
 
   class TSLine : public Line
   {
   public:
-    TSLine(Line::Ptr first, Line::Ptr second)
+    typedef std::unique_ptr<TSLine> Ptr;
+    
+    TSLine(const Line* first, const Line* second)
       : First(first ? first : StubLine::Create())
       , Second(second ? second : StubLine::Create())
     {
     }
 
-    Cell::Ptr GetChannel(uint_t idx) const override
+    const Cell* GetChannel(uint_t idx) const override
     {
       return idx < AYM::TRACK_CHANNELS
         ? First->GetChannel(idx)
@@ -249,46 +251,44 @@ namespace ProTracker3
       }
       return First->GetTempo();
     }
-
-    static Line::Ptr Create(Line::Ptr first, Line::Ptr second)
-    {
-      if (first || second)
-      {
-        return MakePtr<TSLine>(first, second);
-      }
-      else
-      {
-        return Line::Ptr();
-      }
-    }
   private:
-    const Line::Ptr First;
-    const Line::Ptr Second;
+    const Line* const First;
+    const Line* const Second;
   };
 
   class TSPattern : public Pattern
   {
   public:
-    TSPattern(Pattern::Ptr first, Pattern::Ptr second)
-      : First(std::move(first))
-      , Second(std::move(second))
+    typedef std::unique_ptr<TSPattern> Ptr;
+
+    TSPattern(const Pattern& first, const Pattern& second)
+      : First(first)
+      , Second(second)
     {
     }
 
-    Line::Ptr GetLine(uint_t row) const override
+    const Line* GetLine(uint_t row) const override
     {
-      const Line::Ptr first = First->GetLine(row);
-      const Line::Ptr second = Second->GetLine(row);
-      return TSLine::Create(first, second);
+      if (const auto cached = Lines.Get(row).get())
+      {
+        return cached;
+      }
+      else
+      {
+        const auto first = First.GetLine(row);
+        const auto second = Second.GetLine(row);
+        return Lines.Add(row, MakePtr<TSLine>(first, second)).get();
+      }
     }
 
     uint_t GetSize() const override
     {
-      return std::min(First->GetSize(), Second->GetSize());
+      return std::min(First.GetSize(), Second.GetSize());
     }
   private:
-    const Pattern::Ptr First;
-    const Pattern::Ptr Second;
+    const Pattern& First;
+    const Pattern& Second;
+    mutable SparsedObjectsStorage<TSLine::Ptr> Lines;
   };
 
   class TSPatternsSet : public PatternsSet
@@ -300,11 +300,18 @@ namespace ProTracker3
     {
     }
 
-    Pattern::Ptr Get(uint_t idx) const override
+    const Pattern* Get(uint_t idx) const override
     {
-      const Pattern::Ptr first = Delegate->Get(idx);
-      const Pattern::Ptr second = Delegate->Get(Base - 1 - idx);
-      return MakePtr<TSPattern>(first, second);
+      if (const auto cached = Patterns.Get(idx).get())
+      {
+        return cached;
+      }
+      else
+      {
+        const auto first = Delegate->Get(idx);
+        const auto second = Delegate->Get(Base - 1 - idx);
+        return Patterns.Add(idx, MakePtr<TSPattern>(*first, *second)).get();
+      }
     }
 
     uint_t GetSize() const override
@@ -314,11 +321,12 @@ namespace ProTracker3
   private:
     const uint_t Base;
     const PatternsSet::Ptr Delegate;
+    mutable SparsedObjectsStorage<TSPattern::Ptr> Patterns;
   };
 
   PatternsSet::Ptr CreateTSPatterns(uint_t patOffset, PatternsSet::Ptr pats)
   {
-    return MakePtr<TSPatternsSet>(patOffset, pats);
+    return MakePtr<TSPatternsSet>(patOffset, std::move(pats));
   }
 
   class PT3Chiptune : public AYM::Chiptune
@@ -402,18 +410,18 @@ namespace ProTracker3
       {
         props.SetSource(*container);
         const uint_t patOffset = dataBuilder.GetPatOffset();
-        const ModuleData::RWPtr modData = dataBuilder.GetResult();
+        auto modData = dataBuilder.CaptureResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
           //TurboSound modules
           props.SetComment(Text::PT3_TURBOSOUND_MODULE);
-          modData->Patterns = CreateTSPatterns(patOffset, modData->Patterns);
-          const TurboSound::Chiptune::Ptr chiptune = MakePtr<TSChiptune>(modData, properties);
+          modData->Patterns = CreateTSPatterns(patOffset, std::move(modData->Patterns));
+          const TurboSound::Chiptune::Ptr chiptune = MakePtr<TSChiptune>(std::move(modData), properties);
           return TurboSound::CreateHolder(chiptune);
         }
         else
         {
-          const AYM::Chiptune::Ptr chiptune = MakePtr<PT3Chiptune>(modData, properties);
+          const AYM::Chiptune::Ptr chiptune = MakePtr<PT3Chiptune>(std::move(modData), properties);
           return AYM::CreateHolder(chiptune);
         }
       }

@@ -20,8 +20,11 @@
 #include <formats/chiptune/aym/sqtracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//std includes
+#include <unordered_set>
+#include <unordered_map>
 //boost includes
-#include <boost/unordered_map.hpp>
+#include <boost/functional/hash.hpp>
 
 namespace Module
 {
@@ -164,7 +167,7 @@ namespace SQTracker
       }
     };
   private:
-    typedef boost::unordered_map<HashedPosition, uint_t, PositionHash> StorageType;
+    typedef std::unordered_map<HashedPosition, uint_t, PositionHash> StorageType;
     StorageType Storage;
   };
 
@@ -228,26 +231,25 @@ namespace SQTracker
     {
       Dbg("Convert patterns");
       PatternsBuilder builder = PatternsBuilder::Create<AYM::TRACK_CHANNELS>();
-      const PatternsSet::Ptr result = builder.GetResult();
+      std::unordered_set<uint_t> donePatterns;
       for (uint_t pos = 0, lim = order.GetSize(); pos != lim; ++pos)
       {
         const uint_t patIdx = order.GetPatternIndex(pos);
-        if (result->Get(patIdx))
+        if (donePatterns.insert(patIdx).second)
         {
-          continue;
+          const Formats::Chiptune::SQTracker::PositionEntry& patAttrs = Positions[pos];
+          Dbg("Pattern %1%", patIdx);
+          builder.SetPattern(patIdx);
+          ConvertPattern(patAttrs, builder);
         }
-        const Formats::Chiptune::SQTracker::PositionEntry& patAttrs = Positions[pos];
-        Dbg("Pattern %1%", patIdx);
-        builder.SetPattern(patIdx);
-        ConvertPattern(patAttrs, builder);
       }
-      return result;
+      return builder.CaptureResult();
     }
 
     class MultiLine
     {
     public:
-      MultiLine(Line::Ptr chanA, Line::Ptr chanB, Line::Ptr chanC)
+      MultiLine(const Line* chanA, const Line* chanB, const Line* chanC)
       {
         Delegates[0] = chanA;
         Delegates[1] = chanB;
@@ -259,12 +261,12 @@ namespace SQTracker
         return Delegates[0] || Delegates[1] || Delegates[2];
       }
 
-      Line::Ptr GetSubline(uint_t chan) const
+      const Line* GetSubline(uint_t chan) const
       {
         return Delegates[chan];
       }
     private:
-      std::array<Line::Ptr, AYM::TRACK_CHANNELS> Delegates;
+      std::array<const Line*, AYM::TRACK_CHANNELS> Delegates;
     };
 
     class MultiPattern
@@ -288,7 +290,7 @@ namespace SQTracker
         return MultiLine(Delegates[0]->GetLine(row), Delegates[1]->GetLine(row), Delegates[2]->GetLine(row));
       }
     private:
-      std::array<Pattern::Ptr, AYM::TRACK_CHANNELS> Delegates;
+      std::array<const Pattern*, AYM::TRACK_CHANNELS> Delegates;
     };
 
     class MutablePatternHelper
@@ -367,14 +369,14 @@ namespace SQTracker
       for (uint_t idx = 0; idx != patAttrs.Channels.size(); ++idx)
       {
         const uint_t chan = patAttrs.Channels.size() - idx - 1;
-        if (const Line::Ptr line = inLine.GetSubline(chan))
+        if (const auto line = inLine.GetSubline(chan))
         {
           const bool enabledEffects = patAttrs.Channels[chan].EnabledEffects;
           if (const uint_t newTempo = enabledEffects ? line->GetTempo() : 0)
           {
             tempo = newTempo;
           }
-          if (const Cell::Ptr inCell = line->GetChannel(0))
+          if (const auto inCell = line->GetChannel(0))
           {
             MutableCell& outCell = outLine.AddChannel(chan);
             if (const uint_t tempoAddon = ConvertChannel(*inCell, enabledEffects, outCell))
@@ -435,8 +437,8 @@ namespace SQTracker
 
   class SingleChannelPatternsBuilder : public PatternsBuilder
   {
-    SingleChannelPatternsBuilder(MutablePatternsSet::Ptr patterns)
-      : PatternsBuilder(patterns)
+    explicit SingleChannelPatternsBuilder(MutablePatternsSet::Ptr patterns)
+      : PatternsBuilder(std::move(patterns))
     {
     }
   public:
@@ -459,10 +461,10 @@ namespace SQTracker
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
-      : Data(MakeRWPtr<ModuleData>())
-      , Properties(props)
+      : Properties(props)
       , Meta(props)
       , Patterns(SingleChannelPatternsBuilder::Create())
+      , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetFrequencyTable(TABLE_SQTRACKER);
     }
@@ -551,17 +553,17 @@ namespace SQTracker
       Patterns.GetChannel().AddCommand(ATTENUATION_ADDON, add, true);
     }
 
-    ModuleData::Ptr GetResult()
+    ModuleData::Ptr CaptureResult()
     {
-      Data->RawPatterns = Patterns.GetResult();
-      return Data;
+      Data->RawPatterns = Patterns.CaptureResult();
+      return std::move(Data);
     }
   private:
-    const ModuleData::RWPtr Data;
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
     SingleChannelPatternsBuilder Patterns;
     std::vector<Formats::Chiptune::SQTracker::PositionEntry> Positions;
+    ModuleData::RWPtr Data;
   };
 
   struct ChannelState
@@ -632,12 +634,12 @@ namespace SQTracker
 
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const Line::Ptr line = state.LineObject())
+      if (const auto line = state.LineObject())
       {
         for (uint_t idx = 0; idx != PlayerState.size(); ++idx)
         {
           const uint_t chan = PlayerState.size() - idx - 1;
-          if (const Cell::Ptr src = line->GetChannel(chan))
+          if (const auto src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
@@ -838,10 +840,10 @@ namespace SQTracker
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else
       {

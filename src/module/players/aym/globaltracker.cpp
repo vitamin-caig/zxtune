@@ -101,12 +101,11 @@ namespace GlobalTracker
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
-      : Data(MakeRWPtr<ModuleData>())
-      , Properties(props)
+      : Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Data(MakeRWPtr<ModuleData>())
     {
-      Data->Patterns = Patterns.GetResult();
       Properties.SetFrequencyTable(TABLE_PROTRACKER3_ST);
     }
 
@@ -182,15 +181,16 @@ namespace GlobalTracker
       Patterns.GetChannel().AddCommand(NOENVELOPE);
     }
 
-    ModuleData::Ptr GetResult() const
+    ModuleData::Ptr CaptureResult()
     {
-      return Data;
+      Data->Patterns = Patterns.CaptureResult();
+      return std::move(Data);
     }
   private:
-    const ModuleData::RWPtr Data;
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
+    ModuleData::RWPtr Data;
   };
 
   struct ChannelState
@@ -236,11 +236,11 @@ namespace GlobalTracker
   private:
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const Line::Ptr line = state.LineObject())
+      if (const auto line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const Cell::Ptr src = line->GetChannel(chan))
+          if (const auto src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
@@ -393,10 +393,10 @@ namespace GlobalTracker
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::GlobalTracker::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::GlobalTracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else
       {

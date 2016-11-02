@@ -96,12 +96,11 @@ namespace TFMMusicMaker
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-      : Data(MakeRWPtr<ModuleData>())
-      , Properties(props)
+      : Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<TFM::TRACK_CHANNELS>())
+      , Data(MakeRWPtr<ModuleData>())
     {
-      Data->Patterns = Patterns.GetResult();
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -266,15 +265,16 @@ namespace TFMMusicMaker
       Patterns.GetChannel().AddCommand(TEMPO_VALUES, even, odd);
     }
 
-    ModuleData::Ptr GetResult() const
+    ModuleData::Ptr CaptureResult()
     {
-      return Data;
+      Data->Patterns = Patterns.CaptureResult();
+      return std::move(Data);
     }
   private:
-    const ModuleData::RWPtr Data;
     PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
+    ModuleData::RWPtr Data;
   };
 
   struct Halftones
@@ -666,11 +666,11 @@ namespace TFMMusicMaker
     void GetNewLineState(const TrackModelState& state, TFM::TrackBuilder& track)
     {
       ResetOneLineEffects();
-      if (const Line::Ptr line = state.LineObject())
+      if (const auto line = state.LineObject())
       {
         for (uint_t chan = 0; chan != State.Channels.size(); ++chan)
         {
-          if (const Cell::Ptr src = line->GetChannel(chan))
+          if (const auto src = line->GetChannel(chan))
           {
             TFM::ChannelBuilder channel = track.GetChannel(chan);
             GetNewChannelState(*src, State.Channels[chan], track, channel);
@@ -1055,9 +1055,9 @@ namespace TFMMusicMaker
     {
     }
   public:
-    Line::Ptr GetLine(uint_t /*row*/) const override
+    const Line* GetLine(uint_t /*row*/) const override
     {
-      return Line::Ptr();
+      return nullptr;
     }
 
     uint_t GetSize() const override
@@ -1065,10 +1065,10 @@ namespace TFMMusicMaker
       return 0;
     }
 
-    static Ptr Create()
+    static const Pattern* Create()
     {
-      static StubPattern instance;
-      return MakeSingletonPointer(instance);
+      static const StubPattern instance;
+      return &instance;
     }
   };
   
@@ -1199,12 +1199,12 @@ namespace TFMMusicMaker
     }
 
     //TrackModelState
-    Pattern::Ptr PatternObject() const override
+    const class Pattern* PatternObject() const override
     {
       return CurPatternObject;
     }
 
-    Line::Ptr LineObject() const override
+    const class Line* LineObject() const override
     {
       return CurLineObject;
     }
@@ -1349,7 +1349,7 @@ namespace TFMMusicMaker
     {
       for (uint_t idx = 0; idx != TFM::TRACK_CHANNELS; ++idx)
       {
-        if (const Cell::Ptr chan = CurLineObject->GetChannel(idx))
+        if (const auto chan = CurLineObject->GetChannel(idx))
         {
           LoadNewLoopTempoParameters(*chan);
         }
@@ -1386,8 +1386,8 @@ namespace TFMMusicMaker
     const PatternsSet& Patterns;
     //state
     PlainTrackState Plain;
-    Pattern::Ptr CurPatternObject;
-    Line::Ptr CurLineObject;
+    const class Pattern* CurPatternObject;
+    const class Line* CurLineObject;
     LoopState Loop;
     const PlainTrackState* NextLineState;
   };
@@ -1555,10 +1555,10 @@ namespace TFMMusicMaker
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
+      if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else
       {

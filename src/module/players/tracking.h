@@ -76,7 +76,7 @@ namespace Module
   class MutableLine : public Line
   {
   public:
-    typedef std::shared_ptr<MutableLine> Ptr;
+    typedef std::unique_ptr<MutableLine> Ptr;
     
     virtual void SetTempo(uint_t val) = 0;
     virtual MutableCell& AddChannel(uint_t idx) = 0;
@@ -85,7 +85,7 @@ namespace Module
   class MutablePattern : public Pattern
   {
   public:
-    typedef std::shared_ptr<MutablePattern> Ptr;
+    typedef std::unique_ptr<MutablePattern> Ptr;
     
     virtual MutableLine& AddLine(uint_t row) = 0;
     virtual void SetSize(uint_t size) = 0;
@@ -94,7 +94,7 @@ namespace Module
   class MutablePatternsSet : public PatternsSet
   {
   public:
-    typedef std::shared_ptr<MutablePatternsSet> Ptr;
+    typedef std::unique_ptr<MutablePatternsSet> Ptr;
     
     virtual MutablePattern& AddPattern(uint_t idx) = 0;
   };
@@ -108,7 +108,7 @@ namespace Module
     {
     }
 
-    Cell::Ptr GetChannel(uint_t idx) const override
+    const Cell* GetChannel(uint_t idx) const override
     {
       return Channels[idx].HasData() ? &Channels[idx] : nullptr;
     }
@@ -166,13 +166,13 @@ namespace Module
       Objects.resize(newSize);
     }
 
-    void Add(uint_t idx, T obj)
+    const T& Add(uint_t idx, T obj)
     {
       if (idx >= Objects.size())
       {
         Objects.resize(idx + 1);
       }
-      Objects[idx] = std::move(obj);
+      return Objects[idx] = std::move(obj);
     }
   private:
     std::vector<T> Objects;
@@ -182,9 +182,9 @@ namespace Module
   class SparsedMutablePattern : public MutablePattern
   {
   public:
-    Line::Ptr GetLine(uint_t row) const override
+    const Line* GetLine(uint_t row) const override
     {
-      return Storage.Get(row);
+      return Storage.Get(row).get();
     }
 
     uint_t GetSize() const override
@@ -194,9 +194,7 @@ namespace Module
 
     MutableLine& AddLine(uint_t row) override
     {
-      const MutableLine::Ptr res = MakePtr<MutableLineType>();
-      Storage.Add(row, res);
-      return *res;
+      return *Storage.Add(row, MakePtr<MutableLineType>());
     }
 
     void SetSize(uint_t newSize) override
@@ -211,9 +209,9 @@ namespace Module
   class SparsedMutablePatternsSet : public MutablePatternsSet
   {
   public:
-    Pattern::Ptr Get(uint_t idx) const override
+    const class Pattern* Get(uint_t idx) const override
     {
-      return Storage.Get(idx);
+      return Storage.Get(idx).get();
     }
 
     uint_t GetSize() const override
@@ -221,7 +219,7 @@ namespace Module
       uint_t res = 0;
       for (uint_t idx = 0; idx != Storage.Size(); ++idx)
       {
-        if (const Pattern::Ptr pat = Storage.Get(idx))
+        if (const auto pat = Storage.Get(idx).get())
         {
           res += pat->GetSize() != 0;
         }
@@ -231,9 +229,7 @@ namespace Module
 
     MutablePattern& AddPattern(uint_t idx) override
     {
-      const MutablePattern::Ptr res = MakePtr<MutablePatternType>();
-      Storage.Add(idx, res);
-      return *res;
+      return *Storage.Add(idx, MakePtr<MutablePatternType>());
     }
   private:
     SparsedObjectsStorage<MutablePattern::Ptr> Storage;
@@ -312,9 +308,9 @@ namespace Module
       return *CurChannel;
     }
 
-    PatternsSet::Ptr GetResult() const
+    PatternsSet::Ptr CaptureResult()
     {
-      return Patterns;
+      return std::move(Patterns);
     }
 
     template<uint_t ChannelsCount>
@@ -326,7 +322,7 @@ namespace Module
       return PatternsBuilder(MakePtr<PatternsSetType>());
     }
   private:  
-    const MutablePatternsSet::Ptr Patterns;
+    MutablePatternsSet::Ptr Patterns;
     MutablePattern* CurPattern;
     MutableLine* CurLine;
     MutableCell* CurChannel;

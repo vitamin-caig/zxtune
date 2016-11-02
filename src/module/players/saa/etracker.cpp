@@ -132,11 +132,10 @@ namespace ETracker
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-      : Data(MakeRWPtr<ModuleData>())
-      , Meta(props)
+      : Meta(props)
       , Patterns(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
+      , Data(MakeRWPtr<ModuleData>())
     {
-      Data->Patterns = Patterns.GetResult();
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -215,14 +214,15 @@ namespace ETracker
       Patterns.GetChannel().AddCommand(NOISE, type);
     }
 
-    ModuleData::Ptr GetResult() const
+    ModuleData::Ptr CaptureResult()
     {
-      return Data;
+      Data->Patterns = Patterns.CaptureResult();
+      return std::move(Data);
     }
   private:
-    const ModuleData::RWPtr Data;
     MetaProperties Meta;
     PatternsBuilder Patterns;
+    ModuleData::RWPtr Data;
   };
 
   template<class Object>
@@ -330,11 +330,11 @@ namespace ETracker
   private:
     void GetNewLineState(const TrackModelState& state, SAA::TrackBuilder& track)
     {
-      if (const Line::Ptr line = state.LineObject())
+      if (const auto line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const Cell::Ptr src = line->GetChannel(chan))
+          if (const auto src = line->GetChannel(chan))
           {
             SAA::ChannelBuilder channel = track.GetChannel(chan);
             GetNewChannelState(chan, *src, PlayerState[chan], channel);
@@ -541,10 +541,10 @@ namespace ETracker
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        const SAA::Chiptune::Ptr chiptune = MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
+        const SAA::Chiptune::Ptr chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
         return SAA::CreateHolder(chiptune);
       }
       return Holder::Ptr();

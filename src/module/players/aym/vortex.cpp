@@ -185,11 +185,11 @@ namespace Vortex
         PlayerState.CommState.NoiseBase = 0;
       }
 
-      if (const Line::Ptr line = state.LineObject())
+      if (const auto line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.ChanState.size(); ++chan)
         {
-          if (const Cell::Ptr src = line->GetChannel(TrackChannelStart + chan))
+          if (const auto src = line->GetChannel(TrackChannelStart + chan))
           {
             GetNewChannelState(*src, PlayerState.ChanState[chan], track);
           }

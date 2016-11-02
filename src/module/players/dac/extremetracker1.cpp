@@ -51,12 +51,11 @@ namespace ExtremeTracker1
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
-      : Data(MakeRWPtr<ModuleData>())
-      , Properties(props)
+      : Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
+      , Data(MakeRWPtr<ModuleData>())
     {
-      Data->Patterns = Patterns.GetResult();
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -121,15 +120,16 @@ namespace ExtremeTracker1
       Patterns.GetChannel().AddCommand(GLISS, gliss);
     }
     
-    ModuleData::Ptr GetResult() const
+    ModuleData::Ptr CaptureResult()
     {
-      return Data;
+      Data->Patterns = Patterns.CaptureResult();
+      return std::move(Data);
     }
   private:
-    const ModuleData::RWPtr Data;
     DAC::PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
+    ModuleData::RWPtr Data;
   };
   
   struct GlissData
@@ -190,11 +190,11 @@ namespace ExtremeTracker1
 
     void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
     {
-      if (const Line::Ptr line = state.LineObject())
+      if (const auto line = state.LineObject())
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
         {
-          if (const Cell::Ptr src = line->GetChannel(chan))
+          if (const auto src = line->GetChannel(chan))
           {
             DAC::ChannelDataBuilder builder = track.GetChannel(chan);
             GetNewChannelState(*src, Gliss[chan], builder);
@@ -297,10 +297,10 @@ namespace ExtremeTracker1
     {
       DAC::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ExtremeTracker1::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::ExtremeTracker1::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else
       {

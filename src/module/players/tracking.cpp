@@ -22,9 +22,9 @@ namespace Module
     {
     }
   public:
-    Line::Ptr GetLine(uint_t /*row*/) const override
+    const Line* GetLine(uint_t /*row*/) const override
     {
-      return Line::Ptr();
+      return nullptr;
     }
 
     uint_t GetSize() const override
@@ -32,10 +32,10 @@ namespace Module
       return 0;
     }
 
-    static Ptr Create()
+    static const Pattern* Create()
     {
-      static StubPattern instance;
-      return MakeSingletonPointer(instance);
+      static const StubPattern instance;
+      return &instance;
     }
   };
 
@@ -109,12 +109,12 @@ namespace Module
     }
 
     //TrackModelState
-    Pattern::Ptr PatternObject() const override
+    const class Pattern* PatternObject() const override
     {
       return CurPatternObject;
     }
 
-    Line::Ptr LineObject() const override
+    const class Line* LineObject() const override
     {
       return CurLineObject;
     }
@@ -234,8 +234,8 @@ namespace Module
     const PatternsSet& Patterns;
     //state
     PlainTrackState Plain;
-    Pattern::Ptr CurPatternObject;
-    Line::Ptr CurLineObject;
+    const class Pattern* CurPatternObject;
+    const class Line* CurLineObject;
   };
 
   class TrackStateIteratorImpl : public TrackStateIterator
@@ -362,11 +362,11 @@ namespace Module
 
   Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels)
   {
-    return MakePtr<InformationImpl>(model, channels);
+    return MakePtr<InformationImpl>(std::move(model), channels);
   }
 
   TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model)
   {
-    return MakePtr<TrackStateIteratorImpl>(model);
+    return MakePtr<TrackStateIteratorImpl>(std::move(model));
   }
 }

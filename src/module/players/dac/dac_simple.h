@@ -57,9 +57,9 @@ namespace Module
     public:
       typedef std::unique_ptr<SimpleDataBuilder> Ptr;
       
-      virtual SimpleModuleData::Ptr GetResult() const = 0;
+      virtual SimpleModuleData::Ptr CaptureResult() = 0;
       
-      static Ptr Create(DAC::PropertiesHelper& props, const PatternsBuilder& builder);
+      static Ptr Create(DAC::PropertiesHelper& props, PatternsBuilder builder);//TODO: rework external dependency from builder
     };
 
     template<uint_t Channels>

@@ -132,12 +132,11 @@ namespace ProSoundMaker
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
-      : Data(MakeRWPtr<ModuleData>())
-      , Properties(props)
+      : Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Data(MakeRWPtr<ModuleData>())
     {
-      Data->Patterns = Patterns.GetResult();
       Properties.SetFrequencyTable(TABLE_PROSOUNDMAKER);
     }
 
@@ -242,15 +241,16 @@ namespace ProSoundMaker
       }
     }
 
-    ModuleData::Ptr GetResult() const
+    ModuleData::Ptr CaptureResult()
     {
-      return Data;
+      Data->Patterns = Patterns.CaptureResult();
+      return std::move(Data);
     }
   private:
-    const ModuleData::RWPtr Data;
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
+    ModuleData::RWPtr Data;
   };
 
   struct SampleState
@@ -347,11 +347,11 @@ namespace ProSoundMaker
 
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const Line::Ptr line = state.LineObject())
+      if (const auto line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const Cell::Ptr src = line->GetChannel(chan))
+          if (const auto src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
@@ -571,7 +571,7 @@ namespace ProSoundMaker
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProSoundMaker::ParseCompiled(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else
       {

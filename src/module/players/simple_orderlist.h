@@ -49,7 +49,7 @@ namespace Module
   class SimpleOrderListWithTransposition : public OrderList
   {
   public:
-    typedef std::shared_ptr<const SimpleOrderListWithTransposition<T> > Ptr;
+    typedef std::unique_ptr<const SimpleOrderListWithTransposition<T> > Ptr;
 
     SimpleOrderListWithTransposition(uint_t loop, std::vector<T> positions)
       : Loop(loop)

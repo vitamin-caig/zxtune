@@ -48,8 +48,6 @@ namespace Module
   class Cell
   {
   public:
-    typedef const Cell* Ptr;
-
     Cell() : Mask(), Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
     {
     }
@@ -110,10 +108,9 @@ namespace Module
   class Line
   {
   public:
-    typedef std::shared_ptr<const Line> Ptr;
     virtual ~Line() = default;
 
-    virtual Cell::Ptr GetChannel(uint_t idx) const = 0;
+    virtual const Cell* GetChannel(uint_t idx) const = 0;
     virtual uint_t CountActiveChannels() const = 0;
     virtual uint_t GetTempo() const = 0;
   };
@@ -121,27 +118,26 @@ namespace Module
   class Pattern
   {
   public:
-    typedef std::shared_ptr<const Pattern> Ptr;
     virtual ~Pattern() = default;
 
-    virtual Line::Ptr GetLine(uint_t row) const = 0;
+    virtual const class Line* GetLine(uint_t row) const = 0;
     virtual uint_t GetSize() const = 0;
   };
 
   class PatternsSet
   {
   public:
-    typedef std::shared_ptr<const PatternsSet> Ptr;
+    typedef std::unique_ptr<const PatternsSet> Ptr;
     virtual ~PatternsSet() = default;
 
-    virtual Pattern::Ptr Get(uint_t idx) const = 0;
+    virtual const class Pattern* Get(uint_t idx) const = 0;
     virtual uint_t GetSize() const = 0;
   };
 
   class OrderList
   {
   public:
-    typedef std::shared_ptr<const OrderList> Ptr;
+    typedef std::unique_ptr<const OrderList> Ptr;
     virtual ~OrderList() = default;
 
     virtual uint_t GetSize() const = 0;
@@ -165,7 +161,7 @@ namespace Module
   public:
     typedef std::shared_ptr<const TrackModelState> Ptr;
 
-    virtual Pattern::Ptr PatternObject() const = 0;
-    virtual Line::Ptr LineObject() const = 0;
+    virtual const class Pattern* PatternObject() const = 0;
+    virtual const class Line* LineObject() const = 0;
   };
 }

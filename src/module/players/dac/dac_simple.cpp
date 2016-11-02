@@ -28,12 +28,11 @@ namespace Module
     {
     public:
       SimpleDataBuilderImpl(DAC::PropertiesHelper& props, PatternsBuilder builder)
-        : Data(MakeRWPtr<SimpleModuleData>())
-        , Properties(props)
+        : Properties(props)
         , Meta(props)
         , Patterns(std::move(builder))
+        , Data(MakeRWPtr<SimpleModuleData>())
       {
-        Data->Patterns = Patterns.GetResult();
       }
 
       Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -90,20 +89,21 @@ namespace Module
         Patterns.GetChannel().SetSample(sample);
       }
 
-      SimpleModuleData::Ptr GetResult() const override
+      SimpleModuleData::Ptr CaptureResult() override
       {
-        return Data;
+        Data->Patterns = Patterns.CaptureResult();
+        return std::move(Data);
       }
     private:
-      const SimpleModuleData::RWPtr Data;
       DAC::PropertiesHelper& Properties;
       MetaProperties Meta;
       PatternsBuilder Patterns;
+      SimpleModuleData::RWPtr Data;
     };
 
-    SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, const PatternsBuilder& builder)
+    SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, PatternsBuilder builder)
     {
-      return MakePtr<SimpleDataBuilderImpl>(props, builder);
+      return MakePtr<SimpleDataBuilderImpl>(props, std::move(builder));
     }
 
     class SimpleDataRenderer : public DAC::DataRenderer
@@ -129,11 +129,11 @@ namespace Module
     private:
       void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
       {
-        if (const Line::Ptr line = state.LineObject())
+        if (const auto line = state.LineObject())
         {
           for (uint_t chan = 0; chan != Channels; ++chan)
           {
-            if (const Cell::Ptr src = line->GetChannel(chan))
+            if (const auto src = line->GetChannel(chan))
             {
               ChannelDataBuilder builder = track.GetChannel(chan);
               GetNewChannelState(*src, builder);

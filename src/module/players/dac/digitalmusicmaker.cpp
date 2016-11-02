@@ -201,12 +201,11 @@ namespace DigitalMusicMaker
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
-      : Data(MakeRWPtr<ModuleData>())
-      , Properties(props)
+      : Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
+      , Data(MakeRWPtr<ModuleData>())
     {
-      Data->Patterns = Patterns.GetResult();
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
     }
 
@@ -249,15 +248,16 @@ namespace DigitalMusicMaker
       return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(Patterns.GetChannel()));
     }
 
-    ModuleData::Ptr GetResult() const
+    ModuleData::Ptr CaptureResult()
     {
-      return Data;
+      Data->Patterns = Patterns.CaptureResult();
+      return std::move(Data);
     }
   private:
-    const ModuleData::RWPtr Data;
     DAC::PropertiesHelper& Properties;
     MetaProperties Meta;
     PatternsBuilder Patterns;
+    ModuleData::RWPtr Data;
   };
 
   class ChannelState
@@ -625,7 +625,7 @@ namespace DigitalMusicMaker
 
     void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
     {
-      const Line::Ptr line = 0 == state.Quirk() ? state.LineObject() : Line::Ptr();
+      const auto line = 0 == state.Quirk() ? state.LineObject() : nullptr;
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         DAC::ChannelDataBuilder builder = track.GetChannel(chan);
@@ -635,7 +635,7 @@ namespace DigitalMusicMaker
         //begin note
         if (line)
         {
-          if (const Cell::Ptr src = line->GetChannel(chan))
+          if (const auto src = line->GetChannel(chan))
           {
             chanState.OnNote(*src, *Data, builder);
           }
@@ -695,10 +695,10 @@ namespace DigitalMusicMaker
     {
       DAC::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalMusicMaker::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::DigitalMusicMaker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.GetResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else
       {
