@@ -141,6 +141,21 @@ public class Analytics {
     send(event);
   }
 
+  public static void sendVfsRemoteEvent(String id, String scope) {
+    sendVfsEvent(id, scope, "remote");
+  }
+
+  public static void sendVfsCacheEvent(String id, String scope) {
+    sendVfsEvent(id, scope, "cache");
+  }
+
+  private static void sendVfsEvent(String id, String scope, String type) {
+    final CustomEvent event = new CustomEvent("Vfs");
+    event.putCustomAttribute(id, type);
+    event.putCustomAttribute(id + "/" + scope, type);
+    send(event);
+  }
+
   private static void send(CustomEvent event) {
     Answers.getInstance().logCustom(event);
     Log.d(TAG, event.toString());

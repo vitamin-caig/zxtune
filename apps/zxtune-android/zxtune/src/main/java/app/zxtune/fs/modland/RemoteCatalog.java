@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
 
 import android.net.Uri;
 import android.text.Html;
+
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
@@ -95,6 +97,7 @@ class RemoteCatalog extends Catalog {
     
     @Override
     public void query(String filter, final GroupsVisitor visitor) throws IOException {
+      sendEvent("groups");
       loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
         
         private boolean countReported;
@@ -123,6 +126,7 @@ class RemoteCatalog extends Catalog {
 
     @Override
     public Group query(final int id) throws IOException {
+      sendEvent("group");
       final Group[] result = new Group[1];
       loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
         @Override
@@ -140,6 +144,7 @@ class RemoteCatalog extends Catalog {
 
     @Override
     public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
+      sendEvent("tracks");
       loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
 
         private boolean countReported;
@@ -260,5 +265,9 @@ class RemoteCatalog extends Catalog {
       }
       break;
     }
+  }
+
+  private static void sendEvent(String scope) {
+    Analytics.sendVfsRemoteEvent("modland", scope);
   }
 }

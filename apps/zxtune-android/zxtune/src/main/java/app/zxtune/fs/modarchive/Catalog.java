@@ -97,8 +97,7 @@ public abstract class Catalog {
 
   public static Catalog create(Context context, HttpProvider http, VfsCache cache) {
     final Catalog remote = new RemoteCatalog(context, http);
-    final Database db = new Database(context);
-    final VfsCache cacheDir = cache.createNested("modarchive.org");
-    return new CachingCatalog(remote, db, cacheDir);
+    final Database db = new Database(context, cache);
+    return new CachingCatalog(remote, db);
   }
 }

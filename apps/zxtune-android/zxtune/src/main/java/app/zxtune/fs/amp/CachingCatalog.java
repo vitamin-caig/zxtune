@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
@@ -37,12 +36,10 @@ final class CachingCatalog extends Catalog {
   
   private final Catalog remote;
   private final Database db;
-  private final VfsCache cacheDir;
 
-  public CachingCatalog(Catalog remote, Database db, VfsCache cacheDir) {
+  public CachingCatalog(Catalog remote, Database db) {
     this.remote = remote;
     this.db = db;
-    this.cacheDir = cacheDir; 
   }
 
   @Override
@@ -197,13 +194,12 @@ final class CachingCatalog extends Catalog {
   
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
-    final String filename = Integer.toString(id);
-    final ByteBuffer cachedContent = cacheDir.getCachedFileContent(filename);
+    final ByteBuffer cachedContent = db.getTrackContent(id);
     if (cachedContent != null) {
       return cachedContent;
     } else {
       final ByteBuffer content = remote.getTrackContent(id);
-      cacheDir.putCachedFileContent(filename, content);
+      db.addTrackContent(id, content);
       return content;
     }
   }

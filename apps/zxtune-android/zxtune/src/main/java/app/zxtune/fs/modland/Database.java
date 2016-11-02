@@ -10,6 +10,7 @@
 
 package app.zxtune.fs.modland;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import android.content.ContentValues;
@@ -18,8 +19,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
@@ -157,8 +161,9 @@ final class Database {
   private final HashMap<String, Tables.GroupTracks> groupTracks;
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
+  private final VfsCache cacheDir;
 
-  Database(Context context) {
+  Database(Context context, VfsCache cache) {
     this.helper = new DBProvider(Helper.create(context));
     this.groups = new HashMap<String, Tables.Groups>();
     this.groupTracks = new HashMap<String, Tables.GroupTracks>();
@@ -168,6 +173,7 @@ final class Database {
     }
     this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
+    this.cacheDir = cache.createNested("ftp.modland.com");
   }
 
   final Transaction startTransaction() {
@@ -183,7 +189,7 @@ final class Database {
   }
   
   final boolean queryGroups(String category, String filter, Catalog.GroupsVisitor visitor) {
-    Log.d(TAG, "query%S(filter=%s)", category, filter);
+    sendEvent("groups");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = filter.equals("#")
       ? "SUBSTR(" + Tables.Groups.Fields.name + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
@@ -205,7 +211,7 @@ final class Database {
   }
 
   final Group queryGroup(String category, int id) {
-    Log.d(TAG, "query%S(id=%d)", category, id);
+    sendEvent("group");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Groups.Fields._id + " = " + id;
     final Cursor cursor = db.query(category, null, selection, null, null, null, null);
@@ -223,6 +229,7 @@ final class Database {
   }
 
   final boolean queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
+    sendEvent("tracks");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Tracks.getSelection(groupTracks.get(category).getIdsSelection(id));
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
@@ -266,6 +273,15 @@ final class Database {
     groupTracks.get(category).add(id, obj.id);
   }
 
+  final ByteBuffer getTrackContent(String id) {
+    sendEvent("file");
+    return cacheDir.getCachedFileContent(id);
+  }
+
+  final void addTrackContent(String id, ByteBuffer content) {
+    cacheDir.putCachedFileContent(id, content);
+  }
+
   private static class Helper extends SQLiteOpenHelper {
 
     static Helper create(Context context) {
@@ -293,5 +309,9 @@ final class Database {
       Utils.cleanupDb(db);
       onCreate(db);
     }
+  }
+
+  private static void sendEvent(String scope) {
+    Analytics.sendVfsCacheEvent("modland", scope);
   }
 }

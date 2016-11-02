@@ -26,6 +26,8 @@ import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.StartElementListener;
 import android.util.Xml;
+
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
@@ -50,6 +52,7 @@ final class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
+    sendEvent("authors");
     final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
@@ -61,6 +64,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
+    sendEvent("tracks");
     final HttpURLConnection connection = http.connect(query);
     final RootElement root = createModulesParserRoot(visitor);
     performQuery(connection, root);
@@ -300,5 +304,9 @@ final class RemoteCatalog extends Catalog {
   private static RootElement createRootElement() {
     //TODO: check root tag version
     return new RootElement("zxtunes");
+  }
+
+  private static void sendEvent(String scope) {
+    Analytics.sendVfsRemoteEvent("zxtunes", scope);
   }
 }

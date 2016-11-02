@@ -108,8 +108,7 @@ public abstract class Catalog {
 
   public static Catalog create(Context context, HttpProvider http, VfsCache cache) {
     final Catalog remote = new RemoteCatalog(http);
-    final Database db = new Database(context);
-    final VfsCache cacheDir = cache.createNested("amp.dascene.net");
-    return new CachingCatalog(remote, db, cacheDir);
+    final Database db = new Database(context, cache);
+    return new CachingCatalog(remote, db);
   }
 }

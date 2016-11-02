@@ -14,8 +14,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.nio.ByteBuffer;
+
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
@@ -195,8 +200,9 @@ final class Database {
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
   private final String findQuery;
+  private final VfsCache cacheDir;
 
-  Database(Context context) {
+  Database(Context context, VfsCache cache) {
     this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorsTracks = new Tables.AuthorsTracks(helper);
@@ -208,6 +214,7 @@ final class Database {
         "FROM authors LEFT OUTER JOIN tracks ON " +
         "tracks." + Tables.Tracks.getSelection(authorsTracks.getIdsSelection("authors._id")) +
         " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
+    this.cacheDir = cache.createNested("www.zxart.ee");
   }
 
   final Transaction startTransaction() {
@@ -235,7 +242,7 @@ final class Database {
   }
   
   final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors()");
+    sendEvent("authors");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Authors.NAME, null, null, null, null, null, null);
     try {
@@ -258,7 +265,7 @@ final class Database {
   }
 
   final boolean queryParties(Catalog.PartiesVisitor visitor) {
-    Log.d(TAG, "queryParties()");
+    sendEvent("parties");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Parties.NAME, null, null, null, null, null, null);
     try {
@@ -298,12 +305,13 @@ final class Database {
   
   final boolean queryTopTracks(int limit, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final Cursor cursor = db.query(Tables.Tracks.NAME, null, null, null, null, null, 
-        Tables.Tracks.Fields.votes.name() + " DESC", Integer.toString(limit));
+    final Cursor cursor = db.query(Tables.Tracks.NAME, null, null, null, null, null,
+            Tables.Tracks.Fields.votes.name() + " DESC", Integer.toString(limit));
     return queryTracks(cursor, visitor);
   }
   
   private static boolean queryTracks(Cursor cursor, Catalog.TracksVisitor visitor) {
+    sendEvent("tracks");
     try {
       final int count = cursor.getCount();
       if (count != 0) {
@@ -320,9 +328,8 @@ final class Database {
   }
   
   final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
-    Log.d(TAG, "findTracks(query=%s)", query);
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final Cursor cursor = db.rawQuery(findQuery, new String[] {query});
+    final Cursor cursor = db.rawQuery(findQuery, new String[]{query});
     try {
       final int count = cursor.getCount();
       if (count != 0) {
@@ -348,6 +355,17 @@ final class Database {
 
   final void addPartyTrack(Party party, Track track) {
     partiesTracks.add(party, track);
+  }
+
+  final ByteBuffer getTrackContent(int id) {
+    sendEvent("file");
+    final String filename = Integer.toString(id);
+    return cacheDir.getCachedFileContent(filename);
+  }
+
+  final void addTrackContent(int id, ByteBuffer content) {
+    final String filename = Integer.toString(id);
+    cacheDir.putCachedFileContent(filename, content);
   }
 
   private static class Helper extends SQLiteOpenHelper {
@@ -377,5 +395,9 @@ final class Database {
       Utils.cleanupDb(db);
       onCreate(db);
     }
+  }
+
+  private static void sendEvent(String scope) {
+    Analytics.sendVfsCacheEvent("zxart", scope);
   }
 }

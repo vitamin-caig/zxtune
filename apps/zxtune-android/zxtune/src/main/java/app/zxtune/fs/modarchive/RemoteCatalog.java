@@ -32,6 +32,8 @@ import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.text.Html;
 import android.util.Xml;
+
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
@@ -129,6 +131,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
+    sendEvent("authors");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search_artist").build();
     final RootElement root = createAuthorsParserRoot(visitor);
     loadPages(uri, root);
@@ -137,6 +140,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryGenres(GenresVisitor visitor) throws IOException {
+    sendEvent("genres");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_genres").build();
     final RootElement root = createGenresParserRoot(visitor);
     loadSinglePage(uri, root);
@@ -144,6 +148,7 @@ class RemoteCatalog extends Catalog {
   
   @Override
   public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
+    sendEvent("tracks");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_modules_by_artistid").setQuery(author.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
@@ -151,6 +156,7 @@ class RemoteCatalog extends Catalog {
   
   @Override
   public void queryTracks(Genre genre, TracksVisitor visitor) throws IOException {
+    sendEvent("tracks");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("genre").setQuery(genre.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
@@ -170,6 +176,7 @@ class RemoteCatalog extends Catalog {
   
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
+    sendEvent("file");
     final String query = ApiUriBuilder.forDownload(id).build();
     return http.getContent(query);
   }
@@ -477,5 +484,9 @@ class RemoteCatalog extends Catalog {
   
   private static RootElement createRootElement() {
     return new RootElement("modarchive");
+  }
+
+  private static void sendEvent(String scope) {
+    Analytics.sendVfsRemoteEvent("modarchive", scope);
   }
 }
