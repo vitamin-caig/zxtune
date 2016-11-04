@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.util.SparseIntArray;
 import app.zxtune.Log;
@@ -450,40 +451,29 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
   }
 
-  enum CompoIdentifier {
-    unknown(R.string.vfs_zxart_compo_unknown),
-    standard(R.string.vfs_zxart_compo_standard),
-    ay(R.string.vfs_zxart_compo_ay),
-    beeper(R.string.vfs_zxart_compo_beeper),
-    copyay(R.string.vfs_zxart_compo_copyay),
-    nocopyay(R.string.vfs_zxart_compo_nocopyay),
-    realtime(R.string.vfs_zxart_compo_realtime),
-    realtimeay(R.string.vfs_zxart_compo_realtimeay),
-    realtimebeeper(R.string.vfs_zxart_compo_realtimebeeper),
-    out(R.string.vfs_zxart_compo_out),
-    wild(R.string.vfs_zxart_compo_wild),
-    experimental(R.string.vfs_zxart_compo_experimental),
-    oldschool(R.string.vfs_zxart_compo_oldschool),
-    mainstream(R.string.vfs_zxart_compo_mainstream),
-    progressive(R.string.vfs_zxart_compo_progressive);
+  static class CompoName {
+    private final String id;
+    private final String name;
 
-    private final int resourceId;
-
-    private CompoIdentifier(int id) {
-      this.resourceId = id;
+    private CompoName(String id, Context ctx) {
+      this.id = id;
+      this.name = getLocalizedName(ctx);
     }
 
-    final int getResource() {
-      return resourceId;
+    final String getId() {
+      return id;
     }
 
-    static CompoIdentifier getId(String val) {
-      try {
-        return CompoIdentifier.valueOf(val);
-      } catch (IllegalArgumentException e) {
-        Log.w(TAG, e, "Invalid compo %s", val);
-        return CompoIdentifier.unknown;
-      }
+    final String getName() {
+      return name;
+    }
+
+    private String getLocalizedName(Context ctx) {
+      final Resources res = ctx.getResources();
+      final int resId = res.getIdentifier("vfs_zxart_compo_" + id, "string", ctx.getPackageName());
+      return resId != 0
+              ? res.getString(resId)
+              : id;
     }
   }
 
@@ -491,21 +481,21 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   private class PartyCompoDir extends StubObject implements VfsDir, Comparator<VfsObject> {
 
     private final Party party;
-    private final CompoIdentifier compo;
+    private final CompoName compo;
 
     PartyCompoDir(Party party, String compo) {
       this.party = party;
-      this.compo = CompoIdentifier.getId(compo);
+      this.compo = new CompoName(compo, context);
     }
 
     @Override
     public Uri getUri() {
-      return Identifier.forPartyCompo(party, compo.name()).build();
+      return Identifier.forPartyCompo(party, compo.getId()).build();
     }
 
     @Override
     public String getName() {
-      return context.getString(compo.getResource());
+      return compo.getName();
     }
 
     @Override
@@ -523,8 +513,8 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
         @Override
         public void accept(Track obj) {
-          if (compo.name().equals(obj.compo)) {
-            final Uri uri = Identifier.forTrack(Identifier.forPartyCompo(party, compo.name()), obj)
+          if (compo.getId().equals(obj.compo)) {
+            final Uri uri = Identifier.forTrack(Identifier.forPartyCompo(party, compo.getId()), obj)
                 .build();
             visitor.onFile(new PartyTrackFile(uri, obj));
           }
