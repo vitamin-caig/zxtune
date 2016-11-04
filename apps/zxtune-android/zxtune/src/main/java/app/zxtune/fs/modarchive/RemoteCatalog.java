@@ -131,35 +131,35 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
-    sendEvent("authors");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search_artist").build();
     final RootElement root = createAuthorsParserRoot(visitor);
     loadPages(uri, root);
     visitor.accept(Author.UNKNOWN);
+    sendEvent("authors");
   }
 
   @Override
   public void queryGenres(GenresVisitor visitor) throws IOException {
-    sendEvent("genres");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_genres").build();
     final RootElement root = createGenresParserRoot(visitor);
     loadSinglePage(uri, root);
+    sendEvent("genres");
   }
   
   @Override
   public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
-    sendEvent("tracks");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_modules_by_artistid").setQuery(author.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
+    sendEvent("tracks");
   }
   
   @Override
   public void queryTracks(Genre genre, TracksVisitor visitor) throws IOException {
-    sendEvent("tracks");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("genre").setQuery(genre.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
+    sendEvent("tracks");
   }
   
   @Override
@@ -176,9 +176,10 @@ class RemoteCatalog extends Catalog {
   
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
-    sendEvent("file");
     final String query = ApiUriBuilder.forDownload(id).build();
-    return http.getContent(query);
+    final ByteBuffer res = http.getContent(query);
+    sendEvent("file");
+    return res;
   }
   
   private RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {

@@ -65,10 +65,10 @@ final class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
-    sendEvent("authors");
     final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
+    sendEvent("authors");
   }
 
   @Override
@@ -78,10 +78,10 @@ final class RemoteCatalog extends Catalog {
 
   @Override
   public void queryParties(PartiesVisitor visitor) throws IOException {
-    sendEvent("parties");
     final HttpURLConnection connection = http.connect(ALL_PARTIES_QUERY);
     final RootElement root = createPartiesParserRoot(visitor);
     performQuery(connection, root);
+    sendEvent("parties");
   }
   
   @Override
@@ -95,10 +95,10 @@ final class RemoteCatalog extends Catalog {
   }
   
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
-    sendEvent("tracks");
     final HttpURLConnection connection = http.connect(query);
     final RootElement root = createModulesParserRoot(visitor);
     performQuery(connection, root);
+    sendEvent("tracks");
   }
 
   @Override
@@ -115,14 +115,10 @@ final class RemoteCatalog extends Catalog {
   
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
+    final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
+    final ByteBuffer res = http.getContent(query);
     sendEvent("file");
-    try {
-      final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-      return http.getContent(query);
-    } catch (IOException e) {
-      Log.w(TAG, e, "getTrackContent(%d)", id);
-      throw e;
-    }
+    return res;
   }
 
   private void performQuery(HttpURLConnection connection, RootElement root)

@@ -107,7 +107,6 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryGroups(GroupsVisitor visitor) throws IOException {
-    sendEvent("groups");
     final String content = http.getHtml(GROUPS_URI);
     final Matcher matcher = GROUPS.matcher(content);
     while (matcher.find()) {
@@ -115,6 +114,7 @@ class RemoteCatalog extends Catalog {
       final String name = matcher.group(2);
       visitor.accept(new Group(Integer.valueOf(id), decodeHtml(name)));
     }
+    sendEvent("groups");
   }
   
   @Override
@@ -136,7 +136,6 @@ class RemoteCatalog extends Catalog {
   }
   
   private void queryAuthorsInternal(String uri, final AuthorsVisitor visitor) throws IOException {
-    sendEvent("authors");
     loadPages(uri, new PagesVisitor() {
       @Override
       public boolean onPage(CharSequence content) {
@@ -144,6 +143,7 @@ class RemoteCatalog extends Catalog {
         return true;
       }
     });
+    sendEvent("authors");
   }
 
   private static void parseAuthors(CharSequence content, AuthorsVisitor visitor) {
@@ -158,7 +158,6 @@ class RemoteCatalog extends Catalog {
   
   @Override
   public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
-    sendEvent("tracks");
     final String uri = String.format(Locale.US, AUTHOR_TRACKS_URI_FORMAT, author.id);
     final String content = http.getHtml(uri);
     final Matcher matcher = TRACKS.matcher(content);
@@ -168,6 +167,7 @@ class RemoteCatalog extends Catalog {
       final Integer size = Integer.valueOf(matcher.group(3));
       visitor.accept(new Track(id, name, size));
     }
+    sendEvent("tracks");
   }
 
   @Override
@@ -201,9 +201,10 @@ class RemoteCatalog extends Catalog {
   
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
-    sendEvent("file");
     final String uri = String.format(Locale.US, TRACK_URI_FORMAT, id);
-    return http.getContent(uri);
+    final ByteBuffer res = http.getContent(uri);
+    sendEvent("file");
+    return res;
   }
 
   interface PagesVisitor {
