@@ -9,6 +9,7 @@ import com.crashlytics.android.answers.CustomEvent;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
@@ -63,6 +64,7 @@ public class Analytics {
     final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "Unknown");
     final String program = module.getProperty(ZXTune.Module.Attributes.PROGRAM, "Unknown");
     final String container = module.getProperty(ZXTune.Module.Attributes.CONTAINER, "None");
+    final TimeStamp duration = item.getDuration();
     final boolean fromBrowser = item.getId().equals(location);
 
     final CustomEvent event = new CustomEvent("Play");
@@ -70,6 +72,7 @@ public class Analytics {
     event.putCustomAttribute("Type", type)
             .putCustomAttribute("TypeDetailed", type + "/" + program)
             .putCustomAttribute("Container", container)
+            .putCustomAttribute("Duration", duration.convertTo(TimeUnit.SECONDS))
             .putCustomAttribute("Library", fromBrowser ? "Browser" : "Playlist")
     ;
     send(event);
