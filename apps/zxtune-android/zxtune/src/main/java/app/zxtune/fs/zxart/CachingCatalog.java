@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.FetchCommand;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
@@ -189,15 +190,20 @@ final class CachingCatalog extends Catalog {
   }
   
   @Override
-  public ByteBuffer getTrackContent(int id) throws IOException {
-    final ByteBuffer cachedContent = db.getTrackContent(id);
-    if (cachedContent != null) {
-      return cachedContent;
-    } else {
-      final ByteBuffer content = remote.getTrackContent(id);
-      db.addTrackContent(id, content);
-      return content;
-    }
+  public ByteBuffer getTrackContent(final int id) throws IOException {
+    return Utils.executeFetchCommand(new FetchCommand() {
+      @Override
+      public ByteBuffer fetchFromCache() {
+        return db.getTrackContent(id);
+      }
+
+      @Override
+      public ByteBuffer fetchFromRemote() throws IOException {
+        final ByteBuffer res = remote.getTrackContent(id);
+        db.addTrackContent(id, res);
+        return res;
+      }
+    });
   }
 
   private class CachingAuthorsVisitor extends AuthorsVisitor {

@@ -11,6 +11,7 @@
 package app.zxtune.fs.dbhelpers;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -68,5 +69,12 @@ public final class Utils {
     if (!cmd.queryFromCache() && remoteError != null) {
       throw remoteError;
     }
+  }
+
+  public static ByteBuffer executeFetchCommand(FetchCommand cmd) throws IOException {
+    final ByteBuffer cached = cmd.fetchFromCache();
+    return cached != null
+            ? cached
+            : cmd.fetchFromRemote();
   }
 }
