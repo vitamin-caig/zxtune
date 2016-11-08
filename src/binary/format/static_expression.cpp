@@ -27,7 +27,7 @@ namespace FormatDSL
         std::fill_n(result.begin() + 1, maxSize, offset);
       }
     }
-    return std::move(result);
+    return result;
   }
 
   std::size_t StaticPattern::FindPrefix(std::size_t prefixSize) const
