@@ -68,7 +68,7 @@ namespace Module
   {
   public:
     AYMRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
-      : Params(params)
+      : Params(std::move(params))
       , Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration()

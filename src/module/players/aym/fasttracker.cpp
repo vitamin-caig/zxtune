@@ -169,7 +169,7 @@ namespace FastTracker
 
     void SetPositions(std::vector<Formats::Chiptune::FastTracker::PositionEntry> positions, uint_t loop) override
     {
-      Data->Order = MakePtr<OrderListWithTransposition>(loop, positions);
+      Data->Order = MakePtr<OrderListWithTransposition>(loop, std::move(positions));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

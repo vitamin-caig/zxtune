@@ -31,6 +31,7 @@ namespace Module
       const auto& in = Delegate->GetState();
       std::vector<ChannelState> out(in.size());
       std::transform(in.begin(), in.end(), out.begin(), &ConvertState);
+      //required by compiler
       return std::move(out);
     }
   private:

@@ -24,7 +24,7 @@ namespace Module
   {
   public:
     TFMRenderer(Sound::RenderParameters::Ptr params, TFM::DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
-      : Params(params)
+      : Params(std::move(params))
       , Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration()

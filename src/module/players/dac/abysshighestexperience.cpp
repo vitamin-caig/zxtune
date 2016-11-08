@@ -280,7 +280,7 @@ namespace AHX
     Renderer(HVL::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
       , Target(std::move(target))
-      , SoundParams(Sound::RenderParameters::Create(params))
+      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Looped()
     {
       ApplyParameters();

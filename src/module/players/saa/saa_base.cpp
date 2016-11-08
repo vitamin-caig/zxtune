@@ -80,7 +80,7 @@ namespace Module
   {
   public:
     SAARenderer(Sound::RenderParameters::Ptr params, SAA::DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
-      : Params(params)
+      : Params(std::move(params))
       , Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration()

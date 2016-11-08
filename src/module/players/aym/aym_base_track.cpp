@@ -26,7 +26,7 @@ namespace Module
     {
     public:
       TrackDataIterator(TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, DataRenderer::Ptr renderer)
-        : Params(trackParams)
+        : Params(std::move(trackParams))
         , Delegate(std::move(delegate))
         , State(Delegate->GetStateObserver())
         , Render(std::move(renderer))

@@ -368,7 +368,7 @@ namespace ProTracker3
     TSChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-      , Info(CreateTrackInfo(data, TurboSound::TRACK_CHANNELS))
+      , Info(CreateTrackInfo(Data, TurboSound::TRACK_CHANNELS))
     {
     }
 

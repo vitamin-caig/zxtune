@@ -84,7 +84,7 @@ namespace Module
   {
   public:
     DACRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
-      : Params(params)
+      : Params(std::move(params))
       , Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration()

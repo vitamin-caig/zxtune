@@ -556,7 +556,7 @@ namespace AYEMUL
   {
   public:
     Renderer(Sound::RenderParameters::Ptr params, StateIterator::Ptr iterator, Computer::Ptr comp, DataChannel::Ptr device)
-      : Params(params)
+      : Params(std::move(params))
       , Iterator(std::move(iterator))
       , Comp(std::move(comp))
       , Device(std::move(device))
