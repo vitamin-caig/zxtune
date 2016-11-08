@@ -90,7 +90,7 @@ namespace Async
         }
         Activities.pop_front();
       }
-      return std::move(result);
+      return result;
     }
 
     void CheckWorkersAvailable()
