@@ -243,7 +243,7 @@ namespace SAA
   {
   public:
     RegularSAAChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
-      : Params(params)
+      : Params(std::move(params))
       , Target(std::move(target))
       , Clock()
       , Renderers(Clock, PSG)

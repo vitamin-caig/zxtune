@@ -510,7 +510,7 @@ namespace DAC
   {
   public:
     FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer, Sound::Receiver::Ptr target)
-      : Params(params)
+      : Params(std::move(params))
       , Mixer(std::move(mixer))
       , Target(std::move(target))
       , Clock()

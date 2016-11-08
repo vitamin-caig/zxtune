@@ -125,7 +125,7 @@ namespace FM
     {
     public:
       BaseChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
-        : Params(params)
+        : Params(std::move(params))
         , Target(std::move(target))
       {
         BaseChip::Reset();
