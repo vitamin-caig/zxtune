@@ -31,7 +31,7 @@ namespace Analysis
     const Strings::Array::iterator newEnd = std::remove_if(parts.begin(), parts.end(),
       std::mem_fun_ref(&String::empty));
     parts.erase(newEnd, parts.end());
-    return std::move(parts);
+    return parts;
   }
 
   String JoinPath(const Strings::Array& arr, Char separator)
