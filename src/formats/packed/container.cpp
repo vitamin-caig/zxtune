@@ -58,14 +58,14 @@ namespace Formats
     Container::Ptr CreateContainer(Binary::Container::Ptr data, std::size_t origSize)
     {
       return origSize && data && data->Size()
-        ? MakePtr<PackedContainer>(data, origSize)
+        ? MakePtr<PackedContainer>(std::move(data), origSize)
         : Container::Ptr();
     }
 
     Container::Ptr CreateContainer(std::unique_ptr<Dump> data, std::size_t origSize)
     {
-      const Binary::Container::Ptr container = Binary::CreateContainer(std::move(data));
-      return CreateContainer(container, origSize);
+      auto container = Binary::CreateContainer(std::move(data));
+      return CreateContainer(std::move(container), origSize);
     }
   }
 }

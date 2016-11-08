@@ -596,7 +596,7 @@ namespace Archived
       }
       if (!datas.empty())
       {
-        const Binary::Container::Ptr archive = data.GetSubcontainer(0, format.GetUsedSize());
+        auto archive = data.GetSubcontainer(0, format.GetUsedSize());
         return MakePtr<UMX::Container>(std::move(archive), std::move(datas));
       }
       UMX::Dbg("No files found");

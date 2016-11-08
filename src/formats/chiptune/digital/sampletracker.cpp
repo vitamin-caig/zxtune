@@ -175,7 +175,8 @@ namespace Chiptune
           const uint_t samIdx = *it;
           if (auto content = GetSample(samIdx))
           {
-            target.SetSample(samIdx, content->Size(), std::move(content), false);
+            const auto loop = content->Size();
+            target.SetSample(samIdx, loop, std::move(content), false);
             ++validSamples;
           }
           else
