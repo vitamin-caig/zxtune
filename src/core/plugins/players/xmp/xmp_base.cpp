@@ -263,7 +263,7 @@ namespace Xmp
           result.push_back(chan);
         }
       }
-      return std::move(result);
+      return result;
     }
   private:
     const uint_t Channels;
@@ -278,16 +278,13 @@ namespace Xmp
       , State(new xmp_frame_info())
       , Target(std::move(target))
       , Params(params)
-      , SoundParams(Sound::RenderParameters::Create(params))
+      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Track(MakePtr<TrackState>(info, State))
       , Analysis(MakePtr<Analyzer>(info->ChannelsCount(), State))
       , FrameDuration(info->GetFrameDuration())
-      , SoundFreq()
-      , Looped(false)
+      , SoundFreq(SoundParams->SoundFreq())
+      , Looped(SoundParams->Looped())
     {
-      const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(params);
-      SoundFreq = soundParams->SoundFreq();
-      Looped = soundParams->Looped();
       Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
     }
 
@@ -355,10 +352,8 @@ namespace Xmp
           Ctx->Call(&::xmp_end_player);
           Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
         }
-        Parameters::IntType val = 0;
-        Params->FindValue(Parameters::ZXTune::Sound::LOOPED, val);
-        Looped = val != 0;
-        val = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
+        Looped = SoundParams->Looped();
+        Parameters::IntType val = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
         Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val);
         const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
         Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);

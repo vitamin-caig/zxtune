@@ -125,6 +125,7 @@ namespace GME
         state.Level = in.level * 100 / voice_max_level;
         state.Band = analysis.GetBandByPeriod(in.divider);
       }
+      //required by compiler
       return std::move(result);
     }
   private:
@@ -173,7 +174,7 @@ namespace GME
       : Tune(std::move(tune))
       , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
-      , SoundParams(Sound::RenderParameters::Create(params))
+      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
     {

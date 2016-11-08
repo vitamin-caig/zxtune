@@ -114,7 +114,7 @@ namespace SPC
         state.Band = Analysis.GetBandByScaledFrequency(pitch);
         result.push_back(state);
       }
-      return std::move(result);
+      return result;
     }
   private:
     inline static void CheckError(::blargg_err_t err)
@@ -184,7 +184,7 @@ namespace SPC
       : Tune(std::move(tune))
       , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
-      , SoundParams(Sound::RenderParameters::Create(params))
+      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
       , SamplesPerFrame()

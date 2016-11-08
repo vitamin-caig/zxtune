@@ -50,7 +50,7 @@ namespace Module
         std::copy(portion.begin(), portion.end(), std::back_inserter(result));
       }
       MaxBands = std::max(MaxBands, result.size());
-      return std::move(result);
+      return result;
     }
     
     static Ptr Create(const RenderersArray& renderers)
@@ -223,6 +223,7 @@ namespace Module
       {
         auto result = MakePtr<Sound::Chunk>(Buffer.size());
         std::transform(Buffer.begin(), Buffer.end(), result->begin(), std::bind2nd(std::mem_fun_ref(&WideSample::Convert), sources));
+        //required by compiler
         return std::move(result);
       }
     private:
@@ -347,7 +348,7 @@ namespace Module
   public:
     MultiRenderer(RenderersArray delegates, Sound::RenderParameters::Ptr renderParams, CompositeReceiver::Ptr target)
       : Delegates(std::move(delegates))
-      , SoundParams(renderParams)
+      , SoundParams(std::move(renderParams))
       , Target(std::move(target))
       , State(MultiTrackState::Create(Delegates))
       , Analysis(MultiAnalyzer::Create(Delegates))
@@ -406,8 +407,8 @@ namespace Module
           : Parameters::CreateMergedAccessor(forcedLoop, params);
         delegates[idx] = holder->CreateRenderer(std::move(delegateParams), receiver);
       }
-      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      return MakePtr<MultiRenderer>(std::move(delegates), renderParams, receiver);
+      auto renderParams = Sound::RenderParameters::Create(std::move(params));
+      return MakePtr<MultiRenderer>(std::move(delegates), std::move(renderParams), receiver);
     }
   private:
     void ApplyParameters()

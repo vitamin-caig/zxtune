@@ -83,6 +83,7 @@ namespace Sid
         res.Band = Analysis.GetBandByScaledFrequency(freqs[chan]);
         res.Level = levels[chan] * 100 / 15;
       }
+      //required for compiler...
       return std::move(result);
     }
   private:
@@ -137,15 +138,15 @@ namespace Sid
   {
   public:
     Renderer(TunePtr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(tune)
+      : Tune(std::move(tune))
       , Engine(std::make_shared<sidplayfp>())
       , Builder("resid")
       , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
       , Analysis(MakePtr<Analyzer>(Engine))
       , Target(std::move(target))
-      , SoundParams(Sound::RenderParameters::Create(params))
       , Params(params)
+      , SoundParams(Sound::RenderParameters::Create(params))
       , Config(Engine->config())
       , UseFilter()
       , Looped()
@@ -156,7 +157,7 @@ namespace Sid
       Builder.create(chipsCount);
       Config.frequency = 0;
       ApplyParameters();
-      CheckSidplayError(Engine->load(tune.get()));
+      CheckSidplayError(Engine->load(Tune.get()));
     }
 
     TrackState::Ptr GetTrackState() const override
@@ -272,8 +273,8 @@ namespace Sid
     const TrackState::Ptr State;
     const Analyzer::Ptr Analysis;
     const Sound::Receiver::Ptr Target;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const SidParameters Params;
+    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     SidConfig Config;
     //cache filter flag
     bool UseFilter;
