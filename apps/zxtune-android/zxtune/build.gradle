@@ -59,8 +59,50 @@ android {
     }
 }
 
+//http://stackoverflow.com/questions/40134153/crashlytics-ndk-symbol-building-from-command-line
+//http://stackoverflow.com/questions/33735332/crashlytics-ndk-multi-androidndkout-path-support
+android {
+    ext.crashlyticsTmpDir = "${project.buildDir}/crashlytics"
+    ext.crashlyticsNdkOut = "${crashlyticsTmpDir}/debug"
+    ext.crashlyticsNdkLibsOut = "${crashlyticsTmpDir}/release"
+
+    //crashlytics tasks should be performed in the same execution due to apk rebuild
+    task publicBuildWithCrashlytics(dependsOn: publishPdb)
+    
+    applicationVariants.all { variant ->
+        def variantName = variant.name.capitalize()
+        def taskName = "prepareDebugSymbols${variantName}"
+        task(taskName, dependsOn: ["nativeLibsDebugSymbols${variantName}", "assemble${variantName}"]) {
+            def libsDir = variant.ndkCompile.soFolder
+            def objsDir = variant.ndkCompile.objFolder
+            doFirst {
+                fileTree(dir: objsDir, include: '**/*.pdb').each { file ->
+                    def target = file.getAbsolutePath().replace('so.pdb', 'so')
+                    file.renameTo(target)
+                }
+            }
+            doLast {
+                new File(crashlyticsTmpDir).deleteDir()
+                copy {
+                    from objsDir
+                    into crashlyticsNdkOut
+                }
+                copy {
+                    from libsDir
+                    into crashlyticsNdkLibsOut
+                }
+            }
+        }
+        
+        tasks.getByName("crashlyticsGenerateSymbols${variantName}").dependsOn.add(taskName)
+        if (variant.buildType.name == "release") {
+            publicBuildWithCrashlytics.dependsOn.addAll(["crashlyticsUploadSymbols${variantName}", "publishApk${variantName}"])
+        }
+    }
+}
+
 crashlytics {
     enableNdk true
-    androidNdkOut 'src/main/obj'
-    androidNdkLibsOut 'src/main/libs'
+    androidNdkOut android.crashlyticsNdkOut
+    androidNdkLibsOut android.crashlyticsNdkLibsOut
 }

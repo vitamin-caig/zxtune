@@ -127,18 +127,58 @@ android {
     }
 }
 
+android {
+    applicationVariants.all { variant ->
+        def taskName = "nativeLibsDebugSymbols${variant.name.capitalize()}"
+        task(taskName) {
+            def objsDir = variant.ndkCompile.objFolder
+            //optimize incremental builds - assume existing objFolder means that all libs are ready
+            outputs.dir objsDir
+            doLast {
+                def jniDir = variant.ndkCompile.sourceFolders.first()
+                variant.ndkCompile.abiFilters.each { arch ->
+                    def baseCmd = "arch=${arch} -C ${jniDir}"
+                    def objDir = file("${objsDir}/${arch}")
+                    objDir.mkdirs()
+                    callMake("${baseCmd} DESTDIR=${objDir} install_debug")
+                }
+            }
+        }
+    }
+}
+
 def getUsedArchitectures() {
     def result = new HashSet<String>()
     android.applicationVariants.all { variant ->
-	result.addAll(variant.ndkCompile.abiFilters)
+        result.addAll(variant.ndkCompile.abiFilters)
     }
     return result
 }
 
 android {
     ext.publicBuildsDir = "${treeRoot}/Builds/${defaultConfig.versionName}/android"
+    
+    task publicBuild
 
-    task("publicBuild") {
+    applicationVariants.all { variant ->
+        def suffix = variant.name.capitalize()
+        task("publishApk${suffix}", type: Copy) {
+            def apks = variant.outputs
+            assert apks.size() == 1
+            from apks.first().outputFile
+            into publicBuildsDir
+            rename ".*", "${project.name}_${variant.mergedFlavor.versionName}.apk"
+        }
+    
+        if (variant.buildType.name == "release") {
+            def taskName = "publicBuild${variant.flavorName.capitalize()}"
+            task(taskName, dependsOn: ["assemble${suffix}", "publishApk${suffix}"]) {
+            }
+            publicBuild.dependsOn.add(taskName)
+        }
+    }
+
+    task publishPdb {
         def dbgArchive = "${publicBuildsDir}/${project.name}.tar.bz2"
         outputs.file dbgArchive
         doLast {
@@ -153,18 +193,5 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        if (variant.buildType.name == "release") {
-            def taskName = "publicBuild${variant.flavorName.capitalize()}"
-            def suffix = variant.name.capitalize()
-            task(taskName, type: Copy, dependsOn: "assemble${suffix}") {
-                def apks = variant.outputs
-                assert apks.size() == 1
-                from apks.first().outputFile
-                into publicBuildsDir
-                rename ".*", "${project.name}_${variant.mergedFlavor.versionName}.apk"
-            }
-            tasks.getByName("publicBuild").dependsOn.add(taskName)
-        }
-    }
+    publicBuild.dependsOn.add(publishPdb)
 }
