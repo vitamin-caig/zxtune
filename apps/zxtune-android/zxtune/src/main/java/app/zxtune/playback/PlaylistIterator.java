@@ -10,10 +10,11 @@
 
 package app.zxtune.playback;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.net.Uri;
+
+import java.io.IOException;
+
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;

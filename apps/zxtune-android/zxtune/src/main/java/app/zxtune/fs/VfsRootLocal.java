@@ -10,20 +10,19 @@
 
 package app.zxtune.fs;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.text.format.Formatter;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
 import app.zxtune.R;
 
 final class VfsRootLocal extends StubObject implements VfsRoot {

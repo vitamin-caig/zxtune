@@ -10,10 +10,9 @@
 
 package app.zxtune.fs.dbhelpers;
 
-import java.util.Locale;
-
-import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
+
+import java.util.Locale;
 
 public class Grouping extends Objects {
   

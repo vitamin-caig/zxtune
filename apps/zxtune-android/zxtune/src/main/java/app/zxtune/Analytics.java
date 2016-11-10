@@ -16,7 +16,6 @@ import app.zxtune.fs.VfsDir;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlayableItem;
-
 import io.fabric.sdk.android.Fabric;
 
 public class Analytics {

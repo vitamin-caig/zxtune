@@ -10,10 +10,11 @@
 
 package app.zxtune.fs;
 
+import android.net.Uri;
+
 import java.io.IOException;
 import java.util.ArrayDeque;
 
-import android.net.Uri;
 import app.zxtune.Log;
 
 public final class VfsIterator {

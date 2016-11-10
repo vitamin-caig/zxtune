@@ -1,7 +1,6 @@
 package app.zxtune.fs.dbhelpers;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import app.zxtune.Analytics;
 

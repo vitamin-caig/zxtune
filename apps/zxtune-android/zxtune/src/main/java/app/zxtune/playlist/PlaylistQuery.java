@@ -10,12 +10,13 @@
 
 package app.zxtune.playlist;
 
-import java.util.Arrays;
-
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.UriMatcher;
 import android.net.Uri;
+
+import java.util.Arrays;
+
 import app.zxtune.playlist.Database.Tables;
 
 /*

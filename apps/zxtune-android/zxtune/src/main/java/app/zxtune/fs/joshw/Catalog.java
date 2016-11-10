@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import android.content.Context;
 import app.zxtune.fs.HttpProvider;
 import app.zxtune.fs.VfsCache;
 

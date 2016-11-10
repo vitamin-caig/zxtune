@@ -17,6 +17,7 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
+
 import app.zxtune.Log;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.VisualizerStub;

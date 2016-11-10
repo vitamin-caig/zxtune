@@ -10,11 +10,12 @@
 
 package app.zxtune.rpc;
 
+import android.net.Uri;
+import android.os.RemoteException;
+
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-import android.net.Uri;
-import android.os.RemoteException;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;

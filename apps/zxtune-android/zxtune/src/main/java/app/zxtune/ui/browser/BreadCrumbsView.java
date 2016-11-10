@@ -10,10 +10,6 @@
 
 package app.zxtune.ui.browser;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -24,8 +20,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+
+import java.util.ArrayList;
+import java.util.Collections;
+
 import app.zxtune.R;
-import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
 

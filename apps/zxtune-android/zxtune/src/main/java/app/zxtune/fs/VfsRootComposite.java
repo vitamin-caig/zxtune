@@ -10,9 +10,9 @@
 
 package app.zxtune.fs;
 
-import java.util.ArrayList;
-
 import android.net.Uri;
+
+import java.util.ArrayList;
 
 import app.zxtune.Log;
 

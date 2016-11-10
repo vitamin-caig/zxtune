@@ -10,14 +10,14 @@
 
 package app.zxtune.playback;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.Uri;
+
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.net.Uri;
 
 import app.zxtune.Analytics;
 import app.zxtune.Log;

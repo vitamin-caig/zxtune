@@ -10,13 +10,13 @@
 
 package app.zxtune.fs;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.List;
-
 import android.content.Context;
 import android.net.Uri;
 import android.text.format.Formatter;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
 
 import app.zxtune.R;
 import app.zxtune.fs.amp.Author;

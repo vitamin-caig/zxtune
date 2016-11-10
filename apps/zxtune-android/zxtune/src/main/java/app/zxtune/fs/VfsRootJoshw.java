@@ -17,16 +17,16 @@ package app.zxtune.fs;
  * 1) joshw:/${Catalogue}/${FilePath} - direct access to files or folders
  */
 
+import android.content.Context;
+import android.net.Uri;
+import android.text.TextUtils;
+import android.text.format.Formatter;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
-
-import android.content.Context;
-import android.net.Uri;
-import android.text.TextUtils;
-import android.text.format.Formatter;
 
 import app.zxtune.R;
 import app.zxtune.fs.joshw.Catalog;

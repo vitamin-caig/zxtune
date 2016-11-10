@@ -10,11 +10,12 @@
 
 package app.zxtune.rpc;
 
-import java.util.concurrent.TimeUnit;
-
 import android.net.Uri;
 import android.os.DeadObjectException;
 import android.os.RemoteException;
+
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;

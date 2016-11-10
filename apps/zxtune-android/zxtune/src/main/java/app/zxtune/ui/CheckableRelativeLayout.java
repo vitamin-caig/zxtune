@@ -10,8 +10,6 @@
 
 package app.zxtune.ui;
 
-import java.util.LinkedList;
-
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
@@ -20,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Checkable;
 import android.widget.RelativeLayout;
+
+import java.util.LinkedList;
 
 public class CheckableRelativeLayout extends RelativeLayout implements Checkable {
 

@@ -10,10 +10,11 @@
 
 package app.zxtune.fs;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.net.Uri;
+
+import java.io.IOException;
+
 import app.zxtune.MainApplication;
 
 public final class Vfs {

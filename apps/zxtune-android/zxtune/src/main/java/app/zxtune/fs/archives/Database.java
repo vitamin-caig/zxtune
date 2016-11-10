@@ -10,13 +10,14 @@
 
 package app.zxtune.fs.archives;
 
-import java.util.concurrent.TimeUnit;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.Log;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Objects;

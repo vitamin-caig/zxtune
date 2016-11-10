@@ -10,6 +10,9 @@
 
 package app.zxtune.fs;
 
+import android.content.Context;
+import android.net.Uri;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,8 +20,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import android.content.Context;
-import android.net.Uri;
 import app.zxtune.Log;
 
 public class VfsCache {

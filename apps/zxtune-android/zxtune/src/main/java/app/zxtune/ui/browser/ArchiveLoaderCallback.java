@@ -13,6 +13,7 @@ package app.zxtune.ui.browser;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+
 import app.zxtune.MainApplication;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;

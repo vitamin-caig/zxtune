@@ -10,9 +10,9 @@
 
 package app.zxtune.fs.modarchive;
 
-import java.util.List;
-
 import android.net.Uri;
+
+import java.util.List;
 
 /**
 *

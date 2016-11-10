@@ -10,10 +10,11 @@
 
 package app.zxtune.ui.browser;
 
-import java.util.Comparator;
-
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
+
+import java.util.Comparator;
+
 import app.zxtune.Log;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;

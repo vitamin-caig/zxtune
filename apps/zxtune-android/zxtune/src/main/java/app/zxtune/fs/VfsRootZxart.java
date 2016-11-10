@@ -10,6 +10,11 @@
 
 package app.zxtune.fs;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.net.Uri;
+import android.util.SparseIntArray;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
@@ -17,11 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
-import android.content.Context;
-import android.content.res.Resources;
-import android.net.Uri;
-import android.util.SparseIntArray;
-import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.zxart.Author;
 import app.zxtune.fs.zxart.Catalog;

@@ -10,9 +10,10 @@
 
 package app.zxtune.fs.archives;
 
+import android.text.TextUtils;
+
 import java.util.Arrays;
 
-import android.text.TextUtils;
 import app.zxtune.Identifier;
 
 public class DirEntry {

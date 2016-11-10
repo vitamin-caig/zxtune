@@ -10,6 +10,8 @@
 
 package app.zxtune;
 
+import android.net.Uri;
+
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.net.URI;
@@ -19,7 +21,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import android.net.Uri;
 import app.zxtune.ZXTune.Module;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.Vfs;

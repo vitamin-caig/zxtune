@@ -28,8 +28,6 @@ import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ProgressBar;
 
-import java.io.IOException;
-
 import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;

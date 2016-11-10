@@ -10,15 +10,6 @@
 
 package app.zxtune.fs.modarchive;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.xml.sax.SAXException;
-
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -31,6 +22,15 @@ import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.text.Html;
 import android.util.Xml;
+
+import org.xml.sax.SAXException;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;

@@ -10,20 +10,20 @@
 
 package app.zxtune.playlist;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.TextElementListener;
 import android.util.Xml;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 public final class XspfIterator {
   

@@ -10,12 +10,12 @@
 
 package app.zxtune.fs.hvsc;
 
+import android.text.TextUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
-
-import android.text.TextUtils;
 
 import app.zxtune.Analytics;
 import app.zxtune.fs.VfsCache;

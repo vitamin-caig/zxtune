@@ -10,8 +10,6 @@
 
 package app.zxtune;
 
-import java.util.concurrent.TimeUnit;
-
 import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -21,6 +19,9 @@ import android.media.MediaMetadataRetriever;
 import android.media.RemoteControlClient;
 import android.media.RemoteControlClient.MetadataEditor;
 import android.os.Build;
+
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;

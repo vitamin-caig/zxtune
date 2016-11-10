@@ -10,9 +10,6 @@
 
 package app.zxtune.ui;
 
-import java.util.ArrayList;
-import java.util.Locale;
-
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -33,6 +30,10 @@ import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.Locale;
+
 import app.zxtune.PluginsProvider;
 import app.zxtune.R;
 

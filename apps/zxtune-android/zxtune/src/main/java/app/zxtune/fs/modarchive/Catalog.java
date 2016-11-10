@@ -10,10 +10,11 @@
 
 package app.zxtune.fs.modarchive;
 
+import android.content.Context;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import android.content.Context;
 import app.zxtune.fs.HttpProvider;
 import app.zxtune.fs.VfsCache;
 

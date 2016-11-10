@@ -10,15 +10,6 @@
 
 package app.zxtune.fs.zxart;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.nio.ByteBuffer;
-import java.util.Locale;
-
-import org.xml.sax.SAXException;
-
 import android.net.Uri;
 import android.sax.Element;
 import android.sax.EndElementListener;
@@ -26,6 +17,15 @@ import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.text.Html;
 import android.util.Xml;
+
+import org.xml.sax.SAXException;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.nio.ByteBuffer;
+import java.util.Locale;
 
 import app.zxtune.Util;
 import app.zxtune.fs.HttpProvider;

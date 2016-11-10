@@ -9,11 +9,12 @@
  */
 package app.zxtune.fs;
 
+import android.content.Context;
+import android.net.Uri;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import android.content.Context;
-import android.net.Uri;
 import app.zxtune.R;
 import app.zxtune.playlist.XspfStorage;
 

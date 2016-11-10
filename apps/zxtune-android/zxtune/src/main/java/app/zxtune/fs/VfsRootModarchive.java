@@ -10,14 +10,14 @@
 
 package app.zxtune.fs;
 
+import android.content.Context;
+import android.net.Uri;
+import android.text.format.Formatter;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Locale;
-
-import android.content.Context;
-import android.net.Uri;
-import android.text.format.Formatter;
 
 import app.zxtune.R;
 import app.zxtune.fs.modarchive.Author;

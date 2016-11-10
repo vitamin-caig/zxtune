@@ -14,6 +14,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.TextView;
+
 import app.zxtune.ui.ListViewCompat;
 
 public class BrowserView extends ListViewCompat {

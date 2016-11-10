@@ -10,11 +10,12 @@
 
 package app.zxtune.playlist;
 
-import java.util.concurrent.TimeUnit;
-
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;

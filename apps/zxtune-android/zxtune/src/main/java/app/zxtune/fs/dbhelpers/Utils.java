@@ -10,13 +10,12 @@
 
 package app.zxtune.fs.dbhelpers;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import app.zxtune.Log;
 
 public final class Utils {

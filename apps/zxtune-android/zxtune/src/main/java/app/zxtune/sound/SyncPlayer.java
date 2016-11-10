@@ -10,9 +10,10 @@
 
 package app.zxtune.sound;
 
+import android.os.Process;
+
 import java.util.concurrent.Exchanger;
 
-import android.os.Process;
 import app.zxtune.Log;
 
 public final class SyncPlayer implements Player {

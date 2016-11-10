@@ -10,10 +10,9 @@
 
 package app.zxtune.fs.dbhelpers;
 
-import java.security.InvalidParameterException;
-
-import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
+
+import java.security.InvalidParameterException;
 
 public class Objects {
   

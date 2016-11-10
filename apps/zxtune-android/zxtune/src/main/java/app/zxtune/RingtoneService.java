@@ -10,12 +10,6 @@
 
 package app.zxtune;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InvalidObjectException;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.content.ContentUris;
@@ -30,6 +24,13 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.sound.PlayerEventsListener;

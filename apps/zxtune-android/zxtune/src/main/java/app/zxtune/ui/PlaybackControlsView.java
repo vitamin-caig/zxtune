@@ -17,8 +17,8 @@ import android.widget.ImageView;
 
 import app.zxtune.R;
 import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.PlaybackControl.TrackMode;
 import app.zxtune.playback.PlaybackControl.SequenceMode;
+import app.zxtune.playback.PlaybackControl.TrackMode;
 import app.zxtune.playback.PlaybackControlStub;
 
 class PlaybackControlsView {

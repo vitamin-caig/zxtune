@@ -10,11 +10,12 @@
 
 package app.zxtune.ui.browser;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
+
+import java.io.IOException;
+
 import app.zxtune.Log;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;

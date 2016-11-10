@@ -10,11 +10,11 @@
 
 package app.zxtune.fs.dbhelpers;
 
+import android.database.sqlite.SQLiteDoneException;
+import android.database.sqlite.SQLiteStatement;
+
 import java.util.concurrent.TimeUnit;
 
-import android.database.sqlite.SQLiteDoneException;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 import app.zxtune.TimeStamp;
 
 public class Timestamps {

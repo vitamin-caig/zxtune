@@ -10,13 +10,13 @@
 
 package app.zxtune.ui.browser;
 
-import java.io.IOException;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.ProgressBar;
+
+import java.io.IOException;
 
 import app.zxtune.Analytics;
 import app.zxtune.Log;
