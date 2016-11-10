@@ -28,7 +28,6 @@ final class CachingCatalog extends Catalog {
 
   private final TimeStamp GROUPS_TTL = days(30);
   private final TimeStamp AUTHORS_TTL = days(30);
-  private final TimeStamp COUNTRIES_TTL = days(30);
   private final TimeStamp TRACKS_TTL = days(30);
   
   private static TimeStamp days(int val) {
@@ -104,7 +103,7 @@ final class CachingCatalog extends Catalog {
       
       @Override
       public Timestamps.Lifetime getLifetime() {
-        return db.getCountryLifetime(country, COUNTRIES_TTL);
+        return db.getCountryLifetime(country, AUTHORS_TTL);
       }
 
       @Override
@@ -131,7 +130,7 @@ final class CachingCatalog extends Catalog {
       
       @Override
       public Timestamps.Lifetime getLifetime() {
-        return db.getGroupLifetime(group, GROUPS_TTL);
+        return db.getGroupLifetime(group, AUTHORS_TTL);
       }
 
       @Override
