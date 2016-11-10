@@ -27,8 +27,6 @@ import android.sax.RootElement;
 import android.text.Html;
 import android.util.Xml;
 
-import app.zxtune.Analytics;
-import app.zxtune.Log;
 import app.zxtune.Util;
 import app.zxtune.fs.HttpProvider;
 
@@ -68,7 +66,6 @@ final class RemoteCatalog extends Catalog {
     final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
-    sendEvent("authors");
   }
 
   @Override
@@ -81,7 +78,6 @@ final class RemoteCatalog extends Catalog {
     final HttpURLConnection connection = http.connect(ALL_PARTIES_QUERY);
     final RootElement root = createPartiesParserRoot(visitor);
     performQuery(connection, root);
-    sendEvent("parties");
   }
   
   @Override
@@ -98,7 +94,6 @@ final class RemoteCatalog extends Catalog {
     final HttpURLConnection connection = http.connect(query);
     final RootElement root = createModulesParserRoot(visitor);
     performQuery(connection, root);
-    sendEvent("tracks");
   }
 
   @Override
@@ -116,9 +111,7 @@ final class RemoteCatalog extends Catalog {
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    final ByteBuffer res = http.getContent(query);
-    sendEvent("file");
-    return res;
+    return http.getContent(query);
   }
 
   private void performQuery(HttpURLConnection connection, RootElement root)
@@ -537,9 +530,5 @@ final class RemoteCatalog extends Catalog {
 
   private static RootElement createRootElement() {
     return new RootElement("response");
-  }
-
-  private static void sendEvent(String scope) {
-    Analytics.sendVfsRemoteEvent("zxart", scope);
   }
 }

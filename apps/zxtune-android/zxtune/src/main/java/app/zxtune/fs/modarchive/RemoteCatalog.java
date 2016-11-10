@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.xml.sax.SAXException;
@@ -33,7 +32,6 @@ import android.sax.RootElement;
 import android.text.Html;
 import android.util.Xml;
 
-import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
@@ -135,7 +133,6 @@ class RemoteCatalog extends Catalog {
     final RootElement root = createAuthorsParserRoot(visitor);
     loadPages(uri, root);
     visitor.accept(Author.UNKNOWN);
-    sendEvent("authors");
   }
 
   @Override
@@ -143,7 +140,6 @@ class RemoteCatalog extends Catalog {
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_genres").build();
     final RootElement root = createGenresParserRoot(visitor);
     loadSinglePage(uri, root);
-    sendEvent("genres");
   }
   
   @Override
@@ -151,7 +147,6 @@ class RemoteCatalog extends Catalog {
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_modules_by_artistid").setQuery(author.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
-    sendEvent("tracks");
   }
   
   @Override
@@ -159,7 +154,6 @@ class RemoteCatalog extends Catalog {
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("genre").setQuery(genre.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
-    sendEvent("tracks");
   }
   
   @Override
@@ -177,9 +171,7 @@ class RemoteCatalog extends Catalog {
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     final String query = ApiUriBuilder.forDownload(id).build();
-    final ByteBuffer res = http.getContent(query);
-    sendEvent("file");
-    return res;
+    return http.getContent(query);
   }
   
   private RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {
@@ -485,9 +477,5 @@ class RemoteCatalog extends Catalog {
   
   private static RootElement createRootElement() {
     return new RootElement("modarchive");
-  }
-
-  private static void sendEvent(String scope) {
-    Analytics.sendVfsRemoteEvent("modarchive", scope);
   }
 }

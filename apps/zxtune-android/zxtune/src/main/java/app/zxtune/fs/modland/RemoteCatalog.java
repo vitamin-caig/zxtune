@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 import android.net.Uri;
 import android.text.Html;
 
-import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
@@ -111,7 +110,6 @@ class RemoteCatalog extends Catalog {
           return true;
         }
       });
-      sendEvent("groups");
     }
     
     private void parseAuthors(CharSequence content, GroupsVisitor visitor) {
@@ -138,7 +136,6 @@ class RemoteCatalog extends Catalog {
           return false;
         }
       });
-      sendEvent("group");
       return result[0];
     }
 
@@ -157,7 +154,6 @@ class RemoteCatalog extends Catalog {
           return parseTracks(content, visitor);
         }
       });
-      sendEvent("tracks");
     }
     
     @Override
@@ -265,9 +261,5 @@ class RemoteCatalog extends Catalog {
       }
       break;
     }
-  }
-
-  private static void sendEvent(String scope) {
-    Analytics.sendVfsRemoteEvent("modland", scope);
   }
 }

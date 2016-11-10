@@ -20,7 +20,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
-import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
@@ -189,7 +188,6 @@ final class Database {
   }
   
   final boolean queryGroups(String category, String filter, Catalog.GroupsVisitor visitor) {
-    sendEvent("groups");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = filter.equals("#")
       ? "SUBSTR(" + Tables.Groups.Fields.name + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
@@ -211,7 +209,6 @@ final class Database {
   }
 
   final Group queryGroup(String category, int id) {
-    sendEvent("group");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Groups.Fields._id + " = " + id;
     final Cursor cursor = db.query(category, null, selection, null, null, null, null);
@@ -229,7 +226,6 @@ final class Database {
   }
 
   final boolean queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
-    sendEvent("tracks");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Tracks.getSelection(groupTracks.get(category).getIdsSelection(id));
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
@@ -274,7 +270,6 @@ final class Database {
   }
 
   final ByteBuffer getTrackContent(String id) {
-    sendEvent("file");
     return cacheDir.getCachedFileContent(id);
   }
 
@@ -309,9 +304,5 @@ final class Database {
       Utils.cleanupDb(db);
       onCreate(db);
     }
-  }
-
-  private static void sendEvent(String scope) {
-    Analytics.sendVfsCacheEvent("modland", scope);
   }
 }

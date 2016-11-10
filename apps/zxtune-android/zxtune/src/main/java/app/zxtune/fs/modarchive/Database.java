@@ -17,7 +17,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.nio.ByteBuffer;
 
-import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
@@ -237,7 +236,6 @@ final class Database {
   }
   
   final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
-    sendEvent("authors");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Authors.NAME, null, null, null, null, null, null);
     try {
@@ -260,7 +258,6 @@ final class Database {
   }
   
   final boolean queryGenres(Catalog.GenresVisitor visitor) {
-    sendEvent("genres");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Genres.NAME, null, null, null, null, null, null);
     try {
@@ -293,7 +290,6 @@ final class Database {
   }
   
   private boolean queryTracksInternal(String selection, Catalog.TracksVisitor visitor) {
-    sendEvent("tracks");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     try {
@@ -342,7 +338,6 @@ final class Database {
   }
 
   final ByteBuffer getTrackContent(int id) {
-    sendEvent("file");
     final String filename = Integer.toString(id);
     return cacheDir.getCachedFileContent(filename);
   }
@@ -379,9 +374,5 @@ final class Database {
       Utils.cleanupDb(db);
       onCreate(db);
     }
-  }
-
-  private static void sendEvent(String scope) {
-    Analytics.sendVfsCacheEvent("modarchive", scope);
   }
 }

@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 import android.net.Uri;
 import android.text.Html;
 
-import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.fs.HttpProvider;
 
@@ -114,7 +113,6 @@ class RemoteCatalog extends Catalog {
       final String name = matcher.group(2);
       visitor.accept(new Group(Integer.valueOf(id), decodeHtml(name)));
     }
-    sendEvent("groups");
   }
   
   @Override
@@ -143,7 +141,6 @@ class RemoteCatalog extends Catalog {
         return true;
       }
     });
-    sendEvent("authors");
   }
 
   private static void parseAuthors(CharSequence content, AuthorsVisitor visitor) {
@@ -167,7 +164,6 @@ class RemoteCatalog extends Catalog {
       final Integer size = Integer.valueOf(matcher.group(3));
       visitor.accept(new Track(id, name, size));
     }
-    sendEvent("tracks");
   }
 
   @Override
@@ -202,9 +198,7 @@ class RemoteCatalog extends Catalog {
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     final String uri = String.format(Locale.US, TRACK_URI_FORMAT, id);
-    final ByteBuffer res = http.getContent(uri);
-    sendEvent("file");
-    return res;
+    return http.getContent(uri);
   }
 
   interface PagesVisitor {
@@ -228,9 +222,5 @@ class RemoteCatalog extends Catalog {
       }
       break;
     }
-  }
-
-  private static void sendEvent(String scope) {
-    Analytics.sendVfsRemoteEvent("amp", scope);
   }
 }

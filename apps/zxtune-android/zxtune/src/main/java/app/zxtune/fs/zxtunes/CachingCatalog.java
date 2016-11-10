@@ -16,11 +16,11 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.FetchCommand;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
-import app.zxtune.fs.dbhelpers.Utils;
 
 final class CachingCatalog extends Catalog {
   
@@ -30,15 +30,17 @@ final class CachingCatalog extends Catalog {
   
   private final Catalog remote;
   private final Database db;
+  private final CommandExecutor executor;
 
   public CachingCatalog(Catalog remote, Database db) {
     this.remote = remote;
     this.db = db;
+    this.executor = new CommandExecutor("zxtunes");
   }
   
   @Override
   public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
-    Utils.executeQueryCommand(new QueryCommand() {
+    executor.executeQueryCommand("authors", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorsLifetime(AUTHORS_TTL);
@@ -64,7 +66,7 @@ final class CachingCatalog extends Catalog {
   
   @Override
   public void queryAuthorTracks(final Author author, final TracksVisitor visitor) throws IOException {
-    Utils.executeQueryCommand(new QueryCommand() {
+    executor.executeQueryCommand("tracks", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorTracksLifetime(author, AUTHORS_TTL);
@@ -108,7 +110,7 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public ByteBuffer getTrackContent(final int id) throws IOException {
-    return Utils.executeFetchCommand(new FetchCommand() {
+    return executor.executeFetchCommand("file", new FetchCommand<ByteBuffer>() {
       @Override
       public ByteBuffer fetchFromCache() {
         return db.getTrackContent(id);

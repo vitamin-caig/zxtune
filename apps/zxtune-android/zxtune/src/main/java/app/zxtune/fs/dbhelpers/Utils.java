@@ -49,32 +49,4 @@ public final class Utils {
     }
     return result;
   }
-
-  public static void executeQueryCommand(QueryCommand cmd) throws IOException {
-    final Timestamps.Lifetime lifetime = cmd.getLifetime();
-    IOException remoteError = null;
-    if (lifetime.isExpired()) {
-      final Transaction transaction = cmd.startTransaction();
-      try {
-        cmd.queryFromRemote();
-        lifetime.update();
-        transaction.succeed();
-        return;
-      } catch (IOException e) {
-        remoteError = e;
-      } finally {
-        transaction.finish();
-      }
-    }
-    if (!cmd.queryFromCache() && remoteError != null) {
-      throw remoteError;
-    }
-  }
-
-  public static ByteBuffer executeFetchCommand(FetchCommand cmd) throws IOException {
-    final ByteBuffer cached = cmd.fetchFromCache();
-    return cached != null
-            ? cached
-            : cmd.fetchFromRemote();
-  }
 }
