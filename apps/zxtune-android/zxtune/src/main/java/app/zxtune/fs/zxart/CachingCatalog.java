@@ -28,7 +28,7 @@ final class CachingCatalog extends Catalog {
 
   private final TimeStamp AUTHORS_TTL = days(7);
   private final TimeStamp PARTIES_TTL = days(7);
-  private final TimeStamp TOP_TTL = days(1);
+  private final TimeStamp TRACKS_TTL = days(1);
 
   private static TimeStamp days(int val) {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
@@ -76,7 +76,7 @@ final class CachingCatalog extends Catalog {
     executor.executeQueryCommand("tracks", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
-        return db.getAuthorTracksLifetime(author, AUTHORS_TTL);
+        return db.getAuthorTracksLifetime(author, TRACKS_TTL);
       }
       
       @Override
@@ -129,7 +129,7 @@ final class CachingCatalog extends Catalog {
     executor.executeQueryCommand("tracks", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
-        return db.getPartyTracksLifetime(party, PARTIES_TTL);
+        return db.getPartyTracksLifetime(party, TRACKS_TTL);
       }
       
       @Override
@@ -155,7 +155,7 @@ final class CachingCatalog extends Catalog {
     executor.executeQueryCommand("tracks", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
-        return db.getTopLifetime(TOP_TTL);
+        return db.getTopLifetime(TRACKS_TTL);
       }
       
       @Override
