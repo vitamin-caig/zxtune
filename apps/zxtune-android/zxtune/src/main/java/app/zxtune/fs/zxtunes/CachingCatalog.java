@@ -26,8 +26,13 @@ final class CachingCatalog extends Catalog {
   
   private final static String TAG = CachingCatalog.class.getName();
   
-  private final TimeStamp AUTHORS_TTL = TimeStamp.createFrom(30, TimeUnit.DAYS);
-  
+  private final TimeStamp AUTHORS_TTL = days(30);
+  private final TimeStamp TRACKS_TTL = days(7);
+
+  private static TimeStamp days(int val) {
+    return TimeStamp.createFrom(val, TimeUnit.DAYS);
+  }
+
   private final Catalog remote;
   private final Database db;
   private final CommandExecutor executor;
@@ -69,7 +74,7 @@ final class CachingCatalog extends Catalog {
     executor.executeQueryCommand("tracks", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
-        return db.getAuthorTracksLifetime(author, AUTHORS_TTL);
+        return db.getAuthorTracksLifetime(author, TRACKS_TTL);
       }
       
       @Override
