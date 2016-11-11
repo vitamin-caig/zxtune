@@ -23,6 +23,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/chiptune.h>
+#include <math/numeric.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -96,6 +97,8 @@ namespace Chiptune
   #endif
 
     static_assert(sizeof(Header) == 0x14, "Invalid layout");
+    
+    const std::size_t MAX_SIZE = 1048576;
 
     class Parser
     {
@@ -122,6 +125,7 @@ namespace Chiptune
       const T& PeekField(const int16_t* beField, std::size_t idx = 0) const
       {
         const uint8_t* const result = GetPointer(beField) + sizeof(T) * idx;
+        Require(result + sizeof(T) <= Finish);
         return *safe_ptr_cast<const T*>(result);
       }
 
@@ -368,7 +372,7 @@ namespace Chiptune
       public:
         VariableDump()
         {
-          reserve(1000000);
+          reserve(MAX_SIZE);
         }
 
         template<class T>
@@ -385,6 +389,7 @@ namespace Chiptune
         void* Add(const void* src, std::size_t srcSize)
         {
           const std::size_t prevSize = size();
+          Require(prevSize + srcSize <= capacity());
           resize(prevSize + srcSize);
           void* const dst = &front() + prevSize;
           std::memcpy(dst, src, srcSize);
@@ -512,6 +517,10 @@ namespace Chiptune
       const Binary::TypedContainer data(rawData);
       if (const Header* header = data.GetField<Header>(0))
       {
+        if (header->FirstModuleIndex > header->LastModuleIndex)
+        {
+          return 0;
+        }
         if (0 != std::memcmp(header->Signature, SIGNATURE, sizeof(SIGNATURE)))
         {
           return 0;
@@ -520,9 +529,30 @@ namespace Chiptune
         {
           return 0;
         }
-        return header->FirstModuleIndex <= header->LastModuleIndex
-          ? header->LastModuleIndex + 1
-          : 0;
+        const int_t minOffset = sizeof(*header);
+        const int_t maxOffset = data.GetSize();
+        const int_t authorOffset = int_t(offsetof(Header, AuthorOffset)) + fromBE(header->AuthorOffset);
+        if (!Math::InRange(authorOffset, minOffset, maxOffset))
+        {
+          return 0;
+        }
+        const int_t miscOffset = int_t(offsetof(Header, MiscOffset)) + fromBE(header->MiscOffset);
+        //some of the tunes has improper offset
+        if (miscOffset >= maxOffset)
+        {
+          return 0;
+        }
+        const int_t descrOffset = int_t(offsetof(Header, DescriptionsOffset)) + fromBE(header->DescriptionsOffset);
+        if (descrOffset < minOffset)
+        {
+          return 0;
+        }
+        const std::size_t count = header->LastModuleIndex + 1;
+        if (descrOffset + int_t(count * sizeof(ModuleDescription)) > maxOffset)
+        {
+          return 0;
+        }
+        return count;
       }
       return 0;
     }
@@ -553,6 +583,7 @@ namespace Chiptune
         const EMUL::ModuleBlock& firstBlock = data.GetField<EMUL::ModuleBlock>(&moddata.BlocksOffset);
         target.SetRoutines(fromBE(modpointers.InitAddr ? modpointers.InitAddr : firstBlock.Address), fromBE(modpointers.PlayAddr));
         uint32_t crc = 0;
+        std::size_t blocksSize = 0;
         for (std::size_t blockIdx = 0; ; ++blockIdx)
         {
           if (!data.PeekField<uint16_t>(&moddata.BlocksOffset, 3 * blockIdx))
@@ -567,7 +598,9 @@ namespace Chiptune
           {
             target.AddBlock(blockAddr, blockData->Start(), blockData->Size());
             crc = Crc32(static_cast<const uint8_t*>(blockData->Start()), blockData->Size(), crc);
+            blocksSize += blockData->Size();
           }
+          Require(blocksSize < MAX_SIZE);
         }
         const Binary::Container::Ptr containerData = rawData.GetSubcontainer(0, data.GetSize());
         return CreateKnownCrcContainer(containerData, crc);
