@@ -18,10 +18,14 @@
         <source>Available version %1</source>
         <translation>Доступно обновление версии %1</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location filename="../../apps/zxtune-qt/update/check.cpp" line="475"/>
         <source>%1 (%n day(s) ago)</source>
-        <translation type="unfinished">%1 (%n день назад)</translation>
+        <translation>
+            <numerusform>%1 (%n день назад)</numerusform>
+            <numerusform>%1 (%n дня назад)</numerusform>
+            <numerusform>%1 (%n дней назад)</numerusform>
+        </translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/update/check.cpp" line="477"/>
