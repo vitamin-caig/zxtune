@@ -267,6 +267,64 @@ namespace
   private:
     QStringList Paths;
   };
+  
+  //https://en.wikipedia.org/wiki/Readers–writer_lock
+  template<class MutexType>
+  class RWMutexType
+  {
+  public:
+    class ReadLock
+    {
+    public:
+      ReadLock(RWMutexType& mtx)
+        : Mtx(mtx)
+      {
+        const std::lock_guard<MutexType> guard(Mtx.ReaderLock);
+        if (1 == ++Mtx.ReaderCount)
+        {
+          Mtx.WriterLock.lock();
+        }
+      }
+      
+      ReadLock(const ReadLock&) = delete;
+      
+      ~ReadLock()
+      {
+        const std::lock_guard<MutexType> guard(Mtx.ReaderLock);
+        if (0 == --Mtx.ReaderCount)
+        {
+          Mtx.WriterLock.unlock();
+        }
+      }
+    private:
+      RWMutexType& Mtx;
+    };
+    
+    class WriteLock
+    {
+    public:
+      WriteLock(RWMutexType& mtx)
+        : Mtx(mtx)
+      {
+        Mtx.WriterLock.lock();
+      }
+
+      WriteLock(const WriteLock&) = delete;
+      
+      ~WriteLock()
+      {
+        Mtx.WriterLock.unlock();
+      }
+    private:
+      RWMutexType& Mtx;
+    };
+  private:
+    MutexType ReaderLock;
+    std::size_t ReaderCount;
+    MutexType WriterLock;
+  };
+  
+  typedef RWMutexType<std::mutex> RWMutex;
 
   class ModelImpl : public Playlist::Model
                   , public OperationTarget<Playlist::Item::StorageAccessOperation>
@@ -313,13 +371,13 @@ namespace
     //new virtuals
     unsigned CountItems() const override
     {
-      const std::lock_guard<std::mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       return static_cast<unsigned>(Container->CountItems());
     }
 
     Playlist::Item::Data::Ptr GetItem(IndexType index) const override
     {
-      const std::lock_guard<std::mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       return Container->GetItem(index);
     }
 
@@ -327,7 +385,7 @@ namespace
     {
       PathsVisitor visitor;
       {
-        const std::lock_guard<std::mutex> lock(SyncAccess);
+        const RWMutex::ReadLock lock(SyncAccess);
         Container->ForSpecifiedItems(items, visitor);
       }
       return visitor.GetResult();
@@ -342,7 +400,7 @@ namespace
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        const std::lock_guard<std::mutex> lock(SyncAccess);
+        const RWMutex::WriteLock lock(SyncAccess);
         Container = Playlist::Item::Storage::Create();
         remapping = GetIndicesChanges();
       }
@@ -357,7 +415,7 @@ namespace
       }
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        const std::lock_guard<std::mutex> lock(SyncAccess);
+        const RWMutex::WriteLock lock(SyncAccess);
         Container->RemoveItems(*items);
         remapping = GetIndicesChanges();
       }
@@ -369,7 +427,7 @@ namespace
       Dbg("Moving %1% items to row %2%", items.size(), target);
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        const std::lock_guard<std::mutex> lock(SyncAccess);
+        const RWMutex::WriteLock lock(SyncAccess);
         Container->MoveItems(items, target);
         remapping = GetIndicesChanges();
       }
@@ -486,13 +544,13 @@ namespace
 
     bool canFetchMore(const QModelIndex& /*index*/) const override
     {
-      const std::lock_guard<std::mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       return FetchedItemsCount < Container->CountItems();
     }
 
     void fetchMore(const QModelIndex& /*index*/) override
     {
-      const std::lock_guard<std::mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       const std::size_t nextCount = Container->CountItems();
       beginInsertRows(EMPTY_INDEX, static_cast<int>(FetchedItemsCount), nextCount - 1);
       FetchedItemsCount = nextCount;
@@ -505,7 +563,7 @@ namespace
       {
         return EMPTY_INDEX;
       }
-      const std::lock_guard<std::mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       if (row < static_cast<int>(Container->CountItems()))
       {
         return createIndex(row, column, Container->GetVersion());
@@ -520,7 +578,7 @@ namespace
 
     int rowCount(const QModelIndex& index) const override
     {
-      const std::lock_guard<std::mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       return index.isValid()
         ? 0
         : static_cast<int>(FetchedItemsCount);
@@ -551,7 +609,7 @@ namespace
       }
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
-      const std::lock_guard<std::mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       if (const Playlist::Item::Data::Ptr item = Container->GetItem(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
@@ -573,7 +631,7 @@ namespace
   private:
     void ExecuteOperation(Playlist::Item::StorageAccessOperation::Ptr operation) override
     {
-      const std::lock_guard<std::mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       emit OperationStarted();
       try
       {
@@ -592,13 +650,13 @@ namespace
         emit OperationStarted();
         Playlist::Item::Storage::Ptr tmpStorage;
         {
-          const std::lock_guard<std::mutex> lock(SyncAccess);
+          const RWMutex::ReadLock lock(SyncAccess);
           tmpStorage = Container->Clone();
         }
         try
         {
           operation->Execute(*tmpStorage, *this);
-          const std::lock_guard<std::mutex> lock(SyncAccess);
+          const RWMutex::WriteLock lock(SyncAccess);
           Container = tmpStorage;
           remapping = GetIndicesChanges();
         }
@@ -644,7 +702,7 @@ namespace
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        const std::lock_guard<std::mutex> lock(SyncAccess);
+        const RWMutex::WriteLock lock(SyncAccess);
         Container->Add(val);
         remapping = GetIndicesChanges();
       }
@@ -654,12 +712,12 @@ namespace
     template<class T>
     void Add(const T& val)
     {
-      const std::lock_guard<std::mutex> lock(SyncAccess);
+      const RWMutex::WriteLock lock(SyncAccess);
       Container->Add(val);
     }
   private:
     const DataProvidersSet Providers;
-    mutable std::mutex SyncAccess;
+    mutable RWMutex SyncAccess;
     std::size_t FetchedItemsCount;
     Playlist::Item::Storage::Ptr Container;
     Async::Activity::Ptr AsyncExecution;
