@@ -53,7 +53,7 @@ public class PlaybackServiceConnection extends Fragment {
   
   private synchronized void shutdownService() {
     disconnect();
-    final Context context = getContext();
+    final Context context = getAppContext();
     final Intent intent = new Intent(context, MainService.class);
     context.stopService(intent);
   }
@@ -89,7 +89,7 @@ public class PlaybackServiceConnection extends Fragment {
   
   private synchronized void connect() {
     Log.d(TAG, "Connecting to service");
-    final Context context = getContext();
+    final Context context = getAppContext();
     final Intent intent = new Intent(context, MainService.class);
     context.startService(intent);
     final ServiceConnection connection = new ServiceConnectionCallback();
@@ -102,7 +102,7 @@ public class PlaybackServiceConnection extends Fragment {
   private synchronized void disconnect() {
     if (connection != null && service != null) {
       Log.d(TAG, "Disconnecting from service");
-      final Context context = getContext();
+      final Context context = getAppContext();
       context.unbindService(connection);
       connection = null;
     }
@@ -124,7 +124,7 @@ public class PlaybackServiceConnection extends Fragment {
     }
   }
   
-  private Context getContext() {
+  private Context getAppContext() {
     return getActivity().getApplicationContext();
   }
   
