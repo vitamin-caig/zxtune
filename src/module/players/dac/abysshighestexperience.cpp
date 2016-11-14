@@ -34,6 +34,12 @@ namespace AHX
 
   typedef std::shared_ptr<hvl_tune> HvlPtr;
   
+  enum StereoSeparation
+  {
+    MONO = 0,
+    STEREO = 4
+  };
+  
   HvlPtr LoadModule(const Binary::Data& data)
   {
     static bool initialized = false;
@@ -42,7 +48,7 @@ namespace AHX
       hvl_InitReplayer();
       initialized = true;
     }
-    const HvlPtr result = HvlPtr(hvl_LoadTune(static_cast<const uint8*>(data.Start()), data.Size(), 4, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT), &hvl_FreeTune);
+    const HvlPtr result = HvlPtr(hvl_LoadTune(static_cast<const uint8*>(data.Start()), data.Size(), MONO, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT), &hvl_FreeTune);
     Require(result.get() != nullptr);
     return result;
   }
