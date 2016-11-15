@@ -25,7 +25,6 @@ namespace Formats
     
       LinesObject()
         : Loop()
-        , LoopLimit()
       {
       }
       
@@ -33,17 +32,15 @@ namespace Formats
       LinesObject& operator = (const LinesObject&) = delete;
       
       LinesObject(LinesObject&& rh)// = default
-        : Loop(rh.Loop)
-        , LoopLimit(rh.LoopLimit)
-        , Lines(std::move(rh.Lines))
+        : Lines(std::move(rh.Lines))
+        , Loop(rh.Loop)
       {
       }
       
       LinesObject& operator = (LinesObject&& rh)// = default
       {
-        Loop = rh.Loop;
-        LoopLimit = rh.LoopLimit;
         Lines = std::move(rh.Lines);
+        Loop = rh.Loop;
         return *this;
       }
       
@@ -52,11 +49,6 @@ namespace Formats
         return Loop;
       }
       
-      uint_t GetLoopLimit() const
-      {
-        return LoopLimit;
-      }
-
       uint_t GetSize() const
       {
         return static_cast<uint_t>(Lines.size());
@@ -68,9 +60,39 @@ namespace Formats
         return Lines.size() > pos ? Lines[pos] : STUB;
       }
 
-      uint_t Loop;
-      uint_t LoopLimit;
       std::vector<LineType> Lines;
+      uint_t Loop;
+    };
+    
+    template<class LineType>
+    class LinesObjectWithLoopLimit : public LinesObject<LineType>
+    {
+    public:
+      LinesObjectWithLoopLimit()
+        : LinesObject<LineType>()
+        , LoopLimit()
+      {
+      }
+       
+      LinesObjectWithLoopLimit(LinesObjectWithLoopLimit&& rh)// = default
+        : LinesObject<LineType>(std::move(rh))
+        , LoopLimit(rh.LoopLimit)
+      {
+      }
+      
+      LinesObjectWithLoopLimit& operator = (LinesObjectWithLoopLimit&& rh)// = default
+      {
+        LinesObject<LineType>::operator = (std::move(rh));
+        LoopLimit = rh.LoopLimit;
+        return *this;
+      }
+      
+      uint_t GetLoopLimit() const
+      {
+        return LoopLimit;
+      }
+      
+      uint_t LoopLimit;
     };
   }
 }

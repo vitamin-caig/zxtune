@@ -40,7 +40,7 @@ namespace Formats
         int_t VolSlide;//0/+1/-1
       };
       
-      typedef LinesObject<SampleLine> Sample;
+      typedef LinesObjectWithLoopLimit<SampleLine> Sample;
 
       struct OrnamentLine
       {
@@ -52,7 +52,7 @@ namespace Formats
         int_t NoiseAddon;
       };
       
-      typedef LinesObject<OrnamentLine> Ornament;
+      typedef LinesObjectWithLoopLimit<OrnamentLine> Ornament;
 
       class Builder
       {

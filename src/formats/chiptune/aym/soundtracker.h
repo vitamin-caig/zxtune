@@ -41,7 +41,7 @@ namespace Formats
         int_t Effect;
       };
       
-      typedef LinesObject<SampleLine> Sample;
+      typedef LinesObjectWithLoopLimit<SampleLine> Sample;
       typedef LinesObject<int_t> Ornament;
 
       struct PositionEntry

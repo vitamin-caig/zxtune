@@ -43,9 +43,9 @@ namespace Formats
         bool EnableTone;
       };
       
-      typedef LinesObject<SampleLine> Sample;
+      typedef LinesObjectWithLoopLimit<SampleLine> Sample;
       
-      typedef LinesObject<int_t> Ornament;
+      typedef LinesObjectWithLoopLimit<int_t> Ornament;
 
       struct PositionEntry
       {
