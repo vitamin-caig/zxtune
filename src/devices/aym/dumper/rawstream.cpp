@@ -41,7 +41,6 @@ namespace AYM
     void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) override
     {
       assert(framesPassed);
-      Data.reserve(Data.size() + framesPassed * Registers::TOTAL);
       std::back_insert_iterator<Dump> inserter(Data);
       if (const uint_t toSkip = framesPassed - 1)
       {

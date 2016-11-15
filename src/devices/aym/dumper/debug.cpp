@@ -49,7 +49,6 @@ namespace AYM
 
     void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update) override
     {
-      Data.reserve(Data.size() + framesPassed * 32);
       assert(framesPassed);
       for (uint_t skips = 0; skips < framesPassed - 1; ++skips)
       {
