@@ -1,0 +1,4801 @@
+000102030405060708090a0b0c0d
+FD00    3C00010C0A000F      
+80      3F  02080C  0B      
+FF      3C  01  0E  05      
+FE      3F  020C0F  03      
+FD      3C      0D  00      
+7E      3F      0C          
+FC      3C      0B          
+        3F      0A          
+FD      3C      09          
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01  0A  0F      
+80      3F  02080C  0B      
+FF      3C  01  0E  05      
+FE      3F  020C0F  03      
+FD      3C      0D  00      
+7E      3F      0C          
+FC      3C      0B          
+        3F      0A          
+FD      3C      09          
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01  0A  0F      
+80      3F  02080C  0B      
+FF      3C  01  0E  05      
+FE      3F  020C0F  03      
+FD      3C      0D  00      
+7E      3F      0C          
+FC      3C      0B          
+        3F      0A          
+FD      3C      09          
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01  0A  0F      
+80      3F  02080C  0B      
+FF      3C  01  0E  05      
+FE      3F  020C0F  03      
+FD      3C      0D  00      
+7E      3F      0C          
+E1      3C      0A          
+72      3F      0C          
+E3      3C      0E          
+E2      3F      0F          
+E1      3C      0D          
+70      3F      0C          
+D5      3C  01  0A  0F      
+6C      3F  02080C  0B      
+D7      3C  01  0E  05      
+D6      3F  020C0F  03      
+D5      3C      0D  00      
+6A      3F      0C          
+BE      3C      0A          
+60      3F      0C          
+C0      3C      0E          
+BF      3F      0F          
+BE      3C      0D          
+5E      3F      0C          
+E1      3C  01  0A  0F      
+72      3F  02080C  0B      
+E3      3C  01  0E  05      
+E2      3F  020C0F  03      
+E1      3C      0D  00      
+70      3F      0C          
+E0      3C      0B          
+        3F      0A          
+E1      3C      09          
+72      3F                  
+E3      3C                  
+E2      3F                  
+E1      3C  01      0F      
+70      3F  0208    0B      
+DF      3C  01      05      
+DE      3F  020C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+1C01    3C  01  0A  0F      
+8F00    3F  02080C  0B      
+1E01    3C  01  0E  05      
+1D      3F  020C0F  03      
+1C      3C      0D  00      
+8D00    3F      0C          
+1B01    3C      0B          
+        3F      0A          
+1C      3C      09          
+8F00    3F                  
+1E01    3C                  
+1D      3F                  
+1C      3C  01      0F      
+8D00    3F  0208    0B      
+1A01    3C  01      05      
+19      3F  020C    03      
+18      3C          00      
+8B00    3F                  
+1A01    3C                  
+1B      3F                  
+1C      3C                  
+8F00    3F                  
+1E01    3C                  
+1D      3F                  
+51      3C  01  0A  0F      
+AA00    3F  02080C  0B      
+5301    3C  01  0E  05      
+52      3F  020C0F  03      
+51      3C      0D  00      
+A800    3F      0C          
+5001    3C      0B          
+        3F      0A          
+51      3C      09          
+AA00    3F                  
+5301    3C                  
+52      3F                  
+51      3C  01      0F      
+A800    3F  0208    0B      
+4F01    3C  01      05      
+4E      3F  020C    03      
+4D      3C          00      
+A600    3F                  
+4F01    3C                  
+50      3F                  
+51      3C                  
+AA00    3F                  
+5301    3C                  
+52      3F                  
+D500    3C  01  0A  0F      
+6C      3F  02080C  0B      
+D7      3C  01  0E  05      
+D6      3F  020C0F  03      
+D5      3C      0D  00      
+6A      3F      0C          
+E1      3C      0A          
+72      3F      0C          
+E3      3C      0E          
+E2      3F      0F          
+E1      3C      0D          
+70      3F      0C          
+FD      3C  01  0A  0F      
+80      3F  02080C  0B      
+FF      3C  01  0E  05      
+FE      3F  020C0F  03      
+FD      3C      0D  00      
+7E      3F      0C          
+1C01    3C      0A          
+8F00    3F      0C          
+1E01    3C      0E          
+1D      3F      0F          
+1C      3C      0D          
+8D00    3F      0C          
+E1      3C  01  0A  0F      
+72      3F  02080C  0B      
+E3      3C  01  0E  05      
+E2      3F  020C0F  03      
+E1      3C      0D  00      
+70      3F      0C          
+E0      3C      0B          
+        3F      0A          
+E1      3C      09          
+72      3F                  
+E3      3C                  
+E2      3F                  
+E1      3C  01      0F      
+70      3F  0208    0B      
+DF      3C  01      05      
+DE      3F  020C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+E1      3C  01      0F      
+70      3F  0208    0B      
+DF      3C  01      05      
+DE      3F  020C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+E1      3C  01      0F      
+70      3F  0208    0B      
+DF      3C  01      05      
+DE      3F  020C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+E1      3C  01      0F      
+70      3F  0208    0B      
+DF      3C  01      05      
+DE      3F  020C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+E1      3C  01      0F      
+70      3F  0208    0B      
+DF      3C  01      05      
+DE      3F  020C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+FD      3C  01  0A  0F      
+80      3F  02080C  0B      
+FF      3C  01  0E  05      
+FE      3F  020C0F  03      
+FD      3C      0D  00      
+7E      3F      0C          
+FC      3C      0B          
+        3F      0A          
+FD      3C      09          
+80      3F                  
+FF      3C                  
+FE      3F                  
+1C01    3C  01  0A  0F      
+8F00    3F  02080C  0B      
+1E01    3C  01  0E  05      
+1D      3F  020C0F  03      
+1C      3C      0D  00      
+8D00    3F      0C          
+1B01    3C      0B          
+        3F      0A          
+1C      3C      09          
+8F00    3F                  
+1E01    3C                  
+1D      3F                  
+FD00    3C  01  0A  0F      
+80      3F  02080C  0B      
+FF      3C  01  0E  05      
+FE      3F  020C0F  03      
+FD      3C      0D  00      
+7E      3F      0C          
+FC      3C      0B          
+        3F      0A          
+FD      3C      09          
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD      3C  01      0F      
+7E      3F  0208    0B      
+FB      3C  01      05      
+FA      3F  020C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD  4F033C  01  0A0E0F      
+80  B7  3F  02180C0D0B      
+FF  2C043C  01080E0C05      
+FE  AE  3F  021C0F0B03      
+FD  41053C      0D0A00      
+7E  E6  3F      0C09        
+FC  9F063C      0B08        
+    6E073F      0A07        
+FD  58083C      0906        
+80  5C093F                  
+FF  820A3C                  
+FE  CC0B3F                  
+FD  3E0D3C  01      0F      
+7E  DC0E3F  0218    0B      
+FB      3C  01      05      
+FA      3F  021C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD  4F033C  010C0A0E0F      
+80  B7  3F  02180C0D0B      
+FF  2C043C  01080E0C05      
+FE  AE  3F  021C0F0B03      
+FD  41053C      0D0A00      
+7E  E6  3F      0C09        
+FC  9F063C      0B08        
+    6E073F      0A07        
+FD  58083C      0906        
+80  5C093F                  
+FF  820A3C                  
+FE  CC0B3F                  
+FD  3E0D3C  01      0F      
+7E  DC0E3F  0218    0B      
+FB      3C  01      05      
+FA      3F  021C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD  4F033C  010C0A0E0F      
+80  B7  3F  02180C0D0B      
+FF  2C043C  01080E0C05      
+FE  AE  3F  021C0F0B03      
+FD  41053C      0D0A00      
+7E  E6  3F      0C09        
+FC  9F063C      0B08        
+    6E073F      0A07        
+FD  58083C      0906        
+80  5C093F                  
+FF  820A3C                  
+FE  CC0B3F                  
+FD  3E0D3C  01      0F      
+7E  DC0E3F  0218    0B      
+FB      3C  01      05      
+FA      3F  021C    03      
+F9      3C          00      
+7C      3F                  
+FB      3C                  
+FC      3F                  
+FD      3C                  
+80      3F                  
+FF      3C                  
+FE      3F                  
+FD  4F033C  010C0A0E0F      
+80  B7  3F  02180C0D0B      
+FF  2C043C  01080E0C05      
+FE  AE  3F  021C0F0B03      
+FD  41053C      0D0A00      
+7E  E6  3F      0C09        
+E1  9F063C      0A08        
+72  6E073F      0C07        
+E3  58083C      0E06        
+E2  5C093F      0F          
+E1  820A3C      0D          
+70  CC0B3F      0C          
+D5  3E0D3C  01  0A  0F      
+6C  DC0E3F  02180C  0B      
+D7      3C  01  0E  05      
+D6      3F  021C0F  03      
+D5      3C      0D  00      
+6A      3F      0C          
+BE      3C      0A          
+60      3F      0C          
+C0      3C      0E          
+BF      3F      0F          
+BE      3C      0D          
+5E      3F      0C          
+E1  4F033C  010C0A0E0F      
+72  B7  3F  02180C0D0B      
+E3  2C043C  01080E0C05      
+E2  AE  3F  021C0F0B03      
+E1  41053C      0D0A00      
+70  E6  3F      0C09        
+E0  9F063C      0B08        
+    6E073F      0A07        
+E1  58083C      0906        
+72  5C093F                  
+E3  820A3C                  
+E2  CC0B3F                  
+E1  3E0D3C  01      0F      
+70  DC0E3F  0218    0B      
+DF      3C  01      05      
+DE      3F  021C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+1C014F033C  010C0A0E0F      
+8F00B7  3F  02180C0D0B      
+1E012C043C  01080E0C05      
+1D  AE  3F  021C0F0B03      
+1C  41053C      0D0A00      
+8D00E6  3F      0C09        
+1B019F063C      0B08        
+    6E073F      0A07        
+1C  58083C      0906        
+8F005C093F                  
+1E01820A3C                  
+1D  CC0B3F                  
+1C  3E0D3C  01      0F      
+8D00DC0E3F  0218    0B      
+1A01    3C  01      05      
+19      3F  021C    03      
+18      3C          00      
+8B00    3F                  
+1A01    3C                  
+1B      3F                  
+1C      3C                  
+8F00    3F                  
+1E01    3C                  
+1D      3F                  
+51  4F033C  010C0A0E0F      
+AA00B7  3F  02180C0D0B      
+53012C043C  01080E0C05      
+52  AE  3F  021C0F0B03      
+51  41053C      0D0A00      
+A800E6  3F      0C09        
+50019F063C      0B08        
+    6E073F      0A07        
+51  58083C      0906        
+AA005C093F                  
+5301820A3C                  
+52  CC0B3F                  
+51  3E0D3C  01      0F      
+A800DC0E3F  0218    0B      
+4F01    3C  01      05      
+4E      3F  021C    03      
+4D      3C          00      
+A600    3F                  
+4F01    3C                  
+50      3F                  
+51      3C                  
+AA00    3F                  
+5301    3C                  
+52      3F                  
+D5004F033C  010C0A0E0F      
+6C  B7  3F  02180C0D0B      
+D7  2C043C  01080E0C05      
+D6  AE  3F  021C0F0B03      
+D5  41053C      0D0A00      
+6A  E6  3F      0C09        
+E1  9F063C      0A08        
+72  6E073F      0C07        
+E3  58083C      0E06        
+E2  5C093F      0F          
+E1  820A3C      0D          
+70  CC0B3F      0C          
+FD  3E0D3C  01  0A  0F      
+80  DC0E3F  02180C  0B      
+FF      3C  01  0E  05      
+FE      3F  021C0F  03      
+FD      3C      0D  00      
+7E      3F      0C          
+1C01    3C      0A          
+8F00    3F      0C          
+1E01    3C      0E          
+1D      3F      0F          
+1C      3C      0D          
+8D00    3F      0C          
+E1  4F033C  010C0A0E0F      
+72  B7  3F  02180C0D0B      
+E3  2C043C  01080E0C05      
+E2  AE  3F  021C0F0B03      
+E1  41053C      0D0A00      
+70  E6  3F      0C09        
+E0  9F063C      0B08        
+    6E073F      0A07        
+E1  58083C      0906        
+72  5C093F                  
+E3  820A3C                  
+E2  CC0B3F                  
+E1  3E0D3C  01      0F      
+70  DC0E3F  0218    0B      
+DF      3C  01      05      
+DE      3F  021C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+E1  4F033C  010C  0E0F      
+70  B7  3F  0218  0D0B      
+DF  2C043C  0108  0C05      
+DE  AE  3F  021C  0B03      
+DD  41053C        0A00      
+6E  E6  3F        09        
+DF  9F063C        08        
+E0  6E073F        07        
+E1  58083C        06        
+72  5C093F                  
+E3  820A3C                  
+E2  CC0B3F                  
+E1  3E0D3C  01      0F      
+70  DC0E3F  0218    0B      
+DF      3C  01      05      
+DE      3F  021C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+E1  4F033C  010C  0E0F      
+70  B7  3F  0218  0D0B      
+DF  2C043C  0108  0C05      
+DE  AE  3F  021C  0B03      
+DD  41053C        0A00      
+6E  E6  3F        09        
+DF  9F063C        08        
+E0  6E073F        07        
+E1  58083C        06        
+72  5C093F                  
+E3  820A3C                  
+E2  CC0B3F                  
+E1  3E0D3C  01      0F      
+70  DC0E3F  0218    0B      
+DF      3C  01      05      
+DE      3F  021C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+E1  4F033C  010C  0E0F      
+70  B7  3F  0218  0D0B      
+DF  2C043C  0108  0C05      
+DE  AE  3F  021C  0B03      
+DD  41053C        0A00      
+6E  E6  3F        09        
+DF  9F063C        08        
+E0  6E073F        07        
+E1  58083C        06        
+72  5C093F                  
+E3  820A3C                  
+E2  CC0B3F                  
+E1  3E0D3C  01      0F      
+70  DC0E3F  0218    0B      
+DF      3C  01      05      
+DE      3F  021C    03      
+DD      3C          00      
+6E      3F                  
+DF      3C                  
+E0      3F                  
+E1      3C                  
+72      3F                  
+E3      3C                  
+E2      3F                  
+1C014F033C  010C0A0E0F      
+8F00B7  3F  02180C0D0B      
+1E012C043C  01080E0C05      
+1D  AE  3F  021C0F0B03      
+1C  41053C      0D0A00      
+8D00E6  3F      0C09        
+1B019F063C      0B08        
+    6E073F      0A07        
+1C  58083C      0906        
+8F005C093F                  
+1E01820A3C                  
+1D  CC0B3F                  
+1C  3E0D3C  01      0F      
+8D00DC0E3F  0218    0B      
+1A01    3C  01      05      
+19      3F  021C    03      
+18      3C          00      
+8B00    3F                  
+1A01    3C                  
+1B      3F                  
+1C      3C                  
+8F00    3F                  
+1E01    3C                  
+1D      3F                  
+1C  4F033C  010C  0E0F      
+8D00B7  3F  0218  0D0B      
+1A012C043C  0108  0C05      
+19  AE  3F  021C  0B03      
+18  41053C        0A00      
+8B00E6  3F        09        
+1A019F063C        08        
+1B  6E073F        07        
+1C  58083C        06        
+8F005C093F                  
+1E01820A3C                  
+1D  CC0B3F                  
+1C  3E0D3C  01      0F      
+8D00DC0E3F  0218    0B      
+1A01    3C  01      05      
+19      3F  021C    03      
+18      3C          00      
+8B00    3F                  
+1A01    3C                  
+1B      3F                  
+1C      3C                  
+8F00    3F                  
+1E01    3C                  
+1D      3F                  
+1C  4F033C  010C  0E0F      
+8D00B7  3F  0218  0D0B      
+1A012C043C  0108  0C05      
+19  AE  3F  021C  0B03      
+18  41053C        0A00      
+8B00E6  3F        09        
+1A019F063C        08        
+1B  6E073F        07        
+1C  58083C        06        
+8F005C093F                  
+1E01820A3C                  
+1D  CC0B3F                  
+1C  3E0D3C  01      0F      
+8D00DC0E3F  0218    0B      
+1A01    3C  01      05      
+19      3F  021C    03      
+18      3C          00      
+8B00    3F                  
+1A01    3C                  
+1B      3F                  
+1C      3C                  
+8F00    3F                  
+1E01    3C                  
+1D      3F                  
+1C  4F033C  010C  0E0F      
+8D00B7  3F  0218  0D0B      
+1A012C043C  0108  0C05      
+19  AE  3F  021C  0B03      
+18  41053C        0A00      
+8B00E6  3F        09        
+1A019F063C        08        
+1B  6E073F        07        
+1C  58083C        06        
+8F005C093F                  
+1E01820A3C                  
+1D  CC0B3F                  
+1C  3E0D3C  01      0F      
+8D00DC0E3F  0218    0B      
+1A01    3C  01      05      
+19      3F  021C    03      
+18      3C          00      
+8B00    3F                  
+1A01    3C                  
+1B      3F                  
+1C      3C                  
+8F00    3F                  
+1E01    3C                  
+1D      3F                  
+1C  52034F031E180A0C0E      
+8F0055  B7    380C0D0D      
+1E014F  2C041D180E0E0C      
+1D  49  AE    380F0F0B      
+1C  4C  4105    0D0E0A      
+8D004F  E6      0C0D09      
+1B0152  9F06    0B0C08      
+    55  6E07    0A  07      
+1C  52  5808    09  06      
+8F004F  5C09                
+1E014C  820A                
+1D  49  CC0B                
+1C  AB013C00011C0A  0F      
+8F00AE  3F  02180C0D0B      
+1E01A8  3C  01  0E0E05      
+1D  A2  3F  021C0F0F03      
+1C  A5  3C      0D0E00      
+8D00A8  3F      0C0D        
+1B01AB  3C      0B0C        
+    AE  3F      0A          
+1C  AB  3C      09          
+8F00A8  3F                  
+1E01A5  3C                  
+1D  A2  3F                  
+1C  5203DC0117180A  0F      
+8F0055  16021C  0C0D0E      
+1E014F  57  171C0E0E0D      
+1D  49  A1  1C180F0F0C      
+1C  4C  F3  17  0D0E0B      
+8D004F  4F031C1C0C0D0A      
+1B0152  B7  17180B0C09      
+    55  2C041C  0A  08      
+1C  52  AE  171C09  07      
+8F004F  41051C18    06      
+1E014C  E6  171C    00      
+1D  49  9F061C              
+51  AB013C0001  0A  0F      
+AA00AE  3F  02180C0D0B      
+5301A8  3C  01  0E0E05      
+52  A2  3F  021C0F0F03      
+51  A5  3C      0D0E00      
+A800A8  3F      0C0D        
+5001AB  3C      0B0C        
+    AE  3F      0A          
+51  AB  3C      09          
+AA00A8  3F                  
+5301A5  3C                  
+52  A2  3F                  
+FD0052034F031E180A  0E      
+80  55  B7    380C0D0D      
+FF  4F  2C041D180E0E0C      
+FE  49  AE    380F0F0B      
+FD  4C  4105    0D0E0A      
+7E  4F  E6      0C0D09      
+FC  AB013C00011C0B0C0F      
+    AE  3F  02180A0D0B      
+FD  A8  3C  01  090E05      
+80  A2  3F  021C  0F03      
+FF  A5  3C        0E00      
+FE  A8  3F        0D        
+FD  52033C  01  0A0C0F      
+80  55  3F  02180C0D0B      
+FF  4F  3C  01  0E0E05      
+FE  49  3F  021C0F0F03      
+FD  4C  3C      0D0E00      
+7E  4F  3F      0C0D        
+FC  AB013C  01  0B0C0F      
+    AE  3F  02180A0D0B      
+FD  A8  3C  01  090E05      
+80  A2  3F  021C  0F03      
+FF  A5  3C        0E00      
+FE  A8  3F        0D        
+FD  5203DC0117180A0C0F      
+80  55  16021C  0C0D0E      
+FF  4F  57  171C0E0E0D      
+FE  49  A1  1C180F0F0C      
+FD  4C  F3  17  0D0E0B      
+7E  4F  4F031C1C0C0D0A      
+FC  52  B7  17180B0C09      
+    55  2C041C  0A  08      
+FD  52  AE  171C09  07      
+80  4F  41051C18    06      
+FF  4C  E6  171C    00      
+FE  49  9F061C              
+1C01AB013C0001  0A  0F      
+8F00AE  3F  02180C0D0B      
+1E01A8  3C  01  0E0E05      
+1D  A2  3F  021C0F0F03      
+1C  A5  3C      0D0E00      
+8D00A8  3F      0C0D        
+1B01AB  3C      0B0C        
+    AE  3F      0A          
+1C  AB  3C      09          
+8F00A8  3F                  
+1E01A5  3C                  
+1D  A2  3F                  
+1C  6E044F031E18    0E      
+8D0071  B7    38  0D0D      
+1A016B  2C041D18  0E0C      
+19  65  AE    38  0F0B      
+18  68  4105      0E0A      
+8B006B  E6        0D09      
+1A016E  9F06      0C08      
+1B  71  6E07        07      
+1C  6E  5808        06      
+8F006B  5C09                
+1E0168  820A                
+1D  65  CC0B                
+7A  39023C00011C0A  0F      
+BF003C  3F  02180C0D0B      
+7C0136  3C  01  0E0E05      
+7B  30  3F  021C0F0F03      
+7A  33  3C      0D0E00      
+BD0036  3F      0C0D        
+790139  3C      0B0C        
+    3C  3F      0A          
+7A  39  3C      09          
+BF0036  3F                  
+7C0133  3C                  
+7B  30  3F                  
+7A  6E04DC011718    0F      
+BD0071  16021C    0D0E      
+78016B  57  171C  0E0D      
+77  65  A1  1C18  0F0C      
+76  68  F3  17    0E0B      
+BB006B  4F031C1C  0D0A      
+78016E  B7  1718  0C09      
+79  71  2C041C      08      
+7A  6E  AE  171C    07      
+BF006B  41051C18    06      
+7C0168  E6  171C    00      
+7B  65  9F061C              
+7A  39023C0001      0F      
+BD003C  3F  0218  0D0B      
+780136  3C  01    0E05      
+77  30  3F  021C  0F03      
+76  33  3C        0E00      
+BB0036  3F        0D        
+780139  3C        0C        
+79  3C  3F                  
+7A  39  3C                  
+BF0036  3F                  
+7C0133  3C                  
+7B  30  3F                  
+7A  6E044F031E18    0E      
+BD0071  B7    38  0D0D      
+78016B  2C041D18  0E0C      
+77  65  AE    38  0F0B      
+76  68  4105      0E0A      
+BB006B  E6        0D09      
+780139023C00011C  0C0F      
+79  3C  3F  0218  0D0B      
+7A  36  3C  01    0E05      
+BF0030  3F  021C  0F03      
+7C0133  3C        0E00      
+7B  36  3F        0D        
+7A  6E043C  01  0A0C0F      
+BF0071  3F  02180C0D0B      
+7C016B  3C  01  0E0E05      
+7B  65  3F  021C0F0F03      
+7A  68  3C      0D0E00      
+BD006B  3F      0C0D        
+790139023C  01  0B0C0F      
+    3C  3F  02180A0D0B      
+7A  36  3C  01  090E05      
+BF0030  3F  021C  0F03      
+7C0133  3C        0E00      
+7B  36  3F        0D        
+51  6E04DC0117180A0C0F      
+AA0071  16021C  0C0D0E      
+53016B  57  171C0E0E0D      
+52  65  A1  1C180F0F0C      
+51  68  F3  17  0D0E0B      
+A8006B  4F031C1C0C0D0A      
+50016E  B7  17180B0C09      
+    71  2C041C  0A  08      
+51  6E  AE  171C09  07      
+AA006B  41051C18    06      
+530168  E6  171C    00      
+52  65  9F061C              
+7A  39023C0001  0A  0F      
+BF003C  3F  02180C0D0B      
+7C0136  3C  01  0E0E05      
+7B  30  3F  021C0F0F03      
+7A  33  3C      0D0E00      
+BD0036  3F      0C0D        
+790139  3C      0B0C        
+    3C  3F      0A          
+7A  39  3C      09          
+BF0036  3F                  
+7C0133  3C                  
+7B  30  3F                  
+7A  F3034F031E18    0E      
+BD00F6  B7    38  0D0D      
+7801F0  2C041D18  0E0C      
+77  EA  AE    38  0F0B      
+76  ED  4105      0E0A      
+BB00F0  E6        0D09      
+7801F3  9F06      0C08      
+79  F6  6E07        07      
+7A  F3  5808        06      
+BF00F0  5C09                
+7C01ED  820A                
+7B  EA  CC0B                
+A9  FB013C00011C0A  0F      
+D600FE  3F  02180C0D0B      
+AB01F8  3C  01  0E0E05      
+AA  F2  3F  021C0F0F03      
+A9  F5  3C      0D0E00      
+D400F8  3F      0C0D        
+A801FB  3C      0B0C        
+    FE  3F      0A          
+A9  FB  3C      09          
+D600F8  3F                  
+AB01F5  3C                  
+AA  F2  3F                  
+A9  F303DC011718    0F      
+D400F6  16021C    0D0E      
+A701F0  57  171C  0E0D      
+A6  EA  A1  1C18  0F0C      
+A5  ED  F3  17    0E0B      
+D200F0  4F031C1C  0D0A      
+A701F3  B7  1718  0C09      
+A8  F6  2C041C      08      
+A9  F3  AE  171C    07      
+D600F0  41051C18    06      
+AB01ED  E6  171C    00      
+AA  EA  9F061C              
+A9  FB013C0001      0F      
+D400FE  3F  0218  0D0B      
+A701F8  3C  01    0E05      
+A6  F2  3F  021C  0F03      
+A5  F5  3C        0E00      
+D200F8  3F        0D        
+A701FB  3C        0C        
+A8  FE  3F                  
+A9  FB  3C                  
+D600F8  3F                  
+AB01F5  3C                  
+AA  F2  3F                  
+A9  F3034F031E18    0E      
+D400F6  B7    38  0D0D      
+A701F0  2C041D18  0E0C      
+A6  EA  AE    38  0F0B      
+A5  ED  4105      0E0A      
+D200F0  E6        0D09      
+A701FB013C00011C  0C0F      
+A8  FE  3F  0218  0D0B      
+A9  F8  3C  01    0E05      
+D600F2  3F  021C  0F03      
+AB01F5  3C        0E00      
+AA  F8  3F        0D        
+A9  F3033C  01  0A0C0F      
+D600F6  3F  02180C0D0B      
+AB01F0  3C  01  0E0E05      
+AA  EA  3F  021C0F0F03      
+A9  ED  3C      0D0E00      
+D400F0  3F      0C0D        
+A801FB013C  01  0B0C0F      
+    FE  3F  02180A0D0B      
+A9  F8  3C  01  090E05      
+D600F2  3F  021C  0F03      
+AB01F5  3C        0E00      
+AA  F8  3F        0D        
+FD00F303DC0117180A0C0F      
+80  F6  16021C  0C0D0E      
+FF  F0  57  171C0E0E0D      
+FE  EA  A1  1C180F0F0C      
+FD  ED  F3  17  0D0E0B      
+7E  F0  4F031C1C0C0D0A      
+FC  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+FD  F3  AE  171C09  07      
+80  F0  41051C18    06      
+FF  ED  E6  171C    00      
+FE  EA  9F061C              
+1C01FB013C0001  0A  0F      
+8F00FE  3F  02180C0D0B      
+1E01F8  3C  01  0E0E05      
+1D  F2  3F  021C0F0F03      
+1C  F5  3C      0D0E00      
+8D00F8  3F      0C0D        
+1B01FB  3C      0B0C        
+    FE  3F      0A          
+1C  FB  3C      09          
+8F00F8  3F                  
+1E01F5  3C                  
+1D  F2  3F                  
+1C  44054F031E18    0E      
+8D0047  B7    38  0D0D      
+1A0141  2C041D18  0E0C      
+19  3B  AE    38  0F0B      
+18  3E  4105      0E0A      
+8B0041  E6        0D09      
+1A0144  9F06      0C08      
+1B  47  6E07        07      
+1C  44  5808        06      
+8F0041  5C09                
+1E013E  820A                
+1D  3B  CC0B                
+1C  A4023C00011C    0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+1C  4405DC011718    0F      
+8D0047  16021C    0D0E      
+1A0141  57  171C  0E0D      
+19  3B  A1  1C18  0F0C      
+18  3E  F3  17    0E0B      
+8B0041  4F031C1C  0D0A      
+1A0144  B7  1718  0C09      
+1B  47  2C041C      08      
+1C  44  AE  171C    07      
+8F0041  41051C18    06      
+1E013E  E6  171C    00      
+1D  3B  9F061C              
+1C  A4023C0001      0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+1C  44054F031E18    0E      
+8D0047  B7    38  0D0D      
+1A0141  2C041D18  0E0C      
+19  3B  AE    38  0F0B      
+18  3E  4105      0E0A      
+8B0041  E6        0D09      
+1A01A4023C00011C  0C0F      
+1B  A7  3F  0218  0D0B      
+1C  A1  3C  01    0E05      
+8F009B  3F  021C  0F03      
+1E019E  3C        0E00      
+1D  A1  3F        0D        
+1C  44053C  01    0C0F      
+8D0047  3F  0218  0D0B      
+1A0141  3C  01    0E05      
+19  3B  3F  021C  0F03      
+18  3E  3C        0E00      
+8B0041  3F        0D        
+1A01A4023C  01    0C0F      
+1B  A7  3F  0218  0D0B      
+1C  A1  3C  01    0E05      
+8F009B  3F  021C  0F03      
+1E019E  3C        0E00      
+1D  A1  3F        0D        
+1C  4405DC011718  0C0F      
+8D0047  16021C    0D0E      
+1A0141  57  171C  0E0D      
+19  3B  A1  1C18  0F0C      
+18  3E  F3  17    0E0B      
+8B0041  4F031C1C  0D0A      
+1A0144  B7  1718  0C09      
+1B  47  2C041C      08      
+1C  44  AE  171C    07      
+8F0041  41051C18    06      
+1E013E  E6  171C    00      
+1D  3B  9F061C              
+1C  A4023C0001      0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+1C  52034F031E180A  0E      
+8F0055  B7    380C0D0D      
+1E014F  2C041D180E0E0C      
+1D  49  AE    380F0F0B      
+1C  4C  4105    0D0E0A      
+8D004F  E6      0C0D09      
+1B0152  9F06    0B0C08      
+    55  6E07    0A  07      
+1C  52  5808    09  06      
+8F004F  5C09                
+1E014C  820A                
+1D  49  CC0B                
+1C  AB013C00011C0A  0F      
+8F00AE  3F  02180C0D0B      
+1E01A8  3C  01  0E0E05      
+1D  A2  3F  021C0F0F03      
+1C  A5  3C      0D0E00      
+8D00A8  3F      0C0D        
+1B01AB  3C      0B0C        
+    AE  3F      0A          
+1C  AB  3C      09          
+8F00A8  3F                  
+1E01A5  3C                  
+1D  A2  3F                  
+1C  5203DC0117180A  0F      
+8F0055  16021C  0C0D0E      
+1E014F  57  171C0E0E0D      
+1D  49  A1  1C180F0F0C      
+1C  4C  F3  17  0D0E0B      
+8D004F  4F031C1C0C0D0A      
+1B0152  B7  17180B0C09      
+    55  2C041C  0A  08      
+1C  52  AE  171C09  07      
+8F004F  41051C18    06      
+1E014C  E6  171C    00      
+1D  49  9F061C              
+51  AB013C0001  0A  0F      
+AA00AE  3F  02180C0D0B      
+5301A8  3C  01  0E0E05      
+52  A2  3F  021C0F0F03      
+51  A5  3C      0D0E00      
+A800A8  3F      0C0D        
+5001AB  3C      0B0C        
+    AE  3F      0A          
+51  AB  3C      09          
+AA00A8  3F                  
+5301A5  3C                  
+52  A2  3F                  
+FD0052034F031E180A  0E      
+80  55  B7    380C0D0D      
+FF  4F  2C041D180E0E0C      
+FE  49  AE    380F0F0B      
+FD  4C  4105    0D0E0A      
+7E  4F  E6      0C0D09      
+FC  AB013C00011C0B0C0F      
+    AE  3F  02180A0D0B      
+FD  A8  3C  01  090E05      
+80  A2  3F  021C  0F03      
+FF  A5  3C        0E00      
+FE  A8  3F        0D        
+FD  52033C  01  0A0C0F      
+80  55  3F  02180C0D0B      
+FF  4F  3C  01  0E0E05      
+FE  49  3F  021C0F0F03      
+FD  4C  3C      0D0E00      
+7E  4F  3F      0C0D        
+FC  AB013C  01  0B0C0F      
+    AE  3F  02180A0D0B      
+FD  A8  3C  01  090E05      
+80  A2  3F  021C  0F03      
+FF  A5  3C        0E00      
+FE  A8  3F        0D        
+FD  5203DC0117180A0C0F      
+80  55  16021C  0C0D0E      
+FF  4F  57  171C0E0E0D      
+FE  49  A1  1C180F0F0C      
+FD  4C  F3  17  0D0E0B      
+7E  4F  4F031C1C0C0D0A      
+FC  52  B7  17180B0C09      
+    55  2C041C  0A  08      
+FD  52  AE  171C09  07      
+80  4F  41051C18    06      
+FF  4C  E6  171C    00      
+FE  49  9F061C              
+1C01AB013C0001  0A  0F      
+8F00AE  3F  02180C0D0B      
+1E01A8  3C  01  0E0E05      
+1D  A2  3F  021C0F0F03      
+1C  A5  3C      0D0E00      
+8D00A8  3F      0C0D        
+1B01AB  3C      0B0C        
+    AE  3F      0A          
+1C  AB  3C      09          
+8F00A8  3F                  
+1E01A5  3C                  
+1D  A2  3F                  
+1C  6E044F031E18    0E      
+8D0071  B7    38  0D0D      
+1A016B  2C041D18  0E0C      
+19  65  AE    38  0F0B      
+18  68  4105      0E0A      
+8B006B  E6        0D09      
+1A016E  9F06      0C08      
+1B  71  6E07        07      
+1C  6E  5808        06      
+8F006B  5C09                
+1E0168  820A                
+1D  65  CC0B                
+7A  39023C00011C0A  0F      
+BF003C  3F  02180C0D0B      
+7C0136  3C  01  0E0E05      
+7B  30  3F  021C0F0F03      
+7A  33  3C      0D0E00      
+BD0036  3F      0C0D        
+790139  3C      0B0C        
+    3C  3F      0A          
+7A  39  3C      09          
+BF0036  3F                  
+7C0133  3C                  
+7B  30  3F                  
+7A  6E04DC011718    0F      
+BD0071  16021C    0D0E      
+78016B  57  171C  0E0D      
+77  65  A1  1C18  0F0C      
+76  68  F3  17    0E0B      
+BB006B  4F031C1C  0D0A      
+78016E  B7  1718  0C09      
+79  71  2C041C      08      
+7A  6E  AE  171C    07      
+BF006B  41051C18    06      
+7C0168  E6  171C    00      
+7B  65  9F061C              
+7A  39023C0001      0F      
+BD003C  3F  0218  0D0B      
+780136  3C  01    0E05      
+77  30  3F  021C  0F03      
+76  33  3C        0E00      
+BB0036  3F        0D        
+780139  3C        0C        
+79  3C  3F                  
+7A  39  3C                  
+BF0036  3F                  
+7C0133  3C                  
+7B  30  3F                  
+7A  6E044F031E18    0E      
+BD0071  B7    38  0D0D      
+78016B  2C041D18  0E0C      
+77  65  AE    38  0F0B      
+76  68  4105      0E0A      
+BB006B  E6        0D09      
+780139023C00011C  0C0F      
+79  3C  3F  0218  0D0B      
+7A  36  3C  01    0E05      
+BF0030  3F  021C  0F03      
+7C0133  3C        0E00      
+7B  36  3F        0D        
+7A  6E043C  01  0A0C0F      
+BF0071  3F  02180C0D0B      
+7C016B  3C  01  0E0E05      
+7B  65  3F  021C0F0F03      
+7A  68  3C      0D0E00      
+BD006B  3F      0C0D        
+790139023C  01  0B0C0F      
+    3C  3F  02180A0D0B      
+7A  36  3C  01  090E05      
+BF0030  3F  021C  0F03      
+7C0133  3C        0E00      
+7B  36  3F        0D        
+51  6E04DC0117180A0C0F      
+AA0071  16021C  0C0D0E      
+53016B  57  171C0E0E0D      
+52  65  A1  1C180F0F0C      
+51  68  F3  17  0D0E0B      
+A8006B  4F031C1C0C0D0A      
+50016E  B7  17180B0C09      
+    71  2C041C  0A  08      
+51  6E  AE  171C09  07      
+AA006B  41051C18    06      
+530168  E6  171C    00      
+52  65  9F061C              
+7A  39023C0001  0A  0F      
+BF003C  3F  02180C0D0B      
+7C0136  3C  01  0E0E05      
+7B  30  3F  021C0F0F03      
+7A  33  3C      0D0E00      
+BD0036  3F      0C0D        
+790139  3C      0B0C        
+    3C  3F      0A          
+7A  39  3C      09          
+BF0036  3F                  
+7C0133  3C                  
+7B  30  3F                  
+7A  F3034F031E18    0E      
+BD00F6  B7    38  0D0D      
+7801F0  2C041D18  0E0C      
+77  EA  AE    38  0F0B      
+76  ED  4105      0E0A      
+BB00F0  E6        0D09      
+7801F3  9F06      0C08      
+79  F6  6E07        07      
+7A  F3  5808        06      
+BF00F0  5C09                
+7C01ED  820A                
+7B  EA  CC0B                
+A9  FB013C00011C0A  0F      
+D600FE  3F  02180C0D0B      
+AB01F8  3C  01  0E0E05      
+AA  F2  3F  021C0F0F03      
+A9  F5  3C      0D0E00      
+D400F8  3F      0C0D        
+A801FB  3C      0B0C        
+    FE  3F      0A          
+A9  FB  3C      09          
+D600F8  3F                  
+AB01F5  3C                  
+AA  F2  3F                  
+A9  F303DC011718    0F      
+D400F6  16021C    0D0E      
+A701F0  57  171C  0E0D      
+A6  EA  A1  1C18  0F0C      
+A5  ED  F3  17    0E0B      
+D200F0  4F031C1C  0D0A      
+A701F3  B7  1718  0C09      
+A8  F6  2C041C      08      
+A9  F3  AE  171C    07      
+D600F0  41051C18    06      
+AB01ED  E6  171C    00      
+AA  EA  9F061C              
+A9  FB013C0001      0F      
+D400FE  3F  0218  0D0B      
+A701F8  3C  01    0E05      
+A6  F2  3F  021C  0F03      
+A5  F5  3C        0E00      
+D200F8  3F        0D        
+A701FB  3C        0C        
+A8  FE  3F                  
+A9  FB  3C                  
+D600F8  3F                  
+AB01F5  3C                  
+AA  F2  3F                  
+A9  F3034F031E18    0E      
+D400F6  B7    38  0D0D      
+A701F0  2C041D18  0E0C      
+A6  EA  AE    38  0F0B      
+A5  ED  4105      0E0A      
+D200F0  E6        0D09      
+A701FB013C00011C  0C0F      
+A8  FE  3F  0218  0D0B      
+A9  F8  3C  01    0E05      
+D600F2  3F  021C  0F03      
+AB01F5  3C        0E00      
+AA  F8  3F        0D        
+A9  F3033C  01  0A0C0F      
+D600F6  3F  02180C0D0B      
+AB01F0  3C  01  0E0E05      
+AA  EA  3F  021C0F0F03      
+A9  ED  3C      0D0E00      
+D400F0  3F      0C0D        
+A801FB013C  01  0B0C0F      
+    FE  3F  02180A0D0B      
+A9  F8  3C  01  090E05      
+D600F2  3F  021C  0F03      
+AB01F5  3C        0E00      
+AA  F8  3F        0D        
+FD00F303DC0117180A0C0F      
+80  F6  16021C  0C0D0E      
+FF  F0  57  171C0E0E0D      
+FE  EA  A1  1C180F0F0C      
+FD  ED  F3  17  0D0E0B      
+7E  F0  4F031C1C0C0D0A      
+FC  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+FD  F3  AE  171C09  07      
+80  F0  41051C18    06      
+FF  ED  E6  171C    00      
+FE  EA  9F061C              
+1C01FB013C0001  0A  0F      
+8F00FE  3F  02180C0D0B      
+1E01F8  3C  01  0E0E05      
+1D  F2  3F  021C0F0F03      
+1C  F5  3C      0D0E00      
+8D00F8  3F      0C0D        
+1B01FB  3C      0B0C        
+    FE  3F      0A          
+1C  FB  3C      09          
+8F00F8  3F                  
+1E01F5  3C                  
+1D  F2  3F                  
+1C  44054F031E18    0E      
+8D0047  B7    38  0D0D      
+1A0141  2C041D18  0E0C      
+19  3B  AE    38  0F0B      
+18  3E  4105      0E0A      
+8B0041  E6        0D09      
+1A0144  9F06      0C08      
+1B  47  6E07        07      
+1C  44  5808        06      
+8F0041  5C09                
+1E013E  820A                
+1D  3B  CC0B                
+1C  A4023C00011C    0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+1C  4405DC011718    0F      
+8D0047  16021C    0D0E      
+1A0141  57  171C  0E0D      
+19  3B  A1  1C18  0F0C      
+18  3E  F3  17    0E0B      
+8B0041  4F031C1C  0D0A      
+1A0144  B7  1718  0C09      
+1B  47  2C041C      08      
+1C  44  AE  171C    07      
+8F0041  41051C18    06      
+1E013E  E6  171C    00      
+1D  3B  9F061C              
+1C  A4023C0001      0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+1C  44054F031E180A  0E      
+8F0047  B7    380C0D0D      
+1E0141  2C041D180E0E0C      
+1D  3B  AE    380F0F0B      
+1C  3E  4105    0D0E0A      
+8D0041  E6      0C0D09      
+1B01A4023C00011C0B0C0F      
+    A7  3F  02180A0D0B      
+1C  A1  3C  01  090E05      
+8F009B  3F  021C  0F03      
+1E019E  3C        0E00      
+1D  A1  3F        0D        
+FD0044053C  01  0A0C0F      
+80  47  3F  02180C0D0B      
+FF  41  3C  01  0E0E05      
+FE  3B  3F  021C0F0F03      
+FD  3E  3C      0D0E00      
+7E  41  3F      0C0D        
+FC  A4023C  01  0B0C0F      
+    A7  3F  02180A0D0B      
+FD  A1  3C  01  090E05      
+80  9B  3F  021C  0F03      
+FF  9E  3C        0E00      
+FE  A1  3F        0D        
+E1  4405DC0117180A0C0F      
+72  47  16021C  0C0D0E      
+E3  41  57  171C0E0E0D      
+E2  3B  A1  1C180F0F0C      
+E1  3E  F3  17  0D0E0B      
+70  41  4F031C1C0C0D0A      
+E0  44  B7  17180B0C09      
+    47  2C041C  0A  08      
+E1  44  AE  171C09  07      
+72  41  41051C18    06      
+E3  3E  E6  171C    00      
+E2  3B  9F061C              
+D5  A4023C0001  0A  0F      
+6C  A7  3F  02180C0D0B      
+D7  A1  3C  01  0E0E05      
+D6  9B  3F  021C0F0F03      
+D5  9E  3C      0D0E00      
+6A  A1  3F      0C0D        
+D4  A4  3C      0B0C        
+    A7  3F      0A          
+D5  A4  3C      09          
+6C  A1  3F                  
+D7  9E  3C                  
+D6  9B  3F                  
+D7  F3034F031E180B  0E      
+DA  F6  B7    38  0D0D      
+D7  F0  2C041D180C0E0C      
+D4  EA  AE    38  0F0B      
+D1  ED  4105    0D0E0A      
+CE  F0  E6        0D09      
+D1  F3  9F06    0E0C08      
+D4  F6  6E07        07      
+D7  F3  5808    0F  06      
+DA  F0  5C09                
+D7  ED  820A                
+D4  EA  CC0B                
+D1  FB013C00011C0E  0F      
+CE  FE  3F  0218  0D0B      
+D1  F8  3C  01  0D0E05      
+D4  F2  3F  021C  0F03      
+D7  F5  3C      0C0E00      
+DA  F8  3F        0D        
+D7  FB  3C      0B0C        
+D4  FE  3F                  
+D1  FB  3C      0A          
+CE  F8  3F                  
+D1  F5  3C      09          
+D4  F2  3F                  
+D7  F303DC01171808  0F      
+DA  F6  16021C    0D0E      
+D7  F0  57  171C  0E0D      
+D4  EA  A1  1C18  0F0C      
+D1  ED  F3  17    0E0B      
+CE  F0  4F031C1C  0D0A      
+D1  F3  B7  1718  0C09      
+D4  F6  2C041C      08      
+D7  F3  AE  171C    07      
+DA  F0  41051C18    06      
+D7  ED  E6  171C    00      
+D4  EA  9F061C              
+E1  FB013C0001  0A  0F      
+72  FE  3F  02180C0D0B      
+E3  F8  3C  01  0E0E05      
+E2  F2  3F  021C0F0F03      
+E1  F5  3C      0D0E00      
+70  F8  3F      0C0D        
+E0  FB  3C      0B0C        
+    FE  3F      0A          
+E1  FB  3C      09          
+72  F8  3F                  
+E3  F5  3C                  
+E2  F2  3F                  
+FD  F3034F031E180A  0E      
+80  F6  B7    380C0D0D      
+FF  F0  2C041D180E0E0C      
+FE  EA  AE    380F0F0B      
+FD  ED  4105    0D0E0A      
+7E  F0  E6      0C0D09      
+FC  FB013C00011C0B0C0F      
+    FE  3F  02180A0D0B      
+FD  F8  3C  01  090E05      
+80  F2  3F  021C  0F03      
+FF  F5  3C        0E00      
+FE  F8  3F        0D        
+FD  F3033C  01    0C0F      
+7E  F6  3F  0218  0D0B      
+FB  F0  3C  01    0E05      
+FA  EA  3F  021C  0F03      
+F9  ED  3C        0E00      
+7C  F0  3F        0D        
+FB  FB013C  01    0C0F      
+FC  FE  3F  0218  0D0B      
+FD  F8  3C  01    0E05      
+80  F2  3F  021C  0F03      
+FF  F5  3C        0E00      
+FE  F8  3F        0D        
+5101F303DC0117180A0C0F      
+AA00F6  16021C  0C0D0E      
+5301F0  57  171C0E0E0D      
+52  EA  A1  1C180F0F0C      
+51  ED  F3  17  0D0E0B      
+A800F0  4F031C1C0C0D0A      
+5001F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+51  F3  AE  171C09  07      
+AA00F0  41051C18    06      
+5301ED  E6  171C    00      
+52  EA  9F061C              
+1C  FB013C0001  0A  0F      
+8F00FE  3F  02180C0D0B      
+1E01F8  3C  01  0E0E05      
+1D  F2  3F  021C0F0F03      
+1C  F5  3C      0D0E00      
+8D00F8  3F      0C0D        
+1B01FB  3C      0B0C        
+    FE  3F      0A          
+1C  FB  3C      09          
+8F00F8  3F                  
+1E01F5  3C                  
+1D  F2  3F                  
+1C  44054F031E18    0E      
+8D0047  B7    38  0D0D      
+1A0141  2C041D18  0E0C      
+19  3B  AE    38  0F0B      
+18  3E  4105      0E0A      
+8B0041  E6        0D09      
+1A0144  9F06      0C08      
+1B  47  6E07        07      
+1C  44  5808        06      
+8F0041  5C09                
+1E013E  820A                
+1D  3B  CC0B                
+1C  A4023C00011C    0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+1C  4405DC011718    0F      
+8D0047  16021C    0D0E      
+1A0141  57  171C  0E0D      
+19  3B  A1  1C18  0F0C      
+18  3E  F3  17    0E0B      
+8B0041  4F031C1C  0D0A      
+1A0144  B7  1718  0C09      
+1B  47  2C041C      08      
+1C  44  AE  171C    07      
+8F0041  41051C18    06      
+1E013E  E6  171C    00      
+1D  3B  9F061C              
+1C  A4023C0001      0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+1C  44054F031E180A  0E      
+8F0047  B7    380C0D0D      
+1E0141  2C041D180E0E0C      
+1D  3B  AE    380F0F0B      
+1C  3E  4105    0D0E0A      
+8D0041  E6      0C0D09      
+1B01A4023C00011C0B0C0F      
+    A7  3F  02180A0D0B      
+1C  A1  3C  01  090E05      
+8F009B  3F  021C  0F03      
+1E019E  3C        0E00      
+1D  A1  3F        0D        
+1C  44053C  01  0A0C0F      
+8F0047  3F  02180C0D0B      
+1E0141  3C  01  0E0E05      
+1D  3B  3F  021C0F0F03      
+1C  3E  3C      0D0E00      
+8D0041  3F      0C0D        
+1B01A4023C  01  0B0C0F      
+    A7  3F  02180A0D0B      
+1C  A1  3C  01  090E05      
+8F009B  3F  021C  0F03      
+1E019E  3C        0E00      
+1D  A1  3F        0D        
+1C  4405DC0117180A0C0F      
+8F0047  16021C  0C0D0E      
+1E0141  57  171C0E0E0D      
+1D  3B  A1  1C180F0F0C      
+1C  3E  F3  17  0D0E0B      
+8D0041  4F031C1C0C0D0A      
+1B0144  B7  17180B0C09      
+    47  2C041C  0A  08      
+1C  44  AE  171C09  07      
+8F0041  41051C18    06      
+1E013E  E6  171C    00      
+1D  3B  9F061C              
+FD00A4023C0001  0A  0F      
+80  A7  3F  02180C0D0B      
+FF  A1  3C  01  0E0E05      
+FE  9B  3F  021C0F0F03      
+FD  9E  3C      0D0E00      
+7E  A1  3F      0C0D        
+FC  A4  3C      0B0C        
+    A7  3F      0A          
+FD  A4  3C      09          
+80  A1  3F                  
+FF  9E  3C                  
+FE  9B  3F                  
+FD  F9044F031E18    0E      
+7E  FC  B7    38  0D0D      
+FB  F6  2C041D18  0E0C      
+FA  F0  AE    38  0F0B      
+F9  F3  4105      0E0A      
+7C  F6  E6        0D09      
+FB  F9  9F06      0C08      
+FC  FC  6E07        07      
+FD  F9  5808        06      
+80  F6  5C09                
+FF  F3  820A                
+FE  F0  CC0B                
+1C017E023C00011C0A  0F      
+8F0081  3F  02180C0D0B      
+1E017B  3C  01  0E0E05      
+1D  75  3F  021C0F0F03      
+1C  78  3C      0D0E00      
+8D007B  3F      0C0D        
+1B017E  3C      0B0C        
+    81  3F      0A          
+1C  7E  3C      09          
+8F007B  3F                  
+1E0178  3C                  
+1D  75  3F                  
+1C  F904DC011718    0F      
+8D00FC  16021C    0D0E      
+1A01F6  57  171C  0E0D      
+19  F0  A1  1C18  0F0C      
+18  F3  F3  17    0E0B      
+8B00F6  4F031C1C  0D0A      
+1A01F9  B7  1718  0C09      
+1B  FC  2C041C      08      
+1C  F9  AE  171C    07      
+8F00F6  41051C18    06      
+1E01F3  E6  171C    00      
+1D  F0  9F061C              
+3E  7E023C0001  0A  0F      
+A10081  3F  02180C0D0B      
+40017B  3C  01  0E0E05      
+3F  75  3F  021C0F0F03      
+3E  78  3C      0D0E00      
+9F007B  3F      0C0D        
+3D017E  3C      0B0C        
+    81  3F      0A          
+3E  7E  3C      09          
+A1007B  3F                  
+400178  3C                  
+3F  75  3F                  
+3E  F9044F031E18    0E      
+9F00FC  B7    38  0D0D      
+3C01F6  2C041D18  0E0C      
+3B  F0  AE    38  0F0B      
+3A  F3  4105      0E0A      
+9D00F6  E6        0D09      
+3C017E023C00011C  0C0F      
+3D  81  3F  0218  0D0B      
+3E  7B  3C  01    0E05      
+A10075  3F  021C  0F03      
+400178  3C        0E00      
+3F  7B  3F        0D        
+3E  F9043C  01    0C0F      
+9F00FC  3F  0218  0D0B      
+3C01F6  3C  01    0E05      
+3B  F0  3F  021C  0F03      
+3A  F3  3C        0E00      
+9D00F6  3F        0D        
+3C017E023C  01    0C0F      
+3D  81  3F  0218  0D0B      
+3E  7B  3C  01    0E05      
+A10075  3F  021C  0F03      
+400178  3C        0E00      
+3F  7B  3F        0D        
+A9  F904DC0117180A0C0F      
+D600FC  16021C  0C0D0E      
+AB01F6  57  171C0E0E0D      
+AA  F0  A1  1C180F0F0C      
+A9  F3  F3  17  0D0E0B      
+D400F6  4F031C1C0C0D0A      
+A801F9  B7  17180B0C09      
+    FC  2C041C  0A  08      
+A9  F9  AE  171C09  07      
+D600F6  41051C18    06      
+AB01F3  E6  171C    00      
+AA  F0  9F061C              
+51  7E023C0001  0A  0F      
+AA0081  3F  02180C0D0B      
+53017B  3C  01  0E0E05      
+52  75  3F  021C0F0F03      
+51  78  3C      0D0E00      
+A8007B  3F      0C0D        
+50017E  3C      0B0C        
+    81  3F      0A          
+51  7E  3C      09          
+AA007B  3F                  
+530178  3C                  
+52  75  3F                  
+51  52034F031E18    0E      
+A80055  B7    38  0D0D      
+4F014F  2C041D18  0E0C      
+4E  49  AE    38  0F0B      
+4D  4C  4105      0E0A      
+A6004F  E6        0D09      
+4F0152  9F06      0C08      
+50  55  6E07        07      
+51  52  5808        06      
+AA004F  5C09                
+53014C  820A                
+52  49  CC0B                
+51  AB013C00011C    0F      
+A800AE  3F  0218  0D0B      
+4F01A8  3C  01    0E05      
+4E  A2  3F  021C  0F03      
+4D  A5  3C        0E00      
+A600A8  3F        0D        
+4F01AB  3C        0C        
+50  AE  3F                  
+51  AB  3C                  
+AA00A8  3F                  
+5301A5  3C                  
+52  A2  3F                  
+51  5203DC011718    0F      
+A80055  16021C    0D0E      
+4F014F  57  171C  0E0D      
+4E  49  A1  1C18  0F0C      
+4D  4C  F3  17    0E0B      
+A6004F  4F031C1C  0D0A      
+4F0152  B7  1718  0C09      
+50  55  2C041C      08      
+51  52  AE  171C    07      
+AA004F  41051C18    06      
+53014C  E6  171C    00      
+52  49  9F061C              
+51  AB013C0001      0F      
+A800AE  3F  0218  0D0B      
+4F01A8  3C  01    0E05      
+4E  A2  3F  021C  0F03      
+4D  A5  3C        0E00      
+A600A8  3F        0D        
+4F01AB  3C        0C        
+50  AE  3F                  
+51  AB  3C                  
+AA00A8  3F                  
+5301A5  3C                  
+52  A2  3F                  
+1C  52034F031E180A  0E      
+8F0055  B7    380C0D0D      
+1E014F  2C041D180E0E0C      
+1D  49  AE    380F0F0B      
+1C  4C  4105    0D0E0A      
+8D004F  E6      0C0D09      
+1B01AB013C00011C0B0C0F      
+    AE  3F  02180A0D0B      
+1C  A8  3C  01  090E05      
+8F00A2  3F  021C  0F03      
+1E01A5  3C        0E00      
+1D  A8  3F        0D        
+FD0052033C  01  0A0C0F      
+80  55  3F  02180C0D0B      
+FF  4F  3C  01  0E0E05      
+FE  49  3F  021C0F0F03      
+FD  4C  3C      0D0E00      
+7E  4F  3F      0C0D        
+FC  AB013C  01  0B0C0F      
+    AE  3F  02180A0D0B      
+FD  A8  3C  01  090E05      
+80  A2  3F  021C  0F03      
+FF  A5  3C        0E00      
+FE  A8  3F        0D        
+E1  5203DC0117180A0C0F      
+72  55  16021C  0C0D0E      
+E3  4F  57  171C0E0E0D      
+E2  49  A1  1C180F0F0C      
+E1  4C  F3  17  0D0E0B      
+70  4F  4F031C1C0C0D0A      
+E0  52  B7  17180B0C09      
+    55  2C041C  0A  08      
+E1  52  AE  171C09  07      
+72  4F  41051C18    06      
+E3  4C  E6  171C    00      
+E2  49  9F061C              
+D5  AB013C0001  0A  0F      
+6C  AE  3F  02180C0D0B      
+D7  A8  3C  01  0E0E05      
+D6  A2  3F  021C0F0F03      
+D5  A5  3C      0D0E00      
+6A  A8  3F      0C0D        
+D4  AB  3C      0B0C        
+    AE  3F      0A          
+D5  AB  3C      09          
+6C  A8  3F                  
+D7  A5  3C                  
+D6  A2  3F                  
+D5  F3034F031E18    0E      
+6A  F6  B7    38  0D0D      
+D3  F0  2C041D18  0E0C      
+D2  EA  AE    38  0F0B      
+D1  ED  4105      0E0A      
+68  F0  E6        0D09      
+D3  F3  9F06      0C08      
+D4  F6  6E07        07      
+D5  F3  5808        06      
+6C  F0  5C09                
+D7  ED  820A                
+D6  EA  CC0B                
+D5  FB013C00011C    0F      
+6A  FE  3F  0218  0D0B      
+D3  F8  3C  01    0E05      
+D2  F2  3F  021C  0F03      
+D1  F5  3C        0E00      
+68  F8  3F        0D        
+D3  FB  3C        0C        
+D4  FE  3F                  
+D5  FB  3C                  
+6C  F8  3F                  
+D7  F5  3C                  
+D6  F2  3F                  
+E1  F303DC0117180A  0F      
+72  F6  16021C  0C0D0E      
+E3  F0  57  171C0E0E0D      
+E2  EA  A1  1C180F0F0C      
+E1  ED  F3  17  0D0E0B      
+70  F0  4F031C1C0C0D0A      
+E0  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+E1  F3  AE  171C09  07      
+72  F0  41051C18    06      
+E3  ED  E6  171C    00      
+E2  EA  9F061C              
+FD  FB013C0001  0A  0F      
+80  FE  3F  02180C0D0B      
+FF  F8  3C  01  0E0E05      
+FE  F2  3F  021C0F0F03      
+FD  F5  3C      0D0E00      
+7E  F8  3F      0C0D        
+FC  FB  3C      0B0C        
+    FE  3F      0A          
+FD  FB  3C      09          
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+FD  F3034F031E18    0E      
+7E  F6  B7    38  0D0D      
+FB  F0  2C041D18  0E0C      
+FA  EA  AE    38  0F0B      
+F9  ED  4105      0E0A      
+7C  F0  E6        0D09      
+FB  FB013C00011C  0C0F      
+FC  FE  3F  0218  0D0B      
+FD  F8  3C  01    0E05      
+80  F2  3F  021C  0F03      
+FF  F5  3C        0E00      
+FE  F8  3F        0D        
+FD  F3033C  01    0C0F      
+7E  F6  3F  0218  0D0B      
+FB  F0  3C  01    0E05      
+FA  EA  3F  021C  0F03      
+F9  ED  3C        0E00      
+7C  F0  3F        0D        
+FB  FB013C  01    0C0F      
+FC  FE  3F  0218  0D0B      
+FD  F8  3C  01    0E05      
+80  F2  3F  021C  0F03      
+FF  F5  3C        0E00      
+FE  F8  3F        0D        
+FD  F303DC011718  0C0F      
+7E  F6  16021C    0D0E      
+FB  F0  57  171C  0E0D      
+FA  EA  A1  1C18  0F0C      
+F9  ED  F3  17    0E0B      
+7C  F0  4F031C1C  0D0A      
+FB  F3  B7  1718  0C09      
+FC  F6  2C041C      08      
+FD  F3  AE  171C    07      
+80  F0  41051C18    06      
+FF  ED  E6  171C    00      
+FE  EA  9F061C              
+E1  FB013C0001  0A  0F      
+72  FE  3F  02180C0D0B      
+E3  F8  3C  01  0E0E05      
+E2  F2  3F  021C0F0F03      
+E1  F5  3C      0D0E00      
+70  F8  3F      0C0D        
+E0  FB  3C      0B0C        
+    FE  3F      0A          
+E1  FB  3C      09          
+72  F8  3F                  
+E3  F5  3C                  
+E2  F2  3F                  
+D5  F9044F031E180A  0E      
+6C  FC  B7    380C0D0D      
+D7  F6  2C041D180E0E0C      
+D6  F0  AE    380F0F0B      
+D5  F3  4105    0D0E0A      
+6A  F6  E6      0C0D09      
+D4  F9  9F06    0B0C08      
+    FC  6E07    0A  07      
+D5  F9  5808    09  06      
+6C  F6  5C09                
+D7  F3  820A                
+D6  F0  CC0B                
+E1  7E023C00011C0A  0F      
+72  81  3F  02180C0D0B      
+E3  7B  3C  01  0E0E05      
+E2  75  3F  021C0F0F03      
+E1  78  3C      0D0E00      
+70  7B  3F      0C0D        
+E0  7E  3C      0B0C        
+    81  3F      0A          
+E1  7E  3C      09          
+72  7B  3F                  
+E3  78  3C                  
+E2  75  3F                  
+E1  F904DC011718    0F      
+70  FC  16021C    0D0E      
+DF  F6  57  171C  0E0D      
+DE  F0  A1  1C18  0F0C      
+DD  F3  F3  17    0E0B      
+6E  F6  4F031C1C  0D0A      
+DF  F9  B7  1718  0C09      
+E0  FC  2C041C      08      
+E1  F9  AE  171C    07      
+72  F6  41051C18    06      
+E3  F3  E6  171C    00      
+E2  F0  9F061C              
+FD  7E023C0001  0A  0F      
+80  81  3F  02180C0D0B      
+FF  7B  3C  01  0E0E05      
+FE  75  3F  021C0F0F03      
+FD  78  3C      0D0E00      
+7E  7B  3F      0C0D        
+FC  7E  3C      0B0C        
+    81  3F      0A          
+FD  7E  3C      09          
+80  7B  3F                  
+FF  78  3C                  
+FE  75  3F                  
+FD  F9044F031E18    0E      
+7E  FC  B7    38  0D0D      
+FB  F6  2C041D18  0E0C      
+FA  F0  AE    38  0F0B      
+F9  F3  4105      0E0A      
+7C  F6  E6        0D09      
+FB  7E023C00011C  0C0F      
+FC  81  3F  0218  0D0B      
+FD  7B  3C  01    0E05      
+80  75  3F  021C  0F03      
+FF  78  3C        0E00      
+FE  7B  3F        0D        
+FD  F9043C  01    0C0F      
+7E  FC  3F  0218  0D0B      
+FB  F6  3C  01    0E05      
+FA  F0  3F  021C  0F03      
+F9  F3  3C        0E00      
+7C  F6  3F        0D        
+FB  7E023C  01    0C0F      
+FC  81  3F  0218  0D0B      
+FD  7B  3C  01    0E05      
+80  75  3F  021C  0F03      
+FF  78  3C        0E00      
+FE  7B  3F        0D        
+5101F904DC0117180A0C0F      
+AA00FC  16021C  0C0D0E      
+5301F6  57  171C0E0E0D      
+52  F0  A1  1C180F0F0C      
+51  F3  F3  17  0D0E0B      
+A800F6  4F031C1C0C0D0A      
+5001F9  B7  17180B0C09      
+    FC  2C041C  0A  08      
+51  F9  AE  171C09  07      
+AA00F6  41051C18    06      
+5301F3  E6  171C    00      
+52  F0  9F061C              
+51  7E023C0001      0F      
+A80081  3F  0218  0D0B      
+4F017B  3C  01    0E05      
+4E  75  3F  021C  0F03      
+4D  78  3C        0E00      
+A6007B  3F        0D        
+4F017E  3C        0C        
+50  81  3F                  
+51  7E  3C                  
+AA007B  3F                  
+530178  3C                  
+52  75  3F                  
+1C  6E044F031E180A  0E      
+8F0071  B7    380C0D0D      
+1E016B  2C041D180E0E0C      
+1D  65  AE    380F0F0B      
+1C  68  4105    0D0E0A      
+8D006B  E6      0C0D09      
+1B016E  9F06    0B0C08      
+    71  6E07    0A  07      
+1C  6E  5808    09  06      
+8F006B  5C09                
+1E0168  820A                
+1D  65  CC0B                
+FD0039023C00011C0A  0F      
+80  3C  3F  02180C0D0B      
+FF  36  3C  01  0E0E05      
+FE  30  3F  021C0F0F03      
+FD  33  3C      0D0E00      
+7E  36  3F      0C0D        
+FC  39  3C      0B0C        
+    3C  3F      0A          
+FD  39  3C      09          
+80  36  3F                  
+FF  33  3C                  
+FE  30  3F                  
+1C016E04DC0117180A  0F      
+8F0071  16021C  0C0D0E      
+1E016B  57  171C0E0E0D      
+1D  65  A1  1C180F0F0C      
+1C  68  F3  17  0D0E0B      
+8D006B  4F031C1C0C0D0A      
+1B016E  B7  17180B0C09      
+    71  2C041C  0A  08      
+1C  6E  AE  171C09  07      
+8F006B  41051C18    06      
+1E0168  E6  171C    00      
+1D  65  9F061C              
+FD0039023C0001  0A  0F      
+80  3C  3F  02180C0D0B      
+FF  36  3C  01  0E0E05      
+FE  30  3F  021C0F0F03      
+FD  33  3C      0D0E00      
+7E  36  3F      0C0D        
+FC  39  3C      0B0C        
+    3C  3F      0A          
+FD  39  3C      09          
+80  36  3F                  
+FF  33  3C                  
+FE  30  3F                  
+1C016E044F031E180A  0E      
+8F0071  B7    380C0D0D      
+1E016B  2C041D180E0E0C      
+1D  65  AE    380F0F0B      
+1C  68  4105    0D0E0A      
+8D006B  E6      0C0D09      
+1B0139023C00011C0B0C0F      
+    3C  3F  02180A0D0B      
+1C  36  3C  01  090E05      
+8F0030  3F  021C  0F03      
+1E0133  3C        0E00      
+1D  36  3F        0D        
+FD006E043C  01  0A0C0F      
+80  71  3F  02180C0D0B      
+FF  6B  3C  01  0E0E05      
+FE  65  3F  021C0F0F03      
+FD  68  3C      0D0E00      
+7E  6B  3F      0C0D        
+FC  39023C  01  0B0C0F      
+    3C  3F  02180A0D0B      
+FD  36  3C  01  090E05      
+80  30  3F  021C  0F03      
+FF  33  3C        0E00      
+FE  36  3F        0D        
+1C016E04DC0117180A0C0F      
+8F0071  16021C  0C0D0E      
+1E016B  57  171C0E0E0D      
+1D  65  A1  1C180F0F0C      
+1C  68  F3  17  0D0E0B      
+8D006B  4F031C1C0C0D0A      
+1B016E  B7  17180B0C09      
+    71  2C041C  0A  08      
+1C  6E  AE  171C09  07      
+8F006B  41051C18    06      
+1E0168  E6  171C    00      
+1D  65  9F061C              
+FD0039023C0001  0A  0F      
+80  3C  3F  02180C0D0B      
+FF  36  3C  01  0E0E05      
+FE  30  3F  021C0F0F03      
+FD  33  3C      0D0E00      
+7E  36  3F      0C0D        
+FC  39  3C      0B0C        
+    3C  3F      0A          
+FD  39  3C      09          
+80  36  3F                  
+FF  33  3C                  
+FE  30  3F                  
+1C016E044F031E180A  0E      
+8F0071  B7    380C0D0D      
+1E016B  2C041D180E0E0C      
+1D  65  AE    380F0F0B      
+1C  68  4105    0D0E0A      
+8D006B  E6      0C0D09      
+1B016E  9F06    0B0C08      
+    71  6E07    0A  07      
+1C  6E  5808    09  06      
+8F006B  5C09                
+1E0168  820A                
+1D  65  CC0B                
+1C  39023C00011C    0F      
+8D003C  3F  0218  0D0B      
+1A0136  3C  01    0E05      
+19  30  3F  021C  0F03      
+18  33  3C        0E00      
+8B0036  3F        0D        
+1A0139  3C        0C        
+1B  3C  3F                  
+1C  39  3C                  
+8F0036  3F                  
+1E0133  3C                  
+1D  30  3F                  
+1C  6E04DC011718    0F      
+8D0071  16021C    0D0E      
+1A016B  57  171C  0E0D      
+19  65  A1  1C18  0F0C      
+18  68  F3  17    0E0B      
+8B006B  4F031C1C  0D0A      
+1A016E  B7  1718  0C09      
+1B  71  2C041C      08      
+1C  6E  AE  171C    07      
+8F006B  41051C18    06      
+1E0168  E6  171C    00      
+1D  65  9F061C              
+1C  39023C0001  0A  0F      
+8F003C  3F  02180C0D0B      
+1E0136  3C  01  0E0E05      
+1D  30  3F  021C0F0F03      
+1C  33  3C      0D0E00      
+8D0036  3F      0C0D        
+1B0139  3C      0B0C        
+    3C  3F      0A          
+1C  39  3C      09          
+8F0036  3F                  
+1E0133  3C                  
+1D  30  3F                  
+D5006E044F031E180A  0E      
+6C  71  B7    380C0D0D      
+D7  6B  2C041D180E0E0C      
+D6  65  AE    380F0F0B      
+D5  68  4105    0D0E0A      
+6A  6B  E6      0C0D09      
+D4  39023C00011C0B0C0F      
+    3C  3F  02180A0D0B      
+D5  36  3C  01  090E05      
+6C  30  3F  021C  0F03      
+D7  33  3C        0E00      
+D6  36  3F        0D        
+D5  6E043C  01  0A0C0F      
+6C  71  3F  02180C0D0B      
+D7  6B  3C  01  0E0E05      
+D6  65  3F  021C0F0F03      
+D5  68  3C      0D0E00      
+6A  6B  3F      0C0D        
+D4  39023C  01  0B0C0F      
+    3C  3F  02180A0D0B      
+D5  36  3C  01  090E05      
+6C  30  3F  021C  0F03      
+D7  33  3C        0E00      
+D6  36  3F        0D        
+E1  6E04DC0117180A0C0F      
+72  71  16021C  0C0D0E      
+E3  6B  57  171C0E0E0D      
+E2  65  A1  1C180F0F0C      
+E1  68  F3  17  0D0E0B      
+70  6B  4F031C1C0C0D0A      
+E0  6E  B7  17180B0C09      
+    71  2C041C  0A  08      
+E1  6E  AE  171C09  07      
+72  6B  41051C18    06      
+E3  68  E6  171C    00      
+E2  65  9F061C              
+1C0139023C0001  0A  0F      
+8F003C  3F  02180C0D0B      
+1E0136  3C  01  0E0E05      
+1D  30  3F  021C0F0F03      
+1C  33  3C      0D0E00      
+8D0036  3F      0C0D        
+1B0139  3C      0B0C        
+    3C  3F      0A          
+1C  39  3C      09          
+8F0036  3F                  
+1E0133  3C                  
+1D  30  3F                  
+FD00F3034F031E180A  0E      
+80  F6  B7    380C0D0D      
+FF  F0  2C041D180E0E0C      
+FE  EA  AE    380F0F0B      
+FD  ED  4105    0D0E0A      
+7E  F0  E6      0C0D09      
+FC  F3  9F06    0B0C08      
+    F6  6E07    0A  07      
+FD  F3  5808    09  06      
+80  F0  5C09                
+FF  ED  820A                
+FE  EA  CC0B                
+FD  FB013C00011C    0F      
+7E  FE  3F  0218  0D0B      
+FB  F8  3C  01    0E05      
+FA  F2  3F  021C  0F03      
+F9  F5  3C        0E00      
+7C  F8  3F        0D        
+FB  FB  3C        0C        
+FC  FE  3F                  
+FD  FB  3C                  
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+FD  F303DC0117180A  0F      
+80  F6  16021C  0C0D0E      
+FF  F0  57  171C0E0E0D      
+FE  EA  A1  1C180F0F0C      
+FD  ED  F3  17  0D0E0B      
+7E  F0  4F031C1C0C0D0A      
+FC  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+FD  F3  AE  171C09  07      
+80  F0  41051C18    06      
+FF  ED  E6  171C    00      
+FE  EA  9F061C              
+FD  FB013C0001      0F      
+7E  FE  3F  0218  0D0B      
+FB  F8  3C  01    0E05      
+FA  F2  3F  021C  0F03      
+F9  F5  3C        0E00      
+7C  F8  3F        0D        
+FB  FB  3C        0C        
+FC  FE  3F                  
+FD  FB  3C                  
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+D5  F3034F031E180A  0E      
+6C  F6  B7    380C0D0D      
+D7  F0  2C041D180E0E0C      
+D6  EA  AE    380F0F0B      
+D5  ED  4105    0D0E0A      
+6A  F0  E6      0C0D09      
+D4  FB013C00011C0B0C0F      
+    FE  3F  02180A0D0B      
+D5  F8  3C  01  090E05      
+6C  F2  3F  021C  0F03      
+D7  F5  3C        0E00      
+D6  F8  3F        0D        
+D5  F3033C  01  0A0C0F      
+6C  F6  3F  02180C0D0B      
+D7  F0  3C  01  0E0E05      
+D6  EA  3F  021C0F0F03      
+D5  ED  3C      0D0E00      
+6A  F0  3F      0C0D        
+D4  FB013C  01  0B0C0F      
+    FE  3F  02180A0D0B      
+D5  F8  3C  01  090E05      
+6C  F2  3F  021C  0F03      
+D7  F5  3C        0E00      
+D6  F8  3F        0D        
+D5  F303DC0117180A0C0F      
+6C  F6  16021C  0C0D0E      
+D7  F0  57  171C0E0E0D      
+D6  EA  A1  1C180F0F0C      
+D5  ED  F3  17  0D0E0B      
+6A  F0  4F031C1C0C0D0A      
+D4  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+D5  F3  AE  171C09  07      
+6C  F0  41051C18    06      
+D7  ED  E6  171C    00      
+D6  EA  9F061C              
+BE  FB013C0001  0A  0F      
+60  FE  3F  02180C0D0B      
+C0  F8  3C  01  0E0E05      
+BF  F2  3F  021C0F0F03      
+BE  F5  3C      0D0E00      
+5E  F8  3F      0C0D        
+BD  FB  3C      0B0C        
+    FE  3F      0A          
+BE  FB  3C      09          
+60  F8  3F                  
+C0  F5  3C                  
+BF  F2  3F                  
+E1  44054F031E180A  0E      
+72  47  B7    380C0D0D      
+E3  41  2C041D180E0E0C      
+E2  3B  AE    380F0F0B      
+E1  3E  4105    0D0E0A      
+70  41  E6      0C0D09      
+E0  44  9F06    0B0C08      
+    47  6E07    0A  07      
+E1  44  5808    09  06      
+72  41  5C09                
+E3  3E  820A                
+E2  3B  CC0B                
+E1  A4023C00011C    0F      
+70  A7  3F  0218  0D0B      
+DF  A1  3C  01    0E05      
+DE  9B  3F  021C  0F03      
+DD  9E  3C        0E00      
+6E  A1  3F        0D        
+DF  A4  3C        0C        
+E0  A7  3F                  
+E1  A4  3C                  
+72  A1  3F                  
+E3  9E  3C                  
+E2  9B  3F                  
+E1  4405DC0117180A  0F      
+72  47  16021C  0C0D0E      
+E3  41  57  171C0E0E0D      
+E2  3B  A1  1C180F0F0C      
+E1  3E  F3  17  0D0E0B      
+70  41  4F031C1C0C0D0A      
+E0  44  B7  17180B0C09      
+    47  2C041C  0A  08      
+E1  44  AE  171C09  07      
+72  41  41051C18    06      
+E3  3E  E6  171C    00      
+E2  3B  9F061C              
+E1  A4023C0001      0F      
+70  A7  3F  0218  0D0B      
+DF  A1  3C  01    0E05      
+DE  9B  3F  021C  0F03      
+DD  9E  3C        0E00      
+6E  A1  3F        0D        
+DF  A4  3C        0C        
+E0  A7  3F                  
+E1  A4  3C                  
+72  A1  3F                  
+E3  9E  3C                  
+E2  9B  3F                  
+D5  44054F031E180A  0E      
+6C  47  B7    380C0D0D      
+D7  41  2C041D180E0E0C      
+D6  3B  AE    380F0F0B      
+D5  3E  4105    0D0E0A      
+6A  41  E6      0C0D09      
+D4  A4023C00011C0B0C0F      
+    A7  3F  02180A0D0B      
+D5  A1  3C  01  090E05      
+6C  9B  3F  021C  0F03      
+D7  9E  3C        0E00      
+D6  A1  3F        0D        
+E1  44053C  01  0A0C0F      
+72  47  3F  02180C0D0B      
+E3  41  3C  01  0E0E05      
+E2  3B  3F  021C0F0F03      
+E1  3E  3C      0D0E00      
+70  41  3F      0C0D        
+E0  A4023C  01  0B0C0F      
+    A7  3F  02180A0D0B      
+E1  A1  3C  01  090E05      
+72  9B  3F  021C  0F03      
+E3  9E  3C        0E00      
+E2  A1  3F        0D        
+FD  4405DC0117180A0C0F      
+80  47  16021C  0C0D0E      
+FF  41  57  171C0E0E0D      
+FE  3B  A1  1C180F0F0C      
+FD  3E  F3  17  0D0E0B      
+7E  41  4F031C1C0C0D0A      
+FC  44  B7  17180B0C09      
+    47  2C041C  0A  08      
+FD  44  AE  171C09  07      
+80  41  41051C18    06      
+FF  3E  E6  171C    00      
+FE  3B  9F061C              
+1C01A4023C0001  0A  0F      
+8F00A7  3F  02180C0D0B      
+1E01A1  3C  01  0E0E05      
+1D  9B  3F  021C0F0F03      
+1C  9E  3C      0D0E00      
+8D00A1  3F      0C0D        
+1B01A4  3C      0B0C        
+    A7  3F      0A          
+1C  A4  3C      09          
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+E1006E044F031E180A  0E      
+72  71  B7    380C0D0D      
+E3  6B  2C041D180E0E0C      
+E2  65  AE    380F0F0B      
+E1  68  4105    0D0E0A      
+70  6B  E6      0C0D09      
+E0  6E  9F06    0B0C08      
+    71  6E07    0A  07      
+E1  6E  5808    09  06      
+72  6B  5C09                
+E3  68  820A                
+E2  65  CC0B                
+E1  39023C00011C    0F      
+70  3C  3F  0218  0D0B      
+DF  36  3C  01    0E05      
+DE  30  3F  021C  0F03      
+DD  33  3C        0E00      
+6E  36  3F        0D        
+DF  39  3C        0C        
+E0  3C  3F                  
+E1  39  3C                  
+72  36  3F                  
+E3  33  3C                  
+E2  30  3F                  
+FD  6E04DC0117180A  0F      
+80  71  16021C  0C0D0E      
+FF  6B  57  171C0E0E0D      
+FE  65  A1  1C180F0F0C      
+FD  68  F3  17  0D0E0B      
+7E  6B  4F031C1C0C0D0A      
+FC  6E  B7  17180B0C09      
+    71  2C041C  0A  08      
+FD  6E  AE  171C09  07      
+80  6B  41051C18    06      
+FF  68  E6  171C    00      
+FE  65  9F061C              
+1C0139023C0001  0A  0F      
+8F003C  3F  02180C0D0B      
+1E0136  3C  01  0E0E05      
+1D  30  3F  021C0F0F03      
+1C  33  3C      0D0E00      
+8D0036  3F      0C0D        
+1B0139  3C      0B0C        
+    3C  3F      0A          
+1C  39  3C      09          
+8F0036  3F                  
+1E0133  3C                  
+1D  30  3F                  
+E1006E044F031E180A  0E      
+72  71  B7    380C0D0D      
+E3  6B  2C041D180E0E0C      
+E2  65  AE    380F0F0B      
+E1  68  4105    0D0E0A      
+70  6B  E6      0C0D09      
+E0  39023C00011C0B0C0F      
+    3C  3F  02180A0D0B      
+E1  36  3C  01  090E05      
+72  30  3F  021C  0F03      
+E3  33  3C        0E00      
+E2  36  3F        0D        
+E1  6E043C  01    0C0F      
+70  71  3F  0218  0D0B      
+DF  6B  3C  01    0E05      
+DE  65  3F  021C  0F03      
+DD  68  3C        0E00      
+6E  6B  3F        0D        
+DF  39023C  01    0C0F      
+E0  3C  3F  0218  0D0B      
+E1  36  3C  01    0E05      
+72  30  3F  021C  0F03      
+E3  33  3C        0E00      
+E2  36  3F        0D        
+FD  6E04DC0117180A0C0F      
+80  71  16021C  0C0D0E      
+FF  6B  57  171C0E0E0D      
+FE  65  A1  1C180F0F0C      
+FD  68  F3  17  0D0E0B      
+7E  6B  4F031C1C0C0D0A      
+FC  6E  B7  17180B0C09      
+    71  2C041C  0A  08      
+FD  6E  AE  171C09  07      
+80  6B  41051C18    06      
+FF  68  E6  171C    00      
+FE  65  9F061C              
+1C0139023C0001  0A  0F      
+8F003C  3F  02180C0D0B      
+1E0136  3C  01  0E0E05      
+1D  30  3F  021C0F0F03      
+1C  33  3C      0D0E00      
+8D0036  3F      0C0D        
+1B0139  3C      0B0C        
+    3C  3F      0A          
+1C  39  3C      09          
+8F0036  3F                  
+1E0133  3C                  
+1D  30  3F                  
+FD00F3034F031E180A  0E      
+80  F6  B7    380C0D0D      
+FF  F0  2C041D180E0E0C      
+FE  EA  AE    380F0F0B      
+FD  ED  4105    0D0E0A      
+7E  F0  E6      0C0D09      
+FC  F3  9F06    0B0C08      
+    F6  6E07    0A  07      
+FD  F3  5808    09  06      
+80  F0  5C09                
+FF  ED  820A                
+FE  EA  CC0B                
+FD  FB013C00011C    0F      
+7E  FE  3F  0218  0D0B      
+FB  F8  3C  01    0E05      
+FA  F2  3F  021C  0F03      
+F9  F5  3C        0E00      
+7C  F8  3F        0D        
+FB  FB  3C        0C        
+FC  FE  3F                  
+FD  FB  3C                  
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+FD  F303DC011718    0F      
+7E  F6  16021C    0D0E      
+FB  F0  57  171C  0E0D      
+FA  EA  A1  1C18  0F0C      
+F9  ED  F3  17    0E0B      
+7C  F0  4F031C1C  0D0A      
+FB  F3  B7  1718  0C09      
+FC  F6  2C041C      08      
+FD  F3  AE  171C    07      
+80  F0  41051C18    06      
+FF  ED  E6  171C    00      
+FE  EA  9F061C              
+5101FB013C0001  0A  0F      
+AA00FE  3F  02180C0D0B      
+5301F8  3C  01  0E0E05      
+52  F2  3F  021C0F0F03      
+51  F5  3C      0D0E00      
+A800F8  3F      0C0D        
+5001FB  3C      0B0C        
+    FE  3F      0A          
+51  FB  3C      09          
+AA00F8  3F                  
+5301F5  3C                  
+52  F2  3F                  
+D500F3034F031E180A  0E      
+6C  F6  B7    380C0D0D      
+D7  F0  2C041D180E0E0C      
+D6  EA  AE    380F0F0B      
+D5  ED  4105    0D0E0A      
+6A  F0  E6      0C0D09      
+D4  FB013C00011C0B0C0F      
+    FE  3F  02180A0D0B      
+D5  F8  3C  01  090E05      
+6C  F2  3F  021C  0F03      
+D7  F5  3C        0E00      
+D6  F8  3F        0D        
+D5  F3033C  01  0A0C0F      
+6C  F6  3F  02180C0D0B      
+D7  F0  3C  01  0E0E05      
+D6  EA  3F  021C0F0F03      
+D5  ED  3C      0D0E00      
+6A  F0  3F      0C0D        
+D4  FB013C  01  0B0C0F      
+    FE  3F  02180A0D0B      
+D5  F8  3C  01  090E05      
+6C  F2  3F  021C  0F03      
+D7  F5  3C        0E00      
+D6  F8  3F        0D        
+E1  F303DC0117180A0C0F      
+72  F6  16021C  0C0D0E      
+E3  F0  57  171C0E0E0D      
+E2  EA  A1  1C180F0F0C      
+E1  ED  F3  17  0D0E0B      
+70  F0  4F031C1C0C0D0A      
+E0  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+E1  F3  AE  171C09  07      
+72  F0  41051C18    06      
+E3  ED  E6  171C    00      
+E2  EA  9F061C              
+1C01FB013C0001  0A  0F      
+8F00FE  3F  02180C0D0B      
+1E01F8  3C  01  0E0E05      
+1D  F2  3F  021C0F0F03      
+1C  F5  3C      0D0E00      
+8D00F8  3F      0C0D        
+1B01FB  3C      0B0C        
+    FE  3F      0A          
+1C  FB  3C      09          
+8F00F8  3F                  
+1E01F5  3C                  
+1D  F2  3F                  
+FD00F3034F031E180A  0E      
+80  F6  B7    380C0D0D      
+FF  F0  2C041D180E0E0C      
+FE  EA  AE    380F0F0B      
+FD  ED  4105    0D0E0A      
+7E  F0  E6      0C0D09      
+FC  F3  9F06    0B0C08      
+    F6  6E07    0A  07      
+FD  F3  5808    09  06      
+80  F0  5C09                
+FF  ED  820A                
+FE  EA  CC0B                
+FD  FB013C00011C    0F      
+7E  FE  3F  0218  0D0B      
+FB  F8  3C  01    0E05      
+FA  F2  3F  021C  0F03      
+F9  F5  3C        0E00      
+7C  F8  3F        0D        
+FB  FB  3C        0C        
+FC  FE  3F                  
+FD  FB  3C                  
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+FD  F303DC0117180A  0F      
+80  F6  16021C  0C0D0E      
+FF  F0  57  171C0E0E0D      
+FE  EA  A1  1C180F0F0C      
+FD  ED  F3  17  0D0E0B      
+7E  F0  4F031C1C0C0D0A      
+FC  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+FD  F3  AE  171C09  07      
+80  F0  41051C18    06      
+FF  ED  E6  171C    00      
+FE  EA  9F061C              
+FD  FB013C0001      0F      
+7E  FE  3F  0218  0D0B      
+FB  F8  3C  01    0E05      
+FA  F2  3F  021C  0F03      
+F9  F5  3C        0E00      
+7C  F8  3F        0D        
+FB  FB  3C        0C        
+FC  FE  3F                  
+FD  FB  3C                  
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+D5  F3034F031E180A  0E      
+6C  F6  B7    380C0D0D      
+D7  F0  2C041D180E0E0C      
+D6  EA  AE    380F0F0B      
+D5  ED  4105    0D0E0A      
+6A  F0  E6      0C0D09      
+D4  FB013C00011C0B0C0F      
+    FE  3F  02180A0D0B      
+D5  F8  3C  01  090E05      
+6C  F2  3F  021C  0F03      
+D7  F5  3C        0E00      
+D6  F8  3F        0D        
+D5  F3033C  01  0A0C0F      
+6C  F6  3F  02180C0D0B      
+D7  F0  3C  01  0E0E05      
+D6  EA  3F  021C0F0F03      
+D5  ED  3C      0D0E00      
+6A  F0  3F      0C0D        
+D4  FB013C  01  0B0C0F      
+    FE  3F  02180A0D0B      
+D5  F8  3C  01  090E05      
+6C  F2  3F  021C  0F03      
+D7  F5  3C        0E00      
+D6  F8  3F        0D        
+D5  F303DC0117180A0C0F      
+6C  F6  16021C  0C0D0E      
+D7  F0  57  171C0E0E0D      
+D6  EA  A1  1C180F0F0C      
+D5  ED  F3  17  0D0E0B      
+6A  F0  4F031C1C0C0D0A      
+D4  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+D5  F3  AE  171C09  07      
+6C  F0  41051C18    06      
+D7  ED  E6  171C    00      
+D6  EA  9F061C              
+BE  FB013C0001  0A  0F      
+60  FE  3F  02180C0D0B      
+C0  F8  3C  01  0E0E05      
+BF  F2  3F  021C0F0F03      
+BE  F5  3C      0D0E00      
+5E  F8  3F      0C0D        
+BD  FB  3C      0B0C        
+    FE  3F      0A          
+BE  FB  3C      09          
+60  F8  3F                  
+C0  F5  3C                  
+BF  F2  3F                  
+E1  44054F031E180A  0E      
+72  47  B7    380C0D0D      
+E3  41  2C041D180E0E0C      
+E2  3B  AE    380F0F0B      
+E1  3E  4105    0D0E0A      
+70  41  E6      0C0D09      
+E0  44  9F06    0B0C08      
+    47  6E07    0A  07      
+E1  44  5808    09  06      
+72  41  5C09                
+E3  3E  820A                
+E2  3B  CC0B                
+E1  A4023C00011C    0F      
+70  A7  3F  0218  0D0B      
+DF  A1  3C  01    0E05      
+DE  9B  3F  021C  0F03      
+DD  9E  3C        0E00      
+6E  A1  3F        0D        
+DF  A4  3C        0C        
+E0  A7  3F                  
+E1  A4  3C                  
+72  A1  3F                  
+E3  9E  3C                  
+E2  9B  3F                  
+E1  4405DC0117180A  0F      
+72  47  16021C  0C0D0E      
+E3  41  57  171C0E0E0D      
+E2  3B  A1  1C180F0F0C      
+E1  3E  F3  17  0D0E0B      
+70  41  4F031C1C0C0D0A      
+E0  44  B7  17180B0C09      
+    47  2C041C  0A  08      
+E1  44  AE  171C09  07      
+72  41  41051C18    06      
+E3  3E  E6  171C    00      
+E2  3B  9F061C              
+E1  A4023C0001      0F      
+70  A7  3F  0218  0D0B      
+DF  A1  3C  01    0E05      
+DE  9B  3F  021C  0F03      
+DD  9E  3C        0E00      
+6E  A1  3F        0D        
+DF  A4  3C        0C        
+E0  A7  3F                  
+E1  A4  3C                  
+72  A1  3F                  
+E3  9E  3C                  
+E2  9B  3F                  
+D5  44054F031E180A  0E      
+6C  47  B7    380C0D0D      
+D7  41  2C041D180E0E0C      
+D6  3B  AE    380F0F0B      
+D5  3E  4105    0D0E0A      
+6A  41  E6      0C0D09      
+D4  A4023C00011C0B0C0F      
+    A7  3F  02180A0D0B      
+D5  A1  3C  01  090E05      
+6C  9B  3F  021C  0F03      
+D7  9E  3C        0E00      
+D6  A1  3F        0D        
+E1  44053C  01  0A0C0F      
+72  47  3F  02180C0D0B      
+E3  41  3C  01  0E0E05      
+E2  3B  3F  021C0F0F03      
+E1  3E  3C      0D0E00      
+70  41  3F      0C0D        
+E0  A4023C  01  0B0C0F      
+    A7  3F  02180A0D0B      
+E1  A1  3C  01  090E05      
+72  9B  3F  021C  0F03      
+E3  9E  3C        0E00      
+E2  A1  3F        0D        
+FD  4405DC0117180A0C0F      
+80  47  16021C  0C0D0E      
+FF  41  57  171C0E0E0D      
+FE  3B  A1  1C180F0F0C      
+FD  3E  F3  17  0D0E0B      
+7E  41  4F031C1C0C0D0A      
+FC  44  B7  17180B0C09      
+    47  2C041C  0A  08      
+FD  44  AE  171C09  07      
+80  41  41051C18    06      
+FF  3E  E6  171C    00      
+FE  3B  9F061C              
+1C01A4023C0001  0A  0F      
+8F00A7  3F  02180C0D0B      
+1E01A1  3C  01  0E0E05      
+1D  9B  3F  021C0F0F03      
+1C  9E  3C      0D0E00      
+8D00A1  3F      0C0D        
+1B01A4  3C      0B0C        
+    A7  3F      0A          
+1C  A4  3C      09          
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+E1006E044F031E180A  0E      
+72  71  B7    380C0D0D      
+E3  6B  2C041D180E0E0C      
+E2  65  AE    380F0F0B      
+E1  68  4105    0D0E0A      
+70  6B  E6      0C0D09      
+E0  6E  9F06    0B0C08      
+    71  6E07    0A  07      
+E1  6E  5808    09  06      
+72  6B  5C09                
+E3  68  820A                
+E2  65  CC0B                
+E1  39023C00011C    0F      
+70  3C  3F  0218  0D0B      
+DF  36  3C  01    0E05      
+DE  30  3F  021C  0F03      
+DD  33  3C        0E00      
+6E  36  3F        0D        
+DF  39  3C        0C        
+E0  3C  3F                  
+E1  39  3C                  
+72  36  3F                  
+E3  33  3C                  
+E2  30  3F                  
+FD  6E04DC0117180A  0F      
+80  71  16021C  0C0D0E      
+FF  6B  57  171C0E0E0D      
+FE  65  A1  1C180F0F0C      
+FD  68  F3  17  0D0E0B      
+7E  6B  4F031C1C0C0D0A      
+FC  6E  B7  17180B0C09      
+    71  2C041C  0A  08      
+FD  6E  AE  171C09  07      
+80  6B  41051C18    06      
+FF  68  E6  171C    00      
+FE  65  9F061C              
+1C0139023C0001  0A  0F      
+8F003C  3F  02180C0D0B      
+1E0136  3C  01  0E0E05      
+1D  30  3F  021C0F0F03      
+1C  33  3C      0D0E00      
+8D0036  3F      0C0D        
+1B0139  3C      0B0C        
+    3C  3F      0A          
+1C  39  3C      09          
+8F0036  3F                  
+1E0133  3C                  
+1D  30  3F                  
+E1006E044F031E180A  0E      
+72  71  B7    380C0D0D      
+E3  6B  2C041D180E0E0C      
+E2  65  AE    380F0F0B      
+E1  68  4105    0D0E0A      
+70  6B  E6      0C0D09      
+E0  39023C00011C0B0C0F      
+    3C  3F  02180A0D0B      
+E1  36  3C  01  090E05      
+72  30  3F  021C  0F03      
+E3  33  3C        0E00      
+E2  36  3F        0D        
+E1  6E043C  01    0C0F      
+70  71  3F  0218  0D0B      
+DF  6B  3C  01    0E05      
+DE  65  3F  021C  0F03      
+DD  68  3C        0E00      
+6E  6B  3F        0D        
+DF  39023C  01    0C0F      
+E0  3C  3F  0218  0D0B      
+E1  36  3C  01    0E05      
+72  30  3F  021C  0F03      
+E3  33  3C        0E00      
+E2  36  3F        0D        
+FD  6E04DC0117180A0C0F      
+80  71  16021C  0C0D0E      
+FF  6B  57  171C0E0E0D      
+FE  65  A1  1C180F0F0C      
+FD  68  F3  17  0D0E0B      
+7E  6B  4F031C1C0C0D0A      
+FC  6E  B7  17180B0C09      
+    71  2C041C  0A  08      
+FD  6E  AE  171C09  07      
+80  6B  41051C18    06      
+FF  68  E6  171C    00      
+FE  65  9F061C              
+1C0139023C0001  0A  0F      
+8F003C  3F  02180C0D0B      
+1E0136  3C  01  0E0E05      
+1D  30  3F  021C0F0F03      
+1C  33  3C      0D0E00      
+8D0036  3F      0C0D        
+1B0139  3C      0B0C        
+    3C  3F      0A          
+1C  39  3C      09          
+8F0036  3F                  
+1E0133  3C                  
+1D  30  3F                  
+FD00F3034F031E180A  0E      
+80  F6  B7    380C0D0D      
+FF  F0  2C041D180E0E0C      
+FE  EA  AE    380F0F0B      
+FD  ED  4105    0D0E0A      
+7E  F0  E6      0C0D09      
+FC  F3  9F06    0B0C08      
+    F6  6E07    0A  07      
+FD  F3  5808    09  06      
+80  F0  5C09                
+FF  ED  820A                
+FE  EA  CC0B                
+FD  FB013C00011C    0F      
+7E  FE  3F  0218  0D0B      
+FB  F8  3C  01    0E05      
+FA  F2  3F  021C  0F03      
+F9  F5  3C        0E00      
+7C  F8  3F        0D        
+FB  FB  3C        0C        
+FC  FE  3F                  
+FD  FB  3C                  
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+FD  F303DC011718    0F      
+7E  F6  16021C    0D0E      
+FB  F0  57  171C  0E0D      
+FA  EA  A1  1C18  0F0C      
+F9  ED  F3  17    0E0B      
+7C  F0  4F031C1C  0D0A      
+FB  F3  B7  1718  0C09      
+FC  F6  2C041C      08      
+FD  F3  AE  171C    07      
+80  F0  41051C18    06      
+FF  ED  E6  171C    00      
+FE  EA  9F061C              
+FD  FB013C0001      0F      
+7E  FE  3F  0218  0D0B      
+FB  F8  3C  01    0E05      
+FA  F2  3F  021C  0F03      
+F9  F5  3C        0E00      
+7C  F8  3F        0D        
+FB  FB  3C        0C        
+FC  FE  3F                  
+FD  FB  3C                  
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+5201F3034F031E180B  0E      
+54  F6  B7    380C0D0D      
+50  F0  2C041D180D0E0C      
+4C  EA  AE    380E0F0B      
+4E  ED  4105    0D0E0A      
+50  F0  E6      0C0D09      
+52  FB013C00011C0B0C0F      
+54  FE  3F  0218  0D0B      
+52  F8  3C  01    0E05      
+50  F2  3F  021C  0F03      
+4E  F5  3C      0A0E00      
+4C  F8  3F        0D        
+52  F3033C  01  0B0C0F      
+54  F6  3F  02180C0D0B      
+50  F0  3C  01  0D0E05      
+4C  EA  3F  021C0E0F03      
+4E  ED  3C      0D0E00      
+50  F0  3F      0C0D        
+52  FB013C  01  0B0C0F      
+54  FE  3F  0218  0D0B      
+52  F8  3C  01    0E05      
+50  F2  3F  021C  0F03      
+4E  F5  3C      0A0E00      
+4C  F8  3F        0D        
+52  F303DC0117180B0C0F      
+54  F6  16021C  0C0D0E      
+50  F0  57  171C0D0E0D      
+4C  EA  A1  1C180E0F0C      
+4E  ED  F3  17  0D0E0B      
+50  F0  4F031C1C0C0D0A      
+52  F3  B7  17180B0C09      
+54  F6  2C041C      08      
+52  F3  AE  171C    07      
+50  F0  41051C18    06      
+4E  ED  E6  171C0A  00      
+4C  EA  9F061C              
+52  FB013C0001  0B  0F      
+54  FE  3F  02180C0D0B      
+50  F8  3C  01  0D0E05      
+4C  F2  3F  021C0E0F03      
+4E  F5  3C      0D0E00      
+50  F8  3F      0C0D        
+52  FB  3C      0B0C        
+54  FE  3F                  
+52  FB  3C                  
+50  F8  3F                  
+4E  F5  3C      0A          
+4C  F2  3F                  
+52  6E044F031E180B  0E      
+54  71  B7    380C0D0D      
+50  6B  2C041D180D0E0C      
+4C  65  AE    380E0F0B      
+4E  68  4105    0D0E0A      
+50  6B  E6      0C0D09      
+52  6E  9F06    0B0C08      
+54  71  6E07        07      
+52  6E  5808        06      
+50  6B  5C09                
+4E  68  820A    0A          
+4C  65  CC0B                
+4E  39023C00011C    0F      
+50  3C  3F  0218  0D0B      
+52  36  3C  01  090E05      
+54  30  3F  021C  0F03      
+52  33  3C        0E00      
+50  36  3F        0D        
+4E  39  3C      080C        
+4C  3C  3F                  
+4E  39  3C                  
+50  36  3F                  
+52  33  3C      07          
+54  30  3F                  
+7B  6E04DC0117180B  0F      
+7D  71  16021C  0C0D0E      
+79  6B  57  171C0D0E0D      
+75  65  A1  1C180E0F0C      
+77  68  F3  17  0D0E0B      
+79  6B  4F031C1C0C0D0A      
+7B  6E  B7  17180B0C09      
+7D  71  2C041C      08      
+7B  6E  AE  171C    07      
+79  6B  41051C18    06      
+77  68  E6  171C0A  00      
+75  65  9F061C              
+77  39023C0001      0F      
+79  3C  3F  0218  0D0B      
+7B  36  3C  01  090E05      
+7D  30  3F  021C  0F03      
+7B  33  3C        0E00      
+79  36  3F        0D        
+77  39  3C      080C        
+75  3C  3F                  
+77  39  3C                  
+79  36  3F                  
+7B  33  3C      07          
+7D  30  3F                  
+7B  6E044F031E180B  0E      
+7D  71  B7    380C0D0D      
+79  6B  2C041D180D0E0C      
+75  65  AE    380E0F0B      
+77  68  4105    0D0E0A      
+79  6B  E6      0C0D09      
+7B  39023C00011C0B0C0F      
+7D  3C  3F  0218  0D0B      
+7B  36  3C  01    0E05      
+79  30  3F  021C  0F03      
+77  33  3C      0A0E00      
+75  36  3F        0D        
+52  6E043C  01  0B0C0F      
+54  71  3F  02180C0D0B      
+50  6B  3C  01  0D0E05      
+4C  65  3F  021C0E0F03      
+4E  68  3C      0D0E00      
+50  6B  3F      0C0D        
+52  39023C  01  0B0C0F      
+54  3C  3F  0218  0D0B      
+52  36  3C  01    0E05      
+50  30  3F  021C  0F03      
+4E  33  3C      0A0E00      
+4C  36  3F        0D        
+3F  6E04DC0117180B0C0F      
+41  71  16021C  0C0D0E      
+3D  6B  57  171C0D0E0D      
+39  65  A1  1C180E0F0C      
+3B  68  F3  17  0D0E0B      
+3D  6B  4F031C1C0C0D0A      
+3F  6E  B7  17180B0C09      
+41  71  2C041C      08      
+3F  6E  AE  171C    07      
+3D  6B  41051C18    06      
+3B  68  E6  171C0A  00      
+39  65  9F061C              
+3F  39023C0001  0B  0F      
+41  3C  3F  02180C0D0B      
+3D  36  3C  01  0D0E05      
+39  30  3F  021C0E0F03      
+3B  33  3C      0D0E00      
+3D  36  3F      0C0D        
+3F  39  3C      0B0C        
+41  3C  3F                  
+3F  39  3C                  
+3D  36  3F                  
+3B  33  3C      0A          
+39  30  3F                  
+3B  52034F031E18    0E      
+3D  55  B7    38  0D0D      
+3F  4F  2C041D18090E0C      
+41  49  AE    38  0F0B      
+3F  4C  4105      0E0A      
+3D  4F  E6        0D09      
+3B  52  9F06    080C08      
+39  55  6E07        07      
+3B  52  5808        06      
+3D  4F  5C09                
+3F  4C  820A    07          
+41  49  CC0B                
+3F  AB013C00011C    0F      
+3D  AE  3F  0218  0D0B      
+3B  A8  3C  01    0E05      
+39  A2  3F  021C  0F03      
+3B  A5  3C        0E00      
+3D  A8  3F        0D        
+3F  AB  3C        0C        
+41  AE  3F                  
+3F  AB  3C                  
+3D  A8  3F                  
+3B  A5  3C                  
+39  A2  3F                  
+52  5203DC0117180B  0F      
+54  55  16021C  0C0D0E      
+50  4F  57  171C0D0E0D      
+4C  49  A1  1C180E0F0C      
+4E  4C  F3  17  0D0E0B      
+50  4F  4F031C1C0C0D0A      
+52  52  B7  17180B0C09      
+54  55  2C041C      08      
+52  52  AE  171C    07      
+50  4F  41051C18    06      
+4E  4C  E6  171C0A  00      
+4C  49  9F061C              
+4E  AB013C0001      0F      
+50  AE  3F  0218  0D0B      
+52  A8  3C  01  090E05      
+54  A2  3F  021C  0F03      
+52  A5  3C        0E00      
+50  A8  3F        0D        
+4E  AB  3C      080C        
+4C  AE  3F                  
+4E  AB  3C                  
+50  A8  3F                  
+52  A5  3C      07          
+54  A2  3F                  
+7B  52034F031E180B  0E      
+7D  55  B7    380C0D0D      
+79  4F  2C041D180D0E0C      
+75  49  AE    380E0F0B      
+77  4C  4105    0D0E0A      
+79  4F  E6      0C0D09      
+7B  AB013C00011C0B0C0F      
+7D  AE  3F  0218  0D0B      
+7B  A8  3C  01    0E05      
+79  A2  3F  021C  0F03      
+77  A5  3C      0A0E00      
+75  A8  3F        0D        
+AA  52033C  01  0B0C0F      
+AC  55  3F  02180C0D0B      
+A8  4F  3C  01  0D0E05      
+A4  49  3F  021C0E0F03      
+A6  4C  3C      0D0E00      
+A8  4F  3F      0C0D        
+AA  AB013C  01  0B0C0F      
+AC  AE  3F  0218  0D0B      
+AA  A8  3C  01    0E05      
+A8  A2  3F  021C  0F03      
+A6  A5  3C      0A0E00      
+A4  A8  3F        0D        
+A6  5203DC011718  0C0F      
+A8  55  16021C    0D0E      
+AA  4F  57  171C090E0D      
+AC  49  A1  1C18  0F0C      
+AA  4C  F3  17    0E0B      
+A8  4F  4F031C1C  0D0A      
+A6  52  B7  1718080C09      
+A4  55  2C041C      08      
+A6  52  AE  171C    07      
+A8  4F  41051C18    06      
+AA  4C  E6  171C07  00      
+AC  49  9F061C              
+AA  AB013C0001      0F      
+A8  AE  3F  0218  0D0B      
+A6  A8  3C  01    0E05      
+A4  A2  3F  021C  0F03      
+A6  A5  3C        0E00      
+A8  A8  3F        0D        
+AA  AB  3C        0C        
+AC  AE  3F                  
+AA  AB  3C                  
+A8  A8  3F                  
+A6  A5  3C                  
+A4  A2  3F                  
+52  6E044F031E180B  0E      
+54  71  B7    380C0D0D      
+50  6B  2C041D180D0E0C      
+4C  65  AE    380E0F0B      
+4E  68  4105    0D0E0A      
+50  6B  E6      0C0D09      
+52  6E  9F06    0B0C08      
+54  71  6E07        07      
+52  6E  5808        06      
+50  6B  5C09                
+4E  68  820A    0A          
+4C  65  CC0B                
+52  39023C00011C0B  0F      
+54  3C  3F  02180C0D0B      
+50  36  3C  01  0D0E05      
+4C  30  3F  021C0E0F03      
+4E  33  3C      0D0E00      
+50  36  3F      0C0D        
+52  39  3C      0B0C        
+54  3C  3F                  
+52  39  3C                  
+50  36  3F                  
+4E  33  3C      0A          
+4C  30  3F                  
+7B  6E04DC0117180B  0F      
+7D  71  16021C  0C0D0E      
+79  6B  57  171C0D0E0D      
+75  65  A1  1C180E0F0C      
+77  68  F3  17  0D0E0B      
+79  6B  4F031C1C0C0D0A      
+7B  6E  B7  17180B0C09      
+7D  71  2C041C      08      
+7B  6E  AE  171C    07      
+79  6B  41051C18    06      
+77  68  E6  171C0A  00      
+75  65  9F061C              
+77  39023C0001      0F      
+79  3C  3F  0218  0D0B      
+7B  36  3C  01  090E05      
+7D  30  3F  021C  0F03      
+7B  33  3C        0E00      
+79  36  3F        0D        
+77  39  3C      080C        
+75  3C  3F                  
+77  39  3C                  
+79  36  3F                  
+7B  33  3C      07          
+7D  30  3F                  
+AA  6E044F031E180B  0E      
+AC  71  B7    380C0D0D      
+A8  6B  2C041D180D0E0C      
+A4  65  AE    380E0F0B      
+A6  68  4105    0D0E0A      
+A8  6B  E6      0C0D09      
+AA  39023C00011C0B0C0F      
+AC  3C  3F  0218  0D0B      
+AA  36  3C  01    0E05      
+A8  30  3F  021C  0F03      
+A6  33  3C      0A0E00      
+A4  36  3F        0D        
+C3  6E043C  01  0B0C0F      
+C5  71  3F  02180C0D0B      
+C1  6B  3C  01  0D0E05      
+BD  65  3F  021C0E0F03      
+BF  68  3C      0D0E00      
+C1  6B  3F      0C0D        
+C3  39023C  01  0B0C0F      
+C5  3C  3F  0218  0D0B      
+C3  36  3C  01    0E05      
+C1  30  3F  021C  0F03      
+BF  33  3C      0A0E00      
+BD  36  3F        0D        
+BF  6E04DC011718  0C0F      
+C1  71  16021C    0D0E      
+C3  6B  57  171C090E0D      
+C5  65  A1  1C18  0F0C      
+C3  68  F3  17    0E0B      
+C1  6B  4F031C1C  0D0A      
+BF  6E  B7  1718080C09      
+BD  71  2C041C      08      
+BF  6E  AE  171C    07      
+C1  6B  41051C18    06      
+C3  68  E6  171C07  00      
+C5  65  9F061C              
+FA  39023C0001  0B  0F      
+FC  3C  3F  02180C0D0B      
+F8  36  3C  01  0D0E05      
+F4  30  3F  021C0E0F03      
+F6  33  3C      0D0E00      
+F8  36  3F      0C0D        
+FA  39  3C      0B0C        
+FC  3C  3F                  
+FA  39  3C                  
+F8  36  3F                  
+F6  33  3C      0A          
+F4  30  3F                  
+F6  F3034F031E18    0E      
+F8  F6  B7    38  0D0D      
+FA  F0  2C041D18090E0C      
+FC  EA  AE    38  0F0B      
+FA  ED  4105      0E0A      
+F8  F0  E6        0D09      
+F6  F3  9F06    080C08      
+F4  F6  6E07        07      
+F6  F3  5808        06      
+F8  F0  5C09                
+FA  ED  820A    07          
+FC  EA  CC0B                
+FA  FB013C00011C    0F      
+F8  FE  3F  0218  0D0B      
+F6  F8  3C  01    0E05      
+F4  F2  3F  021C  0F03      
+F6  F5  3C        0E00      
+F8  F8  3F        0D        
+FA  FB  3C        0C        
+FC  FE  3F                  
+FA  FB  3C                  
+F8  F8  3F                  
+F6  F5  3C                  
+F4  F2  3F                  
+F6  F303DC011718    0F      
+F8  F6  16021C    0D0E      
+FA  F0  57  171C  0E0D      
+FC  EA  A1  1C18  0F0C      
+FA  ED  F3  17    0E0B      
+F8  F0  4F031C1C  0D0A      
+F6  F3  B7  1718  0C09      
+F4  F6  2C041C      08      
+F6  F3  AE  171C    07      
+F8  F0  41051C18    06      
+FA  ED  E6  171C    00      
+FC  EA  9F061C              
+FA  FB013C0001      0F      
+F8  FE  3F  0218  0D0B      
+F6  F8  3C  01    0E05      
+F4  F2  3F  021C  0F03      
+F6  F5  3C        0E00      
+F8  F8  3F        0D        
+FA  FB  3C        0C        
+FC  FE  3F                  
+FA  FB  3C                  
+F8  F8  3F                  
+F6  F5  3C                  
+F4  F2  3F                  
+52  F3034F031E180B  0E      
+54  F6  B7    380C0D0D      
+50  F0  2C041D180D0E0C      
+4C  EA  AE    380E0F0B      
+4E  ED  4105    0D0E0A      
+50  F0  E6      0C0D09      
+52  FB013C00011C0B0C0F      
+54  FE  3F  0218  0D0B      
+52  F8  3C  01    0E05      
+50  F2  3F  021C  0F03      
+4E  F5  3C      0A0E00      
+4C  F8  3F        0D        
+52  F3033C  01  0B0C0F      
+54  F6  3F  02180C0D0B      
+50  F0  3C  01  0D0E05      
+4C  EA  3F  021C0E0F03      
+4E  ED  3C      0D0E00      
+50  F0  3F      0C0D        
+52  FB013C  01  0B0C0F      
+54  FE  3F  0218  0D0B      
+52  F8  3C  01    0E05      
+50  F2  3F  021C  0F03      
+4E  F5  3C      0A0E00      
+4C  F8  3F        0D        
+52  F303DC0117180B0C0F      
+54  F6  16021C  0C0D0E      
+50  F0  57  171C0D0E0D      
+4C  EA  A1  1C180E0F0C      
+4E  ED  F3  17  0D0E0B      
+50  F0  4F031C1C0C0D0A      
+52  F3  B7  17180B0C09      
+54  F6  2C041C      08      
+52  F3  AE  171C    07      
+50  F0  41051C18    06      
+4E  ED  E6  171C0A  00      
+4C  EA  9F061C              
+52  FB013C0001  0B  0F      
+54  FE  3F  02180C0D0B      
+50  F8  3C  01  0D0E05      
+4C  F2  3F  021C0E0F03      
+4E  F5  3C      0D0E00      
+50  F8  3F      0C0D        
+52  FB  3C      0B0C        
+54  FE  3F                  
+52  FB  3C                  
+50  F8  3F                  
+4E  F5  3C      0A          
+4C  F2  3F                  
+52  6E044F031E180B  0E      
+54  71  B7    380C0D0D      
+50  6B  2C041D180D0E0C      
+4C  65  AE    380E0F0B      
+4E  68  4105    0D0E0A      
+50  6B  E6      0C0D09      
+52  6E  9F06    0B0C08      
+54  71  6E07        07      
+52  6E  5808        06      
+50  6B  5C09                
+4E  68  820A    0A          
+4C  65  CC0B                
+4E  39023C00011C    0F      
+50  3C  3F  0218  0D0B      
+52  36  3C  01  090E05      
+54  30  3F  021C  0F03      
+52  33  3C        0E00      
+50  36  3F        0D        
+4E  39  3C      080C        
+4C  3C  3F                  
+4E  39  3C                  
+50  36  3F                  
+52  33  3C      07          
+54  30  3F                  
+7B  6E04DC0117180B  0F      
+7D  71  16021C  0C0D0E      
+79  6B  57  171C0D0E0D      
+75  65  A1  1C180E0F0C      
+77  68  F3  17  0D0E0B      
+79  6B  4F031C1C0C0D0A      
+7B  6E  B7  17180B0C09      
+7D  71  2C041C      08      
+7B  6E  AE  171C    07      
+79  6B  41051C18    06      
+77  68  E6  171C0A  00      
+75  65  9F061C              
+77  39023C0001      0F      
+79  3C  3F  0218  0D0B      
+7B  36  3C  01  090E05      
+7D  30  3F  021C  0F03      
+7B  33  3C        0E00      
+79  36  3F        0D        
+77  39  3C      080C        
+75  3C  3F                  
+77  39  3C                  
+79  36  3F                  
+7B  33  3C      07          
+7D  30  3F                  
+7B  6E044F031E180B  0E      
+7D  71  B7    380C0D0D      
+79  6B  2C041D180D0E0C      
+75  65  AE    380E0F0B      
+77  68  4105    0D0E0A      
+79  6B  E6      0C0D09      
+7B  39023C00011C0B0C0F      
+7D  3C  3F  0218  0D0B      
+7B  36  3C  01    0E05      
+79  30  3F  021C  0F03      
+77  33  3C      0A0E00      
+75  36  3F        0D        
+52  6E043C  01  0B0C0F      
+54  71  3F  02180C0D0B      
+50  6B  3C  01  0D0E05      
+4C  65  3F  021C0E0F03      
+4E  68  3C      0D0E00      
+50  6B  3F      0C0D        
+52  39023C  01  0B0C0F      
+54  3C  3F  0218  0D0B      
+52  36  3C  01    0E05      
+50  30  3F  021C  0F03      
+4E  33  3C      0A0E00      
+4C  36  3F        0D        
+3F  6E04DC0117180B0C0F      
+41  71  16021C  0C0D0E      
+3D  6B  57  171C0D0E0D      
+39  65  A1  1C180E0F0C      
+3B  68  F3  17  0D0E0B      
+3D  6B  4F031C1C0C0D0A      
+3F  6E  B7  17180B0C09      
+41  71  2C041C      08      
+3F  6E  AE  171C    07      
+3D  6B  41051C18    06      
+3B  68  E6  171C0A  00      
+39  65  9F061C              
+3F  39023C0001  0B  0F      
+41  3C  3F  02180C0D0B      
+3D  36  3C  01  0D0E05      
+39  30  3F  021C0E0F03      
+3B  33  3C      0D0E00      
+3D  36  3F      0C0D        
+3F  39  3C      0B0C        
+41  3C  3F                  
+3F  39  3C                  
+3D  36  3F                  
+3B  33  3C      0A          
+39  30  3F                  
+3B  52034F031E18    0E      
+3D  55  B7    38  0D0D      
+3F  4F  2C041D18090E0C      
+41  49  AE    38  0F0B      
+3F  4C  4105      0E0A      
+3D  4F  E6        0D09      
+3B  52  9F06    080C08      
+39  55  6E07        07      
+3B  52  5808        06      
+3D  4F  5C09                
+3F  4C  820A    07          
+41  49  CC0B                
+3F  AB013C00011C    0F      
+3D  AE  3F  0218  0D0B      
+3B  A8  3C  01    0E05      
+39  A2  3F  021C  0F03      
+3B  A5  3C        0E00      
+3D  A8  3F        0D        
+3F  AB  3C        0C        
+41  AE  3F                  
+3F  AB  3C                  
+3D  A8  3F                  
+3B  A5  3C                  
+39  A2  3F                  
+52  5203DC0117180B  0F      
+54  55  16021C  0C0D0E      
+50  4F  57  171C0D0E0D      
+4C  49  A1  1C180E0F0C      
+4E  4C  F3  17  0D0E0B      
+50  4F  4F031C1C0C0D0A      
+52  52  B7  17180B0C09      
+54  55  2C041C      08      
+52  52  AE  171C    07      
+50  4F  41051C18    06      
+4E  4C  E6  171C0A  00      
+4C  49  9F061C              
+4E  AB013C0001      0F      
+50  AE  3F  0218  0D0B      
+52  A8  3C  01  090E05      
+54  A2  3F  021C  0F03      
+52  A5  3C        0E00      
+50  A8  3F        0D        
+4E  AB  3C      080C        
+4C  AE  3F                  
+4E  AB  3C                  
+50  A8  3F                  
+52  A5  3C      07          
+54  A2  3F                  
+7B  52034F031E180B  0E      
+7D  55  B7    380C0D0D      
+79  4F  2C041D180D0E0C      
+75  49  AE    380E0F0B      
+77  4C  4105    0D0E0A      
+79  4F  E6      0C0D09      
+7B  AB013C00011C0B0C0F      
+7D  AE  3F  0218  0D0B      
+7B  A8  3C  01    0E05      
+79  A2  3F  021C  0F03      
+77  A5  3C      0A0E00      
+75  A8  3F        0D        
+AA  52033C  01  0B0C0F      
+AC  55  3F  02180C0D0B      
+A8  4F  3C  01  0D0E05      
+A4  49  3F  021C0E0F03      
+A6  4C  3C      0D0E00      
+A8  4F  3F      0C0D        
+AA  AB013C  01  0B0C0F      
+AC  AE  3F  0218  0D0B      
+AA  A8  3C  01    0E05      
+A8  A2  3F  021C  0F03      
+A6  A5  3C      0A0E00      
+A4  A8  3F        0D        
+A6  5203DC011718  0C0F      
+A8  55  16021C    0D0E      
+AA  4F  57  171C090E0D      
+AC  49  A1  1C18  0F0C      
+AA  4C  F3  17    0E0B      
+A8  4F  4F031C1C  0D0A      
+A6  52  B7  1718080C09      
+A4  55  2C041C      08      
+A6  52  AE  171C    07      
+A8  4F  41051C18    06      
+AA  4C  E6  171C07  00      
+AC  49  9F061C              
+AA  AB013C0001      0F      
+A8  AE  3F  0218  0D0B      
+A6  A8  3C  01    0E05      
+A4  A2  3F  021C  0F03      
+A6  A5  3C        0E00      
+A8  A8  3F        0D        
+AA  AB  3C        0C        
+AC  AE  3F                  
+AA  AB  3C                  
+A8  A8  3F                  
+A6  A5  3C                  
+A4  A2  3F                  
+52  6E044F031E180B  0E      
+54  71  B7    380C0D0D      
+50  6B  2C041D180D0E0C      
+4C  65  AE    380E0F0B      
+4E  68  4105    0D0E0A      
+50  6B  E6      0C0D09      
+52  6E  9F06    0B0C08      
+54  71  6E07        07      
+52  6E  5808        06      
+50  6B  5C09                
+4E  68  820A    0A          
+4C  65  CC0B                
+52  39023C00011C0B  0F      
+54  3C  3F  02180C0D0B      
+50  36  3C  01  0D0E05      
+4C  30  3F  021C0E0F03      
+4E  33  3C      0D0E00      
+50  36  3F      0C0D        
+52  39  3C      0B0C        
+54  3C  3F                  
+52  39  3C                  
+50  36  3F                  
+4E  33  3C      0A          
+4C  30  3F                  
+7B  6E04DC0117180B  0F      
+7D  71  16021C  0C0D0E      
+79  6B  57  171C0D0E0D      
+75  65  A1  1C180E0F0C      
+77  68  F3  17  0D0E0B      
+79  6B  4F031C1C0C0D0A      
+7B  6E  B7  17180B0C09      
+7D  71  2C041C      08      
+7B  6E  AE  171C    07      
+79  6B  41051C18    06      
+77  68  E6  171C0A  00      
+75  65  9F061C              
+77  39023C0001      0F      
+79  3C  3F  0218  0D0B      
+7B  36  3C  01  090E05      
+7D  30  3F  021C  0F03      
+7B  33  3C        0E00      
+79  36  3F        0D        
+77  39  3C      080C        
+75  3C  3F                  
+77  39  3C                  
+79  36  3F                  
+7B  33  3C      07          
+7D  30  3F                  
+AA  6E044F031E180B  0E      
+AC  71  B7    380C0D0D      
+A8  6B  2C041D180D0E0C      
+A4  65  AE    380E0F0B      
+A6  68  4105    0D0E0A      
+A8  6B  E6      0C0D09      
+AA  39023C00011C0B0C0F      
+AC  3C  3F  0218  0D0B      
+AA  36  3C  01    0E05      
+A8  30  3F  021C  0F03      
+A6  33  3C      0A0E00      
+A4  36  3F        0D        
+C3  6E043C  01  0B0C0F      
+C5  71  3F  02180C0D0B      
+C1  6B  3C  01  0D0E05      
+BD  65  3F  021C0E0F03      
+BF  68  3C      0D0E00      
+C1  6B  3F      0C0D        
+C3  39023C  01  0B0C0F      
+C5  3C  3F  0218  0D0B      
+C3  36  3C  01    0E05      
+C1  30  3F  021C  0F03      
+BF  33  3C      0A0E00      
+BD  36  3F        0D        
+BF  6E04DC011718  0C0F      
+C1  71  16021C    0D0E      
+C3  6B  57  171C090E0D      
+C5  65  A1  1C18  0F0C      
+C3  68  F3  17    0E0B      
+C1  6B  4F031C1C  0D0A      
+BF  6E  B7  1718080C09      
+BD  71  2C041C      08      
+BF  6E  AE  171C    07      
+C1  6B  41051C18    06      
+C3  68  E6  171C07  00      
+C5  65  9F061C              
+FA  39023C0001  0B  0F      
+FC  3C  3F  02180C0D0B      
+F8  36  3C  01  0D0E05      
+F4  30  3F  021C0E0F03      
+F6  33  3C      0D0E00      
+F8  36  3F      0C0D        
+FA  39  3C      0B0C        
+FC  3C  3F                  
+FA  39  3C                  
+F8  36  3F                  
+F6  33  3C      0A          
+F4  30  3F                  
+F6  F3034F031E18    0E      
+F8  F6  B7    38  0D0D      
+FA  F0  2C041D18090E0C      
+FC  EA  AE    38  0F0B      
+FA  ED  4105      0E0A      
+F8  F0  E6        0D09      
+F6  F3  9F06    080C08      
+F4  F6  6E07        07      
+F6  F3  5808        06      
+F8  F0  5C09                
+FA  ED  820A    07          
+FC  EA  CC0B                
+FA  FB013C00011C    0F      
+F8  FE  3F  0218  0D0B      
+F6  F8  3C  01    0E05      
+F4  F2  3F  021C  0F03      
+F6  F5  3C        0E00      
+F8  F8  3F        0D        
+FA  FB  3C        0C        
+FC  FE  3F                  
+FA  FB  3C                  
+F8  F8  3F                  
+F6  F5  3C                  
+F4  F2  3F                  
+F6  F303DC011718    0F      
+F8  F6  16021C    0D0E      
+FA  F0  57  171C  0E0D      
+FC  EA  A1  1C18  0F0C      
+FA  ED  F3  17    0E0B      
+F8  F0  4F031C1C  0D0A      
+F6  F3  B7  1718  0C09      
+F4  F6  2C041C      08      
+F6  F3  AE  171C    07      
+F8  F0  41051C18    06      
+FA  ED  E6  171C    00      
+FC  EA  9F061C              
+FA  FB013C0001      0F      
+F8  FE  3F  0218  0D0B      
+F6  F8  3C  01    0E05      
+F4  F2  3F  021C  0F03      
+F6  F5  3C        0E00      
+F8  F8  3F        0D        
+FA  FB  3C        0C        
+FC  FE  3F                  
+FA  FB  3C                  
+F8  F8  3F                  
+F6  F5  3C                  
+F4  F2  3F                  
+FA  F3034F031E180B  0E      
+FC  F6  B7    380C0D0D      
+F8  F0  2C041D180D0E0C      
+F4  EA  AE    380E0F0B      
+F6  ED  4105    0D0E0A      
+F8  F0  E6      0C0D09      
+FA  FB013C00011C0B0C0F      
+FC  FE  3F  0218  0D0B      
+FA  F8  3C  01    0E05      
+F8  F2  3F  021C  0F03      
+F6  F5  3C      0A0E00      
+F4  F8  3F        0D        
+C3  F3033C  01  0B0C0F      
+C5  F6  3F  02180C0D0B      
+C1  F0  3C  01  0D0E05      
+BD  EA  3F  021C0E0F03      
+BF  ED  3C      0D0E00      
+C1  F0  3F      0C0D        
+C3  FB013C  01  0B0C0F      
+C5  FE  3F  0218  0D0B      
+C3  F8  3C  01    0E05      
+C1  F2  3F  021C  0F03      
+BF  F5  3C      0A0E00      
+BD  F8  3F        0D        
+AA  F303DC0117180B0C0F      
+AC  F6  16021C  0C0D0E      
+A8  F0  57  171C0D0E0D      
+A4  EA  A1  1C180E0F0C      
+A6  ED  F3  17  0D0E0B      
+A8  F0  4F031C1C0C0D0A      
+AA  F3  B7  17180B0C09      
+AC  F6  2C041C      08      
+AA  F3  AE  171C    07      
+A8  F0  41051C18    06      
+A6  ED  E6  171C0A  00      
+A4  EA  9F061C              
+FA  FB013C0001  0B  0F      
+FC  FE  3F  02180C0D0B      
+F8  F8  3C  01  0D0E05      
+F4  F2  3F  021C0E0F03      
+F6  F5  3C      0D0E00      
+F8  F8  3F      0C0D        
+FA  FB  3C      0B0C        
+FC  FE  3F                  
+FA  FB  3C                  
+F8  F8  3F                  
+F6  F5  3C      0A          
+F4  F2  3F                  
+52  6E044F031E180B  0E      
+54  71  B7    380C0D0D      
+50  6B  2C041D180D0E0C      
+4C  65  AE    380E0F0B      
+4E  68  4105    0D0E0A      
+50  6B  E6      0C0D09      
+52  6E  9F06    0B0C08      
+54  71  6E07        07      
+52  6E  5808        06      
+50  6B  5C09                
+4E  68  820A    0A          
+4C  65  CC0B                
+4E  39023C00011C    0F      
+50  3C  3F  0218  0D0B      
+52  36  3C  01  090E05      
+54  30  3F  021C  0F03      
+52  33  3C        0E00      
+50  36  3F        0D        
+4E  39  3C      080C        
+4C  3C  3F                  
+4E  39  3C                  
+50  36  3F                  
+52  33  3C      07          
+54  30  3F                  
+7B  6E04DC0117180B  0F      
+7D  71  16021C  0C0D0E      
+79  6B  57  171C0D0E0D      
+75  65  A1  1C180E0F0C      
+77  68  F3  17  0D0E0B      
+79  6B  4F031C1C0C0D0A      
+7B  6E  B7  17180B0C09      
+7D  71  2C041C      08      
+7B  6E  AE  171C    07      
+79  6B  41051C18    06      
+77  68  E6  171C0A  00      
+75  65  9F061C              
+77  39023C0001      0F      
+79  3C  3F  0218  0D0B      
+7B  36  3C  01  090E05      
+7D  30  3F  021C  0F03      
+7B  33  3C        0E00      
+79  36  3F        0D        
+77  39  3C      080C        
+75  3C  3F                  
+77  39  3C                  
+79  36  3F                  
+7B  33  3C      07          
+7D  30  3F                  
+7B  6E044F031E18    0E      
+79  71  B7    38  0D0D      
+77  6B  2C041D18  0E0C      
+75  65  AE    38  0F0B      
+77  68  4105      0E0A      
+79  6B  E6        0D09      
+7B  39023C00011C  0C0F      
+7D  3C  3F  0218  0D0B      
+7B  36  3C  01    0E05      
+79  30  3F  021C  0F03      
+77  33  3C        0E00      
+75  36  3F        0D        
+77  6E043C  01    0C0F      
+79  71  3F  0218  0D0B      
+7B  6B  3C  01    0E05      
+7D  65  3F  021C  0F03      
+7B  68  3C        0E00      
+79  6B  3F        0D        
+77  39023C  01    0C0F      
+75  3C  3F  0218  0D0B      
+77  36  3C  01    0E05      
+79  30  3F  021C  0F03      
+7B  33  3C        0E00      
+7D  36  3F        0D        
+7B  6E04DC011718  0C0F      
+79  71  16021C    0D0E      
+77  6B  57  171C  0E0D      
+75  65  A1  1C18  0F0C      
+77  68  F3  17    0E0B      
+79  6B  4F031C1C  0D0A      
+7B  6E  B7  1718  0C09      
+7D  71  2C041C      08      
+7B  6E  AE  171C    07      
+79  6B  41051C18    06      
+77  68  E6  171C    00      
+75  65  9F061C              
+77  39023C0001      0F      
+79  3C  3F  0218  0D0B      
+7B  36  3C  01    0E05      
+7D  30  3F  021C  0F03      
+7B  33  3C        0E00      
+79  36  3F        0D        
+77  39  3C        0C        
+75  3C  3F                  
+77  39  3C                  
+79  36  3F                  
+7B  33  3C                  
+7D  30  3F                  
+D6006E044F031E180B  0E      
+D8  71  B7    380C0D0D      
+D4  6B  2C041D180D0E0C      
+D0  65  AE    380E0F0B      
+D2  68  4105    0D0E0A      
+D4  6B  E6      0C0D09      
+D6  6E  9F06    0B0C08      
+D8  71  6E07        07      
+D6  6E  5808        06      
+D4  6B  5C09                
+D2  68  820A    0A          
+D0  65  CC0B                
+D2  39023C00011C    0F      
+D4  3C  3F  0218  0D0B      
+D6  36  3C  01  090E05      
+D8  30  3F  021C  0F03      
+D6  33  3C        0E00      
+D4  36  3F        0D        
+D2  39  3C      080C        
+D0  3C  3F                  
+D2  39  3C                  
+D4  36  3F                  
+D6  33  3C      07          
+D8  30  3F                  
+E2  6E04DC0117180B  0F      
+E4  71  16021C  0C0D0E      
+E0  6B  57  171C0D0E0D      
+DC  65  A1  1C180E0F0C      
+DE  68  F3  17  0D0E0B      
+E0  6B  4F031C1C0C0D0A      
+E2  6E  B7  17180B0C09      
+E4  71  2C041C      08      
+E2  6E  AE  171C    07      
+E0  6B  41051C18    06      
+DE  68  E6  171C0A  00      
+DC  65  9F061C              
+DE  39023C0001      0F      
+E0  3C  3F  0218  0D0B      
+E2  36  3C  01  090E05      
+E4  30  3F  021C  0F03      
+E2  33  3C        0E00      
+E0  36  3F        0D        
+DE  39  3C      080C        
+DC  3C  3F                  
+DE  39  3C                  
+E0  36  3F                  
+E2  33  3C      07          
+E4  30  3F                  
+E2  6E044F031E18    0E      
+E0  71  B7    38  0D0D      
+DE  6B  2C041D18  0E0C      
+DC  65  AE    38  0F0B      
+DE  68  4105      0E0A      
+E0  6B  E6        0D09      
+E2  39023C00011C  0C0F      
+E4  3C  3F  0218  0D0B      
+E2  36  3C  01    0E05      
+E0  30  3F  021C  0F03      
+DE  33  3C        0E00      
+DC  36  3F        0D        
+DE  6E043C  01    0C0F      
+E0  71  3F  0218  0D0B      
+E2  6B  3C  01    0E05      
+E4  65  3F  021C  0F03      
+E2  68  3C        0E00      
+E0  6B  3F        0D        
+DE  39023C  01    0C0F      
+DC  3C  3F  0218  0D0B      
+DE  36  3C  01    0E05      
+E0  30  3F  021C  0F03      
+E2  33  3C        0E00      
+E4  36  3F        0D        
+E2  6E04DC011718  0C0F      
+E0  71  16021C    0D0E      
+DE  6B  57  171C  0E0D      
+DC  65  A1  1C18  0F0C      
+DE  68  F3  17    0E0B      
+E0  6B  4F031C1C  0D0A      
+E2  6E  B7  1718  0C09      
+E4  71  2C041C      08      
+E2  6E  AE  171C    07      
+E0  6B  41051C18    06      
+DE  68  E6  171C    00      
+DC  65  9F061C              
+DE  39023C0001      0F      
+E0  3C  3F  0218  0D0B      
+E2  36  3C  01    0E05      
+E4  30  3F  021C  0F03      
+E2  33  3C        0E00      
+E0  36  3F        0D        
+DE  39  3C        0C        
+DC  3C  3F                  
+DE  39  3C                  
+E0  36  3F                  
+E2  33  3C                  
+E4  30  3F                  
+FD  F3034F031E180A  0E      
+80  F6  B7    380C0D0D      
+FF  F0  2C041D180E0E0C      
+FE  EA  AE    380F0F0B      
+FD  ED  4105    0D0E0A      
+7E  F0  E6      0C0D09      
+FC  F3  9F06    0B0C08      
+    F6  6E07    0A  07      
+FD  F3  5808    09  06      
+80  F0  5C09                
+FF  ED  820A                
+FE  EA  CC0B                
+FD  FB013C00011C    0F      
+7E  FE  3F  0218  0D0B      
+FB  F8  3C  01    0E05      
+FA  F2  3F  021C  0F03      
+F9  F5  3C        0E00      
+7C  F8  3F        0D        
+FB  FB  3C        0C        
+FC  FE  3F                  
+FD  FB  3C                  
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+FD  F303DC0117180A  0F      
+80  F6  16021C  0C0D0E      
+FF  F0  57  171C0E0E0D      
+FE  EA  A1  1C180F0F0C      
+FD  ED  F3  17  0D0E0B      
+7E  F0  4F031C1C0C0D0A      
+FC  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+FD  F3  AE  171C09  07      
+80  F0  41051C18    06      
+FF  ED  E6  171C    00      
+FE  EA  9F061C              
+FD  FB013C0001      0F      
+7E  FE  3F  0218  0D0B      
+FB  F8  3C  01    0E05      
+FA  F2  3F  021C  0F03      
+F9  F5  3C        0E00      
+7C  F8  3F        0D        
+FB  FB  3C        0C        
+FC  FE  3F                  
+FD  FB  3C                  
+80  F8  3F                  
+FF  F5  3C                  
+FE  F2  3F                  
+FD  F3034F031E180A  0E      
+80  F6  B7    380C0D0D      
+FF  F0  2C041D180E0E0C      
+FE  EA  AE    380F0F0B      
+FD  ED  4105    0D0E0A      
+7E  F0  E6      0C0D09      
+FC  FB013C00011C0B0C0F      
+    FE  3F  02180A0D0B      
+FD  F8  3C  01  090E05      
+80  F2  3F  021C  0F03      
+FF  F5  3C        0E00      
+FE  F8  3F        0D        
+FD  F3033C  01    0C0F      
+7E  F6  3F  0218  0D0B      
+FB  F0  3C  01    0E05      
+FA  EA  3F  021C  0F03      
+F9  ED  3C        0E00      
+7C  F0  3F        0D        
+FB  FB013C  01    0C0F      
+FC  FE  3F  0218  0D0B      
+FD  F8  3C  01    0E05      
+80  F2  3F  021C  0F03      
+FF  F5  3C        0E00      
+FE  F8  3F        0D        
+FD  F303DC0117180A0C0F      
+80  F6  16021C  0C0D0E      
+FF  F0  57  171C0E0E0D      
+FE  EA  A1  1C180F0F0C      
+FD  ED  F3  17  0D0E0B      
+7E  F0  4F031C1C0C0D0A      
+E1  F3  B7  17180A0C09      
+72  F6  2C041C  0C  08      
+E3  F3  AE  171C0E  07      
+E2  F0  41051C180F  06      
+E1  ED  E6  171C0D  00      
+70  EA  9F061C  0C          
+D5  FB013C0001  0A  0F      
+6C  FE  3F  02180C0D0B      
+D7  F8  3C  01  0E0E05      
+D6  F2  3F  021C0F0F03      
+D5  F5  3C      0D0E00      
+6A  F8  3F      0C0D        
+BE  FB  3C      0A0C        
+60  FE  3F      0C          
+C0  FB  3C      0E          
+BF  F8  3F      0F          
+BE  F5  3C      0D          
+5E  F2  3F      0C          
+E1  44054F031E180A  0E      
+72  47  B7    380C0D0D      
+E3  41  2C041D180E0E0C      
+E2  3B  AE    380F0F0B      
+E1  3E  4105    0D0E0A      
+70  41  E6      0C0D09      
+E0  44  9F06    0B0C08      
+    47  6E07    0A  07      
+E1  44  5808    09  06      
+72  41  5C09                
+E3  3E  820A                
+E2  3B  CC0B                
+E1  A4023C00011C    0F      
+70  A7  3F  0218  0D0B      
+DF  A1  3C  01    0E05      
+DE  9B  3F  021C  0F03      
+DD  9E  3C        0E00      
+6E  A1  3F        0D        
+DF  A4  3C        0C        
+E0  A7  3F                  
+E1  A4  3C                  
+72  A1  3F                  
+E3  9E  3C                  
+E2  9B  3F                  
+E1  4405DC0117180A  0F      
+72  47  16021C  0C0D0E      
+E3  41  57  171C0E0E0D      
+E2  3B  A1  1C180F0F0C      
+E1  3E  F3  17  0D0E0B      
+70  41  4F031C1C0C0D0A      
+E0  44  B7  17180B0C09      
+    47  2C041C  0A  08      
+E1  44  AE  171C09  07      
+72  41  41051C18    06      
+E3  3E  E6  171C    00      
+E2  3B  9F061C              
+E1  A4023C0001      0F      
+70  A7  3F  0218  0D0B      
+DF  A1  3C  01    0E05      
+DE  9B  3F  021C  0F03      
+DD  9E  3C        0E00      
+6E  A1  3F        0D        
+DF  A4  3C        0C        
+E0  A7  3F                  
+E1  A4  3C                  
+72  A1  3F                  
+E3  9E  3C                  
+E2  9B  3F                  
+E1  44054F031E180A  0E      
+72  47  B7    380C0D0D      
+E3  41  2C041D180E0E0C      
+E2  3B  AE    380F0F0B      
+E1  3E  4105    0D0E0A      
+70  41  E6      0C0D09      
+E0  A4023C00011C0B0C0F      
+    A7  3F  02180A0D0B      
+E1  A1  3C  01  090E05      
+72  9B  3F  021C  0F03      
+E3  9E  3C        0E00      
+E2  A1  3F        0D        
+E1  44053C  01    0C0F      
+70  47  3F  0218  0D0B      
+DF  41  3C  01    0E05      
+DE  3B  3F  021C  0F03      
+DD  3E  3C        0E00      
+6E  41  3F        0D        
+DF  A4023C  01    0C0F      
+E0  A7  3F  0218  0D0B      
+E1  A1  3C  01    0E05      
+72  9B  3F  021C  0F03      
+E3  9E  3C        0E00      
+E2  A1  3F        0D        
+D5  4405DC0117180A0C0F      
+6C  47  16021C  0C0D0E      
+D7  41  57  171C0E0E0D      
+D6  3B  A1  1C180F0F0C      
+D5  3E  F3  17  0D0E0B      
+6A  41  4F031C1C0C0D0A      
+E1  44  B7  17180A0C09      
+72  47  2C041C  0C  08      
+E3  44  AE  171C0E  07      
+E2  41  41051C180F  06      
+E1  3E  E6  171C0D  00      
+70  3B  9F061C  0C          
+FD  A4023C0001  0A  0F      
+80  A7  3F  02180C0D0B      
+FF  A1  3C  01  0E0E05      
+FE  9B  3F  021C0F0F03      
+FD  9E  3C      0D0E00      
+7E  A1  3F      0C0D        
+1C01A4  3C      0A0C        
+8F00A7  3F      0C          
+1E01A4  3C      0E          
+1D  A1  3F      0F          
+1C  9E  3C      0D          
+8D009B  3F      0C          
+E1  6E044F031E180A  0E      
+72  71  B7    380C0D0D      
+E3  6B  2C041D180E0E0C      
+E2  65  AE    380F0F0B      
+E1  68  4105    0D0E0A      
+70  6B  E6      0C0D09      
+E0  6E  9F06    0B0C08      
+    71  6E07    0A  07      
+E1  6E  5808    09  06      
+72  6B  5C09                
+E3  68  820A                
+E2  65  CC0B                
+E1  39023C00011C    0F      
+70  3C  3F  0218  0D0B      
+DF  36  3C  01    0E05      
+DE  30  3F  021C  0F03      
+DD  33  3C        0E00      
+6E  36  3F        0D        
+DF  39  3C        0C        
+E0  3C  3F                  
+E1  39  3C                  
+72  36  3F                  
+E3  33  3C                  
+E2  30  3F                  
+E1  6E04DC011718    0F      
+70  71  16021C    0D0E      
+DF  6B  57  171C  0E0D      
+DE  65  A1  1C18  0F0C      
+DD  68  F3  17    0E0B      
+6E  6B  4F031C1C  0D0A      
+DF  6E  B7  1718  0C09      
+E0  71  2C041C      08      
+E1  6E  AE  171C    07      
+72  6B  41051C18    06      
+E3  68  E6  171C    00      
+E2  65  9F061C              
+E1  39023C0001      0F      
+70  3C  3F  0218  0D0B      
+DF  36  3C  01    0E05      
+DE  30  3F  021C  0F03      
+DD  33  3C        0E00      
+6E  36  3F        0D        
+DF  39  3C        0C        
+E0  3C  3F                  
+E1  39  3C                  
+72  36  3F                  
+E3  33  3C                  
+E2  30  3F                  
+E1  6E044F031E18    0E      
+70  71  B7    38  0D0D      
+DF  6B  2C041D18  0E0C      
+DE  65  AE    38  0F0B      
+DD  68  4105      0E0A      
+6E  6B  E6        0D09      
+DF  39023C00011C  0C0F      
+E0  3C  3F  0218  0D0B      
+E1  36  3C  01    0E05      
+72  30  3F  021C  0F03      
+E3  33  3C        0E00      
+E2  36  3F        0D        
+E1  6E043C  01    0C0F      
+70  71  3F  0218  0D0B      
+DF  6B  3C  01    0E05      
+DE  65  3F  021C  0F03      
+DD  68  3C        0E00      
+6E  6B  3F        0D        
+DF  39023C  01    0C0F      
+E0  3C  3F  0218  0D0B      
+E1  36  3C  01    0E05      
+72  30  3F  021C  0F03      
+E3  33  3C        0E00      
+E2  36  3F        0D        
+E1  6E04DC011718  0C0F      
+70  71  16021C    0D0E      
+DF  6B  57  171C  0E0D      
+DE  65  A1  1C18  0F0C      
+DD  68  F3  17    0E0B      
+6E  6B  4F031C1C  0D0A      
+DF  6E  B7  1718  0C09      
+E0  71  2C041C      08      
+E1  6E  AE  171C    07      
+72  6B  41051C18    06      
+E3  68  E6  171C    00      
+E2  65  9F061C              
+E1  39023C0001      0F      
+70  3C  3F  0218  0D0B      
+DF  36  3C  01    0E05      
+DE  30  3F  021C  0F03      
+DD  33  3C        0E00      
+6E  36  3F        0D        
+DF  39  3C        0C        
+E0  3C  3F                  
+E1  39  3C                  
+72  36  3F                  
+E3  33  3C                  
+E2  30  3F                  
+1C01F3034F031E180A  0E      
+8F00F6  B7    380C0D0D      
+1E01F0  2C041D180E0E0C      
+1D  EA  AE    380F0F0B      
+1C  ED  4105    0D0E0A      
+8D00F0  E6      0C0D09      
+1B01F3  9F06    0B0C08      
+    F6  6E07    0A  07      
+1C  F3  5808    09  06      
+8F00F0  5C09                
+1E01ED  820A                
+1D  EA  CC0B                
+1C  FB013C00011C    0F      
+8D00FE  3F  0218  0D0B      
+1A01F8  3C  01    0E05      
+19  F2  3F  021C  0F03      
+18  F5  3C        0E00      
+8B00F8  3F        0D        
+1A01FB  3C        0C        
+1B  FE  3F                  
+1C  FB  3C                  
+8F00F8  3F                  
+1E01F5  3C                  
+1D  F2  3F                  
+1C  F303DC011718    0F      
+8D00F6  16021C    0D0E      
+1A01F0  57  171C  0E0D      
+19  EA  A1  1C18  0F0C      
+18  ED  F3  17    0E0B      
+8B00F0  4F031C1C  0D0A      
+1A01F3  B7  1718  0C09      
+1B  F6  2C041C      08      
+1C  F3  AE  171C    07      
+8F00F0  41051C18    06      
+1E01ED  E6  171C    00      
+1D  EA  9F061C              
+1C  FB013C0001      0F      
+8D00FE  3F  0218  0D0B      
+1A01F8  3C  01    0E05      
+19  F2  3F  021C  0F03      
+18  F5  3C        0E00      
+8B00F8  3F        0D        
+1A01FB  3C        0C        
+1B  FE  3F                  
+1C  FB  3C                  
+8F00F8  3F                  
+1E01F5  3C                  
+1D  F2  3F                  
+1C  F3034F031E18    0E      
+8D00F6  B7    38  0D0D      
+1A01F0  2C041D18  0E0C      
+19  EA  AE    38  0F0B      
+18  ED  4105      0E0A      
+8B00F0  E6        0D09      
+1A01FB013C00011C  0C0F      
+1B  FE  3F  0218  0D0B      
+1C  F8  3C  01    0E05      
+8F00F2  3F  021C  0F03      
+1E01F5  3C        0E00      
+1D  F8  3F        0D        
+1C  F3033C  01    0C0F      
+8D00F6  3F  0218  0D0B      
+1A01F0  3C  01    0E05      
+19  EA  3F  021C  0F03      
+18  ED  3C        0E00      
+8B00F0  3F        0D        
+1A01FB013C  01    0C0F      
+1B  FE  3F  0218  0D0B      
+1C  F8  3C  01    0E05      
+8F00F2  3F  021C  0F03      
+1E01F5  3C        0E00      
+1D  F8  3F        0D        
+1C  F303DC011718  0C0F      
+8D00F6  16021C    0D0E      
+1A01F0  57  171C  0E0D      
+19  EA  A1  1C18  0F0C      
+18  ED  F3  17    0E0B      
+8B00F0  4F031C1C  0D0A      
+1A01F3  B7  1718  0C09      
+1B  F6  2C041C      08      
+1C  F3  AE  171C    07      
+8F00F0  41051C18    06      
+1E01ED  E6  171C    00      
+1D  EA  9F061C              
+1C  FB013C0001      0F      
+8D00FE  3F  0218  0D0B      
+1A01F8  3C  01    0E05      
+19  F2  3F  021C  0F03      
+18  F5  3C        0E00      
+8B00F8  3F        0D        
+1A01FB  3C        0C        
+1B  FE  3F                  
+1C  FB  3C                  
+8F00F8  3F                  
+1E01F5  3C                  
+1D  F2  3F                  
+1C  52034F031E180A  0E      
+8F0055  B7    380C0D0D      
+1E014F  2C041D180E0E0C      
+1D  49  AE    380F0F0B      
+1C  4C  4105    0D0E0A      
+8D004F  E6      0C0D09      
+1B0152  9F06    0B0C08      
+    55  6E07    0A  07      
+1C  52  5808    09  06      
+8F004F  5C09                
+1E014C  820A                
+1D  49  CC0B                
+1C  AB013C00011C0A  0F      
+8F00AE  3F  02180C0D0B      
+1E01A8  3C  01  0E0E05      
+1D  A2  3F  021C0F0F03      
+1C  A5  3C      0D0E00      
+8D00A8  3F      0C0D        
+1B01AB  3C      0B0C        
+    AE  3F      0A          
+1C  AB  3C      09          
+8F00A8  3F                  
+1E01A5  3C                  
+1D  A2  3F                  
+1C  5203DC0117180A  0F      
+8F0055  16021C  0C0D0E      
+1E014F  57  171C0E0E0D      
+1D  49  A1  1C180F0F0C      
+1C  4C  F3  17  0D0E0B      
+8D004F  4F031C1C0C0D0A      
+1B0152  B7  17180B0C09      
+    55  2C041C  0A  08      
+1C  52  AE  171C09  07      
+8F004F  41051C18    06      
+1E014C  E6  171C    00      
+1D  49  9F061C              
+51  AB013C0001  0A  0F      
+AA00AE  3F  02180C0D0B      
+5301A8  3C  01  0E0E05      
+52  A2  3F  021C0F0F03      
+51  A5  3C      0D0E00      
+A800A8  3F      0C0D        
+5001AB  3C      0B0C        
+    AE  3F      0A          
+51  AB  3C      09          
+AA00A8  3F                  
+5301A5  3C                  
+52  A2  3F                  
+FD0052034F031E180A  0E      
+80  55  B7    380C0D0D      
+FF  4F  2C041D180E0E0C      
+FE  49  AE    380F0F0B      
+FD  4C  4105    0D0E0A      
+7E  4F  E6      0C0D09      
+FC  AB013C00011C0B0C0F      
+    AE  3F  02180A0D0B      
+FD  A8  3C  01  090E05      
+80  A2  3F  021C  0F03      
+FF  A5  3C        0E00      
+FE  A8  3F        0D        
+FD  52033C  01  0A0C0F      
+80  55  3F  02180C0D0B      
+FF  4F  3C  01  0E0E05      
+FE  49  3F  021C0F0F03      
+FD  4C  3C      0D0E00      
+7E  4F  3F      0C0D        
+FC  AB013C  01  0B0C0F      
+    AE  3F  02180A0D0B      
+FD  A8  3C  01  090E05      
+80  A2  3F  021C  0F03      
+FF  A5  3C        0E00      
+FE  A8  3F        0D        
+FD  5203DC0117180A0C0F      
+80  55  16021C  0C0D0E      
+FF  4F  57  171C0E0E0D      
+FE  49  A1  1C180F0F0C      
+FD  4C  F3  17  0D0E0B      
+7E  4F  4F031C1C0C0D0A      
+FC  52  B7  17180B0C09      
+    55  2C041C  0A  08      
+FD  52  AE  171C09  07      
+80  4F  41051C18    06      
+FF  4C  E6  171C    00      
+FE  49  9F061C              
+1C01AB013C0001  0A  0F      
+8F00AE  3F  02180C0D0B      
+1E01A8  3C  01  0E0E05      
+1D  A2  3F  021C0F0F03      
+1C  A5  3C      0D0E00      
+8D00A8  3F      0C0D        
+1B01AB  3C      0B0C        
+    AE  3F      0A          
+1C  AB  3C      09          
+8F00A8  3F                  
+1E01A5  3C                  
+1D  A2  3F                  
+1C  6E044F031E18    0E      
+8D0071  B7    38  0D0D      
+1A016B  2C041D18  0E0C      
+19  65  AE    38  0F0B      
+18  68  4105      0E0A      
+8B006B  E6        0D09      
+1A016E  9F06      0C08      
+1B  71  6E07        07      
+1C  6E  5808        06      
+8F006B  5C09                
+1E0168  820A                
+1D  65  CC0B                
+7A  39023C00011C0A  0F      
+BF003C  3F  02180C0D0B      
+7C0136  3C  01  0E0E05      
+7B  30  3F  021C0F0F03      
+7A  33  3C      0D0E00      
+BD0036  3F      0C0D        
+790139  3C      0B0C        
+    3C  3F      0A          
+7A  39  3C      09          
+BF0036  3F                  
+7C0133  3C                  
+7B  30  3F                  
+7A  6E04DC011718    0F      
+BD0071  16021C    0D0E      
+78016B  57  171C  0E0D      
+77  65  A1  1C18  0F0C      
+76  68  F3  17    0E0B      
+BB006B  4F031C1C  0D0A      
+78016E  B7  1718  0C09      
+79  71  2C041C      08      
+7A  6E  AE  171C    07      
+BF006B  41051C18    06      
+7C0168  E6  171C    00      
+7B  65  9F061C              
+7A  39023C0001      0F      
+BD003C  3F  0218  0D0B      
+780136  3C  01    0E05      
+77  30  3F  021C  0F03      
+76  33  3C        0E00      
+BB0036  3F        0D        
+780139  3C        0C        
+79  3C  3F                  
+7A  39  3C                  
+BF0036  3F                  
+7C0133  3C                  
+7B  30  3F                  
+7A  6E044F031E18    0E      
+BD0071  B7    38  0D0D      
+78016B  2C041D18  0E0C      
+77  65  AE    38  0F0B      
+76  68  4105      0E0A      
+BB006B  E6        0D09      
+780139023C00011C  0C0F      
+79  3C  3F  0218  0D0B      
+7A  36  3C  01    0E05      
+BF0030  3F  021C  0F03      
+7C0133  3C        0E00      
+7B  36  3F        0D        
+7A  6E043C  01  0A0C0F      
+BF0071  3F  02180C0D0B      
+7C016B  3C  01  0E0E05      
+7B  65  3F  021C0F0F03      
+7A  68  3C      0D0E00      
+BD006B  3F      0C0D        
+790139023C  01  0B0C0F      
+    3C  3F  02180A0D0B      
+7A  36  3C  01  090E05      
+BF0030  3F  021C  0F03      
+7C0133  3C        0E00      
+7B  36  3F        0D        
+51  6E04DC0117180A0C0F      
+AA0071  16021C  0C0D0E      
+53016B  57  171C0E0E0D      
+52  65  A1  1C180F0F0C      
+51  68  F3  17  0D0E0B      
+A8006B  4F031C1C0C0D0A      
+50016E  B7  17180B0C09      
+    71  2C041C  0A  08      
+51  6E  AE  171C09  07      
+AA006B  41051C18    06      
+530168  E6  171C    00      
+52  65  9F061C              
+7A  39023C0001  0A  0F      
+BF003C  3F  02180C0D0B      
+7C0136  3C  01  0E0E05      
+7B  30  3F  021C0F0F03      
+7A  33  3C      0D0E00      
+BD0036  3F      0C0D        
+790139  3C      0B0C        
+    3C  3F      0A          
+7A  39  3C      09          
+BF0036  3F                  
+7C0133  3C                  
+7B  30  3F                  
+7A  F3034F031E18    0E      
+BD00F6  B7    38  0D0D      
+7801F0  2C041D18  0E0C      
+77  EA  AE    38  0F0B      
+76  ED  4105      0E0A      
+BB00F0  E6        0D09      
+7801F3  9F06      0C08      
+79  F6  6E07        07      
+7A  F3  5808        06      
+BF00F0  5C09                
+7C01ED  820A                
+7B  EA  CC0B                
+A9  FB013C00011C0A  0F      
+D600FE  3F  02180C0D0B      
+AB01F8  3C  01  0E0E05      
+AA  F2  3F  021C0F0F03      
+A9  F5  3C      0D0E00      
+D400F8  3F      0C0D        
+A801FB  3C      0B0C        
+    FE  3F      0A          
+A9  FB  3C      09          
+D600F8  3F                  
+AB01F5  3C                  
+AA  F2  3F                  
+A9  F303DC011718    0F      
+D400F6  16021C    0D0E      
+A701F0  57  171C  0E0D      
+A6  EA  A1  1C18  0F0C      
+A5  ED  F3  17    0E0B      
+D200F0  4F031C1C  0D0A      
+A701F3  B7  1718  0C09      
+A8  F6  2C041C      08      
+A9  F3  AE  171C    07      
+D600F0  41051C18    06      
+AB01ED  E6  171C    00      
+AA  EA  9F061C              
+A9  FB013C0001      0F      
+D400FE  3F  0218  0D0B      
+A701F8  3C  01    0E05      
+A6  F2  3F  021C  0F03      
+A5  F5  3C        0E00      
+D200F8  3F        0D        
+A701FB  3C        0C        
+A8  FE  3F                  
+A9  FB  3C                  
+D600F8  3F                  
+AB01F5  3C                  
+AA  F2  3F                  
+A9  F3034F031E18    0E      
+D400F6  B7    38  0D0D      
+A701F0  2C041D18  0E0C      
+A6  EA  AE    38  0F0B      
+A5  ED  4105      0E0A      
+D200F0  E6        0D09      
+A701FB013C00011C  0C0F      
+A8  FE  3F  0218  0D0B      
+A9  F8  3C  01    0E05      
+D600F2  3F  021C  0F03      
+AB01F5  3C        0E00      
+AA  F8  3F        0D        
+A9  F3033C  01  0A0C0F      
+D600F6  3F  02180C0D0B      
+AB01F0  3C  01  0E0E05      
+AA  EA  3F  021C0F0F03      
+A9  ED  3C      0D0E00      
+D400F0  3F      0C0D        
+A801FB013C  01  0B0C0F      
+    FE  3F  02180A0D0B      
+A9  F8  3C  01  090E05      
+D600F2  3F  021C  0F03      
+AB01F5  3C        0E00      
+AA  F8  3F        0D        
+FD00F303DC0117180A0C0F      
+80  F6  16021C  0C0D0E      
+FF  F0  57  171C0E0E0D      
+FE  EA  A1  1C180F0F0C      
+FD  ED  F3  17  0D0E0B      
+7E  F0  4F031C1C0C0D0A      
+FC  F3  B7  17180B0C09      
+    F6  2C041C  0A  08      
+FD  F3  AE  171C09  07      
+80  F0  41051C18    06      
+FF  ED  E6  171C    00      
+FE  EA  9F061C              
+1C01FB013C0001  0A  0F      
+8F00FE  3F  02180C0D0B      
+1E01F8  3C  01  0E0E05      
+1D  F2  3F  021C0F0F03      
+1C  F5  3C      0D0E00      
+8D00F8  3F      0C0D        
+1B01FB  3C      0B0C        
+    FE  3F      0A          
+1C  FB  3C      09          
+8F00F8  3F                  
+1E01F5  3C                  
+1D  F2  3F                  
+1C  44054F031E18    0E      
+8D0047  B7    38  0D0D      
+1A0141  2C041D18  0E0C      
+19  3B  AE    38  0F0B      
+18  3E  4105      0E0A      
+8B0041  E6        0D09      
+1A0144  9F06      0C08      
+1B  47  6E07        07      
+1C  44  5808        06      
+8F0041  5C09                
+1E013E  820A                
+1D  3B  CC0B                
+1C  A4023C00011C    0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+1C  4405DC011718    0F      
+8D0047  16021C    0D0E      
+1A0141  57  171C  0E0D      
+19  3B  A1  1C18  0F0C      
+18  3E  F3  17    0E0B      
+8B0041  4F031C1C  0D0A      
+1A0144  B7  1718  0C09      
+1B  47  2C041C      08      
+1C  44  AE  171C    07      
+8F0041  41051C18    06      
+1E013E  E6  171C    00      
+1D  3B  9F061C              
+1C  A4023C0001      0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  
+1C  44054F031E18    0E      
+8D0047  B7    38  0D0D      
+1A0141  2C041D18  0E0C      
+19  3B  AE    38  0F0B      
+18  3E  4105      0E0A      
+8B0041  E6        0D09      
+1A01A4023C00011C  0C0F      
+1B  A7  3F  0218  0D0B      
+1C  A1  3C  01    0E05      
+8F009B  3F  021C  0F03      
+1E019E  3C        0E00      
+1D  A1  3F        0D        
+1C  44053C  01    0C0F      
+8D0047  3F  0218  0D0B      
+1A0141  3C  01    0E05      
+19  3B  3F  021C  0F03      
+18  3E  3C        0E00      
+8B0041  3F        0D        
+1A01A4023C  01    0C0F      
+1B  A7  3F  0218  0D0B      
+1C  A1  3C  01    0E05      
+8F009B  3F  021C  0F03      
+1E019E  3C        0E00      
+1D  A1  3F        0D        
+1C  4405DC011718  0C0F      
+8D0047  16021C    0D0E      
+1A0141  57  171C  0E0D      
+19  3B  A1  1C18  0F0C      
+18  3E  F3  17    0E0B      
+8B0041  4F031C1C  0D0A      
+1A0144  B7  1718  0C09      
+1B  47  2C041C      08      
+1C  44  AE  171C    07      
+8F0041  41051C18    06      
+1E013E  E6  171C    00      
+1D  3B  9F061C              
+1C  A4023C0001      0F      
+8D00A7  3F  0218  0D0B      
+1A01A1  3C  01    0E05      
+19  9B  3F  021C  0F03      
+18  9E  3C        0E00      
+8B00A1  3F        0D        
+1A01A4  3C        0C        
+1B  A7  3F                  
+1C  A4  3C                  
+8F00A1  3F                  
+1E019E  3C                  
+1D  9B  3F                  

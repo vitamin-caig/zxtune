@@ -1,0 +1,3041 @@
+000102030405060708090a0b0c0d
+BD002F001C01  380F0F0F      
+EF  8E  8E00    0E0E0E      
+8E      1C01                
+BD      3802                
+EF                          
+BD  3F  7B01    0C0C0C      
+EF  BD  BD00    0B0B0B      
+8E      7B01                
+BD      F602                
+EF                          
+8E  27  EF00    0F0F0F      
+BD  77  77      0E0E0E      
+77      EF                  
+8E      DF01                
+BD                          
+    2F  1C      0C0F0C      
+EF  8E  8E00    0B0E0B      
+8E      1C01                
+BD      3802                
+EF                          
+    3F  7B01    0F0F0F      
+1C01BD  BD00    0E0E0E      
+BD00    7B01                
+EF      F602                
+1C01                        
+8E0027  EF00    0C0C0C      
+BD  77  77      0B0B0B      
+77      EF                  
+8E      DF01                
+BD                          
+    2F  1C      0F0F0F      
+EF  8E  8E00    0E0E0E      
+8E      1C01                
+BD      3802                
+EF                          
+    3F  7B01    0C0F0C      
+1C01BD  BD00    0B0E0B      
+BD00    7B01                
+EF      F602                
+1C01                        
+    4F  DF01    0F0F0F      
+7B  EF  EF00    0E0E0E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+BD002F  1C01    0C0C0C      
+EF  8E  8E00    0B0B0B      
+8E      1C01                
+BD      3802                
+EF                          
+    3F  7B01    0F0F0F      
+1C01BD  BD00    0E0E0E      
+BD00    7B01                
+EF      F602                
+1C01                        
+    4F  DF01    0C0F0C      
+7B  EF  EF00    0B0E0B      
+EF00    DF01                
+1C01    BE03                
+7B                          
+    5E  3802    0F0F0F      
+DF  1C011C01    0E0E0E      
+1C      3802                
+7B      7004                
+DF                          
+EF003F007B01    0C0C0C      
+1C01BD  BD00    0B0B0B      
+BD00    7B01                
+EF      F602                
+1C01                        
+    4F  DF01    0F090F      
+7B  EF  EF00    0E080E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+    5E  3802    0C060C      
+DF  1C011C01    0B  0B      
+1C      3802                
+7B      7004                
+DF                          
+7B  7E007B01    0F0F0F      
+DF  7B01BD00    0E0E0E      
+1C      7B01                
+7B      F602                
+DF                          
+1C  5E00BE03    0C0F0C      
+7B  1C01DF01    0B0E0B      
+EF00    BE03                
+1C01    7C07                
+7B                          
+1C  4F003802    0F0F0F      
+7B  EF  1C01    0E0E0E      
+EF00    3802                
+1C01    7004                
+7B                          
+    5E  7B01    0C0F0C      
+DF  1C01BD00    0B0E0B      
+1C      7B01                
+7B      F602                
+DF                          
+FC005400CA      0F0F0F      
+6501FC  6501    0E0E0E      
+FC00    CA02                
+        9405                
+6501                        
+1C  5E  3802    0C0F0C      
+7B  1C011C01    0B0E0B      
+EF00    3802                
+1C01    7004                
+7B                          
+65  5400F801    0F0F0F      
+AC  FC  FC00    0E0E0E      
+1C      F801                
+65      FD03                
+AC                          
+FC005E  CA02    0C0F0C      
+65011C016501    0B0E0B      
+FC00    CA02                
+        9405                
+6501                        
+    6400F602    0F0F0F      
+C2  2C017B01    0E0E0E      
+2C      F602                
+65      EC05                
+C2                          
+65  5400F801    0C0F0C      
+AC  FC  FC00    0B0E0B      
+1C      F801                
+65      FD03                
+AC                          
+2C  47  F801    0F0F0F      
+7B  D6  FC00    0E0E0E      
+FC00    F801                
+2C01    FD03                
+7B                          
+65  54  F602    0C0F0C      
+C2  FC  7B01    0B0E0B      
+2C      F602                
+65      EC05                
+C2                          
+1C  4F  DF01    0F0F0F      
+7B  EF  EF00    0E0E0E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+2C  3F  F801    0C0C0C      
+7B  BD  FC00    0B0B0B      
+FC00    F801                
+2C01    FD03                
+7B                          
+    5E  3802    0F0F0F      
+DF  1C011C01    0E0E0E      
+1C      3802                
+7B      7004                
+DF                          
+1C  4F00DF01    0C0C0C      
+7B  EF  EF00    0B0B0B      
+EF00    DF01                
+1C01    BE03                
+7B                          
+BD002F  1C01    0F0F0F      
+EF  8E  8E00    0E0E0E      
+8E      1C01                
+BD      3802                
+EF                          
+BD  3F  7B01    0C0C0C      
+EF  BD  BD00    0B0B0B      
+8E      7B01                
+BD      F602                
+EF                          
+8E  27  EF00    0F0F0F      
+BD  77  77      0E0E0E      
+77      EF                  
+8E      DF01                
+BD                          
+    2F  1C      0C0F0C      
+EF  8E  8E00    0B0E0B      
+8E      1C01                
+BD      3802                
+EF                          
+    3F  7B01    0F0F0F      
+1C01BD  BD00    0E0E0E      
+BD00    7B01                
+EF      F602                
+1C01                        
+8E0027  EF00    0C0C0C      
+BD  77  77      0B0B0B      
+77      EF                  
+8E      DF01                
+BD                          
+    2F  1C      0F0F0F      
+EF  8E  8E00    0E0E0E      
+8E      1C01                
+BD      3802                
+EF                          
+    3F  7B01    0C0F0C      
+1C01BD  BD00    0B0E0B      
+BD00    7B01                
+EF      F602                
+1C01                        
+    4F  DF01    0F0F0F      
+7B  EF  EF00    0E0E0E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+BD002F  1C01    0C0C0C      
+EF  8E  8E00    0B0B0B      
+8E      1C01                
+BD      3802                
+EF                          
+    3F  7B01    0F0F0F      
+1C01BD  BD00    0E0E0E      
+BD00    7B01                
+EF      F602                
+1C01                        
+    4F  DF01    0C0F0C      
+7B  EF  EF00    0B0E0B      
+EF00    DF01                
+1C01    BE03                
+7B                          
+    5E  3802    0F0F0F      
+DF  1C011C01    0E0E0E      
+1C      3802                
+7B      7004                
+DF                          
+EF003F007B01    0C0C0C      
+1C01BD  BD00    0B0B0B      
+BD00    7B01                
+EF      F602                
+1C01                        
+    4F  DF01    0F090F      
+7B  EF  EF00    0E080E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+    5E  3802    0C060C      
+DF  1C011C01    0B  0B      
+1C      3802                
+7B      7004                
+DF                          
+7B  4F00DF01    0F0F0F      
+DF  EF  EF00    0E0E0E      
+1C      DF01                
+7B      BE03                
+DF                          
+1C  4F  DF01    0C0C0C      
+7B  EF  EF00    0B0B0B      
+EF00    DF01                
+1C01    BE03                
+7B                          
+1C  4F  F602    0F0F0F      
+7B  EF  7B01    0E0E0E      
+EF00    F602                
+1C01    EC05                
+7B                          
+    4F  DF01    0C0C0C      
+DF  EF  EF00    0B0B0B      
+1C      DF01                
+7B      BE03                
+DF                          
+7B  4F  3802    0F0F0F      
+DF  EF  1C01    0E0E0E      
+1C      3802                
+7B      7004                
+DF                          
+1C  54  F602    0C0F0C      
+7B  FC  7B01    0B0E0B      
+EF00    F602                
+1C01    EC05                
+7B                          
+1C  4F  DF01    0F0F0F      
+7B  EF  EF00    0E0E0E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+    4F  3802    0C0C0C      
+DF  EF  1C01    0B0B0B      
+1C      3802                
+7B      7004                
+DF                          
+BD002F  1C01    0F0F0F      
+EF  8E  8E00    0E0E0E      
+8E      1C01                
+BD      3802                
+EF                          
+1C012F  DF01    0C0C0C      
+7B  8E  EF00    0B0B0B      
+EF00    DF01                
+1C01    BE03                
+7B                          
+1C  4F  7B01    0F0F0F      
+7B  EF  BD00    0E0E0E      
+EF00    7B01                
+1C01    F602                
+7B                          
+BD004F  1C01    0C0C0C      
+EF  EF  8E00    0B0B0B      
+8E      1C01                
+BD      3802                
+EF                          
+1C01    DF01    0F0F0F      
+65      EF00    0E0E0E      
+EF00D6  DF01                
+1C01    BE03                
+65  EF                      
+1C  4F  7B01    0C0C0C      
+7B  EF  BD00    0B0B0B      
+EF00    7B01                
+1C01    F602                
+7B                          
+2C  54  F801    0F0F0F      
+7B  FC  FC00    0E0E0E      
+FC00    F801                
+2C01    FD03                
+7B                          
+1C  54  DF01    0C0C0C      
+65  FC  EF00    0B0B0B      
+EF00    DF01                
+1C01    BE03                
+65                          
+1C  3F  7B01    0F0F0F      
+7B  BD  BD00    0E0E0E      
+EF00    7B01                
+1C01    F602                
+7B                          
+2C  3F  F801    0C0C0C      
+7B  BD  FC00    0B0B0B      
+FC00    F801                
+2C01    FD03                
+7B                          
+    3F  7B01    0F0F0F      
+DF  BD  BD00    0E0E0E      
+1C      7B01                
+7B      F602                
+DF                          
+1C  3F  7B01    0C0C0C      
+7B  BD  BD00    0B0B0B      
+EF00    7B01                
+1C01    F602                
+7B                          
+DF  3F  DF01    0F0F0F      
+3802BD  EF00    0E0E0E      
+7B01    DF01                
+DF      BE03                
+3802                        
+7B0142  7B01    0C0F0C      
+DF  C8  BD00    0B0E0B      
+1C      7B01                
+7B      F602                
+DF                          
+7B  3F  1C01    0F0F0F      
+DF  BD  8E00    0E0E0E      
+1C      1C01                
+7B      3802                
+DF                          
+    3F  DF01    0C0C0C      
+3802BD  EF00    0B0B0B      
+7B01    DF01                
+DF      BE03                
+3802                        
+1C0127  EF00    0F0F0F      
+7B  77  77      0E0E0E      
+EF00    EF                  
+1C01    DF01                
+7B                          
+    27  1C      0C0C0C      
+DF  77  8E00    0B0B0B      
+1C      1C01                
+7B      3802                
+DF                          
+7B  3F  1C01    0F0F0F      
+DF  BD  8E00    0E0E0E      
+1C      1C01                
+7B      3802                
+DF                          
+1C  3F  EF00    0C0C0C      
+7B  BD  77      0B0B0B      
+EF00    EF                  
+1C01    DF01                
+7B                          
+EF00    7B      0F0F0F      
+1C01    BD00    0E0E0E      
+BD00A8  7B01                
+EF      F602                
+1C01BD                      
+7B      1C01    0C0B0C      
+DF  A8  8E00    0B  0B      
+1C      1C01                
+7B  BD  3802      0A        
+DF                          
+C80042  9001    0F0F0F      
+FC  C8  C800    0E0E0E      
+A8      9001                
+C8      2003                
+FC                          
+EF  42  7B01    0C0C0C      
+1C01C8  BD00    0B0B0B      
+BD00    7B01                
+EF      F602                
+1C01                        
+BD0054  F801    0F0F0F      
+FC  FC  FC00    0E0E0E      
+9F      F801                
+BD      FD03                
+FC                          
+C8  3F  9001    0C0F0C      
+FC  BD  C800    0B0E0B      
+A8      9001                
+C8      2003                
+FC                          
+    35  3E01    0F0F0F      
+3E019F  9F00    0E0E0E      
+BD00    3E01                
+FC      7C02                
+3E01                        
+BD003F  F801    0C0F0C      
+FC  BD  FC00    0B0E0B      
+9F      F801                
+BD      FD03                
+FC                          
+A8  38  5101    0F0F0F      
+BD  A8  A800    0E0E0E      
+A8      5101                
+BD      A202                
+A8                          
+FC  3F  3E01    0C0F0C      
+3E01BD  9F00    0B0E0B      
+BD00    3E01                
+FC      7C02                
+3E01                        
+1C  38  DF01    0F0F0F      
+7B  A8  EF00    0E0E0E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+A8003F  5101    0C0F0C      
+BD  BD  A800    0B0E0B      
+A8      5101                
+BD      A202                
+A8                          
+    42  F801    0F0F0F      
+EF  C8  FC00    0E0E0E      
+A8      F801                
+        FD03                
+EF                          
+1C0138  DF01    0C0F0C      
+7B  A8  EF00    0B0E0B      
+EF00    DF01                
+1C01    BE03                
+7B                          
+C8002F  5101    0F0F0F      
+FC  8E  A800    0E0E0E      
+A8      5101                
+C8      A202                
+FC                          
+A8  38  F801    0C0F0C      
+EF  A8  FC00    0B0E0B      
+A8      F801                
+        FD03                
+EF                          
+FC  35  3E01    0F0F0F      
+3E019F  9F00    0E0E0E      
+BD00    3E01                
+FC      7C02                
+3E01                        
+C80038  5101    0C0F0C      
+FC  A8  A800    0B0E0B      
+A8      5101                
+C8      A202                
+FC                          
+    35  5101    0F0F0F      
+3E019F  A800    0E0E0E      
+BD00    5101                
+FC      A202                
+3E01                        
+FC0038  3E01    0C0F0C      
+3E01A8  9F00    0B0E0B      
+BD00    3E01                
+FC      7C02                
+3E01                        
+FC003F  7B01    0F0D0F      
+3E01BD  BD00    0E0C0E      
+BD00    7B01                
+FC      F602                
+3E01                        
+FC0035  F801    0C0D0C      
+3E019F  FC00    0B0C0B      
+BD00    F801                
+FC      FD03                
+3E01                        
+BD003F  3E01    0F0D0F      
+FC  BD  9F00    0E0C0E      
+9F      3E01                
+BD      7C02                
+FC                          
+    42  7B01    0C0D0C      
+3E01C8  BD00    0B0C0B      
+BD00    7B01                
+FC      F602                
+3E01                        
+FC003F  7B01    0F0E0F      
+3E01BD  BD00    0E0D0E      
+BD00    7B01                
+FC      F602                
+3E01                        
+BD002F  3E01    0C0E0C      
+FC  8E  9F00    0B0D0B      
+9F      3E01                
+BD      7C02                
+FC                          
+BD  3F  1C01    0F0E0F      
+EF  BD  8E00    0E0D0E      
+8E      1C01                
+BD      3802                
+EF                          
+FC  42  7B01    0C0E0C      
+3E01C8  BD00    0B0D0B      
+BD00    7B01                
+FC      F602                
+3E01                        
+FC003F  7B01    0F0F0F      
+3E01BD  BD00    0E0E0E      
+BD00    7B01                
+FC      F602                
+3E01                        
+BD002A  1C01    0C0F0C      
+EF  7E  8E00    0B0E0B      
+8E      1C01                
+BD      3802                
+EF                          
+9F  3F  FC00    0F0F0F      
+BD  BD  7E      0E0E0E      
+7E      FC                  
+9F      F801                
+BD                          
+FC  42  7B      0C0F0C      
+3E01C8  BD00    0B0E0B      
+BD00    7B01                
+FC      F602                
+3E01                        
+FC003F  7B01    0F0F0F      
+3E01BD  BD00    0E0E0E      
+BD00    7B01                
+FC      F602                
+3E01                        
+9F0027  FC00    0C0F0C      
+BD  77  7E      0B0E0B      
+7E      FC                  
+9F      F801                
+BD                          
+8E  3F  EF00    0F0F0F      
+BD  BD  77      0E0E0E      
+77      EF                  
+8E      DF01                
+BD                          
+FC  42  7B      0C0F0C      
+3E01C8  BD00    0B0E0B      
+BD00    7B01                
+FC      F602                
+3E01                        
+9F003F  FC00    0F0F0F      
+BD  BD  7E      0E0E0E      
+7E      FC                  
+9F      F801                
+BD                          
+8E  27  EF00    0C0F0C      
+BD  77  77      0B0E0B      
+77      EF                  
+8E      DF01                
+BD                          
+    2A  3E      0F0F0F      
+FC  7E  9F00    0E0E0E      
+9F      3E01                
+BD      7C02                
+FC                          
+9F  2F  FC00    0C0F0C      
+BD  8E  7E      0B0E0B      
+7E      FC                  
+9F      F801                
+BD                          
+FC  2A  7B      0F0F0F      
+3E017E  BD00    0E0E0E      
+BD00    7B01                
+FC      F602                
+3E01                        
+BD0035  3E01    0C0F0C      
+FC  9F  9F00    0B0E0B      
+9F      3E01                
+BD      7C02                
+FC                          
+BD  38  3E01    0F0F0F      
+FC  A8  9F00    0E0E0E      
+9F      3E01                
+BD      7C02                
+FC                          
+    3F  7B01    0C0F0C      
+3E01BD  BD00    0B0E0B      
+BD00    7B01                
+FC      F602                
+3E01                        
+A80035  F801    0F0F0F      
+EF  9F  FC00    0E0E0E      
+A8      F801                
+        FD03                
+EF                          
+BD      3E01  280C000C      
+FC      9F00    0B  0B      
+9F      3E01                
+BD      7C02                
+FC                          
+C8  A8  9001  380F0F0F      
+FC      C800    0E0E0E      
+A8      9001                
+C8  9F  2003                
+FC                          
+A8      F801    0C  0C      
+EF  A8  FC00    0B  0B      
+A8      F801                
+        FD03      0D        
+EF  9F                      
+FC  3F  7B01    0F0F0F      
+3E01BD  BD00    0E0E0E      
+BD00    7B01                
+FC      F602                
+3E01                        
+BD00                0B      
+FC                          
+3E01                        
+BD00            0D0D0A      
+FC                          
+3E01            0C0C08      
+B500B5  EE      0B0B07      
+F8  B9  F2                  
+3C01BB  F4                  
+BD00BD  F6                  
+F4  B5  7B01        09      
+3C01BB  BD00        08      
+BD00BD  7B01                
+FC      F602                
+3E01                        
+FC003F  7B01    0F0F0F      
+3E01BD  BD00    0E0E0E      
+BD00    7B01                
+FC      F602                
+3E01                        
+FC0054  F801    0C0B0C      
+3E01FC  FC00    0B0A0B      
+BD00    F801                
+FC      FD03                
+3E01                        
+BD0035  3E01    0F0F0F      
+FC  9F  9F00    0E0E0E      
+9F      3E01                
+BD      7C02                
+FC                          
+    3F  7B01    0C0F0C      
+3E01BD  BD00    0B0E0B      
+BD00    7B01                
+FC      F602                
+3E01                        
+    54  F801    0F0F0F      
+7B  FC  FC00    0E0E0E      
+FC00    F801                
+3E01    FD03                
+7B                          
+BD0035  3E01    0C0C0C      
+FC  9F  9F00    0B0B0B      
+9F      3E01                
+BD      7C02                
+FC                          
+    3F  7B01    0F0F0F      
+3E01BD  BD00    0E0E0E      
+BD00    7B01                
+FC      F602                
+3E01                        
+    54  F801    0C0F0C      
+7B  FC  FC00    0B0E0B      
+FC00    F801                
+3E01    FD03                
+7B                          
+    6B  7C02    0F0F0F      
+F8  3E013E01    0E0E0E      
+3E      7C02                
+7B      F804                
+F8                          
+FC003F007B01    0C0C0C      
+3E01BD  BD00    0B0B0B      
+BD00    7B01                
+FC      F602                
+3E01                        
+    54  F801    0F0F0F      
+7B  FC  FC00    0E0E0E      
+FC00    F801                
+3E01    FD03                
+7B                          
+    6B  7C02    0C0F0C      
+F8  3E013E01    0B0E0B      
+3E      7C02                
+7B      F804                
+F8                          
+    7E00F602    0F0F0F      
+7C027B017B01    0E0E0E      
+7B01    F602                
+F8      EC05                
+7C02                        
+3E015400F801    0C0C0C      
+7B  FC  FC00    0B0B0B      
+FC00    F801                
+3E01    FD03                
+7B                          
+    6B  7C02    0F090F      
+F8  3E013E01    0E080E      
+3E      7C02                
+7B      F804                
+F8                          
+    7E00F602    0C060C      
+7C027B017B01    0B  0B      
+7B01    F602                
+F8      EC05                
+7C02                        
+3E017E00F602    0F0F0F      
+7B  7B017B01    0E0E0E      
+FC00    F602                
+3E01    EC05                
+7B                          
+    6B007C02    0C0C0C      
+F8  3E013E01    0B0B0B      
+3E      7C02                
+7B      F804                
+F8                          
+0A  85002003    0F0F0F      
+7B  90019001    0E0E0E      
+0A      2003                
+        4006                
+7B                          
+3E  7E00F602    0C0C0C      
+7B  7B017B01    0B0B0B      
+FC00    F602                
+3E01    EC05                
+7B                          
+2C  5E003802    0F0F0F      
+7B  1C011C01    0E0E0E      
+FC00    3802                
+2C01    7004                
+7B                          
+0A  85002003    0C0C0C      
+7B  90019001    0B0B0B      
+0A      2003                
+        4006                
+7B                          
+D60064005802    0F0F0F      
+2C012C012C01    0E0E0E      
+D600    5802                
+        B004                
+2C01                        
+    54003802    0C0F0C      
+7B  FC  1C01    0B0E0B      
+FC00    3802                
+2C01    7004                
+7B                          
+2C  47  F801    0F0F0F      
+7B  D6  FC00    0E0E0E      
+FC00    F801                
+2C01    FD03                
+7B                          
+AC  64  5802    0C0C0C      
+58022C012C01    0B0B0B      
+AC01    5802                
+        B004                
+5802                        
+D6004F00F602    0F0F0F      
+2C01EF  7B01    0E0E0E      
+D600    F602                
+        EC05                
+2C01                        
+    54  F801    0C0F0C      
+7B  FC  FC00    0B0E0B      
+FC00    F801                
+2C01    FD03                
+7B                          
+1C  4F  DF01    0F0F0F      
+7B  EF  EF00    0E0E0E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+D6004F  F602    0C0C0C      
+2C01EF  7B01    0B0B0B      
+D600    F602                
+        EC05                
+2C01                        
+7B  5E  3802    0F0F0F      
+DF  1C011C01    0E0E0E      
+1C      3802                
+7B      7004                
+DF                          
+1C  4F00DF01    0C0C0C      
+7B  EF  EF00    0B0B0B      
+EF00    DF01                
+1C01    BE03                
+7B                          
+1C  4F  DF01    0F0F0F      
+7B  EF  EF00    0E0E0E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+    5E  3802    0C0C0C      
+DF  1C011C01    0B0B0B      
+1C      3802                
+7B      7004                
+DF                          
+EF003F007B01    0F0F0F      
+1C01BD  BD00    0E0E0E      
+BD00    7B01                
+EF      F602                
+1C01                        
+    4F  DF01    0C0F0C      
+7B  EF  EF00    0B0E0B      
+EF00    DF01                
+1C01    BE03                
+7B                          
+    5E  3802    0F0F0F      
+DF  1C011C01    0E0E0E      
+1C      3802                
+7B      7004                
+DF                          
+EF003F007B01    0C0C0C      
+1C01BD  BD00    0B0B0B      
+BD00    7B01                
+EF      F602                
+1C01                        
+    4F  DF01    0F0F0F      
+7B  EF  EF00    0E0E0E      
+EF00    DF01                
+1C01    BE03                
+7B                          
+    5E  3802    0C0F0C      
+DF  1C011C01    0B0E0B      
+1C      3802                
+7B      7004                
+DF                          
+51  7000A202    0F0F0F      
+DF  51015101    0E0E0E      
+51      A202                
+        4405                
+DF                          
+1C  4F00DF01    0C0C0C      
+7B  EF  EF00    0B0B0B      
+EF00    DF01                
+1C01    BE03                
+7B                          
+51  5E  3802    0F0F0F      
+AC  1C011C01    0E0E0E      
+1C      3802                
+51      7004                
+AC                          
+51  7000A202    0C0F0C      
+DF  51015101    0B0E0B      
+51      A202                
+        4405                
+DF                          
+AC  8E005803    0F0F0F      
+DF  AC01AC01    0E0E0E      
+AC      5803                
+DF      B006                
+AC                          
+51  5E003802    0C0C0C      
+AC  1C011C01    0B0B0B      
+1C      3802                
+51      7004                
+AC                          
+51  70003802    0F090F      
+DF  51011C01    0E080E      
+51      3802                
+        7004                
+DF                          
+AC  8E005803    0C060C      
+DF  AC01AC01    0B  0B      
+AC      5803                
+DF      B006                
+AC                          
+51  8E005803    0F0F0F      
+AC  AC01AC01    0E0E0E      
+1C      5803                
+51      B006                
+AC                          
+51  6B003802    0C0F0C      
+DF  3E011C01    0B0E0B      
+51      3802                
+        7004                
+DF                          
+51  54007C02    0F0F0F      
+DF  FC  3E01    0E0E0E      
+51      7C02                
+        F804                
+DF                          
+51  6B  5803    0C0F0C      
+AC  3E01AC01    0B0E0B      
+1C      5803                
+51      B006                
+AC                          
+51  5E003802    0F0F0F      
+AC  1C011C01    0E0E0E      
+1C      3802                
+51      7004                
+AC                          
+51  6B007C02    0C0F0C      
+DF  3E013E01    0B0E0B      
+51      7C02                
+        F804                
+DF                          
+AC  5E005803    0F0F0F      
+DF  1C01AC01    0E0E0E      
+AC      5803                
+DF      B006                
+AC                          
+1C  6B003802    0C0F0C      
+90  3E011C01    0B0E0B      
+1C      3802                
+        7004                
+90                          
+EF0070005803    0F0F0F      
+51015101AC01    0E0E0E      
+EF00    5803                
+        B006                
+5101                        
+AC  5E005803    0C0F0C      
+DF  1C01AC01    0B0E0B      
+AC      5803                
+DF      B006                
+AC                          
+    4F003802    0F0F0F      
+DF  EF  1C01    0E0E0E      
+AC      3802                
+DF      7004                
+AC                          
+EF005E  5803    0C0F0C      
+51011C01AC01    0B0E0B      
+EF00    5803                
+        B006                
+5101                        
+FC0054007C02    0F0F0F      
+3E01FC  3E01    0E0E0E      
+D600    7C02                
+FC      F804                
+3E01                        
+AC  5E  3802    0C0F0C      
+DF  1C011C01    0B0E0B      
+AC      3802                
+DF      7004                
+AC                          
+F8  54005803    0F0F0F      
+7C02FC  AC01    0E0E0E      
+AC01    5803                
+F8      B006                
+7C02                        
+FC005E  7C02    0C0F0C      
+3E011C013E01    0B0E0B      
+D600    7C02                
+FC      F804                
+3E01                        
+FC006B007C02    0F0D0F      
+3E013E013E01    0E0C0E      
+D600    7C02                
+FC      F804                
+3E01                        
+FC0054005803    0C0D0C      
+3E01FC  AC01    0B0C0B      
+D600    5803                
+FC      B006                
+3E01                        
+    6B  F801    0F0D0F      
+AC  3E01FC00    0E0C0E      
+FC00    F801                
+3E01    FD03                
+AC                          
+FC0070007C02    0C0D0C      
+3E0151013E01    0B0C0B      
+D600    7C02                
+FC      F804                
+3E01                        
+FC006B007C02    0F0E0F      
+3E013E013E01    0E0D0E      
+D600    7C02                
+FC      F804                
+3E01                        
+    4F00  01    0C0E0C      
+AC  EF  FC00    0B0D0B      
+FC00    F801                
+3E01    FD03                
+AC                          
+EF006B  DF01    0F0E0F      
+3E013E01EF00    0E0D0E      
+BD00    DF01                
+EF      BE03                
+3E01                        
+FC0070007C02    0C0E0C      
+3E0151013E01    0B0D0B      
+D600    7C02                
+FC      F804                
+3E01                        
+FC006B007C02    0F0F0F      
+3E013E013E01    0E0E0E      
+D600    7C02                
+FC      F804                
+3E01                        
+EF004700DF01    0C0F0C      
+3E01D6  EF00    0B0E0B      
+BD00    DF01                
+EF      BE03                
+3E01                        
+    6B  AC01    0F0F0F      
+AC  3E01D600    0E0E0E      
+FC00    AC01                
+3E01    5803                
+AC                          
+FC0070007C02    0C0F0C      
+3E0151013E01    0B0E0B      
+D600    7C02                
+FC      F804                
+3E01                        
+EF006B007C02    0F0F0F      
+3E013E013E01    0E0E0E      
+BD00    7C02                
+EF      F804                
+3E01                        
+    3F00AC01    0C0F0C      
+AC  BD  D600    0B0E0B      
+FC00    AC01                
+3E01    5803                
+AC                          
+7B  6B  7B01    0F0F0F      
+DF  3E01BD00    0E0E0E      
+3E      7B01                
+7B      F602                
+DF                          
+EF0070007C      0C0F0C      
+3E0151013E01    0B0E0B      
+BD00    7C02                
+EF      F804                
+3E01                        
+7B  6B007C02    0F0F0F      
+DF  3E013E01    0E0E0E      
+3E      7C02                
+7B      F804                
+DF                          
+7B  3F007B01    0C0F0C      
+DF  BD  BD00    0B0E0B      
+3E      7B01                
+7B      F602                
+DF                          
+EF0047  7B01    0F0F0F      
+3E01D6  BD00    0E0E0E      
+BD00    7B01                
+EF      F602                
+3E01                        
+7B  4F  7C      0C0F0C      
+DF  EF  3E01    0B0E0B      
+3E      7C02                
+7B      F804                
+DF                          
+FC0047  AC01    0F0F0F      
+3E01D6  D600    0E0E0E      
+D600    AC01                
+FC      5803                
+3E01                        
+EF0054  7B01    0C0F0C      
+3E01FC  BD00    0B0E0B      
+BD00    7B01                
+EF      F602                
+3E01                        
+    5E  F801    0F0F0F      
+AC  1C01FC00    0E0E0E      
+FC00    F801                
+3E01    FD03                
+AC                          
+FC006B00AC01    0C0F0C      
+3E013E01D600    0B0E0B      
+D600    AC01                
+FC      5803                
+3E01                        
+AC  5400        0F0F0F      
+DF  FC  AC01    0E0E0E      
+AC      5803                
+DF      B006                
+AC                          
+3E  5E  F801    0C0C0C      
+AC  1C01FC00    0B0B0B      
+FC00    F801                
+3E01    FD03                
+AC                          
+51      A202    0F0F0F      
+AC      5101    0E0E0E      
+1C  FC00A202                
+51      4405                
+AC  1C01                    
+        5803    0C0B0C      
+DF  FC00AC01    0B  0B      
+AC      5803                
+DF  1C01B006      0A        
+AC                          
+3E  6B007C02    0F0F0F      
+AC  3E013E01    0E0E0E      
+F8      7C02                
+3E      F804                
+AC                          
+3E  6B007C02    0C0C0A      
+AC  3E013E01    0B0B09      
+F8      7C02                
+3E      F804                
+AC                          
+3E  6B007C02    0909        
+AC  3E013E01    080808      
+F8      7C02                
+3E      F804                
+AC                          
+3E  6B007C02    060606      
+AC  3E013E01                
+F8      7C02                
+3E      F804                
+AC                          
+7B  5400F602    0F0F0F      
+F8  FC  7B01    0E0E0E      
+3E      F602                
+7B      EC05                
+F8                          
+7B  54  F602    0C0B0C      
+F8  FC  7B01    0B0A0B      
+3E      F602                
+7B      EC05                
+F8                          
+    54  7C02    0F0F0F      
+7C02FC  3E01    0E0E0E      
+7B01    7C02                
+F8      F804                
+7C02                        
+7B0154  F602    0C0B0C      
+F8  FC  7B01    0B0A0B      
+3E      F602                
+7B      EC05                
+F8                          
+7B  54  F801    0F0F0F      
+F8  FC  FC00    0E0E0E      
+3E      F801                
+7B      FD03                
+F8                          
+    59  7C02    0C0F0C      
+7C020A013E01    0B0E0B      
+7B01    7C02                
+F8      F804                
+7C02                        
+3E015400F602    0F0F0F      
+7B  FC  7B01    0E0E0E      
+FC00    F602                
+3E01    EC05                
+7B                          
+    54  F801    0C0B0C      
+F8  FC  FC00    0B0A0B      
+3E      F801                
+7B      FD03                
+F8                          
+BD0035  F801    0F0F0F      
+FC  9F  FC00    0E0E0E      
+9F      F801                
+BD      FD03                
+FC                          
+3E01    F602    0C0A0C      
+7B      7B01    0B  0B      
+FC00    F602                
+3E01    EC05      09        
+7B                          
+3E  54  F602    0F0F0F      
+7B  FC  7B01    0E0E0E      
+FC00    F602                
+3E01    EC05                
+7B                          
+    35  F801    0C0B0C      
+F8  9F  FC00    0B0A0B      
+3E      F801                
+7B      FD03                
+F8                          
+7B  54  3802    0F0F0F      
+F8  FC  1C01    0E0E0E      
+3E      3802                
+7B      7004                
+F8                          
+3E  54  F602    0C0B0C      
+7B  FC  7B01    0B0A0B      
+FC00    F602                
+3E01    EC05                
+7B                          
+    5E  DF01    0F0F0F      
+DF  1C01EF00    0E0E0E      
+1C      DF01                
+7B      BE03                
+DF                          
+7B  54003802    0C0B0C      
+F8  FC  1C01    0B0A0B      
+3E      3802                
+7B      7004                
+F8                          
+90  5E  2003    0F0F0F      
+F8  1C019001    0E0E0E      
+51      2003                
+90      4006                
+F8                          
+7B  5E00DF01    0C0B0C      
+DF  1C01EF00    0B0A0B      
+1C      DF01                
+7B      BE03                
+DF                          
+90  5E00A202    0F0F0F      
+38021C015101    0E0E0E      
+9001    A202                
+        4405                
+3802                        
+90015E002003    0C0B0C      
+F8  1C019001    0B0A0B      
+51      2003                
+90      4006                
+F8                          
+90  5E003802    0F0F0F      
+F8  1C011C01    0E0E0E      
+51      3802                
+90      7004                
+F8                          
+90  6400A202    0C0F0C      
+38022C015101    0B0E0B      
+9001    A202                
+        4405                
+3802                        
+1C015E00FD03    0F0F0F      
+90  1C01F801    0E0E0E      
+1C      FD03                
+        E007                
+90                          
+    5E003802    0C0B0C      
+F8  1C011C01    0B0A0B      
+51      3802                
+90      7004                
+F8                          
+C80038002003    0F0F0F      
+FC  A8  9001    0E0E0E      
+A8      2003                
+C8      4006                
+FC                          
+1C015E  FD03    0C0B0C      
+90  1C01F801    0B0A0B      
+1C      FD03                
+        E007                
+90                          
+1C  5E00A202    0F0F0F      
+90  1C015101    0E0E0E      
+1C      A202                
+        4405                
+90                          
+C80038002003    0C0B0C      
+FC  A8  9001    0B0A0B      
+A8      2003                
+C8      4006                
+FC                          
+90015E  F602    0F0F0F      
+F8  1C017B01    0E0E0E      
+51      F602                
+90      EC05                
+F8                          
+1C  5E00A202    0C0B0C      
+90  1C015101    0B0A0B      
+1C      A202                
+        4405                
+90                          
+7B  6B007C02    0F0F0F      
+F8  3E013E01    0E0E0E      
+3E      7C02                
+7B      F804                
+F8                          
+90  5E00F602    0C0B0C      
+F8  1C017B01    0B0A0B      
+51      F602                
+90      EC05                
+F8                          
+7B  3F00F602    0F0F0F      
+F8  BD  7B01    0E0E0E      
+3E      F602                
+7B      EC05                
+F8                          
+7B      7C02    0C  0C      
+F8      3E01    0B  0B      
+3E      7C02                
+7B      F804      0D        
+F8                          
+3E      7C02    0F0C0F      
+7B  B5  3E01    0E0B0E      
+FC00B9  7C02                
+3E01BB  F804                
+7B  BD                      
+    B5  F602    0C  0C      
+F8  BB  7B01    0B  0B      
+3E  BD  F602                
+7B      EC05                
+F8                          
+FC00    F801    0F0A0F      
+3E01    FC00    0E090E      
+BD00    F801                
+FC      FD03                
+3E01                        
+    35  7C02    0C0F0C      
+7B  9F  3E01    0B0E0B      
+FC00    7C02                
+3E01    F804                
+7B                          
+3E  3F  F602    0F0F0F      
+7B  BD  7B01    0E0E0E      
+FC00    F602                
+3E01    EC05                
+7B                          
+FC0047  F801    0C0F0C      
+3E01D6  FC00    0B0E0B      
+BD00    F801                
+FC      FD03                
+3E01                        
+EF004F  BE      0F0F0F      
+3E01EF  DF01    0E0E0E      
+7B      BE03                
+EF00    7C07                
+3E01                        
+        F602    0C  0C      
+AC      7B01    0B  0B      
+F8      F602                
+3E      EC05      0D        
+AC                          
+EF00    F602    0F0C0F      
+3E01E7  7B01    0E0B0E      
+BD00EB  F602                
+EF  ED  EC05                
+3E01EF                      
+EF00E7  BE03    0C  0C      
+3E01ED  DF01    0B  0B      
+7B  EF  BE03                
+EF00    7C07                
+3E01                        
+BD00    3802    0F0A0F      
+EF      1C01    0E090E      
+9F      3802                
+BD      7004                
+EF                          
+    3F  F602    0C0F0C      
+3E01BD  7B01    0B0E0B      
+BD00    F602                
+EF      EC05                
+3E01                        
+EF004F  BE03    0F0F0F      
+3E01EF  DF01    0E0E0E      
+7B      BE03                
+EF00    7C07                
+3E01                        
+BD005E  3802    0C0F0C      
+EF  1C011C01    0B0E0B      
+9F      3802                
+BD      7004                
+EF                          
+7B016B00BE03    0F0F0F      
+DF  3E01DF01    0E0E0E      
+3E      BE03                
+7B      7C07                
+DF                          
+EF007000BE03    0C0F0C      
+3E015101DF01    0B0E0B      
+7B      BE03                
+EF00    7C07                
+3E01                        
+7B  6B00BE03    0F0F0F      
+DF  3E01DF01    0E0E0E      
+1C      BE03                
+7B      7C07                
+DF                          
+7B  7000BE03    0C0F0C      
+DF  5101DF01    0B0E0B      
+3E      BE03                
+7B      7C07                
+DF                          
+7B  6B00F602    0F0F0F      
+DF  3E017B01    0E0E0E      
+3E      F602                
+7B      EC05                
+DF                          
+7B  7000BE03    0C0F0C      
+DF  5101DF01    0B0E0B      
+1C      BE03                
+7B      7C07                
+DF                          
+7B  6B00BE03    0F0F0F      
+DF  3E01DF01    0E0E0E      
+1C      BE03                
+7B      7C07                
+DF                          
+7B  7000F602    0C0F0C      
+DF  51017B01    0B0E0B      
+3E      F602                
+7B      EC05                
+DF                          
+FC005400FD03    0F0F0F      
+5101FC  F801    0E0E0E      
+90      FD03                
+FC00    E007                
+5101                        
+7B      BE03    0C  0C      
+DF      DF01    0B  0B      
+1C      BE03                
+7B      7C07      0D        
+DF                          
+FC0042  2003    0F0F0F      
+5101C8  9001    0E0E0E      
+C800    2003                
+FC      4006                
+5101                        
+FC0038  FD03    0C0F0C      
+5101A8  F801    0B0E0B      
+90      FD03                
+FC00    E007                
+5101                        
+8E002F  F801    0F0F0F      
+C8  8E  FC00    0E0E0E      
+8E      F801                
+        FD03                
+C8                          
+FC      20      0C  0C      
+5101    9001    0B  0B      
+C800    2003                
+FC      4006      0D        
+5101                        
+C80035  FD03    0F0F0F      
+1C019F  F801    0E0E0E      
+C800    FD03                
+        E007                
+1C01                        
+8E0038  F801    0C0F0C      
+C8  A8  FC00    0B0E0B      
+8E      F801                
+        FD03                
+C8                          
+FC  35  F602    0F0F0F      
+3E019F  7B01    0E0E0E      
+BD00    F602                
+FC      EC05                
+3E01                        
+FC0054  F602    0C0F0C      
+3E01FC  7B01    0B0E0B      
+BD00    F602                
+FC      EC05                
+3E01                        
+    5E  7C02    0F0F0F      
+7B  1C013E01    0E0E0E      
+FC00    7C02                
+3E01    F804                
+7B                          
+FC006B00F602    0C0F0C      
+3E013E017B01    0B0E0B      
+BD00    F602                
+FC      EC05                
+3E01                        
+90  51  FD03    0F0F0F      
+F8      F801    0E0E0E      
+51      FD03                
+90  3E  E007                
+F8                          
+51                          
+90  51                      
+F8                          
+51              0D0D0D      
+90  3E                      
+F8              0C0C0C      
+49  36  D8      0B0B0B      
+8C  4D  DC                  
+F6  4F  DE                  
+51  51  E0                  
+90  36          0A  0C      
+F8  3C          09  0B      
+51  3E                      
+90  51                      
+F8                          
+    7E00F801    0C0F0C      
+7C027B01EC05    0B0E0B      
+7B01                        
+F8                          
+7C02                        
+F8017E00F801    0F0F0F      
+7C027B01EC05    0E0E0E      
+7B01                        
+F8                          
+7C02                        
+7B01                        
+F8                          
+7C02                        
+7B01            0D0D0D      
+F8                          
+7C02            0C0C0C      
+730173  E4      0B0B0B      
+F4  77  E8                  
+7A0279  EA                  
+7B017B  EC                  
+F0  73  E4                  
+7A0279  EA                  
+7B017B  EC                  
+F8                          
+7C02                        
+730173  E4                  
+F4  77  E8                  
+7A0279  EA                  
+7B017B  EC                  
+F0  73  E4                  
+7A0279  EA                  
+7B017B  EC                  
+F8                          
+7C02                        
+730173  E4                  
+F4  77  E8                  
+7A0279  EA                  
+7B017B  EC                  
+F0  73  E4                  
+7A0279  EA                  
+38  2F00F6021F340F0F108E000C
+20038E        3C  0E        
+2C04                        
+4405                        
+0807                        
+38023F      05350C0C        
+2003BD      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380227  7B0102  0D0F  47  0C
+200377      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38022F      05  0C0F        
+20038E      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F  F6021F340F0F  8E  0C
+2003BD        3C  0E        
+2C04                        
+4405                        
+0807                        
+380227      05350C0C        
+200377      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38022F  7B0102  0D0F  47  0C
+20038E      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023F      05  0C0F        
+2003BD      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F  F6021F340F0F  8E  0C
+2003EF        3C  0E        
+2C04                        
+4405                        
+0807                        
+38022F      05350C0C        
+20038E      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F  7B0102  0D0F  47  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38024F      05  0C0F        
+2003EF      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38025E  F6021F340F0F  8E  0C
+20031C01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38023F00    05350C0C        
+2003BD      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F  7B0102  0D09  47  0C
+2003EF      00  0C08        
+2C04                        
+4405                        
+0807            0B          
+38025E      05  0C06        
+20031C01    04  0B          
+2C04        03  09          
+4405        00  07          
+0807            05          
+38027E00F6021F340F0F  8E  0C
+20037B01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38025E00    05350C0F        
+20031C01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F007B0102  0D0F  47  0C
+2003EF      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38025E      05  0C0F        
+20031C01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+3802540038021F340F0F  6A  0C
+2003FC        3C  0E        
+2C04                        
+4405                        
+0807                        
+38025E      05350C0F        
+20031C01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380254001C0102  0D0F  35  0C
+2003FC      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38025E      05  0C0F        
+20031C01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38026400F8  1F340F0F  5E  0C
+20032C01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38025400    05350C0F        
+2003FC      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380247  FC0002  0D0F  2F  0C
+2003D6      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380254      05  0C0F        
+2003FC      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC014F  F6020B340F0F  8E  0C
+D802EF        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  3F            0C        
+AE  BD        35  0B        
+2003            0D          
+EC05                        
+B006                        
+AC015E  7B010B340F0F  47  0C
+D8021C01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+AC014F00    0B  0F0C        
+D802EF        3C  0B        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+38022F  F6021F  0F0F  8E  0C
+20038E        3C  0E        
+2C04                        
+4405                        
+0807                        
+38023F      05350C0C        
+2003BD      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380227  7B0102  0D0F  47  0C
+200377      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38022F      05  0C0F        
+20038E      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC013F  F6020B340F0F  8E  0C
+D802BD        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  27            0C        
+AE  77        35  0B        
+2003            0D          
+EC05                        
+B006                        
+38022F  7B0102    0F  47  0C
+20038E      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023F      05  0C0F        
+2003BD      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F  F6021F340F0F  8E  0C
+2003EF        3C  0E        
+2C04                        
+4405                        
+0807                        
+38022F      05350C0C        
+20038E      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F  7B0102  0D0F  47  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38024F      05  0C0F        
+2003EF      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC015E  F6020B340F0F  8E  0C
+D8021C01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  3F00          0C        
+AE  BD        35  0B        
+2003            0D          
+EC05                        
+B006                        
+38024F  7B0102    09  47  0C
+2003EF      00  0C08        
+2C04                        
+4405                        
+0807            0B          
+38025E      05  0C06        
+20031C01    04  0B          
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F00F6021F340F0F  8E  0C
+2003EF        3C  0E        
+2C04                        
+4405                        
+0807                        
+38024F      05350C0C        
+2003EF      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F  7B0102  0D0F  47  0C
+2003EF      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38024F      05  0C0C        
+2003EF      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC014F  F6020B340F0F  8E  0C
+D802EF        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  54            0F        
+AE  FC        35  0E        
+2003            0D          
+EC05                        
+B006                        
+38024F  7B0102    0F  47  0C
+2003EF      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38024F      05  0C0C        
+2003EF      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38022F  F6021F340F0F  8E  0C
+20038E        3C  0E        
+2C04                        
+4405                        
+0807                        
+38022F      05350C0C        
+20038E      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F  7B0102  0D0F  47  0C
+2003EF      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38024F      05  0C0C        
+2003EF      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC01    FD030B340F0F  BF  0C
+D802          3C  0E        
+2004D6      0A34            
+7D05        0B              
+4407EF      0C  0E          
+6C  4F            0C        
+AE  EF        35  0B        
+2003            0D          
+EC05                        
+B006                        
+AC0154  F8010B340F0F  5E  0C
+D802FC        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+AC0154      0B  0F0C        
+D802FC        3C  0B        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+38023F  F6021F  0F0F  8E  0C
+2003BD        3C  0E        
+2C04                        
+4405                        
+0807                        
+38023F      05350C0C        
+2003BD      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F  7B0102  0D0F  47  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023F      05  0C0C        
+2003BD      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC013F  F6020B340F0F  8E  0C
+D802BD        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  42            0F        
+AE  C8        35  0E        
+2003            0D          
+EC05                        
+B006                        
+38023F  7B0102    0F  47  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023F      05  0C0C        
+2003BD      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380227  F6021F340F0F  8E  0C
+200377        3C  0E        
+2C04                        
+4405                        
+0807                        
+380227      05350C0C        
+200377      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F  7B0102  0D0F  47  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023F      05  0C0C        
+2003BD      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC01    51  0B340F0F  3F  0C
+D802          3C  0E        
+2004A8      0A34            
+7D05        0B              
+4407BD      0C  0E          
+6C                0B        
+AE  A8        35            
+2003            0D          
+EC05BD            0A        
+B006                        
+380242  A20202    0F  7E  0C
+2003C8      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380242      05  0C0C        
+2003C8      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380254  FD031F340F0F  BF  0C
+2003FC        3C  0E        
+2C04                        
+4405                        
+0807                        
+38023F      05350C0F        
+2003BD      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380235  F80102  0D0F  5E  0C
+20039F      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023F      05  0C0F        
+2003BD      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC0138  84030B340F0F  A9  0C
+D802A8        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  3F            0F        
+AE  BD        35  0E        
+2003            0D          
+EC05                        
+B006                        
+380238  C20102    0F  54  0C
+2003A8      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023F      05  0C0F        
+2003BD      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380242  A2021F340F0F  7E  0C
+2003C8        3C  0E        
+2C04                        
+4405                        
+0807                        
+380238      05350C0F        
+2003A8      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38022F  510102  0D0F  3F  0C
+20038E      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380238      05  0C0F        
+2003A8      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC0135  F8  0B340F0F  5E  0C
+D8029F        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  38            0F        
+AE  A8        35  0E        
+2003            0D          
+EC05                        
+B006                        
+AC0135  FC000B340F0F  2F  0C
+D8029F        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+AC0138      0B  0F0F        
+D802A8        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+38023F  FD031F  0F0D  BF  0C
+2003BD        3C  0C        
+2C04                        
+4405                        
+0807                        
+380235      05350C0D        
+20039F      04  0B0C        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F  F80102  0D0D  5E  0C
+2003BD      00  0C0C        
+2C04                        
+4405                        
+0807            0B          
+380242      05  0C0D        
+2003C8      04  0B0C        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC013F  84030B340F0E  A9  0C
+D802BD        3C  0D        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  2F            0E        
+AE  8E        35  0D        
+2003            0D          
+EC05                        
+B006                        
+38023F  C20102    0E  54  0C
+2003BD      00  0C0D        
+2C04                        
+4405                        
+0807            0B          
+380242      05  0C0E        
+2003C8      04  0B0D        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F  58031F340F0F  A0  0C
+2003BD        3C  0E        
+2C04                        
+4405                        
+0807                        
+38022A      05350C0F        
+20037E      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F  AC0102  0D0F  50  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380242      05  0C0F        
+2003C8      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC013F  F6020B340F0F  8E  0C
+D802BD        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  27            0F        
+AE  77        35  0E        
+2003            0D          
+EC05                        
+B006                        
+38023F  7B0102    0F  47  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380242      05  0C0F        
+2003C8      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F  F6021F340F0F  8E  0C
+2003BD        3C  0E        
+2C04                        
+4405                        
+0807                        
+380227      05350C0F        
+200377      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38022A  7B0102  0D0F  47  0C
+20037E      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38022F      05  0C0F        
+20038E      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC012A  FD030B340F0F  BF  0C
+D8027E        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  35            0F        
+AE  9F        35  0E        
+2003            0D          
+EC05                        
+B006                        
+380238  58  02    0F  A0  0C
+2003A8      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023F      05  0C0F        
+2003BD      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380235  A2021F340F0F  7E  0C
+20039F        3C  0E        
+2C04                        
+4405                        
+0807                        
+3802        05250C00        
+2003        04  0B          
+2C04        03  09          
+4405        00  07          
+0807            05          
+3802A8  510102350D0F  3F  0C
+2003        00  0C0E        
+2C04                        
+44059F                      
+0807            0B          
+3802        05  0C          
+2003A8      04  0B          
+2C04        03  09          
+4405        00  070D        
+08079F          05          
+AC013F  FD030B340F0F  BF  0C
+D802BD        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C                          
+AE            35            
+2003            0D          
+EC05              0D        
+B006                        
+AC01    F8010B340F0C  5E  0C
+D802B5        3C  0B        
+2004B9      0A34            
+7D05BB      0B              
+4407BD      0C  0E          
+AC01B5      0B  0F          
+D802BB        3C            
+2004BD      0A34            
+7D05        0B              
+4407        0C  0E          
+38023F      1F  0F0F      0C
+2003BD        3C  0E        
+2C04                        
+4405                        
+0807                        
+380254      05350C0B        
+2003FC      04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380235  FC0002  0D0F  2F  0C
+20039F      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023F      05  0C0F        
+2003BD      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC0154  F8010B340F0F  5E  0C
+D802FC        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  35            0C        
+AE  9F        35  0B        
+2003            0D          
+EC05                        
+B006                        
+38023F  FC0002    0F  2F  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380254      05  0C0F        
+2003FC      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38026B  F8011F340F0F  5E  0C
+20033E01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38023F00    05350C0C        
+2003BD      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380254  FC0002  0D0F  2F  0C
+2003FC      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38026B      05  0C0F        
+20033E01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC017E00F8010B340F0F  5E  0C
+D8027B01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  5400          0C        
+AE  FC        35  0B        
+2003            0D          
+EC05                        
+B006                        
+38026B  FC0002    09  2F  0C
+20033E01    00  0C08        
+2C04                        
+4405                        
+0807            0B          
+38027E00    05  0C06        
+20037B01    04  0B          
+2C04        03  09          
+4405        00  07          
+0807            05          
+38027E00F8011F340F0F  5E  0C
+20037B01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38026B00    05350C0C        
+20033E01    04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38028500FC0002  0D0F  2F  0C
+20039001    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38027E00    05  0C0C        
+20037B01    04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC015E00F8010B340F0F  5E  0C
+D8021C01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  8500          0C        
+AE  9001      35  0B        
+2003            0D          
+EC05                        
+B006                        
+38026400FC0002    0F  2F  0C
+20032C01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38025400    05  0C0F        
+2003FC      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380247  F8011F340F0F  5E  0C
+2003D6        3C  0E        
+2C04                        
+4405                        
+0807                        
+380264      05350C0C        
+20032C01    04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F00FC0002  0D0F  2F  0C
+2003EF      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380254      05  0C0F        
+2003FC      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC014F  7B010B340F0F  47  0C
+D802EF        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  4F            0C        
+AE  EF        35  0B        
+2003            0D          
+EC05                        
+B006                        
+AC015E  3E  0B340F0F  3C  0C
+D8021C01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+AC014F00    0A  0F0C        
+D802EF        3C  0B        
+2004          340E          
+7D05        12              
+4407        09  0D          
+38024F  F6021F  0F0F  8E  0C
+2003EF        3C  0E        
+2C04                        
+4405                        
+0807                        
+38025E      05350C0C        
+20031C01    04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023F007B0102  0D0F  47  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38024F      05  0C0F        
+2003EF      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC015E  F6020B340F0F  8E  0C
+D8021C01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  3F00          0C        
+AE  BD        35  0B        
+2003            0D          
+EC05                        
+B006                        
+38024F  7B0102    0F  47  0C
+2003EF      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38025E      05  0C0F        
+20031C01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+3802700070041F340F0F  D5  0C
+20035101      3C  0E        
+2C04                        
+4405                        
+0807                        
+38024F00    05350C0C        
+2003EF      04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38025E  380202  0D0F  6A  0C
+20031C01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38027000    05  0C0F        
+20035101    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC018E0070040B340F0F  D5  0C
+D802AC01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  5E00          0C        
+AE  1C01      35  0B        
+2003            0D          
+EC05                        
+B006                        
+38027000380202    09  6A  0C
+20035101    00  0C08        
+2C04                        
+4405                        
+0807            0B          
+38028E00    05  0C06        
+2003AC01    04  0B          
+2C04        03  09          
+4405        00  07          
+0807            05          
+38028E0070041F340F0F  D5  0C
+2003AC01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38026B00    05350C0F        
+20033E01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38025400580302  0D0F  A0  0C
+2003FC      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38026B      05  0C0F        
+20033E01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC015E007C020B340F0F  77  0C
+D8021C01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  6B00          0F        
+AE  3E01      35  0E        
+2003            0D          
+EC05                        
+B006                        
+38025E00F6  02    0F  8E  0C
+20031C01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38026B00    05  0C0F        
+20033E01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+3802700038  1F340F0F  6A  0C
+20035101      3C  0E        
+2C04                        
+4405                        
+0807                        
+38025E00    05350C0F        
+20031C01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F001C0102  0D0F  35  0C
+2003EF      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38025E      05  0C0F        
+20031C01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC01540058030B340F0F  A0  0C
+D802FC        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  5E            0F        
+AE  1C01      35  0E        
+2003            0D          
+EC05                        
+B006                        
+AC015400AC010B340F0F  50  0C
+D802FC        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+AC015E      0A  0F0F        
+D8021C01      3C  0E        
+2004          340E          
+7D05        12              
+4407        09  0D          
+38026B0058031F  0F0D  A0  0C
+20033E01      3C  0C        
+2C04                        
+4405                        
+0807                        
+38025400    05350C0D        
+2003FC      04  0B0C        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38026B  AC0102  0D0D  50  0C
+20033E01    00  0C0C        
+2C04                        
+4405                        
+0807            0B          
+38027000    05  0C0D        
+20035101    04  0B0C        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC016B00F6020B340F0E  8E  0C
+D8023E01      3C  0D        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  4F00          0E        
+AE  EF        35  0D        
+2003            0D          
+EC05                        
+B006                        
+38026B  7B0102    0E  47  0C
+20033E01    00  0C0D        
+2C04                        
+4405                        
+0807            0B          
+38027000    05  0C0E        
+20035101    04  0B0D        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38026B00A2021F340F0F  7E  0C
+20033E01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38024700    05350C0F        
+2003D6      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38026B  510102  0D0F  3F  0C
+20033E01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38027000    05  0C0F        
+20035101    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC016B007C020B340F0F  77  0C
+D8023E01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  3F00          0F        
+AE  BD        35  0E        
+2003            0D          
+EC05                        
+B006                        
+38026B  3E0102    0F  3C  0C
+20033E01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38027000    05  0C0F        
+20035101    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38026B007C021F340F0F  77  0C
+20033E01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38023F00    05350C0F        
+2003BD      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380247  3E0102  0D0F  3C  0C
+2003D6      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38024F      05  0C0F        
+2003EF      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC0147  58030B340F0F  A0  0C
+D802D6        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  54            0F        
+AE  FC        35  0E        
+2003            0D          
+EC05                        
+B006                        
+38025E  AC0102    0F  50  0C
+20031C01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38026B00    05  0C0F        
+20033E01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+3802540038021F340F0F  6A  0C
+2003FC        3C  0E        
+2C04                        
+4405                        
+0807                        
+38025E      05350C0C        
+20031C01    04  0B0B        
+2C04        03  09          
+4405        00  07          
+0807            05          
+3802    1C0102  0D0F  35  0C
+2003        00  0C0E        
+2C04FC00                    
+4405                        
+08071C01        0B          
+3802        05  0C0B        
+2003FC00    04  0B          
+2C04        03  09          
+44051C01    00  070A        
+0807            05          
+AC016B0058030B340F0F  A0  0C
+D8023E01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  6B00          0C        
+AE  3E01      35  0B        
+2003            0D          
+EC05                        
+B006                        
+AC016B00AC010B340F09  50  0C
+D8023E01      3C  08        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+AC016B00    0B  0F06        
+D8023E01      3C            
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+38025400FD031F  0F0F  BF  0C
+2003FC        3C  0E        
+2C04                        
+4405                        
+0807                        
+380254      05350C0B        
+2003FC      04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380254  F80102  0D0F  5E  0C
+2003FC      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380254      05  0C0B        
+2003FC      04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC0154  51  0B340F0F  3F  0C
+D802FC        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  59            0F        
+AE  0A01      35  0E        
+2003            0D          
+EC05                        
+B006                        
+38025400F8  02    0F  5E  0C
+2003FC      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380254      05  0C0B        
+2003FC      04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+380235  FD031F340F0F  BF  0C
+20039F        3C  0E        
+2C04                        
+4405                        
+0807                        
+3802        05350C0A        
+2003        04  0B          
+2C04        03  09          
+4405        00  0709        
+0807            05          
+380254  F80102  0D0F  5E  0C
+2003FC      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380235      05  0C0B        
+20039F      04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC0154  7B  0B340F0F  47  0C
+D802FC        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  54            0B        
+AE  FC        35  0A        
+2003            0D          
+EC05                        
+B006                        
+38025E  3E  02    0F  3C  0C
+20031C01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38025400    05  0C0B        
+2003FC      04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38025E  84031F340F0F  A9  0C
+20031C01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38025E00    05350C0B        
+20031C01    04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38025E00C20102  0D0F  54  0C
+20031C01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38025E00    05  0C0B        
+20031C01    04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC015E00E1000B340F0F  2A  0C
+D8021C01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  6400          0F        
+AE  2C01      35  0E        
+2003            0D          
+EC05                        
+B006                        
+38025E00C20102    0F  54  0C
+20031C01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38025E00    05  0C0B        
+20031C01    04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38023800A2021F340F0F  7E  0C
+2003A8        3C  0E        
+2C04                        
+4405                        
+0807                        
+38025E      05350C0B        
+20031C01    04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38025E00510102  0D0F  3F  0C
+20031C01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38023800    05  0C0B        
+2003A8      04  0B0A        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC015E  F8  0B340F0F  5E  0C
+D8021C01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  5E00          0B        
+AE  1C01      35  0A        
+2003            0D          
+EC05                        
+B006                        
+AC016B00AC  0B340F0F  50  0C
+D8023E01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+AC015E00    0B  0F0B        
+D8021C01      3C  0A        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+38023F00F8  1F  0F0F  5E  0C
+2003BD        3C  0E        
+2C04                        
+4405                        
+0807                        
+3802        05350C          
+2003        04  0B          
+2C04        03  09          
+4405        00  070D        
+0807            05          
+3802    FC0002  0D0C  2F  0C
+2003B5      00  0C0B        
+2C04B9                      
+4405BB                      
+0807BD          0B          
+3802B5      05  0C          
+2003BB      04  0B          
+2C04BD      03  09          
+4405        00  07          
+0807            05          
+AC01    D6  0B340F0A  28  0C
+D802          3C  09        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  35            0F        
+AE  9F        35  0E        
+2003            0D          
+EC05                        
+B006                        
+38023F  FC  02    0F  2F  0C
+2003BD      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380247      05  0C0F        
+2003D6      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38024F  7C021F340F0F  77  0C
+2003EF        3C  0E        
+2C04                        
+4405                        
+0807                        
+3802        05350C          
+2003        04  0B          
+2C04        03  09          
+4405        00  070D        
+0807            05          
+3802    3E0102  0D0C  3C  0C
+2003E7      00  0C0B        
+2C04EB                      
+4405ED                      
+0807EF          0B          
+3802E7      05  0C          
+2003ED      04  0B          
+2C04EF      03  09          
+4405        00  07          
+0807            05          
+AC01    FC000B340F0A  2F  0C
+D802          3C  09        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  3F            0F        
+AE  BD        35  0E        
+2003            0D          
+EC05                        
+B006                        
+38024F  7C0202    0F  77  0C
+2003EF      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38025E      05  0C0F        
+20031C01    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38026B00F6  1F340F0F  8E  0C
+20033E01      3C  0E        
+2C04                        
+4405                        
+0807                        
+38027000    05350C0F        
+20035101    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38026B007B0102  0D0F  47  0C
+20033E01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38027000    05  0C0F        
+20035101    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC016B003E  0B340F0F  3C  0C
+D8023E01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C  7000          0F        
+AE  5101      35  0E        
+2003            0D          
+EC05                        
+B006                        
+38026B007B  02    0F  47  0C
+20033E01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+38027000    05  0C0F        
+20035101    04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38025400A2021F340F0F  7E  0C
+2003FC        3C  0E        
+2C04                        
+4405                        
+0807                        
+3802        05350C          
+2003        04  0B          
+2C04        03  09          
+4405        00  070D        
+0807            05          
+380242  510102  0D0F  3F  0C
+2003C8      00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+380238      05  0C0F        
+2003A8      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+AC012F  0A  0B340F0F  32  0C
+D8028E        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C                          
+AE            35            
+2003            0D          
+EC05              0D        
+B006                        
+AC0135  51  0B340F0F  3F  0C
+D8029F        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+AC0138      0B  0F0F        
+D802A8        3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+380235  F8  1F  0F0F  5E  0C
+20039F        3C  0E        
+2C04                        
+4405                        
+0807                        
+380254  AC  05350C0F  50  0C
+2003FC      04  0B0E        
+2C04        03  09          
+4405        00  07          
+0807            05          
+38025E  51  02  0D0F  3F  0C
+20031C01    00  0C0E        
+2C04                        
+4405                        
+0807            0B          
+F8016B00A20202  0D0F  7E  0C
+CA023E01    00  0C0E        
+BE03                        
+B004                        
+4006            0B          
+380251  84031F340F0F  A9  0C
+2003          3C  0E        
+2C04                        
+44053E                      
+0807                        
+E0              0E          
+  0851          0D          
+2C04            0C          
+E007            0B0D        
+  083E          0A          
+FC00        02350D0C        
+650136      00  0C0B        
+DF  4D                      
+58024F                      
+200351          0B          
+84  36                      
+FD  3C                      
+DF013E          0A          
+840351                      
+FD                          
+AC017E00F8010B340F0F  5E  0C
+D8027B01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+AC017E00    0B  0F0F      0C
+D8027B01      3C  0E        
+2004        0A34            
+7D05        0B              
+4407        0C  0E          
+6C                          
+AE            35            
+2003            0D          
+EC05              0D        
+B006                        
+2003            0C0C        
+EC0573            0B        
+6B0077          0B          
+E1  79                      
+77  7B          0A          
+B00673                      
+200379          09          
+AC017B                      
+                08          
+=
+    73          07          
+    77                      
+    79          06          
+    7B                      
+    73          05          
+    79                      
+    7B          04          
+=
+                03          
+    73                      
+    77        3C00          
+    79                      
+    7B                      
+    73                      
+    79                      
