@@ -20,6 +20,8 @@
 #include <math/numeric.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//boost includes
+#include <boost/optional.hpp>
 
 namespace Module
 {
@@ -36,62 +38,8 @@ namespace ProSoundMaker
     NOORNAMENT,
   };
 
-  struct Sample : public Formats::Chiptune::ProSoundMaker::Sample
-  {
-    Sample()
-      : Formats::Chiptune::ProSoundMaker::Sample()
-    {
-    }
-
-    Sample(Formats::Chiptune::ProSoundMaker::Sample rh)
-      : Formats::Chiptune::ProSoundMaker::Sample(std::move(rh))
-    {
-    }
-
-    const uint_t* GetLoop() const
-    {
-      return Loop ? &*Loop : nullptr;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
-
-  struct Ornament : public Formats::Chiptune::ProSoundMaker::Ornament
-  {
-    Ornament()
-      : Formats::Chiptune::ProSoundMaker::Ornament()
-    {
-    }
-
-    Ornament(Formats::Chiptune::ProSoundMaker::Ornament rh)
-      : Formats::Chiptune::ProSoundMaker::Ornament(std::move(rh))
-    {
-    }
-
-    const uint_t* GetLoop() const
-    {
-      return Loop ? &*Loop : nullptr;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    int_t GetLine(uint_t idx) const
-    {
-      return Lines.size() > idx ? Lines[idx] : 0;
-    }
-  };
+  using Formats::Chiptune::ProSoundMaker::Sample;
+  using Formats::Chiptune::ProSoundMaker::Ornament;
 
   typedef SimpleOrderListWithTransposition<Formats::Chiptune::ProSoundMaker::PositionEntry> OrderListWithTransposition;
 
@@ -147,12 +95,12 @@ namespace ProSoundMaker
 
     void SetSample(uint_t index, Formats::Chiptune::ProSoundMaker::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(std::move(sample)));
+      Data->Samples.Add(index, std::move(sample));
     }
 
     void SetOrnament(uint_t index, Formats::Chiptune::ProSoundMaker::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(std::move(ornament)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<Formats::Chiptune::ProSoundMaker::PositionEntry> positions, uint_t loop) override
@@ -259,12 +207,14 @@ namespace ProSoundMaker
       : Current(nullptr)
       , Position(0)
       , LoopsCount(0)
+      , Finished(false)
     {
     }
 
     const Sample* Current;
     uint_t Position;
     uint_t LoopsCount;
+    bool Finished;
   };
 
   struct OrnamentState
@@ -422,6 +372,7 @@ namespace ProSoundMaker
         dst.Note = *note;
         dst.VolumeDelta = dst.BaseVolumeDelta;
         dst.Smp.Position = 0;
+        dst.Smp.Finished = false;
         dst.Slide = 0;
         dst.Smp.LoopsCount = 1;
         dst.Orn.Position = 0;
@@ -495,11 +446,12 @@ namespace ProSoundMaker
         channel.DisableNoise();
       }
 
-      if (++dst.Smp.Position >= curSample.GetSize())
+      if (!dst.Smp.Finished && ++dst.Smp.Position >= curSample.GetSize())
       {
-        if (const uint_t* loop = curSample.GetLoop())
+        const auto loop = curSample.GetLoop();
+        if (loop < curSample.GetSize())
         {
-          dst.Smp.Position = *loop;
+          dst.Smp.Position = loop;
           if (!--dst.Smp.LoopsCount)
           {
             dst.Smp.LoopsCount = curSample.VolumeDeltaPeriod;
@@ -509,14 +461,16 @@ namespace ProSoundMaker
         else
         {
           dst.Enabled = false;
+          dst.Smp.Finished = true;
         }
       }
 
-      if (++dst.Orn.Position >= curOrnament.GetSize())
+      if (!dst.Orn.Finished && ++dst.Orn.Position >= curOrnament.GetSize())
       {
-        if (const uint_t* loop = curOrnament.GetLoop())
+        const auto loop = curOrnament.GetLoop();
+        if (loop < curOrnament.GetSize())
         {
-          dst.Orn.Position = *loop;
+          dst.Orn.Position = loop;
         }
         else
         {

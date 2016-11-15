@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -25,49 +26,28 @@ namespace Formats
       const uint_t DEFAULT_SAMPLE = 0;
       const uint_t DEFAULT_ORNAMENT = 0;
 
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line() : Level(), Noise(), ToneMask(true), NoiseMask(true), EnvelopeMask(true), Vibrato()
-          {
-          }
-
-          uint_t Level;//0-15
-          uint_t Noise;//0-31
-          bool ToneMask;
-          bool NoiseMask;
-          bool EnvelopeMask;
-          int_t Vibrato;
-        };
-
-        Sample() : Loop()
+        SampleLine()
+          : Level()
+          , Noise()
+          , ToneMask(true)
+          , NoiseMask(true)
+          , EnvelopeMask(true)
+          , Vibrato()
         {
         }
 
-        Sample(const Sample&) = delete;
-        Sample& operator = (const Sample&) = delete;
-        Sample(Sample&&) = default;
-        Sample& operator = (Sample&&) = default;
-
-        int_t Loop;
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        uint_t Noise;//0-31
+        bool ToneMask;
+        bool NoiseMask;
+        bool EnvelopeMask;
+        int_t Vibrato;
       };
-
-      struct Ornament
-      {
-        Ornament() : Loop()
-        {
-        }
-
-        Ornament(const Ornament&) = delete;
-        Ornament& operator = (const Ornament&) = delete;
-        Ornament(Ornament&&) = default;
-        Ornament& operator = (Ornament&&) = default;
-
-        int_t Loop;
-        std::vector<int_t> Lines;
-      };
+      
+      typedef LinesObject<SampleLine> Sample;
+      typedef LinesObject<int_t> Ornament;
 
       struct PositionEntry
       {

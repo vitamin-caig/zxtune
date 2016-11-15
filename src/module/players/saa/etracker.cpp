@@ -35,63 +35,8 @@ namespace ETracker
     NOISE
   };
 
-  struct Sample : public Formats::Chiptune::ETracker::Sample
-  {
-    Sample()
-      : Formats::Chiptune::ETracker::Sample()
-    {
-    }
-
-    Sample(Formats::Chiptune::ETracker::Sample rh)
-      : Formats::Chiptune::ETracker::Sample(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      return Lines[idx];
-    }
-  };
-
-  struct Ornament : public Formats::Chiptune::ETracker::Ornament
-  {
-    typedef uint_t Line;
-
-    Ornament()
-      : Formats::Chiptune::ETracker::Ornament()
-    {
-    }
-
-    Ornament(Formats::Chiptune::ETracker::Ornament rh)
-      : Formats::Chiptune::ETracker::Ornament(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      return Lines[idx];
-    }
-  };
+  using Formats::Chiptune::ETracker::Sample;
+  using Formats::Chiptune::ETracker::Ornament;
 
   typedef SimpleOrderListWithTransposition<Formats::Chiptune::ETracker::PositionEntry> OrderListWithTransposition;
 
@@ -150,12 +95,12 @@ namespace ETracker
 
     void SetSample(uint_t index, Formats::Chiptune::ETracker::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(std::move(sample)));
+      Data->Samples.Add(index, std::move(sample));
     }
 
     void SetOrnament(uint_t index, Formats::Chiptune::ETracker::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(std::move(ornament)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<Formats::Chiptune::ETracker::PositionEntry> positions, uint_t loop) override

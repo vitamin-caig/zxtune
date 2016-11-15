@@ -69,13 +69,12 @@ namespace ProTracker3
 
     void SetSample(uint_t index, Formats::Chiptune::ProTracker3::Sample sample) override
     {
-      //TODO: use common types
-      Data->Samples.Add(index, Vortex::Sample(std::move(sample)));
+      Data->Samples.Add(index, std::move(sample));
     }
 
     void SetOrnament(uint_t index, Formats::Chiptune::ProTracker3::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Vortex::Ornament(ornament.Loop, std::move(ornament.Lines)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<uint_t> positions, uint_t loop) override

@@ -53,53 +53,8 @@ namespace ProSoundCreator
     VOLUME_SLIDE
   };
 
-  struct Sample : public Formats::Chiptune::ProSoundCreator::Sample
-  {
-    Sample()
-      : Formats::Chiptune::ProSoundCreator::Sample()
-    {
-    }
-
-    Sample(Formats::Chiptune::ProSoundCreator::Sample rh)
-      : Formats::Chiptune::ProSoundCreator::Sample(std::move(rh))
-    {
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
-
-  struct Ornament : public Formats::Chiptune::ProSoundCreator::Ornament
-  {
-    Ornament()
-      : Formats::Chiptune::ProSoundCreator::Ornament()
-    {
-    }
-
-    Ornament(Formats::Chiptune::ProSoundCreator::Ornament rh)
-      : Formats::Chiptune::ProSoundCreator::Ornament(std::move(rh))
-    {
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
+  using Formats::Chiptune::ProSoundCreator::Sample;
+  using Formats::Chiptune::ProSoundCreator::Ornament;
 
   template<class Object>
   class ObjectLinesIterator
@@ -326,12 +281,12 @@ namespace ProSoundCreator
 
     void SetSample(uint_t index, Formats::Chiptune::ProSoundCreator::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(std::move(sample)));
+      Data->Samples.Add(index, std::move(sample));
     }
 
     void SetOrnament(uint_t index, Formats::Chiptune::ProSoundCreator::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(std::move(ornament)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<uint_t> positions, uint_t loop) override

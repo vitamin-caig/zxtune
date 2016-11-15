@@ -42,63 +42,8 @@ namespace FastTracker
     SLIDE_NOTE
   };
 
-  struct Sample : public Formats::Chiptune::FastTracker::Sample
-  {
-    Sample()
-      : Formats::Chiptune::FastTracker::Sample()
-    {
-    }
-
-    Sample(Formats::Chiptune::FastTracker::Sample rh)
-      : Formats::Chiptune::FastTracker::Sample(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
-
-  struct Ornament : public Formats::Chiptune::FastTracker::Ornament
-  {
-    Ornament()
-      : Formats::Chiptune::FastTracker::Ornament()
-    {
-    }
-
-    Ornament(Formats::Chiptune::FastTracker::Ornament rh)
-      : Formats::Chiptune::FastTracker::Ornament(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
+  using Formats::Chiptune::FastTracker::Sample;
+  using Formats::Chiptune::FastTracker::Ornament;
 
   typedef SimpleOrderListWithTransposition<Formats::Chiptune::FastTracker::PositionEntry> OrderListWithTransposition;
 
@@ -159,12 +104,12 @@ namespace FastTracker
 
     void SetSample(uint_t index, Formats::Chiptune::FastTracker::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(std::move(sample)));
+      Data->Samples.Add(index, std::move(sample));
     }
 
     void SetOrnament(uint_t index, Formats::Chiptune::FastTracker::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(std::move(ornament)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<Formats::Chiptune::FastTracker::PositionEntry> positions, uint_t loop) override

@@ -894,6 +894,10 @@ namespace Chiptune
           dst.VolumeDeltaValue = src.GetVolumeDelta();
           dst.Loop = std::min<uint_t>(src.GetLoop(), dst.Lines.size());
         }
+        else
+        {
+          dst.Loop = dst.Lines.size();
+        }
       }
 
       static Sample::Line ParseSampleLine(const RawSample::Line& line)
@@ -917,6 +921,10 @@ namespace Chiptune
         if (src.HasLoop())
         {
           dst.Loop = std::min<uint_t>(src.GetLoop(), dst.Lines.size());
+        }
+        else
+        {
+          dst.Loop = dst.Lines.size();
         }
       }
     private:

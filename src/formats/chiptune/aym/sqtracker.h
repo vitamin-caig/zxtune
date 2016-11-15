@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 //std includes
@@ -24,50 +25,27 @@ namespace Formats
   {
     namespace SQTracker
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line() : Level(), Noise(), ToneDeviation(), EnableNoise(), EnableTone()
-          {
-          }
-
-          uint_t Level;//0-15
-          uint_t Noise;//0-31
-          int_t ToneDeviation;
-          bool EnableNoise;
-          bool EnableTone;
-        };
-
-        Sample() : Loop(), LoopSize()
+        SampleLine()
+          : Level()
+          , Noise()
+          , ToneDeviation()
+          , EnableNoise()
+          , EnableTone()
         {
         }
 
-        Sample(const Sample&) = delete;
-        Sample& operator = (const Sample&) = delete;
-        Sample(Sample&&) = default;
-        Sample& operator = (Sample&&) = default;
-
-        uint_t Loop;
-        uint_t LoopSize;
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        uint_t Noise;//0-31
+        int_t ToneDeviation;
+        bool EnableNoise;
+        bool EnableTone;
       };
-
-      struct Ornament
-      {
-        Ornament() : Loop(), LoopSize()
-        {
-        }
-
-        Ornament(const Ornament&) = delete;
-        Ornament& operator = (const Ornament&) = delete;
-        Ornament(Ornament&&) = default;
-        Ornament& operator = (Ornament&&) = default;
-
-        uint_t Loop;
-        uint_t LoopSize;
-        std::vector<int_t> Lines;
-      };
+      
+      typedef LinesObject<SampleLine> Sample;
+      
+      typedef LinesObject<int_t> Ornament;
 
       struct PositionEntry
       {

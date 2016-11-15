@@ -19,7 +19,6 @@
 #include <formats/chiptune/aym/protracker2.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-#include <module/players/simple_ornament.h>
 
 namespace Module
 {
@@ -44,36 +43,8 @@ namespace ProTracker2
     NOISE_ADD
   };
 
-  struct Sample : public Formats::Chiptune::ProTracker2::Sample
-  {
-    Sample()
-      : Formats::Chiptune::ProTracker2::Sample()
-    {
-    }
-
-    Sample(Formats::Chiptune::ProTracker2::Sample rh)
-      : Formats::Chiptune::ProTracker2::Sample(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
-
-  typedef SimpleOrnament Ornament;
+  using Formats::Chiptune::ProTracker2::Sample;
+  using Formats::Chiptune::ProTracker2::Ornament;
 
   class ModuleData : public TrackModel
   {
@@ -132,12 +103,12 @@ namespace ProTracker2
 
     void SetSample(uint_t index, Formats::Chiptune::ProTracker2::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(std::move(sample)));
+      Data->Samples.Add(index, std::move(sample));
     }
 
     void SetOrnament(uint_t index, Formats::Chiptune::ProTracker2::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(ornament.Loop, std::move(ornament.Lines)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<uint_t> positions, uint_t loop) override

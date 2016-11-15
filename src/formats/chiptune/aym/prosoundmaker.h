@@ -13,10 +13,9 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
-//boost includes
-#include <boost/optional.hpp>
 
 namespace Formats
 {
@@ -24,51 +23,40 @@ namespace Formats
   {
     namespace ProSoundMaker
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line() : Level(), Noise(), ToneMask(true), NoiseMask(true), Gliss()
-          {
-          }
-
-          uint_t Level;//0-15
-          uint_t Noise;//0-31
-          bool ToneMask;
-          bool NoiseMask;
-          int_t Gliss;
-        };
-
-        Sample() : VolumeDeltaPeriod(), VolumeDeltaValue()
+        SampleLine()
+          : Level()
+          , Noise()
+          , ToneMask(true)
+          , NoiseMask(true)
+          , Gliss()
         {
         }
 
-        Sample(const Sample&) = delete;
-        Sample& operator = (const Sample&) = delete;
-        Sample(Sample&&) = default;
-        Sample& operator = (Sample&&) = default;
-
-        boost::optional<uint_t> Loop;
+        uint_t Level;//0-15
+        uint_t Noise;//0-31
+        bool ToneMask;
+        bool NoiseMask;
+        int_t Gliss;
+      };
+      
+      class Sample : public LinesObject<SampleLine>
+      {
+      public:
+        Sample()
+          : LinesObject<SampleLine>()
+          , VolumeDeltaPeriod()
+          , VolumeDeltaValue()
+        {
+        }
+        
         uint_t VolumeDeltaPeriod;
-        int_t VolumeDeltaValue;
-        std::vector<Line> Lines;
+        uint_t VolumeDeltaValue;
       };
-
-      struct Ornament
-      {
-        Ornament()
-        {
-        }
-
-        Ornament(const Ornament&) = delete;
-        Ornament& operator = (const Ornament&) = delete;
-        Ornament(Ornament&&) = default;
-        Ornament& operator = (Ornament&&) = default;
-
-        boost::optional<uint_t> Loop;
-        std::vector<int_t> Lines;
-      };
-
+      
+      typedef LinesObject<int_t> Ornament;
+      
       struct PositionEntry
       {
         PositionEntry() : PatternIndex(), Transposition()

@@ -19,7 +19,6 @@
 #include <formats/chiptune/digital/prodigitracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-#include <module/players/simple_ornament.h>
 #include <module/players/tracking.h>
 
 namespace Module
@@ -33,7 +32,7 @@ namespace ProDigiTracker
   const uint_t C_1_STEP = 46;
   const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
   
-  typedef SimpleOrnament Ornament;
+  using Formats::Chiptune::ProDigiTracker::Ornament;
 
   class ModuleData : public DAC::SimpleModuleData
   {
@@ -71,9 +70,9 @@ namespace ProDigiTracker
       Data->Samples.Add(index, Devices::DAC::CreateU8Sample(std::move(sample), loop));
     }
 
-    void SetOrnament(uint_t index, std::size_t loop, std::vector<int_t> ornament) override
+    void SetOrnament(uint_t index, Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(loop, std::move(ornament)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<uint_t> positions, uint_t loop) override

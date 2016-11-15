@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,45 +23,26 @@ namespace Formats
   {
     namespace SoundTracker
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line() : Level(), Noise(), NoiseMask(true), EnvelopeMask(true), Effect()
-          {
-          }
-
-          uint_t Level;//0-15
-          uint_t Noise;//0-31
-          bool NoiseMask;
-          bool EnvelopeMask;
-          int_t Effect;
-        };
-
-        Sample() : Loop(), LoopLimit()
+        SampleLine()
+          : Level()
+          , Noise()
+          , NoiseMask(true)
+          , EnvelopeMask(true)
+          , Effect()
         {
         }
 
-        Sample(const Sample&) = delete;
-        Sample& operator = (const Sample&) = delete;
-        Sample(Sample&&) = default;
-        Sample& operator = (Sample&&) = default;
-
-        uint_t Loop;
-        uint_t LoopLimit;
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        uint_t Noise;//0-31
+        bool NoiseMask;
+        bool EnvelopeMask;
+        int_t Effect;
       };
-
-      struct Ornament
-      {
-        Ornament() = default;
-        Ornament(const Ornament&) = delete;
-        Ornament& operator = (const Ornament&) = delete;
-        Ornament(Ornament&&) = default;
-        Ornament& operator = (Ornament&&) = default;
-
-        std::vector<int_t> Lines;
-      };
+      
+      typedef LinesObject<SampleLine> Sample;
+      typedef LinesObject<int_t> Ornament;
 
       struct PositionEntry
       {

@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,61 +23,43 @@ namespace Formats
   {
     namespace ProSoundCreator
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
+        SampleLine()
+          : Level(), Tone(), ToneMask(true), NoiseMask(true), Adding()
+          , EnableEnvelope(), VolumeDelta()
+          , LoopBegin()
+          , LoopEnd()
         {
-          Line()
-            : Level(), Tone(), ToneMask(true), NoiseMask(true), Adding()
-            , EnableEnvelope(), VolumeDelta()
-            , LoopBegin()
-            , LoopEnd()
-          {
-          }
+        }
 
-          uint_t Level;//0-15
-          uint_t Tone;
-          bool ToneMask;
-          bool NoiseMask;
-          int_t Adding;
-          bool EnableEnvelope;
-          int_t VolumeDelta;//0/+1/-1
-          bool LoopBegin;
-          bool LoopEnd;
-        };
-
-        Sample() = default;
-        Sample(const Sample&) = delete;
-        Sample& operator = (const Sample&) = delete;
-        Sample(Sample&&) = default;
-        Sample& operator = (Sample&&) = default;
-
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        uint_t Tone;
+        bool ToneMask;
+        bool NoiseMask;
+        int_t Adding;
+        bool EnableEnvelope;
+        int_t VolumeDelta;//0/+1/-1
+        bool LoopBegin;
+        bool LoopEnd;
       };
+      
+      typedef LinesObject<SampleLine> Sample;
 
-      struct Ornament
+      struct OrnamentLine
       {
-        struct Line
+        OrnamentLine()
+          : NoteAddon(), NoiseAddon()
+          , LoopBegin(), LoopEnd()
         {
-          Line()
-            : NoteAddon(), NoiseAddon()
-            , LoopBegin(), LoopEnd()
-          {
-          }
-          int_t NoteAddon;
-          int_t NoiseAddon;
-          bool LoopBegin;
-          bool LoopEnd;
-        };
-
-        Ornament() = default;
-        Ornament(const Ornament&) = delete;
-        Ornament& operator = (const Ornament&) = delete;
-        Ornament(Ornament&&) = default;
-        Ornament& operator = (Ornament&&) = default;
-
-        std::vector<Line> Lines;
+        }
+        int_t NoteAddon;
+        int_t NoiseAddon;
+        bool LoopBegin;
+        bool LoopEnd;
       };
+      
+      typedef LinesObject<OrnamentLine> Ornament;
 
       class Builder
       {

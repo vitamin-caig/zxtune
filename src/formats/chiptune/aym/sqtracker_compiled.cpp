@@ -441,7 +441,6 @@ namespace Chiptune
         {
           const uint_t samIdx = *it;
           Dbg("Parse sample %1%", samIdx);
-          Sample result;
           const RawSample& src = GetSample(samIdx);
           builder.SetSample(samIdx, ParseSample(src));
         }
@@ -458,7 +457,6 @@ namespace Chiptune
         {
           const uint_t ornIdx = *it;
           Dbg("Parse ornament %1%", ornIdx);
-          Ornament result;
           const RawOrnament& src = GetOrnament(ornIdx);
           builder.SetOrnament(ornIdx, ParseOrnament(src));
         }
@@ -738,7 +736,7 @@ namespace Chiptune
           res.ToneDeviation = line.GetToneDeviation();
         }
         dst.Loop = std::min<uint_t>(src.Loop, SAMPLE_SIZE);
-        dst.LoopSize = std::min<uint_t>(src.LoopSize, SAMPLE_SIZE - dst.Loop);
+        dst.LoopLimit = std::min<uint_t>(dst.Loop + src.LoopSize, SAMPLE_SIZE);
         return dst;
       }
 
@@ -747,7 +745,7 @@ namespace Chiptune
         Ornament dst;
         dst.Lines.assign(src.Lines.begin(), src.Lines.end());
         dst.Loop = std::min<uint_t>(src.Loop, ORNAMENT_SIZE);
-        dst.LoopSize = std::min<uint_t>(src.LoopSize, ORNAMENT_SIZE - dst.Loop);
+        dst.LoopLimit = std::min<uint_t>(dst.Loop + src.LoopSize, ORNAMENT_SIZE);
         return dst;
       }
     private:

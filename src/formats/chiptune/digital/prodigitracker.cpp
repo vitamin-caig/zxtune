@@ -50,15 +50,15 @@ namespace Chiptune
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    typedef std::array<int8_t, 16> Ornament;
+    typedef std::array<int8_t, 16> RawOrnament;
 
-    PACK_PRE struct OrnamentLoop
+    PACK_PRE struct RawOrnamentLoop
     {
       uint8_t Begin;
       uint8_t End;
     } PACK_POST;
 
-    PACK_PRE struct Sample
+    PACK_PRE struct RawSample
     {
       char Name[8];
       uint16_t Start;
@@ -85,7 +85,7 @@ namespace Chiptune
       //else ornament + 1
     };
 
-    PACK_PRE struct Note
+    PACK_PRE struct RawNote
     {
       //ccnnnnnn
       //sssspppp
@@ -122,14 +122,14 @@ namespace Chiptune
       uint8_t ParamSample;
     } PACK_POST;
 
-    typedef std::array<Note, CHANNELS_COUNT> Line;
+    typedef std::array<RawNote, CHANNELS_COUNT> RawLine;
 
-    typedef std::array<Line, PATTERN_SIZE> Pattern;
+    typedef std::array<RawLine, PATTERN_SIZE> RawPattern;
 
-    PACK_PRE struct Header
+    PACK_PRE struct RawHeader
     {
-      std::array<Ornament, ORNAMENTS_COUNT> Ornaments;
-      std::array<OrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
+      std::array<RawOrnament, ORNAMENTS_COUNT> Ornaments;
+      std::array<RawOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
       uint8_t Padding1[6];
       char Title[32];
       uint8_t Tempo;
@@ -137,25 +137,25 @@ namespace Chiptune
       uint8_t Loop;
       uint8_t Length;
       uint8_t Padding2[16];
-      std::array<Sample, SAMPLES_COUNT> Samples;
+      std::array<RawSample, SAMPLES_COUNT> Samples;
       std::array<uint8_t, POSITIONS_COUNT> Positions;
       uint16_t LastDatas[PAGES_COUNT];
       uint8_t FreeRAM;
       uint8_t Padding3[5];
-      std::array<Pattern, PATTERNS_COUNT> Patterns;
+      std::array<RawPattern, PATTERNS_COUNT> Patterns;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-    static_assert(sizeof(Ornament) == 16, "Invalid layout");
-    static_assert(sizeof(OrnamentLoop) == 2, "Invalid layout");
-    static_assert(sizeof(Sample) == 16, "Invalid layout");
-    static_assert(sizeof(Note) == 2, "Invalid layout");
-    static_assert(sizeof(Pattern) == 512, "Invalid layout");
-    static_assert(sizeof(Header) == 0x4300, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 16, "Invalid layout");
+    static_assert(sizeof(RawOrnamentLoop) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample) == 16, "Invalid layout");
+    static_assert(sizeof(RawNote) == 2, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 512, "Invalid layout");
+    static_assert(sizeof(RawHeader) == 0x4300, "Invalid layout");
 
-    const std::size_t MODULE_SIZE = sizeof(Header) + PAGES_COUNT * ZX_PAGE_SIZE;
+    const std::size_t MODULE_SIZE = sizeof(RawHeader) + PAGES_COUNT * ZX_PAGE_SIZE;
 
     class StubBuilder : public Builder
     {
@@ -166,7 +166,7 @@ namespace Chiptune
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) override {}
-      void SetOrnament(uint_t /*index*/, std::size_t /*loop*/, std::vector<int_t> /*ornament*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
       void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
@@ -205,9 +205,9 @@ namespace Chiptune
         return Delegate.SetSample(index, loop, std::move(data));
       }
 
-      void SetOrnament(uint_t index, std::size_t loop, std::vector<int_t> ornament) override
+      void SetOrnament(uint_t index, Ornament ornament) override
       {
-        return Delegate.SetOrnament(index, loop, std::move(ornament));
+        return Delegate.SetOrnament(index, std::move(ornament));
       }
 
       void SetPositions(std::vector<uint_t> positions, uint_t loop) override
@@ -276,7 +276,7 @@ namespace Chiptune
     public:
       explicit Format(const Binary::Container& rawData)
         : RawData(rawData)
-        , Source(*static_cast<const Header*>(RawData.Start()))
+        , Source(*static_cast<const RawHeader*>(RawData.Start()))
         , FixedRanges(RangeChecker::Create(RawData.Size()))
       {
       }
@@ -319,7 +319,7 @@ namespace Chiptune
         for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          const Sample& descr = Source.Samples[samIdx];
+          const auto& descr = Source.Samples[samIdx];
           const std::size_t start = fromLE(descr.Start);
           const std::size_t loop = fromLE(descr.Loop);
           std::size_t size = fromLE(descr.Size);
@@ -348,15 +348,17 @@ namespace Chiptune
         {
           if (const uint_t ornIdx = *it)
           {
-            const Ornament& orn = Source.Ornaments[ornIdx - 1];
-            const OrnamentLoop& loop = Source.OrnLoops[ornIdx - 1];
-            std::vector<int_t> data(loop.End);
-            std::transform(orn.begin(), orn.begin() + loop.End, data.begin(), std::bind2nd(std::divides<int8_t>(), 2));
-            target.SetOrnament(ornIdx, loop.Begin, std::move(data));
+            const auto& orn = Source.Ornaments[ornIdx - 1];
+            const auto& loop = Source.OrnLoops[ornIdx - 1];
+            Ornament res;
+            res.Loop = loop.Begin;
+            res.Lines.resize(loop.End);
+            std::transform(orn.begin(), orn.begin() + loop.End, res.Lines.begin(), std::bind2nd(std::divides<int8_t>(), 2));
+            target.SetOrnament(ornIdx, std::move(res));
           }
           else
           {
-            target.SetOrnament(ornIdx, 0, std::vector<int_t>());
+            target.SetOrnament(ornIdx, Ornament());
           }
         }
       }
@@ -390,11 +392,11 @@ namespace Chiptune
       void ParsePattern(uint_t idx, Builder& target) const
       {
         PatternBuilder& patBuilder = target.StartPattern(idx);
-        const Pattern& src = Source.Patterns[idx];
+        const auto& src = Source.Patterns[idx];
         uint_t lineNum = 0;
         for (; lineNum < PATTERN_SIZE; ++lineNum)
         {
-          const Line& srcLine = src[lineNum];
+          const auto& srcLine = src[lineNum];
           if (IsLastLine(srcLine))
           {
             patBuilder.Finish(lineNum);
@@ -403,22 +405,22 @@ namespace Chiptune
           patBuilder.StartLine(lineNum);
           ParseLine(srcLine, patBuilder, target);
         }
-        const std::size_t patStart = offsetof(Header, Patterns) + idx * sizeof(Pattern);
-        const std::size_t patSize = lineNum * sizeof(Line);
+        const std::size_t patStart = offsetof(RawHeader, Patterns) + idx * sizeof(RawPattern);
+        const std::size_t patSize = lineNum * sizeof(RawLine);
         AddFixedRange(patStart, patSize);
       }
 
-      static bool IsLastLine(const Line& line)
+      static bool IsLastLine(const RawLine& line)
       {
         return line[0].IsEnd() || line[1].IsEnd() || line[2].IsEnd() || line[3].IsEnd();
       }
 
-      static void ParseLine(const Line& line, PatternBuilder& patBuilder, Builder& target)
+      static void ParseLine(const RawLine& line, PatternBuilder& patBuilder, Builder& target)
       {
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
           target.StartChannel(chanNum);
-          const Note& note = line[chanNum];
+          const auto& note = line[chanNum];
           const uint_t halftones = note.GetNote();
           int_t sample = -1;
           if (halftones != NOTE_EMPTY)
@@ -472,18 +474,18 @@ namespace Chiptune
       }
     private:
       const Binary::Container& RawData;
-      const Header& Source;
+      const RawHeader& Source;
       const RangeChecker::Ptr FixedRanges;
     };
 
     bool FastCheck(const Binary::Container& rawData)
     {
       const std::size_t size(rawData.Size());
-      if (sizeof(Header) > size)
+      if (sizeof(RawHeader) > size)
       {
         return false;
       }
-      const Header& header = *static_cast<const Header*>(rawData.Start());
+      const auto& header = *static_cast<const RawHeader*>(rawData.Start());
       if (header.Loop > header.Length)
       {
         return false;

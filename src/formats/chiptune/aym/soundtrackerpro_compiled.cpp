@@ -116,6 +116,13 @@ namespace Chiptune
           ? 0
           : Size;
       }
+      
+      uint_t GetLoop() const
+      {
+        return Loop < 0
+          ? GetSize()
+          : Loop;
+      }
     } PACK_POST;
 
     PACK_PRE struct RawOrnament : RawObject
@@ -694,7 +701,7 @@ namespace Chiptune
           res.EnvelopeMask = line.GetEnvelopeMask();
           res.Vibrato = line.GetVibrato();
         }
-        dst.Loop = std::min<int_t>(src.Loop, size);
+        dst.Loop = std::min(src.GetLoop(), size);
         return dst;
       }
 
@@ -707,7 +714,7 @@ namespace Chiptune
         {
           dst.Lines[idx] = src.GetLine(idx);
         }
-        dst.Loop = std::min<int_t>(src.Loop, size);
+        dst.Loop = std::min(src.GetLoop(), size);
         return dst;
       }
     private:

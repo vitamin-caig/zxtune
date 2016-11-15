@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,73 +23,45 @@ namespace Formats
   {
     namespace FastTracker
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line()
-            : Level(), VolSlide()
-            , Noise(), AccumulateNoise(), NoiseMask(true)
-            , Tone(), AccumulateTone(), ToneMask(true)
-            , EnvelopeAddon(), AccumulateEnvelope(), EnableEnvelope()
-          {
-          }
-
-          uint_t Level;//0-15
-          int_t VolSlide;//0/+1/-1
-          uint_t Noise;
-          bool AccumulateNoise;
-          bool NoiseMask;
-          uint_t Tone;
-          bool AccumulateTone;
-          bool ToneMask;
-          int_t EnvelopeAddon;
-          bool AccumulateEnvelope;
-          bool EnableEnvelope;
-        };
-
-        Sample()
-          : Loop()
+        SampleLine()
+          : Level(), VolSlide()
+          , Noise(), AccumulateNoise(), NoiseMask(true)
+          , Tone(), AccumulateTone(), ToneMask(true)
+          , EnvelopeAddon(), AccumulateEnvelope(), EnableEnvelope()
         {
         }
 
-        Sample(const Sample&) = delete;
-        Sample& operator = (const Sample&) = delete;
-        Sample(Sample&&) = default;
-        Sample& operator = (Sample&&) = default;
-
-        uint_t Loop;
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        int_t VolSlide;//0/+1/-1
+        uint_t Noise;
+        bool AccumulateNoise;
+        bool NoiseMask;
+        uint_t Tone;
+        bool AccumulateTone;
+        bool ToneMask;
+        int_t EnvelopeAddon;
+        bool AccumulateEnvelope;
+        bool EnableEnvelope;
       };
+      
+      typedef LinesObject<SampleLine> Sample;
 
-      struct Ornament
+      struct OrnamentLine
       {
-        struct Line
-        {
-          Line()
-            : NoteAddon(), KeepNoteAddon(), NoiseAddon(), KeepNoiseAddon()
-          {
-          }
-
-          int_t NoteAddon;
-          bool KeepNoteAddon;
-          int_t NoiseAddon;
-          bool KeepNoiseAddon;
-        };
-
-        Ornament()
-          : Loop()
+        OrnamentLine()
+          : NoteAddon(), KeepNoteAddon(), NoiseAddon(), KeepNoiseAddon()
         {
         }
 
-        Ornament(const Ornament&) = delete;
-        Ornament& operator = (const Ornament&) = delete;
-        Ornament(Ornament&&) = default;
-        Ornament& operator = (Ornament&&) = default;
-
-        uint_t Loop;
-        std::vector<Line> Lines;
+        int_t NoteAddon;
+        bool KeepNoteAddon;
+        int_t NoiseAddon;
+        bool KeepNoiseAddon;
       };
+      
+      typedef LinesObject<OrnamentLine> Ornament;
 
       struct PositionEntry
       {

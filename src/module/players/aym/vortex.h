@@ -14,7 +14,6 @@
 #include "aym_base_track.h"
 //library includes
 #include <formats/chiptune/aym/protracker3.h>
-#include <module/players/simple_ornament.h>
 #include <sound/render_params.h>
 
 namespace Module
@@ -34,34 +33,8 @@ namespace Module
 
     String GetFreqTable(NoteTable table, uint_t version);
 
-    //sample type
-    struct Sample : public Formats::Chiptune::ProTracker3::Sample
-    {
-      Sample() : Formats::Chiptune::ProTracker3::Sample()
-      {
-      }
-
-      Sample(Formats::Chiptune::ProTracker3::Sample rh)
-        : Formats::Chiptune::ProTracker3::Sample(std::move(rh))
-      {
-      }
-
-      uint_t GetLoop() const
-      {
-        return Loop;
-      }
-
-      uint_t GetSize() const
-      {
-        return static_cast<uint_t>(Lines.size());
-      }
-
-      const Line& GetLine(const uint_t idx) const
-      {
-        static const Line STUB;
-        return Lines.size() > idx ? Lines[idx] : STUB;
-      }
-    };
+    using Formats::Chiptune::ProTracker3::Sample;
+    using Formats::Chiptune::ProTracker3::Ornament;
 
     //supported commands set and their parameters
     enum Commands
@@ -87,8 +60,6 @@ namespace Module
       //base
       NOISEBASE,
     };
-
-    typedef SimpleOrnament Ornament;
 
     class ModuleData : public TrackModel
     {

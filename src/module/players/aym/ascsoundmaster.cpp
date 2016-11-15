@@ -54,73 +54,8 @@ namespace ASCSoundMaster
     BREAK_SAMPLE
   };
 
-  struct Sample : public Formats::Chiptune::ASCSoundMaster::Sample
-  {
-    Sample()
-      : Formats::Chiptune::ASCSoundMaster::Sample()
-    {
-    }
-
-    Sample(Formats::Chiptune::ASCSoundMaster::Sample rh)
-      : Formats::Chiptune::ASCSoundMaster::Sample(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetLoopLimit() const
-    {
-      return LoopLimit;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
-
-  struct Ornament : public Formats::Chiptune::ASCSoundMaster::Ornament
-  {
-    Ornament()
-      : Formats::Chiptune::ASCSoundMaster::Ornament()
-    {
-    }
-
-    Ornament(Formats::Chiptune::ASCSoundMaster::Ornament rh)
-      : Formats::Chiptune::ASCSoundMaster::Ornament(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetLoopLimit() const
-    {
-      return LoopLimit;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
+  using Formats::Chiptune::ASCSoundMaster::Sample;
+  using Formats::Chiptune::ASCSoundMaster::Ornament;
 
   class ModuleData : public TrackModel
   {
@@ -179,12 +114,12 @@ namespace ASCSoundMaster
 
     void SetSample(uint_t index, Formats::Chiptune::ASCSoundMaster::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(std::move(sample)));
+      Data->Samples.Add(index, std::move(sample));
     }
 
     void SetOrnament(uint_t index, Formats::Chiptune::ASCSoundMaster::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(std::move(ornament)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<uint_t> positions, uint_t loop) override

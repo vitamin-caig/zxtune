@@ -20,7 +20,6 @@
 #include <math/numeric.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-#include <module/players/simple_ornament.h>
 
 namespace Module
 {
@@ -33,36 +32,8 @@ namespace GlobalTracker
     NOENVELOPE,   //0p
   };
 
-  struct Sample : public Formats::Chiptune::GlobalTracker::Sample
-  {
-    Sample()
-      : Formats::Chiptune::GlobalTracker::Sample()
-    {
-    }
-
-    Sample(Formats::Chiptune::GlobalTracker::Sample rh)
-      : Formats::Chiptune::GlobalTracker::Sample(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
-
-  typedef SimpleOrnament Ornament;
+  using Formats::Chiptune::GlobalTracker::Sample;
+  using Formats::Chiptune::GlobalTracker::Ornament;
 
   class ModuleData : public TrackModel
   {
@@ -121,12 +92,12 @@ namespace GlobalTracker
 
     void SetSample(uint_t index, Formats::Chiptune::GlobalTracker::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(std::move(sample)));
+      Data->Samples.Add(index, std::move(sample));
     }
 
     void SetOrnament(uint_t index, Formats::Chiptune::GlobalTracker::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, SimpleOrnament(ornament.Loop, std::move(ornament.Lines)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<uint_t> positions, uint_t loop) override

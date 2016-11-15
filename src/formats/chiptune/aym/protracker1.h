@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,44 +23,27 @@ namespace Formats
   {
     namespace ProTracker1
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line() : Level(), Noise(), ToneMask(true), NoiseMask(true), Vibrato()
-          {
-          }
-
-          uint_t Level;//0-15
-          uint_t Noise;//0-31
-          bool ToneMask;
-          bool NoiseMask;
-          int_t Vibrato;
-        };
-
-        Sample() : Loop()
+        SampleLine()
+          : Level()
+          , Noise()
+          , ToneMask(true)
+          , NoiseMask(true)
+          , Vibrato()
         {
         }
 
-        Sample(const Sample&) = delete;
-        Sample& operator = (const Sample&) = delete;
-        Sample(Sample&&) = default;
-        Sample& operator = (Sample&&) = default;
-
-        uint_t Loop;
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        uint_t Noise;//0-31
+        bool ToneMask;
+        bool NoiseMask;
+        int_t Vibrato;
       };
+      
+      typedef LinesObject<SampleLine> Sample;
 
-      struct Ornament
-      {
-        Ornament() = default;
-        Ornament(const Ornament&) = delete;
-        Ornament& operator = (const Ornament&) = delete;
-        Ornament(Ornament&&) = default;
-        Ornament& operator = (Ornament&&) = default;
-
-        std::vector<int_t> Lines;
-      };
+      typedef LinesObject<int_t> Ornament;
 
       class Builder
       {

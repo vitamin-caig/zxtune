@@ -16,7 +16,6 @@
 #include <make_ptr.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-#include <module/players/simple_ornament.h>
 
 namespace Module
 {
@@ -29,42 +28,10 @@ namespace SoundTracker
     NOENVELOPE,   //0p
   };
 
-  struct Sample : public Formats::Chiptune::SoundTracker::Sample
-  {
-    Sample()
-      : Formats::Chiptune::SoundTracker::Sample()
-    {
-    }
-
-    Sample(Formats::Chiptune::SoundTracker::Sample rh)
-      : Formats::Chiptune::SoundTracker::Sample(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetLoopLimit() const
-    {
-      return LoopLimit;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
+  using Formats::Chiptune::SoundTracker::Sample;
+  using Formats::Chiptune::SoundTracker::Ornament;
 
   typedef SimpleOrderListWithTransposition<Formats::Chiptune::SoundTracker::PositionEntry> OrderListWithTransposition;
-  typedef SimpleOrnament Ornament;
 
   class ModuleData : public TrackModel
   {
@@ -123,12 +90,12 @@ namespace SoundTracker
 
     void SetSample(uint_t index, Formats::Chiptune::SoundTracker::Sample sample) override
     {
-      Data->Samples.Add(index, Sample(std::move(sample)));
+      Data->Samples.Add(index, std::move(sample));
     }
 
     void SetOrnament(uint_t index, Formats::Chiptune::SoundTracker::Ornament ornament) override
     {
-      Data->Ornaments.Add(index, Ornament(std::move(ornament.Lines)));
+      Data->Ornaments.Add(index, std::move(ornament));
     }
 
     void SetPositions(std::vector<Formats::Chiptune::SoundTracker::PositionEntry> positions) override

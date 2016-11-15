@@ -49,62 +49,8 @@ namespace SQTracker
     ATTENUATION_ADDON,
   };
 
-  struct Sample : public Formats::Chiptune::SQTracker::Sample
-  {
-    Sample()
-      : Formats::Chiptune::SQTracker::Sample()
-    {
-    }
-
-    Sample(Formats::Chiptune::SQTracker::Sample rh)
-      : Formats::Chiptune::SQTracker::Sample(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetLoopSize() const
-    {
-      return LoopSize;
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  };
-
-  struct Ornament : public Formats::Chiptune::SQTracker::Ornament
-  {
-    Ornament()
-      : Formats::Chiptune::SQTracker::Ornament()
-    {
-    }
-
-    Ornament(Formats::Chiptune::SQTracker::Ornament rh)
-      : Formats::Chiptune::SQTracker::Ornament(std::move(rh))
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetLoopSize() const
-    {
-      return LoopSize;
-    }
-
-    int_t GetLine(uint_t idx) const
-    {
-      return Lines.size() > idx ? Lines[idx] : 0;
-    }
-  };
+  using Formats::Chiptune::SQTracker::Sample;
+  using Formats::Chiptune::SQTracker::Ornament;
 
   class PositionsSet
   {
@@ -771,12 +717,12 @@ namespace SQTracker
           if (orn->GetLoop() != 32)
           {
             dst.OrnamentPos = orn->GetLoop();
-            dst.OrnamentTick = orn->GetLoopSize();
+            dst.OrnamentTick = orn->GetLoopLimit() - dst.OrnamentPos;
           }
           else
           {
             dst.OrnamentPos = dst.CurSample->GetLoop();
-            dst.OrnamentTick = dst.CurSample->GetLoopSize();
+            dst.OrnamentTick = dst.CurSample->GetLoopLimit() - dst.OrnamentPos;
           }
         }
       }
@@ -786,8 +732,8 @@ namespace SQTracker
 
       if (!--dst.SampleTick)
       {
-        dst.SampleTick = dst.CurSample->GetLoopSize();
         dst.SamplePos = dst.CurSample->GetLoop();
+        dst.SampleTick = dst.CurSample->GetLoopLimit() - dst.SamplePos;
         if (dst.SamplePos == 32)
         {
           dst.CurSample = nullptr;
