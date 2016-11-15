@@ -57,9 +57,9 @@ namespace Module
           : Devices::DAC::CreateU8Sample(std::move(content), loop));
       }
 
-      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+      void SetPositions(Formats::Chiptune::Digital::Positions positions) override
       {
-        Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
+        Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
       }
 
       Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

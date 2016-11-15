@@ -112,9 +112,9 @@ namespace FastTracker
       Data->Ornaments.Add(index, std::move(ornament));
     }
 
-    void SetPositions(std::vector<Formats::Chiptune::FastTracker::PositionEntry> positions, uint_t loop) override
+    void SetPositions(Formats::Chiptune::FastTracker::Positions positions) override
     {
-      Data->Order = MakePtr<OrderListWithTransposition>(loop, std::move(positions));
+      Data->Order = MakePtr<OrderListWithTransposition>(positions.Loop, std::move(positions.Lines));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

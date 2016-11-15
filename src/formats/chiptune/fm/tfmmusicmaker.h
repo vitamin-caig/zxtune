@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -67,6 +68,8 @@ namespace Formats
         uint_t Month;
         uint_t Day;
       };
+      
+      typedef LinesObject<uint_t> Positions;
 
       class Builder
       {
@@ -80,7 +83,7 @@ namespace Formats
 
         virtual void SetInstrument(uint_t index, Instrument instrument) = 0;
         //patterns
-        virtual void SetPositions(std::vector<uint_t> positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

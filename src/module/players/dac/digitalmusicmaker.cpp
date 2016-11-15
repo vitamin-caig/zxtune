@@ -231,9 +231,9 @@ namespace DigitalMusicMaker
       return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(dst.Mixin));
     }
 
-    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+    void SetPositions(Formats::Chiptune::DigitalMusicMaker::Positions positions) override
     {
-      Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
+      Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

@@ -74,10 +74,10 @@ namespace
       std::cout << "Ornament" << index << std::endl;
     }
 
-    void SetPositions(std::vector<PositionEntry> positions) override
+    void SetPositions(Positions positions) override
     {
       std::cout << "Positions: ";
-      for (auto position : positions)
+      for (auto position : positions.Lines)
       {
         std::cout << position.PatternIndex << "(" << position.Transposition << ") ";
       }

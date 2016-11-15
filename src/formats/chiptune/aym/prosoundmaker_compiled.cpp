@@ -234,7 +234,7 @@ namespace Chiptune
       }
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
-      void SetPositions(std::vector<PositionEntry> /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -288,15 +288,15 @@ namespace Chiptune
         return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(std::vector<PositionEntry> positions, uint_t loop) override
+      void SetPositions(Positions positions) override
       {
-        Require(!positions.empty());
         UsedPatterns.Clear();
-        for (const auto& pos : positions)
+        for (const auto& pos : positions.Lines)
         {
           UsedPatterns.Insert(pos.PatternIndex);
         }
-        return Delegate.SetPositions(std::move(positions), loop);
+        Require(!UsedPatterns.Empty());
+        return Delegate.SetPositions(std::move(positions));
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -490,8 +490,7 @@ namespace Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        std::vector<PositionEntry> positions;
-        uint_t loop = 0;
+        Positions positions;
         for (uint_t entryIdx = 0; ; ++entryIdx)
         {
           const RawPosition& pos = GetPosition(entryIdx);
@@ -502,19 +501,19 @@ namespace Chiptune
             {
               break;
             }
-            loop = pos.TranspositionOrLoop;
-            Require(loop < positions.size());
+            positions.Loop = pos.TranspositionOrLoop;
+            Require(positions.GetLoop() < positions.GetSize());
             break;
           }
           PositionEntry res;
           res.PatternIndex = patNum;
           res.Transposition = static_cast<int8_t>(pos.TranspositionOrLoop);
           Require(Math::InRange<int_t>(res.Transposition, -36, 36));
-          positions.push_back(res);
-          Require(Math::InRange<std::size_t>(positions.size(), 1, MAX_POSITIONS_COUNT));
+          positions.Lines.push_back(res);
+          Require(Math::InRange<std::size_t>(positions.GetSize(), 1, MAX_POSITIONS_COUNT));
         }
-        Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
-        builder.SetPositions(std::move(positions), loop);
+        Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const

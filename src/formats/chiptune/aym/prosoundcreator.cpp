@@ -302,7 +302,7 @@ namespace Chiptune
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
-      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -360,11 +360,11 @@ namespace Chiptune
         return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+      void SetPositions(Positions positions) override
       {
-        UsedPatterns.Assign(positions.begin(), positions.end());
+        UsedPatterns.Assign(positions.Lines.begin(), positions.Lines.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(std::move(positions), loop);
+        return Delegate.SetPositions(std::move(positions));
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -630,8 +630,7 @@ namespace Chiptune
       PatternsSet ParsePositions(Builder& builder) const
       {
         PatternsSet patterns;
-        uint_t loop = 0;
-        std::vector<uint_t> positions;
+        Positions positions;
         for (std::size_t offset = fromLE(Source.PositionsOffset);; offset += sizeof(RawPattern))
         {
           const LastRawPattern* const last = Delegate.GetField<LastRawPattern>(offset);
@@ -640,15 +639,15 @@ namespace Chiptune
           {
             const std::size_t tailSize = std::min(Delegate.GetSize() - offset, sizeof(RawPattern));
             Ranges.AddService(offset, tailSize);
-            loop = std::min<uint_t>(last->LoopPositionIndex, positions.size() - 1);
+            positions.Loop = std::min<uint_t>(last->LoopPositionIndex, positions.GetSize() - 1);
             break;
           }
           const RawPattern& pat = GetServiceObject<RawPattern>(offset);
           const uint_t patIndex = patterns.Add(pat);
-          positions.push_back(patIndex);
+          positions.Lines.push_back(patIndex);
         }
-        Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
-        builder.SetPositions(std::move(positions), loop);
+        Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
+        builder.SetPositions(std::move(positions));
         return patterns;
       }
 

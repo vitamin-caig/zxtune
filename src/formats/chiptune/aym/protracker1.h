@@ -44,6 +44,8 @@ namespace Formats
       typedef LinesObject<SampleLine> Sample;
 
       typedef LinesObject<int_t> Ornament;
+      
+      typedef LinesObject<uint_t> Positions;
 
       class Builder
       {
@@ -57,7 +59,7 @@ namespace Formats
         virtual void SetSample(uint_t index, Sample sample) = 0;
         virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(std::vector<uint_t> positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

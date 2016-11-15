@@ -231,9 +231,11 @@ namespace Chiptune
       void ParsePositions(Builder& target) const
       {
         Require(Math::InRange<std::size_t>(Source.Length, MIN_POSITIONS_COUNT, MAX_POSITIONS_COUNT));
-        std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + Source.Length);
-        Dbg("Positions: %1%, loop to %2%", positions.size(), unsigned(Source.Loop));
-        target.SetPositions(std::move(positions), Source.Loop);
+        Digital::Positions positions;
+        positions.Loop = Source.Loop;
+        positions.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + Source.Length);
+        Dbg("Positions: %1%, loop to %2%", positions.GetSize(), positions.GetLoop());
+        target.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& target) const

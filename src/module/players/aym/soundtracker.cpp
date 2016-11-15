@@ -98,9 +98,9 @@ namespace SoundTracker
       Data->Ornaments.Add(index, std::move(ornament));
     }
 
-    void SetPositions(std::vector<Formats::Chiptune::SoundTracker::PositionEntry> positions) override
+    void SetPositions(Formats::Chiptune::SoundTracker::Positions positions) override
     {
-      Data->Order = MakePtr<OrderListWithTransposition>(std::move(positions));
+      Data->Order = MakePtr<OrderListWithTransposition>(positions.Loop, std::move(positions.Lines));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

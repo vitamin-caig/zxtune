@@ -202,7 +202,7 @@ namespace Chiptune
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
-      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
@@ -260,11 +260,11 @@ namespace Chiptune
         return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+      void SetPositions(Positions positions) override
       {
-        UsedPatterns.Assign(positions.begin(), positions.end());
+        UsedPatterns.Assign(positions.Lines.begin(), positions.Lines.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(std::move(positions), loop);
+        return Delegate.SetPositions(std::move(positions));
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -443,11 +443,12 @@ namespace Chiptune
         const uint8_t* const posEnd = posStart + Source.Length;
         Ranges.AddService(posStart - begin, posEnd - posStart);
         Require(posEnd == std::find_if(posStart, posEnd, &IsInvalidPosEntry));
-        std::vector<uint_t> positions(posEnd - posStart);
-        std::transform(posStart, posEnd, positions.begin(), std::bind2nd(std::divides<uint_t>(), sizeof(RawPattern)));
-        const uint_t loop = std::min<uint_t>(Source.Loop, positions.size());
-        Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
-        builder.SetPositions(std::move(positions), loop);
+        Positions positions;
+        positions.Lines.resize(posEnd - posStart);
+        std::transform(posStart, posEnd, positions.Lines.begin(), std::bind2nd(std::divides<uint_t>(), sizeof(RawPattern)));
+        positions.Loop = std::min<uint_t>(Source.Loop, positions.Lines.size());
+        Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const

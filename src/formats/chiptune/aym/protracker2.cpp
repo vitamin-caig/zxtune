@@ -193,7 +193,7 @@ namespace Chiptune
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
-      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -247,11 +247,11 @@ namespace Chiptune
         return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+      void SetPositions(Positions positions) override
       {
-        UsedPatterns.Assign(positions.begin(), positions.end());
+        UsedPatterns.Assign(positions.Lines.begin(), positions.Lines.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(std::move(positions), loop);
+        return Delegate.SetPositions(std::move(positions));
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -433,10 +433,11 @@ namespace Chiptune
         const uint8_t* const startPos = Source.Positions;
         const uint8_t* const endPos = std::find(startPos, startPos + MAX_POSITIONS_COUNT + 1, POS_END_MARKER);
         Require(Math::InRange<std::size_t>(endPos - startPos, 1, MAX_POSITIONS_COUNT));
-        std::vector<uint_t> positions(startPos, endPos);
-        const uint_t loop = Source.Loop;
-        Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.size(), loop, uint_t(Source.Length));
-        builder.SetPositions(std::move(positions), loop);
+        Positions positions;
+        positions.Lines.assign(startPos, endPos);
+        positions.Loop = Source.Loop;
+        Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.GetSize(), positions.GetLoop(), uint_t(Source.Length));
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const

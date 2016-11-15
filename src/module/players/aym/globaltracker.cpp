@@ -100,9 +100,9 @@ namespace GlobalTracker
       Data->Ornaments.Add(index, std::move(ornament));
     }
 
-    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+    void SetPositions(Formats::Chiptune::GlobalTracker::Positions positions) override
     {
-      Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
+      Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

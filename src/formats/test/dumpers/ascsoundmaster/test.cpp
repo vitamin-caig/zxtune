@@ -89,13 +89,13 @@ namespace
       std::cout << std::endl;
     }
 
-    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+    void SetPositions(Positions positions) override
     {
       std::cout << "Positions: ";
-      for (uint_t idx = 0, lim = positions.size(); idx != lim; ++idx)
+      for (uint_t idx = 0, lim = positions.GetSize(); idx != lim; ++idx)
       {
-        std::cout << positions[idx];
-        if (idx == loop)
+        std::cout << positions.GetLine(idx);
+        if (idx == positions.GetLoop())
         {
           std::cout << 'L';
         }

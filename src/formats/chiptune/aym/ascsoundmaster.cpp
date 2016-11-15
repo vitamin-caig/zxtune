@@ -275,7 +275,8 @@ namespace Chiptune
       const std::size_t OrnamentsOffset;
       const uint_t Tempo;
       const uint_t Loop;
-      const std::vector<uint_t> Positions;
+      const uint8_t* const Positions;
+      const uint_t Length;
       
       template<class RawHeader>
       explicit HeaderTraits(const RawHeader& hdr)
@@ -285,7 +286,8 @@ namespace Chiptune
         , OrnamentsOffset(fromLE(hdr.OrnamentsOffset))
         , Tempo(hdr.Tempo)
         , Loop(hdr.Loop)
-        , Positions(hdr.Positions, hdr.Positions + hdr.Length)
+        , Positions(hdr.Positions)
+        , Length(hdr.Length)
       {
       }
       
@@ -293,8 +295,8 @@ namespace Chiptune
       {
         return Math::InRange<uint_t>(Tempo, 0x03, 0x32)
             && Math::InRange<uint_t>(Loop, 0x00, 0x63)
-            && Math::InRange<uint_t>(Positions.size(), 0x01, 0x64)
-            && Positions.end() == std::find_if(Positions.begin(), Positions.end(), std::bind2nd(std::greater_equal<uint_t>(), uint_t(MAX_PATTERNS_COUNT)))
+            && Math::InRange<uint_t>(Length, 0x01, 0x64)
+            && Positions + Length == std::find_if(Positions, Positions + Length, std::bind2nd(std::greater_equal<uint_t>(), uint_t(MAX_PATTERNS_COUNT)))
         ;
       }
       
@@ -380,7 +382,7 @@ namespace Chiptune
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
-      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
@@ -447,11 +449,11 @@ namespace Chiptune
         return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+      void SetPositions(Positions positions) override
       {
-        UsedPatterns.Assign(positions.begin(), positions.end());
+        UsedPatterns.Assign(positions.Lines.begin(), positions.Lines.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(std::move(positions), loop);
+        return Delegate.SetPositions(std::move(positions));
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -648,8 +650,11 @@ namespace Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        builder.SetPositions(Header.Positions, Header.Loop);
-        Dbg("Positions: %1% entries, loop to %2%", Header.Positions.size(), Header.Loop);
+        Positions pos;
+        pos.Loop = Header.Loop;
+        pos.Lines.assign(Header.Positions, Header.Positions + Header.Length);
+        Dbg("Positions: %1% entries, loop to %2%", pos.Lines.size(), pos.Loop);
+        builder.SetPositions(std::move(pos));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const

@@ -103,7 +103,7 @@ namespace Chiptune
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
-      void SetPositions(std::vector<PositionEntry> /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -152,15 +152,15 @@ namespace Chiptune
         return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(std::vector<PositionEntry> positions, uint_t loop) override
+      void SetPositions(Positions positions) override
       {
         UsedPatterns.Clear();
-        for (const auto& pos : positions)
+        for (const auto& pos : positions.Lines)
         {
           UsedPatterns.Insert(pos.PatternIndex);
         }
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(std::move(positions), loop);
+        return Delegate.SetPositions(std::move(positions));
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -330,12 +330,11 @@ namespace Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        std::vector<PositionEntry> positions;
-        uint_t loop = 0;
+        Positions positions;
         PositionEntry entry;
         for (std::size_t posCursor = fromLE(Source.PositionsOffset); ; ++posCursor)
         {
-          Require(positions.size() <= MAX_POSITIONS_COUNT);
+          Require(positions.GetSize() <= MAX_POSITIONS_COUNT);
           const uint_t val = PeekByte(posCursor);
           if (val == 0xff)
           {
@@ -343,7 +342,7 @@ namespace Chiptune
           }
           else if (val == 0xfe)
           {
-            loop = positions.size();
+            positions.Loop = positions.GetSize();
           }
           else if (val >= 0x60)
           {
@@ -353,12 +352,12 @@ namespace Chiptune
           {
             Require(0 == val % 3);
             entry.PatternIndex = val / 3;
-            positions.push_back(entry);
+            positions.Lines.push_back(entry);
           }
         }
-        Require(!positions.empty());
-        Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
-        builder.SetPositions(std::move(positions), loop);
+        Require(!positions.Lines.empty());
+        Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const

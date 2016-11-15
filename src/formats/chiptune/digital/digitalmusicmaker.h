@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,6 +23,8 @@ namespace Formats
   {
     namespace DigitalMusicMaker
     {
+      typedef LinesObject<uint_t> Positions;
+    
       class ChannelBuilder
       {
       public:
@@ -62,7 +65,7 @@ namespace Formats
         virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) = 0;
         virtual std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t index, uint_t period) = 0;
         //patterns
-        virtual void SetPositions(std::vector<uint_t> positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
         //! @invariant Channels are built sequentally

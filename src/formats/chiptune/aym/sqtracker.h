@@ -68,6 +68,8 @@ namespace Formats
         uint_t Tempo;
         std::array<Channel, 3> Channels;
       };
+      
+      typedef LinesObject<PositionEntry> Positions;
 
       class Builder
       {
@@ -79,7 +81,7 @@ namespace Formats
         virtual void SetSample(uint_t index, Sample sample) = 0;
         virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(std::vector<PositionEntry> positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

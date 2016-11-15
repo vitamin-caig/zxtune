@@ -51,11 +51,11 @@ namespace Formats
           return Delegate.SetSample(index, loop, std::move(data), is4Bit);
         }
 
-        void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+        void SetPositions(Positions positions) override
         {
-          UsedPatterns.Assign(positions.begin(), positions.end());
+          UsedPatterns.Assign(positions.Lines.begin(), positions.Lines.end());
           Require(!UsedPatterns.Empty());
-          return Delegate.SetPositions(std::move(positions), loop);
+          return Delegate.SetPositions(std::move(positions));
         }
 
         PatternBuilder& StartPattern(uint_t index) override

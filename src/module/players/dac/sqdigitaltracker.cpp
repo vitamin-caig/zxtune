@@ -70,9 +70,9 @@ namespace SQDigitalTracker
       Data->Samples.Add(index, Devices::DAC::CreateU8Sample(std::move(sample), loop));
     }
 
-    void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+    void SetPositions(Formats::Chiptune::SQDigitalTracker::Positions positions) override
     {
-      Data->Order = MakePtr<SimpleOrderList>(loop, std::move(positions));
+      Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
     }
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override

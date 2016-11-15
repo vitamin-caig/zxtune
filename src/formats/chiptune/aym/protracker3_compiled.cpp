@@ -227,7 +227,7 @@ namespace Chiptune
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
-      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -356,17 +356,17 @@ namespace Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        std::vector<uint_t> positions;
+        Positions positions;
         for (const uint8_t* pos = Source.Positions; *pos != POS_END_MARKER; ++pos)
         {
           const uint_t patNum = *pos;
           Require(0 == patNum % 3);
-          positions.push_back(patNum / 3);
+          positions.Lines.push_back(patNum / 3);
         }
-        Require(Math::InRange<std::size_t>(positions.size(), 1, MAX_POSITIONS_COUNT));
-        const uint_t loop = Source.Loop;
-        Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.size(), loop, uint_t(Source.Length));
-        builder.SetPositions(std::move(positions), loop);
+        Require(Math::InRange<std::size_t>(positions.GetSize(), 1, MAX_POSITIONS_COUNT));
+        positions.Loop = Source.Loop;
+        Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.GetSize(), positions.GetLoop(), uint_t(Source.Length));
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const

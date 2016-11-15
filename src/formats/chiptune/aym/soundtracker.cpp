@@ -164,15 +164,16 @@ namespace Chiptune
       void ParsePositions(Builder& builder) const
       {
         const std::size_t posCount = Source.Length + 1;
-        std::vector<PositionEntry> positions(posCount);
+        Positions positions;
+        positions.Lines.resize(posCount);
         for (uint_t idx = 0; idx != posCount; ++idx)
         {
           const RawPosEntry& src = Source.Positions[idx];
-          PositionEntry& dst = positions[idx];
+          PositionEntry& dst = positions.Lines[idx];
           dst.PatternIndex = src.Pattern - 1;
           dst.Transposition = src.Transposition;
         }
-        Dbg("Positions: %1% entries", positions.size());
+        Dbg("Positions: %1% entries", positions.GetSize());
         builder.SetPositions(std::move(positions));
       }
 
@@ -533,7 +534,7 @@ namespace Chiptune
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
-      void SetPositions(std::vector<PositionEntry> /*positions*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();

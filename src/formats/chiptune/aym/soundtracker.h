@@ -43,7 +43,7 @@ namespace Formats
       
       typedef LinesObjectWithLoopLimit<SampleLine> Sample;
       typedef LinesObject<int_t> Ornament;
-
+      
       struct PositionEntry
       {
         PositionEntry() : PatternIndex(), Transposition()
@@ -53,6 +53,8 @@ namespace Formats
         uint_t PatternIndex;
         int_t Transposition;
       };
+      
+      typedef LinesObject<PositionEntry> Positions;
 
       class Builder
       {
@@ -65,7 +67,7 @@ namespace Formats
         virtual void SetSample(uint_t index, Sample sample) = 0;
         virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(std::vector<PositionEntry> positions) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

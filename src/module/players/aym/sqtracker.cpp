@@ -123,11 +123,6 @@ namespace SQTracker
     typedef std::shared_ptr<const ModuleData> Ptr;
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData()
-      : LoopPosition()
-    {
-    }
-
     uint_t GetInitialTempo() const override
     {
       return 0;
@@ -152,8 +147,7 @@ namespace SQTracker
       return *FlatPatterns;
     }
 
-    uint_t LoopPosition;
-    std::vector<Formats::Chiptune::SQTracker::PositionEntry> Positions;
+    Formats::Chiptune::SQTracker::Positions Positions;
     mutable PatternsSet::Ptr RawPatterns;
     SparsedObjectsStorage<Sample> Samples;
     SparsedObjectsStorage<Ornament> Ornaments;
@@ -162,15 +156,15 @@ namespace SQTracker
     {
       Dbg("Convert order list");
       PositionsSet uniqPositions;
-      const std::size_t count = Positions.size();
+      const std::size_t count = Positions.GetSize();
       std::vector<uint_t> newIndices(count);
       for (std::size_t pos = 0; pos != count; ++pos)
       {
-        const uint_t newIdx = uniqPositions.Add(Positions[pos]);
+        const uint_t newIdx = uniqPositions.Add(Positions.GetLine(pos));
         newIndices[pos] = newIdx;
         Dbg("Position[%1%] -> %2%", pos, newIdx);
       }
-      return MakePtr<SimpleOrderList>(LoopPosition, std::move(newIndices));
+      return MakePtr<SimpleOrderList>(Positions.Loop, std::move(newIndices));
     }
 
     PatternsSet::Ptr CreateFlatPatterns(const OrderList& order) const
@@ -183,7 +177,7 @@ namespace SQTracker
         const uint_t patIdx = order.GetPatternIndex(pos);
         if (donePatterns.insert(patIdx).second)
         {
-          const Formats::Chiptune::SQTracker::PositionEntry& patAttrs = Positions[pos];
+          const Formats::Chiptune::SQTracker::PositionEntry& patAttrs = Positions.GetLine(pos);
           Dbg("Pattern %1%", patIdx);
           builder.SetPattern(patIdx);
           ConvertPattern(patAttrs, builder);
@@ -430,9 +424,8 @@ namespace SQTracker
       Data->Ornaments.Add(index, Ornament(std::move(ornament)));
     }
 
-    void SetPositions(std::vector<Formats::Chiptune::SQTracker::PositionEntry> positions, uint_t loop) override
+    void SetPositions(Formats::Chiptune::SQTracker::Positions positions) override
     {
-      Data->LoopPosition = loop;
       Data->Positions = std::move(positions);
     }
 
@@ -562,7 +555,7 @@ namespace SQTracker
       {
         if (0 == state.Line())
         {
-          StartNewPattern(Data->Positions[state.Position()]);
+          StartNewPattern(Data->Positions.GetLine(state.Position()));
         }
         GetNewLineState(state, track);
       }

@@ -73,14 +73,14 @@ namespace Formats
           return Delegate.SetOrnament(index, std::move(ornament));
         }
 
-        void SetPositions(std::vector<PositionEntry> positions) override
+        void SetPositions(Positions positions) override
         {
-          Require(!positions.empty());
           UsedPatterns.Clear();
-          for (const auto& pos : positions)
+          for (const auto& pos : positions.Lines)
           {
             UsedPatterns.Insert(pos.PatternIndex);
           }
+          Require(!UsedPatterns.Empty());
           return Delegate.SetPositions(std::move(positions));
         }
 

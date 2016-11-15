@@ -67,15 +67,15 @@ namespace Formats
           return Delegate.SetOrnament(index, std::move(ornament));
         }
 
-        void SetPositions(std::vector<PositionEntry> positions, uint_t loop) override
+        void SetPositions(Positions positions) override
         {
-          Require(!positions.empty());
           UsedPatterns.Clear();
-          for (const auto pos : positions)
+          for (const auto& pos : positions.Lines)
           {
             UsedPatterns.Insert(pos.PatternIndex);
           }
-          return Delegate.SetPositions(std::move(positions), loop);
+          Require(!UsedPatterns.Empty());
+          return Delegate.SetPositions(std::move(positions));
         }
 
         PatternBuilder& StartPattern(uint_t index) override

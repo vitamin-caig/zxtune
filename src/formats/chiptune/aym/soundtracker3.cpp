@@ -207,7 +207,7 @@ namespace Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        std::vector<PositionEntry> positions;
+        Positions positions;
         for (RangeIterator<const RawPositions::PosEntry*> iter = GetPositions(); iter; ++iter)
         {
           const RawPositions::PosEntry& src = *iter;
@@ -215,9 +215,9 @@ namespace Chiptune
           PositionEntry dst;
           dst.PatternIndex = src.PatternOffset / sizeof(RawPattern);
           dst.Transposition = src.Transposition;
-          positions.push_back(dst);
+          positions.Lines.push_back(dst);
         }
-        Dbg("Positions: %1% entries", positions.size());
+        Dbg("Positions: %1% entries", positions.GetSize());
         builder.SetPositions(std::move(positions));
       }
 

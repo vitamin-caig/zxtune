@@ -169,7 +169,7 @@ namespace Chiptune
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
       //patterns
-      void SetPositions(std::vector<PositionEntry> /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
@@ -215,10 +215,10 @@ namespace Chiptune
         return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      void SetPositions(std::vector<PositionEntry> positions, uint_t loop) override
+      void SetPositions(Positions positions) override
       {
         UsedPatterns.Clear();
-        for (const auto& pos : positions)
+        for (const auto& pos : positions.Lines)
         {
           for (const auto& chan : pos.Channels)
           {
@@ -226,7 +226,7 @@ namespace Chiptune
           }
         }
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(std::move(positions), loop);
+        return Delegate.SetPositions(std::move(positions));
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -387,13 +387,12 @@ namespace Chiptune
       {
         const std::size_t loopPositionOffset = fromLE(Source.LoopPositionOffset) - Delta;
         std::size_t posOffset = fromLE(Source.PositionsOffset) - Delta;
-        std::vector<PositionEntry> result;
-        uint_t loopPos = 0;
+        Positions result;
         for (uint_t pos = 0;; ++pos)
         {
           if (posOffset == loopPositionOffset)
           {
-            loopPos = pos;
+            result.Loop = pos;
           }
           if (const RawPosEntry* fullEntry = Delegate.GetField<RawPosEntry>(posOffset))
           {
@@ -410,7 +409,7 @@ namespace Chiptune
             ParsePositionChannel(fullEntry->ChannelA, dst.Channels[0]);
             dst.Tempo = fullEntry->Tempo;
             posOffset += sizeof(*fullEntry);
-            result.push_back(dst);
+            result.Lines.push_back(dst);
           }
           else
           {
@@ -421,8 +420,8 @@ namespace Chiptune
             break;
           }
         }
-        Dbg("Positions: %1% entries, loop to %2%", result.size(), loopPos);
-        builder.SetPositions(std::move(result), loopPos);
+        Dbg("Positions: %1% entries, loop to %2%", result.GetSize(), result.GetLoop());
+        builder.SetPositions(std::move(result));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const

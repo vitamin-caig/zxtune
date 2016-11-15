@@ -461,7 +461,7 @@ namespace Chiptune
 
       void SetInstrument(uint_t /*index*/, Instrument /*instrument*/) override {}
       //patterns
-      void SetPositions(std::vector<uint_t> /*positions*/, uint_t /*loop*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
@@ -532,11 +532,11 @@ namespace Chiptune
         return Delegate.SetInstrument(index, std::move(instrument));
       }
 
-      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+      void SetPositions(Positions positions) override
       {
-        UsedPatterns.Assign(positions.begin(), positions.end());
+        UsedPatterns.Assign(positions.Lines.begin(), positions.Lines.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(std::move(positions), loop);
+        return Delegate.SetPositions(std::move(positions));
       }
 
       PatternBuilder& StartPattern(uint_t index) override
@@ -823,10 +823,11 @@ namespace Chiptune
       void ParsePositions(Builder& builder) const
       {
         const std::size_t positionsCount = Source.PositionsCount ? Source.PositionsCount : MAX_POSITIONS_COUNT;
-        std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + positionsCount);
-        const uint_t loop = Source.LoopPosition;
-        Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
-        builder.SetPositions(std::move(positions), loop);
+        Positions positions;
+        positions.Loop = Source.LoopPosition;
+        positions.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + positionsCount);
+        Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const

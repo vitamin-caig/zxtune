@@ -145,11 +145,12 @@ namespace Chiptune
         const uint_t positionsCount = Source.LastPositionDoubled / 2;
         Require(Math::InRange<uint_t>(positionsCount + 1, 1, MAX_POSITIONS_COUNT));
 
-        std::vector<uint_t> positions(positionsCount);
-        std::transform(Source.Positions.begin(), Source.Positions.begin() + positionsCount, positions.begin(),
+        Digital::Positions positions;
+        positions.Lines.resize(positionsCount);
+        std::transform(Source.Positions.begin(), Source.Positions.begin() + positionsCount, positions.Lines.begin(),
           std::bind2nd(std::minus<uint8_t>(), uint8_t(1)));
-        Dbg("Positions: %1%", positions.size());
-        target.SetPositions(std::move(positions), 0);
+        Dbg("Positions: %1%", positions.GetSize());
+        target.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& target) const

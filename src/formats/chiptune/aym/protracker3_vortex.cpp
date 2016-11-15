@@ -1170,7 +1170,10 @@ namespace ProTracker3
         meta.SetAuthor(FromStdString(hdr.Author));
         Target.SetNoteTable(hdr.Table);
         Target.SetInitialTempo(hdr.Tempo);
-        Target.SetPositions(hdr.PlayOrder, hdr.PlayOrder.GetLoop());
+        Positions pos;
+        pos.Loop = hdr.PlayOrder.GetLoop();
+        pos.Lines = hdr.PlayOrder;
+        Target.SetPositions(std::move(pos));
       }
 
       std::size_t ParseBody()
@@ -1356,9 +1359,9 @@ namespace ProTracker3
         }
       }
 
-      void SetPositions(std::vector<uint_t> positions, uint_t loop) override
+      void SetPositions(Positions positions) override
       {
-        Header.PlayOrder = LoopedList<uint_t>(loop, std::move(positions));
+        Header.PlayOrder = LoopedList<uint_t>(positions.Loop, std::move(positions.Lines));
       }
 
       PatternBuilder& StartPattern(uint_t index) override
