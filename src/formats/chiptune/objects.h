@@ -11,6 +11,7 @@
 #pragma once
 
 //std includes
+#include <type_traits>
 #include <vector>
 
 namespace Formats
@@ -54,10 +55,15 @@ namespace Formats
         return static_cast<uint_t>(Lines.size());
       }
 
-      const LineType& GetLine(uint_t pos) const
+      typename std::conditional<std::is_fundamental<LineType>::value, LineType, const LineType&>::type GetLine(uint_t pos) const
       {
         static const LineType STUB = LineType();
         return Lines.size() > pos ? Lines[pos] : STUB;
+      }
+      
+      const LineType* FindLine(uint_t pos) const
+      {
+        return Lines.size() > pos ? &Lines[pos] : nullptr;
       }
 
       std::vector<LineType> Lines;

@@ -16,6 +16,8 @@
 #include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
+//std includes
+#include <array>
 
 namespace Formats
 {

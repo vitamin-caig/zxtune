@@ -51,6 +51,24 @@ namespace Formats
         {
         }
         
+        Sample(const Sample&) = delete;
+        Sample& operator = (const Sample&) = delete;
+        
+        Sample(Sample&& rh)// = default
+          : LinesObject<SampleLine>(std::move(rh))
+          , VolumeDeltaPeriod(rh.VolumeDeltaPeriod)
+          , VolumeDeltaValue(rh.VolumeDeltaValue)
+        {
+        }
+        
+        Sample& operator = (Sample&& rh)// = default
+        {
+          VolumeDeltaPeriod = rh.VolumeDeltaPeriod;
+          VolumeDeltaValue = rh.VolumeDeltaValue;
+          LinesObject<SampleLine>::operator = (std::move(rh));
+          return *this;
+        }
+        
         uint_t VolumeDeltaPeriod;
         uint_t VolumeDeltaValue;
       };

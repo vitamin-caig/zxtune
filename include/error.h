@@ -81,10 +81,17 @@ public:
   Error(LocationRef loc, const String& text);
 
   Error(const Error&) = default;
-  Error(Error&&) = default;
+  Error(Error&& rh)// = default
+    : ErrorMeta(std::move(rh.ErrorMeta))
+  {
+  }
   
   Error& operator = (const Error&) = default;
-  Error& operator = (Error&&) = default;
+  Error& operator = (Error&& rh)// = default;
+  {
+    ErrorMeta = std::move(rh.ErrorMeta);
+    return *this;
+  }
   //@}
 
   //@{

@@ -382,6 +382,11 @@ namespace SQTracker
     {
     }
   public:
+    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh)// = default
+      : PatternsBuilder(std::move(rh))
+    {
+    }
+
     void StartLine(uint_t index) override
     {
       PatternsBuilder::StartLine(index);

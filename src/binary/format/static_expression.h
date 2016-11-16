@@ -47,8 +47,6 @@ namespace Binary
         Set(val);
       }
       
-      StaticPredicate(StaticPredicate&&) = default;
-
       bool Match(uint_t val) const
       {
         return Get(val);
@@ -124,7 +122,13 @@ namespace Binary
         }
       }
       
-      StaticPattern(StaticPattern&&) = default;
+      StaticPattern(const StaticPattern&) = delete;
+      StaticPattern& operator = (const StaticPattern&) = delete;
+      
+      StaticPattern(StaticPattern&& rh)// = default;
+        : Data(std::move(rh.Data))
+      {
+      }
       
       std::size_t GetSize() const
       {

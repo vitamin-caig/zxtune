@@ -571,6 +571,15 @@ namespace ProTracker3
         , Index(index)
       {
       }
+      
+      OrnamentObject(const OrnamentObject&) = delete;
+      OrnamentObject& operator = (const OrnamentObject&) = delete;
+      
+      OrnamentObject(OrnamentObject&& rh)// = default
+        : Ornament(std::move(rh))
+        , Index(rh.Index)
+      {
+      }
 
       uint_t GetIndex() const
       {
@@ -623,6 +632,15 @@ namespace ProTracker3
       {
       }
 
+      SampleObject(const SampleObject&) = delete;
+      SampleObject& operator = (const SampleObject&) = delete;
+      
+      SampleObject(SampleObject&& rh)// = default
+        : Sample(std::move(rh))
+        , Index(rh.Index)
+      {
+      }
+      
       uint_t GetIndex() const
       {
         return Index;

@@ -198,9 +198,7 @@ namespace ETracker
 
     const typename Object::Line* GetLine() const
     {
-      return Position < Obj->GetSize()
-        ? &Obj->GetLine(Position)
-        : nullptr;
+      return Obj->FindLine(Position);
     }
 
     void Next()
