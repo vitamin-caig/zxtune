@@ -5,6 +5,31 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3720 from 16.11.2016
+
+[*] Moved to C++11
+[*] Improved support of SNA128 snapshots
+[*] Improved support of DST tracks
+[*] Fixed multitrack SAP files processing
+[*] Improved okim6295 support for VGM
+[*] Fixed some crashes in MsPack decoder
+[*] Speedup applications initialization
+[*] Improved support of KSSX files with single track (BB#59)
+[*] Fixed crashes while KSS seeking
+[*] Improved AY format detection
+[*] Use mono channels layout for AHX playback
+[*] zxtune-qt: fixed cached file locking (BB#62)
+[+] zxtune-android: added Crashlytics integration
+[*] zxtune-android: natural sorting in browser (BB#47)
+[*] zxtune-android: updated file associations (BB#48)
+[+] zxtune-android: Czech translation
+[*] zxtune-android: fixed memory exhausting in some cases
+[*] zxtune-android: fixed zxtunes.com catalogue entry point
+[*] zxtune-android: fixes for browser updating from non-UI thread (BB#54)
+[*] zxtune-android: extend default duration setting up to 30min (BB#56)
+[*] zxtune-android: loop short tracks to create all the predefined ringtone durations
+[*] zxtune-android: fixed zxart.ee browsing for unknown compo types, supported 'related' compo
+
 --- Rev3590 from 14.03.2016
 
 [+] Supported darwin-x86_64 platform
@@ -18,7 +43,6 @@ Annotation:
 [*] zxtune-android: support unknown authors' modules listing in Modarchive catalogue
 [*] zxtune-android: fixed ringtone creation for modules shorter than 30s
 [*] zxtune-android: fixed some crashes
-
 
 --- Rev3520 from 17.11.2015
 
