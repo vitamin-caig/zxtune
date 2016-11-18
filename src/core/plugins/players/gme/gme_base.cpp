@@ -67,9 +67,9 @@ namespace GME
   public:
     typedef std::shared_ptr<GME> Ptr;
     
-    GME(EmuCreator create, Binary::Data::Ptr data, uint_t track)
+    GME(EmuCreator create, const Binary::Data& data, uint_t track)
       : CreateEmu(create)
-      , Data(std::move(data))
+      , Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
       , Track(track)
       , SoundFreq(0)
     {
@@ -142,7 +142,7 @@ namespace GME
       const int oldPos = Emu ? Emu->tell() : 0;
       EmuPtr emu = CreateEmu();
       CheckError(emu->set_sample_rate(soundFreq));
-      CheckError(emu->load_mem(Data->Start(), Data->Size()));
+      CheckError(emu->load_mem(&Data.front(), Data.size()));
       CheckError(emu->start_track(Track));
       if (oldPos)
       {
@@ -160,7 +160,7 @@ namespace GME
     }
   private:
     const EmuCreator CreateEmu;
-    const Binary::Data::Ptr Data;
+    const Dump Data;
     const uint_t Track;
     uint_t SoundFreq;
     EmuPtr Emu;
@@ -365,7 +365,7 @@ namespace GME
             Require(HasContainer(Desc.Id, properties));
           }
 
-          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, *container, container->StartTrackIndex());
           PropertiesHelper props(*properties);
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
@@ -409,7 +409,7 @@ namespace GME
       {
         if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
         {
-          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, container, 0);
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, *container, 0);
           PropertiesHelper props(*properties);
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
