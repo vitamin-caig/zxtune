@@ -44,11 +44,12 @@ namespace Formats
     {
     }
 
-    void SetSector(const CHS& location, const Dump& data) override
+    void SetSector(const CHS& location, Dump data) override
     {
-      if (Sectors.insert(SectorsMap::value_type(location, data)).second)
+      const auto res = Sectors.insert(SectorsMap::value_type(location, std::move(data)));
+      if (res.second)
       {
-        TotalSize += data.size();
+        TotalSize += res.first->second.size();
       }
     }
 

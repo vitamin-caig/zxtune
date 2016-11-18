@@ -121,7 +121,7 @@ namespace Chiptune
         const std::size_t fixedOffset = stream.GetPosition();
         for (;;)
         {
-          const uint8_t val = *stream.ReadData(1);
+          const uint8_t val = stream.ReadField<uint8_t>();
           if (val == FINISH)
           {
             break;
@@ -132,7 +132,7 @@ namespace Chiptune
             target.BeginFrames(1);
             break;
           case SKIP_FRAMES:
-            target.BeginFrames(*stream.ReadData(1) + 3);
+            target.BeginFrames(3 + stream.ReadField<uint8_t>());
             break;
           case SELECT_SECOND_CHIP:
             target.SelectChip(1);
@@ -144,12 +144,12 @@ namespace Chiptune
             target.SetLoop();
             break;
           default:
-            target.SetRegister(val, *stream.ReadData(1));
+            target.SetRegister(val, stream.ReadField<uint8_t>());
             break;
           }
         }
         const std::size_t usedSize = stream.GetPosition();
-        const Binary::Container::Ptr subData = stream.GetReadData();
+        const auto subData = stream.GetReadData();
         return CreateCalculatingCrcContainer(subData, fixedOffset, usedSize - fixedOffset);
       }
       catch (const std::exception&)

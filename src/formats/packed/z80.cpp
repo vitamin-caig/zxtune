@@ -281,9 +281,9 @@ namespace Packed
     void DecodeBlock(Binary::InputStream& stream, std::size_t srcSize, Dump& dst)
     {
       const std::size_t LOOKUP = 1;
-      const uint8_t* const src = stream.ReadData(LOOKUP);
-      const std::size_t used = DecodeBlock(src, srcSize, &dst[0], dst.size());
-      stream.ReadData(used - LOOKUP);
+      const auto src = stream.ReadRawData(LOOKUP);
+      const auto used = DecodeBlock(src, srcSize, &dst[0], dst.size());
+      stream.Skip(used - LOOKUP);
     }
 
     Formats::Packed::Container::Ptr Version1_45::Decode(Binary::InputStream& stream)
@@ -495,7 +495,7 @@ namespace Packed
       const std::size_t additionalSize = fromLE(hdr.AdditionalSize);
       const std::size_t readAdditionalSize = sizeof(hdr) - sizeof(Version1_45::Header) - sizeof(hdr.AdditionalSize);
       Require(additionalSize >= readAdditionalSize);
-      stream.ReadData(additionalSize - readAdditionalSize);
+      stream.Skip(additionalSize - readAdditionalSize);
       const PlatformTraits traits(additionalSize, hdr.HardwareMode, hdr.Port7ffd);
       std::unique_ptr<Dump> res(new Dump(ZX_PAGE_SIZE * traits.PagesCount()));
       Dump curPage(ZX_PAGE_SIZE);
@@ -518,7 +518,7 @@ namespace Packed
         const uint8_t* pageSource = nullptr;
         if (pageSize == page.UNCOMPRESSED)
         {
-          pageSource = stream.ReadData(ZX_PAGE_SIZE);
+          pageSource = stream.ReadRawData(ZX_PAGE_SIZE);
         }
         else
         {

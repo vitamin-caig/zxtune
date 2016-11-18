@@ -302,14 +302,14 @@ namespace Chiptune
           const std::size_t columns = sizeof(RegistersDump);
           const std::size_t lines = dumpSize / columns;
           const std::size_t matrixSize = lines * columns;
-          const uint8_t* const src = stream.ReadData(matrixSize);
+          const auto src = stream.ReadRawData(matrixSize);
           ParseTransponedMatrix(src, matrixSize, lines, columns, target);
           if (Ver3b::FastCheck(data, size))
           {
             const uint_t loop = fromBE(stream.ReadField<uint32_t>());
             target.SetLoop(loop);
           }
-          const Binary::Container::Ptr subData = stream.GetReadData();
+          const auto subData = stream.GetReadData();
           return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
         }
         else if (Ver5::FastCheck(data, size)
@@ -341,7 +341,7 @@ namespace Chiptune
           {
             Dbg("available only %1% lines", availLines);
           }
-          const uint8_t* const src = stream.ReadData(matrixSize);
+          const auto src = stream.ReadRawData(matrixSize);
           if (header.Interleaved())
           {
             ParseTransponedMatrix(src, matrixSize, lines, columns, target);
@@ -350,7 +350,7 @@ namespace Chiptune
           {
             ParseMatrix(src, matrixSize, lines, columns, target);
           }
-          const Binary::Container::Ptr subData = stream.GetReadData();
+          const auto subData = stream.GetReadData();
           return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
         }
       }

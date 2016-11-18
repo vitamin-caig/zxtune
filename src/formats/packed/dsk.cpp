@@ -15,7 +15,6 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/packed.h>
@@ -158,7 +157,7 @@ namespace Packed
           for (uint_t side = 0; side != diskInfo.Sides; ++side)
           {
             const std::size_t trackSize = diskInfo.GetTrackSize();
-            const Binary::Container::Ptr trackData = Binary::CreateNonCopyContainer(diskStream.ReadData(trackSize), trackSize);
+            const auto trackData = diskStream.ReadData(trackSize);
             ParseTrack(*trackData);
           }
         }
@@ -176,7 +175,7 @@ namespace Packed
           {
             if (const std::size_t trackSize = diskInfo.GetTrackSize(cylinder))
             {
-              const Binary::Container::Ptr trackData = Binary::CreateNonCopyContainer(diskStream.ReadData(trackSize), trackSize);
+              const auto trackData = diskStream.ReadData(trackSize);
               ParseExtendedTrack(*trackData);
             }
           }
@@ -196,7 +195,7 @@ namespace Packed
           const std::size_t rawSectorSize = GetSectorDataSize(trackInfo.SectorSize);
           const std::size_t usedSectorSize = GetSectorDataSize(sectorInfo.Size);
           Require(rawSectorSize >= usedSectorSize);
-          const uint8_t* const sectorData = trackStream.ReadData(rawSectorSize);
+          const auto sectorData = trackStream.ReadRawData(rawSectorSize);
           Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector), Dump(sectorData, sectorData + usedSectorSize));
         }
       }
@@ -212,7 +211,7 @@ namespace Packed
           const TrackInformationBlock::SectorInfo& sectorInfo = trackInfo.Sectors[sector];
           if (const std::size_t sectorSize = fromLE(sectorInfo.ActualDataSize))
           {
-            const uint8_t* const sectorData = trackStream.ReadData(sectorSize);
+            const auto sectorData = trackStream.ReadRawData(sectorSize);
             Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector), Dump(sectorData, sectorData + sectorSize));
           }
         }

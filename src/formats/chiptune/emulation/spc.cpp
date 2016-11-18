@@ -456,8 +456,8 @@ namespace Chiptune
           const std::size_t size = fromLE(hdr.DataSize);
           if (hdr.ID == XID6 && Stream.GetRestSize() >= size)
           {
-            const Binary::DataAdapter chunks(Stream.ReadData(size), size);
-            ParseSubchunks(chunks, target);
+            const auto chunks = Stream.ReadData(size);
+            ParseSubchunks(*chunks, target);
           }
           else
           {

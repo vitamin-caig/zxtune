@@ -38,9 +38,9 @@ namespace Binary
     template<class T>
     const T& ReadField()
     {
-      return *safe_ptr_cast<const T*>(ReadData(sizeof(T)));
+      return *safe_ptr_cast<const T*>(ReadRawData(sizeof(T)));
     }
-
+    
     //! @brief Read ASCIIZ string with specified maximal size
     std::string ReadCString(std::size_t maxSize)
     {
@@ -76,12 +76,20 @@ namespace Binary
     }
 
     //! @brief Read raw data
-    const uint8_t* ReadData(std::size_t size)
+    const uint8_t* ReadRawData(std::size_t size)
     {
       Require(Cursor + size <= Finish);
       const uint8_t* const res = Cursor;
       Cursor += size;
       return res;
+    }
+    
+    Container::Ptr ReadData(std::size_t size)
+    {
+      Require(Cursor + size <= Finish);
+      const std::size_t offset = GetPosition();
+      Cursor += size;
+      return Data.GetSubcontainer(offset, size);
     }
 
     //! @brief Read rest data in source container
@@ -98,8 +106,14 @@ namespace Binary
     std::size_t Read(void* buf, std::size_t len)
     {
       const std::size_t res = std::min(len, GetRestSize());
-      std::memcpy(buf, ReadData(res), res);
+      std::memcpy(buf, ReadRawData(res), res);
       return res;
+    }
+    
+    void Skip(std::size_t size)
+    {
+      Require(Cursor + size <= Finish);
+      Cursor += size;
     }
 
     //! @brief Return data that is already read

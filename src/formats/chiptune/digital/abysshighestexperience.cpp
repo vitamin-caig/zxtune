@@ -159,13 +159,13 @@ namespace Chiptune
       void ParseSubsongs(Builder& /*target*/)
       {
         const uint_t count = Source.SubsongsCount;
-        Stream.ReadData(count * sizeof(Subsong));
+        Stream.Skip(count * sizeof(Subsong));
       }
       
       void ParsePositions(Builder& /*target*/)
       {
         const uint_t count = fromBE(Source.PositionsCountAndFlags) & 0xfff;
-        Stream.ReadData(count * sizeof(Position));
+        Stream.Skip(count * sizeof(Position));
       }
       
       void ParseTracks(Builder& /*target*/)
@@ -173,7 +173,7 @@ namespace Chiptune
         const bool track0Saved = 0 == (fromBE(Source.PositionsCountAndFlags) & 0x8000);
         const uint_t count = Source.TracksCount + track0Saved;
         const uint_t size = Source.TrackSize;
-        Stream.ReadData(count * size * sizeof(Note));
+        Stream.Skip(count * size * sizeof(Note));
       }
       
       void ParseSamples(Builder& /*target*/)
@@ -185,7 +185,7 @@ namespace Chiptune
           const uint_t size = hdr.Length;
           for (uint_t idx = 0; idx < size; ++idx)
           {
-            Stream.ReadData(sizeof(Sample::Entry));
+            Stream.Skip(sizeof(Sample::Entry));
           }
         }
       }

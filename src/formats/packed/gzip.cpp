@@ -120,7 +120,7 @@ namespace Packed
         const std::size_t restIn = input.GetRestSize();
         if (stream.avail_in == 0)
         {
-          stream.next_in = const_cast<Bytef*>(input.ReadData(0));
+          stream.next_in = const_cast<Bytef*>(input.ReadRawData(0));
           stream.avail_in = static_cast<uInt>(restIn);
         }
         if (stream.avail_out == 0)
@@ -132,7 +132,7 @@ namespace Packed
         const int res = ::inflate(&stream, Z_SYNC_FLUSH);
         if (Z_STREAM_END == res)
         {
-          input.ReadData(restIn - stream.avail_in);
+          input.Skip(restIn - stream.avail_in);
           output.Resize(stream.total_out);
           return;
         }
@@ -176,7 +176,7 @@ namespace Packed
         if (header.HasExtraData())
         {
           const std::size_t extraSize = fromLE(input.ReadField<uint16_t>());
-          input.ReadData(extraSize);
+          input.Skip(extraSize);
         }
         if (header.HasFilename())
         {

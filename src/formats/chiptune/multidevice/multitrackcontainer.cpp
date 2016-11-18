@@ -84,7 +84,7 @@ namespace IFF
       }
       const Binary::Container::Ptr data = input.GetSubcontainer(pos + sizeof(header), dataSize);
       target.OnChunk(header.Id, data);
-      stream.ReadData(Math::Align(dataSize, ALIGNMENT));
+      stream.Skip(Math::Align(dataSize, ALIGNMENT));
     }
     return input.GetSubcontainer(0, pos);
   }

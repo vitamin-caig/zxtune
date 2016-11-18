@@ -46,7 +46,7 @@ namespace Formats
     virtual ~ImageBuilder() = default;
 
     virtual void SetGeometry(const CHS& geometry) = 0;
-    virtual void SetSector(const CHS& location, const Dump& data) = 0;
+    virtual void SetSector(const CHS& location, Dump data) = 0;
 
     virtual Binary::Container::Ptr GetResult() const = 0;
   };

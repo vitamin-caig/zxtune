@@ -412,7 +412,7 @@ namespace Archived
           {
             return nullptr;
           }
-          Stream.ReadData(chunkSize);
+          Stream.Skip(chunkSize);
           return &chunk;
         }
 

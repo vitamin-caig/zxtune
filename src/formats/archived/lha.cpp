@@ -79,7 +79,7 @@ namespace Archived
         const std::size_t rest = stream->GetRestSize();
         if (rest >= bytes)
         {
-          stream->ReadData(bytes);//skip
+          stream->Skip(bytes);
           return 1;
         }
         return 0;

@@ -181,7 +181,7 @@ namespace Multitrack
               Require(size == 0);
               break;
             }
-            const uint8_t* const data = input.ReadData(size);
+            const auto data = input.ReadRawData(size);
             if (hdr.Id == INFO)
             {
               fixedCrc = Crc32(data, sizeof(InfoChunk), fixedCrc);
