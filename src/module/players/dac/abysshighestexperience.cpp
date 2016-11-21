@@ -24,7 +24,7 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //3rdparty
-#include <3rdparty/hvl/replay.h>
+#include <3rdparty/hvl/hvl_replay.h>
 
 namespace Module
 {
@@ -48,7 +48,7 @@ namespace AHX
       hvl_InitReplayer();
       initialized = true;
     }
-    const HvlPtr result = HvlPtr(hvl_LoadTune(static_cast<const uint8*>(data.Start()), data.Size(), MONO, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT), &hvl_FreeTune);
+    const HvlPtr result = HvlPtr(hvl_ParseTune(static_cast<const uint8*>(data.Start()), data.Size(), Parameters::ZXTune::Sound::FREQUENCY_DEFAULT, MONO), &hvl_FreeTune);
     Require(result.get() != nullptr);
     return result;
   }
