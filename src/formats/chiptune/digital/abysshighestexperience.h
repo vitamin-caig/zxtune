@@ -31,8 +31,17 @@ namespace Formats
         virtual MetaBuilder& GetMetaBuilder() = 0;
       };
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
+
+      class Decoder : public Formats::Chiptune::Decoder
+      {
+      public:
+        typedef std::shared_ptr<const Decoder> Ptr;
+
+        virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
+      };
+
+      Decoder::Ptr CreateDecoder();
     }
     
     Decoder::Ptr CreateAbyssHighestExperienceDecoder();

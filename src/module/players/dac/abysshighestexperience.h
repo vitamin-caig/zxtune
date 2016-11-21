@@ -12,11 +12,13 @@
 
 //library includes
 #include <module/players/factory.h>
+//library includes
+#include <formats/chiptune/digital/abysshighestexperience.h>
 
 namespace Module
 {
   namespace AHX
   {
-    Factory::Ptr CreateFactory();
+    Factory::Ptr CreateFactory(Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr decoder);
   }
 }

@@ -128,6 +128,12 @@ namespace Chiptune
       }
     };
     
+    Builder& GetStubBuilder()
+    {
+      static StubBuilder stub;
+      return stub;
+    }
+    
     class Format
     {
     public:
@@ -255,11 +261,11 @@ namespace Chiptune
       "?"            //subsongs count
     );
     
-    class Decoder : public Formats::Chiptune::Decoder
+    class AHXDecoder : public Decoder
     {
     public:
-      Decoder()
-        : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
+      AHXDecoder()
+        : Header(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {
       }
 
@@ -270,12 +276,12 @@ namespace Chiptune
 
       Binary::Format::Ptr GetFormat() const override
       {
-        return Format;
+        return Header;
       }
 
       bool Check(const Binary::Container& rawData) const override
       {
-        return Format->Match(rawData);
+        return Header->Match(rawData) && FastCheck(rawData);
       }
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
@@ -283,39 +289,38 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
+      {
+        if (!Check(data))
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
+
+        try
+        {
+          Format format(data);
+          format.Parse(target);
+          return format.GetContainer();
+        }
+        catch (const std::exception&)
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
+      }
     private:
-      const Binary::Format::Ptr Format;
+      const Binary::Format::Ptr Header;
     };
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Decoder::Ptr CreateDecoder()
     {
-      if (!FastCheck(data))
-      {
-        return Formats::Chiptune::Container::Ptr();
-      }
-
-      try
-      {
-        Format format(data);
-        format.Parse(target);
-        return format.GetContainer();
-      }
-      catch (const std::exception&)
-      {
-        return Formats::Chiptune::Container::Ptr();
-      }
-    }
-
-    Builder& GetStubBuilder()
-    {
-      static StubBuilder stub;
-      return stub;
+      return MakePtr<AHXDecoder>();
     }
   }//namespace AbyssHighestExperience
   
   Decoder::Ptr CreateAbyssHighestExperienceDecoder()
   {
-    return MakePtr<AbyssHighestExperience::Decoder>();
+    return AbyssHighestExperience::CreateDecoder();
   }
 }
 }
