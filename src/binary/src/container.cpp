@@ -9,6 +9,7 @@
 **/
 
 //common includes
+#include <contract.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
@@ -16,22 +17,23 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <type_traits>
 
 namespace Binary
 {
-  inline const void* GetPointer(const Dump& val, std::size_t offset)
+  inline const void* GetPointer(const Dump* val, std::size_t offset)
   {
-    return &val[offset];
+    return &val->front() + offset;
   }
 
-  inline const void* GetPointer(const Binary::Data& val, std::size_t offset)
+  inline const void* GetPointer(const Binary::Data* val, std::size_t offset)
   {
-    return static_cast<const uint8_t*>(val.Start()) + offset;
+    return static_cast<const uint8_t*>(val->Start()) + offset;
   }
 
-  inline const void* GetPointer(const uint8_t& val, std::size_t offset)
+  inline const void* GetPointer(const void* val, std::size_t offset)
   {
-    return &val + offset;
+    return static_cast<const uint8_t*>(val) + offset;
   }
 
   template<class Value>
@@ -40,13 +42,13 @@ namespace Binary
   public:
     SharedContainer(Value arr, std::size_t offset, std::size_t size)
       : Buffer(std::move(arr))
-      , Address(GetPointer(*Buffer, offset))
+      , Address(GetPointer(Buffer.get(), offset))
       , Offset(offset)
       , Length(size)
     {
       assert(Length);
     }
-
+    
     const void* Start() const override
     {
       return Address;
@@ -59,7 +61,6 @@ namespace Binary
 
     Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
-      assert(offset + size <= Length);
       if (size && offset < Length)
       {
         size = std::min(size, Length - offset);
@@ -74,6 +75,51 @@ namespace Binary
     const Value Buffer;
     const void* const Address;
     const std::size_t Offset;
+    const std::size_t Length;
+  };
+
+  typedef std::shared_ptr<const void> VoidPtr;
+  
+  class NonCopyContainer : public Binary::Container
+  {
+  public:
+    NonCopyContainer(VoidPtr buf, std::size_t size)
+      : Buffer(std::move(buf))
+      , Length(size)
+    {
+    }
+    
+    ~NonCopyContainer() override
+    {
+      Require(1 == Buffer.use_count());
+    }
+
+    const void* Start() const override
+    {
+      return Buffer.get();
+    }
+
+    std::size_t Size() const override
+    {
+      return Length;
+    }
+
+    Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
+    {
+      assert(offset + size <= Length);
+      if (size && offset < Length)
+      {
+        size = std::min(size, Length - offset);
+        return MakePtr<SharedContainer<VoidPtr>>(Buffer, offset, size);
+      }
+      else
+      {
+        return Ptr();
+      }
+    }
+    
+  private:
+    const VoidPtr Buffer;
     const std::size_t Length;
   };
 }
@@ -99,7 +145,7 @@ namespace Binary
   {
     if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : nullptr)
     {
-      return MakePtr<SharedContainer<const uint8_t*> >(byteData, 0, size);
+      return MakePtr<NonCopyContainer>(VoidPtr(byteData, [] (const void*){}), size);
     }
     else
     {
