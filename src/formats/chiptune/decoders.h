@@ -58,5 +58,6 @@ namespace Formats
     Decoder::Ptr CreateGYMDecoder();
     Decoder::Ptr CreateAbyssHighestExperienceDecoder();
     Decoder::Ptr CreateKSSDecoder();
+    Decoder::Ptr CreateHivelyTrackerDecoder();
   }
 }

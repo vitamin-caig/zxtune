@@ -42,8 +42,14 @@ namespace Formats
       };
 
       Decoder::Ptr CreateDecoder();
+      
+      namespace HivelyTracker
+      {
+        Decoder::Ptr CreateDecoder();
+      }
     }
     
     Decoder::Ptr CreateAbyssHighestExperienceDecoder();
+    Decoder::Ptr CreateHivelyTrackerDecoder();
   }
 }
