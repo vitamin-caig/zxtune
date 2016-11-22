@@ -20,12 +20,24 @@ namespace ZXTune
 {
   void RegisterAHXSupport(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'A', 'H', 'X', 0};
-    const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
+    {
+      const Char ID[] = {'A', 'H', 'X', 0};
+      const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
 
-    const Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr decoder = Formats::Chiptune::AbyssHighestExperience::CreateDecoder();
-    const Module::Factory::Ptr factory = Module::AHX::CreateFactory(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+      const auto decoder = Formats::Chiptune::AbyssHighestExperience::CreateDecoder();
+      const auto factory = Module::AHX::CreateFactory(decoder);
+      const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+      registrator.RegisterPlugin(plugin);
+    }
+
+    {
+      const Char ID[] = {'H', 'V', 'L', 0};
+      const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
+
+      const auto decoder = Formats::Chiptune::AbyssHighestExperience::HivelyTracker::CreateDecoder();
+      const auto factory = Module::AHX::CreateFactory(decoder);
+      const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+      registrator.RegisterPlugin(plugin);
+    }
   }
 }
