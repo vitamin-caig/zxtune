@@ -13,8 +13,6 @@ package app.zxtune.ui;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -198,7 +196,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     Log.d(TAG, "Saving persistent state");
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
     unbindFromService();//may affect playlistState
-    playingState.release();
   }
   
   @Override
@@ -255,27 +252,12 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   
   private class NowPlayingState extends CallbackStub implements PlaylistView.PlayitemStateSource {
     
-    //Use separate handler to avoid memory leaks - 
-    // post/removeCallbacks on View (e.g. listing) has no effect...
-    private final Handler handler;
-    private final Runnable updateTask;
     private boolean isPlaying;
     private Uri nowPlayingPlaylist;
     
     public NowPlayingState() {
-      this.handler = new Handler(Looper.getMainLooper());
-      this.updateTask = new Runnable() {
-        @Override
-        public void run() {
-          listing.invalidateViews();
-        }
-      };
       isPlaying = false;
       nowPlayingPlaylist = Uri.EMPTY;
-    }
-    
-    final void release() {
-      handler.removeCallbacks(updateTask);
     }
     
     @Override
@@ -303,8 +285,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
     
     private void updateView() {
-      handler.removeCallbacks(updateTask);
-      handler.postDelayed(updateTask, 100);
+      getActivity().getContentResolver().notifyChange(PlaylistQuery.ALL, null);
     }
   }
   
