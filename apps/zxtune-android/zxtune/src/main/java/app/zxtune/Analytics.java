@@ -165,6 +165,12 @@ public class Analytics {
     send(event);
   }
 
+  public static void sendTooBigFileEvent(int size) {
+    final CustomEvent event = new CustomEvent("Investigation");
+    event.putCustomAttribute("FileSizeKb", size / 1024);
+    send(event);
+  }
+
   private static void send(CustomEvent event) {
     Answers.getInstance().logCustom(event);
     Log.d(TAG, event.toString());

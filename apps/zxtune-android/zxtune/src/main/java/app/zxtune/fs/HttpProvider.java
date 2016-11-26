@@ -21,6 +21,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.R;
 
@@ -124,6 +125,7 @@ public class HttpProvider {
   
   private void CheckSizeLimit(int size) throws IOException {
     if (size > MAX_REMOTE_FILE_SIZE) {
+      Analytics.sendTooBigFileEvent(size);
       throw new IOException(context.getString(R.string.file_too_big));
     }
   }
