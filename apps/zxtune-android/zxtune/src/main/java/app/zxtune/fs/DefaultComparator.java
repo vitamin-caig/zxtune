@@ -85,7 +85,8 @@ public class DefaultComparator implements Comparator<VfsObject> {
         return null;
       }
     }
-    return Integer.decode(str);
+    //Integer.decode supports octadecimal values not need here
+    return Integer.parseInt(str);
   }
 
   public static Comparator<VfsObject> instance() {
