@@ -29,6 +29,7 @@ import app.zxtune.ZXTune;
 import app.zxtune.ZXTune.Module;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.dbhelpers.Transaction;
 
 public final class Provider extends ContentProvider {
@@ -62,7 +63,7 @@ public final class Provider extends ContentProvider {
       final Identifier fileId = new Identifier(Query.getPathFrom(uri));
       final Uri path = fileId.getDataLocation();
       Log.d(TAG, "Add archive content of %s", path);
-      final VfsFile file = (VfsFile)Vfs.resolve(path);
+      final VfsFile file = openFile(path);
       final ByteBuffer data = file.getContent();
       final HashSet<Identifier> dirEntries = new HashSet<Identifier>();
       final Transaction transaction = db.startTransaction();
@@ -104,6 +105,15 @@ public final class Provider extends ContentProvider {
       Log.w(TAG, e, "InsertToArchive");
     }
     return null;
+  }
+
+  private static VfsFile openFile(Uri path) throws IOException {
+    final VfsObject obj = Vfs.resolve(path);
+    if (obj instanceof VfsFile) {
+      return (VfsFile) obj;
+    } else {
+      throw new IOException("Failed to open " + path);
+    }
   }
   
   private void addDirEntries(HashSet<Identifier> dirs) {
