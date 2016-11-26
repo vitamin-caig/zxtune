@@ -158,6 +158,13 @@ public class Analytics {
     send(event);
   }
 
+  public static void sendNoTracksFoundEvent(String source, String type) {
+    final CustomEvent event = new CustomEvent("Investigation");
+    event.putCustomAttribute("NoTracksType", type);
+    event.putCustomAttribute("NoTracksTypeDetailed", source + "/" + type);
+    send(event);
+  }
+
   private static void send(CustomEvent event) {
     Answers.getInstance().logCustom(event);
     Log.d(TAG, event.toString());

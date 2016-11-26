@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.Analytics;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
@@ -53,6 +54,7 @@ public class FileIterator implements Iterator {
       if (lastError != null) {
         throw lastError;
       }
+      accountNoTracksFiles(uris);
       throw new IOException(context.getString(R.string.no_tracks_found));
     }
   }
@@ -242,6 +244,16 @@ public class FileIterator implements Iterator {
       } finally {
         module = null;
       }
+    }
+  }
+
+  private static void accountNoTracksFiles(Uri[] uris) {
+    for (Uri uri : uris) {
+      final String source = uri.getScheme();
+      final String filename = uri.getLastPathSegment();
+      final int extPos = filename.lastIndexOf('.');
+      final String type = extPos != -1 ? filename.substring(extPos + 1) : "None";
+      Analytics.sendNoTracksFoundEvent(source, type);
     }
   }
 }
