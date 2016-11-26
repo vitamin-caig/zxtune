@@ -116,7 +116,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       } else {
         return super.onOptionsItemSelected(item);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {//use the most common type
       Log.w(TAG, e, "onOptionsItemSelected");
       final Throwable cause = e.getCause();
       final String msg = cause != null ? cause.getMessage() : e.getMessage();
@@ -141,10 +141,17 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
 
   private void pickAndSend(Intent data, CharSequence title, int code) {
-    final Intent picker = new Intent(Intent.ACTION_PICK_ACTIVITY);
-    picker.putExtra(Intent.EXTRA_TITLE, title);
-    picker.putExtra(Intent.EXTRA_INTENT, data);
-    startActivityForResult(picker, code);
+    try {
+      final Intent picker = new Intent(Intent.ACTION_PICK_ACTIVITY);
+      picker.putExtra(Intent.EXTRA_TITLE, title);
+      picker.putExtra(Intent.EXTRA_INTENT, data);
+      startActivityForResult(picker, code);
+    } catch (SecurityException e) {
+      //workaround for Huawei requirement for huawei.android.permission.HW_SIGNATURE_OR_SYSTEM
+      data.removeExtra(EXTRA_ITEM);
+      final Intent chooser = Intent.createChooser(data, title);
+      startActivity(chooser);
+    }
   }
 
   @Override
