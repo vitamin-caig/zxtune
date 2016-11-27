@@ -70,6 +70,9 @@ public class BrowserController {
   public final void search(String query) {
     try {
       final VfsDir currentDir = getCurrentDir();
+      if (currentDir == null) {
+        return;
+      }
       loaderManager.destroyLoader(LOADER_ID);
       final LoaderManager.LoaderCallbacks<?> cb = SearchingLoaderCallback.create(this, currentDir, query);
       loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
