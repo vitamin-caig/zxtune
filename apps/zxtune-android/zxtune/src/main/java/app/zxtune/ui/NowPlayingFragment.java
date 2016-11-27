@@ -283,6 +283,9 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     final boolean selectItem(MenuItem item) throws IOException {
+      if (item == null) {
+        return false;
+      }
       switch (item.getItemId()) {
         case R.id.action_track:
           setupMenu();
