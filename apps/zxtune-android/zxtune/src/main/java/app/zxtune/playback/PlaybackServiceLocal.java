@@ -231,8 +231,16 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       Log.w(TAG, e, "Failed to shutdown executor");
     }
   }
+
+  private void executeCommand(Command cmd) {
+    try {
+      executeCommandImpl(cmd);
+    } catch (Exception e) {
+      Log.w(TAG, e, cmd.getClass().getName());
+    }
+  }
   
-  private void executeCommand(final Command cmd) {
+  private void executeCommandImpl(final Command cmd) {
     executor.execute(new Runnable() {
 
       @Override
