@@ -89,8 +89,10 @@ public class BrowserController {
   }
 
   public final void browseDir(VfsDir dir) {
-    setCurrentDir(dir);
-    Analytics.sendBrowseEvent(dir);
+    if (dir != null) {
+      setCurrentDir(dir);
+      Analytics.sendBrowseEvent(dir);
+    }
   }
 
   private void setCurrentDir(VfsDir dir) {
