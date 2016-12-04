@@ -88,6 +88,14 @@ public class BrowserController {
     return loader instanceof SearchingLoader;
   }
 
+  public final void browseRoot() {
+    try {
+      browseDir(Vfs.getRoot());
+    } catch (IOException e) {
+      listing.showError(e);
+    }
+  }
+
   public final void browseDir(VfsDir dir) {
     if (dir != null) {
       setCurrentDir(dir);

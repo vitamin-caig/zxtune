@@ -17,6 +17,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
@@ -67,7 +68,7 @@ final class Database {
               + " INTEGER);";
       }
 
-      Groups(DBProvider helper, String name) {
+      Groups(DBProvider helper, String name) throws IOException {
         super(helper, name, Fields.values().length);
       }
       
@@ -119,7 +120,7 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
               + " INTEGER PRIMARY KEY, " + Fields.path + " TEXT NOT NULL, " + Fields.size + " INTEGER);";
       
-      Tracks(DBProvider helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -149,7 +150,7 @@ final class Database {
         return createQuery(name(category));
       }
       
-      GroupTracks(DBProvider helper, String category) {
+      GroupTracks(DBProvider helper, String category) throws IOException {
         super(helper, name(category), 32);
       }
     }
@@ -162,7 +163,7 @@ final class Database {
   private final Timestamps timestamps;
   private final VfsCache cacheDir;
 
-  Database(Context context, VfsCache cache) {
+  Database(Context context, VfsCache cache) throws IOException {
     this.helper = new DBProvider(Helper.create(context));
     this.groups = new HashMap<String, Tables.Groups>();
     this.groupTracks = new HashMap<String, Tables.GroupTracks>();
@@ -175,7 +176,7 @@ final class Database {
     this.cacheDir = cache.createNested("ftp.modland.com");
   }
 
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(helper.getWritableDatabase());
   }
 

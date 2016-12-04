@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
@@ -68,7 +69,7 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
           + " TEXT);";
 
-      Authors(DBProvider helper) {
+      Authors(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -96,7 +97,7 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.name + " TEXT NOT NULL, " + Fields.year
           + " INTEGER NOT NULL);";
 
-      Parties(DBProvider helper) {
+      Parties(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -125,7 +126,7 @@ final class Database {
           + " TEXT, " + Fields.votes + " TEXT, " + Fields.duration + " INTEGER, " + Fields.year
           + " INTEGER, " + Fields.compo + " TEXT, " + Fields.partyplace + " INTEGER);";
       
-      Tracks(DBProvider helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -159,7 +160,7 @@ final class Database {
       final static String NAME = "authors_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      AuthorsTracks(DBProvider helper) {
+      AuthorsTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
 
@@ -177,7 +178,7 @@ final class Database {
       final static String NAME = "parties_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      PartiesTracks(DBProvider helper) {
+      PartiesTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
 
@@ -201,7 +202,7 @@ final class Database {
   private final String findQuery;
   private final VfsCache cacheDir;
 
-  Database(Context context, VfsCache cache) {
+  Database(Context context, VfsCache cache) throws IOException {
     this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorsTracks = new Tables.AuthorsTracks(helper);
@@ -216,7 +217,7 @@ final class Database {
     this.cacheDir = cache.createNested("www.zxart.ee");
   }
 
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(helper.getWritableDatabase());
   }
 

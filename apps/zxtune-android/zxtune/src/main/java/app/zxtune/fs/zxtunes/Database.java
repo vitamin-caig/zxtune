@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
@@ -64,7 +65,7 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
           + " TEXT);";
 
-      Authors(DBProvider helper) {
+      Authors(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -92,7 +93,7 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
           + " TEXT, " + Fields.duration + " INTEGER, " + Fields.date + " INTEGER);";
 
-      Tracks(DBProvider helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -123,7 +124,7 @@ final class Database {
       final static String NAME = "authors_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      AuthorsTracks(DBProvider helper) {
+      AuthorsTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -145,7 +146,7 @@ final class Database {
   private final String findQuery;
   private final VfsCache cacheDir;
 
-  Database(Context context, VfsCache cache) {
+  Database(Context context, VfsCache cache) throws IOException {
     this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorsTracks = new Tables.AuthorsTracks(helper);
@@ -158,7 +159,7 @@ final class Database {
     this.cacheDir = cache.createNested("www.zxtunes.com");
   }
 
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(helper.getWritableDatabase());
   }
   

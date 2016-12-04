@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
@@ -69,7 +70,7 @@ final class Database {
         ");";
       ;
       
-      Authors(DBProvider helper) {
+      Authors(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -103,7 +104,7 @@ final class Database {
           "size INTEGER NOT NULL" +
           ");";
 
-      Tracks(DBProvider helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -132,7 +133,7 @@ final class Database {
       final static String NAME = "author_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      AuthorTracks(DBProvider helper) {
+      AuthorTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -150,7 +151,7 @@ final class Database {
       final static String NAME = "country_authors";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      CountryAuthors(DBProvider helper) {
+      CountryAuthors(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -177,7 +178,7 @@ final class Database {
         ");";
       ;
 
-      Groups(DBProvider helper) {
+      Groups(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -197,7 +198,7 @@ final class Database {
       final static String NAME = "group_authors";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      GroupAuthors(DBProvider helper) {
+      GroupAuthors(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -222,7 +223,7 @@ final class Database {
   private final String findQuery;
   private final VfsCache cacheDir;
 
-  Database(Context context, VfsCache cache) {
+  Database(Context context, VfsCache cache) throws IOException {
     this.helper = new DBProvider(Helper.create(context));
     this.countryAuthors = new Tables.CountryAuthors(helper);
     this.groupAuthors = new Tables.GroupAuthors(helper);
@@ -238,7 +239,7 @@ final class Database {
     this.cacheDir = cache.createNested("amp.dascene.net");
   }
 
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(helper.getWritableDatabase());
   }
   

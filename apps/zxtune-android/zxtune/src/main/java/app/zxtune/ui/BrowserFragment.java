@@ -31,7 +31,6 @@ import android.widget.ProgressBar;
 import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
-import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
@@ -122,7 +121,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     roots.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        controller.browseDir(Vfs.getRoot());
+        controller.browseRoot();
       }
     });
   }

@@ -16,6 +16,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
@@ -150,7 +151,7 @@ class Database {
             "END;";
       };
       
-      Archives(DBProvider helper) {
+      Archives(DBProvider helper) throws IOException {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
       
@@ -193,7 +194,7 @@ class Database {
             "END;";
       };
       
-      Tracks(DBProvider helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
       
@@ -246,7 +247,7 @@ class Database {
             "END;";
       };
       
-      Dirs(DBProvider helper) {
+      Dirs(DBProvider helper) throws IOException {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
       
@@ -277,14 +278,14 @@ class Database {
   private final Tables.Dirs dirs;
   private final Tables.Tracks tracks;
 
-  Database(Context context) {
+  Database(Context context) throws IOException {
     this.dbHelper = new DBProvider(new DBHelper(context));
     this.archives = new Tables.Archives(dbHelper);
     this.dirs = new Tables.Dirs(dbHelper);
     this.tracks = new Tables.Tracks(dbHelper);
   }
   
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(dbHelper.getWritableDatabase());
   }
   

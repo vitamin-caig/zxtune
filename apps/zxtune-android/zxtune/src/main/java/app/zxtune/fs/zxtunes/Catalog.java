@@ -71,7 +71,7 @@ public abstract class Catalog {
   
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
   
-  public static Catalog create(Context context, HttpProvider http, VfsCache cache) {
+  public static Catalog create(Context context, HttpProvider http, VfsCache cache) throws IOException {
     final Catalog remote = new RemoteCatalog(http);
     final Database db = new Database(context, cache);
     return new CachingCatalog(remote, db);

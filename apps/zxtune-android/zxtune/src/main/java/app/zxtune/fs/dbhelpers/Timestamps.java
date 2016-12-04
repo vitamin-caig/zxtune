@@ -13,6 +13,7 @@ package app.zxtune.fs.dbhelpers;
 import android.database.sqlite.SQLiteDoneException;
 import android.database.sqlite.SQLiteStatement;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
@@ -48,7 +49,7 @@ public class Timestamps {
   private final SQLiteStatement queryStatement;
   private final SQLiteStatement updateStatement;
   
-  public Timestamps(DBProvider helper) {
+  public Timestamps(DBProvider helper) throws IOException {
     this.queryStatement = helper.getReadableDatabase().compileStatement(Table.QUERY_STATEMENT);
     this.updateStatement = helper.getWritableDatabase().compileStatement(Table.INSERT_STATEMENT);
   }

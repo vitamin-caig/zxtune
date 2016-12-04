@@ -72,7 +72,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupsDir groups[];
 
-  VfsRootModland(Context context, HttpProvider http, VfsCache cache) {
+  VfsRootModland(Context context, HttpProvider http, VfsCache cache) throws IOException {
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groups = new GroupsDir[] {

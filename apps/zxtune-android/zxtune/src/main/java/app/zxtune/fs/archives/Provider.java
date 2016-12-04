@@ -40,8 +40,12 @@ public final class Provider extends ContentProvider {
   
   @Override
   public boolean onCreate() {
-    db = new Database(getContext());
-    return true;
+    try {
+      db = new Database(getContext());
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
   }
   
   @Override

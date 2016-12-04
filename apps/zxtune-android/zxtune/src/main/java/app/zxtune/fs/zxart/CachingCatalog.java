@@ -53,7 +53,7 @@ final class CachingCatalog extends Catalog {
       }
       
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
 
@@ -80,7 +80,7 @@ final class CachingCatalog extends Catalog {
       }
       
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
 
@@ -106,7 +106,7 @@ final class CachingCatalog extends Catalog {
       }
       
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
 
@@ -133,7 +133,7 @@ final class CachingCatalog extends Catalog {
       }
       
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
 
@@ -159,7 +159,7 @@ final class CachingCatalog extends Catalog {
       }
       
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
 

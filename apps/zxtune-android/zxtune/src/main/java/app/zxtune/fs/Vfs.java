@@ -21,7 +21,7 @@ public final class Vfs {
 
   private static VfsRoot rootSingleton;
   
-  public static VfsDir getRoot() {
+  public static VfsDir getRoot() throws IOException {
     return getRootInternal();
   }
   
@@ -34,7 +34,7 @@ public final class Vfs {
     }
   }
 
-  synchronized static VfsRoot getRootInternal() {
+  synchronized static VfsRoot getRootInternal() throws IOException {
     if (rootSingleton == null) {
       final VfsRootComposite composite = new VfsRootComposite();
       final Context appContext = MainApplication.getInstance();
