@@ -26,7 +26,12 @@ public final class Vfs {
   }
   
   public static VfsObject resolve(Uri uri) throws IOException {
-    return getRootInternal().resolve(uri);
+    final VfsObject res = getRootInternal().resolve(uri);
+    if (res != null) {
+      return res;
+    } else {
+      throw new IOException("Failed to resolve " + uri);
+    }
   }
 
   synchronized static VfsRoot getRootInternal() {

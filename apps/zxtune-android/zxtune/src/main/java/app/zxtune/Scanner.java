@@ -74,8 +74,6 @@ public final class Scanner {
       analyzeDir((VfsDir) obj, cb);
     } else if (obj instanceof VfsFile) {
       analyzeFile((VfsFile) obj, cb);
-    } else {
-      throw new IOException("Failed to resolve " + uri);
     }
   }
   
