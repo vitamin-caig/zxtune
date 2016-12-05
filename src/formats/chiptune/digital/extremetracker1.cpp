@@ -219,7 +219,7 @@ namespace Chiptune
 
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSamplesFrequency(uint_t /*freq*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*content*/) override {}
       void SetPositions(Positions /*positions*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
@@ -260,9 +260,9 @@ namespace Chiptune
         return Delegate.SetSamplesFrequency(freq);
       }
       
-      void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data) override
+      void SetSample(uint_t index, std::size_t loop, const Binary::Data& data) override
       {
-        return Delegate.SetSample(index, loop, std::move(data));
+        return Delegate.SetSample(index, loop, data);
       }
 
       void SetPositions(Positions positions) override
@@ -498,12 +498,12 @@ namespace Chiptune
           }
           const std::size_t size = rawEnd - rawAddr;
           const std::size_t offset = bank.FileOffset + (rawAddr - bank.Addr);
-          if (auto sample = GetSample(offset, size))
+          if (const auto sample = GetSample(offset, size))
           {
             Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", 
               samIdx, rawAddr, rawLoop, sample->Size(), uint_t(info.Page));
             const std::size_t loop = rawLoop - bank.Addr;
-            target.SetSample(samIdx, loop, std::move(sample));
+            target.SetSample(samIdx, loop, *sample);
           }
           else
           {

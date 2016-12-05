@@ -183,7 +183,7 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*sample*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*sample*/) override {}
       std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t /*index*/, uint_t /*period*/) override
       {
         return std::unique_ptr<ChannelBuilder>(new StubChannelBuilder());
@@ -219,9 +219,9 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data) override
+      void SetSample(uint_t index, std::size_t loop, const Binary::Data& data) override
       {
-        return Delegate.SetSample(index, loop, std::move(data));
+        return Delegate.SetSample(index, loop, data);
       }
 
       std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t index, uint_t period) override
@@ -380,10 +380,10 @@ namespace Chiptune
           const uint_t multiplier = is4bitSamples ? 2 : 1;
           Require(limitInBank <= multiplier * bankData->Size());
           const std::size_t realSampleSize = sampleSize >= 12 ? (sampleSize - 12) : sampleSize;
-          if (auto content = bankData->GetSubcontainer(offsetInBank / multiplier, realSampleSize / multiplier))
+          if (const auto content = bankData->GetSubcontainer(offsetInBank / multiplier, realSampleSize / multiplier))
           {
             const std::size_t loop = sampleLoop - sampleStart;
-            target.SetSample(samIdx, loop, std::move(content));
+            target.SetSample(samIdx, loop, *content);
           }
         }
       }

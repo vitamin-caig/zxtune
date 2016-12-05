@@ -219,9 +219,9 @@ namespace DigitalMusicMaker
       Data->InitialTempo = tempo;
     }
 
-    void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) override
+    void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample) override
     {
-      Data->Samples.Add(index, Devices::DAC::CreateU4PackedSample(std::move(sample), loop));
+      Data->Samples.Add(index, Devices::DAC::CreateU4PackedSample(sample, loop));
     }
 
     std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> SetSampleMixin(uint_t index, uint_t period) override

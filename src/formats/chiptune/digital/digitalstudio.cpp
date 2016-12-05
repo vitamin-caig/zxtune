@@ -19,6 +19,7 @@
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
+#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -148,7 +149,7 @@ namespace Chiptune
           const Description& desc = Samples[idx];
           if (desc.Content)
           {
-            builder.SetSample(idx, desc.Loop, desc.Content, is4Bit && desc.Is4Bit);
+            builder.SetSample(idx, desc.Loop, *desc.Content, is4Bit && desc.Is4Bit);
           }
         }
       }

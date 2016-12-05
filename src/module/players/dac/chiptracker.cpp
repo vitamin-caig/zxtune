@@ -80,9 +80,9 @@ namespace ChipTracker
       Data->InitialTempo = tempo;
     }
 
-    void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) override
+    void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample) override
     {
-      Data->Samples.Add(index, Devices::DAC::CreateU8Sample(std::move(sample), loop));
+      Data->Samples.Add(index, Devices::DAC::CreateU8Sample(sample, loop));
     }
 
     void SetPositions(Formats::Chiptune::ChipTracker::Positions positions) override

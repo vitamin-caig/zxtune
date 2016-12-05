@@ -18,7 +18,7 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
-#include <binary/container_factories.h>
+#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -165,7 +165,7 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*content*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
       void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
@@ -200,9 +200,9 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data) override
+      void SetSample(uint_t index, std::size_t loop, const Binary::Data& data) override
       {
-        return Delegate.SetSample(index, loop, std::move(data));
+        return Delegate.SetSample(index, loop, data);
       }
 
       void SetOrnament(uint_t index, Ornament ornament) override
@@ -332,15 +332,15 @@ namespace Chiptune
             const uint8_t* const sampleData = samplesStart + ZX_PAGE_SIZE * GetPageOrder(descr.Page) + (start - PAGES_START);
             while (--size && sampleData[size] == 0) {};
             ++size;
-            if (auto content = RawData.GetSubcontainer(sampleData - moduleStart, size))
+            if (const auto content = RawData.GetSubcontainer(sampleData - moduleStart, size))
             {
-              target.SetSample(samIdx, loop >= start ? loop - start : size, std::move(content));
+              target.SetSample(samIdx, loop >= start ? loop - start : size, *content);
               continue;
             }
           }
           Dbg(" Stub sample %1%", samIdx);
           const uint8_t dummy = 128;
-          target.SetSample(samIdx, 0, Binary::CreateContainer(&dummy, sizeof(dummy)));
+          target.SetSample(samIdx, 0, Binary::DataAdapter(&dummy, sizeof(dummy)));
         }
       }
       

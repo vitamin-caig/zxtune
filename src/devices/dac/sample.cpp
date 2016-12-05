@@ -14,6 +14,7 @@
 #include <devices/dac/sample_factories.h>
 //std includes
 #include <cmath>
+#include <cstring>
 #include <numeric>
 
 namespace Devices
@@ -61,13 +62,14 @@ namespace Devices
     class BaseSample : public Sample
     {
     public:
-      BaseSample(Binary::Data::Ptr content, std::size_t loop)
-        : Content(content)
-        , StartValue(static_cast<const uint8_t*>(content->Start()))
-        , SizeValue(content->Size())
+      BaseSample(const Binary::Data& content, std::size_t loop)
+        : Content(new uint8_t[content.Size()])
+        , StartValue(Content.get())
+        , SizeValue(content.Size())
         , LoopValue(loop)
         , RmsValue(NO_RMS)
       {
+        std::memcpy(Content.get(), content.Start(), SizeValue);
       }
 
       std::size_t Size() const override
@@ -95,7 +97,7 @@ namespace Devices
         return RmsValue;
       }
     protected:
-      const Binary::Data::Ptr Content;
+      const std::unique_ptr<uint8_t[]> Content;
       const uint8_t* const StartValue;
       const std::size_t SizeValue;
       const std::size_t LoopValue;
@@ -105,7 +107,7 @@ namespace Devices
     class U8Sample : public BaseSample
     {
     public:
-      U8Sample(Binary::Data::Ptr content, std::size_t loop)
+      U8Sample(const Binary::Data& content, std::size_t loop)
         : BaseSample(content, loop)
       {
       }
@@ -121,7 +123,7 @@ namespace Devices
     class U4Sample : public BaseSample
     {
     public:
-      U4Sample(Binary::Data::Ptr content, std::size_t loop)
+      U4Sample(const Binary::Data& content, std::size_t loop)
         : BaseSample(content, loop)
       {
       }
@@ -137,7 +139,7 @@ namespace Devices
     class U4PackedSample : public BaseSample
     {
     public:
-      U4PackedSample(Binary::Data::Ptr content, std::size_t loop)
+      U4PackedSample(const Binary::Data& content, std::size_t loop)
         : BaseSample(content, loop)
       {
       }
@@ -163,17 +165,17 @@ namespace Devices
       }
     };
 
-    Sample::Ptr CreateU8Sample(Binary::Data::Ptr content, std::size_t loop)
+    Sample::Ptr CreateU8Sample(const Binary::Data& content, std::size_t loop)
     {
       return MakePtr<U8Sample>(content, loop);
     }
 
-    Sample::Ptr CreateU4Sample(Binary::Data::Ptr content, std::size_t loop)
+    Sample::Ptr CreateU4Sample(const Binary::Data& content, std::size_t loop)
     {
       return MakePtr<U4Sample>(content, loop);
     }
 
-    Sample::Ptr CreateU4PackedSample(Binary::Data::Ptr content, std::size_t loop)
+    Sample::Ptr CreateU4PackedSample(const Binary::Data& content, std::size_t loop)
     {
       return MakePtr<U4PackedSample>(content, loop);
     }

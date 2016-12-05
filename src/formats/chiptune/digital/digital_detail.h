@@ -46,9 +46,9 @@ namespace Formats
           return Delegate.SetSamplesFrequency(freq);
         }
 
-        void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data, bool is4Bit) override
+        void SetSample(uint_t index, std::size_t loop, const Binary::Data& data, bool is4Bit) override
         {
-          return Delegate.SetSample(index, loop, std::move(data), is4Bit);
+          return Delegate.SetSample(index, loop, data, is4Bit);
         }
 
         void SetPositions(Positions positions) override

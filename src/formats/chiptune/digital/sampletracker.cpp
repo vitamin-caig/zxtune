@@ -18,7 +18,7 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
-#include <binary/container_factories.h>
+#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -174,17 +174,17 @@ namespace Chiptune
         for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          if (auto content = GetSample(samIdx))
+          if (const auto content = GetSample(samIdx))
           {
             const auto loop = content->Size();
-            target.SetSample(samIdx, loop, std::move(content), false);
+            target.SetSample(samIdx, loop, *content, false);
             ++validSamples;
           }
           else
           {
             Dbg(" Stub sample %1%", samIdx);
             const uint8_t dummy = 128;
-            target.SetSample(samIdx, 0, Binary::CreateContainer(&dummy, sizeof(dummy)), false);
+            target.SetSample(samIdx, 0, Binary::DataAdapter(&dummy, sizeof(dummy)), false);
           }
         }
         if (sams.Maximum() != SAMPLES_COUNT - 1)
