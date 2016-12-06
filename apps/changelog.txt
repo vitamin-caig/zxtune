@@ -5,6 +5,11 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3750 from 06.12.2016
+
+[*] Samples for DAC-based modules are copied from input data instead of sharing
+[*] zxtune-android: fixed some crashes
+
 --- Rev3740 from 28.11.2016
 
 [+] Added support of HivelyTracker (HVL)
