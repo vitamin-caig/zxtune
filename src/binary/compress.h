@@ -49,6 +49,20 @@ namespace Binary
         Decompress(in, in + input.size(), out, out + output.size());
         output.swap(result);
       }
+
+      //Same as zlib 'compress' and 'uncompress'
+      Dump Compress(const void* unpackedData, std::size_t unpackedSize)
+      {
+        Dump result(CalculateCompressedSizeUpperBound(unpackedSize));
+        const uint8_t* const in = static_cast<const uint8_t*>(unpackedData);
+        uint8_t* const out = &result[0];
+        uint8_t* const outEnd = Compress(in, in + unpackedSize, out, out + result.size());
+        result.resize(outEnd - out);
+        result.shrink_to_fit();
+        return result;
+      }
+      
+      Dump Uncompress(const void* packedData, std::size_t packedSize, std::size_t unpackedSizeHint = 0);
     }
   }
 }
