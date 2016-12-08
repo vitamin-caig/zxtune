@@ -115,6 +115,12 @@ namespace Binary
       Require(Cursor + size <= Finish);
       Cursor += size;
     }
+    
+    void Seek(std::size_t pos)
+    {
+      Require(Start + pos <= Finish);
+      Cursor = Start + pos;
+    }
 
     //! @brief Return data that is already read
     Container::Ptr GetReadData() const
