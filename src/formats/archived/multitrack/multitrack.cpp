@@ -12,8 +12,9 @@
 #include "multitrack.h"
 //common includes
 #include <make_ptr.h>
+//library includes
+#include <strings/prefixed_index.h>
 //std includes
-#include <sstream>
 #include <utility>
 //text includes
 #include <formats/text/archived.h>
@@ -52,50 +53,6 @@ namespace Archived
       const Binary::Container::Ptr Data;
     };
 
-    class Filename
-    {
-    public:
-      Filename(const String& prefix, const String& value)
-        : Str(value)
-        , Valid(false)
-        , Index()
-      {
-        if (0 == value.compare(0, prefix.size(), prefix))
-        {
-          std::basic_istringstream<Char> str(value.substr(prefix.size()));
-          Valid = !!(str >> Index);
-        }
-      }
-
-      Filename(const String& prefix, uint_t index)
-        : Valid(true)
-        , Index(index)
-      {
-        std::basic_ostringstream<Char> str;
-        str << prefix << index;
-        Str = str.str();
-      }
-
-      bool IsValid() const
-      {
-        return Valid;
-      }
-
-      uint_t GetIndex() const
-      {
-        return Index;
-      }
-
-      String ToString() const
-      {
-        return Str;
-      }
-    private:
-      String Str;
-      bool Valid;
-      uint_t Index;
-    };
-
     class Container : public Archived::Container
     {
     public:
@@ -126,7 +83,7 @@ namespace Archived
         for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
         {
           const uint_t song = idx + 1;
-          const String subPath = Filename(Text::MULTITRACK_FILENAME_PREFIX, song).ToString();
+          const String subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, song).ToString();
           const Binary::Container::Ptr subData = Delegate->WithStartTrackIndex(idx);
           const File file(subPath, subData);
           walker.OnFile(file);
@@ -135,7 +92,7 @@ namespace Archived
 
       File::Ptr FindFile(const String& name) const override
       {
-        const Filename filename(Text::MULTITRACK_FILENAME_PREFIX, name);
+        const Strings::PrefixedIndex filename(Text::MULTITRACK_FILENAME_PREFIX, name);
         if (!filename.IsValid())
         {
           return File::Ptr();

@@ -14,9 +14,9 @@
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/emulation/ay.h>
+#include <strings/prefixed_index.h>
 //std includes
 #include <algorithm>
-#include <sstream>
 #include <utility>
 //text includes
 #include <formats/text/archived.h>
@@ -55,50 +55,6 @@ namespace Archived
       const Binary::Container::Ptr Data;
     };
 
-    class Filename
-    {
-    public:
-      Filename(const String& prefix, const String& value)
-        : Str(value)
-        , Valid(false)
-        , Index()
-      {
-        if (0 == value.compare(0, prefix.size(), prefix))
-        {
-          std::basic_istringstream<Char> str(value.substr(prefix.size()));
-          Valid = !!(str >> Index);
-        }
-      }
-
-      Filename(const String& prefix, uint_t index)
-        : Valid(true)
-        , Index(index)
-      {
-        std::basic_ostringstream<Char> str;
-        str << prefix << index;
-        Str = str.str();
-      }
-
-      bool IsValid() const
-      {
-        return Valid;
-      }
-
-      uint_t GetIndex() const
-      {
-        return Index;
-      }
-
-      String ToString() const
-      {
-        return Str;
-      }
-    private:
-      String Str;
-      bool Valid;
-      uint_t Index;
-    };
-
     class Container : public Archived::Container
     {
     public:
@@ -131,7 +87,7 @@ namespace Archived
           const Formats::Chiptune::AY::BlobBuilder::Ptr builder = Formats::Chiptune::AY::CreateFileBuilder();
           if (const Formats::Chiptune::Container::Ptr parsed = Formats::Chiptune::AY::Parse(*Delegate, idx, *builder))
           {
-            const String subPath = Filename(Text::MULTITRACK_FILENAME_PREFIX, idx).ToString();
+            const String subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, idx).ToString();
             const Binary::Container::Ptr subData = builder->Result();
             const File file(subPath, subData);
             walker.OnFile(file);
@@ -141,8 +97,8 @@ namespace Archived
 
       File::Ptr FindFile(const String& name) const override
       {
-        const Filename rawName(Text::AY_RAW_FILENAME_PREFIX, name);
-        const Filename ayName(Text::MULTITRACK_FILENAME_PREFIX, name);
+        const Strings::PrefixedIndex rawName(Text::AY_RAW_FILENAME_PREFIX, name);
+        const Strings::PrefixedIndex ayName(Text::MULTITRACK_FILENAME_PREFIX, name);
         if (!rawName.IsValid() && !ayName.IsValid())
         {
           return File::Ptr();
