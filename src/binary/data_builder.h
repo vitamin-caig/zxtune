@@ -12,6 +12,8 @@
 
 //library includes
 #include <binary/container_factories.h>
+//std includes
+#include <cstring>
 
 namespace Binary
 {
@@ -39,6 +41,11 @@ namespace Binary
     void Add(const T& val)
     {
       *static_cast<T*>(Allocate(sizeof(T))) = val;
+    }
+    
+    void Add(const void* data, std::size_t size)
+    {
+      std::memcpy(Allocate(size), data, size);
     }
 
     void* Allocate(std::size_t size)
