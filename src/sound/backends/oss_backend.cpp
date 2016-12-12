@@ -319,23 +319,23 @@ namespace Oss
     {
     }
 
-    void FrameFinish(Chunk::Ptr buffer) override
+    void FrameFinish(Chunk buffer) override
     {
       switch (Format)
       {
       case AFMT_S16_LE:
       case AFMT_S16_BE:
-        buffer->ToS16();
+        buffer.ToS16();
         break;
       case AFMT_U8:
-        buffer->ToU8();
+        buffer.ToU8();
         break;
       default:
         assert(!"Invalid format");
       }
       assert(DevHandle.Valid());
-      std::size_t toWrite(buffer->size() * sizeof(buffer->front()));
-      const uint8_t* data(safe_ptr_cast<const uint8_t*>(&(*buffer)[0]));
+      std::size_t toWrite(buffer.size() * sizeof(buffer.front()));
+      const uint8_t* data(safe_ptr_cast<const uint8_t*>(buffer.data()));
       while (toWrite)
       {
         const int res = DevHandle.WriteAsync(data, toWrite * sizeof(*data));

@@ -144,12 +144,12 @@ namespace Flac
       Dbg("Stream initialized");
     }
 
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
-      if (const std::size_t samples = data->size())
+      if (const std::size_t samples = data.size())
       {
         Buffer.resize(samples);
-        std::transform(data->begin(), data->end(), &Buffer.front(), &ConvertSample);
+        std::transform(data.begin(), data.end(), &Buffer.front(), &ConvertSample);
         CheckFlacCall(FlacApi->FLAC__stream_encoder_process_interleaved(Encoder.get(), &Buffer[0].first, samples), THIS_LINE);
       }
     }

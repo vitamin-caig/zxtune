@@ -764,22 +764,22 @@ namespace AYEMUL
     {
     }
     
-    void ApplyData(Sound::Chunk::Ptr chunk) override
+    void ApplyData(Sound::Chunk chunk) override
     {
-      if (Storage)
+      if (!Storage.empty())
       {
-        if (chunk->size() <= Storage->size())
+        if (chunk.size() <= Storage.size())
         {
-          std::transform(chunk->begin(), chunk->end(), Storage->begin(), Storage->begin(), &MaxSample);
+          std::transform(chunk.begin(), chunk.end(), Storage.begin(), Storage.begin(), &MaxSample);
           Delegate->ApplyData(std::move(Storage));
         }
         else
         {
-          std::transform(Storage->begin(), Storage->end(), chunk->begin(), chunk->begin(), &MaxSample);
+          std::transform(Storage.begin(), Storage.end(), chunk.begin(), chunk.begin(), &MaxSample);
           Delegate->ApplyData(std::move(chunk));
         }
         Delegate->Flush();
-        Storage.reset();
+        Storage.clear();
       }
       else
       {
@@ -797,7 +797,7 @@ namespace AYEMUL
     }
   private:
     const Sound::Receiver::Ptr Delegate;
-    Sound::Chunk::Ptr Storage;
+    Sound::Chunk Storage;
   };
 
   class Holder : public AYM::Holder

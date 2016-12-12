@@ -450,9 +450,9 @@ namespace Win32
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    virtual void FrameFinish(Chunk buffer)
     {
-      Objects.Target->Write(*buffer);
+      Objects.Target->Write(buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const

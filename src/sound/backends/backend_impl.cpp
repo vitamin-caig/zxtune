@@ -41,7 +41,7 @@ namespace Sound
     {
     }
 
-    void ApplyData(Chunk::Ptr chunk) override
+    void ApplyData(Chunk chunk) override
     {
       Worker.FrameFinish(std::move(chunk));
     }

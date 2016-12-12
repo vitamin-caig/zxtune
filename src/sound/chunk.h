@@ -15,7 +15,6 @@
 //std includes
 #include <cassert>
 #include <cstring>
-#include <memory>
 #include <vector>
 
 namespace Sound
@@ -23,8 +22,6 @@ namespace Sound
   //! @brief Block of sound data
   struct Chunk : public std::vector<Sample>
   {
-    typedef std::unique_ptr<Chunk> Ptr;
-
     Chunk()
     {
     }
@@ -32,6 +29,19 @@ namespace Sound
     explicit Chunk(std::size_t size)
       : std::vector<Sample>(size)
     {
+    }
+    
+    Chunk(const Chunk&) = delete;
+    Chunk& operator = (const Chunk&) = delete;
+    Chunk(Chunk&& rh)// = default
+      : std::vector<Sample>(std::move(rh))
+    {
+    }
+    
+    Chunk& operator = (Chunk&& rh)// = default
+    {
+      std::vector<Sample>::operator = (std::move(rh));
+      return *this;
     }
 
     typedef Sample* iterator;

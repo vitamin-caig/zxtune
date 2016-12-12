@@ -56,7 +56,7 @@ namespace Null
     {
     }
 
-    void FrameFinish(Chunk::Ptr /*buffer*/) override
+    void FrameFinish(Chunk /*buffer*/) override
     {
     }
 

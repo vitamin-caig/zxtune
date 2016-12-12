@@ -50,11 +50,11 @@ namespace Sound
       Require(freqIn < freqOut);
     }
     
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
       ChunkBuilder builder;
-      builder.Reserve(1 + (FixedStep(data->size()) / Step).Round());
-      Chunk::const_iterator it = data->begin(), lim = data->end();
+      builder.Reserve(1 + (FixedStep(data.size()) / Step).Round());
+      Chunk::const_iterator it = data.begin(), lim = data.end();
       if (0 == Position.Raw())
       {
         Prev = *it;
@@ -102,11 +102,11 @@ namespace Sound
       Require(freqIn > freqOut);
     }
 
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
       ChunkBuilder builder;
-      builder.Reserve(1 + (Step * data->size()).Round());
-      Chunk::const_iterator it = data->begin(), lim = data->end();
+      builder.Reserve(1 + (Step * data.size()).Round());
+      Chunk::const_iterator it = data.begin(), lim = data.end();
       if (0 == Position.Raw())
       {
         Prev = *it;

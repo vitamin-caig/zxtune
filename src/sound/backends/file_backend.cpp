@@ -217,7 +217,7 @@ namespace File
         SetProperties(*result);
         if (const uint_t buffers = FileParams.GetBuffersCount())
         {
-          return Async::DataReceiver<Chunk::Ptr>::Create(1, buffers, result);
+          return Async::DataReceiver<Chunk>::Create(1, buffers, result);
         }
         else
         {
@@ -294,7 +294,7 @@ namespace File
       }
     }
 
-    void FrameFinish(Chunk::Ptr buffer) override
+    void FrameFinish(Chunk buffer) override
     {
       assert(Stream);
       Stream->ApplyData(std::move(buffer));

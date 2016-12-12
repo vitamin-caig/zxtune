@@ -415,9 +415,9 @@ namespace OpenAl
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    virtual void FrameFinish(Chunk buffer)
     {
-      Stat->Src->Write(*buffer);
+      Stat->Src->Write(buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const

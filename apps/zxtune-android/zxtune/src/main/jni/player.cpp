@@ -34,7 +34,7 @@ namespace
   public:
     typedef std::shared_ptr<BufferTarget> Ptr;
 
-    void ApplyData(Sound::Chunk::Ptr data) override
+    void ApplyData(Sound::Chunk data) override
     {
       Buffers.emplace_back(std::move(data));
     }
@@ -61,21 +61,21 @@ namespace
   private:
     struct Buff
     {
-      explicit Buff(Sound::Chunk::Ptr data)
+      explicit Buff(Sound::Chunk data)
         : Data(std::move(data))
-        , Avail(Data->size())
+        , Avail(Data.size())
       {
       }
       
       std::size_t Get(std::size_t count, void* target)
       {
         const std::size_t toCopy = std::min(count, Avail);
-        std::memcpy(target, &Data->back() + 1 - Avail, toCopy * sizeof(Data->front()));
+        std::memcpy(target, &Data.back() + 1 - Avail, toCopy * sizeof(Data.front()));
         Avail -= toCopy;
         return toCopy;
       }
     
-      Sound::Chunk::Ptr Data;
+      Sound::Chunk Data;
       std::size_t Avail;
     };
     std::deque<Buff> Buffers;

@@ -95,9 +95,9 @@ namespace Sound
     {
     }
 
-    void ApplyData(Chunk::Ptr in) override
+    void ApplyData(Chunk in) override
     {
-      for (auto& val : *in)
+      for (auto& val : in)
       {
         val = Core.Apply(val);
       }

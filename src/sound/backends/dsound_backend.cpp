@@ -442,7 +442,7 @@ namespace DirectSound
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    virtual void FrameFinish(Chunk buffer)
     {
       /*
 
@@ -453,13 +453,13 @@ namespace DirectSound
       */
       if (Sample::BITS == 16)
       {
-        buffer->ToS16();
+        buffer.ToS16();
       }
       else
       {
-        buffer->ToU8();
+        buffer.ToU8();
       }
-      Objects.Stream->Add(*buffer);
+      Objects.Stream->Add(buffer);
     }
 
     VolumeControl::Ptr GetVolumeControl() const

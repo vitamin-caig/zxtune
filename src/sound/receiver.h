@@ -19,8 +19,8 @@
 namespace Sound
 {
   //! @brief Simple sound stream endpoint receiver
-  typedef DataReceiver<Chunk::Ptr> Receiver;
-  typedef DataTransceiver<Chunk::Ptr, Chunk::Ptr> Converter;
+  typedef DataReceiver<Chunk> Receiver;
+  typedef DataTransceiver<Chunk, Chunk> Converter;
   //! @brief Channel count-specific receivers
   template<unsigned Channels>
   class FixedChannelsReceiver : public DataReceiver<typename MultichannelSample<Channels>::Type> {};

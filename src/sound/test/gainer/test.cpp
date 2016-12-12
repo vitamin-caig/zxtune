@@ -85,9 +85,9 @@ namespace Sound
     {
     }
     
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
-      if (Check(data->front().Left(), ToCompare.Left()) && Check(data->front().Right(), ToCompare.Right()))
+      if (Check(data.front().Left(), ToCompare.Left()) && Check(data.front().Right(), ToCompare.Right()))
       {
         std::cout << "passed\n";
       }
@@ -95,7 +95,7 @@ namespace Sound
       {
         std::cout << "failed\n";
         throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
-          data->front().Left(), data->front().Right(), ToCompare.Left(), ToCompare.Right());
+          data.front().Left(), data.front().Right(), ToCompare.Left(), ToCompare.Right());
       }
     }
     

@@ -211,18 +211,18 @@ namespace Wav
     {
     }
 
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
       if (Sample::BITS == 16)
       {
-        data->ToS16();
+        data.ToS16();
       }
       else
       {
-        data->ToU8();
+        data.ToU8();
       }
-      const std::size_t sizeInBytes = data->size() * sizeof(data->front());
-      Stream->ApplyData(Binary::DataAdapter(&data->front(), sizeInBytes));
+      const std::size_t sizeInBytes = data.size() * sizeof(data.front());
+      Stream->ApplyData(Binary::DataAdapter(&data.front(), sizeInBytes));
       DoneBytes += static_cast<uint32_t>(sizeInBytes);
     }
 

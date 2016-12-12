@@ -131,15 +131,15 @@ namespace Module
     {
     }
     
-    void ApplyData(Sound::Chunk::Ptr data) override
+    void ApplyData(Sound::Chunk data) override
     {
       if (DoneStreams++)
       {
-        Buffer.Mix(*data);
+        Buffer.Mix(data);
       }
       else
       {
-        Buffer.Fill(*data);
+        Buffer.Fill(data);
       }
     }
     
@@ -219,10 +219,10 @@ namespace Module
         }
       }
       
-      Sound::Chunk::Ptr Convert(uint_t sources) const
+      Sound::Chunk Convert(uint_t sources) const
       {
-        auto result = MakePtr<Sound::Chunk>(Buffer.size());
-        std::transform(Buffer.begin(), Buffer.end(), result->begin(), std::bind2nd(std::mem_fun_ref(&WideSample::Convert), sources));
+        Sound::Chunk result(Buffer.size());
+        std::transform(Buffer.begin(), Buffer.end(), result.begin(), std::bind2nd(std::mem_fun_ref(&WideSample::Convert), sources));
         //required by compiler
         return std::move(result);
       }

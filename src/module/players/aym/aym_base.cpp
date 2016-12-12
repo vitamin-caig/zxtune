@@ -172,7 +172,7 @@ namespace Module
     {
     }
 
-    void ApplyData(Sound::Chunk::Ptr chunk) override
+    void ApplyData(Sound::Chunk chunk) override
     {
       Target->ApplyData(std::move(chunk));
     }

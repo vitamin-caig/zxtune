@@ -745,9 +745,9 @@ namespace Alsa
     {
     }
 
-    void FrameFinish(Chunk::Ptr buffer) override
+    void FrameFinish(Chunk buffer) override
     {
-      Objects.Dev->Write(*buffer);
+      Objects.Dev->Write(buffer);
     }
 
     VolumeControl::Ptr GetVolumeControl() const override

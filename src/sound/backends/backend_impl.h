@@ -29,7 +29,7 @@ namespace Sound
     virtual void Pause() = 0;
     virtual void Resume() = 0;
     virtual void FrameStart(const Module::TrackState& state) = 0;
-    virtual void FrameFinish(Chunk::Ptr buffer) = 0;
+    virtual void FrameFinish(Chunk buffer) = 0;
     virtual VolumeControl::Ptr GetVolumeControl() const = 0;
   };
 

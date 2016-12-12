@@ -247,9 +247,9 @@ namespace Sdl
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    virtual void FrameFinish(Chunk buffer)
     {
-      Queue.AddData(*buffer);
+      Queue.AddData(buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const

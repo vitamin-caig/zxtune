@@ -88,10 +88,10 @@ namespace PulseAudio
     {
     }
 
-    void FrameFinish(Chunk::Ptr buffer) override
+    void FrameFinish(Chunk buffer) override
     {
       int error = 0;
-      if (PaApi->pa_simple_write(Device.get(), &buffer->front(), buffer->size() * sizeof(buffer->front()), &error) < 0)
+      if (PaApi->pa_simple_write(Device.get(), &buffer.front(), buffer.size() * sizeof(buffer.front()), &error) < 0)
       {
         throw MakeError(error, THIS_LINE);
       }

@@ -136,7 +136,7 @@ namespace AyLpt
       WriteRegisters(regs);
     }
 
-    virtual void FrameFinish(Chunk::Ptr /*buffer*/)
+    virtual void FrameFinish(Chunk /*buffer*/)
     {
     }
   private:

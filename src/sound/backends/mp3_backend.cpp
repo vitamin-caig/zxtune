@@ -96,14 +96,14 @@ namespace Mp3
     {
     }
 
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
       //work with 16-bit
       static_assert(Sample::BITS == 16, "Incompatible sound sample bits count");
       static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
-      data->ToS16();
+      data.ToS16();
       while (const int res = LameApi->lame_encode_buffer_interleaved(Context.get(),
-        safe_ptr_cast<short int*>(&data->front()), data->size(), &Encoded[0], Encoded.size()))
+        safe_ptr_cast<short int*>(&data.front()), data.size(), &Encoded[0], Encoded.size()))
       {
         if (res > 0) //encoded
         {
