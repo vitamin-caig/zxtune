@@ -13,10 +13,11 @@
 extern "C" {
 #endif
 
-uint8* EMU_CALL bios_get_image_native(void);
+const uint8* EMU_CALL bios_get_image_native(void);
 uint32 EMU_CALL bios_get_imagesize(void);
 
 void EMU_CALL bios_set_image(uint8 *, uint32);
+void EMU_CALL bios_set_embedded_image(const void *, uint32);
 
 /*
 ** Find environment variables

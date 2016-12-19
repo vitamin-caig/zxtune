@@ -12,10 +12,10 @@
 
 /////////////////////////////////////////////////////////////////////////////
 
-static uint8 *image = {0};
+static const void *image = {0};
 static uint32 image_size = 0;
 
-uint8* EMU_CALL bios_get_image_native(void) { return image; }
+const uint8* EMU_CALL bios_get_image_native(void) { return (const uint8*)image; }
 uint32 EMU_CALL bios_get_imagesize(void) { return image_size; }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -34,6 +34,11 @@ void EMU_CALL bios_set_image(uint8 *_image, uint32 _size) {
     _image[i + 3] = a;
   }
 #endif
+  image = _image;
+  image_size = _size;
+}
+
+void EMU_CALL bios_set_embedded_image(const void *_image, uint32 _size) {
   image = _image;
   image_size = _size;
 }
