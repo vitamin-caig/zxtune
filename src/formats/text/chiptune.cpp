@@ -102,6 +102,9 @@ extern const Char NSFE_DECODER_DESCRIPTION[] = {
 extern const Char NSF_DECODER_DESCRIPTION[] = {
   'N','E','S',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
 };
+extern const Char PLAYSTATIONSOUNDFORMAT_DECODER_DESCRIPTION[] = {
+  'P','l','a','y','s','t','a','t','i','o','n',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
+};
 extern const Char PRODIGITRACKER_DECODER_DESCRIPTION[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
 };
