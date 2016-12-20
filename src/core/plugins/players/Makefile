@@ -1,6 +1,6 @@
 library_name := core_plugins_players
 path_step := ../../../..
-source_dirs := . ay dac gme multi saa sid tfm xmp
+source_dirs := . ay dac gme multi saa sid tfm xmp xsf
 
 include $(path_step)/3rdparty/sidplayfp/defines.mak
 
