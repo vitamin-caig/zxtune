@@ -51,7 +51,7 @@ namespace Binary
       }
 
       //Same as zlib 'compress' and 'uncompress'
-      Dump Compress(const void* unpackedData, std::size_t unpackedSize)
+      inline Dump Compress(const void* unpackedData, std::size_t unpackedSize)
       {
         Dump result(CalculateCompressedSizeUpperBound(unpackedSize));
         const uint8_t* const in = static_cast<const uint8_t*>(unpackedData);
