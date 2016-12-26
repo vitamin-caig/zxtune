@@ -88,9 +88,9 @@ namespace PSF
   
     static const constexpr uint_t SOUND_RATE = 44100;
 
-    explicit PSXEngine(const ModuleData& data)
-      : Emu(HELibrary::Instance().CreatePSX(1))
+    void Initialize(const ModuleData& data)
     {
+      Emu = HELibrary::Instance().CreatePSX(1);
       ::psx_set_refresh(Emu.get(), data.RefreshRate);
       SetRAM(data.StartAddress, data.RAM.data(), data.RAM.size());
       SetRegisters(data.PC, data.SP);
@@ -108,6 +108,18 @@ namespace PSF
         doneSamples += toRender;
       }
       return result;
+    }
+    
+    void Skip(uint_t samples)
+    {
+      for (uint32_t skippedSamples = 0; skippedSamples < samples; )
+      {
+        uint32_t toSkip = samples - skippedSamples;
+        const auto res = ::psx_execute(Emu.get(), 0x7fffffff, nullptr, &toSkip, 0);
+        Require(res >= 0);
+        Require(toSkip != 0);
+        skippedSamples += toSkip;
+      }
     }
 
     std::vector<ChannelState> GetState() const override
@@ -151,7 +163,7 @@ namespace PSF
       ::r3000_setreg(cpu, R3000_REG_GEN + 29, sp);
     }
   private:
-    const std::unique_ptr<uint8_t[]> Emu;
+    std::unique_ptr<uint8_t[]> Emu;
   };
   
   class Renderer : public Module::Renderer
@@ -161,12 +173,13 @@ namespace PSF
       : Data(std::move(data))
       , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
+      , Engine(MakePtr<PSXEngine>())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
-      , Engine(MakePtr<PSXEngine>(*Data))
       , Looped()
       , SamplesPerFrame(PSXEngine::SOUND_RATE / Data->RefreshRate)
     {
+      Engine->Initialize(*Data);
       ApplyParameters();
     }
 
@@ -200,15 +213,13 @@ namespace PSF
     {
       SoundParams.Reset();
       Iterator->Reset();
-      Engine = MakePtr<PSXEngine>(*Data);
+      Engine->Initialize(*Data);
     }
 
     void SetPosition(uint_t frame) override
     {
-      /*
       SeekTune(frame);
       Module::SeekIterator(*Iterator, frame);
-      */
     }
   private:
     void ApplyParameters()
@@ -220,29 +231,27 @@ namespace PSF
       }
     }
 
-    /*
     void SeekTune(uint_t frame)
     {
       uint_t current = State->Frame();
       if (frame < current)
       {
-        Tune->Reset();
+        Engine->Initialize(*Data);
         current = 0;
       }
       if (const uint_t delta = frame - current)
       {
-        Tune->Skip(delta * SamplesPerFrame);
+        Engine->Skip(delta * SamplesPerFrame);
       }
     }
-    */
   private:
     const ModuleData::Ptr Data;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
+    const PSXEngine::Ptr Engine;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    PSXEngine::Ptr Engine;
     bool Looped;
     const uint_t SamplesPerFrame;
   };
