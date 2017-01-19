@@ -16,7 +16,9 @@
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/emulation/playstationsoundformat.h>
+#include <formats/chiptune/emulation/playstation2soundformat.h>
 #include <formats/chiptune/emulation/portablesoundformat.h>
+#include <debug/log.h>
 #include <math/numeric.h>
 #include <module/players/analyzer.h>
 #include <module/players/duration.h>
@@ -27,7 +29,9 @@
 #include <sound/render_params.h>
 #include <sound/resampler.h>
 #include <sound/sound_parameters.h>
-//3rdparty
+//std includes
+#include <map>
+//3rdparty includes
 #include <3rdparty/he/Core/bios.h>
 #include <3rdparty/he/Core/iop.h>
 #include <3rdparty/he/Core/psx.h>
@@ -38,6 +42,89 @@ namespace Module
 {
 namespace PSF
 {
+  const Debug::Stream Dbg("Module::PSFSupp");
+  
+  class VfsImage
+  {
+  public:
+    using Ptr = std::shared_ptr<const VfsImage>;
+    using RWPtr = std::shared_ptr<VfsImage>;
+    
+    void AddFile(const String& path, Binary::Container::Ptr content)
+    {
+      Files.emplace(ToUpper(path.c_str()), std::move(content));
+    }
+    
+    void PrefetchAll()
+    {
+      for (auto& file : Files)
+      {
+        if (file.second)
+        {
+          Require(file.second->Start() != nullptr);
+        }
+      }
+    }
+    
+    sint32 Read(const char* path, sint32 offset, char* buffer, sint32 length) const
+    {
+      if (PreloadFile(path))
+      {
+        if (!CachedData)
+        {
+          //empty file
+          return 0;
+        }
+        else if (length == 0)
+        {
+          //getting file size
+          return CachedData->Size();
+        }
+        else if (const auto part = CachedData->GetSubcontainer(offset, length))
+        {
+          std::memcpy(buffer, part->Start(), part->Size());
+          return part->Size();
+        }
+        else 
+        {
+          return 0;
+        }
+      }
+      return -1;
+    }
+  private:
+    static String ToUpper(const char* path)
+    {
+      String res;
+      res.reserve(256);
+      while (*path)
+      {
+        res.push_back(std::toupper(*path));
+        ++path;
+      }
+      return res;
+    }
+  
+    bool PreloadFile(const char* path) const
+    {
+      if (CachedName != path)
+      {
+        const auto it = Files.find(ToUpper(path));
+        if (it == Files.end())
+        {
+          return false;
+        }
+        CachedName = path;
+        CachedData = it->second;
+      }
+      return true;
+    }
+  private:
+    std::map<String, Binary::Container::Ptr> Files;
+    mutable String CachedName;
+    mutable Binary::Container::Ptr CachedData;
+  };
+  
   struct ModuleData
   {
     using Ptr = std::shared_ptr<const ModuleData>;
@@ -47,13 +134,16 @@ namespace PSF
     ModuleData(const ModuleData&) = delete;
     
     uint_t RefreshRate = 0;
+    Time::Milliseconds Duration;
+    Time::Milliseconds Fadeout;
+
     uint32_t PC = 0;
     uint32_t GP = 0;
     uint32_t SP = 0;
     uint32_t StartAddress = 0;
     Dump RAM;
-    Time::Milliseconds Duration;
-    Time::Milliseconds Fadeout;
+    
+    VfsImage::RWPtr Vfs;
   };
   
   class HELibrary
@@ -80,20 +170,45 @@ namespace PSF
       return instance;
     }
   };
-
+ 
+  struct SpuTrait
+  {
+    uint_t Base;
+    uint_t PitchReg;
+    uint_t VolReg;
+  };
+  
+  const SpuTrait SPU1 = {0x1f801c00, 0x4, 0xc};//mirrored at {0x1f900000, 0x4, 0xa} for PS2
+  const SpuTrait SPU2 = {0x1f900400, 0x4, 0xa};
+  
   class PSXEngine : public Module::Analyzer
   {
   public:
     using Ptr = std::shared_ptr<PSXEngine>;
   
-    static const constexpr uint_t SOUND_RATE = 44100;
-
     void Initialize(const ModuleData& data)
     {
-      Emu = HELibrary::Instance().CreatePSX(1);
+      if (data.RAM.size())
+      {
+        Emu = HELibrary::Instance().CreatePSX(1);
+        SetRAM(data.StartAddress, data.RAM.data(), data.RAM.size());
+        SetRegisters(data.PC, data.SP);
+        SoundFrequency = 44100;
+        Spus.assign({SPU1});
+      }
+      else if (data.Vfs)
+      {
+        Emu = HELibrary::Instance().CreatePSX(2);
+        SetupVfs(data.Vfs);
+        SoundFrequency = 48000;
+        Spus.assign({SPU1, SPU2});
+      }
       ::psx_set_refresh(Emu.get(), data.RefreshRate);
-      SetRAM(data.StartAddress, data.RAM.data(), data.RAM.size());
-      SetRegisters(data.PC, data.SP);
+    }
+    
+    uint_t GetSoundFrequency() const
+    {
+      return SoundFrequency;
     }
     
     Sound::Chunk Render(uint_t samples)
@@ -125,22 +240,27 @@ namespace PSF
     std::vector<ChannelState> GetState() const override
     {
       //http://problemkaputt.de/psx-spx.htm#soundprocessingunitspu
+      const uint_t SPU_VOICES_COUNT = 24;
       std::vector<ChannelState> result;
-      result.reserve(24);
+      result.reserve(SPU_VOICES_COUNT * Spus.size());
       const auto iop = ::psx_get_iop_state(Emu.get());
       const auto spu = ::iop_get_spu_state(iop);
-      for (uint_t voice = 0; voice < 24; ++voice)
+      for (const auto& trait : Spus)
       {
-        if (const auto pitch = static_cast<int16_t>(::spu_lh(spu, 0x1f801c04 + (voice << 4))))
+        for (uint_t voice = 0; voice < SPU_VOICES_COUNT; ++voice)
         {
-          const auto envVol = static_cast<int16_t>(::spu_lh(spu, 0x1f801c0c + (voice << 4)));
-          if (envVol > 327)
+          const auto voiceBase = trait.Base + (voice << 4);
+          if (const auto pitch = static_cast<int16_t>(::spu_lh(spu, voiceBase + trait.PitchReg)))
           {
-            ChannelState state;
-            //0x1000 is for 44100Hz, assume it's C-8
-            state.Band = pitch * 96 / 0x1000;
-            state.Level = uint_t(envVol) * 100 / 32768;
-            result.push_back(state);
+            const auto envVol = static_cast<int16_t>(::spu_lh(spu, voiceBase + trait.VolReg));
+            if (envVol > 327)
+            {
+              ChannelState state;
+              //0x1000 is for 44100Hz, assume it's C-8
+              state.Band = pitch * 96 / 0x1000;
+              state.Level = uint_t(envVol) * 100 / 32768;
+              result.push_back(state);
+            }
           }
         }
       }
@@ -162,8 +282,24 @@ namespace PSF
       ::r3000_setreg(cpu, R3000_REG_PC, pc);
       ::r3000_setreg(cpu, R3000_REG_GEN + 29, sp);
     }
+    
+    void SetupVfs(VfsImage::Ptr vfs)
+    {
+      Vfs = std::move(vfs);
+      ::psx_set_readfile(Emu.get(), &VfsReadCallback, const_cast<void*>(static_cast<const void*>(Vfs.get())));
+    }
+    
+    static sint32 VfsReadCallback(void* context, const char* path, sint32 offset, char* buffer, sint32 length)
+    {
+      Dbg("Read %3% from %1%@%2%", path, offset, length);
+      const auto vfs = static_cast<VfsImage*>(context);
+      return vfs->Read(path, offset, buffer, length);
+    }
   private:
+    uint_t SoundFrequency = 0;
+    std::vector<SpuTrait> Spus;
     std::unique_ptr<uint8_t[]> Emu;
+    VfsImage::Ptr Vfs;
   };
   
   class Renderer : public Module::Renderer
@@ -177,9 +313,9 @@ namespace PSF
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
-      , SamplesPerFrame(PSXEngine::SOUND_RATE / Data->RefreshRate)
     {
       Engine->Initialize(*Data);
+      SamplesPerFrame = Engine->GetSoundFrequency() / Data->RefreshRate;
       ApplyParameters();
     }
 
@@ -227,7 +363,7 @@ namespace PSF
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
-        Resampler = Sound::CreateResampler(PSXEngine::SOUND_RATE, SoundParams->SoundFreq(), Target);
+        Resampler = Sound::CreateResampler(Engine->GetSoundFrequency(), SoundParams->SoundFreq(), Target);
       }
     }
 
@@ -249,11 +385,11 @@ namespace PSF
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
     const PSXEngine::Ptr Engine;
+    uint_t SamplesPerFrame;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
     bool Looped;
-    const uint_t SamplesPerFrame;
   };
 
   class Holder : public Module::Holder
@@ -349,8 +485,7 @@ namespace PSF
     }
   };
   
-  class DataBuilder : public Formats::Chiptune::PortableSoundFormat::Builder,
-                      private Formats::Chiptune::PlaystationSoundFormat::Builder
+  class DataBuilder : public Formats::Chiptune::PortableSoundFormat::Builder
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
@@ -361,16 +496,20 @@ namespace PSF
     
     void SetVersion(uint_t ver) override
     {
-      Require(ver == Formats::Chiptune::PlaystationSoundFormat::VERSION_ID);
+      Require(ver == Formats::Chiptune::PlaystationSoundFormat::VERSION_ID
+           || ver == Formats::Chiptune::Playstation2SoundFormat::VERSION_ID);
     }
 
-    void SetReservedSection(Binary::Container::Ptr /*blob*/) override
+    void SetReservedSection(Binary::Container::Ptr blob) override
     {
+      VFSParser parser(*Result);
+      Formats::Chiptune::Playstation2SoundFormat::ParseVFS(*blob, parser);
     }
     
     void SetProgramSection(Binary::Container::Ptr blob) override
     {
-      Formats::Chiptune::PlaystationSoundFormat::ParsePSXExe(*blob, *this);
+      PSXExeParser parser(*Result);
+      Formats::Chiptune::PlaystationSoundFormat::ParsePSXExe(*blob, parser);
     }
 
     void SetTitle(String title) override
@@ -454,34 +593,69 @@ namespace PSF
       Fields.DumpAuthor(Properties);
       Fields.DumpComment(Properties);
       Fields.DumpProgram(Properties);
+      if (Result->Vfs)
+      {
+        Result->Vfs->PrefetchAll();
+      }
       return std::move(Result);
     }
   private:
-    void SetRegisters(uint32_t pc, uint32_t gp) override
+    class VFSParser : public Formats::Chiptune::Playstation2SoundFormat::Builder
     {
-      Result->PC = pc;
-      Result->GP = gp;
-    }
-
-    void SetStackRegion(uint32_t head, uint32_t /*size*/) override
-    {
-      Result->SP = head;
-    }
-    
-    void SetRegion(String /*region*/, uint_t fps) override
-    {
-      if (0 != fps)
+    public:
+      explicit VFSParser(ModuleData& data)
       {
-        Result->RefreshRate = fps;
+        if (!data.Vfs)
+        {
+          data.Vfs = MakeRWPtr<VfsImage>();
+        }
+        Vfs = data.Vfs.get();
       }
-    }
+
+      void OnFile(String path, Binary::Container::Ptr content) override
+      {
+        Vfs->AddFile(path, std::move(content));
+      }
+    private:
+      VfsImage* Vfs;
+    };
     
-    void SetTextSection(uint32_t address, const Binary::Data& content) override
+    class PSXExeParser : public Formats::Chiptune::PlaystationSoundFormat::Builder
     {
-      Result->StartAddress = address;
-      const auto data = static_cast<const uint8_t*>(content.Start());
-      Result->RAM.assign(data, data + content.Size());
-    }
+    public:
+      explicit PSXExeParser(ModuleData& data)
+        : Result(data)
+      {
+      }
+
+      void SetRegisters(uint32_t pc, uint32_t gp) override
+      {
+        Result.PC = pc;
+        Result.GP = gp;
+      }
+
+      void SetStackRegion(uint32_t head, uint32_t /*size*/) override
+      {
+        Result.SP = head;
+      }
+      
+      void SetRegion(String /*region*/, uint_t fps) override
+      {
+        if (0 != fps)
+        {
+          Result.RefreshRate = fps;
+        }
+      }
+      
+      void SetTextSection(uint32_t address, const Binary::Data& content) override
+      {
+        Result.StartAddress = address;
+        const auto data = static_cast<const uint8_t*>(content.Start());
+        Result.RAM.assign(data, data + content.Size());
+      }
+    private:
+      ModuleData& Result;
+    };
   private:
     PropertiesHelper& Properties;
     ModuleData::RWPtr Result;
