@@ -42,7 +42,6 @@ namespace Binary
   public:
     SharedContainer(Value arr, std::size_t offset, std::size_t size)
       : Buffer(std::move(arr))
-      , Address(GetPointer(Buffer.get(), offset))
       , Offset(offset)
       , Length(size)
     {
@@ -51,7 +50,7 @@ namespace Binary
     
     const void* Start() const override
     {
-      return Address;
+      return GetPointer(Buffer.get(), Offset);
     }
 
     std::size_t Size() const override
@@ -73,7 +72,6 @@ namespace Binary
     }
   private:
     const Value Buffer;
-    const void* const Address;
     const std::size_t Offset;
     const std::size_t Length;
   };
