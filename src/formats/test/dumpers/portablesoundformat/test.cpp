@@ -12,6 +12,7 @@
 #include <make_ptr.h>
 #include <formats/chiptune/emulation/portablesoundformat.h>
 #include <formats/chiptune/emulation/playstationsoundformat.h>
+#include <formats/chiptune/emulation/playstation2soundformat.h>
 #include <strings/format.h>
 #include <time/duration.h>
 #include <memory>
@@ -86,6 +87,33 @@ namespace
       {
         std::cout << Strings::Format("  Text section: %1% (0x%1$08x) bytes at 0x%2$08x", content.Size(), address) << std::endl;
       };
+    };
+  };
+  
+  class PSF2Dumper : public SimpleDumper
+  {
+  public:
+    void DumpReserved(const Binary::Container& blob) const override
+    {
+      SimpleDumper::DumpReserved(blob);
+      try
+      {
+        PSF2VFSDumper delegate;
+        Formats::Chiptune::Playstation2SoundFormat::ParseVFS(blob, delegate);
+      }
+      catch (const std::exception&)
+      {
+        std::cout << "  Corrupted PSF2 VFS" << std::endl;
+      }
+    }
+  private:
+    class PSF2VFSDumper : public Formats::Chiptune::Playstation2SoundFormat::Builder
+    {
+    public:
+      void OnFile(String path, Binary::Container::Ptr content) override
+      {
+        std::cout << "  " << path << " (" << (content ? content->Size() : std::size_t(0)) << " bytes)" << std::endl;
+      }
     };
   };
 
@@ -202,6 +230,8 @@ namespace
       {
       case 0x01:
         return MakePtr<PSF1Dumper>();
+      case 0x02:
+        return MakePtr<PSF2Dumper>();
       default:
         return MakePtr<SimpleDumper>();
       }

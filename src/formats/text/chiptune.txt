@@ -290,3 +290,7 @@ __cpp> "}//namespace Text\n"
 #PSF
 < PLAYSTATIONSOUNDFORMAT_DECODER_DESCRIPTION
 > "Playstation Sound Format"
+
+#PSF2
+< PLAYSTATION2SOUNDFORMAT_DECODER_DESCRIPTION
+> "Playstation2 Sound Format"
