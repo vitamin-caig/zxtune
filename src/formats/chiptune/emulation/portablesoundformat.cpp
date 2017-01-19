@@ -15,8 +15,7 @@
 #include <crc.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/compress.h>
-#include <binary/container_factories.h>
+#include <binary/compressed_data.h>
 #include <binary/data_builder.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -55,44 +54,6 @@ namespace PortableSoundFormat
     const char LENGTH[] = "length";
     const char FADE[] = "fade";
   }
-  
-  class DefferredUncompressContainer : public Binary::Container
-  {
-  public:
-    explicit DefferredUncompressContainer(Binary::Data::Ptr packed)
-      : Packed(std::move(packed))
-    {
-    }
-
-    const void* Start() const override
-    {
-      return GetUnpacked().Start();
-    }
-
-    std::size_t Size() const override
-    {
-      return GetUnpacked().Size();
-    }
-    
-    Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-    {
-      return GetUnpacked().GetSubcontainer(offset, size);
-    }
-  private:
-    const Binary::Container& GetUnpacked() const
-    {
-      if (Packed)
-      {
-        std::unique_ptr<Dump> uncompressed(new Dump(Binary::Compression::Zlib::Uncompress(Packed->Start(), Packed->Size())));
-        Unpacked = Binary::CreateContainer(std::move(uncompressed));
-        Packed.reset();
-      }
-      return *Unpacked;
-    }
-  private:
-    mutable Binary::Data::Ptr Packed;
-    mutable Binary::Container::Ptr Unpacked;
-  };
   
   class Format
   {
@@ -138,7 +99,8 @@ namespace PortableSoundFormat
         auto programPacked = Stream.ReadData(compressedSize);
         CheckCrc(*programPacked, compressedCrc);
         Dbg("Program section %1% bytes", compressedSize);
-        target.SetProgramSection(MakePtr<DefferredUncompressContainer>(std::move(programPacked)));
+        auto programUnpacked = Binary::Compression::Zlib::CreateDeferredUncompressContainer(std::move(programPacked));
+        target.SetProgramSection(std::move(programUnpacked));
       }
     }
     
