@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "bios.h"
+#include "psf_bios.h"
 //library includes
 #include <binary/data_adapter.h>
 

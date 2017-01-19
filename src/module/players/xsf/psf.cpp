@@ -9,17 +9,20 @@
 **/
 
 //local includes
-#include "bios.h"
 #include "psf.h"
+#include "xsf.h"
+#include "psf_bios.h"
+#include "psf_exe.h"
+#include "psf_vfs.h"
 //common includes
 #include <contract.h>
+#include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <formats/chiptune/emulation/playstationsoundformat.h>
-#include <formats/chiptune/emulation/playstation2soundformat.h>
-#include <formats/chiptune/emulation/portablesoundformat.h>
+#include <binary/container_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <module/additional_files.h>
 #include <module/players/analyzer.h>
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
@@ -38,89 +41,77 @@
 #include <3rdparty/he/Core/r3000.h>
 #include <3rdparty/he/Core/spu.h>
 
+#define FILE_TAG 19ECDEC4
+
 namespace Module
 {
 namespace PSF
 {
   const Debug::Stream Dbg("Module::PSFSupp");
-  
-  class VfsImage
+ 
+  class VfsIO
   {
   public:
-    using Ptr = std::shared_ptr<const VfsImage>;
-    using RWPtr = std::shared_ptr<VfsImage>;
-    
-    void AddFile(const String& path, Binary::Container::Ptr content)
+    VfsIO() = default;
+    explicit VfsIO(PsxVfs::Ptr vfs)
+      : Vfs(std::move(vfs))
     {
-      Files.emplace(ToUpper(path.c_str()), std::move(content));
     }
     
-    void PrefetchAll()
-    {
-      for (auto& file : Files)
-      {
-        if (file.second)
-        {
-          Require(file.second->Start() != nullptr);
-        }
-      }
-    }
-    
-    sint32 Read(const char* path, sint32 offset, char* buffer, sint32 length) const
+    sint32 Read(const char* path, sint32 offset, char* buffer, sint32 length)
     {
       if (PreloadFile(path))
       {
-        if (!CachedData)
+        if (length == 0)
         {
-          //empty file
-          return 0;
+          const auto result = GetSize();
+          Dbg("Size()=%1%", result);
+          return result;
         }
-        else if (length == 0)
+        else
         {
-          //getting file size
-          return CachedData->Size();
-        }
-        else if (const auto part = CachedData->GetSubcontainer(offset, length))
-        {
-          std::memcpy(buffer, part->Start(), part->Size());
-          return part->Size();
-        }
-        else 
-        {
-          return 0;
+          const auto result = Read(offset, buffer, length);
+          Dbg("Read(%2%@%1%)=%3%", offset, length, result);
+          return result;
         }
       }
       return -1;
     }
   private:
-    static String ToUpper(const char* path)
-    {
-      String res;
-      res.reserve(256);
-      while (*path)
-      {
-        res.push_back(std::toupper(*path));
-        ++path;
-      }
-      return res;
-    }
-  
     bool PreloadFile(const char* path) const
     {
       if (CachedName != path)
       {
-        const auto it = Files.find(ToUpper(path));
-        if (it == Files.end())
+        if (!Vfs->Find(path, CachedData))
         {
+          Dbg("Not found '%1%'", path);
           return false;
         }
+        Dbg("Open '%1%'", path);
         CachedName = path;
-        CachedData = it->second;
       }
       return true;
     }
+    
+    sint32 GetSize() const
+    {
+      return CachedData ? CachedData->Size() : 0;
+    }
+    
+    sint32 Read(sint32 offset, char* buffer, sint32 length) const
+    {
+      if (CachedData)
+      {
+        if (const auto part = CachedData->GetSubcontainer(offset, length))
+        {
+          std::memcpy(buffer, part->Start(), part->Size());
+          return part->Size();
+        }
+      }
+      return 0;
+    }
   private:
-    std::map<String, Binary::Container::Ptr> Files;
+    PsxVfs::Ptr Vfs;
     mutable String CachedName;
     mutable Binary::Container::Ptr CachedData;
   };
@@ -133,17 +124,26 @@ namespace PSF
     ModuleData() = default;
     ModuleData(const ModuleData&) = delete;
     
-    uint_t RefreshRate = 0;
-    Time::Milliseconds Duration;
-    Time::Milliseconds Fadeout;
-
-    uint32_t PC = 0;
-    uint32_t GP = 0;
-    uint32_t SP = 0;
-    uint32_t StartAddress = 0;
-    Dump RAM;
+    uint_t Version = 0;
+    PsxExe::Ptr Exe;
+    PsxVfs::Ptr Vfs;
+    XSF::MetaInformation::Ptr Meta;
     
-    VfsImage::RWPtr Vfs;
+    uint_t GetRefreshRate() const
+    {
+      if (Meta && Meta->RefreshRate)
+      {
+        return Meta->RefreshRate;
+      }
+      else if (Exe && Exe->RefreshRate)
+      {
+        return Exe->RefreshRate;
+      }
+      else
+      {
+        return 60;//NTSC by default
+      }
+    }
   };
   
   class HELibrary
@@ -188,22 +188,21 @@ namespace PSF
   
     void Initialize(const ModuleData& data)
     {
-      if (data.RAM.size())
+      if (data.Exe)
       {
         Emu = HELibrary::Instance().CreatePSX(1);
-        SetRAM(data.StartAddress, data.RAM.data(), data.RAM.size());
-        SetRegisters(data.PC, data.SP);
+        SetupExe(*data.Exe);
         SoundFrequency = 44100;
         Spus.assign({SPU1});
       }
       else if (data.Vfs)
       {
         Emu = HELibrary::Instance().CreatePSX(2);
-        SetupVfs(data.Vfs);
+        SetupIo(data.Vfs);
         SoundFrequency = 48000;
         Spus.assign({SPU1, SPU2});
       }
-      ::psx_set_refresh(Emu.get(), data.RefreshRate);
+      ::psx_set_refresh(Emu.get(), data.GetRefreshRate());
     }
     
     uint_t GetSoundFrequency() const
@@ -267,10 +266,14 @@ namespace PSF
       return result;
     }
   private:
+    void SetupExe(const PsxExe& exe)
+    {
+      SetRAM(exe.StartAddress, exe.RAM.data(), exe.RAM.size());
+      SetRegisters(exe.PC, exe.SP);
+    }
+    
     void SetRAM(uint32_t startAddr, const void* src, std::size_t size)
     {
-    	startAddr &= 0x1fffff;
-      Require(startAddr >= 0x10000 && size <= 0x1f0000 && startAddr + size <= 0x200000);
       const auto iop = ::psx_get_iop_state(Emu.get());
       ::iop_upload_to_ram(iop, startAddr, src, size);
     }
@@ -283,23 +286,22 @@ namespace PSF
       ::r3000_setreg(cpu, R3000_REG_GEN + 29, sp);
     }
     
-    void SetupVfs(VfsImage::Ptr vfs)
+    void SetupIo(PsxVfs::Ptr vfs)
     {
-      Vfs = std::move(vfs);
-      ::psx_set_readfile(Emu.get(), &VfsReadCallback, const_cast<void*>(static_cast<const void*>(Vfs.get())));
+      Io = VfsIO(vfs);
+      ::psx_set_readfile(Emu.get(), &ReadCallback, &Io);
     }
     
-    static sint32 VfsReadCallback(void* context, const char* path, sint32 offset, char* buffer, sint32 length)
+    static sint32 ReadCallback(void* context, const char* path, sint32 offset, char* buffer, sint32 length)
     {
-      Dbg("Read %3% from %1%@%2%", path, offset, length);
-      const auto vfs = static_cast<VfsImage*>(context);
-      return vfs->Read(path, offset, buffer, length);
+      const auto io = static_cast<VfsIO*>(context);
+      return io->Read(path, offset, buffer, length);
     }
   private:
     uint_t SoundFrequency = 0;
     std::vector<SpuTrait> Spus;
     std::unique_ptr<uint8_t[]> Emu;
-    VfsImage::Ptr Vfs;
+    VfsIO Io;
   };
   
   class Renderer : public Module::Renderer
@@ -315,7 +317,7 @@ namespace PSF
       , Looped()
     {
       Engine->Initialize(*Data);
-      SamplesPerFrame = Engine->GetSoundFrequency() / Data->RefreshRate;
+      SamplesPerFrame = Engine->GetSoundFrequency() / Data->GetRefreshRate();
       ApplyParameters();
     }
 
@@ -416,251 +418,287 @@ namespace PSF
     {
       return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), std::move(target), std::move(params));
     }
+    
+    static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties, Time::Seconds defaultDuration)
+    {
+      const auto period = Time::GetPeriodForFrequency<Time::Milliseconds>(tune->GetRefreshRate());
+      const auto duration = tune->Meta && tune->Meta->Duration.Get() ? tune->Meta->Duration : Time::Milliseconds(defaultDuration);
+      const uint_t frames = duration.Get() / period.Get();
+      const Information::Ptr info = CreateStreamInfo(frames);
+      if (tune->Meta)
+      {
+        tune->Meta->Dump(*properties);
+      }
+      return MakePtr<Holder>(std::move(tune), info, std::move(properties));
+    }
   private:
     const ModuleData::Ptr Tune;
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
   
-  struct DispatchedFields
-  {
-    String Title;
-    String Artist;
-    String Game;
-    String Comment;
-    String Copyright;
-    String Dumper;
-    
-    void DumpTitle(PropertiesHelper& props)
-    {
-      if (!Title.empty())
-      {
-        props.SetTitle(std::move(Title));
-      }
-      else if (!Game.empty())
-      {
-        props.SetTitle(std::move(Game));
-      }
-    }
-    
-    void DumpAuthor(PropertiesHelper& props)
-    {
-      if (!Artist.empty())
-      {
-        props.SetAuthor(std::move(Artist));
-      }
-      else if (!Copyright.empty())
-      {
-        props.SetAuthor(std::move(Copyright));
-      }
-      else if (!Dumper.empty())
-      {
-        props.SetAuthor(std::move(Dumper));
-      }
-    }
-    
-    void DumpComment(PropertiesHelper& props)
-    {
-      if (!Comment.empty())
-      {
-        props.SetComment(std::move(Comment));
-      }
-      else if (!Game.empty())
-      {
-        props.SetComment(std::move(Game));
-      }
-      else if (!Copyright.empty())
-      {
-        props.SetComment(std::move(Copyright));
-      }
-      else if (!Dumper.empty())
-      {
-        props.SetComment(std::move(Dumper));
-      }
-    }
-    
-    void DumpProgram(PropertiesHelper& props)
-    {
-      props.SetProgram(std::move(Game));
-    }
-  };
-  
-  class DataBuilder : public Formats::Chiptune::PortableSoundFormat::Builder
+  class XsfView
   {
   public:
-    explicit DataBuilder(PropertiesHelper& props)
-      : Properties(props)
-      , Result(MakeRWPtr<ModuleData>())
+    explicit XsfView(const XSF::File& file)
+      : File(file)
     {
     }
     
-    void SetVersion(uint_t ver) override
+    bool IsSingleTrack() const
     {
-      Require(ver == Formats::Chiptune::PlaystationSoundFormat::VERSION_ID
-           || ver == Formats::Chiptune::Playstation2SoundFormat::VERSION_ID);
-    }
-
-    void SetReservedSection(Binary::Container::Ptr blob) override
-    {
-      VFSParser parser(*Result);
-      Formats::Chiptune::Playstation2SoundFormat::ParseVFS(*blob, parser);
+      return File.Dependencies.empty();
     }
     
-    void SetProgramSection(Binary::Container::Ptr blob) override
+    bool IsMultiTrack() const
     {
-      PSXExeParser parser(*Result);
-      Formats::Chiptune::PlaystationSoundFormat::ParsePSXExe(*blob, parser);
-    }
-
-    void SetTitle(String title) override
-    {
-      Fields.Title = std::move(title);
+      return !File.Dependencies.empty();
     }
     
-    void SetArtist(String artist) override
+    ModuleData::Ptr CreateModuleData() const
     {
-      Fields.Artist = std::move(artist);
-    }
-    
-    void SetGame(String game) override
-    {
-      Fields.Game = std::move(game);
-    }
-    
-    void SetYear(String date) override
-    {
-      Properties.SetDate(std::move(date));
-    }
-    
-    void SetGenre(String /*genre*/) override
-    {
-    }
-    
-    void SetComment(String comment) override
-    {
-      Fields.Comment = std::move(comment);
-    }
-    
-    void SetCopyright(String copyright) override
-    {
-      Fields.Copyright = std::move(copyright);
-    }
-    
-    void SetDumper(String dumper) override
-    {
-      Fields.Dumper = std::move(dumper);
-    }
-    
-    void SetLength(Time::Milliseconds duration) override
-    {
-      IsLibrary = false;
-      Result->Duration = duration;
-    }
-    
-    void SetFade(Time::Milliseconds fade) override
-    {
-      IsLibrary = false;
-      Result->Fadeout = fade;
-    }
-    
-    void SetTag(String name, String value) override
-    {
-      if (name == "_refresh")
+      Require(File.Dependencies.empty());
+      const ModuleData::RWPtr result = MakeRWPtr<ModuleData>();
+      result->Version = File.Version;
+      result->Meta = File.Meta;
+      Require(!!File.ProgramSection != !!File.ReservedSection);
+      if (File.ProgramSection)
       {
-        Result->RefreshRate = std::atoi(value.c_str());
+        auto exe = MakeRWPtr<PsxExe>();
+        PsxExe::Parse(*File.ProgramSection, *exe);
+        result->Exe = std::move(exe);
       }
-      /*
-      else if (name == "volume")
+      else
       {
-        Result->Gain = ParseGain(value);
+        auto vfs = MakeRWPtr<PsxVfs>();
+        PsxVfs::Parse(*File.ReservedSection, *vfs);
+        vfs->Prefetch();
+        result->Vfs = std::move(vfs);
       }
-      */
-    }
-
-    void SetLibrary(uint_t /*num*/, String /*filename*/) override
-    {
-      throw std::exception();
-    }
-    
-    ModuleData::Ptr CaptureResult()
-    {
-      Require(!IsLibrary);
-      if (!Result->RefreshRate)
-      {
-        Result->RefreshRate = 60;//default to NTSC
-      }
-      Fields.DumpTitle(Properties);
-      Fields.DumpAuthor(Properties);
-      Fields.DumpComment(Properties);
-      Fields.DumpProgram(Properties);
-      if (Result->Vfs)
-      {
-        Result->Vfs->PrefetchAll();
-      }
-      return std::move(Result);
+      return result;
     }
   private:
-    class VFSParser : public Formats::Chiptune::Playstation2SoundFormat::Builder
+    const XSF::File& File;
+  };
+ 
+  class MultiFileHolder : public Module::Holder
+                        , public Module::AdditionalFiles
+  {
+  public:
+    MultiFileHolder(XSF::File head, Parameters::Container::Ptr properties, Time::Seconds defaultDuration)
+      : DefaultDuration(defaultDuration)
+      , Properties(std::move(properties))
+      , Head(std::move(head))
+    {
+      CloneContainer(Head.ProgramSection);
+      CloneContainer(Head.ReservedSection);
+      LoadDependenciesFrom(Head);
+    }
+    
+    Module::Information::Ptr GetModuleInformation() const override
+    {
+      return GetDelegate().GetModuleInformation();
+    }
+
+    Parameters::Accessor::Ptr GetModuleProperties() const override
+    {
+      return GetDelegate().GetModuleProperties();
+    }
+
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    {
+      return GetDelegate().CreateRenderer(std::move(params), std::move(target));
+    }
+    
+    Strings::Array Enumerate() const override
+    {
+      Strings::Array result;
+      for (const auto& dep : Dependencies)
+      {
+        if (0 == dep.second.Version)
+        {
+          result.push_back(dep.first);
+        }
+      }
+      return result;
+    }
+    
+    void Resolve(const String& name, Binary::Container::Ptr data) override
+    {
+      XSF::File file;
+      if (XSF::Parse(name, *data, file))
+      {
+        Dbg("Resolving dependency '%1%'", name);
+        LoadDependenciesFrom(file);
+        const auto it = Dependencies.find(name);
+        Require(it != Dependencies.end() && 0 == it->second.Version);
+        it->second = std::move(file);
+      }
+    }
+  private:
+    static void CloneContainer(Binary::Container::Ptr& data)
+    {
+      if (data)
+      {
+        data = Binary::CreateContainer(data->Start(), data->Size());
+      }
+    }
+    void LoadDependenciesFrom(const XSF::File& file)
+    {
+      Require(Head.Version == file.Version);
+      for (const auto& dep : file.Dependencies)
+      {
+        Require(!dep.empty());
+        Require(Dependencies.emplace(dep, XSF::File()).second);
+        Dbg("Found unresolved dependency '%1%'", dep);
+      }
+    }
+    
+    const Module::Holder& GetDelegate() const
+    {
+      if (!Delegate)
+      {
+        Require(!Dependencies.empty());
+        auto mergedData = MergeDependencies();
+        FillStrings();
+        Delegate = PSF::Holder::Create(std::move(mergedData), std::move(Properties), DefaultDuration);
+        Dependencies.clear();
+        Head = XSF::File();
+      }
+      return *Delegate;
+    }
+    
+    class ModuleDataBuilder
     {
     public:
-      explicit VFSParser(ModuleData& data)
+      void AddExe(const Binary::Container& blob)
       {
-        if (!data.Vfs)
+        Require(!Vfs);
+        if (!Exe)
         {
-          data.Vfs = MakeRWPtr<VfsImage>();
+          Exe = MakeRWPtr<PsxExe>();
         }
-        Vfs = data.Vfs.get();
+        PsxExe::Parse(blob, *Exe);
       }
-
-      void OnFile(String path, Binary::Container::Ptr content) override
+      
+      void AddVfs(const Binary::Container& blob)
       {
-        Vfs->AddFile(path, std::move(content));
+        Require(!Exe);
+        if (!Vfs)
+        {
+          Vfs = MakeRWPtr<PsxVfs>();
+        }
+        PsxVfs::Parse(blob, *Vfs);
+      }
+      
+      void AddMeta(const XSF::MetaInformation& meta)
+      {
+        if (!Meta)
+        {
+          Meta = MakeRWPtr<XSF::MetaInformation>(meta);
+        }
+        else
+        {
+          Meta->Merge(meta);
+        }
+      }
+      
+      ModuleData::Ptr CaptureResult(uint_t version)
+      {
+        auto res = MakeRWPtr<ModuleData>();
+        res->Version = version;
+        res->Exe = std::move(Exe);
+        res->Vfs = std::move(Vfs);
+        res->Meta = std::move(Meta);
+        return res;
       }
     private:
-      VfsImage* Vfs;
+      PsxExe::RWPtr Exe;
+      PsxVfs::RWPtr Vfs;
+      XSF::MetaInformation::RWPtr Meta;
     };
     
-    class PSXExeParser : public Formats::Chiptune::PlaystationSoundFormat::Builder
+    ModuleData::Ptr MergeDependencies() const
     {
-    public:
-      explicit PSXExeParser(ModuleData& data)
-        : Result(data)
+      ModuleDataBuilder builder;
+      Require(!!Head.ProgramSection != !!Head.ReservedSection);
+      if (Head.ProgramSection)
       {
+        MergeExe(Head, builder);
       }
-
-      void SetRegisters(uint32_t pc, uint32_t gp) override
+      else
       {
-        Result.PC = pc;
-        Result.GP = gp;
+        MergeVfs(Head, builder);
       }
-
-      void SetStackRegion(uint32_t head, uint32_t /*size*/) override
+      return builder.CaptureResult(Head.Version);
+    }
+    
+    void MergeExe(const XSF::File& data, ModuleDataBuilder& dst) const
+    {
+      Require(!!data.ProgramSection);
+      auto it = data.Dependencies.begin();
+      const auto lim = data.Dependencies.end();
+      if (it != lim)
       {
-        Result.SP = head;
+        MergeExe(GetDependency(*it), dst);
       }
-      
-      void SetRegion(String /*region*/, uint_t fps) override
+      dst.AddExe(*data.ProgramSection);
+      if (data.Meta)
       {
-        if (0 != fps)
+        dst.AddMeta(*data.Meta);
+      }
+      if (it != lim)
+      {
+        for (++it; it != lim; ++it)
         {
-          Result.RefreshRate = fps;
+          MergeExe(GetDependency(*it), dst);
         }
       }
-      
-      void SetTextSection(uint32_t address, const Binary::Data& content) override
+    }
+    
+    void MergeVfs(const XSF::File& data, ModuleDataBuilder& dst) const
+    {
+      Require(!!data.ReservedSection);
+      for (const auto& dep : data.Dependencies)
       {
-        Result.StartAddress = address;
-        const auto data = static_cast<const uint8_t*>(content.Start());
-        Result.RAM.assign(data, data + content.Size());
+        MergeVfs(GetDependency(dep), dst);
       }
-    private:
-      ModuleData& Result;
-    };
+      dst.AddVfs(*data.ReservedSection);
+      if (data.Meta)
+      {
+        dst.AddMeta(*data.Meta);
+      }
+    }
+    
+    const XSF::File& GetDependency(const String& name) const
+    {
+      const auto it = Dependencies.find(name);
+      if (it == Dependencies.end() || 0 == it->second.Version)
+      {
+        Dbg("PSF%1%: unresolved '%2%'", Head.Version, name);
+        throw MakeFormattedError(THIS_LINE, "Unresolved dependency '%1%'", name);
+      }
+      Dbg("PSF%1%: apply '%2%'", Head.Version, name);
+      return it->second;
+    }
+    
+    void FillStrings() const
+    {
+      Strings::Array linear;
+      linear.reserve(Dependencies.size());
+      for (const auto& dep : Dependencies)
+      {
+        linear.push_back(dep.first);
+      }
+      PropertiesHelper(*Properties).SetStrings(linear);
+    }
   private:
-    PropertiesHelper& Properties;
-    ModuleData::RWPtr Result;
-    bool IsLibrary = true;
-    DispatchedFields Fields;
+    const Time::Seconds DefaultDuration;
+    mutable Parameters::Container::Ptr Properties;
+    mutable XSF::File Head;
+    mutable std::map<String, XSF::File> Dependencies;
+    
+    mutable Holder::Ptr Delegate;
   };
   
   class Factory : public Module::Factory
@@ -670,21 +708,34 @@ namespace PSF
     {
       try
       {
-        PropertiesHelper props(*properties);
-        DataBuilder dataBuilder(props);
-        if (const auto container = Formats::Chiptune::PortableSoundFormat::Parse(rawData, dataBuilder))
+        Dbg("Try to parse PSF/PSF2");
+        XSF::File file;
+        if (const auto source = XSF::Parse(rawData, file))
         {
-          auto tune = dataBuilder.CaptureResult();
-          props.SetSource(*container);
-          props.SetFramesFrequency(tune->RefreshRate);
-          const auto period = Time::GetPeriodForFrequency<Time::Milliseconds>(tune->RefreshRate);
-          const uint_t frames = tune->Duration.Get() / period.Get();
-          const Information::Ptr info = CreateStreamInfo(frames);
-          return MakePtr<Holder>(std::move(tune), info, properties);
+          PropertiesHelper props(*properties);
+          props.SetSource(*source);
+
+          const XsfView xsf(file);
+          if (xsf.IsSingleTrack())
+          {
+            Dbg("Singlefile PSF/PSF2");
+            auto tune = xsf.CreateModuleData();
+            return Holder::Create(std::move(tune), std::move(properties), GetDuration(params));
+          }
+          else if (xsf.IsMultiTrack())
+          {
+            Dbg("Multifile PSF/PSF2");
+            return MakePtr<MultiFileHolder>(std::move(file), std::move(properties), GetDuration(params));
+          }
+          else
+          {
+            Dbg("Invalid PSF/PSF2");
+          }
         }
       }
-      catch (const std::exception& e)
+      catch (const std::exception&)
       {
+        Dbg("Failed to parse PSF");
       }
       return Module::Holder::Ptr();
     }
