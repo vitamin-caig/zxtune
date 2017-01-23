@@ -177,8 +177,9 @@ namespace Binary
 
   Container::Ptr CreateContainer(std::shared_ptr<const Dump> data, std::size_t offset, std::size_t size)
   {
-    if (size && data && data->size() >= offset + size)
+    if (size && data && offset < data->size())
     {
+      size = std::min(size, data->size() - offset);
       return MakePtr<SharedContainer<std::shared_ptr<const Dump> > >(std::move(data), offset, size);
     }
     else
