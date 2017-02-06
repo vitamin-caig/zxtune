@@ -215,13 +215,11 @@ namespace
         const String subpath = id->Subpath();
         if (subpath.empty())
         {
-          const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
-          Module::Detect(*Params, location, detectCallback);
+          Module::Detect(*Params, data, detectCallback);
         }
         else
         {
-          const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*Params, data, subpath);
-          Module::Open(*Params, location, detectCallback);
+          Module::Open(*Params, data, subpath, detectCallback);
         }
       }
       catch (const Error& e)

@@ -42,12 +42,13 @@ namespace Module
   //! @param location Start data location
   //! @param callback Detect callback
   //! @return Size in bytes of source data processed
-  std::size_t Detect(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
+  std::size_t Detect(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback);//for internal usage
+  std::size_t Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& callback);
 
   //! @brief Opens module directly from location
   //! @param params Parameters for plugins
   //! @param location Start data location
   //! @param callback Detect callback
   //! @throw Error if no module found
-  void Open(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
+  void Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath, const DetectCallback& callback);
 }

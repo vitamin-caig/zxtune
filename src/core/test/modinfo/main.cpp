@@ -19,15 +19,12 @@
 
 namespace
 {
-  using namespace ZXTune;
-
   Module::Holder::Ptr OpenModuleByPath(const String& fullPath)
   {
     const Parameters::Container::Ptr emptyParams = Parameters::Container::Create();
     const String filename = fullPath;//TODO: split if required
     const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
-    const DataLocation::Ptr dataLocation = CreateLocation(data);
-    return Module::Open(*emptyParams, dataLocation);
+    return Module::Open(*emptyParams, *data);
   }
 
   void ShowModuleInfo(const Module::Information& info)
@@ -70,8 +67,6 @@ int main(int argc, char* argv[])
   }
   try
   {
-    using namespace ZXTune;
-
     const Module::Holder::Ptr module = OpenModuleByPath(argv[1]);
     ShowModuleProperties(*module);
     return 0;

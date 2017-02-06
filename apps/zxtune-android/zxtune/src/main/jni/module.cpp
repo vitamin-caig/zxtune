@@ -31,7 +31,7 @@ namespace
       const Parameters::Accessor::Ptr options = Parameters::GlobalOptions();
       auto module = subpath.empty()
           ? Module::Open(*options, *data)
-          : Module::Open(*options, ZXTune::OpenLocation(*options, data, subpath));
+          : Module::Open(*options, data, subpath);
       Dbg("Module::Create(data=%p, subpath=%s)=%p", data.get(), subpath, module.get());
       return Module::Storage::Instance().Add(std::move(module));
     }

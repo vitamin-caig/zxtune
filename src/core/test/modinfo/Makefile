@@ -9,14 +9,15 @@ libraries.common = analysis \
                    formats_chiptune formats_multitrack formats_packed_lha \
                    io \
                    l10n_stub \
+                   module module_players \
                    parameters platform \
                    sound strings \
                    tools
 
 #3rdparty
-libraries.3rdparty = gme hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
+libraries.3rdparty = gme he hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
 
-libraries.boost += filesystem
+libraries.boost += filesystem system
 
 windows_libraries := advapi32
 

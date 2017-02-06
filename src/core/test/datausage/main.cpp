@@ -66,9 +66,8 @@ namespace
     const auto emptyParams = Parameters::Container::Create();
     const auto data = IO::OpenData(path, *emptyParams, Log::ProgressCallback::Stub());
     const auto nocopyData = Binary::CreateNonCopyContainer(data->Start(), data->Size());
-    const auto location = ZXTune::CreateLocation(nocopyData);
     DetectCallbackAdapter cb(modules);
-    Module::Detect(*emptyParams, location, cb);
+    Module::Detect(*emptyParams, nocopyData, cb);
   }
 }
 

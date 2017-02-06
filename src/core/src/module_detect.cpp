@@ -147,20 +147,26 @@ namespace Module
     const Parameters::Accessor::Ptr Properties;
   };
 
-  void Open(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
+  std::size_t OpenInternal(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
   {
     using namespace ZXTune;
     const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
-    if (!DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), location, callback))
+    return DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), location, callback);
+  }
+
+  void Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath, const DetectCallback& callback)
+  {
+    const auto location = ZXTune::OpenLocation(params, data, subpath);
+    if (!OpenInternal(params, location, callback))
     {
       throw Error(THIS_LINE, translate("Failed to find module at specified location."));
     }
   }
-
-  Holder::Ptr Open(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location)
+  
+  Holder::Ptr Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath)
   {
     const OpenModuleCallback callback;
-    Open(params, location, callback);
+    Open(params, data, subpath, callback);
     return callback.GetResult();
   }
 
@@ -186,10 +192,14 @@ namespace Module
     {
       return usedSize;
     }
-    const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
-    return DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), location, callback);
+    return OpenInternal(params, location, callback);
   }
 
+  std::size_t Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& callback)
+  {
+    return Detect(params, ZXTune::CreateLocation(data), callback);
+  }
+  
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
   {
     if (const AYM::Holder::Ptr aym = std::dynamic_pointer_cast<const AYM::Holder>(delegate))
