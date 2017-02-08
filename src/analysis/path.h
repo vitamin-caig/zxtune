@@ -45,6 +45,9 @@ namespace Analysis
     //! @param startPath Part of current path starting from beginning
     //! @return Not-null object is AsString() is started of startPath (even in full match case), null elsewhere
     virtual Ptr Extract(const String& startPath) const = 0;
+    //! @brief Return all the path elements but the last one
+    //! @return Ptr() if this->Empty(), non-null (but may be empty) object instead
+    virtual Ptr GetParent() const = 0;
   };
 
   Path::Ptr ParsePath(const String& str, Char separator);

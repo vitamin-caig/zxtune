@@ -101,6 +101,17 @@ namespace Analysis
       }
       return CreatePath(Separator, iters.second, Components.end());
     }
+
+    Ptr GetParent() const override
+    {
+      const auto first = Components.begin();
+      auto last = Components.end();
+      if (first != last)
+      {
+        --last;
+      }
+      return CreatePath(Separator, first, last);
+    }
   private:
     const Strings::Array Components;
     const Char Separator;
@@ -139,6 +150,11 @@ namespace Analysis
       return startPath.empty()
         ? MakePtr<EmptyPath>(Separator)
         : Ptr();
+    }
+    
+    Ptr GetParent() const override
+    {
+      return Ptr();
     }
   private:
     const Char Separator;
