@@ -12,6 +12,13 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #, boost-format
+msgid "None of the additional files %1% were resolved."
+msgstr "Ни один из внешних файлов из %1% не подходит."
+
+msgid "Failed to resolve additional files."
+msgstr "Ошибка загрузки дополнительных файлов."
+
+#, boost-format
 msgid "Failed to resolve subpath '%1%'."
 msgstr "Ошибка получения данных по пути '%1%'."
 
