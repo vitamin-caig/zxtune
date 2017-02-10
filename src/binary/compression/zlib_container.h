@@ -19,7 +19,7 @@ namespace Binary
   {
     namespace Zlib
     {
-      Container::Ptr CreateDeferredUncompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint = 0);
+      Container::Ptr CreateDeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint = 0);
     }
   }
 }

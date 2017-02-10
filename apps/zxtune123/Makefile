@@ -12,7 +12,8 @@ source_files.dingux = console_dingux.cpp
 text_files := text/text
 other_text_files := text/configfile text/cmdline text/messages text/conversion text/cmd_keys_local
 
-libraries.common = analysis async binary binary_format \
+libraries.common = analysis async \
+                  binary binary_compression binary_format \
                   core core_plugins_players core_plugins_archives \
                   debug devices_aym devices_beeper devices_dac devices_aym_dumper devices_fm devices_saa devices_z80 \
                   formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \

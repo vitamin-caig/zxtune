@@ -8,7 +8,7 @@ source_files.mingw := $(source_files.windows)
 text_files := text/text
 
 libraries.common = analysis async \
-                   binary binary_format \
+                   binary binary_compression binary_format \
                    debug \
                    formats_archived formats_chiptune formats_image formats_packed \
                    io \

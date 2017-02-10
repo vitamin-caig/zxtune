@@ -21,7 +21,8 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/base64.h>
-#include <binary/compress.h>
+#include <binary/compression/zlib.h>
+#include <binary/compression/zlib_stream.h>
 #include <binary/data_builder.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
@@ -202,7 +203,7 @@ namespace Zdata
       Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), &decoded[0], &decoded[0] + hdr.Packed);
       std::unique_ptr<Dump> unpacked(new Dump(hdr.Original));
       Dbg("Unpack %1% => %2%", hdr.Packed, hdr.Original);
-      Binary::Compression::Zlib::Decompress(decoded, *unpacked);
+      Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded.data(), decoded.size(), unpacked->data(), unpacked->size()));
       Require(hdr.Crc == Crc32(&unpacked->front(), unpacked->size()));
       return Binary::CreateContainer(std::move(unpacked));
     }
@@ -220,15 +221,14 @@ namespace Zdata
 
   Header Compress(const Binary::Data& input, Binary::DataBuilder& output)
   {
-    const std::size_t outSizeIn = output.Size();
-    const std::size_t inSize = input.Size();
-    const std::size_t inPackedSizeMax = Binary::Compression::Zlib::CalculateCompressedSizeUpperBound(inSize);
-    const uint8_t* const in = static_cast<const uint8_t*>(input.Start());
-    uint8_t* const outBegin = static_cast<uint8_t*>(output.Allocate(inPackedSizeMax));
-    uint8_t* const outEnd = Binary::Compression::Zlib::Compress(in, in + inSize, outBegin, outBegin + inPackedSizeMax);
-    const std::size_t packedSize = (outEnd - outBegin);
-    output.Resize(outSizeIn + packedSize);
-    return Header(Crc32(in, inSize), inSize, packedSize);
+    const auto inSize = input.Size();
+    const std::size_t prevOutputSize = output.Size();
+    {
+      Binary::DataInputStream inputStream(input.Start(), inSize);
+      Binary::Compression::Zlib::Compress(inputStream, output);
+    }
+    const auto packedSize = output.Size() - prevOutputSize;
+    return Header(Crc32(static_cast<const uint8_t*>(input.Start()), inSize), inSize, packedSize);
   }
 
   Binary::Container::Ptr Convert(const void* input, std::size_t inputSize)

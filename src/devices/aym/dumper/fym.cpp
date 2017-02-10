@@ -15,8 +15,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/compress.h>
-#include <binary/data_builder.h>
+#include <binary/compression/zlib_stream.h>
 //std includes
 #include <algorithm>
 #include <iterator>
@@ -57,6 +56,23 @@ namespace AYM
 
     void GetResult(Dump& data) const override
     {
+      Dump unpacked;
+      GetUnpackedResult(unpacked);
+      Binary::DataBuilder output;
+      {
+        Binary::DataInputStream input(unpacked.data(), unpacked.size());
+        Binary::Compression::Zlib::Compress(input, output);
+      }
+      output.CaptureResult(data);
+    }
+
+    void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) override
+    {
+      return Delegate->WriteFrame(framesPassed, state, update);
+    }
+  private:
+    void GetUnpackedResult(Dump& result) const
+    {
       Dump rawDump;
       Delegate->GetResult(rawDump);
       Require(0 == rawDump.size() % Registers::TOTAL);
@@ -86,14 +102,7 @@ namespace AYM
           result[frm] = rawDump[inOffset];
         }
       }
-      Dump result;
       builder.CaptureResult(result);
-      Binary::Compression::Zlib::Compress(result, data);
-    }
-
-    void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) override
-    {
-      return Delegate->WriteFrame(framesPassed, state, update);
     }
   private:
     const FYMDumperParameters::Ptr Params;

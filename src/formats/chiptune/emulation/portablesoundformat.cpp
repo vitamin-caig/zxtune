@@ -15,7 +15,7 @@
 #include <crc.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/compressed_data.h>
+#include <binary/compression/zlib_container.h>
 #include <binary/data_builder.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -99,7 +99,7 @@ namespace PortableSoundFormat
         auto programPacked = Stream.ReadData(compressedSize);
         CheckCrc(*programPacked, compressedCrc);
         Dbg("Program section %1% bytes", compressedSize);
-        auto programUnpacked = Binary::Compression::Zlib::CreateDeferredUncompressContainer(std::move(programPacked));
+        auto programUnpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(programPacked));
         target.SetProgramSection(std::move(programUnpacked));
       }
     }

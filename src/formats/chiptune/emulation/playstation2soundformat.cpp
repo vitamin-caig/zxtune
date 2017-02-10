@@ -14,7 +14,7 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/compressed_data.h>
+#include <binary/compression/zlib_container.h>
 #include <binary/container_factories.h>
 #include <binary/input_stream.h>
 #include <binary/format_factories.h>
@@ -199,7 +199,7 @@ namespace Chiptune
           const auto unpackedSize = std::min(blockSize, fileSize - offset);
           Dbg(" @%1%: %2% -> %3%", offset, size, unpackedSize);
           auto packed = Stream.ReadData(size);
-          auto unpacked = Binary::Compression::Zlib::CreateDeferredUncompressContainer(std::move(packed), unpackedSize);
+          auto unpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packed), unpackedSize);
           result.emplace(offset, std::move(unpacked));
           offset += unpackedSize;
         }

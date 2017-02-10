@@ -12,18 +12,18 @@
 #include "container.h"
 #include "zip_supp.h"
 //common includes
+#include <error.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
+#include <binary/compression/zlib.h>
 #include <debug/log.h>
 #include <formats/packed.h>
 //std includes
 #include <algorithm>
 #include <cassert>
 #include <memory>
-//3rd-party includes
-#include <3rdparty/zlib/zlib.h>
 //text includes
 #include <formats/text/packed.h>
 
@@ -138,42 +138,19 @@ namespace Packed
       {
         Dbg("Inflate %1% -> %2%", Size, DestSize);
         std::unique_ptr<Dump> res(new Dump(DestSize));
-        switch (const int err = Uncompress(*res))
+        try
         {
-        case Z_OK:
-          return res;
-        case Z_MEM_ERROR:
-          Dbg("No memory to deflate");
-          break;
-        case Z_BUF_ERROR:
-          Dbg("No memory in target buffer to deflate");
-          break;
-        case Z_DATA_ERROR:
-          Dbg("Data is corrupted");
-          break;
-        default:
-          Dbg("Unknown error (%1%)", err);
+          const auto resultSize = Binary::Compression::Zlib::DecompressRaw(Start, Size, res->data(), DestSize);
+          if (resultSize == DestSize)
+          {
+            return res;
+          }
+        }
+        catch (const Error& e)
+        {
+          Dbg("Failed to inflate: %1%", e.ToString());
         }
         return std::unique_ptr<Dump>();
-      }
-    private:
-      int Uncompress(Dump& dst) const
-      {
-        z_stream stream = z_stream();
-        int res = ::inflateInit2(&stream, -15);
-        if (Z_OK != res)
-        {
-          return res;
-        }
-        stream.next_in = const_cast<uint8_t*>(Start);
-        stream.avail_in = static_cast<uInt>(Size);
-        stream.next_out = &dst[0];
-        stream.avail_out = static_cast<uInt>(DestSize);
-        res = ::inflate(&stream, Z_FINISH);
-        ::inflateEnd(&stream);
-        return res == Z_STREAM_END
-          ? Z_OK
-          : res;
       }
     private:
       const uint8_t* const Start;
@@ -296,46 +273,6 @@ namespace Packed
         seekPos = found + sizeof(signature);
       }
       return nullptr;
-    }
-
-    bool LocalFileHeader::IsValid() const
-    {
-      return fromLE(Signature) == SIGNATURE;
-    }
-
-    std::size_t LocalFileHeader::GetSize() const
-    {
-      return sizeof(*this) - 1 + fromLE(NameSize) + fromLE(ExtraSize);
-    }
-
-    bool LocalFileHeader::IsSupported() const
-    {
-      const uint_t flags = fromLE(Flags);
-      if (0 != (flags & FILE_CRYPTED))
-      {
-        return false;
-      }
-      return true;
-    }
-
-    std::size_t ExtraDataRecord::GetSize() const
-    {
-      return sizeof(*this) - 1 + fromLE(DataSize);
-    }
-
-    std::size_t CentralDirectoryFileHeader::GetSize() const
-    {
-      return sizeof(*this) - 1 + fromLE(NameSize) + fromLE(ExtraSize) + fromLE(CommentSize);
-    }
-
-    std::size_t CentralDirectoryEnd::GetSize() const
-    {
-      return sizeof(*this) + fromLE(CommentSize);
-    }
-
-    std::size_t DigitalSignature::GetSize() const
-    {
-      return sizeof(*this) - 1 + fromLE(DataSize);
     }
 
     std::unique_ptr<const CompressedFile> CompressedFile::Create(const LocalFileHeader& hdr, std::size_t availSize)

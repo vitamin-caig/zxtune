@@ -23,13 +23,12 @@
 namespace Binary
 {
   //! @brief Sequental stream adapter
-  class InputStream
+  class DataInputStream
   {
   public:
-    explicit InputStream(const Container& rawData)
-      : Data(rawData)
-      , Start(static_cast<const uint8_t*>(rawData.Start()))
-      , Finish(Start + Data.Size())
+    DataInputStream(const void* data, std::size_t size)
+      : Start(static_cast<const uint8_t*>(data))
+      , Finish(Start + size)
       , Cursor(Start)
     {
     }
@@ -83,24 +82,6 @@ namespace Binary
       Cursor += size;
       return res;
     }
-    
-    Container::Ptr ReadData(std::size_t size)
-    {
-      Require(Cursor + size <= Finish);
-      const std::size_t offset = GetPosition();
-      Cursor += size;
-      return Data.GetSubcontainer(offset, size);
-    }
-
-    //! @brief Read rest data in source container
-    Container::Ptr ReadRestData()
-    {
-      Require(Cursor < Finish);
-      const std::size_t offset = GetPosition();
-      const std::size_t size = GetRestSize();
-      Cursor = Finish;
-      return Data.GetSubcontainer(offset, size);
-    }
 
     //! @brief Read as much data as possible
     std::size_t Read(void* buf, std::size_t len)
@@ -122,12 +103,6 @@ namespace Binary
       Cursor = Start + pos;
     }
 
-    //! @brief Return data that is already read
-    Container::Ptr GetReadData() const
-    {
-      return Data.GetSubcontainer(0, GetPosition());
-    }
-
     //! @brief Return absolute read position
     std::size_t GetPosition() const
     {
@@ -139,10 +114,46 @@ namespace Binary
     {
       return Finish - Cursor;
     }
-  private:
-    const Container& Data;
+  protected:
     const uint8_t* const Start;
     const uint8_t* const Finish;
     const uint8_t* Cursor;
+  };
+  
+  //TODO: rename
+  class InputStream : public DataInputStream
+  {
+  public:
+    explicit InputStream(const Container& rawData)
+      : DataInputStream(rawData.Start(), rawData.Size())
+      , Data(rawData)
+    {
+    }
+    
+    Container::Ptr ReadData(std::size_t size)
+    {
+      Require(Cursor + size <= Finish);
+      const std::size_t offset = GetPosition();
+      Cursor += size;
+      return Data.GetSubcontainer(offset, size);
+    }
+
+    //! @brief Read rest data in source container
+    Container::Ptr ReadRestData()
+    {
+      Require(Cursor < Finish);
+      const std::size_t offset = GetPosition();
+      const std::size_t size = GetRestSize();
+      Cursor = Finish;
+      return Data.GetSubcontainer(offset, size);
+    }
+
+    //! @brief Return data that is already read
+    Container::Ptr GetReadData() const
+    {
+      return Data.GetSubcontainer(0, GetPosition());
+    }
+  private:
+    const Container& Data;
   };
 }

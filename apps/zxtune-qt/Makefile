@@ -23,7 +23,8 @@ moc_files += supp/playback_supp singlemode
 text_files := text/text
 
 #base
-libraries.common = analysis async binary binary_format \
+libraries.common = analysis async \
+                  binary binary_compression binary_format \
                   core core_plugins_players core_plugins_archives \
                   devices_aym devices_aym_dumper devices_beeper devices_dac devices_fm devices_saa devices_z80 \
                   formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \

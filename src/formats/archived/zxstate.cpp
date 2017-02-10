@@ -12,11 +12,13 @@
 #include "zxstate_supp.h"
 //common includes
 #include <contract.h>
+#include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
+#include <binary/compression/zlib.h>
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <strings/format.h>
@@ -28,8 +30,6 @@
 #include <sstream>
 //boost includes
 #include <boost/range/size.hpp>
-//3rd-party includes
-#include <3rdparty/zlib/zlib.h>
 //text include
 #include <formats/text/archived.h>
 
@@ -434,45 +434,20 @@ namespace Archived
       Require(blk.Content && blk.IsCompressed);
       const std::size_t targetSize = blk.UncompressedSize == UNKNOWN ? MAX_DECOMPRESS_SIZE : blk.UncompressedSize;
       std::unique_ptr<Dump> result(new Dump(targetSize));
-
-      z_stream stream = z_stream();
-      int res = ::inflateInit(&stream);
-      if (Z_OK != res)
+      try
       {
-        return Binary::Container::Ptr();
-      }
-      stream.next_in = const_cast<uint8_t*>(static_cast<const uint8_t*>(blk.Content));
-      stream.avail_in = static_cast<uInt>(blk.Size);
-      stream.next_out = &result->front();
-      stream.avail_out = static_cast<uInt>(targetSize);
-      res = ::inflate(&stream, Z_FINISH);
-      ::inflateEnd(&stream);
-      switch (res)
-      {
-      case Z_STREAM_END:
-      case Z_OK:
+        const auto doneSize = Binary::Compression::Zlib::Decompress(blk.Content, blk.Size, result->data(), targetSize);
+        Dbg("Decompressed %1% -> %2% (required %3%)", blk.Size, doneSize, blk.UncompressedSize);
+        if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == doneSize)
         {
-          const std::size_t doneSize = stream.next_out - &result->front();
-          Dbg("Decompressed %1% -> %2% (required %3%)", blk.Size, doneSize, blk.UncompressedSize);
-          if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == doneSize)
-          {
-            result->resize(doneSize);
-            return Binary::CreateContainer(std::move(result));
-          }
-          Dbg("Uncompressed size mismatch");
+          result->resize(doneSize);
+          return Binary::CreateContainer(std::move(result));
         }
-        break;
-      case Z_MEM_ERROR:
-        Dbg("No memory to deflate");
-        break;
-      case Z_BUF_ERROR:
-        Dbg("No memory in target buffer to deflate");
-        break;
-      case Z_DATA_ERROR:
-        Dbg("Data is corrupted");
-        break;
-      default:
-        Dbg("Unknown error (%1%)", res);
+        Dbg("Uncompressed size mismatch");
+      }
+      catch (const Error& e)
+      {
+        Dbg("Failed to decompress: %1%", e.ToString());
       }
       return Binary::Container::Ptr();
     }

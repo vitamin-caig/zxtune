@@ -12,9 +12,10 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/compress.h>
-#include <binary/compressed_data.h>
 #include <binary/container_factories.h>
+#include <binary/compression/zlib.h>
+#include <binary/compression/zlib_container.h>
+#include <binary/compression/zlib_stream.h>
 
 namespace Binary
 {
@@ -22,10 +23,10 @@ namespace Binary
   {
     namespace Zlib
     {
-      class DeferredUncompressContainer : public Container
+      class DeferredDecompressContainer : public Container
       {
       public:
-        DeferredUncompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint)
+        DeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint)
           : Packed(std::move(packed))
           , UnpackedSize(unpackedSizeHint)
         {
@@ -60,10 +61,14 @@ namespace Binary
         {
           if (!Unpacked)
           {
-            Unpacked.reset(new Dump(Binary::Compression::Zlib::Uncompress(Packed->Start(), Packed->Size())));
-            Packed.reset();
-            Require(!UnpackedSize || UnpackedSize == Unpacked->size());
+            Binary::DataInputStream in(Packed->Start(), Packed->Size());
+            Binary::DataBuilder out(UnpackedSize);
+            Binary::Compression::Zlib::Decompress(in, out, UnpackedSize);
+            Require(!UnpackedSize || UnpackedSize == out.Size());
+            Unpacked.reset(new Dump());
+            out.CaptureResult(*Unpacked);//TODO: Unpacked = out.CaptureResult();
             UnpackedSize = Unpacked->size();
+            Packed.reset();
           }
         }
       private:
@@ -72,9 +77,9 @@ namespace Binary
         mutable std::size_t UnpackedSize;
       };
       
-      Container::Ptr CreateDeferredUncompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint)
+      Container::Ptr CreateDeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint)
       {
-        return MakePtr<DeferredUncompressContainer>(std::move(packed), unpackedSizeHint);
+        return MakePtr<DeferredDecompressContainer>(std::move(packed), unpackedSizeHint);
       }
     }
   }

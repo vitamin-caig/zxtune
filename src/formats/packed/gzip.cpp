@@ -12,17 +12,16 @@
 #include "container.h"
 //common includes
 #include <byteorder.h>
+#include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
+#include <binary/compression/zlib_stream.h>
 #include <formats/packed.h>
-#include <math/numeric.h>
 //std includes
 #include <array>
-//3rd-party includes
-#include <3rdparty/zlib/zlib.h>
 //text includes
 #include <formats/text/packed.h>
 
@@ -109,39 +108,6 @@ namespace Packed
       "?"     //extra flags
       "?"     //OS
     );
-
-    void Decompress(Binary::InputStream& input, Binary::DataBuilder& output)
-    {
-      z_stream stream = z_stream();
-      Require(Z_OK == ::inflateInit2(&stream, -15));
-      const std::shared_ptr<void> cleanup(&stream, ::inflateEnd);
-      for (;;)
-      {
-        const std::size_t restIn = input.GetRestSize();
-        if (stream.avail_in == 0)
-        {
-          stream.next_in = const_cast<Bytef*>(input.ReadRawData(0));
-          stream.avail_in = static_cast<uInt>(restIn);
-        }
-        if (stream.avail_out == 0)
-        {
-          const std::size_t bufSize = Math::Align<std::size_t>(stream.total_in ? uint64_t(stream.avail_in) * stream.total_out / stream.total_in : 1, 16384);
-          stream.next_out = static_cast<Bytef*>(output.Allocate(bufSize));
-          stream.avail_out = static_cast<uInt>(bufSize);
-        }
-        const int res = ::inflate(&stream, Z_SYNC_FLUSH);
-        if (Z_STREAM_END == res)
-        {
-          input.Skip(restIn - stream.avail_in);
-          output.Resize(stream.total_out);
-          return;
-        }
-        else if (Z_OK != res)
-        { 
-          throw std::runtime_error(stream.msg ? stream.msg : "unknown zlib error");
-        }
-      }
-    }
   }//namespace Gzip
 
   class GzipDecoder : public Decoder
@@ -191,17 +157,20 @@ namespace Packed
           input.ReadField<uint16_t>();
         }
         Binary::DataBuilder output;
-        Gzip::Decompress(input, output);
+        Binary::Compression::Zlib::DecompressRaw(input, output);
         const Binary::Container::Ptr result = output.CaptureResult();
         const Gzip::Footer footer = input.ReadField<Gzip::Footer>();
         Require(result->Size() == fromLE(footer.OriginalSize));
         //TODO: check CRC
         return CreateContainer(result, input.GetPosition());
       }
+      catch (const Error&)
+      {
+      }
       catch (const std::exception&)
       {
-        return Formats::Packed::Container::Ptr();
       }
+      return Formats::Packed::Container::Ptr();
     }
   private:
     const Binary::Format::Ptr Format;
