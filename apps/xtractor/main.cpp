@@ -532,7 +532,7 @@ namespace
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
-      auto archNode = Analysis::CreateSubnode(Root, std::move(data), name, offset);
+      auto archNode = Analysis::CreateSubnode(Root, data, name, offset);
       const ScanFiles walker(ToScan, std::move(archNode));
       data->ExploreFiles(walker);
     }
