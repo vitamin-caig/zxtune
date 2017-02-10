@@ -77,6 +77,7 @@ extern const Char INFO_CAP_DIRS[];
 extern const Char INFO_CAP_FILE[];
 extern const Char INFO_CAP_HARDWARE[];
 extern const Char INFO_CAP_HWVOLUME[];
+extern const Char INFO_CAP_MULTIFILE[];
 extern const Char INFO_CAP_ONCEAPPLIED[];
 extern const Char INFO_CAP_PLAIN[];
 extern const Char INFO_CAP_STUB[];

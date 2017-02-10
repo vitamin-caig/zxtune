@@ -277,6 +277,9 @@ extern const Char INFO_CAP_HARDWARE[] = {
 extern const Char INFO_CAP_HWVOLUME[] = {
   'f','e','a','t','_','h','w','v','o','l','u','m','e',0
 };
+extern const Char INFO_CAP_MULTIFILE[] = {
+  'c','a','p','_','m','u','l','t','i','f','i','l','e',0
+};
 extern const Char INFO_CAP_ONCEAPPLIED[] = {
   'c','a','p','_','o','n','c','e','a','p','p','l','i','e','d',0
 };
