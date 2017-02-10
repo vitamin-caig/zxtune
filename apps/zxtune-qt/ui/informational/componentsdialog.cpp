@@ -135,6 +135,11 @@ namespace
         QTreeWidgetItem* const conversionItem = CreateTreeWidgetItem(pluginItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Conversion targets"));
         FillConversionCapabilities(convCaps, *conversionItem);
       }
+      //traits
+      if (const uint_t traits = caps & Traits::MASK)
+      {
+        FillModuleTraits(traits, *pluginItem);
+      }
     }
     
     void FillModuleType(uint_t type, QTreeWidgetItem& root)
@@ -156,6 +161,12 @@ namespace
       AddCapability(caps, TXT, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Vortex .txt format"));
       AddCapability(caps, AYDUMP, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Raw aydump format"));
       AddCapability(caps, FYM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Compressed .fym format"));
+    }
+    
+    void FillModuleTraits(uint_t traits, QTreeWidgetItem& root)
+    {
+      using namespace ZXTune::Capabilities::Module::Traits;
+      AddCapability(traits, MULTIFILE, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Multiple files layout"));
     }
 
     void AddContainerPlugin(const ZXTune::Plugin& plugin)

@@ -14,10 +14,12 @@
 #include "ui/utils.h"
 #include "playlist/parameters.h"
 //common includes
+#include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 #include <progress_callback.h>
 //library includes
+#include <core/additional_files_resolve.h>
 #include <core/module_detect.h>
 #include <core/module_open.h>
 #include <core/plugin.h>
@@ -297,7 +299,7 @@ namespace
     mutable ObjectsCache<Binary::Container::Ptr> Cache;
   };
 
-  class DataSource
+  class DataSource : public Module::AdditionalFilesSource
   {
   public:
     typedef std::shared_ptr<const DataSource> Ptr;
@@ -305,6 +307,7 @@ namespace
     DataSource(CachedDataProvider::Ptr provider, IO::Identifier::Ptr id)
       : Provider(std::move(provider))
       , DataId(std::move(id))
+      , Dir(ExtractDir(*DataId))
     {
     }
 
@@ -322,9 +325,24 @@ namespace
     {
       return DataId;
     }
+    
+    //AdditionalFilesSource
+    Binary::Container::Ptr Get(const String& name) const override
+    {
+      return Provider->GetData(Dir + name);
+    }
+  private:
+    static String ExtractDir(const IO::Identifier& id)
+    {
+      const auto& full = id.Full();
+      const auto& filename = id.Filename();
+      Require(!filename.empty());
+      return full.substr(0, full.size() - filename.size());
+    }
   private:
     const CachedDataProvider::Ptr Provider;
     const IO::Identifier::Ptr DataId;
+    const String Dir;
   };
 
   class RecodeStringsAdapter : public Parameters::Accessor
@@ -411,7 +429,15 @@ namespace
     Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
       const Binary::Container::Ptr data = Source->GetData();
-      const Module::Holder::Ptr module = Module::Open(*CoreParams, data, ToLocal(ModuleId->Subpath()));
+      const auto& subpath = ToLocal(ModuleId->Subpath());
+      const Module::Holder::Ptr module = Module::Open(*CoreParams, data, subpath);
+      if (subpath.empty())
+      {
+        if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
+        {
+          Module::ResolveAdditionalFiles(*Source, *files);
+        }
+      }
       const Parameters::Accessor::Ptr moduleProps = MakePtr<RecodeStringsAdapter>(module->GetModuleProperties());
       const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
@@ -689,6 +715,13 @@ namespace
     void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const override
     {
       const String subPath = location->GetPath()->AsString();
+      if (subPath.empty())
+      {
+        if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
+        {
+          Module::ResolveAdditionalFiles(*Source, *files);
+        }
+      }
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr moduleProps = MakePtr<RecodeStringsAdapter>(holder->GetModuleProperties());
