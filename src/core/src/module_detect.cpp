@@ -10,9 +10,12 @@
 
 //local includes
 #include "callback.h"
+#include "core/additional_files_resolve.h"
+#include "core/plugin_attrs.h"
 #include "core/plugins/archive_plugins_enumerator.h"
 #include "core/plugins/player_plugins_enumerator.h"
 //common includes
+#include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
 //library includes
@@ -22,6 +25,7 @@
 #include <parameters/merged_accessor.h>
 #include <parameters/container.h>
 //text includes
+#include <src/core/text/core.h>
 #include <src/core/text/plugins.h>
 
 #define FILE_TAG 006E56AA
@@ -79,6 +83,72 @@ namespace Module
     }
     return 0;
   }
+  
+  class ResolveAdditionalFilesAdapter : public DetectCallback
+  {
+  public:
+    ResolveAdditionalFilesAdapter(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& delegate)
+      : Params(params)
+      , Data(std::move(data))
+      , Delegate(delegate)
+    {
+    }
+
+    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const override
+    {
+      if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
+      {
+        const auto path = location->GetPath();
+        if (const auto dir = path->GetParent())
+        {
+          Dbg("Archived multifile %1% at '%2%'", decoder->Id(), path->AsString());
+          try
+          {
+            const ArchivedFilesSource source(dir, Params, Data);
+            ResolveAdditionalFiles(source, *files);
+          }
+          catch (const Error& e)
+          {
+            Dbg(e.ToString().c_str());
+            return;
+          }
+        }
+      }
+      Delegate.ProcessModule(std::move(location), std::move(decoder), std::move(holder));
+    }
+
+    Log::ProgressCallback* GetProgress() const override
+    {
+      return Delegate.GetProgress();
+    }
+  private:
+    class ArchivedFilesSource : public AdditionalFilesSource
+    {
+    public:
+      ArchivedFilesSource(Analysis::Path::Ptr dir, const Parameters::Accessor& params, Binary::Container::Ptr data)
+        : Dir(std::move(dir))
+        , Params(params)
+        , Data(std::move(data))
+      {
+      }
+      
+      Binary::Container::Ptr Get(const String& name) const override
+      {
+        const auto subpath = Dir->Append(name)->AsString();
+        Dbg("Resolve '%1%' as '%2%'", name, subpath);
+        const auto location = ZXTune::OpenLocation(Params, Data, subpath);
+        return location->GetData();
+      }
+    private:
+      const Analysis::Path::Ptr Dir;
+      const Parameters::Accessor& Params;
+      const Binary::Container::Ptr Data;
+    };
+  private:
+    const Parameters::Accessor& Params;
+    const Binary::Container::Ptr Data;
+    const DetectCallback& Delegate;
+  };
 
   //TODO: remove
   class MixedPropertiesHolder : public Holder
@@ -156,8 +226,9 @@ namespace Module
 
   void Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath, const DetectCallback& callback)
   {
+    const ResolveAdditionalFilesAdapter adapter(params, data, callback);
     const auto location = ZXTune::OpenLocation(params, data, subpath);
-    if (!OpenInternal(params, location, callback))
+    if (!OpenInternal(params, location, adapter))
     {
       throw Error(THIS_LINE, translate("Failed to find module at specified location."));
     }
@@ -197,7 +268,8 @@ namespace Module
 
   std::size_t Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& callback)
   {
-    return Detect(params, ZXTune::CreateLocation(data), callback);
+    const ResolveAdditionalFilesAdapter adapter(params, data, callback);
+    return Detect(params, ZXTune::CreateLocation(data), adapter);
   }
   
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
