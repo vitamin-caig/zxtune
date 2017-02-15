@@ -10,10 +10,10 @@
 
 #pragma once
 
-//std includes
-#include <string>
+//common included
+#include <types.h>
 
 namespace Strings
 {
-  std::string ToAutoUtf8(const std::string& local);
+  std::string ToAutoUtf8(StringView str);
 }

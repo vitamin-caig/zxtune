@@ -57,16 +57,16 @@ namespace
     TestTemplate(source, templ, reference);
   }
   
-  void TestTranscode(const String& str, const String& reference)
+  void TestTranscode(const char* encoding, const String& str, const String& reference)
   {
     const String& trans = Strings::ToAutoUtf8(str);
     if (trans == reference)
     {
-      std::cout << "Passed test '" << str << "' => '" << reference << '\'' << std::endl;
+      std::cout << "Passed " << encoding << " test '" << str << "' => '" << reference << '\'' << std::endl;
     }
     else
     {
-      std::cout << "Failed test '" << str << "' => '" << reference << "' (result is '" << trans << "')" << std::endl;
+      std::cout << "Failed " << encoding << " test '" << str << "' => '" << reference << "' (result is '" << trans << "')" << std::endl;
     }
   }
 }
@@ -98,15 +98,19 @@ int main()
     }
     std::cout << "---- Test for transcode ----" << std::endl;
     {
-      TestTranscode("S\xf8ren", "S\xc3\xb8ren");
-      TestTranscode("\xd8j", "\xc3\x98j");
-      TestTranscode("H\xfclsbeck", "H\xc3\xbclsbeck");
-      TestTranscode("Mih\xe1ly", "Mih\xc3\xa1ly");
-      TestTranscode("\xd6\xf6rni", "\xc3\x96\xc3\xb6rni");
-      TestTranscode("720\xb0", "720\xc2\xb0");
-      TestTranscode("M\xf6ller", "M\xc2\xb6ller");
-      TestTranscode("Norrg\xe5rd", "Norrg\xc3\xa5rd");
-      TestTranscode("Skarzy\xf1zki", "Skarzy\xc3\xb1zki");
+      TestTranscode("CP1252", "S\xf8ren", "S\xc3\xb8ren");
+      TestTranscode("CP1252", "\xd8j", "\xc3\x98j");
+      TestTranscode("CP1252", "H\xfclsbeck", "H\xc3\xbclsbeck");
+      TestTranscode("CP1252", "Mih\xe1ly", "Mih\xc3\xa1ly");
+      TestTranscode("CP1252", "\xd6\xf6rni", "\xc3\x96\xc3\xb6rni");
+      TestTranscode("CPXXXX", "720\xb0", "720\xc2\xb0");
+      TestTranscode("CP1252", "M\xf6ller", "M\xc3\xb6ller");
+      TestTranscode("CP1252", "Norrg\xe5rd", "Norrg\xc3\xa5rd");
+      TestTranscode("CP1252", "Skarzy\xf1zki", "Skarzy\xc3\xb1zki");
+      TestTranscode("CP866", "\xac\xe3\xa7\xeb\xaa\xa0", "\xd0\xbc\xd1\x83\xd0\xb7\xd1\x8b\xd0\xba\xd0\xb0");
+      TestTranscode("UTF-8", "\xe3\x81\xaf\xe3\x81\x98", "\xe3\x81\xaf\xe3\x81\x98");
+      TestTranscode("CP1251", "\xe4\xe5\xe4\xf3\xf8\xea\xe0", "\xd0\xb4\xd0\xb5\xd0\xb4\xd1\x83\xd1\x88\xd0\xba\xd0\xb0");
+      TestTranscode("SJIS", "\x83\x50\x83\x43\x83\x93\x82\xcc\x83\x65\x81\x5b\x83\x7d", "\xe3\x82\xb1\xe3\x82\xa4\xe3\x83\xb3\xe3\x81\xae\xe3\x83\x86\xe3\x83\xbc\xe3\x83\x9e");
     }
   }
   catch (int code)
