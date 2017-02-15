@@ -11,6 +11,7 @@
 #include <strings/encoding.h>
 #include <strings/fields.h>
 #include <strings/fields_filter.h>
+#include <strings/optimize.h>
 #include <strings/map.h>
 #include <strings/template.h>
 
@@ -69,6 +70,19 @@ namespace
       std::cout << "Failed " << encoding << " test '" << str << "' => '" << reference << "' (result is '" << trans << "')" << std::endl;
     }
   }
+
+  void TestOptimize(const String& str, const String& reference)
+  {
+    const String& opt = Strings::OptimizeAscii(str);
+    if (opt == reference)
+    {
+      std::cout << "Passed test '" << str << "' => '" << reference << '\'' << std::endl;
+    }
+    else
+    {
+      std::cout << "Failed test '" << str << "' => '" << reference << "' (result is '" << opt << "')" << std::endl;
+    }
+  }
 }
 
 int main()
@@ -111,6 +125,19 @@ int main()
       TestTranscode("UTF-8", "\xe3\x81\xaf\xe3\x81\x98", "\xe3\x81\xaf\xe3\x81\x98");
       TestTranscode("CP1251", "\xe4\xe5\xe4\xf3\xf8\xea\xe0", "\xd0\xb4\xd0\xb5\xd0\xb4\xd1\x83\xd1\x88\xd0\xba\xd0\xb0");
       TestTranscode("SJIS", "\x83\x50\x83\x43\x83\x93\x82\xcc\x83\x65\x81\x5b\x83\x7d", "\xe3\x82\xb1\xe3\x82\xa4\xe3\x83\xb3\xe3\x81\xae\xe3\x83\x86\xe3\x83\xbc\xe3\x83\x9e");
+    }
+    std::cout << "---- Test for optimize ----" << std::endl;
+    {
+      TestOptimize("One", "One");
+      TestOptimize("One Two", "One Two");
+      TestOptimize("\x1One", "One");
+      TestOptimize("\x1\x82One", "One");
+      TestOptimize("One\x1", "One");
+      TestOptimize("One\x1\x82", "One");
+      TestOptimize("\x1One\x82", "One");
+      TestOptimize("\x1\x82One\x82\x1", "One");
+      TestOptimize("\x1One\x82Two\x3", "One?Two");
+      TestOptimize("\x1One\x82\x3Two\x84", "One??Two");
     }
   }
   catch (int code)

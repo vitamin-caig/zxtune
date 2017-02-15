@@ -75,7 +75,7 @@ namespace Module
   
   void PropertiesHelper::SetStrings(const Strings::Array& strings)
   {
-    String joined = boost::algorithm::join(boost::adaptors::transform(strings, Strings::Optimize), "\n");
+    String joined = boost::algorithm::join(boost::adaptors::transform(strings, static_cast<String(*)(StringView)>(&Strings::Optimize)), "\n");
     boost::algorithm::trim_all_if(joined, boost::algorithm::is_any_of("\n"));
     if (!joined.empty())
     {
