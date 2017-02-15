@@ -12,8 +12,10 @@
 
 //common includes
 #include <char_type.h>
+#include <string_view.h>
 //std includes
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -38,6 +40,8 @@ typedef signed int int_t;
 
 //! @brief %String type
 typedef std::basic_string<Char> String;
+
+typedef basic_string_view<Char> StringView;
 
 //! @brief Helper for creating String from the array of chars
 template<std::size_t D>
