@@ -16,6 +16,7 @@
 #include <formats/archived.h>
 #include <formats/packed/decoders.h>
 #include <formats/packed/zip_supp.h>
+#include <strings/encoding.h>
 //std includes
 #include <map>
 #include <numeric>
@@ -159,12 +160,6 @@ namespace Archived
       std::size_t Offset;
     };
 
-    String DecodeUtf8String(const std::string& str)
-    {
-      //TODO:
-      return String(str.begin(), str.end());
-    }
-
     //TODO: make BlocksIterator
     class FileIterator
     {
@@ -197,11 +192,11 @@ namespace Archived
         assert(!IsEof());
         if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
         {
-          const std::string rawName = std::string(header->Name, header->Name + fromLE(header->NameSize));
+          const StringView rawName(header->Name, fromLE(header->NameSize));
           const bool isUtf8 = 0 != (fromLE(header->Flags) & Packed::Zip::FILE_UTF8);
           return isUtf8
-            ? DecodeUtf8String(rawName)
-            : String(rawName.begin(), rawName.end());
+            ? rawName.to_string()
+            : Strings::ToAutoUtf8(rawName);
         }
         assert(!"Failed to get name");
         return String();

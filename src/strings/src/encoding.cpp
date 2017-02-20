@@ -906,4 +906,25 @@ namespace Strings
       return Decode(str);
     }
   }
+
+  std::string Utf16ToUtf8(basic_string_view<uint16_t> str)
+  {
+    Strings::Utf8Builder builder;
+    builder.Reserve(str.size());
+    for (auto it = str.begin(); it != str.end(); ++it)
+    {
+      uint32_t sym = *it;
+      if (sym >= 0xd800 && sym <= 0xdfff)
+      {
+        //surrogate pairs
+        sym = (sym - 0xd800) << 10;
+        if (++it != str.end() && *it >= 0xdc00 && *it <= 0xdfff)
+        {
+          sym |= *it - 0xdc00;
+        }
+      }
+      builder.Add(sym);
+    }
+    return builder.GetResult();
+  }
 }

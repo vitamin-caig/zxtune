@@ -72,7 +72,7 @@ namespace Formats
         //+1c
         uint16_t ExtraSize;
         //+1e
-        uint8_t Name[1];
+        char Name[1];
 
         bool IsValid() const
         {
@@ -81,7 +81,7 @@ namespace Formats
 
         std::size_t GetSize() const
         {
-          return sizeof(*this) - 1 + fromLE(NameSize) + fromLE(ExtraSize);
+          return offsetof(LocalFileHeader, Name) + fromLE(NameSize) + fromLE(ExtraSize);
         }
 
         bool IsSupported() const
@@ -153,11 +153,11 @@ namespace Formats
         //+2a
         uint32_t LocalHeaderRelOffset;
         //+2e
-        uint8_t Name[1];
+        char Name[1];
 
         std::size_t GetSize() const
         {
-          return sizeof(*this) - 1 + fromLE(NameSize) + fromLE(ExtraSize) + fromLE(CommentSize);
+          return offsetof(CentralDirectoryFileHeader, Name) + fromLE(NameSize) + fromLE(ExtraSize) + fromLE(CommentSize);
         }
       } PACK_POST;
 

@@ -18,6 +18,7 @@
 #include <formats/archived.h>
 #include <formats/packed/lha_supp.h>
 #include <formats/packed/pack_utils.h>
+#include <strings/encoding.h>
 //3rdparty includes
 #include <3rdparty/lhasa/lib/public/lhasa.h>
 //std includes
@@ -92,10 +93,13 @@ namespace Archived
 
     String GetFullPath(const LHAFileHeader& header)
     {
-      const String filename(FromStdString(header.filename));
-      return header.path
-        ? FromStdString(header.path) + filename
-        : filename;
+      std::string fullPath;
+      if (header.path)
+      {
+        fullPath = header.path;
+      }
+      fullPath += header.filename;
+      return Strings::ToAutoUtf8(fullPath);
     }
 
     class File : public Archived::File
@@ -105,7 +109,7 @@ namespace Archived
         : Data(archive.GetSubcontainer(position, header.compressed_length))
         , Name(GetFullPath(header))
         , Size(header.length)
-        , Method(FromStdString(header.compress_method))
+        , Method(header.compress_method)
       {
         Dbg("Created file '%1%', size=%2%, packed size=%3%, compression=%4%", Name, Size, Data->Size(), Method);
       }

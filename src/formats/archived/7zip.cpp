@@ -17,6 +17,7 @@
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <formats/archived.h>
+#include <strings/encoding.h>
 //3rdparty includes
 #include <3rdparty/lzma/C/7z.h>
 #include <3rdparty/lzma/C/7zCrc.h>
@@ -161,7 +162,7 @@ namespace Archived
     private:
       SeekStream Stream;
     };
-
+    
     class Archive
     {
     public:
@@ -192,8 +193,7 @@ namespace Archived
         std::vector<UInt16> buf(nameLen);
         UInt16* const data = &buf[0];
         SzArEx_GetFileNameUtf16(&Db, idx, data);
-        //TODO:
-        return String(data, data + nameLen - 1);
+        return Strings::Utf16ToUtf8(basic_string_view<uint16_t>(data, nameLen - 1));
       }
 
       bool IsDir(uint_t idx) const

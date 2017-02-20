@@ -323,11 +323,10 @@ namespace Archived
         return Exports.size();
       }
 
-      String GetEntryName(uint_t idx) const
+      std::string GetEntryName(uint_t idx) const
       {
-        const ExportEntry& exp = Exports.at(idx);
-        const std::string& name = GetName(exp.ObjectName);
-        return FromStdString(name);
+        const auto& exp = Exports.at(idx);
+        return GetName(exp.ObjectName);
       }
 
       Binary::Container::Ptr GetEntryData(uint_t idx) const
