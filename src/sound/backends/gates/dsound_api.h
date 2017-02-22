@@ -27,7 +27,7 @@ namespace Sound
       virtual ~Api() = default;
 
       
-      virtual HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param) = 0;
+      virtual HRESULT DirectSoundEnumerateW(LPDSENUMCALLBACKW cb, LPVOID param) = 0;
       virtual HRESULT DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter) = 0;
     };
 

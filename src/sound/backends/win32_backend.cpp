@@ -26,6 +26,7 @@
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+#include <strings/encoding.h>
 //std includes
 #include <algorithm>
 #include <cstring>
@@ -528,13 +529,15 @@ namespace Win32
 
     virtual String Name() const
     {
-      WAVEOUTCAPSA caps;
-      if (MMSYSERR_NOERROR != WinApi->waveOutGetDevCapsA(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
+      WAVEOUTCAPSW caps;
+      if (MMSYSERR_NOERROR != WinApi->waveOutGetDevCapsW(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
       {
         Dbg("Failed to get device name");
         return String();
       }
-      return FromStdString(caps.szPname);
+      const wchar_t* const name = caps.szPname;
+      static_assert(sizeof(*name) == sizeof(uint16_t), "Wide char size mismatch");
+      return Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(name));
     }
   private:
     const Api::Ptr WinApi;

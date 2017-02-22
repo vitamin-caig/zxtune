@@ -37,10 +37,10 @@ namespace Sound
       }
 
       
-      HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param) override
+      HRESULT DirectSoundEnumerateW(LPDSENUMCALLBACKW cb, LPVOID param) override
       {
-        static const char NAME[] = "DirectSoundEnumerateA";
-        typedef HRESULT (WINAPI *FunctionType)(LPDSENUMCALLBACKA, LPVOID);
+        static const char NAME[] = "DirectSoundEnumerateW";
+        typedef HRESULT (WINAPI *FunctionType)(LPDSENUMCALLBACKW, LPVOID);
         const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
         return func(cb, param);
       }

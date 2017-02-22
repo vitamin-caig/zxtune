@@ -24,6 +24,7 @@
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
+#include <strings/encoding.h>
 //std includes
 #include <thread>
 //boost includes
@@ -555,7 +556,7 @@ namespace DirectSound
     explicit DevicesIterator(Api::Ptr api)
       : Current(Devices.begin())
     {
-      if (DS_OK != api->DirectSoundEnumerateA(&EnumerateDevicesCallback, &Devices))
+      if (DS_OK != api->DirectSoundEnumerateW(&EnumerateDevicesCallback, &Devices))
       {
         Dbg("Failed to enumerate devices. Skip backend.");
         Current = Devices.end();
@@ -587,11 +588,13 @@ namespace DirectSound
       }
     }
   private:
-    static BOOL CALLBACK EnumerateDevicesCallback(LPGUID guid, LPCSTR descr, LPCSTR module, LPVOID param)
+    static BOOL CALLBACK EnumerateDevicesCallback(LPGUID guid, LPCWSTR descr, LPCWSTR module, LPVOID param)
     {
-      const String& id = Guid2String(guid);
-      const String& name = FromStdString(descr);
-      Dbg("Detected device '%1%' (uuid=%2% module='%3%')", name, id, module);
+      static_assert(sizeof(*descr) == sizeof(uint16_t), "Char size mismatch");
+      const auto& id = Guid2String(guid);
+      const auto& name = Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(descr));
+      const auto& mod = Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(module));
+      Dbg("Detected device '%1%' (uuid=%2% module='%3%')", name, id, mod);
       DevicesArray& devices = *static_cast<DevicesArray*>(param);
       devices.push_back(IdAndName(id, name));
       return TRUE;
