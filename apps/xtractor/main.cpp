@@ -1086,10 +1086,10 @@ public:
   {
   }
   
-  int Run(int argc, const char* argv[]) override
+  int Run(Strings::Array args) override
   {
     Strings::Array paths;
-    if (!ParseCmdline(argc, argv, paths))
+    if (!ParseCmdline(std::move(args), paths))
     {
       return 1;
     }
@@ -1115,10 +1115,10 @@ public:
     return 0;
   }
 private:
-  bool ParseCmdline(int argc, const char* argv[], Strings::Array& paths) const
+  bool ParseCmdline(Strings::Array args, Strings::Array& paths) const
   {
     using namespace boost::program_options;
-    options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
+    options_description options(Strings::Format(Text::USAGE_SECTION, args[0]));
     options.add_options()
       (Text::HELP_KEY, Text::HELP_DESC)
       (Text::VERSION_KEY, Text::VERSION_DESC)
@@ -1131,7 +1131,9 @@ private:
     inputPositional.add(Text::INPUT_KEY, -1);
 
     variables_map vars;
-    store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
+    //args should not contain program name
+    args.erase(args.begin());
+    store(command_line_parser(args).options(options).positional(inputPositional).run(), vars);
     notify(vars);
 
     if (vars.count(Text::VERSION_KEY))

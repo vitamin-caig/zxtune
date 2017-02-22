@@ -34,14 +34,16 @@ namespace
     {
     }
 
-    int Run(int argc, const char* argv[]) override
+    int Run(Strings::Array argv) override
     {
-      QApplication qapp(argc, const_cast<char**>(argv));
+      int fakeArgc = 1;
+      char* fakeArgv[] = {""};
+      QApplication qapp(fakeArgc, fakeArgv);
       qapp.setOrganizationName(QLatin1String(Text::PROJECT_NAME));
       qapp.setOrganizationDomain(QLatin1String(Text::PROGRAM_SITE));
       qapp.setApplicationVersion(ToQString(Platform::Version::GetProgramVersionString()));
       const Parameters::Container::Ptr params = GlobalOptions::Instance().Get();
-      const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(params, argc - 1, argv + 1);
+      const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(params, std::move(argv));
       if (mode->StartMaster()) {
         const MainWindow::Ptr win = WidgetsFactory::Instance().CreateMainWindow(params);
         Require(win->connect(mode, SIGNAL(OnSlaveStarted(const QStringList&)), SLOT(SetCmdline(const QStringList&))));

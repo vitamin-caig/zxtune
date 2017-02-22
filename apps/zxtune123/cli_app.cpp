@@ -338,11 +338,11 @@ namespace
     {
     }
 
-    int Run(int argc, const char* argv[]) override
+    int Run(Strings::Array args) override
     {
       try
       {
-        if (ProcessOptions(argc, argv) ||
+        if (ProcessOptions(std::move(args)) ||
             Informer->Process(*Sounder))
         {
           return 0;
@@ -375,14 +375,14 @@ namespace
       return 0;
     }
   private:
-    bool ProcessOptions(int argc, const char* argv[])
+    bool ProcessOptions(Strings::Array args)
     {
       try
       {
         using namespace boost::program_options;
 
         String configFile;
-        options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
+        options_description options(Strings::Format(Text::USAGE_SECTION, args[0]));
         options.add_options()
           (Text::HELP_KEY, Text::HELP_DESC)
           (Text::VERSION_KEY, Text::VERSION_DESC)
@@ -408,7 +408,9 @@ namespace
         options.add(cliOptions);
 
         variables_map vars;
-        store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
+        //args should not contain program name
+        args.erase(args.begin());
+        store(command_line_parser(args).options(options).positional(inputPositional).run(), vars);
         notify(vars);
         if (vars.count(Text::HELP_KEY))
         {

@@ -12,6 +12,8 @@
 
 //common includes
 #include <types.h>
+//library includes
+#include <strings/array.h>
 //std includes
 #include <iostream>
 #include <memory>
@@ -27,7 +29,7 @@ namespace Platform
   public:
     virtual ~Application() = default;
 
-    virtual int Run(int argc, const char* argv[]) = 0;
+    virtual int Run(Strings::Array args) = 0;
 
     static std::unique_ptr<Application> Create();
   };
