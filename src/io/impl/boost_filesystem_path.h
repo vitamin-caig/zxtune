@@ -13,21 +13,28 @@
 //common includes
 #include <types.h>
 //boost includes
+#include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 
 namespace IO
 {
   namespace Details
   {
-    //to distinguish difference between boost::filesystem v2 and v3
-    inline boost::filesystem::path::string_type ToString(const boost::filesystem::path::string_type& str)
+    inline const boost::filesystem::path::codecvt_type& GetFacet()
     {
-      return str;
+      static const boost::filesystem::detail::utf8_codecvt_facet instance;
+      return instance;
     }
-  
+    
     inline String ToString(const boost::filesystem::path& path)
     {
-      return path.string();
+      return path.string<String>(GetFacet());
+    }
+    
+    inline boost::filesystem::path FromString(const String& str)
+    {
+      return boost::filesystem::path(str, GetFacet());
     }
   }
 }
