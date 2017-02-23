@@ -15,25 +15,23 @@
 
 namespace Strings
 {
-  PrefixedIndex::PrefixedIndex(const String& prefix, const String& value)
-    : Str(value)
+  PrefixedIndex::PrefixedIndex(StringView prefix, StringView value)
+    : Str(value.to_string())
     , Valid(false)
     , Index()
   {
     if (0 == value.compare(0, prefix.size(), prefix))
     {
-      std::basic_istringstream<Char> str(value.substr(prefix.size()));
+      std::basic_istringstream<Char> str(Str.substr(prefix.size()));
       str >> Index;
       Valid = !!str;
     }
   }
 
-  PrefixedIndex::PrefixedIndex(const String& prefix, uint_t index)
-    : Valid(true)
+  PrefixedIndex::PrefixedIndex(StringView prefix, uint_t index)
+    : Str(prefix.to_string() + std::to_string(index))
+    , Valid(true)
     , Index(index)
   {
-    std::basic_ostringstream<Char> str;
-    str << prefix << index;
-    Str = str.str();
   }
 }

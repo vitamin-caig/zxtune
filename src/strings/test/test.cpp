@@ -12,6 +12,7 @@
 #include <strings/fields.h>
 #include <strings/fields_filter.h>
 #include <strings/optimize.h>
+#include <strings/prefixed_index.h>
 #include <strings/map.h>
 #include <strings/template.h>
 
@@ -36,6 +37,19 @@ namespace
   private:
     const Strings::Map& Map;
   };
+  
+  void Test(bool result, const String& msg)
+  {
+    if (result)
+    {
+      std::cout << "Passed test for " << msg << std::endl;
+    }
+    else
+    {
+      std::cout << "Failed test for " << msg << std::endl;
+      throw 1;
+    }
+  }
   
   void TestTemplate(const Strings::FieldsSource& source, const String& templ, const String& reference)
   {
@@ -68,6 +82,11 @@ namespace
     else
     {
       std::cout << "Failed " << encoding << " test '" << str << "' => '" << reference << "' (result is '" << trans << "')" << std::endl;
+    }
+    const String& transTrans = Strings::ToAutoUtf8(trans);
+    if (transTrans != trans)
+    {
+      std::cout << "Failed repeated transcode" << std::endl;
     }
   }
 
@@ -138,6 +157,33 @@ int main()
       TestOptimize("\x1\x82One\x82\x1", "One");
       TestOptimize("\x1One\x82Two\x3", "One?Two");
       TestOptimize("\x1One\x82\x3Two\x84", "One??Two");
+    }
+    std::cout << "---- Test for prefixed index ----" << std::endl;
+    {
+      {
+        Strings::PrefixedIndex composed("Prefix", 123);
+        Test(composed.IsValid(), "Composed IsValid");
+        Test(composed.GetIndex() == 123, "Composed GetIndex");
+        Test(composed.ToString() == "Prefix123", "Composed ToString");
+      }
+      {
+        Strings::PrefixedIndex parsed("Prefix", "Prefix456");
+        Test(parsed.IsValid(), "Parsed IsValid");
+        Test(parsed.GetIndex() == 456, "Parsed GetIndex");
+        Test(parsed.ToString() == "Prefix456", "Parsed ToString");
+      }
+      {
+        Strings::PrefixedIndex invalid("Prefix", "SomeString");
+        Test(!invalid.IsValid(), "Invalid IsValid");
+        Test(invalid.GetIndex() == 0, "Invalid GetIndex");
+        Test(invalid.ToString() == "SomeString", "Invalid ToString");
+      }
+      {
+        Strings::PrefixedIndex empty("Prefix", "Prefix");
+        Test(!empty.IsValid(), "Empty IsValid");
+        Test(empty.GetIndex() == 0, "Empty GetIndex");
+        Test(empty.ToString() == "Prefix", "Empty ToString");
+      }
     }
   }
   catch (int code)

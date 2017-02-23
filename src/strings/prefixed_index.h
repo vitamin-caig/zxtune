@@ -18,9 +18,9 @@ namespace Strings
   class PrefixedIndex
   {
   public:
-    PrefixedIndex(const String& prefix, const String& value);
+    PrefixedIndex(StringView prefix, StringView value);
 
-    PrefixedIndex(const String& prefix, uint_t index);
+    PrefixedIndex(StringView prefix, uint_t index);
 
     bool IsValid() const
     {
@@ -37,7 +37,7 @@ namespace Strings
       return Str;
     }
   private:
-    String Str;
+    const String Str;
     bool Valid;
     uint_t Index;
   };
