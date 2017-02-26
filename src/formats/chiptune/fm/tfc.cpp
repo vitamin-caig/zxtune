@@ -18,6 +18,8 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <binary/typed_container.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 //std includes
 #include <array>
 //boost includes
@@ -261,6 +263,11 @@ namespace Chiptune
       mutable std::size_t Min;
       mutable std::size_t Max;
     };
+    
+    String DecodeString(StringView str)
+    {
+      return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+    }
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
     {
@@ -274,9 +281,9 @@ namespace Chiptune
         const RawHeader& header = stream.ReadField<RawHeader>();
         target.SetVersion(FromCharArray(header.Version));
         target.SetIntFreq(header.IntFreq);
-        target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetComment(FromStdString(stream.ReadCString(MAX_COMMENT_SIZE)));
+        target.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
 
         const Container container(data);
         for (uint_t chan = 0; chan != 6; ++chan)

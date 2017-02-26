@@ -21,6 +21,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cctype>
@@ -48,9 +49,9 @@ namespace Chiptune
 #endif
     PACK_PRE struct RawId
     {
-      char TrackName[32];
-      char Optional2[4]; //' by '
-      char TrackAuthor[32];
+      std::array<char, 32> TrackName;
+      std::array<char, 4> Optional2; //' by '
+      std::array<char, 32> TrackAuthor;
 
       bool HasAuthor() const
       {
@@ -59,17 +60,15 @@ namespace Chiptune
           'B', 'Y', 0
         };
 
-        const String id(FromCharArray(Optional2));
-        const String trimId(boost::algorithm::trim_copy_if(id, boost::algorithm::is_from_range(' ', ' ')));
-        return boost::algorithm::iequals(trimId, BY_DELIMITER);
+        return boost::algorithm::iequals(Strings::TrimSpaces(Optional2), BY_DELIMITER);
       }
     } PACK_POST;
 
     PACK_PRE struct RawHeader
     {
-      uint8_t Id[13];        //'ProTracker 3.'
+      std::array<char, 13> Id;        //'ProTracker 3.'
       uint8_t Subversion;
-      uint8_t Optional1[16]; //' compilation of '
+      std::array<char, 16> Optional1; //' compilation of '
       RawId Metainfo;
       uint8_t Mode;
       uint8_t FreqTableNum;
@@ -294,11 +293,11 @@ namespace Chiptune
 
     std::size_t GetHeaderSize(const Binary::TypedContainer& data)
     {
-      if (const RawHeader* hdr = data.GetField<RawHeader>(0))
+      if (const auto hdr = data.GetField<RawHeader>(0))
       {
-        const uint8_t* const dataBegin = hdr->Id;
-        const uint8_t* const dataEnd = dataBegin + std::min(data.GetSize(), MAX_POSITIONS_COUNT + offsetof(RawHeader, Positions) + 1);
-        const uint8_t* const lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
+        const auto dataBegin = safe_ptr_cast<const uint8_t*>(hdr->Id.begin());
+        const auto dataEnd = dataBegin + std::min(data.GetSize(), MAX_POSITIONS_COUNT + offsetof(RawHeader, Positions) + 1);
+        const auto lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
         if (lastPosition != dataEnd && 
             lastPosition == std::find_if(hdr->Positions, lastPosition, std::bind2nd(std::modulus<std::size_t>(), 3)))
         {
@@ -312,7 +311,7 @@ namespace Chiptune
     {
       Require(tempo >= 1);
     }
-
+    
     class Format
     {
     public:
@@ -327,16 +326,16 @@ namespace Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(String(Source.Id, Source.Optional1));
+        meta.SetProgram(Strings::OptimizeAscii(StringView(Source.Id.begin(), Source.Optional1.begin())));
         const RawId& id = Source.Metainfo;
         if (id.HasAuthor())
         {
-          meta.SetTitle(FromCharArray(id.TrackName));
-          meta.SetAuthor(FromCharArray(id.TrackAuthor));
+          meta.SetTitle(DecodeString(id.TrackName));
+          meta.SetAuthor(DecodeString(id.TrackAuthor));
         }
         else
         {
-          meta.SetTitle(String(id.TrackName, std::end(id.TrackAuthor)));
+          meta.SetTitle(DecodeString(StringView(id.TrackName.begin(), id.TrackAuthor.end())));
         }
         const uint_t version = std::isdigit(Source.Subversion) ? Source.Subversion - '0' : 6;
         builder.SetVersion(version);

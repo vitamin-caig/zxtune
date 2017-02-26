@@ -23,6 +23,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <strings/format.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cctype>
@@ -104,11 +105,11 @@ namespace Chiptune
     PACK_PRE struct RawId
     {
       uint8_t Identifier1[5]; //'PSC V'
-      char Version[4];        //x.xx
+      std::array<char, 4> Version;        //x.xx
       uint8_t Identifier2[16];//' COMPILATION OF '
-      char Title[20];
-      char Identifier3[4];//' BY ' or smth similar
-      char Author[20];
+      std::array<char, 20> Title;
+      std::array<char, 4> Identifier3;//' BY ' or smth similar
+      std::array<char, 20> Author;
 
       bool Check() const
       {
@@ -120,8 +121,7 @@ namespace Chiptune
 
       bool HasAuthor() const
       {
-        const String id(FromCharArray(Identifier3));
-        const String trimId(boost::algorithm::trim_copy_if(id, boost::algorithm::is_from_range(' ', ' ')));
+        const auto trimId = boost::algorithm::trim_copy_if(StringView(Identifier3), boost::algorithm::is_from_range(' ', ' '));
         return boost::algorithm::iequals(trimId, BY_DELIMITER);
       }
 
@@ -529,7 +529,7 @@ namespace Chiptune
     Traits GetOldVersionTraits(const RawHeader& hdr)
     {
       const String programName = hdr.Id.Check()
-        ? Strings::Format(Text::PROSOUNDCREATOR_EDITOR, FromCharArray(hdr.Id.Version))
+        ? Strings::Format(Text::PROSOUNDCREATOR_EDITOR, StringView(hdr.Id.Version))
         : Text::PROSOUNDCREATOR_EDITOR_OLD;
       const Traits res = {programName, 0, 0};
       return res;
@@ -538,7 +538,7 @@ namespace Chiptune
     Traits GetNewVersionTraits(const RawHeader& hdr)
     {
       const String programName = hdr.Id.Check()
-        ? Strings::Format(Text::PROSOUNDCREATOR_EDITOR, FromCharArray(hdr.Id.Version))
+        ? Strings::Format(Text::PROSOUNDCREATOR_EDITOR, StringView(hdr.Id.Version))
         : Text::PROSOUNDCREATOR_EDITOR_NEW;
       const Traits res = {programName, fromLE(hdr.OrnamentsTableOffset), sizeof(hdr)};
       return res;
@@ -617,12 +617,12 @@ namespace Chiptune
         {
           if (Source.Id.HasAuthor())
           {
-            meta.SetTitle(FromCharArray(Source.Id.Title));
-            meta.SetAuthor(FromCharArray(Source.Id.Author));
+            meta.SetTitle(Strings::OptimizeAscii(Source.Id.Title));
+            meta.SetAuthor(Strings::OptimizeAscii(Source.Id.Author));
           }
           else
           {
-            meta.SetTitle(String(Source.Id.Title, std::end(Source.Id.Author)));
+            meta.SetTitle(Strings::OptimizeAscii(StringView(Source.Id.Title.begin(), Source.Id.Author.end())));
           }
         }
       }

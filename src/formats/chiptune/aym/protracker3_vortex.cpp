@@ -14,7 +14,6 @@
 //common includes
 #include <contract.h>
 #include <crc.h>
-#include <iterator.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
@@ -26,8 +25,8 @@
 //std includes
 #include <array>
 #include <cctype>
+#include <sstream>
 //boost includes
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -111,10 +110,68 @@ namespace ProTracker3
       param2 ::= ${hexdot2}
     */
     
+    //TODO: extract to common place
     template<class T>
-    inline std::string ToString(const T val)
+    struct ConversionTraits;
+
+    template<>
+    struct ConversionTraits<int>
     {
-      return boost::lexical_cast<std::string, T>(val);
+      static int FromString(StringView str)
+      {
+        return static_cast<unsigned>(std::stoi(str.to_string()));
+      }
+    };
+
+    template<>
+    struct ConversionTraits<long>
+    {
+      static int FromString(StringView str)
+      {
+        return static_cast<unsigned>(std::stol(str.to_string()));
+      }
+    };
+
+    template<>
+    struct ConversionTraits<long long>
+    {
+      static int FromString(StringView str)
+      {
+        return static_cast<unsigned>(std::stoll(str.to_string()));
+      }
+    };
+    
+    template<>
+    struct ConversionTraits<unsigned>
+    {
+      static unsigned FromString(StringView str)
+      {
+        return static_cast<unsigned>(std::stoul(str.to_string()));
+      }
+    };
+
+    template<>
+    struct ConversionTraits<unsigned long>
+    {
+      static unsigned FromString(StringView str)
+      {
+        return std::stoul(str.to_string());
+      }
+    };
+    
+    template<>
+    struct ConversionTraits<unsigned long long>
+    {
+      static unsigned FromString(StringView str)
+      {
+        return std::stoull(str.to_string());
+      }
+    };
+    
+    template<class T>
+    inline T FromString(StringView str)
+    {
+      return ConversionTraits<T>::FromString(str);
     }
 
     /*
@@ -212,13 +269,13 @@ namespace ProTracker3
       {
       }
 
-      explicit UnsignedHexObject(const std::string& val)
+      explicit UnsignedHexObject(StringView val)
         : Value(0)
       {
         Require(val.size() == Width);
-        for (RangeIterator<std::string::const_iterator> it(val.begin(), val.end()); it; ++it)
+        for (const auto sym : val)
         {
-          Value = Value * 16 + DottedNibble(*it).AsInt();
+          Value = Value * 16 + DottedNibble(sym).AsInt();
         }
       }
 
@@ -262,13 +319,13 @@ namespace ProTracker3
       {
       }
 
-      explicit SignedHexObject(const std::string& val)
+      explicit SignedHexObject(StringView val)
         : Value(0)
       {
         Require(val.size() == Width + 1);
-        RangeIterator<std::string::const_iterator> it(val.begin(), val.end());
+        auto it = val.begin();
         const SignFlag sign(*it);
-        while (++it)
+        for (++it; it != val.end(); ++it)
         {
           Value = Value * 16 + SimpleNibble(*it).AsInt();
         }
@@ -312,7 +369,7 @@ namespace ProTracker3
     {
       static const uint_t NO_INDEX = ~uint_t(0);
     public:
-      SectionHeader(const std::string& category, const std::string& hdr)
+      SectionHeader(const std::string& category, StringView hdr)
         : Category(category)
         , Index(NO_INDEX)
         , Valid(false)
@@ -323,10 +380,10 @@ namespace ProTracker3
             boost::algorithm::ends_with(hdr, stop))
         {
           Valid = true;
-          const std::string numStr = hdr.substr(start.size(), hdr.size() - start.size() - stop.size());
+          const auto numStr = hdr.substr(start.size(), hdr.size() - start.size() - stop.size());
           if (!numStr.empty())
           {
-            Index = boost::lexical_cast<uint_t>(numStr);
+            Index = FromString<uint_t>(numStr);
           }
         }
       }
@@ -345,17 +402,15 @@ namespace ProTracker3
       {
       }
 
-      std::string AsString() const
+      void Dump(std::ostream& str) const
       {
         Require(Valid);
-        std::ostringstream str;
         str << '[' << Category;
         if (Index != NO_INDEX)
         {
           str << Index;
         }
         str << "]\n";
-        return str.str();
       }
 
       uint_t GetIndex() const
@@ -385,18 +440,18 @@ namespace ProTracker3
       {
       }
 
-      explicit LoopedList(const std::string& str)
+      explicit LoopedList(StringView str)
         : Loop(0)
       {
         const std::size_t NO_LOOP = ~std::size_t(0);
 
-        std::vector<std::string> elems;
+        std::vector<StringView> elems;
         boost::algorithm::split(elems, str, boost::algorithm::is_from_range(',', ','));
         Parent::resize(elems.size());
         std::size_t resLoop = NO_LOOP;
         for (std::size_t idx = 0; idx != elems.size(); ++idx)
         {
-          std::string elem = elems[idx];
+          auto elem = elems[idx];
           Require(!elem.empty());
           if ('L' == elem[0])
           {
@@ -404,7 +459,7 @@ namespace ProTracker3
             resLoop = idx;
             elem = elem.substr(1);
           }
-          Parent::at(idx) = boost::lexical_cast<T>(elem);
+          Parent::at(idx) = FromString<T>(elem);
         }
         Loop = resLoop == NO_LOOP ? 0 : resLoop;
       }
@@ -421,12 +476,20 @@ namespace ProTracker3
         return Loop;
       }
 
-      std::string AsString() const
+      void Dump(std::ostream& str) const
       {
-        std::vector<std::string> elems(Parent::size());
-        std::transform(Parent::begin(), Parent::end(), elems.begin(), &ToString<T>);
-        elems[Loop] = 'L' + elems[Loop];
-        return boost::algorithm::join(elems, ",");
+        for (auto idx = 0; idx != Parent::size(); ++idx)
+        {
+          if (idx != 0)
+          {
+            str << ',';
+          }
+          if (idx == Loop)
+          {
+            str << 'L';
+          }
+          str << Parent::at(idx);
+        }
       }
     private:
       uint_t Loop;
@@ -453,35 +516,35 @@ namespace ProTracker3
       {
         const SectionHeader hdr("Module", src.ReadString());
         Require(hdr);
-        for (std::string line = src.ReadString(); !line.empty(); line = src.ReadString())
+        for (auto line = src.ReadString(); !line.empty(); line = src.ReadString())
         {
-          const Entry entry(line);
+          Entry entry(line);
           Dbg(" %1%=%2%", entry.Name, entry.Value);
           if (boost::algorithm::iequals(entry.Name, "Version"))
           {
             static const std::string VERSION("3.");
             Require(boost::algorithm::starts_with(entry.Value, VERSION));
             const std::string minorVal = entry.Value.substr(VERSION.size());
-            const uint_t minor = boost::lexical_cast<uint_t>(minorVal);
+            const auto minor = FromString<uint_t>(minorVal);
             Require(minor < 10);
             Version = minor;
           }
           else if (boost::algorithm::iequals(entry.Name, "Title"))
           {
-            Title = entry.Value;
+            Title = std::move(entry.Value);
           }
           else if (boost::algorithm::iequals(entry.Name, "Author"))
           {
-            Author = entry.Value;
+            Author = std::move(entry.Value);
           }
           else if (boost::algorithm::iequals(entry.Name, "NoteTable"))
           {
-            const uint_t table = boost::lexical_cast<uint_t>(entry.Value);
+            const auto table = FromString<uint_t>(entry.Value);
             Table = static_cast<NoteTable>(table);
           }
           else if (boost::algorithm::iequals(entry.Name, "Speed"))
           {
-            Tempo = boost::lexical_cast<uint_t>(entry.Value);
+            Tempo = FromString<uint_t>(entry.Value);
           }
           else if (boost::algorithm::iequals(entry.Name, "PlayOrder"))
           {
@@ -489,31 +552,32 @@ namespace ProTracker3
           }
           else
           {
-            OtherFields.push_back(entry);
+            OtherFields.push_back(std::move(entry));
           }
         }
         Require(Tempo != 0);
         Require(!PlayOrder.empty());
       }
 
-      std::string AsString() const
+      void Dump(std::ostream& str) const
       {
         Require(Tempo != 0);
         Require(!PlayOrder.empty());
 
-        std::string str = SectionHeader("Module").AsString();
-        str += Entry("Version", "3." + ToString(Version)).AsString();
-        str += Entry("Title", Title).AsString();
-        str += Entry("Author", Author).AsString();
-        str += Entry("NoteTable", ToString(static_cast<uint_t>(Table))).AsString();
-        str += Entry("Speed", ToString(Tempo)).AsString();
-        str += Entry("PlayOrder", PlayOrder.AsString()).AsString();
+        SectionHeader("Module").Dump(str);
+        Entry("Version", "3." + std::to_string(Version)).Dump(str);
+        Entry("Title", Title).Dump(str);
+        Entry("Author", Author).Dump(str);
+        Entry("NoteTable", std::to_string(static_cast<uint_t>(Table))).Dump(str);
+        Entry("Speed", std::to_string(Tempo)).Dump(str);
+        str << "PlayOrder=";
+        PlayOrder.Dump(str);
+        str << '\n';
         for (const auto& field : OtherFields)
         {
-          str += field.AsString();
+          field.Dump(str);
         }
-        str += '\n';
-        return str;
+        str << '\n';
       }
 
       struct Entry
@@ -521,14 +585,14 @@ namespace ProTracker3
         std::string Name;
         std::string Value;
 
-        explicit Entry(const std::string& str)
+        explicit Entry(StringView str)
         {
-          const std::string::size_type sepPos = str.find('=');
+          const auto sepPos = str.find('=');
           Require(sepPos != str.npos);
-          const std::string first = str.substr(0, sepPos);
-          const std::string second = str.substr(sepPos + 1);
-          Name = boost::algorithm::trim_copy(first);
-          Value = boost::algorithm::trim_copy(second);
+          const auto first = str.substr(0, sepPos);
+          const auto second = str.substr(sepPos + 1);
+          Name = boost::algorithm::trim_copy(first).to_string();
+          Value = boost::algorithm::trim_copy(second).to_string();
         }
 
         Entry(std::string name, std::string value)
@@ -536,10 +600,16 @@ namespace ProTracker3
           , Value(std::move(value))
         {
         }
-
-        std::string AsString() const
+        
+        Entry(Entry&& rh)// = default
+          : Name(std::move(rh.Name))
+          , Value(std::move(rh.Value))
         {
-          return Name + '=' + Value + '\n';
+        }
+
+        void Dump(std::ostream& str) const
+        {
+          str << Name << '=' << Value << '\n';
         }
       };
 
@@ -586,15 +656,14 @@ namespace ProTracker3
         return Index;
       }
 
-      std::string AsString() const
+      void Dump(std::ostream& str) const
       {
-        std::string result = SectionHeader("Ornament", Index).AsString();
-        result += LoopedList<int_t>(Loop, Lines).AsString();
-        result += "\n\n";
-        return result;
+        SectionHeader("Ornament", Index).Dump(str);
+        LoopedList<int_t>(Loop, Lines).Dump(str);
+        str << "\n\n";
       }
 
-      static SectionHeader ParseHeader(const std::string& hdr)
+      static SectionHeader ParseHeader(StringView hdr)
       {
         return SectionHeader("Ornament", hdr);
       }
@@ -612,7 +681,7 @@ namespace ProTracker3
         Require(Math::InRange<uint_t>(Index, 0, MAX_SAMPLES_COUNT - 1));
         Dbg("Parse sample %1%", Index);
         std::size_t loop = NO_LOOP;
-        for (std::string str = src.ReadString(); !str.empty(); str = src.ReadString())
+        for (auto str = src.ReadString(); !str.empty(); str = src.ReadString())
         {
           const LineObject line(str);
           if (line.IsLooped())
@@ -646,24 +715,21 @@ namespace ProTracker3
         return Index;
       }
 
-      std::string AsString() const
+      void Dump(std::ostream& str) const
       {
-        std::string result = SectionHeader("Sample", Index).AsString();
+        SectionHeader("Sample", Index).Dump(str);
         if (Lines.empty())
         {
-          const LineObject line(Line(), true);
-          result += line.AsString();
+          LineObject(Line(), true).Dump(str);
         }
         for (std::size_t idx = 0; idx != Lines.size(); ++idx)
         {
-          const LineObject line(Lines[idx], idx == Loop);
-          result += line.AsString();
+          LineObject(Lines[idx], idx == Loop).Dump(str);
         }
-        result += '\n';
-        return result;
+        str << '\n';
       }
 
-      static SectionHeader ParseHeader(const std::string& hdr)
+      static SectionHeader ParseHeader(StringView hdr)
       {
         return SectionHeader("Sample", hdr);
       }
@@ -671,10 +737,10 @@ namespace ProTracker3
       struct LineObject : Line
       {
       public:
-        explicit LineObject(const std::string& str)
+        explicit LineObject(const StringView str)
           : Looped(false)
         {
-          std::vector<std::string> fields;
+          std::vector<StringView> fields;
           boost::algorithm::split(fields, str, boost::algorithm::is_from_range(' ', ' '));
           switch (fields.size())
           {
@@ -703,21 +769,20 @@ namespace ProTracker3
           return Looped;
         }
 
-        std::string AsString() const
+        void Dump(std::ostream& str) const
         {
-          std::string res = UnparseMasks();
-          res += ' ';
-          res += UnparseToneOffset();
-          res += ' ';
-          res += UnparseNoiseOffset();
-          res += ' ';
-          res += UnparseVolume();
+          str << UnparseMasks()
+              << ' '
+              << UnparseToneOffset()
+              << ' '
+              << UnparseNoiseOffset()
+              << ' '
+              << UnparseVolume();
           if (Looped)
           {
-            res += " L";
+            str << " L";
           }
-          res += '\n';
-          return res;
+          str << '\n';
         }
       private:
         typedef BoolObject<'t', 'T'> ToneFlag;
@@ -728,7 +793,7 @@ namespace ProTracker3
         typedef SignedHexObject<2> NoiseEnvelopeValue;
         typedef SimpleNibble VolumeValue;
 
-        void ParseMasks(const std::string& str)
+        void ParseMasks(StringView str)
         {
           Require(str.size() == 3);
           ToneMask = ToneFlag(str[0]).AsBool();
@@ -745,7 +810,7 @@ namespace ProTracker3
           return res;
         }
 
-        void ParseToneOffset(const std::string& str)
+        void ParseToneOffset(StringView str)
         {
           Require(str.size() == 5);
           ToneOffset = ToneValue(str.substr(0, 4)).AsInt();
@@ -757,7 +822,7 @@ namespace ProTracker3
           return ToneValue(ToneOffset).AsString() + AccumulatorFlag(KeepToneOffset).AsChar();
         }
 
-        void ParseNoiseOffset(const std::string& str)
+        void ParseNoiseOffset(StringView str)
         {
           Require(str.size() == 4);
           NoiseOrEnvelopeOffset = NoiseEnvelopeValue(str.substr(0, 3)).AsInt();
@@ -769,7 +834,7 @@ namespace ProTracker3
           return NoiseEnvelopeValue(NoiseOrEnvelopeOffset).AsString() + AccumulatorFlag(KeepNoiseOrEnvelopeOffset).AsChar();
         }
 
-        void ParseVolume(const std::string& str)
+        void ParseVolume(StringView str)
         {
           Require(str.size() == 2);
           Level = VolumeValue(str[0]).AsInt();
@@ -808,8 +873,8 @@ namespace ProTracker3
       {
       }
 
-      explicit NoteObject(const std::string& val)
-        : Val(val)
+      explicit NoteObject(StringView val)
+        : Val(val.to_string())
       {
         Require(val.size() == 3);
       }
@@ -865,7 +930,7 @@ namespace ProTracker3
       {
       }
 
-      explicit NoteParametersObject(const std::string& str)
+      explicit NoteParametersObject(StringView str)
       {
         Require(str.size() == 4);
         Sample = SampleNumber(str[0]);
@@ -941,7 +1006,7 @@ namespace ProTracker3
       {
       }
 
-      explicit NoteCommandObject(const std::string& str)
+      explicit NoteCommandObject(StringView str)
       {
         Require(str.size() == 4);
         Command = CommandCode(str[0]);
@@ -1017,9 +1082,9 @@ namespace ProTracker3
       {
       }
 
-      explicit ChannelObject(const std::string& str)
+      explicit ChannelObject(StringView str)
       {
-        std::vector<std::string> fields;
+        std::vector<StringView> fields;
         boost::algorithm::split(fields, str, boost::algorithm::is_from_range(' ', ' '));
         Require(fields.size() == 3);
         Note = NoteObject(fields[0]);
@@ -1034,11 +1099,14 @@ namespace ProTracker3
         Note.Parse(builder);
       }
 
-      std::string AsString() const
+      void Dump(std::ostream& str) const
       {
-        const std::string res[] = {Note.AsString(), Parameters.AsString(), Command.AsString()};
-        return boost::algorithm::join(res, " ");
-      }
+        str << Note.AsString()
+            << ' '
+            << Parameters.AsString()
+            << ' '
+            << Command.AsString();
+      };
 
       NoteObject Note;
       NoteParametersObject Parameters;
@@ -1052,9 +1120,9 @@ namespace ProTracker3
       {
       }
 
-      explicit PatternLineObject(const std::string& str)
+      explicit PatternLineObject(StringView str)
       {
-        std::vector<std::string> fields;
+        std::vector<StringView> fields;
         boost::algorithm::split(fields, str, boost::algorithm::is_from_range('|', '|'));
         Require(fields.size() == 5);
         Envelope = EnvelopeBase(fields[0]);
@@ -1075,16 +1143,17 @@ namespace ProTracker3
         builder.SetNoiseBase(Noise.AsInt());
       }
 
-      std::string AsString() const
+      void Dump(std::ostream& str) const
       {
-        const std::string res[] = {
-          Envelope.AsString(),
-          Noise.AsString(),
-          Channels[0].AsString(),
-          Channels[1].AsString(),
-          Channels[2].AsString()
-        };
-        return boost::algorithm::join(res, "|") + '\n';
+        str << Envelope.AsString()
+            << '|'
+            << Noise.AsString();
+        for (const auto& chan : Channels)
+        {
+          str  << '|';
+          chan.Dump(str);
+        }
+        str << '\n';
       }
 
       typedef UnsignedHexObject<4, '.'> EnvelopeBase;
@@ -1115,7 +1184,7 @@ namespace ProTracker3
         Require(Math::InRange<uint_t>(Index, 0, MAX_PATTERNS_COUNT - 1));
         Dbg("Parse pattern %1%", Index);
         Lines.reserve(MAX_PATTERN_SIZE);
-        for (std::string line = src.ReadString(); !line.empty(); line = 0 != src.GetRestSize() ? src.ReadString() : std::string())
+        for (auto line = src.ReadString(); !line.empty(); line = 0 != src.GetRestSize() ? src.ReadString() : StringView())
         {
           Lines.push_back(PatternLineObject(line));
         }
@@ -1132,15 +1201,14 @@ namespace ProTracker3
         patBuilder.Finish(Lines.size());
       }
 
-      std::string AsString() const
+      void Dump(std::ostream& str) const
       {
-        std::string res = SectionHeader("Pattern", Index).AsString();
+        SectionHeader("Pattern", Index).Dump(str);
         for (const auto& line : Lines)
         {
-          res += line.AsString();
+          line.Dump(str);
         }
-        res += '\n';
-        return res;
+        str << '\n';
       }
 
       std::size_t GetSize() const
@@ -1159,7 +1227,7 @@ namespace ProTracker3
         return Lines.back();
       }
 
-      static SectionHeader ParseHeader(const std::string& str)
+      static SectionHeader ParseHeader(StringView str)
       {
         return SectionHeader("Pattern", str);
       }
@@ -1184,8 +1252,8 @@ namespace ProTracker3
         MetaBuilder& meta = Target.GetMetaBuilder();
         meta.SetProgram(Strings::Format(Text::VORTEX_EDITOR, 3, hdr.Version));
         Target.SetVersion(hdr.Version);
-        meta.SetTitle(FromStdString(hdr.Title));
-        meta.SetAuthor(FromStdString(hdr.Author));
+        meta.SetTitle(DecodeString(hdr.Title));
+        meta.SetAuthor(DecodeString(hdr.Author));
         Target.SetNoteTable(hdr.Table);
         Target.SetInitialTempo(hdr.Tempo);
         Positions pos;
@@ -1204,7 +1272,7 @@ namespace ProTracker3
           {
             return startLinePos;
           }
-          const std::string line = Source.ReadString();
+          const auto line = Source.ReadString();
           if (line.empty())
           {
             return Source.GetPosition();
@@ -1333,12 +1401,12 @@ namespace ProTracker3
 
       void SetTitle(const String& title) override
       {
-        Header.Title = ToStdString(title);
+        Header.Title = title;
       }
 
       void SetAuthor(const String& author) override
       {
-        Header.Author = ToStdString(author);
+        Header.Author = author;
       }
 
       void SetStrings(const Strings::Array& /*strings*/) override
@@ -1514,19 +1582,21 @@ namespace ProTracker3
 
       Binary::Data::Ptr GetResult() const override
       {
-        std::string res = Header.AsString();
+        std::ostringstream str;
+        Header.Dump(str);
         for (const auto& ornament : Ornaments)
         {
-          res += ornament.AsString();
+          ornament.Dump(str);
         }
         for (const auto& sample : Samples)
         {
-          res += sample.AsString();
+          sample.Dump(str);
         }
         for (const auto& pattern : Patterns)
         {
-          res += pattern.AsString();
+          pattern.Dump(str);
         }
+        const auto& res = str.str();
         return Binary::CreateContainer(res.data(), res.size());
       }
     private:

@@ -55,7 +55,7 @@ namespace Binary
       return Get(curSize);
     }
 
-    void AddCString(const std::string& str)
+    void AddCString(const StringView str)
     {
       const std::size_t size = str.size();
       char* const dst = static_cast<char*>(Allocate(size + 1));

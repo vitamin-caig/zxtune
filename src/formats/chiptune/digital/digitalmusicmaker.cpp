@@ -23,6 +23,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -67,7 +68,7 @@ namespace Chiptune
 
     PACK_PRE struct SampleInfo
     {
-      char Name[9];
+      std::array<char, 9> Name;
       uint16_t Start;
       uint8_t Bank;
       uint16_t Limit;
@@ -278,10 +279,10 @@ namespace Chiptune
           const SampleInfo& srcSample = Source.SampleDescriptions[samIdx - 1];
           if (srcSample.Name[0] != '.')
           {
-            names[samIdx] = FromCharArray(srcSample.Name);
+            names[samIdx] = Strings::OptimizeAscii(srcSample.Name);
           }
         }
-        meta.SetStrings(names);
+        meta.SetStrings(std::move(names));
       }
 
       void ParsePositions(Builder& target) const

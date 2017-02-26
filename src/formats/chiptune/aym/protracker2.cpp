@@ -22,6 +22,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 //boost includes
@@ -68,7 +69,7 @@ namespace Chiptune
       std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
       std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       uint16_t PatternsOffset;
-      char Name[30];
+      std::array<char, 30> Name;
       uint8_t Positions[1];
     } PACK_POST;
 
@@ -425,7 +426,7 @@ namespace Chiptune
         builder.SetInitialTempo(tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
         meta.SetProgram(Text::PROTRACKER2_DECODER_DESCRIPTION);
-        meta.SetTitle(FromCharArray(Source.Name));
+        meta.SetTitle(Strings::OptimizeAscii(Source.Name));
       }
 
       void ParsePositions(Builder& builder) const

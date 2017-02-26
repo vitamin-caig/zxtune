@@ -152,7 +152,7 @@ namespace Chiptune
         }
         else
         {
-          target.SetRegion(marker, 0);
+          target.SetRegion(marker.to_string(), 0);
         }
         Dbg("Marker: %s", marker);
       }

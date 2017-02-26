@@ -23,6 +23,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -80,7 +81,7 @@ namespace Chiptune
     PACK_PRE struct RawId
     {
       uint8_t Id[sizeof(ID)];
-      char Title[25];
+      std::array<char, 25> Title;
 
       bool Check() const
       {
@@ -345,7 +346,7 @@ namespace Chiptune
         meta.SetProgram(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION);
         if (Id.Check())
         {
-          meta.SetTitle(FromCharArray(Id.Title));
+          meta.SetTitle(Strings::OptimizeAscii(Id.Title));
         }
       }
 

@@ -24,6 +24,7 @@
 #include <debug/log.h>
 #include <formats/chiptune.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -143,7 +144,8 @@ namespace Chiptune
         const uint8_t* const strStart = GetPointer(beOffset);
         const uint8_t* const strEnd = std::find(strStart, Finish, 0);
         Require(Ranges->AddRange(strStart - Start, strEnd - strStart + 1));
-        return String(strStart, strEnd);
+        const StringView str(safe_ptr_cast<const char*>(strStart), strEnd - strStart);
+        return Strings::OptimizeAscii(str);
       }
 
       Binary::Container::Ptr GetBlob(const int16_t* beOffset, std::size_t size) const

@@ -14,6 +14,9 @@
 #include "protracker3.h"
 //common includes
 #include <indices.h>
+//library includes
+#include <strings/encoding.h>
+#include <strings/trim.h>
 
 namespace Formats
 {
@@ -217,6 +220,12 @@ namespace Formats
         Indices UsedOrnaments;
         Indices AvailableOrnaments;
       };
+
+      //may contain CP1251 symbols from VortexTracker
+      inline String DecodeString(StringView str)
+      {
+        return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+      }
     }
   }
 }

@@ -24,6 +24,7 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -85,7 +86,7 @@ namespace Chiptune
       uint8_t IndexInPage;
       uint8_t Blocks;
       uint8_t Padding;
-      char Name[8];
+      std::array<char, 8> Name;
     } PACK_POST;
     
     PACK_PRE struct MemoryDescr
@@ -180,7 +181,7 @@ namespace Chiptune
       uint8_t Tempo;
       uint8_t Length;
       //+0x03
-      char Title[30];
+      std::array<char, 30> Title;
       //+0x21
       uint8_t Unknown1;
       //+0x22
@@ -428,12 +429,12 @@ namespace Chiptune
       {
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
-        meta.SetTitle(FromCharArray(Source.Title));
+        meta.SetTitle(Strings::OptimizeAscii(Source.Title));
         meta.SetProgram(Version.GetEditorString());
         Strings::Array names(Source.Samples.size());
         for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
         {
-          names[idx] = FromCharArray(Source.Samples[idx].Name);
+          names[idx] = Strings::OptimizeAscii(Source.Samples[idx].Name);
         }
         meta.SetStrings(names);
       }

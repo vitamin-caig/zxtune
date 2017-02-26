@@ -24,6 +24,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -73,7 +74,7 @@ namespace Chiptune
       uint8_t Page;
       uint8_t NumberInBank;
       uint16_t Size;
-      char Name[8];
+      std::array<char, 8> Name;
     } PACK_POST;
 
     typedef std::array<uint8_t, 0x38> ZeroesArray;
@@ -90,7 +91,7 @@ namespace Chiptune
       //+0x65
       uint8_t Length;
       //+0x66
-      char Title[28];
+      std::array<char, 28> Title;
       //+0x82
       uint8_t Unknown[0x46];
       //+0xc8
@@ -220,13 +221,13 @@ namespace Chiptune
       {
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
-        meta.SetTitle(FromCharArray(Source.Title));
+        meta.SetTitle(Strings::OptimizeAscii(Source.Title));
         Strings::Array names(Source.Samples.size());
         for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
         {
-          names[idx] = FromCharArray(Source.Samples[idx].Name);
+          names[idx] = Strings::OptimizeAscii(Source.Samples[idx].Name);
         }
-        meta.SetStrings(names);
+        meta.SetStrings(std::move(names));
       }
 
       void ParsePositions(Builder& target) const

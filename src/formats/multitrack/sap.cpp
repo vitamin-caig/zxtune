@@ -61,7 +61,7 @@ namespace Multitrack
     public:
       virtual ~Builder() = default;
 
-      virtual void SetProperty(const String& name, const String& value) = 0;
+      virtual void SetProperty(String name, String value) = 0;
       virtual void SetBlock(const uint_t start, const uint8_t* data, std::size_t size) = 0;
     };
     
@@ -77,7 +77,7 @@ namespace Multitrack
       {
       }
       
-      void SetProperty(const String& name, const String& value) override
+      void SetProperty(String name, String value) override
       {
         if (name == DEFSONG)
         {
@@ -122,7 +122,7 @@ namespace Multitrack
         Binary::DataBuilder builder;
         builder.Add(TEXT_SIGNATURE);
         DumpTextPart(builder);
-        AddString(DEFSONG + " " + Parameters::ConvertToString(startTrack), builder);
+        AddString(DEFSONG + ' ' + Parameters::ConvertToString(startTrack), builder);
         builder.Add(BINARY_SIGNATURE);
         DumpBinaryPart(builder);
         return builder.CaptureResult();
@@ -261,18 +261,19 @@ namespace Multitrack
       {
         for (;;)
         {
-          const BinarySignatureType binSig = stream.ReadField<BinarySignatureType>();
-          if (binSig == BINARY_SIGNATURE)
+          const auto pos = stream.GetPosition();
+          if (stream.ReadField<BinarySignatureType>() == BINARY_SIGNATURE)
           {
             break;
           }
-          String name, value;
-          const std::string line = std::string(binSig.begin(), binSig.end()) + stream.ReadString();
-          std::string::size_type spacePos = line.find_first_of(' ');
-          if (spacePos != std::string::npos)
+          stream.Seek(pos);
+          StringView name, value;
+          const auto line = stream.ReadString();
+          auto spacePos = line.find(' ');
+          if (spacePos != line.npos)
           {
             name = line.substr(0, spacePos);
-            while (line[spacePos] == ' ')
+            while (line[spacePos] == ' ' && spacePos < line.size())
             {
               ++spacePos;
             }
@@ -282,7 +283,7 @@ namespace Multitrack
           {
             name = line;
           }
-          builder.SetProperty(name, value);
+          builder.SetProperty(name.to_string(), value.to_string());
         }
       }
       

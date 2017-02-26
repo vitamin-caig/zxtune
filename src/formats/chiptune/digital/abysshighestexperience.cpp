@@ -18,6 +18,8 @@
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 //std includes
 #include <array>
 //text includes
@@ -195,8 +197,8 @@ namespace Chiptune
         Require(Stream.GetPosition() <= Source.NamesOffset);
         Stream.Skip(Source.NamesOffset - Stream.GetPosition());
         MetaBuilder& meta = target.GetMetaBuilder();
-        const std::string& title = Stream.ReadCString(Stream.GetRestSize());
-        meta.SetTitle(FromStdString(title));
+        const auto title = Strings::TrimSpaces(Stream.ReadCString(Stream.GetRestSize()));
+        meta.SetTitle(Strings::ToAutoUtf8(title));
         ParseSampleNames(meta);
         ParseProgram(meta);
       }
@@ -214,10 +216,10 @@ namespace Chiptune
         Strings::Array names(count);
         for (uint_t smp = 0; smp < count; ++smp)
         {
-          const std::string& name = Stream.ReadCString(Stream.GetRestSize());
-          names[smp] = FromStdString(name);
+          const auto name = Strings::TrimSpaces(Stream.ReadCString(Stream.GetRestSize()));
+          names[smp] = Strings::ToAutoUtf8(name);
         }
-        meta.SetStrings(names);
+        meta.SetStrings(std::move(names));
       }
       
       void ParseProgram(MetaBuilder& meta)

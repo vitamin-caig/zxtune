@@ -24,6 +24,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -106,9 +107,9 @@ namespace Chiptune
     PACK_PRE struct RawId
     {
       uint8_t Identifier1[19];//'ASM COMPILATION OF '
-      char Title[20];
-      char Identifier2[4];//' BY ' or smth similar
-      char Author[20];
+      std::array<char, 20> Title;
+      std::array<char, 4> Identifier2;//' BY ' or smth similar
+      std::array<char, 20> Author;
 
       bool Check() const
       {
@@ -118,8 +119,7 @@ namespace Chiptune
 
       bool HasAuthor() const
       {
-        const String id(FromCharArray(Identifier2));
-        const String trimId(boost::algorithm::trim_copy_if(id, boost::algorithm::is_from_range(' ', ' ')));
+        const auto trimId = boost::algorithm::trim_copy_if(StringView(Identifier2), boost::algorithm::is_from_range(' ', ' '));
         return boost::algorithm::iequals(trimId, BY_DELIMITER);
       }
     } PACK_POST;
@@ -638,12 +638,12 @@ namespace Chiptune
         {
           if (Id.HasAuthor())
           {
-            meta.SetTitle(FromCharArray(Id.Title));
-            meta.SetAuthor(FromCharArray(Id.Author));
+            meta.SetTitle(Strings::OptimizeAscii(Id.Title));
+            meta.SetAuthor(Strings::OptimizeAscii(Id.Author));
           }
           else
           {
-            meta.SetTitle(String(Id.Title, std::end(Id.Author)));
+            meta.SetTitle(Strings::OptimizeAscii(StringView(Id.Title.begin(), Id.Author.end())));
           }
         }
       }

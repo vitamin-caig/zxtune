@@ -2,6 +2,6 @@ binary_name := mtctool
 path_step := ../../..
 source_dirs := .
 
-libraries.common = binary binary_format debug formats_chiptune module platform_version tools
+libraries.common = binary binary_format debug formats_chiptune module platform_version strings tools
 
 include $(path_step)/makefile.mak

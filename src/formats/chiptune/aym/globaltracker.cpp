@@ -25,6 +25,7 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -70,7 +71,7 @@ namespace Chiptune
       uint8_t ID[3];
       uint8_t Version;
       uint16_t Address;
-      char Title[32];
+      std::array<char, 32> Title;
       std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
       std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
@@ -433,7 +434,7 @@ namespace Chiptune
         builder.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
         meta.SetProgram(Strings::Format(Text::GLOBALTRACKER1_EDITOR, Source.Version & 15));
-        meta.SetTitle(FromCharArray(Source.Title));
+        meta.SetTitle(Strings::OptimizeAscii(Source.Title));
       }
 
       void ParsePositions(Builder& builder) const

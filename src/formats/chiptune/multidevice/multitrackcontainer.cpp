@@ -19,6 +19,7 @@
 #include <binary/format_factories.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
+#include <strings/encoding.h>
 //std includes
 #include <array>
 #include <utility>
@@ -100,11 +101,10 @@ namespace IFF
   };
   
   //Store in plain string, possibly UTF-8
-  std::string GetString(const Binary::Data& data)
+  String GetString(const Binary::Data& data)
   {
-    const char* const str = static_cast<const char*>(data.Start());
-    const std::size_t count = data.Size();
-    return std::string(str, str + count);
+    const StringView str(static_cast<const char*>(data.Start()), data.Size());
+    return Strings::ToAutoUtf8(str);
   }
   
   class BlobChunkSourceBase : public ChunkSource

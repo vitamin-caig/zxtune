@@ -22,6 +22,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 //text includes
@@ -60,7 +61,7 @@ namespace Chiptune
       uint16_t PositionsOffset;
       uint16_t OrnamentsOffset;
       uint16_t PatternsOffset;
-      char Identifier[18];
+      std::array<char, 18> Identifier;
       uint16_t Size;
     } PACK_POST;
 
@@ -143,25 +144,41 @@ namespace Chiptune
     static_assert(sizeof(RawPattern) == 7, "Invalid layout");
     static_assert(sizeof(RawOrnament) == 33, "Invalid layout");
     static_assert(sizeof(RawSample) == 99, "Invalid layout");
-
-    bool IsProgramName(const String& name)
+    
+    bool Starts(const StringView& str, const char* pat)
     {
-      static const std::string STANDARD_PROGRAMS[] = 
+      for (auto it1 = str.begin(), it2 = pat, lim = str.end(); it1 != lim && *it2; ++it1, ++it2)
       {
-        "SONG BY ST COMPIL\x01",
-        "SONG BY ST COMPILE",
-        "SONG BY MB COMPILE",
-        "SONG BY ST-COMPILE",
-        "SONG ST BY COMPILE"
-        "SOUND TRACKER v1.1",
-        "SOUND TRACKER v1.3",
-        "SOUND TRACKER v3.0",
-        "S.T.FULL EDITION  ",
-        "S.T.FULL EDITION \x7f",
-        "S.W.COMPILE V2.0  ",
-        "STU SONG COMPILER ",
+        if (*it1 != *it2)
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool IsProgramName(StringView name)
+    {
+      static const char* STANDARD_PROGRAMS_PREFIXES[] = 
+      {
+        "SONG BY ST COMPIL",
+        "SONG BY MB COMPIL",
+        "SONG BY ST-COMPIL",
+        "SONG BY S.T.COMP",
+        "SONG ST BY COMPILE",
+        "SOUND TRACKER",
+        "S.T.FULL EDITION",
+        "S.W.COMPILE V2.0",
+        "STU SONG COMPILER",
       };
-      return std::end(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, std::end(STANDARD_PROGRAMS), ToStdString(name));
+      for (const auto& prefix : STANDARD_PROGRAMS_PREFIXES)
+      {
+        if (Starts(name, prefix))
+        {
+          return true;
+        }
+      }
+      return false;
     }
 
     class Format
@@ -181,14 +198,14 @@ namespace Chiptune
       {
         builder.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
-        const String id(FromCharArray(Source.Identifier));
+        const StringView id(Source.Identifier);
         if (IsProgramName(id))
         {
-          meta.SetProgram(id);
+          meta.SetProgram(Strings::OptimizeAscii(id));
         }
         else
         {
-          meta.SetTitle(id);
+          meta.SetTitle(Strings::OptimizeAscii(id));
           meta.SetProgram(Text::SOUNDTRACKER_DECODER_DESCRIPTION);
         }
       }

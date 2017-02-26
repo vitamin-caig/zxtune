@@ -22,6 +22,7 @@
 #include <debug/log.h>
 #include <formats/packed/lha_supp.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -326,9 +327,9 @@ namespace Chiptune
           target.SetClockrate(fromBE(header.Clockrate));
           target.SetIntFreq(fromBE(header.IntFreq));
           target.SetLoop(fromBE(header.Loop));
-          target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-          target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-          target.SetComment(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetTitle(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetAuthor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetComment(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
 
           const std::size_t dumpOffset = stream.GetPosition();
           const std::size_t dumpSize = size - sizeof(Ver5::Footer) - dumpOffset;
@@ -601,13 +602,13 @@ namespace Chiptune
           target.SetYear(fromLE(stream.ReadField<uint16_t>()));
         }
         const uint_t unpackedSize = fromLE(stream.ReadField<uint32_t>());
-        target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetTitle(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetAuthor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
         if (newVersion)
         {
-          target.SetProgram(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-          target.SetEditor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-          target.SetComment(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetProgram(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetEditor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetComment(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
         }
 
         const std::size_t packedOffset = stream.GetPosition();

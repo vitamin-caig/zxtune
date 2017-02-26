@@ -25,6 +25,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/chiptune.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 //boost includes
@@ -300,7 +301,8 @@ namespace Chiptune
         {
           const char* const start = safe_ptr_cast<const char*>(this + 1);
           const char* const end = start + fromLE(DataSize);
-          return end[-1] ? String(start, end) : String(start);
+          const StringView val = end[-1] ? StringView(start, end) : StringView(start);
+          return Strings::OptimizeAscii(val);
         }
         else
         {

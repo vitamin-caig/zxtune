@@ -22,6 +22,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 //boost includes
@@ -481,8 +482,8 @@ namespace Chiptune
           if (titleBegin < gapEnd)
           {
             const char* const titleStart = Delegate.GetField<char>(titleBegin);
-            const String title(titleStart, titleStart + gapEnd - titleBegin);
-            meta.SetTitle(title);
+            const StringView title(titleStart, titleStart + gapEnd - titleBegin);
+            meta.SetTitle(Strings::OptimizeAscii(title));
           }
           Ranges.AddService(gapBegin, gapSize);
         }

@@ -16,6 +16,8 @@
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 //std includes
 #include <array>
 //text includes
@@ -104,6 +106,11 @@ namespace Chiptune
       const Binary::Format::Ptr Format;
     };
 
+    String DecodeString(StringView str)
+    {
+      return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+    }
+    
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
     {
       if (!FastCheck(data))
@@ -114,9 +121,9 @@ namespace Chiptune
       {
         Binary::InputStream stream(data);
         stream.ReadField<SignatureType>();
-        target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetComment(FromStdString(stream.ReadCString(MAX_COMMENT_SIZE)));
+        target.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
 
         const std::size_t fixedOffset = stream.GetPosition();
         for (;;)

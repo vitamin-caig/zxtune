@@ -119,13 +119,13 @@ namespace PortableSoundFormat
       String comment;
       while (Stream.GetRestSize())
       {
-        auto nameVal = ReadTagVariable();
-        auto&& name = nameVal.first;
-        auto&& value = nameVal.second;
-        Dbg("tags[%1%]=%2%", name, value);
+        const auto nameVal = ReadTagVariable();
+        const auto name = nameVal.first;
+        const auto valueView = nameVal.second;
+        Dbg("tags[%1%]=%2%", name, valueView);
         if (const auto num = FindLibraryNumber(name))
         {
-          target.SetLibrary(num, value);
+          target.SetLibrary(num, valueView.to_string());
           continue;
         }
         else if (name == Tags::UTF8)
@@ -133,10 +133,9 @@ namespace PortableSoundFormat
           utf8 = true;
           continue;
         }
-        if (!utf8)
-        {
-          value = Strings::ToAutoUtf8(value);
-        }
+        const auto value = utf8
+          ? valueView.to_string()
+          : Strings::ToAutoUtf8(valueView);
         if (name == Tags::TITLE)
         {
           target.SetTitle(value);
@@ -173,7 +172,7 @@ namespace PortableSoundFormat
         {
           target.SetCopyright(value);
         }
-        else if (String::npos != nameVal.first.find(Tags::XSFBY_SUFFIX))
+        else if (name.npos != name.find(Tags::XSFBY_SUFFIX))
         {
           target.SetDumper(value);
         }
@@ -187,7 +186,7 @@ namespace PortableSoundFormat
         }
         else
         {
-          target.SetTag(name, value);
+          target.SetTag(name.to_string(), value);
         }
       }
       if (!comment.empty())
@@ -212,15 +211,15 @@ namespace PortableSoundFormat
       return false;
     }
     
-    std::pair<std::string, std::string> ReadTagVariable()
+    std::pair<StringView, StringView> ReadTagVariable()
     {
-      const auto& line = Stream.ReadString();
-      const auto eqPos = line.find_first_of('=');
-      Require(eqPos != std::string::npos);
+      const auto line = Stream.ReadString();
+      const auto eqPos = line.find('=');
+      Require(eqPos != line.npos);
       return std::make_pair(line.substr(0, eqPos), line.substr(eqPos + 1));
     }
     
-    static uint_t FindLibraryNumber(const String& tagName)
+    static uint_t FindLibraryNumber(StringView tagName)
     {
       if (tagName == Tags::LIB_PREFIX)
       {

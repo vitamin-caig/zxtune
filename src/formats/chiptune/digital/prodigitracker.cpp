@@ -23,6 +23,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -60,7 +61,7 @@ namespace Chiptune
 
     PACK_PRE struct RawSample
     {
-      char Name[8];
+      std::array<char, 8> Name;
       uint16_t Start;
       uint16_t Size;
       uint16_t Loop;
@@ -131,7 +132,7 @@ namespace Chiptune
       std::array<RawOrnament, ORNAMENTS_COUNT> Ornaments;
       std::array<RawOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
       uint8_t Padding1[6];
-      char Title[32];
+      std::array<char, 32> Title;
       uint8_t Tempo;
       uint8_t Start;
       uint8_t Loop;
@@ -285,14 +286,14 @@ namespace Chiptune
       {
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
-        meta.SetTitle(FromCharArray(Source.Title));
+        meta.SetTitle(Strings::OptimizeAscii(Source.Title));
         meta.SetProgram(Text::PRODIGITRACKER_DECODER_DESCRIPTION);
         Strings::Array names(Source.Samples.size());
         for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
         {
-          names[idx] = FromCharArray(Source.Samples[idx].Name);
+          names[idx] = Strings::OptimizeAscii(Source.Samples[idx].Name);
         }
-        meta.SetStrings(names);
+        meta.SetStrings(std::move(names));
       }
 
       void ParsePositions(Builder& target) const

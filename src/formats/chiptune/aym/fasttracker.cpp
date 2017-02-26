@@ -22,6 +22,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -85,9 +86,9 @@ namespace Chiptune
     PACK_PRE struct RawId
     {
       uint8_t Identifier[8];//"Module: "
-      char Title[42];
+      std::array<char, 42> Title;
       uint8_t Semicolon;//";"
-      char Editor[18];
+      std::array<char, 18> Editor;
 
       bool HasTitle() const
       {
@@ -528,7 +529,7 @@ namespace Chiptune
         MetaBuilder& meta = builder.GetMetaBuilder();
         if (in.HasProgram())
         {
-          meta.SetProgram(FromCharArray(in.Editor));
+          meta.SetProgram(Strings::OptimizeAscii(in.Editor));
         }
         else
         {
@@ -536,7 +537,7 @@ namespace Chiptune
         }
         if (in.HasTitle())
         {
-          meta.SetTitle(FromCharArray(in.Title));
+          meta.SetTitle(Strings::OptimizeAscii(in.Title));
         }
       }
 

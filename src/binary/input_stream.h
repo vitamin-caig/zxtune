@@ -41,18 +41,19 @@ namespace Binary
     }
     
     //! @brief Read ASCIIZ string with specified maximal size
-    std::string ReadCString(std::size_t maxSize)
+    StringView ReadCString(std::size_t maxSize)
     {
-      const uint8_t* const limit = std::min(Cursor + maxSize, Finish);
-      const uint8_t* const strEnd = std::find(Cursor, limit, 0);
+      static_assert(sizeof(StringView::value_type) == sizeof(uint8_t), "Invalid char size");
+      const auto limit = std::min(Cursor + maxSize, Finish);
+      const auto strEnd = std::find(Cursor, limit, 0);
       Require(strEnd != limit);
-      const std::string res(Cursor, strEnd);
+      StringView res(safe_ptr_cast<const Char*>(Cursor), safe_ptr_cast<const Char*>(strEnd));
       Cursor = strEnd + 1;
       return res;
     }
 
     //! @brief Read string till EOL
-    std::string ReadString()
+    StringView ReadString()
     {
       const uint8_t CR = 0x0d;
       const uint8_t LF = 0x0a;
@@ -60,8 +61,8 @@ namespace Binary
       static const uint8_t EOLCODES[3] = {CR, LF, EOT};
 
       Require(Cursor != Finish);
-      const uint8_t* const eolPos = std::find_first_of(Cursor, Finish, EOLCODES, EOLCODES + 3);
-      const uint8_t* nextLine = eolPos;
+      const auto eolPos = std::find_first_of(Cursor, Finish, EOLCODES, EOLCODES + 3);
+      auto nextLine = eolPos;
       if (nextLine != Finish && CR == *nextLine++)
       {
         if (nextLine != Finish && LF == *nextLine)
@@ -69,7 +70,7 @@ namespace Binary
           ++nextLine;
         }
       }
-      const std::string result(Cursor, eolPos);
+      StringView result(safe_ptr_cast<const Char*>(Cursor), safe_ptr_cast<const Char*>(eolPos));
       Cursor = nextLine;
       return result;
     }

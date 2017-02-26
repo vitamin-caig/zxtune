@@ -24,6 +24,7 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -179,7 +180,7 @@ namespace Chiptune
       //+0x213
       uint8_t Padding3[0xed];
       //+0x300
-      std::array<char[8], SAMPLES_COUNT> SampleNames;
+      std::array<std::array<char, 8>, SAMPLES_COUNT> SampleNames;
       //+0x380
       uint8_t Padding4[0x80];
       //+0x400
@@ -325,14 +326,18 @@ namespace Chiptune
       {
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
-        const String title = *Source.Title.begin() == '|' && *Source.Title.rbegin() == '|'
-          ? String(Source.Title.begin() + 1, Source.Title.end() - 1)
-          : String(Source.Title.begin(), Source.Title.end());
-        meta.SetTitle(title);
+        const auto title = *Source.Title.begin() == '|' && *Source.Title.rbegin() == '|'
+          ? StringView(Source.Title.begin() + 1, Source.Title.end() - 1)
+          : StringView(Source.Title.begin(), Source.Title.end());
+        meta.SetTitle(Strings::OptimizeAscii(title));
         meta.SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
-        Strings::Array names(SAMPLES_COUNT);
-        std::transform(Source.SampleNames.begin(), Source.SampleNames.end(), names.begin(), &FromCharArray<8>);
-        meta.SetStrings(names);
+        Strings::Array names;
+        names.reserve(SAMPLES_COUNT);
+        for (const auto& name : Source.SampleNames)
+        {
+          names.push_back(Strings::OptimizeAscii(name));
+        }
+        meta.SetStrings(std::move(names));
       }
 
       void ParsePositions(Builder& target) const

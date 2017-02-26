@@ -20,6 +20,8 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 //std includes
 #include <array>
 #include <cassert>
@@ -298,9 +300,9 @@ namespace Chiptune
         PackedDate CreationDate;
         PackedDate SaveDate;
         uint16_t SavesCount;
-        char Author[64];
-        char Title[64];
-        char Comment[384];
+        std::array<char, 64> Author;
+        std::array<char, 64> Title;
+        std::array<char, 384> Comment;
         std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
         std::array<InstrumentName, MAX_INSTRUMENTS_COUNT> InstrumentNames;
         std::array<RawInstrument, MAX_INSTRUMENTS_COUNT> Instruments;
@@ -797,6 +799,11 @@ namespace Chiptune
       Dump& Decoded;
     };
 
+    String DecodeString(StringView str)
+    {
+      return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+    }
+    
     template<class Version>
     class VersionedFormat
     {
@@ -812,12 +819,16 @@ namespace Chiptune
         builder.SetDate(ConvertDate(Source.CreationDate), ConvertDate(Source.SaveDate));
         MetaBuilder& meta = builder.GetMetaBuilder();
         meta.SetProgram(Version::DESCRIPTION);
-        meta.SetTitle(FromCharArray(Source.Title));
-        meta.SetAuthor(FromCharArray(Source.Author));
-        builder.SetComment(FromCharArray(Source.Comment));
-        Strings::Array names(Source.InstrumentNames.size());
-        std::transform(Source.InstrumentNames.begin(), Source.InstrumentNames.end(), names.begin(), &FromCharArray<16>);
-        meta.SetStrings(names);
+        meta.SetTitle(DecodeString(Source.Title));
+        meta.SetAuthor(DecodeString(Source.Author));
+        builder.SetComment(DecodeString(Source.Comment));
+        Strings::Array names;
+        names.reserve(Source.InstrumentNames.size());
+        for (const auto& name : Source.InstrumentNames)
+        {
+          names.push_back(DecodeString(name));
+        }
+        meta.SetStrings(std::move(names));
       }
 
       void ParsePositions(Builder& builder) const

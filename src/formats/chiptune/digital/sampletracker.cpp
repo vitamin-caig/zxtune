@@ -23,6 +23,7 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -76,7 +77,7 @@ namespace Chiptune
       //+0x41
       std::array<uint16_t, MAX_POSITIONS_COUNT> PositionsPtrs;
       //+0xc1
-      char Title[10];
+      std::array<char, 10> Title;
       //+0xcb
       uint8_t LastPositionDoubled;
       //+0xcc
@@ -86,7 +87,7 @@ namespace Chiptune
       //+0x18fc
       uint8_t Padding[4];
       //+0x1900
-      std::array<char[10], SAMPLES_COUNT> SampleNames;
+      std::array<std::array<char, 10>, SAMPLES_COUNT> SampleNames;
       //+0x19a0
       uint8_t Samples[1];
     } PACK_POST;
@@ -133,11 +134,15 @@ namespace Chiptune
       {
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
-        meta.SetTitle(FromCharArray(Source.Title));
+        meta.SetTitle(Strings::OptimizeAscii(Source.Title));
         meta.SetProgram(Text::SAMPLETRACKER_DECODER_DESCRIPTION);
-        Strings::Array names(Source.SampleNames.size());
-        std::transform(Source.SampleNames.begin(), Source.SampleNames.end(), names.begin(), &FromCharArray<10>);
-        meta.SetStrings(names);
+        Strings::Array names;
+        names.reserve(Source.SampleNames.size());
+        for (const auto& name : Source.SampleNames)
+        {
+          names.push_back(Strings::OptimizeAscii(name));
+        }
+        meta.SetStrings(std::move(names));
       }
 
       void ParsePositions(Builder& target) const
