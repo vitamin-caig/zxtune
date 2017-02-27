@@ -13,21 +13,18 @@
 //library includes
 #include <module/attributes.h>
 #include <sound/sound_parameters.h>
-#include <strings/optimize.h>
 #include <time/stamp.h>
 //boost includes
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
-#include <boost/range/adaptor/transformed.hpp>
 
 namespace Module
 {
   void PropertiesHelper::SetNonEmptyProperty(const String& name, const String& value)
   {
-    const String& optimizedValue = Strings::Optimize(value);
-    if (!optimizedValue.empty())
+    if (!value.empty())
     {
-      Delegate.SetValue(name, optimizedValue);
+      Delegate.SetValue(name, value);
     }
   }
 
@@ -75,12 +72,9 @@ namespace Module
   
   void PropertiesHelper::SetStrings(const Strings::Array& strings)
   {
-    String joined = boost::algorithm::join(boost::adaptors::transform(strings, static_cast<String(*)(StringView)>(&Strings::Optimize)), "\n");
+    String joined = boost::algorithm::join(strings, "\n");
     boost::algorithm::trim_all_if(joined, boost::algorithm::is_any_of("\n"));
-    if (!joined.empty())
-    {
-      Delegate.SetValue(ATTR_STRINGS, joined);
-    }
+    SetNonEmptyProperty(ATTR_STRINGS, joined);
   }
   
   void PropertiesHelper::SetVersion(uint_t major, uint_t minor)
