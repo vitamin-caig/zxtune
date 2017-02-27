@@ -91,12 +91,12 @@ namespace
       }
     }
 
-    virtual SizeType GetSize() const
+    SizeType GetSize() const override
     {
       return ConsoleSize;
     }
 
-    virtual void MoveCursorUp(uint_t lines)
+    void MoveCursorUp(uint_t lines) override
     {
       if (IsConsoleOut)
       {
@@ -104,7 +104,7 @@ namespace
       }
     }
 
-    virtual uint_t GetPressedKey() const
+    uint_t GetPressedKey() const override
     {
       struct input_event event;
       if (::read(EventHandle, &event, sizeof(event)) != sizeof(event) ||
@@ -136,7 +136,7 @@ namespace
       }
     }
 
-    virtual void WaitForKeyRelease() const
+    void WaitForKeyRelease() const override
     {
       struct input_event event;
       while (::read(EventHandle, &event, sizeof(event)) != sizeof(event) ||
@@ -149,6 +149,11 @@ namespace
         //TODO: poll for event
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       }
+    }
+
+    void Write(const String& str) const override
+    {
+      StdOut << str;
     }
   private:
     const int EventHandle;

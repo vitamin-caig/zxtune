@@ -95,7 +95,8 @@ namespace
     {
       if (!Silent)
       {
-        StdOut << msg << std::endl;
+        Console::Self().Write(msg);
+        StdOut << std::endl;
       }
     }
 
@@ -119,11 +120,9 @@ namespace
       {
         return;
       }
-      StdOut
-        << std::endl
-        << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props))
-        << Strings::Format(Text::ITEM_INFO_ADDON,
-          Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(), info->ChannelsCount());
+      Message(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
+      Message(Strings::Format(Text::ITEM_INFO_ADDON,
+          Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(), info->ChannelsCount()));
     }
 
     uint_t BeginFrame(Sound::PlaybackControl::State state) override

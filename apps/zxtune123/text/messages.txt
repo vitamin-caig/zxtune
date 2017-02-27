@@ -407,11 +407,10 @@
 > "Playing: [Fullpath]\n"
 > "Type:    [Type]\t"  "Container: [Container]\t" "Program: [Program]\n"
 > "Title:   [Title]\n"
-> "Author:  [Author]\n"
+> "Author:  [Author]"
 
 < ITEM_INFO_ADDON
-> "Time:    %1%\t"     "Channels:  %2%\n"
-> "\n"
+> "\nTime:    %1%\t"     "Channels:  %2%\n"
 
 < INPUT_ERROR_NO_FILES
 > "No files to process."
