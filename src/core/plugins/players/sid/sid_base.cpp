@@ -32,6 +32,8 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 //3rdparty includes
 #include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
@@ -385,6 +387,11 @@ namespace Sid
     Require(params.FindValue(Module::ATTR_CONTAINER, container));
     return container == "SID" || boost::algorithm::ends_with(container, ">SID");
   }
+  
+  String DecodeString(StringView str)
+  {
+    return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+  }
 
   class Factory : public Module::Factory
   {
@@ -410,11 +417,11 @@ namespace Sid
         default:
         case 3:
           //copyright/publisher really
-          props.SetComment(FromStdString(tuneInfo.infoString(2)));
+          props.SetComment(DecodeString(tuneInfo.infoString(2)));
         case 2:
-          props.SetAuthor(FromStdString(tuneInfo.infoString(1)));
+          props.SetAuthor(DecodeString(tuneInfo.infoString(1)));
         case 1:
-          props.SetTitle(FromStdString(tuneInfo.infoString(0)));
+          props.SetTitle(DecodeString(tuneInfo.infoString(0)));
         case 0:
           break;
         }

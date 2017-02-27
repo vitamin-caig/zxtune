@@ -23,6 +23,8 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 #include <time/stamp.h>
 //std includes
 #include <utility>
@@ -458,16 +460,21 @@ namespace Xmp
     const Binary::Format::Ptr Fmt;
   };
   
+  String DecodeString(StringView str)
+  {
+    return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+  }
+  
   void ParseStrings(const xmp_module& mod, PropertiesHelper& props)
   {
     Strings::Array strings;
     for (uint_t idx = 0; idx < mod.smp; ++idx)
     {
-      strings.push_back(FromStdString(mod.xxs[idx].name));
+      strings.push_back(DecodeString(mod.xxs[idx].name));
     }
     for (uint_t idx = 0; idx < mod.ins; ++idx)
     {
-      strings.push_back(FromStdString(mod.xxi[idx].name));
+      strings.push_back(DecodeString(mod.xxi[idx].name));
     }
     props.SetStrings(strings);
   }
@@ -491,12 +498,12 @@ namespace Xmp
         ctx->Call(&::xmp_get_frame_info, &frmInfo);
 
         PropertiesHelper props(*properties);
-        props.SetTitle(FromStdString(modInfo.mod->name));
-        props.SetAuthor(FromStdString(modInfo.mod->author));
-        props.SetProgram(FromStdString(modInfo.mod->type));
+        props.SetTitle(DecodeString(modInfo.mod->name));
+        props.SetAuthor(DecodeString(modInfo.mod->author));
+        props.SetProgram(DecodeString(modInfo.mod->type));
         if (const char* comment = modInfo.comment)
         {
-          props.SetComment(FromStdString(comment));
+          props.SetComment(DecodeString(comment));
         }
         ParseStrings(*modInfo.mod, props);
         const Binary::Container::Ptr data = rawData.GetSubcontainer(0, modInfo.size);

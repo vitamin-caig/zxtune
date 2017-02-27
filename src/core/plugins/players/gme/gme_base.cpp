@@ -32,6 +32,7 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+#include <strings/optimize.h>
 //std includes
 #include <map>
 //boost includes
@@ -313,13 +314,13 @@ namespace GME
     ::track_info_t info;
     gme.GetInfo(info);
     
-    const String& system = FromStdString(info.system);
-    const String& song = FromStdString(info.song);
-    const String& game = FromStdString(info.game);
-    const String& author = FromStdString(info.author);
-    const String& comment = FromStdString(info.comment);
-    const String& copyright = FromStdString(info.copyright);
-    const String& dumper = FromStdString(info.dumper);
+    const auto system = Strings::OptimizeAscii(info.system);
+    const auto song = Strings::OptimizeAscii(info.song);
+    const auto game = Strings::OptimizeAscii(info.game);
+    const auto author = Strings::OptimizeAscii(info.author);
+    const auto comment = Strings::OptimizeAscii(info.comment);
+    const auto copyright = Strings::OptimizeAscii(info.copyright);
+    const auto dumper = Strings::OptimizeAscii(info.dumper);
     
     props.SetComputer(system);
     props.SetTitle(game);
