@@ -13,7 +13,6 @@
 //library includes
 #include <parameters/accessor.h>
 #include <parameters/modifier.h>
-#include <strings/encoding.h>
 //platform includes
 #include <jni.h>
 
@@ -21,8 +20,7 @@ namespace Jni
 {
   inline jstring MakeJstring(JNIEnv* env, const String& str)
   {
-    const String& utf = Strings::ToAutoUtf8(str);
-    return env->NewStringUTF(utf.c_str());
+    return env->NewStringUTF(str.c_str());
   }
 
   inline String MakeString(JNIEnv* env, jstring str)
