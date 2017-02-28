@@ -241,7 +241,7 @@ namespace
 
     void Save(const Binary::Data& data, const String& filename) const
     {
-      const Binary::OutputStream::Ptr stream = IO::CreateStream(ToLocal(filename), *Params, Log::ProgressCallback::Stub());
+      const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, *Params, Log::ProgressCallback::Stub());
       stream->ApplyData(data);
     }
   private:

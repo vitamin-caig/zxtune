@@ -72,8 +72,7 @@ namespace
 
     Binary::Container::Ptr GetData(const String& dataPath) const override
     {
-      const String& localEncodingPath = ToLocal(dataPath);
-      return IO::OpenData(localEncodingPath, *Params, Log::ProgressCallback::Stub());
+      return IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub());
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -345,77 +344,6 @@ namespace
     const String Dir;
   };
 
-  class RecodeStringsAdapter : public Parameters::Accessor
-  {
-  public:
-    explicit RecodeStringsAdapter(Parameters::Accessor::Ptr delegate)
-      : Delegate(std::move(delegate))
-    {
-    }
-
-    uint_t Version() const override
-    {
-      return Delegate->Version();
-    }
-
-    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
-    {
-      return Delegate->FindValue(name, val);
-    }
-    
-    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
-    {
-      if (Delegate->FindValue(name, val))
-      {
-        val = Strings::ToAutoUtf8(val);
-        return true;
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
-    {
-      return Delegate->FindValue(name, val);
-    }
-
-    void Process(Parameters::Visitor& visitor) const override
-    {
-      RecodeVisitorAdapter adapter(visitor);
-      Delegate->Process(adapter);
-    }
-  private:
-    class RecodeVisitorAdapter : public Parameters::Visitor
-    {
-    public:
-      explicit RecodeVisitorAdapter(Parameters::Visitor& delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
-      {
-        Delegate.SetValue(name, val);
-      }
-
-      void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
-      {
-        Delegate.SetValue(name, Strings::ToAutoUtf8(val));
-      }
-
-      void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
-      {
-        Delegate.SetValue(name, val);
-      }
-    private:
-      Parameters::Visitor& Delegate;
-    };
-  private:
-    const Parameters::Accessor::Ptr Delegate;
-  };
-  
   class ModuleSource
   {
   public:
@@ -429,7 +357,7 @@ namespace
     Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
       const Binary::Container::Ptr data = Source->GetData();
-      const auto& subpath = ToLocal(ModuleId->Subpath());
+      const auto& subpath = ModuleId->Subpath();
       const Module::Holder::Ptr module = Module::Open(*CoreParams, data, subpath);
       if (subpath.empty())
       {
@@ -438,7 +366,7 @@ namespace
           Module::ResolveAdditionalFiles(*Source, *files);
         }
       }
-      const Parameters::Accessor::Ptr moduleProps = MakePtr<RecodeStringsAdapter>(module->GetModuleProperties());
+      const Parameters::Accessor::Ptr moduleProps = module->GetModuleProperties();
       const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
       return Module::CreateMixedPropertiesHolder(module, moduleParams);
@@ -447,7 +375,7 @@ namespace
     Binary::Data::Ptr GetModuleData(std::size_t size) const
     {
       const Binary::Container::Ptr data = Source->GetData();
-      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*CoreParams, data, ToLocal(ModuleId->Subpath()));
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*CoreParams, data, ModuleId->Subpath());
       return location->GetData()->GetSubcontainer(0, size);
     }
 
@@ -724,8 +652,8 @@ namespace
       }
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const Module::Information::Ptr info = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr moduleProps = MakePtr<RecodeStringsAdapter>(holder->GetModuleProperties());
-      const IO::Identifier::Ptr moduleId = DataId->WithSubpath(FromLocal(subPath));
+      const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
+      const IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
       const Parameters::Accessor::Ptr pathProps = Module::CreatePathProperties(moduleId);
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
@@ -779,7 +707,7 @@ namespace
 
       const Binary::Container::Ptr data = Provider->GetData(id->Path());
       const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
-      Module::Open(*CoreParams, data, ToLocal(id->Subpath()), detectCallback);
+      Module::Open(*CoreParams, data, id->Subpath(), detectCallback);
     }
   private:
     const CachedDataProvider::Ptr Provider;

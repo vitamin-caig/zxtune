@@ -329,7 +329,7 @@ namespace
       if (ReportTimeout())
       {
         Callback.OnProgress(current);
-        Callback.OnMessage(ToQStringFromLocal(message));
+        Callback.OnMessage(ToQString(message));
         Scheduler.Yield();
       }
     }

@@ -40,7 +40,7 @@ namespace
     }
 
     explicit Device(const Sound::Win32::Device& in)
-      : Name(ToQStringFromLocal(in.Name()))
+      : Name(ToQString(in.Name()))
       , Id(in.Id())
     {
     }
@@ -81,7 +81,7 @@ namespace
 
     void DeviceChanged(const QString& name) override
     {
-      Dbg("Selecting device '%1%'", LocalFromQString(name));
+      Dbg("Selecting device '%1%'", FromQString(name));
       DeviceChanged(boost::bind(&Device::Name, _1) == name);
     }
 

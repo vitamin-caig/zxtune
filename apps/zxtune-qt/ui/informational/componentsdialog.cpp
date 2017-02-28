@@ -229,12 +229,12 @@ namespace
   template<class T>
   QTreeWidgetItem* CreateRootItem(T& root, const String& description, const Error& status)
   {
-    QTreeWidgetItem* const item = new QTreeWidgetItem(&root, QStringList(ToQStringFromLocal(description)));
+    QTreeWidgetItem* const item = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     if (status)
     {
       item->setCheckState(0, Qt::Unchecked);
-      item->setToolTip(0, ToQStringFromLocal(status.ToString()));
+      item->setToolTip(0, ToQString(status.ToString()));
     }
     else
     {

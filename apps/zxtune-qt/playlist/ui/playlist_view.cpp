@@ -254,8 +254,7 @@ namespace
     {
       if (const Error& err = item.GetState())
       {
-        //I/O errors usually gets messages in current locale
-        return ToQStringFromLocal(err.ToString());
+        return ToQString(err.ToString());
       }
       else
       {
