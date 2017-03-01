@@ -23,7 +23,7 @@
 
 namespace Module
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core_players");
 
   // prefix for reverted frequency tables
   const Char REVERT_TABLE_MARK = '~';

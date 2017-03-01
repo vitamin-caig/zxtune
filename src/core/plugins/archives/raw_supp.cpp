@@ -42,7 +42,7 @@
 
 namespace ZXTune
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core_archives");
 
   template<std::size_t Fields>
   class StatisticBuilder

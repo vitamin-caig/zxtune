@@ -26,7 +26,7 @@
 namespace ZXTune
 {
   const Debug::Stream Dbg("Core::ArchivesSupp");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core_archives");
 
   class LoggerHelper
   {
