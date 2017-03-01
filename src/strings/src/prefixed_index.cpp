@@ -9,9 +9,8 @@
 **/
 
 //library includes
+#include <strings/conversion.h>
 #include <strings/prefixed_index.h>
-//std includes
-#include <sstream>
 
 namespace Strings
 {
@@ -22,14 +21,12 @@ namespace Strings
   {
     if (0 == value.compare(0, prefix.size(), prefix))
     {
-      std::basic_istringstream<Char> str(Str.substr(prefix.size()));
-      str >> Index;
-      Valid = !!str;
+      Valid = Parse<decltype(Index)>(value.substr(prefix.size()), Index);
     }
   }
 
   PrefixedIndex::PrefixedIndex(StringView prefix, uint_t index)
-    : Str(prefix.to_string() + std::to_string(index))
+    : Str(prefix.to_string() + ConvertFrom(index))
     , Valid(true)
     , Index(index)
   {

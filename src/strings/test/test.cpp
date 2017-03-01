@@ -8,6 +8,7 @@
 *
 **/
 
+#include <strings/conversion.h>
 #include <strings/encoding.h>
 #include <strings/fields.h>
 #include <strings/fields_filter.h>
@@ -102,6 +103,22 @@ namespace
       std::cout << "Failed test '" << str << "' => '" << reference << "' (result is '" << opt << "')" << std::endl;
     }
   }
+  
+  template<class T>
+  void TestParse(const String& msg, const StringView str, T reference, const StringView restPart)
+  {
+    Test(Strings::ConvertTo<T>(str) == reference, "ConvertTo " + msg);
+    {
+      T ret = 123;
+      Test(Strings::Parse(str, ret) == restPart.empty(), "Parse " + msg);
+      Test(ret == restPart.empty() ? reference : 123, "Parse result " + msg);
+    }
+    {
+      StringView strCopy = str;
+      Test(Strings::ParsePartial<T>(strCopy) == reference, "ParsePartial " + msg);
+      Test(strCopy == restPart, "ParsePartial rest " + msg);
+    }
+  }
 }
 
 int main()
@@ -173,6 +190,12 @@ int main()
         Test(parsed.ToString() == "Prefix456", "Parsed ToString");
       }
       {
+        Strings::PrefixedIndex garbage("Prefix", "Prefix456sub");
+        Test(!garbage.IsValid(), "Garbage IsValid");
+        Test(garbage.GetIndex() == 0, "Garbage GetIndex");
+        Test(garbage.ToString() == "Prefix456sub", "Garbage ToString");
+      }
+      {
         Strings::PrefixedIndex invalid("Prefix", "SomeString");
         Test(!invalid.IsValid(), "Invalid IsValid");
         Test(invalid.GetIndex() == 0, "Invalid GetIndex");
@@ -184,6 +207,19 @@ int main()
         Test(empty.GetIndex() == 0, "Empty GetIndex");
         Test(empty.ToString() == "Prefix", "Empty ToString");
       }
+    }
+    std::cout << "---- Test for conversion ----" << std::endl;
+    {
+      Test(Strings::ConvertFrom(0) == "0", "ConvertFrom zero");
+      Test(Strings::ConvertFrom(12345) == "12345", "ConvertFrom positive");
+      Test(Strings::ConvertFrom(-23456) == "-23456", "ConvertFrom negative");
+      TestParse<int>("zero", "0", 0, "");
+      TestParse<uint8_t>("positive overflow", "123456", uint8_t(123456), "");
+      TestParse<uint_t>("positive", "123456", 123456, "");
+      TestParse<uint64_t>("max positive", "18446744073709551615", 18446744073709551615ULL, "");
+      TestParse<int_t>("negative", "-123456", -123456, "");
+      TestParse<uint_t>("plus positive", "+123456", 123456, "");
+      TestParse<uint_t>("with suffix", "1234M", 1234, "M");
     }
   }
   catch (int code)
