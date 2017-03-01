@@ -21,6 +21,7 @@
 //library includes
 #include <async/data_receiver.h>
 #include <async/src/event.h>
+#include <binary/container_factories.h>
 #include <core/core_parameters.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
@@ -148,10 +149,39 @@ namespace
     return param;
   }
   
+  class TruncateDataEndpoint : public HolderAndData::Receiver
+  {
+  public:
+    explicit TruncateDataEndpoint(Ptr saver)
+      : Saver(std::move(saver))
+    {
+    }
+
+    void ApplyData(HolderAndData data) override
+    {
+      const Parameters::IntType availSize = data.Data->Size();
+      Parameters::IntType usedSize = 0;
+      data.Holder->GetModuleProperties()->FindValue(Module::ATTR_SIZE, usedSize);
+      if (availSize != usedSize)
+      {
+        Require(availSize > usedSize);
+        data.Data = Binary::CreateContainer(std::move(data.Data))->GetSubcontainer(0, usedSize);
+      }
+      Saver->ApplyData(std::move(data));
+    }
+
+    void Flush() override
+    {
+      Saver->Flush();
+    }
+  private:
+    const Ptr Saver;
+  };
+  
   class ConvertEndpoint : public HolderAndData::Receiver
   {
   public:
-    ConvertEndpoint(DisplayComponent& display, const String& mode, const Parameters::Accessor& modeParams, HolderAndData::Receiver::Ptr saver)
+    ConvertEndpoint(DisplayComponent& display, const String& mode, const Parameters::Accessor& modeParams, Ptr saver)
       : Display(display)
       , ConversionParameter(CreateConversionParameters(mode, modeParams))
       , Saver(std::move(saver))
@@ -164,10 +194,7 @@ namespace
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       if (const Binary::Data::Ptr result = Module::Convert(*holder, *ConversionParameter, props))
       {
-        HolderAndData converted;
-        converted.Holder = holder;
-        converted.Data = result;
-        Saver->ApplyData(std::move(converted));
+        Saver->ApplyData({holder, result});
       }
       else
       {
@@ -185,7 +212,7 @@ namespace
   private:
     DisplayComponent& Display;
     const std::unique_ptr<Module::Conversion::Parameter> ConversionParameter;
-    const HolderAndData::Receiver::Ptr Saver;
+    const Ptr Saver;
   };
 
   class Convertor : public OnItemCallback
@@ -201,8 +228,8 @@ namespace
       }
       const HolderAndData::Receiver::Ptr saver(new SaveEndpoint(display, params));
       const HolderAndData::Receiver::Ptr target = mode == Text::CONVERSION_MODE_RAW
-        ? saver
-        : HolderAndData::Receiver::Ptr(new ConvertEndpoint(display, mode, params, saver));
+        ? MakePtr<TruncateDataEndpoint>(saver)
+        : MakePtr<ConvertEndpoint>(display, mode, params, saver);
       Pipe = Async::DataReceiver<HolderAndData>::Create(1, 1000, target);
     }
 
@@ -213,10 +240,7 @@ namespace
 
     void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder) override
     {
-      HolderAndData pair;
-      pair.Holder = holder;
-      pair.Data = data;
-      Pipe->ApplyData(std::move(pair));
+      Pipe->ApplyData({std::move(holder), std::move(data)});
     }
   private:
     HolderAndData::Receiver::Ptr Pipe;
