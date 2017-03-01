@@ -23,6 +23,7 @@
 #include <math/numeric.h>
 #include <strings/encoding.h>
 #include <strings/prefixed_index.h>
+#include <strings/trim.h>
 #include <time/duration.h>
 //std includes
 #include <set>
@@ -53,6 +54,17 @@ namespace PortableSoundFormat
     const char XSFBY_SUFFIX[] = "sfby";
     const char LENGTH[] = "length";
     const char FADE[] = "fade";
+    
+    static String MakeName(StringView str)
+    {
+      String res;
+      res.reserve(str.size());
+      for (const auto sym : str)
+      {
+        res += std::tolower(sym);
+      }
+      return res;
+    }
   }
   
   class Format
@@ -119,9 +131,13 @@ namespace PortableSoundFormat
       String comment;
       while (Stream.GetRestSize())
       {
-        const auto nameVal = ReadTagVariable();
-        const auto name = nameVal.first;
-        const auto valueView = nameVal.second;
+        String name;
+        StringView valueView;
+        if (!ReadTagVariable(name, valueView))
+        {
+          //Blank lines, or lines not of the form "variable=value", are ignored.
+          continue;
+        }
         Dbg("tags[%1%]=%2%", name, valueView);
         if (const auto num = FindLibraryNumber(name))
         {
@@ -186,7 +202,7 @@ namespace PortableSoundFormat
         }
         else
         {
-          target.SetTag(name.to_string(), value);
+          target.SetTag(name, value);
         }
       }
       if (!comment.empty())
@@ -211,12 +227,20 @@ namespace PortableSoundFormat
       return false;
     }
     
-    std::pair<StringView, StringView> ReadTagVariable()
+    bool ReadTagVariable(String& name, StringView& value)
     {
       const auto line = Stream.ReadString();
       const auto eqPos = line.find('=');
-      Require(eqPos != line.npos);
-      return std::make_pair(line.substr(0, eqPos), line.substr(eqPos + 1));
+      if (eqPos != line.npos)
+      {
+        name = Tags::MakeName(Strings::TrimSpaces(line.substr(0, eqPos)));
+        value = Strings::TrimSpaces(line.substr(eqPos + 1));
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
     
     static uint_t FindLibraryNumber(StringView tagName)

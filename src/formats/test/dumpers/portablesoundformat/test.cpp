@@ -272,7 +272,14 @@ int main(int argc, char* argv[])
       Test::OpenFile(filename, *rawData);
       const Binary::Container::Ptr data = Binary::CreateContainer(std::move(rawData));
       PSFDumper builder;
-      Formats::Chiptune::PortableSoundFormat::Parse(*data, builder);
+      if (const auto container = Formats::Chiptune::PortableSoundFormat::Parse(*data, builder))
+      {
+        std::cout << "Done. Processed " << container->Size() << " bytes" << std::endl;
+      }
+      else
+      {
+        std::cout << "Failed to parse" << std::endl;
+      }
       /*
       if (const auto recreated = Reparse(*data))
       {
