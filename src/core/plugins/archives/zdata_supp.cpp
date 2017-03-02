@@ -9,7 +9,6 @@
 **/
 
 //local includes
-#include "core/plugins/utils.h"
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/plugins_types.h"
 #include "core/src/location.h"
@@ -26,6 +25,7 @@
 #include <binary/data_builder.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
+#include <strings/prefixed_index.h>
 //std includes
 #include <algorithm>
 //text includes
@@ -153,8 +153,6 @@ namespace Zdata
   static_assert(sizeof(RawMarker) == 6, "Invalid layout of RawMarker");
   static_assert(sizeof(RawHeader) == 12, "Invalid layout of RawHeader");
 
-  const IndexPathComponent PATH(Text::ZDATA_PLUGIN_PREFIX);
-
   struct Layout
   {
     Layout(const uint8_t* start, const uint8_t* end)
@@ -259,7 +257,7 @@ namespace ZXTune
     const Zdata::Header hdr = Zdata::Compress(input, builder);
     hdr.ToRaw(builder.Get<Zdata::RawHeader>(0));
     const Binary::Container::Ptr data = Zdata::Convert(builder.Get(0), builder.Size());
-    return CreateLocation(data, ID, Zdata::PATH.Build(hdr.Crc));
+    return CreateLocation(data, ID, Strings::PrefixedIndex(Text::ZDATA_PLUGIN_PREFIX, hdr.Crc).ToString());
   }
 }
 
@@ -291,11 +289,11 @@ namespace ZXTune
     DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
-      Parameters::IntType marker;
-      if (Zdata::PATH.GetIndex(pathComp, marker))
+      const Strings::PrefixedIndex pathIndex(Text::ZDATA_PLUGIN_PREFIX, pathComp);
+      if (pathIndex.IsValid())
       {
         const Binary::Data::Ptr rawData = location->GetData();
-        if (const Binary::Container::Ptr decoded = Zdata::Decode(*rawData, Zdata::Marker(static_cast<uint32_t>(marker))))
+        if (const Binary::Container::Ptr decoded = Zdata::Decode(*rawData, Zdata::Marker(static_cast<uint32_t>(pathIndex.GetIndex()))))
         {
           return CreateNestedLocation(location, decoded, ID, pathComp);
         }

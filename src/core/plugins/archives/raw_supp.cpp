@@ -26,6 +26,7 @@
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
 #include <l10n/api.h>
+#include <strings/prefixed_index.h>
 #include <time/duration.h>
 #include <time/timer.h>
 //std includes
@@ -286,8 +287,6 @@ namespace ZXTune
   const std::size_t SCAN_STEP = 1;
   const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
 
-  const IndexPathComponent RawPath(Text::RAW_PLUGIN_PREFIX);
-
   class RawPluginParameters
   {
   public:
@@ -415,7 +414,7 @@ namespace ZXTune
       const Analysis::Path::Ptr parentPath = Parent->GetPath();
       if (std::size_t offset = Subdata->GetOffset())
       {
-        const String subPath = RawPath.Build(offset);
+        const auto subPath = Strings::PrefixedIndex(Text::RAW_PLUGIN_PREFIX, offset).ToString();
         return parentPath->Append(subPath);
       }
       return parentPath;
@@ -784,9 +783,10 @@ namespace ZXTune
     DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
-      std::size_t offset = 0;
-      if (RawPath.GetIndex(pathComp, offset))
+      const Strings::PrefixedIndex pathIndex(Text::RAW_PLUGIN_PREFIX, pathComp);
+      if (pathIndex.IsValid())
       {
+        const auto offset = pathIndex.GetIndex();
         const Binary::Container::Ptr inData = location->GetData();
         const Binary::Container::Ptr subData = inData->GetSubcontainer(offset, inData->Size() - offset);
         return CreateNestedLocation(location, subData, Description->Id(), pathComp); 
