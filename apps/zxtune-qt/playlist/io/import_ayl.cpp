@@ -23,8 +23,10 @@
 #include <devices/aym/chip.h>
 #include <io/api.h>
 #include <module/attributes.h>
+#include <parameters/convert.h>
 #include <parameters/serialize.h>
 #include <sound/sound_parameters.h>
+#include <strings/prefixed_index.h>
 //std includes
 #include <cctype>
 //boost includes
@@ -440,7 +442,7 @@ namespace
     //for AY files FormatSpec is subtune index
     if (boost::algorithm::iends_with(item.Path, FromStdString(".ay")))
     {
-      const String subPath = IndexPathComponent(Text::MULTITRACK_FILENAME_PREFIX).Build(formatSpec);
+      const auto subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, formatSpec).ToString();
       item.Path = AppendSubpath(item.Path, subPath);
     }
   }
@@ -452,7 +454,7 @@ namespace
         !boost::algorithm::iends_with(item.Path, FromStdString(".ym")))
     {
       assert(offset);
-      const String subPath = IndexPathComponent(Text::RAW_PLUGIN_PREFIX).Build(offset);
+      const auto subPath = Strings::PrefixedIndex(Text::RAW_PLUGIN_PREFIX, offset).ToString();
       item.Path = AppendSubpath(item.Path, subPath);
     }
   }
