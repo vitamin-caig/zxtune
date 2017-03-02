@@ -25,7 +25,7 @@ namespace Strings
     }
   }
 
-  PrefixedIndex::PrefixedIndex(StringView prefix, uint_t index)
+  PrefixedIndex::PrefixedIndex(StringView prefix, std::size_t index)
     : Str(prefix.to_string() + ConvertFrom(index))
     , Valid(true)
     , Index(index)

@@ -20,14 +20,14 @@ namespace Strings
   public:
     PrefixedIndex(StringView prefix, StringView value);
 
-    PrefixedIndex(StringView prefix, uint_t index);
+    PrefixedIndex(StringView prefix, std::size_t index);
 
     bool IsValid() const
     {
       return Valid;
     }
 
-    uint_t GetIndex() const
+    std::size_t GetIndex() const
     {
       return Index;
     }
@@ -39,6 +39,6 @@ namespace Strings
   private:
     const String Str;
     bool Valid;
-    uint_t Index;
+    std::size_t Index;
   };
 }
