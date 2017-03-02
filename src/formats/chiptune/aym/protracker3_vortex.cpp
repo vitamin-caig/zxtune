@@ -21,6 +21,7 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/conversion.h>
 #include <strings/format.h>
 //std includes
 #include <array>
@@ -110,74 +111,9 @@ namespace ProTracker3
       param2 ::= ${hexdot2}
     */
     
-    //TODO: extract to common place
-    template<class T>
-    struct ConversionTraits;
-
-    template<>
-    struct ConversionTraits<int>
-    {
-      static int FromString(StringView str)
-      {
-        return static_cast<unsigned>(std::stoi(str.to_string()));
-      }
-    };
-
-    template<>
-    struct ConversionTraits<long>
-    {
-      static int FromString(StringView str)
-      {
-        return static_cast<unsigned>(std::stol(str.to_string()));
-      }
-    };
-
-    template<>
-    struct ConversionTraits<long long>
-    {
-      static int FromString(StringView str)
-      {
-        return static_cast<unsigned>(std::stoll(str.to_string()));
-      }
-    };
-    
-    template<>
-    struct ConversionTraits<unsigned>
-    {
-      static unsigned FromString(StringView str)
-      {
-        return static_cast<unsigned>(std::stoul(str.to_string()));
-      }
-    };
-
-    template<>
-    struct ConversionTraits<unsigned long>
-    {
-      static unsigned FromString(StringView str)
-      {
-        return std::stoul(str.to_string());
-      }
-    };
-    
-    template<>
-    struct ConversionTraits<unsigned long long>
-    {
-      static unsigned FromString(StringView str)
-      {
-        return std::stoull(str.to_string());
-      }
-    };
-    
-    template<class T>
-    inline T FromString(StringView str)
-    {
-      return ConversionTraits<T>::FromString(str);
-    }
-
     /*
       Fundamental types wrappers
     */
-
     template<char True, char False>
     class BoolObject
     {
@@ -381,10 +317,7 @@ namespace ProTracker3
         {
           Valid = true;
           const auto numStr = hdr.substr(start.size(), hdr.size() - start.size() - stop.size());
-          if (!numStr.empty())
-          {
-            Index = FromString<uint_t>(numStr);
-          }
+          Strings::Parse(numStr, Index);
         }
       }
 
@@ -459,7 +392,7 @@ namespace ProTracker3
             resLoop = idx;
             elem = elem.substr(1);
           }
-          Parent::at(idx) = FromString<T>(elem);
+          Parent::at(idx) = Strings::ConvertTo<T>(elem);
         }
         Loop = resLoop == NO_LOOP ? 0 : resLoop;
       }
@@ -525,7 +458,7 @@ namespace ProTracker3
             static const std::string VERSION("3.");
             Require(boost::algorithm::starts_with(entry.Value, VERSION));
             const std::string minorVal = entry.Value.substr(VERSION.size());
-            const auto minor = FromString<uint_t>(minorVal);
+            const auto minor = Strings::ConvertTo<uint_t>(minorVal);
             Require(minor < 10);
             Version = minor;
           }
@@ -539,12 +472,12 @@ namespace ProTracker3
           }
           else if (boost::algorithm::iequals(entry.Name, "NoteTable"))
           {
-            const auto table = FromString<uint_t>(entry.Value);
+            const auto table = Strings::ConvertTo<uint_t>(entry.Value);
             Table = static_cast<NoteTable>(table);
           }
           else if (boost::algorithm::iequals(entry.Name, "Speed"))
           {
-            Tempo = FromString<uint_t>(entry.Value);
+            Tempo = Strings::ConvertTo<uint_t>(entry.Value);
           }
           else if (boost::algorithm::iequals(entry.Name, "PlayOrder"))
           {

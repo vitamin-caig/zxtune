@@ -20,8 +20,8 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/multitrack.h>
-#include <parameters/convert.h>
 #include <strings/array.h>
+#include <strings/conversion.h>
 //std includes
 #include <array>
 #include <map>
@@ -81,12 +81,12 @@ namespace Multitrack
       {
         if (name == DEFSONG)
         {
-          Require(Parameters::ConvertFromString(value, DefaultTrack));
+          Require(Strings::Parse(value, DefaultTrack));
           return;
         }
         else if (name == SONGS)
         {
-          Require(Parameters::ConvertFromString(value, TracksCount));
+          Require(Strings::Parse(value, TracksCount));
         }
         Lines.push_back(name + " " + value);
       }
@@ -122,7 +122,7 @@ namespace Multitrack
         Binary::DataBuilder builder;
         builder.Add(TEXT_SIGNATURE);
         DumpTextPart(builder);
-        AddString(DEFSONG + ' ' + Parameters::ConvertToString(startTrack), builder);
+        AddString(DEFSONG + ' ' + Strings::ConvertFrom(startTrack), builder);
         builder.Add(BINARY_SIGNATURE);
         DumpBinaryPart(builder);
         return builder.CaptureResult();
@@ -158,8 +158,8 @@ namespace Multitrack
       }
     private:
       Strings::Array Lines;
-      Parameters::IntType TracksCount;
-      Parameters::IntType DefaultTrack;
+      uint_t TracksCount;
+      uint_t DefaultTrack;
       std::map<uint_t, Dump> Blocks;
     };
     
