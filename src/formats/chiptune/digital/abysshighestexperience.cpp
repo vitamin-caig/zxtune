@@ -159,8 +159,8 @@ namespace Chiptune
       std::size_t GetTracksOffset() const
       {
         const std::size_t HEADER_SIZE = IsAHX() ? 14 : 16;
-        const constexpr std::size_t SUBSONG_SIZE = 2;
-        const constexpr std::size_t POSITION_CHANNEL_SIZE = 2;
+        const std::size_t SUBSONG_SIZE = 2;
+        const std::size_t POSITION_CHANNEL_SIZE = 2;
         return HEADER_SIZE + SubsongsCount * SUBSONG_SIZE + PositionsCount * ChannelsCount * POSITION_CHANNEL_SIZE;
       }
     };

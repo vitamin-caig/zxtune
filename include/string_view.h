@@ -53,7 +53,7 @@ public:
 
   template<std::size_t D>
   basic_string_view(const std::array<C, D>& str)
-    : basic_string_view(str.begin(), str.size())
+    : basic_string_view(str.data(), str.size())
   {
   }
   

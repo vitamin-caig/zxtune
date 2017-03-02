@@ -19,7 +19,7 @@ namespace Formats
   {
     namespace Playstation2SoundFormat
     {
-      const constexpr uint_t VERSION_ID = 2;
+      const uint_t VERSION_ID = 2;
 
       class Builder
       {

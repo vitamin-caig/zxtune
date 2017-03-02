@@ -295,7 +295,7 @@ namespace Chiptune
     {
       if (const auto hdr = data.GetField<RawHeader>(0))
       {
-        const auto dataBegin = safe_ptr_cast<const uint8_t*>(hdr->Id.begin());
+        const auto dataBegin = safe_ptr_cast<const uint8_t*>(hdr->Id.data());
         const auto dataEnd = dataBegin + std::min(data.GetSize(), MAX_POSITIONS_COUNT + offsetof(RawHeader, Positions) + 1);
         const auto lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
         if (lastPosition != dataEnd && 
@@ -326,7 +326,7 @@ namespace Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Strings::OptimizeAscii(StringView(Source.Id.begin(), Source.Optional1.begin())));
+        meta.SetProgram(Strings::OptimizeAscii(StringView(Source.Id.data(), &Source.Optional1.back() + 1)));
         const RawId& id = Source.Metainfo;
         if (id.HasAuthor())
         {
@@ -335,7 +335,7 @@ namespace Chiptune
         }
         else
         {
-          meta.SetTitle(DecodeString(StringView(id.TrackName.begin(), id.TrackAuthor.end())));
+          meta.SetTitle(DecodeString(StringView(id.TrackName.data(), &id.TrackAuthor.back() + 1)));
         }
         const uint_t version = std::isdigit(Source.Subversion) ? Source.Subversion - '0' : 6;
         builder.SetVersion(version);

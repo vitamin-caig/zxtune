@@ -19,7 +19,7 @@ libraries.common = analysis async \
 libraries.3rdparty = lhasa lzma unrar zlib
 
 libraries.boost = filesystem program_options system
-windows_libraries := advapi32 oldnames
+windows_libraries := advapi32 oldnames shell32
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak

@@ -327,8 +327,8 @@ namespace Chiptune
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
         const auto title = *Source.Title.begin() == '|' && *Source.Title.rbegin() == '|'
-          ? StringView(Source.Title.begin() + 1, Source.Title.end() - 1)
-          : StringView(Source.Title.begin(), Source.Title.end());
+          ? StringView(Source.Title.data() + 1, &Source.Title.back())
+          : StringView(Source.Title);
         meta.SetTitle(Strings::OptimizeAscii(title));
         meta.SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
         Strings::Array names;

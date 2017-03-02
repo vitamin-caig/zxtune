@@ -241,6 +241,7 @@ namespace
     SectionDumper::Ptr Dumper;
   };
   
+  /*
   Binary::Data::Ptr Reparse(const Binary::Container& data)
   {
     try
@@ -254,6 +255,7 @@ namespace
       return Binary::Data::Ptr();
     }
   }
+  */
 }
 
 int main(int argc, char* argv[])

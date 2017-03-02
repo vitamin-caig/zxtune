@@ -13,6 +13,8 @@
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
+//std includes
+#include <cctype>
 //library includes
 #include <formats/chiptune/emulation/playstation2soundformat.h>
 

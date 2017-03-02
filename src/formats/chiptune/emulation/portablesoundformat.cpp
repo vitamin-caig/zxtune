@@ -26,6 +26,7 @@
 #include <strings/trim.h>
 #include <time/duration.h>
 //std includes
+#include <cctype>
 #include <set>
 
 namespace Formats

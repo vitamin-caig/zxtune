@@ -498,11 +498,11 @@ namespace ProTracker3
         Require(!PlayOrder.empty());
 
         SectionHeader("Module").Dump(str);
-        Entry("Version", "3." + std::to_string(Version)).Dump(str);
+        Entry("Version", "3." + Strings::ConvertFrom(Version)).Dump(str);
         Entry("Title", Title).Dump(str);
         Entry("Author", Author).Dump(str);
-        Entry("NoteTable", std::to_string(static_cast<uint_t>(Table))).Dump(str);
-        Entry("Speed", std::to_string(Tempo)).Dump(str);
+        Entry("NoteTable", Strings::ConvertFrom(static_cast<uint_t>(Table))).Dump(str);
+        Entry("Speed", Strings::ConvertFrom(Tempo)).Dump(str);
         str << "PlayOrder=";
         PlayOrder.Dump(str);
         str << '\n';

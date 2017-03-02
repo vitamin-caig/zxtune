@@ -26,7 +26,7 @@ libraries.common = analysis async \
 libraries.3rdparty = gme he hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
 
 #platform
-windows_libraries = advapi32 ole32 oldnames user32
+windows_libraries = advapi32 ole32 oldnames shell32 user32
 mingw_libraries = ole32
 libraries.boost = filesystem program_options system
 

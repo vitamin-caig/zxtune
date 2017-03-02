@@ -34,7 +34,7 @@ namespace Chiptune
     
     struct DirectoryEntry
     {
-      static const constexpr std::size_t RAW_SIZE = 48;
+      static const std::size_t RAW_SIZE = 48;
     
       String Name;
       std::size_t Offset;

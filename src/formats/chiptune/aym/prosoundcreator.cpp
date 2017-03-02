@@ -622,7 +622,7 @@ namespace Chiptune
           }
           else
           {
-            meta.SetTitle(Strings::OptimizeAscii(StringView(Source.Id.Title.begin(), Source.Id.Author.end())));
+            meta.SetTitle(Strings::OptimizeAscii(StringView(Source.Id.Title.data(), &Source.Id.Author.back() + 1)));
           }
         }
       }
