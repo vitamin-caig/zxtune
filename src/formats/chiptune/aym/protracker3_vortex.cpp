@@ -231,9 +231,10 @@ namespace ProTracker3
         uint_t val = Value;
         for (uint_t idx = 0; val && idx != Width; ++idx, val >>= 4)
         {
-          res[Width - idx - 1] = SimpleNibble(val & 15).AsChar();
+          res[Width - idx - 1] = DottedNibble(val & 15).AsChar();
         }
-        Require(val == 0);
+        //VT export ignores wide numbers
+        //Require(val == 0);
         return res;
       }
 
@@ -959,7 +960,7 @@ namespace ProTracker3
           builder.SetGlissade(period, param);
           break;
         case GLISS_DOWN:
-          builder.SetGlissade(period, -param);
+          builder.SetGlissade(period, static_cast<int16_t>(0xff00 + ((-param) & 0xff)));
           break;
         case GLISS_NOTE:
           builder.SetNoteGliss(period, param, 0/*ignored*/);
