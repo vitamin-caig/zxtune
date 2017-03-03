@@ -95,7 +95,6 @@ namespace Devices
 
       uint8_t operator [] (Index reg) const
       {
-        assert(Has(reg));
         return Data[reg];
       }
 
