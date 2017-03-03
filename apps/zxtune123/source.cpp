@@ -262,7 +262,7 @@ namespace
       }
       catch (const Error& e)
       {
-        StdOut << e.ToString();
+        Console::Self().Write(e.ToString());
       }
     }
   private:
