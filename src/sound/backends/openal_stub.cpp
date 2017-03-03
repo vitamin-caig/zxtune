@@ -9,6 +9,7 @@
 **/
 
 //local includes
+#include "openal.h"
 #include "storage.h"
 //library includes
 #include <l10n/api.h>
@@ -21,5 +22,13 @@ namespace Sound
   void RegisterOpenAlBackend(BackendsStorage& storage)
   {
     storage.Register(Text::OPENAL_BACKEND_ID, L10n::translate("OpenAL backend"), CAP_TYPE_SYSTEM); 
+  }
+
+  namespace OpenAl
+  {
+    Strings::Array EnumerateDevices()
+    {
+      return Strings::Array();
+    }
   }
 }
