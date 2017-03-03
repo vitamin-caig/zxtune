@@ -105,7 +105,7 @@ namespace Vortex
       , SampleNum(Formats::Chiptune::ProTracker3::DEFAULT_SAMPLE), PosInSample(0)
       , OrnamentNum(Formats::Chiptune::ProTracker3::DEFAULT_ORNAMENT), PosInOrnament(0)
       , Volume(15), VolSlide(0)
-      , ToneSlider(), SlidingTargetNote(LIMITER), ToneAccumulator(0)
+      , ToneSlider(), SlidingTargetNote(LIMITER), SlidingDelta(0), ToneAccumulator(0)
       , EnvSliding(), NoiseSliding()
       , VibrateCounter(0), VibrateOn(), VibrateOff()
     {
@@ -122,6 +122,7 @@ namespace Vortex
     int_t VolSlide;
     Slider ToneSlider;
     uint_t SlidingTargetNote;
+    int_t SlidingDelta;
     int_t ToneAccumulator;
     int_t EnvSliding;
     int_t NoiseSliding;
@@ -241,16 +242,17 @@ namespace Vortex
           }
           break;
         case GLISS_NOTE:
-          dst.ToneSlider.Period = dst.ToneSlider.Counter = it->Param1;
-          dst.ToneSlider.Delta = it->Param2;
-          dst.SlidingTargetNote = it->Param3;
           dst.VibrateCounter = 0;
+          dst.ToneSlider.Period = dst.ToneSlider.Counter = it->Param1;
+          dst.ToneSlider.Delta = Math::Absolute(it->Param2);
+          dst.SlidingTargetNote = it->Param3;
+          dst.SlidingDelta = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
           if (Version >= 6)
           {
             dst.ToneSlider.Value = prevSlide;
           }
           //tone up                                     freq up
-          if (bool(dst.Note < dst.SlidingTargetNote) != bool(dst.ToneSlider.Delta < 0))
+          if (dst.SlidingDelta - dst.ToneSlider.Value < 0)
           {
             dst.ToneSlider.Delta = -dst.ToneSlider.Delta;
           }
@@ -369,15 +371,11 @@ namespace Vortex
       if (dst.ToneSlider.Update() &&
           LIMITER != dst.SlidingTargetNote)
       {
-        const int_t absoluteSlidingRange = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
-        const int_t realSlidingRange = absoluteSlidingRange - toneOffset;
-
-        if ((dst.ToneSlider.Delta > 0 && realSlidingRange < dst.ToneSlider.Delta) ||
-          (dst.ToneSlider.Delta < 0 && realSlidingRange > dst.ToneSlider.Delta))
+        if ((dst.ToneSlider.Delta < 0 && dst.ToneSlider.Value <= dst.SlidingDelta) ||
+            (dst.ToneSlider.Delta >= 0 && dst.ToneSlider.Value >= dst.SlidingDelta))
         {
           //slided to target note
           dst.Note = dst.SlidingTargetNote;
-          dst.SlidingTargetNote = LIMITER;
           dst.ToneSlider.Value = 0;
           dst.ToneSlider.Counter = 0;
         }
