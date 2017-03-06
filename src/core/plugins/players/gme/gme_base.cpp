@@ -12,10 +12,12 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
+#include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
+#include <binary/compression/zlib_stream.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
@@ -68,9 +70,9 @@ namespace GME
   public:
     typedef std::shared_ptr<GME> Ptr;
     
-    GME(EmuCreator create, const Binary::Data& data, uint_t track)
+    GME(EmuCreator create, Dump data, uint_t track)
       : CreateEmu(create)
-      , Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
+      , Data(std::move(data))
       , Track(track)
       , SoundFreq(0)
     {
@@ -299,13 +301,45 @@ namespace GME
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
-
+  
+  //TODO: rework, extract GYM parsing code to Formats library
+  Dump DefaultDataCreator(const Binary::Data& data)
+  {
+    return Dump(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size());
+  }
+  
   struct PluginDescription
   {
     const Char* const Id;
     const uint_t ChiptuneCaps;
     const EmuCreator CreateEmu;
+    const decltype(&DefaultDataCreator) CreateData;
   };
+  
+  namespace GYM
+  {
+    Dump CreateData(const Binary::Data& data)
+    {
+      Binary::DataInputStream input(data.Start(), data.Size());
+      Binary::DataBuilder output(data.Size());
+      const std::size_t packedSizeOffset = 424;
+      output.Add(input.ReadRawData(packedSizeOffset), packedSizeOffset);
+      if (const auto packedSize = fromLE(input.ReadField<uint32_t>()))
+      {
+        output.Add(uint32_t(0));
+        Binary::Compression::Zlib::Decompress(input, output);
+      }
+      else
+      {
+        output.Add(packedSize);
+        const auto rest = input.GetRestSize();
+        output.Add(input.ReadRawData(rest), rest);
+      }
+      Dump result;
+      output.CaptureResult(result);
+      return result;
+    }
+  }
   
   const Time::Milliseconds PERIOD(20);
   
@@ -366,7 +400,7 @@ namespace GME
             Require(HasContainer(Desc.Id, properties));
           }
 
-          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, *container, container->StartTrackIndex());
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, Desc.CreateData(*container), container->StartTrackIndex());
           PropertiesHelper props(*properties);
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
@@ -410,7 +444,7 @@ namespace GME
       {
         if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
         {
-          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, *container, 0);
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, Desc.CreateData(*container), 0);
           PropertiesHelper props(*properties);
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
@@ -449,7 +483,8 @@ namespace GME
       {
         "NSF",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
-        &Create< ::Nsf_Emu>
+        &Create< ::Nsf_Emu>,
+        &DefaultDataCreator
       },
       &Formats::Multitrack::CreateNSFDecoder,
       &Formats::Chiptune::CreateNSFDecoder,
@@ -459,7 +494,8 @@ namespace GME
       {
         "NSFE",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
-        &Create< ::Nsfe_Emu>
+        &Create< ::Nsfe_Emu>,
+        &DefaultDataCreator
       },
       &Formats::Multitrack::CreateNSFEDecoder,
       &Formats::Chiptune::CreateNSFEDecoder,
@@ -469,7 +505,8 @@ namespace GME
       {
         "GBS",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::LR35902,
-        &Create< ::Gbs_Emu>
+        &Create< ::Gbs_Emu>,
+        &DefaultDataCreator
       },
       &Formats::Multitrack::CreateGBSDecoder,
       &Formats::Chiptune::CreateGBSDecoder,
@@ -479,7 +516,8 @@ namespace GME
       {
         "SAP",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
-        &Create< ::Sap_Emu>
+        &Create< ::Sap_Emu>,
+        &DefaultDataCreator
       },
       &Formats::Multitrack::CreateSAPDecoder,
       &Formats::Chiptune::CreateSAPDecoder,
@@ -489,7 +527,8 @@ namespace GME
       {
         "KSSX",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
-        &Create< ::Kss_Emu>
+        &Create< ::Kss_Emu>,
+        &DefaultDataCreator
       },
       &Formats::Multitrack::CreateKSSXDecoder,
       &Formats::Chiptune::CreateKSSXDecoder
@@ -511,7 +550,8 @@ namespace GME
       {
         "HES",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::HUC6270,
-        &Create< ::Hes_Emu>
+        &Create< ::Hes_Emu>,
+        &DefaultDataCreator
       },
       &Formats::Chiptune::CreateHESDecoder
     },
@@ -520,7 +560,8 @@ namespace GME
       {
         "VGM",
         ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI,
-        &Create< ::Vgm_Emu>
+        &Create< ::Vgm_Emu>,
+        &DefaultDataCreator
       },
       &Formats::Chiptune::CreateVideoGameMusicDecoder
     },
@@ -529,7 +570,8 @@ namespace GME
       {
         "GYM",
         ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI,
-        &Create< ::Gym_Emu>
+        &Create< ::Gym_Emu>,
+        &GYM::CreateData
       },
       &Formats::Chiptune::CreateGYMDecoder
     },
@@ -538,7 +580,8 @@ namespace GME
       {
         "KSS",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
-        &Create< ::Kss_Emu>
+        &Create< ::Kss_Emu>,
+        &DefaultDataCreator
       },
       &Formats::Chiptune::CreateKSSDecoder
     }
