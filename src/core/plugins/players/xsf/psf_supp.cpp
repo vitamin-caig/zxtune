@@ -20,22 +20,21 @@ namespace ZXTune
   void RegisterPSFSupport(PlayerPluginsRegistrator& registrator)
   {
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::DAC | Capabilities::Module::Traits::MULTIFILE;
-    const Module::Factory::Ptr factory = Module::PSF::CreateFactory();
+    const auto factory = Module::PSF::CreateFactory();
     {
       //plugin attributes
       const Char ID[] = {'P', 'S', 'F', 0};
 
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreatePSFDecoder();
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+      const auto decoder = Formats::Chiptune::CreatePSFDecoder();
+      const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       //plugin attributes
       const Char ID[] = {'P', 'S', 'F', '2', 0};
 
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreatePSF2Decoder();
-      const Module::Factory::Ptr factory = Module::PSF::CreateFactory();
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+      const auto decoder = Formats::Chiptune::CreatePSF2Decoder();
+      const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }
