@@ -61,5 +61,6 @@ namespace Formats
     Decoder::Ptr CreateHivelyTrackerDecoder();
     Decoder::Ptr CreatePSFDecoder();
     Decoder::Ptr CreatePSF2Decoder();
+    Decoder::Ptr CreateUSFDecoder();
   }
 }

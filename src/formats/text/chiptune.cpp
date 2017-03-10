@@ -200,6 +200,9 @@ extern const Char TFMMUSICMAKER13_DECODER_DESCRIPTION[] = {
 extern const Char TURBOSOUND_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','S','o','u','n','d',0
 };
+extern const Char ULTRA64SOUNDFORMAT_DECODER_DESCRIPTION[] = {
+  'U','l','t','r','a','6','4',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
+};
 extern const Char VGM_DECODER_DESCRIPTION[] = {
   'V','i','d','e','o',' ','G','a','m','e',' ','M','u','s','i','c',0
 };
