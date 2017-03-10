@@ -13,7 +13,7 @@ libraries.common = analysis \
                    sound strings \
                    tools
 
-libraries.3rdparty = gme he hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
+libraries.3rdparty = gme he hvl lazyusf2 lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
 
 include $(path_step)/makefile.mak
 
