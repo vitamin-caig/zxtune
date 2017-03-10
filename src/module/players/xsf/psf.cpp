@@ -490,8 +490,7 @@ namespace PSF
       , Properties(std::move(properties))
       , Head(std::move(head))
     {
-      CloneContainer(Head.ProgramSection);
-      CloneContainer(Head.ReservedSection);
+      CloneData(Head);
       LoadDependenciesFrom(Head);
     }
     
@@ -532,10 +531,17 @@ namespace PSF
         LoadDependenciesFrom(file);
         const auto it = Dependencies.find(name);
         Require(it != Dependencies.end() && 0 == it->second.Version);
+        CloneData(file);
         it->second = std::move(file);
       }
     }
   private:
+    static void CloneData(XSF::File& file)
+    {
+      CloneContainer(file.ProgramSection);
+      CloneContainer(file.ReservedSection);
+    }
+
     static void CloneContainer(Binary::Container::Ptr& data)
     {
       if (data)
@@ -543,6 +549,7 @@ namespace PSF
         data = Binary::CreateContainer(data->Start(), data->Size());
       }
     }
+
     void LoadDependenciesFrom(const XSF::File& file)
     {
       Require(Head.Version == file.Version);
