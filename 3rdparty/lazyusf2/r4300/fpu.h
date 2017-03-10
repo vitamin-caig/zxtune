@@ -34,6 +34,7 @@
   #define M64P_FPU_INLINE static __inline
   #include <float.h>
   typedef enum { FE_TONEAREST = 0, FE_TOWARDZERO, FE_UPWARD, FE_DOWNWARD } eRoundType;
+  /*
   static void fesetround(eRoundType RoundType)
   {
     static const unsigned int msRound[4] = { _RC_NEAR, _RC_CHOP, _RC_UP, _RC_DOWN };
@@ -45,6 +46,7 @@
   static __inline double trunc(double x) { return (double) (int) x; }
   static __inline float truncf(float x) { return (float) (int) x; }
   #define isnan _isnan
+  */
 #else
   #define M64P_FPU_INLINE static inline
   #include <fenv.h>

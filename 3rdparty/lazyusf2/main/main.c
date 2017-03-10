@@ -135,9 +135,9 @@ m64p_error main_start(usf_state_t * state)
 
     /* take the r4300 emulator mode from the config file at this point and cache it in a global variable */
 #ifdef DEBUG_INFO
-    state->r4300emu = 0;
+    state->r4300emu = CORE_PURE_INTERPRETER;
 #else
-    state->r4300emu = state->enable_trimming_mode ? 0 : 2;
+    state->r4300emu = state->enable_trimming_mode ? CORE_PURE_INTERPRETER : CORE_INTERPRETER;
 #endif
 
     /* set some other core parameters based on the config file values */
