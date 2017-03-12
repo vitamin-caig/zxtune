@@ -18,7 +18,7 @@
 class Console
 {
 public:
-  virtual ~Console() {}
+  virtual ~Console() = default;
 
   typedef std::pair<int_t, int_t> SizeType;
   virtual SizeType GetSize() const = 0;

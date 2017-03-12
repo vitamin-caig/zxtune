@@ -14,9 +14,9 @@
 #include <types.h>
 //library includes
 #include <time/oscillator.h>
-//boost includes
-#include <boost/array.hpp>
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <array>
+#include <memory>
 
 namespace Devices
 {
@@ -29,8 +29,8 @@ namespace Devices
     class ChipIO
     {
     public:
-      typedef boost::shared_ptr<ChipIO> Ptr;
-      virtual ~ChipIO() {}
+      typedef std::shared_ptr<ChipIO> Ptr;
+      virtual ~ChipIO() = default;
 
       virtual uint8_t Read(uint16_t addr) = 0;
       virtual void Write(const Oscillator& timeStamp, uint16_t addr, uint8_t data) = 0;
@@ -57,7 +57,7 @@ namespace Devices
         REG_LAST
       };
 
-      typedef boost::array<uint16_t, REG_LAST> Dump;
+      typedef std::array<uint16_t, REG_LAST> Dump;
       Dump Data;
       uint32_t Mask;
     };
@@ -65,8 +65,8 @@ namespace Devices
     class Chip
     {
     public:
-      typedef boost::shared_ptr<Chip> Ptr;
-      virtual ~Chip() {}
+      typedef std::shared_ptr<Chip> Ptr;
+      virtual ~Chip() = default;
 
       virtual void Reset() = 0;
       virtual void Interrupt() = 0;
@@ -81,8 +81,8 @@ namespace Devices
     class ChipParameters
     {
     public:
-      typedef boost::shared_ptr<const ChipParameters> Ptr;
-      virtual ~ChipParameters() {}
+      typedef std::shared_ptr<const ChipParameters> Ptr;
+      virtual ~ChipParameters() = default;
 
       virtual uint_t Version() const = 0;
       virtual uint_t IntTicks() const = 0;

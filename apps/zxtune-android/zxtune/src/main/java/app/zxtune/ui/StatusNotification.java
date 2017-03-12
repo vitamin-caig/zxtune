@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
+
 import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;

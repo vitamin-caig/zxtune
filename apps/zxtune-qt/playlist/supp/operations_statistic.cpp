@@ -23,23 +23,23 @@ namespace
   public:
     explicit CollectStatisticOperation(Playlist::Item::StatisticTextNotification::Ptr result)
       : SelectedItems()
-      , Result(result)
+      , Result(std::move(result))
     {
     }
 
     CollectStatisticOperation(Playlist::Model::IndexSet::Ptr items, Playlist::Item::StatisticTextNotification::Ptr result)
-      : SelectedItems(items)
-      , Result(result)
+      : SelectedItems(std::move(items))
+      , Result(std::move(result))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       ExecuteOperation(stor, SelectedItems, *this, cb);
       emit ResultAcquired(Result);
     }
   private:
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
       //check for the data first to define is data valid or not
       const String type = data->GetType();

@@ -15,6 +15,8 @@
 #include <make_ptr.h>
 //library includes
 #include <devices/turbosound.h>
+//std includes
+#include <utility>
 
 namespace Devices
 {
@@ -83,12 +85,12 @@ namespace TurboSound
   {
   public:
     explicit HalfLevelMixer(MixerType::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , DelegateRef(*Delegate)
     {
     }
 
-    virtual Sound::Sample ApplyData(const MixerType::InDataType& in) const
+    Sound::Sample ApplyData(const MixerType::InDataType& in) const override
     {
       const Sound::Sample out = DelegateRef.ApplyData(in);
       return Sound::Sample(out.Left() / 2, out.Right() / 2);

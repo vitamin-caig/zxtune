@@ -10,6 +10,9 @@
 
 package app.zxtune.playback;
 
+import android.content.Context;
+import android.net.Uri;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
@@ -17,8 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import android.content.Context;
-import android.net.Uri;
+import app.zxtune.Analytics;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
@@ -52,6 +54,7 @@ public class FileIterator implements Iterator {
       if (lastError != null) {
         throw lastError;
       }
+      accountNoTracksFiles(uris);
       throw new IOException(context.getString(R.string.no_tracks_found));
     }
   }
@@ -131,7 +134,7 @@ public class FileIterator implements Iterator {
       } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
       Log.d(TAG, "Executor shut down");
     } catch (InterruptedException e) {
-      Log.d(TAG, e, "Failed to shutdown executor");
+      Log.w(TAG, e, "Failed to shutdown executor");
     }
   }
   
@@ -241,6 +244,16 @@ public class FileIterator implements Iterator {
       } finally {
         module = null;
       }
+    }
+  }
+
+  private static void accountNoTracksFiles(Uri[] uris) {
+    for (Uri uri : uris) {
+      final String source = uri.getScheme();
+      final String filename = uri.getLastPathSegment();
+      final int extPos = filename.lastIndexOf('.');
+      final String type = extPos != -1 ? filename.substring(extPos + 1) : "None";
+      Analytics.sendNoTracksFoundEvent(source, type);
     }
   }
 }

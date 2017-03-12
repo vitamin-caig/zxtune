@@ -10,10 +10,11 @@
 
 package app.zxtune.fs.modarchive;
 
+import android.content.Context;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import android.content.Context;
 import app.zxtune.fs.HttpProvider;
 import app.zxtune.fs.VfsCache;
 
@@ -95,10 +96,9 @@ public abstract class Catalog {
    */
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
 
-  public static Catalog create(Context context, HttpProvider http) {
+  public static Catalog create(Context context, HttpProvider http, VfsCache cache) throws IOException {
     final Catalog remote = new RemoteCatalog(context, http);
-    final Database db = new Database(context);
-    final VfsCache cacheDir = VfsCache.create(context, "modarchive.org");
-    return new CachingCatalog(remote, db, cacheDir);
+    final Database db = new Database(context, cache);
+    return new CachingCatalog(remote, db);
   }
 }

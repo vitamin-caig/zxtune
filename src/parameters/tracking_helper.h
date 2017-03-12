@@ -20,7 +20,7 @@ namespace Parameters
   {
   public:
     explicit TrackingHelper(typename ParamsType::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
       , Version(~uint_t(0))
     {
     }

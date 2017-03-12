@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <core/module_holder.h>
+#include <module/holder.h>
 #include <sound/backend.h>
 #include <time/stamp.h>
 //std includes
@@ -29,9 +29,9 @@ namespace boost
 class DisplayComponent
 {
 public:
-  typedef std::auto_ptr<DisplayComponent> Ptr;
+  typedef std::unique_ptr<DisplayComponent> Ptr;
 
-  virtual ~DisplayComponent() {}
+  virtual ~DisplayComponent() = default;
 
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;

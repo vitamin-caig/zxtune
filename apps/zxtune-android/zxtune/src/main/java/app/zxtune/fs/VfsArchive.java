@@ -10,15 +10,16 @@
 
 package app.zxtune.fs;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
@@ -257,5 +258,9 @@ public final class VfsArchive {
     public ByteBuffer getContent() throws IOException {
       return null;
     }
+  }
+
+  public static boolean checkIfArchive(VfsDir dir) {
+    return dir instanceof ArchiveRoot || dir instanceof ArchiveDir;
   }
 }

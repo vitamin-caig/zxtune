@@ -6,15 +6,16 @@ static_runtime=1
 
 libraries.common = analysis \
                    binary binary_format \
-                   core core_plugins_archives_stub core_plugins_containers_stub core_plugins_players \
+                   core core_plugins_archives_stub core_plugins_archives_stub core_plugins_players \
                    debug devices_aym devices_beeper devices_dac devices_fm devices_saa devices_z80 \
-                   formats_chiptune formats_packed_lha \
+                   formats_chiptune formats_multitrack formats_packed_lha \
                    l10n_stub \
+                   module \
                    parameters platform_version \
                    sound strings \
                    tools
 
-libraries.3rdparty = lhasa sidplayfp snesspc xmp z80ex zlib
+libraries.3rdparty = gme hvl lhasa sidplayfp snesspc xmp z80ex zlib
 
 windows_libraries := oldnames
 

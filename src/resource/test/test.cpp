@@ -67,7 +67,7 @@ namespace
       LoadFile("nested/dir/file");
     }
 
-    void OnResource(const String& name)
+    void OnResource(const String& name) override
     {
       std::cout << "Found resource file " << name << std::endl;
       Test("Test file exists", 1 == Etalons.count(name));

@@ -10,7 +10,7 @@
 
 #include <make_ptr.h>
 #include <async/activity.h>
-#include <boost/thread/thread.hpp>
+#include <thread>
 #include <iostream>
 
 #define FILE_TAG 238D7960
@@ -32,12 +32,12 @@ namespace
 	class InvalidOperation : public Operation
 	{
 	public:
-		virtual void Prepare()
+		void Prepare() override
 		{
 			throw FailedToPrepareError();
 		}
 		
-		virtual void Execute()
+		void Execute() override
 		{
 			throw Error(THIS_LINE, "Should not be called");
 		}
@@ -46,11 +46,11 @@ namespace
 	class ErrorResultOperation : public Operation
 	{
 	public:
-		virtual void Prepare()
+		void Prepare() override
 		{
 		}
 		
-		virtual void Execute()
+		void Execute() override
 		{
 			throw FailedToExecuteError();
 		}
@@ -59,14 +59,14 @@ namespace
   class LongOperation : public Operation
   {
   public:
-    virtual void Prepare()
+    void Prepare() override
     {
     }
 
-    virtual void Execute()
+    void Execute() override
     {
       std::cout << "    start long activity" << std::endl;
-      boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       std::cout << "    end long activity" << std::endl;
     }
   };
@@ -94,7 +94,7 @@ namespace
 	{
 		std::cout << "Test for valid activity error result" << std::endl;
 		const Activity::Ptr result = Activity::Create(MakePtr<ErrorResultOperation>());
-    boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if (result->IsExecuted())
     {
       throw Error(THIS_LINE, "Activity should be finished");
@@ -110,8 +110,20 @@ namespace
 			{
 				throw Error(THIS_LINE, "Invalid error returned").AddSuberror(err);
 			}
-			std::cout << "Succeed\n";
 		}
+    try
+    {
+      result->Wait();
+			throw Error(THIS_LINE, "Activity::Wait should not reset error status");
+		}
+		catch (const Error& err)
+		{
+			if (err != FailedToExecuteError())
+			{
+				throw Error(THIS_LINE, "Invalid error returned").AddSuberror(err);
+			}
+		}
+		std::cout << "Succeed\n";
 	}
 
 	void TestLongActivity()
@@ -127,6 +139,8 @@ namespace
     {
       throw Error(THIS_LINE, "Activity is still executed");
     }
+    result->Wait();
+    std::cout << "Succeed\n";
   }
 }
 

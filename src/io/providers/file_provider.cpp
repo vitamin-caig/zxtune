@@ -31,7 +31,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/range/end.hpp>
 //text includes
 #include <io/text/io.h>
 
@@ -52,7 +51,7 @@ namespace
     };
     const String::size_type dotPos = in.find('.');
     const String filename = in.substr(0, dotPos);
-    if (boost::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, boost::end(DEPRECATED_NAMES), ToStdString(filename)))
+    if (std::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, std::end(DEPRECATED_NAMES), ToStdString(filename)))
     {
       const String restPart = dotPos != String::npos ? in.substr(dotPos) : String();
       return filename + '~' + restPart;
@@ -98,21 +97,21 @@ namespace IO
       return static_cast<std::size_t>(intVal);
     }
 
-    virtual OverwriteMode Overwrite() const
+    OverwriteMode Overwrite() const override
     {
       Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT;
       Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, intVal);
       return static_cast<OverwriteMode>(intVal);
     }
 
-    virtual bool CreateDirectories() const
+    bool CreateDirectories() const override
     {
       Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT;
       Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, intVal);
       return intVal != 0;
     }
 
-    virtual bool SanitizeNames() const
+    bool SanitizeNames() const override
     {
       Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES_DEFAULT;
       Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, intVal);
@@ -130,35 +129,35 @@ namespace IO
   class FileIdentifier : public Identifier
   {
   public:
-    FileIdentifier(const boost::filesystem::path& path, const String& subpath)
-      : PathValue(path)
-      , SubpathValue(subpath)
+    FileIdentifier(boost::filesystem::path path, String subpath)
+      : PathValue(std::move(path))
+      , SubpathValue(std::move(subpath))
       , FullValue(Serialize())
     {
       Require(!PathValue.empty());
     }
 
-    virtual String Full() const
+    String Full() const override
     {
       return FullValue;
     }
 
-    virtual String Scheme() const
+    String Scheme() const override
     {
       return SCHEME_FILE;
     }
 
-    virtual String Path() const
+    String Path() const override
     {
       return IO::Details::ToString(PathValue.string());
     }
 
-    virtual String Filename() const
+    String Filename() const override
     {
       return IO::Details::ToString(PathValue.filename());
     }
 
-    virtual String Extension() const
+    String Extension() const override
     {
       const String result = IO::Details::ToString(PathValue.extension());
       return result.empty()
@@ -166,12 +165,12 @@ namespace IO
         : result.substr(1);//skip initial dot
     }
 
-    virtual String Subpath() const
+    String Subpath() const override
     {
       return SubpathValue;
     }
 
-    virtual Ptr WithSubpath(const String& subpath) const
+    Ptr WithSubpath(const String& subpath) const override
     {
       return MakePtr<FileIdentifier>(PathValue, subpath);
     }
@@ -207,12 +206,12 @@ namespace IO
       throw Error(THIS_LINE, FromStdString(e.what()));
     }
 
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return Region.get_address();
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return Region.get_size();
     }
@@ -228,14 +227,14 @@ namespace IO
 
   Binary::Data::Ptr ReadFileToMemory(std::ifstream& stream, std::size_t size)
   {
-    std::auto_ptr<Dump> res(new Dump(size));
+    std::unique_ptr<Dump> res(new Dump(size));
     const std::streampos read = stream.read(safe_ptr_cast<char*>(&res->front()), size).tellg();
     if (static_cast<std::size_t>(read) != size)
     {
       throw MakeFormattedError(THIS_LINE, translate("Failed to read %1% bytes. Actually got %2% bytes."), size, read);
     }
     //TODO: Binary::CreateData
-    return Binary::CreateContainer(res);
+    return Binary::CreateContainer(std::move(res));
   }
 
   //since dingux platform does not support wide strings(???) that boost.filesystem v3 requires, specify adapters in return-style
@@ -322,7 +321,7 @@ namespace IO
       }
     }
 
-    virtual void ApplyData(const Binary::Data& data)
+    void ApplyData(const Binary::Data& data) override
     {
       if (!Stream.write(static_cast<const char*>(data.Start()), data.Size()))
       {
@@ -330,7 +329,7 @@ namespace IO
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       if (!Stream.flush())
       {
@@ -338,7 +337,7 @@ namespace IO
       }
     }
 
-    virtual void Seek(uint64_t pos)
+    void Seek(uint64_t pos) override
     {
       if (!Stream.seekp(pos))
       {
@@ -346,7 +345,7 @@ namespace IO
       }
     }
 
-    virtual uint64_t Position() const
+    uint64_t Position() const override
     {
       return const_cast<boost::filesystem::ofstream&>(Stream).tellp();
     }
@@ -439,31 +438,31 @@ namespace IO
   class FileDataProvider : public DataProvider
   {
   public:
-    virtual String Id() const
+    String Id() const override
     {
       return Text::IO_FILE_PROVIDER_ID;
     }
 
-    virtual String Description() const
+    String Description() const override
     {
       return translate("Local files and file:// scheme support");
     }
 
-    virtual Error Status() const
+    Error Status() const override
     {
       return Error();
     }
 
-    virtual Strings::Set Schemes() const
+    Strings::Set Schemes() const override
     {
       static const Char* SCHEMES[] = 
       {
         SCHEME_FILE
       };
-      return Strings::Set(SCHEMES, boost::end(SCHEMES));
+      return Strings::Set(SCHEMES, std::end(SCHEMES));
     }
 
-    virtual Identifier::Ptr Resolve(const String& uri) const
+    Identifier::Ptr Resolve(const String& uri) const override
     {
       const String schemeSign(SCHEME_SIGN);
       const String::size_type schemePos = uri.find(schemeSign);
@@ -478,13 +477,13 @@ namespace IO
         : Identifier::Ptr();
     }
 
-    virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/) const
+    Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/) const override
     {
       const FileProviderParameters parameters(params);
       return Binary::CreateContainer(OpenLocalFile(path, parameters.MemoryMappingThreshold()));
     }
 
-    virtual Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params, Log::ProgressCallback&) const
+    Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params, Log::ProgressCallback&) const override
     {
       const FileProviderParameters parameters(params);
       return CreateLocalFile(path, parameters);

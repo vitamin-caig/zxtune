@@ -15,6 +15,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.SparseIntArray;
+
+import app.zxtune.Analytics;
 import app.zxtune.ScanService;
 import app.zxtune.playlist.Database;
 import app.zxtune.playlist.PlaylistQuery;
@@ -38,6 +40,7 @@ final class PlaylistControlLocal implements PlaylistControl {
     intent.setAction(ScanService.ACTION_START);
     intent.putExtra(ScanService.EXTRA_PATHS, uris);
     context.startService(intent);
+    Analytics.sendPlaylistEvent("Add", Integer.valueOf(uris.length));
   }
   
   @Override
@@ -53,6 +56,7 @@ final class PlaylistControlLocal implements PlaylistControl {
   private void deleteItems(String selection) {
     db.deletePlaylistItems(selection, null);
     notifyPlaylist();
+    Analytics.sendPlaylistEvent("Delete", selection != null ? "selection" : "global");
   }
   
   private void notifyPlaylist() {
@@ -97,6 +101,7 @@ final class PlaylistControlLocal implements PlaylistControl {
     final SparseIntArray positions = getNewPositions(id, delta);
     db.updatePlaylistItemsOrder(positions);
     notifyPlaylist();
+    Analytics.sendPlaylistEvent("Move", null);
   }
   
   private SparseIntArray getNewPositions(long id, int delta) {
@@ -132,5 +137,6 @@ final class PlaylistControlLocal implements PlaylistControl {
     final String orderString = order == SortOrder.desc ? "DESC" : "ASC";
     db.sortPlaylistItems(field, orderString);
     notifyPlaylist();
+    Analytics.sendPlaylistEvent("Sort", by.name() + "/" + order.name());
   }
 }

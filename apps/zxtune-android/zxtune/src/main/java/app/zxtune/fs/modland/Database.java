@@ -10,16 +10,21 @@
 
 package app.zxtune.fs.modland;
 
-import java.util.HashMap;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -63,7 +68,7 @@ final class Database {
               + " INTEGER);";
       }
 
-      Groups(SQLiteOpenHelper helper, String name) {
+      Groups(DBProvider helper, String name) throws IOException {
         super(helper, name, Fields.values().length);
       }
       
@@ -115,7 +120,7 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
               + " INTEGER PRIMARY KEY, " + Fields.path + " TEXT NOT NULL, " + Fields.size + " INTEGER);";
       
-      Tracks(SQLiteOpenHelper helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -145,20 +150,21 @@ final class Database {
         return createQuery(name(category));
       }
       
-      GroupTracks(SQLiteOpenHelper helper, String category) {
+      GroupTracks(DBProvider helper, String category) throws IOException {
         super(helper, name(category), 32);
       }
     }
   }
 
-  private final Helper helper;
+  private final DBProvider helper;
   private final HashMap<String, Tables.Groups> groups;
   private final HashMap<String, Tables.GroupTracks> groupTracks;
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
+  private final VfsCache cacheDir;
 
-  Database(Context context) {
-    this.helper = Helper.create(context);
+  Database(Context context, VfsCache cache) throws IOException {
+    this.helper = new DBProvider(Helper.create(context));
     this.groups = new HashMap<String, Tables.Groups>();
     this.groupTracks = new HashMap<String, Tables.GroupTracks>();
     for (String group : Tables.LIST) {
@@ -167,9 +173,10 @@ final class Database {
     }
     this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
+    this.cacheDir = cache.createNested("ftp.modland.com");
   }
 
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(helper.getWritableDatabase());
   }
 
@@ -182,7 +189,6 @@ final class Database {
   }
   
   final boolean queryGroups(String category, String filter, Catalog.GroupsVisitor visitor) {
-    Log.d(TAG, "query%S(filter=%s)", category, filter);
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = filter.equals("#")
       ? "SUBSTR(" + Tables.Groups.Fields.name + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
@@ -204,7 +210,6 @@ final class Database {
   }
 
   final Group queryGroup(String category, int id) {
-    Log.d(TAG, "query%S(id=%d)", category, id);
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Groups.Fields._id + " = " + id;
     final Cursor cursor = db.query(category, null, selection, null, null, null, null);
@@ -263,6 +268,14 @@ final class Database {
 
   final void addGroupTrack(String category, int id, Track obj) {
     groupTracks.get(category).add(id, obj.id);
+  }
+
+  final ByteBuffer getTrackContent(String id) {
+    return cacheDir.getCachedFileContent(id);
+  }
+
+  final void addTrackContent(String id, ByteBuffer content) {
+    cacheDir.putCachedFileContent(id, content);
   }
 
   private static class Helper extends SQLiteOpenHelper {

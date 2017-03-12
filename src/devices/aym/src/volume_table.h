@@ -23,8 +23,8 @@ namespace AYM
   {
   public:
     MultiVolumeTable()
-      : Table(0)
-      , Layout(0)
+      : Table(nullptr)
+      , Layout(nullptr)
     {
     }
 
@@ -84,7 +84,7 @@ namespace AYM
       return Sound::Sample::MID + val * (Sound::Sample::MAX - Sound::Sample::MID) / (Sound::Sample::MAX - Sound::Sample::MIN);
     }
 
-    typedef boost::array<uint_t, SOUND_CHANNELS> LayoutData;
+    typedef std::array<uint_t, SOUND_CHANNELS> LayoutData;
 
     static const LayoutData* GetLayout(LayoutType type)
     {
@@ -98,7 +98,7 @@ namespace AYM
         { {2, 0, 1} }, //CAB
       };
       return type == LAYOUT_MONO
-        ? 0
+        ? nullptr
         : LAYOUTS + type;
     }
 
@@ -140,7 +140,7 @@ namespace AYM
   private:
     const Sound::Sample::Type* Table;
     const LayoutData* Layout;
-    boost::array<Sound::Sample, 1 << SOUND_CHANNELS * BITS_PER_LEVEL> Lookup;
+    std::array<Sound::Sample, 1 << SOUND_CHANNELS * BITS_PER_LEVEL> Lookup;
   };
 }
 }

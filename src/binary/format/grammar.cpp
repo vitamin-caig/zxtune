@@ -27,7 +27,7 @@ namespace FormatDSL
   class SpaceDelimitersTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
+    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
     {
       static const std::string SPACES(" \n\t\r");
       return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(SPACES)
@@ -39,7 +39,7 @@ namespace FormatDSL
   class SymbolDelimitersTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
+    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
     {
       static const char DELIMITERS[] = {DELIMITER_TEXT, 0};
       return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(DELIMITERS)
@@ -51,7 +51,7 @@ namespace FormatDSL
   class DecimalNumbersTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
+    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
     {
       return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(DIGITS)
         ? LexicalAnalysis::INVALID_TOKEN
@@ -62,7 +62,7 @@ namespace FormatDSL
   class CharacterTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
+    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
     {
       return lexeme.empty() || lexeme[0] != SYMBOL_TEXT
         ? LexicalAnalysis::INVALID_TOKEN
@@ -73,7 +73,7 @@ namespace FormatDSL
   class AnyMaskTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
+    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
     {
       static const char MASKS[] = {ANY_BYTE_TEXT, 0};
       return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(MASKS)
@@ -85,7 +85,7 @@ namespace FormatDSL
   class BinaryMaskTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
+    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
     {
       static const std::string ANY_BITS = std::string(1, ANY_BIT_TEXT) + char(std::toupper(ANY_BIT_TEXT));
       static const std::string BITMATCHES = BINDIGITS + ANY_BITS;
@@ -108,7 +108,7 @@ namespace FormatDSL
   class HexadecimalMaskTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
+    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
     {
       static const std::string ANY_NIBBLES = std::string(1, ANY_NIBBLE_TEXT) + char(std::toupper(ANY_NIBBLE_TEXT));
       static const std::string HEX_TOKENS = HEXDIGITS + ANY_NIBBLES;
@@ -130,7 +130,7 @@ namespace FormatDSL
   class MultiplicityMaskTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
+    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
     {
       if (lexeme.empty() || lexeme[0] != MULTIPLICITY_TEXT)
       {
@@ -152,7 +152,7 @@ namespace FormatDSL
   class OperationTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
+    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
     {
       static const char OPERATIONS[] = {RANGE_TEXT, CONJUNCTION_TEXT, DISJUNCTION_TEXT,
         QUANTOR_BEGIN, QUANTOR_END, GROUP_BEGIN, GROUP_END, 0};
@@ -179,12 +179,12 @@ namespace FormatDSL
       Delegate->AddTokenizer(MakePtr<OperationTokenizer>());
     }
 
-    void AddTokenizer(LexicalAnalysis::Tokenizer::Ptr tokenizer)
+    void AddTokenizer(LexicalAnalysis::Tokenizer::Ptr tokenizer) override
     {
-      return Delegate->AddTokenizer(tokenizer);
+      return Delegate->AddTokenizer(std::move(tokenizer));
     }
 
-    virtual void Analyse(const std::string& notation, LexicalAnalysis::Grammar::Callback& cb) const
+    void Analyse(const std::string& notation, LexicalAnalysis::Grammar::Callback& cb) const override
     {
       return Delegate->Analyse(notation, cb);
     }

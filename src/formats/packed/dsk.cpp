@@ -15,12 +15,11 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/packed.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/packed.h>
 
@@ -33,7 +32,7 @@ namespace Packed
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    typedef boost::array<uint8_t, 34> DiskSignatureType;
+    typedef std::array<uint8_t, 34> DiskSignatureType;
     
     const DiskSignatureType DISK_SIGNATURE =
     {{
@@ -56,7 +55,7 @@ namespace Packed
       }
     } PACK_POST;
 
-    typedef boost::array<uint8_t, 12> TrackSignatureType;
+    typedef std::array<uint8_t, 12> TrackSignatureType;
     
     const TrackSignatureType TRACK_SIGNATURE =
     {{
@@ -84,7 +83,7 @@ namespace Packed
       uint8_t SectorsCount;
       uint8_t GAPLength;
       uint8_t Filler;
-      boost::array<SectorInfo, 29> Sectors;
+      std::array<SectorInfo, 29> Sectors;
     } PACK_POST;
     
     const DiskSignatureType EXTENDED_DISK_SIGNATURE =
@@ -111,10 +110,10 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(DiskInformationBlock) == 256);
-    BOOST_STATIC_ASSERT(sizeof(TrackInformationBlock::SectorInfo) == 8);
-    BOOST_STATIC_ASSERT(sizeof(TrackInformationBlock) == 256);
-    BOOST_STATIC_ASSERT(sizeof(ExtendedDiskInformationBlock) == 256);
+    static_assert(sizeof(DiskInformationBlock) == 256, "Invalid layout");
+    static_assert(sizeof(TrackInformationBlock::SectorInfo) == 8, "Invalid layout");
+    static_assert(sizeof(TrackInformationBlock) == 256, "Invalid layout");
+    static_assert(sizeof(ExtendedDiskInformationBlock) == 256, "Invalid layout");
     
     inline std::size_t GetSectorDataSize(uint_t sectorSize)
     {
@@ -158,7 +157,7 @@ namespace Packed
           for (uint_t side = 0; side != diskInfo.Sides; ++side)
           {
             const std::size_t trackSize = diskInfo.GetTrackSize();
-            const Binary::Container::Ptr trackData = Binary::CreateNonCopyContainer(diskStream.ReadData(trackSize), trackSize);
+            const auto trackData = diskStream.ReadData(trackSize);
             ParseTrack(*trackData);
           }
         }
@@ -176,7 +175,7 @@ namespace Packed
           {
             if (const std::size_t trackSize = diskInfo.GetTrackSize(cylinder))
             {
-              const Binary::Container::Ptr trackData = Binary::CreateNonCopyContainer(diskStream.ReadData(trackSize), trackSize);
+              const auto trackData = diskStream.ReadData(trackSize);
               ParseExtendedTrack(*trackData);
             }
           }
@@ -196,7 +195,7 @@ namespace Packed
           const std::size_t rawSectorSize = GetSectorDataSize(trackInfo.SectorSize);
           const std::size_t usedSectorSize = GetSectorDataSize(sectorInfo.Size);
           Require(rawSectorSize >= usedSectorSize);
-          const uint8_t* const sectorData = trackStream.ReadData(rawSectorSize);
+          const auto sectorData = trackStream.ReadRawData(rawSectorSize);
           Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector), Dump(sectorData, sectorData + usedSectorSize));
         }
       }
@@ -212,7 +211,7 @@ namespace Packed
           const TrackInformationBlock::SectorInfo& sectorInfo = trackInfo.Sectors[sector];
           if (const std::size_t sectorSize = fromLE(sectorInfo.ActualDataSize))
           {
-            const uint8_t* const sectorData = trackStream.ReadData(sectorSize);
+            const auto sectorData = trackStream.ReadRawData(sectorSize);
             Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector), Dump(sectorData, sectorData + sectorSize));
           }
         }
@@ -257,17 +256,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::DSK_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

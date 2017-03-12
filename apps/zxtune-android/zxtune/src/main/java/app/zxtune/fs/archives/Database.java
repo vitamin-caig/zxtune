@@ -10,14 +10,17 @@
 
 package app.zxtune.fs.archives;
 
-import java.util.concurrent.TimeUnit;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.Log;
+import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
@@ -148,7 +151,7 @@ class Database {
             "END;";
       };
       
-      Archives(SQLiteOpenHelper helper) {
+      Archives(DBProvider helper) throws IOException {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
       
@@ -191,7 +194,7 @@ class Database {
             "END;";
       };
       
-      Tracks(SQLiteOpenHelper helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
       
@@ -244,7 +247,7 @@ class Database {
             "END;";
       };
       
-      Dirs(SQLiteOpenHelper helper) {
+      Dirs(DBProvider helper) throws IOException {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
       
@@ -270,19 +273,19 @@ class Database {
     }
   }
 
-  private final DBHelper dbHelper;
+  private final DBProvider dbHelper;
   private final Tables.Archives archives;
   private final Tables.Dirs dirs;
   private final Tables.Tracks tracks;
 
-  Database(Context context) {
-    this.dbHelper = new DBHelper(context);
+  Database(Context context) throws IOException {
+    this.dbHelper = new DBProvider(new DBHelper(context));
     this.archives = new Tables.Archives(dbHelper);
     this.dirs = new Tables.Dirs(dbHelper);
     this.tracks = new Tables.Tracks(dbHelper);
   }
   
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(dbHelper.getWritableDatabase());
   }
   

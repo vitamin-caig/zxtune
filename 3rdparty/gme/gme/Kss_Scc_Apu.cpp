@@ -53,13 +53,14 @@ int Scc_Apu::osc_status( voice_status_t* buf, int buf_size ) const
 			continue;
 		}
 		const osc_t& osc = oscs [idx];
+		const Blip_Buffer* const out = osc.output;
 		const blip_time_t period = (regs [0xA0 + idx * 2 + 1] & 0x0F) * 0x100 + regs [0xA0 + idx * 2] + 1;
 		const int volume = regs [0xAA + idx] & 0x0F;
-		if ( period != 0 && volume != 0 )
+		if ( out != 0 && period != 0 && volume != 0 )
 		{
 			buf[voices].level = volume * voice_max_level / 15;
 			buf[voices].divider = period * wave_size;
-			buf[voices].frequency = osc.output->clock_rate();
+			buf[voices].frequency = out->clock_rate();
 			++voices;
 		}
 	}

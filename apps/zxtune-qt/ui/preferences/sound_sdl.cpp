@@ -17,6 +17,8 @@
 #include <contract.h>
 //library includes
 #include <sound/backends_parameters.h>
+//std includes
+#include <utility>
 
 namespace
 {
@@ -35,25 +37,19 @@ namespace
       Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
     }
 
-    virtual Parameters::Container::Ptr GetSettings() const
-    {
-      //TODO
-      return Parameters::Container::Ptr();
-    }
-
-    virtual String GetBackendId() const
+    String GetBackendId() const override
     {
       static const Char ID[] = {'s', 'd', 'l', '\0'};
       return ID;
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       return nameGroup->title();
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

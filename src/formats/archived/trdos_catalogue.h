@@ -20,7 +20,7 @@ namespace TRDos
   class File : public Formats::Archived::File
   {
   public:
-    typedef boost::shared_ptr<const File> Ptr;
+    typedef std::shared_ptr<const File> Ptr;
 
     virtual std::size_t GetOffset() const = 0;
 
@@ -31,8 +31,8 @@ namespace TRDos
   class CatalogueBuilder
   {
   public:
-    typedef std::auto_ptr<CatalogueBuilder> Ptr;
-    virtual ~CatalogueBuilder() {}
+    typedef std::unique_ptr<CatalogueBuilder> Ptr;
+    virtual ~CatalogueBuilder() = default;
 
     virtual void SetRawData(Binary::Container::Ptr data) = 0;
     virtual void AddFile(File::Ptr file) = 0;

@@ -14,10 +14,12 @@
 #include <parameters/accessor.h>
 #include <sound/matrix_mixer.h>
 #include <sound/mixer_parameters.h>
+//std includes
+#include <utility>
 
 namespace Sound
 {
-  typedef boost::array<Gain::Type, Sample::CHANNELS> MultiConfigValue;
+  typedef std::array<Gain::Type, Sample::CHANNELS> MultiConfigValue;
   const int_t CONFIG_VALUE_PRECISION = 100;
 
   void GetMatrixRow(const Parameters::Accessor& params, uint_t channels, uint_t inChan, MultiConfigValue& out)
@@ -57,12 +59,12 @@ namespace Sound
   public:
     MixerNotificationParameters(Parameters::Accessor::Ptr params, typename MixerType::Ptr mixer)
       : Params(params)
-      , Mixer(mixer)
+      , Mixer(std::move(mixer))
       , LastVersion(~params->Version())
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       const uint_t newVers = Params->Version();
       if (newVers != LastVersion)
@@ -73,22 +75,22 @@ namespace Sound
       return newVers;
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       return Params->FindValue(name, val);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       return Params->FindValue(name, val);
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
     {
       return Params->FindValue(name, val);
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       return Params->Process(visitor);
     }

@@ -12,8 +12,8 @@
 
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 //! @class Error
 //! @brief Error subsystem core class. Can be used as a return value or throw object
@@ -21,7 +21,7 @@ class Error
 {
   // internal types
   struct Meta;
-  typedef boost::shared_ptr<Meta> MetaPtr;
+  typedef std::shared_ptr<Meta> MetaPtr;
 
   void TrueFunc() const
   {
@@ -38,7 +38,7 @@ public:
   struct Location
   {
     //! Default constructor
-    Location() : Tag(0), File(0), Function(0), Line(0)
+    Location() : Tag(0), File(nullptr), Function(nullptr), Line(0)
     {
     }
     //! Full parameters list constructor
@@ -73,20 +73,23 @@ public:
 #endif
   //@{
   //! @name Error initializers
-  Error();//success
+  Error() = default;//success
 
   //! @code
   //! return Error(THIS_LINE, ERROR_TEXT);
   //! @endcode
   Error(LocationRef loc, const String& text);
 
-  Error(const Error& rh) : ErrorMeta(rh.ErrorMeta)
+  Error(const Error&) = default;
+  Error(Error&& rh)// = default
+    : ErrorMeta(std::move(rh.ErrorMeta))
   {
   }
-
-  Error& operator = (const Error& rh)
+  
+  Error& operator = (const Error&) = default;
+  Error& operator = (Error&& rh)// = default;
   {
-    ErrorMeta = rh.ErrorMeta;
+    ErrorMeta = std::move(rh.ErrorMeta);
     return *this;
   }
   //@}
@@ -126,7 +129,7 @@ public:
   String ToString() const throw();
   //@}
 private:
-  Error(MetaPtr ptr) : ErrorMeta(ptr)
+  explicit Error(MetaPtr ptr) : ErrorMeta(std::move(ptr))
   {
   }
 private:

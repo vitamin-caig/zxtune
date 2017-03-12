@@ -19,9 +19,9 @@
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
+#include <functional>
 #include <numeric>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -36,7 +36,7 @@ namespace Packed
 #endif
     PACK_PRE struct Header
     {
-      boost::array<uint8_t, 9> Filename;
+      std::array<uint8_t, 9> Filename;
       uint16_t Start;
       uint16_t Length;
       uint16_t FullLength;
@@ -46,7 +46,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 17);
+    static_assert(sizeof(Header) == 17, "Invalid layout");
     const std::size_t MIN_SIZE = 0x100;
     const std::size_t MAX_SIZE = 0xff00;
 
@@ -98,17 +98,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::HOBETA_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
+    Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

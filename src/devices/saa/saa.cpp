@@ -25,13 +25,14 @@
 #include <limits>
 #include <memory>
 #include <numeric>
+#include <utility>
 
 namespace Devices
 {
 namespace SAA
 {
-  BOOST_STATIC_ASSERT(Registers::TOTAL <= 8 * sizeof(uint_t));
-  BOOST_STATIC_ASSERT(sizeof(Registers) == 32);
+  static_assert(Registers::TOTAL <= 8 * sizeof(uint_t), "Too many registers for mask");
+  static_assert(sizeof(Registers) == 32, "Invalid layout");
 
   class SAARenderer
   {
@@ -194,7 +195,7 @@ namespace SAA
       Clock.Reset();
       ClockFreq = 0;
       SoundFreq = 0;
-      Current = 0;
+      Current = nullptr;
     }
 
     void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
@@ -242,15 +243,15 @@ namespace SAA
   {
   public:
     RegularSAAChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
-      : Params(params)
-      , Target(target)
+      : Params(std::move(params))
+      , Target(std::move(target))
       , Clock()
       , Renderers(Clock, PSG)
     {
       RegularSAAChip::Reset();
     }
 
-    virtual void RenderData(const DataChunk& src)
+    void RenderData(const DataChunk& src) override
     {
       if (Clock.HasSamplesBefore(src.TimeStamp))
       {
@@ -260,22 +261,22 @@ namespace SAA
       PSG.SetNewData(src.Data);
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       PSG.Reset();
       Renderers.Reset();
     }
 
-    virtual void GetState(MultiChannelState& state) const
+    MultiChannelState GetState() const override
     {
       MultiChannelState res;
       PSG.GetState(res);
-      for (MultiChannelState::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
+      for (auto& state : res)
       {
-        it->Band = Analyser.GetBandByPeriod(it->Band);
+        state.Band = Analyser.GetBandByPeriod(state.Band);
       }
-      state.swap(res);
+      return res;
     }
   private:
     void SynchronizeParameters()
@@ -296,7 +297,7 @@ namespace SAA
       Sound::ChunkBuilder builder;
       builder.Reserve(samples);
       Renderers.Render(stamp, samples, builder);
-      Target->ApplyData(builder.GetResult());
+      Target->ApplyData(builder.CaptureResult());
       Target->Flush();
     }
   private:

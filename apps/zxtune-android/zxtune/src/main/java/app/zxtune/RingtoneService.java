@@ -10,12 +10,6 @@
 
 package app.zxtune;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InvalidObjectException;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.content.ContentUris;
@@ -30,6 +24,13 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.sound.PlayerEventsListener;
@@ -64,7 +65,7 @@ public class RingtoneService extends IntentService {
   }
   
   private void makeToast(Exception e) {
-    Log.d(TAG, e, "Failed to create ringtone");
+    Log.w(TAG, e, "Failed to create ringtone");
     final Throwable cause = e.getCause();
     final String msg = cause != null ? cause.getMessage() : e.getMessage();
     final String txt = getString(R.string.ringtone_creating_failed, msg);
@@ -108,10 +109,12 @@ public class RingtoneService extends IntentService {
         convert(item, howMuch, target);
         final String title = setAsRingtone(item, howMuch, target);
         showNotification(title);
+        Analytics.sendSocialEvent("Ringtone", "app.zxtune", item);
       } finally {
         item.release();
       }
     } catch (Exception e) {
+      Log.w(TAG, e, "Failed to create ringtone");
       makeToast(e);
     }
   }
@@ -163,7 +166,7 @@ public class RingtoneService extends IntentService {
     final Uri ringtoneUri = createOrUpdateRingtone(values);
     
     RingtoneManager.setActualDefaultRingtoneUri(this, RingtoneManager.TYPE_RINGTONE, ringtoneUri);
-    
+
     return values.getAsString(MediaStore.MediaColumns.TITLE);
   }
   
@@ -224,6 +227,7 @@ public class RingtoneService extends IntentService {
       this.player = player;
       this.limit = limit;
       player.setPosition(0);
+      player.setProperty(ZXTune.Properties.Sound.LOOPED, 1);
     }
     
     @Override

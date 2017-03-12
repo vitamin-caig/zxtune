@@ -10,9 +10,10 @@
 
 package app.zxtune.playlist;
 
+import android.database.Cursor;
+
 import java.util.concurrent.TimeUnit;
 
-import android.database.Cursor;
 import app.zxtune.TimeStamp;
 
 public class Statistics {

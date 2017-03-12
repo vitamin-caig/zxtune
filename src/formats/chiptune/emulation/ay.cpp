@@ -23,12 +23,12 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/chiptune.h>
+#include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
 #include <list>
-//boost includes
-#include <boost/array.hpp>
-#include <boost/range/end.hpp>
+#include <type_traits>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -96,7 +96,9 @@ namespace Chiptune
   #pragma pack(pop)
   #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 0x14);
+    static_assert(sizeof(Header) == 0x14, "Invalid layout");
+    
+    const std::size_t MAX_SIZE = 1048576;
 
     class Parser
     {
@@ -114,7 +116,7 @@ namespace Chiptune
       const T& GetField(std::size_t offset) const
       {
         const T* const res = Delegate.GetField<T>(offset);
-        Require(res != 0);
+        Require(res != nullptr);
         Require(Ranges->AddRange(offset, sizeof(T)));
         return *res;
       }
@@ -123,6 +125,7 @@ namespace Chiptune
       const T& PeekField(const int16_t* beField, std::size_t idx = 0) const
       {
         const uint8_t* const result = GetPointer(beField) + sizeof(T) * idx;
+        Require(result + sizeof(T) <= Finish);
         return *safe_ptr_cast<const T*>(result);
       }
 
@@ -186,13 +189,13 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetAuthor(const String& /*author*/) {}
-      virtual void SetComment(const String& /*comment*/) {}
-      virtual void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) {}
-      virtual void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) {}
-      virtual void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) {}
-      virtual void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) {}
+      void SetTitle(const String& /*title*/) override {}
+      void SetAuthor(const String& /*author*/) override {}
+      void SetComment(const String& /*comment*/) override {}
+      void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) override {}
+      void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) override {}
+      void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) override {}
+      void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) override {}
     };
 
     const std::string HEADER_FORMAT(
@@ -214,22 +217,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::AY_EMUL_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return GetModulesCount(rawData) == 1;
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, 0, stub);
@@ -255,15 +258,15 @@ namespace Chiptune
             0xcd, 0, 0, //call routine (+9)
             0x18, 0xf7 //jr loop
           };
-          BOOST_STATIC_ASSERT(sizeof(Im1Player) == sizeof(PLAYER_TEMPLATE));
-          std::copy(PLAYER_TEMPLATE, boost::end(PLAYER_TEMPLATE), Data.begin());
+          static_assert(sizeof(Im1Player) == sizeof(PLAYER_TEMPLATE), "Invalid layout");
+          std::copy(PLAYER_TEMPLATE, std::end(PLAYER_TEMPLATE), Data.begin());
           Data[0x2] = init & 0xff;
           Data[0x3] = init >> 8;
           Data[0x9] = introutine & 0xff;
           Data[0xa] = introutine >> 8; //call routine
         }
       private:
-        boost::array<uint8_t, 13> Data;
+        std::array<uint8_t, 13> Data;
       };
 
       class Im2Player
@@ -280,36 +283,36 @@ namespace Chiptune
             0x76, //halt
             0x18, 0xfa //jr loop
           };
-          BOOST_STATIC_ASSERT(sizeof(Im2Player) == sizeof(PLAYER_TEMPLATE));
-          std::copy(PLAYER_TEMPLATE, boost::end(PLAYER_TEMPLATE), Data.begin());
+          static_assert(sizeof(Im2Player) == sizeof(PLAYER_TEMPLATE), "Invalid layout");
+          std::copy(PLAYER_TEMPLATE, std::end(PLAYER_TEMPLATE), Data.begin());
           Data[0x2] = init & 0xff;
           Data[0x3] = init >> 8;
         }
       private:
-        boost::array<uint8_t, 10> Data;
+        std::array<uint8_t, 10> Data;
       };
     public:
-      virtual void SetTitle(const String& /*title*/)
+      void SetTitle(const String& /*title*/) override
       {
       }
 
-      virtual void SetAuthor(const String& /*author*/)
+      void SetAuthor(const String& /*author*/) override
       {
       }
 
-      virtual void SetComment(const String& /*comment*/)
+      void SetComment(const String& /*comment*/) override
       {
       }
 
-      virtual void SetDuration(uint_t /*total*/, uint_t /*fadeout*/)
+      void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) override
       {
       }
 
-      virtual void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/)
+      void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) override
       {
       }
 
-      virtual void SetRoutines(uint16_t init, uint16_t play)
+      void SetRoutines(uint16_t init, uint16_t play) override
       {
         assert(init);
         if (play)
@@ -324,14 +327,14 @@ namespace Chiptune
         }
       }
 
-      virtual void AddBlock(uint16_t addr, const void* src, std::size_t size)
+      void AddBlock(uint16_t addr, const void* src, std::size_t size) override
       {
         Dump& data = AllocateData();
         const std::size_t toCopy = std::min(size, data.size() - addr);
         std::memcpy(&data[addr], src, toCopy);
       }
 
-      virtual Binary::Container::Ptr Result() const
+      Binary::Container::Ptr Result() const override
       {
         return Data
           ? Binary::CreateContainer(Data, 0, Data->size())
@@ -358,7 +361,7 @@ namespace Chiptune
         std::memset(&data[offset], src, toFill);
       }
     private:
-      boost::shared_ptr<Dump> Data;
+      std::shared_ptr<Dump> Data;
     };
 
     class FileBuilder : public BlobBuilder
@@ -369,7 +372,7 @@ namespace Chiptune
       public:
         VariableDump()
         {
-          reserve(1000000);
+          reserve(MAX_SIZE);
         }
 
         template<class T>
@@ -386,6 +389,7 @@ namespace Chiptune
         void* Add(const void* src, std::size_t srcSize)
         {
           const std::size_t prevSize = size();
+          Require(prevSize + srcSize <= capacity());
           resize(prevSize + srcSize);
           void* const dst = &front() + prevSize;
           std::memcpy(dst, src, srcSize);
@@ -396,7 +400,7 @@ namespace Chiptune
       template<class T>
       static void SetPointer(int16_t* ptr, const T obj)
       {
-        BOOST_STATIC_ASSERT(boost::is_pointer<T>::value);
+        static_assert(std::is_pointer<T>::value, "Should be pointer");
         const std::ptrdiff_t offset = safe_ptr_cast<const uint8_t*>(obj) - safe_ptr_cast<const uint8_t*>(ptr);
         assert(offset > 0);//layout data sequentally
         *ptr = fromBE<int16_t>(static_cast<uint16_t>(offset));
@@ -409,54 +413,54 @@ namespace Chiptune
       {
       }
 
-      virtual void SetTitle(const String& title)
+      void SetTitle(const String& title) override
       {
         Title = title;
       }
 
-      virtual void SetAuthor(const String& author)
+      void SetAuthor(const String& author) override
       {
         Author = author;
       }
 
-      virtual void SetComment(const String& comment)
+      void SetComment(const String& comment) override
       {
         Comment = comment;
       }
 
-      virtual void SetDuration(uint_t total, uint_t fadeout)
+      void SetDuration(uint_t total, uint_t fadeout) override
       {
         Duration = static_cast<uint16_t>(total);
         Fadeout = static_cast<uint16_t>(fadeout);
       }
 
-      virtual void SetRegisters(uint16_t reg, uint16_t sp)
+      void SetRegisters(uint16_t reg, uint16_t sp) override
       {
         Register = reg;
         StackPointer = sp;
       }
 
-      virtual void SetRoutines(uint16_t init, uint16_t play)
+      void SetRoutines(uint16_t init, uint16_t play) override
       {
         InitRoutine = init;
         PlayRoutine = play;
       }
 
-      virtual void AddBlock(uint16_t addr, const void* data, std::size_t size)
+      void AddBlock(uint16_t addr, const void* data, std::size_t size) override
       {
         const uint8_t* const fromCopy = static_cast<const uint8_t*>(data);
         const std::size_t toCopy = std::min(size, std::size_t(0x10000 - addr));
         Blocks.push_back(BlocksList::value_type(addr, Dump(fromCopy, fromCopy + toCopy)));
       }
 
-      virtual Binary::Container::Ptr Result() const
+      Binary::Container::Ptr Result() const override
       {
-        std::auto_ptr<VariableDump> result(new VariableDump());
+        std::unique_ptr<VariableDump> result(new VariableDump());
         //init header
         Header* const header = result->Add(Header());
         std::memset(header, 0, sizeof(*header));
-        std::copy(SIGNATURE, boost::end(SIGNATURE), header->Signature);
-        std::copy(EMUL::SIGNATURE, boost::end(EMUL::SIGNATURE), header->Type);
+        std::copy(SIGNATURE, std::end(SIGNATURE), header->Signature);
+        std::copy(EMUL::SIGNATURE, std::end(EMUL::SIGNATURE), header->Type);
         SetPointer(&header->AuthorOffset, result->Add(Author));
         SetPointer(&header->MiscOffset, result->Add(Comment));
         //init descr
@@ -484,7 +488,7 @@ namespace Chiptune
         }
         SetPointer(&data->BlocksOffset, blockPtrs.front());
         //fill blocks
-        for (BlocksList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it, blockPtrs.pop_front())
+        for (auto it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it, blockPtrs.pop_front())
         {
           EMUL::ModuleBlock* const dst = blockPtrs.front();
           dst->Address = fromBE<uint16_t>(it->first);
@@ -492,7 +496,7 @@ namespace Chiptune
           SetPointer(&dst->Offset, result->Add(&it->second[0], it->second.size()));
           Dbg("Stored block %1% bytes at %2% stored at %3%", fromBE(dst->Size), fromBE(dst->Address), fromBE(dst->Offset));
         }
-        return Binary::CreateContainer(std::auto_ptr<Dump>(result));
+        return Binary::CreateContainer(std::unique_ptr<Dump>(std::move(result)));
       }
     private:
       String Title;
@@ -513,6 +517,10 @@ namespace Chiptune
       const Binary::TypedContainer data(rawData);
       if (const Header* header = data.GetField<Header>(0))
       {
+        if (header->FirstModuleIndex > header->LastModuleIndex)
+        {
+          return 0;
+        }
         if (0 != std::memcmp(header->Signature, SIGNATURE, sizeof(SIGNATURE)))
         {
           return 0;
@@ -521,9 +529,30 @@ namespace Chiptune
         {
           return 0;
         }
-        return header->FirstModuleIndex <= header->LastModuleIndex
-          ? header->LastModuleIndex + 1
-          : 0;
+        const int_t minOffset = sizeof(*header);
+        const int_t maxOffset = data.GetSize();
+        const int_t authorOffset = int_t(offsetof(Header, AuthorOffset)) + fromBE(header->AuthorOffset);
+        if (!Math::InRange(authorOffset, minOffset, maxOffset))
+        {
+          return 0;
+        }
+        const int_t miscOffset = int_t(offsetof(Header, MiscOffset)) + fromBE(header->MiscOffset);
+        //some of the tunes has improper offset
+        if (miscOffset >= maxOffset)
+        {
+          return 0;
+        }
+        const int_t descrOffset = int_t(offsetof(Header, DescriptionsOffset)) + fromBE(header->DescriptionsOffset);
+        if (descrOffset < minOffset)
+        {
+          return 0;
+        }
+        const std::size_t count = header->LastModuleIndex + 1;
+        if (descrOffset + int_t(count * sizeof(ModuleDescription)) > maxOffset)
+        {
+          return 0;
+        }
+        return count;
       }
       return 0;
     }
@@ -554,6 +583,7 @@ namespace Chiptune
         const EMUL::ModuleBlock& firstBlock = data.GetField<EMUL::ModuleBlock>(&moddata.BlocksOffset);
         target.SetRoutines(fromBE(modpointers.InitAddr ? modpointers.InitAddr : firstBlock.Address), fromBE(modpointers.PlayAddr));
         uint32_t crc = 0;
+        std::size_t blocksSize = 0;
         for (std::size_t blockIdx = 0; ; ++blockIdx)
         {
           if (!data.PeekField<uint16_t>(&moddata.BlocksOffset, 3 * blockIdx))
@@ -568,7 +598,9 @@ namespace Chiptune
           {
             target.AddBlock(blockAddr, blockData->Start(), blockData->Size());
             crc = Crc32(static_cast<const uint8_t*>(blockData->Start()), blockData->Size(), crc);
+            blocksSize += blockData->Size();
           }
+          Require(blocksSize < MAX_SIZE);
         }
         const Binary::Container::Ptr containerData = rawData.GetSubcontainer(0, data.GetSize());
         return CreateKnownCrcContainer(containerData, crc);

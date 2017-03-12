@@ -31,13 +31,13 @@ namespace Sound
         Dbg("Library loaded");
       }
 
-      virtual ~DynamicApi()
+      ~DynamicApi() override
       {
         Dbg("Library unloaded");
       }
 
       
-      virtual UINT waveOutGetNumDevs()
+      UINT waveOutGetNumDevs() override
       {
         static const char NAME[] = "waveOutGetNumDevs";
         typedef UINT (WINAPI *FunctionType)();
@@ -45,7 +45,7 @@ namespace Sound
         return func();
       }
       
-      virtual MMRESULT waveOutGetDevCapsA(UINT_PTR uDeviceID, LPWAVEOUTCAPSA pwoc, UINT cbwoc)
+      MMRESULT waveOutGetDevCapsA(UINT_PTR uDeviceID, LPWAVEOUTCAPSA pwoc, UINT cbwoc) override
       {
         static const char NAME[] = "waveOutGetDevCapsA";
         typedef MMRESULT (WINAPI *FunctionType)(UINT_PTR, LPWAVEOUTCAPSA, UINT);
@@ -53,7 +53,7 @@ namespace Sound
         return func(uDeviceID, pwoc, cbwoc);
       }
       
-      virtual MMRESULT waveOutOpen(LPHWAVEOUT phwo, UINT uDeviceID, LPCWAVEFORMATEX pwfx, DWORD_PTR dwCallback, DWORD_PTR dwInstance, DWORD fdwOpen)
+      MMRESULT waveOutOpen(LPHWAVEOUT phwo, UINT uDeviceID, LPCWAVEFORMATEX pwfx, DWORD_PTR dwCallback, DWORD_PTR dwInstance, DWORD fdwOpen) override
       {
         static const char NAME[] = "waveOutOpen";
         typedef MMRESULT (WINAPI *FunctionType)(LPHWAVEOUT, UINT, LPCWAVEFORMATEX, DWORD_PTR, DWORD_PTR, DWORD);
@@ -61,7 +61,7 @@ namespace Sound
         return func(phwo, uDeviceID, pwfx, dwCallback, dwInstance, fdwOpen);
       }
       
-      virtual MMRESULT waveOutClose(HWAVEOUT hwo)
+      MMRESULT waveOutClose(HWAVEOUT hwo) override
       {
         static const char NAME[] = "waveOutClose";
         typedef MMRESULT (WINAPI *FunctionType)(HWAVEOUT);
@@ -69,7 +69,7 @@ namespace Sound
         return func(hwo);
       }
       
-      virtual MMRESULT waveOutPrepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh)
+      MMRESULT waveOutPrepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh) override
       {
         static const char NAME[] = "waveOutPrepareHeader";
         typedef MMRESULT (WINAPI *FunctionType)(HWAVEOUT, LPWAVEHDR, UINT);
@@ -77,7 +77,7 @@ namespace Sound
         return func(hwo, pwh, cbwh);
       }
       
-      virtual MMRESULT waveOutUnprepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh)
+      MMRESULT waveOutUnprepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh) override
       {
         static const char NAME[] = "waveOutUnprepareHeader";
         typedef MMRESULT (WINAPI *FunctionType)(HWAVEOUT, LPWAVEHDR, UINT);
@@ -85,7 +85,7 @@ namespace Sound
         return func(hwo, pwh, cbwh);
       }
       
-      virtual MMRESULT waveOutWrite(HWAVEOUT hwo, LPWAVEHDR pwh, IN UINT cbwh)
+      MMRESULT waveOutWrite(HWAVEOUT hwo, LPWAVEHDR pwh, IN UINT cbwh) override
       {
         static const char NAME[] = "waveOutWrite";
         typedef MMRESULT (WINAPI *FunctionType)(HWAVEOUT, LPWAVEHDR, IN UINT);
@@ -93,7 +93,7 @@ namespace Sound
         return func(hwo, pwh, cbwh);
       }
       
-      virtual MMRESULT waveOutGetErrorTextA(MMRESULT mmrError, LPSTR pszText, UINT cchText)
+      MMRESULT waveOutGetErrorTextA(MMRESULT mmrError, LPSTR pszText, UINT cchText) override
       {
         static const char NAME[] = "waveOutGetErrorTextA";
         typedef MMRESULT (WINAPI *FunctionType)(MMRESULT, LPSTR, UINT);
@@ -101,7 +101,7 @@ namespace Sound
         return func(mmrError, pszText, cchText);
       }
       
-      virtual MMRESULT waveOutPause(HWAVEOUT hwo)
+      MMRESULT waveOutPause(HWAVEOUT hwo) override
       {
         static const char NAME[] = "waveOutPause";
         typedef MMRESULT (WINAPI *FunctionType)(HWAVEOUT);
@@ -109,7 +109,7 @@ namespace Sound
         return func(hwo);
       }
       
-      virtual MMRESULT waveOutRestart(HWAVEOUT hwo)
+      MMRESULT waveOutRestart(HWAVEOUT hwo) override
       {
         static const char NAME[] = "waveOutRestart";
         typedef MMRESULT (WINAPI *FunctionType)(HWAVEOUT);
@@ -117,7 +117,7 @@ namespace Sound
         return func(hwo);
       }
       
-      virtual MMRESULT waveOutReset(HWAVEOUT hwo)
+      MMRESULT waveOutReset(HWAVEOUT hwo) override
       {
         static const char NAME[] = "waveOutReset";
         typedef MMRESULT (WINAPI *FunctionType)(HWAVEOUT);
@@ -125,7 +125,7 @@ namespace Sound
         return func(hwo);
       }
       
-      virtual MMRESULT waveOutGetVolume(HWAVEOUT hwo, LPDWORD pdwVolume)
+      MMRESULT waveOutGetVolume(HWAVEOUT hwo, LPDWORD pdwVolume) override
       {
         static const char NAME[] = "waveOutGetVolume";
         typedef MMRESULT (WINAPI *FunctionType)(HWAVEOUT, LPDWORD);
@@ -133,7 +133,7 @@ namespace Sound
         return func(hwo, pdwVolume);
       }
       
-      virtual MMRESULT waveOutSetVolume(HWAVEOUT hwo, DWORD dwVolume)
+      MMRESULT waveOutSetVolume(HWAVEOUT hwo, DWORD dwVolume) override
       {
         static const char NAME[] = "waveOutSetVolume";
         typedef MMRESULT (WINAPI *FunctionType)(HWAVEOUT, DWORD);

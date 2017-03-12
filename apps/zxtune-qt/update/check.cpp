@@ -26,8 +26,7 @@
 #include <platform/version/fields.h>
 //std includes
 #include <ctime>
-//boost includes
-#include <boost/bind.hpp>
+#include <utility>
 //qt includes
 #include <QtCore/QTimer>
 #include <QtGui/QApplication>
@@ -45,8 +44,8 @@ namespace
   class IOParameters : public Parameters::Accessor
   {
   public:
-    explicit IOParameters(const String& userAgent)
-      : UserAgent(userAgent)
+    explicit IOParameters(String userAgent)
+      : UserAgent(std::move(userAgent))
     {
     }
 
@@ -54,12 +53,12 @@ namespace
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return 1;
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       if (name == Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING)
       {
@@ -72,7 +71,7 @@ namespace
       }
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       if (!UserAgent.empty() && name == Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT)
       {
@@ -85,12 +84,12 @@ namespace
       }
     }
 
-    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
+    bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const override
     {
       return false;
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       visitor.SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 1);
       if (!UserAgent.empty())
@@ -116,7 +115,7 @@ namespace
       Progress.setValue(0);
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       if (Progress.wasCanceled())
       {
@@ -126,7 +125,7 @@ namespace
       Progress.setValue(current);
     }
 
-    virtual void OnProgress(uint_t current, const String& /*message*/)
+    void OnProgress(uint_t current, const String& /*message*/) override
     {
       OnProgress(current);
     }
@@ -136,7 +135,7 @@ namespace
 
   String GetUserAgent()
   {
-    const std::auto_ptr<Strings::FieldsSource> fields = Platform::Version::CreateVersionFieldsSource();
+    const std::unique_ptr<Strings::FieldsSource> fields = Platform::Version::CreateVersionFieldsSource();
     return Strings::Template::Instantiate(Text::HTTP_USERAGENT, *fields);
   }
 
@@ -247,13 +246,13 @@ namespace
       , UpdateRank(~std::size_t(0))
     {
       Dbg("Supported update types: %1% items", CurTypes.size());
-      for (std::vector<Product::Update::TypeTag>::const_iterator it = CurTypes.begin(), lim = CurTypes.end(); it != lim; ++it)
+      for (auto type : CurTypes)
       {
-        Dbg(" %1%", *it);
+        Dbg(" %1%", type);
       }
     }
 
-    virtual void OnDownload(Product::Update::Ptr update)
+    void OnDownload(Product::Update::Ptr update) override
     {
       const Product::Update::TypeTag type = Product::GetUpdateType(update->Platform(), update->Architecture(), update->Packaging());
       Dbg("Update %1%, type %2%", FromQString(update->Title()), type);
@@ -343,7 +342,7 @@ namespace
   {
   public:
     explicit UpdateParameters(Parameters::Container::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -379,15 +378,15 @@ namespace
   class UpdateCheckOperation : public Update::CheckOperation
   {
   public:
-    UpdateCheckOperation(QWidget& parent, const UpdateParameters& params)
+    UpdateCheckOperation(QWidget& parent, UpdateParameters params)
       : Parent(parent)
-      , Params(params)
+      , Params(std::move(params))
     {
       setParent(&parent);
       QTimer::singleShot(CHECK_UPDATE_DELAY * 1000, this, SLOT(ExecuteBackground()));
     }
 
-    virtual void Execute()
+    void Execute() override
     {
       try
       {
@@ -412,7 +411,7 @@ namespace
       }
     }
 
-    virtual void ExecuteBackground()
+    void ExecuteBackground() override
     {
       try
       {
@@ -454,7 +453,7 @@ namespace
       const QUrl feedUrl(ToQString(Params.GetFeedUrl()));
       const Binary::Data::Ptr feedData = Download(feedUrl, cb);
       UpdateState state;
-      const std::auto_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor(Text::DOWNLOADS_PROJECT_NAME, state);
+      const std::unique_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor(Text::DOWNLOADS_PROJECT_NAME, state);
       RSS::Parse(QByteArray(static_cast<const char*>(feedData->Start()), feedData->Size()), *rss);
       StoreLastCheckTime();
       return state.GetUpdate();
@@ -473,7 +472,7 @@ namespace
       msg.append(update.Title());
       if (const int ageInDays = update.Date().daysTo(QDate::currentDate()))
       {
-        msg.append(Update::CheckOperation::tr("%1 (%n day(s) ago)", 0, ageInDays).arg(update.Date().toString(Qt::DefaultLocaleLongDate)));
+        msg.append(Update::CheckOperation::tr("%1 (%n day(s) ago)", nullptr, ageInDays).arg(update.Date().toString(Qt::DefaultLocaleLongDate)));
       }
       msg.append(QString("<a href=\"%1\">%2</a>").arg(update.Description().toString()).arg(Update::CheckOperation::tr("Download manually")));
       return QMessageBox::question(&Parent, title, msg.join("<br/>"), QMessageBox::Save | QMessageBox::Cancel);
@@ -504,7 +503,7 @@ namespace
 
     void StoreLastCheckTime() const
     {
-      Params.SetLastCheckTime(std::time(0));
+      Params.SetLastCheckTime(std::time(nullptr));
     }
 
     bool CheckPeriodExpired() const
@@ -512,7 +511,7 @@ namespace
       if (const unsigned period = Params.GetCheckPeriod())
       {
         const std::time_t lastCheck = Params.GetLastCheckTime();
-        const std::time_t now = std::time(0);
+        const std::time_t now = std::time(nullptr);
         return now > lastCheck + period;
       }
       else
@@ -535,13 +534,13 @@ namespace Update
       UpdateParameters params(GlobalOptions::Instance().Get());
       if (IO::ResolveUri(params.GetFeedUrl()))
       {
-        std::auto_ptr<CheckOperation> res(new UpdateCheckOperation(parent, params));
+        std::unique_ptr<CheckOperation> res(new UpdateCheckOperation(parent, params));
         return res.release();
       }
     }
     catch (const Error&)
     {
     }
-    return 0;
+    return nullptr;
   }
 };

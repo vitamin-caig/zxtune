@@ -13,7 +13,7 @@
 //local includes
 #include "storage.h"
 //library includes
-#include <core/module_holder.h>
+#include <module/holder.h>
 
 namespace Module
 {

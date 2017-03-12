@@ -13,9 +13,9 @@
 //library includes
 #include <time/elapsed.h>
 //std includes
+#include <array>
 #include <cmath>
-//boost includes
-#include <boost/array.hpp>
+#include <utility>
 //qt includes
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
@@ -44,7 +44,7 @@ namespace
       SetToolTip();
     }
 
-    virtual void UpdateProgress(int progress)
+    void UpdateProgress(int progress) override
     {
       if (progress != Value)
       {
@@ -54,7 +54,7 @@ namespace
     }
 
     //QWidget virtuals
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {
@@ -63,7 +63,7 @@ namespace
       OverlayProgress::changeEvent(event);
     }
 
-    virtual void paintEvent(QPaintEvent*)
+    void paintEvent(QPaintEvent*) override
     {
       FillGeometry();
 
@@ -86,10 +86,10 @@ namespace
         QString::fromAscii("%1%").arg(Value));
 
       const int totalSteps = std::min(STEPS_MAX, Value * STEPS_MAX / 100 + 1);
-      painter.drawLines(Lines.begin(), totalSteps);
+      painter.drawLines(Lines.data(), totalSteps);
     }
 
-    virtual void mouseReleaseEvent(QMouseEvent* event)
+    void mouseReleaseEvent(QMouseEvent* event) override
     {
       if (event->button() == Qt::LeftButton)
       {
@@ -136,7 +136,7 @@ namespace
   private:
     const QPalette Palette;
     QPoint Center;
-    boost::array<QLineF, STEPS_MAX> Lines;
+    std::array<QLineF, STEPS_MAX> Lines;
     int Value;
     Time::Elapsed RefreshTimeout;
   };

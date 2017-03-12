@@ -24,7 +24,7 @@ namespace Formats
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual void SetTitle(const String& title) = 0;
         virtual void SetAuthor(const String& author) = 0;
@@ -42,7 +42,7 @@ namespace Formats
       class BlobBuilder : public Builder
       {
       public:
-        typedef boost::shared_ptr<BlobBuilder> Ptr;
+        typedef std::shared_ptr<BlobBuilder> Ptr;
 
         virtual Binary::Container::Ptr Result() const = 0;
       };

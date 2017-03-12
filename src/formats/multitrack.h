@@ -25,7 +25,7 @@ namespace Formats
     class Container : public Binary::Container
     {
     public:
-      typedef boost::shared_ptr<const Container> Ptr;
+      typedef std::shared_ptr<const Container> Ptr;
       
       //! Same as in Chiptune::Container
       virtual uint_t FixedChecksum() const = 0;
@@ -43,8 +43,8 @@ namespace Formats
     class Decoder
     {
     public:
-      typedef boost::shared_ptr<const Decoder> Ptr;
-      virtual ~Decoder() {}
+      typedef std::shared_ptr<const Decoder> Ptr;
+      virtual ~Decoder() = default;
       
       //! @brief Get approximate format description to search in raw binary data
       //! @invariant Cannot be empty

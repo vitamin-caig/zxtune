@@ -22,9 +22,8 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
-#include <boost/range/end.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -79,13 +78,13 @@ namespace Chiptune
     PACK_PRE struct RawPattern
     {
       uint8_t Number;
-      boost::array<uint16_t, 3> Offsets;
+      std::array<uint16_t, 3> Offsets;
     } PACK_POST;
 
     PACK_PRE struct RawOrnament
     {
       uint8_t Number;
-      boost::array<int8_t, ORNAMENT_SIZE> Data;
+      std::array<int8_t, ORNAMENT_SIZE> Data;
     } PACK_POST;
 
     PACK_PRE struct RawSample
@@ -139,11 +138,11 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 27);
-    BOOST_STATIC_ASSERT(sizeof(RawPositions) == 3);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 7);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 33);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 99);
+    static_assert(sizeof(RawHeader) == 27, "Invalid layout");
+    static_assert(sizeof(RawPositions) == 3, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 7, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 33, "Invalid layout");
+    static_assert(sizeof(RawSample) == 99, "Invalid layout");
 
     bool IsProgramName(const String& name)
     {
@@ -162,7 +161,7 @@ namespace Chiptune
         "S.W.COMPILE V2.0  ",
         "STU SONG COMPILER ",
       };
-      return boost::end(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, boost::end(STANDARD_PROGRAMS), ToStdString(name));
+      return std::end(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, std::end(STANDARD_PROGRAMS), ToStdString(name));
     }
 
     class Format
@@ -196,7 +195,7 @@ namespace Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        std::vector<PositionEntry> positions;
+        Positions positions;
         for (RangeIterator<const RawPositions::PosEntry*> iter = GetPositions(); iter; ++iter)
         {
           const RawPositions::PosEntry& src = *iter;
@@ -204,10 +203,10 @@ namespace Chiptune
           PositionEntry dst;
           dst.PatternIndex = src.PatternNum - 1;
           dst.Transposition = src.Transposition;
-          positions.push_back(dst);
+          positions.Lines.push_back(dst);
         }
-        builder.SetPositions(positions);
-        Dbg("Positions: %1% entries", positions.size());
+        Dbg("Positions: %1% entries", positions.GetSize());
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -258,9 +257,7 @@ namespace Chiptune
           }
           doneSams.Insert(samIdx);
           Dbg("Parse sample %1%", samIdx);
-          Sample result;
-          ParseSample(src, result);
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, ParseSample(src));
           if (doneSams.Count() == samples.Count())
           {
             return;
@@ -295,8 +292,7 @@ namespace Chiptune
           }
           doneOrns.Insert(ornIdx);
           Dbg("Parse ornament %1%", ornIdx);
-          const Ornament result(src.Data.begin(), src.Data.end());
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, ParseOrnament(src));
           if (doneOrns.Count() == ornaments.Count())
           {
             return;
@@ -327,7 +323,7 @@ namespace Chiptune
       {
         const std::size_t offset = fromLE(Source.PositionsOffset);
         const RawPositions* const positions = Delegate.GetField<RawPositions>(offset);
-        Require(positions != 0);
+        Require(positions != nullptr);
         const uint_t length = positions->Length + 1;
         AddRange(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
         const RawPositions::PosEntry* const firstEntry = positions->Data;
@@ -355,7 +351,7 @@ namespace Chiptune
       {
         const std::size_t offset = baseOffset + index * sizeof(T);
         const T* const src = Delegate.GetField<T>(offset);
-        Require(src != 0);
+        Require(src != nullptr);
         AddRange(offset, sizeof(T));
         return *src;
       }
@@ -363,11 +359,11 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 
-      struct DataCursors : public boost::array<std::size_t, 3>
+      struct DataCursors : public std::array<std::size_t, 3>
       {
         explicit DataCursors(const RawPattern& src)
         {
@@ -402,7 +398,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 3> Channels;
+        std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()
@@ -545,8 +541,9 @@ namespace Chiptune
         }
       }
 
-      static void ParseSample(const RawSample& src, Sample& dst)
+      static Sample ParseSample(const RawSample& src)
       {
+        Sample dst;
         dst.Lines.resize(SAMPLE_SIZE);
         for (uint_t idx = 0; idx < SAMPLE_SIZE; ++idx)
         {
@@ -560,6 +557,14 @@ namespace Chiptune
         }
         dst.Loop = std::min<uint_t>(src.Loop, SAMPLE_SIZE);
         dst.LoopLimit = std::min<uint_t>(src.Loop + src.LoopSize + 1, SAMPLE_SIZE);
+        return dst;
+      }
+      
+      static Ornament ParseOrnament(const RawOrnament& src)
+      {
+        Ornament dst;
+        dst.Lines.assign(src.Data.begin(), src.Data.end());
+        return dst;
       }
 
       void AddRange(std::size_t offset, std::size_t size) const
@@ -657,7 +662,7 @@ namespace Chiptune
       const std::size_t size = std::min(rawData.Size(), MAX_SIZE);
       const Binary::TypedContainer data(rawData, size);
       const RawHeader* const hdr = data.GetField<RawHeader>(0);
-      if (0 == hdr)
+      if (nullptr == hdr)
       {
         return false;
       }
@@ -685,11 +690,11 @@ namespace Chiptune
       {
         return false;
       }
-      if (0 == data.GetField<RawOrnament>(areas.GetAreaAddress(ORNAMENTS)))
+      if (nullptr == data.GetField<RawOrnament>(areas.GetAreaAddress(ORNAMENTS)))
       {
         return false;
       }
-      if (0 == data.GetField<RawPattern>(areas.GetAreaAddress(PATTERNS)))
+      if (nullptr == data.GetField<RawPattern>(areas.GetAreaAddress(PATTERNS)))
       {
         return false;
       }
@@ -750,22 +755,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::SOUNDTRACKERCOMPILED_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData) && Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -775,7 +780,7 @@ namespace Chiptune
         return ParseCompiled(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return ParseCompiled(data, target);
       }

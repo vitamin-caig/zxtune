@@ -30,7 +30,8 @@ namespace Analysis
     boost::algorithm::split(parts, str, boost::algorithm::is_any_of(delimiter), boost::algorithm::token_compress_on);
     const Strings::Array::iterator newEnd = std::remove_if(parts.begin(), parts.end(),
       std::mem_fun_ref(&String::empty));
-    return Strings::Array(parts.begin(), newEnd);
+    parts.erase(newEnd, parts.end());
+    return parts;
   }
 
   String JoinPath(const Strings::Array& arr, Char separator)
@@ -41,6 +42,8 @@ namespace Analysis
 
   template<class It>
   Path::Ptr CreatePath(Char separator, It from, It to);
+  
+  Path::Ptr CreatePath(Char separator, Strings::Array data);
 
   class ParsedPath : public Path
   {
@@ -52,40 +55,46 @@ namespace Analysis
     {
       Require(from != to);
     }
+    
+    ParsedPath(Char separator, Strings::Array data)
+      : Components(std::move(data))
+      , Separator(separator)
+    {
+      Require(!Components.empty());
+    }
 
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return false;
     }
 
-    virtual String AsString() const
+    String AsString() const override
     {
       return JoinPath(Components, Separator);
     }
 
-    virtual Iterator::Ptr GetIterator() const
+    Iterator::Ptr GetIterator() const override
     {
       return CreateRangedObjectIteratorAdapter(Components.begin(), Components.end());
     }
 
-    virtual Ptr Append(const String& element) const
+    Ptr Append(const String& element) const override
     {
       const Strings::Array& newOne = SplitPath(element, Separator);
       Strings::Array result(Components.size() + newOne.size());
       std::copy(newOne.begin(), newOne.end(),
         std::copy(Components.begin(), Components.end(), result.begin()));
-      return CreatePath(Separator, result.begin(), result.end());
+      return CreatePath(Separator, std::move(result));
     }
 
-    virtual Ptr Extract(const String& startPath) const
+    Ptr Extract(const String& startPath) const override
     {
-      const Strings::Array& subSplitted = SplitPath(startPath, Separator);
+      const auto& subSplitted = SplitPath(startPath, Separator);
       if (subSplitted.size() > Components.size())
       {
         return Ptr();
       }
-      const std::pair<Strings::Array::const_iterator, Strings::Array::const_iterator> iters =
-        std::mismatch(subSplitted.begin(), subSplitted.end(), Components.begin());
+      const auto iters = std::mismatch(subSplitted.begin(), subSplitted.end(), Components.begin());
       if (iters.first != subSplitted.end())
       {
         return Ptr();
@@ -105,27 +114,27 @@ namespace Analysis
     {
     }
 
-    virtual bool Empty() const
+    bool Empty() const override
     {
       return true;
     }
 
-    virtual String AsString() const
+    String AsString() const override
     {
       return String();
     }
 
-    virtual Iterator::Ptr GetIterator() const
+    Iterator::Ptr GetIterator() const override
     {
       return Iterator::CreateStub();
     }
 
-    virtual Ptr Append(const String& element) const
+    Ptr Append(const String& element) const override
     {
       return ParsePath(element, Separator);
     }
 
-    virtual Ptr Extract(const String& startPath) const
+    Ptr Extract(const String& startPath) const override
     {
       return startPath.empty()
         ? MakePtr<EmptyPath>(Separator)
@@ -147,13 +156,25 @@ namespace Analysis
       return MakePtr<EmptyPath>(separator);
     }
   }
+
+  Path::Ptr CreatePath(Char separator, Strings::Array data)
+  {
+    if (!data.empty())
+    {
+      return MakePtr<ParsedPath>(separator, std::move(data));
+    }
+    else
+    {
+      return MakePtr<EmptyPath>(separator);
+    }
+  }
 }
 
 namespace Analysis
 {
   Path::Ptr ParsePath(const String& str, Char separator)
   {
-    const Strings::Array parsed = SplitPath(str, separator);
-    return CreatePath(separator, parsed.begin(), parsed.end());
+    auto parsed = SplitPath(str, separator);
+    return CreatePath(separator, std::move(parsed));
   }
 }

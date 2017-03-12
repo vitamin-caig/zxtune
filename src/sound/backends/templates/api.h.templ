@@ -1,8 +1,8 @@
     class Api
     {
     public:
-      typedef boost::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      typedef std::shared_ptr<Api> Ptr;
+      virtual ~Api() = default;
 
       <TMPL_LOOP NAME=FUNCTIONS>
       virtual <TMPL_VAR NAME=DECLARATION> = 0;</TMPL_LOOP>

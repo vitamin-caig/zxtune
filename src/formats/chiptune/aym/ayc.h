@@ -24,8 +24,8 @@ namespace Formats
       class Builder
       {
       public:
-        typedef boost::shared_ptr<Builder> Ptr;
-        virtual ~Builder() {}
+        typedef std::shared_ptr<Builder> Ptr;
+        virtual ~Builder() = default;
 
         virtual void SetFrames(std::size_t count) = 0;
         virtual void StartChannel(uint_t idx) = 0;

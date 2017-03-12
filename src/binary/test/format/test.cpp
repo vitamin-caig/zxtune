@@ -15,8 +15,7 @@
 #include <binary/format/syntax.h>
 #include <sstream>
 #include <iostream>
-#include <boost/range/size.hpp>
-#include <boost/range/algorithm/for_each.hpp>
+#include <functional>
 
 namespace
 {
@@ -54,17 +53,17 @@ namespace
     {
     }
 
-    virtual void TokenMatched(const std::string& lexeme, LexicalAnalysis::TokenType type)
+    void TokenMatched(const std::string& lexeme, LexicalAnalysis::TokenType type) override
     {
       Str << TOKENS[type] << '(' << lexeme << ") ";
     }
 
-    virtual void MultipleTokensMatched(const std::string& lexeme, const LexicalAnalysis::TokenTypesSet& /*types*/)
+    void MultipleTokensMatched(const std::string& lexeme, const LexicalAnalysis::TokenTypesSet& /*types*/) override
     {
       Str << "X(" << lexeme << ") ";
     }
 
-    virtual void AnalysisError(const std::string& notation, std::size_t position)
+    void AnalysisError(const std::string& notation, std::size_t position) override
     {
       Str << notation.substr(0, position) << " >" << notation.substr(position);
     }
@@ -80,27 +79,27 @@ namespace
     {
     }
 
-    virtual void Match(const std::string& val)
+    void Match(const std::string& val) override
     {
       Str << val << ' ';
     }
 
-    virtual void GroupStart()
+    void GroupStart() override
     {
       Str << "( ";
     }
 
-    virtual void GroupEnd()
+    void GroupEnd() override
     {
       Str << ") ";
     }
 
-    virtual void Quantor(uint_t count)
+    void Quantor(uint_t count) override
     {
       Str << '{' << count << "} ";
     }
 
-    virtual void Operation(const std::string& op)
+    void Operation(const std::string& op) override
     {
       Str << op << ' ';
     }
@@ -151,7 +150,7 @@ namespace
     try
     {
       SyntaxReportCallback cb(result);
-      const Binary::FormatDSL::FormatTokensVisitor::Ptr adapter = Binary::FormatDSL::CreatePostfixSynaxCheckAdapter(cb);
+      const Binary::FormatDSL::FormatTokensVisitor::Ptr adapter = Binary::FormatDSL::CreatePostfixSyntaxCheckAdapter(cb);
       Binary::FormatDSL::ParseFormatNotationPostfix(notation, *adapter);
     }
     catch (const std::exception&)
@@ -196,7 +195,7 @@ namespace
     try
     {
       const Binary::Format::Ptr format = Binary::CreateFormat(notation);
-      const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
+      const Binary::DataAdapter sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
@@ -210,7 +209,7 @@ namespace
     try
     {
       const Binary::Format::Ptr format = Binary::CreateMatchOnlyFormat(notation);
-      const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
+      const Binary::DataAdapter sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
@@ -226,7 +225,7 @@ namespace
       const Binary::Format::Ptr hdr = Binary::CreateFormat(header, minSize);
       const Binary::Format::Ptr foot = Binary::CreateFormat(footer);
       const Binary::Format::Ptr format = Binary::CreateCompositeFormat(hdr, foot, minSize, maxSize);
-      const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
+      const Binary::DataAdapter sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
@@ -1026,8 +1025,14 @@ int main()
 {
   try
   {
-    boost::for_each(TESTS, std::ptr_fun(&ExecuteTest));
-    boost::for_each(COMPOSITE_TESTS, std::ptr_fun(&ExecuteCompositeTest));
+    for (const auto& test : TESTS)
+    {
+      ExecuteTest(test);
+    }
+    for (const auto& test : COMPOSITE_TESTS)
+    {
+      ExecuteCompositeTest(test);
+    }
   }
   catch (int code)
   {

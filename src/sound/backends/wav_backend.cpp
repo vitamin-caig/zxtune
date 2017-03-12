@@ -167,7 +167,7 @@ namespace Wav
   {
   public:
     FileStream(uint_t soundFreq, Binary::SeekableOutputStream::Ptr stream)
-      : Stream(stream)
+      : Stream(std::move(stream))
       , DoneBytes(0)
     {
       //init struct
@@ -192,26 +192,26 @@ namespace Wav
       Flush();
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       Meta.SetTitle(title);
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       Meta.SetAuthor(author);
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       Meta.SetComment(comment);
     }
 
-    virtual void FlushMetadata()
+    void FlushMetadata() override
     {
     }
 
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(Chunk::Ptr data) override
     {
       if (Sample::BITS == 16)
       {
@@ -226,7 +226,7 @@ namespace Wav
       DoneBytes += static_cast<uint32_t>(sizeInBytes);
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       if (!Meta.empty())
       {
@@ -255,14 +255,14 @@ namespace Wav
     {
     }
 
-    virtual String GetId() const
+    String GetId() const override
     {
       return ID;
     }
 
-    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
+    FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
-      if (const Binary::SeekableOutputStream::Ptr seekable = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
+      if (const Binary::SeekableOutputStream::Ptr seekable = std::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
       {
         return MakePtr<FileStream>(RenderingParameters->SoundFreq(), seekable);
       }
@@ -275,7 +275,7 @@ namespace Wav
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(params);
       return CreateFileBackendWorker(params, factory);

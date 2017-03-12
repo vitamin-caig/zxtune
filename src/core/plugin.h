@@ -13,8 +13,6 @@
 //common includes
 #include <iterator.h>
 #include <types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace ZXTune
 {
@@ -23,12 +21,12 @@ namespace ZXTune
   {
   public:
     //! Pointer type
-    typedef boost::shared_ptr<const Plugin> Ptr;
+    typedef std::shared_ptr<const Plugin> Ptr;
     //! Iterator type
     typedef ObjectIterator<Plugin::Ptr> Iterator;
 
     //! Virtual destructor
-    virtual ~Plugin() {}
+    virtual ~Plugin() = default;
 
     //! Identification string
     virtual String Id() const = 0;

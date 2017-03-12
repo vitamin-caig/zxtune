@@ -40,27 +40,28 @@ namespace Formats
     {
     }
 
-    virtual void SetGeometry(const CHS& /*geometry*/)
+    void SetGeometry(const CHS& /*geometry*/) override
     {
     }
 
-    virtual void SetSector(const CHS& location, const Dump& data)
+    void SetSector(const CHS& location, Dump data) override
     {
-      if (Sectors.insert(SectorsMap::value_type(location, data)).second)
+      const auto res = Sectors.insert(SectorsMap::value_type(location, std::move(data)));
+      if (res.second)
       {
-        TotalSize += data.size();
+        TotalSize += res.first->second.size();
       }
     }
 
-    virtual Binary::Container::Ptr GetResult() const
+    Binary::Container::Ptr GetResult() const override
     {
-      std::auto_ptr<Dump> result(new Dump(TotalSize));
-      Dump::iterator dst = result->begin();
-      for (SectorsMap::const_iterator it = Sectors.begin(), lim = Sectors.end(); it != lim; ++it)
+      std::unique_ptr<Dump> result(new Dump(TotalSize));
+      auto dst = result->begin();
+      for (const auto& sec : Sectors)
       {
-        dst = std::copy(it->second.begin(), it->second.end(), dst);
+        dst = std::copy(sec.second.begin(), sec.second.end(), dst);
       }
-      return Binary::CreateContainer(result);
+      return Binary::CreateContainer(std::move(result));
     }
   private:
     typedef std::map<CHS, Dump, bool(*)(const CHS&, const CHS&)> SectorsMap;

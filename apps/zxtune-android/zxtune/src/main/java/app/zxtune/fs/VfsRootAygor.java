@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.aygor.Catalog;
 
@@ -40,9 +39,9 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final AyonMusicSubdir root;
 
-  VfsRootAygor(Context context, HttpProvider http) {
+  VfsRootAygor(Context context, HttpProvider http, VfsCache cache) {
     this.context = context;
-    this.catalog = Catalog.create(context, http);
+    this.catalog = Catalog.create(http, cache);
     this.root = new AyonMusicSubdir(Collections.<String> emptyList());
   }
 
@@ -173,17 +172,10 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
     }
 
     final VfsObject resolve(Uri uri, List<String> path) throws IOException {
-      try {
-        final ByteBuffer content = catalog.getFileContent(path);
-        return catalog.isDirContent(content)
-                ? new AyonMusicSubdir(path, content)
-                : new AyonMusicFile(path, content);
-      } catch (IOException e) {
-        throw e;
-      } catch (Exception e) {
-        Log.d(TAG, e, "resolve %s", uri);
-        return null;
-      }
+      final ByteBuffer content = catalog.getFileContent(path);
+      return catalog.isDirContent(content)
+              ? new AyonMusicSubdir(path, content)
+              : new AyonMusicFile(path, content);
     }
 
     private ByteBuffer getContent() throws IOException {

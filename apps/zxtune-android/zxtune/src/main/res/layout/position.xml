@@ -35,8 +35,8 @@
   <!-- TODO: merge seek view and controls view -->
   <ImageView
     android:id="@+id/controls_track_mode"
-    android:src="@drawable/track_mode"
-    style="@style/button"
+    android:src="@drawable/ic_track_regular"
+    style="@style/Button"
     android:layout_weight="0"
     android:layout_marginLeft="@dimen/spacing_full"
     />

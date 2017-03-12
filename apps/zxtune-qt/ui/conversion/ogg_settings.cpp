@@ -19,11 +19,13 @@
 //library includes
 #include <sound/backends_parameters.h>
 
+#include <utility>
+
 namespace
 {
   QString Translate(const char* msg)
   {
-    return QApplication::translate("OggSettings", msg, 0, QApplication::UnicodeUTF8);
+    return QApplication::translate("OggSettings", msg, nullptr, QApplication::UnicodeUTF8);
   }
 
   class OGGSettingsWidget : public UI::BackendSettingsWidget
@@ -58,13 +60,13 @@ namespace
       }
     }
 
-    virtual String GetBackendId() const
+    String GetBackendId() const override
     {
       static const Char ID[] = {'o', 'g', 'g', '\0'};
       return ID;
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       if (selectQuality->isChecked())
       {

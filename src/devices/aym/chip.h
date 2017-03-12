@@ -25,7 +25,7 @@ namespace Devices
     class Chip : public Device, public StateSource
     {
     public:
-      typedef boost::shared_ptr<Chip> Ptr;
+      typedef std::shared_ptr<Chip> Ptr;
     };
 
     enum ChannelMasks
@@ -64,9 +64,9 @@ namespace Devices
     class ChipParameters
     {
     public:
-      typedef boost::shared_ptr<const ChipParameters> Ptr;
+      typedef std::shared_ptr<const ChipParameters> Ptr;
 
-      virtual ~ChipParameters() {}
+      virtual ~ChipParameters() = default;
 
       virtual uint_t Version() const = 0;
 

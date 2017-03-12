@@ -16,8 +16,6 @@
 #include <contract.h>
 //library includes
 #include <debug/log.h>
-//boost includes
-#include <boost/scoped_ptr.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtNetwork/QLocalServer>
@@ -56,18 +54,18 @@ namespace
       }
     }
 
-    virtual bool StartMaster()
+    bool StartMaster() override
     {
       return true;
     }
 
-    virtual QStringList GetCmdline() const
+    QStringList GetCmdline() const override
     {
       return Cmdline;
     }
 
   protected:
-    virtual void SlaveStarted() {}
+    void SlaveStarted() override {}
   protected:
     QStringList Cmdline;
   };
@@ -80,7 +78,7 @@ namespace
     {
     }
 
-    virtual bool StartMaster()
+    bool StartMaster() override
     {
       QLocalSocket socket;
       socket.connectToServer(SERVER_NAME, QLocalSocket::WriteOnly);
@@ -98,11 +96,11 @@ namespace
     }
 
   private:
-    virtual void SlaveStarted()
+    void SlaveStarted() override
     {
       while (QLocalSocket* conn = Server->nextPendingConnection())
       {
-        const boost::scoped_ptr<QLocalSocket> holder(conn);
+        const std::unique_ptr<QLocalSocket> holder(conn);
         QStringList cmdline;
         ReadDataFrom(*holder, cmdline);
         Dbg("Slave passed cmdline '%1%'", FromQString(cmdline.join(" ")));
@@ -216,7 +214,7 @@ namespace
     }
 
   private:
-    std::auto_ptr<QLocalServer> Server;
+    std::unique_ptr<QLocalServer> Server;
   };
 }
 

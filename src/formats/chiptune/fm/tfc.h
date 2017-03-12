@@ -24,8 +24,8 @@ namespace Formats
       class Builder
       {
       public:
-        typedef boost::shared_ptr<Builder> Ptr;
-        virtual ~Builder() {}
+        typedef std::shared_ptr<Builder> Ptr;
+        virtual ~Builder() = default;
 
         virtual void SetVersion(const String& version) = 0;
         virtual void SetIntFreq(uint_t freq) = 0;

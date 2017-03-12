@@ -36,10 +36,10 @@ namespace Details
     explicit LinuxSharedLibrary(void* handle)
       : Handle(handle)
     {
-      Require(Handle != 0);
+      Require(Handle != nullptr);
     }
 
-    virtual ~LinuxSharedLibrary()
+    ~LinuxSharedLibrary() override
     {
       if (Handle)
       {
@@ -47,7 +47,7 @@ namespace Details
       }
     }
 
-    virtual void* GetSymbol(const std::string& name) const
+    void* GetSymbol(const std::string& name) const override
     {
       if (void* res = ::dlsym(Handle, name.c_str()))
       {

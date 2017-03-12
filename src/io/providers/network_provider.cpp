@@ -24,8 +24,6 @@
 #include <parameters/accessor.h>
 //std includes
 #include <cstring>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <io/text/io.h>
 
@@ -63,7 +61,7 @@ namespace IO
   {
   public:
     explicit CurlObject(Curl::Api::Ptr api)
-      : Api(api)
+      : Api(std::move(api))
       , Object(Api->curl_easy_init())
     {
       Dbg("Curl(%1%): created", Object);
@@ -148,7 +146,7 @@ namespace IO
     //TODO: pass callback to handle progress and other
     Binary::Container::Ptr Download()
     {
-      std::auto_ptr<Dump> result(new Dump());
+      std::unique_ptr<Dump> result(new Dump());
       result->reserve(INITIAL_SIZE);
       Object.SetOption<void*>(CURLOPT_WRITEDATA, result.get(), THIS_LINE);
       Object.Perform(THIS_LINE);
@@ -158,7 +156,7 @@ namespace IO
       {
         throw MakeFormattedError(THIS_LINE, translate("Http error happends: %1%."), retCode);
       }
-      return Binary::CreateContainer(result);
+      return Binary::CreateContainer(std::move(result));
     }
   private:
     static int DebugCallback(CURL* obj, curl_infotype type, char* data, size_t size, void* /*param*/)
@@ -228,48 +226,48 @@ namespace IO
   class RemoteIdentifier : public Identifier
   {
   public:
-    RemoteIdentifier(const String& scheme, const String& path, const String& subpath)
-      : SchemeValue(scheme)
-      , PathValue(path)
-      , SubpathValue(subpath)
+    RemoteIdentifier(String scheme, String path, String subpath)
+      : SchemeValue(std::move(scheme))
+      , PathValue(std::move(path))
+      , SubpathValue(std::move(subpath))
       , FullValue(Serialize())
     {
       Require(!SchemeValue.empty() && !PathValue.empty());
     }
 
-    virtual String Full() const
+    String Full() const override
     {
       return FullValue;
     }
 
-    virtual String Scheme() const
+    String Scheme() const override
     {
       return SchemeValue;
     }
 
-    virtual String Path() const
+    String Path() const override
     {
       return PathValue;
     }
 
-    virtual String Filename() const
+    String Filename() const override
     {
       //filename usually is useless on remote schemes
       return String();
     }
 
-    virtual String Extension() const
+    String Extension() const override
     {
       //filename usually is useless on remote schemes
       return String();
     }
 
-    virtual String Subpath() const
+    String Subpath() const override
     {
       return SubpathValue;
     }
 
-    virtual Ptr WithSubpath(const String& subpath) const
+    Ptr WithSubpath(const String& subpath) const override
     {
       return MakePtr<RemoteIdentifier>(SchemeValue, PathValue, subpath);
     }
@@ -299,32 +297,32 @@ namespace IO
   {
   public:
     explicit NetworkDataProvider(Curl::Api::Ptr api)
-      : Api(api)
-      , SupportedSchemes(ALL_SCHEMES, boost::end(ALL_SCHEMES))
+      : Api(std::move(api))
+      , SupportedSchemes(ALL_SCHEMES, std::end(ALL_SCHEMES))
     {
     }
 
-    virtual String Id() const
+    String Id() const override
     {
       return ID;
     }
 
-    virtual String Description() const
+    String Description() const override
     {
       return translate(DESCRIPTION);
     }
 
-    virtual Error Status() const
+    Error Status() const override
     {
       return Error();
     }
 
-    virtual Strings::Set Schemes() const
+    Strings::Set Schemes() const override
     {
       return SupportedSchemes;
     }
 
-    virtual Identifier::Ptr Resolve(const String& uri) const
+    Identifier::Ptr Resolve(const String& uri) const override
     {
       const String schemeSign(SCHEME_SIGN);
       const String::size_type schemePos = uri.find(schemeSign);
@@ -349,7 +347,7 @@ namespace IO
       return MakePtr<RemoteIdentifier>(scheme, path, subpath);
     }
 
-    virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
+    Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const override
     {
       try
       {
@@ -366,7 +364,7 @@ namespace IO
       }
     }
 
-    virtual Binary::OutputStream::Ptr Create(const String& /*path*/, const Parameters::Accessor& /*params*/, Log::ProgressCallback& /*cb*/) const
+    Binary::OutputStream::Ptr Create(const String& /*path*/, const Parameters::Accessor& /*params*/, Log::ProgressCallback& /*cb*/) const override
     {
       throw Error(THIS_LINE, translate("Not supported."));
     }

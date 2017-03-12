@@ -19,8 +19,8 @@
 #include <binary/input_stream.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //3rd-party includes
 #include <3rdparty/zlib/zlib.h>
 //text includes
@@ -32,7 +32,7 @@ namespace Packed
 {
   namespace Gzip
   {
-    typedef boost::array<uint8_t, 2> SignatureType;
+    typedef std::array<uint8_t, 2> SignatureType;
     
     const SignatureType SIGNATURE = {{ 0x1f, 0x8b }};
     
@@ -97,7 +97,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 10);
+    static_assert(sizeof(Header) == 10, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header) + 2 + sizeof(Footer);
 
@@ -114,13 +114,13 @@ namespace Packed
     {
       z_stream stream = z_stream();
       Require(Z_OK == ::inflateInit2(&stream, -15));
-      const boost::shared_ptr<void> cleanup(&stream, ::inflateEnd);
+      const std::shared_ptr<void> cleanup(&stream, ::inflateEnd);
       for (;;)
       {
         const std::size_t restIn = input.GetRestSize();
         if (stream.avail_in == 0)
         {
-          stream.next_in = const_cast<Bytef*>(input.ReadData(0));
+          stream.next_in = const_cast<Bytef*>(input.ReadRawData(0));
           stream.avail_in = static_cast<uInt>(restIn);
         }
         if (stream.avail_out == 0)
@@ -132,7 +132,7 @@ namespace Packed
         const int res = ::inflate(&stream, Z_SYNC_FLUSH);
         if (Z_STREAM_END == res)
         {
-          input.ReadData(restIn - stream.avail_in);
+          input.Skip(restIn - stream.avail_in);
           output.Resize(stream.total_out);
           return;
         }
@@ -152,17 +152,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::GZIP_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
+    Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {
@@ -176,7 +176,7 @@ namespace Packed
         if (header.HasExtraData())
         {
           const std::size_t extraSize = fromLE(input.ReadField<uint16_t>());
-          input.ReadData(extraSize);
+          input.Skip(extraSize);
         }
         if (header.HasFilename())
         {

@@ -17,8 +17,8 @@
 #include <devices/state.h>
 #include <sound/receiver.h>
 #include <time/stamp.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 
 namespace Devices
 {
@@ -69,7 +69,7 @@ namespace Devices
       }
 
       uint32_t Mask;
-      boost::array<uint8_t, TOTAL> Data;
+      std::array<uint8_t, TOTAL> Data;
     };
 
     struct DataChunk
@@ -88,8 +88,8 @@ namespace Devices
     class Device
     {
     public:
-      typedef boost::shared_ptr<Device> Ptr;
-      virtual ~Device() {}
+      typedef std::shared_ptr<Device> Ptr;
+      virtual ~Device() = default;
 
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
@@ -102,7 +102,7 @@ namespace Devices
     class Chip : public Device, public StateSource
     {
     public:
-      typedef boost::shared_ptr<Chip> Ptr;
+      typedef std::shared_ptr<Chip> Ptr;
     };
 
     enum InterpolationType
@@ -115,9 +115,9 @@ namespace Devices
     class ChipParameters
     {
     public:
-      typedef boost::shared_ptr<const ChipParameters> Ptr;
+      typedef std::shared_ptr<const ChipParameters> Ptr;
 
-      virtual ~ChipParameters() {}
+      virtual ~ChipParameters() = default;
 
       virtual uint_t Version() const = 0;
       virtual uint64_t ClockFreq() const = 0;

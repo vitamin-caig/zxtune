@@ -10,6 +10,11 @@
 
 package app.zxtune.fs;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.net.Uri;
+import android.util.SparseIntArray;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
@@ -17,10 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
-import android.content.Context;
-import android.net.Uri;
-import android.util.SparseIntArray;
-import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.zxart.Author;
 import app.zxtune.fs.zxart.Catalog;
@@ -36,9 +37,9 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupingDir groups[];
 
-  public VfsRootZxart(Context context, HttpProvider http) {
+  public VfsRootZxart(Context context, HttpProvider http, VfsCache cache) throws IOException {
     this.context = context;
-    this.catalog = Catalog.create(context, http);
+    this.catalog = Catalog.create(context, http, cache);
     this.groups = new GroupingDir[] {
         new AuthorsDir(),
         new PartiesDir(),
@@ -86,19 +87,16 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   }
 
   @Override
-  public VfsObject resolve(Uri uri) throws IOException {
-    try {
-      if (Identifier.isFromRoot(uri)) {
-        final List<String> path = uri.getPathSegments();
-        return resolve(uri, path);
-      }
-    } catch (Exception e) {
-      Log.d(TAG, e, "resolve(%s)", uri);
+  public VfsObject resolve(Uri uri) {
+    if (Identifier.isFromRoot(uri)) {
+      final List<String> path = uri.getPathSegments();
+      return resolve(uri, path);
+    } else {
+      return null;
     }
-    return null;
   }
 
-  private VfsObject resolve(Uri uri, List<String> path) throws IOException {
+  private VfsObject resolve(Uri uri, List<String> path) {
     final String category = Identifier.findCategory(path);
     if (category == null) {
       return this;
@@ -121,7 +119,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     abstract String getPath();
 
-    abstract VfsObject resolve(Uri uri, List<String> path) throws IOException;
+    abstract VfsObject resolve(Uri uri, List<String> path);
   }
 
   private class AuthorsDir extends GroupingDir {
@@ -171,7 +169,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    public VfsObject resolve(Uri uri, List<String> path) {
       // use plain resolving to avoid deep hierarchy
       // check most frequent cases first
       final Track track = Identifier.findAuthorTrack(uri, path);
@@ -354,7 +352,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    public VfsObject resolve(Uri uri, List<String> path) {
       final Track track = Identifier.findPartyTrack(uri, path);
       if (track != null) {
         return new PartyTrackFile(uri, track);
@@ -453,39 +451,29 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
   }
 
-  enum CompoIdentifier {
-    unknown(R.string.vfs_zxart_compo_unknown),
-    standard(R.string.vfs_zxart_compo_standard),
-    ay(R.string.vfs_zxart_compo_ay),
-    beeper(R.string.vfs_zxart_compo_beeper),
-    copyay(R.string.vfs_zxart_compo_copyay),
-    nocopyay(R.string.vfs_zxart_compo_nocopyay),
-    realtime(R.string.vfs_zxart_compo_realtime),
-    realtimeay(R.string.vfs_zxart_compo_realtimeay),
-    realtimebeeper(R.string.vfs_zxart_compo_realtimebeeper),
-    out(R.string.vfs_zxart_compo_out),
-    wild(R.string.vfs_zxart_compo_wild),
-    experimental(R.string.vfs_zxart_compo_experimental),
-    oldschool(R.string.vfs_zxart_compo_oldschool),
-    mainstream(R.string.vfs_zxart_compo_mainstream),
-    progressive(R.string.vfs_zxart_compo_progressive);
+  static class CompoName {
+    private final String id;
+    private final String name;
 
-    private final int resourceId;
-
-    private CompoIdentifier(int id) {
-      this.resourceId = id;
+    private CompoName(String id, Context ctx) {
+      this.id = id;
+      this.name = getLocalizedName(ctx);
     }
 
-    final int getResource() {
-      return resourceId;
+    final String getId() {
+      return id;
     }
 
-    static CompoIdentifier getId(String val) {
-      try {
-        return CompoIdentifier.valueOf(val);
-      } catch (IllegalArgumentException e) {
-        return CompoIdentifier.unknown;
-      }
+    final String getName() {
+      return name;
+    }
+
+    private String getLocalizedName(Context ctx) {
+      final Resources res = ctx.getResources();
+      final int resId = res.getIdentifier("vfs_zxart_compo_" + id, "string", ctx.getPackageName());
+      return resId != 0
+              ? res.getString(resId)
+              : id;
     }
   }
 
@@ -493,21 +481,21 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   private class PartyCompoDir extends StubObject implements VfsDir, Comparator<VfsObject> {
 
     private final Party party;
-    private final CompoIdentifier compo;
+    private final CompoName compo;
 
     PartyCompoDir(Party party, String compo) {
       this.party = party;
-      this.compo = CompoIdentifier.getId(compo);
+      this.compo = new CompoName(compo, context);
     }
 
     @Override
     public Uri getUri() {
-      return Identifier.forPartyCompo(party, compo.name()).build();
+      return Identifier.forPartyCompo(party, compo.getId()).build();
     }
 
     @Override
     public String getName() {
-      return context.getString(compo.getResource());
+      return compo.getName();
     }
 
     @Override
@@ -525,8 +513,8 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
         @Override
         public void accept(Track obj) {
-          if (compo.name().equals(obj.compo)) {
-            final Uri uri = Identifier.forTrack(Identifier.forPartyCompo(party, compo.name()), obj)
+          if (compo.getId().equals(obj.compo)) {
+            final Uri uri = Identifier.forTrack(Identifier.forPartyCompo(party, compo.getId()), obj)
                 .build();
             visitor.onFile(new PartyTrackFile(uri, obj));
           }
@@ -603,7 +591,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
 
     @Override
-    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    public VfsObject resolve(Uri uri, List<String> path) {
       final Track track = Identifier.findTopTrack(uri, path);
       return track != null
           ? new TopTrackFile(uri, track)

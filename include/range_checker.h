@@ -21,9 +21,9 @@
 class RangeChecker
 {
 public:
-  typedef std::auto_ptr<RangeChecker> Ptr;
+  typedef std::unique_ptr<RangeChecker> Ptr;
 
-  virtual ~RangeChecker() {}
+  virtual ~RangeChecker() = default;
 
   //! @brief Adding range to collection
   //! @param offset 0-based range offset in bytes

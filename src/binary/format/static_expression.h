@@ -2,7 +2,7 @@
 *
 * @file
 *
-* @brief  Static token helpers
+* @brief  Static predicates helpers
 *
 * @author vitamin.caig@gmail.com
 *
@@ -15,39 +15,38 @@
 //common includes
 #include <contract.h>
 //std includes
+#include <array>
 #include <vector>
-//boost includes
-#include <boost/array.hpp>
 
 namespace Binary
 {
   namespace FormatDSL
   {
-    class StaticToken
+    class StaticPredicate
     {
     public:
-      explicit StaticToken(FormatDSL::Token::Ptr tok)
+      explicit StaticPredicate(const FormatDSL::Predicate& pred)
         : Mask()
         , Count()
         , Last()
       {
         for (uint_t idx = 0; idx != 256; ++idx)
         {
-          if (tok->Match(idx))
+          if (pred.Match(idx))
           {
             Set(idx);
           }
         }
       }
 
-      explicit StaticToken(uint_t val)
+      explicit StaticPredicate(uint_t val)
         : Mask()
         , Count()
         , Last()
       {
         Set(val);
       }
-
+      
       bool Match(uint_t val) const
       {
         return Get(val);
@@ -62,10 +61,10 @@ namespace Binary
       {
         return Count == 1
           ? &Last
-          : 0;
+          : nullptr;
       }
 
-      static bool AreIntersected(const StaticToken& lh, const StaticToken& rh)
+      static bool AreIntersected(const StaticPredicate& lh, const StaticPredicate& rh)
       {
         if (lh.IsAny() || rh.IsAny())
         {
@@ -106,7 +105,7 @@ namespace Binary
       typedef uint_t ElementType;
       static const std::size_t BitsPerElement = 8 * sizeof(ElementType);
       static const std::size_t ElementsCount = 256 / BitsPerElement;
-      boost::array<ElementType, ElementsCount> Mask;
+      std::array<ElementType, ElementsCount> Mask;
       uint_t Count;
       uint_t Last;
     };
@@ -114,40 +113,51 @@ namespace Binary
     class StaticPattern
     {
     public:
-      explicit StaticPattern(ObjectIterator<Token::Ptr>::Ptr iter)
+      explicit StaticPattern(const Pattern& pat)
       {
-        for (; iter->IsValid(); iter->Next())
+        Data.reserve(pat.size());
+        for (const auto& pred : pat)
         {
-          Data.push_back(StaticToken(iter->Get()));
+          Data.push_back(StaticPredicate(*pred));
         }
       }
-
+      
+      StaticPattern(const StaticPattern&) = delete;
+      StaticPattern& operator = (const StaticPattern&) = delete;
+      
+      StaticPattern(StaticPattern&& rh)// = default;
+        : Data(std::move(rh.Data))
+      {
+      }
+      
       std::size_t GetSize() const
       {
         return Data.size();
       }
 
-      const StaticToken& Get(std::size_t idx) const
+      const StaticPredicate& Get(std::size_t idx) const
       {
         return Data[idx];
       }
 
-      //return back offset
-      std::size_t FindSuffix(std::size_t suffixSize) const;
+      //return back offsets of suffixes
+      std::vector<std::size_t> GetSuffixOffsets() const;
       //return forward offset
       std::size_t FindPrefix(std::size_t prefixSize) const;
     private:
-      const StaticToken* Begin() const
+      const StaticPredicate* Begin() const
       {
         return &Data.front();
       }
 
-      const StaticToken* End() const
+      const StaticPredicate* End() const
       {
         return &Data.back() + 1;
       }
+
+      std::size_t FindMaxSuffixMatchSize(std::size_t offset) const;
     private:
-      std::vector<StaticToken> Data;
+      std::vector<StaticPredicate> Data;
     };
   }
 }

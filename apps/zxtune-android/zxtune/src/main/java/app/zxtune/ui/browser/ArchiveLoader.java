@@ -12,6 +12,7 @@ package app.zxtune.ui.browser;
 
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
+
 import app.zxtune.Log;
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsFile;

@@ -16,6 +16,7 @@
 #include <contract.h>
 //std includes
 #include <cassert>
+#include <utility>
 //qt includes
 #include <QtGui/QMenu>
 
@@ -45,13 +46,13 @@ namespace
       Require(supp.connect(this, SIGNAL(OnPause()), SLOT(Pause())));
     }
 
-    virtual QMenu* GetActionsMenu() const
+    QMenu* GetActionsMenu() const override
     {
       return ActionsMenu;
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

@@ -21,14 +21,14 @@
 //library includes
 #include <async/data_receiver.h>
 #include <async/src/event.h>
-#include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <core/conversion/api.h>
 #include <io/api.h>
 #include <io/template.h>
+#include <module/attributes.h>
+#include <module/conversion/api.h>
+#include <module/conversion/types.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/template.h>
 #include <platform/application.h>
@@ -43,7 +43,6 @@
 #include <limits>
 #include <numeric>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/program_options.hpp>
 //text includes
 #include "text/text.h"
@@ -87,7 +86,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const HolderAndData& data)
+    void ApplyData(HolderAndData data) override
     {
       try
       {
@@ -104,7 +103,7 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
     }
   private:
@@ -113,11 +112,11 @@ namespace
     const Strings::Template::Ptr FileNameTemplate;
   };
   
-  std::auto_ptr<Module::Conversion::Parameter> CreateConversionParameters(const String& mode, const Parameters::Accessor& modeParams)
+  std::unique_ptr<Module::Conversion::Parameter> CreateConversionParameters(const String& mode, const Parameters::Accessor& modeParams)
   {
     Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
     modeParams.FindValue(ToStdString(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
-    std::auto_ptr<Module::Conversion::Parameter> param;
+    std::unique_ptr<Module::Conversion::Parameter> param;
     if (mode == Text::CONVERSION_MODE_PSG)
     {
       param.reset(new Module::Conversion::PSGConvertParam(optimization));
@@ -155,11 +154,11 @@ namespace
     ConvertEndpoint(DisplayComponent& display, const String& mode, const Parameters::Accessor& modeParams, HolderAndData::Receiver::Ptr saver)
       : Display(display)
       , ConversionParameter(CreateConversionParameters(mode, modeParams))
-      , Saver(saver)
+      , Saver(std::move(saver))
     {
     }
     
-    virtual void ApplyData(const HolderAndData& data)
+    void ApplyData(HolderAndData data) override
     {
       const Module::Holder::Ptr holder = data.Holder;
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
@@ -168,7 +167,7 @@ namespace
         HolderAndData converted;
         converted.Holder = holder;
         converted.Data = result;
-        Saver->ApplyData(converted);
+        Saver->ApplyData(std::move(converted));
       }
       else
       {
@@ -179,13 +178,13 @@ namespace
       }
     }
     
-    virtual void Flush()
+    void Flush() override
     {
       Saver->Flush();
     }
   private:
     DisplayComponent& Display;
-    const std::auto_ptr<Module::Conversion::Parameter> ConversionParameter;
+    const std::unique_ptr<Module::Conversion::Parameter> ConversionParameter;
     const HolderAndData::Receiver::Ptr Saver;
   };
 
@@ -207,17 +206,17 @@ namespace
       Pipe = Async::DataReceiver<HolderAndData>::Create(1, 1000, target);
     }
 
-    virtual ~Convertor()
+    ~Convertor() override
     {
       Pipe->Flush();
     }
 
-    virtual void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder)
+    void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder) override
     {
       HolderAndData pair;
       pair.Holder = holder;
       pair.Data = data;
-      Pipe->ApplyData(pair);
+      Pipe->ApplyData(std::move(pair));
     }
   private:
     HolderAndData::Receiver::Ptr Pipe;
@@ -226,28 +225,28 @@ namespace
   class FinishPlaybackCallback : public Sound::BackendCallback
   {
   public:
-    virtual void OnStart()
+    void OnStart() override
     {
       Event.Reset();
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
+    void OnFrame(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void OnStop()
+    void OnStop() override
     {
     }
 
-    virtual void OnPause()
+    void OnPause() override
     {
     }
 
-    virtual void OnResume()
+    void OnResume() override
     {
     }
 
-    virtual void OnFinish()
+    void OnFinish() override
     {
       Event.Set(1);
     }
@@ -270,7 +269,7 @@ namespace
     {
     }
 
-    virtual void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder)
+    void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder) override
     {
       const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
@@ -315,7 +314,7 @@ namespace
     {
     }
 
-    virtual int Run(int argc, const char* argv[])
+    int Run(int argc, const char* argv[]) override
     {
       try
       {
@@ -413,7 +412,7 @@ namespace
       }
     }
 
-    virtual void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder)
+    void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder) override
     {
       const Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
       const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
@@ -504,10 +503,10 @@ namespace
   private:
     const Parameters::Container::Ptr ConfigParams;
     String ConvertParams;
-    std::auto_ptr<InformationComponent> Informer;
-    std::auto_ptr<SourceComponent> Sourcer;
-    std::auto_ptr<SoundComponent> Sounder;
-    std::auto_ptr<DisplayComponent> Display;
+    std::unique_ptr<InformationComponent> Informer;
+    std::unique_ptr<SourceComponent> Sourcer;
+    std::unique_ptr<SoundComponent> Sounder;
+    std::unique_ptr<DisplayComponent> Display;
     uint_t SeekStep;
     uint_t BenchmarkIterations;
   };
@@ -515,8 +514,8 @@ namespace
 
 namespace Platform
 {
-  std::auto_ptr<Application> Application::Create()
+  std::unique_ptr<Application> Application::Create()
   {
-    return std::auto_ptr<Application>(new CLIApplication());
+    return std::unique_ptr<Application>(new CLIApplication());
   }
 }

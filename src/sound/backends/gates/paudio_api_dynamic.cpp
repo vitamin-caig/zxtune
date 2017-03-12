@@ -15,8 +15,6 @@
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Sound
 {
@@ -25,12 +23,16 @@ namespace Sound
     class LibraryName : public Platform::SharedLibrary::Name
     {
     public:
-      virtual std::string Base() const
+      LibraryName()
+      {
+      }
+
+      std::string Base() const override
       {
         return "pulse-simple";
       }
       
-      virtual std::vector<std::string> PosixAlternatives() const
+      std::vector<std::string> PosixAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {
@@ -38,10 +40,10 @@ namespace Sound
           "libpulse-simple.so.0.1",
           "libpulse-simple.so.0.1.0"
         };
-        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
-      virtual std::vector<std::string> WindowsAlternatives() const
+      std::vector<std::string> WindowsAlternatives() const override
       {
         return std::vector<std::string>();
       }
@@ -58,13 +60,13 @@ namespace Sound
         Dbg("Library loaded");
       }
 
-      virtual ~DynamicApi()
+      ~DynamicApi() override
       {
         Dbg("Library unloaded");
       }
 
       
-      virtual const char* pa_get_library_version(void)
+      const char* pa_get_library_version() override
       {
         static const char NAME[] = "pa_get_library_version";
         typedef const char* ( *FunctionType)();
@@ -72,7 +74,7 @@ namespace Sound
         return func();
       }
       
-      virtual const char* pa_strerror(int error)
+      const char* pa_strerror(int error) override
       {
         static const char NAME[] = "pa_strerror";
         typedef const char* ( *FunctionType)(int);
@@ -80,7 +82,7 @@ namespace Sound
         return func(error);
       }
       
-      virtual pa_simple* pa_simple_new(const char* server, const char* name, pa_stream_direction_t dir, const char* dev, const char* stream, const pa_sample_spec* ss, const pa_channel_map* map, const pa_buffer_attr* attr, int* error)
+      pa_simple* pa_simple_new(const char* server, const char* name, pa_stream_direction_t dir, const char* dev, const char* stream, const pa_sample_spec* ss, const pa_channel_map* map, const pa_buffer_attr* attr, int* error) override
       {
         static const char NAME[] = "pa_simple_new";
         typedef pa_simple* ( *FunctionType)(const char*, const char*, pa_stream_direction_t, const char*, const char*, const pa_sample_spec*, const pa_channel_map*, const pa_buffer_attr*, int*);
@@ -88,7 +90,7 @@ namespace Sound
         return func(server, name, dir, dev, stream, ss, map, attr, error);
       }
       
-      virtual int pa_simple_write(pa_simple* s, const void* data, size_t bytes, int* error)
+      int pa_simple_write(pa_simple* s, const void* data, size_t bytes, int* error) override
       {
         static const char NAME[] = "pa_simple_write";
         typedef int ( *FunctionType)(pa_simple*, const void*, size_t, int*);
@@ -96,7 +98,7 @@ namespace Sound
         return func(s, data, bytes, error);
       }
       
-      virtual int pa_simple_flush(pa_simple* s, int* error)
+      int pa_simple_flush(pa_simple* s, int* error) override
       {
         static const char NAME[] = "pa_simple_flush";
         typedef int ( *FunctionType)(pa_simple*, int*);
@@ -104,7 +106,7 @@ namespace Sound
         return func(s, error);
       }
       
-      virtual void pa_simple_free(pa_simple* s)
+      void pa_simple_free(pa_simple* s) override
       {
         static const char NAME[] = "pa_simple_free";
         typedef void ( *FunctionType)(pa_simple*);

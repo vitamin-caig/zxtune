@@ -153,6 +153,11 @@ public final class ZXTune {
        * Module strings
        */
       public final static String STRINGS = "Strings";
+
+      /**
+       * Module container
+       */
+      public final static String CONTAINER = "Container";
     }
 
     /**

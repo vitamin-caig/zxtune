@@ -19,8 +19,8 @@
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
@@ -59,8 +59,8 @@ namespace Packed
       uint8_t Length;
       uint8_t Loop;
       uint16_t PatternsOffset;
-      boost::array<uint16_t, ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
-      boost::array<uint16_t, ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      std::array<uint16_t, ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<uint16_t, ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       uint8_t Positions[1];//finished by marker
     } PACK_POST;
 
@@ -69,7 +69,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 202);
+    static_assert(sizeof(RawHeader) == 202, "Invalid layout");
 
     const String DESCRIPTION = String(Text::PROTRACKERUTILITY13_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
@@ -126,17 +126,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return CompiledPTU13::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Player;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       namespace ProTracker3 = Formats::Chiptune::ProTracker3;
       using namespace CompiledPTU13;

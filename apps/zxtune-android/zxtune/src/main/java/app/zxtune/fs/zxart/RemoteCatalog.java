@@ -10,15 +10,6 @@
 
 package app.zxtune.fs.zxart;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.nio.ByteBuffer;
-import java.util.Locale;
-
-import org.xml.sax.SAXException;
-
 import android.net.Uri;
 import android.sax.Element;
 import android.sax.EndElementListener;
@@ -26,7 +17,16 @@ import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.text.Html;
 import android.util.Xml;
-import app.zxtune.Log;
+
+import org.xml.sax.SAXException;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.nio.ByteBuffer;
+import java.util.Locale;
+
 import app.zxtune.Util;
 import app.zxtune.fs.HttpProvider;
 
@@ -110,13 +110,8 @@ final class RemoteCatalog extends Catalog {
   
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
-    try {
-      final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-      return http.getContent(query);
-    } catch (IOException e) {
-      Log.d(TAG, e, "getTrackContent(%d)", id);
-      throw e;
-    }
+    final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
+    return http.getContent(query);
   }
 
   private void performQuery(HttpURLConnection connection, RootElement root)

@@ -18,9 +18,9 @@ namespace Playlist
   class Session
   {
   public:
-    typedef boost::shared_ptr<Session> Ptr;
+    typedef std::shared_ptr<Session> Ptr;
 
-    virtual ~Session() {}
+    virtual ~Session() = default;
 
     virtual bool Empty() const = 0;
     virtual void Load(Container::Ptr container) = 0;

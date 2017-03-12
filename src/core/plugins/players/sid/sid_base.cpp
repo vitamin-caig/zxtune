@@ -12,10 +12,7 @@
 #include "roms.h"
 #include "songlengths.h"
 #include "core/plugins/player_plugins_registrator.h"
-#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
-#include "core/plugins/players/properties_helper.h"
-#include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
@@ -23,11 +20,14 @@
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
-#include <core/module_attrs.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
 #include <formats/chiptune/container.h>
 #include <formats/chiptune/emulation/sid.h>
+#include <module/attributes.h>
+#include <module/players/duration.h>
+#include <module/players/properties_helper.h>
+#include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
@@ -39,8 +39,6 @@
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
 #include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
 //boost includes
-#include <boost/make_shared.hpp>
-#include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace Module
@@ -49,8 +47,8 @@ namespace Sid
 {
   const Debug::Stream Dbg("Core::SIDSupp");
 
-  typedef boost::shared_ptr<SidTune> TunePtr;
-  typedef boost::shared_ptr<sidplayfp> EnginePtr;
+  typedef std::shared_ptr<SidTune> TunePtr;
+  typedef std::shared_ptr<sidplayfp> EnginePtr;
 
   void CheckSidplayError(bool ok)
   {
@@ -60,10 +58,10 @@ namespace Sid
   class Analyzer : public Module::Analyzer
   {
   public:
-    typedef boost::shared_ptr<Analyzer> Ptr;
+    typedef std::shared_ptr<Analyzer> Ptr;
 
     explicit Analyzer(EnginePtr engine)
-      : Engine(engine)
+      : Engine(std::move(engine))
     {
     }
 
@@ -74,7 +72,7 @@ namespace Sid
       Analysis.SetClockAndDivisor(rate, 16777216);
     }
 
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    std::vector<ChannelState> GetState() const override
     {
       unsigned freqs[6], levels[6];
       const unsigned count = Engine->getState(freqs, levels);
@@ -85,7 +83,8 @@ namespace Sid
         res.Band = Analysis.GetBandByScaledFrequency(freqs[chan]);
         res.Level = levels[chan] * 100 / 15;
       }
-      channels.swap(result);
+      //required for compiler...
+      return std::move(result);
     }
   private:
     const EnginePtr Engine;
@@ -103,7 +102,7 @@ namespace Sid
   {
   public:
     explicit SidParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -139,15 +138,15 @@ namespace Sid
   {
   public:
     Renderer(TunePtr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(tune)
-      , Engine(boost::make_shared<sidplayfp>())
+      : Tune(std::move(tune))
+      , Engine(std::make_shared<sidplayfp>())
       , Builder("resid")
-      , Iterator(iterator)
+      , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
       , Analysis(MakePtr<Analyzer>(Engine))
-      , Target(target)
-      , SoundParams(Sound::RenderParameters::Create(params))
+      , Target(std::move(target))
       , Params(params)
+      , SoundParams(Sound::RenderParameters::Create(params))
       , Config(Engine->config())
       , UseFilter()
       , Looped()
@@ -158,22 +157,22 @@ namespace Sid
       Builder.create(chipsCount);
       Config.frequency = 0;
       ApplyParameters();
-      CheckSidplayError(Engine->load(tune.get()));
+      CheckSidplayError(Engine->load(Tune.get()));
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return State;
     }
 
-    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    Module::Analyzer::Ptr GetAnalyzer() const override
     {
       return Analysis;
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
-      BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
 
       try
       {
@@ -182,7 +181,7 @@ namespace Sid
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
         Engine->play(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
-        Target->ApplyData(builder.GetResult());
+        Target->ApplyData(builder.CaptureResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -192,14 +191,14 @@ namespace Sid
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       SoundParams.Reset();
       Engine->stop();
       Iterator->Reset();
     }
 
-    virtual void SetPosition(uint_t frame)
+    void SetPosition(uint_t frame) override
     {
       SeekEngine(frame);
       Module::SeekIterator(*Iterator, frame);
@@ -264,7 +263,7 @@ namespace Sid
 
     void AdvanceEngine(uint_t framesToPlay)
     {
-      Engine->play(0, framesToPlay * SamplesPerFrame * Sound::Sample::CHANNELS);
+      Engine->play(nullptr, framesToPlay * SamplesPerFrame * Sound::Sample::CHANNELS);
     }
   private:
     const TunePtr Tune;
@@ -274,8 +273,8 @@ namespace Sid
     const TrackState::Ptr State;
     const Analyzer::Ptr Analysis;
     const Sound::Receiver::Ptr Target;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const SidParameters Params;
+    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     SidConfig Config;
     //cache filter flag
     bool UseFilter;
@@ -288,29 +287,29 @@ namespace Sid
   public:
     Information(const TimeType defaultDuration, TunePtr tune, uint_t fps, uint_t songIdx)
       : DefaultDuration(defaultDuration)
-      , Tune(tune)
+      , Tune(std::move(tune))
       , Fps(fps)
       , SongIdx(songIdx)
       , Frames()
     {
     }
 
-    virtual uint_t PositionsCount() const
+    uint_t PositionsCount() const override
     {
       return 1;
     }
 
-    virtual uint_t LoopPosition() const
+    uint_t LoopPosition() const override
     {
       return 0;
     }
 
-    virtual uint_t PatternsCount() const
+    uint_t PatternsCount() const override
     {
       return 0;
     }
 
-    virtual uint_t FramesCount() const
+    uint_t FramesCount() const override
     {
       if (!Frames)
       {
@@ -319,17 +318,17 @@ namespace Sid
       return Frames;
     }
 
-    virtual uint_t LoopFrame() const
+    uint_t LoopFrame() const override
     {
       return 0;
     }
 
-    virtual uint_t ChannelsCount() const
+    uint_t ChannelsCount() const override
     {
       return 1;
     }
 
-    virtual uint_t Tempo() const
+    uint_t Tempo() const override
     {
       return 1;
     }
@@ -354,23 +353,23 @@ namespace Sid
   {
   public:
     Holder(TunePtr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
-      : Tune(tune)
-      , Info(info)
-      , Properties(props)
+      : Tune(std::move(tune))
+      , Info(std::move(info))
+      , Properties(std::move(props))
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    Module::Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
@@ -390,11 +389,11 @@ namespace Sid
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {
-        const TunePtr tune = boost::make_shared<SidTune>(static_cast<const uint_least8_t*>(rawData.Start()),
+        const TunePtr tune = std::make_shared<SidTune>(static_cast<const uint_least8_t*>(rawData.Start()),
           static_cast<uint_least32_t>(rawData.Size()));
         CheckSidplayError(tune->getStatus());
         const unsigned songIdx = tune->selectSong(0);

@@ -10,10 +10,11 @@
 
 package app.zxtune.fs.archives;
 
-import java.util.concurrent.TimeUnit;
-
 import android.database.Cursor;
 import android.net.Uri;
+
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
 

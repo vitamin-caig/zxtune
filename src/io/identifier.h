@@ -12,8 +12,8 @@
 
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace IO
 {
@@ -24,9 +24,9 @@ namespace IO
   class Identifier
   {
   public:
-    typedef boost::shared_ptr<const Identifier> Ptr;
+    typedef std::shared_ptr<const Identifier> Ptr;
 
-    virtual ~Identifier() {}
+    virtual ~Identifier() = default;
 
     //! @return Full identifier
     virtual String Full() const = 0;

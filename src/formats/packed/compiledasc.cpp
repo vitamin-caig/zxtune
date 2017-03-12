@@ -19,8 +19,8 @@
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
@@ -39,7 +39,7 @@ namespace Packed
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    typedef boost::array<uint8_t, 63> InfoData;
+    typedef std::array<uint8_t, 63> InfoData;
     
     PACK_PRE struct PlayerVer0
     {
@@ -84,10 +84,10 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(offsetof(PlayerVer0, Information) == 20);
-    BOOST_STATIC_ASSERT(offsetof(PlayerVer0, Initialization) == 83);
-    BOOST_STATIC_ASSERT(offsetof(PlayerVer2, Initialization) == 83);
-    BOOST_STATIC_ASSERT(offsetof(PlayerVer2, DataOffset) == 124);
+    static_assert(offsetof(PlayerVer0, Information) == 20, "Invalid layout");
+    static_assert(offsetof(PlayerVer0, Initialization) == 83, "Invalid layout");
+    static_assert(offsetof(PlayerVer2, Initialization) == 83, "Invalid layout");
+    static_assert(offsetof(PlayerVer2, DataOffset) == 124, "Invalid layout");
     
     struct PlayerTraits
     {
@@ -105,7 +105,7 @@ namespace Packed
       static PlayerTraits Create(const Binary::TypedContainer& data)
       {
         const Player* const pl = data.GetField<Player>(0);
-        Require(pl != 0);
+        Require(pl != nullptr);
         return PlayerTraits(*pl);
       }
     };
@@ -209,9 +209,9 @@ namespace Packed
       //20 - author
       //4  - ignore
       //20 - title
-      const uint8_t* const authorStart = info.begin() + 19;
-      const uint8_t* const ignoreStart = authorStart + 20;
-      const uint8_t* const titleStart = ignoreStart + 4;
+      const auto authorStart = info.begin() + 19;
+      const auto ignoreStart = authorStart + 20;
+      const auto titleStart = ignoreStart + 4;
       return ignoreStart == std::find_if(authorStart, ignoreStart, std::bind2nd(std::greater<Char>(), Char(' ')))
           && info.end() == std::find_if(titleStart, info.end(), std::bind2nd(std::greater<Char>(), Char(' ')));
     }
@@ -226,17 +226,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Version.Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Player;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       using namespace CompiledASC;
       if (!Player->Match(rawData))

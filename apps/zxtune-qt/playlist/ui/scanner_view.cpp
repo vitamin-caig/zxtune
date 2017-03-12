@@ -43,26 +43,26 @@ namespace
       Dbg("Created at %1%", this);
     }
 
-    virtual ~ScannerViewImpl()
+    ~ScannerViewImpl() override
     {
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual void ScanStart(Playlist::ScanStatus::Ptr status)
+    void ScanStart(Playlist::ScanStatus::Ptr status) override
     {
       Dbg("Scan started for %1%", this);
       Status = status;
       show();
     }
 
-    virtual void ScanStop()
+    void ScanStop() override
     {
       Dbg("Scan stopped for %1%", this);
       hide();
       scanPause->setChecked(false);
     }
 
-    virtual void ShowProgress(unsigned progress)
+    void ShowProgress(unsigned progress) override
     {
       //new file started
       if (progress == 0)
@@ -75,7 +75,7 @@ namespace
       CheckedShow();
     }
 
-    virtual void ShowProgressMessage(const QString& message)
+    void ShowProgressMessage(const QString& message) override
     {
       scanProgress->setToolTip(message);
     }

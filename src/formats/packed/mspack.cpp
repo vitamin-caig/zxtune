@@ -55,7 +55,7 @@ namespace Packed
       //+8
       uint16_t DstPacked;
       //+a
-      uint16_t SizeOfPacked;
+      uint16_t SizeOfPacked;//full data size starting from next field excluding last 5 bytes
       //+c
       uint16_t DstAddress;
       //+e
@@ -65,7 +65,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10);
+    static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 
@@ -130,7 +130,7 @@ namespace Packed
       explicit DataDecoder(const Container& container)
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
-        , Stream(Header.BitStream, fromLE(Header.SizeOfPacked))
+        , Stream(Header.BitStream, fromLE(Header.SizeOfPacked) - sizeof(Header.DstAddress))
         , Result(new Dump())
         , Decoded(*Result)
       {
@@ -140,11 +140,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
     private:
       bool DecodeData()
@@ -196,7 +196,8 @@ namespace Packed
             return false;
           }
         }
-        const uint8_t* const lastBytes = Header.BitStream + Stream.GetProcessedBytes();
+        //last bytes are always copied from exact address
+        const uint8_t* const lastBytes = Header.BitStream + fromLE(Header.SizeOfPacked) - sizeof(Header.DstAddress);
         std::copy(lastBytes, lastBytes + LAST_BYTES_COUNT, std::back_inserter(Decoded));
         return true;
       }
@@ -235,7 +236,7 @@ namespace Packed
       bool IsValid;
       const RawHeader& Header;
       Hrust1Bitstream Stream;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
   }//namespace MSPack
@@ -248,17 +249,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::MSP_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Depacker;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Depacker->Match(rawData))
       {

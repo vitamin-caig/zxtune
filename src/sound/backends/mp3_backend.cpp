@@ -50,7 +50,7 @@ namespace Mp3
   const uint_t QUALITY_MIN = 0;
   const uint_t QUALITY_MAX = 9;
 
-  typedef boost::shared_ptr<lame_global_flags> LameContextPtr;
+  typedef std::shared_ptr<lame_global_flags> LameContextPtr;
 
   void CheckLameCall(int res, Error::LocationRef loc)
   {
@@ -66,41 +66,41 @@ namespace Mp3
   {
   public:
     FileStream(Api::Ptr api, LameContextPtr context, Binary::OutputStream::Ptr stream)
-      : LameApi(api)
-      , Stream(stream)
-      , Context(context)
+      : LameApi(std::move(api))
+      , Stream(std::move(stream))
+      , Context(std::move(context))
       , Encoded(INITIAL_ENCODED_BUFFER_SIZE)
     {
       Dbg("Stream initialized");
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       const std::string titleC = title;//TODO
       LameApi->id3tag_set_title(Context.get(), titleC.c_str());
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       const std::string authorC = author;//TODO
       LameApi->id3tag_set_artist(Context.get(), authorC.c_str());
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       const std::string commentC = comment;//TODO
       LameApi->id3tag_set_comment(Context.get(), commentC.c_str());
     }
 
-    virtual void FlushMetadata()
+    void FlushMetadata() override
     {
     }
 
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(Chunk::Ptr data) override
     {
       //work with 16-bit
-      BOOST_STATIC_ASSERT(Sample::BITS == 16);
-      BOOST_STATIC_ASSERT(Sample::CHANNELS == 2);
+      static_assert(Sample::BITS == 16, "Incompatible sound sample bits count");
+      static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
       data->ToS16();
       while (const int res = LameApi->lame_encode_buffer_interleaved(Context.get(),
         safe_ptr_cast<short int*>(&data->front()), data->size(), &Encoded[0], Encoded.size()))
@@ -121,7 +121,7 @@ namespace Mp3
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       while (const int res = LameApi->lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
       {
@@ -173,7 +173,7 @@ namespace Mp3
   {
   public:
     explicit StreamParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -258,17 +258,17 @@ namespace Mp3
   {
   public:
     FileStreamFactory(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : LameApi(api)
-      , Params(params)
+      : LameApi(std::move(api))
+      , Params(std::move(params))
     {
     }
 
-    virtual String GetId() const
+    String GetId() const override
     {
       return ID;
     }
 
-    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
+    FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
       const LameContextPtr context = LameContextPtr(LameApi->lame_init(), boost::bind(&Api::lame_close, LameApi, _1));
       SetupContext(*context);
@@ -347,11 +347,11 @@ namespace Mp3
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : FlacApi(api)
+      : FlacApi(std::move(api))
     {
     }
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(FlacApi, params);
       return CreateFileBackendWorker(params, factory);

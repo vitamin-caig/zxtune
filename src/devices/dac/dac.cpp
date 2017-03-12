@@ -19,11 +19,9 @@
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 //std includes
+#include <array>
 #include <cmath>
-//boost includes
-#include <boost/array.hpp>
-#include <boost/bind.hpp>
-#include <boost/scoped_array.hpp>
+#include <functional>
 
 namespace Devices
 {
@@ -34,7 +32,7 @@ namespace DAC
   class FastSample
   {
   public:
-    typedef boost::shared_ptr<const FastSample> Ptr;
+    typedef std::shared_ptr<const FastSample> Ptr;
 
     //use additional sample for interpolation
     explicit FastSample(std::size_t idx, Sample::Ptr in)
@@ -165,7 +163,7 @@ namespace DAC
     friend class Iterator;
     const uint_t Index;
     const uint_t Rms;
-    const boost::scoped_array<Sound::Sample::Type> Data;
+    const std::unique_ptr<Sound::Sample::Type[]> Data;
     const std::size_t Size;
     const std::size_t Loop;
   };
@@ -274,7 +272,7 @@ namespace DAC
       , Note()
       , NoteSlide()
       , FreqSlide()
-      , Source(sample)
+      , Source(std::move(sample))
       , Level(1)
     {
     }
@@ -375,7 +373,7 @@ namespace DAC
   class Renderer
   {
   public:
-    virtual ~Renderer() {}
+    virtual ~Renderer() = default;
 
     virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target) = 0;
   };
@@ -390,7 +388,7 @@ namespace DAC
     {
     }
 
-    virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target)
+    void RenderData(uint_t samples, Sound::ChunkBuilder& target) override
     {
       typename Sound::MultichannelSample<Channels>::Type result;
       for (uint_t counter = samples; counter != 0; --counter)
@@ -419,7 +417,7 @@ namespace DAC
     {
     }
 
-    virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target)
+    void RenderData(uint_t samples, Sound::ChunkBuilder& target) override
     {
       static const CosineTable COSTABLE;
       typename Sound::MultichannelSample<Channels>::Type result;
@@ -452,7 +450,7 @@ namespace DAC
         return &Table[0];
       }
     private:
-      boost::array<uint_t, FastSample::Position::PRECISION> Table;
+      std::array<uint_t, FastSample::Position::PRECISION> Table;
     };
   private:
     const Sound::FixedChannelsMixer<Channels>& Mixer;
@@ -473,7 +471,7 @@ namespace DAC
 
     void Reset()
     {
-      Current = 0;
+      Current = nullptr;
     }
 
     void SetInterpolation(bool type)
@@ -512,9 +510,9 @@ namespace DAC
   {
   public:
     FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer, Sound::Receiver::Ptr target)
-      : Params(params)
-      , Mixer(mixer)
-      , Target(target)
+      : Params(std::move(params))
+      , Mixer(std::move(mixer))
+      , Target(std::move(target))
       , Clock()
       , Renderers(*Mixer, &State[0])
     {
@@ -522,49 +520,47 @@ namespace DAC
     }
 
     /// Set sample for work
-    virtual void SetSample(uint_t idx, Sample::Ptr sample)
+    void SetSample(uint_t idx, Sample::Ptr sample) override
     {
       Samples.Add(idx, sample);
     }
 
-    virtual void RenderData(const DataChunk& src)
+    void RenderData(const DataChunk& src) override
     {
       SynchronizeParameters();
       if (Clock.GetCurrentTime() < src.TimeStamp)
       {
         RenderChunksTill(src.TimeStamp);
       }
-      std::for_each(src.Data.begin(), src.Data.end(),
-        boost::bind(&FixedChannelsChip::UpdateChannelState, this, _1));
+      UpdateChannelState(src);
     }
 
-    virtual void UpdateState(const DataChunk& src)
+    void UpdateState(const DataChunk& src) override
     {
       SynchronizeParameters();
       if (Clock.GetCurrentTime() < src.TimeStamp)
       {
         DropChunksTill(src.TimeStamp);
       }
-      std::for_each(src.Data.begin(), src.Data.end(),
-        boost::bind(&FixedChannelsChip::UpdateChannelState, this, _1));
+      UpdateChannelState(src);
     }
 
-    virtual void GetState(MultiChannelState& state) const
+    MultiChannelState GetState() const override
     {
       MultiChannelState res;
       res.reserve(State.size());
-      for (const ChannelState* it = State.begin(), *lim = State.end(); it != lim; ++it)
+      for (const auto& chan : State)
       {
-        if (it->Enabled)
+        if (chan.Enabled)
         {
-          res.push_back(it->Analyze(Samples.GetMaxRms()));
+          res.push_back(chan.Analyze(Samples.GetMaxRms()));
         }
       }
-      res.swap(state);
+      return res;
     }
 
     /// reset internal state to initial
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       Clock.Reset();
@@ -588,7 +584,7 @@ namespace DAC
       Sound::ChunkBuilder builder;
       builder.Reserve(samples);
       Renderers.RenderData(samples, builder);
-      Target->ApplyData(builder.GetResult());
+      Target->ApplyData(builder.CaptureResult());
       Target->Flush();
     }
 
@@ -597,11 +593,14 @@ namespace DAC
       const uint_t samples = Clock.Advance(stamp);
       Renderers.DropData(samples);
     }
-
-    void UpdateChannelState(const ChannelData& state)
+    
+    void UpdateChannelState(const DataChunk& chunk)
     {
-      assert(state.Channel < State.size());
-      State[state.Channel].Update(Samples, Clock, state);
+      for (const auto& state : chunk.Data)
+      {
+        assert(state.Channel < State.size());
+        State[state.Channel].Update(Samples, Clock, state);
+      }
     }
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
@@ -609,7 +608,7 @@ namespace DAC
     const Sound::Receiver::Ptr Target;
     SamplesStorage Samples;
     ClockSource Clock;
-    boost::array<ChannelState, Channels> State;
+    std::array<ChannelState, Channels> State;
     RenderersSet<Channels> Renderers;
   };
 

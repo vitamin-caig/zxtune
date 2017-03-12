@@ -63,7 +63,7 @@ namespace
     {
     }
 
-    virtual Playlist::Item::State GetState(const QModelIndex& index) const
+    Playlist::Item::State GetState(const QModelIndex& index) const override
     {
       assert(index.isValid());
       if (index.internalId() == Model.GetVersion())
@@ -91,7 +91,7 @@ namespace
   {
   public:
     explicit PlaylistOptionsWrapper(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -119,7 +119,7 @@ namespace
     {
     }
 
-    virtual String GetFieldValue(const String& fieldName) const
+    String GetFieldValue(const String& fieldName) const override
     {
       static const Char AMPERSAND[] = {'&', 0};
       static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
@@ -204,12 +204,12 @@ namespace
       Dbg("Created retranslation model at %1% for %2%", this, &model);
     }
 
-    virtual ~RetranslateModel()
+    ~RetranslateModel() override
     {
       Dbg("Destroyed retranslation model at %1%", this);
     }
 
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override
     {
       if (Qt::Horizontal == orientation  &&
           Qt::DisplayRole == role)
@@ -219,7 +219,7 @@ namespace
       return QProxyModel::headerData(section, orientation, role);
     }
 
-    virtual QVariant data(const QModelIndex& index, int role) const
+    QVariant data(const QModelIndex& index, int role) const override
     {
       if (!index.isValid())
       {
@@ -236,7 +236,7 @@ namespace
       }
     }
 
-    virtual bool canFetchMore(const QModelIndex& index) const
+    bool canFetchMore(const QModelIndex& index) const override
     {
       return Delegate.canFetchMore(index);
     }
@@ -318,7 +318,7 @@ namespace
     ViewImpl(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
       : Playlist::UI::View(parent)
       , LayoutState(UI::State::Create(Parameters::ZXTuneQT::Playlist::NAMESPACE_NAME))
-      , Controller(playlist)
+      , Controller(std::move(playlist))
       , Options(PlaylistOptionsWrapper(params))
       , State(*Controller->GetModel(), *Controller->GetIterator())
       , View(Playlist::UI::TableView::Create(*this, State, *new RetranslateModel(*Controller->GetModel())))
@@ -326,7 +326,7 @@ namespace
     {
       //setup ui
       setAcceptDrops(true);
-      if (QVBoxLayout* const layout = new QVBoxLayout(this))
+      if (const auto layout = new QVBoxLayout(this))
       {
         layout->setSpacing(1);
         layout->setMargin(1);
@@ -361,39 +361,39 @@ namespace
       Dbg("Created at %1%", this);
     }
 
-    virtual ~ViewImpl()
+    ~ViewImpl() override
     {
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual Playlist::Controller::Ptr GetPlaylist() const
+    Playlist::Controller::Ptr GetPlaylist() const override
     {
       return Controller;
     }
 
     //modifiers
-    virtual void AddItems(const QStringList& items)
+    void AddItems(const QStringList& items) override
     {
       const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
       scanner->AddItems(items);
     }
 
-    virtual void Play()
+    void Play() override
     {
       UpdateState(Playlist::Item::PLAYING);
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       UpdateState(Playlist::Item::PAUSED);
     }
 
-    virtual void Stop()
+    void Stop() override
     {
       UpdateState(Playlist::Item::STOPPED);
     }
 
-    virtual void Finish()
+    void Finish() override
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       bool hasMoreItems = false;
@@ -409,7 +409,7 @@ namespace
       }
     }
 
-    virtual void Next()
+    void Next() override
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       //skip invalid ones
@@ -420,7 +420,7 @@ namespace
       }
     }
 
-    virtual void Prev()
+    void Prev() override
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       //skip invalid ones
@@ -431,14 +431,14 @@ namespace
       }
     }
 
-    virtual void Clear()
+    void Clear() override
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       model->Clear();
       Update();
     }
 
-    virtual void AddFiles()
+    void AddFiles() override
     {
       QStringList files;
       if (UI::OpenMultipleFilesDialog(
@@ -449,7 +449,7 @@ namespace
       }
     }
 
-    virtual void AddFolder()
+    void AddFolder() override
     {
       QStringList folders;
       folders += QString();
@@ -459,7 +459,7 @@ namespace
       }
     }
 
-    virtual void Rename()
+    void Rename() override
     {
       const QString oldName = Controller->GetName();
       bool ok = false;
@@ -470,7 +470,7 @@ namespace
       }
     }
 
-    virtual void Save()
+    void Save() override
     {
       QStringList filters;
       filters.insert(SaveCases::RELPATHS, Playlist::UI::View::tr("Playlist with relative paths (*.xspf)"));
@@ -487,7 +487,7 @@ namespace
       }
     }
 
-    virtual void LongOperationStart()
+    void LongOperationStart() override
     {
       View->setEnabled(false);
       OperationProgress->UpdateProgress(0);
@@ -495,20 +495,20 @@ namespace
       OperationProgress->setEnabled(true);
     }
 
-    virtual void LongOperationStop()
+    void LongOperationStop() override
     {
       OperationProgress->setVisible(false);
       View->setEnabled(true);
     }
 
-    virtual void LongOperationCancel()
+    void LongOperationCancel() override
     {
       OperationProgress->setEnabled(false);
       Controller->GetModel()->CancelLongOperation();
     }
 
     //qwidget virtuals
-    virtual void keyPressEvent(QKeyEvent* event)
+    void keyPressEvent(QKeyEvent* event) override
     {
       if (event->matches(QKeySequence::Delete) || event->key() == Qt::Key_Backspace)
       {
@@ -537,17 +537,17 @@ namespace
       }
     }
 
-    virtual void contextMenuEvent(QContextMenuEvent* event)
+    void contextMenuEvent(QContextMenuEvent* event) override
     {
       Playlist::UI::ExecuteContextMenu(event->globalPos(), *View, *Controller);
     }
 
-    virtual void dragEnterEvent(QDragEnterEvent* event)
+    void dragEnterEvent(QDragEnterEvent* event) override
     {
       event->acceptProposedAction();
     }
 
-    virtual void dropEvent(QDropEvent* event)
+    void dropEvent(QDropEvent* event) override
     {
       if (const QMimeData* mimeData = event->mimeData())
       {
@@ -555,7 +555,7 @@ namespace
       }
     }
 
-    virtual void resizeEvent(QResizeEvent* event)
+    void resizeEvent(QResizeEvent* event) override
     {
       const QSize& newSize = event->size();
       const QSize& opSize = OperationProgress->size();
@@ -564,14 +564,14 @@ namespace
       event->accept();
     }
 
-    virtual void showEvent(QShowEvent* event)
+    void showEvent(QShowEvent* event) override
     {
       Dbg("Layout load for %1%", this);
       LayoutState->Load();
       event->accept();
     }
 
-    virtual void hideEvent(QHideEvent* event)
+    void hideEvent(QHideEvent* event) override
     {
       Dbg("Layout save for %1%", this);
       LayoutState->Save();
@@ -626,7 +626,7 @@ namespace
           QDataStream stream(&data, QIODevice::WriteOnly);
           stream << paths;
         }
-        std::auto_ptr<QMimeData> mimeData(new QMimeData());
+        std::unique_ptr<QMimeData> mimeData(new QMimeData());
         mimeData->setData(ITEMS_MIMETYPE, data);
         QApplication::clipboard()->setMimeData(mimeData.release());
       }

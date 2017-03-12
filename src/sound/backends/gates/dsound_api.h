@@ -10,11 +10,11 @@
 
 #pragma once
 
+//std includes
+#include <memory>
 //platform-dependent includes
 #define NOMINMAX
 #include <dsound.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Sound
 {
@@ -23,8 +23,8 @@ namespace Sound
     class Api
     {
     public:
-      typedef boost::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      typedef std::shared_ptr<Api> Ptr;
+      virtual ~Api() = default;
 
       
       virtual HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param) = 0;

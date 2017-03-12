@@ -31,7 +31,8 @@
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/range/end.hpp>
+//std includes
+#include <utility>
 
 namespace
 {
@@ -78,13 +79,13 @@ namespace
       Require(connect(moveDown, SIGNAL(released()), SLOT(MoveBackendDown())));
     }
 
-    virtual void ChangeSoundFrequency(int idx)
+    void ChangeSoundFrequency(int idx) override
     {
       const qlonglong val = FREQUENCES[idx];
       Options->SetValue(Parameters::ZXTune::Sound::FREQUENCY, val);
     }
     
-    virtual void SelectBackend(int idx)
+    void SelectBackend(int idx) override
     {
       const String id = Backends[idx];
       for (std::map<String, QWidget*>::const_iterator it = SetupPages.begin(), lim = SetupPages.end(); it != lim; ++it)
@@ -94,7 +95,7 @@ namespace
       settingsHint->setVisible(0 == SetupPages.count(id));
     }
     
-    virtual void MoveBackendUp()
+    void MoveBackendUp() override
     {
       if (const int row = backendsList->currentRow())
       {
@@ -103,7 +104,7 @@ namespace
       }
     }
     
-    virtual void MoveBackendDown()
+    void MoveBackendDown() override
     {
       const int row = backendsList->currentRow();
       if (Math::InRange(row, 0, int(Backends.size() - 2)))
@@ -114,7 +115,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {
@@ -125,7 +126,7 @@ namespace
   private:
     void FillFrequences()
     {
-      std::for_each(FREQUENCES, boost::end(FREQUENCES), boost::bind(&SoundOptionsWidget::AddFrequency, this, _1));
+      std::for_each(FREQUENCES, std::end(FREQUENCES), boost::bind(&SoundOptionsWidget::AddFrequency, this, _1));
     }
 
     void AddFrequency(uint_t freq)
@@ -145,7 +146,7 @@ namespace
 
     void AddPage(UI::BackendSettingsWidget* (*factory)(QWidget&))
     {
-      std::auto_ptr<UI::BackendSettingsWidget> wid(factory(*backendGroupBox));
+      std::unique_ptr<UI::BackendSettingsWidget> wid(factory(*backendGroupBox));
       const String id = wid->GetBackendId();
       if (Backends.end() != std::find(Backends.begin(), Backends.end(), id))
       {
@@ -162,8 +163,8 @@ namespace
     
     void SetFrequency(uint_t val)
     {
-      const uint_t* const frq = std::find(FREQUENCES, boost::end(FREQUENCES), val);
-      if (frq != boost::end(FREQUENCES))
+      const uint_t* const frq = std::find(FREQUENCES, std::end(FREQUENCES), val);
+      if (frq != std::end(FREQUENCES))
       {
         soundFrequencyValue->setCurrentIndex(frq - FREQUENCES);
       }

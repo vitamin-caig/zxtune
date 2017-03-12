@@ -20,9 +20,9 @@
 #include <formats/multitrack.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
+#include <utility>
 
 namespace Formats
 {
@@ -30,9 +30,9 @@ namespace Multitrack
 {
   namespace GBS
   {
-    typedef boost::array<uint8_t, 3> SignatureType;
+    typedef std::array<uint8_t, 3> SignatureType;
     
-    typedef boost::array<char, 32> StringType;
+    typedef std::array<char, 32> StringType;
 
     const SignatureType SIGNATURE = {{'G', 'B', 'S'}};
 
@@ -59,7 +59,7 @@ namespace Multitrack
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 112);
+    static_assert(sizeof(RawHeader) == 112, "Invalid layout");
     
     const std::size_t MAX_SIZE = 1048576;
 
@@ -77,16 +77,16 @@ namespace Multitrack
     {
       if (rawData.Size() < MIN_SIZE)
       {
-        return 0;
+        return nullptr;
       }
       const RawHeader* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
       if (hdr->Signature != SIGNATURE)
       {
-        return 0;
+        return nullptr;
       }
       if (!hdr->SongsCount || !hdr->StartSong)
       {
-        return 0;
+        return nullptr;
       }
       return hdr;
     }
@@ -96,28 +96,28 @@ namespace Multitrack
     public:
       Container(const RawHeader* hdr, Binary::Container::Ptr data)
         : Hdr(hdr)
-        , Delegate(data)
+        , Delegate(std::move(data))
       {
       }
       
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
       
       //Formats::Multitrack::Container
-      virtual uint_t FixedChecksum() const
+      uint_t FixedChecksum() const override
       {
         //just skip text fields
         const uint8_t* const data = static_cast<const uint8_t*>(Delegate->Start());
@@ -126,24 +126,24 @@ namespace Multitrack
         return part2;
       }
 
-      virtual uint_t TracksCount() const
+      uint_t TracksCount() const override
       {
         return Hdr->SongsCount;
       }
 
-      virtual uint_t StartTrackIndex() const
+      uint_t StartTrackIndex() const override
       {
         return Hdr->StartSong - 1;
       }
       
-      virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
+      Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
-        std::auto_ptr<Dump> content(new Dump(Delegate->Size()));
+        std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
         std::memcpy(&content->front(), Delegate->Start(), content->size());
         RawHeader* const hdr = safe_ptr_cast<RawHeader*>(&content->front());
         Require(idx < hdr->SongsCount);
         hdr->StartSong = idx + 1;
-        return MakePtr<Container>(hdr, Binary::CreateContainer(content));
+        return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
       }
     private:
       const RawHeader* const Hdr;
@@ -159,17 +159,17 @@ namespace Multitrack
       {
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (const RawHeader* hdr = GetHeader(rawData))
         {

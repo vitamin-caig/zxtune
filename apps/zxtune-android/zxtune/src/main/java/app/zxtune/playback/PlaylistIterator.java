@@ -10,10 +10,11 @@
 
 package app.zxtune.playback;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.net.Uri;
+
+import java.io.IOException;
+
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
@@ -115,7 +116,7 @@ class PlaylistIterator implements Iterator {
       
       @Override
       public void onIOError(IOException e) {
-        Log.d(TAG, e, "Ignore I/O error");
+        Log.w(TAG, e, "Ignore I/O error");
       }
     });
   }

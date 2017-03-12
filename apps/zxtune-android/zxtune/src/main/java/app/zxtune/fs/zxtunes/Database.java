@@ -14,8 +14,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -59,7 +65,7 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
           + " TEXT);";
 
-      Authors(SQLiteOpenHelper helper) {
+      Authors(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -87,7 +93,7 @@ final class Database {
           + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
           + " TEXT, " + Fields.duration + " INTEGER, " + Fields.date + " INTEGER);";
 
-      Tracks(SQLiteOpenHelper helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -118,7 +124,7 @@ final class Database {
       final static String NAME = "authors_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      AuthorsTracks(SQLiteOpenHelper helper) {
+      AuthorsTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -132,15 +138,16 @@ final class Database {
     }
   }
 
-  private final Helper helper;
+  private final DBProvider helper;
   private final Tables.Authors authors;
   private final Tables.AuthorsTracks authorsTracks;
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
   private final String findQuery;
+  private final VfsCache cacheDir;
 
-  Database(Context context) {
-    this.helper = Helper.create(context);
+  Database(Context context, VfsCache cache) throws IOException {
+    this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorsTracks = new Tables.AuthorsTracks(helper);
     this.tracks = new Tables.Tracks(helper);
@@ -149,9 +156,10 @@ final class Database {
         "FROM authors LEFT OUTER JOIN tracks ON " +
         "tracks." + Tables.Tracks.getSelection(authorsTracks.getIdsSelection("authors._id")) +
         " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
+    this.cacheDir = cache.createNested("www.zxtunes.com");
   }
 
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(helper.getWritableDatabase());
   }
   
@@ -164,7 +172,6 @@ final class Database {
   }
   
   final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors()");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Authors.NAME, null, null, null, null, null, null);
     try {
@@ -187,7 +194,6 @@ final class Database {
   }
 
   final boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
-    Log.d(TAG, "queryTracks(author=%d)", author.id);
     final String selection = Tables.Tracks.getSelection(authorsTracks.getTracksIdsSelection(author));
     return queryTracks(selection, visitor);
   }
@@ -211,7 +217,6 @@ final class Database {
   }
   
   final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
-    Log.d(TAG, "findTracks(query=%s)", query);
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.rawQuery(findQuery, new String[] {query});
     try {
@@ -235,6 +240,16 @@ final class Database {
   
   final void addAuthorTrack(Author author, Track track) {
     authorsTracks.add(author, track);
+  }
+
+  final ByteBuffer getTrackContent(int id) {
+    final String filename = Integer.toString(id);
+    return cacheDir.getCachedFileContent(filename);
+  }
+
+  final void addTrackContent(int id, ByteBuffer content) {
+    final String filename = Integer.toString(id);
+    cacheDir.putCachedFileContent(filename, content);
   }
 
   private static class Helper extends SQLiteOpenHelper {

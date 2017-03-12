@@ -14,8 +14,8 @@
 #include <contract.h>
 #include <crc.h>
 #include <pointers.h>
-//boost includes
-#include <boost/range/end.hpp>
+//std includes
+#include <algorithm>
 
 namespace Module
 {
@@ -40,7 +40,7 @@ namespace Sid
   TimeType GetSongLength(const char* md5digest, uint_t idx)
   {
     const uint32_t hashCrc32 = Crc32(safe_ptr_cast<const uint8_t*>(md5digest), 32);
-    const SongEntry* const end = boost::end(SONGS);
+    const SongEntry* const end = std::end(SONGS);
     const SongEntry* const lower = std::lower_bound(SONGS, end, hashCrc32);
     if (lower + idx < end && lower->HashCrc32 == hashCrc32)
     {

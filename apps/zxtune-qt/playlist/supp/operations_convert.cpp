@@ -29,8 +29,6 @@
 #include <sound/backend.h>
 //std includes
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace
 {
@@ -49,12 +47,12 @@ namespace
     {
     }
 
-    virtual void OnStart()
+    void OnStart() override
     {
       Event.Reset();
     }
 
-    virtual void OnFrame(const Module::TrackState& state)
+    void OnFrame(const Module::TrackState& state) override
     {
       try
       {
@@ -66,20 +64,20 @@ namespace
       }
     }
 
-    virtual void OnStop()
+    void OnStop() override
     {
       Event.Set(STOPPED);
     }
 
-    virtual void OnPause()
+    void OnPause() override
     {
     }
 
-    virtual void OnResume()
+    void OnResume() override
     {
     }
 
-    virtual void OnFinish()
+    void OnFinish() override
     {
     }
 
@@ -99,17 +97,17 @@ namespace
   class ConvertVisitor : public Playlist::Item::Visitor
   {
   public:
-    ConvertVisitor(uint_t totalItems, const String& type, Sound::Service::Ptr service, Log::ProgressCallback& cb, Playlist::Item::ConversionResultNotification::Ptr result)
+    ConvertVisitor(uint_t totalItems, String type, Sound::Service::Ptr service, Log::ProgressCallback& cb, Playlist::Item::ConversionResultNotification::Ptr result)
       : TotalItems(totalItems)
       , DoneItems(0)
       , Callback(cb)
-      , Type(type)
-      , Service(service)
-      , Result(result)
+      , Type(std::move(type))
+      , Service(std::move(service))
+      , Result(std::move(result))
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
       const String path = data->GetFullPath();
       if (Module::Holder::Ptr holder = data->GetModule())
@@ -157,15 +155,15 @@ namespace
   {
   public:
     SoundFormatConvertOperation(Playlist::Model::IndexSet::Ptr items,
-      const String& type, Sound::Service::Ptr service, Playlist::Item::ConversionResultNotification::Ptr result)
-      : SelectedItems(items)
-      , Type(type)
-      , Service(service)
-      , Result(result)
+      String type, Sound::Service::Ptr service, Playlist::Item::ConversionResultNotification::Ptr result)
+      : SelectedItems(std::move(items))
+      , Type(std::move(type))
+      , Service(std::move(service))
+      , Result(std::move(result))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
       ConvertVisitor visitor(totalItems, Type, Service, cb, Result);
@@ -194,26 +192,26 @@ namespace
     ExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
       : SelectedItems()
       , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
-      , Params(params)
-      , Result(result)
+      , Params(std::move(params))
+      , Result(std::move(result))
     {
     }
 
     ExportOperation(Playlist::Model::IndexSet::Ptr items, const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
       , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
-      , Params(params)
-      , Result(result)
+      , Params(std::move(params))
+      , Result(std::move(result))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       ExecuteOperation(stor, SelectedItems, *this, cb);
       emit ResultAcquired(Result);
     }
   private:
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
       const String path = data->GetFullPath();
       if (const Module::Holder::Ptr holder = data->GetModule())

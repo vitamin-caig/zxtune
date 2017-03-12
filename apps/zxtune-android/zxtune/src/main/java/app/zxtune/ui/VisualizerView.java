@@ -17,6 +17,7 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
+
 import app.zxtune.Log;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.VisualizerStub;
@@ -82,10 +83,20 @@ public class VisualizerView extends View {
   }
   
   private synchronized void fillVisibleRect(int w, int h) {
-    visibleRect.left = getPaddingLeft();
-    visibleRect.right = w - visibleRect.left - getPaddingRight();
-    visibleRect.top = getPaddingTop();
-    visibleRect.bottom = h - visibleRect.top - getPaddingBottom();
+    final int padLeft = getPaddingLeft();
+    final int padRight = getPaddingRight();
+    final int padTop = getPaddingTop();
+    final int padBottom = getPaddingBottom();
+    final int padHorizontal = padLeft + padRight;
+    final int padVertical = padTop + padBottom;
+    if (padHorizontal < w || padVertical < h) {
+      visibleRect.left = padLeft;
+      visibleRect.right = w - padHorizontal;
+      visibleRect.top = padTop;
+      visibleRect.bottom = h - padVertical;
+    } else {
+      visibleRect.set(0, 0, w, h);
+    }
     visualizer.sizeChanged();
   }
   
@@ -189,7 +200,7 @@ public class VisualizerView extends View {
         update();
         looper.postDelayed(this, 100);
       } catch (IllegalStateException e) {
-        Log.d(TAG, e, "UpdateViewTask");
+        Log.w(TAG, e, "UpdateViewTask");
       }
     }
     

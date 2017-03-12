@@ -24,9 +24,9 @@
 #include <math/numeric.h>
 #include <strings/format.h>
 //std includes
+#include <array>
 #include <cctype>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -331,15 +331,15 @@ namespace ProTracker3
         }
       }
 
-      explicit SectionHeader(const std::string& category)
-        : Category(category)
+      explicit SectionHeader(std::string category)
+        : Category(std::move(category))
         , Index(NO_INDEX)
         , Valid(true)
       {
       }
 
-      SectionHeader(const std::string& category, int_t idx)
-        : Category(category)
+      SectionHeader(std::string category, int_t idx)
+        : Category(std::move(category))
         , Index(idx)
         , Valid(true)
       {
@@ -409,8 +409,8 @@ namespace ProTracker3
         Loop = resLoop == NO_LOOP ? 0 : resLoop;
       }
 
-      LoopedList(uint_t loop, const std::vector<T>& vals)
-        : Parent(vals)
+      LoopedList(uint_t loop, std::vector<T> vals)
+        : Parent(std::move(vals))
         , Loop(loop)
       {
         Require(Math::InRange<std::size_t>(loop, 0, Parent::size() - 1));
@@ -508,9 +508,9 @@ namespace ProTracker3
         str += Entry("NoteTable", ToString(static_cast<uint_t>(Table))).AsString();
         str += Entry("Speed", ToString(Tempo)).AsString();
         str += Entry("PlayOrder", PlayOrder.AsString()).AsString();
-        for (std::vector<Entry>::const_iterator it = OtherFields.begin(), lim = OtherFields.end(); it != lim; ++it)
+        for (const auto& field : OtherFields)
         {
-          str += it->AsString();
+          str += field.AsString();
         }
         str += '\n';
         return str;
@@ -531,9 +531,9 @@ namespace ProTracker3
           Value = boost::algorithm::trim_copy(second);
         }
 
-        Entry(const std::string& name, const std::string& value)
-          : Name(name)
-          , Value(value)
+        Entry(std::string name, std::string value)
+          : Name(std::move(name))
+          , Value(std::move(value))
         {
         }
 
@@ -566,9 +566,18 @@ namespace ProTracker3
         Lines = llist;
       }
 
-      OrnamentObject(const Ornament& orn, uint_t index)
-        : Ornament(orn)
+      OrnamentObject(Ornament orn, uint_t index)
+        : Ornament(std::move(orn))
         , Index(index)
+      {
+      }
+      
+      OrnamentObject(const OrnamentObject&) = delete;
+      OrnamentObject& operator = (const OrnamentObject&) = delete;
+      
+      OrnamentObject(OrnamentObject&& rh)// = default
+        : Ornament(std::move(rh))
+        , Index(rh.Index)
       {
       }
 
@@ -617,12 +626,21 @@ namespace ProTracker3
         Loop = loop;
       }
 
-      SampleObject(const Sample& sam, uint_t idx)
-        : Sample(sam)
+      SampleObject(Sample sam, uint_t idx)
+        : Sample(std::move(sam))
         , Index(idx)
       {
       }
 
+      SampleObject(const SampleObject&) = delete;
+      SampleObject& operator = (const SampleObject&) = delete;
+      
+      SampleObject(SampleObject&& rh)// = default
+        : Sample(std::move(rh))
+        , Index(rh.Index)
+      {
+      }
+      
       uint_t GetIndex() const
       {
         return Index;
@@ -674,8 +692,8 @@ namespace ProTracker3
           }
         }
 
-        LineObject(const Line& src, bool looped)
-          : Sample::Line(src)
+        LineObject(Line src, bool looped)
+          : Sample::Line(std::move(src))
           , Looped(looped)
         {
         }
@@ -774,7 +792,7 @@ namespace ProTracker3
       uint_t Index;
     };
 
-    const boost::array<std::string, 12> NOTES = 
+    const std::array<std::string, 12> NOTES = 
     { {
       "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
     } };
@@ -829,7 +847,7 @@ namespace ProTracker3
     private:
       uint_t AsInt() const
       {
-        const std::string* const notePos = std::find(NOTES.begin(), NOTES.end(), Val.substr(0, 2));
+        const auto notePos = std::find(NOTES.begin(), NOTES.end(), Val.substr(0, 2));
         Require(notePos != NOTES.end());
         const uint_t halftone = notePos - NOTES.begin();
         const char octave = Val[2];
@@ -1074,7 +1092,7 @@ namespace ProTracker3
 
       EnvelopeBase Envelope;
       NoiseBase Noise;
-      boost::array<ChannelObject, 3> Channels;
+      std::array<ChannelObject, 3> Channels;
     };
 
     class PatternObject
@@ -1117,9 +1135,9 @@ namespace ProTracker3
       std::string AsString() const
       {
         std::string res = SectionHeader("Pattern", Index).AsString();
-        for (std::vector<PatternLineObject>::const_iterator it = Lines.begin(), lim = Lines.end(); it != lim; ++it)
+        for (const auto& line : Lines)
         {
-          res += it->AsString();
+          res += line.AsString();
         }
         res += '\n';
         return res;
@@ -1170,7 +1188,10 @@ namespace ProTracker3
         meta.SetAuthor(FromStdString(hdr.Author));
         Target.SetNoteTable(hdr.Table);
         Target.SetInitialTempo(hdr.Tempo);
-        Target.SetPositions(hdr.PlayOrder, hdr.PlayOrder.GetLoop());
+        Positions pos;
+        pos.Loop = hdr.PlayOrder.GetLoop();
+        pos.Lines = hdr.PlayOrder;
+        Target.SetPositions(std::move(pos));
       }
 
       std::size_t ParseBody()
@@ -1190,13 +1211,11 @@ namespace ProTracker3
           }
           if (const SectionHeader ornHdr = OrnamentObject::ParseHeader(line))
           {
-            const OrnamentObject orn(ornHdr, Source);
-            Target.SetOrnament(orn.GetIndex(), orn);
+            Target.SetOrnament(ornHdr.GetIndex(), OrnamentObject(ornHdr, Source));
           }
           else if (const SectionHeader samHdr = SampleObject::ParseHeader(line))
           {
-            const SampleObject sam(samHdr, Source);
-            Target.SetSample(sam.GetIndex(), sam);
+            Target.SetSample(samHdr.GetIndex(), SampleObject(samHdr, Source));
           }
           else if (const SectionHeader patHdr = PatternObject::ParseHeader(line))
           {
@@ -1260,22 +1279,22 @@ namespace ProTracker3
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::VORTEXTRACKER2_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -1285,7 +1304,7 @@ namespace ProTracker3
         return ParseText(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return ParseText(data, target);
       }
@@ -1303,120 +1322,120 @@ namespace ProTracker3
       {
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return *this;
       }
 
-      virtual void SetProgram(const String& /*program*/)
+      void SetProgram(const String& /*program*/) override
       {
       }
 
-      virtual void SetTitle(const String& title)
+      void SetTitle(const String& title) override
       {
         Header.Title = ToStdString(title);
       }
 
-      virtual void SetAuthor(const String& author)
+      void SetAuthor(const String& author) override
       {
         Header.Author = ToStdString(author);
       }
 
-      virtual void SetStrings(const Strings::Array& /*strings*/)
+      void SetStrings(const Strings::Array& /*strings*/) override
       {
       }
       
-      virtual void SetVersion(uint_t version)
+      void SetVersion(uint_t version) override
       {
         Header.Version = version;
       }
 
-      virtual void SetNoteTable(NoteTable table)
+      void SetNoteTable(NoteTable table) override
       {
         Header.Table = table;
       }
 
-      virtual void SetMode(uint_t /*mode*/)
+      void SetMode(uint_t /*mode*/) override
       {
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         Header.Tempo = tempo;
       }
 
-      virtual void SetSample(uint_t index, const Sample& sample)
+      void SetSample(uint_t index, Sample sample) override
       {
-        Samples.push_back(SampleObject(sample, index));
+        Samples.push_back(SampleObject(std::move(sample), index));
       }
 
-      virtual void SetOrnament(uint_t index, const Ornament& ornament)
+      void SetOrnament(uint_t index, Ornament ornament) override
       {
         if (index != DEFAULT_ORNAMENT)
         {
-          Ornaments.push_back(OrnamentObject(ornament, index));
+          Ornaments.push_back(OrnamentObject(std::move(ornament), index));
         }
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(Positions positions) override
       {
-        Header.PlayOrder = LoopedList<uint_t>(loop, positions);
+        Header.PlayOrder = LoopedList<uint_t>(positions.Loop, std::move(positions.Lines));
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         Context.SetPattern(index);
         return *this;
       }
 
-      virtual void Finish(uint_t size)
+      void Finish(uint_t size) override
       {
         Context.FinishPattern(size);
       }
 
-      virtual void StartLine(uint_t index)
+      void StartLine(uint_t index) override
       {
         Context.SetLine(index);
       }
 
-      virtual void SetTempo(uint_t tempo)
+      void SetTempo(uint_t tempo) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.TEMPO;
         cmd.Param = tempo;
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         Context.SetChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         Context.CurChannel->Note = NoteObject::CreateRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         Context.CurChannel->Note = NoteObject(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         Context.CurChannel->Parameters.Sample = NoteParametersObject::SampleNumber(sample);
       }
 
-      virtual void SetOrnament(uint_t ornament)
+      void SetOrnament(uint_t ornament) override
       {
         Context.CurChannel->Parameters.Ornament = NoteParametersObject::OrnamentNumber(ornament);
       }
 
-      virtual void SetVolume(uint_t vol)
+      void SetVolume(uint_t vol) override
       {
         Context.CurChannel->Parameters.Volume = NoteParametersObject::VolumeLevel(vol);
       }
 
-      virtual void SetGlissade(uint_t period, int_t val)
+      void SetGlissade(uint_t period, int_t val) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Period = period;
@@ -1432,7 +1451,7 @@ namespace ProTracker3
         }
       }
 
-      virtual void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/)
+      void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.GLISS_NOTE;
@@ -1440,28 +1459,28 @@ namespace ProTracker3
         cmd.Param = Math::Absolute(val);
       }
 
-      virtual void SetSampleOffset(uint_t offset)
+      void SetSampleOffset(uint_t offset) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.OFFSET_SAMPLE;
         cmd.Param = offset;
       }
 
-      virtual void SetOrnamentOffset(uint_t offset)
+      void SetOrnamentOffset(uint_t offset) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.OFFSET_ORNAMENT;
         cmd.Param = offset;
       }
 
-      virtual void SetVibrate(uint_t ontime, uint_t offtime)
+      void SetVibrate(uint_t ontime, uint_t offtime) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Command = cmd.VIBRATE;
         cmd.Param = 16 * ontime + offtime;
       }
 
-      virtual void SetEnvelopeSlide(uint_t period, int_t val)
+      void SetEnvelopeSlide(uint_t period, int_t val) override
       {
         NoteCommandObject& cmd = Context.CurChannel->Command;
         cmd.Period = period;
@@ -1477,36 +1496,36 @@ namespace ProTracker3
         }
       }
 
-      virtual void SetEnvelope(uint_t type, uint_t value)
+      void SetEnvelope(uint_t type, uint_t value) override
       {
         Context.CurChannel->Parameters.Envelope = type;
         Context.CurLine->Envelope = value;
       }
 
-      virtual void SetNoEnvelope()
+      void SetNoEnvelope() override
       {
         Context.CurChannel->Parameters.Envelope = 15;
       }
 
-      virtual void SetNoiseBase(uint_t val)
+      void SetNoiseBase(uint_t val) override
       {
         Context.SetNoiseBase(val);
       }
 
-      virtual Binary::Data::Ptr GetResult() const
+      Binary::Data::Ptr GetResult() const override
       {
         std::string res = Header.AsString();
-        for (std::vector<OrnamentObject>::const_iterator it = Ornaments.begin(), lim = Ornaments.end(); it != lim; ++it)
+        for (const auto& ornament : Ornaments)
         {
-          res += it->AsString();
+          res += ornament.AsString();
         }
-        for (std::vector<SampleObject>::const_iterator it = Samples.begin(), lim = Samples.end(); it != lim; ++it)
+        for (const auto& sample : Samples)
         {
-          res += it->AsString();
+          res += sample.AsString();
         }
-        for (std::vector<PatternObject>::const_iterator it = Patterns.begin(), lim = Patterns.end(); it != lim; ++it)
+        for (const auto& pattern : Patterns)
         {
-          res += it->AsString();
+          res += pattern.AsString();
         }
         return Binary::CreateContainer(res.data(), res.size());
       }
@@ -1532,8 +1551,8 @@ namespace ProTracker3
         {
           Patterns.push_back(PatternObject(idx));
           CurPattern = &Patterns.back();
-          CurLine = 0;
-          CurChannel = 0;
+          CurLine = nullptr;
+          CurChannel = nullptr;
           CurNoiseBase = 0;
         }
 
@@ -1551,8 +1570,8 @@ namespace ProTracker3
         void FinishPattern(uint_t size)
         {
           FitTo(size);
-          CurLine = 0;
-          CurPattern = 0;
+          CurLine = nullptr;
+          CurPattern = nullptr;
         }
         
         void SetNoiseBase(uint_t val)
@@ -1583,7 +1602,7 @@ namespace ProTracker3
         {
           CurLine = &CurPattern->AddLine();
           CurLine->Noise = CurNoiseBase;
-          CurChannel = 0;
+          CurChannel = nullptr;
         }
       };
       

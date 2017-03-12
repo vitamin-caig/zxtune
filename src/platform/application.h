@@ -25,10 +25,10 @@ namespace Platform
   class Application
   {
   public:
-    virtual ~Application() {}
+    virtual ~Application() = default;
 
     virtual int Run(int argc, const char* argv[]) = 0;
 
-    static std::auto_ptr<Application> Create();
+    static std::unique_ptr<Application> Create();
   };
 }

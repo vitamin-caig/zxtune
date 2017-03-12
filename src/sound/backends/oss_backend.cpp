@@ -33,9 +33,7 @@
 //std includes
 #include <algorithm>
 #include <cstring>
-//boost includes
-#include <boost/noncopyable.hpp>
-#include <boost/thread/thread.hpp>
+#include <mutex>
 //text includes
 #include "text/backends.h"
 
@@ -57,7 +55,7 @@ namespace Oss
 
   const int_t MAX_OSS_VOLUME = 100;
 
-  class AutoDescriptor : public boost::noncopyable
+  class AutoDescriptor
   {
   public:
     AutoDescriptor()
@@ -65,19 +63,21 @@ namespace Oss
     {
     }
     
-    explicit AutoDescriptor(const std::string& name)
-      : Name(name)
+    explicit AutoDescriptor(std::string name)
+      : Name(std::move(name))
       , Handle(-1)
     {
     }
     
-    AutoDescriptor(const std::string& name, int mode)
-      : Name(name)
-      , Handle(::open(name.c_str(), mode, 0))
+    AutoDescriptor(std::string name, int mode)
+      : Name(std::move(name))
+      , Handle(::open(Name.c_str(), mode, 0))
     {
       CheckResult(Valid(), THIS_LINE);
       Dbg("Opened device '%1%'", Name);
     }
+    
+    AutoDescriptor(const AutoDescriptor&) = delete;
 
     ~AutoDescriptor()
     {
@@ -207,43 +207,43 @@ namespace Oss
   class VolumeControl : public Sound::VolumeControl
   {
   public:
-    VolumeControl(boost::mutex& stateMutex, AutoDescriptor& mixer)
+    VolumeControl(std::mutex& stateMutex, AutoDescriptor& mixer)
       : StateMutex(stateMutex), MixHandle(mixer)
     {
     }
 
-    virtual Gain GetVolume() const
+    Gain GetVolume() const override
     {
       Dbg("GetVolume");
-      const boost::mutex::scoped_lock lock(StateMutex);
+      const std::lock_guard<std::mutex> lock(StateMutex);
       Gain volume;
       if (MixHandle.Valid())
       {
-        boost::array<uint8_t, sizeof(int)> buf;
+        std::array<uint8_t, sizeof(int)> buf;
         MixHandle.Ioctl(SOUND_MIXER_READ_VOLUME, &buf[0], THIS_LINE);
         volume = Gain(Gain::Type(buf[0], MAX_OSS_VOLUME), Gain::Type(buf[1], MAX_OSS_VOLUME));
       }
       return volume;
     }
 
-    virtual void SetVolume(const Gain& volume)
+    void SetVolume(const Gain& volume) override
     {
       if (!volume.IsNormalized())
       {
         throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
       Dbg("SetVolume");
-      const boost::mutex::scoped_lock lock(StateMutex);
+      const std::lock_guard<std::mutex> lock(StateMutex);
       if (MixHandle.Valid())
       {
-        boost::array<uint8_t, sizeof(int)> buf = { {0} };
+        std::array<uint8_t, sizeof(int)> buf = { {0} };
         buf[0] = (volume.Left() * MAX_OSS_VOLUME).Integer();
         buf[1] = (volume.Right() * MAX_OSS_VOLUME).Integer();
         MixHandle.Ioctl(SOUND_MIXER_WRITE_VOLUME, &buf[0], THIS_LINE);
       }
     }
   private:
-    boost::mutex& StateMutex;
+    std::mutex& StateMutex;
     AutoDescriptor& MixHandle;
   };
 
@@ -276,30 +276,30 @@ namespace Oss
   {
   public:
     explicit BackendWorker(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
       , Format(-1)
       , VolumeController(new VolumeControl(StateMutex, MixHandle))
     {
     }
 
-    virtual ~BackendWorker()
+    ~BackendWorker() override
     {
       assert(!DevHandle.Valid() || !"OssBackend should be stopped before destruction.");
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return VolumeController;
     }
 
-    virtual void Startup()
+    void Startup() override
     {
       assert(!MixHandle.Valid() && !DevHandle.Valid());
       SetupDevices(DevHandle, MixHandle, Format);
       Dbg("Successfully opened");
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       DevHandle.Close();
       MixHandle.Close();
@@ -307,19 +307,19 @@ namespace Oss
       Dbg("Successfully closed");
     }
 
-    virtual void Pause()
+    void Pause() override
     {
     }
 
-    virtual void Resume()
+    void Resume() override
     {
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    void FrameStart(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    void FrameFinish(Chunk::Ptr buffer) override
     {
       switch (Format)
       {
@@ -351,7 +351,7 @@ namespace Oss
 
       AutoDescriptor tmpMixer(backend.GetMixerName(), O_RDWR);
       AutoDescriptor tmpDevice(backend.GetDeviceName(), O_WRONLY | O_NONBLOCK);
-      BOOST_STATIC_ASSERT(8 == Sample::BITS || 16 == Sample::BITS);
+      static_assert(8 == Sample::BITS || 16 == Sample::BITS, "Incompatible sound sample bits count");
       int tmp = 0;
       tmpDevice.Ioctl(SNDCTL_DSP_GETFMTS, &tmp, THIS_LINE);
       Dbg("Supported formats %1%", tmp);
@@ -378,7 +378,7 @@ namespace Oss
     }
   private:
     const Parameters::Accessor::Ptr Params;
-    boost::mutex StateMutex;
+    std::mutex StateMutex;
     AutoDescriptor MixHandle;
     AutoDescriptor DevHandle;
     int Format;
@@ -388,7 +388,7 @@ namespace Oss
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       const BackendParameters backend(*params);
       AutoDescriptor(backend.GetMixerName()).CheckStat();

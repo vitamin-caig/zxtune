@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- emulation -->
+  <string name="pref_emulation_title">Emulace</string>
+  
+  <!-- common -->
+  <string name="pref_interpolation">Interpolace</string>
+  <string-array name="pref_interpolation_entries">
+    <item>Nic</item>
+    <item>Výkon</item>
+    <item>Jakost <b>(vysoké zatížení procesoru)</b></item>
+  </string-array>
+  <!-- ay/ym -->
+  <!-- zxtune.core.aym.clockrate -->
+  <string name="pref_zxtune_aym_clockrate_title">Rychlost taktu</string>
+  <string-array name="pref_zxtune_aym_clockrate_entries">
+    <item>ZX Spectrum (1,7734 MHz)</item>
+    <item>Pentagon (1,75 MHz)</item>
+    <item>Taganrog (3,5 MHz)</item>
+    <item>Atari ST (2 MHz)</item>
+    <item>Amstrad CPC (1 MHz)</item>
+  </string-array>
+  <!-- zxtune.core.aym.type -->
+  <string name="pref_zxtune_aym_type_title">Typ</string>
+  <!-- zxtun.core.aym.layout -->
+  <string name="pref_zxtune_aym_layout_title">Kanály</string>
+  <string-array name="pref_zxtune_aym_layout_entries">
+    <item>ABC</item>
+    <item>ACB</item>
+    <item>BAC</item>
+    <item>BCA</item>
+    <item>CBA</item>
+    <item>CAB</item>
+    <item>Mono</item>
+  </string-array>
+
+  <!-- dac -->
+  <string name="pref_zxtune_dac_title">Digitální zvuk</string>
+
+  <!-- sid -->
+  <!-- zxtune.core.sid.filter -->
+  <string  name="pref_zxtune_sid_filter_title">Emulátor filtru</string>
+
+  <!-- other -->
+  <string name="pref_zxtune_other_title">Jiné</string>
+  <!-- zxtune.core.plugins.default_duration -->
+  <string  name="pref_zxtune_default_duration_title">Výchozí doba trvání</string>
+  <string-array name="pref_zxtune_default_duration_entries">
+    <item>30 sekund</item>
+    <item>1 minuta</item>
+    <item>2 minuty</item>
+    <item>3 minuty</item>
+    <item>5 minut</item>
+    <item>10 minut</item>
+    <item>15 minut</item>
+    <item>30 minut</item>
+  </string-array>
+</resources>

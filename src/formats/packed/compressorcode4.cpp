@@ -75,7 +75,7 @@ namespace Packed
         return depacker[depackerSize - 1] == RET_CODE;
       }
 
-      BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x1c);
+      static_assert(sizeof(RawHeader) == 0x1c, "Invalid layout");
     };
 
     struct Version4Plus
@@ -122,7 +122,7 @@ namespace Packed
         return *(header.Padding1 + depackerSize - 256 - 1) == 0xc9;
       }
 
-      BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x36);
+      static_assert(sizeof(RawHeader) == 0x36, "Invalid layout");
     };
 
     const String Version4::DESCRIPTION = Text::CC4_DECODER_DESCRIPTION;
@@ -249,11 +249,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -399,7 +399,7 @@ namespace Packed
       bool IsValid;
       StreamAdapter Stream;
       const uint_t ChunksCount;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
 
@@ -415,15 +415,15 @@ namespace Packed
         , DataOffset(0x14 + fromLE(Header.RestDepackerSize))
         , Delegate(container.FastCheck()
           ? new RawDataDecoder(Header.Padding1 + DataOffset, container.GetAvailableData() - DataOffset, fromLE(Header.ChunksCount))
-          : 0)
+          : nullptr)
       {
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return Delegate.get()
           ? Delegate->GetResult()
-          : std::auto_ptr<Dump>();
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -435,7 +435,7 @@ namespace Packed
     private:
       const Version4::RawHeader& Header;
       const std::size_t DataOffset;
-      const std::auto_ptr<RawDataDecoder> Delegate;
+      const std::unique_ptr<RawDataDecoder> Delegate;
     };
 
 
@@ -505,11 +505,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return Delegate.get()
           ? Delegate->GetResult()
-          : std::auto_ptr<Dump>();
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -543,7 +543,7 @@ namespace Packed
       const uint_t DataOffset;
       std::size_t DataSize;
       Dump UnhuffmanData;
-      std::auto_ptr<RawDataDecoder> Delegate;
+      std::unique_ptr<RawDataDecoder> Delegate;
     };
   }//namespace CompressorCode
 
@@ -556,17 +556,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Version::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Depacker;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Depacker->Match(rawData))
       {

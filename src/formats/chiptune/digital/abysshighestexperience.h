@@ -26,15 +26,30 @@ namespace Formats
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
       };
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
+
+      class Decoder : public Formats::Chiptune::Decoder
+      {
+      public:
+        typedef std::shared_ptr<const Decoder> Ptr;
+
+        virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
+      };
+
+      Decoder::Ptr CreateDecoder();
+      
+      namespace HivelyTracker
+      {
+        Decoder::Ptr CreateDecoder();
+      }
     }
     
     Decoder::Ptr CreateAbyssHighestExperienceDecoder();
+    Decoder::Ptr CreateHivelyTrackerDecoder();
   }
 }

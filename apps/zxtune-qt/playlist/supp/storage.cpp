@@ -43,10 +43,7 @@ namespace
     }
 
     ItemsContainer(const ItemsContainer& rh)
-      : Parent(rh)
-      , Size(rh.Size)
-    {
-    }
+      = default;
 
     Parent::size_type size() const
     {
@@ -112,7 +109,7 @@ namespace
   class IteratorContainerWalker
   {
   public:
-    virtual ~IteratorContainerWalker() {}
+    virtual ~IteratorContainerWalker() = default;
 
     virtual void OnItem(IteratorType it) = 0;
   };
@@ -125,7 +122,7 @@ namespace
     {
     }
 
-    virtual void OnItem(ItemsContainer::const_iterator it)
+    void OnItem(ItemsContainer::const_iterator it) override
     {
       Delegate.OnItem(it->second, it->first);
     }
@@ -143,12 +140,12 @@ namespace
     {
     }
 
-    virtual ~RemoveItemsWalker()
+    ~RemoveItemsWalker() override
     {
       Erase();
     }
 
-    virtual void OnItem(ItemsContainer::iterator it)
+    void OnItem(ItemsContainer::iterator it) override
     {
       if (it != LastRangeEnd)
       {
@@ -179,12 +176,12 @@ namespace
     {
     }
 
-    virtual ~MoveItemsWalker()
+    ~MoveItemsWalker() override
     {
       Splice();
     }
 
-    virtual void OnItem(ItemsContainer::iterator it)
+    void OnItem(ItemsContainer::iterator it) override
     {
       if (it != LastRangeEnd)
       {
@@ -211,22 +208,22 @@ namespace
   {
   public:
     ItemsCollection(ItemsContainer::const_iterator begin, ItemsContainer::const_iterator end)
-      : Current(begin)
-      , Limit(end)
+      : Current(std::move(begin))
+      , Limit(std::move(end))
     {
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Current != Limit;
     }
 
-    virtual Item::Data::Ptr Get() const
+    Item::Data::Ptr Get() const override
     {
       return Current->first;
     }
 
-    virtual void Next()
+    void Next() override
     {
       ++Current;
     }
@@ -253,17 +250,17 @@ namespace
       Dbg("Created at %1% (cloned from %2% with %3% items)", this, &rh, Items.size());
     }
 
-    virtual ~LinearStorage()
+    ~LinearStorage() override
     {
       Dbg("Destroyed at %1% with %2% items", this, Items.size());
     }
 
-    virtual Item::Storage::Ptr Clone() const
+    Item::Storage::Ptr Clone() const override
     {
       return MakePtr<LinearStorage>(*this);
     }
    
-    virtual Model::OldToNewIndexMap::Ptr ResetIndices()
+    Model::OldToNewIndexMap::Ptr ResetIndices() override
     {
       const Model::OldToNewIndexMap::RWPtr result = MakeRWPtr<Model::OldToNewIndexMap>();
       std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), std::inserter(*result, result->end()), &MakeIndexPair);
@@ -271,19 +268,19 @@ namespace
       return result;
     }
 
-    virtual unsigned GetVersion() const
+    unsigned GetVersion() const override
     {
       return Version;
     }
 
-    virtual void Add(Item::Data::Ptr item)
+    void Add(Item::Data::Ptr item) override
     {
       const IndexedItem idxItem(item, static_cast<Model::IndexType>(Items.size()));
       Items.push_back(idxItem);
       Modify();
     }
 
-    virtual void Add(Item::Collection::Ptr items)
+    void Add(Item::Collection::Ptr items) override
     {
       for (Model::IndexType idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
       {
@@ -293,12 +290,12 @@ namespace
       Modify();
     }
 
-    virtual std::size_t CountItems() const
+    std::size_t CountItems() const override
     {
       return Items.size();
     }
 
-    virtual Item::Data::Ptr GetItem(Model::IndexType idx) const
+    Item::Data::Ptr GetItem(Model::IndexType idx) const override
     {
       if (idx >= Model::IndexType(Items.size()))
       {
@@ -308,12 +305,12 @@ namespace
       return it->first;
     }
 
-    virtual Item::Collection::Ptr GetItems() const
+    Item::Collection::Ptr GetItems() const override
     {
       return MakePtr<ItemsCollection>(Items.begin(), Items.end());
     }
 
-    virtual void ForAllItems(Item::Visitor& visitor) const
+    void ForAllItems(Item::Visitor& visitor) const override
     {
       for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
@@ -321,13 +318,13 @@ namespace
       }
     }
 
-    virtual void ForSpecifiedItems(const Model::IndexSet& indices, Playlist::Item::Visitor& visitor) const
+    void ForSpecifiedItems(const Model::IndexSet& indices, Playlist::Item::Visitor& visitor) const override
     {
       PlaylistItemVisitorAdapter walker(visitor);
       ForChoosenItems(indices, walker);
     }
 
-    virtual void MoveItems(const Model::IndexSet& indices, Model::IndexType destination)
+    void MoveItems(const Model::IndexSet& indices, Model::IndexType destination) override
     {
       if (!indices.count(destination))
       {
@@ -348,14 +345,14 @@ namespace
       }
     }
 
-    virtual void Sort(const Item::Comparer& cmp)
+    void Sort(const Item::Comparer& cmp) override
     {
       Items.sort(ComparerWrapper(cmp));
       ClearCache();
       Modify();
     }
 
-    virtual void Shuffle()
+    void Shuffle() override
     {
       std::vector<ItemsContainer::const_iterator> iters;
       iters.reserve(Items.size());
@@ -374,7 +371,7 @@ namespace
       Modify();
     }
     
-    virtual void RemoveItems(const Model::IndexSet& indices)
+    void RemoveItems(const Model::IndexSet& indices) override
     {
       if (indices.empty())
       {
@@ -494,7 +491,7 @@ namespace
         return;
       }
       assert(!indices.count(destination));
-      ItemsContainer::iterator delimiter = GetIteratorByIndex(destination);
+      auto delimiter = GetIteratorByIndex(destination);
 
       ItemsContainer movedItems;
       {
@@ -535,9 +532,8 @@ namespace
       {
         Playlist::Model::IndexType lastIndex = *indices.begin();
         IteratorType lastIterator = GetIteratorByIndex(lastIndex);
-        for (Playlist::Model::IndexSet::const_iterator idxIt = indices.begin(), idxLim = indices.end(); idxIt != idxLim; ++idxIt)
+        for (auto curIndex : indices)
         {
-          const Playlist::Model::IndexType curIndex = *idxIt;
           assert(curIndex >= lastIndex);
           if (const Playlist::Model::IndexType delta = curIndex - lastIndex)
           {

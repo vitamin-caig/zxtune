@@ -55,9 +55,9 @@ namespace Analysis
     void Reset()
     {
       StorageType other;
-      for (typename StorageType::iterator it = Storage.begin(), lim = Storage.end(); it != lim; ++it)
+      for (const auto& entry : Storage)
       {
-        other.push_back(PositionAndDecoder(0, it->Decoder));
+        other.push_back(PositionAndDecoder(0, entry.Decoder));
       }
       Storage.swap(other);
     }
@@ -69,7 +69,7 @@ namespace Analysis
 
       PositionAndDecoder(std::size_t pos, DecoderPtrType decoder)
         : Position(pos)
-        , Decoder(decoder)
+        , Decoder(std::move(decoder))
       {
       }
 
@@ -120,17 +120,17 @@ namespace Analysis
     }
 
     //Binary::Container
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return Content + Offset;
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return Limit - Offset;
     }
 
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
       return Delegate.GetSubcontainer(Offset + offset, size);
     }
@@ -345,27 +345,27 @@ namespace Analysis
     {
     }
 
-    virtual void Apply(const Archived::Decoder& decoder, std::size_t offset, Archived::Container::Ptr data)
+    void Apply(const Archived::Decoder& decoder, std::size_t offset, Archived::Container::Ptr data) override
     {
       Recognized.Apply(decoder, offset, data);
     }
 
-    virtual void Apply(const Packed::Decoder& decoder, std::size_t offset, Packed::Container::Ptr data)
+    void Apply(const Packed::Decoder& decoder, std::size_t offset, Packed::Container::Ptr data) override
     {
       Recognized.Apply(decoder, offset, data);
     }
 
-    virtual void Apply(const Image::Decoder& decoder, std::size_t offset, Image::Container::Ptr data)
+    void Apply(const Image::Decoder& decoder, std::size_t offset, Image::Container::Ptr data) override
     {
       Recognized.Apply(decoder, offset, data);
     }
 
-    virtual void Apply(const Chiptune::Decoder& decoder, std::size_t offset, Chiptune::Container::Ptr data)
+    void Apply(const Chiptune::Decoder& decoder, std::size_t offset, Chiptune::Container::Ptr data) override
     {
       Recognized.Apply(decoder, offset, data);
     }
 
-    virtual void Apply(std::size_t offset, Binary::Container::Ptr data)
+    void Apply(std::size_t offset, Binary::Container::Ptr data) override
     {
       TypedScanner<Traits> scanner(Decoders, offset, *data);
       scanner.Scan(Unrecognized);
@@ -386,27 +386,27 @@ namespace Analysis
   class LinearScanner : public Scanner
   {
   public:
-    virtual void AddDecoder(Archived::Decoder::Ptr decoder)
+    void AddDecoder(Archived::Decoder::Ptr decoder) override
     {
       Decoders.Archived.push_back(decoder);
     }
 
-    virtual void AddDecoder(Packed::Decoder::Ptr decoder)
+    void AddDecoder(Packed::Decoder::Ptr decoder) override
     {
       Decoders.Packed.push_back(decoder);
     }
 
-    virtual void AddDecoder(Image::Decoder::Ptr decoder)
+    void AddDecoder(Image::Decoder::Ptr decoder) override
     {
       Decoders.Image.push_back(decoder);
     }
 
-    virtual void AddDecoder(Chiptune::Decoder::Ptr decoder)
+    void AddDecoder(Chiptune::Decoder::Ptr decoder) override
     {
       Decoders.Chiptune.push_back(decoder);
     }
 
-    virtual void Scan(Binary::Container::Ptr data, Target& target) const
+    void Scan(Binary::Container::Ptr data, Target& target) const override
     {
       //order: Archive -> Packed -> Image -> Chiptune -> unrecognized with possible skipping
       DecodeUnrecognizedTarget<ChiptuneDataTraits> chiptune(Decoders.Chiptune, target, target);

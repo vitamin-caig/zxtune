@@ -21,8 +21,6 @@
 #include <windows.h>
 //std includes
 #include <cctype>
-//boost includes
-#include <boost/array.hpp>
 
 namespace
 {
@@ -34,7 +32,7 @@ namespace
     {
     }
 
-    virtual SizeType GetSize() const
+    SizeType GetSize() const override
     {
       CONSOLE_SCREEN_BUFFER_INFO info;
       ::GetConsoleScreenBufferInfo(Handle, &info);
@@ -42,7 +40,7 @@ namespace
         info.srWindow.Bottom - info.srWindow.Top - 1);
     }
 
-    virtual void MoveCursorUp(uint_t lines)
+    void MoveCursorUp(uint_t lines) override
     {
       CONSOLE_SCREEN_BUFFER_INFO info;
       ::GetConsoleScreenBufferInfo(Handle, &info);
@@ -51,7 +49,7 @@ namespace
       ::SetConsoleCursorPosition(Handle, info.dwCursorPosition);
     }
 
-    virtual uint_t GetPressedKey() const
+    uint_t GetPressedKey() const override
     {
       if (::_kbhit())
       {
@@ -85,7 +83,7 @@ namespace
       return INPUT_KEY_NONE;
     }
 
-    virtual void WaitForKeyRelease() const
+    void WaitForKeyRelease() const override
     {
       while (::_kbhit())
       {

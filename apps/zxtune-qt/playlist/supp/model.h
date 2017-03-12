@@ -30,8 +30,8 @@ namespace Playlist
     class StorageAccessOperation
     {
     public:
-      typedef boost::shared_ptr<StorageAccessOperation> Ptr;
-      virtual ~StorageAccessOperation() {}
+      typedef std::shared_ptr<StorageAccessOperation> Ptr;
+      virtual ~StorageAccessOperation() = default;
 
       virtual void Execute(const Storage& storage, Log::ProgressCallback& cb) = 0;
     };
@@ -39,8 +39,8 @@ namespace Playlist
     class StorageModifyOperation
     {
     public:
-      typedef boost::shared_ptr<StorageModifyOperation> Ptr;
-      virtual ~StorageModifyOperation() {}
+      typedef std::shared_ptr<StorageModifyOperation> Ptr;
+      virtual ~StorageModifyOperation() = default;
 
       virtual void Execute(Storage& storage, Log::ProgressCallback& cb) = 0;
     };
@@ -73,15 +73,15 @@ namespace Playlist
     class IndexSet : public std::set<IndexType>
     {
     public:
-      typedef boost::shared_ptr<const IndexSet> Ptr;
-      typedef boost::shared_ptr<IndexSet> RWPtr;
+      typedef std::shared_ptr<const IndexSet> Ptr;
+      typedef std::shared_ptr<IndexSet> RWPtr;
     };
 
     class OldToNewIndexMap : public std::map<IndexType, IndexType>
     {
     public:
-      typedef boost::shared_ptr<const OldToNewIndexMap> Ptr;
-      typedef boost::shared_ptr<OldToNewIndexMap> RWPtr;
+      typedef std::shared_ptr<const OldToNewIndexMap> Ptr;
+      typedef std::shared_ptr<OldToNewIndexMap> RWPtr;
       
       //! Finds new index after remapping
       const IndexType* FindNewIndex(IndexType oldIdx) const;

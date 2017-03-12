@@ -13,26 +13,20 @@
 //common includes
 #include <char_type.h>
 //std includes
+#include <cstdint>
 #include <string>
 #include <vector>
-//boost includes
-#include <boost/cstdint.hpp>
-#include <boost/static_assert.hpp>
 
 //@{
 //! @brief Integer types
-#ifndef BOOST_HAS_STDINT_H
-using boost::int8_t;
-using boost::uint8_t;
-using boost::int16_t;
-using boost::uint16_t;
-using boost::int32_t;
-using boost::uint32_t;
-using boost::int64_t;
-using boost::uint64_t;
-#endif
-
-#define __STDC_CONSTANT_MACROS
+using std::int8_t;
+using std::uint8_t;
+using std::int16_t;
+using std::uint16_t;
+using std::int32_t;
+using std::uint32_t;
+using std::int64_t;
+using std::uint64_t;
 
 /// Unsigned integer type
 typedef unsigned int uint_t;
@@ -101,13 +95,13 @@ inline std::string ToStdString(const String& str)
 typedef std::vector<uint8_t> Dump;
 
 //assertions
-BOOST_STATIC_ASSERT(sizeof(uint_t) >= sizeof(uint32_t));
-BOOST_STATIC_ASSERT(sizeof(int_t) >= sizeof(int32_t));
-BOOST_STATIC_ASSERT(sizeof(uint8_t) == 1);
-BOOST_STATIC_ASSERT(sizeof(int8_t) == 1);
-BOOST_STATIC_ASSERT(sizeof(uint16_t) == 2);
-BOOST_STATIC_ASSERT(sizeof(int16_t) == 2);
-BOOST_STATIC_ASSERT(sizeof(uint32_t) == 4);
-BOOST_STATIC_ASSERT(sizeof(int32_t) == 4);
-BOOST_STATIC_ASSERT(sizeof(uint64_t) == 8);
-BOOST_STATIC_ASSERT(sizeof(int64_t) == 8);
+static_assert(sizeof(uint_t) >= sizeof(uint32_t), "Invalid uint_t type");
+static_assert(sizeof(int_t) >= sizeof(int32_t), "Invalid int_t type");
+static_assert(sizeof(uint8_t) == 1, "Invalid uint8_t type");
+static_assert(sizeof(int8_t) == 1, "Invalid int8_t type");
+static_assert(sizeof(uint16_t) == 2, "Invalid uint16_t type");
+static_assert(sizeof(int16_t) == 2, "Invalid int16_t type");
+static_assert(sizeof(uint32_t) == 4, "Invalid uint32_t type");
+static_assert(sizeof(int32_t) == 4, "Invalid int32_t type");
+static_assert(sizeof(uint64_t) == 8, "Invalid uint64_t type");
+static_assert(sizeof(int64_t) == 8, "Invalid int64_t type");

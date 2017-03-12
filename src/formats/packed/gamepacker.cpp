@@ -165,8 +165,8 @@ namespace Packed
       //23 e5 6f 7a 98 67 0600 edb0 e1 18e3 e67f ca7181 23 cb77 2007 4f 0600 edb0 18d2 e6 3f c603 48 7e 23 12 1310fc18c5
     ;
 
-    BOOST_STATIC_ASSERT(sizeof(Version1::RawHeader) == 0x15);
-    BOOST_STATIC_ASSERT(sizeof(Version2::RawHeader) == 0x10);
+    static_assert(sizeof(Version1::RawHeader) == 0x15, "Invalid layout");
+    static_assert(sizeof(Version2::RawHeader) == 0x10, "Invalid layout");
 
     template<class Version>
     class Container
@@ -231,11 +231,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -290,7 +290,7 @@ namespace Packed
       bool IsValid;
       const typename Version::RawHeader& Header;
       ByteStream Stream;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
   }//namespace GamePacker
@@ -304,17 +304,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Version::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Depacker;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Depacker->Match(rawData))
       {

@@ -10,16 +10,12 @@
 
 //local includes
 #include "core/plugins/player_plugins_registrator.h"
-#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
-#include "core/plugins/players/properties_helper.h"
-#include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
@@ -28,6 +24,10 @@
 #include <formats/chiptune/multitrack/decoders.h>
 #include <formats/chiptune/multitrack/multitrack.h>
 #include <math/numeric.h>
+#include <module/attributes.h>
+#include <module/players/duration.h>
+#include <module/players/properties_helper.h>
+#include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
@@ -35,7 +35,6 @@
 //std includes
 #include <map>
 //boost includes
-#include <boost/range/end.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 //3rdparty
 #include <3rdparty/gme/gme/Gbs_Emu.h>
@@ -53,7 +52,7 @@ namespace GME
 {
   const Debug::Stream Dbg("Core::GMESupp");
 
-  typedef boost::shared_ptr< ::Music_Emu> EmuPtr;
+  typedef std::shared_ptr< ::Music_Emu> EmuPtr;
 
   typedef EmuPtr (*EmuCreator)();
   
@@ -66,11 +65,11 @@ namespace GME
   class GME : public Module::Analyzer
   {
   public:
-    typedef boost::shared_ptr<GME> Ptr;
+    typedef std::shared_ptr<GME> Ptr;
     
-    GME(EmuCreator create, Binary::Data::Ptr data, uint_t track)
+    GME(EmuCreator create, const Binary::Data& data, uint_t track)
       : CreateEmu(create)
-      , Data(data)
+      , Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
       , Track(track)
       , SoundFreq(0)
     {
@@ -94,8 +93,8 @@ namespace GME
     
     void Render(uint_t samples, Sound::ChunkBuilder& target)
     {
-      BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
-      BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
+      static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       ::Music_Emu::sample_t* const buffer = safe_ptr_cast< ::Music_Emu::sample_t*>(target.Allocate(samples));
       CheckError(Emu->play(samples * Sound::Sample::CHANNELS, buffer));
     }
@@ -113,21 +112,21 @@ namespace GME
       }
     }
     
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    std::vector<ChannelState> GetState() const override
     {
       std::vector<voice_status_t> voices(Emu->voice_count());
       const int actual = Emu->voices_status(&voices[0], voices.size());
-      std::vector<ChannelState> result;
+      std::vector<ChannelState> result(actual);
       for (int chan = 0; chan < actual; ++chan)
       {
         const voice_status_t& in = voices[chan];
         Devices::Details::AnalysisMap& analysis = GetAnalysisFor(in.frequency);
-        ChannelState state;
+        ChannelState& state = result[chan];
         state.Level = in.level * 100 / voice_max_level;
         state.Band = analysis.GetBandByPeriod(in.divider);
-        result.push_back(state);
       }
-      channels.swap(result);
+      //required by compiler
+      return std::move(result);
     }
   private:
     inline static void CheckError(::blargg_err_t err)
@@ -143,7 +142,7 @@ namespace GME
       const int oldPos = Emu ? Emu->tell() : 0;
       EmuPtr emu = CreateEmu();
       CheckError(emu->set_sample_rate(soundFreq));
-      CheckError(emu->load_mem(Data->Start(), Data->Size()));
+      CheckError(emu->load_mem(&Data.front(), Data.size()));
       CheckError(emu->start_track(Track));
       if (oldPos)
       {
@@ -161,7 +160,7 @@ namespace GME
     }
   private:
     const EmuCreator CreateEmu;
-    const Binary::Data::Ptr Data;
+    const Dump Data;
     const uint_t Track;
     uint_t SoundFreq;
     EmuPtr Emu;
@@ -172,27 +171,27 @@ namespace GME
   {
   public:
     Renderer(GME::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(tune)
-      , Iterator(iterator)
+      : Tune(std::move(tune))
+      , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
-      , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(target)
+      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , Target(std::move(target))
       , Looped()
     {
       ApplyParameters();
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return State;
     }
 
-    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    Module::Analyzer::Ptr GetAnalyzer() const override
     {
       return Tune;
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       try
       {
@@ -202,7 +201,7 @@ namespace GME
         const uint_t samplesPerFrame = SoundParams->SamplesPerFrame();
         builder.Reserve(samplesPerFrame);
         Tune->Render(samplesPerFrame, builder);
-        Target->ApplyData(builder.GetResult());
+        Target->ApplyData(builder.CaptureResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -212,7 +211,7 @@ namespace GME
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       try
       {
@@ -226,7 +225,7 @@ namespace GME
       }
     }
 
-    virtual void SetPosition(uint_t frame)
+    void SetPosition(uint_t frame) override
     {
       try
       {
@@ -274,23 +273,23 @@ namespace GME
   {
   public:
     Holder(GME::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
-      : Tune(tune)
-      , Info(info)
-      , Properties(props)
+      : Tune(std::move(tune))
+      , Info(std::move(info))
+      , Properties(std::move(props))
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    Module::Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
@@ -349,13 +348,13 @@ namespace GME
   class MultitrackFactory : public Module::Factory
   {
   public:
-    MultitrackFactory(const PluginDescription& desc, Formats::Multitrack::Decoder::Ptr decoder)
-      : Desc(desc)
-      , Decoder(decoder)
+    MultitrackFactory(PluginDescription desc, Formats::Multitrack::Decoder::Ptr decoder)
+      : Desc(std::move(desc))
+      , Decoder(std::move(decoder))
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -366,7 +365,7 @@ namespace GME
             Require(HasContainer(Desc.Id, properties));
           }
 
-          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, container, container->StartTrackIndex());
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, *container, container->StartTrackIndex());
           PropertiesHelper props(*properties);
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
@@ -398,19 +397,19 @@ namespace GME
   class SingletrackFactory : public Module::Factory
   {
   public:
-    SingletrackFactory(const PluginDescription& desc, Formats::Chiptune::Decoder::Ptr decoder)
-      : Desc(desc)
-      , Decoder(decoder)
+    SingletrackFactory(PluginDescription desc, Formats::Chiptune::Decoder::Ptr decoder)
+      : Desc(std::move(desc))
+      , Decoder(std::move(decoder))
     {
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {
         if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
         {
-          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, container, 0);
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, *container, 0);
           PropertiesHelper props(*properties);
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
@@ -550,29 +549,23 @@ namespace ZXTune
 {
   void RegisterMultitrackGMEPlugins(PlayerPluginsRegistrator& registrator)
   {
-    for (const Module::GME::MultitrackPluginDescription* it = Module::GME::MULTITRACK_PLUGINS; it != boost::end(Module::GME::MULTITRACK_PLUGINS); ++it)
+    for (const auto& desc : Module::GME::MULTITRACK_PLUGINS)
     {
-      const Module::GME::MultitrackPluginDescription& desc = *it;
-
       const Formats::Multitrack::Decoder::Ptr multi = desc.CreateMultitrackDecoder();
-      const uint_t caps = desc.Desc.ChiptuneCaps;
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder(multi);
       const Module::Factory::Ptr factory = MakePtr<Module::GME::MultitrackFactory>(desc.Desc, multi);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }
   
   void RegisterSingletrackGMEPlugins(PlayerPluginsRegistrator& registrator)
   {
-    for (const Module::GME::SingletrackPluginDescription* it = Module::GME::SINGLETRACK_PLUGINS; it != boost::end(Module::GME::SINGLETRACK_PLUGINS); ++it)
+    for (const auto& desc : Module::GME::SINGLETRACK_PLUGINS)
     {
-      const Module::GME::SingletrackPluginDescription& desc = *it;
-
-      const uint_t caps = desc.Desc.ChiptuneCaps;
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder();
       const Module::Factory::Ptr factory = MakePtr<Module::GME::SingletrackFactory>(desc.Desc, decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, caps, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

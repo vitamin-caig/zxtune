@@ -15,8 +15,6 @@
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Sound
 {
@@ -25,21 +23,25 @@ namespace Sound
     class LibraryName : public Platform::SharedLibrary::Name
     {
     public:
-      virtual std::string Base() const
+      LibraryName()
+      {
+      }
+      
+      std::string Base() const override
       {
         return "SDL";
       }
       
-      virtual std::vector<std::string> PosixAlternatives() const
+      std::vector<std::string> PosixAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {
           "libSDL-1.2.so.0",
         };
-        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
-      virtual std::vector<std::string> WindowsAlternatives() const
+      std::vector<std::string> WindowsAlternatives() const override
       {
         return std::vector<std::string>();
       }
@@ -56,13 +58,13 @@ namespace Sound
         Dbg("Library loaded");
       }
 
-      virtual ~DynamicApi()
+      ~DynamicApi() override
       {
         Dbg("Library unloaded");
       }
 
       
-      virtual char* SDL_GetError(void)
+      char* SDL_GetError(void) override
       {
         static const char NAME[] = "SDL_GetError";
         typedef char* ( *FunctionType)();
@@ -70,7 +72,7 @@ namespace Sound
         return func();
       }
       
-      virtual const SDL_version* SDL_Linked_Version(void)
+      const SDL_version* SDL_Linked_Version(void) override
       {
         static const char NAME[] = "SDL_Linked_Version";
         typedef const SDL_version* ( *FunctionType)();
@@ -78,7 +80,7 @@ namespace Sound
         return func();
       }
       
-      virtual int SDL_Init(Uint32 flags)
+      int SDL_Init(Uint32 flags) override
       {
         static const char NAME[] = "SDL_Init";
         typedef int ( *FunctionType)(Uint32);
@@ -86,7 +88,7 @@ namespace Sound
         return func(flags);
       }
       
-      virtual int SDL_InitSubSystem(Uint32 flags)
+      int SDL_InitSubSystem(Uint32 flags) override
       {
         static const char NAME[] = "SDL_InitSubSystem";
         typedef int ( *FunctionType)(Uint32);
@@ -94,7 +96,7 @@ namespace Sound
         return func(flags);
       }
       
-      virtual void SDL_QuitSubSystem(Uint32 flags)
+      void SDL_QuitSubSystem(Uint32 flags) override
       {
         static const char NAME[] = "SDL_QuitSubSystem";
         typedef void ( *FunctionType)(Uint32);
@@ -102,7 +104,7 @@ namespace Sound
         return func(flags);
       }
       
-      virtual Uint32 SDL_WasInit(Uint32 flags)
+      Uint32 SDL_WasInit(Uint32 flags) override
       {
         static const char NAME[] = "SDL_WasInit";
         typedef Uint32 ( *FunctionType)(Uint32);
@@ -110,7 +112,7 @@ namespace Sound
         return func(flags);
       }
       
-      virtual void SDL_Quit(void)
+      void SDL_Quit(void) override
       {
         static const char NAME[] = "SDL_Quit";
         typedef void ( *FunctionType)();
@@ -118,7 +120,7 @@ namespace Sound
         return func();
       }
       
-      virtual int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
+      int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained) override
       {
         static const char NAME[] = "SDL_OpenAudio";
         typedef int ( *FunctionType)(SDL_AudioSpec *, SDL_AudioSpec *);
@@ -126,7 +128,7 @@ namespace Sound
         return func(desired, obtained);
       }
       
-      virtual void SDL_PauseAudio(int pause_on)
+      void SDL_PauseAudio(int pause_on) override
       {
         static const char NAME[] = "SDL_PauseAudio";
         typedef void ( *FunctionType)(int);
@@ -134,7 +136,7 @@ namespace Sound
         return func(pause_on);
       }
       
-      virtual void SDL_CloseAudio(void)
+      void SDL_CloseAudio(void) override
       {
         static const char NAME[] = "SDL_CloseAudio";
         typedef void ( *FunctionType)();

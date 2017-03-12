@@ -33,39 +33,39 @@ namespace Chiptune
     {
     }
 
-    virtual void InsertData(std::size_t offset, const Dump& data)
+    void InsertData(std::size_t offset, const Dump& data) override
     {
       Require(Insertions.insert(BlobsMap::value_type(offset, data)).second);
       SizeAddon += data.size();
     }
 
-    virtual void OverwriteData(std::size_t offset, const Dump& data)
+    void OverwriteData(std::size_t offset, const Dump& data) override
     {
       Require(offset + data.size() <= Source.Size());
       Require(Overwrites.insert(BlobsMap::value_type(offset, data)).second);
     }
 
-    virtual void FixLEWord(std::size_t offset, int_t delta)
+    void FixLEWord(std::size_t offset, int_t delta) override
     {
       Require(offset + sizeof(uint16_t) <= Source.Size());
       Require(LEWordFixes.insert(FixesMap::value_type(offset, delta)).second);
     }
 
-    virtual Binary::Container::Ptr GetResult() const
+    Binary::Container::Ptr GetResult() const override
     {
       const uint8_t* const srcData = static_cast<const uint8_t*>(Source.Start());
-      std::auto_ptr<Dump> result(new Dump(srcData, srcData + Source.Size()));
+      std::unique_ptr<Dump> result(new Dump(srcData, srcData + Source.Size()));
       ApplyFixes(*result);
       ApplyOverwrites(*result);
       ApplyInsertions(*result);
-      return Binary::CreateContainer(result);
+      return Binary::CreateContainer(std::move(result));
     }
   private:
     void ApplyFixes(Dump& result) const
     {
-      for (FixesMap::const_iterator it = LEWordFixes.begin(), lim = LEWordFixes.end(); it != lim; ++it)
+      for (const auto& fix : LEWordFixes)
       {
-        Fix<uint16_t>(static_cast<void*>(&result[it->first]), it->second);
+        Fix<uint16_t>(static_cast<void*>(&result[fix.first]), fix.second);
       }
     }
 
@@ -80,9 +80,9 @@ namespace Chiptune
 
     void ApplyOverwrites(Dump& result) const
     {
-      for (BlobsMap::const_iterator it = Overwrites.begin(), lim = Overwrites.end(); it != lim; ++it)
+      for (const auto& over : Overwrites)
       {
-        std::copy(it->second.begin(), it->second.end(), result.begin() + it->first);
+        std::copy(over.second.begin(), over.second.end(), result.begin() + over.first);
       }
     }
 
@@ -95,18 +95,18 @@ namespace Chiptune
       Dump tmp(result.size() + SizeAddon);
       Dump::const_iterator src = result.begin();
       const Dump::const_iterator srcEnd = result.end();
-      Dump::iterator dst = tmp.begin();
+      auto dst = tmp.begin();
       std::size_t oldOffset = 0;
-      for (BlobsMap::const_iterator it = Insertions.begin(), lim = Insertions.end(); it != lim; ++it)
+      for (const auto& ins : Insertions)
       {
-        if (const std::size_t toCopy = it->first - oldOffset)
+        if (const std::size_t toCopy = ins.first - oldOffset)
         {
           const Dump::const_iterator nextEnd = src + toCopy;
           dst = std::copy(src, nextEnd, dst);
           src = nextEnd;
           oldOffset += toCopy;
         }
-        dst = std::copy(it->second.begin(), it->second.end(), dst);
+        dst = std::copy(ins.second.begin(), ins.second.end(), dst);
       }
       std::copy(src, srcEnd, dst);
       result.swap(tmp);

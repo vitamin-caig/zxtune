@@ -33,7 +33,7 @@ namespace Parameters
 JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_GlobalOptions_1GetProperty__Ljava_lang_String_2J
   (JNIEnv* env, jclass /*self*/, jstring propName, jlong defVal)
 {
-  const Parameters::Accessor::Ptr params = Parameters::GlobalOptions();
+  const auto& params = Parameters::GlobalOptions();
   const Jni::PropertiesReadHelper props(env, *params);
   return props.Get(propName, defVal);
 }
@@ -41,7 +41,7 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_GlobalOptions_1GetProperty__Ljava
 JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_GlobalOptions_1GetProperty__Ljava_lang_String_2Ljava_lang_String_2
   (JNIEnv* env, jclass /*self*/, jstring propName, jstring defVal)
 {
-  const Parameters::Accessor::Ptr params = Parameters::GlobalOptions();
+  const auto& params = Parameters::GlobalOptions();
   const Jni::PropertiesReadHelper props(env, *params);
   return props.Get(propName, defVal);
 }
@@ -49,7 +49,7 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_GlobalOptions_1GetProperty__Lja
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_GlobalOptions_1SetProperty__Ljava_lang_String_2J
   (JNIEnv* env, jclass /*self*/, jstring propName, jlong value)
 {
-  const Parameters::Modifier::Ptr params = Parameters::GlobalOptions();
+  const auto& params = Parameters::GlobalOptions();
   Jni::PropertiesWriteHelper props(env, *params);
   props.Set(propName, value);
 }
@@ -57,7 +57,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_GlobalOptions_1SetProperty__Ljava_
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_GlobalOptions_1SetProperty__Ljava_lang_String_2Ljava_lang_String_2
   (JNIEnv* env, jclass /*self*/, jstring propName, jstring value)
 {
-  const Parameters::Modifier::Ptr params = Parameters::GlobalOptions();
+  const auto& params = Parameters::GlobalOptions();
   Jni::PropertiesWriteHelper props(env, *params);
   props.Set(propName, value);
 }

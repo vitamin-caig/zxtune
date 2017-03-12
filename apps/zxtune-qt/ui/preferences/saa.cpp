@@ -19,6 +19,8 @@
 //library includes
 #include <core/core_parameters.h>
 #include <sound/sound_parameters.h>
+//std includes
+#include <utility>
 
 namespace
 {
@@ -40,7 +42,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

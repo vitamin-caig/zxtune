@@ -21,6 +21,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.R;
 
@@ -48,7 +49,7 @@ public class HttpProvider {
       Log.d(TAG, "Fetch %d bytes via %s", result.getContentLength(), uri);
       return result;
     } catch (IOException e) {
-      Log.d(TAG, e, "Fetch %s", uri);
+      Log.d(TAG, "Fetch %s: %s", uri, e.toString());
       throw e;
     }
   }
@@ -124,6 +125,7 @@ public class HttpProvider {
   
   private void CheckSizeLimit(int size) throws IOException {
     if (size > MAX_REMOTE_FILE_SIZE) {
+      Analytics.sendTooBigFileEvent(size);
       throw new IOException(context.getString(R.string.file_too_big));
     }
   }

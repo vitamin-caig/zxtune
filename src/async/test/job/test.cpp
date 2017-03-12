@@ -11,7 +11,7 @@
 #include <error.h>
 #include <pointers.h>
 #include <async/worker.h>
-#include <boost/thread/thread.hpp>
+#include <thread>
 #include <iostream>
 
 #define FILE_TAG 8D106607
@@ -53,31 +53,31 @@ namespace
     {
     }
     
-    virtual void Initialize()
+    void Initialize() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << InitError << ")" << std::endl;
       ThrowIfError(InitError);
     }
     
-    virtual void Finalize()
+    void Finalize() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << FinalError << ")" << std::endl;
       ThrowIfError(FinalError);
     }
 
-    virtual void Suspend()
+    void Suspend() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << SuspendError << ")" << std::endl;
       ThrowIfError(SuspendError);
     }
     
-    virtual void Resume()
+    void Resume() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << ResumeError << ")" << std::endl;
       ThrowIfError(ResumeError);
     }
 
-    virtual void ExecuteCycle()
+    void ExecuteCycle() override
     {
 #ifndef NDEBUG
       std::cerr << " " << __FUNCTION__ << " called (" << ExecError << ")" << std::endl;
@@ -85,7 +85,7 @@ namespace
       ThrowIfError(ExecError);
     }
     
-    virtual bool IsFinished() const
+    bool IsFinished() const override
     {
 #ifndef NDEBUG
       std::cerr << " " << __FUNCTION__ << " called (" << Finished << ")" << std::endl;
@@ -164,7 +164,7 @@ namespace
     const Error& execErr = FailedToExecuteError();
     worker.ExecError = execErr;
     job->Start();
-    boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     CheckNotActive(*job, THIS_LINE);
     job->Stop();
     CheckNotActive(*job, THIS_LINE);
@@ -180,7 +180,7 @@ namespace
     const Error& execErr = FailedToExecuteError();
     worker.ExecError = execErr;
     job->Start();
-    boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     CheckNotActive(*job, THIS_LINE);
     try
     {
@@ -307,11 +307,11 @@ namespace
     job->Start();
     CheckActive(*job, THIS_LINE);
     CheckNotPaused(*job, THIS_LINE);
-    boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     job->Pause();
     CheckActive(*job, THIS_LINE);
     CheckPaused(*job, THIS_LINE);
-    boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     job->Stop();
     CheckNotActive(*job, THIS_LINE);
     CheckNotPaused(*job, THIS_LINE);
@@ -331,11 +331,11 @@ namespace
       job->Start();
       CheckActive(*job, THIS_LINE);
       CheckNotPaused(*job, THIS_LINE);
-      boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       job->Pause();
       CheckActive(*job, THIS_LINE);
       CheckPaused(*job, THIS_LINE);
-      boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       job->Stop();
     }
     CheckNotActive(*job, THIS_LINE);
@@ -356,14 +356,14 @@ namespace
       job->Start();
       CheckActive(*job, THIS_LINE);
       CheckNotPaused(*job, THIS_LINE);
-      boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     for (int i = 1; i < 2; ++i)
     {
       job->Pause();
       CheckActive(*job, THIS_LINE);
       CheckPaused(*job, THIS_LINE);
-      boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     for (int i = 1; i < 2; ++i)
     {
@@ -382,7 +382,7 @@ namespace
       const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
       worker.Finished = false;
       job->Start();
-      boost::this_thread::sleep(boost::posix_time::milliseconds(3000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     }
     std::cout << "Succeed\n";
   }

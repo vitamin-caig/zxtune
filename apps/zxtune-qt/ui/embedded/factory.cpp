@@ -17,7 +17,7 @@ namespace
   class EmbeddedWidgetsFactory : public WidgetsFactory
   {
   public:
-    virtual MainWindow::Ptr CreateMainWindow(Parameters::Container::Ptr options) const
+    MainWindow::Ptr CreateMainWindow(Parameters::Container::Ptr options) const override
     {
       return EmbeddedMainWindow::Create(options);
     }

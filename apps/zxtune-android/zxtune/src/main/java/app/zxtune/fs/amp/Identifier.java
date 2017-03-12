@@ -10,9 +10,9 @@
 
 package app.zxtune.fs.amp;
 
-import java.util.List;
-
 import android.net.Uri;
+
+import java.util.List;
 
 /**
 *

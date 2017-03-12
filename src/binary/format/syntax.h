@@ -20,8 +20,8 @@ namespace Binary
     class FormatTokensVisitor
     {
     public:
-      typedef std::auto_ptr<FormatTokensVisitor> Ptr;
-      virtual ~FormatTokensVisitor() {}
+      typedef std::unique_ptr<FormatTokensVisitor> Ptr;
+      virtual ~FormatTokensVisitor() = default;
 
       virtual void Match(const std::string& val) = 0;
       virtual void GroupStart() = 0;
@@ -32,6 +32,6 @@ namespace Binary
 
     void ParseFormatNotation(const std::string& notation, FormatTokensVisitor& visitor);
     void ParseFormatNotationPostfix(const std::string& notation, FormatTokensVisitor& visitor);
-    FormatTokensVisitor::Ptr CreatePostfixSynaxCheckAdapter(FormatTokensVisitor& visitor);
+    FormatTokensVisitor::Ptr CreatePostfixSyntaxCheckAdapter(FormatTokensVisitor& visitor);
   }
 }

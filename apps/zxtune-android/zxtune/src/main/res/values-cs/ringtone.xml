@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ringtone_create_title">Nastavit jako vyzváněcí melodii</string>
+    <string name="ringtone_create_started">Dělá se vyzváněcí melodie</string>
+    <string name="ringtone_changed">Byla nastavena nová vyzváněcí melodie!</string>
+    <string name="ringtone_creating_failed">Nepodařilo se vytvořit vyzváněcí melodii: %s</string>
+</resources>

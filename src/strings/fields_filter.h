@@ -16,12 +16,12 @@
 #include <strings/fields.h>
 //std includes
 #include <set>
-//boost includes
-#include <boost/static_assert.hpp>
-#include <boost/type_traits/is_unsigned.hpp>
+#include <type_traits>
 
 namespace Strings
 {
+  static_assert(std::is_unsigned<Char>::value, "Char type should be unsigned");
+
   class FilterFieldsSource : public FieldsSource
   {
   public:
@@ -29,7 +29,6 @@ namespace Strings
       : Delegate(delegate)
       , Table(1 << (8 * sizeof(Char)))
     {
-      BOOST_STATIC_ASSERT(boost::is_unsigned<Char>::value);
       Require(src.size() == tgt.size());
       Require(std::set<Char>(src.begin(), src.end()).size() == src.size());
       for (std::size_t idx = 0; idx != Table.size(); ++idx)
@@ -45,7 +44,6 @@ namespace Strings
       : Delegate(delegate)
       , Table(1 << (8 * sizeof(Char)))
     {
-      BOOST_STATIC_ASSERT(boost::is_unsigned<Char>::value);
       const std::set<Char> srcSymbols(src.begin(), src.end());
       Require(srcSymbols.size() == src.size());
       for (std::size_t idx = 0; idx != Table.size(); ++idx)
@@ -56,12 +54,12 @@ namespace Strings
       }
     }
 
-    virtual String GetFieldValue(const String& fieldName) const
+    String GetFieldValue(const String& fieldName) const override
     {
-      String val = Delegate.GetFieldValue(fieldName);
-      for (String::iterator it = val.begin(), lim = val.end(); it != lim; ++it)
+      auto val = Delegate.GetFieldValue(fieldName);
+      for (auto& it : val)
       {
-        *it = Table[*it];
+        it = Table[it];
       }
       return val;
     }

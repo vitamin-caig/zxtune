@@ -11,13 +11,11 @@
 #pragma once
 
 //library includes
-#include <core/module_holder.h>
+#include <module/holder.h>
 #include <parameters/container.h>
 //std includes
 #include <memory>
 #include <stdexcept>
-//boost includes
-#include <boost/function.hpp>
 
 //forward declarations
 namespace boost
@@ -33,7 +31,7 @@ class CancelError : public std::exception {};
 class OnItemCallback
 {
 public:
-  virtual ~OnItemCallback() {}
+  virtual ~OnItemCallback() = default;
   
   virtual void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder) = 0;
 };
@@ -41,7 +39,7 @@ public:
 class SourceComponent
 {
 public:
-  virtual ~SourceComponent() {}
+  virtual ~SourceComponent() = default;
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
   virtual void ParseParameters() = 0;
@@ -49,5 +47,5 @@ public:
   virtual void Initialize() = 0;
   virtual void ProcessItems(OnItemCallback& callback) = 0;
 
-  static std::auto_ptr<SourceComponent> Create(Parameters::Container::Ptr configParams);
+  static std::unique_ptr<SourceComponent> Create(Parameters::Container::Ptr configParams);
 };

@@ -18,9 +18,8 @@
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -30,8 +29,8 @@ namespace Chiptune
 {
   namespace GYM
   {
-    typedef boost::array<uint8_t, 4> SignatureType;
-    typedef boost::array<uint8_t, 32> StringType;
+    typedef std::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 32> StringType;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -44,7 +43,7 @@ namespace Chiptune
       StringType Copyright;
       StringType Emulator;
       StringType Dumper;
-      boost::array<uint8_t, 256> Comment;
+      std::array<uint8_t, 256> Comment;
       uint32_t LoopStart;
       uint32_t PackedSize;
     } PACK_POST;
@@ -52,7 +51,7 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 428);
+    static_assert(sizeof(RawHeader) == 428, "Invalid layout");
     
     const std::size_t MIN_SIZE = sizeof(RawHeader) + 256;
     const std::size_t MAX_SIZE = 16 * 1024 * 1024;
@@ -69,22 +68,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::GYM_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

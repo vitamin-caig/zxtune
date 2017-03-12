@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,70 +23,52 @@ namespace Formats
   {
     namespace ASCSoundMaster
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line()
-            : Level(), ToneDeviation(), ToneMask(true), NoiseMask(true), Adding()
-            , EnableEnvelope(), VolSlide()
-          {
-          }
-
-          uint_t Level;//0-15
-          int_t ToneDeviation;
-          bool ToneMask;
-          bool NoiseMask;
-          int_t Adding;
-          bool EnableEnvelope;
-          int_t VolSlide;//0/+1/-1
-        };
-
-        Sample()
-          : Loop(), LoopLimit()
+        SampleLine()
+          : Level(), ToneDeviation(), ToneMask(true), NoiseMask(true), Adding()
+          , EnableEnvelope(), VolSlide()
         {
         }
 
-        uint_t Loop;
-        uint_t LoopLimit;
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        int_t ToneDeviation;
+        bool ToneMask;
+        bool NoiseMask;
+        int_t Adding;
+        bool EnableEnvelope;
+        int_t VolSlide;//0/+1/-1
       };
+      
+      typedef LinesObjectWithLoopLimit<SampleLine> Sample;
 
-      struct Ornament
+      struct OrnamentLine
       {
-        struct Line
-        {
-          Line()
-            : NoteAddon(), NoiseAddon()
-          {
-          }
-          int_t NoteAddon;
-          int_t NoiseAddon;
-        };
-
-        Ornament()
-          : Loop(), LoopLimit()
+        OrnamentLine()
+          : NoteAddon(), NoiseAddon()
         {
         }
-
-        uint_t Loop;
-        uint_t LoopLimit;
-        std::vector<Line> Lines;
+        int_t NoteAddon;
+        int_t NoiseAddon;
       };
+      
+      typedef LinesObjectWithLoopLimit<OrnamentLine> Ornament;
+      
+      typedef LinesObject<uint_t> Positions;
 
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         //common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
-        virtual void SetSample(uint_t index, const Sample& sample) = 0;
-        virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;
+        virtual void SetSample(uint_t index, Sample sample) = 0;
+        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 
@@ -113,7 +96,7 @@ namespace Formats
       class Decoder : public Formats::Chiptune::Decoder
       {
       public:
-        typedef boost::shared_ptr<const Decoder> Ptr;
+        typedef std::shared_ptr<const Decoder> Ptr;
 
         virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
       };

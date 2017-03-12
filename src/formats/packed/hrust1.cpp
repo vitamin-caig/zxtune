@@ -24,8 +24,6 @@
 #include <math/numeric.h>
 //std includes
 #include <numeric>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -172,32 +170,32 @@ namespace Packed
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         };
-        BOOST_STATIC_ASSERT(sizeof(HRUST1_0_PADDING) == 255 - TRDOS_SHORT_ENTRY_SIZE);
-        BOOST_STATIC_ASSERT(sizeof(HRUST1_1_PADDING) == 255 - TRDOS_ENTRY_SIZE);
-        BOOST_STATIC_ASSERT(sizeof(HRUST1_2_PADDING) == 255 - TRDOS_ENTRY_SIZE);
-        BOOST_STATIC_ASSERT(sizeof(HRUST1_3_PADDING) == 255 - TRDOS_ENTRY_SIZE);
+        static_assert(sizeof(HRUST1_0_PADDING) == 255 - TRDOS_SHORT_ENTRY_SIZE, "Invalid layout");
+        static_assert(sizeof(HRUST1_1_PADDING) == 255 - TRDOS_ENTRY_SIZE, "Invalid layout");
+        static_assert(sizeof(HRUST1_2_PADDING) == 255 - TRDOS_ENTRY_SIZE, "Invalid layout");
+        static_assert(sizeof(HRUST1_3_PADDING) == 255 - TRDOS_ENTRY_SIZE, "Invalid layout");
         const uint8_t* const paddingStart = Data + usefulSize;
         const uint8_t* const paddingEnd = Data + resultSize;
         //special case due to distinct offset
-        const std::size_t padv0 = MatchedSize(paddingStart + TRDOS_SHORT_ENTRY_SIZE, paddingEnd, HRUST1_0_PADDING, boost::end(HRUST1_0_PADDING));
+        const std::size_t padv0 = MatchedSize(paddingStart + TRDOS_SHORT_ENTRY_SIZE, paddingEnd, HRUST1_0_PADDING, std::end(HRUST1_0_PADDING));
         if (padv0 >= MIN_SIGNATURE_MATCH)
         {
           //version 1.0 match
           return usefulSize + TRDOS_SHORT_ENTRY_SIZE + padv0;
         }
-        const std::size_t padv1 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_1_PADDING, boost::end(HRUST1_1_PADDING));
+        const std::size_t padv1 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_1_PADDING, std::end(HRUST1_1_PADDING));
         if (padv1 >= EXACT_SIGNATURE_MATCH)
         {
           //version 1.1 match
           return usefulSize + TRDOS_ENTRY_SIZE + padv1;
         }
-        const std::size_t padv2 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_2_PADDING, boost::end(HRUST1_2_PADDING));
+        const std::size_t padv2 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_2_PADDING, std::end(HRUST1_2_PADDING));
         if (padv2 >= EXACT_SIGNATURE_MATCH)
         {
           //version 1.2 match
           return usefulSize + TRDOS_ENTRY_SIZE + padv2;
         }
-        const std::size_t padv3 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_3_PADDING, boost::end(HRUST1_3_PADDING));
+        const std::size_t padv3 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_3_PADDING, std::end(HRUST1_3_PADDING));
         if (padv3 >= EXACT_SIGNATURE_MATCH)
         {
           //version 1.3 match
@@ -237,11 +235,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
     private:
       bool DecodeData()
@@ -404,7 +402,7 @@ namespace Packed
           }
         }
         //put remaining bytes
-        std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
+        std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
         return true;
       }
 
@@ -431,7 +429,7 @@ namespace Packed
       bool IsValid;
       const RawHeader& Header;
       Hrust1Bitstream Stream;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
   }//namespace Hrust1
@@ -444,17 +442,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::HRUST1_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

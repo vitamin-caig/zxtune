@@ -21,7 +21,7 @@ namespace Sound
   {
   public:
     //! @brief Pointer type
-    typedef boost::shared_ptr<FadeGainer> Ptr;
+    typedef std::shared_ptr<FadeGainer> Ptr;
 
     //! @brief Setting up the gain value
     //! @param gain Levels

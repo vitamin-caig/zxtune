@@ -14,6 +14,8 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
+//std includes
+#include <cassert>
 
 namespace Formats
 {
@@ -29,22 +31,22 @@ namespace Formats
         assert(origSize && delegate && delegate->Size());
       }
 
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
-      virtual std::size_t PackedSize() const
+      std::size_t PackedSize() const override
       {
         return OriginalSize;
       }
@@ -56,14 +58,14 @@ namespace Formats
     Container::Ptr CreateContainer(Binary::Container::Ptr data, std::size_t origSize)
     {
       return origSize && data && data->Size()
-        ? MakePtr<PackedContainer>(data, origSize)
+        ? MakePtr<PackedContainer>(std::move(data), origSize)
         : Container::Ptr();
     }
 
-    Container::Ptr CreateContainer(std::auto_ptr<Dump> data, std::size_t origSize)
+    Container::Ptr CreateContainer(std::unique_ptr<Dump> data, std::size_t origSize)
     {
-      const Binary::Container::Ptr container = Binary::CreateContainer(data);
-      return CreateContainer(container, origSize);
+      auto container = Binary::CreateContainer(std::move(data));
+      return CreateContainer(std::move(container), origSize);
     }
   }
 }

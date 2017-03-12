@@ -17,9 +17,9 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <core/module_attrs.h>
 #include <debug/log.h>
 #include <l10n/api.h>
+#include <module/attributes.h>
 #include <platform/version/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -48,28 +48,28 @@ namespace PulseAudio
   class BackendWorker : public Sound::BackendWorker
   {
   public:
-    BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params, const String& stream)
-      : PaApi(api)
-      , Params(params)
+    BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params, String stream)
+      : PaApi(std::move(api))
+      , Params(std::move(params))
       , Client(Platform::Version::GetProgramTitle())//TODO: think about another solution...
-      , Stream(stream)
+      , Stream(std::move(stream))
     {
     }
 
-    virtual void Startup()
+    void Startup() override
     {
       Dbg("Starting playback");
 
       Device = OpenDevice();
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Dbg("Shutdown");
-      Device = boost::shared_ptr<pa_simple>();
+      Device = std::shared_ptr<pa_simple>();
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Dbg("Pause");
       int error = 0;
@@ -79,16 +79,16 @@ namespace PulseAudio
       }
     }
 
-    virtual void Resume()
+    void Resume() override
     {
       Dbg("Resume");
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    void FrameStart(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    void FrameFinish(Chunk::Ptr buffer) override
     {
       int error = 0;
       if (PaApi->pa_simple_write(Device.get(), &buffer->front(), buffer->size() * sizeof(buffer->front()), &error) < 0)
@@ -97,25 +97,25 @@ namespace PulseAudio
       }
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return VolumeControl::Ptr();
     }
   private:
-    boost::shared_ptr<pa_simple> OpenDevice() const
+    std::shared_ptr<pa_simple> OpenDevice() const
     {
       const pa_sample_spec format = GetFormat();
       int error = 0;
-      if (pa_simple* result = PaApi->pa_simple_new(NULL, Client.c_str(), PA_STREAM_PLAYBACK, NULL, Stream.c_str(), &format, NULL, NULL, &error))
+      if (pa_simple* result = PaApi->pa_simple_new(nullptr, Client.c_str(), PA_STREAM_PLAYBACK, nullptr, Stream.c_str(), &format, nullptr, nullptr, &error))
       {
-        return boost::shared_ptr<pa_simple>(result, boost::bind(&Api::pa_simple_free, PaApi, _1));
+        return std::shared_ptr<pa_simple>(result, boost::bind(&Api::pa_simple_free, PaApi, _1));
       }
       throw MakeError(error, THIS_LINE);
     }
     
     pa_sample_spec GetFormat() const
     {
-      BOOST_STATIC_ASSERT(Sample::BITS == 16 && Sample::MID == 0);
+      static_assert(Sample::BITS == 16 && Sample::MID == 0, "Incompatible sound sample type");
 
       pa_sample_spec format;
       format.channels = Sample::CHANNELS;
@@ -143,18 +143,18 @@ namespace PulseAudio
     const Parameters::Accessor::Ptr Params;
     const String Client;
     const String Stream;
-    boost::shared_ptr<pa_simple> Device;
+    std::shared_ptr<pa_simple> Device;
   };
 
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : PaApi(api)
+      : PaApi(std::move(api))
     {
     }
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const override
     {
       const String& stream = GetStreamName(*holder);
       return MakePtr<BackendWorker>(PaApi, params, stream);

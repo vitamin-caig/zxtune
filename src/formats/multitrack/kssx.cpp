@@ -19,9 +19,9 @@
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
+#include <utility>
 
 namespace Formats
 {
@@ -29,7 +29,7 @@ namespace Multitrack
 {
   namespace KSSX
   {
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -50,7 +50,7 @@ namespace Multitrack
     PACK_PRE struct ExtraHeader
     {
       uint32_t DataSize;
-      uint32_t Unused;
+      uint32_t Reserved;
       uint16_t FirstTrack;
       uint16_t LastTrack;
       /* Optional part
@@ -64,8 +64,8 @@ namespace Multitrack
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10);
-    BOOST_STATIC_ASSERT(sizeof(ExtraHeader) == 0x0c);
+    static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
+    static_assert(sizeof(ExtraHeader) == 0x0c, "Invalid layout");
 
     const std::string FORMAT =
         "'K'S'S'X" //signature
@@ -75,39 +75,42 @@ namespace Multitrack
         "??"       //play address
         "?"        //start bank
         "?"        //extra banks
-        "0c-10"    //extra header size
-        "?"        //extra chips
+        "00|0c-10" //extra header size
+        "%0x0xxxxx"//extra chips
      ;
+    const ExtraHeader STUB_EXTRA_HEADER = {~uint32_t(0), 0, 0, 0};
      
     const std::size_t MIN_SIZE = sizeof(RawHeader) + sizeof(ExtraHeader);
+    
+    const uint_t MAX_TRACKS_COUNT = 256;
 
     class Container : public Formats::Multitrack::Container
     {
     public:
       Container(const ExtraHeader* hdr, Binary::Container::Ptr data)
         : Hdr(hdr)
-        , Delegate(data)
+        , Delegate(std::move(data))
       {
       }
       
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
       
       //Formats::Multitrack::Container
-      virtual uint_t FixedChecksum() const
+      uint_t FixedChecksum() const override
       {
         const void* const data = Delegate->Start();
         const RawHeader* const header = static_cast<const RawHeader*>(data);
@@ -115,24 +118,25 @@ namespace Multitrack
         return Crc32(static_cast<const uint8_t*>(data) + headersSize, Delegate->Size() - headersSize);
       }
 
-      virtual uint_t TracksCount() const
+      uint_t TracksCount() const override
       {
         return fromLE(Hdr->LastTrack) + 1;
       }
 
-      virtual uint_t StartTrackIndex() const
+      uint_t StartTrackIndex() const override
       {
         return fromLE(Hdr->FirstTrack);
       }
       
-      virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
+      Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
-        std::auto_ptr<Dump> content(new Dump(Delegate->Size()));
+        Require(Hdr != &STUB_EXTRA_HEADER);
+        std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
         std::memcpy(&content->front(), Delegate->Start(), content->size());
         ExtraHeader* const hdr = safe_ptr_cast<ExtraHeader*>(&content->front() + sizeof(RawHeader));
         Require(idx <= hdr->LastTrack);
         hdr->FirstTrack = idx;
-        return MakePtr<Container>(hdr, Binary::CreateContainer(content));
+        return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
       }
     private:
       const ExtraHeader* const Hdr;
@@ -147,17 +151,17 @@ namespace Multitrack
       {
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -165,13 +169,17 @@ namespace Multitrack
         }
         const std::size_t availSize = rawData.Size();
         const RawHeader* const hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
+        const ExtraHeader* const extraHdr = hdr->ExtraHeaderSize != 0 ? safe_ptr_cast<const ExtraHeader*>(hdr + 1) : &STUB_EXTRA_HEADER;
+        if (fromLE(extraHdr->LastTrack) > MAX_TRACKS_COUNT - 1 || extraHdr->Reserved != 0)
+        {
+          return Formats::Multitrack::Container::Ptr();
+        }
         const std::size_t headersSize = sizeof(*hdr) + hdr->ExtraHeaderSize;
         const std::size_t bankSize = 0 != (hdr->ExtraBanks & 0x80) ? 8192 : 16384;
         const uint_t banksCount = hdr->ExtraBanks & 0x7f;
         const std::size_t totalSize = headersSize + fromLE(hdr->InitialDataSize) + bankSize * banksCount;
         //GME support truncated files
         const Binary::Container::Ptr used = rawData.GetSubcontainer(0, std::min(availSize, totalSize));
-        const ExtraHeader* const extraHdr = safe_ptr_cast<const ExtraHeader*>(hdr + 1);
         return MakePtr<Container>(extraHdr, used);
       }
     private:

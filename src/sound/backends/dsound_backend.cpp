@@ -24,9 +24,9 @@
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
+//std includes
+#include <thread>
 //boost includes
-#include <boost/thread/thread.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/range/size.hpp>
 //text includes
 #include "text/backends.h"
@@ -92,27 +92,27 @@ namespace DirectSound
     }
   }
 
-  std::auto_ptr<GUID> String2Guid(const String& str)
+  std::unique_ptr<GUID> String2Guid(const String& str)
   {
     if (str.empty())
     {
-      return std::auto_ptr<GUID>();
+      return std::unique_ptr<GUID>();
     }
     std::vector<OLECHAR> strGuid(str.begin(), str.end());
     strGuid.push_back(0);
-    std::auto_ptr<GUID> res(new GUID);
+    std::unique_ptr<GUID> res(new GUID);
     CheckWin32Error(::CLSIDFromString(&strGuid[0], res.get()), THIS_LINE);
     return res;
   }
 
-  typedef boost::shared_ptr<IDirectSound> DirectSoundPtr;
-  typedef boost::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
+  typedef std::shared_ptr<IDirectSound> DirectSoundPtr;
+  typedef std::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
 
   DirectSoundPtr OpenDevice(Api& api, const String& device)
   {
     Dbg("OpenDevice(%1%)", device);
     IDirectSound* raw = 0;
-    const std::auto_ptr<GUID> deviceUuid = String2Guid(device);
+    const std::unique_ptr<GUID> deviceUuid = String2Guid(device);
     CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
     const DirectSoundPtr result = DirectSoundPtr(raw, &ReleaseRef);
     CheckWin32Error(result->SetCooperativeLevel(GetWindowHandle(), DSSCL_PRIORITY), THIS_LINE);
@@ -143,7 +143,7 @@ namespace DirectSound
     LPDIRECTSOUNDBUFFER rawSecondary = 0;
     CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawSecondary, NULL), THIS_LINE);
     assert(rawSecondary);
-    const boost::shared_ptr<IDirectSoundBuffer> secondary(rawSecondary, &ReleaseRef);
+    const std::shared_ptr<IDirectSoundBuffer> secondary(rawSecondary, &ReleaseRef);
     Dbg("Created");
     return secondary;
   }
@@ -159,7 +159,7 @@ namespace DirectSound
     LPDIRECTSOUNDBUFFER rawPrimary = 0;
     CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawPrimary, NULL), THIS_LINE);
     assert(rawPrimary);
-    const boost::shared_ptr<IDirectSoundBuffer> primary(rawPrimary, &ReleaseRef);
+    const std::shared_ptr<IDirectSoundBuffer> primary(rawPrimary, &ReleaseRef);
     Dbg("Created");
     return primary;
   }
@@ -167,9 +167,9 @@ namespace DirectSound
   class StreamBuffer
   {
   public:
-    typedef boost::shared_ptr<StreamBuffer> Ptr;
+    typedef std::shared_ptr<StreamBuffer> Ptr;
 
-    StreamBuffer(DirectSoundBufferPtr buff, boost::posix_time::millisec sleepPeriod)
+    StreamBuffer(DirectSoundBufferPtr buff, std::chrono::milliseconds sleepPeriod)
       : Buff(buff)
       , SleepPeriod(sleepPeriod)
       , BuffSize(0)
@@ -297,11 +297,11 @@ namespace DirectSound
 
     void Wait() const
     {
-      boost::this_thread::sleep(SleepPeriod);
+      std::this_thread::sleep_for(SleepPeriod);
     }
   private:
     const DirectSoundBufferPtr Buff;
-    const boost::posix_time::millisec SleepPeriod;
+    const std::chrono::milliseconds SleepPeriod;
     std::size_t BuffSize;
     std::size_t Cursor;
   };
@@ -331,7 +331,7 @@ namespace DirectSound
     virtual Gain GetVolume() const
     {
       const VolPan vols = GetVolumeImpl();
-      BOOST_STATIC_ASSERT(Sample::CHANNELS == 2);
+      static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
       //in hundredths of a decibel
       const int_t attLeft = vols.first - (vols.second > 0 ? vols.second : 0);
       const int_t attRight = vols.first - (vols.second < 0 ? -vols.second : 0);
@@ -498,7 +498,7 @@ namespace DirectSound
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
       const Time::Milliseconds frameDuration = RenderingParameters->FrameDuration();
-      res.Stream = MakePtr<StreamBuffer>(buffer, boost::posix_time::millisec(frameDuration.Get()));
+      res.Stream = MakePtr<StreamBuffer>(buffer, std::chrono::milliseconds(frameDuration.Get()));
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
       res.Volume = MakePtr<VolumeControl>(res.Device, primary);
       return res;

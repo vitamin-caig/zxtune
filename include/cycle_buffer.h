@@ -11,27 +11,23 @@
 #pragma once
 
 //std includes
+#include <algorithm>
 #include <cstring>
-//boost includes
-#include <boost/noncopyable.hpp>
+#include <memory>
 
 template<class T>
-class CycleBuffer : public boost::noncopyable
+class CycleBuffer
 {
 public:
   explicit CycleBuffer(std::size_t size)
-    : BufferStart(new T[size])
+    : Buffer(new T[size])
+    , BufferStart(Buffer.get())
     , BufferEnd(BufferStart + size)
     , FreeCursor(BufferStart)
     , FreeAvailable(size)
     , BusyCursor(BufferStart)
     , BusyAvailable(0)
   {
-  }
-
-  ~CycleBuffer()
-  {
-    delete[] BufferStart;
   }
 
   void Reset()
@@ -103,6 +99,7 @@ public:
     return toConsume;
   }
 private:
+  const std::unique_ptr<T[]> Buffer;
   T* const BufferStart;
   const T* const BufferEnd;
   T* FreeCursor;

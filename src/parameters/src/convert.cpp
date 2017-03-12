@@ -22,7 +22,7 @@ namespace
 
   const IntType RADIX = 10;
 
-  BOOST_STATIC_ASSERT(1 == sizeof(DataType::value_type));
+  static_assert(1 == sizeof(DataType::value_type), "Invalid DataType::value_type");
 
   inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int(*Fun)(int))
   {
@@ -45,11 +45,11 @@ namespace
   {
     res.resize((val.size() - 1) / 2);
     String::const_iterator src = val.begin();
-    for (DataType::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
+    for (auto& re : res)
     {
       const DataType::value_type highNibble = FromHex(*++src);
       const DataType::value_type lowNibble = FromHex(*++src);
-      *it = highNibble * 16 | lowNibble;
+      re = highNibble * 16 | lowNibble;
     }
   }
 
@@ -63,9 +63,8 @@ namespace
   {
     String res(dmp.size() * 2 + 1, DATA_PREFIX);
     String::iterator dstit = res.begin();
-    for (DataType::const_iterator srcit = dmp.begin(), srclim = dmp.end(); srcit != srclim; ++srcit)
+    for (auto val : dmp)
     {
-      const DataType::value_type val = *srcit;
       *++dstit = ToHex(val >> 4);
       *++dstit = ToHex(val & 15);
     }
@@ -115,7 +114,8 @@ namespace
     {
       res += '-';
     }
-    return String(res.rbegin(), res.rend());
+    std::reverse(res.begin(), res.end());
+    return res;
   }
 
   inline bool IsQuoted(const String& str)

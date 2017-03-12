@@ -23,9 +23,9 @@
 #include <parameters/convert.h>
 #include <strings/array.h>
 //std includes
+#include <array>
 #include <map>
-//boost includes
-#include <boost/array.hpp>
+#include <utility>
 
 namespace Formats
 {
@@ -45,13 +45,13 @@ namespace Multitrack
       "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' "
      ;
      
-    typedef boost::array<uint8_t, 5> TextSignatureType;
+    typedef std::array<uint8_t, 5> TextSignatureType;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
     const std::string SONGS = "SONGS";
     const std::string DEFSONG = "DEFSONG";
     
-    typedef boost::array<uint8_t, 2> BinarySignatureType;
+    typedef std::array<uint8_t, 2> BinarySignatureType;
     const BinarySignatureType BINARY_SIGNATURE = {{0xff, 0xff}};
      
     const std::size_t MIN_SIZE = 256;
@@ -59,7 +59,7 @@ namespace Multitrack
     class Builder
     {
     public:
-      virtual ~Builder() {}
+      virtual ~Builder() = default;
 
       virtual void SetProperty(const String& name, const String& value) = 0;
       virtual void SetBlock(const uint_t start, const uint8_t* data, std::size_t size) = 0;
@@ -68,8 +68,8 @@ namespace Multitrack
     class DataBuilder : public Builder
     {
     public:
-      typedef boost::shared_ptr<const DataBuilder> Ptr;
-      typedef boost::shared_ptr<DataBuilder> RWPtr;
+      typedef std::shared_ptr<const DataBuilder> Ptr;
+      typedef std::shared_ptr<DataBuilder> RWPtr;
       
       DataBuilder()
         : TracksCount(1)
@@ -77,7 +77,7 @@ namespace Multitrack
       {
       }
       
-      virtual void SetProperty(const String& name, const String& value)
+      void SetProperty(const String& name, const String& value) override
       {
         if (name == DEFSONG)
         {
@@ -91,7 +91,7 @@ namespace Multitrack
         Lines.push_back(name + " " + value);
       }
       
-      virtual void SetBlock(const uint_t start, const uint8_t* data, std::size_t size)
+      void SetBlock(const uint_t start, const uint8_t* data, std::size_t size) override
       {
         Blocks[start].assign(data, data + size);
       }
@@ -109,9 +109,9 @@ namespace Multitrack
       uint_t GetFixedCrc(uint_t startTrack) const
       {
         uint32_t crc = startTrack;
-        for (std::map<uint_t, Dump>::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+        for (const auto& blk : Blocks)
         {
-          crc = Crc32(&it->second.front(), it->second.size(), crc);
+          crc = Crc32(&blk.second.front(), blk.second.size(), crc);
         }
         return crc;
       }
@@ -130,9 +130,9 @@ namespace Multitrack
     private:
       void DumpTextPart(Binary::DataBuilder& builder) const
       {
-        for (Strings::Array::const_iterator it = Lines.begin(), lim = Lines.end(); it != lim; ++it)
+        for (const auto& line : Lines)
         {
-          AddString(*it, builder);
+          AddString(line, builder);
         }
       }
       
@@ -146,14 +146,14 @@ namespace Multitrack
       
       void DumpBinaryPart(Binary::DataBuilder& builder) const
       {
-        for (std::map<uint_t, Dump>::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+        for (const auto& blk : Blocks)
         {
-          const uint_t addr = it->first;
-          const std::size_t size = it->second.size();
+          const uint_t addr = blk.first;
+          const std::size_t size = blk.second.size();
           builder.Add(fromLE<uint16_t>(addr));
           builder.Add(fromLE<uint16_t>(addr + size - 1));
           uint8_t* const dst = static_cast<uint8_t*>(builder.Allocate(size));
-          std::copy(it->second.begin(), it->second.end(), dst);
+          std::copy(blk.second.begin(), blk.second.end(), dst);
         }
       }
     private:
@@ -167,47 +167,47 @@ namespace Multitrack
     {
     public:
       Container(DataBuilder::Ptr content, Binary::Container::Ptr delegate, uint_t startTrack)
-        : Content(content)
-        , Delegate(delegate)
+        : Content(std::move(content))
+        , Delegate(std::move(delegate))
         , StartTrack(startTrack)
       {
       }
       
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
       
       //Formats::Multitrack::Container
-      virtual uint_t FixedChecksum() const
+      uint_t FixedChecksum() const override
       {
         return Content->GetFixedCrc(StartTrack);
       }
 
-      virtual uint_t TracksCount() const
+      uint_t TracksCount() const override
       {
         return Content->GetTracksCount();
       }
 
-      virtual uint_t StartTrackIndex() const
+      uint_t StartTrackIndex() const override
       {
         return StartTrack;
       }
       
-      virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
+      Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
-        return MakePtr<Container>(Content, Content->Rebuild(StartTrack), idx);
+        return MakePtr<Container>(Content, Content->Rebuild(idx), idx);
       }
     private:
       const DataBuilder::Ptr Content;
@@ -224,17 +224,17 @@ namespace Multitrack
       {
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         try
         {
@@ -300,7 +300,7 @@ namespace Multitrack
           const uint_t last = fromLE(stream.ReadField<uint16_t>());
           Require(first <= last);
           const std::size_t size = last + 1 - first;
-          const uint8_t* const data = stream.ReadData(size);
+          const auto data = stream.ReadRawData(size);
           builder.SetBlock(first, data, size);
         }
       }

@@ -18,22 +18,22 @@ namespace
   class StubVocabulary : public L10n::Vocabulary
   {
   public:
-    virtual String GetText(const char* text) const
+    String GetText(const char* text) const override
     {
       return FromStdString(std::string(text));
     }
 
-    virtual String GetText(const char* single, const char* plural, int count) const
+    String GetText(const char* single, const char* plural, int count) const override
     {
       return FromStdString(std::string(count == 1 ? single : plural));
     }
 
-    virtual String GetText(const char* /*context*/, const char* text) const
+    String GetText(const char* /*context*/, const char* text) const override
     {
       return FromStdString(std::string(text));
     }
 
-    virtual String GetText(const char* /*context*/, const char* single, const char* plural, int count) const
+    String GetText(const char* /*context*/, const char* single, const char* plural, int count) const override
     {
       return FromStdString(std::string(count == 1 ? single : plural));
     }
@@ -42,15 +42,15 @@ namespace
   class StubLibrary : public L10n::Library
   {
   public:
-    virtual void AddTranslation(const L10n::Translation& /*trans*/)
+    void AddTranslation(const L10n::Translation& /*trans*/) override
     {
     }
 
-    virtual void SelectTranslation(const std::string& /*translation*/)
+    void SelectTranslation(const std::string& /*translation*/) override
     {
     }
 
-    virtual L10n::Vocabulary::Ptr GetVocabulary(const std::string& /*domain*/) const
+    L10n::Vocabulary::Ptr GetVocabulary(const std::string& /*domain*/) const override
     {
       static StubVocabulary voc;
       return MakeSingletonPointer(voc);

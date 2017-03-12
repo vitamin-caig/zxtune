@@ -24,8 +24,8 @@ namespace Formats
     class PatchedDataBuilder
     {
     public:
-      typedef std::auto_ptr<PatchedDataBuilder> Ptr;
-      virtual ~PatchedDataBuilder() {}
+      typedef std::unique_ptr<PatchedDataBuilder> Ptr;
+      virtual ~PatchedDataBuilder() = default;
 
       virtual void InsertData(std::size_t offset, const Dump& data) = 0;
       virtual void OverwriteData(std::size_t offset, const Dump& data) = 0;

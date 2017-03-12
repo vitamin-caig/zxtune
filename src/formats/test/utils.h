@@ -22,21 +22,36 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 namespace Test
 {
   void OpenFile(const std::string& name, Dump& result)
   {
-    std::ifstream stream(name.c_str(), std::ios::binary);
+    std::vector<std::string> elements;
+    boost::algorithm::split(elements, name, boost::algorithm::is_from_range(':', ':'));
+    elements.resize(3);
+    const std::string& filename = elements.at(0);
+    const std::string& offsetStr = elements.at(1);
+    const std::string& sizeStr = elements.at(2);
+    std::ifstream stream(filename.c_str(), std::ios::binary);
     if (!stream)
     {
       throw std::runtime_error("Failed to open " + name);
     }
+    const std::size_t offset = offsetStr.empty() ? 0 : boost::lexical_cast<std::size_t>(offsetStr);
     stream.seekg(0, std::ios_base::end);
-    const std::size_t size = stream.tellg();
-    stream.seekg(0);
+    const std::size_t fileSize = stream.tellg();
+    const std::size_t size = sizeStr.empty() ? fileSize - offset : boost::lexical_cast<std::size_t>(sizeStr);
+    stream.seekg(offset);
     Dump tmp(size);
     stream.read(safe_ptr_cast<char*>(&tmp[0]), tmp.size());
+    if (!stream)
+    {
+      throw std::runtime_error("Failed to read from file");
+    }
     result.swap(tmp);
     //std::cout << "Read " << size << " bytes from " << name << std::endl;
   }
@@ -45,10 +60,10 @@ namespace Test
   {
     std::cout << "Test for packed '" << decoder.GetDescription() << "'" << std::endl;
     const Binary::Container::Ptr etalon = Binary::CreateContainer(&etalonDump[0], etalonDump.size());
-    for (std::map<std::string, Dump>::const_iterator it = tests.begin(), lim = tests.end(); it != lim; ++it)
+    for (const auto & test : tests)
     {
-      const std::string& testname = it->first;
-      const Dump& testdataDump = it->second;
+      const std::string& testname = test.first;
+      const Dump& testdataDump = test.second;
       const Binary::Container::Ptr testdata = Binary::CreateContainer(&testdataDump[0], testdataDump.size());
       std::cout << " testing " << testname << std::endl;
       const Binary::Format::Ptr format = decoder.GetFormat();
@@ -91,12 +106,12 @@ namespace Test
       }
       if (checkCorrupted)
       {
-        std::auto_ptr<Dump> corruptedDump(new Dump(testdataDump));
-        for (std::size_t count = 0, size = corruptedDump->size(); count != size * 5 / 100; ++count)
+        std::unique_ptr<Dump> corruptedDump(new Dump(testdataDump));
+        for (std::size_t count = 0, size = corruptedDump->size(); count != size * 7 / 100; ++count)
         {
           corruptedDump->at(rand() % size) ^= 0xff;
         }
-        const Binary::Container::Ptr corrupted = Binary::CreateContainer(corruptedDump);
+        const Binary::Container::Ptr corrupted = Binary::CreateContainer(std::move(corruptedDump));
         if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(*corrupted))
         {
           throw std::runtime_error("Failed corrupted");
@@ -114,9 +129,9 @@ namespace Test
     Dump reference;
     OpenFile(etalon, reference);
     std::map<std::string, Dump> testData;
-    for (std::vector<std::string>::const_iterator it = tests.begin(), lim = tests.end(); it != lim; ++it)
+    for (const auto & test : tests)
     {
-      OpenFile(*it, testData[*it]);
+      OpenFile(test, testData[test]);
     }
     TestPacked(decoder, reference, testData, checkCorrupted);
   }
@@ -130,7 +145,7 @@ namespace Test
     {
     }
 
-    virtual void OnFile(const Formats::Archived::File& file) const
+    void OnFile(const Formats::Archived::File& file) const override
     {
       std::cout << " checking " << file.GetName() << std::endl;
       if (Files.empty() || file.GetName() != Files.front())

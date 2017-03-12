@@ -10,10 +10,10 @@
 
 #pragma once
 
+//std includes
+#include <memory>
 //platform-specific includes
 #include <ogg/ogg.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Sound
 {
@@ -22,8 +22,8 @@ namespace Sound
     class Api
     {
     public:
-      typedef boost::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      typedef std::shared_ptr<Api> Ptr;
+      virtual ~Api() = default;
 
       
       virtual int ogg_stream_init(ogg_stream_state *os, int serialno) = 0;

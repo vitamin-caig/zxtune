@@ -23,7 +23,7 @@ namespace Playlist
   {
     Q_OBJECT
   public:
-    typedef boost::shared_ptr<Container> Ptr;
+    typedef std::shared_ptr<Container> Ptr;
 
     //creator
     static Ptr Create(Parameters::Accessor::Ptr parameters);

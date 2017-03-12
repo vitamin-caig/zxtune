@@ -49,10 +49,10 @@ CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platfor
 	-W -Wall -Wextra -pipe \
 	$(addprefix -I,$(INCLUDES))
 
-CXXFLAGS = $(CCFLAGS) -stdlib=libc++ -ansi -fvisibility=hidden -fvisibility-inlines-hidden
+CXXFLAGS = $(CCFLAGS) -stdlib=libc++ -std=c++11 -fvisibility=hidden -fvisibility-inlines-hidden
 
 ARFLAGS := crus
-LDFLAGS = $(LD_MODE_FLAGS) $($(platform).ld.flags) $($(platform).$(arch).ld.flags) $(ld_flags)
+LDFLAGS = $(LD_MODE_FLAGS) -stdlib=libc++ $($(platform).ld.flags) $($(platform).$(arch).ld.flags) $(ld_flags)
 
 #specify endpoint commands
 build_obj_cmd_nodeps = $(tools.cxx) $(CXXFLAGS) -c $1 -o $2

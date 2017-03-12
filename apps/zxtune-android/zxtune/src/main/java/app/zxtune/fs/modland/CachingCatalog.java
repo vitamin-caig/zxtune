@@ -16,11 +16,11 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.dbhelpers.CommandExecutor;
+import app.zxtune.fs.dbhelpers.FetchCommand;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
-import app.zxtune.fs.dbhelpers.Utils;
 
 final class CachingCatalog extends Catalog {
 
@@ -35,18 +35,18 @@ final class CachingCatalog extends Catalog {
   
   private final Catalog remote;
   private final Database db;
-  private final VfsCache cacheDir;
   private final Grouping authors;
   private final Grouping collections;
   private final Grouping formats;
+  private final CommandExecutor executor;
 
-  public CachingCatalog(Catalog remote, Database db, VfsCache cacheDir) {
+  public CachingCatalog(Catalog remote, Database db) {
     this.remote = remote;
     this.db = db;
-    this.cacheDir = cacheDir; 
     this.authors = new CachedGrouping(Database.Tables.Authors.NAME, remote.getAuthors());
     this.collections = new CachedGrouping(Database.Tables.Collections.NAME, remote.getCollections());
     this.formats = new CachedGrouping(Database.Tables.Formats.NAME, remote.getFormats());
+    this.executor = new CommandExecutor("modland");
   }
 
   @Override
@@ -76,14 +76,14 @@ final class CachingCatalog extends Catalog {
 
     @Override
     public void query(final String filter, final GroupsVisitor visitor) throws IOException {
-      Utils.executeQueryCommand(new QueryCommand() {
+      executor.executeQueryCommand(category, new QueryCommand() {
         @Override
         public Timestamps.Lifetime getLifetime() {
           return db.getGroupsLifetime(category, filter, GROUPS_TTL);
         }
         
         @Override
-        public Transaction startTransaction() {
+        public Transaction startTransaction() throws IOException {
           return db.startTransaction();
         }
 
@@ -101,29 +101,37 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
-    public Group query(int id) throws IOException {
-      Group res = db.queryGroup(category, id);
-      if (res == null) {
-        Log.d(TAG, "No %s id=%d in cache. Query from remote", category, id);
-        res = remote.query(id);
-        if (res != null) {
-          Log.d(TAG, "Cache %s id=%d", category, id);
-          db.addGroup(category, res);
-        }
-      }
-      return res;
+    public Group query(final int id) throws IOException {
+      final String categoryElement = category.substring(0, category.length() - 1);
+      return executor.executeFetchCommand(categoryElement, new FetchCommand<Group>() {
+          @Override
+          public Group fetchFromCache() {
+            return db.queryGroup(category, id);
+          }
+
+          @Override
+          public Group fetchFromRemote() throws IOException {
+            Log.d(TAG, "No %s id=%d in cache. Query from remote", category, id);
+            final Group res = remote.query(id);
+            if (res != null) {
+              Log.d(TAG, "Cache %s id=%d", category, id);
+              db.addGroup(category, res);
+            }
+            return res;
+          }
+        });
     }
 
     @Override
     public void queryTracks(final int id, final TracksVisitor visitor) throws IOException {
-      Utils.executeQueryCommand(new QueryCommand() {
+      executor.executeQueryCommand("tracks", new QueryCommand() {
         @Override
         public Timestamps.Lifetime getLifetime() {
           return db.getGroupTracksLifetime(category, id, GROUP_TRACKS_TTL);
         }
         
         @Override
-        public Transaction startTransaction() {
+        public Transaction startTransaction() throws IOException {
           return db.startTransaction();
         }
 
@@ -141,34 +149,45 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
-    public Track findTrack(int id, String filename) throws IOException {
-      Track res = db.findTrack(category, id, filename);
-      if (res == null) {
-        Log.d(TAG, "Track %s not found in %s=%d", filename, category, id);
-        //fill cache
-        queryTracks(id, new TracksVisitor() {
+    public Track findTrack(final int id, final String filename) throws IOException {
+      return executor.executeFetchCommand("track", new FetchCommand<Track>() {
+        @Override
+        public Track fetchFromCache() {
+          return db.findTrack(category, id, filename);
+        }
 
-          @Override
-          public boolean accept(Track obj) {
-            return true;
-          }
-        });
-        res = db.findTrack(category, id, filename);
-      }
-      return res;
+        @Override
+        public Track fetchFromRemote() throws IOException {
+          Log.d(TAG, "Track %s not found in %s=%d", filename, category, id);
+          //fill cache
+          queryTracks(id, new TracksVisitor() {
+
+            @Override
+            public boolean accept(Track obj) {
+              return true;
+            }
+          });
+          return db.findTrack(category, id, filename);
+        }
+      });
     }
   }
 
   @Override
-  public ByteBuffer getTrackContent(String id) throws IOException {
-    final ByteBuffer cachedContent = cacheDir.getCachedFileContent(id);
-    if (cachedContent != null) {
-      return cachedContent;
-    } else {
-      final ByteBuffer content = remote.getTrackContent(id);
-      cacheDir.putCachedFileContent(id, content);
-      return content;
-    }
+  public ByteBuffer getTrackContent(final String id) throws IOException {
+    return executor.executeFetchCommand("file", new FetchCommand<ByteBuffer>() {
+      @Override
+      public ByteBuffer fetchFromCache() {
+        return db.getTrackContent(id);
+      }
+
+      @Override
+      public ByteBuffer fetchFromRemote() throws IOException {
+        final ByteBuffer res = remote.getTrackContent(id);
+        db.addTrackContent(id, res);
+        return res;
+      }
+    });
   }
 
   private class CachingGroupsVisitor extends GroupsVisitor {

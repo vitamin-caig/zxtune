@@ -10,15 +10,15 @@
 
 package app.zxtune.fs;
 
+import android.content.Context;
+import android.net.Uri;
+import android.text.format.Formatter;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Locale;
 
-import android.content.Context;
-import android.net.Uri;
-import android.text.format.Formatter;
-import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.modarchive.Author;
 import app.zxtune.fs.modarchive.Catalog;
@@ -34,9 +34,9 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupingDir groupings[];
 
-  VfsRootModarchive(Context context, HttpProvider http) {
+  VfsRootModarchive(Context context, HttpProvider http, VfsCache cache) throws IOException {
     this.context = context;
-    this.catalog = Catalog.create(context, http);
+    this.catalog = Catalog.create(context, http, cache);
     this.groupings = new GroupingDir[] {
         new AuthorsDir(),
         new GenresDir(),
@@ -76,23 +76,20 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   }
 
   @Override
-  public void enumerate(Visitor visitor) throws IOException {
+  public void enumerate(Visitor visitor) {
     for (GroupingDir group : groupings) {
       visitor.onDir(group);
     }
   }
 
   @Override
-  public VfsObject resolve(Uri uri) throws IOException {
-    try {
-      if (Identifier.isFromRoot(uri)) {
-        final List<String> path = uri.getPathSegments();
-        return resolve(uri, path);
-      }
-    } catch (Exception e) {
-      Log.d(TAG, e, "resolve(%s)", uri);
+  public VfsObject resolve(Uri uri) {
+    if (Identifier.isFromRoot(uri)) {
+      final List<String> path = uri.getPathSegments();
+      return resolve(uri, path);
+    } else {
+      return null;
     }
-    return null;
   }
 
   private VfsObject resolve(Uri uri, List<String> path) {
@@ -101,8 +98,9 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     final Track track = Identifier.findTrack(uri, path);
     if (track != null) {
       return new TrackFile(uri, track);
+    } else {
+      return resolveDir(uri, path);
     }
-    return resolveDir(uri, path);
   }
   
   private VfsObject resolveDir(Uri uri, List<String> path) {

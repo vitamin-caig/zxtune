@@ -19,8 +19,6 @@
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QHeaderView>
@@ -74,9 +72,9 @@ namespace
     }
 
     //QWidget's virtuals
-    virtual void contextMenuEvent(QContextMenuEvent* event)
+    void contextMenuEvent(QContextMenuEvent* event) override
     {
-      const std::auto_ptr<QMenu> menu = CreateMenu();
+      const std::unique_ptr<QMenu> menu = CreateMenu();
       if (QAction* res = menu->exec(event->globalPos()))
       {
         const QVariant data = res->data();
@@ -86,9 +84,9 @@ namespace
       event->accept();
     }
   private:
-    std::auto_ptr<QMenu> CreateMenu()
+    std::unique_ptr<QMenu> CreateMenu()
     {
-      std::auto_ptr<QMenu> result(new QMenu(this));
+      std::unique_ptr<QMenu> result(new QMenu(this));
       QAbstractItemModel* const md = model();
       for (int idx = 0, lim = count(); idx != lim; ++idx)
       {
@@ -143,32 +141,33 @@ namespace
       Dbg("Created at %1%", this);
     }
 
-    virtual ~TableViewImpl()
+    ~TableViewImpl() override
     {
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual Playlist::Model::IndexSet::Ptr GetSelectedItems() const
+    Playlist::Model::IndexSet::Ptr GetSelectedItems() const override
     {
       const QItemSelectionModel* const selection = selectionModel();
       const QModelIndexList& items = selection->selectedRows();
       const Playlist::Model::IndexSet::RWPtr result = MakeRWPtr<Playlist::Model::IndexSet>();
-      std::for_each(items.begin(), items.end(),
-                    boost::bind(boost::mem_fn<std::pair<Playlist::Model::IndexSet::iterator, bool>, Playlist::Model::IndexSet, const Playlist::Model::IndexSet::value_type&>(&Playlist::Model::IndexSet::insert), result.get(),
-          boost::bind(&QModelIndex::row, _1)));
+      for (const auto& item : items)
+      {
+        result->insert(item.row());
+      }
       return result;
     }
 
-    virtual void SelectItems(const Playlist::Model::IndexSet& indices)
+    void SelectItems(const Playlist::Model::IndexSet& indices) override
     {
       setEnabled(true);
       QAbstractItemModel* const curModel = model();
       QItemSelectionModel* const selectModel = selectionModel();
       QItemSelection selection;
-      for (Playlist::Model::IndexSet::const_iterator it = indices.begin(), lim = indices.end(); it != lim; ++it)
+      for (auto index : indices)
       {
-        const QModelIndex left = curModel->index(*it, 0);
-        const QModelIndex right = curModel->index(*it, Playlist::Model::COLUMNS_COUNT - 1);
+        const QModelIndex left = curModel->index(index, 0);
+        const QModelIndex right = curModel->index(index, Playlist::Model::COLUMNS_COUNT - 1);
         const QItemSelection sel(left, right);
         selection.merge(sel, QItemSelectionModel::Select);
       }
@@ -179,19 +178,19 @@ namespace
       }
     }
 
-    virtual void MoveToTableRow(unsigned index)
+    void MoveToTableRow(unsigned index) override
     {
       QAbstractItemModel* const curModel = model();
       const QModelIndex idx = curModel->index(index, 0);
       scrollTo(idx, QAbstractItemView::EnsureVisible);
     }
 
-    virtual void SelectItems(Playlist::Model::IndexSet::Ptr indices)
+    void SelectItems(Playlist::Model::IndexSet::Ptr indices) override
     {
       return SelectItems(*indices);
     }
 
-    virtual void ActivateItem(const QModelIndex& index)
+    void ActivateItem(const QModelIndex& index) override
     {
       if (index.isValid())
       {
@@ -201,7 +200,7 @@ namespace
     }
     
     //Qt natives
-    virtual void keyboardSearch(const QString& search)
+    void keyboardSearch(const QString& search) override
     {
       QAbstractItemView::keyboardSearch(search);
       const QItemSelectionModel* const selection = selectionModel();
@@ -227,7 +226,7 @@ namespace
     {
     }
 
-    virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
     {
       QStyleOptionViewItem fixedOption(option);
       FillItemStyle(index, fixedOption);

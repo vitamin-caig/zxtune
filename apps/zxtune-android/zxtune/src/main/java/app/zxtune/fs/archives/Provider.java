@@ -10,16 +10,17 @@
 
 package app.zxtune.fs.archives;
 
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.net.Uri;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import android.content.ContentProvider;
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.net.Uri;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -28,6 +29,7 @@ import app.zxtune.ZXTune;
 import app.zxtune.ZXTune.Module;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.dbhelpers.Transaction;
 
 public final class Provider extends ContentProvider {
@@ -38,8 +40,12 @@ public final class Provider extends ContentProvider {
   
   @Override
   public boolean onCreate() {
-    db = new Database(getContext());
-    return true;
+    try {
+      db = new Database(getContext());
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
   }
   
   @Override
@@ -61,7 +67,7 @@ public final class Provider extends ContentProvider {
       final Identifier fileId = new Identifier(Query.getPathFrom(uri));
       final Uri path = fileId.getDataLocation();
       Log.d(TAG, "Add archive content of %s", path);
-      final VfsFile file = (VfsFile)Vfs.resolve(path);
+      final VfsFile file = openFile(path);
       final ByteBuffer data = file.getContent();
       final HashSet<Identifier> dirEntries = new HashSet<Identifier>();
       final Transaction transaction = db.startTransaction();
@@ -100,8 +106,18 @@ public final class Provider extends ContentProvider {
       }
       return Query.archiveUriFor(path);
     } catch (IOException e) {
+      Log.w(TAG, e, "InsertToArchive");
     }
     return null;
+  }
+
+  private static VfsFile openFile(Uri path) throws IOException {
+    final VfsObject obj = Vfs.resolve(path);
+    if (obj instanceof VfsFile) {
+      return (VfsFile) obj;
+    } else {
+      throw new IOException("Failed to open " + path);
+    }
   }
   
   private void addDirEntries(HashSet<Identifier> dirs) {

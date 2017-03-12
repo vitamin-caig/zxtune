@@ -13,6 +13,8 @@
 #include <pointers.h>
 //library includes
 #include <parameters/tracking.h>
+//std includes
+#include <utility>
 
 namespace Parameters
 {
@@ -20,30 +22,30 @@ namespace Parameters
   {
   public:
     CompositeModifier(Modifier::Ptr first, Modifier::Ptr second)
-      : First(first)
-      , Second(second)
+      : First(std::move(first))
+      , Second(std::move(second))
     {
     }
 
-    virtual void SetValue(const NameType& name, IntType val)
-    {
-      First->SetValue(name, val);
-      Second->SetValue(name, val);
-    }
-
-    virtual void SetValue(const NameType& name, const StringType& val)
+    void SetValue(const NameType& name, IntType val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);
     }
 
-    virtual void SetValue(const NameType& name, const DataType& val)
+    void SetValue(const NameType& name, const StringType& val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);
     }
 
-    virtual void RemoveValue(const NameType& name)
+    void SetValue(const NameType& name, const DataType& val) override
+    {
+      First->SetValue(name, val);
+      Second->SetValue(name, val);
+    }
+
+    void RemoveValue(const NameType& name) override
     {
       First->RemoveValue(name);
       Second->RemoveValue(name);
@@ -56,16 +58,16 @@ namespace Parameters
   Container::Ptr CreatePreChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback)
   {
     //TODO: get rid of fake pointers
-    const Modifier::Ptr asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
-    const Modifier::Ptr modifier = MakePtr<CompositeModifier>(asPtr, delegate);
-    return Container::CreateAdapter(delegate, modifier);
+    auto asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
+    auto modifier = MakePtr<CompositeModifier>(std::move(asPtr), delegate);
+    return Container::CreateAdapter(std::move(delegate), std::move(modifier));
   }
 
   Container::Ptr CreatePostChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback)
   {
     //TODO: get rid of fake pointers
-    const Modifier::Ptr asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
-    const Modifier::Ptr modifier = MakePtr<CompositeModifier>(delegate, asPtr);
-    return Container::CreateAdapter(delegate, modifier);
+    auto asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
+    auto modifier = MakePtr<CompositeModifier>(delegate, std::move(asPtr));
+    return Container::CreateAdapter(std::move(delegate), std::move(modifier));
   }
 }

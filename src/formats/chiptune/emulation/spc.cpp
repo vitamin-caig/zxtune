@@ -25,8 +25,9 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/chiptune.h>
+//std includes
+#include <array>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/lexical_cast.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -39,7 +40,7 @@ namespace Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SPC");
 
-    typedef boost::array<uint8_t, 28> SignatureType;
+    typedef std::array<uint8_t, 28> SignatureType;
     const SignatureType SIGNATURE = {{
       'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ',
       'S', 'o', 'u', 'n', 'd', ' ', 'F', 'i', 'l', 'e', ' ', 'D', 'a', 't', 'a', ' '
@@ -69,9 +70,9 @@ namespace Chiptune
     inline String DateFromInteger(uint_t val)
     {
       String result(8, ' ');
-      for (uint_t pos = 0; pos < result.size(); ++pos)
+      for (char & pos : result)
       {
-        result[pos] = '0' + (val & 15);
+        pos = '0' + (val & 15);
         val >>= 4;
       }
       return result;
@@ -211,7 +212,7 @@ namespace Chiptune
       uint8_t DSPRegisters[128];
     } PACK_POST;
     
-    typedef boost::array<uint8_t, 4> IFFId;
+    typedef std::array<uint8_t, 4> IFFId;
     const IFFId XID6 = {{'x', 'i', 'd', '6'}};
 
     PACK_PRE struct IFFChunkHeader
@@ -312,31 +313,31 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
     
-    BOOST_STATIC_ASSERT(sizeof(Registers) == 9);
-    BOOST_STATIC_ASSERT(sizeof(ID666TextTag) == 0xd2);
-    BOOST_STATIC_ASSERT(sizeof(ID666BinTag) == 0xd2);
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10180);
-    BOOST_STATIC_ASSERT(sizeof(ExtraRAM) == 0x80);
-    BOOST_STATIC_ASSERT(sizeof(IFFChunkHeader) == 8);
-    BOOST_STATIC_ASSERT(sizeof(SubChunkHeader) == 4);
+    static_assert(sizeof(Registers) == 9, "Invalid layout");
+    static_assert(sizeof(ID666TextTag) == 0xd2, "Invalid layout");
+    static_assert(sizeof(ID666BinTag) == 0xd2, "Invalid layout");
+    static_assert(sizeof(RawHeader) == 0x10180, "Invalid layout");
+    static_assert(sizeof(ExtraRAM) == 0x80, "Invalid layout");
+    static_assert(sizeof(IFFChunkHeader) == 8, "Invalid layout");
+    static_assert(sizeof(SubChunkHeader) == 4, "Invalid layout");
 
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetGame(const String& /*game*/) {}
-      virtual void SetDumper(const String& /*dumper*/) {}
-      virtual void SetComment(const String& /*comment*/) {}
-      virtual void SetDumpDate(const String& /*date*/) {}
-      virtual void SetIntro(Time::Milliseconds /*duration*/) {}
-      virtual void SetLoop(Time::Milliseconds /*duration*/) {}
-      virtual void SetFade(Time::Milliseconds /*duration*/) {}
-      virtual void SetArtist(const String& /*artist*/) {}
+      void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/) override {}
+      void SetTitle(const String& /*title*/) override {}
+      void SetGame(const String& /*game*/) override {}
+      void SetDumper(const String& /*dumper*/) override {}
+      void SetComment(const String& /*comment*/) override {}
+      void SetDumpDate(const String& /*date*/) override {}
+      void SetIntro(Time::Milliseconds /*duration*/) override {}
+      void SetLoop(Time::Milliseconds /*duration*/) override {}
+      void SetFade(Time::Milliseconds /*duration*/) override {}
+      void SetArtist(const String& /*artist*/) override {}
       
-      virtual void SetRAM(const void* /*data*/, std::size_t /*size*/) {}
-      virtual void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) {}
-      virtual void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) {}
+      void SetRAM(const void* /*data*/, std::size_t /*size*/) override {}
+      void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) override {}
+      void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) override {}
     };
     
     //used nes_spc library doesn't support another versions
@@ -362,22 +363,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::SPC_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
@@ -455,8 +456,8 @@ namespace Chiptune
           const std::size_t size = fromLE(hdr.DataSize);
           if (hdr.ID == XID6 && Stream.GetRestSize() >= size)
           {
-            const Binary::DataAdapter chunks(Stream.ReadData(size), size);
-            ParseSubchunks(chunks, target);
+            const auto chunks = Stream.ReadData(size);
+            ParseSubchunks(*chunks, target);
           }
           else
           {
@@ -508,7 +509,7 @@ namespace Chiptune
           for (std::size_t pos = 0; pos < typed.GetSize(); )
           {
             const SubChunkHeader* const hdr = typed.GetField<SubChunkHeader>(pos);
-            Require(hdr != 0);
+            Require(hdr != nullptr);
             if (hdr->ID == 0 && 0 != (pos % 4))
             {
               //in despite of official format description, subchunks can be not aligned by 4 byte boundary

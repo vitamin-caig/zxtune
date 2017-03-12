@@ -10,11 +10,11 @@
 
 #pragma once
 
+//std includes
+#include <memory>
 //platform-dependent includes
 #include <FLAC/metadata.h>
 #include <FLAC/stream_encoder.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Sound
 {
@@ -23,8 +23,8 @@ namespace Sound
     class Api
     {
     public:
-      typedef boost::shared_ptr<Api> Ptr;
-      virtual ~Api() {}
+      typedef std::shared_ptr<Api> Ptr;
+      virtual ~Api() = default;
 
       
       virtual FLAC__StreamEncoder* FLAC__stream_encoder_new(void) = 0;

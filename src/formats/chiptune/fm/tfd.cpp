@@ -16,8 +16,8 @@
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -41,21 +41,21 @@ namespace Chiptune
     const std::size_t MAX_STRING_SIZE = 64;
     const std::size_t MAX_COMMENT_SIZE = 384;
 
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE = { {'T', 'F', 'M', 'D'} };
 
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetAuthor(const String& /*author*/) {}
-      virtual void SetComment(const String& /*comment*/) {}
+      void SetTitle(const String& /*title*/) override {}
+      void SetAuthor(const String& /*author*/) override {}
+      void SetComment(const String& /*comment*/) override {}
 
-      virtual void BeginFrames(uint_t /*count*/) {}
-      virtual void SelectChip(uint_t /*idx*/) {}
-      virtual void SetLoop() {}
-      virtual void SetRegister(uint_t /*idx*/, uint_t /*val*/) {}
+      void BeginFrames(uint_t /*count*/) override {}
+      void SelectChip(uint_t /*idx*/) override {}
+      void SetLoop() override {}
+      void SetRegister(uint_t /*idx*/, uint_t /*val*/) override {}
     };
 
     bool FastCheck(const Binary::Container& rawData)
@@ -80,22 +80,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::TFD_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
@@ -121,7 +121,7 @@ namespace Chiptune
         const std::size_t fixedOffset = stream.GetPosition();
         for (;;)
         {
-          const uint8_t val = *stream.ReadData(1);
+          const uint8_t val = stream.ReadField<uint8_t>();
           if (val == FINISH)
           {
             break;
@@ -132,7 +132,7 @@ namespace Chiptune
             target.BeginFrames(1);
             break;
           case SKIP_FRAMES:
-            target.BeginFrames(*stream.ReadData(1) + 3);
+            target.BeginFrames(3 + stream.ReadField<uint8_t>());
             break;
           case SELECT_SECOND_CHIP:
             target.SelectChip(1);
@@ -144,12 +144,12 @@ namespace Chiptune
             target.SetLoop();
             break;
           default:
-            target.SetRegister(val, *stream.ReadData(1));
+            target.SetRegister(val, stream.ReadField<uint8_t>());
             break;
           }
         }
         const std::size_t usedSize = stream.GetPosition();
-        const Binary::Container::Ptr subData = stream.GetReadData();
+        const auto subData = stream.GetReadData();
         return CreateCalculatingCrcContainer(subData, fixedOffset, usedSize - fixedOffset);
       }
       catch (const std::exception&)

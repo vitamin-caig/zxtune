@@ -16,8 +16,8 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <core/convert_parameters.h>
-#include <core/conversion/api.h>
+#include <module/conversion/api.h>
+#include <module/conversion/types.h>
 #include <debug/log.h>
 #include <devices/aym.h>
 #include <l10n/api.h>
@@ -28,12 +28,7 @@
 //std includes
 #include <algorithm>
 #include <cstring>
-//boost includes
-#include <boost/range/end.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <thread>
 //text includes
 #include "text/backends.h"
 
@@ -76,22 +71,16 @@ namespace AyLpt
     CMD_RESET_STOP = PIN_NORESET | PIN_ADDR | PIN_UNUSED,
   };
 
-  BOOST_STATIC_ASSERT(CMD_SELECT_ADDR == 0xfd);
-  BOOST_STATIC_ASSERT(CMD_SELECT_DATA == 0xf9);
-  BOOST_STATIC_ASSERT(CMD_WRITE_COMMIT == 0xfb);
-  BOOST_STATIC_ASSERT(CMD_RESET_START == 0xf5);
-  BOOST_STATIC_ASSERT(CMD_RESET_STOP == 0xfd);
-
-  void Delay()
-  {
-    //according to datasheets, maximal timing is reset pulse width 5uS
-    boost::this_thread::sleep(boost::posix_time::microseconds(10));
-  }
+  static_assert(CMD_SELECT_ADDR == 0xfd, "Invariant");
+  static_assert(CMD_SELECT_DATA == 0xf9, "Invariant");
+  static_assert(CMD_WRITE_COMMIT == 0xfb, "Invariant");
+  static_assert(CMD_RESET_START == 0xf5, "Invariant");
+  static_assert(CMD_RESET_STOP == 0xfd, "Invariant");
 
   class LptPort
   {
   public:
-    typedef boost::shared_ptr<LptPort> Ptr;
+    typedef std::shared_ptr<LptPort> Ptr;
     virtual ~LptPort() {}
 
     virtual void Control(uint_t val) = 0;
@@ -121,7 +110,8 @@ namespace AyLpt
     {
       Reset();
       Dbg("Successfull start");
-      FrameDuration = boost::posix_time::microseconds(Params->FrameDuration().Get());
+      NextFrameTime = std::chrono::steady_clock::now();
+      FrameDuration = std::chrono::microseconds(Params->FrameDuration().Get());
     }
 
     virtual void Shutdown()
@@ -174,19 +164,15 @@ namespace AyLpt
 
     void WaitForNextFrame()
     {
-      if (NextFrameTime.is_not_a_date_time())
-      {
-        NextFrameTime = boost::get_system_time();
-      }
-      else
-      {
-        boost::mutex::scoped_lock lock(Mutex);
-        //prevent spurious wakeup
-        while (Event.timed_wait(lock, NextFrameTime)) {}
-      }
-      NextFrameTime += FrameDuration;
+      std::this_thread::sleep_until(NextFrameTime);
     }
 
+    static void Delay()
+    {
+      //according to datasheets, maximal timing is reset pulse width 5uS
+      std::this_thread::sleep_for(std::chrono::microseconds(10));
+    }
+   
     void WriteRegisters(const uint8_t* data)
     {
       for (uint_t idx = 0; idx <= Devices::AYM::Registers::ENV; ++idx)
@@ -203,10 +189,8 @@ namespace AyLpt
     const Sound::RenderParameters::Ptr Params;
     const Binary::Data::Ptr Data;
     const LptPort::Ptr Port;
-    boost::mutex Mutex;
-    boost::condition_variable Event;
-    boost::system_time NextFrameTime;
-    boost::posix_time::time_duration FrameDuration;
+    std::chrono::steady_clock::time_point NextFrameTime;
+    std::chrono::microseconds FrameDuration;
   };
 
   class DlPortIO : public LptPort
@@ -253,7 +237,7 @@ namespace AyLpt
         "inpout32.dll",
         "inpoutx64.dll"
       };
-      return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+      return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
     }
   };
 

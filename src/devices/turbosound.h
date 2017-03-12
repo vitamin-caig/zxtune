@@ -22,7 +22,7 @@ namespace Devices
 
     using AYM::Stamp;
 
-    typedef boost::array<AYM::Registers, CHIPS> Registers;
+    typedef std::array<AYM::Registers, CHIPS> Registers;
 
     struct DataChunk
     {
@@ -39,17 +39,18 @@ namespace Devices
     class Device
     {
     public:
-      typedef boost::shared_ptr<Device> Ptr;
-      virtual ~Device() {}
+      typedef std::shared_ptr<Device> Ptr;
+      virtual ~Device() = default;
 
       virtual void RenderData(const DataChunk& src) = 0;
+      virtual void RenderData(const std::vector<DataChunk>& src) = 0;
       virtual void Reset() = 0;
     };
 
     class Chip : public Device, public StateSource
     {
     public:
-      typedef boost::shared_ptr<Chip> Ptr;
+      typedef std::shared_ptr<Chip> Ptr;
     };
 
     using AYM::ChipParameters;

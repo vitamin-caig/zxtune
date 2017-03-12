@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,39 +23,29 @@ namespace Formats
   {
     namespace ETracker
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line() : LeftLevel(), RightLevel(), ToneEnabled(), NoiseEnabled(), ToneDeviation(), NoiseFreq()
-          {
-          }
-
-          uint_t LeftLevel;//0-15
-          uint_t RightLevel;//0-15
-          bool ToneEnabled;
-          bool NoiseEnabled;
-          uint_t ToneDeviation;
-          uint_t NoiseFreq;
-        };
-
-        Sample() : Loop()
+        SampleLine()
+          : LeftLevel()
+          , RightLevel()
+          , ToneEnabled()
+          , NoiseEnabled()
+          , ToneDeviation()
+          , NoiseFreq()
         {
         }
 
-        uint_t Loop;
-        std::vector<Line> Lines;
+        uint_t LeftLevel;//0-15
+        uint_t RightLevel;//0-15
+        bool ToneEnabled;
+        bool NoiseEnabled;
+        uint_t ToneDeviation;
+        uint_t NoiseFreq;
       };
-
-      struct Ornament
-      {
-        Ornament() : Loop()
-        {
-        }
-
-        uint_t Loop;
-        std::vector<uint_t> Lines;
-      };
+      
+      typedef LinesObject<SampleLine> Sample;
+      
+      typedef LinesObject<uint_t> Ornament;
 
       struct PositionEntry
       {
@@ -65,20 +56,22 @@ namespace Formats
         uint_t PatternIndex;
         uint_t Transposition;
       };
-
+      
+      typedef LinesObject<PositionEntry> Positions;
+      
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         //common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
-        virtual void SetSample(uint_t index, const Sample& sample) = 0;
-        virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;
+        virtual void SetSample(uint_t index, Sample sample) = 0;
+        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

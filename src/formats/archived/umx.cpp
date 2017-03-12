@@ -20,10 +20,10 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 //std includes
+#include <array>
 #include <map>
 //boost includes
 #include <boost/algorithm/string/case_conv.hpp>
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/archived.h>
 
@@ -45,7 +45,7 @@ namespace Archived
       "??0000 ????" //imports
     );
 
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE = {{0xc1, 0x83, 0x2a, 0x9e}};
 
@@ -72,7 +72,7 @@ namespace Archived
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 36);
+    static_assert(sizeof(RawHeader) == 36, "Invalid layout");
 
     struct Index
     {
@@ -338,7 +338,7 @@ namespace Archived
           const std::size_t offset = exp.SerialOffset.Value;
           const std::size_t size = exp.SerialSize.Value;
           const Binary::Container::Ptr entryData = Data.GetSubcontainer(offset, size);
-          Require(entryData.get() != 0);
+          Require(entryData.get() != nullptr);
           InputStream stream(fromLE(Header.PackageVersion), *entryData);
           ReadProperties(stream);
           const ClassName& cls = GetClass(exp.Class);
@@ -477,28 +477,26 @@ namespace Archived
       std::vector<ImportEntry> Imports;
     };
 
-    typedef std::map<String, Binary::Container::Ptr> NamedDataMap;
-
     class File : public Archived::File
     {
     public:
-      explicit File(NamedDataMap::const_iterator it)
-        : Name(it->first)
-        , Data(it->second)
+      File(String name, Binary::Container::Ptr data)
+        : Name(std::move(name))
+        , Data(std::move(data))
       {
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Data->Size();
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         return Data;
       }
@@ -507,50 +505,52 @@ namespace Archived
       const Binary::Container::Ptr Data;
     };
 
+    typedef std::map<String, Binary::Container::Ptr> NamedDataMap;
+
     class Container : public Archived::Container
     {
     public:
-      Container(Binary::Container::Ptr delegate, NamedDataMap::const_iterator begin, NamedDataMap::const_iterator end)
-        : Delegate(delegate)
-        , Files(begin, end)
+      Container(Binary::Container::Ptr delegate, NamedDataMap files)
+        : Delegate(std::move(delegate))
+        , Files(std::move(files))
       {
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
-        for (NamedDataMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+        for (const auto& it : Files)
         {
-          const File file(it);
+          const File file(it.first, it.second);
           walker.OnFile(file);
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
-        const NamedDataMap::const_iterator it = Files.find(name);
+        const auto it = Files.find(name);
         return it != Files.end()
-          ? MakePtr<File>(it)
+          ? MakePtr<File>(it->first, it->second)
           : File::Ptr();
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return static_cast<uint_t>(Files.size());
       }
@@ -568,17 +568,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::UMX_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!Format->Match(data))
       {
@@ -596,8 +596,8 @@ namespace Archived
       }
       if (!datas.empty())
       {
-        const Binary::Container::Ptr archive = data.GetSubcontainer(0, format.GetUsedSize());
-        return MakePtr<UMX::Container>(archive, datas.begin(), datas.end());
+        auto archive = data.GetSubcontainer(0, format.GetUsedSize());
+        return MakePtr<UMX::Container>(std::move(archive), std::move(datas));
       }
       UMX::Dbg("No files found");
       return Container::Ptr();

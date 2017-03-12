@@ -21,9 +21,9 @@
 #include <formats/multitrack.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
+#include <utility>
 
 namespace Formats
 {
@@ -31,14 +31,14 @@ namespace Multitrack
 {
   namespace NSFE
   {
-    typedef boost::array<uint8_t, 4> ChunkIdType;
+    typedef std::array<uint8_t, 4> ChunkIdType;
     
     const ChunkIdType NSFE = { {'N', 'S', 'F', 'E'} };
     const ChunkIdType INFO = { {'I', 'N', 'F', 'O'} };
     const ChunkIdType DATA = { {'D', 'A', 'T', 'A'} };
     const ChunkIdType NEND = { {'N', 'E', 'N', 'D'} };
     
-    typedef boost::array<char, 32> StringType;
+    typedef std::array<char, 32> StringType;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -67,9 +67,9 @@ namespace Multitrack
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(ChunkHeader) == 8);
-    BOOST_STATIC_ASSERT(sizeof(InfoChunk) == 8);
-    BOOST_STATIC_ASSERT(sizeof(InfoChunkFull) == 10);
+    static_assert(sizeof(ChunkHeader) == 8, "Invalid layout");
+    static_assert(sizeof(InfoChunk) == 8, "Invalid layout");
+    static_assert(sizeof(InfoChunkFull) == 10, "Invalid layout");
     
     const std::size_t MAX_SIZE = 1048576;
 
@@ -89,52 +89,52 @@ namespace Multitrack
       Container(const InfoChunkFull* info, uint32_t fixedCrc, Binary::Container::Ptr data)
         : Info(info)
         , FixedCrc(fixedCrc)
-        , Delegate(data)
+        , Delegate(std::move(data))
       {
       }
       
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
       
       //Formats::Multitrack::Container
-      virtual uint_t FixedChecksum() const
+      uint_t FixedChecksum() const override
       {
         return FixedCrc;
       }
 
-      virtual uint_t TracksCount() const
+      uint_t TracksCount() const override
       {
         return Info ? Info->TracksCount : 1;
       }
 
-      virtual uint_t StartTrackIndex() const
+      uint_t StartTrackIndex() const override
       {
         return Info ? Info->StartTrack - 1 : 0;
       }
       
-      virtual Container::Ptr WithStartTrackIndex(uint_t idx) const
+      Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
-        Require(Info != 0);
+        Require(Info != nullptr);
         const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - static_cast<const uint8_t*>(Delegate->Start());
-        std::auto_ptr<Dump> content(new Dump(Delegate->Size()));
+        std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
         std::memcpy(&content->front(), Delegate->Start(), content->size());
         InfoChunkFull* const info = safe_ptr_cast<InfoChunkFull*>(&content->front() + infoOffset);
         Require(idx < info->TracksCount);
         info->StartTrack = idx;
-        return MakePtr<Container>(info, FixedCrc, Binary::CreateContainer(content));
+        return MakePtr<Container>(info, FixedCrc, Binary::CreateContainer(std::move(content)));
       }
     private:
       const InfoChunkFull* const Info;
@@ -150,17 +150,17 @@ namespace Multitrack
       {
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -170,7 +170,7 @@ namespace Multitrack
         {
           Binary::InputStream input(rawData);
           Require(input.ReadField<ChunkIdType>() == NSFE);
-          const InfoChunkFull* info = 0;
+          const InfoChunkFull* info = nullptr;
           uint32_t fixedCrc = 0;
           for (;;)
           {
@@ -181,7 +181,7 @@ namespace Multitrack
               Require(size == 0);
               break;
             }
-            const uint8_t* const data = input.ReadData(size);
+            const auto data = input.ReadRawData(size);
             if (hdr.Id == INFO)
             {
               fixedCrc = Crc32(data, sizeof(InfoChunk), fixedCrc);

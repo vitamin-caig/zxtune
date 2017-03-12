@@ -51,5 +51,8 @@
     <item>2 минуты</item>
     <item>3 минуты</item>
     <item>5 минут</item>
+    <item>10 минут</item>
+    <item>15 минут</item>
+    <item>30 минут</item>
   </string-array>
 </resources>

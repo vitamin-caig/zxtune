@@ -209,11 +209,11 @@ namespace Image
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -280,7 +280,7 @@ namespace Image
     private:
       bool IsValid;
       BitStream Stream;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
     };
 
     const std::string FORMAT(
@@ -297,17 +297,17 @@ namespace Image
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::LASERCOMPACT52_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

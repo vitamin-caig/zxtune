@@ -22,8 +22,6 @@
 #include <make_ptr.h>
 //library includes
 #include <platform/version/api.h>
-//boost includes
-#include <boost/ref.hpp>
 //text includes
 #include "text/text.h"
 
@@ -47,17 +45,17 @@ namespace
       Properties->SetValue(Playlist::ATTRIBUTE_CREATOR, Platform::Version::GetProgramVersionString());
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    Parameters::Accessor::Ptr GetProperties() const override
     {
       return Properties;
     }
 
-    virtual unsigned GetItemsCount() const
+    unsigned GetItemsCount() const override
     {
       return Storage.CountItems();
     }
 
-    virtual Playlist::Item::Collection::Ptr GetItems() const
+    Playlist::Item::Collection::Ptr GetItems() const override
     {
       return Storage.GetItems();
     }
@@ -76,7 +74,7 @@ namespace
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& storage, Log::ProgressCallback& cb) override
     {
       const Playlist::IO::Container::Ptr container = MakePtr<ContainerImpl>(Name, storage);
       try
@@ -98,14 +96,14 @@ namespace
   {
   public:
     LoadPlaylistOperation(Playlist::Item::DataProvider::Ptr provider, const QString& filename, Playlist::Controller& ctrl)
-      : Provider(provider)
+      : Provider(std::move(provider))
       , Filename(filename)
       , Controller(ctrl)
     {
     }
 
     //do not track progress since view may not be created
-    virtual void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
+    void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb) override
     {
       if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, Filename, cb))
       {
@@ -129,22 +127,22 @@ namespace
   {
   public:
     explicit PlaylistContainer(Parameters::Accessor::Ptr parameters)
-      : Params(parameters)
+      : Params(std::move(parameters))
     {
     }
 
-    virtual Playlist::Controller::Ptr CreatePlaylist(const QString& name) const
+    Playlist::Controller::Ptr CreatePlaylist(const QString& name) const override
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
       const Playlist::Controller::Ptr ctrl = Playlist::Controller::Create(name, provider);
       return ctrl;
     }
 
-    virtual void OpenPlaylist(const QString& filename)
+    void OpenPlaylist(const QString& filename) override
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
       const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);
-      const Playlist::Item::StorageModifyOperation::Ptr op = MakePtr<LoadPlaylistOperation>(provider, filename, boost::ref(*playlist));
+      const Playlist::Item::StorageModifyOperation::Ptr op = MakePtr<LoadPlaylistOperation>(provider, filename, *playlist);
       playlist->GetModel()->PerformOperation(op);
       emit PlaylistCreated(playlist);
     }

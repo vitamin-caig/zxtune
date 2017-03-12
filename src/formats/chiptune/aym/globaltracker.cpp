@@ -26,10 +26,8 @@
 #include <math/numeric.h>
 #include <strings/format.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -63,7 +61,7 @@ namespace Chiptune
 #endif
     PACK_PRE struct RawPattern
     {
-      boost::array<uint16_t, 3> Offsets;
+      std::array<uint16_t, 3> Offsets;
     } PACK_POST;
 
     PACK_PRE struct RawHeader
@@ -73,9 +71,9 @@ namespace Chiptune
       uint8_t Version;
       uint16_t Address;
       char Title[32];
-      boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      boost::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
+      std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
       uint8_t Length;
       uint8_t Loop;
       uint8_t Positions[1];
@@ -161,7 +159,7 @@ namespace Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        BOOST_STATIC_ASSERT(0 == (sizeof(Line) & (sizeof(Line) - 1)));
+        static_assert(0 == (sizeof(Line) & (sizeof(Line) - 1)), "Invalid layout");
         const uint_t maxLines = 256 / sizeof(Line);
         const Line* const src = safe_ptr_cast<const Line*>(this + 1);
         return src[idx % maxLines];
@@ -188,37 +186,37 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 296);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 6);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawSample::Line) == 4);
+    static_assert(sizeof(RawHeader) == 296, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 6, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample::Line) == 4, "Invalid layout");
 
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
-      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
 
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
 
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
-      virtual void SetEnvelope(uint_t /*type*/, uint_t /*value*/) {}
-      virtual void SetNoEnvelope() {}
-      virtual void SetVolume(uint_t /*vol*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
+      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
+      void SetNoEnvelope() override {}
+      void SetVolume(uint_t /*vol*/) override {}
     };
 
     class StatisticCollectingBuilder : public Builder
@@ -236,84 +234,84 @@ namespace Chiptune
         UsedOrnaments.Insert(0);
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
       }
 
-      virtual void SetSample(uint_t index, const Sample& sample)
+      void SetSample(uint_t index, Sample sample) override
       {
         assert(0 == index || UsedSamples.Contain(index));
         if (IsSampleSounds(sample))
         {
           NonEmptySamples = true;
         }
-        return Delegate.SetSample(index, sample);
+        return Delegate.SetSample(index, std::move(sample));
       }
 
-      virtual void SetOrnament(uint_t index, const Ornament& ornament)
+      void SetOrnament(uint_t index, Ornament ornament) override
       {
         assert(0 == index || UsedOrnaments.Contain(index));
-        return Delegate.SetOrnament(index, ornament);
+        return Delegate.SetOrnament(index, std::move(ornament));
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(Positions positions) override
       {
-        UsedPatterns.Assign(positions.begin(), positions.end());
+        UsedPatterns.Assign(positions.Lines.begin(), positions.Lines.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(positions, loop);
+        return Delegate.SetPositions(std::move(positions));
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         return Delegate.StartChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         return Delegate.SetRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         NonEmptyPatterns = true;
         return Delegate.SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
-      virtual void SetOrnament(uint_t ornament)
+      void SetOrnament(uint_t ornament) override
       {
         UsedOrnaments.Insert(ornament);
         return Delegate.SetOrnament(ornament);
       }
 
-      virtual void SetEnvelope(uint_t type, uint_t value)
+      void SetEnvelope(uint_t type, uint_t value) override
       {
         return Delegate.SetEnvelope(type, value);
       }
 
-      virtual void SetNoEnvelope()
+      void SetNoEnvelope() override
       {
         return Delegate.SetNoEnvelope();
       }
 
-      virtual void SetVolume(uint_t vol)
+      void SetVolume(uint_t vol) override
       {
         return Delegate.SetVolume(vol);
       }
@@ -420,8 +418,8 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::TypedContainer& data)
-        : Delegate(data)
+      explicit Format(Binary::TypedContainer data)
+        : Delegate(std::move(data))
         , Ranges(Delegate.GetSize())
         , Source(*Delegate.GetField<RawHeader>(0))
         , HeaderSize(sizeof(Source) - 1 + Source.Length)
@@ -445,11 +443,12 @@ namespace Chiptune
         const uint8_t* const posEnd = posStart + Source.Length;
         Ranges.AddService(posStart - begin, posEnd - posStart);
         Require(posEnd == std::find_if(posStart, posEnd, &IsInvalidPosEntry));
-        std::vector<uint_t> positions(posEnd - posStart);
-        std::transform(posStart, posEnd, positions.begin(), std::bind2nd(std::divides<uint_t>(), sizeof(RawPattern)));
-        const uint_t loop = std::min<uint_t>(Source.Loop, positions.size());
-        builder.SetPositions(positions, loop);
-        Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
+        Positions positions;
+        positions.Lines.resize(posEnd - posStart);
+        std::transform(posStart, posEnd, positions.Lines.begin(), std::bind2nd(std::divides<uint_t>(), sizeof(RawPattern)));
+        positions.Loop = std::min<uint_t>(Source.Loop, positions.Lines.size());
+        Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -481,7 +480,7 @@ namespace Chiptune
           Require(Math::InRange(samOffset, minOffset, maxOffset));
           const std::size_t availSize = Delegate.GetSize() - samOffset;
           const RawSample* const src = Delegate.GetField<RawSample>(samOffset);
-          Require(src != 0);
+          Require(src != nullptr);
           Sample result;
           const std::size_t usedSize = src->GetUsedSize();
           if (usedSize <= availSize)
@@ -499,7 +498,7 @@ namespace Chiptune
             ParseSample(*src, availLines, result);
             hasPartialSamples = true;
           }
-          builder.SetSample(samIdx, result);
+          builder.SetSample(samIdx, std::move(result));
         }
         Require(hasValidSamples || hasPartialSamples);
       }
@@ -542,7 +541,7 @@ namespace Chiptune
             Dbg("Parse invalid ornament %1%", ornIdx);
             result.Lines.push_back(*Delegate.GetField<RawOrnament::Line>(0));
           }
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, std::move(result));
         }
       }
 
@@ -587,11 +586,11 @@ namespace Chiptune
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
-        Require(data != 0);
+        Require(data != nullptr);
         return *data;
       }
 
-      struct DataCursors : public boost::array<std::size_t, 3>
+      struct DataCursors : public std::array<std::size_t, 3>
       {
         DataCursors(const RawPattern& src, uint_t minOffset, uint_t unfixDelta)
         {
@@ -630,7 +629,7 @@ namespace Chiptune
           }
         };
 
-        boost::array<ChannelState, 3> Channels;
+        std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
           : Channels()
@@ -788,11 +787,11 @@ namespace Chiptune
 
       static void ParseSample(const RawSample& src, uint_t size, Sample& dst)
       {
-        dst.Lines.resize(src.GetSize());
+        dst.Lines.reserve(src.GetSize());
         for (uint_t idx = 0; idx < size; ++idx)
         {
           const RawSample::Line& line = src.GetLine(idx);
-          dst.Lines[idx] = ParseSampleLine(line);
+          dst.Lines.emplace_back(ParseSampleLine(line));
         }
         dst.Loop = std::min<int_t>(src.GetLoop(), size);
       }
@@ -860,7 +859,8 @@ namespace Chiptune
       END,
     };
 
-    std::size_t GetStart(const uint16_t* begin, const uint16_t* end, std::size_t start)
+    template<class It>
+    std::size_t GetStart(It begin, It end, std::size_t start)
     {
       std::vector<std::size_t> offsets;
       std::transform(begin, end, std::back_inserter(offsets), &fromLE<uint16_t>);
@@ -951,9 +951,9 @@ namespace Chiptune
       "10-12"          //uint8_t Version; who knows?
       "??"             //uint16_t Address;
       "?{32}"          //char Title[32];
-      "?{30}"          //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      "?{32}"          //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      "?{192}"         //boost::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
+      "?{30}"          //std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      "?{32}"          //std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      "?{192}"         //std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
       "01-ff"          //uint8_t Length;
       "00-fe"          //uint8_t Loop;
       "*6&00-ba"       //uint8_t Positions[1];
@@ -967,22 +967,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::GLOBALTRACKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData) && FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

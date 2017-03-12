@@ -37,7 +37,7 @@ namespace Strings
       ParseTemplate(templ);
     }
 
-    virtual String Instantiate(const FieldsSource& src) const
+    String Instantiate(const FieldsSource& src) const override
     {
       Array resultFields(Fields.size());
       std::transform(Fields.begin(), Fields.end(), resultFields.begin(), boost::bind(&FieldsSource::GetFieldValue, &src, _1));
@@ -49,12 +49,12 @@ namespace Strings
       String::size_type textBegin = 0;
       for (;;)
       {
-        const String::size_type fieldBegin = templ.find(FIELD_START, textBegin);
+        const auto fieldBegin = templ.find(FIELD_START, textBegin);
         if (String::npos == fieldBegin)
         {
           break;//no more fields
         }
-        const String::size_type fieldEnd = templ.find(FIELD_END, fieldBegin);
+        const auto fieldEnd = templ.find(FIELD_END, fieldBegin);
         if (String::npos == fieldEnd)
         {
           break;//invalid syntax
@@ -62,34 +62,34 @@ namespace Strings
         if (textBegin != fieldBegin)
         {
           //add text to set
-          const String& text = templ.substr(textBegin, fieldBegin - textBegin);
-          const std::size_t idx = FixedStrings.size();
-          FixedStrings.push_back(text);
-          Entries.push_back(PartEntry(idx, false));
+          auto text = templ.substr(textBegin, fieldBegin - textBegin);
+          const auto idx = FixedStrings.size();
+          FixedStrings.emplace_back(std::move(text));
+          Entries.emplace_back(idx, false);
         }
         {
-          const String& field = templ.substr(fieldBegin + 1, fieldEnd - fieldBegin - 1);
-          const std::size_t idx = Fields.size();
-          Fields.push_back(field);
-          Entries.push_back(PartEntry(idx, true));
+          auto field = templ.substr(fieldBegin + 1, fieldEnd - fieldBegin - 1);
+          const auto idx = Fields.size();
+          Fields.emplace_back(std::move(field));
+          Entries.emplace_back(idx, true);
         }
         textBegin = fieldEnd + 1;
       }
       //add rest text
       {
-        const String& restText = templ.substr(textBegin);
-        const std::size_t restIdx = FixedStrings.size();
-        FixedStrings.push_back(restText);
-        Entries.push_back(PartEntry(restIdx, false));
+        auto restText = templ.substr(textBegin);
+        const auto restIdx = FixedStrings.size();
+        FixedStrings.emplace_back(std::move(restText));
+        Entries.emplace_back(restIdx, false);
       }
     }
     
     String SubstFields(const Array& fields) const
     {
       String res;
-      for (PartEntries::const_iterator it = Entries.begin(), lim = Entries.end(); it != lim; ++it)
+      for (const auto& entry : Entries)
       {
-        res += (it->second ? fields : FixedStrings)[it->first];
+        res += (entry.second ? fields : FixedStrings)[entry.first];
       }
       return res;
     }

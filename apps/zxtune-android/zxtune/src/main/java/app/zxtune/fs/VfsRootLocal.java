@@ -10,20 +10,19 @@
 
 package app.zxtune.fs;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.text.format.Formatter;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
 import app.zxtune.R;
 
 final class VfsRootLocal extends StubObject implements VfsRoot {
@@ -188,7 +187,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
     public void enumerate(Visitor visitor) throws IOException {
       final File[] files = object.listFiles();
       if (files == null) {
-        throw new IOException("Failed to enumerate files in directory");
+        throw new IOException("Failed to enumerate files at " + object.getAbsolutePath());
       }
       visitor.onItemsCount(files.length);
       for (File file : files) {
@@ -214,17 +213,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
 
     @Override
     public ByteBuffer getContent() throws IOException {
-      final FileInputStream stream = new FileInputStream(object);
-      try {
-        final FileChannel channel = stream.getChannel();
-        try {
-          return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-        } finally {
-          channel.close();
-        }
-      } finally {
-        stream.close();
-      }
+      return VfsCache.readFrom(object);
     }
   }
 }

@@ -23,9 +23,8 @@
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
 //std includes
+#include <array>
 #include <cstring>
 //text includes
 #include <formats/text/packed.h>
@@ -87,7 +86,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x16);
+    static_assert(sizeof(RawHeader) == 0x16, "Invalid layout");
 
     std::size_t GetSourceFileSize(const RawHeader& header)
     {
@@ -155,9 +154,9 @@ namespace Packed
     class DataDecoder
     {
     public:
-      virtual ~DataDecoder() {}
+      virtual ~DataDecoder() = default;
 
-      virtual std::auto_ptr<Dump> GetDecodedData() = 0;
+      virtual std::unique_ptr<Dump> GetDecodedData() = 0;
     };
 
     class StoreDataDecoder : public DataDecoder
@@ -169,11 +168,11 @@ namespace Packed
         assert(STORE == Header.Method);
       }
 
-      virtual std::auto_ptr<Dump> GetDecodedData()
+      std::unique_ptr<Dump> GetDecodedData() override
       {
         const uint_t packedSize = fromLE(Header.PackedSize);
         const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
-        std::auto_ptr<Dump> res(new Dump(packedSize));
+        std::unique_ptr<Dump> res(new Dump(packedSize));
         std::memcpy(&(*res)[0], sourceData, packedSize);
         return res;
       }
@@ -301,7 +300,7 @@ namespace Packed
 
       uint_t ReadByTree(const std::vector<SFTEntry>& tree)
       {
-        std::vector<SFTEntry>::const_iterator it = tree.begin();
+        auto it = tree.begin();
         for (uint_t bits = 0, result = 0; ;)
         {
           result |= GetBit() << bits++;
@@ -330,7 +329,7 @@ namespace Packed
         assert(IMPLODE == Header.Method);
       }
 
-      virtual std::auto_ptr<Dump> GetDecodedData()
+      std::unique_ptr<Dump> GetDecodedData() override
       {
         const std::size_t dataSize = GetSourceFileSize(Header);
         const bool isBigFile = dataSize >= 0x1600;
@@ -399,13 +398,13 @@ namespace Packed
               }
             }
           }
-          std::auto_ptr<Dump> res(new Dump());
+          std::unique_ptr<Dump> res(new Dump());
           res->swap(result);
           return res;
         }
         catch (const std::exception&)
         {
-          return std::auto_ptr<Dump>();
+          return std::unique_ptr<Dump>();
         }
       }
     private:
@@ -436,7 +435,7 @@ namespace Packed
         assert(InvertBits(0x180) == 0x180);
         assert(InvertBits(0x8000) == 1);
         uint_t code = 0, codeIncrement = 0, lastBits = 0;
-        for (std::vector<SFTEntry>::reverse_iterator it = tree.rbegin(), lim = tree.rend(); it != lim; ++it)
+        for (auto it = tree.rbegin(), lim = tree.rend(); it != lim; ++it)
         {
           code += codeIncrement;
           it->Code = InvertBits(code);
@@ -475,7 +474,7 @@ namespace Packed
       }
     };
 
-    typedef boost::array<LZWEntry, 8192> LZWTree;
+    typedef std::array<LZWEntry, 8192> LZWTree;
 
     class ShrinkDataDecoder : public DataDecoder
     {
@@ -486,7 +485,7 @@ namespace Packed
         assert(SHRINK == Header.Method);
       }
 
-      virtual std::auto_ptr<Dump> GetDecodedData()
+      std::unique_ptr<Dump> GetDecodedData() override
       {
         try
         {
@@ -496,7 +495,7 @@ namespace Packed
           LZWTree tree;
           ResetTree(tree);
 
-          LZWTree::iterator lastFree = tree.begin() + LZWEntry::LIMITER;
+          auto lastFree = tree.begin() + LZWEntry::LIMITER;
 
           uint_t codeSize = 9;
           uint_t oldCode = stream.GetBits(codeSize);
@@ -543,13 +542,13 @@ namespace Packed
               oldCode = code;
             }
           }
-          std::auto_ptr<Dump> res(new Dump());
+          std::unique_ptr<Dump> res(new Dump());
           res->swap(result);
           return res;
         }
         catch (const std::exception&)
         {
-          return std::auto_ptr<Dump>();
+          return std::unique_ptr<Dump>();
         }
       }
     private:
@@ -587,18 +586,18 @@ namespace Packed
       const RawHeader& Header;
     };
 
-    std::auto_ptr<DataDecoder> CreateDecoder(const RawHeader& header)
+    std::unique_ptr<DataDecoder> CreateDecoder(const RawHeader& header)
     {
       switch (header.Method)
       {
       case STORE:
-        return std::auto_ptr<DataDecoder>(new StoreDataDecoder(header));
+        return std::unique_ptr<DataDecoder>(new StoreDataDecoder(header));
       case IMPLODE:
-        return std::auto_ptr<DataDecoder>(new ImplodeDataDecoder(header));
+        return std::unique_ptr<DataDecoder>(new ImplodeDataDecoder(header));
       case SHRINK:
-        return std::auto_ptr<DataDecoder>(new ShrinkDataDecoder(header));
+        return std::unique_ptr<DataDecoder>(new ShrinkDataDecoder(header));
       default:
-        return std::auto_ptr<DataDecoder>();
+        return std::unique_ptr<DataDecoder>();
       };
     };
 
@@ -612,13 +611,13 @@ namespace Packed
       {
       }
 
-      std::auto_ptr<Dump> GetDecodedData()
+      std::unique_ptr<Dump> GetDecodedData() override
       {
         if (!IsValid)
         {
-          return std::auto_ptr<Dump>();
+          return std::unique_ptr<Dump>();
         }
-        std::auto_ptr<Dump> result = Delegate->GetDecodedData();
+        std::unique_ptr<Dump> result = Delegate->GetDecodedData();
         while (result.get())
         {
           const std::size_t dataSize = GetSourceFileSize(Header);
@@ -635,11 +634,11 @@ namespace Packed
           return result;
         }
         IsValid = false;
-        return std::auto_ptr<Dump>();
+        return std::unique_ptr<Dump>();
       }
     private:
       const RawHeader& Header;
-      const std::auto_ptr<DataDecoder> Delegate;
+      const std::unique_ptr<DataDecoder> Delegate;
       bool IsValid;
     };
   }//namespace ZXZip
@@ -652,17 +651,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::ZXZIP_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Depacker;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Depacker->Match(rawData))
       {

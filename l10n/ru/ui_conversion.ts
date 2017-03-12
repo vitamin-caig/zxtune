@@ -19,7 +19,7 @@
         <translation>Максимум</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/flac_settings.cpp" line="55"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/flac_settings.cpp" line="57"/>
         <source>Compression %1</source>
         <translation>Сжатие %1</translation>
     </message>
@@ -82,17 +82,17 @@
         <translation>Моно</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="137"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="138"/>
         <source>%1 kbps</source>
         <translation>%1 кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="138"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="139"/>
         <source>~ %1 kbps</source>
         <translation>В среднем %1 кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="142"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="143"/>
         <source>Quality %1</source>
         <translation>Качество %1</translation>
     </message>
@@ -125,12 +125,12 @@
         <translation>Средний битрейт, кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="71"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="73"/>
         <source>Quality %1</source>
         <translation>Качество %1</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="75"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="77"/>
         <source>Average bitrate %1 kbps</source>
         <translation>Средний битрейт %1 кбит/с</translation>
     </message>
@@ -367,12 +367,12 @@
         <translation>Создавать промежуточные директории для файлов результата</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="170"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="171"/>
         <source>Invalid parameter</source>
         <translation>Неправильный параметр</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="171"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="172"/>
         <source>Filename template is empty</source>
         <translation>Шаблон имени пустой</translation>
     </message>

@@ -17,15 +17,13 @@
 #include <error.h>
 #include <make_ptr.h>
 //library includes
-#include <core/module_attrs.h>
 #include <debug/log.h>
+#include <module/attributes.h>
 #include <parameters/convert.h>
 #include <parameters/serialize.h>
 //std includes
 #include <cctype>
 #include <set>
-//boost includes
-#include <boost/range/end.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -79,7 +77,7 @@ namespace
     {
     }
 
-    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
     {
       if (Pass(name))
       {
@@ -87,7 +85,7 @@ namespace
       }
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
     {
       if (Pass(name))
       {
@@ -95,7 +93,7 @@ namespace
       }
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
     {
       if (Pass(name))
       {

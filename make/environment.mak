@@ -81,7 +81,7 @@ mingw.toolchain = $(toolchains.root)/MinGW
 mingw.execprefix = $(mingw.toolchain)/bin/
 mingw.cxx.flags = -mthreads -mwin32 -mno-ms-bitfields -mmmx -msse -msse2
 mingw.ld.flags = -mthreads -static -Wl,--allow-multiple-definition
-mingw.definitions = BOOST_THREAD_USE_LIB 'BOOST_FILESYSTEM_VERSION=3'
+mingw.definitions = 'BOOST_FILESYSTEM_VERSION=3'
 # x86
 mingw.x86.execprefix = $(mingw.execprefix)
 mingw.x86.boost.version = 1.55.0

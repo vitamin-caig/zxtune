@@ -25,9 +25,8 @@
 #include <math/numeric.h>
 #include <strings/format.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -75,7 +74,7 @@ namespace Chiptune
           const uint8_t* GetNewTempo() const
           {
             return 62 == NoteCmd
-              ? &SampleEffect : 0;
+              ? &SampleEffect : nullptr;
           }
 
           bool IsEndOfPattern() const
@@ -86,7 +85,7 @@ namespace Chiptune
           const uint8_t* GetVolumeSlidePeriod() const
           {
             return 64 == NoteCmd
-              ? &SampleEffect : 0;
+              ? &SampleEffect : nullptr;
           }
 
           int_t GetVolumeSlideDirection() const
@@ -158,15 +157,15 @@ namespace Chiptune
       //+0x80
       uint8_t Banks[0x40];
       //+0xc0
-      boost::array<LayoutInfo, 8> Layouts;
+      std::array<LayoutInfo, 8> Layouts;
       //+0xe0
       uint8_t Padding1[0x20];
       //+0x100
-      boost::array<char, 0x20> Title;
+      std::array<char, 0x20> Title;
       //+0x120
       SampleInfo Samples[SAMPLES_COUNT];
       //+0x1a0
-      boost::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
+      std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
       //+0x204
       uint8_t PositionsLimit;
       //+0x205
@@ -180,45 +179,45 @@ namespace Chiptune
       //+0x213
       uint8_t Padding3[0xed];
       //+0x300
-      boost::array<char[8], SAMPLES_COUNT> SampleNames;
+      std::array<char[8], SAMPLES_COUNT> SampleNames;
       //+0x380
       uint8_t Padding4[0x80];
       //+0x400
-      boost::array<Pattern, PATTERNS_COUNT> Patterns;
+      std::array<Pattern, PATTERNS_COUNT> Patterns;
       //+0x4400
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 0x4400);
+    static_assert(sizeof(Header) == 0x4400, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*content*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
 
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
 
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetVolume(uint_t /*volume*/) {}
-      virtual void SetVolumeSlidePeriod(uint_t /*period*/) {}
-      virtual void SetVolumeSlideDirection(int_t /*direction*/) {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetVolume(uint_t /*volume*/) override {}
+      void SetVolumeSlidePeriod(uint_t /*period*/) override {}
+      void SetVolumeSlideDirection(int_t /*direction*/) override {}
     };
 
     class StatisticCollectionBuilder : public Builder
@@ -231,65 +230,65 @@ namespace Chiptune
       {
       }
 
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return Delegate.GetMetaBuilder();
       }
 
-      virtual void SetInitialTempo(uint_t tempo)
+      void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
       }
 
-      virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data)
+      void SetSample(uint_t index, std::size_t loop, const Binary::Data& data) override
       {
         return Delegate.SetSample(index, loop, data);
       }
 
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+      void SetPositions(Positions positions) override
       {
-        UsedPatterns.Assign(positions.begin(), positions.end());
+        UsedPatterns.Assign(positions.Lines.begin(), positions.Lines.end());
         Require(!UsedPatterns.Empty());
-        return Delegate.SetPositions(positions, loop);
+        return Delegate.SetPositions(std::move(positions));
       }
 
-      virtual PatternBuilder& StartPattern(uint_t index)
+      PatternBuilder& StartPattern(uint_t index) override
       {
         return Delegate.StartPattern(index);
       }
 
-      virtual void StartChannel(uint_t index)
+      void StartChannel(uint_t index) override
       {
         return Delegate.StartChannel(index);
       }
 
-      virtual void SetRest()
+      void SetRest() override
       {
         return Delegate.SetRest();
       }
 
-      virtual void SetNote(uint_t note)
+      void SetNote(uint_t note) override
       {
         return Delegate.SetNote(note);
       }
 
-      virtual void SetSample(uint_t sample)
+      void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
-      virtual void SetVolume(uint_t volume)
+      void SetVolume(uint_t volume) override
       {
         return Delegate.SetVolume(volume);
       }
 
-      virtual void SetVolumeSlidePeriod(uint_t period)
+      void SetVolumeSlidePeriod(uint_t period) override
       {
         return Delegate.SetVolumeSlidePeriod(period);
       }
 
-      virtual void SetVolumeSlideDirection(int_t direction)
+      void SetVolumeSlideDirection(int_t direction) override
       {
         return Delegate.SetVolumeSlideDirection(direction);
       }
@@ -338,9 +337,11 @@ namespace Chiptune
 
       void ParsePositions(Builder& target) const
       {
-        const std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + Source.LastPosition + 1);
-        target.SetPositions(positions, Source.Loop);
-        Dbg("Positions: %1%, loop to %2%", positions.size(), unsigned(Source.Loop));
+        Positions positions;
+        positions.Loop = Source.Loop;
+        positions.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + Source.LastPosition + 1);
+        Dbg("Positions: %1%, loop to %2%", positions.GetSize(), positions.GetLoop());
+        target.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& target) const
@@ -391,12 +392,12 @@ namespace Chiptune
           const std::pair<std::size_t, std::size_t>& offsetSize = regions[bank];
           const std::size_t size = std::min(SAMPLES_LIMIT - rawAddr, offsetSize.second);
           const std::size_t offset = offsetSize.first + rawAddr - sampleBase;
-          if (const Binary::Data::Ptr sample = GetSample(offset, size))
+          if (const auto sample = GetSample(offset, size))
           {
             Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", 
               samIdx, rawAddr, rawLoop, sample->Size(), uint_t(info.Bank));
             const std::size_t loop = info.IsLooped ? rawLoop - sampleBase : sample->Size();
-            target.SetSample(samIdx, loop, sample);
+            target.SetSample(samIdx, loop, *sample);
           }
           else
           {
@@ -514,22 +515,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::SQDIGITALTRACKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

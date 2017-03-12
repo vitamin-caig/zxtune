@@ -54,8 +54,8 @@ namespace Archived
       {
         Vtable.read = &Read;
         Vtable.skip = &Skip;
-        Vtable.close = 0;
-        Stream = boost::shared_ptr<LHAInputStream>(::lha_input_stream_new(&Vtable, &State), &::lha_input_stream_free);
+        Vtable.close = nullptr;
+        Stream = std::shared_ptr<LHAInputStream>(::lha_input_stream_new(&Vtable, &State), &::lha_input_stream_free);
       }
 
       LHAInputStream* GetStream() const
@@ -79,7 +79,7 @@ namespace Archived
         const std::size_t rest = stream->GetRestSize();
         if (rest >= bytes)
         {
-          stream->ReadData(bytes);//skip
+          stream->Skip(bytes);
           return 1;
         }
         return 0;
@@ -87,7 +87,7 @@ namespace Archived
     private:
       Binary::InputStream State;
       LHAInputStreamType Vtable;
-      boost::shared_ptr<LHAInputStream> Stream;
+      std::shared_ptr<LHAInputStream> Stream;
     };
 
     String GetFullPath(const LHAFileHeader& header)
@@ -110,17 +110,17 @@ namespace Archived
         Dbg("Created file '%1%', size=%2%, packed size=%3%, compression=%4%", Name, Size, Data->Size(), Method);
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Size;
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '%1%'", Name);
         return Packed::Lha::DecodeRawData(*Data, Method, Size);
@@ -147,25 +147,25 @@ namespace Archived
 
       bool IsValid() const
       {
-        return Current != 0;
+        return Current != nullptr;
       }
 
       bool IsDir() const
       {
         static const char DIR_TYPE[] = "-lhd-";
-        Require(Current != 0);
+        Require(Current != nullptr);
         return 0 == std::strcmp(DIR_TYPE, Current->compress_method);
       }
 
       bool IsEmpty() const
       {
-        Require(Current != 0);
+        Require(Current != nullptr);
         return 0 == Current->compressed_length || Position + Current->compressed_length > Data.Size();
       }
 
       File::Ptr GetFile() const
       {
-        Require(Current != 0);
+        Require(Current != nullptr);
         return MakePtr<File>(Data, *Current, Position);
       }
 
@@ -182,7 +182,7 @@ namespace Archived
     private:
       const Binary::Container& Data;
       const InputStreamWrapper Input;
-      const boost::shared_ptr<LHAReader> Reader;
+      const std::shared_ptr<LHAReader> Reader;
       LHAFileHeader* Current;
       std::size_t Position;
     };
@@ -192,7 +192,7 @@ namespace Archived
     public:
       template<class It>
       Container(Binary::Container::Ptr data, It begin, It end)
-        : Delegate(data)
+        : Delegate(std::move(data))
       {
         for (It it = begin; it != end; ++it)
         {
@@ -202,31 +202,31 @@ namespace Archived
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
-        for (FilesMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+        for (const auto& file : Files)
         {
-          walker.OnFile(*it->second);
+          walker.OnFile(*file.second);
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
         const FilesMap::const_iterator it = Files.find(name);
         return it != Files.end()
@@ -234,7 +234,7 @@ namespace Archived
           : File::Ptr();
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return static_cast<uint_t>(Files.size());
       }
@@ -253,17 +253,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::LHA_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!Format->Match(data))
       {

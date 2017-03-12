@@ -23,8 +23,8 @@ namespace
   class Predicate
   {
   public:
-    typedef boost::shared_ptr<const Predicate> Ptr;
-    virtual ~Predicate() {}
+    typedef std::shared_ptr<const Predicate> Ptr;
+    virtual ~Predicate() = default;
 
     virtual bool Match(const Playlist::Item::Data& data) const = 0;
   };
@@ -34,13 +34,13 @@ namespace
   public:
     SearchVisitor(Predicate::Ptr pred, Log::ProgressCallback& cb)
       : Callback(cb)
-      , Pred(pred)
+      , Pred(std::move(pred))
       , Result(MakeRWPtr<Playlist::Model::IndexSet>())
       , Done(0)
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
     {
       if (Pred->Match(*data))
       {
@@ -64,19 +64,19 @@ namespace
   {
   public:
     explicit SearchOperation(Predicate::Ptr pred)
-      : Pred(pred)
+      : Pred(std::move(pred))
     {
-      Require(Pred != 0);
+      Require(Pred != nullptr);
     }
 
     SearchOperation(Playlist::Model::IndexSet::Ptr items, Predicate::Ptr pred)
-      : SelectedItems(items)
-      , Pred(pred)
+      : SelectedItems(std::move(items))
+      , Pred(std::move(pred))
     {
-      Require(Pred != 0);
+      Require(Pred != nullptr);
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
       const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
@@ -99,8 +99,8 @@ namespace
   class StringPredicate
   {
   public:
-    typedef boost::shared_ptr<const StringPredicate> Ptr;
-    virtual ~StringPredicate() {}
+    typedef std::shared_ptr<const StringPredicate> Ptr;
+    virtual ~StringPredicate() = default;
 
     virtual bool Match(const String& str) const = 0;
   };
@@ -109,14 +109,14 @@ namespace
   {
   public:
     ScopePredicateDispatcher(StringPredicate::Ptr pred, uint_t scope)
-      : Pred(pred)
+      : Pred(std::move(pred))
       , MatchTitle(0 != (scope & Playlist::Item::Search::TITLE))
       , MatchAuthor(0 != (scope & Playlist::Item::Search::AUTHOR))
       , MatchPath(0 != (scope & Playlist::Item::Search::PATH))
     {
     }
 
-    virtual bool Match(const Playlist::Item::Data& data) const
+    bool Match(const Playlist::Item::Data& data) const override
     {
       return (MatchTitle && Pred->Match(data.GetTitle()))
           || (MatchAuthor && Pred->Match(data.GetAuthor()))
@@ -133,7 +133,7 @@ namespace
   class EmptyStringPredicate : public StringPredicate
   {
   public:
-    virtual bool Match(const String& str) const
+    bool Match(const String& str) const override
     {
       return str.empty();
     }
@@ -148,7 +148,7 @@ namespace
     {
     }
 
-    virtual bool Match(const String& str) const
+    bool Match(const String& str) const override
     {
       return ToQString(str).contains(Pattern, Mode);
     }
@@ -165,7 +165,7 @@ namespace
     {
     }
 
-    virtual bool Match(const String& str) const
+    bool Match(const String& str) const override
     {
       return ToQString(str).contains(Pattern);
     }

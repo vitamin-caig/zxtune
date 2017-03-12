@@ -19,10 +19,11 @@
 #include <strings/format.h>
 #include <strings/template.h>
 #include <time/duration.h>
+//std includes
+#include <thread>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
-#include <boost/thread/thread.hpp>
 //text includes
 #include "text/text.h"
 
@@ -85,12 +86,12 @@ namespace
       ;
     }
 
-    virtual const boost::program_options::options_description& GetOptionsDescription() const
+    const boost::program_options::options_description& GetOptionsDescription() const override
     {
       return Options;
     }
 
-    virtual void Message(const String& msg)
+    void Message(const String& msg) override
     {
       if (!Silent)
       {
@@ -98,7 +99,7 @@ namespace
       }
     }
 
-    virtual void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration)
+    void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration) override
     {
       const Module::Information::Ptr info = module->GetModuleInformation();
       const Parameters::Accessor::Ptr props = module->GetModuleProperties();
@@ -125,7 +126,7 @@ namespace
           Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(), info->ChannelsCount());
     }
 
-    virtual uint_t BeginFrame(Sound::PlaybackControl::State state)
+    uint_t BeginFrame(Sound::PlaybackControl::State state) override
     {
       const uint_t curFrame = TrackState->Frame();
       if (Silent || Quiet)
@@ -153,8 +154,7 @@ namespace
         ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
-          std::vector<Module::Analyzer::ChannelState> curAnalyze;
-          Analyzer->GetState(curAnalyze);
+          const auto& curAnalyze = Analyzer->GetState();
           AnalyzerData.resize(ScrSize.first);
           UpdateAnalyzer(curAnalyze, 10);
           ShowAnalyzer(spectrumHeight);
@@ -163,10 +163,10 @@ namespace
       return curFrame;
     }
 
-    virtual void EndFrame()
+    void EndFrame() override
     {
       const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
-      boost::this_thread::sleep(boost::posix_time::milliseconds(waitPeriod));
+      std::this_thread::sleep_for(std::chrono::milliseconds(waitPeriod));
       if (!Silent && !Quiet)
       {
         Console::Self().MoveCursorUp(Analyzer ? ScrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);
@@ -205,11 +205,11 @@ namespace
     {
       std::transform(AnalyzerData.begin(), AnalyzerData.end(), AnalyzerData.begin(),
         std::bind2nd(std::minus<int_t>(), fallspeed));
-      for (std::vector<Module::Analyzer::ChannelState>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
+      for (const auto& state : inState)
       {
-        if (it->Band < AnalyzerData.size())
+        if (state.Band < AnalyzerData.size())
         {
-          AnalyzerData[it->Band] = it->Level;
+          AnalyzerData[state.Band] = state.Level;
         }
       }
       std::replace_if(AnalyzerData.begin(), AnalyzerData.end(), std::bind2nd(std::less<int_t>(), 0), 0);

@@ -16,11 +16,11 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.dbhelpers.CommandExecutor;
+import app.zxtune.fs.dbhelpers.FetchCommand;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
-import app.zxtune.fs.dbhelpers.Utils;
 
 final class CachingCatalog extends Catalog {
 
@@ -28,7 +28,6 @@ final class CachingCatalog extends Catalog {
 
   private final TimeStamp GROUPS_TTL = days(30);
   private final TimeStamp AUTHORS_TTL = days(30);
-  private final TimeStamp COUNTRIES_TTL = days(30);
   private final TimeStamp TRACKS_TTL = days(30);
   
   private static TimeStamp days(int val) {
@@ -37,24 +36,24 @@ final class CachingCatalog extends Catalog {
   
   private final Catalog remote;
   private final Database db;
-  private final VfsCache cacheDir;
+  private final CommandExecutor executor;
 
-  public CachingCatalog(Catalog remote, Database db, VfsCache cacheDir) {
+  public CachingCatalog(Catalog remote, Database db) {
     this.remote = remote;
     this.db = db;
-    this.cacheDir = cacheDir; 
+    this.executor = new CommandExecutor("amp");
   }
 
   @Override
   public void queryGroups(final GroupsVisitor visitor) throws IOException {
-    Utils.executeQueryCommand(new QueryCommand() {
+    executor.executeQueryCommand("groups", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getGroupsLifetime(GROUPS_TTL);
       }
 
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
       
@@ -73,7 +72,7 @@ final class CachingCatalog extends Catalog {
   
   @Override
   public void queryAuthors(final String handleFilter, final AuthorsVisitor visitor) throws IOException {
-    Utils.executeQueryCommand(new QueryCommand() {
+    executor.executeQueryCommand("authors", new QueryCommand() {
       
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -81,7 +80,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
       
@@ -100,15 +99,15 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final Country country, final AuthorsVisitor visitor) throws IOException {
-    Utils.executeQueryCommand(new QueryCommand() {
+    executor.executeQueryCommand("authors", new QueryCommand() {
       
       @Override
       public Timestamps.Lifetime getLifetime() {
-        return db.getCountryLifetime(country, COUNTRIES_TTL);
+        return db.getCountryLifetime(country, AUTHORS_TTL);
       }
 
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
 
@@ -127,15 +126,15 @@ final class CachingCatalog extends Catalog {
   
   @Override
   public void queryAuthors(final Group group, final AuthorsVisitor visitor) throws IOException {
-    Utils.executeQueryCommand(new QueryCommand() {
+    executor.executeQueryCommand("authors", new QueryCommand() {
       
       @Override
       public Timestamps.Lifetime getLifetime() {
-        return db.getGroupLifetime(group, GROUPS_TTL);
+        return db.getGroupLifetime(group, AUTHORS_TTL);
       }
 
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
 
@@ -154,7 +153,7 @@ final class CachingCatalog extends Catalog {
   
   @Override
   public void queryTracks(final Author author, final TracksVisitor visitor) throws IOException {
-    Utils.executeQueryCommand(new QueryCommand() {
+    executor.executeQueryCommand("tracks", new QueryCommand() {
 
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -162,7 +161,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() {
+      public Transaction startTransaction() throws IOException {
         return db.startTransaction();
       }
 
@@ -196,16 +195,20 @@ final class CachingCatalog extends Catalog {
   }
   
   @Override
-  public ByteBuffer getTrackContent(int id) throws IOException {
-    final String filename = Integer.toString(id);
-    final ByteBuffer cachedContent = cacheDir.getCachedFileContent(filename);
-    if (cachedContent != null) {
-      return cachedContent;
-    } else {
-      final ByteBuffer content = remote.getTrackContent(id);
-      cacheDir.putCachedFileContent(filename, content);
-      return content;
-    }
+  public ByteBuffer getTrackContent(final int id) throws IOException {
+    return executor.executeFetchCommand("file", new FetchCommand<ByteBuffer>() {
+      @Override
+      public ByteBuffer fetchFromCache() {
+        return db.getTrackContent(id);
+      }
+
+      @Override
+      public ByteBuffer fetchFromRemote() throws IOException {
+        final ByteBuffer res = remote.getTrackContent(id);
+        db.addTrackContent(id, res);
+        return res;
+      }
+    });
   }
   
   private class CachingGroupsVisitor extends GroupsVisitor {

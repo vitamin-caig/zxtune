@@ -10,9 +10,9 @@
 
 package app.zxtune.fs.zxtunes;
 
-import java.util.List;
-
 import android.net.Uri;
+
+import java.util.List;
 
 /**
  * 
@@ -98,10 +98,24 @@ public class Identifier {
   
   public static Integer findDate(Uri uri, List<String> path) {
     if (path.size() > POS_AUTHOR_DATE) {
-      return Integer.valueOf(path.get(POS_AUTHOR_DATE));
-    } else {
-      return null;
+      final String element = path.get(POS_AUTHOR_DATE);
+      if (isDate(element)) {
+        return Integer.valueOf(element);
+      }
     }
+    return null;
+  }
+
+  private static boolean isDate(String str) {
+    if (str.length() != 4) {
+      return false;
+    }
+    for (int i = 0; i < 4; ++i) {
+      if (!Character.isDigit(str.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
   }
   
   // Tracks

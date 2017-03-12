@@ -10,11 +10,11 @@
 
 package app.zxtune.ui.browser;
 
-import java.util.Locale;
-
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.Uri;
+
+import java.util.Locale;
 
 class BrowserState {
   

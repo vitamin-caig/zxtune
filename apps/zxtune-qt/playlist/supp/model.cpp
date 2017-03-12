@@ -16,14 +16,12 @@
 #include <make_ptr.h>
 //library includes
 #include <async/activity.h>
-#include <core/module_attrs.h>
 #include <debug/log.h>
 #include <math/bitops.h>
 #include <parameters/template.h>
-//boost includes
-#include <boost/ref.hpp>
-#include <boost/thread/locks.hpp>
-#include <boost/thread/shared_mutex.hpp>
+//std includes
+#include <atomic>
+#include <mutex>
 //qt includes
 #include <QtCore/QMimeData>
 #include <QtCore/QSet>
@@ -40,7 +38,7 @@ namespace
   class RowDataProvider
   {
   public:
-    virtual ~RowDataProvider() {}
+    virtual ~RowDataProvider() = default;
 
     virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const = 0;
   };
@@ -48,7 +46,7 @@ namespace
   class DummyDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetData(const Playlist::Item::Data& /*item*/, unsigned /*column*/) const
+    QVariant GetData(const Playlist::Item::Data& /*item*/, unsigned /*column*/) const override
     {
       return QVariant();
     }
@@ -63,7 +61,7 @@ namespace
   class DisplayDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const
+    QVariant GetData(const Playlist::Item::Data& item, unsigned column) const override
     {
       switch (column)
       {
@@ -128,7 +126,7 @@ namespace
     {
     }
 
-    bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const
+    bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const override
     {
       const T val1 = (lh.*Getter)();
       const T val2 = (rh.*Getter)();
@@ -186,7 +184,7 @@ namespace
     {
     }
 
-    bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const
+    bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const override
     {
       Callback.OnProgress(++Done);
       return Delegate.CompareItems(lh, rh);
@@ -201,11 +199,11 @@ namespace
   {
   public:
     explicit SortOperation(Playlist::Item::Comparer::Ptr comparer)
-      : Comparer(comparer)
+      : Comparer(std::move(comparer))
     {
     }
 
-    virtual void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
+    void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb) override
     {
       const uint_t totalItems = storage.CountItems();
       //according to STL spec: The number of comparisons is approximately N log N, where N is the list's size. Assume that log is binary.
@@ -223,7 +221,7 @@ namespace
   class OperationTarget
   {
   public:
-    virtual ~OperationTarget() {}
+    virtual ~OperationTarget() = default;
 
     virtual void ExecuteOperation(typename OpType::Ptr op) = 0;
   };
@@ -233,16 +231,16 @@ namespace
   {
   public:
     AsyncOperation(typename OpType::Ptr op, OperationTarget<OpType>& executor)
-      : Op(op)
+      : Op(std::move(op))
       , Delegate(executor)
     {
     }
 
-    virtual void Prepare()
+    void Prepare() override
     {
     }
 
-    virtual void Execute()
+    void Execute() override
     {
       Delegate.ExecuteOperation(Op);
     }
@@ -254,7 +252,7 @@ namespace
   class PathsVisitor : public Playlist::Item::Visitor
   {
   public:
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
       if (!data->GetState())
       {
@@ -269,6 +267,64 @@ namespace
   private:
     QStringList Paths;
   };
+  
+  //https://en.wikipedia.org/wiki/Readers–writer_lock
+  template<class MutexType>
+  class RWMutexType
+  {
+  public:
+    class ReadLock
+    {
+    public:
+      ReadLock(RWMutexType& mtx)
+        : Mtx(mtx)
+      {
+        const std::lock_guard<MutexType> guard(Mtx.ReaderLock);
+        if (1 == ++Mtx.ReaderCount)
+        {
+          Mtx.WriterLock.lock();
+        }
+      }
+      
+      ReadLock(const ReadLock&) = delete;
+      
+      ~ReadLock()
+      {
+        const std::lock_guard<MutexType> guard(Mtx.ReaderLock);
+        if (0 == --Mtx.ReaderCount)
+        {
+          Mtx.WriterLock.unlock();
+        }
+      }
+    private:
+      RWMutexType& Mtx;
+    };
+    
+    class WriteLock
+    {
+    public:
+      WriteLock(RWMutexType& mtx)
+        : Mtx(mtx)
+      {
+        Mtx.WriterLock.lock();
+      }
+
+      WriteLock(const WriteLock&) = delete;
+      
+      ~WriteLock()
+      {
+        Mtx.WriterLock.unlock();
+      }
+    private:
+      RWMutexType& Mtx;
+    };
+  private:
+    MutexType ReaderLock;
+    std::size_t ReaderCount;
+    MutexType WriterLock;
+  };
+  
+  typedef RWMutexType<std::mutex> RWMutex;
 
   class ModelImpl : public Playlist::Model
                   , public OperationTarget<Playlist::Item::StorageAccessOperation>
@@ -287,72 +343,71 @@ namespace
       Dbg("Created at %1%", this);
     }
 
-    virtual ~ModelImpl()
+    ~ModelImpl() override
     {
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
+    void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation) override
     {
       WaitOperationFinish();
-      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageAccessOperation> >(operation, boost::ref(*this));
+      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageAccessOperation>>(operation, *this);
       AsyncExecution = Async::Activity::Create(wrapper);
     }
 
-    virtual void PerformOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
+    void PerformOperation(Playlist::Item::StorageModifyOperation::Ptr operation) override
     {
       WaitOperationFinish();
-      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageModifyOperation> >(operation, boost::ref(*this));
+      const Async::Operation::Ptr wrapper = MakePtr<AsyncOperation<Playlist::Item::StorageModifyOperation>>(operation, *this);
       AsyncExecution = Async::Activity::Create(wrapper);
     }
 
-    virtual void WaitOperationFinish()
+    void WaitOperationFinish() override
     {
       AsyncExecution->Wait();
       Canceled = false;
     }
 
     //new virtuals
-    virtual unsigned CountItems() const
+    unsigned CountItems() const override
     {
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       return static_cast<unsigned>(Container->CountItems());
     }
 
-    virtual Playlist::Item::Data::Ptr GetItem(IndexType index) const
+    Playlist::Item::Data::Ptr GetItem(IndexType index) const override
     {
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       return Container->GetItem(index);
     }
 
-    virtual QStringList GetItemsPaths(const IndexSet& items) const
+    QStringList GetItemsPaths(const IndexSet& items) const override
     {
       PathsVisitor visitor;
       {
-        const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+        const RWMutex::ReadLock lock(SyncAccess);
         Container->ForSpecifiedItems(items, visitor);
       }
       return visitor.GetResult();
     }
 
-    virtual unsigned GetVersion() const
+    unsigned GetVersion() const override
     {
       return Container->GetVersion();
     }
 
-    virtual void Clear()
+    void Clear() override
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        const RWMutex::WriteLock lock(SyncAccess);
         Container = Playlist::Item::Storage::Create();
         remapping = GetIndicesChanges();
       }
       NotifyAboutIndexChanged(remapping);
     }
 
-    virtual void RemoveItems(IndexSet::Ptr items)
+    void RemoveItems(IndexSet::Ptr items) override
     {
       if (!items || items->empty())
       {
@@ -360,28 +415,26 @@ namespace
       }
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        const RWMutex::WriteLock lock(SyncAccess);
         Container->RemoveItems(*items);
         remapping = GetIndicesChanges();
       }
       NotifyAboutIndexChanged(remapping);
     }
 
-    virtual void MoveItems(const IndexSet& items, IndexType target)
+    void MoveItems(const IndexSet& items, IndexType target) override
     {
       Dbg("Moving %1% items to row %2%", items.size(), target);
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        const RWMutex::WriteLock lock(SyncAccess);
         Container->MoveItems(items, target);
         remapping = GetIndicesChanges();
       }
       NotifyAboutIndexChanged(remapping);
     }
 
-    virtual void AddItem(Playlist::Item::Data::Ptr item)
+    void AddItem(Playlist::Item::Data::Ptr item) override
     {
       //Called for each item found during scan, so notify only first time
       if (0 == CountItems())
@@ -394,12 +447,12 @@ namespace
       }
     }
 
-    virtual void AddItems(Playlist::Item::Collection::Ptr items)
+    void AddItems(Playlist::Item::Collection::Ptr items) override
     {
       AddAndNotify(items);
     }
 
-    virtual void CancelLongOperation()
+    void CancelLongOperation() override
     {
       Canceled = true;
       AsyncExecution->Wait();
@@ -408,14 +461,14 @@ namespace
     //base model virtuals
 
     /* Drag'n'Drop support*/
-    virtual Qt::DropActions supportedDropActions() const
+    Qt::DropActions supportedDropActions() const override
     {
       return Qt::MoveAction;
     }
     
     //required for drag/drop enabling
     //do not pay attention on item state
-    virtual Qt::ItemFlags flags(const QModelIndex& index) const
+    Qt::ItemFlags flags(const QModelIndex& index) const override
     {
       const Qt::ItemFlags defaultFlags = Playlist::Model::flags(index);
       const Qt::ItemFlags invalidFlags = Qt::ItemIsDropEnabled | defaultFlags;
@@ -427,20 +480,20 @@ namespace
       return validFlags;
     }
 
-    virtual QStringList mimeTypes() const
+    QStringList mimeTypes() const override
     {
       QStringList types;
       types << INDICES_MIMETYPE;
       return types;
     }
 
-    virtual QMimeData* mimeData(const QModelIndexList& indices) const
+    QMimeData* mimeData(const QModelIndexList& indices) const override
     {
-      QMimeData* const mimeData = new QMimeData();
+      std::unique_ptr<QMimeData> mimeData(new QMimeData());
       QByteArray encodedData;
       {
         QDataStream stream(&encodedData, QIODevice::WriteOnly);
-        foreach (const QModelIndex& index, indices)
+        for (const QModelIndex& index : indices)
         {
           if (index.isValid())
           {
@@ -450,10 +503,10 @@ namespace
       }
 
       mimeData->setData(INDICES_MIMETYPE, encodedData);
-      return mimeData;
+      return mimeData.release();
     }
 
-    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int /*row*/, int /*column*/, const QModelIndex& parent)
+    bool dropMimeData(const QMimeData* data, Qt::DropAction action, int /*row*/, int /*column*/, const QModelIndex& parent) override
     {
       if (action == Qt::IgnoreAction)
       {
@@ -489,28 +542,28 @@ namespace
 
     /* end of Drag'n'Drop support */
 
-    virtual bool canFetchMore(const QModelIndex& /*index*/) const
+    bool canFetchMore(const QModelIndex& /*index*/) const override
     {
-      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       return FetchedItemsCount < Container->CountItems();
     }
 
-    virtual void fetchMore(const QModelIndex& /*index*/)
+    void fetchMore(const QModelIndex& /*index*/) override
     {
-      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       const std::size_t nextCount = Container->CountItems();
       beginInsertRows(EMPTY_INDEX, static_cast<int>(FetchedItemsCount), nextCount - 1);
       FetchedItemsCount = nextCount;
       endInsertRows();
     }
 
-    virtual QModelIndex index(int row, int column, const QModelIndex& parent) const
+    QModelIndex index(int row, int column, const QModelIndex& parent) const override
     {
       if (parent.isValid())
       {
         return EMPTY_INDEX;
       }
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       if (row < static_cast<int>(Container->CountItems()))
       {
         return createIndex(row, column, Container->GetVersion());
@@ -518,27 +571,27 @@ namespace
       return EMPTY_INDEX;
     }
 
-    virtual QModelIndex parent(const QModelIndex& /*index*/) const
+    QModelIndex parent(const QModelIndex& /*index*/) const override
     {
       return EMPTY_INDEX;
     }
 
-    virtual int rowCount(const QModelIndex& index) const
+    int rowCount(const QModelIndex& index) const override
     {
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       return index.isValid()
         ? 0
         : static_cast<int>(FetchedItemsCount);
     }
 
-    virtual int columnCount(const QModelIndex& index) const
+    int columnCount(const QModelIndex& index) const override
     {
       return index.isValid()
         ? 0
         : COLUMNS_COUNT;
     }
 
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override
     {
       if (Qt::Vertical == orientation && Qt::DisplayRole == role)
       {
@@ -548,7 +601,7 @@ namespace
       return QVariant();
     }
 
-    virtual QVariant data(const QModelIndex& index, int role) const
+    QVariant data(const QModelIndex& index, int role) const override
     {
       if (!index.isValid())
       {
@@ -556,7 +609,7 @@ namespace
       }
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       if (const Playlist::Item::Data::Ptr item = Container->GetItem(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
@@ -565,7 +618,7 @@ namespace
       return QVariant();
     }
 
-    virtual void sort(int column, Qt::SortOrder order)
+    void sort(int column, Qt::SortOrder order) override
     {
       Dbg("Sort data in column=%1% by order=%2%", column, order);
       const bool ascending = order == Qt::AscendingOrder;
@@ -576,9 +629,9 @@ namespace
       }
     }
   private:
-    virtual void ExecuteOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
+    void ExecuteOperation(Playlist::Item::StorageAccessOperation::Ptr operation) override
     {
-      const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+      const RWMutex::ReadLock lock(SyncAccess);
       emit OperationStarted();
       try
       {
@@ -590,17 +643,20 @@ namespace
       emit OperationStopped();
     }
 
-    virtual void ExecuteOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
+    void ExecuteOperation(Playlist::Item::StorageModifyOperation::Ptr operation) override
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
         emit OperationStarted();
-        Playlist::Item::Storage::Ptr tmpStorage = Container->Clone();
+        Playlist::Item::Storage::Ptr tmpStorage;
+        {
+          const RWMutex::ReadLock lock(SyncAccess);
+          tmpStorage = Container->Clone();
+        }
         try
         {
           operation->Execute(*tmpStorage, *this);
-          const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+          const RWMutex::WriteLock lock(SyncAccess);
           Container = tmpStorage;
           remapping = GetIndicesChanges();
         }
@@ -627,7 +683,7 @@ namespace
       }
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       emit OperationProgressChanged(current);
       if (Canceled)
@@ -636,7 +692,7 @@ namespace
       }
     }
 
-    virtual void OnProgress(uint_t current, const String& /*message*/)
+    void OnProgress(uint_t current, const String& /*message*/) override
     {
       OnProgress(current);
     }
@@ -646,8 +702,7 @@ namespace
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        const RWMutex::WriteLock lock(SyncAccess);
         Container->Add(val);
         remapping = GetIndicesChanges();
       }
@@ -657,17 +712,16 @@ namespace
     template<class T>
     void Add(const T& val)
     {
-      boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-      const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+      const RWMutex::WriteLock lock(SyncAccess);
       Container->Add(val);
     }
   private:
     const DataProvidersSet Providers;
-    mutable boost::shared_mutex SyncAccess;
+    mutable RWMutex SyncAccess;
     std::size_t FetchedItemsCount;
     Playlist::Item::Storage::Ptr Container;
     Async::Activity::Ptr AsyncExecution;
-    volatile bool Canceled;
+    std::atomic<bool> Canceled;
   };
 }
 
@@ -690,14 +744,14 @@ namespace Playlist
     {
       return &it->second;
     }
-    return 0;
+    return nullptr;
   }
 
   const Model::IndexType* Model::OldToNewIndexMap::FindNewSuitableIndex(IndexType oldIdx) const
   {
     if (empty())
     {
-      return 0;
+      return nullptr;
     }
     if (const Model::IndexType* direct = FindNewIndex(oldIdx))
     {
@@ -720,6 +774,6 @@ namespace Playlist
       }
     }
     assert(!"Invalid case");
-    return 0;
+    return nullptr;
   }
 }

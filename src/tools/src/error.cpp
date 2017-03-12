@@ -10,10 +10,10 @@
 
 //common includes
 #include <error_tools.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //text includes
 #include <tools/text/tools.h>
+//std includes
+#include <utility>
 
 namespace
 {
@@ -37,8 +37,8 @@ namespace
 // implementation of error's core used to keep data
 struct Error::Meta
 {
-  Meta(LocationRef loc, const String& txt)
-    : Location(loc), Text(txt)
+  Meta(LocationRef loc, String txt)
+    : Location(std::move(loc)), Text(std::move(txt))
   {
   }
 
@@ -50,12 +50,8 @@ struct Error::Meta
   MetaPtr Suberror;
 };
 
-Error::Error()
-{
-}
-
 Error::Error(LocationRef loc, const String& txt)
-  : ErrorMeta(boost::make_shared<Meta>(loc, txt))
+  : ErrorMeta(std::make_shared<Meta>(loc, txt))
 {
 }
 
@@ -91,7 +87,7 @@ Error::Location Error::GetLocation() const
 
 Error::operator Error::BoolType() const
 {
-  return ErrorMeta ? &Error::TrueFunc : 0;
+  return ErrorMeta ? &Error::TrueFunc : nullptr;
 }
 
 bool Error::operator ! () const

@@ -18,8 +18,8 @@ namespace Async
   class Operation
   {
   public:
-    typedef boost::shared_ptr<Operation> Ptr;
-    virtual ~Operation() {}
+    typedef std::shared_ptr<Operation> Ptr;
+    virtual ~Operation() = default;
 
     virtual void Prepare() = 0;
     virtual void Execute() = 0;
@@ -28,8 +28,8 @@ namespace Async
   class Activity
   {
   public:
-    typedef boost::shared_ptr<Activity> Ptr;
-    virtual ~Activity() {}
+    typedef std::shared_ptr<Activity> Ptr;
+    virtual ~Activity() = default;
 
     virtual bool IsExecuted() const = 0;
     //! @throw Error if Operation execution failed

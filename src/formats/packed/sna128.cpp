@@ -18,9 +18,8 @@
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
+#include <array>
 #include <numeric>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -30,7 +29,7 @@ namespace Packed
 {
   namespace Sna128
   {
-    typedef boost::array<uint8_t, 16384> PageData;
+    typedef std::array<uint8_t, 16384> PageData;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -68,12 +67,12 @@ namespace Packed
     } PACK_POST;
 
     //5,2,0,1,3,4,6,7
-    typedef boost::array<PageData, 8> ResultData;
+    typedef std::array<PageData, 8> ResultData;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 131103);
+    static_assert(sizeof(Header) == 131103, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
@@ -111,7 +110,7 @@ namespace Packed
     {
       static const uint_t PAGE_NUM_TO_INDEX[] = {2, 3, 1, 4, 5, 0, 6, 7};
 
-      std::auto_ptr<Dump> result(new Dump(sizeof(ResultData)));
+      std::unique_ptr<Dump> result(new Dump(sizeof(ResultData)));
       const Header& src = *safe_ptr_cast<const Header*>(rawData);
       ResultData& dst = *safe_ptr_cast<ResultData*>(&result->front());
       const uint_t curPage = src.Port7FFD & 7;
@@ -132,12 +131,12 @@ namespace Packed
         ++idx;
       }
       const std::size_t origSize = pageDuped ? sizeof(src) + sizeof(PageData) : sizeof(src);
-      return CreateContainer(result, origSize);
+      return CreateContainer(std::move(result), origSize);
     }
 
     const std::string FORMAT(
       "?{19}"
-      "00|01|02|03|ff" //iff. US saves 0x00/0xff instead of normal 0x00..0x03 flags
+      "00|01|02|03|04|ff" //iff. US saves 0x00/0x04/0xff instead of normal 0x00..0x03 flags
       "?{3}"
       "? 40-ff" //sp
       "00-02" //im mode
@@ -153,17 +152,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::SNA128_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

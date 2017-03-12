@@ -16,7 +16,7 @@ libraries.common = analysis \
 #3rdparty
 libraries.3rdparty = gme hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
 
-libraries.boost += filesystem system
+libraries.boost += filesystem
 
 windows_libraries := advapi32
 

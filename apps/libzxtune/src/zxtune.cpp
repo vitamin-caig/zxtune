@@ -22,7 +22,7 @@
 #include <binary/container_factories.h>
 #include <core/core_parameters.h>
 #include <core/module_open.h>
-#include <core/module_holder.h>
+#include <module/holder.h>
 #include <parameters/container.h>
 #include <platform/version/api.h>
 #include <sound/sound_parameters.h>
@@ -30,9 +30,6 @@
 #include <map>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/range/end.hpp>
-#include <boost/type_traits/is_signed.hpp>
 
 namespace Text
 {
@@ -87,14 +84,14 @@ namespace
   typedef HandlesCache<Binary::Container::Ptr> ContainersCache;
   typedef HandlesCache<Module::Holder::Ptr> ModulesCache;
 
-  BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
-  BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
-  BOOST_STATIC_ASSERT(boost::is_signed<Sound::Sample::Type>::value);
+  static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+  static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
+  static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
 
   class BufferRender : public Sound::Receiver
   {
   public:
-    typedef boost::shared_ptr<BufferRender> Ptr;
+    typedef std::shared_ptr<BufferRender> Ptr;
 
     BufferRender()
       : Buffer(32768)
@@ -102,12 +99,12 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Sound::Chunk::Ptr& data)
+    void ApplyData(const Sound::Chunk::Ptr& data) override
     {
       Buffer.Put(data->begin(), data->size());
     }
 
-    virtual void Flush()
+    void Flush() override
     {
     }
 
@@ -156,7 +153,7 @@ namespace
   class PlayerWrapper
   {
   public:
-    typedef boost::shared_ptr<PlayerWrapper> Ptr;
+    typedef std::shared_ptr<PlayerWrapper> Ptr;
 
     PlayerWrapper(Parameters::Container::Ptr params, Module::Renderer::Ptr renderer, BufferRender::Ptr buffer)
       : Params(params)
@@ -240,8 +237,8 @@ namespace
       Name2Val(Parameters::ZXTune::Core::AYM::CLOCKRATE, Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
       Name2Val(Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT),
     };
-    const Name2Val* const defVal = std::find_if(DEFAULTS, boost::end(DEFAULTS), boost::bind(&Name2Val::first, _1) == name);
-    if (boost::end(DEFAULTS) == defVal)
+    const Name2Val* const defVal = std::find_if(DEFAULTS, std::end(DEFAULTS), boost::bind(&Name2Val::first, _1) == name);
+    if (std::end(DEFAULTS) == defVal)
     {
       return false;
     }
@@ -278,8 +275,9 @@ ZXTuneHandle ZXTune_OpenModule(ZXTuneHandle data)
 {
   try
   {
+    const Parameters::Container::Ptr params = Parameters::Container::Create();
     const Binary::Container::Ptr src = ContainersCache::Instance().Get(data);
-    const Module::Holder::Ptr result = Module::Open(*src);
+    const Module::Holder::Ptr result = Module::Open(*params, *src);
     return ModulesCache::Instance().Add(result);
   }
   catch (const Error&)

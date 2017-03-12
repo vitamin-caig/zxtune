@@ -18,10 +18,9 @@
 #include <binary/input_stream.h>
 #include <formats/packed.h>
 //std includes
+#include <array>
 #include <numeric>
-//boost includes
-#include <boost/array.hpp>
-#include <boost/range/end.hpp>
+#include <utility>
 //text includes
 #include <formats/text/packed.h>
 
@@ -245,10 +244,10 @@ namespace Packed
     //at least 3 pages by 16384 bytes each
     const std::size_t Version3_0::MIN_SIZE = sizeof(Version3_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
 
-    BOOST_STATIC_ASSERT(sizeof(Version1_45::Header) == 30);
-    BOOST_STATIC_ASSERT(sizeof(Version2_0::Header) == 55);
-    BOOST_STATIC_ASSERT(sizeof(Version2_0::MemoryPage) == 3);
-    BOOST_STATIC_ASSERT(sizeof(Version3_0::Header) == 86);
+    static_assert(sizeof(Version1_45::Header) == 30, "Invalid layout");
+    static_assert(sizeof(Version2_0::Header) == 55, "Invalid layout");
+    static_assert(sizeof(Version2_0::MemoryPage) == 3, "Invalid layout");
+    static_assert(sizeof(Version3_0::Header) == 86, "Invalid layout");
 
     std::size_t DecodeBlock(const uint8_t* src, std::size_t srcSize, uint8_t* dst, std::size_t dstSize)
     {
@@ -282,9 +281,9 @@ namespace Packed
     void DecodeBlock(Binary::InputStream& stream, std::size_t srcSize, Dump& dst)
     {
       const std::size_t LOOKUP = 1;
-      const uint8_t* const src = stream.ReadData(LOOKUP);
-      const std::size_t used = DecodeBlock(src, srcSize, &dst[0], dst.size());
-      stream.ReadData(used - LOOKUP);
+      const auto src = stream.ReadRawData(LOOKUP);
+      const auto used = DecodeBlock(src, srcSize, &dst[0], dst.size());
+      stream.Skip(used - LOOKUP);
     }
 
     Formats::Packed::Container::Ptr Version1_45::Decode(Binary::InputStream& stream)
@@ -300,11 +299,11 @@ namespace Packed
         return CreateContainer(rest->GetSubcontainer(0, TARGET_SIZE), sizeof(hdr) + TARGET_SIZE);
       }
       Require(restSize > sizeof(FOOTER));
-      std::auto_ptr<Dump> res(new Dump(TARGET_SIZE));
+      std::unique_ptr<Dump> res(new Dump(TARGET_SIZE));
       DecodeBlock(stream, restSize - sizeof(FOOTER), *res);
       const uint32_t footer = fromLE(stream.ReadField<uint32_t>());
       Require(footer == FOOTER);
-      return CreateContainer(res, stream.GetPosition());
+      return CreateContainer(std::move(res), stream.GetPosition());
     }
 
     struct PlatformTraits
@@ -365,7 +364,7 @@ namespace Packed
         };
 
         Pages = 3;
-        Numbers.assign(VER48_PAGES, boost::end(VER48_PAGES));
+        Numbers.assign(VER48_PAGES, std::end(VER48_PAGES));
       }
 
       void FillSamRamTraits()
@@ -384,7 +383,7 @@ namespace Packed
         };
 
         Pages = 5;
-        Numbers.assign(SAMRAM_PAGES, boost::end(SAMRAM_PAGES));
+        Numbers.assign(SAMRAM_PAGES, std::end(SAMRAM_PAGES));
       }
 
       void Fill128kTraits()
@@ -404,7 +403,7 @@ namespace Packed
           7,  //p10(7) to 1c000
         };
         Pages = 8;
-        Numbers.assign(VER128_PAGES, boost::end(VER128_PAGES));
+        Numbers.assign(VER128_PAGES, std::end(VER128_PAGES));
       }
 
       void Fill256kTraits()
@@ -432,7 +431,7 @@ namespace Packed
           15,
         };
         Pages = 16;
-        Numbers.assign(VER256_PAGES, boost::end(VER256_PAGES));
+        Numbers.assign(VER256_PAGES, std::end(VER256_PAGES));
       }
 
       void FillTraits(Version2_0::HardwareTypes hwMode)
@@ -496,9 +495,9 @@ namespace Packed
       const std::size_t additionalSize = fromLE(hdr.AdditionalSize);
       const std::size_t readAdditionalSize = sizeof(hdr) - sizeof(Version1_45::Header) - sizeof(hdr.AdditionalSize);
       Require(additionalSize >= readAdditionalSize);
-      stream.ReadData(additionalSize - readAdditionalSize);
+      stream.Skip(additionalSize - readAdditionalSize);
       const PlatformTraits traits(additionalSize, hdr.HardwareMode, hdr.Port7ffd);
-      std::auto_ptr<Dump> res(new Dump(ZX_PAGE_SIZE * traits.PagesCount()));
+      std::unique_ptr<Dump> res(new Dump(ZX_PAGE_SIZE * traits.PagesCount()));
       Dump curPage(ZX_PAGE_SIZE);
       for (uint_t idx = 0; idx != traits.PagesCount(); ++idx)
       {
@@ -516,10 +515,10 @@ namespace Packed
         }
         Require(isPageValid);
         const std::size_t pageSize = fromLE(page.DataSize);
-        const uint8_t* pageSource = 0;
+        const uint8_t* pageSource = nullptr;
         if (pageSize == page.UNCOMPRESSED)
         {
-          pageSource = stream.ReadData(ZX_PAGE_SIZE);
+          pageSource = stream.ReadRawData(ZX_PAGE_SIZE);
         }
         else
         {
@@ -529,7 +528,7 @@ namespace Packed
         }
         std::memcpy(&res->front() + pageNumber * ZX_PAGE_SIZE, pageSource, ZX_PAGE_SIZE);
       }
-      return CreateContainer(res, stream.GetPosition());
+      return CreateContainer(std::move(res), stream.GetPosition());
     }
 
     Formats::Packed::Container::Ptr Version2_0::Decode(Binary::InputStream& stream)
@@ -553,21 +552,21 @@ namespace Packed
     }
 
     explicit Z80Decoder(Binary::Format::Ptr format)
-      : Format(format)
+      : Format(std::move(format))
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Version::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
+    Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

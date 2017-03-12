@@ -13,8 +13,11 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
+//std includes
+#include <array>
 
 namespace Formats
 {
@@ -53,7 +56,7 @@ namespace Formats
 
         uint_t Algorithm;
         uint_t Feedback;
-        Operator Operators[4];
+        std::array<Operator, 4> Operators;
       };
 
       struct Date
@@ -67,20 +70,22 @@ namespace Formats
         uint_t Month;
         uint_t Day;
       };
+      
+      typedef LinesObject<uint_t> Positions;
 
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod) = 0;
         virtual void SetDate(const Date& created, const Date& saved) = 0;
         virtual void SetComment(const String& comment) = 0;
 
-        virtual void SetInstrument(uint_t index, const Instrument& instrument) = 0;
+        virtual void SetInstrument(uint_t index, Instrument instrument) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 
@@ -117,7 +122,7 @@ namespace Formats
       class Decoder : public Formats::Chiptune::Decoder
       {
       public:
-        typedef boost::shared_ptr<const Decoder> Ptr;
+        typedef std::shared_ptr<const Decoder> Ptr;
 
         virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
       };

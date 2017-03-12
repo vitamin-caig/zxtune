@@ -36,31 +36,31 @@ namespace Null
   class BackendWorker : public Sound::BackendWorker
   {
   public:
-    virtual void Startup()
+    void Startup() override
     {
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
     }
 
-    virtual void Pause()
+    void Pause() override
     {
     }
 
-    virtual void Resume()
+    void Resume() override
     {
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    void FrameStart(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr /*buffer*/)
+    void FrameFinish(Chunk::Ptr /*buffer*/) override
     {
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return VolumeControl::Ptr();
     }
@@ -69,7 +69,7 @@ namespace Null
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr /*params*/, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr /*params*/, Module::Holder::Ptr /*holder*/) const override
     {
       return MakePtr<BackendWorker>();
     }

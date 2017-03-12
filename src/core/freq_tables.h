@@ -12,13 +12,13 @@
 
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 
 namespace Module
 {
   //! @brief Frequency table type- 96 words
-  typedef boost::array<uint16_t, 96> FrequencyTable;
+  typedef std::array<uint16_t, 96> FrequencyTable;
 
   //! %Sound Tracker frequency table
   const Char TABLE_SOUNDTRACKER[] = {'S','o','u','n','d','T','r','a','c','k','e','r','\0'};

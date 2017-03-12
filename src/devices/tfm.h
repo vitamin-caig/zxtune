@@ -31,7 +31,7 @@ namespace Devices
       }
 
       Register(uint_t chip, FM::Register reg)
-        : FM::Register(reg)
+        : FM::Register(std::move(reg))
       {
         Val |= chip << 16;
       }
@@ -63,8 +63,8 @@ namespace Devices
     class Device
     {
     public:
-      typedef boost::shared_ptr<Device> Ptr;
-      virtual ~Device() {}
+      typedef std::shared_ptr<Device> Ptr;
+      virtual ~Device() = default;
 
       virtual void RenderData(const DataChunk& src) = 0;
       virtual void Reset() = 0;
@@ -73,7 +73,7 @@ namespace Devices
     class Chip : public Device, public StateSource
     {
     public:
-      typedef boost::shared_ptr<Chip> Ptr;
+      typedef std::shared_ptr<Chip> Ptr;
     };
 
     using FM::ChipParameters;

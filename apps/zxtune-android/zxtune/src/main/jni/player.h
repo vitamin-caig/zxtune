@@ -13,7 +13,7 @@
 //local includes
 #include "storage.h"
 //library includes
-#include <core/module_holder.h>
+#include <module/holder.h>
 #include <parameters/container.h>
 
 namespace Player
@@ -21,8 +21,8 @@ namespace Player
   class Control
   {
   public:
-    typedef boost::shared_ptr<Control> Ptr;
-    virtual ~Control() {}
+    typedef std::unique_ptr<Control> Ptr;
+    virtual ~Control() = default;
 
     virtual uint_t GetPosition() const = 0;
     virtual uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const = 0;

@@ -29,9 +29,9 @@ namespace Playlist
     class Container
     {
     public:
-      typedef boost::shared_ptr<const Container> Ptr;
+      typedef std::shared_ptr<const Container> Ptr;
 
-      virtual ~Container() {}
+      virtual ~Container() = default;
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual unsigned GetItemsCount() const = 0;

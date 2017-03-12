@@ -24,12 +24,12 @@ namespace IO
   {
   public:
     //! Pointer type
-    typedef boost::shared_ptr<const Provider> Ptr;
+    typedef std::shared_ptr<const Provider> Ptr;
     //! Iterator type
     typedef ObjectIterator<Provider::Ptr> Iterator;
 
     //! Virtual destructor
-    virtual ~Provider() {}
+    virtual ~Provider() = default;
 
     //! Provider's identifier
     virtual String Id() const = 0;

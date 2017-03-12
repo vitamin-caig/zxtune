@@ -24,7 +24,7 @@ namespace Formats
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         /*
           Can be called to any of the entity (Module -> Track)
@@ -55,7 +55,7 @@ namespace Formats
       class ContainerBuilder : public Builder
       {
       public:
-        typedef boost::shared_ptr<ContainerBuilder> Ptr;
+        typedef std::shared_ptr<ContainerBuilder> Ptr;
         virtual Binary::Data::Ptr GetResult() = 0;
       };
 

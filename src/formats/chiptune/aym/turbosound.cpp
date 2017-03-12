@@ -46,7 +46,7 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
+    static_assert(sizeof(Footer) == 16, "Invalid layout");
 
     const std::string FOOTER_FORMAT(
       "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
@@ -59,8 +59,8 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetFirstSubmoduleLocation(std::size_t /*offset*/, std::size_t /*size*/) {}
-      virtual void SetSecondSubmoduleLocation(std::size_t /*offset*/, std::size_t /*size*/) {}
+      void SetFirstSubmoduleLocation(std::size_t /*offset*/, std::size_t /*size*/) override {}
+      void SetSecondSubmoduleLocation(std::size_t /*offset*/, std::size_t /*size*/) override {}
     };
 
     class ModuleTraits
@@ -68,7 +68,7 @@ namespace Chiptune
     public:
       ModuleTraits(const Binary::Data& data, std::size_t footerOffset)
         : FooterOffset(footerOffset)
-        , Foot(footerOffset != data.Size() ? safe_ptr_cast<const Footer*>(static_cast<const uint8_t*>(data.Start()) + footerOffset) : 0)
+        , Foot(footerOffset != data.Size() ? safe_ptr_cast<const Footer*>(static_cast<const uint8_t*>(data.Start()) + footerOffset) : nullptr)
         , FirstSize(Foot ? fromLE(Foot->Size1) : 0)
         , SecondSize(Foot ? fromLE(Foot->Size2) : 0)
       {
@@ -76,12 +76,12 @@ namespace Chiptune
 
       bool Matched() const
       {
-        return Foot != 0 && FooterOffset == FirstSize + SecondSize && Math::InRange(FooterOffset, MIN_SIZE, MAX_SIZE);
+        return Foot != nullptr && FooterOffset == FirstSize + SecondSize && Math::InRange(FooterOffset, MIN_SIZE, MAX_SIZE);
       }
 
       std::size_t NextOffset() const
       {
-        if (Foot == 0)
+        if (Foot == nullptr)
         {
           return FooterOffset;
         }
@@ -120,20 +120,20 @@ namespace Chiptune
     class FooterFormat : public Binary::Format
     {
     public:
-      typedef boost::shared_ptr<const FooterFormat> Ptr;
+      typedef std::shared_ptr<const FooterFormat> Ptr;
 
       FooterFormat()
         : Delegate(Binary::CreateFormat(FOOTER_FORMAT))
       {
       }
 
-      virtual bool Match(const Binary::Data& data) const
+      bool Match(const Binary::Data& data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.Matched();
       }
 
-      virtual std::size_t NextMatchOffset(const Binary::Data& data) const
+      std::size_t NextMatchOffset(const Binary::Data& data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.NextOffset();
@@ -155,28 +155,28 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::TURBOSOUND_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const override
       {
         const ModuleTraits& traits = Format->GetTraits(rawData);
 

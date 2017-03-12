@@ -14,13 +14,13 @@
 //library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
-#include <core/module_attrs.h>
 #include <core/plugins_parameters.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/io_parameters.h>
 #include <io/provider.h>
 #include <io/providers_parameters.h>
+#include <module/attributes.h>
 #include <platform/application.h>
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>
@@ -37,7 +37,6 @@
 #include <boost/variant/variant.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
-#include <boost/range/end.hpp>
 //text includes
 #include "text/text.h"
 
@@ -220,17 +219,17 @@ namespace
 
   struct OptionDesc
   {
-    OptionDesc(const Parameters::NameType& name, const String& descr, const ValueType& def)
+    OptionDesc(const Parameters::NameType& name, String descr, ValueType def)
       : Name(FromStdString(name.FullPath()))
-      , Desc(descr)
-      , Default(def)
+      , Desc(std::move(descr))
+      , Default(std::move(def))
     {
     }
 
-    OptionDesc(const String& name, const String& descr, const ValueType& def)
-      : Name(name)
-      , Desc(descr)
-      , Default(def)
+    OptionDesc(String name, String descr, ValueType def)
+      : Name(std::move(name))
+      , Desc(std::move(descr))
+      , Default(std::move(def))
     {
     }
 
@@ -416,7 +415,7 @@ namespace
                  Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT),
     };
     StdOut << Text::INFO_LIST_OPTIONS_TITLE << std::endl;
-    std::for_each(OPTIONS, boost::end(OPTIONS), ShowOption);
+    std::for_each(OPTIONS, std::end(OPTIONS), ShowOption);
   }
   
   typedef std::pair<String, String> AttrType;
@@ -452,7 +451,7 @@ namespace
       AttrType(Module::ATTR_CURRENT_LINE, Text::INFO_ATTRIBUTES_CURRENT_LINE)
     };
     StdOut << Text::INFO_LIST_ATTRIBUTES_TITLE << std::endl;
-    std::for_each(ATTRIBUTES, boost::end(ATTRIBUTES), ShowAttribute);
+    std::for_each(ATTRIBUTES, std::end(ATTRIBUTES), ShowAttribute);
   }
   
   void ShowFreqtables()
@@ -472,7 +471,7 @@ namespace
       Module::TABLE_NATURAL_SCALED
     };
     StdOut << Text::INFO_LIST_FREQTABLES_TITLE;
-    std::copy(FREQTABLES, boost::end(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
+    std::copy(FREQTABLES, std::end(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
     StdOut << std::endl;
   }
 
@@ -493,12 +492,12 @@ namespace
       ;
     }
     
-    virtual const boost::program_options::options_description& GetOptionsDescription() const
+    const boost::program_options::options_description& GetOptionsDescription() const override
     {
       return OptionsDescription;
     }
     
-    virtual bool Process(SoundComponent& sound) const
+    bool Process(SoundComponent& sound) const override
     {
       if (EnumPlugins)
       {
@@ -537,7 +536,7 @@ namespace
   };
 }
 
-std::auto_ptr<InformationComponent> InformationComponent::Create()
+std::unique_ptr<InformationComponent> InformationComponent::Create()
 {
-  return std::auto_ptr<InformationComponent>(new Information);
+  return std::unique_ptr<InformationComponent>(new Information);
 }

@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.widget.ProgressBar;
+
 import app.zxtune.MainApplication;
 import app.zxtune.fs.VfsDir;
 
@@ -83,11 +84,17 @@ class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Li
   }
 
   @Override
-  public synchronized void onProgressInit(int total) {
+  public synchronized void onProgressInit(final int total) {
     if (control != null) {
-      control.progress.setProgress(0);
-      control.progress.setMax(total);
-      control.progress.setIndeterminate(false);
+      final ProgressBar progress = control.progress;
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          progress.setProgress(0);
+          progress.setMax(total);
+          progress.setIndeterminate(false);
+        }
+      });
     }
   }
 

@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <core/module_holder.h>
+#include <module/holder.h>
 //std includes
 #include <vector>
 

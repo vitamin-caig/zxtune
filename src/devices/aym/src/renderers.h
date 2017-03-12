@@ -38,7 +38,7 @@ namespace AYM
     {
       ClockFreq = 0;
       SoundFreq = 0;
-      Current = 0;
+      Current = nullptr;
       Clock.Reset();
     }
 

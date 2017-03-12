@@ -14,8 +14,6 @@
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed/decoders.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace ZXTune
 {
@@ -83,16 +81,11 @@ namespace ZXTune
     {"COMPILEDSTP2",  &CreateCompiledSTP2Decoder,  Capabilities::Container::Type::DECOMPILER},
   };
 
-  void RegisterPlugins(const ArchivePluginDescription* from, const ArchivePluginDescription* to,
-    ArchivePluginsRegistrator& registrator)
+  void RegisterPlugin(const ArchivePluginDescription& desc, ArchivePluginsRegistrator& registrator)
   {
-    for (const ArchivePluginDescription* it = from; it != to; ++it)
-    {
-      const ArchivePluginDescription& desc = *it;
-      const Formats::Packed::Decoder::Ptr decoder = desc.Create();
-      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(FromStdString(desc.Id), desc.Caps, decoder);
-      registrator.RegisterPlugin(plugin);
-    }
+    const Formats::Packed::Decoder::Ptr decoder = desc.Create();
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(FromStdString(desc.Id), desc.Caps, decoder);
+    registrator.RegisterPlugin(plugin);
   }
 }
 
@@ -100,16 +93,25 @@ namespace ZXTune
 {
   void RegisterDepackPlugins(ArchivePluginsRegistrator& registrator)
   {
-    RegisterPlugins(DEPACKERS, boost::end(DEPACKERS), registrator);
+    for (const auto& desc : DEPACKERS)
+    {
+      RegisterPlugin(desc, registrator);
+    }
   }
 
   void RegisterChiptunePackerPlugins(ArchivePluginsRegistrator& registrator)
   {
-    RegisterPlugins(CHIPTUNE_PACKERS, boost::end(CHIPTUNE_PACKERS), registrator);
+    for (const auto& desc : CHIPTUNE_PACKERS)
+    {
+      RegisterPlugin(desc, registrator);
+    }
   }
 
   void RegisterDecompilePlugins(ArchivePluginsRegistrator& registrator)
   {
-    RegisterPlugins(DECOMPILERS, boost::end(DECOMPILERS), registrator);
+    for (const auto& desc : DECOMPILERS)
+    {
+      RegisterPlugin(desc, registrator);
+    }
   }
 }

@@ -18,9 +18,8 @@
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -30,7 +29,7 @@ namespace Chiptune
 {
   namespace KSS
   {
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -51,7 +50,7 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10);
+    static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
 
     const std::string FORMAT =
         "'K'S'C'C" //signature
@@ -73,22 +72,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::KSS_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

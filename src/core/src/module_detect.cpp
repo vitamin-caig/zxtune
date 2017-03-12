@@ -12,13 +12,13 @@
 #include "callback.h"
 #include "core/plugins/archive_plugins_enumerator.h"
 #include "core/plugins/player_plugins_enumerator.h"
-#include "core/plugins/players/ay/aym_base.h"
 //common includes
 #include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
+#include <module/players/aym/aym_base.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/container.h>
 //text includes
@@ -46,14 +46,14 @@ namespace Module
     {
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
+    void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const override
     {
       Result = holder;
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
-      return 0;
+      return nullptr;
     }
 
     Holder::Ptr GetResult() const
@@ -85,22 +85,22 @@ namespace Module
   {
   public:
     MixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
-      : Delegate(delegate)
-      , Properties(props)
+      : Delegate(std::move(delegate))
+      , Properties(std::move(props))
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Delegate->GetModuleInformation();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
     }
@@ -113,32 +113,32 @@ namespace Module
   {
   public:
     MixedPropertiesAYMHolder(AYM::Holder::Ptr delegate, Parameters::Accessor::Ptr props)
-      : Delegate(delegate)
-      , Properties(props)
+      : Delegate(std::move(delegate))
+      , Properties(std::move(props))
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    Information::Ptr GetModuleInformation() const override
     {
       return Delegate->GetModuleInformation();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), chip);
     }
 
-    virtual AYM::Chiptune::Ptr GetChiptune() const
+    AYM::Chiptune::Ptr GetChiptune() const override
     {
       return Delegate->GetChiptune();
     }
@@ -192,7 +192,7 @@ namespace Module
 
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
   {
-    if (const AYM::Holder::Ptr aym = boost::dynamic_pointer_cast<const AYM::Holder>(delegate))
+    if (const AYM::Holder::Ptr aym = std::dynamic_pointer_cast<const AYM::Holder>(delegate))
     {
       return MakePtr<MixedPropertiesAYMHolder>(aym, props);
     }

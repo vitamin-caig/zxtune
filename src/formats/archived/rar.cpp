@@ -21,9 +21,6 @@
 #include <cstring>
 #include <deque>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
-#include <boost/scoped_ptr.hpp>
 //text include
 #include <formats/text/packed.h>
 
@@ -93,7 +90,7 @@ namespace Archived
         const Packed::Rar::ArchiveBlockHeader& block = *Container.GetField<Packed::Rar::ArchiveBlockHeader>(Offset);
         return !block.IsExtended() && Packed::Rar::ArchiveBlockHeader::TYPE == block.Type
           ? &block
-          : 0;
+          : nullptr;
       }
     
       const Packed::Rar::FileBlockHeader* GetFileHeader() const
@@ -103,9 +100,9 @@ namespace Archived
         {
           return block->IsValid()
             ? block
-            : 0;
+            : nullptr;
         }
-        return 0;
+        return nullptr;
       }
 
       std::size_t GetOffset() const
@@ -172,10 +169,10 @@ namespace Archived
     class ChainDecoder
     {
     public:
-      typedef boost::shared_ptr<const ChainDecoder> Ptr;
+      typedef std::shared_ptr<const ChainDecoder> Ptr;
 
       explicit ChainDecoder(Binary::Container::Ptr data)
-        : Data(data)
+        : Data(std::move(data))
         , StatefulDecoder(Packed::CreateRarDecoder())
         , ChainIterator(new BlocksIterator(*Data))
       {
@@ -244,30 +241,30 @@ namespace Archived
     private:
       const Binary::Container::Ptr Data;
       const Formats::Packed::Decoder::Ptr StatefulDecoder;
-      mutable boost::scoped_ptr<BlocksIterator> ChainIterator;
+      mutable std::unique_ptr<BlocksIterator> ChainIterator;
     };
 
     class File : public Archived::File
     {
     public:
-      File(ChainDecoder::Ptr decoder, const FileBlock& block, const String& name)
-        : Decoder(decoder)
-        , Block(block)
-        , Name(name)
+      File(ChainDecoder::Ptr decoder, FileBlock block, String name)
+        : Decoder(std::move(decoder))
+        , Block(std::move(block))
+        , Name(std::move(name))
       {
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Block.GetUnpackedSize();
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '%1%' started at %2%", Name, Block.Offset);
         return Decoder->DecodeBlock(Block);
@@ -282,7 +279,7 @@ namespace Archived
     {
     public:
       FileIterator(ChainDecoder::Ptr decoder, const Binary::Container& data)
-        : Decoder(decoder)
+        : Decoder(std::move(decoder))
         , Blocks(data)
       {
         SkipNonFileBlocks();
@@ -357,23 +354,23 @@ namespace Archived
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
         for (FileIterator iter(Decoder, *Delegate); !iter.IsEof(); iter.Next())
         {
@@ -386,7 +383,7 @@ namespace Archived
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
         for (FileIterator iter(Decoder, *Delegate); !iter.IsEof(); iter.Next())
         {
@@ -398,7 +395,7 @@ namespace Archived
         return File::Ptr();
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return FilesCount;
       }
@@ -430,17 +427,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::RAR_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!Format->Match(data))
       {

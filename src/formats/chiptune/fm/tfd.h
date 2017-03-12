@@ -24,8 +24,8 @@ namespace Formats
       class Builder
       {
       public:
-        typedef boost::shared_ptr<Builder> Ptr;
-        virtual ~Builder() {}
+        typedef std::shared_ptr<Builder> Ptr;
+        virtual ~Builder() = default;
 
         virtual void SetTitle(const String& title) = 0;
         virtual void SetAuthor(const String& author) = 0;

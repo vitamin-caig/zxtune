@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <binary/container.h>
 
@@ -22,19 +23,21 @@ namespace Formats
   {
     namespace Digital
     {
+      typedef LinesObject<uint_t> Positions;
+    
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         //common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
         virtual void SetSamplesFrequency(uint_t freq) = 0;
-        virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample, bool is4Bit) = 0;
+        virtual void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample, bool is4Bit) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

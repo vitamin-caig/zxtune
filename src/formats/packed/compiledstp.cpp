@@ -19,9 +19,8 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
@@ -55,7 +54,7 @@ namespace Packed
         uint16_t PlayAddr;
         uint8_t Padding4[8];
         //+17
-        boost::array<uint8_t, 53> Information;
+        std::array<uint8_t, 53> Information;
         uint8_t Padding5[8];
         //+78
         uint8_t Initialization;
@@ -116,10 +115,10 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(offsetof(Version1::RawPlayer, Information) == 17);
-    BOOST_STATIC_ASSERT(offsetof(Version1::RawPlayer, Initialization) == 78);
-    BOOST_STATIC_ASSERT(offsetof(Version2::RawPlayer, Information) == 8);
-    BOOST_STATIC_ASSERT(offsetof(Version2::RawPlayer, Initialization) == 72);
+    static_assert(offsetof(Version1::RawPlayer, Information) == 17, "Invalid layout");
+    static_assert(offsetof(Version1::RawPlayer, Initialization) == 78, "Invalid layout");
+    static_assert(offsetof(Version2::RawPlayer, Information) == 8, "Invalid layout");
+    static_assert(offsetof(Version2::RawPlayer, Initialization) == 72, "Invalid layout");
 
     const String Version1::DESCRIPTION = String(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
     const String Version2::DESCRIPTION = String(Text::SOUNDTRACKERPRO2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
@@ -184,17 +183,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Version::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Player;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       using namespace CompiledSTP;
       if (!Player->Match(rawData))

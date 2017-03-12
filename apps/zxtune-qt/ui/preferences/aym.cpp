@@ -19,8 +19,9 @@
 //library includes
 #include <core/core_parameters.h>
 #include <sound/sound_parameters.h>
+//std includes
+#include <utility>
 //boost includes
-#include <boost/range/end.hpp>
 #include <boost/range/size.hpp>
 
 namespace
@@ -56,11 +57,11 @@ namespace
       Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION, ZXTune::Core::AYM::INTERPOLATION_DEFAULT);
     }
 
-    virtual void OnClockRateChanged(const QString& val)
+    void OnClockRateChanged(const QString& val) override
     {
       const qlonglong num = val.toLongLong();
-      const uint64_t* const preset = std::find(PRESETS, boost::end(PRESETS), num);
-      if (preset == boost::end(PRESETS))
+      const uint64_t* const preset = std::find(PRESETS, std::end(PRESETS), num);
+      if (preset == std::end(PRESETS))
       {
         clockRatePresets->setCurrentIndex(0);//custom
       }
@@ -70,7 +71,7 @@ namespace
       }
     }
 
-    virtual void OnClockRatePresetChanged(int idx)
+    void OnClockRatePresetChanged(int idx) override
     {
       if (idx != 0)
       {
@@ -80,7 +81,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {

@@ -124,7 +124,7 @@ class RangeIterator
   }
 public:
   RangeIterator(C from, C to)
-    : Cur(from), Lim(to)
+    : Cur(std::move(from)), Lim(std::move(to))
   {
   }
 
@@ -132,7 +132,7 @@ public:
 
   operator BoolType () const
   {
-    return Cur != Lim ? &RangeIterator<C>::TrueFunc : 0;
+    return Cur != Lim ? &RangeIterator<C>::TrueFunc : nullptr;
   }
 
   typename std::iterator_traits<C>::reference operator * () const
@@ -163,10 +163,10 @@ template<class T>
 class ObjectIterator
 {
 public:
-  typedef typename boost::shared_ptr<ObjectIterator<T> > Ptr;
+  typedef typename std::shared_ptr<ObjectIterator<T> > Ptr;
 
   //! Virtual destructor
-  virtual ~ObjectIterator() {}
+  virtual ~ObjectIterator() = default;
 
   //! Check if accessor is valid
   virtual bool IsValid() const = 0;
@@ -183,18 +183,18 @@ template<class T>
 class ObjectIteratorStub : public ObjectIterator<T>
 {
 public:
-  virtual bool IsValid() const
+  bool IsValid() const override
   {
     return false;
   }
 
-  virtual T Get() const
+  T Get() const override
   {
     assert(!"Should not be called");
     return T();
   }
 
-  virtual void Next()
+  void Next() override
   {
     assert(!"Should not be called");
   }
@@ -216,18 +216,18 @@ public:
   {
   }
 
-  virtual bool IsValid() const
+  bool IsValid() const override
   {
     return Range;
   }
 
-  virtual V Get() const
+  V Get() const override
   {
     assert(Range);
     return *Range;
   }
 
-  virtual void Next()
+  void Next() override
   {
     assert(Range);
     ++Range;

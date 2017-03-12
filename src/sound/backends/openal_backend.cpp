@@ -27,12 +27,7 @@
 #include <sound/render_params.h>
 //std includes
 #include <functional>
-//boost includes
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_array.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <thread>
 //text includes
 #include "text/backends.h"
 
@@ -55,13 +50,15 @@ namespace OpenAl
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
   
-  class ApiRef : private boost::noncopyable
+  class ApiRef
   {
   public:
     explicit ApiRef(Api& api)
       : OalApi(api)
     {
     }
+    
+    ApiRef(const ApiRef&) = delete;
     
     void CheckError(Error::LocationRef loc) const
     {
@@ -117,7 +114,7 @@ namespace OpenAl
     }
   private:
     ALCcontext* const Previous;
-    const boost::shared_ptr<ALCcontext> Current;
+    const std::shared_ptr<ALCcontext> Current;
     
   };
   
@@ -155,8 +152,8 @@ namespace OpenAl
   private:
     static ALenum GetFormat()
     {
-      BOOST_STATIC_ASSERT(Sample::CHANNELS == 1 || Sample::CHANNELS == 2);
-      BOOST_STATIC_ASSERT(Sample::BITS == 8 || Sample::BITS == 16);
+      static_assert(Sample::CHANNELS == 1 || Sample::CHANNELS == 2, "Incompatible sound channels count");
+      static_assert(Sample::BITS == 8 || Sample::BITS == 16, "Incompatible sound sample bits count");
       switch (256 * Sample::CHANNELS + Sample::BITS)
       {
       case 0x108:
@@ -174,7 +171,7 @@ namespace OpenAl
   private:
     const ALenum Format;
     const uint_t Size;
-    const boost::scoped_array<ALuint> Ids;
+    const std::unique_ptr<ALuint[]> Ids;
   };
   
   class Source : private ApiRef
@@ -183,7 +180,7 @@ namespace OpenAl
     explicit Source(Api& api, uint_t freq, uint_t buffersCount, Time::Milliseconds sleepPeriod)
       : ApiRef(api)
       , Freq(freq)
-      , SleepPeriod(sleepPeriod.Get())
+      , SleepPeriod(std::chrono::milliseconds(sleepPeriod.Get()))
     {
       Dbg("Create source");
       OalApi.alGetError();
@@ -252,7 +249,7 @@ namespace OpenAl
           CheckError(THIS_LINE);
           return freeBuf;
         }
-        boost::this_thread::sleep(SleepPeriod);
+        std::this_thread::sleep_for(SleepPeriod);
       }
     }
     
@@ -275,9 +272,9 @@ namespace OpenAl
     }
   private:
     const uint_t Freq;
-    const boost::posix_time::millisec SleepPeriod;
+    const std::chrono::milliseconds SleepPeriod;
     ALuint SrcId;
-    boost::scoped_ptr<Buffers> Queue;
+    std::unique_ptr<Buffers> Queue;
   };
 
   class Device : private ApiRef
@@ -296,8 +293,8 @@ namespace OpenAl
     }
     
   private:
-    const boost::shared_ptr<ALCdevice> Dev;
-    boost::scoped_ptr<ActiveContext> Context;
+    const std::shared_ptr<ALCdevice> Dev;
+    std::unique_ptr<ActiveContext> Context;
   };
 
   class BackendParameters
@@ -374,8 +371,8 @@ namespace OpenAl
     {
     }
 
-    const boost::scoped_ptr<Device> Dev;
-    const boost::scoped_ptr<Source> Src;
+    const std::unique_ptr<Device> Dev;
+    const std::unique_ptr<Source> Src;
     const VolumeControl::Ptr Vol;
   };
   
@@ -430,7 +427,7 @@ namespace OpenAl
   private:
     const Api::Ptr OalApi;
     const Parameters::Accessor::Ptr Params;
-    boost::scoped_ptr<State> Stat;
+    std::unique_ptr<State> Stat;
   };
 
   class BackendWorkerFactory : public Sound::BackendWorkerFactory

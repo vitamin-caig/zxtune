@@ -10,10 +10,11 @@
 
 package app.zxtune.fs;
 
+import android.net.Uri;
+
 import java.io.IOException;
 import java.util.ArrayDeque;
 
-import android.net.Uri;
 import app.zxtune.Log;
 
 public final class VfsIterator {
@@ -49,7 +50,7 @@ public final class VfsIterator {
     this(paths, new ErrorHandler() {
       @Override
       public void onIOError(IOException e) {
-        Log.d(TAG, e, "Skip I/O error");
+        Log.w(TAG, e, "Skip I/O error");
       }
     });
   }

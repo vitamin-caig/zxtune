@@ -19,9 +19,8 @@
 //library includes
 #include <binary/format_factories.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -50,24 +49,24 @@ namespace Chiptune
     PACK_PRE struct Header
     {
       uint16_t Duration;
-      boost::array<BufferDescription, MAX_REGISTERS> Buffers;
+      std::array<BufferDescription, MAX_REGISTERS> Buffers;
       uint8_t Reserved[6];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(BufferDescription) == 3);
-    BOOST_STATIC_ASSERT(sizeof(Header) == 50);
+    static_assert(sizeof(BufferDescription) == 3, "Invalid layout");
+    static_assert(sizeof(Header) == 50, "Invalid layout");
     
     const std::size_t MIN_SIZE = sizeof(Header) + 14;
 
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetFrames(std::size_t /*count*/) {}
-      virtual void StartChannel(uint_t /*idx*/) {}
-      virtual void AddValues(const Dump& /*values*/) {}
+      void SetFrames(std::size_t /*count*/) override {}
+      void StartChannel(uint_t /*idx*/) override {}
+      void AddValues(const Dump& /*values*/) override {}
     };
 
     bool FastCheck(const Binary::Container& rawData)
@@ -110,22 +109,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::AYC_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);

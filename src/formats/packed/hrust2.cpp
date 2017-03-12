@@ -24,12 +24,11 @@
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
-#include <numeric>
 #include <cstring>
+#include <functional>
+#include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/range/end.hpp>
-#include <boost/range/size.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -116,7 +115,7 @@ namespace Packed
         bool Check() const
         {
           static const uint8_t SIGNATURE[] = {'H', 'r', 's', 't', '2'};
-          return 0 == std::memcmp(ID, SIGNATURE, boost::size(ID));
+          return 0 == std::memcmp(ID, SIGNATURE, sizeof(ID));
         }
 
         std::size_t GetSize() const
@@ -223,11 +222,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
     private:
       bool DecodeData()
@@ -288,14 +287,14 @@ namespace Packed
             }
           }
         }
-        std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
+        std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
         return true;
       }
     private:
       const RawHeader& Header;
       Bitstream Stream;
       bool IsValid;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
 
@@ -365,10 +364,10 @@ namespace Packed
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
           };
-          BOOST_STATIC_ASSERT(sizeof(HRUST2_1_PADDING) == 255);
+          static_assert(sizeof(HRUST2_1_PADDING) == 255, "Invalid layout");
           const uint8_t* const paddingStart = Data + usefulSize;
           const uint8_t* const paddingEnd = Data + resultSize;
-          if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, boost::end(HRUST2_1_PADDING)))
+          if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, std::end(HRUST2_1_PADDING)))
           {
             if (pad >= MIN_SIGNATURE_MATCH)
             {
@@ -399,11 +398,11 @@ namespace Packed
           IsValid = IsValid && DecodeData();
         }
 
-        std::auto_ptr<Dump> GetResult()
+        std::unique_ptr<Dump> GetResult()
         {
           return IsValid
-            ? Result
-            : std::auto_ptr<Dump>();
+            ? std::move(Result)
+            : std::unique_ptr<Dump>();
         }
       private:
         bool DecodeData()
@@ -418,12 +417,12 @@ namespace Packed
           }
           RawDataDecoder decoder(Header.Stream, fromLE(Header.PackedSize));
           Result = decoder.GetResult();
-          return 0 != Result.get();
+          return nullptr != Result.get();
         }
       private:
         bool IsValid;
         const FormatHeader& Header;
-        std::auto_ptr<Dump> Result;
+        std::unique_ptr<Dump> Result;
       };
     }
 
@@ -485,15 +484,14 @@ namespace Packed
           const std::size_t totalSize = std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), 
             boost::bind(std::plus<std::size_t>(), _1,
               boost::bind(&Binary::Container::Size, _2)));
-          std::auto_ptr<Dump> result(new Dump(totalSize));
+          std::unique_ptr<Dump> result(new Dump(totalSize));
           std::size_t offset = 0;
-          for (std::vector<Binary::Container::Ptr>::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+          for (const auto& block : Blocks)
           {
-            const Binary::Container::Ptr block = *it;
             std::memcpy(&result->at(offset), block->Start(), block->Size());
             offset += block->Size();
           }
-          return Binary::CreateContainer(result);
+          return Binary::CreateContainer(std::move(result));
         }
       private:
         std::vector<Binary::Container::Ptr> Blocks;
@@ -580,7 +578,8 @@ namespace Packed
               break;
             }
           }
-          if (Result = target.GetResult())
+          Result = target.GetResult();
+          if (Result)
           {
             UsedSize = offset;
           }
@@ -601,17 +600,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::HRUST21_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {
@@ -637,17 +636,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::HRUST23_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

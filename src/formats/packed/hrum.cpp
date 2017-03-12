@@ -24,8 +24,6 @@
 #include <math/numeric.h>
 //std includes
 #include <numeric>
-//boost includes
-#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -99,7 +97,7 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x9b);
+    static_assert(sizeof(RawHeader) == 0x9b, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 
@@ -170,10 +168,10 @@ namespace Packed
           0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd,
           0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd, 0xcd,
         };
-        BOOST_STATIC_ASSERT(sizeof(HRUM3_5_PADDING) == 255);
+        static_assert(sizeof(HRUM3_5_PADDING) == 255, "Invalid layout");
         const uint8_t* const paddingStart = Data + usefulSize;
         const uint8_t* const paddingEnd = Data + resultSize;
-        if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUM3_5_PADDING, boost::end(HRUM3_5_PADDING)))
+        if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUM3_5_PADDING, std::end(HRUM3_5_PADDING)))
         {
           if (pad >= MIN_SIGNATURE_MATCH)
           {
@@ -231,11 +229,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
     private:
       bool DecodeData()
@@ -278,7 +276,7 @@ namespace Packed
           }
         }
         //put remaining bytes
-        std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
+        std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
         return true;
       }
     private:
@@ -301,7 +299,7 @@ namespace Packed
       bool IsValid;
       const RawHeader& Header;
       Bitstream Stream;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
   }//namespace Hrum
@@ -314,17 +312,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::HRUM_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Depacker;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Depacker->Match(rawData))
       {

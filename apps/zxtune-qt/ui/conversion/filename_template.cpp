@@ -27,6 +27,7 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QMessageBox>
 #include <QtGui/QVBoxLayout>
+#include <utility>
 
 namespace
 {
@@ -66,13 +67,13 @@ namespace
       BooleanValue::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES, ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
     }
 
-    virtual ~FilenameTemplateWidgetImpl()
+    ~FilenameTemplateWidgetImpl() override
     {
       UpdateRecentItemsLists();
       State->Save();
     }
 
-    virtual QString GetFilenameTemplate() const
+    QString GetFilenameTemplate() const override
     {
       const QString name = FileTemplate->currentText();
       if (0 == name.size())
@@ -90,7 +91,7 @@ namespace
       return name;
     }
 
-    virtual void OnBrowseDirectory()
+    void OnBrowseDirectory() override
     {
       QString dir = DirectoryName->currentText();
       if (UI::OpenFolderDialog(dirSelectionGroup->title(), dir))
@@ -100,7 +101,7 @@ namespace
       }
     }
 
-    virtual void OnClickHint(const QString& hint)
+    void OnClickHint(const QString& hint) override
     {
       QLineEdit* const editor = FileTemplate->lineEdit();
       editor->setText(editor->text() + hint);
@@ -121,13 +122,13 @@ namespace
   public:
     explicit FilenameTemplateDialog(QWidget& parent)
       : QDialog(&parent)
-      , TemplateBuilder(0)
+      , TemplateBuilder(nullptr)
     {
       TemplateBuilder = UI::FilenameTemplateWidget::Create(*this);
-      QDialogButtonBox* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
+      const auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
       Require(connect(buttons, SIGNAL(accepted()), this, SLOT(accept())));
       Require(connect(buttons, SIGNAL(rejected()), this, SLOT(reject())));
-      QVBoxLayout* const layout = new QVBoxLayout(this);
+      const auto layout = new QVBoxLayout(this);
       layout->setContentsMargins(4, 4, 4, 4);
       layout->setSpacing(4);
       layout->addWidget(TemplateBuilder);

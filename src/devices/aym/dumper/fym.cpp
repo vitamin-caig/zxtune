@@ -20,6 +20,7 @@
 //std includes
 #include <algorithm>
 #include <iterator>
+#include <utility>
 
 namespace Devices
 {
@@ -44,17 +45,17 @@ namespace AYM
   {
   public:
     explicit FYMBuilder(FYMDumperParameters::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
       , Delegate(CreateRawDumpBuilder())
     {
     }
 
-    virtual void Initialize()
+    void Initialize() override
     {
       return Delegate->Initialize();
     }
 
-    virtual void GetResult(Dump& data) const
+    void GetResult(Dump& data) const override
     {
       Dump rawDump;
       Delegate->GetResult(rawDump);
@@ -90,7 +91,7 @@ namespace AYM
       Binary::Compression::Zlib::Compress(result, data);
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update)
+    void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) override
     {
       return Delegate->WriteFrame(framesPassed, state, update);
     }

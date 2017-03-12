@@ -13,6 +13,8 @@
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QProxyStyle>
+//std includes
+#include <utility>
 
 namespace UI
 {
@@ -24,7 +26,7 @@ namespace UI
     {
     }
 
-    virtual int styleHint(QStyle::StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const
+    int styleHint(QStyle::StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override
     {
       if (hint == QStyle::SH_Slider_AbsoluteSetButtons)
       {

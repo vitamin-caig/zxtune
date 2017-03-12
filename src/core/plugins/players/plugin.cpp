@@ -10,14 +10,16 @@
 
 //local includes
 #include "plugin.h"
-#include "properties_helper.h"
 #include "core/src/callback.h"
 #include <core/plugins/plugins_types.h>
-#include <core/plugin_attrs.h>
 //common includes
 #include <make_ptr.h>
 //library includes
-#include <core/module_attrs.h>
+#include <core/plugin_attrs.h>
+#include <module/attributes.h>
+#include <module/players/properties_helper.h>
+//std includes
+#include <utility>
 
 namespace ZXTune
 {
@@ -25,23 +27,23 @@ namespace ZXTune
   {
   public:
     CommonPlayerPlugin(Plugin::Ptr descr, Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
-      : Description(descr)
-      , Decoder(decoder)
-      , Factory(factory)
+      : Description(std::move(descr))
+      , Decoder(std::move(decoder))
+      , Factory(std::move(factory))
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Decoder->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
     {
       const Binary::Container::Ptr data = inputData->GetData();
       if (Decoder->Check(*data))
@@ -61,7 +63,7 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), data);
     }
 
-    virtual Module::Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data) const
+    Module::Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data) const override
     {
       if (Decoder->Check(data))
       {

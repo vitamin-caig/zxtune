@@ -11,9 +11,8 @@
 #pragma once
 
 //std includes
+#include <memory>
 #include <vector>
-//boost includes
-#include <boost/shared_ptr.hpp>
 //qt includes
 #include <QtCore/QDate>
 #include <QtCore/QString>
@@ -24,7 +23,7 @@ namespace Product
   class Release
   {
   public:
-    virtual ~Release() {}
+    virtual ~Release() = default;
 
     enum PlatformTag
     {
@@ -54,7 +53,7 @@ namespace Product
   class Update : public Release
   {
   public:
-    typedef boost::shared_ptr<const Update> Ptr;
+    typedef std::shared_ptr<const Update> Ptr;
 
     enum PackagingTag
     {

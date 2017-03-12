@@ -26,9 +26,9 @@ namespace Formats
     class File
     {
     public:
-      typedef boost::shared_ptr<const File> Ptr;
+      typedef std::shared_ptr<const File> Ptr;
 
-      virtual ~File() {}
+      virtual ~File() = default;
 
       //! @brief Get archived file name
       //! @note In case of directories storing support, name will contain path separators
@@ -46,13 +46,13 @@ namespace Formats
     class Container : public Binary::Container
     {
     public:
-      typedef boost::shared_ptr<const Container> Ptr;
+      typedef std::shared_ptr<const Container> Ptr;
 
       //! @brief DIP interface used to get all files inside archive
       class Walker
       {
       public:
-        virtual ~Walker() {}
+        virtual ~Walker() = default;
 
         //! @brief Called on each visited file
         virtual void OnFile(const File& file) const = 0;
@@ -75,8 +75,8 @@ namespace Formats
     class Decoder
     {
     public:
-      typedef boost::shared_ptr<const Decoder> Ptr;
-      virtual ~Decoder() {}
+      typedef std::shared_ptr<const Decoder> Ptr;
+      virtual ~Decoder() = default;
 
       //! @brief Get short decoder description
       virtual String GetDescription() const = 0;

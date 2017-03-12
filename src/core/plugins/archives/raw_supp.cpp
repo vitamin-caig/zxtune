@@ -29,6 +29,7 @@
 #include <time/duration.h>
 #include <time/timer.h>
 //std includes
+#include <array>
 #include <list>
 #include <map>
 //boost includes
@@ -47,7 +48,7 @@ namespace ZXTune
   class StatisticBuilder
   {
   public:
-    typedef boost::array<std::string, Fields> Line;
+    typedef std::array<std::string, Fields> Line;
 
     StatisticBuilder()
       : Lines()
@@ -75,9 +76,9 @@ namespace ZXTune
     std::string Get() const
     {
       std::string res;
-      for (typename std::vector<Line>::const_iterator it = Lines.begin(), lim = Lines.end(); it != lim; ++it)
+      for (const auto& line : Lines)
       {
-        res += ToString(*it);
+        res += ToString(line);
       }
       return res;
     }
@@ -101,7 +102,7 @@ namespace ZXTune
     }
   private:
     std::vector<Line> Lines;
-    boost::array<std::size_t, Fields> Widths;
+    std::array<std::size_t, Fields> Widths;
   };
 
   class Statistic
@@ -214,9 +215,9 @@ namespace ZXTune
       }
     };
 
-    static boost::array<std::string, 7> MakeStatLine()
+    static std::array<std::string, 7> MakeStatLine()
     {
-      boost::array<std::string, 7> res;
+      std::array<std::string, 7> res;
       res[0] = "\nDetector";
       res[1] = "Missed detect";
       res[2] = "Total detect";
@@ -227,9 +228,9 @@ namespace ZXTune
       return res;
     }
 
-    static boost::array<std::string, 7> MakeStatLine(const StatItem& item)
+    static std::array<std::string, 7> MakeStatLine(const StatItem& item)
     {
-      boost::array<std::string, 7> res;
+      std::array<std::string, 7> res;
       res[0] = item.Name;
       res[1] = boost::lexical_cast<std::string>(item.Missed);
       res[2] = boost::lexical_cast<std::string>(item.Aimed + item.Missed);
@@ -326,12 +327,12 @@ namespace ZXTune
     {
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       OnProgress(current, Text);
     }
 
-    virtual void OnProgress(uint_t current, const String& message)
+    void OnProgress(uint_t current, const String& message) override
     {
       if (Delegate.get())
       {
@@ -346,7 +347,7 @@ namespace ZXTune
   class ScanDataContainer : public Binary::Container
   {
   public:
-    typedef boost::shared_ptr<ScanDataContainer> Ptr;
+    typedef std::shared_ptr<ScanDataContainer> Ptr;
 
     ScanDataContainer(Binary::Container::Ptr delegate, std::size_t offset)
       : Delegate(delegate)
@@ -356,17 +357,17 @@ namespace ZXTune
     {
     }
 
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return OriginalData + Offset;
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return OriginalSize - Offset;
     }
 
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
       return Delegate->GetSubcontainer(offset + Offset, size);
     }
@@ -395,21 +396,21 @@ namespace ZXTune
   class ScanDataLocation : public DataLocation
   {
   public:
-    typedef boost::shared_ptr<ScanDataLocation> Ptr;
+    typedef std::shared_ptr<ScanDataLocation> Ptr;
 
-    ScanDataLocation(DataLocation::Ptr parent, const String& subPlugin, std::size_t offset)
-      : Parent(parent)
+    ScanDataLocation(DataLocation::Ptr parent, String subPlugin, std::size_t offset)
+      : Parent(std::move(parent))
       , Subdata(MakePtr<ScanDataContainer>(Parent->GetData(), offset))
-      , Subplugin(subPlugin)
+      , Subplugin(std::move(subPlugin))
     {
     }
 
-    virtual Binary::Container::Ptr GetData() const
+    Binary::Container::Ptr GetData() const override
     {
       return Subdata;
     }
 
-    virtual Analysis::Path::Ptr GetPath() const
+    Analysis::Path::Ptr GetPath() const override
     {
       const Analysis::Path::Ptr parentPath = Parent->GetPath();
       if (std::size_t offset = Subdata->GetOffset())
@@ -420,7 +421,7 @@ namespace ZXTune
       return parentPath;
     }
 
-    virtual Analysis::Path::Ptr GetPluginsChain() const
+    Analysis::Path::Ptr GetPluginsChain() const override
     {
       const Analysis::Path::Ptr parentPlugins = Parent->GetPluginsChain();
       if (Subdata->GetOffset())
@@ -459,7 +460,7 @@ namespace ZXTune
       std::size_t Offset;
 
       explicit PluginEntry(typename P::Ptr plugin)
-        : Plugin(plugin)
+        : Plugin(std::move(plugin))
         , Offset()
       {
       }
@@ -475,25 +476,25 @@ namespace ZXTune
     {
     public:
       IteratorImpl(typename PluginsList::const_iterator it, typename PluginsList::const_iterator lim, std::size_t offset)
-        : Cur(it)
-        , Lim(lim)
+        : Cur(std::move(it))
+        , Lim(std::move(lim))
         , Offset(offset)
       {
         SkipUnaffected();
       }
 
-      virtual bool IsValid() const
+      bool IsValid() const override
       {
         return Cur != Lim;
       }
 
-      virtual typename P::Ptr Get() const
+      typename P::Ptr Get() const override
       {
         assert(Cur != Lim);
         return Cur->Plugin;
       }
 
-      virtual void Next()
+      void Next() override
       {
         assert(Cur != Lim);
         ++Cur;
@@ -559,21 +560,21 @@ namespace ZXTune
   {
   public:
     explicit DoubleAnalyzedArchivePlugin(ArchivePlugin::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Delegate->GetDescription();
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Delegate->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
     {
       const Analysis::Result::Ptr result = Delegate->Detect(params, inputData, callback);
       if (const std::size_t matched = result->GetMatchedDataSize())
@@ -583,9 +584,9 @@ namespace ZXTune
       return result;
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& params,
+    DataLocation::Ptr Open(const Parameters::Accessor& params,
                                    DataLocation::Ptr inputData,
-                                   const Analysis::Path& pathToOpen) const
+                                   const Analysis::Path& pathToOpen) const override
     {
       return Delegate->Open(params, inputData, pathToOpen);
     }
@@ -597,16 +598,16 @@ namespace ZXTune
   {
   public:
     explicit DoubleAnalysisArchivePlugins(ArchivePlugin::Iterator::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Delegate->IsValid();
     }
 
-    virtual ArchivePlugin::Ptr Get() const
+    ArchivePlugin::Ptr Get() const override
     {
       if (const ArchivePlugin::Ptr res = Delegate->Get())
       {
@@ -621,7 +622,7 @@ namespace ZXTune
       }
     }
 
-    virtual void Next()
+    void Next() override
     {
       return Delegate->Next();
     }
@@ -726,17 +727,17 @@ namespace ZXTune
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Binary::Format::Ptr();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const override
     {
       const Binary::Container::Ptr rawData = input->GetData();
       const std::size_t size = rawData->Size();
@@ -780,7 +781,7 @@ namespace ZXTune
       return Analysis::CreateMatchedResult(size);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
       std::size_t offset = 0;

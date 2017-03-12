@@ -26,10 +26,10 @@
 #include <map>
 #include <numeric>
 #include <sstream>
-//3rd-party includes
-#include <3rdparty/zlib/zlib.h>
 //boost includes
 #include <boost/range/size.hpp>
+//3rd-party includes
+#include <3rdparty/zlib/zlib.h>
 //text include
 #include <formats/text/archived.h>
 
@@ -68,7 +68,7 @@ namespace Archived
     class ChunksVisitor
     {
     public:
-      virtual ~ChunksVisitor() {}
+      virtual ~ChunksVisitor() = default;
 
       virtual bool Visit(const Chunk& ch) = 0;
       virtual bool Visit(const Chunk& ch, const DataBlockDescription& blk) = 0;
@@ -404,15 +404,15 @@ namespace Archived
           const std::size_t rest = Stream.GetRestSize();
           if (rest < sizeof(Chunk))
           {
-            return 0;
+            return nullptr;
           }
           const Chunk& chunk = Stream.ReadField<Chunk>();
           const std::size_t chunkSize = fromLE(chunk.Size);
           if (rest < sizeof(Chunk) + chunkSize)
           {
-            return 0;
+            return nullptr;
           }
-          Stream.ReadData(chunkSize);
+          Stream.Skip(chunkSize);
           return &chunk;
         }
 
@@ -433,7 +433,7 @@ namespace Archived
     {
       Require(blk.Content && blk.IsCompressed);
       const std::size_t targetSize = blk.UncompressedSize == UNKNOWN ? MAX_DECOMPRESS_SIZE : blk.UncompressedSize;
-      std::auto_ptr<Dump> result(new Dump(targetSize));
+      std::unique_ptr<Dump> result(new Dump(targetSize));
 
       z_stream stream = z_stream();
       int res = ::inflateInit(&stream);
@@ -457,7 +457,7 @@ namespace Archived
           if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == doneSize)
           {
             result->resize(doneSize);
-            return Binary::CreateContainer(result);
+            return Binary::CreateContainer(std::move(result));
           }
           Dbg("Uncompressed size mismatch");
         }
@@ -500,26 +500,26 @@ namespace Archived
     class SingleBlockFile : public Archived::File
     {
     public:
-      SingleBlockFile(Binary::Container::Ptr archive, const String& name, const DataBlockDescription& block)
-        : Data(archive)
-        , Name(name)
-        , Block(block)
+      SingleBlockFile(Binary::Container::Ptr archive, String name, DataBlockDescription  block)
+        : Data(std::move(archive))
+        , Name(std::move(name))
+        , Block(std::move(block))
       {
         Dbg("Created file '%1%', size=%2%, packed size=%3%, compression=%4%",
-          Name, Block.UncompressedSize, block.Size, Block.IsCompressed);
+          Name, Block.UncompressedSize, Block.Size, Block.IsCompressed);
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Block.UncompressedSize;
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '%1%' (%2% -> %3%)", Name, Block.Size, Block.UncompressedSize);
         return ExtractData(Block);
@@ -540,41 +540,41 @@ namespace Archived
     class MultiBlockFile : public Archived::File
     {
     public:
-      MultiBlockFile(Binary::Container::Ptr archive, const String& name, const DataBlocks& blocks)
-        : Data(archive)
-        , Name(name)
-        , Blocks(blocks)
+      MultiBlockFile(Binary::Container::Ptr archive, String name, DataBlocks blocks)
+        : Data(std::move(archive))
+        , Name(std::move(name))
+        , Blocks(std::move(blocks))
       {
         Dbg("Created file '%1%', contains from %2% parts", Name, Blocks.size());
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), &SumBlocksSize);
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         try
         {
           const std::size_t unpacked = GetSize();
           Require(unpacked != 0);
           Dbg("Decompressing '%1%' (%2% blocks, %3% butes result)", Name, Blocks.size(), unpacked);
-          std::auto_ptr<Dump> result(new Dump(unpacked));
+          std::unique_ptr<Dump> result(new Dump(unpacked));
           std::size_t target = 0;
-          for (DataBlocks::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+          for (const auto& block : Blocks)
           {
-            const Binary::Container::Ptr block = ExtractData(*it);
-            Require(block && block->Size() == it->UncompressedSize);
-            std::memcpy(&result->at(target), block->Start(), it->UncompressedSize);
-            target += it->UncompressedSize;
+            const Binary::Container::Ptr data = ExtractData(block);
+            Require(data && data->Size() == block.UncompressedSize);
+            std::memcpy(&result->at(target), data->Start(), block.UncompressedSize);
+            target += block.UncompressedSize;
           }
-          return Binary::CreateContainer(result);    
+          return Binary::CreateContainer(std::move(result));
         }
         catch (const std::exception&)
         {
@@ -623,13 +623,13 @@ namespace Archived
                        , public ChunksVisitor
     {
     public:
-      virtual bool Visit(const Chunk& ch)
+      bool Visit(const Chunk& ch) override
       {
         Dbg("Skipping useless '%1%'", GenerateChunkName(ch));
         return true;
       }
 
-      virtual bool Visit(const Chunk& ch, const DataBlockDescription& blk)
+      bool Visit(const Chunk& ch, const DataBlockDescription& blk) override
       {
         const String& name = GenerateChunkName(ch);
         Dbg("Single block '%1%'", name);
@@ -637,7 +637,7 @@ namespace Archived
         return true;
       }
 
-      virtual bool Visit(const Chunk& ch, uint_t idx, const DataBlockDescription& blk)
+      bool Visit(const Chunk& ch, uint_t idx, const DataBlockDescription& blk) override
       {
         const String& name = GenerateChunkName(ch, idx);
         Dbg("Single indexed block '%1%'", name);
@@ -646,7 +646,7 @@ namespace Archived
         return true;
       }
 
-      virtual bool Visit(const Chunk& ch, const String& suffix, const DataBlockDescription& blk)
+      bool Visit(const Chunk& ch, const String& suffix, const DataBlockDescription& blk) override
       {
         const String& name = GenerateChunkName(ch, suffix);
         Dbg("Single suffixed block '%1%'", name);
@@ -689,39 +689,39 @@ namespace Archived
     class Container : public Archived::Container
     {
     public:
-      Container(Binary::Container::Ptr archive, NamedBlocksMap::const_iterator begin, NamedBlocksMap::const_iterator end)
-        : Delegate(archive)
-        , Blocks(begin, end)
+      Container(Binary::Container::Ptr archive, NamedBlocksMap blocks)
+        : Delegate(std::move(archive))
+        , Blocks(std::move(blocks))
       {
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
-        for (NamedBlocksMap::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+        for (const auto& block : Blocks)
         {
-          const File::Ptr file = CreateFileOnBlocks(it->first, it->second);
+          const File::Ptr file = CreateFileOnBlocks(block.first, block.second);
           walker.OnFile(*file);
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
         const NamedBlocksMap::const_iterator it = Blocks.find(name);
         return it != Blocks.end()
@@ -729,7 +729,7 @@ namespace Archived
           : File::Ptr();
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return static_cast<uint_t>(Blocks.size());
       }
@@ -759,17 +759,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::ZXSTATE_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       using namespace ZXState;
       if (!Format->Match(data))
@@ -783,7 +783,7 @@ namespace Archived
         if (!blocks.empty())
         {
           const Binary::Container::Ptr archive = data.GetSubcontainer(0, size);
-          return MakePtr<ZXState::Container>(archive, blocks.begin(), blocks.end());
+          return MakePtr<ZXState::Container>(archive, blocks);
         }
         Dbg("No files found");
       }

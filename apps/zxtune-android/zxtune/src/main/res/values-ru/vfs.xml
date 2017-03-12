@@ -49,6 +49,7 @@
     <string name="vfs_zxart_compo_oldschool">Конкурс oldschool музыки</string>
     <string name="vfs_zxart_compo_mainstream">Конкурс mainstream музыки</string>
     <string name="vfs_zxart_compo_progressive">Конкурс progressive музыки</string>
+    <string name="vfs_zxart_compo_related">Музыка из релизов пати</string>
     <!-- joshw.info -->
     <string name="vfs_joshw_root_description">Различные архивы</string>
     <!-- amp.dascene.net -->

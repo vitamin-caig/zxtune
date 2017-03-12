@@ -15,8 +15,6 @@
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Sound
 {
@@ -25,21 +23,25 @@ namespace Sound
     class LibraryName : public Platform::SharedLibrary::Name
     {
     public:
-      virtual std::string Base() const
+      LibraryName()
+      {
+      }
+      
+      std::string Base() const override
       {
         return "SDL";
       }
       
-      virtual std::vector<std::string> PosixAlternatives() const
+      std::vector<std::string> PosixAlternatives() const override
       {
         static const std::string ALTERNATIVES[] =
         {
           "libSDL-1.2.so.0",
         };
-        return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
+        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
-      virtual std::vector<std::string> WindowsAlternatives() const
+      std::vector<std::string> WindowsAlternatives() const override
       {
         return std::vector<std::string>();
       }

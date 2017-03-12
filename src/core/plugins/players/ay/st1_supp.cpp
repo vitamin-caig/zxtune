@@ -10,8 +10,10 @@
 
 //local includes
 #include "aym_plugin.h"
-#include "soundtracker.h"
 #include "core/plugins/player_plugins_registrator.h"
+//library includes
+#include <formats/chiptune/aym/soundtracker.h>
+#include <module/players/aym/soundtracker.h>
 
 namespace ZXTune
 {
@@ -21,7 +23,7 @@ namespace ZXTune
     const Char ID[] = {'S', 'T', '1', 0};
 
     const Formats::Chiptune::SoundTracker::Decoder::Ptr decoder = Formats::Chiptune::SoundTracker::Ver1::CreateUncompiledDecoder();
-    const Module::AYM::Factory::Ptr factory = Module::SoundTracker::CreateModulesFactory(decoder);
+    const Module::AYM::Factory::Ptr factory = Module::SoundTracker::CreateFactory(decoder);
     const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

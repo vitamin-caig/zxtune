@@ -16,11 +16,10 @@
 //library includes
 #include <async/queue.h>
 //std includes
+#include <atomic>
+#include <condition_variable>
 #include <deque>
-//boost includes
-#include <boost/bind.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 namespace Async
 {
@@ -34,25 +33,25 @@ namespace Async
     {
     }
 
-    virtual void Add(T val)
+    void Add(T val) override
     {
-      boost::mutex::scoped_lock lock(Locker);
-      CanPutDataEvent.wait(lock, boost::bind(&SizedQueue::CanPutData, this));
+      std::unique_lock<std::mutex> lock(Locker);
+      CanPutDataEvent.wait(lock, [this] () {return CanPutData();});
       if (Active)
       {
-        Container.push_back(val);
+        Container.emplace_back(std::move(val));
         CanGetDataEvent.notify_one();
       }
     }
 
-    virtual bool Get(T& res)
+    bool Get(T& res) override
     {
-      boost::mutex::scoped_lock lock(Locker);
-      CanGetDataEvent.wait(lock, boost::bind(&SizedQueue::CanGetData, this));
+      std::unique_lock<std::mutex> lock(Locker);
+      CanGetDataEvent.wait(lock, [this] () {return CanGetData();});
       if (Active)
       {
         Require(!Container.empty());
-        res = Container.front();
+        res = std::move(Container.front());
         Container.pop_front();
         CanPutDataEvent.notify_one();
         return true;
@@ -60,19 +59,19 @@ namespace Async
       return false;
     }
 
-    virtual void Reset()
+    void Reset() override
     {
-      const boost::mutex::scoped_lock lock(Locker);
+      const std::lock_guard<std::mutex> lock(Locker);
       Container.clear();
       Active = false;
       CanGetDataEvent.notify_all();
       CanPutDataEvent.notify_all();
     }
 
-    virtual void Flush()
+    void Flush() override
     {
-      boost::mutex::scoped_lock lock(Locker);
-      CanPutDataEvent.wait(lock, boost::bind(&ContainerType::empty, &Container));
+      std::unique_lock<std::mutex> lock(Locker);
+      CanPutDataEvent.wait(lock, [this] () {return Container.empty();});
     }
 
     static typename Queue<T>::Ptr Create(std::size_t size)
@@ -91,10 +90,11 @@ namespace Async
     }
   private:
     const std::size_t MaxSize;
-    volatile bool Active;
-    mutable boost::mutex Locker;
-    boost::condition_variable CanPutDataEvent;
-    boost::condition_variable CanGetDataEvent;
+    //std::atomic_bool does not work in MSVC
+    std::atomic<bool> Active;
+    mutable std::mutex Locker;
+    std::condition_variable CanPutDataEvent;
+    std::condition_variable CanGetDataEvent;
     typedef std::deque<T> ContainerType;
     ContainerType Container;
   };

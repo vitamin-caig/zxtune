@@ -21,7 +21,7 @@ namespace Strings
   class FieldsSource
   {
   public:
-    virtual ~FieldsSource() {}
+    virtual ~FieldsSource() = default;
 
     virtual String GetFieldValue(const String& fieldName) const = 0;
   };
@@ -32,7 +32,7 @@ namespace Strings
   class SkipFieldsSource : public FieldsSource
   {
   public:
-    virtual String GetFieldValue(const String& /*fieldName*/) const
+    String GetFieldValue(const String& /*fieldName*/) const override
     {
       return String();
     }
@@ -42,7 +42,7 @@ namespace Strings
   class KeepFieldsSource : public FieldsSource
   {
   public:
-    virtual String GetFieldValue(const String& fieldName) const
+    String GetFieldValue(const String& fieldName) const override
     {
       String res(1, Template::FIELD_START);
       res += fieldName;
@@ -55,7 +55,7 @@ namespace Strings
   class FillFieldsSource : public FieldsSource
   {
   public:
-    virtual String GetFieldValue(const String& fieldName) const
+    String GetFieldValue(const String& fieldName) const override
     {
       return String(fieldName.size() + 2, ' ');
     }

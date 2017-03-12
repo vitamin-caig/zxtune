@@ -14,8 +14,6 @@
 #include <algorithm>
 #include <iterator>
 #include <make_ptr.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace Devices
 {
@@ -31,7 +29,7 @@ namespace AYM
       END_MUS = 0xfd
     };
 
-    virtual void Initialize()
+    void Initialize() override
     {
       static const uint8_t HEADER[] =
       {
@@ -41,16 +39,16 @@ namespace AYM
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,//padding
         END_MUS
       };
-      BOOST_STATIC_ASSERT(sizeof(HEADER) == 16 + 1);
-      Data.assign(HEADER, boost::end(HEADER));
+      static_assert(sizeof(HEADER) == 16 + 1, "Invalid header layout");
+      Data.assign(HEADER, std::end(HEADER));
     }
 
-    virtual void GetResult(Dump& data) const
+    void GetResult(Dump& data) const override
     {
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update)
+    void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update) override
     {
       assert(framesPassed);
 

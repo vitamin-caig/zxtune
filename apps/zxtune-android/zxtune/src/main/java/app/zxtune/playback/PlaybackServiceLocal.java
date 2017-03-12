@@ -10,14 +10,16 @@
 
 package app.zxtune.playback;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.Uri;
+
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.net.Uri;
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
@@ -60,6 +62,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
     this.holder = new Holder();
+    this.callbacks.add(new Analytics.PlaybackEventsCallback());
   }
 
   @Override
@@ -225,11 +228,19 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
       Log.d(TAG, "Executor shut down");
     } catch (InterruptedException e) {
-      Log.d(TAG, e, "Failed to shutdown executor");
+      Log.w(TAG, e, "Failed to shutdown executor");
+    }
+  }
+
+  private void executeCommand(Command cmd) {
+    try {
+      executeCommandImpl(cmd);
+    } catch (Exception e) {
+      Log.w(TAG, e, cmd.getClass().getName());
     }
   }
   
-  private void executeCommand(final Command cmd) {
+  private void executeCommandImpl(final Command cmd) {
     executor.execute(new Runnable() {
 
       @Override
@@ -238,7 +249,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
           callbacks.onIOStatusChanged(true);
           cmd.execute();
         } catch (Exception e) {//IOException|InterruptedException
-          Log.d(TAG, e, cmd.getClass().getName());
+          Log.w(TAG, e, cmd.getClass().getName());
           final Throwable cause = e.getCause();
           final String msg = cause != null ? cause.getMessage() : e.getMessage();
           callbacks.onError(msg);
@@ -428,7 +439,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void onError(Exception e) {
-      Log.d(TAG, e, "Error occurred");
+      Log.w(TAG, e, "Error occurred");
     }
   }
   

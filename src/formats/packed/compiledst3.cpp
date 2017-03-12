@@ -18,8 +18,8 @@
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
@@ -73,8 +73,8 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(offsetof(RawPlayer, Information) == 12);
-    BOOST_STATIC_ASSERT(offsetof(RawPlayer, Initialization) == 67);
+    static_assert(offsetof(RawPlayer, Information) == 12, "Invalid layout");
+    static_assert(offsetof(RawPlayer, Initialization) == 67, "Invalid layout");
 
     const String DESCRIPTION = String(Text::SOUNDTRACKER3_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
@@ -112,17 +112,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return CompiledST3::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Player;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       using namespace CompiledST3;
 

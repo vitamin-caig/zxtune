@@ -20,7 +20,7 @@ namespace Sound
   class FileStream : public Receiver
   {
   public:
-    typedef boost::shared_ptr<FileStream> Ptr;
+    typedef std::shared_ptr<FileStream> Ptr;
 
     virtual void SetTitle(const String& title) = 0;
     virtual void SetAuthor(const String& author) = 0;
@@ -31,8 +31,8 @@ namespace Sound
   class FileStreamFactory
   {
   public:
-    typedef boost::shared_ptr<const FileStreamFactory> Ptr;
-    virtual ~FileStreamFactory() {}
+    typedef std::shared_ptr<const FileStreamFactory> Ptr;
+    virtual ~FileStreamFactory() = default;
 
     virtual String GetId() const = 0;
     virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const = 0;

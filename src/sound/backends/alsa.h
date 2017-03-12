@@ -14,8 +14,6 @@
 #include <iterator.h>
 //library includes
 #include <strings/array.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Sound
 {
@@ -24,9 +22,9 @@ namespace Sound
     class Device
     {
     public:
-      typedef boost::shared_ptr<const Device> Ptr;
+      typedef std::shared_ptr<const Device> Ptr;
       typedef ObjectIterator<Ptr> Iterator;
-      virtual ~Device() {}
+      virtual ~Device() = default;
 
       virtual String Id() const = 0;
       virtual String Name() const = 0;

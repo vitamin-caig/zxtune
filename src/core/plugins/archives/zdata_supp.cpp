@@ -25,6 +25,8 @@
 #include <binary/data_builder.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
+//std includes
+#include <algorithm>
 //text includes
 #include <core/text/plugins.h>
 
@@ -34,7 +36,7 @@ namespace Zdata
 {
   const Debug::Stream Dbg("Core::ZData");
 
-  typedef boost::array<uint8_t, 2> SignatureType;
+  typedef std::array<uint8_t, 2> SignatureType;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -60,7 +62,7 @@ namespace Zdata
       return (Data[2] << 16) | (Data[1] << 8) | Data[0];
     }
   private:
-    boost::array<uint8_t, 3> Data;
+    std::array<uint8_t, 3> Data;
   } PACK_POST;
 
   //4 LSBs of signature may be version
@@ -79,8 +81,8 @@ namespace Zdata
     UInt24LE PackedSize;
   } PACK_POST;
 
-  typedef boost::array<char, 8> TxtMarker;
-  typedef boost::array<char, 16> TxtHeader;
+  typedef std::array<char, 8> TxtMarker;
+  typedef std::array<char, 16> TxtHeader;
   
   struct Marker
   {
@@ -92,9 +94,10 @@ namespace Zdata
     TxtMarker Encode() const
     {
       const RawMarker in = {SIGNATURE, fromLE(Value)};
-      const uint8_t* const inData = in.Signature.begin();
+      const auto inData = in.Signature.data();
       TxtMarker out;
-      Binary::Base64::Encode(inData, inData + sizeof(in), out.begin(), out.end());
+      const auto outData = out.data();
+      Binary::Base64::Encode(inData, inData + sizeof(in), outData, outData + out.size());
       return out;
     }
 
@@ -113,8 +116,9 @@ namespace Zdata
     static Header Decode(const TxtHeader& in)
     {
       RawHeader out;
-      uint8_t* const outData = out.Signature.begin();
-      Binary::Base64::Decode(in.begin(), in.end(), outData, outData + sizeof(out));
+      const auto inData = in.data();
+      const auto outData = out.Signature.data();
+      Binary::Base64::Decode(inData, inData + in.size(), outData, outData + sizeof(out));
       Require(out.Signature == SIGNATURE);
       return Header(fromLE(out.Crc), out.OriginalSize, out.PackedSize);
     }
@@ -145,8 +149,8 @@ namespace Zdata
   sym: Z      D      ?      ?       ?      ?      ?      ?       ?      ?      ?      ?       ?      ?      ?      ?       e      N      opqr
   */
 
-  BOOST_STATIC_ASSERT(sizeof(RawMarker) == 6);
-  BOOST_STATIC_ASSERT(sizeof(RawHeader) == 12);
+  static_assert(sizeof(RawMarker) == 6, "Invalid layout of RawMarker");
+  static_assert(sizeof(RawHeader) == 12, "Invalid layout of RawHeader");
 
   const IndexPathComponent PATH(Text::ZDATA_PLUGIN_PREFIX);
 
@@ -196,11 +200,11 @@ namespace Zdata
       Dbg("Found container id=%1%", hdr.Crc);
       Dump decoded(hdr.Packed);
       Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), &decoded[0], &decoded[0] + hdr.Packed);
-      std::auto_ptr<Dump> unpacked(new Dump(hdr.Original));
+      std::unique_ptr<Dump> unpacked(new Dump(hdr.Original));
       Dbg("Unpack %1% => %2%", hdr.Packed, hdr.Original);
       Binary::Compression::Zlib::Decompress(decoded, *unpacked);
       Require(hdr.Crc == Crc32(&unpacked->front(), unpacked->size()));
-      return Binary::CreateContainer(unpacked);
+      return Binary::CreateContainer(std::move(unpacked));
     }
     catch (const std::exception&)
     {
@@ -230,11 +234,11 @@ namespace Zdata
   Binary::Container::Ptr Convert(const void* input, std::size_t inputSize)
   {
     const std::size_t outSize = Binary::Base64::CalculateConvertedSize(inputSize);
-    std::auto_ptr<Dump> result(new Dump(outSize));
+    std::unique_ptr<Dump> result(new Dump(outSize));
     const uint8_t* const in = static_cast<const uint8_t*>(input);
     char* const out = safe_ptr_cast<char*>(&result->front());
     Binary::Base64::Encode(in, in + inputSize, out, out + outSize);
-    return Binary::CreateContainer(result);
+    return Binary::CreateContainer(std::move(result));
   }
 }
 }
@@ -269,22 +273,22 @@ namespace ZXTune
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Binary::Format::Ptr();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input, const Module::DetectCallback& /*callback*/) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input, const Module::DetectCallback& /*callback*/) const override
     {
       return Analysis::CreateUnmatchedResult(input->GetData()->Size());
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
       Parameters::IntType marker;

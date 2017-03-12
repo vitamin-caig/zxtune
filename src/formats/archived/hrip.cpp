@@ -18,6 +18,7 @@
 #include <binary/format_factories.h>
 #include <formats/packed/decoders.h>
 //std includes
+#include <algorithm>
 #include <cstring>
 //text include
 #include <formats/text/archived.h>
@@ -81,8 +82,8 @@ namespace Archived
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 8);
-    BOOST_STATIC_ASSERT(offsetof(BlockHeader, PackedCRC) == 11);
+    static_assert(sizeof(Header) == 8, "Invalid layout");
+    static_assert(offsetof(BlockHeader, PackedCRC) == 11, "Invalid layout");
 
     // crc16 calculating routine
     inline uint_t CalcCRC(const uint8_t* data, std::size_t size)
@@ -189,17 +190,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::HRIP_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       //implies FastCheck
       return Hrip::ParseArchive(data);

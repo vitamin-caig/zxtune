@@ -20,8 +20,8 @@ namespace Playlist
     class Comparer
     {
     public:
-      typedef boost::shared_ptr<const Comparer> Ptr;
-      virtual ~Comparer() {}
+      typedef std::shared_ptr<const Comparer> Ptr;
+      virtual ~Comparer() = default;
 
       virtual bool CompareItems(const Data& lh, const Data& rh) const = 0;
     };
@@ -29,7 +29,7 @@ namespace Playlist
     class Visitor
     {
     public:
-      virtual ~Visitor() {}
+      virtual ~Visitor() = default;
 
       virtual void OnItem(Model::IndexType index, Item::Data::Ptr data) = 0;
     };
@@ -37,9 +37,9 @@ namespace Playlist
     class Storage
     {
     public:
-      typedef boost::shared_ptr<Storage> Ptr;
+      typedef std::shared_ptr<Storage> Ptr;
 
-      virtual ~Storage() {}
+      virtual ~Storage() = default;
 
       //meta
       virtual Ptr Clone() const = 0;

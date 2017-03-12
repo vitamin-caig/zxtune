@@ -13,7 +13,6 @@
 #include <range_checker.h>
 
 #include <iostream>
-#include <boost/bind.hpp>
 
 namespace
 {

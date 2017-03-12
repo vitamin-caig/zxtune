@@ -14,9 +14,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.amp.Catalog.AuthorsVisitor;
+import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -64,7 +70,7 @@ final class Database {
         ");";
       ;
       
-      Authors(SQLiteOpenHelper helper) {
+      Authors(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -98,7 +104,7 @@ final class Database {
           "size INTEGER NOT NULL" +
           ");";
 
-      Tracks(SQLiteOpenHelper helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -127,7 +133,7 @@ final class Database {
       final static String NAME = "author_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      AuthorTracks(SQLiteOpenHelper helper) {
+      AuthorTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -145,7 +151,7 @@ final class Database {
       final static String NAME = "country_authors";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      CountryAuthors(SQLiteOpenHelper helper) {
+      CountryAuthors(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -172,7 +178,7 @@ final class Database {
         ");";
       ;
 
-      Groups(SQLiteOpenHelper helper) {
+      Groups(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -192,7 +198,7 @@ final class Database {
       final static String NAME = "group_authors";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      GroupAuthors(SQLiteOpenHelper helper) {
+      GroupAuthors(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -206,7 +212,7 @@ final class Database {
     }
   }
 
-  private final Helper helper;
+  private final DBProvider helper;
   private final Tables.CountryAuthors countryAuthors;
   private final Tables.GroupAuthors groupAuthors;
   private final Tables.Groups groups;
@@ -215,9 +221,10 @@ final class Database {
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
   private final String findQuery;
+  private final VfsCache cacheDir;
 
-  Database(Context context) {
-    this.helper = Helper.create(context);
+  Database(Context context, VfsCache cache) throws IOException {
+    this.helper = new DBProvider(Helper.create(context));
     this.countryAuthors = new Tables.CountryAuthors(helper);
     this.groupAuthors = new Tables.GroupAuthors(helper);
     this.groups = new Tables.Groups(helper);
@@ -229,9 +236,10 @@ final class Database {
         "FROM authors LEFT OUTER JOIN tracks ON " +
         "tracks." + Tables.Tracks.getSelection(authorTracks.getIdsSelection("authors._id")) +
         " WHERE tracks.filename LIKE '%' || ? || '%'";
+    this.cacheDir = cache.createNested("amp.dascene.net");
   }
 
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(helper.getWritableDatabase());
   }
   
@@ -256,7 +264,6 @@ final class Database {
   }
   
   final boolean queryAuthors(String handleFilter, AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors(filter=%s)", handleFilter);
     final String selection = Catalog.NON_LETTER_FILTER.equals(handleFilter)
       ? "SUBSTR(" + Tables.Authors.Fields.handle + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
       : Tables.Authors.Fields.handle + " LIKE '" + handleFilter + "%'";
@@ -264,13 +271,11 @@ final class Database {
   }
   
   final boolean queryAuthors(Country country, AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors(country=%d)", country.id);
     final String selection = Tables.Authors.getSelection(countryAuthors.getAuthorsIdsSelection(country));
     return queryAuthorsInternal(selection, visitor);
   }
 
   final boolean queryAuthors(Group group, AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors(group=%d)", group.id);
     final String selection = Tables.Authors.getSelection(groupAuthors.getAuthorsIdsSelection(group));
     return queryAuthorsInternal(selection, visitor);
   }
@@ -294,7 +299,6 @@ final class Database {
   }
 
   final boolean queryTracks(Author author, Catalog.TracksVisitor visitor) {
-    Log.d(TAG, "queryTracks(author=%d)", author.id);
     final String selection = Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author));
     return queryTracksInternal(selection, visitor);
   }
@@ -336,9 +340,8 @@ final class Database {
   }
   
   final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
-    Log.d(TAG, "findTracks(query=%s)", query);
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final Cursor cursor = db.rawQuery(findQuery, new String[] {query});
+    final Cursor cursor = db.rawQuery(findQuery, new String[]{query});
     try {
       final int count = cursor.getCount();
       if (count != 0) {
@@ -352,6 +355,11 @@ final class Database {
     } finally {
       cursor.close();
     }
+  }
+
+  final ByteBuffer getTrackContent(int id) {
+    final String filename = Integer.toString(id);
+    return cacheDir.getCachedFileContent(filename);
   }
   
   final void addCountryAuthor(Country country, Author author) {
@@ -376,6 +384,11 @@ final class Database {
 
   final void addAuthorTrack(Author author, Track track) {
     authorTracks.add(author, track);
+  }
+
+  final void addTrackContent(int id, ByteBuffer content) {
+    final String filename = Integer.toString(id);
+    cacheDir.putCachedFileContent(filename, content);
   }
   
   private static class Helper extends SQLiteOpenHelper {

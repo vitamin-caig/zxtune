@@ -31,25 +31,25 @@ namespace Archived
     class File : public Archived::File
     {
     public:
-      File(const Packed::Decoder& decoder, const String& name, std::size_t size, Binary::Container::Ptr data)
+      File(const Packed::Decoder& decoder, String name, std::size_t size, Binary::Container::Ptr data)
         : Decoder(decoder)
-        , Name(name)
+        , Name(std::move(name))
         , Size(size)
-        , Data(data)
+        , Data(std::move(data))
       {
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Size;
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '%1%'", Name);
         return Decoder.Decode(*Data);
@@ -91,19 +91,19 @@ namespace Archived
         {
           return fromLE(rawBlock->Signature) == T::SIGNATURE
             ? rawBlock
-            : 0;
+            : nullptr;
         }
-        return 0;
+        return nullptr;
       }
 
-      std::auto_ptr<const Packed::Zip::CompressedFile> GetFile() const
+      std::unique_ptr<const Packed::Zip::CompressedFile> GetFile() const
       {
         using namespace Packed::Zip;
         if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
         {
           return CompressedFile::Create(*header, Limit - Offset);
         }
-        return std::auto_ptr<const CompressedFile>();
+        return std::unique_ptr<const CompressedFile>();
       }
 
       std::size_t GetOffset() const
@@ -122,7 +122,7 @@ namespace Archived
         using namespace Packed::Zip;
         if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
         {
-          const std::auto_ptr<const CompressedFile> file = CompressedFile::Create(*header, Limit - Offset);
+          const std::unique_ptr<const CompressedFile> file = CompressedFile::Create(*header, Limit - Offset);
           return file.get()
             ? file->GetPackedSize()
             : 0;
@@ -210,7 +210,7 @@ namespace Archived
       File::Ptr GetFile() const
       {
         assert(IsValid());
-        const std::auto_ptr<const Packed::Zip::CompressedFile> file = Blocks.GetFile();
+        const std::unique_ptr<const Packed::Zip::CompressedFile> file = Blocks.GetFile();
         if (file.get())
         {
           const Binary::Container::Ptr data = Data.GetSubcontainer(Blocks.GetOffset(), file->GetPackedSize());
@@ -249,31 +249,31 @@ namespace Archived
     {
     public:
       Container(Packed::Decoder::Ptr decoder, Binary::Container::Ptr data, uint_t filesCount)
-        : Decoder(decoder)
-        , Delegate(data)
+        : Decoder(std::move(decoder))
+        , Delegate(std::move(data))
         , FilesCount(filesCount)
       {
         Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
         FillCache();
         for (FilesMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
@@ -282,7 +282,7 @@ namespace Archived
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
         if (const File::Ptr file = FindCachedFile(name))
         {
@@ -291,7 +291,7 @@ namespace Archived
         return FindNonCachedFile(name);
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return FilesCount;
       }
@@ -349,7 +349,7 @@ namespace Archived
       const Formats::Packed::Decoder::Ptr Decoder;
       const Binary::Container::Ptr Delegate;
       const uint_t FilesCount;
-      mutable std::auto_ptr<FileIterator> Iter;
+      mutable std::unique_ptr<FileIterator> Iter;
       typedef std::map<String, File::Ptr> FilesMap;
       mutable FilesMap Files;
     };
@@ -363,17 +363,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return FileDecoder->GetDescription();
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return FileDecoder->GetFormat();
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!FileDecoder->GetFormat()->Match(data))
       {

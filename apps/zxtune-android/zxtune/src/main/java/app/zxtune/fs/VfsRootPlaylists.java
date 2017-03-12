@@ -9,11 +9,12 @@
  */
 package app.zxtune.fs;
 
+import android.content.Context;
+import android.net.Uri;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import android.content.Context;
-import android.net.Uri;
 import app.zxtune.R;
 import app.zxtune.playlist.XspfStorage;
 
@@ -56,7 +57,7 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
   }
 
   @Override
-  public VfsObject resolve(Uri uri) throws IOException {
+  public VfsObject resolve(Uri uri) {
     return SCHEME.equals(uri.getScheme()) && uri.getPathSegments().isEmpty() ? this : null;
   }
 

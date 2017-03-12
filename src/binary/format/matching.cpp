@@ -20,7 +20,7 @@ namespace Binary
   class MatchOnlyFormatBase : public Format
   {
   public:
-    virtual std::size_t NextMatchOffset(const Data& data) const
+    std::size_t NextMatchOffset(const Data& data) const override
     {
       return data.Size();
     }
@@ -29,14 +29,14 @@ namespace Binary
   class FuzzyMatchOnlyFormat : public MatchOnlyFormatBase
   {
   public:
-    FuzzyMatchOnlyFormat(const FormatDSL::StaticPattern& mtx, std::size_t offset, std::size_t minSize)
+    FuzzyMatchOnlyFormat(FormatDSL::StaticPattern mtx, std::size_t offset, std::size_t minSize)
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.GetSize() + offset))
-      , Pattern(mtx)
+      , Pattern(std::move(mtx))
     {
     }
 
-    virtual bool Match(const Data& data) const
+    bool Match(const Data& data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -53,9 +53,9 @@ namespace Binary
       return true;
     }
 
-    static Ptr Create(const FormatDSL::StaticPattern& expr, std::size_t startOffset, std::size_t minSize)
+    static Ptr Create(FormatDSL::StaticPattern expr, std::size_t startOffset, std::size_t minSize)
     {
-      return MakePtr<FuzzyMatchOnlyFormat>(expr, startOffset, minSize);
+      return MakePtr<FuzzyMatchOnlyFormat>(std::move(expr), startOffset, minSize);
     }
   private:
     const std::size_t Offset;
@@ -68,14 +68,14 @@ namespace Binary
   public:
     typedef std::vector<uint8_t> PatternMatrix;
 
-    ExactMatchOnlyFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize)
+    ExactMatchOnlyFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize)
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
-      , Pattern(mtx)
+      , Pattern(std::move(mtx))
     {
     }
 
-    virtual bool Match(const Data& data) const
+    bool Match(const Data& data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -93,8 +93,8 @@ namespace Binary
       PatternMatrix tmp(patternSize);
       for (std::size_t idx = 0; idx != patternSize; ++idx)
       {
-        const FormatDSL::StaticToken& tok = pattern.Get(idx);
-        if (const uint_t* single = tok.GetSingle())
+        const FormatDSL::StaticPredicate& pred = pattern.Get(idx);
+        if (const uint_t* single = pred.GetSingle())
         {
           tmp[idx] = *single;
         }
@@ -103,7 +103,7 @@ namespace Binary
           return Ptr();
         }
       }
-      return MakePtr<ExactMatchOnlyFormat>(tmp, startOffset, minSize);
+      return MakePtr<ExactMatchOnlyFormat>(std::move(tmp), startOffset, minSize);
     }
   private:
     const std::size_t Offset;
@@ -111,17 +111,17 @@ namespace Binary
     const PatternMatrix Pattern;
   };
 
-  Format::Ptr CreateMatchingFormatFromTokens(const FormatDSL::Expression& expr, std::size_t minSize)
+  Format::Ptr CreateMatchingFormatFromPredicates(const FormatDSL::Expression& expr, std::size_t minSize)
   {
-    const FormatDSL::StaticPattern pattern(expr.Tokens());
+    FormatDSL::StaticPattern pattern(expr.Predicates());
     const std::size_t startOffset = expr.StartOffset();
-    if (const Format::Ptr exact = ExactMatchOnlyFormat::TryCreate(pattern, startOffset, minSize))
+    if (Format::Ptr exact = ExactMatchOnlyFormat::TryCreate(pattern, startOffset, minSize))
     {
       return exact;
     }
     else
     {
-      return FuzzyMatchOnlyFormat::Create(pattern, startOffset, minSize);
+      return FuzzyMatchOnlyFormat::Create(std::move(pattern), startOffset, minSize);
     }
   }
 }
@@ -136,6 +136,6 @@ namespace Binary
   Format::Ptr CreateMatchOnlyFormat(const std::string& pattern, std::size_t minSize)
   {
     const FormatDSL::Expression::Ptr expr = FormatDSL::Expression::Parse(pattern);
-    return CreateMatchingFormatFromTokens(*expr, minSize);
+    return CreateMatchingFormatFromPredicates(*expr, minSize);
   }
 }

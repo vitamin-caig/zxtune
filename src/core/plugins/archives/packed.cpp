@@ -15,6 +15,8 @@
 #include <core/plugin_attrs.h>
 //common includes
 #include <make_ptr.h>
+//std includes
+#include <utility>
 //text includes
 #include <core/text/plugins.h>
 
@@ -80,29 +82,29 @@ namespace ZXTune
   {
   public:
     CommonArchivePlugin(Plugin::Ptr descr, Formats::Packed::Decoder::Ptr decoder)
-      : Description(descr)
-      , Decoder(decoder)
+      : Description(std::move(descr))
+      , Decoder(std::move(decoder))
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Decoder->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
     {
       return DetectModulesInArchive(params, Description, *Decoder, inputData, callback);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/,
+    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/,
                                    DataLocation::Ptr inputData,
-                                   const Analysis::Path& pathToOpen) const
+                                   const Analysis::Path& pathToOpen) const override
     {
       return OpenDataFromArchive(Description, *Decoder, inputData, pathToOpen);
     }

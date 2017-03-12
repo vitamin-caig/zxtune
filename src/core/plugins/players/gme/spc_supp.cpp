@@ -10,22 +10,21 @@
 
 //local includes
 #include "core/plugins/player_plugins_registrator.h"
-#include "core/plugins/players/analyzer.h"
-#include "core/plugins/players/duration.h"
 #include "core/plugins/players/plugin.h"
-#include <core/plugins/players/properties_helper.h>
-#include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
 #include <formats/chiptune/emulation/spc.h>
 #include <math/numeric.h>
+#include <module/players/analyzer.h>
+#include <module/players/duration.h>
+#include <module/players/properties_meta.h>
+#include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
@@ -39,14 +38,14 @@ namespace Module
 {
 namespace SPC
 {
-  const Debug::Stream Dbg("Core::SIDSupp");
+  const Debug::Stream Dbg("Core::SPCSupp");
 
   class SPC : public Module::Analyzer
   {
     static const uint_t SPC_DIVIDER = 1 << 12;
     static const uint_t C_7_FREQ = 2093;
   public:
-    typedef boost::shared_ptr<SPC> Ptr;
+    typedef std::shared_ptr<SPC> Ptr;
     
     explicit SPC(const Binary::Data& data)
       : Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
@@ -76,8 +75,8 @@ namespace SPC
     
     void Render(uint_t samples, Sound::ChunkBuilder& target)
     {
-      BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
-      BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
+      static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       ::SNES_SPC::sample_t* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(target.Allocate(samples));
       CheckError(Spc.play(samples * Sound::Sample::CHANNELS, buffer));
       Filter.run(buffer, samples * Sound::Sample::CHANNELS);
@@ -89,7 +88,7 @@ namespace SPC
     }
     
     //http://wiki.superfamicom.org/snes/show/SPC700+Reference
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    std::vector<ChannelState> GetState() const override
     {
       const DspProperties dsp(Spc);
       const uint_t noise = dsp.GetNoiseChannels();
@@ -115,7 +114,7 @@ namespace SPC
         state.Band = Analysis.GetBandByScaledFrequency(pitch);
         result.push_back(state);
       }
-      channels.swap(result);
+      return result;
     }
   private:
     inline static void CheckError(::blargg_err_t err)
@@ -182,28 +181,28 @@ namespace SPC
   {
   public:
     Renderer(SPC::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(tune)
-      , Iterator(iterator)
+      : Tune(std::move(tune))
+      , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
-      , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(target)
+      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , Target(std::move(target))
       , Looped()
       , SamplesPerFrame()
     {
       ApplyParameters();
     }
 
-    virtual TrackState::Ptr GetTrackState() const
+    TrackState::Ptr GetTrackState() const override
     {
       return State;
     }
 
-    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    Module::Analyzer::Ptr GetAnalyzer() const override
     {
       return Tune;
     }
 
-    virtual bool RenderFrame()
+    bool RenderFrame() override
     {
       try
       {
@@ -212,7 +211,7 @@ namespace SPC
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
         Tune->Render(SamplesPerFrame, builder);
-        Resampler->ApplyData(builder.GetResult());
+        Resampler->ApplyData(builder.CaptureResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -222,14 +221,14 @@ namespace SPC
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       SoundParams.Reset();
       Tune->Reset();
       Iterator->Reset();
     }
 
-    virtual void SetPosition(uint_t frame)
+    void SetPosition(uint_t frame) override
     {
       SeekTune(frame);
       Module::SeekIterator(*Iterator, frame);
@@ -274,23 +273,23 @@ namespace SPC
   {
   public:
     Holder(SPC::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
-      : Tune(tune)
-      , Info(info)
-      , Properties(props)
+      : Tune(std::move(tune))
+      , Info(std::move(info))
+      , Properties(std::move(props))
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    Module::Information::Ptr GetModuleInformation() const override
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    Parameters::Accessor::Ptr GetModuleProperties() const override
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
     }
@@ -308,11 +307,11 @@ namespace SPC
     {
     }
 
-    virtual void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/)
+    void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/) override
     {
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       if (Title.empty())
       {
@@ -320,7 +319,7 @@ namespace SPC
       }
     }
     
-    virtual void SetGame(const String& game)
+    void SetGame(const String& game) override
     {
       if (Program.empty())
       {
@@ -328,7 +327,7 @@ namespace SPC
       }
     }
     
-    virtual void SetDumper(const String& dumper)
+    void SetDumper(const String& dumper) override
     {
       if (Author.empty())
       {
@@ -336,7 +335,7 @@ namespace SPC
       }
     }
     
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       if (Comment.empty())
       {
@@ -344,40 +343,40 @@ namespace SPC
       }
     }
     
-    virtual void SetDumpDate(const String& date)
+    void SetDumpDate(const String& date) override
     {
       Properties.SetDate(date);
     }
     
-    virtual void SetIntro(Time::Milliseconds duration)
+    void SetIntro(Time::Milliseconds duration) override
     {
       Intro = std::max(Intro, duration);
     }
     
-    virtual void SetLoop(Time::Milliseconds duration)
+    void SetLoop(Time::Milliseconds duration) override
     {
       Loop = duration;
     }
     
-    virtual void SetFade(Time::Milliseconds duration)
+    void SetFade(Time::Milliseconds duration) override
     {
       Fade = duration;
     }
     
-    virtual void SetArtist(const String& artist)
+    void SetArtist(const String& artist) override
     {
       Properties.SetAuthor(Author = artist);
     }
     
-    virtual void SetRAM(const void* /*data*/, std::size_t /*size*/)
+    void SetRAM(const void* /*data*/, std::size_t /*size*/) override
     {
     }
     
-    virtual void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/)
+    void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) override
     {
     }
     
-    virtual void SetExtraRAM(const void* /*data*/, std::size_t /*size*/)
+    void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) override
     {
     }
     
@@ -402,7 +401,7 @@ namespace SPC
   class Factory : public Module::Factory
   {
   public:
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {

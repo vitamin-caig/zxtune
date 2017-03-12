@@ -21,9 +21,8 @@
 #include <formats/packed.h>
 //std includes
 #include <algorithm>
+#include <array>
 #include <iterator>
-//boost includes
-#include <boost/array.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -193,7 +192,7 @@ namespace Packed
           return Key[Index];
         }
       private:
-        boost::array<uint8_t, 128> Key;
+        std::array<uint8_t, 128> Key;
         uint8_t& Index;
       };
 #ifdef USE_PRAGMA_PACK
@@ -248,8 +247,8 @@ namespace Packed
       "e60f"          // and 0xf
     );
 
-    BOOST_STATIC_ASSERT(sizeof(Simple::RawHeader) == 0x44);
-    BOOST_STATIC_ASSERT(sizeof(Protected::RawHeader) == 0x88);
+    static_assert(sizeof(Simple::RawHeader) == 0x44, "Invalid layout");
+    static_assert(sizeof(Protected::RawHeader) == 0x88, "Invalid layout");
 
     template<class Version>
     class Container
@@ -338,11 +337,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -440,7 +439,7 @@ namespace Packed
       bool IsValid;
       const typename Version::RawHeader& Header;
       ByteStream Stream;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
   }//namespace TurboLZ
@@ -454,17 +453,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Version::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Depacker;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Depacker->Match(rawData))
       {

@@ -21,8 +21,6 @@
 //std includes
 #include <cstring>
 #include <numeric>
-//boost includes
-#include <boost/range/end.hpp>
 //text include
 #include <formats/text/archived.h>
 
@@ -109,7 +107,7 @@ namespace Archived
 
       bool IsEmpty() const
       {
-        return boost::end(Content) == std::find_if(Content, boost::end(Content), std::bind2nd(std::not_equal_to<uint8_t>(), 0));
+        return std::none_of(Content, std::end(Content), std::bind2nd(std::not_equal_to<uint8_t>(), 0));
       }
     };
 
@@ -130,17 +128,17 @@ namespace Archived
   #pragma pack(pop)
   #endif
 
-    BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
-    BOOST_STATIC_ASSERT(sizeof(ServiceSector) == BYTES_PER_SECTOR);
-    BOOST_STATIC_ASSERT(sizeof(Sector) == BYTES_PER_SECTOR);
-    BOOST_STATIC_ASSERT(sizeof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK);
+    static_assert(sizeof(CatEntry) == 16, "Invalid layout");
+    static_assert(sizeof(ServiceSector) == BYTES_PER_SECTOR, "Invalid layout");
+    static_assert(sizeof(Sector) == BYTES_PER_SECTOR, "Invalid layout");
+    static_assert(sizeof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK, "Invalid layout");
 
     const Char UNALLOCATED_FILENAME[] = {'$', 'U', 'n', 'a', 'l', 'l', 'o', 'c', 'a', 't', 'e', 'd', 0};
 
     class Visitor
     {
     public:
-      virtual ~Visitor() {}
+      virtual ~Visitor() = default;
 
       virtual void OnFile(const String& name, std::size_t offset, std::size_t size) = 0;
     };
@@ -168,7 +166,7 @@ namespace Archived
       std::vector<bool> usedSectors(totalSectors);
       std::fill_n(usedSectors.begin(), SECTORS_IN_TRACK, true);
       uint_t files = 0;
-      for (const CatEntry* catEntry = catalog->Entries; catEntry != boost::end(catalog->Entries) && NOENTRY != catEntry->Name[0]; ++catEntry)
+      for (const CatEntry* catEntry = catalog->Entries; catEntry != std::end(catalog->Entries) && NOENTRY != catEntry->Name[0]; ++catEntry)
       {
         if (!catEntry->SizeInSectors)
         {
@@ -211,7 +209,7 @@ namespace Archived
 
       const std::vector<bool>::iterator begin = usedSectors.begin();
       const std::vector<bool>::iterator firstFree = std::find(usedSectors.rbegin(), usedSectors.rend(), true).base();
-      const std::vector<bool>::iterator limit = validSize ? usedSectors.end() : firstFree;
+      const auto limit = validSize ? usedSectors.end() : firstFree;
       if (validSize && firstFree != limit)
       {
         //do not pay attention to free sector info in service sector
@@ -230,7 +228,7 @@ namespace Archived
       {
       }
 
-      virtual void OnFile(const String& filename, std::size_t offset, std::size_t size)
+      void OnFile(const String& filename, std::size_t offset, std::size_t size) override
       {
         const TRDos::File::Ptr file = TRDos::File::CreateReference(filename, offset, size);
         Builder.AddFile(file);
@@ -248,17 +246,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::TRD_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!Format->Match(data))
       {

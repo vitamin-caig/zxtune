@@ -12,8 +12,6 @@
 
 //library includes
 #include <sound/sample.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Devices
 {
@@ -22,8 +20,8 @@ namespace Devices
     class Sample
     {
     public:
-      typedef boost::shared_ptr<const Sample> Ptr;
-      virtual ~Sample() {}
+      typedef std::shared_ptr<const Sample> Ptr;
+      virtual ~Sample() = default;
 
       virtual Sound::Sample::Type Get(std::size_t pos) const = 0;
       virtual std::size_t Size() const = 0;

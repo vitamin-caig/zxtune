@@ -18,6 +18,6 @@ namespace Platform
 {
   namespace Version
   {
-    std::auto_ptr<Strings::FieldsSource> CreateVersionFieldsSource();
+    std::unique_ptr<Strings::FieldsSource> CreateVersionFieldsSource();
   }
 }

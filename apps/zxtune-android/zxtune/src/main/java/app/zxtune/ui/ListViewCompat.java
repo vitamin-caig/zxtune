@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
 import app.zxtune.R;
 
 public class ListViewCompat extends ListView {

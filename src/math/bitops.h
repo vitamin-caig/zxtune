@@ -12,9 +12,8 @@
 
 //local includes
 #include <types.h>
-//boost includes
-#include <boost/static_assert.hpp>
-#include <boost/type_traits/is_arithmetic.hpp>
+//std includes
+#include <type_traits>
 
 namespace Math
 {
@@ -22,7 +21,7 @@ namespace Math
   template<class T>
   inline std::size_t CountBits(T val)
   {
-    BOOST_STATIC_ASSERT(boost::is_integral<T>::value);
+    static_assert(std::is_integral<T>::value, "Should be integral type");
     std::size_t res = 0;
     while (val)
     {
@@ -69,7 +68,7 @@ namespace Math
   template<class T>
   inline std::size_t Log2(T val)
   {
-    BOOST_STATIC_ASSERT(boost::is_integral<T>::value);
+    static_assert(std::is_integral<T>::value, "Should be integral type");
     std::size_t res = 0;
     while (val >>= 1)
     {

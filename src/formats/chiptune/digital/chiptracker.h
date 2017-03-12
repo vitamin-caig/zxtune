@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,18 +23,20 @@ namespace Formats
   {
     namespace ChipTracker
     {
+      typedef LinesObject<uint_t> Positions;
+    
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         //common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
-        virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) = 0;
+        virtual void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
         //! @invariant Channels are built sequentally

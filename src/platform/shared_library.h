@@ -13,16 +13,14 @@
 //std includes
 #include <string>
 #include <vector>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Platform
 {
   class SharedLibrary
   {
   public:
-    typedef boost::shared_ptr<const SharedLibrary> Ptr;
-    virtual ~SharedLibrary() {}
+    typedef std::shared_ptr<const SharedLibrary> Ptr;
+    virtual ~SharedLibrary() = default;
 
     virtual void* GetSymbol(const std::string& name) const = 0;
 
@@ -34,7 +32,7 @@ namespace Platform
     class Name
     {
     public:
-      virtual ~Name() {}
+      virtual ~Name() = default;
       
       virtual std::string Base() const = 0;
       virtual std::vector<std::string> PosixAlternatives() const = 0;

@@ -18,12 +18,12 @@
 
 namespace Binary
 {
-  typedef DataReceiver<Data> OutputStream;
+  typedef DataReceiver<const Data&> OutputStream;
 
   class SeekableOutputStream : public OutputStream
   {
   public:
-    typedef boost::shared_ptr<SeekableOutputStream> Ptr;
+    typedef std::shared_ptr<SeekableOutputStream> Ptr;
 
     virtual void Seek(uint64_t pos) = 0;
     virtual uint64_t Position() const = 0;

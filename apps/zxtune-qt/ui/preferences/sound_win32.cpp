@@ -22,7 +22,6 @@
 #include <sound/backends/win32.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/function.hpp>
 //text includes
 #include "text/text.h"
 
@@ -69,31 +68,25 @@ namespace
       Require(connect(devices, SIGNAL(currentIndexChanged(const QString&)), SLOT(DeviceChanged(const QString&))));
     }
 
-    virtual Parameters::Container::Ptr GetSettings() const
-    {
-      //TODO
-      return Parameters::Container::Ptr();
-    }
-
-    virtual String GetBackendId() const
+    String GetBackendId() const override
     {
       static const Char ID[] = {'w', 'i', 'n', '3', '2', '\0'};
       return ID;
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       return nameGroup->title();
     }
 
-    virtual void DeviceChanged(const QString& name)
+    void DeviceChanged(const QString& name) override
     {
       Dbg("Selecting device '%1%'", LocalFromQString(name));
       DeviceChanged(boost::bind(&Device::Name, _1) == name);
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {
@@ -110,9 +103,10 @@ namespace
       DeviceChanged(boost::bind(&Device::Id, _1) == curDevice);
     }
 
-    void DeviceChanged(const boost::function<bool(const Device&)>& fun)
+    template<class F>
+    void DeviceChanged(const F& fun)
     {
-      const DevicesArray::const_iterator it = std::find_if(Devices.begin(), Devices.end(), fun);
+      const auto it = std::find_if(Devices.begin(), Devices.end(), fun);
       if (it != Devices.end())
       {
         devices->setCurrentIndex(it - Devices.begin());

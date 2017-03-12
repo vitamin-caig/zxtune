@@ -20,6 +20,8 @@
 #include <platform/version/api.h>
 //qt includes
 #include <QtGui/QApplication>
+//std includes
+#include <utility>
 //text includes
 #include "text/text.h"
 
@@ -32,7 +34,7 @@ namespace
     {
     }
 
-    virtual int Run(int argc, const char* argv[])
+    int Run(int argc, const char* argv[]) override
     {
       QApplication qapp(argc, const_cast<char**>(argv));
       qapp.setOrganizationName(QLatin1String(Text::PROJECT_NAME));
@@ -54,8 +56,8 @@ namespace
 
 namespace Platform
 {
-  std::auto_ptr<Application> Application::Create()
+  std::unique_ptr<Application> Application::Create()
   {
-    return std::auto_ptr<Application>(new QTApplication());
+    return std::unique_ptr<Application>(new QTApplication());
   }
 }

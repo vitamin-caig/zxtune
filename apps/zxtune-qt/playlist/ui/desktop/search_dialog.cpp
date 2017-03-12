@@ -16,8 +16,6 @@
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
-//boost includes
-#include <boost/ref.hpp>
 
 namespace
 {
@@ -57,13 +55,13 @@ namespace
       State->Load();
     }
 
-    virtual ~SearchDialogImpl()
+    ~SearchDialogImpl() override
     {
       UpdateRecent(*Pattern);
       State->Save();
     }
 
-    virtual bool Execute(Playlist::Item::Search::Data& res)
+    bool Execute(Playlist::Item::Search::Data& res) override
     {     
       if (!exec())
       {
@@ -94,7 +92,7 @@ namespace Playlist
 
     SearchDialog::Ptr SearchDialog::Create(QWidget& parent)
     {
-      return MakePtr<SearchDialogImpl>(boost::ref(parent));
+      return MakePtr<SearchDialogImpl>(parent);
     }
 
     Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent)

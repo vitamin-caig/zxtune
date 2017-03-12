@@ -19,7 +19,10 @@ public class MainApplication extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
+
     instance = this;
+
+    Analytics.initialize(this);
   }
   
   public static Application getInstance() {

@@ -44,18 +44,18 @@ namespace IO
       RegisterProviders(*this);
     }
 
-    virtual void RegisterProvider(DataProvider::Ptr provider)
+    void RegisterProvider(DataProvider::Ptr provider) override
     {
       Providers.push_back(provider);
       Dbg("Registered provider '%1%'", provider->Id());
       const Strings::Set& schemes = provider->Schemes();
-      for (Strings::Set::const_iterator it = schemes.begin(), lim = schemes.end(); it != lim; ++it)
+      for (const auto& scheme : schemes)
       {
-        Schemes.insert(std::make_pair(*it, provider));
+        Schemes.insert(std::make_pair(scheme, provider));
       }
     }
 
-    virtual Identifier::Ptr ResolveUri(const String& uri) const
+    Identifier::Ptr ResolveUri(const String& uri) const override
     {
       Dbg("Resolving uri '%1%'", uri);
       if (const Identifier::Ptr id = Resolve(uri))
@@ -66,7 +66,7 @@ namespace IO
       throw MakeFormattedError(THIS_LINE, translate("Failed to resolve uri '%1%'."), uri);
     }
 
-    virtual Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
+    Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const override
     {
       Dbg("Opening path '%1%'", path);
       if (Identifier::Ptr id = Resolve(path))
@@ -81,7 +81,7 @@ namespace IO
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
-    virtual Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
+    Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const override
     {
       Dbg("Creating stream '%1%'", path);
       if (Identifier::Ptr id = Resolve(path))
@@ -97,16 +97,16 @@ namespace IO
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
-    virtual Provider::Iterator::Ptr Enumerate() const
+    Provider::Iterator::Ptr Enumerate() const override
     {
       return MakePtr<RangedObjectIteratorAdapter<ProvidersList::const_iterator, Provider::Ptr> >(Providers.begin(), Providers.end());
     }
   private:
     Identifier::Ptr Resolve(const String& uri) const
     {
-      for (ProvidersList::const_iterator it = Providers.begin(), lim = Providers.end(); it != lim; ++it)
+      for (const auto& provider : Providers)
       {
-        if (const Identifier::Ptr res = (*it)->Resolve(uri))
+        if (const Identifier::Ptr res = provider->Resolve(uri))
         {
           return res;
         }
@@ -119,7 +119,7 @@ namespace IO
       const SchemeToProviderMap::const_iterator it = Schemes.find(scheme);
       return it != Schemes.end()
         ? it->second.get()
-        : 0;
+        : nullptr;
     }
   private:
     ProvidersList Providers;
@@ -130,24 +130,24 @@ namespace IO
   class UnavailableProvider : public DataProvider
   {
   public:
-    UnavailableProvider(const String& id, const char* descr, const Error& status)
-      : IdValue(id)
+    UnavailableProvider(String id, const char* descr, Error status)
+      : IdValue(std::move(id))
       , DescrValue(descr)
-      , StatusValue(status)
+      , StatusValue(std::move(status))
     {
     }
 
-    virtual String Id() const
+    String Id() const override
     {
       return IdValue;
     }
 
-    virtual String Description() const
+    String Description() const override
     {
       return translate(DescrValue);
     }
 
-    virtual Error Status() const
+    Error Status() const override
     {
       return StatusValue;
     }
@@ -157,22 +157,22 @@ namespace IO
       return false;
     }
 
-    virtual Binary::Container::Ptr Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const
+    Binary::Container::Ptr Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const override
     {
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
-    virtual Binary::OutputStream::Ptr Create(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const
+    Binary::OutputStream::Ptr Create(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const override
     {
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
-    virtual Strings::Set Schemes() const
+    Strings::Set Schemes() const override
     {
       return Strings::Set();
     }
 
-    virtual Identifier::Ptr Resolve(const String& /*uri*/) const
+    Identifier::Ptr Resolve(const String& /*uri*/) const override
     {
       return Identifier::Ptr();
     }

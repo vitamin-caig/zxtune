@@ -29,9 +29,6 @@
 //std includes
 #include <algorithm>
 #include <cstring>
-//boost includes
-#include <boost/bind.hpp>
-#include <boost/weak_ptr.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -82,15 +79,14 @@ namespace Win32
       }
     }
   private:
-    const boost::shared_ptr<void> Handle;
+    const std::shared_ptr<void> Handle;
   };
 
   //lightweight wrapper around HWAVEOUT handle
   class WaveOutDevice
   {
   public:
-    typedef boost::shared_ptr<WaveOutDevice> Ptr;
-    typedef boost::weak_ptr<WaveOutDevice> WeakPtr;
+    typedef std::shared_ptr<WaveOutDevice> Ptr;
 
     WaveOutDevice(Api::Ptr api, const ::WAVEFORMATEX& format, UINT device)
       : WinApi(api)
@@ -194,7 +190,7 @@ namespace Win32
   class WaveTarget
   {
   public:
-    typedef boost::shared_ptr<WaveTarget> Ptr;
+    typedef std::shared_ptr<WaveTarget> Ptr;
     virtual ~WaveTarget() {}
 
     virtual void Write(const Chunk& buf) = 0;
@@ -353,8 +349,8 @@ namespace Win32
 
     virtual Gain GetVolume() const
     {
-      boost::array<uint16_t, Sample::CHANNELS> buffer;
-      BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+      std::array<uint16_t, Sample::CHANNELS> buffer;
+      static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
       Device->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
       const Gain::Type l(int_t(buffer[0]), MAX_WIN32_VOLUME);
       const Gain::Type r(int_t(buffer[1]), MAX_WIN32_VOLUME);
@@ -367,12 +363,12 @@ namespace Win32
       {
         throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
-      boost::array<uint16_t, Sample::CHANNELS> buffer =
+      std::array<uint16_t, Sample::CHANNELS> buffer =
       {{
         static_cast<uint16_t>((volume.Left() * MAX_WIN32_VOLUME).Round()),
         static_cast<uint16_t>((volume.Right() * MAX_WIN32_VOLUME).Round())
       }};
-      BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+      static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
       Device->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));
     }
   private:

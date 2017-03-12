@@ -13,8 +13,6 @@
 //common includes
 #include <iterator.h>
 #include <types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Analysis
 {
@@ -22,10 +20,10 @@ namespace Analysis
   class Path
   {
   public:
-    typedef boost::shared_ptr<const Path> Ptr;
+    typedef std::shared_ptr<const Path> Ptr;
     typedef ObjectIterator<String> Iterator;
 
-    virtual ~Path() {}
+    virtual ~Path() = default;
 
     //! @brief Check if path is empty
     //! @return true if no significant elements

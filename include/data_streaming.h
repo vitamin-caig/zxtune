@@ -12,6 +12,8 @@
 
 //common includes
 #include <pointers.h>
+//std includes
+#include <memory>
 
 //! @brief Template data consuming interface. Instantiated with working data class
 template<class T>
@@ -20,12 +22,12 @@ class DataReceiver
 public:
   typedef T InDataType;
   //! @brief Pointer type
-  typedef typename boost::shared_ptr<DataReceiver<T> > Ptr;
+  typedef typename std::shared_ptr<DataReceiver<T> > Ptr;
 
-  virtual ~DataReceiver() {}
+  virtual ~DataReceiver() = default;
 
   //! @brief Data consuming point
-  virtual void ApplyData(const T& data) = 0;
+  virtual void ApplyData(T data) = 0;
   //! @brief Flushing all possible accumulated data
   virtual void Flush() = 0;
 
@@ -37,8 +39,8 @@ template<class T>
 class StubDataReceiver : public DataReceiver<T>
 {
 public:
-  virtual void ApplyData(const T&) {}
-  virtual void Flush() {}
+  void ApplyData(T) override {}
+  void Flush() override {}
 };
 
 template<class T>
@@ -55,9 +57,9 @@ class DataTransmitter
 public:
   typedef T OutDataType;
   //! @brief Pointer type
-  typedef typename boost::shared_ptr<DataTransmitter> Ptr;
+  typedef typename std::shared_ptr<DataTransmitter> Ptr;
 
-  virtual ~DataTransmitter() {}
+  virtual ~DataTransmitter() = default;
 
   virtual void SetTarget(typename DataReceiver<T>::Ptr target) = 0;
 };
@@ -69,5 +71,5 @@ class DataTransceiver : public DataReceiver<InType>
 {
 public:
   //! @brief Pointer type.
-  typedef typename boost::shared_ptr<DataTransceiver<InType, OutType> > Ptr;
+  typedef typename std::shared_ptr<DataTransceiver<InType, OutType> > Ptr;
 };

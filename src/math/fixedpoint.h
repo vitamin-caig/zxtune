@@ -39,10 +39,7 @@ namespace Math
       Set(nominator, denominator);
     }
 
-    FixedPoint(const FixedPoint<T, Precision>& rh)
-      : Value(rh.Value)
-    {
-    }
+    FixedPoint(const FixedPoint<T, Precision>& rh) = default;
 
     template<class T1, T1 Precision1>
     FixedPoint(const FixedPoint<T1, Precision1>& rh)
@@ -77,11 +74,7 @@ namespace Math
       return *this;
     }
 
-    FixedPoint<T, Precision>& operator = (const FixedPoint<T, Precision>& rh)
-    {
-      Value = rh.Value;
-      return *this;
-    }
+    FixedPoint<T, Precision>& operator = (const FixedPoint<T, Precision>& rh) = default;
 
     template<class T1, T1 Precision1>
     FixedPoint<T, Precision>& operator = (const FixedPoint<T1, Precision1>& rh)

@@ -14,6 +14,8 @@
 //library includes
 #include <async/coroutine.h>
 #include <async/worker.h>
+//std includes
+#include <utility>
 
 namespace Async
 {
@@ -21,31 +23,31 @@ namespace Async
   {
   public:
     explicit WorkerCoroutine(Worker::Ptr worker)
-      : Delegate(worker)
+      : Delegate(std::move(worker))
     {
     }
 
-    virtual void Initialize()
+    void Initialize() override
     {
       return Delegate->Initialize();
     }
 
-    virtual void Finalize()
+    void Finalize() override
     {
       return Delegate->Finalize();
     }
 
-    virtual void Suspend()
+    void Suspend() override
     {
       return Delegate->Suspend();
     }
 
-    virtual void Resume()
+    void Resume() override
     {
       return Delegate->Resume();
     }
 
-    virtual void Execute(Scheduler& sch)
+    void Execute(Scheduler& sch) override
     {
       while (!Delegate->IsFinished())
       {

@@ -20,7 +20,7 @@ namespace Formats
     class PatternBuilder
     {
     public:
-      virtual ~PatternBuilder() {}
+      virtual ~PatternBuilder() = default;
 
       virtual void Finish(uint_t size) = 0;
       //! @invariant Lines are built sequentally

@@ -27,8 +27,8 @@ inline Log::ProgressCallback::Ptr CreateProgressCallback(const Module::DetectCal
 class IndexPathComponent
 {
 public:
-  explicit IndexPathComponent(const String& prefix)
-    : Prefix(prefix)
+  explicit IndexPathComponent(String  prefix)
+    : Prefix(std::move(prefix))
   {
   }
 

@@ -16,8 +16,8 @@ import android.text.Html;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
-import android.widget.ScrollView;
 import android.widget.TextView;
+
 import app.zxtune.R;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.ItemStub;

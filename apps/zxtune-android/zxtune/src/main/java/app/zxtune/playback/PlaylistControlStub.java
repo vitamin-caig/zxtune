@@ -11,8 +11,6 @@
 package app.zxtune.playback;
 
 import android.net.Uri;
-import app.zxtune.playback.PlaylistControl.SortBy;
-import app.zxtune.playback.PlaylistControl.SortOrder;
 
 public class PlaylistControlStub implements PlaylistControl {
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- menu-related -->
+    <string name="prefs">Nastavení</string>
+    <string name="review">Hodnotit</string>
+    <string name="quit">Ukončit</string>
+    <!-- action-related -->
+    <string name="play">Přehrát</string>
+    <string name="add">Přidat</string>
+    <string name="delete">Smazat</string>
+    <string name="clear">Vyprázdnit</string>
+    <string name="save">Uložit</string>
+    <string name="overwrite">Přepsat</string>
+    <string name="send">Poslat</string>
+    <string name="share">Sdílet</string>
+    <string name="sort">Třídit</string>
+    <!-- information-related -->
+    <string name="information_title">Název</string>
+    <string name="information_author">Autor</string>
+    <string name="information_program">Program</string>
+    <string name="information_comment">Poznámka</string>
+    <string name="information_location">Umístění</string>
+    <string name="scanning_started">Zahájeno prohledávání</string>
+    <string name="scanning_stopped">Zastaveno prohledávání</string>
+    <string name="scanning_failed">Nepodařilo se prohledat: %s</string>
+    <string name="scanning_title">Prohledává se</string>
+    <string name="scanning_text">Klepněte pro zrušení</string>
+    <!-- other -->
+    <string name="main">Hlavní strany</string>
+    <plurals name="items">
+      <item quantity="one">%d položka</item>
+      <item quantity="few">%d položky</item>
+      <item quantity="other">%d položek</item>
+    </plurals>
+    <plurals name="tracks">
+      <item quantity="one">%d skladba</item>
+      <item quantity="few">%d skladby</item>
+      <item quantity="other">%d skladeb</item>
+    </plurals>
+    <string name="no_tracks_found">Nenalezeny žádné podporované skladby</string>
+    <string name="track">Skladba</string>
+    <string name="starting">Spouští se...</string>
+</resources>

@@ -24,12 +24,16 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import app.zxtune.Analytics;
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.playlist.PlaylistQuery;
 import app.zxtune.playlist.XspfStorage;
 
 public class PlaylistSaveFragment extends DialogFragment {
-  
+
+  private final static String TAG = PlaylistSaveFragment.class.getName();
   private final static String IDS_KEY = "ids";
   private final static String NAME_KEY = "name";
 
@@ -168,8 +172,10 @@ public class PlaylistSaveFragment extends DialogFragment {
       if (error != null) {
         final String msg = context.getString(R.string.save_failed, error.getMessage());
         Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+        Log.w(TAG, error, "Failed to save");
       } else {
         Toast.makeText(context, R.string.saved, Toast.LENGTH_SHORT).show();
+        Analytics.sendPlaylistEvent("Save", ids != null ? "selection" : "all");
       }
     }
   }

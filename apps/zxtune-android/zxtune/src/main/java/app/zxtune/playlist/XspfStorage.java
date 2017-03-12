@@ -9,6 +9,14 @@
  */
 package app.zxtune.playlist;
 
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Environment;
+import android.util.Xml;
+
+import org.xmlpull.v1.XmlSerializer;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,13 +24,6 @@ import java.io.InvalidObjectException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import org.xmlpull.v1.XmlSerializer;
-
-import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Environment;
-import android.util.Xml;
 import app.zxtune.R;
 
 public class XspfStorage {

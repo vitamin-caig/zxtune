@@ -16,11 +16,9 @@
 #include <error.h>
 #include <iterator.h>
 //library includes
-#include <core/module_holder.h>
+#include <module/holder.h>
 #include <parameters/container.h>
 #include <time/duration.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Playlist
 {
@@ -29,9 +27,9 @@ namespace Playlist
     class Data
     {
     public:
-      typedef boost::shared_ptr<const Data> Ptr;
+      typedef std::shared_ptr<const Data> Ptr;
 
-      virtual ~Data() {}
+      virtual ~Data() = default;
 
       //common
       virtual Module::Holder::Ptr GetModule() const = 0;

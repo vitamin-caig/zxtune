@@ -53,15 +53,15 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 16);
+    static_assert(sizeof(Header) == 16, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
     class StubBuilder : public Builder
     {
     public:
-      virtual void AddChunks(std::size_t /*count*/) {}
-      virtual void SetRegister(uint_t /*reg*/, uint_t /*val*/) {}
+      void AddChunks(std::size_t /*count*/) override {}
+      void SetRegister(uint_t /*reg*/, uint_t /*val*/) override {}
     };
 
     bool FastCheck(const Binary::Container& rawData)
@@ -88,22 +88,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::PSG_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);

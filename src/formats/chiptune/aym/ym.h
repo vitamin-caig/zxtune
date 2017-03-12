@@ -24,8 +24,8 @@ namespace Formats
       class Builder
       {
       public:
-        typedef boost::shared_ptr<Builder> Ptr;
-        virtual ~Builder() {}
+        typedef std::shared_ptr<Builder> Ptr;
+        virtual ~Builder() = default;
 
         //YMx
         virtual void SetVersion(const String& version) = 0;
@@ -55,7 +55,7 @@ namespace Formats
       class Decoder : public Formats::Chiptune::Decoder
       {
       public:
-        typedef boost::shared_ptr<const Decoder> Ptr;
+        typedef std::shared_ptr<const Decoder> Ptr;
 
         virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
       };

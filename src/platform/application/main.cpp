@@ -26,7 +26,7 @@ int main(int argc, const char* argv[])
   try
   {
     std::locale::global(std::locale(""));
-    std::auto_ptr<Platform::Application> app(Platform::Application::Create());
+    std::unique_ptr<Platform::Application> app(Platform::Application::Create());
     return app->Run(argc, argv);
   }
   catch (const Error& e)

@@ -12,9 +12,8 @@
 
 //std includes
 #include <algorithm>
-//boost includes
-#include <boost/static_assert.hpp>
-#include <boost/type_traits/is_arithmetic.hpp>
+//std includes
+#include <type_traits>
 
 namespace Math
 {
@@ -22,7 +21,7 @@ namespace Math
   template<class T>
   inline T Clamp(T val, T min, T max)
   {
-    BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
+    static_assert(std::is_arithmetic<T>::value, "Should be arithmetic");
     return std::min<T>(std::max<T>(val, min), max);
   }
 
@@ -30,7 +29,7 @@ namespace Math
   template<class T>
   inline bool InRange(T val, T min, T max)
   {
-    BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
+    static_assert(std::is_arithmetic<T>::value, "Should be arithmetic");
     return val >= min && val <= max;
   }
 
@@ -38,7 +37,7 @@ namespace Math
   template<class T>
   inline T Align(T val, T alignment)
   {
-    BOOST_STATIC_ASSERT(boost::is_integral<T>::value);
+    static_assert(std::is_integral<T>::value, "Should be integral");
     return alignment * ((val - 1) / alignment + 1);
   }
 
@@ -46,7 +45,7 @@ namespace Math
   template<class T>
   inline T Absolute(T val)
   {
-    BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
+    static_assert(std::is_arithmetic<T>::value, "Should be arithmetic");
     return val >= 0 ? val : -val;
   }
 }

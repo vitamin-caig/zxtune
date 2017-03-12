@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <core/module_holder.h>
+#include <module/holder.h>
 #include <parameters/container.h>
 #include <sound/backend.h>
 #include <time/stamp.h>
@@ -30,7 +30,7 @@ namespace boost
 class SoundComponent
 {
 public:
-  virtual ~SoundComponent() {}
+  virtual ~SoundComponent() = default;
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
   virtual void ParseParameters() = 0;
@@ -43,5 +43,5 @@ public:
 
   virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
 
-  static std::auto_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
+  static std::unique_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
 };

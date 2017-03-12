@@ -10,8 +10,6 @@
 
 package app.zxtune;
 
-import java.util.Map;
-
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,6 +18,9 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.IBinder;
+
+import java.util.Map;
+
 import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.PlaybackControl;

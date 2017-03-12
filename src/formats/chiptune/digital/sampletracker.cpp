@@ -18,16 +18,14 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
-#include <binary/container_factories.h>
+#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cstring>
-//boost includes
-#include <boost/array.hpp>
-#include <boost/mem_fn.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -74,21 +72,21 @@ namespace Chiptune
       //+0
       uint8_t Tempo;
       //+1
-      boost::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
+      std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
       //+0x41
-      boost::array<uint16_t, MAX_POSITIONS_COUNT> PositionsPtrs;
+      std::array<uint16_t, MAX_POSITIONS_COUNT> PositionsPtrs;
       //+0xc1
       char Title[10];
       //+0xcb
       uint8_t LastPositionDoubled;
       //+0xcc
-      boost::array<Pattern, PATTERNS_COUNT> Patterns;
+      std::array<Pattern, PATTERNS_COUNT> Patterns;
       //+0x18dc
       SampleInfo SampleDescriptions[SAMPLES_COUNT];
       //+0x18fc
       uint8_t Padding[4];
       //+0x1900
-      boost::array<char[10], SAMPLES_COUNT> SampleNames;
+      std::array<char[10], SAMPLES_COUNT> SampleNames;
       //+0x19a0
       uint8_t Samples[1];
     } PACK_POST;
@@ -96,7 +94,7 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 0x19a1);
+    static_assert(sizeof(Header) == 0x19a1, "Invalid layout");
 
     const uint_t NOTE_EMPTY = 0;
     const uint_t NOTE_BASE = 1;
@@ -147,11 +145,12 @@ namespace Chiptune
         const uint_t positionsCount = Source.LastPositionDoubled / 2;
         Require(Math::InRange<uint_t>(positionsCount + 1, 1, MAX_POSITIONS_COUNT));
 
-        std::vector<uint_t> positions(positionsCount);
-        std::transform(Source.Positions.begin(), Source.Positions.begin() + positionsCount, positions.begin(),
+        Digital::Positions positions;
+        positions.Lines.resize(positionsCount);
+        std::transform(Source.Positions.begin(), Source.Positions.begin() + positionsCount, positions.Lines.begin(),
           std::bind2nd(std::minus<uint8_t>(), uint8_t(1)));
-        target.SetPositions(positions, 0);
-        Dbg("Positions: %1%", positions.size());
+        Dbg("Positions: %1%", positions.GetSize());
+        target.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& target) const
@@ -175,16 +174,17 @@ namespace Chiptune
         for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          if (const Binary::Data::Ptr content = GetSample(samIdx))
+          if (const auto content = GetSample(samIdx))
           {
-            target.SetSample(samIdx, content->Size(), content, false);
+            const auto loop = content->Size();
+            target.SetSample(samIdx, loop, *content, false);
             ++validSamples;
           }
           else
           {
             Dbg(" Stub sample %1%", samIdx);
             const uint8_t dummy = 128;
-            target.SetSample(samIdx, 0, Binary::CreateContainer(&dummy, sizeof(dummy)), false);
+            target.SetSample(samIdx, 0, Binary::DataAdapter(&dummy, sizeof(dummy)), false);
           }
         }
         if (sams.Maximum() != SAMPLES_COUNT - 1)
@@ -336,22 +336,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::SAMPLETRACKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData) && Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

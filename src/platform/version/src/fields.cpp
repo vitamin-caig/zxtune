@@ -21,7 +21,7 @@ namespace Platform
     class VersionFieldsSource : public Strings::FieldsSource
     {
     public:
-      virtual String GetFieldValue(const String& fieldName) const
+      String GetFieldValue(const String& fieldName) const override
       {
         if (fieldName == Text::FIELD_PROGRAM_NAME)
         {
@@ -50,9 +50,9 @@ namespace Platform
       }
     };
 
-    std::auto_ptr<Strings::FieldsSource> CreateVersionFieldsSource()
+    std::unique_ptr<Strings::FieldsSource> CreateVersionFieldsSource()
     {
-      return std::auto_ptr<Strings::FieldsSource>(new VersionFieldsSource());
+      return std::unique_ptr<Strings::FieldsSource>(new VersionFieldsSource());
     }
   }
 }

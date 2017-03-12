@@ -10,8 +10,6 @@
 
 #include <error.h>
 
-#include <boost/bind.hpp>
-
 #include <iostream>
 #include <iomanip>
 
@@ -85,7 +83,7 @@ int main()
       const Error& sub3 = sub2.GetSuberror();
       TestSuccess(sub3);
     }
-    throw err1;
+    ThrowIfError(err1);
   }
   catch (const Error& e)
   {

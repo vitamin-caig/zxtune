@@ -10,12 +10,11 @@
 
 package app.zxtune.ui;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -27,6 +26,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import java.io.IOException;
+
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
@@ -50,6 +53,10 @@ import app.zxtune.playback.VisualizerStub;
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
   private final static String TAG = NowPlayingFragment.class.getName();
+  private final static int REQUEST_SHARE = 1;
+  private final static int REQUEST_SEND = 2;
+  private final static String EXTRA_ITEM = TAG + ".EXTRA_LOCATION";
+
   private PlaybackService service;
   private Callback callback;
   private Releaseable callbackConnection;
@@ -109,7 +116,8 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       } else {
         return super.onOptionsItemSelected(item);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {//use the most common type
+      Log.w(TAG, e, "onOptionsItemSelected");
       final Throwable cause = e.getCause();
       final String msg = cause != null ? cause.getMessage() : e.getMessage();
       Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
@@ -130,6 +138,35 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     info = new InformationView(view);
     ctrls = new PlaybackControlsView(view);
     bindViewsToConnectedService();
+  }
+
+  private void pickAndSend(Intent data, CharSequence title, int code) {
+    try {
+      final Intent picker = new Intent(Intent.ACTION_PICK_ACTIVITY);
+      picker.putExtra(Intent.EXTRA_TITLE, title);
+      picker.putExtra(Intent.EXTRA_INTENT, data);
+      startActivityForResult(picker, code);
+    } catch (SecurityException e) {
+      //workaround for Huawei requirement for huawei.android.permission.HW_SIGNATURE_OR_SYSTEM
+      data.removeExtra(EXTRA_ITEM);
+      final Intent chooser = Intent.createChooser(data, title);
+      startActivity(chooser);
+    }
+  }
+
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    final boolean isShare = requestCode == REQUEST_SHARE;
+    final boolean isSend = requestCode == REQUEST_SEND;
+    if (data != null && (isShare || isSend)) {
+      final String method = isShare ? "Share" : "Send";
+      final String appName = data.getComponent().getPackageName();
+      final Item item = (Item) data.getParcelableExtra(EXTRA_ITEM);
+      Analytics.sendSocialEvent(method, appName, item);
+
+      data.removeExtra(EXTRA_ITEM);
+      startActivity(data);
+    }
   }
   
   @Override
@@ -246,6 +283,9 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     final boolean selectItem(MenuItem item) throws IOException {
+      if (item == null) {
+        return false;
+      }
       switch (item.getItemId()) {
         case R.id.action_track:
           setupMenu();
@@ -256,11 +296,11 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
           break;
         case R.id.action_send:
           final Intent toSend = data.makeSendIntent();
-          startActivity(Intent.createChooser(toSend, item.getTitle()));
+          pickAndSend(toSend, item.getTitle(), REQUEST_SEND);
           break;
         case R.id.action_share:
           final Intent toShare = data.makeShareIntent();
-          startActivity(Intent.createChooser(toShare, item.getTitle()));
+          pickAndSend(toShare, item.getTitle(), REQUEST_SHARE);
           break;
         case R.id.action_make_ringtone:
           final DialogFragment fragment = RingtoneFragment.createInstance(data.getItem());
@@ -306,7 +346,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       try {
         return null != getRemotePage();
       } catch (IOException e) {
-        Log.d(TAG, e, "Failed to get remote page");
+        Log.w(TAG, e, "Failed to get remote page");
         return false;
       }
     }
@@ -333,10 +373,11 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       return result;
     }
     
-    private static Intent makeIntent(String mime) {
+    private Intent makeIntent(String mime) {
       final Intent result = new Intent(Intent.ACTION_SEND);
       result.setType(mime);
       result.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+      result.putExtra(EXTRA_ITEM, (Parcelable) item);
       return result;
     }
     
@@ -381,7 +422,8 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     private Uri createLocalPath(VfsFile file) throws IOException {
-      final VfsCache cache = VfsCache.createExternal(context, "sent");
+      //TODO: rework
+      final VfsCache cache = VfsCache.create(context).createNested("sent");
       final String filename = file.getUri().getLastPathSegment();
       return cache.putAnyCachedFileContent(filename, file.getContent());
     }

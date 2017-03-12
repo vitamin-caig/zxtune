@@ -19,8 +19,6 @@
 //library includes
 #include <parameters/merged_accessor.h>
 #include <sound/service.h>
-//boost inlcudes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QTimer>
 
@@ -29,23 +27,23 @@ namespace
   class StubControl : public Sound::PlaybackControl
   {
   public:
-    virtual void Play()
+    void Play() override
     {
     }
 
-    virtual void Pause()
+    void Pause() override
     {
     }
 
-    virtual void Stop()
+    void Stop() override
     {
     }
 
-    virtual void SetPosition(uint_t /*frame*/)
+    void SetPosition(uint_t /*frame*/) override
     {
     }
     
-    virtual State GetCurrentState() const
+    State GetCurrentState() const override
     {
       return STOPPED;
     }
@@ -73,7 +71,7 @@ namespace
       Require(connect(&Timer, SIGNAL(timeout()), SIGNAL(OnUpdateState())));
     }
 
-    virtual void SetDefaultItem(Playlist::Item::Data::Ptr item)
+    void SetDefaultItem(Playlist::Item::Data::Ptr item) override
     {
       if (Backend)
       {
@@ -82,7 +80,7 @@ namespace
       LoadItem(item);
     }
 
-    virtual void SetItem(Playlist::Item::Data::Ptr item)
+    void SetItem(Playlist::Item::Data::Ptr item) override
     {
       try
       {
@@ -97,14 +95,15 @@ namespace
       }
     }
 
-    virtual void ResetItem()
+    void ResetItem() override
     {
       Stop();
+      Item.reset();
       Control = StubControl::Instance();
       Backend.reset();
     }
 
-    virtual void Play()
+    void Play() override
     {
       try
       {
@@ -116,7 +115,7 @@ namespace
       }
     }
 
-    virtual void Stop()
+    void Stop() override
     {
       try
       {
@@ -128,7 +127,7 @@ namespace
       }
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       try
       {
@@ -148,7 +147,7 @@ namespace
       }
     }
 
-    virtual void Seek(int frame)
+    void Seek(int frame) override
     {
       try
       {
@@ -161,31 +160,31 @@ namespace
     }
 
     //BackendCallback
-    virtual void OnStart()
+    void OnStart() override
     {
       emit OnStartModule(Backend, Item);
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
+    void OnFrame(const Module::TrackState& /*state*/) override
     {
     }
 
-    virtual void OnStop()
+    void OnStop() override
     {
       emit OnStopModule();
     }
 
-    virtual void OnPause()
+    void OnPause() override
     {
       emit OnPauseModule();
     }
 
-    virtual void OnResume()
+    void OnResume() override
     {
       emit OnResumeModule();
     }
 
-    virtual void OnFinish()
+    void OnFinish() override
     {
       emit OnFinishModule();
     }
@@ -221,11 +220,11 @@ namespace
       const Sound::BackendCallback::Ptr cb(static_cast<Sound::BackendCallback*>(this), NullDeleter<Sound::BackendCallback>());
       std::list<Error> errors;
       const Strings::Array systemBackends = Service->GetAvailableBackends();
-      for (Strings::Array::const_iterator it = systemBackends.begin(), lim = systemBackends.end(); it != lim; ++it)
+      for (const auto& id : systemBackends)
       {
         try
         {
-          return Service->CreateBackend(*it, module, cb);
+          return Service->CreateBackend(id, module, cb);
         }
         catch (const Error& err)
         {
@@ -238,9 +237,9 @@ namespace
 
     void ReportErrors(const std::list<Error>& errors)
     {
-      for (std::list<Error>::const_iterator it = errors.begin(), lim = errors.end(); it != lim; ++it)
+      for (const auto& err : errors)
       {
-        emit ErrorOccurred(*it);
+        emit ErrorOccurred(err);
       }
     }
   private:

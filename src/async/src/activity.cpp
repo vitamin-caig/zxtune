@@ -15,8 +15,9 @@
 #include <make_ptr.h>
 //library includes
 #include <async/activity.h>
-//boost includes
-#include <boost/thread/thread.hpp>
+//std includes
+#include <cassert>
+#include <thread>
 
 namespace Async
 {
@@ -31,22 +32,22 @@ namespace Async
   class ThreadActivity : public Activity
   {
   public:
-    typedef boost::shared_ptr<ThreadActivity> Ptr;
+    typedef std::shared_ptr<ThreadActivity> Ptr;
 
     explicit ThreadActivity(Operation::Ptr op)
-      : Oper(op)
+      : Oper(std::move(op))
       , State(STOPPED)
     {
     }
 
-    virtual ~ThreadActivity()
+    ~ThreadActivity() override
     {
       assert(!IsExecuted() || !"Should call Activity::Wait before stop");
     }
 
     void Start()
     {
-      Thread = boost::thread(std::mem_fun(&ThreadActivity::WorkProc), this);
+      Thread = std::thread(std::mem_fun(&ThreadActivity::WorkProc), this);
       if (FAILED == State.WaitForAny(INITIALIZED, FAILED))
       {
         Thread.join();
@@ -56,14 +57,17 @@ namespace Async
       State.Set(STARTED);
     }
 
-    virtual bool IsExecuted() const
+    bool IsExecuted() const override
     {
       return State.Check(STARTED);
     }
 
-    virtual void Wait()
+    void Wait() override
     {
-      Thread.join();
+      if (Thread.joinable())
+      {
+        Thread.join();
+      }
       ThrowIfError(LastError);
     }
   private:
@@ -87,19 +91,19 @@ namespace Async
   private:
     const Operation::Ptr Oper;
     Event<ActivityState> State;
-    boost::thread Thread;
+    std::thread Thread;
     Error LastError;
   };
 
   class StubActivity : public Activity
   {
   public:
-    virtual bool IsExecuted() const
+    bool IsExecuted() const override
     {
       return false;
     }
 
-    virtual void Wait()
+    void Wait() override
     {
     }
   };

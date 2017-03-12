@@ -9,12 +9,13 @@
  */
 package app.zxtune.playback;
 
-import java.io.IOException;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+
+import java.io.IOException;
+
 import app.zxtune.Preferences;
 import app.zxtune.playback.PlaybackControl.SequenceMode;
 

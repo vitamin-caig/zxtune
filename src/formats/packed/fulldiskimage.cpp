@@ -21,8 +21,6 @@
 //std includes
 #include <cstring>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -66,9 +64,9 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 14);
-    BOOST_STATIC_ASSERT(sizeof(RawTrack::Sector) == 7);
-    BOOST_STATIC_ASSERT(sizeof(RawTrack) == 14);
+    static_assert(sizeof(RawHeader) == 14, "Invalid layout");
+    static_assert(sizeof(RawTrack::Sector) == 7, "Invalid layout");
+    static_assert(sizeof(RawTrack) == 14, "Invalid layout");
 
     const std::size_t FDI_MAX_SIZE = 1048576;
     const uint_t MIN_CYLINDERS_COUNT = 40;
@@ -111,7 +109,7 @@ namespace Packed
           return false;
         }
         const RawHeader& header = GetHeader();
-        BOOST_STATIC_ASSERT(sizeof(header.ID) == sizeof(FDI_ID));
+        static_assert(sizeof(header.ID) == sizeof(FDI_ID), "Invalid layout");
         if (0 != std::memcmp(header.ID, FDI_ID, sizeof(FDI_ID)))
         {
           return false;
@@ -164,11 +162,11 @@ namespace Packed
         IsValid = DecodeData();
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize()
@@ -239,7 +237,7 @@ namespace Packed
       bool IsValid;
       const RawHeader& Header;
       const std::size_t Limit;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
       std::size_t UsedSize;
     };
@@ -260,17 +258,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::FDI_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       const void* const data = rawData.Start();
       const std::size_t availSize = rawData.Size();

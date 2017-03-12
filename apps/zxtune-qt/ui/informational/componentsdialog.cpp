@@ -20,6 +20,8 @@
 #include <sound/backend_attrs.h>
 #include <sound/service.h>
 #include <strings/format.h>
+//std includes
+#include <utility>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QDialog>
@@ -30,7 +32,7 @@ namespace
 {
   QString Translate(const char* msg)
   {
-    return QApplication::translate("ComponentsDialog", msg, 0, QApplication::UnicodeUTF8);
+    return QApplication::translate("ComponentsDialog", msg, nullptr, QApplication::UnicodeUTF8);
   }
 
   template<class T>

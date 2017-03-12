@@ -18,6 +18,7 @@
 #include <binary/format_factories.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <limits>
 #include <vector>
 
@@ -26,20 +27,20 @@ namespace Binary
   class FuzzyFormat : public FormatDetails
   {
   public:
-    typedef boost::array<uint8_t, 256> PatternRow;
+    typedef std::array<uint8_t, 256> PatternRow;
     typedef std::vector<PatternRow> PatternMatrix;
 
-    FuzzyFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
+    FuzzyFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
       , MinScanStep(minScanStep)
-      , Pat(mtx.rbegin(), mtx.rend())
-      , PatRBegin(&Pat[0])
-      , PatREnd(PatRBegin + Pat.size())
+      , Pat(std::move(mtx))
+      , PatRBegin(&Pat.back())
+      , PatREnd(&Pat.front() - 1)
     {
     }
 
-    virtual bool Match(const Data& data) const
+    bool Match(const Data& data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -50,7 +51,7 @@ namespace Binary
       return 0 == SearchBackward(typedDataLast);
     }
 
-    virtual std::size_t NextMatchOffset(const Data& data) const
+    std::size_t NextMatchOffset(const Data& data) const override
     {
       const std::size_t size = data.Size();
       if (size < MinSize)
@@ -77,7 +78,7 @@ namespace Binary
       return size;
     }
 
-    virtual std::size_t GetMinSize() const
+    std::size_t GetMinSize() const override
     {
       return MinSize;
     }
@@ -90,8 +91,8 @@ namespace Binary
       {
         for (std::size_t pos = 0, offset = 1; pos != patternSize; ++pos, ++offset)
         {
-          const FormatDSL::StaticToken& tok = pattern.Get(pos);
-          if (tok.Match(sym))
+          const FormatDSL::StaticPredicate& pred = pattern.Get(pos);
+          if (pred.Match(sym))
           {
             offset = 0;
           }
@@ -111,11 +112,12 @@ namespace Binary
 
        Due to high complexity of precise detection, simple increasing is used
       */
+      const auto& offsets = pattern.GetSuffixOffsets();
       for (std::size_t pos = 0; pos != patternSize - 1; ++pos)
       {
         FuzzyFormat::PatternRow& row = tmp[pos];
         const std::size_t suffixLen = patternSize - pos - 1;
-        const std::size_t offset = pattern.FindSuffix(suffixLen);
+        const std::size_t offset = offsets[suffixLen];
         const std::size_t availOffset = std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
         for (uint_t sym = 0; sym != 256; ++sym)
         {
@@ -127,20 +129,21 @@ namespace Binary
       }
       //Each matrix element specifies forward movement of reversily matched pattern for specified symbol. =0 means symbol match
       const std::size_t minScanStep = pattern.FindPrefix(patternSize);
-      return MakePtr<FuzzyFormat>(tmp, startOffset, minSize, minScanStep);
+      return MakePtr<FuzzyFormat>(std::move(tmp), startOffset, minSize, minScanStep);
     }
   private:
     std::size_t SearchBackward(const uint8_t* data) const
     {
-      if (const std::size_t offset = (*PatRBegin)[*data])
+      auto it = PatRBegin;
+      if (const std::size_t offset = (*it)[*data])
       {
         return offset;
       }
+      --it;
       --data;
-      for (const PatternRow* it = PatRBegin + 1; it != PatREnd; ++it, --data)
+      for (; it != PatREnd; --it, --data)
       {
-        const PatternRow& row = *it;
-        if (const std::size_t offset = row[*data])
+        if (const std::size_t offset = (*it)[*data])
         {
           return offset;
         }
@@ -161,14 +164,14 @@ namespace Binary
   public:
     typedef std::vector<uint8_t> PatternMatrix;
 
-    ExactFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize)
+    ExactFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize)
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
-      , Pattern(mtx)
+      , Pattern(std::move(mtx))
     {
     }
 
-    virtual bool Match(const Data& data) const
+    bool Match(const Data& data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -180,7 +183,7 @@ namespace Binary
       return std::equal(patternStart, patternEnd, typedDataStart);
     }
 
-    virtual std::size_t NextMatchOffset(const Data& data) const
+    std::size_t NextMatchOffset(const Data& data) const override
     {
       const std::size_t size = data.Size();
       if (size < MinSize)
@@ -197,7 +200,7 @@ namespace Binary
         : size;
     }
 
-    virtual std::size_t GetMinSize() const
+    std::size_t GetMinSize() const override
     {
       return MinSize;
     }
@@ -208,8 +211,8 @@ namespace Binary
       PatternMatrix tmp(patternSize);
       for (std::size_t idx = 0; idx != patternSize; ++idx)
       {
-        const FormatDSL::StaticToken& tok = pattern.Get(idx);
-        if (const uint_t* single = tok.GetSingle())
+        const FormatDSL::StaticPredicate& pred = pattern.Get(idx);
+        if (const uint_t* single = pred.GetSingle())
         {
           tmp[idx] = *single;
         }
@@ -218,7 +221,7 @@ namespace Binary
           return Ptr();
         }
       }
-      return MakePtr<ExactFormat>(tmp, startOffset, minSize);
+      return MakePtr<ExactFormat>(std::move(tmp), startOffset, minSize);
     }
   private:
     const std::size_t Offset;
@@ -226,11 +229,11 @@ namespace Binary
     const PatternMatrix Pattern;
   };
 
-  Format::Ptr CreateScanningFormatFromTokens(const FormatDSL::Expression& expr, std::size_t minSize)
+  Format::Ptr CreateScanningFormatFromPredicates(const FormatDSL::Expression& expr, std::size_t minSize)
   {
-    const FormatDSL::StaticPattern pattern(expr.Tokens());
+    const FormatDSL::StaticPattern pattern(expr.Predicates());
     const std::size_t startOffset = expr.StartOffset();
-    if (const Format::Ptr exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
+    if (Format::Ptr exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
     {
       return exact;
     }
@@ -251,6 +254,6 @@ namespace Binary
   Format::Ptr CreateFormat(const std::string& pattern, std::size_t minSize)
   {
     const FormatDSL::Expression::Ptr expr = FormatDSL::Expression::Parse(pattern);
-    return CreateScanningFormatFromTokens(*expr, minSize);
+    return CreateScanningFormatFromPredicates(*expr, minSize);
   }
 }

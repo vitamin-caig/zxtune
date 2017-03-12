@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,63 +23,45 @@ namespace Formats
   {
     namespace FastTracker
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line()
-            : Level(), VolSlide()
-            , Noise(), AccumulateNoise(), NoiseMask(true)
-            , Tone(), AccumulateTone(), ToneMask(true)
-            , EnvelopeAddon(), AccumulateEnvelope(), EnableEnvelope()
-          {
-          }
-
-          uint_t Level;//0-15
-          int_t VolSlide;//0/+1/-1
-          uint_t Noise;
-          bool AccumulateNoise;
-          bool NoiseMask;
-          uint_t Tone;
-          bool AccumulateTone;
-          bool ToneMask;
-          int_t EnvelopeAddon;
-          bool AccumulateEnvelope;
-          bool EnableEnvelope;
-        };
-
-        Sample()
-          : Loop()
+        SampleLine()
+          : Level(), VolSlide()
+          , Noise(), AccumulateNoise(), NoiseMask(true)
+          , Tone(), AccumulateTone(), ToneMask(true)
+          , EnvelopeAddon(), AccumulateEnvelope(), EnableEnvelope()
         {
         }
 
-        uint_t Loop;
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        int_t VolSlide;//0/+1/-1
+        uint_t Noise;
+        bool AccumulateNoise;
+        bool NoiseMask;
+        uint_t Tone;
+        bool AccumulateTone;
+        bool ToneMask;
+        int_t EnvelopeAddon;
+        bool AccumulateEnvelope;
+        bool EnableEnvelope;
       };
+      
+      typedef LinesObject<SampleLine> Sample;
 
-      struct Ornament
+      struct OrnamentLine
       {
-        struct Line
-        {
-          Line()
-            : NoteAddon(), KeepNoteAddon(), NoiseAddon(), KeepNoiseAddon()
-          {
-          }
-
-          int_t NoteAddon;
-          bool KeepNoteAddon;
-          int_t NoiseAddon;
-          bool KeepNoiseAddon;
-        };
-
-        Ornament()
-          : Loop()
+        OrnamentLine()
+          : NoteAddon(), KeepNoteAddon(), NoiseAddon(), KeepNoiseAddon()
         {
         }
 
-        uint_t Loop;
-        std::vector<Line> Lines;
+        int_t NoteAddon;
+        bool KeepNoteAddon;
+        int_t NoiseAddon;
+        bool KeepNoiseAddon;
       };
+      
+      typedef LinesObject<OrnamentLine> Ornament;
 
       struct PositionEntry
       {
@@ -90,19 +73,21 @@ namespace Formats
         int_t Transposition;
       };
 
+      typedef LinesObject<PositionEntry> Positions;
+      
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         //common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
-        virtual void SetSample(uint_t index, const Sample& sample) = 0;
-        virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;
+        virtual void SetSample(uint_t index, Sample sample) = 0;
+        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 

@@ -10,14 +10,16 @@
 
 //local includes
 #include "aym_plugin.h"
-#include "aym_base.h"
-#include "aym_parameters.h"
+#include "aym_conversion.h"
 #include "core/plugins/players/plugin.h"
-#include "core/conversion/aym.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <core/plugin_attrs.h>
+#include <module/players/aym/aym_base.h>
+#include <module/players/aym/aym_parameters.h>
+//std includes
+#include <utility>
 
 namespace Module
 {
@@ -25,11 +27,11 @@ namespace Module
   {
   public:
     explicit AYMFactory(AYM::Factory::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (const AYM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
       {

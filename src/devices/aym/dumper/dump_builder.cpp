@@ -12,6 +12,8 @@
 #include "dump_builder.h"
 //common includes
 #include <make_ptr.h>
+//std includes
+#include <utility>
 
 namespace Devices
 {
@@ -20,8 +22,8 @@ namespace AYM
   class RenderState
   {
   public:
-    typedef boost::shared_ptr<RenderState> Ptr;
-    virtual ~RenderState() {}
+    typedef std::shared_ptr<RenderState> Ptr;
+    virtual ~RenderState() = default;
 
     virtual void Reset() = 0;
 
@@ -65,28 +67,28 @@ namespace AYM
   class NotOptimizedRenderState : public RenderState
   {
   public:
-    virtual void Reset()
+    void Reset() override
     {
       Base = Registers();
       Delta = Registers();
     }
 
-    virtual void Add(const Registers& delta)
+    void Add(const Registers& delta) override
     {
       ApplyMerge(Delta, delta);
     }
 
-    virtual Registers GetBase() const
+    Registers GetBase() const override
     {
       return Base;
     }
 
-    virtual Registers GetDelta() const
+    Registers GetDelta() const override
     {
       return Delta;
     }
 
-    void CommitDelta()
+    void CommitDelta() override
     {
       ApplyMerge(Base, Delta);
       Delta = Registers();
@@ -99,7 +101,7 @@ namespace AYM
   class OptimizedRenderState : public NotOptimizedRenderState
   {
   public:
-    virtual void Add(const Registers& delta)
+    void Add(const Registers& delta) override
     {
       for (Registers::IndicesIterator it(delta); it; ++it)
       {
@@ -124,15 +126,15 @@ namespace AYM
   public:
     FrameDumper(const Time::Microseconds& frameDuration, FramedDumpBuilder::Ptr builder, RenderState::Ptr state)
       : FrameDuration(frameDuration)
-      , Builder(builder)
-      , State(state)
+      , Builder(std::move(builder))
+      , State(std::move(state))
       , FramesToSkip(0)
       , NextFrame()
     {
       Reset();
     }
 
-    virtual void RenderData(const DataChunk& src)
+    void RenderData(const DataChunk& src) override
     {
       if (!(src.TimeStamp < NextFrame))
       {
@@ -141,15 +143,15 @@ namespace AYM
       State->Add(src.Data);
     }
 
-    virtual void RenderData(const std::vector<DataChunk>& src)
+    void RenderData(const std::vector<DataChunk>& src) override
     {
-      for (std::vector<DataChunk>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+      for (const auto& chunk : src)
       {
-        RenderData(*it);
+        RenderData(chunk);
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Builder->Initialize();
       State->Reset();
@@ -157,7 +159,7 @@ namespace AYM
       NextFrame = FrameDuration;
     }
 
-    virtual void GetDump(Dump& result) const
+    void GetDump(Dump& result) const override
     {
       if (FramesToSkip)
       {

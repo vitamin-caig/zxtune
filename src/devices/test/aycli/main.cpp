@@ -1,15 +1,14 @@
 #include <api_dynamic.h>
 #include <contract.h>
 #include <devices/aym/chip.h>
-#include <core/module_holder.h>
 #include <core/core_parameters.h>
 #include <parameters/container.h>
+#include <module/holder.h>
 #include <sound/mixer_factory.h>
 #include <sound/backends/storage.h>
 #include <sound/backends/backends_list.h>
 #include <sound/sound_parameters.h>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <iostream>
 
 namespace
@@ -80,7 +79,7 @@ namespace
   class StubRenderer : public Module::Renderer
   {
   public:
-    StubRenderer(boost::shared_ptr<Devices::AYM::DataChunk> chunk, Sound::Receiver::Ptr target)
+    StubRenderer(std::shared_ptr<Devices::AYM::DataChunk> chunk, Sound::Receiver::Ptr target)
       : Chunk(chunk)
       , Chip(Devices::AYM::CreateChip(StubChipParameters::Create(), CreateMixer(), target))
     {
@@ -114,14 +113,14 @@ namespace
     {
     }
   private:
-    const boost::shared_ptr<Devices::AYM::DataChunk> Chunk;
+    const std::shared_ptr<Devices::AYM::DataChunk> Chunk;
     const Devices::AYM::Chip::Ptr Chip;
   };
 
   class StubHolder : public Module::Holder
   {
   public:
-    explicit StubHolder(boost::shared_ptr<Devices::AYM::DataChunk> chunk)
+    explicit StubHolder(std::shared_ptr<Devices::AYM::DataChunk> chunk)
       : Chunk(chunk)
     {
     }
@@ -138,10 +137,10 @@ namespace
 
     virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const
     {
-      return boost::make_shared<StubRenderer>(Chunk, target);
+      return std::make_shared<StubRenderer>(Chunk, target);
     }
   private:
-    const boost::shared_ptr<Devices::AYM::DataChunk> Chunk;
+    const std::shared_ptr<Devices::AYM::DataChunk> Chunk;
   };
 
   class BackendFactoryHandle : public Sound::BackendsStorage
@@ -169,9 +168,9 @@ namespace
     Sound::BackendWorkerFactory::Ptr Factory;
   };
 
-  Sound::Backend::Ptr CreateBackend(boost::shared_ptr<Devices::AYM::DataChunk> chunk)
+  Sound::Backend::Ptr CreateBackend(std::shared_ptr<Devices::AYM::DataChunk> chunk)
   {
-    const Module::Holder::Ptr module = boost::make_shared<StubHolder>(chunk);
+    const Module::Holder::Ptr module = std::make_shared<StubHolder>(chunk);
     BackendFactoryHandle factory;
     Sound::RegisterDirectSoundBackend(factory);
     return factory.CreateBackend(module);
@@ -181,7 +180,7 @@ namespace
   {
   public:
     Gate()
-      : Data(boost::make_shared<Devices::AYM::DataChunk>())
+      : Data(std::make_shared<Devices::AYM::DataChunk>())
       , Backend(CreateBackend(Data))
       , Control(Backend->GetPlaybackControl())
     {
@@ -209,12 +208,12 @@ namespace
       Data->Data[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
     }
   private:
-    const boost::shared_ptr<Devices::AYM::DataChunk> Data;
+    const std::shared_ptr<Devices::AYM::DataChunk> Data;
     const Sound::Backend::Ptr Backend;
     const Sound::PlaybackControl::Ptr Control;
   };
 
-  std::auto_ptr<Gate> GateInstance;
+  std::unique_ptr<Gate> GateInstance;
 
   template<class Op>
   int call(Op op)

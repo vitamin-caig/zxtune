@@ -40,6 +40,7 @@
 #include <numeric>
 #include <set>
 //boost includes
+#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -56,8 +57,8 @@ namespace Analysis
   class Node
   {
   public:
-    typedef boost::shared_ptr<const Node> Ptr;
-    virtual ~Node() {}
+    typedef std::shared_ptr<const Node> Ptr;
+    virtual ~Node() = default;
 
     //! Name to distinguish. Can be empty
     virtual String Name() const = 0;
@@ -77,23 +78,23 @@ namespace
   class RootNode : public Analysis::Node
   {
   public:
-    RootNode(Binary::Container::Ptr data, const String& name)
-      : DataVal(data)
-      , NameVal(name)
+    RootNode(Binary::Container::Ptr data, String name)
+      : DataVal(std::move(data))
+      , NameVal(std::move(name))
     {
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       return NameVal;
     }
 
-    virtual Binary::Container::Ptr Data() const
+    Binary::Container::Ptr Data() const override
     {
       return DataVal;
     }
 
-    virtual Analysis::Node::Ptr Parent() const
+    Analysis::Node::Ptr Parent() const override
     {
       return Analysis::Node::Ptr();
     }
@@ -105,24 +106,24 @@ namespace
   class SubNode : public Analysis::Node
   {
   public:
-    SubNode(Analysis::Node::Ptr parent, Binary::Container::Ptr data, const String& name)
-      : ParentVal(parent)
-      , DataVal(data)
-      , NameVal(name)
+    SubNode(Analysis::Node::Ptr parent, Binary::Container::Ptr data, String name)
+      : ParentVal(std::move(parent))
+      , DataVal(std::move(data))
+      , NameVal(std::move(name))
     {
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       return NameVal;
     }
 
-    virtual Binary::Container::Ptr Data() const
+    Binary::Container::Ptr Data() const override
     {
       return DataVal;
     }
 
-    virtual Analysis::Node::Ptr Parent() const
+    Analysis::Node::Ptr Parent() const override
     {
       return ParentVal;
     }
@@ -138,23 +139,23 @@ namespace Analysis
   //since data is required, place it first
   Node::Ptr CreateRootNode(Binary::Container::Ptr data, const String& name)
   {
-    return MakePtr<RootNode>(data, name);
+    return MakePtr<RootNode>(std::move(data), name);
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name)
   {
-    return MakePtr<SubNode>(parent, data, name);
+    return MakePtr<SubNode>(std::move(parent), std::move(data), name);
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, std::size_t offset)
   {
-    return MakePtr<SubNode>(parent, data, Strings::Format("+%1%", offset));
+    return MakePtr<SubNode>(std::move(parent), std::move(data), Strings::Format("+%1%", offset));
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, std::size_t offset)
   {
-    const Node::Ptr intermediate = CreateSubnode(parent, data, offset);
-    return CreateSubnode(intermediate, data, name);
+    auto intermediate = CreateSubnode(parent, data, offset);
+    return CreateSubnode(std::move(intermediate), std::move(data), name);
   }
 }
 
@@ -293,8 +294,8 @@ namespace Parsing
   class Result
   {
   public:
-    typedef boost::shared_ptr<const Result> Ptr;
-    virtual ~Result() {}
+    typedef std::unique_ptr<const Result> Ptr;
+    virtual ~Result() = default;
 
     virtual String Name() const = 0;
     virtual Binary::Container::Ptr Data() const = 0;
@@ -313,18 +314,18 @@ namespace
   class StaticResult : public Parsing::Result
   {
   public:
-    StaticResult(const String& name, Binary::Container::Ptr data)
-      : NameVal(name)
-      , DataVal(data)
+    StaticResult(String name, Binary::Container::Ptr data)
+      : NameVal(std::move(name))
+      , DataVal(std::move(data))
     {
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       return NameVal;
     }
 
-    virtual Binary::Container::Ptr Data() const
+    Binary::Container::Ptr Data() const override
     {
       return DataVal;
     }
@@ -353,7 +354,7 @@ namespace
       Params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 2);
     }
 
-    virtual void ApplyData(const Parsing::Result::Ptr& result)
+    void ApplyData(Parsing::Result::Ptr result) override
     {
       try
       {
@@ -368,7 +369,7 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
     }
   private:
@@ -384,13 +385,13 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Parsing::Result::Ptr& data)
+    void ApplyData(Parsing::Result::Ptr data) override
     {
       ++Total;
       TotalSize += data->Data()->Size();
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       std::cout << Strings::Format(Text::STATISTIC_OUTPUT, Total, TotalSize) << std::endl;
     }
@@ -420,20 +421,19 @@ namespace
   public:
     SizeFilter(std::size_t minSize, Analysis::NodeReceiver::Ptr target)
       : MinSize(minSize)
-      , Target(target)
+      , Target(std::move(target))
     {
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& result)
+    void ApplyData(Analysis::Node::Ptr result) override
     {
-      const Binary::Container::Ptr data = result->Data();
-      if (data->Size() >= MinSize)
+      if (result->Data()->Size() >= MinSize)
       {
-        Target->ApplyData(result);
+        Target->ApplyData(std::move(result));
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
@@ -446,22 +446,22 @@ namespace
   {
   public:
     explicit EmptyDataFilter(Analysis::NodeReceiver::Ptr target)
-      : Target(target)
+      : Target(std::move(target))
     {
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& result)
+    void ApplyData(Analysis::Node::Ptr result) override
     {
       const Binary::Container::Ptr data = result->Data();
       const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
       const uint8_t* const end = begin + data->Size();
       if (end != std::find_if(begin, end, std::bind1st(std::not_equal_to<uint8_t>(), *begin)))
       {
-        Target->ApplyData(result);
+        Target->ApplyData(std::move(result));
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
@@ -474,21 +474,21 @@ namespace
   public:
     MatchedDataFilter(const std::string& format, Analysis::NodeReceiver::Ptr target)
       : Format(Binary::CreateFormat(format))
-      , Target(target)
+      , Target(std::move(target))
     {
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& result)
+    void ApplyData(Analysis::Node::Ptr result) override
     {
       const Binary::Container::Ptr data = result->Data();
       const std::size_t size = data->Size();
       if (Format->Match(*data) || size != Format->NextMatchOffset(*data))
       {
-        Target->ApplyData(result);
+        Target->ApplyData(std::move(result));
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
@@ -522,50 +522,50 @@ namespace
   {
   public:
     NestedScannerTarget(Analysis::Node::Ptr root, Analysis::NodeReceiver& toScan, Analysis::NodeReceiver& toStore)
-      : Root(root)
+      : Root(std::move(root))
       , ToScan(toScan)
       , ToStore(toStore)
     {
     }
 
-    virtual void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset, Formats::Archived::Container::Ptr data)
+    void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset, Formats::Archived::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
-      const Analysis::Node::Ptr archNode = Analysis::CreateSubnode(Root, data, name, offset);
-      const ScanFiles walker(ToScan, archNode);
+      auto archNode = Analysis::CreateSubnode(Root, std::move(data), name, offset);
+      const ScanFiles walker(ToScan, std::move(archNode));
       data->ExploreFiles(walker);
     }
 
-    virtual void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset, Formats::Packed::Container::Ptr data)
+    void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset, Formats::Packed::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->PackedSize(), offset);
-      const Analysis::Node::Ptr packNode = Analysis::CreateSubnode(Root, data, name, offset);
-      ToScan.ApplyData(packNode);
+      auto packNode = Analysis::CreateSubnode(Root, std::move(data), name, offset);
+      ToScan.ApplyData(std::move(packNode));
     }
 
-    virtual void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data)
+    void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->OriginalSize(), offset);
-      const Analysis::Node::Ptr imageNode = Analysis::CreateSubnode(Root, data, Strings::Format("+%1%.image", offset));
-      ToStore.ApplyData(imageNode);
+      auto imageNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+%1%.image", offset));
+      ToStore.ApplyData(std::move(imageNode));
     }
 
-    virtual void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data)
+    void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
-      const Analysis::Node::Ptr chiptuneNode = Analysis::CreateSubnode(Root, data, Strings::Format("+%1%.chiptune", offset));
-      ToStore.ApplyData(chiptuneNode);
+      auto chiptuneNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+%1%.chiptune", offset));
+      ToStore.ApplyData(std::move(chiptuneNode));
     }
 
-    virtual void Apply(std::size_t offset, Binary::Container::Ptr data)
+    void Apply(std::size_t offset, Binary::Container::Ptr data) override
     {
       Dbg("Unresolved %1% bytes at %2%", data->Size(), offset);
-      const Analysis::Node::Ptr rawNode = Analysis::CreateSubnode(Root, data, offset);
-      ToStore.ApplyData(rawNode);
+      auto rawNode = Analysis::CreateSubnode(Root, std::move(data), offset);
+      ToStore.ApplyData(std::move(rawNode));
     }
   private:
     class ScanFiles : public Formats::Archived::Container::Walker
@@ -573,18 +573,18 @@ namespace
     public:
       ScanFiles(Analysis::NodeReceiver& toScan, Analysis::Node::Ptr node)
         : ToScan(toScan)
-        , ArchiveNode(node)
+        , ArchiveNode(std::move(node))
       {
       }
 
-      virtual void OnFile(const Formats::Archived::File& file) const
+      void OnFile(const Formats::Archived::File& file) const override
       {
         if (const Binary::Container::Ptr data = file.GetData())
         {
           const String name = file.GetName();
           Dbg("Processing %1%", name);
-          const Analysis::Node::Ptr fileNode = Analysis::CreateSubnode(ArchiveNode, data, name);
-          ToScan.ApplyData(fileNode);
+          auto fileNode = Analysis::CreateSubnode(ArchiveNode, data, name);
+          ToScan.ApplyData(std::move(fileNode));
         }
       }
     private:
@@ -609,19 +609,26 @@ namespace
       Formats::Chiptune::FillScanner(*Scanner);
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& node)
+    void ApplyData(Analysis::Node::Ptr node) override
     {
       Dbg("Analyze %1%", node->Name());
       NestedScannerTarget target(node, *this, *Target);
-      Scanner->Scan(node->Data(), target);
+      try
+      {
+        Scanner->Scan(node->Data(), target);
+      }
+      catch (const std::exception& e)
+      {
+        std::cout << "Failed to process " << node->Name() << "(" << e.what() << ")\n";
+      }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
 
-    virtual void SetTarget(Analysis::NodeReceiver::Ptr target)
+    void SetTarget(Analysis::NodeReceiver::Ptr target) override
     {
       Target = target;
     }
@@ -646,14 +653,14 @@ namespace
     {
     }
 
-    virtual void ApplyData(const String& filename)
+    void ApplyData(String filename) override
     {
       try
       {
         Dbg("Opening '%1%'", filename);
         const Binary::Container::Ptr data = IO::OpenData(filename, *Params, Log::ProgressCallback::Stub());
-        const Analysis::Node::Ptr root = Analysis::CreateRootNode(data, filename);
-        Analyse->ApplyData(root);
+        auto root = Analysis::CreateRootNode(data, filename);
+        Analyse->ApplyData(std::move(root));
       }
       catch (const Error& e)
       {
@@ -661,12 +668,12 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Analyse->Flush();
     }
 
-    virtual void SetTarget(Analysis::NodeReceiver::Ptr analyse)
+    void SetTarget(Analysis::NodeReceiver::Ptr analyse) override
     {
       assert(analyse);
       Analyse = analyse;
@@ -680,11 +687,11 @@ namespace
   {
   public:
     explicit PathTemplate(Analysis::Node::Ptr node)
-      : Node(node)
+      : Node(std::move(node))
     {
     }
 
-    virtual String GetFieldValue(const String& fieldName) const
+    String GetFieldValue(const String& fieldName) const override
     {
       static const Char SUBPATH_DELIMITER[] = {'/', 0};
       static const Char FLATPATH_DELIMITER[] = {'_', 0};
@@ -773,7 +780,7 @@ namespace
   private:
     const Analysis::Node::Ptr Node;
     mutable IO::Identifier::Ptr RootIdentifier;
-    mutable std::auto_ptr<Strings::Array> Subpath;
+    mutable std::unique_ptr<Strings::Array> Subpath;
   };
 
   class TargetNamePoint : public Analysis::NodeReceiver
@@ -781,19 +788,19 @@ namespace
   public:
     TargetNamePoint(const String& nameTemplate, Parsing::Target::Ptr target)
       : Template(Strings::Template::Create(nameTemplate))
-      , Target(target)
+      , Target(std::move(target))
     {
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& node)
+    void ApplyData(Analysis::Node::Ptr node) override
     {
       const PathTemplate fields(node);
       const String filename = Template->Instantiate(fields);
-      const Parsing::Result::Ptr result = Parsing::CreateResult(filename, node->Data());
-      Target->ApplyData(result);
+      auto result = Parsing::CreateResult(filename, node->Data());
+      Target->ApplyData(std::move(result));
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
@@ -806,27 +813,27 @@ namespace
   {
   public:
     explicit Valve(Analysis::NodeReceiver::Ptr target = Analysis::NodeReceiver::CreateStub())
-      : Target(target)
+      : Target(std::move(target))
     {
     }
 
-    virtual ~Valve()
+    ~Valve() override
     {
       //break possible cycles
       Target = Analysis::NodeReceiver::CreateStub();
     }
 
-    virtual void ApplyData(const Analysis::Node::Ptr& data)
+    void ApplyData(Analysis::Node::Ptr data) override
     {
-      Target->ApplyData(data);
+      Target->ApplyData(std::move(data));
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
 
-    virtual void SetTarget(Analysis::NodeReceiver::Ptr target)
+    void SetTarget(Analysis::NodeReceiver::Ptr target) override
     {
       assert(target);
       Target = target;
@@ -843,7 +850,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const String& filename)
+    void ApplyData(String filename) override
     {
       const boost::filesystem::path path(filename);
       if (boost::filesystem::is_directory(path))
@@ -856,12 +863,12 @@ namespace
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Target->Flush();
     }
 
-    virtual void SetTarget(StringsReceiver::Ptr target)
+    void SetTarget(StringsReceiver::Ptr target) override
     {
       Target = target;
     }
@@ -892,7 +899,7 @@ namespace
   class TargetOptions
   {
   public:
-    virtual ~TargetOptions() {}
+    virtual ~TargetOptions() = default;
 
     virtual String TargetNameTemplate() const = 0;
     virtual bool IgnoreEmptyData() const = 0;
@@ -906,7 +913,7 @@ namespace
   class AnalysisOptions
   {
   public:
-    virtual ~AnalysisOptions() {}
+    virtual ~AnalysisOptions() = default;
 
     virtual std::size_t AnalysisThreads() const = 0;
     virtual std::size_t AnalysisDataQueueSize() const = 0;
@@ -939,22 +946,22 @@ namespace
   {
   public:
     TransceivePipe(typename DataReceiver<InType>::Ptr input, typename DataTransmitter<OutType>::Ptr output)
-      : Input(input)
-      , Output(output)
+      : Input(std::move(input))
+      , Output(std::move(output))
     {
     }
 
-    virtual void ApplyData(const InType& data)
+    void ApplyData(InType data) override
     {
-      Input->ApplyData(data);
+      Input->ApplyData(std::move(data));
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Input->Flush();
     }
 
-    virtual void SetTarget(typename DataReceiver<OutType>::Ptr target)
+    void SetTarget(typename DataReceiver<OutType>::Ptr target) override
     {
       Output->SetTarget(target);
     }
@@ -1009,47 +1016,47 @@ namespace
        ;
     }
 
-    virtual std::size_t AnalysisThreads() const
+    std::size_t AnalysisThreads() const override
     {
       return AnalysisThreadsValue;
     }
 
-    virtual std::size_t AnalysisDataQueueSize() const
+    std::size_t AnalysisDataQueueSize() const override
     {
       return AnalysisDataQueueSizeValue;
     }
 
-    virtual String TargetNameTemplate() const
+    String TargetNameTemplate() const override
     {
       return TargetNameTemplateValue;
     }
 
-    virtual bool IgnoreEmptyData() const
+    bool IgnoreEmptyData() const override
     {
       return IgnoreEmptyDataValue;
     }
 
-    virtual std::size_t MinDataSize() const
+    std::size_t MinDataSize() const override
     {
       return MinDataSizeValue;
     }
 
-    virtual std::string FormatFilter() const
+    std::string FormatFilter() const override
     {
       return FormatFilterValue;
     }
 
-    virtual std::size_t SaveThreadsCount() const
+    std::size_t SaveThreadsCount() const override
     {
       return SaveThreadsCountValue;
     }
 
-    virtual std::size_t SaveDataQueueSize() const
+    std::size_t SaveDataQueueSize() const override
     {
       return SaveDataQueueSizeValue;
     }
 
-    virtual bool StatisticOutput() const
+    bool StatisticOutput() const override
     {
       return StatisticOutputValue;
     }
@@ -1079,7 +1086,7 @@ public:
   {
   }
   
-  virtual int Run(int argc, const char* argv[])
+  int Run(int argc, const char* argv[]) override
   {
     Strings::Array paths;
     if (!ParseCmdline(argc, argv, paths))
@@ -1145,8 +1152,8 @@ private:
 
 namespace Platform
 {
-  std::auto_ptr<Application> Application::Create()
+  std::unique_ptr<Application> Application::Create()
   {
-    return std::auto_ptr<Application>(new MainApplication());
+    return std::unique_ptr<Application>(new MainApplication());
   }
 }

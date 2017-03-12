@@ -41,20 +41,20 @@ namespace
     {
     }
 
-    virtual const void* Start() const
+    const void* Start() const override
     {
       return RawData;
     }
 
-    virtual std::size_t Size() const
+    std::size_t Size() const override
     {
       return RawSize;
     }
 
-    virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
-      std::auto_ptr<Dump> copy(new Dump(RawData + offset, RawData + std::min(RawSize, offset + size)));
-      return Binary::CreateContainer(copy);
+      std::unique_ptr<Dump> copy(new Dump(RawData + offset, RawData + std::min(RawSize, offset + size)));
+      return Binary::CreateContainer(std::move(copy));
     }
   private:
     const uint8_t* const RawData;
@@ -66,39 +66,39 @@ namespace
   class CompositeArchive : public Formats::Archived::Container
   {
   public:
-    explicit CompositeArchive(const ArchivesSet& delegates)
-      : Delegates(delegates)
+    explicit CompositeArchive(ArchivesSet delegates)
+      : Delegates(std::move(delegates))
     {
     }
 
-    virtual const void* Start() const
+    const void* Start() const override
+    {
+      return nullptr;
+    }
+
+    std::size_t Size() const override
     {
       return 0;
     }
 
-    virtual std::size_t Size() const
-    {
-      return 0;
-    }
-
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t /*offset*/, std::size_t /*size*/) const
+    Binary::Container::Ptr GetSubcontainer(std::size_t /*offset*/, std::size_t /*size*/) const override
     {
       return Binary::Container::Ptr();
     }
 
-    virtual void ExploreFiles(const Formats::Archived::Container::Walker& walker) const
+    void ExploreFiles(const Formats::Archived::Container::Walker& walker) const override
     {
-      for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        (*it)->ExploreFiles(walker);
+        delegate->ExploreFiles(walker);
       }
     }
 
-    virtual Formats::Archived::File::Ptr FindFile(const String& name) const
+    Formats::Archived::File::Ptr FindFile(const String& name) const override
     {
-      for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        if (const Formats::Archived::File::Ptr res = (*it)->FindFile(name))
+        if (const Formats::Archived::File::Ptr res = delegate->FindFile(name))
         {
           return res;
         }
@@ -106,12 +106,12 @@ namespace
       return Formats::Archived::File::Ptr();
     }
 
-    virtual uint_t CountFiles() const
+    uint_t CountFiles() const override
     {
       uint_t res = 0;
-      for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      for (const auto& delegate : Delegates)
       {
-        res += (*it)->CountFiles();
+        res += delegate->CountFiles();
       }
       return res;
     }
@@ -137,9 +137,9 @@ namespace
     file.seekg(0, std::ios_base::end);
     const std::size_t size = static_cast<std::size_t>(file.tellg());
     file.seekg(0);
-    std::auto_ptr<Dump> tmp(new Dump(size));
+    std::unique_ptr<Dump> tmp(new Dump(size));
     file.read(safe_ptr_cast<char*>(&tmp->front()), size);
-    return Binary::CreateContainer(tmp);
+    return Binary::CreateContainer(std::move(tmp));
   }
 
   Binary::Container::Ptr LoadArchiveContainer()
@@ -231,7 +231,7 @@ namespace
       {
       }
 
-      virtual void OnFile(const Formats::Archived::File& file) const
+      void OnFile(const Formats::Archived::File& file) const override
       {
         return Delegate.OnResource(file.GetName());
       }

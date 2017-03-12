@@ -17,8 +17,8 @@
 #include <binary/format_factories.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -28,7 +28,7 @@ namespace Chiptune
 {
   namespace VideoGameMusic
   {
-    typedef boost::array<uint8_t, 4> SignatureType;
+    typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE = {{'V', 'g', 'm', ' '}};
 
@@ -99,7 +99,7 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(MinimalHeader) == 12);
+    static_assert(sizeof(MinimalHeader) == 12, "Invalid layout");
     
     const std::size_t MIN_SIZE = 256;
 
@@ -119,22 +119,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::VGM_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {

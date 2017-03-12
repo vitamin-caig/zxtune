@@ -6,6 +6,6 @@ libraries.common = binary io l10n_stub platform tools
 
 windows_libraries := advapi32
 
-libraries.boost := filesystem system
+libraries.boost := filesystem
 
 include $(path_step)/makefile.mak

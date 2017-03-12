@@ -10,13 +10,15 @@
 
 package app.zxtune.ui.browser;
 
-import java.io.IOException;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.ProgressBar;
+
+import java.io.IOException;
+
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.R;
@@ -68,10 +70,15 @@ public class BrowserController {
   public final void search(String query) {
     try {
       final VfsDir currentDir = getCurrentDir();
+      if (currentDir == null) {
+        return;
+      }
       loaderManager.destroyLoader(LOADER_ID);
       final LoaderManager.LoaderCallbacks<?> cb = SearchingLoaderCallback.create(this, currentDir, query);
       loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
+      Analytics.sendSearchEvent(currentDir);
     } catch (Exception e) {
+      Log.w(TAG, e, "Failed to search");
       listing.showError(e);
     }
   }
@@ -80,8 +87,23 @@ public class BrowserController {
     final Loader<?> loader = loaderManager.getLoader(LOADER_ID); 
     return loader instanceof SearchingLoader;
   }
-  
-  public final void setCurrentDir(VfsDir dir) {
+
+  public final void browseRoot() {
+    try {
+      browseDir(Vfs.getRoot());
+    } catch (IOException e) {
+      listing.showError(e);
+    }
+  }
+
+  public final void browseDir(VfsDir dir) {
+    if (dir != null) {
+      setCurrentDir(dir);
+      Analytics.sendBrowseEvent(dir);
+    }
+  }
+
+  private void setCurrentDir(VfsDir dir) {
     storeCurrentViewPosition();
     state.setCurrentPath(dir.getUri());
     setDirectory(dir);
@@ -95,7 +117,8 @@ public class BrowserController {
         final VfsDir parent = curDir != null ? (VfsDir) curDir.getParent() : null;
         setCurrentDir(parent != null ? parent : root);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
+      Log.w(TAG, e, "Failed to move up");
       listing.showError(e);
     }
   }
@@ -103,13 +126,13 @@ public class BrowserController {
   public final void storeCurrentViewPosition() {
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
   }
-  
+
   public final void browseArchive(VfsFile file, Runnable playCmd) {
     final VfsObject resolved = VfsArchive.browseCached(file);
     if (resolved == null) {
       loadArchive(file, playCmd);
     } else if (resolved instanceof VfsDir) {
-      setCurrentDir((VfsDir) resolved);
+      browseDir((VfsDir) resolved);
     } else if (resolved instanceof VfsFile) {
       playCmd.run();
     }
@@ -135,6 +158,7 @@ public class BrowserController {
     try {
       setDirectory(getCurrentDir());
     } catch (Exception e) {
+      Log.w(TAG, e, "Failed to load current dir");
       listing.showError(e);
     }
   }
@@ -191,6 +215,7 @@ public class BrowserController {
   
   final void loadingFailed(Exception e) {
     hideProgress();
+    Log.w(TAG, e, "Failed to load dir");
     listing.showError(e);
   }
 

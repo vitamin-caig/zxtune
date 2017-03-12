@@ -15,6 +15,7 @@
 #include <parameters/visitor.h>
 //std includes
 #include <set>
+#include <utility>
 
 namespace Parameters
 {
@@ -26,7 +27,7 @@ namespace Parameters
     {
     }
 
-    virtual void SetValue(const NameType& name, IntType val)
+    void SetValue(const NameType& name, IntType val) override
     {
       if (DoneIntegers.insert(name).second)
       {
@@ -34,7 +35,7 @@ namespace Parameters
       }
     }
 
-    virtual void SetValue(const NameType& name, const StringType& val)
+    void SetValue(const NameType& name, const StringType& val) override
     {
       if (DoneStrings.insert(name).second)
       {
@@ -42,7 +43,7 @@ namespace Parameters
       }
     }
 
-    virtual void SetValue(const NameType& name, const DataType& val)
+    void SetValue(const NameType& name, const DataType& val) override
     {
       if (DoneDatas.insert(name).second)
       {
@@ -60,35 +61,35 @@ namespace Parameters
   {
   public:
     DoubleAccessor(Accessor::Ptr first, Accessor::Ptr second)
-      : First(first)
-      , Second(second)
+      : First(std::move(first))
+      , Second(std::move(second))
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return First->Version() + Second->Version();
     }
 
-    virtual bool FindValue(const NameType& name, IntType& val) const
+    bool FindValue(const NameType& name, IntType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, StringType& val) const
+    bool FindValue(const NameType& name, StringType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, DataType& val) const
+    bool FindValue(const NameType& name, DataType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val);
     }
 
-    virtual void Process(Visitor& visitor) const
+    void Process(Visitor& visitor) const override
     {
       MergedVisitor mergedVisitor(visitor);
       First->Process(mergedVisitor);
@@ -103,39 +104,39 @@ namespace Parameters
   {
   public:
     TripleAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third)
-      : First(first)
-      , Second(second)
-      , Third(third)
+      : First(std::move(first))
+      , Second(std::move(second))
+      , Third(std::move(third))
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return First->Version() + Second->Version() + Third->Version();
     }
 
-    virtual bool FindValue(const NameType& name, IntType& val) const
+    bool FindValue(const NameType& name, IntType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val) ||
              Third->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, StringType& val) const
+    bool FindValue(const NameType& name, StringType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val) ||
              Third->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, DataType& val) const
+    bool FindValue(const NameType& name, DataType& val) const override
     {
       return First->FindValue(name, val) || 
              Second->FindValue(name, val) ||
              Third->FindValue(name, val);
     }
 
-    virtual void Process(Visitor& visitor) const
+    void Process(Visitor& visitor) const override
     {
       MergedVisitor mergedVisitor(visitor);
       First->Process(mergedVisitor);
@@ -150,11 +151,11 @@ namespace Parameters
 
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
   {
-    return MakePtr<DoubleAccessor>(first, second);
+    return MakePtr<DoubleAccessor>(std::move(first), std::move(second));
   }
 
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third)
   {
-    return MakePtr<TripleAccessor>(first, second, third);
+    return MakePtr<TripleAccessor>(std::move(first), std::move(second), std::move(third));
   }
 }

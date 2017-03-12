@@ -17,7 +17,6 @@
 #include <strings/array.h>
 #include <strings/fields.h>
 //boost includes
-#include <boost/ref.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/algorithm/string/join.hpp>
 
@@ -31,7 +30,7 @@ namespace IO
     {
     }
 
-    virtual String GetFieldValue(const String& fieldName) const
+    String GetFieldValue(const String& fieldName) const override
     {
       const String res = Delegate.GetFieldValue(fieldName);
       return res.empty()
@@ -66,11 +65,11 @@ namespace IO
   {
   public:
     explicit FilenameTemplate(Strings::Template::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 
-    virtual String Instantiate(const Strings::FieldsSource& source) const
+    String Instantiate(const Strings::FieldsSource& source) const override
     {
       const FilenameFieldsFilter filter(source);
       return Delegate->Instantiate(filter);
@@ -82,6 +81,6 @@ namespace IO
   Strings::Template::Ptr CreateFilenameTemplate(const String& notation)
   {
     Strings::Template::Ptr delegate = Strings::Template::Create(notation);
-    return MakePtr<FilenameTemplate>(boost::ref(delegate));
+    return MakePtr<FilenameTemplate>(std::move(delegate));
   }
 }

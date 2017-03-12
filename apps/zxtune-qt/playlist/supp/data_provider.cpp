@@ -18,14 +18,14 @@
 #include <make_ptr.h>
 #include <progress_callback.h>
 //library includes
-#include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <core/properties/path.h>
 #include <debug/log.h>
 #include <io/api.h>
+#include <module/attributes.h>
+#include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/template.h>
 #include <parameters/tracking.h>
@@ -35,9 +35,9 @@
 #include <strings/template.h>
 //std includes
 #include <deque>
+#include <mutex>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/thread/mutex.hpp>
 //text includes
 #include "text/text.h"
 
@@ -53,9 +53,9 @@ namespace
   class DataProvider
   {
   public:
-    typedef boost::shared_ptr<const DataProvider> Ptr;
+    typedef std::shared_ptr<const DataProvider> Ptr;
 
-    virtual ~DataProvider() {}
+    virtual ~DataProvider() = default;
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const = 0;
   };
@@ -64,11 +64,11 @@ namespace
   {
   public:
     explicit SimpleDataProvider(Parameters::Accessor::Ptr ioParams)
-      : Params(ioParams)
+      : Params(std::move(ioParams))
     {
     }
 
-    virtual Binary::Container::Ptr GetData(const String& dataPath) const
+    Binary::Container::Ptr GetData(const String& dataPath) const override
     {
       const String& localEncodingPath = ToLocal(dataPath);
       return IO::OpenData(localEncodingPath, *Params, Log::ProgressCallback::Stub());
@@ -112,8 +112,8 @@ namespace
       {
       }
 
-      Item(const String& id, T val)
-        : Id(id)
+      Item(String id, T val)
+        : Id(std::move(id))
         , Value(val)
         , Weight(ObjectTraits<T>::Weight(val))
       {
@@ -203,7 +203,7 @@ namespace
         }
         return &Items.front();
       }
-      return 0;
+      return nullptr;
     }
   private:
     ItemsList Items;
@@ -214,7 +214,7 @@ namespace
   {
   public:
     explicit CacheParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -239,7 +239,7 @@ namespace
   class CachedDataProvider : public DataProvider
   {
   public:
-    typedef boost::shared_ptr<CachedDataProvider> Ptr;
+    typedef std::shared_ptr<CachedDataProvider> Ptr;
 
     explicit CachedDataProvider(Parameters::Accessor::Ptr ioParams)
       : Params(ioParams)
@@ -247,9 +247,9 @@ namespace
     {
     }
 
-    virtual Binary::Container::Ptr GetData(const String& dataPath) const
+    Binary::Container::Ptr GetData(const String& dataPath) const override
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       const std::size_t filesLimit = Params.FilesLimit();
       const std::size_t memLimit = Params.MemoryLimit();
       if (filesLimit != 0 && memLimit != 0)
@@ -265,7 +265,7 @@ namespace
 
     void FlushCachedData(const String& dataPath)
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       if (Cache.GetItemsCount())
       {
         Cache.Del(dataPath);
@@ -293,18 +293,18 @@ namespace
   private:
     const CacheParameters Params;
     const DataProvider::Ptr Delegate;
-    mutable boost::mutex Mutex;
+    mutable std::mutex Mutex;
     mutable ObjectsCache<Binary::Container::Ptr> Cache;
   };
 
   class DataSource
   {
   public:
-    typedef boost::shared_ptr<const DataSource> Ptr;
+    typedef std::shared_ptr<const DataSource> Ptr;
 
     DataSource(CachedDataProvider::Ptr provider, IO::Identifier::Ptr id)
-      : Provider(provider)
-      , DataId(id)
+      : Provider(std::move(provider))
+      , DataId(std::move(id))
     {
     }
 
@@ -331,21 +331,21 @@ namespace
   {
   public:
     explicit RecodeStringsAdapter(Parameters::Accessor::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
     {
     }
 
-    virtual uint_t Version() const
+    uint_t Version() const override
     {
       return Delegate->Version();
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
     {
       return Delegate->FindValue(name, val);
     }
     
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
     {
       if (Delegate->FindValue(name, val))
       {
@@ -358,12 +358,12 @@ namespace
       }
     }
 
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
     {
       return Delegate->FindValue(name, val);
     }
 
-    virtual void Process(Parameters::Visitor& visitor) const
+    void Process(Parameters::Visitor& visitor) const override
     {
       RecodeVisitorAdapter adapter(visitor);
       Delegate->Process(adapter);
@@ -377,17 +377,17 @@ namespace
       {
       }
 
-      virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
+      void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
       {
         Delegate.SetValue(name, val);
       }
 
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
+      void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
       {
         Delegate.SetValue(name, Strings::ToAutoUtf8(val));
       }
 
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
+      void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
       {
         Delegate.SetValue(name, val);
       }
@@ -402,9 +402,9 @@ namespace
   {
   public:
     ModuleSource(Parameters::Accessor::Ptr coreParams, DataSource::Ptr source, IO::Identifier::Ptr moduleId)
-      : CoreParams(coreParams)
-      , Source(source)
-      , ModuleId(moduleId)
+      : CoreParams(std::move(coreParams))
+      , Source(std::move(source))
+      , ModuleId(std::move(moduleId))
     {
     }
 
@@ -461,7 +461,7 @@ namespace
   class DynamicAttributesProvider
   {
   public:
-    typedef boost::shared_ptr<const DynamicAttributesProvider> Ptr;
+    typedef std::shared_ptr<const DynamicAttributesProvider> Ptr;
 
     DynamicAttributesProvider()
       : DisplayNameTemplate(Strings::Template::Create(Text::MODULE_PLAYLIST_FORMAT))
@@ -494,14 +494,14 @@ namespace
     typedef Playlist::Item::Data::Ptr Ptr;
     
     DataImpl(DynamicAttributesProvider::Ptr attributes,
-        const ModuleSource& source,
+        ModuleSource source,
         Parameters::Container::Ptr adjustedParams,
         uint_t frames, const Parameters::Accessor& moduleProps,
         uint_t caps)
       : Caps(caps)
-      , Attributes(attributes)
-      , Source(source)
-      , AdjustedParams(adjustedParams)
+      , Attributes(std::move(attributes))
+      , Source(std::move(source))
+      , AdjustedParams(std::move(adjustedParams))
       , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
       , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
       , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
@@ -511,7 +511,7 @@ namespace
       LoadProperties(moduleProps);
     }
 
-    virtual Module::Holder::Ptr GetModule() const
+    Module::Holder::Ptr GetModule() const override
     {
       try
       {
@@ -525,79 +525,79 @@ namespace
       return Module::Holder::Ptr();
     }
 
-    virtual Binary::Data::Ptr GetModuleData() const
+    Binary::Data::Ptr GetModuleData() const override
     {
       return Source.GetModuleData(Size);
     }
     
-    virtual Parameters::Container::Ptr GetAdjustedParameters() const
+    Parameters::Container::Ptr GetAdjustedParameters() const override
     {
       const Parameters::Modifier& cb = *this;
       return Parameters::CreatePostChangePropertyTrackedContainer(AdjustedParams, const_cast<Parameters::Modifier&>(cb));
     }
 
-    virtual Playlist::Item::Capabilities GetCapabilities() const
+    Playlist::Item::Capabilities GetCapabilities() const override
     {
       return Caps;
     }
 
     //playlist-related properties
-    virtual Error GetState() const
+    Error GetState() const override
     {
       return State;
     }
 
-    virtual String GetFullPath() const
+    String GetFullPath() const override
     {
       return Source.GetFullPath();
     }
 
-    virtual String GetFilePath() const
+    String GetFilePath() const override
     {
       return Source.GetFilePath();
     }
 
-    virtual String GetType() const
+    String GetType() const override
     {
       return Type;
     }
 
-    virtual String GetDisplayName() const
+    String GetDisplayName() const override
     {
       return DisplayName;
     }
 
-    virtual Time::MillisecondsDuration GetDuration() const
+    Time::MillisecondsDuration GetDuration() const override
     {
       return Duration;
     }
 
-    virtual String GetAuthor() const
+    String GetAuthor() const override
     {
       return Author;
     }
 
-    virtual String GetTitle() const
+    String GetTitle() const override
     {
       return Title;
     }
 
-    virtual String GetComment() const
+    String GetComment() const override
     {
       return Comment;
     }
     
-    virtual uint32_t GetChecksum() const
+    uint32_t GetChecksum() const override
     {
       return Checksum;
     }
 
-    virtual uint32_t GetCoreChecksum() const
+    uint32_t GetCoreChecksum() const override
     {
       return CoreChecksum;
     }
 
-    virtual std::size_t GetSize() const
+    std::size_t GetSize() const override
     {
       return Size;
     }
@@ -611,22 +611,22 @@ namespace
       return Parameters::Accessor::Ptr();
     }
   private:
-    virtual void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
+    void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    virtual void SetValue(const Parameters::NameType& /*name*/, const Parameters::StringType& /*val*/)
+    void SetValue(const Parameters::NameType& /*name*/, const Parameters::StringType& /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    virtual void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/)
+    void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    virtual void RemoveValue(const Parameters::NameType& /*name*/)
+    void RemoveValue(const Parameters::NameType& /*name*/) override
     {
       OnPropertyChanged();
     }
@@ -680,14 +680,14 @@ namespace
                             DynamicAttributesProvider::Ptr attributes,
                             CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, IO::Identifier::Ptr dataId)
       : Delegate(delegate)
-      , Attributes(attributes)
-      , CoreParams(coreParams)
+      , Attributes(std::move(attributes))
+      , CoreParams(std::move(coreParams))
       , DataId(dataId)
       , Source(MakePtr<DataSource>(provider, dataId))
     {
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const
+    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const override
     {
       const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
@@ -702,7 +702,7 @@ namespace
       Delegate.ProcessItem(playitem);
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return Delegate.GetProgress();
     }
@@ -724,7 +724,7 @@ namespace
     {
     }
 
-    virtual void DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const
+    void DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const override
     {
       const IO::Identifier::Ptr id = IO::ResolveUri(path);
 
@@ -742,7 +742,7 @@ namespace
       }
     }
 
-    virtual void OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const
+    void OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const override
     {
       const IO::Identifier::Ptr id = IO::ResolveUri(path);
 

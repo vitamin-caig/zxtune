@@ -26,9 +26,9 @@ namespace AYM
   {
   public:
     SoundChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target)
-      : Params(params)
-      , Mixer(mixer)
-      , Target(target)
+      : Params(std::move(params))
+      , Mixer(std::move(mixer))
+      , Target(std::move(target))
       , PSG(VolTable)
       , Clock()
       , Renderers(Clock, PSG)
@@ -36,7 +36,7 @@ namespace AYM
       SoundChip::Reset();
     }
 
-    virtual void RenderData(const typename Traits::DataChunkType& src)
+    void RenderData(const typename Traits::DataChunkType& src) override
     {
       if (Clock.HasSamplesBefore(src.TimeStamp))
       {
@@ -46,7 +46,7 @@ namespace AYM
       PSG.SetNewData(src.Data);
     }
 
-    virtual void RenderData(const std::vector<typename Traits::DataChunkType>& src)
+    void RenderData(const std::vector<typename Traits::DataChunkType>& src) override
     {
       if (src.empty())
       {
@@ -59,41 +59,40 @@ namespace AYM
         const uint_t samples = Clock.SamplesTill(end);
         Sound::ChunkBuilder builder;
         builder.Reserve(samples);
-        for (typename std::vector<typename Traits::DataChunkType>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+        for (const auto& chunk : src)
         {
-          const typename Traits::DataChunkType& chunk = *it;
           Renderers.Render(chunk.TimeStamp, builder);
-          PSG.SetNewData(it->Data);
+          PSG.SetNewData(chunk.Data);
         }
-        Target->ApplyData(builder.GetResult());
+        Target->ApplyData(builder.CaptureResult());
         Target->Flush();
       }
       else
       {
-        for (typename std::vector<typename Traits::DataChunkType>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+        for (const auto& chunk : src)
         {
-          PSG.SetNewData(it->Data);
+          PSG.SetNewData(chunk.Data);
         }
       }
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       PSG.Reset();
       Renderers.Reset();
     }
 
-    virtual void GetState(MultiChannelState& state) const
+    MultiChannelState GetState() const override
     {
       MultiChannelState res;
       res.reserve(Traits::VOICES);
       PSG.GetState(res);
-      for (MultiChannelState::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
+      for (auto& re : res)
       {
-        it->Band = Analyser.GetBandByPeriod(it->Band);
+        re.Band = Analyser.GetBandByPeriod(re.Band);
       }
-      state.swap(res);
+      return res;
     }
   private:
     void SynchronizeParameters()
@@ -118,7 +117,7 @@ namespace AYM
       Sound::ChunkBuilder builder;
       builder.Reserve(samples);
       Renderers.Render(stamp, samples, builder);
-      Target->ApplyData(builder.GetResult());
+      Target->ApplyData(builder.CaptureResult());
       Target->Flush();
     }
   private:

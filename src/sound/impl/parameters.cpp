@@ -16,7 +16,7 @@
 
 namespace
 {
-  BOOST_STATIC_ASSERT(Sound::Gain::CHANNELS == 2);
+  static_assert(Sound::Gain::CHANNELS == 2, "Incompatible sound channels count");
 
   struct MixerValue
   {
@@ -29,23 +29,23 @@ namespace
     //1-channel
     {
       { {"1.0_0", 100}, {"1.0_1", 100} },
-      { {0,         0}, {0,         0} },
-      { {0,         0}, {0,         0} },
-      { {0,         0}, {0,         0} },
+      { {nullptr,         0}, {nullptr,         0} },
+      { {nullptr,         0}, {nullptr,         0} },
+      { {nullptr,         0}, {nullptr,         0} },
     },
     //2-channel
     {
       { {"2.0_0", 100}, {"2.0_1",   0} },
       { {"2.1_0",   0}, {"2.1_1", 100} },
-      { {0,         0}, {0,         0} },
-      { {0,         0}, {0,         0} },
+      { {nullptr,         0}, {nullptr,         0} },
+      { {nullptr,         0}, {nullptr,         0} },
     },
     //3-channel
     {
       { {"3.0_0", 100}, {"3.0_1",   0} },
       { {"3.1_0",  60}, {"3.1_1",  60} },
       { {"3.2_0",   0}, {"3.2_1", 100} },
-      { {0,         0}, {0,         0} },
+      { {nullptr,         0}, {nullptr,         0} },
     },
     //4-channel
     {

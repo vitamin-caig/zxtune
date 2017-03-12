@@ -26,12 +26,12 @@ namespace Module
     {
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const
+    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const override
     {
       return Delegate.ProcessModule(location, decoder, holder);
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return Delegate.GetProgress();
     }
@@ -44,7 +44,7 @@ namespace Module
   public:
     CustomProgressDetectCallbackAdapter(const DetectCallback& delegate, Log::ProgressCallback::Ptr progress)
       : DetectCallbackDelegate(delegate)
-      , Progress(progress)
+      , Progress(std::move(progress))
     {
     }
 
@@ -53,7 +53,7 @@ namespace Module
     {
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return Progress.get();
     }

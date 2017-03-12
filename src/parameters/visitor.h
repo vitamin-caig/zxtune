@@ -12,8 +12,8 @@
 
 //library includes
 #include <parameters/types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace Parameters
 {
@@ -22,9 +22,9 @@ namespace Parameters
   {
   public:
     //! Pointer type
-    typedef boost::shared_ptr<Visitor> Ptr;
+    typedef std::shared_ptr<Visitor> Ptr;
 
-    virtual ~Visitor() {}
+    virtual ~Visitor() = default;
 
     //! Add/modify integer parameter
     virtual void SetValue(const NameType& name, IntType val) = 0;

@@ -14,8 +14,8 @@
 #include <error.h>
 #include <iterator.h>
 //library includes
-#include <core/module_analyzer.h>
-#include <core/module_track_state.h>
+#include <module/analyzer.h>
+#include <module/track_state.h>
 #include <sound/gain.h>
 
 namespace Sound
@@ -25,11 +25,11 @@ namespace Sound
   {
   public:
     //! Pointer type
-    typedef boost::shared_ptr<const BackendInformation> Ptr;
+    typedef std::shared_ptr<const BackendInformation> Ptr;
     //! Iterator type
     typedef ObjectIterator<Ptr> Iterator;
 
-    virtual ~BackendInformation() {}
+    virtual ~BackendInformation() = default;
 
     //! Short spaceless identifier
     virtual String Id() const = 0;
@@ -46,9 +46,9 @@ namespace Sound
   {
   public:
     //! @brief Pointer types
-    typedef boost::shared_ptr<VolumeControl> Ptr;
+    typedef std::shared_ptr<VolumeControl> Ptr;
 
-    virtual ~VolumeControl() {}
+    virtual ~VolumeControl() = default;
 
     //! @brief Getting current hardware mixer volume
     //! @return Result volume
@@ -66,9 +66,9 @@ namespace Sound
   {
   public:
     //! @brief Pointer type
-    typedef boost::shared_ptr<PlaybackControl> Ptr;
+    typedef std::shared_ptr<PlaybackControl> Ptr;
 
-    virtual ~PlaybackControl() {}
+    virtual ~PlaybackControl() = default;
 
     //! @brief Starting playback after stop or pause
     //! @throw Error in case of error
@@ -111,9 +111,9 @@ namespace Sound
   {
   public:
     //! @brief Pointer type
-    typedef boost::shared_ptr<const Backend> Ptr;
+    typedef std::shared_ptr<const Backend> Ptr;
 
-    virtual ~Backend() {}
+    virtual ~Backend() = default;
 
     //! @brief Current tracking status
     virtual Module::TrackState::Ptr GetTrackState() const = 0;
@@ -132,8 +132,8 @@ namespace Sound
   class BackendCallback
   {
   public:
-    typedef boost::shared_ptr<BackendCallback> Ptr;
-    virtual ~BackendCallback() {}
+    typedef std::shared_ptr<BackendCallback> Ptr;
+    virtual ~BackendCallback() = default;
 
     virtual void OnStart() = 0;
     virtual void OnFrame(const Module::TrackState& state) = 0;

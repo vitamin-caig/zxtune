@@ -19,8 +19,6 @@
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <time/oscillator.h>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Devices
 {
@@ -29,9 +27,9 @@ namespace FM
   namespace Details
   {
     typedef int32_t YM2203SampleType;
-    typedef boost::shared_ptr<void> ChipPtr;
+    typedef std::shared_ptr<void> ChipPtr;
 
-    BOOST_STATIC_ASSERT(sizeof(YM2203SampleType) == sizeof(Sound::Sample));
+    static_assert(sizeof(YM2203SampleType) == sizeof(Sound::Sample), "Incompatible sample types");
 
     class ClockSource
     {
@@ -127,13 +125,13 @@ namespace FM
     {
     public:
       BaseChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
-        : Params(params)
-        , Target(target)
+        : Params(std::move(params))
+        , Target(std::move(target))
       {
         BaseChip::Reset();
       }
 
-      virtual void RenderData(const typename ChipTraits::DataChunkType& src)
+      void RenderData(const typename ChipTraits::DataChunkType& src) override
       {
         if (const uint_t samples = Clock.AdvanceTo(src.TimeStamp))
         {
@@ -143,7 +141,7 @@ namespace FM
         Adapter.WriteRegisters(src.Data);
       }
 
-      virtual void Reset()
+      void Reset() override
       {
         Params.Reset();
         Adapter.Reset();
@@ -151,9 +149,9 @@ namespace FM
         SynchronizeParameters();
       }
 
-      virtual void GetState(MultiChannelState& state) const
+      MultiChannelState GetState() const override
       {
-        Adapter.GetState(state);
+        return Adapter.GetState();
       }
     private:
       void SynchronizeParameters()
@@ -172,7 +170,7 @@ namespace FM
         Sound::ChunkBuilder builder;
         builder.Reserve(samples);
         Adapter.RenderSamples(samples, builder);
-        Target->ApplyData(builder.GetResult());
+        Target->ApplyData(builder.CaptureResult());
         Target->Flush();
       }
     private:

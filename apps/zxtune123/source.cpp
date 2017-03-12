@@ -17,14 +17,13 @@
 #include <progress_callback.h>
 //library includes
 #include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <core/properties/path.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
+#include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
 #include <platform/application.h>
 #include <strings/array.h>
@@ -33,7 +32,6 @@
 #include <iomanip>
 #include <iostream>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>
@@ -70,13 +68,13 @@ namespace
     {
     }
 
-    virtual void OnProgress(uint_t current)
+    void OnProgress(uint_t current) override
     {
       static const String EMPTY;
       OnProgress(current, EMPTY);
     }
 
-    virtual void OnProgress(uint_t current, const String& message)
+    void OnProgress(uint_t current, const String& message) override
     {
       if (ReportTimeout())
       {
@@ -113,14 +111,14 @@ namespace
   {
   public:
     DetectCallback(Parameters::Accessor::Ptr params, IO::Identifier::Ptr id, OnItemCallback& callback, bool showLogs)
-      : Params(params)
-      , Id(id)
+      : Params(std::move(params))
+      , Id(std::move(id))
       , Callback(callback)
-      , ProgressCallback(showLogs ? new ProgressCallbackImpl() : 0)
+      , ProgressCallback(showLogs ? new ProgressCallbackImpl() : nullptr)
     {
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
+    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const override
     {
       const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(Module::CreatePathProperties(subId), Params);
@@ -128,7 +126,7 @@ namespace
       Callback.ProcessItem(location->GetData(), result);
     }
 
-    virtual Log::ProgressCallback* GetProgress() const
+    Log::ProgressCallback* GetProgress() const override
     {
       return ProgressCallback.get();
     }
@@ -143,7 +141,7 @@ namespace
   {
   public:
     Source(Parameters::Container::Ptr configParams)
-      : Params(configParams)
+      : Params(std::move(configParams))
       , OptionsDescription(Text::INPUT_SECTION)
       , ShowProgress(false)
       , YM(false)
@@ -157,12 +155,12 @@ namespace
       ;
     }
 
-    virtual const boost::program_options::options_description& GetOptionsDescription() const
+    const boost::program_options::options_description& GetOptionsDescription() const override
     {
       return OptionsDescription;
     }
 
-    virtual void ParseParameters()
+    void ParseParameters() override
     {
       if (!ProvidersOptions.empty())
       {
@@ -189,7 +187,7 @@ namespace
     }
 
     // throw
-    virtual void Initialize()
+    void Initialize() override
     {
       if (Files.empty())
       {
@@ -197,7 +195,7 @@ namespace
       }
     }
 
-    virtual void ProcessItems(OnItemCallback& callback)
+    void ProcessItems(OnItemCallback& callback) override
     {
       for (Strings::Array::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
@@ -242,7 +240,7 @@ namespace
   };
 }
 
-std::auto_ptr<SourceComponent> SourceComponent::Create(Parameters::Container::Ptr configParams)
+std::unique_ptr<SourceComponent> SourceComponent::Create(Parameters::Container::Ptr configParams)
 {
-  return std::auto_ptr<SourceComponent>(new Source(configParams));
+  return std::unique_ptr<SourceComponent>(new Source(configParams));
 }

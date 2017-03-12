@@ -10,8 +10,8 @@
 
 #pragma once
 
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 //qt includes
 #include <QtCore/QStringList>
 
@@ -20,8 +20,8 @@ namespace UI
   class Language
   {
   public:
-    typedef boost::shared_ptr<Language> Ptr;
-    virtual ~Language() {}
+    typedef std::shared_ptr<Language> Ptr;
+    virtual ~Language() = default;
 
     virtual QStringList GetAvailable() const = 0;
     virtual QString GetSystem() const = 0;

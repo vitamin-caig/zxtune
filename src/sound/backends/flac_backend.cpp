@@ -44,7 +44,7 @@ namespace Flac
   const String ID = Text::FLAC_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
 
-  typedef boost::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
+  typedef std::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
 
   void CheckFlacCall(FLAC__bool res, Error::LocationRef loc)
   {
@@ -66,7 +66,7 @@ namespace Flac
 
   inline FlacSample ConvertSample(Sample in)
   {
-    BOOST_STATIC_ASSERT(Sample::MID == 0);
+    static_assert(Sample::MID == 0, "Incompatible sound sample type");
     return FlacSample(in.Left(), in.Right());
   }
 
@@ -74,7 +74,7 @@ namespace Flac
   {
   public:
     explicit MetaData(Api::Ptr api)
-      : FlacApi(api)
+      : FlacApi(std::move(api))
       , Tags(FlacApi->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT), boost::bind(&Api::FLAC__metadata_object_delete, FlacApi, _1))
     {
     }
@@ -96,7 +96,7 @@ namespace Flac
     }
   private:
     const Api::Ptr FlacApi;
-    const boost::shared_ptr<FLAC__StreamMetadata> Tags;
+    const std::shared_ptr<FLAC__StreamMetadata> Tags;
   };
 
   class FileStream : public Sound::FileStream
@@ -104,47 +104,47 @@ namespace Flac
   public:
     FileStream(Api::Ptr api, EncoderPtr encoder, Binary::OutputStream::Ptr stream)
       : FlacApi(api)
-      , Encoder(encoder)
+      , Encoder(std::move(encoder))
       , Meta(api)
-      , Stream(stream)
+      , Stream(std::move(stream))
     {
     }
 
-    virtual void SetTitle(const String& title)
+    void SetTitle(const String& title) override
     {
       Meta.AddTag(Text::OGG_BACKEND_TITLE_TAG, title);
     }
 
-    virtual void SetAuthor(const String& author)
+    void SetAuthor(const String& author) override
     {
       Meta.AddTag(Text::OGG_BACKEND_AUTHOR_TAG, author);
     }
 
-    virtual void SetComment(const String& comment)
+    void SetComment(const String& comment) override
     {
       Meta.AddTag(Text::OGG_BACKEND_COMMENT_TAG, comment);
     }
 
-    virtual void FlushMetadata()
+    void FlushMetadata() override
     {
       Meta.Encode(*Encoder);
       //real stream initializing should be performed after all set functions
-      if (const Binary::SeekableOutputStream::Ptr seekableStream = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
+      if (const Binary::SeekableOutputStream::Ptr seekableStream = std::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
       {
         Dbg("Using seekable stream for FLAC output");
         CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
-          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, 0, seekableStream.get()), THIS_LINE);
+          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, nullptr, seekableStream.get()), THIS_LINE);
       }
       else
       {
         Dbg("Using non-seekable stream for FLAC output");
         CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
-          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, 0, 0, 0, Stream.get()), THIS_LINE);
+          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, nullptr, nullptr, nullptr, Stream.get()), THIS_LINE);
       }
       Dbg("Stream initialized");
     }
 
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(Chunk::Ptr data) override
     {
       if (const std::size_t samples = data->size())
       {
@@ -154,7 +154,7 @@ namespace Flac
       }
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       CheckFlacCall(FlacApi->FLAC__stream_encoder_finish(Encoder.get()), THIS_LINE);
       Dbg("Stream flushed");
@@ -204,7 +204,7 @@ namespace Flac
   {
   public:
     explicit StreamParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
+      : Params(std::move(params))
     {
     }
 
@@ -235,17 +235,17 @@ namespace Flac
   {
   public:
     FileStreamFactory(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : FlacApi(api)
-      , Params(params)
+      : FlacApi(std::move(api))
+      , Params(std::move(params))
     {
     }
 
-    virtual String GetId() const
+    String GetId() const override
     {
       return ID;
     }
 
-    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
+    FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
       const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(), boost::bind(&Api::FLAC__stream_encoder_delete, FlacApi, _1));
       SetupEncoder(*encoder);
@@ -282,11 +282,11 @@ namespace Flac
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : FlacApi(api)
+      : FlacApi(std::move(api))
     {
     }
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(FlacApi, params);
       return CreateFileBackendWorker(params, factory);

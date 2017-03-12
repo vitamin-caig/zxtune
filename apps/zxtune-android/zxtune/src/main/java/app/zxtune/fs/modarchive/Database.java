@@ -14,8 +14,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -58,7 +64,7 @@ final class Database {
         ");";
       ;
       
-      Authors(SQLiteOpenHelper helper) {
+      Authors(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -92,7 +98,7 @@ final class Database {
           "size INTEGER NOT NULL" +
           ");";
 
-      Tracks(SQLiteOpenHelper helper) {
+      Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -122,7 +128,7 @@ final class Database {
       final static String NAME = "author_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      AuthorTracks(SQLiteOpenHelper helper) {
+      AuthorTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -150,7 +156,7 @@ final class Database {
         ");";
       ;
 
-      Genres(SQLiteOpenHelper helper) {
+      Genres(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
       
@@ -171,7 +177,7 @@ final class Database {
       final static String NAME = "genre_tracks";
       final static String CREATE_QUERY = Grouping.createQuery(NAME);
       
-      GenreTracks(SQLiteOpenHelper helper) {
+      GenreTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
       
@@ -185,7 +191,7 @@ final class Database {
     }
   }
 
-  private final Helper helper;
+  private final DBProvider helper;
   private final Tables.Authors authors;
   private final Tables.AuthorTracks authorTracks;
   private final Tables.Genres genres;
@@ -193,9 +199,10 @@ final class Database {
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
   private final String findQuery;
+  private final VfsCache cacheDir;
 
-  Database(Context context) {
-    this.helper = Helper.create(context);
+  Database(Context context, VfsCache cache) throws IOException {
+    this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorTracks = new Tables.AuthorTracks(helper);
     this.genres = new Tables.Genres(helper);
@@ -206,9 +213,10 @@ final class Database {
         "FROM authors LEFT OUTER JOIN tracks ON " +
         "tracks." + Tables.Tracks.getSelection(authorTracks.getIdsSelection("authors._id")) +
         " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
+    this.cacheDir = cache.createNested("modarchive.org");
   }
 
-  final Transaction startTransaction() {
+  final Transaction startTransaction() throws IOException {
     return new Transaction(helper.getWritableDatabase());
   }
   
@@ -229,7 +237,6 @@ final class Database {
   }
   
   final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors()");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Authors.NAME, null, null, null, null, null, null);
     try {
@@ -252,7 +259,6 @@ final class Database {
   }
   
   final boolean queryGenres(Catalog.GenresVisitor visitor) {
-    Log.d(TAG, "queryGenres()");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Genres.NAME, null, null, null, null, null, null);
     try {
@@ -275,13 +281,11 @@ final class Database {
   }
   
   final boolean queryTracks(Author author, Catalog.TracksVisitor visitor) {
-    Log.d(TAG, "queryTracks(author=%d)", author.id);
     final String selection = Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author));
     return queryTracksInternal(selection, visitor);
   }
 
   final boolean queryTracks(Genre genre, Catalog.TracksVisitor visitor) {
-    Log.d(TAG, "queryTracks(genre=%d)", genre.id);
     final String selection = Tables.Tracks.getSelection(genreTracks.getTracksIdsSelection(genre));
     return queryTracksInternal(selection, visitor);
   }
@@ -305,9 +309,8 @@ final class Database {
   }
   
   final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
-    Log.d(TAG, "findTracks(query=%s)", query);
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final Cursor cursor = db.rawQuery(findQuery, new String[] {query});
+    final Cursor cursor = db.rawQuery(findQuery, new String[]{query});
     try {
       final int count = cursor.getCount();
       if (count != 0) {
@@ -322,7 +325,7 @@ final class Database {
       cursor.close();
     }
   }
-  
+
   final void addTrack(Track obj) {
     tracks.add(obj);
   }
@@ -334,7 +337,17 @@ final class Database {
   final void addGenreTrack(Genre genre, Track track) {
     genreTracks.add(genre, track);
   }
-  
+
+  final ByteBuffer getTrackContent(int id) {
+    final String filename = Integer.toString(id);
+    return cacheDir.getCachedFileContent(filename);
+  }
+
+  final void addTrackContent(int id, ByteBuffer content) {
+    final String filename = Integer.toString(id);
+    cacheDir.putCachedFileContent(filename, content);
+  }
+
   private static class Helper extends SQLiteOpenHelper {
 
     static Helper create(Context context) {

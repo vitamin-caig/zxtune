@@ -20,8 +20,6 @@
 #include <contract.h>
 //std includes
 #include <fstream>
-//boost includes
-#include <boost/range/end.hpp>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QKeyEvent>
@@ -97,7 +95,7 @@ namespace
         //playlist is mandatory and cannot be hidden
         AddWidgetOnLayout(Playlist);
         State->Load();
-        std::for_each(ALL_WIDGETS, boost::end(ALL_WIDGETS), std::bind1st(std::mem_fun(&EmbeddedMainWindowImpl::AddWidgetLayoutControl), this));
+        std::for_each(ALL_WIDGETS, std::end(ALL_WIDGETS), std::bind1st(std::mem_fun(&EmbeddedMainWindowImpl::AddWidgetLayoutControl), this));
       }
 
       //connect root actions
@@ -117,12 +115,12 @@ namespace
       Playlist->Setup();
     }
 
-    virtual void SetCmdline(const QStringList& /*args*/)
+    void SetCmdline(const QStringList& /*args*/) override
     {
     }
 
     //qwidget virtuals
-    virtual void keyPressEvent(QKeyEvent* event)
+    void keyPressEvent(QKeyEvent* event) override
     {
       if (event->key() == Qt::Key_Pause)
       {
@@ -131,7 +129,7 @@ namespace
       QWidget::keyPressEvent(event);
     }
 
-    virtual void keyReleaseEvent(QKeyEvent* event)
+    void keyReleaseEvent(QKeyEvent* event) override
     {
       if (event->key() == Qt::Key_Pause)
       {
@@ -140,7 +138,7 @@ namespace
       QWidget::keyPressEvent(event);
     }
 
-    virtual void closeEvent(QCloseEvent* event)
+    void closeEvent(QCloseEvent* event) override
     {
       Backlight.Enable();
       State->Save();

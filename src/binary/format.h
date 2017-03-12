@@ -19,8 +19,8 @@ namespace Binary
   class Format
   {
   public:
-    typedef boost::shared_ptr<const Format> Ptr;
-    virtual ~Format() {}
+    typedef std::shared_ptr<const Format> Ptr;
+    virtual ~Format() = default;
 
     //! @brief Check if input data is data format
     //! @param data Data to be checked

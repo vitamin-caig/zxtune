@@ -65,7 +65,7 @@ namespace
   {
   public:
     CommonBackendParameters(Parameters::Container::Ptr config)
-      : Params(config)
+      : Params(std::move(config))
     {
     }
 
@@ -146,16 +146,16 @@ namespace
       ;
     }
 
-    virtual const boost::program_options::options_description& GetOptionsDescription() const
+    const boost::program_options::options_description& GetOptionsDescription() const override
     {
       return OptionsDescription;
     }
 
-    virtual void ParseParameters()
+    void ParseParameters() override
     {
       Parameters::Container::Ptr soundParameters = Parameters::Container::Create();
       {
-        for (PerBackendOptions::iterator it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; )
+        for (auto it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; )
         {
           if (it->second != NOTUSED_MARK)
           {
@@ -177,11 +177,11 @@ namespace
       Params->SetLooped(Looped);
     }
 
-    void Initialize()
+    void Initialize() override
     {
     }
 
-    virtual Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint, Sound::BackendCallback::Ptr callback)
+    Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint, Sound::BackendCallback::Ptr callback) override
     {
       if (!typeHint.empty())
       {
@@ -220,18 +220,18 @@ namespace
       throw Error(THIS_LINE, Text::SOUND_ERROR_NO_BACKEND);
     }
 
-    virtual Time::Microseconds GetFrameDuration() const
+    Time::Microseconds GetFrameDuration() const override
     {
       return Params->GetFrameDuration();
     }
 
-    virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const
+    Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const override
     {
       return Service->EnumerateBackends();
     }
   private:
     const Sound::Service::Ptr Service;
-    const std::auto_ptr<CommonBackendParameters> Params;
+    const std::unique_ptr<CommonBackendParameters> Params;
     boost::program_options::options_description OptionsDescription;
     PerBackendOptions BackendOptions;
     Strings::Map SoundOptions;
@@ -242,7 +242,7 @@ namespace
   };
 }
 
-std::auto_ptr<SoundComponent> SoundComponent::Create(Parameters::Container::Ptr configParams)
+std::unique_ptr<SoundComponent> SoundComponent::Create(Parameters::Container::Ptr configParams)
 {
-  return std::auto_ptr<SoundComponent>(new Component(configParams));
+  return std::unique_ptr<SoundComponent>(new Component(configParams));
 }

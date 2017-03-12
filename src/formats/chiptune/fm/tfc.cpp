@@ -18,8 +18,9 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <binary/typed_container.h>
+//std includes
+#include <array>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -30,7 +31,7 @@ namespace Chiptune
 {
   namespace TFC
   {
-    typedef boost::array<uint8_t, 6> SignatureType;
+    typedef std::array<uint8_t, 6> SignatureType;
 
     const SignatureType SIGNATURE = { {'T', 'F', 'M', 'c', 'o', 'm'} };
 
@@ -42,7 +43,7 @@ namespace Chiptune
       SignatureType Sign;
       char Version[3];
       uint8_t IntFreq;
-      boost::array<uint16_t, 6> Offsets;
+      std::array<uint16_t, 6> Offsets;
       uint8_t Reserved[12];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
@@ -55,21 +56,21 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetVersion(const String& /*version*/) {}
-      virtual void SetIntFreq(uint_t /*freq*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetAuthor(const String& /*author*/) {}
-      virtual void SetComment(const String& /*comment*/) {}
+      void SetVersion(const String& /*version*/) override {}
+      void SetIntFreq(uint_t /*freq*/) override {}
+      void SetTitle(const String& /*title*/) override {}
+      void SetAuthor(const String& /*author*/) override {}
+      void SetComment(const String& /*comment*/) override {}
 
-      virtual void StartChannel(uint_t /*idx*/) {}
-      virtual void StartFrame() {}
-      virtual void SetSkip(uint_t /*count*/) {}
-      virtual void SetLoop() {}
-      virtual void SetSlide(uint_t /*slide*/) {}
-      virtual void SetKeyOff() {}
-      virtual void SetFreq(uint_t /*freq*/) {}
-      virtual void SetRegister(uint_t /*reg*/, uint_t /*val*/) {}
-      virtual void SetKeyOn() {}
+      void StartChannel(uint_t /*idx*/) override {}
+      void StartFrame() override {}
+      void SetSkip(uint_t /*count*/) override {}
+      void SetLoop() override {}
+      void SetSlide(uint_t /*slide*/) override {}
+      void SetKeyOff() override {}
+      void SetFreq(uint_t /*freq*/) override {}
+      void SetRegister(uint_t /*reg*/, uint_t /*val*/) override {}
+      void SetKeyOn() override {}
     };
 
     bool FastCheck(const Binary::Container& rawData)
@@ -97,22 +98,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::TFC_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
@@ -250,7 +251,7 @@ namespace Chiptune
       const T& Get(std::size_t offset) const
       {
         const T* const ptr = Delegate.GetField<T>(offset);
-        Require(ptr != 0);
+        Require(ptr != nullptr);
         Min = std::min(Min, offset);
         Max = std::max(Max, offset + sizeof(T));
         return *ptr;

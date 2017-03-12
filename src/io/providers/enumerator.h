@@ -21,7 +21,7 @@ namespace IO
   class DataProvider : public Provider
   {
   public:
-    typedef boost::shared_ptr<const DataProvider> Ptr;
+    typedef std::shared_ptr<const DataProvider> Ptr;
 
     virtual Strings::Set Schemes() const = 0;
     virtual Identifier::Ptr Resolve(const String& uri) const = 0;
@@ -33,7 +33,7 @@ namespace IO
   class ProvidersEnumerator
   {
   public:
-    virtual ~ProvidersEnumerator() {}
+    virtual ~ProvidersEnumerator() = default;
     //registration
     virtual void RegisterProvider(DataProvider::Ptr provider) = 0;
 

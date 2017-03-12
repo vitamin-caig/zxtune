@@ -15,12 +15,12 @@
 #include <progress_callback.h>
 //library includes
 #include <async/data_receiver.h>
-#include <core/module_attrs.h>
 #include <debug/log.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <io/template.h>
 #include <l10n/api.h>
+#include <module/attributes.h>
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
@@ -47,7 +47,7 @@ namespace File
     {
     }
 
-    String GetFieldValue(const String& fieldName) const
+    String GetFieldValue(const String& fieldName) const override
     {
       if (fieldName == Module::ATTR_CURRENT_POSITION)
       {
@@ -130,9 +130,9 @@ namespace File
   class FileParameters
   {
   public:
-    FileParameters(Parameters::Accessor::Ptr params, const String& id)
-      : Params(params)
-      , Id(id)
+    FileParameters(Parameters::Accessor::Ptr params, String id)
+      : Params(std::move(params))
+      , Id(std::move(id))
     {
     }
 
@@ -260,33 +260,33 @@ namespace File
   {
   public:
     BackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
-      : Params(params)
-      , Factory(factory)
+      : Params(std::move(params))
+      , Factory(std::move(factory))
       , Stream(Receiver::CreateStub())
     {
     }
 
     //BackendWorker
-    virtual void Startup()
+    void Startup() override
     {
       Source.reset(new StreamSource(Params, Factory));
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       SetStream(Receiver::CreateStub());
       Source.reset();
     }
 
-    virtual void Pause()
+    void Pause() override
     {
     }
 
-    virtual void Resume()
+    void Resume() override
     {
     }
 
-    virtual void FrameStart(const Module::TrackState& state)
+    void FrameStart(const Module::TrackState& state) override
     {
       if (const Receiver::Ptr newStream = Source->GetStream(state))
       {
@@ -294,13 +294,13 @@ namespace File
       }
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    void FrameFinish(Chunk::Ptr buffer) override
     {
       assert(Stream);
-      Stream->ApplyData(buffer);
+      Stream->ApplyData(std::move(buffer));
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       // Does not support volume control
       return VolumeControl::Ptr();
@@ -314,7 +314,7 @@ namespace File
   private:
     const Parameters::Accessor::Ptr Params;
     const FileStreamFactory::Ptr Factory;
-    std::auto_ptr<StreamSource> Source;
+    std::unique_ptr<StreamSource> Source;
     Receiver::Ptr Stream;
   };
 }//File

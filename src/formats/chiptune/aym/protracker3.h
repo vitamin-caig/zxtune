@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -25,45 +26,29 @@ namespace Formats
       const uint_t DEFAULT_SAMPLE = 1;
       const uint_t DEFAULT_ORNAMENT = 0;
 
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line()
-           : Level(), VolumeSlideAddon()
-           , ToneMask(true), ToneOffset(), KeepToneOffset()
-           , NoiseMask(true), EnvMask(true), NoiseOrEnvelopeOffset(), KeepNoiseOrEnvelopeOffset()
-          {
-          }
-
-          uint_t Level;//0-15
-          int_t VolumeSlideAddon;
-          bool ToneMask;
-          int_t ToneOffset;
-          bool KeepToneOffset;
-          bool NoiseMask;
-          bool EnvMask;
-          int_t NoiseOrEnvelopeOffset;
-          bool KeepNoiseOrEnvelopeOffset;
-        };
-
-        Sample() : Loop()
+        SampleLine()
+         : Level(), VolumeSlideAddon()
+         , ToneMask(true), ToneOffset(), KeepToneOffset()
+         , NoiseMask(true), EnvMask(true), NoiseOrEnvelopeOffset(), KeepNoiseOrEnvelopeOffset()
         {
         }
 
-        uint_t Loop;
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        int_t VolumeSlideAddon;
+        bool ToneMask;
+        int_t ToneOffset;
+        bool KeepToneOffset;
+        bool NoiseMask;
+        bool EnvMask;
+        int_t NoiseOrEnvelopeOffset;
+        bool KeepNoiseOrEnvelopeOffset;
       };
-
-      struct Ornament
-      {
-        Ornament() : Loop()
-        {
-        }
-
-        uint_t Loop;
-        std::vector<int_t> Lines;
-      };
+      
+      typedef LinesObject<SampleLine> Sample;
+      typedef LinesObject<int_t> Ornament;
+      typedef LinesObject<uint_t> Positions;
 
       enum NoteTable
       {
@@ -79,7 +64,7 @@ namespace Formats
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         //minor version number
@@ -89,10 +74,10 @@ namespace Formats
         virtual void SetMode(uint_t mode) = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
-        virtual void SetSample(uint_t index, const Sample& sample) = 0;
-        virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;
+        virtual void SetSample(uint_t index, Sample sample) = 0;
+        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 
@@ -118,7 +103,7 @@ namespace Formats
       class Decoder : public Formats::Chiptune::Decoder
       {
       public:
-        typedef boost::shared_ptr<const Decoder> Ptr;
+        typedef std::shared_ptr<const Decoder> Ptr;
 
         virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
       };
@@ -126,7 +111,7 @@ namespace Formats
       class ChiptuneBuilder : public Builder
       {
       public:
-        typedef boost::shared_ptr<ChiptuneBuilder> Ptr;
+        typedef std::shared_ptr<ChiptuneBuilder> Ptr;
         virtual Binary::Data::Ptr GetResult() const = 0;
       };
 

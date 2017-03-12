@@ -14,6 +14,8 @@
 #include "soundtrackerpro.h"
 //common includes
 #include <indices.h>
+//std includes
+#include <cassert>
 
 namespace Formats
 {
@@ -43,88 +45,88 @@ namespace Formats
           UsedOrnaments.Insert(DEFAULT_ORNAMENT);
         }
 
-        virtual MetaBuilder& GetMetaBuilder()
+        MetaBuilder& GetMetaBuilder() override
         {
           return Delegate.GetMetaBuilder();
         }
 
-        virtual void SetInitialTempo(uint_t tempo)
+        void SetInitialTempo(uint_t tempo) override
         {
           return Delegate.SetInitialTempo(tempo);
         }
 
-        virtual void SetSample(uint_t index, const Sample& sample)
+        void SetSample(uint_t index, Sample sample) override
         {
           assert(UsedSamples.Contain(index));
-          return Delegate.SetSample(index, sample);
+          return Delegate.SetSample(index, std::move(sample));
         }
 
-        virtual void SetOrnament(uint_t index, const Ornament& ornament)
+        void SetOrnament(uint_t index, Ornament ornament) override
         {
           assert(UsedOrnaments.Contain(index));
-          return Delegate.SetOrnament(index, ornament);
+          return Delegate.SetOrnament(index, std::move(ornament));
         }
 
-        virtual void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop)
+        void SetPositions(Positions positions) override
         {
-          Require(!positions.empty());
           UsedPatterns.Clear();
-          for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
+          for (const auto& pos : positions.Lines)
           {
-            UsedPatterns.Insert(it->PatternIndex);
+            UsedPatterns.Insert(pos.PatternIndex);
           }
-          return Delegate.SetPositions(positions, loop);
+          Require(!UsedPatterns.Empty());
+          return Delegate.SetPositions(std::move(positions));
         }
 
-        virtual PatternBuilder& StartPattern(uint_t index)
+        PatternBuilder& StartPattern(uint_t index) override
         {
           assert(UsedPatterns.Contain(index));
           return Delegate.StartPattern(index);
         }
 
-        virtual void StartChannel(uint_t index)
+        void StartChannel(uint_t index) override
         {
           return Delegate.StartChannel(index);
         }
 
-        virtual void SetRest()
+        void SetRest() override
         {
           return Delegate.SetRest();
         }
 
-        virtual void SetNote(uint_t note)
+        void SetNote(uint_t note) override
         {
           return Delegate.SetNote(note);
         }
 
-        virtual void SetSample(uint_t sample)
+        void SetSample(uint_t sample) override
         {
           UsedSamples.Insert(sample);
           return Delegate.SetSample(sample);
         }
 
-        virtual void SetOrnament(uint_t ornament)
+        void SetOrnament(uint_t ornament) override
         {
           UsedOrnaments.Insert(ornament);
           return Delegate.SetOrnament(ornament);
         }
 
-        virtual void SetEnvelope(uint_t type, uint_t value)
+        void SetEnvelope(uint_t type, uint_t value) override
         {
           return Delegate.SetEnvelope(type, value);
         }
 
-        virtual void SetNoEnvelope()
+        void SetNoEnvelope() override
         {
           return Delegate.SetNoEnvelope();
         }
 
-        virtual void SetGliss(uint_t target)
+        void SetGliss(uint_t target) override
         {
           return Delegate.SetGliss(target);
         }
 
-        virtual void SetVolume(uint_t vol)
+        void SetVolume(uint_t vol) override
         {
           return Delegate.SetVolume(vol);
         }

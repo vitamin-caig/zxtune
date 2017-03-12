@@ -21,8 +21,8 @@ namespace ZXTune
   class DataLocation
   {
   public:
-    typedef boost::shared_ptr<const DataLocation> Ptr;
-    virtual ~DataLocation() {}
+    typedef std::shared_ptr<const DataLocation> Ptr;
+    virtual ~DataLocation() = default;
 
     virtual Binary::Container::Ptr GetData() const = 0;
     virtual Analysis::Path::Ptr GetPath() const = 0;

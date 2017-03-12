@@ -129,12 +129,12 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 12);
-    BOOST_STATIC_ASSERT(sizeof(RawComment) == 10);
-    BOOST_STATIC_ASSERT(sizeof(RawTrack) == 4);
-    BOOST_STATIC_ASSERT(sizeof(RawSector) == 6);
-    BOOST_STATIC_ASSERT(sizeof(RawData) == 3);
-    BOOST_STATIC_ASSERT(sizeof(R2PEntry) == 4);
+    static_assert(sizeof(RawHeader) == 12, "Invalid layout");
+    static_assert(sizeof(RawComment) == 10, "Invalid layout");
+    static_assert(sizeof(RawTrack) == 4, "Invalid layout");
+    static_assert(sizeof(RawSector) == 6, "Invalid layout");
+    static_assert(sizeof(RawData) == 3, "Invalid layout");
+    static_assert(sizeof(R2PEntry) == 4, "Invalid layout");
 
     const uint_t MAX_CYLINDERS_COUNT = 100;
     const uint_t MIN_SIDES_COUNT = 1;
@@ -158,7 +158,7 @@ namespace Packed
     class ImageVisitor
     {
     public:
-      virtual ~ImageVisitor() {}
+      virtual ~ImageVisitor() = default;
 
       virtual void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type, std::size_t targetSize) = 0;
     };
@@ -166,7 +166,7 @@ namespace Packed
     class StubImageVisitor : public ImageVisitor
     {
     public:
-      virtual void OnSector(const Formats::CHS& /*loc*/, const uint8_t* /*rawData*/, std::size_t rawSize, SectorDataType type, std::size_t targetSize)
+      void OnSector(const Formats::CHS& /*loc*/, const uint8_t* /*rawData*/, std::size_t rawSize, SectorDataType type, std::size_t targetSize) override
       {
         switch (type)
         {
@@ -229,11 +229,11 @@ namespace Packed
     {
     public:
       explicit ImageVisitorAdapter(Formats::ImageBuilder::Ptr builder)
-        : Builder(builder)
+        : Builder(std::move(builder))
       {
       }
 
-      virtual void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type, std::size_t targetSize)
+      void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type, std::size_t targetSize) override
       {
         Dump result;
         switch (type)
@@ -268,7 +268,7 @@ namespace Packed
       const T& Get()
       {
         const T* const res = Data.GetField<T>(Offset);
-        Require(res != 0);
+        Require(res != nullptr);
         Offset += sizeof(*res);
         return *res;
       }
@@ -278,7 +278,7 @@ namespace Packed
         Require(size != 0);
         const uint8_t* const first = Data.GetField<uint8_t>(Offset);
         const uint8_t* const last = Data.GetField<uint8_t>(Offset + size - 1);
-        Require(first != 0 && last != 0);
+        Require(first != nullptr && last != nullptr);
         Offset += size;
         return first;
       }
@@ -407,17 +407,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::TELEDISKIMAGE_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Format->Match(rawData))
       {

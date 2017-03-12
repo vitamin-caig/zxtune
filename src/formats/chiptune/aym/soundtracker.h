@@ -13,6 +13,7 @@
 //local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 //library includes
 #include <formats/chiptune.h>
 
@@ -22,32 +23,27 @@ namespace Formats
   {
     namespace SoundTracker
     {
-      struct Sample
+      struct SampleLine
       {
-        struct Line
-        {
-          Line() : Level(), Noise(), NoiseMask(true), EnvelopeMask(true), Effect()
-          {
-          }
-
-          uint_t Level;//0-15
-          uint_t Noise;//0-31
-          bool NoiseMask;
-          bool EnvelopeMask;
-          int_t Effect;
-        };
-
-        Sample() : Loop(), LoopLimit()
+        SampleLine()
+          : Level()
+          , Noise()
+          , NoiseMask(true)
+          , EnvelopeMask(true)
+          , Effect()
         {
         }
 
-        uint_t Loop;
-        uint_t LoopLimit;
-        std::vector<Line> Lines;
+        uint_t Level;//0-15
+        uint_t Noise;//0-31
+        bool NoiseMask;
+        bool EnvelopeMask;
+        int_t Effect;
       };
-
-      typedef std::vector<int_t> Ornament;
-
+      
+      typedef LinesObjectWithLoopLimit<SampleLine> Sample;
+      typedef LinesObject<int_t> Ornament;
+      
       struct PositionEntry
       {
         PositionEntry() : PatternIndex(), Transposition()
@@ -57,19 +53,21 @@ namespace Formats
         uint_t PatternIndex;
         int_t Transposition;
       };
+      
+      typedef LinesObject<PositionEntry> Positions;
 
       class Builder
       {
       public:
-        virtual ~Builder() {}
+        virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
-        virtual void SetSample(uint_t index, const Sample& sample) = 0;
-        virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;
+        virtual void SetSample(uint_t index, Sample sample) = 0;
+        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
         //patterns
-        virtual void SetPositions(const std::vector<PositionEntry>& positions) = 0;
+        virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
 
@@ -88,7 +86,7 @@ namespace Formats
       class Decoder : public Formats::Chiptune::Decoder
       {
       public:
-        typedef boost::shared_ptr<const Decoder> Ptr;
+        typedef std::shared_ptr<const Decoder> Ptr;
 
         virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
       };

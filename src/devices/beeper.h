@@ -15,6 +15,8 @@
 //library includes
 #include <sound/receiver.h>
 #include <time/stamp.h>
+//std includes
+#include <memory>
 
 namespace Devices
 {
@@ -35,8 +37,8 @@ namespace Devices
     class Device
     {
     public:
-      typedef boost::shared_ptr<Device> Ptr;
-      virtual ~Device() {}
+      typedef std::shared_ptr<Device> Ptr;
+      virtual ~Device() = default;
 
       /// Render multiple data chunks
       virtual void RenderData(const std::vector<DataChunk>& src) = 0;
@@ -49,15 +51,15 @@ namespace Devices
     class Chip : public Device
     {
     public:
-      typedef boost::shared_ptr<Chip> Ptr;
+      typedef std::shared_ptr<Chip> Ptr;
     };
 
     class ChipParameters
     {
     public:
-      typedef boost::shared_ptr<const ChipParameters> Ptr;
+      typedef std::shared_ptr<const ChipParameters> Ptr;
 
-      virtual ~ChipParameters() {}
+      virtual ~ChipParameters() = default;
 
       virtual uint_t Version() const = 0;
       virtual uint64_t ClockFreq() const = 0;

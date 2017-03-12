@@ -22,26 +22,24 @@
 #include <sound/mixer_factory.h>
 //std includes
 #include <deque>
-//boost includes
-#include <boost/type_traits/is_signed.hpp>
 
 namespace
 {
-  BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
-  BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
-  BOOST_STATIC_ASSERT(boost::is_signed<Sound::Sample::Type>::value);
+  static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+  static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
+  static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
 
   class BufferTarget : public Sound::Receiver
   {
   public:
-    typedef boost::shared_ptr<BufferTarget> Ptr;
+    typedef std::shared_ptr<BufferTarget> Ptr;
 
-    virtual void ApplyData(const Sound::Chunk::Ptr& data)
+    void ApplyData(Sound::Chunk::Ptr data) override
     {
-      Buffers.push_back(Buff(data));
+      Buffers.emplace_back(std::move(data));
     }
 
-    virtual void Flush()
+    void Flush() override
     {
     }
 
@@ -64,8 +62,8 @@ namespace
     struct Buff
     {
       explicit Buff(Sound::Chunk::Ptr data)
-        : Data(data)
-        , Avail(data->size())
+        : Data(std::move(data))
+        , Avail(Data->size())
       {
       }
       
@@ -87,26 +85,24 @@ namespace
   {
   public:
     PlayerControl(Parameters::Container::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
-      : Params(params)
-      , Renderer(render)
-      , Buffer(buffer)
+      : Params(std::move(params))
+      , Renderer(std::move(render))
+      , Buffer(std::move(buffer))
       , TrackState(Renderer->GetTrackState())
       , Analyser(Renderer->GetAnalyzer())
     {
     }
     
-    virtual uint_t GetPosition() const
+    uint_t GetPosition() const override
     {
       return TrackState->Frame();
     }
 
-    virtual uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const
+    uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const override
     {
-      typedef std::vector<Module::Analyzer::ChannelState> ChannelsState;
-      ChannelsState result;
-      Analyser->GetState(result);
+      const auto& result = Analyser->GetState();
       uint_t doneEntries = 0;
-      for (ChannelsState::const_iterator it = result.begin(), lim = result.end(); it != lim && doneEntries != maxEntries; ++it, ++doneEntries)
+      for (auto it = result.begin(), lim = result.end(); it != lim && doneEntries != maxEntries; ++it, ++doneEntries)
       {
         bands[doneEntries] = it->Band;
         levels[doneEntries] = it->Level;
@@ -114,12 +110,12 @@ namespace
       return doneEntries;
     }
 
-    virtual Parameters::Container::Ptr GetParameters() const
+    Parameters::Container::Ptr GetParameters() const override
     {
       return Params;
     }
     
-    virtual bool Render(uint_t samples, int16_t* buffer)
+    bool Render(uint_t samples, int16_t* buffer) override
     {
       for (;;)
       {
@@ -141,7 +137,7 @@ namespace
       return samples == 0;
     }
 
-    virtual void Seek(uint_t frame)
+    void Seek(uint_t frame) override
     {
       Renderer->SetPosition(frame);
     }
@@ -153,15 +149,15 @@ namespace
     const Module::Analyzer::Ptr Analyser;
   };
 
-  Player::Control::Ptr CreateControl(const Module::Holder::Ptr module)
+  Player::Control::Ptr CreateControl(Module::Holder::Ptr module)
   {
-    const Parameters::Accessor::Ptr globalParameters = Parameters::GlobalOptions();
-    const Parameters::Container::Ptr localParameters = Parameters::Container::Create();
-    const Parameters::Accessor::Ptr internalProperties = module->GetModuleProperties();
-    const Parameters::Accessor::Ptr properties = Parameters::CreateMergedAccessor(localParameters, internalProperties, globalParameters);
-    const BufferTarget::Ptr buffer = MakePtr<BufferTarget>();
-    const Module::Renderer::Ptr renderer = module->CreateRenderer(properties, buffer);
-    return MakePtr<PlayerControl>(localParameters, renderer, buffer);
+    auto globalParameters = Parameters::GlobalOptions();
+    auto localParameters = Parameters::Container::Create();
+    auto internalProperties = module->GetModuleProperties();
+    auto properties = Parameters::CreateMergedAccessor(localParameters, std::move(internalProperties), std::move(globalParameters));
+    auto buffer = MakePtr<BufferTarget>();
+    auto renderer = module->CreateRenderer(properties, buffer);
+    return MakePtr<PlayerControl>(std::move(localParameters), std::move(renderer), std::move(buffer));
   }
 
   template<class StorageType, class ResultType>
@@ -169,7 +165,7 @@ namespace
   {
   public:
     AutoArray(JNIEnv* env, StorageType storage)
-    : Env(env)
+      : Env(env)
       , Storage(storage)
       , Length(Env->GetArrayLength(Storage))
       , Content(static_cast<ResultType*>(Env->GetPrimitiveArrayCritical(Storage, 0)))
@@ -210,16 +206,16 @@ namespace Player
 {
   Player::Storage::HandleType Create(Module::Holder::Ptr module)
   {
-    const Player::Control::Ptr ctrl = CreateControl(module);
+    auto ctrl = CreateControl(module);
     Dbg("Player::Create(module=%p)=%p", module.get(), ctrl.get());
-    return Player::Storage::Instance().Add(ctrl);
+    return Player::Storage::Instance().Add(std::move(ctrl));
   }
 }
 
 JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
   (JNIEnv* env, jclass /*self*/, jint playerHandle, jshortArray buffer)
 {
-  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  if (const auto& player = Player::Storage::Instance().Get(playerHandle))
   {
     typedef AutoArray<jshortArray, int16_t> ArrayType;
     if (ArrayType buf = ArrayType(env, buffer))
@@ -233,7 +229,7 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
   (JNIEnv* env, jclass /*self*/, jint playerHandle, jintArray bands, jintArray levels)
 {
-  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  if (const auto& player = Player::Storage::Instance().Get(playerHandle))
   {
     typedef AutoArray<jintArray, uint32_t> ArrayType;
     ArrayType rawBands(env, bands);
@@ -249,7 +245,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPosition
   (JNIEnv* /*env*/, jclass /*self*/, jint playerHandle)
 {
-  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  if (const auto& player = Player::Storage::Instance().Get(playerHandle))
   {
     return player->GetPosition();
   }
@@ -259,7 +255,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPosition
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetPosition
   (JNIEnv* /*env*/, jclass /*self*/, jint playerHandle, jint position)
 {
-  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  if (const auto& player = Player::Storage::Instance().Get(playerHandle))
   {
     player->Seek(position);
   }
@@ -268,9 +264,9 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetPosition
 JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_String_2J
   (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jlong defVal)
 {
-  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  if (const auto& player = Player::Storage::Instance().Get(playerHandle))
   {
-    const Parameters::Container::Ptr params = player->GetParameters();
+    const auto& params = player->GetParameters();
     const Jni::PropertiesReadHelper props(env, *params);
     return props.Get(propName, defVal);
   }
@@ -280,9 +276,9 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_
 JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_String_2Ljava_lang_String_2
   (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jstring defVal)
 {
-  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  if (const auto& player = Player::Storage::Instance().Get(playerHandle))
   {
-    const Parameters::Container::Ptr params = player->GetParameters();
+    const auto& params = player->GetParameters();
     const Jni::PropertiesReadHelper props(env, *params);
     return props.Get(propName, defVal);
   }
@@ -292,9 +288,9 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lan
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2J
   (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jlong value)
 {
-  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  if (const auto& player = Player::Storage::Instance().Get(playerHandle))
   {
-    const Parameters::Container::Ptr params = player->GetParameters();
+    const auto& params = player->GetParameters();
     Jni::PropertiesWriteHelper props(env, *params);
     props.Set(propName, value);
   }
@@ -303,9 +299,9 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_S
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2Ljava_lang_String_2
   (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jstring value)
 {
-  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  if (const auto& player = Player::Storage::Instance().Get(playerHandle))
   {
-    const Parameters::Container::Ptr params = player->GetParameters();
+    const auto& params = player->GetParameters();
     Jni::PropertiesWriteHelper props(env, *params);
     props.Set(propName, value);
   }

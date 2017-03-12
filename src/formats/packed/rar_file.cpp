@@ -22,11 +22,10 @@
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
+#include <array>
 #include <cassert>
 #include <limits>
 #include <memory>
-//boost includes
-#include <boost/array.hpp>
 //thirdparty
 #include <3rdparty/unrar/rar.hpp>
 //text includes
@@ -112,8 +111,8 @@ namespace Packed
     class CompressedFile
     {
     public:
-      typedef std::auto_ptr<const CompressedFile> Ptr;
-      virtual ~CompressedFile() {}
+      typedef std::unique_ptr<const CompressedFile> Ptr;
+      virtual ~CompressedFile() = default;
 
       virtual Binary::Container::Ptr Decompress(const Container& container) const = 0;
     };
@@ -121,7 +120,7 @@ namespace Packed
     class StoredFile : public CompressedFile
     {
     public:
-      virtual Binary::Container::Ptr Decompress(const Container& container) const
+      Binary::Container::Ptr Decompress(const Container& container) const override
       {
         const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
         const std::size_t offset = fromLE(header.Size);
@@ -151,7 +150,7 @@ namespace Packed
         Decoder.Init();
       }
 
-      virtual Binary::Container::Ptr Decompress(const Container& container) const
+      Binary::Container::Ptr Decompress(const Container& container) const override
       {
         const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
         assert(0x30 != header.Method);
@@ -172,7 +171,7 @@ namespace Packed
       {
         try
         {
-          std::auto_ptr<Dump> result(new Dump(outSize));
+          std::unique_ptr<Dump> result(new Dump(outSize));
           Stream.SetUnpackToMemory(&result->front(), outSize);
           Decoder.SetDestSize(outSize);
           Decoder.DoUnpack(method, isSolid);
@@ -180,7 +179,7 @@ namespace Packed
           {
             Dbg("Crc mismatch: stored 0x%1$08x, calculated 0x%2$08x", crc, Stream.GetUnpackedCrc());
           }
-          return Binary::CreateContainer(result);
+          return Binary::CreateContainer(std::move(result));
         }
         catch (const std::exception& e)
         {
@@ -202,7 +201,7 @@ namespace Packed
       {
       }
 
-      virtual Binary::Container::Ptr Decompress(const Container& container) const
+      Binary::Container::Ptr Decompress(const Container& container) const override
       {
         const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
         if (header.IsStored())
@@ -215,8 +214,8 @@ namespace Packed
         }
       }
     private:
-      const std::auto_ptr<CompressedFile> Packed;
-      const std::auto_ptr<CompressedFile> Stored;
+      const std::unique_ptr<CompressedFile> Packed;
+      const std::unique_ptr<CompressedFile> Stored;
     };
 
     String FileBlockHeader::GetName() const
@@ -277,17 +276,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::RAR_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       const Rar::Container container(rawData);
       if (!container.FastCheck())

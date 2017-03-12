@@ -25,12 +25,12 @@ namespace
   class PropertyModel
   {
   public:
-    virtual ~PropertyModel() {}
+    virtual ~PropertyModel() = default;
 
     class Visitor
     {
     public:
-      virtual ~Visitor() {}
+      virtual ~Visitor() = default;
 
       virtual void OnItem(Playlist::Model::IndexType index, const T& val) = 0;
     };
@@ -54,7 +54,7 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
     {
       if (data->GetState())
       {
@@ -79,18 +79,18 @@ namespace
     {
     }
 
-    virtual std::size_t CountItems() const
+    std::size_t CountItems() const override
     {
       return Model.CountItems();
     }
 
-    virtual void ForAllItems(typename PropertyModel<T>::Visitor& visitor) const
+    void ForAllItems(typename PropertyModel<T>::Visitor& visitor) const override
     {
       VisitorAdapter<T> adapter(Getter, visitor);
       Model.ForAllItems(adapter);
     }
 
-    virtual void ForSpecifiedItems(const Playlist::Model::IndexSet& items, typename PropertyModel<T>::Visitor& visitor) const
+    void ForSpecifiedItems(const Playlist::Model::IndexSet& items, typename PropertyModel<T>::Visitor& visitor) const override
     {
       assert(!items.empty());
       VisitorAdapter<T> adapter(Getter, visitor);
@@ -112,18 +112,18 @@ namespace
     {
     }
 
-    virtual std::size_t CountItems() const
+    std::size_t CountItems() const override
     {
       return Delegate.CountItems();
     }
 
-    virtual void ForAllItems(typename PropertyModel<T>::Visitor& visitor) const
+    void ForAllItems(typename PropertyModel<T>::Visitor& visitor) const override
     {
       ProgressVisitorWrapper wrapper(visitor, Callback, Done);
       Delegate.ForAllItems(wrapper);
     }
 
-    virtual void ForSpecifiedItems(const Playlist::Model::IndexSet& items, typename PropertyModel<T>::Visitor& visitor) const
+    void ForSpecifiedItems(const Playlist::Model::IndexSet& items, typename PropertyModel<T>::Visitor& visitor) const override
     {
       ProgressVisitorWrapper wrapper(visitor, Callback, Done);
       Delegate.ForSpecifiedItems(items, wrapper);
@@ -139,7 +139,7 @@ namespace
       {
       }
 
-      virtual void OnItem(Playlist::Model::IndexType index, const T& val)
+      void OnItem(Playlist::Model::IndexType index, const T& val) override
       {
         Delegate.OnItem(index, val);
         Callback.OnProgress(++Done);
@@ -165,7 +165,7 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, const T& val)
+    void OnItem(Playlist::Model::IndexType index, const T& val) override
     {
       if (Filter.count(val))
       {
@@ -181,7 +181,7 @@ namespace
   class PropertiesCollector : public PropertyModel<T>::Visitor
   {
   public:
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, const T& val)
+    void OnItem(Playlist::Model::IndexType /*index*/, const T& val) override
     {
       Result.insert(val);
     }
@@ -203,7 +203,7 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, const T& /*val*/)
+    void OnItem(Playlist::Model::IndexType index, const T& /*val*/) override
     {
       Result->insert(index);
     }
@@ -225,7 +225,7 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, const T& val)
+    void OnItem(Playlist::Model::IndexType index, const T& val) override
     {
       if (!Visited.insert(val).second)
       {
@@ -251,7 +251,7 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, const T& val)
+    void OnItem(Playlist::Model::IndexType index, const T& val) override
     {
       const std::pair<typename PropToIndex::iterator, bool> result = Visited.insert(typename PropToIndex::value_type(val, index));
       if (!result.second)
@@ -306,7 +306,7 @@ namespace
   class SelectAllDupsOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       DuplicatesCollector<uint32_t> dups;
       {
@@ -321,11 +321,11 @@ namespace
   {
   public:
     explicit SelectDupsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       ItemsWithDuplicatesCollector<uint32_t> dups;
       {
@@ -345,11 +345,11 @@ namespace
   {
   public:
     explicit SelectDupsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       DuplicatesCollector<uint32_t> dups;
       {
@@ -366,7 +366,7 @@ namespace
   class SelectAllRipOffsOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       ItemsWithDuplicatesCollector<uint32_t> rips;
       {
@@ -381,11 +381,11 @@ namespace
   {
   public:
     explicit SelectRipOffsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       ItemsWithDuplicatesCollector<uint32_t> rips;
       {
@@ -402,11 +402,11 @@ namespace
   {
   public:
     explicit SelectRipOffsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       ItemsWithDuplicatesCollector<uint32_t> rips;
       {
@@ -424,11 +424,11 @@ namespace
   {
   public:
     explicit SelectTypesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       IndicesCollector<String> types;
       {
@@ -445,11 +445,11 @@ namespace
   {
   public:
     explicit SelectFilesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       IndicesCollector<String> files;
       {
@@ -470,7 +470,7 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
+    void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
     {
       //check for the data first to define is data valid or not
       if (data->GetState())
@@ -495,11 +495,11 @@ namespace
     }
 
     explicit SelectUnavailableOperation(Playlist::Model::IndexSet::Ptr items)
-      : SelectedItems(items)
+      : SelectedItems(std::move(items))
     {
     }
 
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       InvalidModulesCollection invalids;
       ExecuteOperation(stor, SelectedItems, invalids, cb);

@@ -10,12 +10,13 @@
 
 package app.zxtune.ui;
 
-import java.util.concurrent.TimeUnit;
-
 import android.os.Handler;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.SeekControl;

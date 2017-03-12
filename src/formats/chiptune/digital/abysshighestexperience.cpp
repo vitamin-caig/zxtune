@@ -18,8 +18,8 @@
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -29,15 +29,13 @@ namespace Chiptune
 {
   namespace AbyssHighestExperience
   {
-    typedef boost::array<uint8_t, 4> IdentifierType;
+    typedef std::array<uint8_t, 3> IdentifierType;
     
-    const IdentifierType ID0 = {{'T', 'H', 'X', 0}};
-    const IdentifierType ID1 = {{'T', 'H', 'X', 1}};
-  
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-    PACK_PRE struct Header
+    const IdentifierType ID_AHX = {{'T', 'H', 'X'}};
+    const IdentifierType ID_HVL = {{'H', 'V', 'L'}};
+
+/*
+    struct Header
     {
       //+0
       IdentifierType Identifier;
@@ -46,7 +44,7 @@ namespace Chiptune
       //+6
       uint16_t PositionsCountAndFlags;
       //+8
-      uint16_t LoopPosition;
+      uint16_t LoopPosition;//HVL: upper 6 bits are additional channels count
       //+10
       uint8_t TrackSize;
       //+11
@@ -55,30 +53,43 @@ namespace Chiptune
       uint8_t SamplesCount;
       //+13
       uint8_t SubsongsCount;
-    } PACK_POST;
+      //HVL:
+      //+14
+      uint8_t MixGain;
+      //+15
+      uint8_t Defstereo;
+    };
     
-    PACK_PRE struct Subsong
+    struct Subsong
     {
       uint16_t Position;
-    } PACK_POST;
+    };
     
-    PACK_PRE struct Position
+    struct Position
     {
-      PACK_PRE struct Channel
+      struct Channel
       {
         uint8_t Track;
         int8_t Transposition;
-      } PACK_POST;
-      boost::array<Channel, 4> Channels;
-    } PACK_POST;
+      };
+      std::array<Channel, 4> Channels;//HVL: according to total channels count
+    };
     
-    PACK_PRE struct Note
+    struct Note
     {
       uint16_t NoteSampleCommand;
       uint8_t CommandData;
-    } PACK_POST;
+    };
     
-    PACK_PRE struct Sample
+    struct HVLNote
+    {
+      uint8_t Note;//if 0x3f, no other data stored
+      uint8_t Sample;
+      uint8_t Effect;
+      uint16_t EffectParams;
+    };
+    
+    struct Sample
     {
       uint8_t MasterVolume;
       uint8_t Flags;
@@ -101,111 +112,102 @@ namespace Chiptune
       uint8_t Speed;
       uint8_t Length;
       
-      PACK_PRE struct Entry
+      struct Entry
       {
-        uint32_t Data;
-      } PACK_POST;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-    BOOST_STATIC_ASSERT(sizeof(Header) == 14);
-    BOOST_STATIC_ASSERT(sizeof(Subsong) == 2);
-    BOOST_STATIC_ASSERT(sizeof(Position) == 8);
-    BOOST_STATIC_ASSERT(sizeof(Note) == 3);
-    BOOST_STATIC_ASSERT(sizeof(Sample) == 22);
-    BOOST_STATIC_ASSERT(sizeof(Sample::Entry) == 4);
+        uint8_t Data[4];//HVL: 5 bytes
+      };
+    };
+*/ 
     
-    const std::size_t MIN_SIZE = sizeof(Header);
+    struct Header
+    {
+      const IdentifierType Id;
+      const uint8_t Version;
+      const std::size_t NamesOffset;
+      const uint_t PositionsCount;
+      const uint_t ChannelsCount;
+      const uint_t TrackSize;
+      const uint_t TracksCount;
+      const uint_t SamplesCount;
+      const uint_t SubsongsCount;
+      
+      explicit Header(Binary::InputStream& stream)
+        : Id(stream.ReadField<IdentifierType>())
+        , Version(stream.ReadField<uint8_t>())
+        , NamesOffset(fromBE(stream.ReadField<uint16_t>()))
+        , PositionsCount(fromBE(stream.ReadField<uint16_t>()) & 0xfff)
+        , ChannelsCount(4 + (fromBE(stream.ReadField<uint16_t>()) >> 10))
+        , TrackSize(stream.ReadField<uint8_t>())
+        , TracksCount(stream.ReadField<uint8_t>())
+        , SamplesCount(stream.ReadField<uint8_t>())
+        , SubsongsCount(stream.ReadField<uint8_t>())
+      {
+      }
+      
+      bool IsAHX() const
+      {
+        return Id == ID_AHX && Version < 2;
+      }
+      
+      bool IsHVL() const
+      {
+        return Id == ID_HVL && Version < 2;
+      }
+      
+      std::size_t GetTracksOffset() const
+      {
+        const std::size_t HEADER_SIZE = IsAHX() ? 14 : 16;
+        const constexpr std::size_t SUBSONG_SIZE = 2;
+        const constexpr std::size_t POSITION_CHANNEL_SIZE = 2;
+        return HEADER_SIZE + SubsongsCount * SUBSONG_SIZE + PositionsCount * ChannelsCount * POSITION_CHANNEL_SIZE;
+      }
+    };
+    
+    const std::size_t MIN_SIZE = 32;
     
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
     };
+    
+    Builder& GetStubBuilder()
+    {
+      static StubBuilder stub;
+      return stub;
+    }
     
     class Format
     {
     public:
       explicit Format(const Binary::Container& data)
         : Stream(data)
-        , Source(Stream.ReadField<Header>())
-        , TracksOffset()
-        , NamesOffset()
+        , Source(Stream)
       {
       }
       
       void Parse(Builder& target)
       {
-        ParseSubsongs(target);
-        ParsePositions(target);
-        TracksOffset = Stream.GetPosition();
-        ParseTracks(target);
-        ParseSamples(target);
-        NamesOffset = Stream.GetPosition();
-        ParseCommonProperties(target);
+        //TODO: add and use Stream.Seek
+        Require(Stream.GetPosition() <= Source.NamesOffset);
+        Stream.Skip(Source.NamesOffset - Stream.GetPosition());
+        MetaBuilder& meta = target.GetMetaBuilder();
+        const std::string& title = Stream.ReadCString(Stream.GetRestSize());
+        meta.SetTitle(FromStdString(title));
+        ParseSampleNames(meta);
+        ParseProgram(meta);
       }
       
       Formats::Chiptune::Container::Ptr GetContainer() const
       {
         const Binary::Container::Ptr rawData = Stream.GetReadData();
-        return CreateCalculatingCrcContainer(rawData, TracksOffset, NamesOffset - TracksOffset);
+        const auto tracksOffset = Source.GetTracksOffset();
+        return CreateCalculatingCrcContainer(rawData, tracksOffset, Source.NamesOffset - tracksOffset);
       }
     private:
-      void ParseSubsongs(Builder& /*target*/)
-      {
-        const uint_t count = Source.SubsongsCount;
-        Stream.ReadData(count * sizeof(Subsong));
-      }
-      
-      void ParsePositions(Builder& /*target*/)
-      {
-        const uint_t count = fromBE(Source.PositionsCountAndFlags) & 0xfff;
-        Stream.ReadData(count * sizeof(Position));
-      }
-      
-      void ParseTracks(Builder& /*target*/)
-      {
-        const bool track0Saved = 0 == (fromBE(Source.PositionsCountAndFlags) & 0x8000);
-        const uint_t count = Source.TracksCount + track0Saved;
-        const uint_t size = Source.TrackSize;
-        Stream.ReadData(count * size * sizeof(Note));
-      }
-      
-      void ParseSamples(Builder& /*target*/)
-      {
-        const uint_t count = Source.SamplesCount;
-        for (uint_t smp = 0; smp < count; ++smp)
-        {
-          const Sample& hdr = Stream.ReadField<Sample>();
-          const uint_t size = hdr.Length;
-          for (uint_t idx = 0; idx < size; ++idx)
-          {
-            Stream.ReadData(sizeof(Sample::Entry));
-          }
-        }
-      }
-      
-      void ParseCommonProperties(Builder& target)
-      {
-        MetaBuilder& meta = target.GetMetaBuilder();
-        const std::string& title = Stream.ReadCString(Stream.GetRestSize());
-        meta.SetTitle(FromStdString(title));
-        ParseSampleNames(meta);
-        if (Source.Identifier == ID0)
-        {
-          meta.SetProgram(Text::ABYSSHIGHESTEXPERIENCE_EDITOR_OLD);
-        }
-        else if (Source.Identifier == ID1)
-        {
-          meta.SetProgram(Text::ABYSSHIGHESTEXPERIENCE_EDITOR_NEW);
-        }
-      }
-      
       void ParseSampleNames(MetaBuilder& meta)
       {
         const uint_t count = Source.SamplesCount;
@@ -217,105 +219,159 @@ namespace Chiptune
         }
         meta.SetStrings(names);
       }
+      
+      void ParseProgram(MetaBuilder& meta)
+      {
+        if (Source.IsAHX())
+        {
+          if (Source.Version == 0)
+          {
+            meta.SetProgram(Text::ABYSSHIGHESTEXPERIENCE_EDITOR_OLD);
+          }
+          else
+          {
+            meta.SetProgram(Text::ABYSSHIGHESTEXPERIENCE_EDITOR_NEW);
+          }
+        }
+        else if (Source.IsHVL())
+        {
+          if (Source.Version == 0)
+          {
+            meta.SetProgram(Text::HIVELYTRACKER_EDITOR_OLD);
+          }
+          else
+          {
+            meta.SetProgram(Text::HIVELYTRACKER_EDITOR_NEW);
+          }
+        }
+      }
     private:
       Binary::InputStream Stream;
-      const Header& Source;
-      std::size_t TracksOffset;
-      std::size_t NamesOffset;
+      const Header Source;
     };
     
     bool FastCheck(const Binary::Container& rawData)
     {
-      const std::size_t size(rawData.Size());
-      if (sizeof(Header) > size)
+      const auto size = rawData.Size();
+      if (size < MIN_SIZE)
       {
         return false;
       }
-      const Header& header = *static_cast<const Header*>(rawData.Start());
-      if (header.Identifier != ID0
-       && header.Identifier != ID1)
-      {
-        return false;
-      }
-      const std::size_t subsongsSize = sizeof(Subsong) * header.SubsongsCount;
-      const std::size_t positionsSize = sizeof(Position) * (fromBE(header.PositionsCountAndFlags) & 0xfff);
-      const std::size_t tracksSize = sizeof(Note) * header.TrackSize * header.TracksCount;
-      const std::size_t minSamplesSize = sizeof(Sample) * header.SamplesCount;
-      return size > sizeof(header) + subsongsSize + positionsSize + tracksSize + minSamplesSize;
+      Binary::InputStream stream(rawData);
+      const Header hdr(stream);
+      const auto tracksOffset = hdr.GetTracksOffset();
+      return hdr.NamesOffset > tracksOffset && size > hdr.NamesOffset;
     }
     
-    const std::string FORMAT(
-      "'T'H'X 00-01" //signature
+    struct FormatTraits
+    {
+      const char* Format;
+      const Char* Description;
+    };
+    
+    const FormatTraits AHXTraits = {
+        "'T'H'X 00-01" //signature
+        "??"           //names offset
+        "%xxxx00xx ?"  //flags and positions count 0-0x3e7
+        "%000000xx ?"  //restart position 0-0x3e6
+        "01-40"        //track len
+        "?"            //tracks count
+        "00-3f"        //samples count
+        "?"            //subsongs count
+        ,
+        Text::ABYSSHIGHESTEXPERIENCE_DECODER_DESCRIPTION
+    };
+    
+    const FormatTraits HVLTraits = {
+      "'H'V'L 00-01" //signature
       "??"           //names offset
       "%xxxx00xx ?"  //flags and positions count 0-0x3e7
-      "%000000xx ?"  //restart position 0-0x3e6
+      "%00xxxxxx ?"  //restart position 0-0x3e6, channels 0..12
       "01-40"        //track len
       "?"            //tracks count
       "00-3f"        //samples count
       "?"            //subsongs count
-    );
+      "01-ff"        //mixgain, not zero
+      "00-04"        //defstereo
+      ,
+      Text::HIVELYTRACKER_DECODER_DESCRIPTION
+    };
     
-    class Decoder : public Formats::Chiptune::Decoder
+    class VersionedDecoder : public Decoder
     {
     public:
-      Decoder()
-        : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
+      explicit VersionedDecoder(const FormatTraits& traits)
+        : Traits(traits)
+        , Header(Binary::CreateFormat(Traits.Format, MIN_SIZE))
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
-        return Text::ABYSSHIGHESTEXPERIENCE_DECODER_DESCRIPTION;
+        return Traits.Description;;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
-        return Format;
+        return Header;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
-        return Format->Match(rawData);
+        return Header->Match(rawData) && FastCheck(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
+      {
+        if (!Check(data))
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
+
+        try
+        {
+          Format format(data);
+          format.Parse(target);
+          return format.GetContainer();
+        }
+        catch (const std::exception&)
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
+      }
     private:
-      const Binary::Format::Ptr Format;
+      const FormatTraits Traits;
+      const Binary::Format::Ptr Header;
     };
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Decoder::Ptr CreateDecoder()
     {
-      if (!FastCheck(data))
-      {
-        return Formats::Chiptune::Container::Ptr();
-      }
-
-      try
-      {
-        Format format(data);
-        format.Parse(target);
-        return format.GetContainer();
-      }
-      catch (const std::exception&)
-      {
-        return Formats::Chiptune::Container::Ptr();
-      }
+      return MakePtr<VersionedDecoder>(AHXTraits);
     }
-
-    Builder& GetStubBuilder()
+    
+    namespace HivelyTracker
     {
-      static StubBuilder stub;
-      return stub;
+      Decoder::Ptr CreateDecoder()
+      {
+        return MakePtr<VersionedDecoder>(HVLTraits);
+      }
     }
   }//namespace AbyssHighestExperience
   
   Decoder::Ptr CreateAbyssHighestExperienceDecoder()
   {
-    return MakePtr<AbyssHighestExperience::Decoder>();
+    return AbyssHighestExperience::CreateDecoder();
+  }
+
+  Decoder::Ptr CreateHivelyTrackerDecoder()
+  {
+    return AbyssHighestExperience::HivelyTracker::CreateDecoder();
   }
 }
 }

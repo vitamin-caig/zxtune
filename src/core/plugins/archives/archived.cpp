@@ -31,12 +31,12 @@ namespace ZXTune
   class LoggerHelper
   {
   public:
-    LoggerHelper(uint_t total, const Module::DetectCallback& delegate, const String& plugin, const String& path)
+    LoggerHelper(uint_t total, const Module::DetectCallback& delegate, String plugin, String path)
       : Total(total)
       , Delegate(delegate)
       , Progress(CreateProgressCallback(delegate, Total))
-      , Id(plugin)
-      , Path(path)
+      , Id(std::move(plugin))
+      , Path(std::move(path))
       , Current()
     {
     }
@@ -50,17 +50,17 @@ namespace ZXTune
       }
     }
 
-    std::auto_ptr<Module::DetectCallback> CreateNestedCallback() const
+    std::unique_ptr<Module::DetectCallback> CreateNestedCallback() const
     {
       Log::ProgressCallback* const parentProgress = Delegate.GetProgress();
       if (parentProgress && Total < 50)
       {
         Log::ProgressCallback::Ptr nestedProgress = CreateNestedPercentProgressCallback(Total, Current, *parentProgress);
-        return std::auto_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate, nestedProgress));
+        return std::unique_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate, std::move(nestedProgress)));
       }
       else
       {
-        return std::auto_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate));
+        return std::unique_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate));
       }
     }
 
@@ -80,16 +80,16 @@ namespace ZXTune
   class ContainerDetectCallback : public Formats::Archived::Container::Walker
   {
   public:
-    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, const String& plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
+    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, String plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
       : Params(params)
       , MaxSize(maxSize)
-      , BaseLocation(location)
-      , SubPlugin(plugin)
+      , BaseLocation(std::move(location))
+      , SubPlugin(std::move(plugin))
       , Logger(count, callback, SubPlugin, BaseLocation->GetPath()->AsString())
     {
     }
 
-    virtual void OnFile(const Formats::Archived::File& file) const
+    void OnFile(const Formats::Archived::File& file) const override
     {
       const String& name = file.GetName();
       const std::size_t size = file.GetSize();
@@ -110,7 +110,7 @@ namespace ZXTune
       {
         const String subPath = file.GetName();
         const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(BaseLocation, subData, SubPlugin, subPath);
-        const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
+        const std::unique_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
         Module::Detect(Params, subLocation, *nestedProgressCallback);
       }
       Logger.Next();
@@ -127,23 +127,23 @@ namespace ZXTune
   {
   public:
     ArchivedContainerPlugin(Plugin::Ptr descr, Formats::Archived::Decoder::Ptr decoder)
-      : Description(descr)
-      , Decoder(decoder)
+      : Description(std::move(descr))
+      , Decoder(std::move(decoder))
       , SupportDirectories(0 != (Description->Capabilities() & Capabilities::Container::Traits::DIRECTORIES))
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Decoder->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const override
     {
       const Binary::Container::Ptr rawData = input->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -158,7 +158,7 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
+    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const Binary::Container::Ptr rawData = location->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -205,22 +205,22 @@ namespace ZXTune
   {
   public:
     explicit OnceAppliedContainerPluginAdapter(ArchivePlugin::Ptr delegate)
-      : Delegate(delegate)
+      : Delegate(std::move(delegate))
       , Id(Delegate->GetDescription()->Id())
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    Plugin::Ptr GetDescription() const override
     {
       return Delegate->GetDescription();
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Delegate->GetFormat();
     }
 
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
     {
       if (SelfIsVisited(*inputData->GetPluginsChain()))
       {
@@ -232,7 +232,7 @@ namespace ZXTune
       }
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Analysis::Path& pathToOpen) const
+    DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Analysis::Path& pathToOpen) const override
     {
       if (SelfIsVisited(*inputData->GetPluginsChain()))
       {

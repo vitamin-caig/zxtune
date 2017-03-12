@@ -26,8 +26,8 @@
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//boost includes
-#include <boost/thread/condition_variable.hpp>
+//std includes
+#include <condition_variable>
 //text includes
 #include "text/backends.h"
 
@@ -85,10 +85,10 @@ namespace Sdl
 
     void AddData(Chunk& buffer)
     {
-      boost::mutex::scoped_lock locker(BufferMutex);
+      std::unique_lock<std::mutex> lock(BufferMutex);
       while (FillIter->BytesToPlay)
       {
-        PlayedEvent.wait(locker);
+        PlayedEvent.wait(lock);
       }
       FillIter->Data.swap(buffer);
       FillIter->BytesToPlay = FillIter->Data.size() * sizeof(FillIter->Data.front());
@@ -98,13 +98,13 @@ namespace Sdl
 
     void GetData(uint8_t* stream, uint_t len)
     {
-      boost::mutex::scoped_lock locker(BufferMutex);
+      std::unique_lock<std::mutex> lock(BufferMutex);
       while (len)
       {
         //wait for data
         while (!PlayIter->BytesToPlay)
         {
-          FilledEvent.wait(locker);
+          FilledEvent.wait(lock);
         }
         const uint_t inBuffer = PlayIter->Data.size() * sizeof(PlayIter->Data.front());
         const uint_t toCopy = std::min<uint_t>(len, PlayIter->BytesToPlay);
@@ -135,8 +135,8 @@ namespace Sdl
       return Buffers.size();
     }
   private:
-    boost::mutex BufferMutex;
-    boost::condition_variable FilledEvent, PlayedEvent;
+    std::mutex BufferMutex;
+    std::condition_variable FilledEvent, PlayedEvent;
     struct Buffer
     {
       Buffer() : BytesToPlay()

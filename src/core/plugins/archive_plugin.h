@@ -26,9 +26,9 @@ namespace ZXTune
   class ArchivePlugin
   {
   public:
-    typedef boost::shared_ptr<const ArchivePlugin> Ptr;
+    typedef std::shared_ptr<const ArchivePlugin> Ptr;
     typedef ObjectIterator<ArchivePlugin::Ptr> Iterator;
-    virtual ~ArchivePlugin() {}
+    virtual ~ArchivePlugin() = default;
 
     virtual Plugin::Ptr GetDescription() const = 0;
     virtual Binary::Format::Ptr GetFormat() const = 0;

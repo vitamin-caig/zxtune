@@ -39,10 +39,7 @@ namespace Time
     }
 
     //from the same type
-    Stamp(const Stamp& rh)
-      : Value(rh.Value)
-    {
-    }
+    Stamp(const Stamp& rh) = default;
 
     bool operator < (const Stamp& rh) const
     {
@@ -67,14 +64,14 @@ namespace Time
     const Stamp<T, Resolution>& operator += (const Stamp<T1, OtherResolution>& rh)
     {
       Value += Stamp<T, Resolution>(rh).Get();
-      BOOST_STATIC_ASSERT(Resolution >= OtherResolution);
+      static_assert(Resolution >= OtherResolution, "Invalid resolution");
       return *this;
     }
 
     template<class T1, T1 OtherResolution>
     Stamp<T, Resolution> operator + (const Stamp<T1, OtherResolution>& rh) const
     {
-      BOOST_STATIC_ASSERT(Resolution >= OtherResolution);
+      static_assert(Resolution >= OtherResolution, "Invalid resolution");
       return Stamp<T, Resolution>(Value + Stamp<T, Resolution>(rh).Get());
     }
 

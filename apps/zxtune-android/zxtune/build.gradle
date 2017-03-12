@@ -1,4 +1,19 @@
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+}
 
 android {
     compileSdkVersion 17
@@ -8,11 +23,22 @@ android {
         applicationId "app.zxtune"
         minSdkVersion 10
         targetSdkVersion 17
+        //supported languages
+        resConfigs "en", "de", "ru", "es", "cs"
     }
 }
 
 dependencies {
     compile "com.android.support:appcompat-v7:19.0.0"
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') {
+        transitive = true;
+    }
+    compile('com.crashlytics.sdk.android:crashlytics-ndk:1.1.5@aar') {
+        transitive = true;
+    }
+    compile('com.crashlytics.sdk.android:answers:1.3.10@aar') {
+        transitive = true;
+    }
 }
 
 apply from: "${treeRoot}/make/android/android.gradle"
@@ -20,6 +46,63 @@ apply from: "${treeRoot}/make/android/nativelibs.gradle"
 
 android {
     defaultConfig {
-        manifestPlaceholders = [ modarchiveKey: localProperties.getProperty("key.modarchive") ]
+        manifestPlaceholders = [ modarchiveKey: localProperties.getProperty("key.modarchive"),
+                                 crashlyticsKey: localProperties.getProperty("key.crashlytics") ]
     }
+    
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+//http://stackoverflow.com/questions/40134153/crashlytics-ndk-symbol-building-from-command-line
+//http://stackoverflow.com/questions/33735332/crashlytics-ndk-multi-androidndkout-path-support
+android {
+    ext.crashlyticsTmpDir = "${project.buildDir}/crashlytics"
+    ext.crashlyticsNdkOut = "${crashlyticsTmpDir}/debug"
+    ext.crashlyticsNdkLibsOut = "${crashlyticsTmpDir}/release"
+
+    //crashlytics tasks should be performed in the same execution due to apk rebuild
+    task publicBuildWithCrashlytics(dependsOn: publishPdb)
+    
+    applicationVariants.all { variant ->
+        def variantName = variant.name.capitalize()
+        def taskName = "prepareDebugSymbols${variantName}"
+        task(taskName, dependsOn: ["nativeLibsDebugSymbols${variantName}", "assemble${variantName}"]) {
+            def libsDir = variant.ndkCompile.soFolder
+            def objsDir = variant.ndkCompile.objFolder
+            doFirst {
+                fileTree(dir: objsDir, include: '**/*.pdb').each { file ->
+                    def target = file.getAbsolutePath().replace('so.pdb', 'so')
+                    file.renameTo(target)
+                }
+            }
+            doLast {
+                new File(crashlyticsTmpDir).deleteDir()
+                copy {
+                    from objsDir
+                    into crashlyticsNdkOut
+                }
+                copy {
+                    from libsDir
+                    into crashlyticsNdkLibsOut
+                }
+            }
+        }
+        
+        tasks.getByName("crashlyticsGenerateSymbols${variantName}").dependsOn.add(taskName)
+        if (variant.buildType.name == "release") {
+            publicBuildWithCrashlytics.dependsOn.addAll(["crashlyticsUploadSymbols${variantName}", "publishApk${variantName}"])
+        }
+    }
+}
+
+crashlytics {
+    enableNdk true
+    androidNdkOut android.crashlyticsNdkOut
+    androidNdkLibsOut android.crashlyticsNdkLibsOut
 }

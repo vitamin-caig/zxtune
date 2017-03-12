@@ -53,7 +53,7 @@ namespace Archived
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(Header) == 0x20);
+    static_assert(sizeof(Header) == 0x20, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
@@ -79,7 +79,7 @@ namespace Archived
       }
       static void* MyAlloc(void* /*p*/, size_t size)
       {
-        return size ? malloc(size) : 0;
+        return size ? malloc(size) : nullptr;
       }
 
       static void MyFree(void* /*p*/, void* address)
@@ -95,7 +95,7 @@ namespace Archived
     {
     public:
       explicit SeekStream(Binary::Data::Ptr data)
-        : Data(data)
+        : Data(std::move(data))
         , Start(static_cast<const uint8_t*>(Data->Start()))
         , Limit(Data->Size())
         , Position()
@@ -165,7 +165,7 @@ namespace Archived
     class Archive
     {
     public:
-      typedef boost::shared_ptr<const Archive> Ptr;
+      typedef std::shared_ptr<const Archive> Ptr;
 
       explicit Archive(Binary::Data::Ptr data)
         : Stream(data)
@@ -176,7 +176,7 @@ namespace Archived
 
       ~Archive()
       {
-        LzmaContext::Allocator()->Free(0, Cache.OutBuffer);
+        LzmaContext::Allocator()->Free(nullptr, Cache.OutBuffer);
         SzArEx_Free(&Db, LzmaContext::Allocator());
       }
 
@@ -187,7 +187,7 @@ namespace Archived
 
       String GetFileName(uint_t idx) const
       {
-        const size_t nameLen = SzArEx_GetFileNameUtf16(&Db, idx, 0);
+        const size_t nameLen = SzArEx_GetFileNameUtf16(&Db, idx, nullptr);
         Require(nameLen > 0);
         std::vector<UInt16> buf(nameLen);
         UInt16* const data = &buf[0];
@@ -230,7 +230,7 @@ namespace Archived
 
         UnpackCache()
           : BlockIndex(~UInt32(0))
-          , OutBuffer(0)
+          , OutBuffer(nullptr)
           , OutBufferSize(0)
         {
         }
@@ -245,7 +245,7 @@ namespace Archived
     {
     public:
       File(Archive::Ptr archive, uint_t idx)
-        : Arch(archive)
+        : Arch(std::move(archive))
         , Idx(idx)
         , Name(Arch->GetFileName(Idx))
         , Size(Arch->GetFileSize(Idx))
@@ -253,17 +253,17 @@ namespace Archived
         Dbg("Created file '%1%', idx=%2% size=%3%", Name, Idx, Size);
       }
 
-      virtual String GetName() const
+      String GetName() const override
       {
         return Name;
       }
 
-      virtual std::size_t GetSize() const
+      std::size_t GetSize() const override
       {
         return Size;
       }
 
-      virtual Binary::Container::Ptr GetData() const
+      Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '%1%'", Name);
         return Arch->GetFileData(Idx);
@@ -280,7 +280,7 @@ namespace Archived
     public:
       template<class It>
       Container(Binary::Container::Ptr data, It begin, It end)
-        : Delegate(data)
+        : Delegate(std::move(data))
       {
         for (It it = begin; it != end; ++it)
         {
@@ -290,31 +290,31 @@ namespace Archived
       }
 
       //Binary::Container
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
-      virtual void ExploreFiles(const Container::Walker& walker) const
+      void ExploreFiles(const Container::Walker& walker) const override
       {
-        for (FilesMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+        for (const auto& file : Files)
         {
-          walker.OnFile(*it->second);
+          walker.OnFile(*file.second);
         }
       }
 
-      virtual File::Ptr FindFile(const String& name) const
+      File::Ptr FindFile(const String& name) const override
       {
         const FilesMap::const_iterator it = Files.find(name);
         return it != Files.end()
@@ -322,7 +322,7 @@ namespace Archived
           : File::Ptr();
       }
 
-      virtual uint_t CountFiles() const
+      uint_t CountFiles() const override
       {
         return static_cast<uint_t>(Files.size());
       }
@@ -341,17 +341,17 @@ namespace Archived
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Text::SEVENZIP_DECODER_DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Format;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& data) const
+    Container::Ptr Decode(const Binary::Container& data) const override
     {
       if (!Format->Match(data))
       {

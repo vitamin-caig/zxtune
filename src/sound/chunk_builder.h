@@ -46,10 +46,10 @@ namespace Sound
       return res;
     }
 
-    Chunk::Ptr GetResult()
+    Chunk::Ptr CaptureResult()
     {
       Content->resize(Pos - &Content->front());
-      return Content;
+      return std::move(Content);
     }
   private:
     Chunk::Ptr Content;

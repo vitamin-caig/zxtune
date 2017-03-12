@@ -13,6 +13,8 @@
 //common includes
 #include <crc.h>
 #include <make_ptr.h>
+//std includes
+#include <cassert>
 
 namespace Formats
 {
@@ -27,22 +29,22 @@ namespace Formats
         assert(delegate && delegate->Size());
       }
 
-      virtual const void* Start() const
+      const void* Start() const override
       {
         return Delegate->Start();
       }
 
-      virtual std::size_t Size() const
+      std::size_t Size() const override
       {
         return Delegate->Size();
       }
 
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate->GetSubcontainer(offset, size);
       }
 
-      virtual uint_t Checksum() const
+      uint_t Checksum() const override
       {
         return Crc32(static_cast<const uint8_t*>(Delegate->Start()), Delegate->Size());
       }
@@ -59,7 +61,7 @@ namespace Formats
       {
       }
 
-      virtual uint_t FixedChecksum() const
+      uint_t FixedChecksum() const override
       {
         return Crc;
       }
@@ -77,7 +79,7 @@ namespace Formats
       {
       }
 
-      virtual uint_t FixedChecksum() const
+      uint_t FixedChecksum() const override
       {
         return Crc32(static_cast<const uint8_t*>(Delegate->Start()) + FixedOffset, FixedSize);
       }

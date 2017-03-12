@@ -14,12 +14,12 @@
 //common includes
 #include <contract.h>
 //library includes
-#include <core/module_analyzer.h>
+#include <module/analyzer.h>
 //std includes
 #include <algorithm>
+#include <array>
 #include <limits>
 //boost includes
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QEvent>
@@ -63,14 +63,14 @@ namespace
     {
       bool oldc = false;
       std::swap(Changed, oldc);
-      return oldc ? &Value : 0;
+      return oldc ? &Value : nullptr;
     }
 
     uint_t Value;
     bool Changed;
   };
 
-  typedef boost::array<BandLevel, MAX_BANDS> Analyzed;
+  typedef std::array<BandLevel, MAX_BANDS> Analyzed;
 
   inline void StoreValue(const Module::Analyzer::ChannelState& chan, Analyzed& result)
   {
@@ -102,25 +102,25 @@ namespace
       Require(connect(&Timer, SIGNAL(timeout()), SLOT(UpdateState())));
     }
 
-    virtual void InitState(Sound::Backend::Ptr player)
+    void InitState(Sound::Backend::Ptr player) override
     {
       Analyzer = player->GetAnalyzer();
       CloseState();
       Timer.start();
     }
 
-    virtual void UpdateState()
+    void UpdateState() override
     {
       if (isVisible())
       {
         std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Fall), LEVELS_FALLBACK));
-        Analyzer->GetState(State);
+        State = std::move(Analyzer->GetState());
         std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
         repaint();
       }
     }
 
-    void CloseState()
+    void CloseState() override
     {
       std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Set), 0));
       DoRepaint();
@@ -128,7 +128,7 @@ namespace
     }
 
     //QWidget
-    virtual void changeEvent(QEvent* event)
+    void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
       {
@@ -137,7 +137,7 @@ namespace
       AnalyzerControl::changeEvent(event);
     }
 
-    virtual void paintEvent(QPaintEvent*)
+    void paintEvent(QPaintEvent*) override
     {
       const QBrush& mask = Palette.toolTipText();
       const QBrush& brush = Palette.toolTipBase();

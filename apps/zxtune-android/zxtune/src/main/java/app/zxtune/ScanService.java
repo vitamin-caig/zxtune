@@ -10,11 +10,6 @@
 
 package app.zxtune;
 
-import java.io.IOException;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -28,6 +23,12 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import app.zxtune.playback.Iterator;
 import app.zxtune.playback.IteratorFactory;
 import app.zxtune.playback.PlayableItem;
@@ -138,7 +139,7 @@ public class ScanService extends IntentService {
       } while (insertThread.isActive() && iter.next());
     } catch (IOException e) {
       error = e;
-      Log.d(TAG, e, "Scan failed");
+      Log.w(TAG, e, "Scan failed");
       insertThread.cancel();
     }
   }
@@ -186,7 +187,7 @@ public class ScanService extends IntentService {
         active.set(false);
         join();
       } catch (InterruptedException e) {
-        Log.d(getName(), e, "failed to wait for finish");
+        Log.w(getName(), e, "Failed to wait for finish");
       }
     }
     

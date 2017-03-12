@@ -14,6 +14,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+
 import app.zxtune.playback.PlaybackControl;
 
 class HeadphonesPlugHandler extends BroadcastReceiver {

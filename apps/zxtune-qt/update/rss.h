@@ -30,7 +30,7 @@ namespace RSS
   class Visitor
   {
   public:
-    virtual ~Visitor() {}
+    virtual ~Visitor() = default;
 
     virtual void OnEntry(const Entry& e) = 0;
   };

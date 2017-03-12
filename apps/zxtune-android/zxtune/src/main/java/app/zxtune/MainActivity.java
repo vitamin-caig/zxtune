@@ -25,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
+
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.ui.AboutFragment;
 import app.zxtune.ui.BrowserFragment;
@@ -163,6 +164,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   private void showPreferences() {
     final Intent intent = new Intent(this, PreferencesActivity.class);
     startActivity(intent);
+    Analytics.sendUIEvent("Preferences");
   }
   
   private void rateApplication() {
@@ -174,6 +176,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
         Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
       }
     }
+    Analytics.sendUIEvent("Rate");
   }
   
   private boolean safeStartActivity(Intent intent) {
@@ -188,6 +191,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   private void showAbout() {
     final DialogFragment fragment = AboutFragment.createInstance();
     fragment.show(getSupportFragmentManager(), "about");
+    Analytics.sendUIEvent("About");
   }
   
   private void quit() {

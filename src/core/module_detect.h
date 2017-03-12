@@ -13,8 +13,8 @@
 //library includes
 #include <binary/container.h>
 #include <core/data_location.h>
-#include <core/module_holder.h>
 #include <core/plugin.h>
+#include <module/holder.h>
 #include <parameters/accessor.h>
 
 //forward declarations
@@ -29,7 +29,7 @@ namespace Module
   class DetectCallback
   {
   public:
-    virtual ~DetectCallback() {}
+    virtual ~DetectCallback() = default;
 
     //! @brief Process module
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const = 0;

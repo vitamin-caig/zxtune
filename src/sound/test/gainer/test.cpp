@@ -12,10 +12,9 @@
 #include <math/numeric.h>
 #include <sound/gainer.h>
 #include <sound/chunk_builder.h>
-
+#include <boost/range/size.hpp>
 #include <iostream>
 #include <iomanip>
-#include <boost/range/size.hpp>
 
 #define FILE_TAG B5BAF4C1
 
@@ -86,7 +85,7 @@ namespace Sound
     {
     }
     
-    virtual void ApplyData(const Chunk::Ptr& data)
+    void ApplyData(Chunk::Ptr data) override
     {
       if (Check(data->front().Left(), ToCompare.Left()) && Check(data->front().Right(), ToCompare.Right()))
       {
@@ -100,7 +99,7 @@ namespace Sound
       }
     }
     
-    virtual void Flush()
+    void Flush() override
     {
     }
     
@@ -124,7 +123,7 @@ int main()
   
   try
   {
-    Target* tgt = 0;
+    Target* tgt = nullptr;
     Receiver::Ptr receiver(tgt = new Target);
     const FadeGainer::Ptr gainer = CreateFadeGainer();
     gainer->SetTarget(receiver);
@@ -157,7 +156,7 @@ int main()
         ChunkBuilder builder;
         builder.Reserve(1);
         builder.Add(Sample(INPUTS[input], INPUTS[input]));
-        gainer->ApplyData(builder.GetResult());
+        gainer->ApplyData(builder.CaptureResult());
       }
     }
     std::cout << " Succeed!" << std::endl;

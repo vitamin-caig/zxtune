@@ -81,7 +81,7 @@ namespace Sound
     }
   private:
     typedef Math::FixedPoint<int64_t, int64_t(1) << 31> Coeff;
-    BOOST_STATIC_ASSERT(8 * sizeof(Coeff) >= boost::static_log2<Coeff::PRECISION>::value + Sample::BITS);
+    static_assert(8 * sizeof(Coeff) >= boost::static_log2<Coeff::PRECISION>::value + Sample::BITS, "Not enough bits");
     Coeff Level;
     Coeff Step;
   };
@@ -95,32 +95,32 @@ namespace Sound
     {
     }
 
-    virtual void ApplyData(const Chunk::Ptr& in)
+    void ApplyData(Chunk::Ptr in) override
     {
-      for (Chunk::iterator it = in->begin(), lim = in->end(); it != lim; ++it)
+      for (auto& val : *in)
       {
-        *it = Core.Apply(*it);
+        val = Core.Apply(val);
       }
       Core.ApplyStep();
-      return Delegate->ApplyData(in);
+      return Delegate->ApplyData(std::move(in));
     }
 
-    virtual void Flush()
+    void Flush() override
     {
       Delegate->Flush();
     }
 
-    virtual void SetTarget(Receiver::Ptr delegate)
+    void SetTarget(Receiver::Ptr delegate) override
     {
       Delegate = delegate ? delegate : Receiver::CreateStub();
     }
 
-    virtual void SetGain(Gain::Type gain)
+    void SetGain(Gain::Type gain) override
     {
       Core.SetGain(gain);
     }
 
-    virtual void SetFading(Gain::Type delta, uint_t step)
+    void SetFading(Gain::Type delta, uint_t step) override
     {
       Core.SetFading(delta, step);
     }

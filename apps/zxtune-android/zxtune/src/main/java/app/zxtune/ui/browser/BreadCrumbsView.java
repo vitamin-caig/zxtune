@@ -10,20 +10,21 @@
 
 package app.zxtune.ui.browser;
 
-import java.util.ArrayList;
-import java.util.Collections;
-
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
+
+import java.util.ArrayList;
+import java.util.Collections;
+
 import app.zxtune.R;
-import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
 
@@ -64,7 +65,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
   }
 
   public final void setDir(VfsDir dir) {
-    if (dir == null || dir == Vfs.getRoot()) {
+    if (dir == null || Uri.EMPTY.equals(dir.getUri())) {
       hideButtons(0, container.getChildCount());
     } else {
       final ArrayList<VfsDir> elems = new ArrayList<VfsDir>();
@@ -100,7 +101,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     final View but = container.getChildAt(idx);
     return but == null
       ? createButton(idx, dir)
-      : updateButton(idx, but, dir);
+      : updateButton((Button) but, dir);
   }
   
   private View createButton(int idx, VfsDir dir) {
@@ -117,36 +118,29 @@ public class BreadCrumbsView extends HorizontalScrollView {
   
   private View createButton(VfsDir dir) {
     final LayoutInflater inflater = LayoutInflater.from(getContext());
-    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
-    if (icon != null) {
-      return updateButton((ImageButton) inflater.inflate(R.layout.image_button, container, false), icon);
-    } else {
-      return updateButton((Button) inflater.inflate(R.layout.button, container, false), dir);
-    }
-  }
-  
-  private View updateButton(int idx, View but, VfsDir dir) {
-    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
-    final boolean hasIcon = icon != null;
-    final boolean canShowIcon = but instanceof ImageButton;
-    if (canShowIcon == hasIcon) {
-      return canShowIcon
-          ? updateButton((ImageButton) but, icon)
-              : updateButton((Button) but, dir);
-    } else {
-      container.removeViewAt(idx);
-      return createButton(idx, dir);
-    }
-  }
-  
-  private View updateButton(ImageButton but, Object icon) {
-    but.setImageResource((Integer) icon);
-    return but;
+    return updateButton((Button) inflater.inflate(R.layout.button, container, false), dir);
   }
   
   private View updateButton(Button but, VfsDir dir) {
-    but.setText(dir.getName());
+    final Drawable[] currentImages = but.getCompoundDrawables();
+    final Drawable icon = getIcon(dir);
+    if (icon != currentImages[0]) {
+      but.setCompoundDrawablesWithIntrinsicBounds(icon, currentImages[1], currentImages[2], currentImages[3]);
+      if (icon != null) {
+        but.setText(null);
+      }
+    }
+    if (icon == null) {
+      but.setText(dir.getName());
+    }
     return but;
+  }
+
+  private Drawable getIcon(VfsDir dir) {
+    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
+    return icon != null
+            ? getResources().getDrawable((Integer) icon)
+            : null;
   }
   
   private void hideButtons(int startId, int endId) {

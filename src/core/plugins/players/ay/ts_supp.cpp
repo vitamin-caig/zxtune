@@ -9,13 +9,9 @@
 **/
 
 //local includes
-#include "aym_base.h"
-#include "ts_base.h"
-#include "core/plugins/players/properties_helper.h"
 #include "core/plugins/enumerator.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-#include "core/plugins/players/tracking.h"
 #include "core/src/callback.h"
 //common includes
 #include <error.h>
@@ -25,6 +21,10 @@
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/aym/turbosound.h>
+#include <module/players/properties_helper.h>
+#include <module/players/tracking.h>
+#include <module/players/aym/aym_base.h>
+#include <module/players/aym/turbosound.h>
 
 namespace Module
 {
@@ -41,7 +41,7 @@ namespace TS
     {
     }
 
-    virtual void SetFirstSubmoduleLocation(std::size_t offset, std::size_t size)
+    void SetFirstSubmoduleLocation(std::size_t offset, std::size_t size) override
     {
       if (!(First = LoadChiptune(offset, size)))
       {
@@ -49,7 +49,7 @@ namespace TS
       }
     }
 
-    virtual void SetSecondSubmoduleLocation(std::size_t offset, std::size_t size)
+    void SetSecondSubmoduleLocation(std::size_t offset, std::size_t size) override
     {
       if (!(Second = LoadChiptune(offset, size)))
       {
@@ -75,7 +75,7 @@ namespace TS
     AYM::Chiptune::Ptr LoadChiptune(std::size_t offset, std::size_t size) const
     {
       const Binary::Container::Ptr content = Data.GetSubcontainer(offset, size);
-      if (const AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const AYM::Holder>(Module::Open(Params, *content)))
+      if (const AYM::Holder::Ptr holder = std::dynamic_pointer_cast<const AYM::Holder>(Module::Open(Params, *content)))
       {
         return holder->GetChiptune();
       }
@@ -96,11 +96,11 @@ namespace TS
   {
   public:
     explicit Factory(Formats::Chiptune::TurboSound::Decoder::Ptr decoder)
-      : Decoder(decoder)
+      : Decoder(std::move(decoder))
     {
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       try
       {

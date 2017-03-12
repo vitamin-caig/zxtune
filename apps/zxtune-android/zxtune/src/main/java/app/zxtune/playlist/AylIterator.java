@@ -10,6 +10,8 @@
 
 package app.zxtune.playlist;
 
+import android.net.Uri;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,8 +19,6 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
-
-import android.net.Uri;
 
 public final class AylIterator {
 

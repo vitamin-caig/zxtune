@@ -12,16 +12,16 @@
 
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
+//std includes
+#include <memory>
 
 namespace Async
 {
   class Progress
   {
   public:
-    typedef boost::shared_ptr<Progress> Ptr;
-    virtual ~Progress() {}
+    typedef std::shared_ptr<Progress> Ptr;
+    virtual ~Progress() = default;
 
     virtual void Produce(uint_t items) = 0;
     virtual void Consume(uint_t items) = 0;

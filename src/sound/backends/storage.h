@@ -18,7 +18,7 @@ namespace Sound
   class BackendsStorage
   {
   public:
-    virtual ~BackendsStorage() {}
+    virtual ~BackendsStorage() = default;
 
     //Functional
     virtual void Register(const String& id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory) = 0;

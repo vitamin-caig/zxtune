@@ -33,38 +33,38 @@ namespace
       const typename std::map<K, V>::const_iterator it = std::map<K, V>::find(key), limit = std::map<K, V>::end();
       return it != limit
         ? &it->second
-        : 0;
+        : nullptr;
     }
   };
 
-  typedef boost::shared_ptr<std::locale> LocalePtr;
+  typedef std::shared_ptr<std::locale> LocalePtr;
 
   class DomainVocabulary : public L10n::Vocabulary
   {
   public:
-    DomainVocabulary(LocalePtr locale, const std::string& domain)
-      : Locale(locale)
-      , Domain(domain)
+    DomainVocabulary(LocalePtr locale, std::string domain)
+      : Locale(std::move(locale))
+      , Domain(std::move(domain))
     {
-      Dbg("Created vocabulary for domain '%1%'", domain);
+      Dbg("Created vocabulary for domain '%1%'", Domain);
     }
 
-    virtual String GetText(const char* text) const
+    String GetText(const char* text) const override
     {
       return boost::locale::dgettext<Char>(Domain.c_str(), text, *Locale);
     }
 
-    virtual String GetText(const char* single, const char* plural, int count) const
+    String GetText(const char* single, const char* plural, int count) const override
     {
       return boost::locale::dngettext<Char>(Domain.c_str(), single, plural, count, *Locale);
     }
 
-    virtual String GetText(const char* context, const char* text) const
+    String GetText(const char* context, const char* text) const override
     {
       return boost::locale::dpgettext<Char>(Domain.c_str(), context, text, *Locale);
     }
 
-    virtual String GetText(const char* context, const char* single, const char* plural, int count) const
+    String GetText(const char* context, const char* single, const char* plural, int count) const override
     {
       return boost::locale::dnpgettext<Char>(Domain.c_str(), context, single, plural, count, *Locale);
     }
@@ -112,7 +112,7 @@ namespace
       Dbg("Current locale is %1%. Encoding is %2%. Translation is %3%", SystemLocale.Name, SystemLocale.Encoding, SystemLocale.Translation);
     }
 
-    virtual void AddTranslation(const L10n::Translation& trans)
+    void AddTranslation(const L10n::Translation& trans) override
     {
       if (trans.Type != TYPE_MO)
       {
@@ -133,7 +133,7 @@ namespace
       Dbg("Added translation %1% in %2% bytes", filename, trans.Data.size());
     }
 
-    virtual void SelectTranslation(const std::string& translation)
+    void SelectTranslation(const std::string& translation) override
     {
       using namespace boost::locale;
       try
@@ -141,7 +141,7 @@ namespace
         if (const gnu_gettext::messages_info* info = Locales.Find(translation))
         {
           message_format<Char>* const facet = gnu_gettext::create_messages_facet<Char>(*info);
-          Require(facet != 0);
+          Require(facet != nullptr);
           *CurrentLocale = std::locale(std::locale::classic(), facet);
           Dbg("Selected translation %1%", translation);
           return;
@@ -155,7 +155,7 @@ namespace
       Dbg("Selected unknown translation %1%", translation);
     }
 
-    virtual L10n::Vocabulary::Ptr GetVocabulary(const std::string& domain) const
+    L10n::Vocabulary::Ptr GetVocabulary(const std::string& domain) const override
     {
       return MakePtr<DomainVocabulary>(CurrentLocale, domain);
     }

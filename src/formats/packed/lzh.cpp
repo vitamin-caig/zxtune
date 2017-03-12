@@ -231,10 +231,10 @@ namespace Packed
       "6f"            // ld l,a
     );
 
-    BOOST_STATIC_ASSERT(sizeof(Version1::RawHeader) == 0x58);
-    BOOST_STATIC_ASSERT(offsetof(Version1::RawHeader, DepackerBody) == 0x17);
-    BOOST_STATIC_ASSERT(sizeof(Version2::RawHeader) == 0x56);
-    BOOST_STATIC_ASSERT(offsetof(Version2::RawHeader, DepackerBody) == 0x17);
+    static_assert(sizeof(Version1::RawHeader) == 0x58, "Invalid layout");
+    static_assert(offsetof(Version1::RawHeader, DepackerBody) == 0x17, "Invalid layout");
+    static_assert(sizeof(Version2::RawHeader) == 0x56, "Invalid layout");
+    static_assert(offsetof(Version2::RawHeader, DepackerBody) == 0x17, "Invalid layout");
 
     template<class Version>
     class Container
@@ -313,11 +313,11 @@ namespace Packed
         }
       }
 
-      std::auto_ptr<Dump> GetResult()
+      std::unique_ptr<Dump> GetResult()
       {
         return IsValid
-          ? Result
-          : std::auto_ptr<Dump>();
+          ? std::move(Result)
+          : std::unique_ptr<Dump>();
       }
     private:
       bool DecodeData()
@@ -364,7 +364,7 @@ namespace Packed
       bool IsValid;
       const typename Version::RawHeader& Header;
       ByteStream Stream;
-      std::auto_ptr<Dump> Result;
+      std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
   }//namespace LZH
@@ -378,17 +378,17 @@ namespace Packed
     {
     }
 
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return Version::DESCRIPTION;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       return Depacker;
     }
 
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       if (!Depacker->Match(rawData))
       {

@@ -10,10 +10,10 @@
 
 package app.zxtune.fs.dbhelpers;
 
-import java.util.Locale;
-
-import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
+
+import java.io.IOException;
+import java.util.Locale;
 
 public class Grouping extends Objects {
   
@@ -29,7 +29,7 @@ public class Grouping extends Objects {
     return String.format(Locale.US, "CREATE TABLE %s (%s INTEGER PRIMARY KEY);", tableName, Fields._id.name());
   }
   
-  public Grouping(SQLiteOpenHelper helper, String tableName, int bitsForObject) {
+  public Grouping(DBProvider helper, String tableName, int bitsForObject) throws IOException {
     super(helper, tableName, Fields.values().length);
     this.tableName = tableName;
     this.bitsForObject = bitsForObject;

@@ -112,7 +112,7 @@ namespace
       QByteArray parsedDownload;
       {
         PrintDownloadsVisitor visitor(parsedDownload);
-        std::auto_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor("zxtune", visitor);
+        std::unique_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor("zxtune", visitor);
         if (!RSS::Parse(feedContent, *rss))
         {
           throw std::runtime_error("Failed to parse feed");

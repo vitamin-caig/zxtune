@@ -15,6 +15,8 @@
 //library includes
 #include <async/activity.h>
 #include <async/coroutine.h>
+//std includes
+#include <utility>
 
 namespace Async
 {
@@ -51,17 +53,17 @@ namespace Async
   {
   public:
     CoroutineOperation(Coroutine::Ptr routine, Event<JobState>& state)
-      : Routine(routine)
+      : Routine(std::move(routine))
       , State(state)
     {
     }
 
-    virtual void Prepare()
+    void Prepare() override
     {
       return Routine->Initialize();
     }
     
-    virtual void Execute()
+    void Execute() override
     {
       try
       {
@@ -85,7 +87,7 @@ namespace Async
       Routine->Finalize();
     }
 
-    virtual void Yield()
+    void Yield() override
     {
       switch (State.WaitForAny(STOPPING, PAUSING, STARTED))
       {
@@ -116,11 +118,11 @@ namespace Async
   {
   public:
     explicit CoroutineJob(Coroutine::Ptr routine)
-      : Routine(routine)
+      : Routine(std::move(routine))
     {
     }
 
-    virtual ~CoroutineJob()
+    ~CoroutineJob() override
     {
       if (Act)
       {
@@ -128,9 +130,9 @@ namespace Async
       }
     }
 
-    virtual void Start()
+    void Start() override
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
       {
         if (Act->IsExecuted())
@@ -139,14 +141,14 @@ namespace Async
         }
         FinishAction();
       }
-      const Operation::Ptr jobOper = MakePtr<CoroutineOperation>(Routine, boost::ref(State));
+      const Operation::Ptr jobOper = MakePtr<CoroutineOperation>(Routine, State);
       Act = Activity::Create(jobOper);
       State.Set(STARTED);
     }
     
-    virtual void Pause()
+    void Pause() override
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
       {
         if (Act->IsExecuted())
@@ -158,9 +160,9 @@ namespace Async
       return PauseStopped();
     }
     
-    virtual void Stop()
+    void Stop() override
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
       {
         return FinishAction();//TODO: wrap error
@@ -168,15 +170,15 @@ namespace Async
       return StopStopped();
     }
 
-    virtual bool IsActive() const
+    bool IsActive() const override
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       return Act && Act->IsExecuted();
     }
     
-    virtual bool IsPaused() const
+    bool IsPaused() const override
     {
-      const boost::mutex::scoped_lock lock(Mutex);
+      const std::lock_guard<std::mutex> lock(Mutex);
       return Act && Act->IsExecuted() && State.Check(PAUSED);
     }
   private:
@@ -229,7 +231,7 @@ namespace Async
     }
   private:
     const Coroutine::Ptr Routine;
-    mutable boost::mutex Mutex;
+    mutable std::mutex Mutex;
     Event<JobState> State;
     Activity::Ptr Act;
   };

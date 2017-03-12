@@ -10,6 +10,8 @@
 
 package app.zxtune.fs.hvsc;
 
+import android.text.TextUtils;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -17,7 +19,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.text.TextUtils;
 import app.zxtune.fs.HttpProvider;
 
 class RemoteCatalog extends Catalog {

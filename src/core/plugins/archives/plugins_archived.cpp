@@ -15,8 +15,6 @@
 #include <core/plugin_attrs.h>
 #include <formats/archived/decoders.h>
 #include <formats/archived/multitrack/decoders.h>
-//boost includes
-#include <boost/range/end.hpp>
 
 namespace ZXTune
 {
@@ -72,25 +70,25 @@ namespace ZXTune
 {
   void RegisterMultitrackContainers(ArchivePluginsRegistrator& registrator)
   {
-    for (const ContainerPluginDescription* it = MULTITRACKS; it != boost::end(MULTITRACKS); ++it)
+    for (const auto& desc : MULTITRACKS)
     {
-      RegisterPlugin(*it, registrator);
+      RegisterPlugin(desc, registrator);
     }
   }
 
   void RegisterArchiveContainers(ArchivePluginsRegistrator& registrator)
   {
-    for (const ContainerPluginDescription* it = UNARCHIVES; it != boost::end(UNARCHIVES); ++it)
+    for (const auto& desc : UNARCHIVES)
     {
-      RegisterPlugin(*it, registrator);
+      RegisterPlugin(desc, registrator);
     }
   }
 
   void RegisterZXArchiveContainers(ArchivePluginsRegistrator& registrator)
   {
-    for (const ContainerPluginDescription* it = ZXUNARCHIVES; it != boost::end(ZXUNARCHIVES); ++it)
+    for (const auto& desc : ZXUNARCHIVES)
     {
-      RegisterPlugin(*it, registrator);
+      RegisterPlugin(desc, registrator);
     }
   }
 }

@@ -45,11 +45,11 @@ namespace
     Strings::Array GetAvailable() const
     {
       Strings::Array result;
-      for (Id2Status::const_iterator it = Ids.begin(), lim = Ids.end(); it != lim; ++it)
+      for (const auto& id : Ids)
       {
-        if (!it->second)
+        if (!id.second)
         {
-          result.push_back(it->first);
+          result.push_back(id.first);
         }
       }
       return result;
@@ -100,7 +100,7 @@ namespace
       }
     }
 
-    virtual String GetSelectedId() const
+    String GetSelectedId() const override
     {
       const IdToButton::const_iterator it =
         std::find_if(Buttons.begin(), Buttons.end(),
@@ -115,7 +115,7 @@ namespace
       }
     }
 
-    virtual QString GetDescription() const
+    QString GetDescription() const override
     {
       const IdToButton::const_iterator it =
         std::find_if(Buttons.begin(), Buttons.end(),

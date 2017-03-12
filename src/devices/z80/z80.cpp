@@ -16,8 +16,6 @@
 #include <parameters/tracking_helper.h>
 //3rdparty includes
 #include <3rdparty/z80ex/include/z80ex.h>
-//boost includes
-#include <boost/scoped_ptr.hpp>
 //std includes
 #include <functional>
 
@@ -28,9 +26,9 @@ namespace Z80
   class IOBus
   {
   public:
-    virtual ~IOBus() {}
+    virtual ~IOBus() = default;
 
-    virtual boost::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const = 0;
+    virtual std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const = 0;
   };
   
   class ExtendedIOBus : public IOBus
@@ -38,15 +36,15 @@ namespace Z80
   public:
     ExtendedIOBus(const Oscillator& clock, ChipIO::Ptr memory, ChipIO::Ptr ports)
       : Clock(clock)
-      , Memory(memory)
-      , Ports(ports)
+      , Memory(std::move(memory))
+      , Ports(std::move(ports))
     {
     }
 
-    virtual boost::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const
+    std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const override
     {
       ExtendedIOBus* const self = const_cast<ExtendedIOBus*>(this);
-      return boost::shared_ptr<Z80EX_CONTEXT>(
+      return std::shared_ptr<Z80EX_CONTEXT>(
         z80ex_create(&ReadByte, self, &WriteByte, self,
                      &InByte, self, &OutByte, self,
                      &IntRead, self), std::ptr_fun(&z80ex_destroy));
@@ -99,21 +97,21 @@ namespace Z80
   class SimpleIOBus : public IOBus
   {
   public:
-    SimpleIOBus(const Oscillator& clock, const Dump& memory, ChipIO::Ptr ports)
+    SimpleIOBus(const Oscillator& clock, Dump memory, ChipIO::Ptr ports)
       : Clock(clock)
-      , Memory(memory)
+      , Memory(std::move(memory))
       , RawMemory(&Memory.front())
-      , Ports(ports)
+      , Ports(std::move(ports))
     {
     }
 
-    virtual boost::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const
+    std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const override
     {
       SimpleIOBus* const self = const_cast<SimpleIOBus*>(this);
       const bool isLimited = Memory.size() < 65536;
       const z80ex_mread_cb read = isLimited ? &ReadByteLimited : &ReadByteUnlimited;
       const z80ex_mwrite_cb write = isLimited ? &WriteByteLimited : &WriteByteUnlimited;
-      return boost::shared_ptr<Z80EX_CONTEXT>(
+      return std::shared_ptr<Z80EX_CONTEXT>(
         z80ex_create(read, self, write, self,
                      &InByte, self, &OutByte, self,
                      &IntRead, self), std::ptr_fun(&z80ex_destroy));
@@ -259,14 +257,14 @@ namespace Z80
       Z80Chip::Reset();
     }
 
-    virtual void Reset()
+    void Reset() override
     {
       Params.Reset();
       z80ex_reset(Context.get());
       Clock.Reset();
     }
 
-    virtual void Interrupt()
+    void Interrupt() override
     {
       SynchronizeParameters();
       const uint64_t limit = Clock.GetIntEnd();
@@ -281,7 +279,7 @@ namespace Z80
       }
     }
 
-    virtual void Execute(const Stamp& till)
+    void Execute(const Stamp& till) override
     {
       const uint64_t endTick = Clock.GetTickAtTime(till);
       while (Clock.GetCurrentTick() < endTick)
@@ -290,7 +288,7 @@ namespace Z80
       }
     }
 
-    virtual void SetRegisters(const Registers& regs)
+    void SetRegisters(const Registers& regs) override
     {
       for (uint_t idx = Registers::REG_AF; idx != Registers::REG_LAST; ++idx)
       {
@@ -348,7 +346,7 @@ namespace Z80
       }
     }
 
-    virtual void GetRegisters(Registers::Dump& regs) const
+    void GetRegisters(Registers::Dump& regs) const override
     {
       Registers::Dump tmp;
       tmp[Registers::REG_AF] = z80ex_get_reg(Context.get(), regAF);
@@ -369,17 +367,17 @@ namespace Z80
       regs.swap(tmp);
     }
 
-    virtual Stamp GetTime() const
+    Stamp GetTime() const override
     {
       return Clock.GetCurrentTime();
     }
 
-    virtual uint64_t GetTick() const
+    uint64_t GetTick() const override
     {
       return Clock.GetCurrentTick();
     }
 
-    virtual void SetTime(const Stamp& time)
+    void SetTime(const Stamp& time) override
     {
       SynchronizeParameters();
       Clock.Seek(time);
@@ -395,8 +393,8 @@ namespace Z80
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     ClockSource Clock;
-    const boost::scoped_ptr<IOBus> Bus;
-    const boost::shared_ptr<Z80EX_CONTEXT> Context;
+    const std::unique_ptr<IOBus> Bus;
+    const std::shared_ptr<Z80EX_CONTEXT> Context;
   };
 }
 }

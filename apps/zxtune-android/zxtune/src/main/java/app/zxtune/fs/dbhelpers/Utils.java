@@ -10,12 +10,12 @@
 
 package app.zxtune.fs.dbhelpers;
 
-import java.io.IOException;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import app.zxtune.Log;
 
 public final class Utils {
@@ -47,26 +47,5 @@ public final class Utils {
       cursor.close();
     }
     return result;
-  }
-
-  public static void executeQueryCommand(QueryCommand cmd) throws IOException {
-    final Timestamps.Lifetime lifetime = cmd.getLifetime();
-    IOException remoteError = null;
-    if (lifetime.isExpired()) {
-      final Transaction transaction = cmd.startTransaction();
-      try {
-        cmd.queryFromRemote();
-        lifetime.update();
-        transaction.succeed();
-        return;
-      } catch (IOException e) {
-        remoteError = e;
-      } finally {
-        transaction.finish();
-      }
-    }
-    if (!cmd.queryFromCache() && remoteError != null) {
-      throw remoteError;
-    }
   }
 }

@@ -28,6 +28,5 @@ typedef long LONG;
 typedef unsigned long ULONG;
 #define FALSE 0
 #define TRUE 1
-#define CONST const
 
 #endif

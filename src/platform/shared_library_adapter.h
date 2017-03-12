@@ -21,7 +21,7 @@ namespace Platform
   {
   public:
     explicit SharedLibraryAdapter(SharedLibrary::Ptr lib)
-      : Library(lib)
+      : Library(std::move(lib))
     {
     }
 

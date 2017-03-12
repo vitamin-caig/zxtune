@@ -20,8 +20,8 @@
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
-//boost includes
-#include <boost/array.hpp>
+//std includes
+#include <array>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -54,7 +54,7 @@ namespace Chiptune
 
     PACK_PRE struct RawOrnament
     {
-      boost::array<int8_t, ORNAMENT_SIZE> Offsets;
+      std::array<int8_t, ORNAMENT_SIZE> Offsets;
     } PACK_POST;
 
     PACK_PRE struct RawPattern
@@ -132,15 +132,15 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 130);
-    BOOST_STATIC_ASSERT(sizeof(RawPosEntry) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 32);
-    BOOST_STATIC_ASSERT(sizeof(RawPattern) == 576);
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 3009 + 576);
-    BOOST_STATIC_ASSERT(offsetof(RawHeader, Positions) == 1950);
-    BOOST_STATIC_ASSERT(offsetof(RawHeader, Length) == 2462);
-    BOOST_STATIC_ASSERT(offsetof(RawHeader, Tempo) == 3007);
-    BOOST_STATIC_ASSERT(offsetof(RawHeader, Patterns) == 3009);
+    static_assert(sizeof(RawSample) == 130, "Invalid layout");
+    static_assert(sizeof(RawPosEntry) == 2, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 32, "Invalid layout");
+    static_assert(sizeof(RawPattern) == 576, "Invalid layout");
+    static_assert(sizeof(RawHeader) == 3009 + 576, "Invalid layout");
+    static_assert(offsetof(RawHeader, Positions) == 1950, "Invalid layout");
+    static_assert(offsetof(RawHeader, Length) == 2462, "Invalid layout");
+    static_assert(offsetof(RawHeader, Tempo) == 3007, "Invalid layout");
+    static_assert(offsetof(RawHeader, Patterns) == 3009, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 
@@ -164,16 +164,17 @@ namespace Chiptune
       void ParsePositions(Builder& builder) const
       {
         const std::size_t posCount = Source.Length + 1;
-        std::vector<PositionEntry> positions(posCount);
+        Positions positions;
+        positions.Lines.resize(posCount);
         for (uint_t idx = 0; idx != posCount; ++idx)
         {
           const RawPosEntry& src = Source.Positions[idx];
-          PositionEntry& dst = positions[idx];
+          PositionEntry& dst = positions.Lines[idx];
           dst.PatternIndex = src.Pattern - 1;
           dst.Transposition = src.Transposition;
         }
-        builder.SetPositions(positions);
-        Dbg("Positions: %1% entries", positions.size());
+        Dbg("Positions: %1% entries", positions.GetSize());
+        builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -202,9 +203,7 @@ namespace Chiptune
           Dbg("Parse sample %1%", samIdx);
           if (samIdx)
           {
-            Sample result;
-            ParseSample(Source.Samples[samIdx - 1], result);
-            builder.SetSample(samIdx, result);
+            builder.SetSample(samIdx, ParseSample(Source.Samples[samIdx - 1]));
           }
           else
           {
@@ -224,9 +223,7 @@ namespace Chiptune
         {
           const uint_t ornIdx = *it;
           Dbg("Parse ornament %1%", ornIdx);
-          const RawOrnament& src = Source.Ornaments[ornIdx];
-          const Ornament result(src.Offsets.begin(), src.Offsets.end());
-          builder.SetOrnament(ornIdx, result);
+          builder.SetOrnament(ornIdx, ParseOrnament(Source.Ornaments[ornIdx]));
         }
       }
 
@@ -238,7 +235,7 @@ namespace Chiptune
       const RawPattern& GetPattern(uint_t index) const
       {
         const RawPattern* const src = Delegate.GetField<RawPattern>(offsetof(RawHeader, Patterns) + index * sizeof(RawPattern));
-        Require(src != 0);
+        Require(src != nullptr);
         return *src;
       }
 
@@ -269,8 +266,8 @@ namespace Chiptune
         const RawPattern& src = GetPattern(patIndex);
         const std::size_t patSize = Source.PatternsSize;
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
-        boost::array<EnvState, 3> env;
-        boost::array<ChanState, 3> state;
+        std::array<EnvState, 3> env;
+        std::array<ChanState, 3> state;
         for (uint_t idx = 0; idx < MAX_PATTERN_SIZE; ++idx)
         {
           const RawPattern::Line& srcLine = src.Lines[idx];
@@ -285,7 +282,7 @@ namespace Chiptune
         patBuilder.Finish(patSize);
       }
 
-      static void ParseLine(const RawPattern::Line& srcLine, Builder& builder, boost::array<ChanState, 3>& state, boost::array<EnvState, 3>& env)
+      static void ParseLine(const RawPattern::Line& srcLine, Builder& builder, std::array<ChanState, 3>& state, std::array<EnvState, 3>& env)
       {
         for (uint_t chan = 0; chan < state.size(); ++chan)
         {
@@ -383,8 +380,9 @@ namespace Chiptune
         return HALFTONES[halftone] + NOTES_PER_OCTAVE * octave;
       }
 
-      static void ParseSample(const RawSample& src, Sample& dst)
+      static Sample ParseSample(const RawSample& src)
       {
+        Sample dst;
         dst.Lines.resize(SAMPLE_SIZE);
         for (uint_t idx = 0; idx < SAMPLE_SIZE; ++idx)
         {
@@ -398,6 +396,14 @@ namespace Chiptune
         }
         dst.Loop = std::min<uint_t>(src.Loop, SAMPLE_SIZE);
         dst.LoopLimit = std::min<uint_t>(src.Loop + src.LoopSize + 1, SAMPLE_SIZE);
+        return dst;
+      }
+
+      static Ornament ParseOrnament(const RawOrnament& src)
+      {
+        Ornament dst;
+        dst.Lines.assign(src.Offsets.begin(), src.Offsets.end());
+        return dst;
       }
     private:
       const Binary::TypedContainer Delegate;
@@ -482,22 +488,22 @@ namespace Chiptune
       {
       }
 
-      virtual String GetDescription() const
+      String GetDescription() const override
       {
         return Text::SOUNDTRACKER_DECODER_DESCRIPTION;
       }
 
-      virtual Binary::Format::Ptr GetFormat() const
+      Binary::Format::Ptr GetFormat() const override
       {
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
+      bool Check(const Binary::Container& rawData) const override
       {
         return FastCheck(rawData) && Format->Match(rawData);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -507,7 +513,7 @@ namespace Chiptune
         return ParseUncompiled(rawData, stub);
       }
 
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
       {
         return ParseUncompiled(data, target);
       }
@@ -521,25 +527,25 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual MetaBuilder& GetMetaBuilder()
+      MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
       }
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
-      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
-      virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/) {}
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      void SetInitialTempo(uint_t /*tempo*/) override {}
+      void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
+      void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
+      void SetPositions(Positions /*positions*/) override {}
+      PatternBuilder& StartPattern(uint_t /*index*/) override
       {
         return GetStubPatternBuilder();
       }
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
-      virtual void SetEnvelope(uint_t /*type*/, uint_t /*value*/) {}
-      virtual void SetNoEnvelope() {}
+      void StartChannel(uint_t /*index*/) override {}
+      void SetRest() override {}
+      void SetNote(uint_t /*note*/) override {}
+      void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
+      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
+      void SetNoEnvelope() override {}
     };
 
     Builder& GetStubBuilder()
