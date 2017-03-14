@@ -50,7 +50,7 @@ namespace USF
     ModuleData() = default;
     ModuleData(const ModuleData&) = delete;
     
-    std::list<Binary::Data::Ptr> Sections;
+    std::list<Dump> Sections;
     XSF::MetaInformation::Ptr Meta;
     
     uint_t GetRefreshRate() const
@@ -153,11 +153,11 @@ namespace USF
       return std::vector<ChannelState>();
     }
   private:
-    void SetupSections(const std::list<Binary::Data::Ptr>& sections)
+    void SetupSections(const std::list<Dump>& sections)
     {
       for (const auto& blob : sections)
       {
-        Require(-1 != ::usf_upload_section(Emu.GetRaw(), static_cast<const uint8_t*>(blob->Start()), blob->Size()));
+        Require(-1 != ::usf_upload_section(Emu.GetRaw(), blob.data(), blob.size()));
       }
     }
     
@@ -174,6 +174,7 @@ namespace USF
           ::usf_set_fifo_full(Emu.GetRaw(), true);
         }
       }
+      ::usf_set_hle_audio(Emu.GetRaw(), true);
     }
     
     void DetectSoundFrequency()
@@ -318,6 +319,13 @@ namespace USF
     const Parameters::Accessor::Ptr Properties;
   };
   
+  Dump CreateDump(const Binary::Data& data)
+  {
+    const auto start = static_cast<const uint8_t*>(data.Start());
+    const auto size = data.Size();
+    return Dump(start, start + size);
+  }
+  
   class XsfView
   {
   public:
@@ -342,10 +350,8 @@ namespace USF
       const ModuleData::RWPtr result = MakeRWPtr<ModuleData>();
       result->Meta = File.Meta;
       Require(!File.ProgramSection);
-      if (File.ReservedSection)
-      {
-        result->Sections.push_back(File.ReservedSection);
-      }
+      Require(!!File.ReservedSection);
+      result->Sections.emplace_back(CreateDump(*File.ReservedSection));
       return result;
     }
   private:
@@ -361,7 +367,6 @@ namespace USF
       , Properties(std::move(properties))
       , Head(std::move(head))
     {
-      CloneContainer(Head.ReservedSection);
       LoadDependenciesFrom(Head);
     }
     
@@ -406,13 +411,6 @@ namespace USF
       }
     }
   private:
-    static void CloneContainer(Binary::Container::Ptr& data)
-    {
-      if (data)
-      {
-        data = Binary::CreateContainer(data->Start(), data->Size());
-      }
-    }
     void LoadDependenciesFrom(const XSF::File& file)
     {
       Require(Head.Version == file.Version);
@@ -441,9 +439,9 @@ namespace USF
     class ModuleDataBuilder
     {
     public:
-      void AddSection(Binary::Data::Ptr data)
+      void AddSection(const Binary::Data& data)
       {
-        Sections.push_back(data);
+        Sections.emplace_back(CreateDump(data));
       }
       
       void AddMeta(const XSF::MetaInformation& meta)
@@ -466,7 +464,7 @@ namespace USF
         return res;
       }
     private:
-      std::list<Binary::Data::Ptr> Sections;
+      std::list<Dump> Sections;
       XSF::MetaInformation::RWPtr Meta;
     };
     
@@ -486,7 +484,8 @@ namespace USF
       {
         MergeSections(GetDependency(*it), dst);
       }
-      dst.AddSection(data.ReservedSection);
+      Require(!!data.ReservedSection);
+      dst.AddSection(*data.ReservedSection);
       if (data.Meta)
       {
         dst.AddMeta(*data.Meta);
