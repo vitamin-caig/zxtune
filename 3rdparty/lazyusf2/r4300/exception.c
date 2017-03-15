@@ -30,14 +30,13 @@
 #include "exception.h"
 #include "r4300.h"
 #include "cp0.h"
-#include "recomph.h"
 #include "tlb.h"
 
 void TLB_refill_exception(usf_state_t * state, unsigned int address, int w)
 {
    int usual_handler = 0, i;
 
-   if (state->r4300emu != CORE_DYNAREC && w != 2) update_count(state);
+   if (w != 2) update_count(state);
    if (w == 1) state->g_cp0_regs[CP0_CAUSE_REG] = (3 << 2);
    else state->g_cp0_regs[CP0_CAUSE_REG] = (2 << 2);
    state->g_cp0_regs[CP0_BADVADDR_REG] = address;
@@ -96,21 +95,11 @@ void TLB_refill_exception(usf_state_t * state, unsigned int address, int w)
    
    state->last_addr = state->PC->addr;
    
-   if (state->r4300emu == CORE_DYNAREC)
-     {
-    dyna_jump(state);
-    if (!state->dyna_interp) state->delay_slot = 0;
-     }
-   
-   if (state->r4300emu != CORE_DYNAREC || state->dyna_interp)
-     {
-    state->dyna_interp = 0;
     if (state->delay_slot)
       {
          state->skip_jump = state->PC->addr;
          state->next_interupt = 0;
       }
-     }
 }
 
 void osal_fastcall exception_general(usf_state_t * state)
@@ -131,19 +120,10 @@ void osal_fastcall exception_general(usf_state_t * state)
      }
    generic_jump_to(state, 0x80000180);
    state->last_addr = state->PC->addr;
-   if (state->r4300emu == CORE_DYNAREC)
-     {
-    dyna_jump(state);
-    if (!state->dyna_interp) state->delay_slot = 0;
-     }
-   if (state->r4300emu != CORE_DYNAREC || state->dyna_interp)
-     {
-    state->dyna_interp = 0;
     if (state->delay_slot)
       {
          state->skip_jump = state->PC->addr;
          state->next_interupt = 0;
       }
-     }
 }
 

@@ -36,9 +36,6 @@ extern const cpu_instruction_table cached_interpreter_table;
 
 void osal_fastcall init_blocks(usf_state_t *);
 void osal_fastcall free_blocks(usf_state_t *);
-void osal_fastcall jump_to_func(usf_state_t *);
-
-/* Jumps to the given address. This is for the cached interpreter / dynarec. */
-#define jump_to(a) { state->jump_to_address = a; jump_to_func(state); }
+void osal_fastcall jump_to(usf_state_t *, unsigned int addr);
 
 #endif /* M64P_R4300_CACHED_INTERP_H */

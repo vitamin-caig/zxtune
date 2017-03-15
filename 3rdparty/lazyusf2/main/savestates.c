@@ -322,9 +322,6 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     char buffer[1024];
     unsigned int vi_timer, SaveRDRAMSize;
     int i;
-#ifdef DYNAREC
-    unsigned long long dummy;
-#endif
 
     unsigned char header[8];
 
@@ -578,13 +575,7 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
         for (i = 0; i < 0x100000; i++)
             state->invalid_code[i] = 1;
     }
-#ifdef DYNAREC
-    *(void **)&state->return_address = (void *)&dummy;
-#endif
     generic_jump_to(state, state->last_addr);
-#ifdef DYNAREC
-	*(void **)&state->return_address = (void *)0;
-#endif
 
     // assert(savestateData+savestateSize == curr)
 

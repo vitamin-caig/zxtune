@@ -46,7 +46,6 @@
 #include "interupt.h"
 #include "pure_interp.h"
 #include "recomp.h"
-#include "recomph.h"
 #include "tlb.h"
 
 #ifdef DBG
@@ -63,7 +62,7 @@ void generic_jump_to(usf_state_t * state, unsigned int address)
    if (state->r4300emu == CORE_PURE_INTERPRETER)
       state->interp_PC.addr = address;
    else {
-      jump_to(address);
+      jump_to(state, address);
    }
 }
 
@@ -198,37 +197,6 @@ void r4300_reset_soft(usf_state_t * state)
     /* ready to execute IPL3 */
 }
 
-#if !defined(NO_ASM)
-static void dynarec_setup_code()
-{
-   usf_state_t * state;
-#ifdef _MSC_VER
-   _asm
-   {
-	   mov state, esi
-   }
-#else
-   asm volatile
-#ifdef __x86_64__
-    (" mov %%r15, (%[state])       \n"
-#else
-    (" mov %%esi, (%[state])       \n"
-#endif
-     :
-     : [state]"r"(&state)
-     : "memory"
-     );
-#endif
-   // The dynarec jumps here after we call dyna_start and it prepares
-   // Here we need to prepare the initial code block and jump to it
-   jump_to(state->last_addr);
-
-   // Prevent segfault on failed jump_to
-   if (!state->actual || !state->actual->block || !state->actual->code)
-      dyna_stop(state);
-}
-#endif
-
 void r4300_begin(usf_state_t * state)
 {
     state->current_instruction_table = cached_interpreter_table;
@@ -245,14 +213,6 @@ void r4300_begin(usf_state_t * state)
         DebugMessage(state, M64MSG_INFO, "Starting R4300 emulator: Pure Interpreter");
         state->r4300emu = CORE_PURE_INTERPRETER;
     }
-#if defined(DYNAREC)
-    else if (state->r4300emu >= 2)
-    {
-        DebugMessage(state, M64MSG_INFO, "Starting R4300 emulator: Dynamic Recompiler");
-        state->r4300emu = CORE_DYNAREC;
-        init_blocks(state);
-    }
-#endif
     else /* if (r4300emu == CORE_INTERPRETER) */
     {
         DebugMessage(state, M64MSG_INFO, "Starting R4300 emulator: Cached Interpreter");
@@ -267,13 +227,6 @@ void r4300_execute(usf_state_t * state)
     {
         pure_interpreter(state);
     }
-#if defined(DYNAREC)
-    else if (state->r4300emu == CORE_DYNAREC)
-    {
-        dyna_start(state, (void*)dynarec_setup_code);
-        state->PC++;
-    }
-#endif
     else /* if (r4300emu == CORE_INTERPRETER) */
     {
         /* Prevent segfault on failed jump_to */
@@ -290,12 +243,6 @@ void r4300_end(usf_state_t * state)
     if (state->r4300emu == CORE_PURE_INTERPRETER)
     {
     }
-#if defined(DYNAREC)
-    else if (state->r4300emu == CORE_DYNAREC)
-    {
-        free_blocks(state);
-    }
-#endif
     else /* if (r4300emu == CORE_INTERPRETER) */
     {
         free_blocks(state);

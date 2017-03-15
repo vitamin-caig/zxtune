@@ -36,7 +36,6 @@
 #include "r4300/r4300.h"
 #include "r4300/r4300_core.h"
 #include "r4300/cached_interp.h"
-#include "r4300/recomph.h"
 #include "r4300/ops.h"
 #include "r4300/tlb.h"
 
@@ -1166,8 +1165,6 @@ int init_memory(usf_state_t * state, uint32_t rdram_size)
         map_region(state, 0x9000+i, M64P_MEM_NOTHING, RW(nothing));
         map_region(state, 0xb000+i, M64P_MEM_NOTHING, RW(nothing));
     }
-
-    state->fast_memory = state->enable_trimming_mode ? 0 : 1;
 
     if (state->g_rom && state->g_rom_size >= 0xfc0)
         init_cic_using_ipl3(state, &state->g_si.pif.cic, state->g_rom + 0x40);

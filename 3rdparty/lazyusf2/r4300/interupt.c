@@ -482,7 +482,6 @@ static void nmi_int_handler(usf_state_t * state)
         state->g_cp0_regs[CP0_ERROREPC_REG]-=4;
     }
     state->delay_slot = 0;
-    state->dyna_interp = 0;
     // set next instruction address to reset vector
     state->last_addr = 0xa4000040;
     generic_jump_to(state, 0xa4000040);
@@ -494,7 +493,6 @@ void osal_fastcall gen_interupt(usf_state_t * state)
     if (state->stop == 1)
     {
         state->g_gs_vi_counter = 0; // debug
-        dyna_stop(state);
     }
 
     if (!state->interupt_unsafe_state)

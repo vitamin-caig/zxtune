@@ -25,6 +25,7 @@
 #include "api/callbacks.h"
 #include "main/main.h"
 #include "memory/memory.h"
+#include "usf/usf_internal.h"
 
 #include "r4300.h"
 #include "cp0.h"
@@ -99,7 +100,7 @@
          state->delay_slot=0; \
          if (take_jump && !state->skip_jump) \
          { \
-            jump_to(jump_target); \
+            jump_to(state, jump_target); \
          } \
       } \
       else \
@@ -147,26 +148,16 @@ static void osal_fastcall FIN_BLOCK(usf_state_t * state)
 {
    if (!state->delay_slot)
      {
-    jump_to((state->PC-1)->addr+4);
-/*#ifdef DBG
-            if (g_DebuggerActive) update_debugger(PC->addr);
-#endif
-Used by dynarec only, check should be unnecessary
-*/
+    jump_to(state, (state->PC-1)->addr+4);
+
     state->PC->ops(state);
-    if (state->r4300emu == CORE_DYNAREC) dyna_jump(state);
      }
    else
      {
     precomp_block *blk = state->actual;
     precomp_instr *inst = state->PC;
-    jump_to((state->PC-1)->addr+4);
+    jump_to(state, (state->PC-1)->addr+4);
     
-/*#ifdef DBG
-            if (g_DebuggerActive) update_debugger(PC->addr);
-#endif
-Used by dynarec only, check should be unnecessary
-*/
     if (!state->skip_jump)
       {
          state->PC->ops(state);
@@ -176,7 +167,6 @@ Used by dynarec only, check should be unnecessary
     else
       state->PC->ops(state);
     
-    if (state->r4300emu == CORE_DYNAREC) dyna_jump(state);
      }
 }
 
@@ -196,8 +186,6 @@ The preceeding update_debugger SHOULD be unnecessary since it should have been
 called before NOTCOMPILED would have been executed
 */
    state->PC->ops(state);
-   if (state->r4300emu == CORE_DYNAREC)
-     dyna_jump(state);
 }
 
 static void osal_fastcall NOTCOMPILED2(usf_state_t * state)
@@ -512,8 +500,7 @@ static unsigned int osal_fastcall update_invalid_addr(usf_state_t * state, unsig
      }
 }
 
-#define addr state->jump_to_address
-void osal_fastcall jump_to_func(usf_state_t * state)
+void osal_fastcall jump_to(usf_state_t * state, unsigned int addr)
 {
    unsigned int paddr;
    if (state->skip_jump) return;
@@ -526,10 +513,7 @@ void osal_fastcall jump_to_func(usf_state_t * state)
       {
          state->blocks[addr>>12] = (precomp_block *) malloc(sizeof(precomp_block));
          state->actual = state->blocks[addr>>12];
-         state->blocks[addr>>12]->code = NULL;
          state->blocks[addr>>12]->block = NULL;
-         state->blocks[addr>>12]->jumps_table = NULL;
-         state->blocks[addr>>12]->riprel_table = NULL;
       }
     state->blocks[addr>>12]->start = addr & ~0xFFF;
     state->blocks[addr>>12]->end = (addr & ~0xFFF) + 0x1000;
@@ -537,9 +521,7 @@ void osal_fastcall jump_to_func(usf_state_t * state)
      }
    state->PC=state->actual->block+((addr-state->actual->start)>>2);
    
-   if (state->r4300emu == CORE_DYNAREC) dyna_jump(state);
 }
-#undef addr
 
 void osal_fastcall init_blocks(usf_state_t * state)
 {

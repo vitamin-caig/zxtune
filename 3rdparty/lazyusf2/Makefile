@@ -6,7 +6,7 @@ source_files += ai/ai_controller \
                 $(addprefix main/, main rom savestates util) \
                 memory/memory_impl \
                 $(addprefix pi/, cart_rom pi_controller) \
-                $(addprefix r4300/, cached_interp cp0 cp1 empty_dynarec exception interupt mi_controller pure_interp r4300 r4300_core recomp reset tlb) \
+                $(addprefix r4300/, cached_interp cp0 cp1 exception interupt mi_controller pure_interp r4300 r4300_core recomp reset tlb) \
                 rdp/rdp_core \
                 $(addprefix ri/, rdram rdram_detection_hack ri_controller) \
                 rsp/rsp_core \
@@ -20,7 +20,6 @@ source_files := $(addsuffix .c,$(source_files))
 
 include_dirs := . $(path_step)/3rdparty/zlib
 
-defines += NO_ASM
 windows_definitions += WIN32
 
 include $(path_step)/makefile.mak
