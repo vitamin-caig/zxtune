@@ -137,7 +137,7 @@ m64p_error main_start(usf_state_t * state)
 #ifdef DEBUG_INFO
     state->r4300emu = CORE_PURE_INTERPRETER;
 #else
-    state->r4300emu = state->enable_trimming_mode ? CORE_PURE_INTERPRETER : CORE_INTERPRETER;
+    state->r4300emu = CORE_INTERPRETER;
 #endif
 
     /* set some other core parameters based on the config file values */
@@ -175,16 +175,6 @@ m64p_error main_start(usf_state_t * state)
         state->g_delay_ai = 1;
         ai_fifo_queue_int(&state->g_ai);
         state->g_ai.regs[AI_STATUS_REG] |= 0x40000000;
-    }
-
-    // We want to leave in all the necessary code so that these can one day be enabled for the trimmed sets
-    if (state->enable_trimming_mode)
-    {
-        state->g_delay_si = 1;
-        state->g_delay_ai = 1;
-        state->g_delay_pi = 1;
-        state->g_delay_dp = 1;
-        state->enable_hle_audio = 0;
     }
 
     return M64ERR_SUCCESS;

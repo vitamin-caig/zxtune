@@ -13,7 +13,7 @@ source_files += ai/ai_controller \
                 $(addprefix rsp_hle/, alist alist_audio alist_naudio alist_nead audio cicx105 hle jpeg memory mp3 musyx plugin) \
                 rsp_lle/rsp \
                 $(addprefix si/, cic game_controller n64_cic_nus_6105 pif si_controller) \
-                $(addprefix usf/, usf barray resampler) \
+                $(addprefix usf/, usf resampler) \
                 vi/vi_controller
 
 source_files := $(addsuffix .c,$(source_files))
