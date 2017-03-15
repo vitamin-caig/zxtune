@@ -181,7 +181,7 @@ namespace PortableSoundFormat
           }
           else
           {
-            comment += ' ';
+            comment += '\n';
             comment += value;
           }
         }
