@@ -27,8 +27,6 @@
 #include "cp0.h"
 #include "exception.h"
 
-#include "new_dynarec/new_dynarec.h"
-
 #ifdef COMPARE_CORE
 #include "api/debugger.h"
 #endif
@@ -52,15 +50,8 @@ int osal_fastcall check_cop1_unusable(usf_state_t * state)
 
 void update_count(usf_state_t * state)
 {
-#ifdef NEW_DYNAREC
-    if (r4300emu != CORE_DYNAREC)
-    {
-#endif
-        state->g_cp0_regs[CP0_COUNT_REG] += ((state->PC->addr - state->last_addr) >> 2) * state->count_per_op;
-        state->last_addr = state->PC->addr;
-#ifdef NEW_DYNAREC
-    }
-#endif
+   state->g_cp0_regs[CP0_COUNT_REG] += ((state->PC->addr - state->last_addr) >> 2) * state->count_per_op;
+   state->last_addr = state->PC->addr;
 
 /*#ifdef DBG
    if (g_DebuggerActive && !delay_slot) update_debugger(PC->addr);

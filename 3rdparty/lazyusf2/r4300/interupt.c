@@ -29,7 +29,6 @@
 #include "cached_interp.h"
 #include "cp0.h"
 #include "exception.h"
-#include "new_dynarec/new_dynarec.h"
 #include "r4300.h"
 #include "r4300_core.h"
 #include "reset.h"
@@ -405,19 +404,7 @@ void check_interupt(usf_state_t * state)
 
 static void wrapped_exception_general(usf_state_t * state)
 {
-#ifdef NEW_DYNAREC
-    if (r4300emu == CORE_DYNAREC) {
-        state->g_cp0_regs[CP0_EPC_REG] = pcaddr;
-        state->pcaddr = 0x80000180;
-        state->g_cp0_regs[CP0_STATUS_REG] |= 2;
-        state->g_cp0_regs[CP0_CAUSE_REG] &= 0x7FFFFFFF;
-        state->pending_exception=1;
-    } else {
-        exception_general(state);
-    }
-#else
     exception_general(state);
-#endif
 }
 
 void raise_maskable_interrupt(usf_state_t * state, uint32_t cause)

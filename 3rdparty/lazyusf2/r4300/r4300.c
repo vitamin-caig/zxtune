@@ -48,7 +48,6 @@
 #include "recomp.h"
 #include "recomph.h"
 #include "tlb.h"
-#include "new_dynarec/new_dynarec.h"
 
 #ifdef DBG
 #include "debugger/dbg_types.h"
@@ -64,14 +63,7 @@ void generic_jump_to(usf_state_t * state, unsigned int address)
    if (state->r4300emu == CORE_PURE_INTERPRETER)
       state->interp_PC.addr = address;
    else {
-#ifdef NEW_DYNAREC
-      if (state->r4300emu == CORE_DYNAREC)
-         state->last_addr = pcaddr;
-      else
-         jump_to(address);
-#else
       jump_to(address);
-#endif
    }
 }
 
@@ -259,9 +251,6 @@ void r4300_begin(usf_state_t * state)
         DebugMessage(state, M64MSG_INFO, "Starting R4300 emulator: Dynamic Recompiler");
         state->r4300emu = CORE_DYNAREC;
         init_blocks(state);
-#ifdef NEW_DYNAREC
-        new_dynarec_init(state);
-#endif
     }
 #endif
     else /* if (r4300emu == CORE_INTERPRETER) */
@@ -281,12 +270,8 @@ void r4300_execute(usf_state_t * state)
 #if defined(DYNAREC)
     else if (state->r4300emu == CORE_DYNAREC)
     {
-#ifdef NEW_DYNAREC
-        new_dyna_start(state);
-#else
         dyna_start(state, (void*)dynarec_setup_code);
         state->PC++;
-#endif
     }
 #endif
     else /* if (r4300emu == CORE_INTERPRETER) */
@@ -308,9 +293,6 @@ void r4300_end(usf_state_t * state)
 #if defined(DYNAREC)
     else if (state->r4300emu == CORE_DYNAREC)
     {
-#ifdef NEW_DYNAREC
-        new_dynarec_cleanup(state);
-#endif
         free_blocks(state);
     }
 #endif

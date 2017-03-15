@@ -48,9 +48,6 @@
 #include "r4300/cached_interp.h"
 #include "r4300/interupt.h"
 #include "pi/pi_controller.h"
-#ifdef NEW_DYNAREC
-#include "r4300/new_dynarec/new_dynarec.h"
-#endif
 #include "rdp/rdp_core.h"
 #include "ri/ri_controller.h"
 #include "rsp/rsp_core.h"
@@ -297,27 +294,12 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
         state->tlb_e[i].phys_odd = GETDATA(curr, unsigned int);
     }
 
-#ifdef NEW_DYNAREC
-    if (state->r4300emu == CORE_DYNAREC) {
-        state->pcaddr = GETDATA(curr, unsigned int);
-        state->pending_exception = 1;
-        invalidate_all_pages(state);
-    } else {
-        if(state->r4300emu != CORE_PURE_INTERPRETER)
-        {
-            for (i = 0; i < 0x100000; i++)
-                state->invalid_code[i] = 1;
-        }
-        generic_jump_to(state, GETDATA(curr, unsigned int)); // PC
-    }
-#else
     if(state->r4300emu != CORE_PURE_INTERPRETER)
     {
         for (i = 0; i < 0x100000; i++)
             state->invalid_code[i] = 1;
     }
     generic_jump_to(state, GETDATA(curr, unsigned int)); // PC
-#endif
 
     state->next_interupt = GETDATA(curr, unsigned int);
     state->g_vi.next_vi = GETDATA(curr, unsigned int);
@@ -330,14 +312,7 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
     to_little_endian_buffer(queue, 4, 256);
     load_eventqueue_infos(state, queue);
 
-#ifdef NEW_DYNAREC
-    if (state->r4300emu == CORE_DYNAREC)
-        state->last_addr = state->pcaddr;
-    else
-        state->last_addr = state->PC->addr;
-#else
     state->last_addr = state->PC->addr;
-#endif
 
     return 1;
 }
@@ -598,20 +573,6 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
 
     open_rom_header(state, savestateData, sizeof(m64p_rom_header));
     
-#ifdef NEW_DYNAREC
-    if (state->r4300emu == CORE_DYNAREC) {
-        state->pcaddr = state->last_addr;
-        state->pending_exception = 1;
-        invalidate_all_pages(state);
-    } else {
-        if(state->r4300emu != CORE_PURE_INTERPRETER)
-        {
-            for (i = 0; i < 0x100000; i++)
-                state->invalid_code[i] = 1;
-        }
-        generic_jump_to(state, state->last_addr);
-    }
-#else
     if(state->r4300emu != CORE_PURE_INTERPRETER)
     {
         for (i = 0; i < 0x100000; i++)
@@ -623,7 +584,6 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     generic_jump_to(state, state->last_addr);
 #ifdef DYNAREC
 	*(void **)&state->return_address = (void *)0;
-#endif
 #endif
 
     // assert(savestateData+savestateSize == curr)

@@ -36,7 +36,6 @@
 #include "r4300/r4300.h"
 #include "r4300/r4300_core.h"
 #include "r4300/cached_interp.h"
-#include "r4300/new_dynarec/new_dynarec.h"
 #include "r4300/recomph.h"
 #include "r4300/ops.h"
 #include "r4300/tlb.h"

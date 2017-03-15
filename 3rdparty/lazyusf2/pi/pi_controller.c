@@ -35,7 +35,6 @@
 #include "r4300/cached_interp.h"
 #include "r4300/cp0.h"
 #include "r4300/interupt.h"
-#include "r4300/new_dynarec/new_dynarec.h"
 #include "r4300/ops.h"
 #include "r4300/r4300.h"
 #include "r4300/r4300_core.h"
@@ -144,9 +143,6 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
                 {
                     state->invalid_code[rdram_address1>>12] = 1;
                 }
-#ifdef NEW_DYNAREC
-                invalidate_block(state, rdram_address1>>12);
-#endif
             }
             if (!state->invalid_code[rdram_address2>>12])
             {
