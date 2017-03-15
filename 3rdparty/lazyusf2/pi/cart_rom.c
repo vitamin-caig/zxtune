@@ -38,29 +38,28 @@ void init_cart_rom(struct cart_rom* cart_rom)
     cart_rom->last_write = 0;
 }
 
-
-int read_cart_rom(void* opaque, uint32_t address, uint32_t* value)
+static osal_inline uint32_t rom_address(uint32_t address)
 {
-    struct pi_controller* pi = (struct pi_controller*)opaque;
-    uint32_t addr = rom_address(address);
+    return (address & 0x03fffffc);
+}
+
+uint32_t read_cart_rom(struct pi_controller* pi, uint32_t address)
+{
+    const uint32_t addr = rom_address(address);
 
     if (pi->cart_rom.last_write != 0)
     {
-        *value = pi->cart_rom.last_write;
+        const uint32_t res = pi->cart_rom.last_write;
         pi->cart_rom.last_write = 0;
+        return res;
     }
     else
     {
-        *value = *(uint32_t*)(pi->cart_rom.rom + addr);
+        return *(uint32_t*)(pi->cart_rom.rom + addr);
     }
-
-    return 0;
 }
 
-int write_cart_rom(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
+void write_cart_rom(struct pi_controller* pi, uint32_t address, uint32_t value, uint32_t mask)
 {
-    struct pi_controller* pi = (struct pi_controller*)opaque;
     pi->cart_rom.last_write = value & mask;
-
-    return 0;
 }

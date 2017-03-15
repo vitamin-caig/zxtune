@@ -34,6 +34,10 @@
 
 void TLB_refill_exception(usf_state_t * state, unsigned int address, int w)
 {
+   if (w == 1 && state->g_disable_tlb_write_exception)
+   {
+     return;
+   }
    int usual_handler = 0, i;
 
    if (w != 2) update_count(state);

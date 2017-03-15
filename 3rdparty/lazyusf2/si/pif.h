@@ -58,16 +58,10 @@ struct pif
 
 #include "osal/preproc.h"
 
-static osal_inline uint32_t pif_ram_address(uint32_t address)
-{
-    return ((address & 0xfffc) - 0x7c0);
-}
-
-
 void init_pif(struct pif* pif);
 
-int read_pif_ram(void* opaque, uint32_t address, uint32_t* value);
-int write_pif_ram(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
+uint32_t read_pif_ram(struct si_controller* si, uint32_t address);
+void write_pif_ram(struct si_controller* si, uint32_t address, uint32_t value, uint32_t mask);
 
 void update_pif_write(struct si_controller* si);
 void update_pif_read(struct si_controller* si);

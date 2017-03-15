@@ -29,7 +29,7 @@
 
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
-#include "memory/memory.h"
+#include "memory/memory_tools.h"
 #include "r4300/r4300_core.h"
 #include "r4300/cp0.h"
 #include "r4300/interupt.h"
@@ -68,33 +68,34 @@ void init_pif(struct pif* pif)
     memset(pif->ram, 0, PIF_RAM_SIZE);
 }
 
-int read_pif_ram(void* opaque, uint32_t address, uint32_t* value)
+static osal_inline uint32_t pif_ram_address(uint32_t address)
 {
-    struct si_controller* si = (struct si_controller*)opaque;
-    uint32_t addr = pif_ram_address(address);
-
-    if (addr >= PIF_RAM_SIZE)
-    {
-        DebugMessage(si->r4300->state, M64MSG_ERROR, "Invalid PIF address: %08x", address);
-        *value = 0;
-        return -1;
-    }
-
-    memcpy(value, si->pif.ram + addr, sizeof(*value));
-    *value = sl(*value);
-
-    return 0;
+    return ((address & 0xfffc) - 0x7c0);
 }
 
-int write_pif_ram(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
+uint32_t read_pif_ram(struct si_controller* si, uint32_t address)
 {
-    struct si_controller* si = (struct si_controller*)opaque;
-    uint32_t addr = pif_ram_address(address);
+    const uint32_t addr = pif_ram_address(address);
 
     if (addr >= PIF_RAM_SIZE)
     {
         DebugMessage(si->r4300->state, M64MSG_ERROR, "Invalid PIF address: %08x", address);
-        return -1;
+        return 0;
+    }
+
+    uint32_t value;
+    memcpy(&value, si->pif.ram + addr, sizeof(value));
+    return sl(value);
+}
+
+void write_pif_ram(struct si_controller* si, uint32_t address, uint32_t value, uint32_t mask)
+{
+    const uint32_t addr = pif_ram_address(address);
+
+    if (addr >= PIF_RAM_SIZE)
+    {
+        DebugMessage(si->r4300->state, M64MSG_ERROR, "Invalid PIF address: %08x", address);
+        return;
     }
 
     masked_write((uint32_t*)(&si->pif.ram[addr]), sl(value), sl(mask));
@@ -115,8 +116,6 @@ int write_pif_ram(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
             update_pif_write(si);
         }
     }
-
-    return 0;
 }
 
 

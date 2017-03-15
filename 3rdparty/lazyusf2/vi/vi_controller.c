@@ -26,7 +26,7 @@
 #include "vi_controller.h"
 
 #include "main/main.h"
-#include "memory/memory.h"
+#include "memory/memory_tools.h"
 #include "r4300/r4300_core.h"
 #include "r4300/cp0.h"
 #include "r4300/interupt.h"
@@ -47,11 +47,14 @@ void init_vi(struct vi_controller* vi)
     vi->delay = vi->next_vi = 5000;
 }
 
-
-int read_vi_regs(void* opaque, uint32_t address, uint32_t* value)
+static osal_inline uint32_t vi_reg(uint32_t address)
 {
-    struct vi_controller* vi = (struct vi_controller*)opaque;
-    uint32_t reg = vi_reg(address);
+    return (address & 0xffff) >> 2;
+}
+
+uint32_t read_vi_regs(struct vi_controller* vi, uint32_t address)
+{
+    const uint32_t reg = vi_reg(address);
 
     if (reg == VI_CURRENT_REG)
     {
@@ -60,15 +63,12 @@ int read_vi_regs(void* opaque, uint32_t address, uint32_t* value)
         vi->regs[VI_CURRENT_REG] = (vi->regs[VI_CURRENT_REG] & (~1)) | vi->field;
     }
 
-    *value = vi->regs[reg];
-
-    return 0;
+    return vi->regs[reg];
 }
 
-int write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
+void write_vi_regs(struct vi_controller* vi, uint32_t address, uint32_t value, uint32_t mask)
 {
-    struct vi_controller* vi = (struct vi_controller*)opaque;
-    uint32_t reg = vi_reg(address);
+    const uint32_t reg = vi_reg(address);
 
     switch(reg)
     {
@@ -77,23 +77,23 @@ int write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
         {
             masked_write(&vi->regs[VI_STATUS_REG], value, mask);
         }
-        return 0;
+        break;
 
     case VI_WIDTH_REG:
         if ((vi->regs[VI_WIDTH_REG] & mask) != (value & mask))
         {
             masked_write(&vi->regs[VI_WIDTH_REG], value, mask);
         }
-        return 0;
+        break;
 
     case VI_CURRENT_REG:
         clear_rcp_interrupt(vi->r4300, MI_INTR_VI);
-        return 0;
+        break;
+        
+    default:
+        masked_write(&vi->regs[reg], value, mask);
+        break;
     }
-
-    masked_write(&vi->regs[reg], value, mask);
-
-    return 0;
 }
 
 void vi_vertical_interrupt_event(struct vi_controller* vi)

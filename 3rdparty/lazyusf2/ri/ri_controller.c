@@ -23,42 +23,31 @@
 
 #include "ri_controller.h"
 
-#include "memory/memory.h"
+#include "memory/memory_tools.h"
 
 #include <string.h>
-
-void connect_ri(struct ri_controller* ri,
-                uint32_t* dram,
-                size_t dram_size)
-{
-    connect_rdram(&ri->rdram, dram, dram_size);
-}
 
 void init_ri(struct ri_controller* ri)
 {
     memset(ri->regs, 0, RI_REGS_COUNT*sizeof(uint32_t));
-
-    init_rdram(&ri->rdram);
 }
 
-
-int read_ri_regs(void* opaque, uint32_t address, uint32_t* value)
+static osal_inline uint32_t ri_reg(uint32_t address)
 {
-    struct ri_controller* ri = (struct ri_controller*)opaque;
-    uint32_t reg = ri_reg(address);
-
-    *value = ri->regs[reg];
-
-    return 0;
+    return (address & 0xffff) >> 2;
 }
 
-int write_ri_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
+uint32_t read_ri_regs(struct ri_controller* ri, uint32_t address)
 {
-    struct ri_controller* ri = (struct ri_controller*)opaque;
-    uint32_t reg = ri_reg(address);
+    const uint32_t reg = ri_reg(address);
+
+    return ri->regs[reg];
+}
+
+void write_ri_regs(struct ri_controller* ri, uint32_t address, uint32_t value, uint32_t mask)
+{
+    const uint32_t reg = ri_reg(address);
 
     masked_write(&ri->regs[reg], value, mask);
-
-    return 0;
 }
 

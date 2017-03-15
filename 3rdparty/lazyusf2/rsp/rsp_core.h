@@ -26,7 +26,7 @@
 
 struct r4300_core;
 struct rdp_core;
-struct ri_controller;
+struct rdram;
 
 enum { SP_MEM_SIZE = 0x2000 };
 
@@ -63,41 +63,26 @@ struct rsp_core
 
     struct r4300_core* r4300;
     struct rdp_core* dp;
-    struct ri_controller* ri;
+    struct rdram* rdram;
 };
 
 #include "osal/preproc.h"
 
-static osal_inline uint32_t rsp_mem_address(uint32_t address)
-{
-    return (address & 0x1fff) >> 2;
-}
-
-static osal_inline uint32_t rsp_reg(uint32_t address)
-{
-    return (address & 0xffff) >> 2;
-}
-
-static osal_inline uint32_t rsp_reg2(uint32_t address)
-{
-    return (address & 0xffff) >> 2;
-}
-
 void connect_rsp(struct rsp_core* sp,
                  struct r4300_core* r4300,
                  struct rdp_core* dp,
-                 struct ri_controller* ri);
+                 struct rdram* rdram);
 
 void init_rsp(struct rsp_core* sp);
 
-int read_rsp_mem(void* opaque, uint32_t address, uint32_t* value);
-int write_rsp_mem(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
+uint32_t read_rsp_mem(struct rsp_core* sp, uint32_t address);
+void write_rsp_mem(struct rsp_core* sp, uint32_t address, uint32_t value, uint32_t mask);
 
-int read_rsp_regs(void* opaque, uint32_t address, uint32_t* value);
-int write_rsp_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
+uint32_t read_rsp_regs(struct rsp_core* sp, uint32_t address);
+void write_rsp_regs(struct rsp_core* sp, uint32_t address, uint32_t value, uint32_t mask);
 
-int read_rsp_regs2(void* opaque, uint32_t address, uint32_t* value);
-int write_rsp_regs2(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
+uint32_t read_rsp_regs2(struct rsp_core* sp, uint32_t address);
+void write_rsp_regs2(struct rsp_core* sp, uint32_t address, uint32_t value, uint32_t mask);
 
 void do_SP_Task(struct rsp_core* sp);
 

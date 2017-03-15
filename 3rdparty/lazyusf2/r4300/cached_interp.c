@@ -24,7 +24,7 @@
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
 #include "main/main.h"
-#include "memory/memory.h"
+#include "memory/memory_io.h"
 #include "usf/usf_internal.h"
 
 #include "r4300.h"
@@ -126,11 +126,8 @@
       else name(state); \
    }
 
-#define CHECK_MEMORY() \
-   if (!state->invalid_code[state->address>>12]) \
-      if (state->blocks[state->address>>12]->block[(state->address&0xFFF)/4].ops != \
-          state->current_instruction_table.NOTCOMPILED) \
-         state->invalid_code[state->address>>12] = 1;
+#define CHECK_MEMORY(addr) \
+   invalidate_block(state, addr);
 
 // two functions are defined from the macros above but never used
 // these prototype declarations will prevent a warning
@@ -172,20 +169,18 @@ static void osal_fastcall FIN_BLOCK(usf_state_t * state)
 
 static void osal_fastcall NOTCOMPILED(usf_state_t * state)
 {
-   unsigned int *mem = fast_mem_access(state, state->blocks[state->PC->addr>>12]->start);
+   precomp_block* const block = state->blocks[state->PC->addr / TLB_PAGE_SIZE];
+   const uint32_t* const mem = fast_mem_access(state, block->start);
 
    if (mem != NULL)
-      recompile_block(state, (int *)mem, state->blocks[state->PC->addr >> 12], state->PC->addr);
+   {
+      recompile_block(state, mem, block, state->PC->addr);
+      state->PC->ops(state);
+   }
    else
+   {
       DebugMessage(state, M64MSG_ERROR, "not compiled exception");
-
-/*#ifdef DBG
-            if (g_DebuggerActive) update_debugger(PC->addr);
-#endif
-The preceeding update_debugger SHOULD be unnecessary since it should have been
-called before NOTCOMPILED would have been executed
-*/
-   state->PC->ops(state);
+   }
 }
 
 static void osal_fastcall NOTCOMPILED2(usf_state_t * state)
@@ -500,33 +495,31 @@ static unsigned int osal_fastcall update_invalid_addr(usf_state_t * state, unsig
      }
 }
 
-void osal_fastcall jump_to(usf_state_t * state, unsigned int addr)
+void osal_fastcall jump_to(usf_state_t * state, uint32_t addr)
 {
-   unsigned int paddr;
+   uint32_t paddr;
    if (state->skip_jump) return;
    paddr = update_invalid_addr(state, addr);
    if (!paddr) return;
-   state->actual = state->blocks[addr>>12];
-   if (state->invalid_code[addr>>12])
-     {
-    if (!state->blocks[addr>>12])
+   const uint32_t page = addr / TLB_PAGE_SIZE;
+   state->actual = state->blocks[page];
+   if (state->invalid_code[page])
+   {
+      if (!state->actual)
       {
-         state->blocks[addr>>12] = (precomp_block *) malloc(sizeof(precomp_block));
-         state->actual = state->blocks[addr>>12];
-         state->blocks[addr>>12]->block = NULL;
+         state->actual = state->blocks[page] = (precomp_block *) calloc(sizeof(precomp_block), 1);
       }
-    state->blocks[addr>>12]->start = addr & ~0xFFF;
-    state->blocks[addr>>12]->end = (addr & ~0xFFF) + 0x1000;
-    init_block(state, state->blocks[addr>>12]);
-     }
-   state->PC=state->actual->block+((addr-state->actual->start)>>2);
-   
+      state->actual->start = addr & TLB_ADDRESS_MASK;
+      state->actual->end = state->actual->start + TLB_PAGE_SIZE;
+      init_block(state, state->actual);
+   }
+   state->PC = state->actual->block + ((addr - state->actual->start) / sizeof(uint32_t));
 }
 
 void osal_fastcall init_blocks(usf_state_t * state)
 {
    int i;
-   for (i=0; i<0x100000; i++)
+   for (i = 0; i < TLB_PAGES_COUNT; i++)
    {
       state->invalid_code[i] = 1;
       state->blocks[i] = NULL;
@@ -536,7 +529,7 @@ void osal_fastcall init_blocks(usf_state_t * state)
 void osal_fastcall free_blocks(usf_state_t * state)
 {
    int i;
-   for (i=0; i<0x100000; i++)
+   for (i = 0; i < TLB_PAGES_COUNT; i++)
    {
         if (state->blocks[i])
         {

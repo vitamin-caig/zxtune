@@ -15,6 +15,7 @@
 #include "r4300/cp0.h"
 
 #include "rdp/rdp_core.h"
+#include "ri/rdram.h"
 #include "ri/ri_controller.h"
 #include "rsp/rsp_core.h"
 #include "si/si_controller.h"
@@ -98,63 +99,79 @@ typedef struct _tlb
 } tlb;
 #endif
 
-#ifndef PRECOMP_STRUCTS
-#define PRECOMP_STRUCTS
-
-typedef struct _precomp_instr
-{
-	void (osal_fastcall *ops)(usf_state_t * state);
-    union
-    {
-        struct
-        {
-            long long int *rs;
-            long long int *rt;
-            short immediate;
-        } i;
-        struct
-        {
-            unsigned int inst_index;
-        } j;
-        struct
-        {
-            long long int *rs;
-            long long int *rt;
-            long long int *rd;
-            unsigned char sa;
-            unsigned char nrd;
-        } r;
-        struct
-        {
-            unsigned char base;
-            unsigned char ft;
-            short offset;
-        } lf;
-        struct
-        {
-            unsigned char ft;
-            unsigned char fs;
-            unsigned char fd;
-        } cf;
-    } f;
-    unsigned int addr; /* word-aligned instruction address in r4300 address space */
-} precomp_instr;
-
-typedef struct _precomp_block
-{
-    precomp_instr *block;
-    unsigned int start;
-    unsigned int end;
-    //unsigned char md5[16];
-    unsigned int adler32;
-} precomp_block;
-#endif
+typedef struct _precomp_instr precomp_instr;
+typedef struct _precomp_block precomp_block;
 
 struct usf_state
 {
-    // main/main.c
-    uint32_t g_rdram[RDRAM_MAX_SIZE/4];
+    // r4300/r4300.c
+    unsigned int r4300emu/* = 0*/;
+    int llbit, rompause;
+    int stop;
+    long long int reg[32], hi, lo;
+    unsigned int next_interupt;
+    precomp_instr *PC;
+    unsigned int delay_slot, skip_jump/* = 0*/, last_addr;
     
+    cpu_instruction_table current_instruction_table;
+    
+    // r4300/reset.c
+    int reset_hard_job/* = 0*/;
+    
+    // r4300/cp0.c
+    unsigned int g_cp0_regs[CP0_REGS_COUNT];
+    
+    // r4300/cp1.c
+    float *reg_cop1_simple[32];
+    double *reg_cop1_double[32];
+    int FCR0, FCR31;
+    long long int reg_cop1_fgr_64[32];
+    
+    int rounding_mode/* = 0x33F*/;
+    // These constants won't be written to, but they need to be located within the struct
+    int trunc_mode/* = 0xF3F*/, round_mode/* = 0x33F*/,
+        ceil_mode/* = 0xB3F*/, floor_mode/* = 0x73F*/;
+    
+    // r4300/interupt.c
+    int interupt_unsafe_state/* = 0*/;
+    int SPECIAL_done/* = 0*/;
+    
+    struct interrupt_queue q;
+    
+    // r4300/tlb.c
+    tlb tlb_e[32];
+    
+    // r4300/instr_counters.c
+#ifdef COUNT_INSTR
+    unsigned int instr_count[132];
+#endif
+    struct io_bus io;
+
+    struct rdram g_rdram;
+    
+    // main/rom.c
+    unsigned char* g_rom/* = NULL*/;
+    int g_rom_size/* = 0*/;
+
+    m64p_rom_header   ROM_HEADER;
+    rom_params        ROM_PARAMS;
+    
+    // r4300/cached_interp.c
+    char invalid_code[0x100000];
+    precomp_block *blocks[0x100000];
+    precomp_block *actual;
+    
+    // r4300/recomp.c
+    precomp_instr *dst; // destination structure for the recompiled instruction
+    precomp_block *dst_block; // the current block that we are recompiling
+    uint32_t src; // the current recompiled instruction
+    int no_compiled_jump /* = 0*/; /* use cached interpreter instead of recompiler for jumps */
+    
+    // function for the latest decoded opcode
+    
+    const uint32_t* SRC; // currently recompiled instruction in the input stream
+    int check_nop; // next instruction is nop ?
+
     // RSP vector registers, need to be aligned to 16 bytes
     // when SSE2 or SSSE3 is enabled, or for any hope of
     // auto vectorization
@@ -209,6 +226,9 @@ struct usf_state
     
     // options for decoding
     uint32_t enable_hle_audio;
+
+    // XXX enable this for some USF sets, safe to enable always
+    int g_disable_tlb_write_exception;
     
     // save state
     unsigned char * save_state;
@@ -259,98 +279,7 @@ struct usf_state
     int g_delay_sp/* = 0*/;
     int g_delay_dp/* = 0*/;
     
-    // XXX enable this for some USF sets, safe to enable always
-    int g_disable_tlb_write_exception;
-    
     int g_gs_vi_counter/* = 0*/;
-    
-    // memory/memory.c
-    unsigned int address, cpu_word;
-    unsigned char cpu_byte;
-    unsigned short cpu_hword;
-    unsigned long long cpu_dword, *rdword;
-    uint32_t EmptySpace[0x10000/4];
-    
-    void (osal_fastcall *readmem[0x10000])(usf_state_t *);
-	void (osal_fastcall *readmemb[0x10000])(usf_state_t *);
-	void (osal_fastcall *readmemh[0x10000])(usf_state_t *);
-	void (osal_fastcall *readmemd[0x10000])(usf_state_t *);
-	void (osal_fastcall *writemem[0x10000])(usf_state_t *);
-	void (osal_fastcall *writememb[0x10000])(usf_state_t *);
-	void (osal_fastcall *writememh[0x10000])(usf_state_t *);
-	void (osal_fastcall *writememd[0x10000])(usf_state_t *);
-
-    // main/rom.c
-    unsigned char* g_rom/* = NULL*/;
-    int g_rom_size/* = 0*/;
-
-    m64p_rom_header   ROM_HEADER;
-    rom_params        ROM_PARAMS;
-    
-    // r4300/pure_interp.c
-    precomp_instr interp_PC;
-    
-    // r4300/r4300.c
-    unsigned int r4300emu/* = 0*/;
-    unsigned int count_per_op/* = COUNT_PER_OP_DEFAULT*/;
-    int llbit, rompause;
-    int stop;
-    long long int reg[32], hi, lo;
-    unsigned int next_interupt;
-    precomp_instr *PC;
-    long long int local_rs;
-    unsigned int delay_slot, skip_jump/* = 0*/, last_addr;
-    
-    cpu_instruction_table current_instruction_table;
-    
-    // r4300/reset.c
-    int reset_hard_job/* = 0*/;
-    
-    // r4300/cp0.c
-    unsigned int g_cp0_regs[CP0_REGS_COUNT];
-    
-    // r4300/cp1.c
-    float *reg_cop1_simple[32];
-    double *reg_cop1_double[32];
-    int FCR0, FCR31;
-    long long int reg_cop1_fgr_64[32];
-    
-    int rounding_mode/* = 0x33F*/;
-    // These constants won't be written to, but they need to be located within the struct
-    int trunc_mode/* = 0xF3F*/, round_mode/* = 0x33F*/,
-        ceil_mode/* = 0xB3F*/, floor_mode/* = 0x73F*/;
-    
-    // r4300/interupt.c
-    int interupt_unsafe_state/* = 0*/;
-    int SPECIAL_done/* = 0*/;
-    
-    struct interrupt_queue q;
-    
-    // r4300/tlb.c
-    tlb tlb_e[32];
-    unsigned int tlb_LUT_r[0x100000];
-    unsigned int tlb_LUT_w[0x100000];
-    
-    // r4300/instr_counters.c
-#ifdef COUNT_INSTR
-    unsigned int instr_count[132];
-#endif
-    
-    // r4300/cached_interp.c
-    char invalid_code[0x100000];
-    precomp_block *blocks[0x100000];
-    precomp_block *actual;
-    
-    // r4300/recomp.c
-    precomp_instr *dst; // destination structure for the recompiled instruction
-    precomp_block *dst_block; // the current block that we are recompiling
-    int src; // the current recompiled instruction
-    int no_compiled_jump /* = 0*/; /* use cached interpreter instead of recompiler for jumps */
-    
-    // function for the latest decoded opcode
-    
-    int *SRC; // currently recompiled instruction in the input stream
-    int check_nop; // next instruction is nop ?
     
     // logging
 #ifdef DEBUG_INFO

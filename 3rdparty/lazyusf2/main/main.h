@@ -35,8 +35,7 @@ struct pi_controller;
 struct ri_controller;
 struct si_controller;
 struct vi_controller;
-
-enum { RDRAM_MAX_SIZE = 0x800000 };
+struct rdram;
 
 /* globals */
 void main_message(usf_state_t *, m64p_msg_level level, unsigned int osd_corner, const char *format, ...);

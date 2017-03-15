@@ -73,15 +73,16 @@ typedef struct _precomp_block
    precomp_instr *block;
    unsigned int start;
    unsigned int end;
-   //unsigned char md5[16];
-   unsigned int adler32;
+   unsigned int hash;
 } precomp_block;
 #endif
 
-void recompile_block(usf_state_t *, int *source, precomp_block *block, unsigned int func);
+void recompile_block(usf_state_t *, const uint32_t* source, precomp_block *block, uint32_t pc);
 void init_block(usf_state_t *, precomp_block *block);
 void free_block(usf_state_t *, precomp_block *block);
 void recompile_opcode(usf_state_t *);
+
+void osal_fastcall invalidate_block(usf_state_t* state, uint32_t address);
 
 #endif /* M64P_R4300_RECOMP_H */
 

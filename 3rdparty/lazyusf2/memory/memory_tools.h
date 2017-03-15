@@ -1,7 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus - mi_controller.h                                         *
+ *   Mupen64plus - memory.h                                                *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
- *   Copyright (C) 2014 Bobby Smiles                                       *
+ *   Copyright (C) 2002 Hacktarux                                          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -19,48 +19,42 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef M64P_R4300_MI_CONTROLLER_H
-#define M64P_R4300_MI_CONTROLLER_H
+#ifndef M64P_MEMORY_MEMORY_TOOLS_H
+#define M64P_MEMORY_MEMORY_TOOLS_H
 
 #include <stdint.h>
 
-struct r4300_core;
+#ifndef M64P_BIG_ENDIAN
+#if defined(__GNUC__) && (__GNUC__ > 4  || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
+#define sl(x) __builtin_bswap32(x)
+#else
+#define sl(mot) \
+( \
+((mot & 0x000000FF) << 24) | \
+((mot & 0x0000FF00) <<  8) | \
+((mot & 0x00FF0000) >>  8) | \
+((mot & 0xFF000000) >> 24) \
+)
+#endif
+#define S8 3
+#define S16 2
+#define Sh16 1
 
-enum mi_registers
-{
-    MI_INIT_MODE_REG,
-    MI_VERSION_REG,
-    MI_INTR_REG,
-    MI_INTR_MASK_REG,
-    MI_REGS_COUNT
-};
+#else
 
+#define sl(mot) mot
+#define S8 0
+#define S16 0
+#define Sh16 0
 
-enum mi_intr
-{
-    MI_INTR_SP = 0x01,
-    MI_INTR_SI = 0x02,
-    MI_INTR_AI = 0x04,
-    MI_INTR_VI = 0x08,
-    MI_INTR_PI = 0x10,
-    MI_INTR_DP = 0x20
-};
-
-struct mi_controller
-{
-    uint32_t regs[MI_REGS_COUNT];
-    uint32_t AudioIntrReg;
-};
+#endif
 
 #include "osal/preproc.h"
 
-void init_mi(struct mi_controller* mi);
-
-uint32_t read_mi_regs(struct r4300_core* r4300, uint32_t address);
-void write_mi_regs(struct r4300_core* r4300, uint32_t address, uint32_t value, uint32_t mask);
-
-void raise_rcp_interrupt(struct r4300_core* r4300, uint32_t mi_intr);
-void signal_rcp_interrupt(struct r4300_core* r4300, uint32_t mi_intr);
-void clear_rcp_interrupt(struct r4300_core* r4300, uint32_t mi_intr);
+static osal_inline void masked_write(uint32_t* dst, uint32_t value, uint32_t mask)
+{
+    *dst = (*dst & ~mask) | (value & mask);
+}
 
 #endif
+

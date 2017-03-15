@@ -29,31 +29,32 @@
 typedef struct _tlb
 {
    short mask;
-   int vpn2;
+   uint32_t vpn2;
    char g;
    unsigned char asid;
-   int pfn_even;
+   uint32_t pfn_even;
    char c_even;
    char d_even;
    char v_even;
-   int pfn_odd;
+   uint32_t pfn_odd;
    char c_odd;
    char d_odd;
    char v_odd;
    char r;
    //int check_parity_mask;
    
-   unsigned int start_even;
-   unsigned int end_even;
-   unsigned int phys_even;
-   unsigned int start_odd;
-   unsigned int end_odd;
-   unsigned int phys_odd;
+   uint32_t start_even;
+   uint32_t end_even;
+   uint32_t phys_even;
+   uint32_t start_odd;
+   uint32_t end_odd;
+   uint32_t phys_odd;
 } tlb;
 #endif
 
 void tlb_unmap(usf_state_t *, tlb *entry);
 void tlb_map(usf_state_t *, tlb *entry);
-unsigned int virtual_to_physical_address(usf_state_t *, unsigned int addresse, int w);
+
+uint32_t virtual_to_physical_address(usf_state_t *, uint32_t addresse, int w);
 
 #endif /* M64P_R4300_TLB_H */

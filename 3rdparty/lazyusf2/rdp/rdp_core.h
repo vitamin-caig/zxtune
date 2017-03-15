@@ -26,7 +26,6 @@
 
 struct r4300_core;
 struct rsp_core;
-struct ri_controller;
 
 enum dpc_registers
 {
@@ -58,33 +57,21 @@ struct rdp_core
 
     struct r4300_core* r4300;
     struct rsp_core* sp;
-    struct ri_controller* ri;
 };
 
 #include "osal/preproc.h"
 
-static osal_inline uint32_t dpc_reg(uint32_t address)
-{
-    return (address & 0xffff) >> 2;
-}
-
-static osal_inline uint32_t dps_reg(uint32_t address)
-{
-    return (address & 0xffff) >> 2;
-}
-
 void connect_rdp(struct rdp_core* dp,
                  struct r4300_core* r4300,
-                 struct rsp_core* sp,
-                 struct ri_controller* ri);
+                 struct rsp_core* sp);
 
 void init_rdp(struct rdp_core* dp);
 
-int read_dpc_regs(void* opaque, uint32_t address, uint32_t* value);
-int write_dpc_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
+uint32_t read_dpc_regs(struct rdp_core* dp, uint32_t address);
+void write_dpc_regs(struct rdp_core* dp, uint32_t address, uint32_t value, uint32_t mask);
 
-int read_dps_regs(void* opaque, uint32_t address, uint32_t* value);
-int write_dps_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
+uint32_t read_dps_regs(struct rdp_core* dp, uint32_t address);
+void write_dps_regs(struct rdp_core* dp, uint32_t address, uint32_t value, uint32_t mask);
 
 void rdp_interrupt_event(struct rdp_core* dp);
 

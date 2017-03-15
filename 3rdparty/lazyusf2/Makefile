@@ -18,8 +18,7 @@ source_files += ai/ai_controller \
 
 source_files := $(addsuffix .c,$(source_files))
 
-include_dirs := . $(path_step)/3rdparty/zlib
-
+include_dirs := .
 windows_definitions += WIN32
 
 include $(path_step)/makefile.mak

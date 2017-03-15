@@ -45,12 +45,9 @@ void usf_clear(void * state)
     USF_STATE->save_state = calloc( 1, 0x80275c );
     USF_STATE->save_state_size = 0x80275c;
 
-    for (offset = 0; offset < 0x10000; offset += 4)
-    {
-        USF_STATE->EmptySpace[offset / 4] = (uint32_t)((offset << 16) | offset);
-    }
-
     USF_STATE->resampler = resampler_create();
+    
+    create_memory(USF_STATE);
 
 #ifdef DEBUG_INFO
     USF_STATE->debug_log = 0;
@@ -418,6 +415,8 @@ void usf_shutdown(void * state)
 #endif
     resampler_delete(USF_STATE->resampler);
     USF_STATE->resampler = 0;
+    
+    shutdown_memory(USF_STATE);
 }
 
 #ifdef DEBUG_INFO

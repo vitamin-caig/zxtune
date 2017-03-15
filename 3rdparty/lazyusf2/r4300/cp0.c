@@ -50,7 +50,7 @@ int osal_fastcall check_cop1_unusable(usf_state_t * state)
 
 void update_count(usf_state_t * state)
 {
-   state->g_cp0_regs[CP0_COUNT_REG] += ((state->PC->addr - state->last_addr) >> 2) * state->count_per_op;
+   state->g_cp0_regs[CP0_COUNT_REG] += ((state->PC->addr - state->last_addr) >> 2) * COUNT_PER_OP_DEFAULT;
    state->last_addr = state->PC->addr;
 
 /*#ifdef DBG

@@ -28,12 +28,12 @@
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
 #include "main/main.h"
-#include "memory/memory.h"
+#include "memory/memory_tools.h"
 #include "r4300/cp0.h"
 #include "r4300/interupt.h"
 #include "r4300/r4300.h"
 #include "r4300/r4300_core.h"
-#include "ri/ri_controller.h"
+#include "ri/rdram.h"
 
 #include <string.h>
 
@@ -50,7 +50,7 @@ static void dma_si_write(struct si_controller* si)
 
     for (i = 0; i < PIF_RAM_SIZE; i += 4)
     {
-        *((uint32_t*)(&si->pif.ram[i])) = sl(si->ri->rdram.dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4]);
+        *((uint32_t*)(&si->pif.ram[i])) = sl(si->rdram->dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4]);
     }
     
     update_pif_write(si);
@@ -78,7 +78,7 @@ static void dma_si_read(struct si_controller* si)
 
     for (i = 0; i < PIF_RAM_SIZE; i += 4)
     {
-        si->ri->rdram.dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4] = sl(*(uint32_t*)(&si->pif.ram[i]));
+        si->rdram->dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4] = sl(*(uint32_t*)(&si->pif.ram[i]));
     }
 
     update_count(si->r4300->state);
@@ -94,10 +94,10 @@ static void dma_si_read(struct si_controller* si)
 
 void connect_si(struct si_controller* si,
                 struct r4300_core* r4300,
-                struct ri_controller* ri)
+                struct rdram* rdram)
 {
     si->r4300 = r4300;
-    si->ri = ri;
+    si->rdram = rdram;
 }
 
 void init_si(struct si_controller* si)
@@ -107,21 +107,21 @@ void init_si(struct si_controller* si)
     init_pif(&si->pif);
 }
 
-
-int read_si_regs(void* opaque, uint32_t address, uint32_t* value)
+static osal_inline uint32_t si_reg(uint32_t address)
 {
-    struct si_controller* si = (struct si_controller*)opaque;
-    uint32_t reg = si_reg(address);
-
-    *value = si->regs[reg];
-
-    return 0;
+    return (address & 0xffff) >> 2;
 }
 
-int write_si_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
+uint32_t read_si_regs(struct si_controller* si, uint32_t address)
 {
-    struct si_controller* si = (struct si_controller*)opaque;
-    uint32_t reg = si_reg(address);
+    const uint32_t reg = si_reg(address);
+
+    return si->regs[reg];
+}
+
+void write_si_regs(struct si_controller* si, uint32_t address, uint32_t value, uint32_t mask)
+{
+    const uint32_t reg = si_reg(address);
 
     switch (reg)
     {
@@ -144,8 +144,6 @@ int write_si_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
         clear_rcp_interrupt(si->r4300, MI_INTR_SI);
         break;
     }
-
-    return 0;
 }
 
 void si_end_of_dma_event(struct si_controller* si)

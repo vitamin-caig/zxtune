@@ -30,6 +30,7 @@
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
 #include "memory/memory.h"
+#include "memory/memory_mmu.h"
 #include "main/main.h"
 #include "main/rom.h"
 #include "pi/pi_controller.h"
@@ -60,7 +61,7 @@
 void generic_jump_to(usf_state_t * state, unsigned int address)
 {
    if (state->r4300emu == CORE_PURE_INTERPRETER)
-      state->interp_PC.addr = address;
+      state->PC->addr = address;
    else {
       jump_to(state, address);
    }
@@ -101,11 +102,7 @@ void r4300_reset_hard(usf_state_t * state)
         state->tlb_e[i].end_odd=0;
         state->tlb_e[i].phys_odd=0;
     }
-    for (i=0; i<0x100000; i++)
-    {
-        state->tlb_LUT_r[i] = 0;
-        state->tlb_LUT_w[i] = 0;
-    }
+    memory_reset_tlb(&state->io);
     state->llbit=0;
     state->hi=0;
     state->lo=0;
@@ -212,6 +209,7 @@ void r4300_begin(usf_state_t * state)
     {
         DebugMessage(state, M64MSG_INFO, "Starting R4300 emulator: Pure Interpreter");
         state->r4300emu = CORE_PURE_INTERPRETER;
+        state->PC = (precomp_instr*) calloc(sizeof(precomp_instr), 1);
     }
     else /* if (r4300emu == CORE_INTERPRETER) */
     {
@@ -242,6 +240,11 @@ void r4300_end(usf_state_t * state)
 {
     if (state->r4300emu == CORE_PURE_INTERPRETER)
     {
+        if (state->PC)
+        {
+          free(state->PC);
+          state->PC = 0;
+        }
     }
     else /* if (r4300emu == CORE_INTERPRETER) */
     {

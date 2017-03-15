@@ -28,7 +28,7 @@
 
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
-#include "memory/memory.h"
+#include "memory/memory_io.h"
 
 #include "cached_interp.h"
 #include "recomp.h"
@@ -2053,8 +2053,7 @@ void init_block(usf_state_t * state, precomp_block *block)
 
 void free_block(usf_state_t * state, precomp_block *block)
 {
-    size_t memsize = get_block_memsize(block);
-
+    (void)state;
     if (block->block) {
         free(block->block);
         block->block = NULL;
@@ -2064,23 +2063,27 @@ void free_block(usf_state_t * state, precomp_block *block)
 /**********************************************************************
  ********************* recompile a block of code **********************
  **********************************************************************/
-void recompile_block(usf_state_t * state, int *source, precomp_block *block, unsigned int func)
+void recompile_block(usf_state_t * state, const uint32_t* source, precomp_block *block, uint32_t pc)
 {
-   int i, length, finished=0;
-   length = (block->end-block->start)/4;
+   uint32_t i;
+   int finished=0;
+   const uint32_t length = (block->end - block->start) / sizeof(uint32_t);
    state->dst_block = block;
    
-   //for (i=0; i<16; i++) block->md5[i] = 0;
-   block->adler32 = 0;
+   block->hash = 0;
    
-   for (i = (func & 0xFFF) / 4; finished != 2; i++)
-     {
-    if(block->start < 0x80000000 || block->start >= 0xc0000000)
+   for (i = (pc & TLB_OFFSET_MASK) / sizeof(uint32_t); finished != 2; i++)
+   {
+      if (is_mapped(block->start))
       {
-          unsigned int address2 =
-           virtual_to_physical_address(state, block->start + i*4, 0);
-         if(state->blocks[address2>>12]->block[(address2&0xFFF)/4].ops == state->current_instruction_table.NOTCOMPILED)
-           state->blocks[address2>>12]->block[(address2&0xFFF)/4].ops = state->current_instruction_table.NOTCOMPILED2;
+          const uint32_t physical = virtual_to_physical_address(state, block->start + i * sizeof(uint32_t), 0);
+          const uint32_t ph_page = physical / TLB_PAGE_SIZE;
+          const uint32_t ph_offset = physical & TLB_OFFSET_MASK;
+          precomp_instr* const instr = state->blocks[ph_page]->block + (ph_offset / sizeof(uint32_t));
+          if (instr->ops == state->current_instruction_table.NOTCOMPILED)
+          {
+            instr->ops = state->current_instruction_table.NOTCOMPILED2;
+          }
       }
     
     state->SRC = source + i;
@@ -2214,4 +2217,14 @@ void recompile_opcode(usf_state_t * state)
    {
      RNOP(state);
    }
+}
+
+void osal_fastcall invalidate_block(usf_state_t* state, uint32_t address)
+{
+    const uint32_t page = address / TLB_PAGE_SIZE;
+    const uint32_t offset = address & TLB_OFFSET_MASK;
+    if (!state->invalid_code[page] && state->blocks[page]->block[offset / sizeof(uint32_t)].ops != state->current_instruction_table.NOTCOMPILED)
+    {
+        state->invalid_code[page] = 1;
+    }
 }
