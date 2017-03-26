@@ -1,17 +1,14 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,16 +20,16 @@ import java.nio.channels.FileChannel;
 import app.zxtune.Log;
 
 public class VfsCache {
-  
-  private final static String TAG = VfsCache.class.getName();
-  private final static int MIN_CACHED_FILE_SIZE = 256;
+
+  private static final String TAG = VfsCache.class.getName();
+  private static final int MIN_CACHED_FILE_SIZE = 256;
 
   private final File dir;
 
-  private VfsCache(File dir) {
+  private VfsCache(@Nullable File dir) {
     this.dir = dir;
   }
-  
+
   public static VfsCache create(Context context) {
     final File externalCache = context.getExternalCacheDir();
     if (externalCache != null) {
@@ -49,12 +46,13 @@ public class VfsCache {
   public final VfsCache createNested(String name) {
     return new VfsCache(getSub(name));
   }
-  
+
+  @Nullable
   public final ByteBuffer getCachedFileContent(String path) {
     try {
       final File file = getSub(path);
       if (file == null || !file.isFile()) {
-        Log.d(TAG, "No cached file %s", file.getAbsolutePath());
+        Log.d(TAG, "No cached file %s", path);
         return null;
       }
       Log.d(TAG, "Reading cached file %s", file.getAbsolutePath());
@@ -72,23 +70,29 @@ public class VfsCache {
       Log.d(TAG, "Do not cache small content of %s", path);
     }
   }
-  
+
+
   public final Uri putAnyCachedFileContent(String path, ByteBuffer content) {
     final File file = getSub(path);
     if (file != null) {
       Log.d(TAG, "Write cached file %s", file.getAbsolutePath());
       try {
-        file.getParentFile().mkdirs();
+        if (file.getParentFile().mkdirs()) {
+          Log.d(TAG, "Created cache dir");
+        }
         writeTo(file, content);
         return Uri.fromFile(file);
       } catch (IOException e) {
         Log.w(TAG, e, "Failed to write to %s", file.getAbsolutePath());
-        file.delete();
+        if (!file.delete()) {
+          Log.d(TAG, "Failed to delete %s", file);
+        }
       }
     }
     return Uri.EMPTY;
   }
-  
+
+  @Nullable
   private File getSub(String path) {
     return dir != null ? new File(dir, path) : null;
   }
@@ -123,7 +127,7 @@ public class VfsCache {
   }
 
   private static ByteBuffer readMemoryMapped(FileChannel channel) throws IOException {
-      return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+    return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
   }
 
   private static ByteBuffer readDirectArray(FileChannel channel) throws IOException {

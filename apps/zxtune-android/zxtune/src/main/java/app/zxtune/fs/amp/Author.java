@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Author description POJO
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.amp;

@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- *
  * @brief Transaction class
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs.dbhelpers;

@@ -1,24 +1,20 @@
 /**
- *
  * @file
- *
  * @brief Implementation of VfsRoot over http://hvsc.c64.org collection
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
 
 /**
- *
  * Paths:
- *
+ * <p/>
  * 1) joshw:/${Catalogue}/${FilePath} - direct access to files or folders
  */
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.text.format.Formatter;
 
@@ -33,11 +29,11 @@ import app.zxtune.fs.joshw.Catalog;
 
 final class VfsRootJoshw extends StubObject implements VfsRoot {
 
-  private final static String TAG = VfsRootJoshw.class.getName();
+  private static final String TAG = VfsRootJoshw.class.getName();
 
-  private final static String SCHEME = "joshw";
+  private static final String SCHEME = "joshw";
 
-  private final static int POS_BASE_ID = 0;
+  private static final int POS_BASE_ID = 0;
 
   private final Context context;
   private final Catalog catalog;
@@ -46,13 +42,13 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
   VfsRootJoshw(Context context, HttpProvider http, VfsCache cache) {
     this.context = context;
     this.catalog = Catalog.create(http, cache);
-    this.bases = new AudiobaseDir[] {
-      new AudiobaseDir("gbs", R.string.vfs_joshw_gbs_name, R.string.vfs_joshw_gbs_description),
-      new AudiobaseDir("hes", R.string.vfs_joshw_hes_name, R.string.vfs_joshw_hes_description),
-      new AudiobaseDir("nsf", R.string.vfs_joshw_nsf_name, R.string.vfs_joshw_nsf_description),
-      new AudiobaseDir("smd", R.string.vfs_joshw_smd_name, R.string.vfs_joshw_smd_description),
-      new AudiobaseDir("spc", R.string.vfs_joshw_spc_name, R.string.vfs_joshw_spc_description),
-      new AudiobaseDir("kss", R.string.vfs_joshw_kss_name, R.string.vfs_joshw_kss_description),
+    this.bases = new AudiobaseDir[]{
+            new AudiobaseDir("gbs", R.string.vfs_joshw_gbs_name, R.string.vfs_joshw_gbs_description),
+            new AudiobaseDir("hes", R.string.vfs_joshw_hes_name, R.string.vfs_joshw_hes_description),
+            new AudiobaseDir("nsf", R.string.vfs_joshw_nsf_name, R.string.vfs_joshw_nsf_description),
+            new AudiobaseDir("smd", R.string.vfs_joshw_smd_name, R.string.vfs_joshw_smd_description),
+            new AudiobaseDir("spc", R.string.vfs_joshw_spc_name, R.string.vfs_joshw_spc_description),
+            new AudiobaseDir("kss", R.string.vfs_joshw_kss_name, R.string.vfs_joshw_kss_description),
     };
   }
 
@@ -72,10 +68,11 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject getParent() {
     return null;
   }
-  
+
   @Override
   public Object getExtension(String id) {
     if (VfsExtensions.ICON_RESOURCE.equals(id)) {
@@ -93,6 +90,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
@@ -100,10 +98,11 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
     return null;
   }
 
-  private Uri.Builder rootUri() {
+  private static Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }
 
+  @Nullable
   private VfsObject resolvePath(Uri uri) throws IOException {
     final List<String> path = uri.getPathSegments();
     if (path.isEmpty()) {
@@ -112,19 +111,19 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
       final String id = path.get(POS_BASE_ID);
       for (AudiobaseDir dir : bases) {
         if (id.equals(dir.getBaseId())) {
-          return dir.resolve(uri, path);
+          return dir.resolve(path);
         }
       }
       return null;
     }
   }
-  
+
   private class AudiobaseDir extends StubObject implements VfsDir {
-    
+
     private final String id;
     private final int name;
     private final int description;
-    
+
     AudiobaseDir(String id, int nameRes, int descRes) {
       this.id = id;
       this.name = nameRes;
@@ -135,17 +134,17 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
     public Uri getUri() {
       return rootUri().appendPath(getBaseId()).build();
     }
-    
+
     @Override
     public String getName() {
       return context.getString(name);
     }
-    
+
     @Override
     public String getDescription() {
       return context.getString(description);
     }
-    
+
     @Override
     public VfsObject getParent() {
       return VfsRootJoshw.this;
@@ -160,7 +159,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
       return id;
     }
 
-    public VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    public VfsObject resolve(List<String> path) throws IOException {
       final int lastPathComponent = path.size() - 1;
       if (POS_BASE_ID == lastPathComponent) {
         // joshw://xxx
@@ -169,30 +168,30 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
         // joshw://xxx/yyy
         final ByteBuffer content = catalog.getFileContent(path);
         return catalog.isDirContent(content)
-          ? new MusicSubdir(path, content)
-          : new MusicFile(path, content);
+                ? new MusicSubdir(path, content)
+                : new MusicFile(path, content);
       }
     }
-        
+
     private abstract class MusicObject extends StubObject implements VfsObject {
 
-      protected final List<String> path;
-      protected ByteBuffer content;
-      
+      final List<String> path;
+      ByteBuffer content;
+
       MusicObject(String path) {
         this.path = new ArrayList<String>();
         this.path.add(path);
       }
-      
+
       MusicObject(List<String> path) {
         this.path = path;
       }
-      
+
       MusicObject(List<String> path, ByteBuffer content) {
         this.path = path;
         this.content = content;
       }
-      
+
       @Override
       public Uri getUri() {
         final Uri.Builder builder = rootUri();
@@ -201,29 +200,29 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
         }
         return builder.build();
       }
-      
+
       @Override
       public VfsObject getParent() {
         final int parentDepth = path.size() - 1;
         return parentDepth == 1
-            ? AudiobaseDir.this//root folder
-            : new MusicSubdir(path.subList(0, parentDepth));
+                ? AudiobaseDir.this//root folder
+                : new MusicSubdir(path.subList(0, parentDepth));
       }
-      
-      protected ByteBuffer getContent() throws IOException {
+
+      ByteBuffer getContent() throws IOException {
         if (content == null) {
           content = catalog.getFileContent(path);
         }
         return content;
       }
     }
-    
+
     private class MusicSubdir extends MusicObject implements VfsDir {
-      
+
       MusicSubdir(String path) {
         super(path);
       }
-      
+
       MusicSubdir(List<String> path) {
         super(path);
       }
@@ -275,7 +274,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
         final ArrayList<String> nestedPath = createNestedPath(name);
         return new MusicFile(nestedPath, size);
       }
-      
+
       private ArrayList<String> createNestedPath(String name) {
         final ArrayList<String> result = new ArrayList<String>(path.size() + 1);
         result.addAll(path);
@@ -283,20 +282,20 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
         return result;
       }
     }
-      
+
     private class MusicFile extends MusicObject implements VfsFile {
-      
+
       //${title} (\[${alt title}\])?(\(${tag}\))*
       private String name;
       private String description;
       private final String size;
-      
+
       MusicFile(List<String> path, String size) {
         super(path);
         loadMetainfo();
         this.size = size;
       }
-      
+
       MusicFile(List<String> path, ByteBuffer content) {
         super(path, content);
         loadMetainfo();
@@ -307,12 +306,12 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
       public String getName() {
         return name;
       }
-      
+
       @Override
       public String getDescription() {
         return description;
       }
-      
+
       @Override
       public String getSize() {
         return size;
@@ -322,7 +321,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
       public ByteBuffer getContent() throws IOException {
         return super.getContent();
       }
-      
+
       private void loadMetainfo() {
         final String filename = Uri.decode(path.get(path.size() - 1));
         int endOfName = filename.indexOf('(');
@@ -331,7 +330,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
         }
         name = filename.substring(0, endOfName - 1).trim();
         final TreeSet<String> meta = new TreeSet<String>();
-        for (int prevMetaPos = endOfName;;) {
+        for (int prevMetaPos = endOfName; ; ) {
           final int metaPos = filename.indexOf('(', prevMetaPos);
           if (metaPos == -1) {
             break;

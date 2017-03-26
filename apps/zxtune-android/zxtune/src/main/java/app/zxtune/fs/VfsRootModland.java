@@ -1,19 +1,13 @@
 /**
- *
  * @file
- *
  * @brief Implementation of VfsRoot over ftp://ftp.modland.com catalogue
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
 
 /**
- *
  * Paths:
- *
  * 1) modland:/
  * 2) modland:/Authors
  * 3) modland:/Authors/${author_letter}
@@ -23,11 +17,12 @@ package app.zxtune.fs;
  * 7) modland:/Collections/${collection_letter}/${collection_name}?id=${id}
  * 8) modland:/Formats
  * 9) modland:/Formats/${format_letter}
- *10) modland:/Formats/${format_letter}/${format_name}?id=${id}
+ * 10) modland:/Formats/${format_letter}/${format_name}?id=${id}
  */
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.text.format.Formatter;
 
 import java.io.IOException;
@@ -41,13 +36,13 @@ import app.zxtune.fs.modland.Track;
 
 final class VfsRootModland extends StubObject implements VfsRoot {
 
-  private final static String TAG = VfsRootModland.class.getName();
+  private static final String TAG = VfsRootModland.class.getName();
 
-  private final static String SCHEME = "modland";
+  private static final String SCHEME = "modland";
 
   private static class Storage {
-    private final static String SCHEME = "ftp";
-    private final static String HOST = "ftp.modland.com";
+    private static final String SCHEME = "ftp";
+    private static final String HOST = "ftp.modland.com";
 
     static boolean checkUri(Uri uri) {
       return SCHEME.equals(uri.getScheme()) && HOST.equals(uri.getHost());
@@ -55,18 +50,18 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
     static Uri.Builder makeUri() {
       return new Uri.Builder().scheme(SCHEME)
-        .authority(HOST);
+              .authority(HOST);
     }
   }
 
-  private final static int POS_CATEGORY = 0;
-  private final static int POS_LETTER = 1;
-  private final static int POS_NAME = 2;
-  private final static int POS_FILENAME = 3;
+  private static final int POS_CATEGORY = 0;
+  private static final int POS_LETTER = 1;
+  private static final int POS_NAME = 2;
+  private static final int POS_FILENAME = 3;
 
-  private final static String PARAM_ID = "id";
+  private static final String PARAM_ID = "id";
 
-  private final static String NOT_LETTER = "#";
+  private static final String NOT_LETTER = "#";
 
   private final Context context;
   private final Catalog catalog;
@@ -75,16 +70,16 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   VfsRootModland(Context context, HttpProvider http, VfsCache cache) throws IOException {
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
-    this.groups = new GroupsDir[] {
-      new GroupsDir("Authors",
-        R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,
-        catalog.getAuthors()),
-      new GroupsDir("Collections",
-        R.string.vfs_modland_collections_name, R.string.vfs_modland_collections_description,
-        catalog.getCollections()),
-      new GroupsDir("Formats",
-        R.string.vfs_modland_formats_name, R.string.vfs_modland_formats_description,
-        catalog.getFormats())
+    this.groups = new GroupsDir[]{
+            new GroupsDir("Authors",
+                    R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,
+                    catalog.getAuthors()),
+            new GroupsDir("Collections",
+                    R.string.vfs_modland_collections_name, R.string.vfs_modland_collections_description,
+                    catalog.getCollections()),
+            new GroupsDir("Formats",
+                    R.string.vfs_modland_formats_name, R.string.vfs_modland_formats_description,
+                    catalog.getFormats())
     };
   }
 
@@ -104,6 +99,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject getParent() {
     return null;
   }
@@ -116,7 +112,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
       return super.getExtension(id);
     }
   }
-  
+
   @Override
   public void enumerate(Visitor visitor) {
     for (GroupsDir group : groups) {
@@ -125,6 +121,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
@@ -136,14 +133,15 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     }
   }
 
-  private Uri.Builder rootUri() {
+  private static Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }
 
-  private boolean isLetter(char c) {
+  private static boolean isLetter(char c) {
     return (Character.isLetter(c) && Character.isUpperCase(c));
   }
 
+  @Nullable
   private VfsObject resolvePath(Uri uri) throws IOException {
     final List<String> path = uri.getPathSegments();
     if (path.isEmpty()) {
@@ -205,6 +203,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
       }
     }
 
+    @Nullable
     final VfsObject resolve(Uri uri, List<String> path) throws IOException {
       if (POS_CATEGORY == path.size() - 1) {
         return this;
@@ -261,6 +260,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
         });
       }
 
+      @Nullable
       final VfsObject resolve(Uri uri, List<String> path) throws IOException {
         if (POS_LETTER == path.size() - 1) {
           return this;
@@ -268,7 +268,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
           final int id = Integer.parseInt(uri.getQueryParameter(PARAM_ID));
           final Group obj = group.query(id);
           return obj != null
-                  ? new GroupDir(obj).resolve(uri, path)
+                  ? new GroupDir(obj).resolve(path)
                   : null;
         }
       }
@@ -279,7 +279,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
       private class GroupDir extends StubObject implements VfsDir {
 
-        private Group obj;
+        private final Group obj;
 
         GroupDir(Group obj) {
           this.obj = obj;
@@ -308,12 +308,12 @@ final class VfsRootModland extends StubObject implements VfsRoot {
         @Override
         public void enumerate(final Visitor visitor) throws IOException {
           group.queryTracks(obj.id, new Catalog.TracksVisitor() {
-            
+
             @Override
             public void setCountHint(int count) {
               visitor.onItemsCount(count);
             }
-            
+
             @Override
             public boolean accept(Track obj) {
               visitor.onFile(new TrackFile(obj));
@@ -322,30 +322,31 @@ final class VfsRootModland extends StubObject implements VfsRoot {
           });
         }
 
-        final VfsObject resolve(Uri uri, List<String> path) throws IOException {
+        @Nullable
+        final VfsObject resolve(List<String> path) throws IOException {
           if (POS_NAME == path.size() - 1) {
             return this;
           } else {
             final String filename = path.get(POS_FILENAME);
             final Track track = group.findTrack(obj.id, filename);
             return track != null
-              ? new TrackFile(track)
-              : null;
+                    ? new TrackFile(track)
+                    : null;
           }
         }
 
         final Uri.Builder groupUri() {
           return groupLetterUri()
-            .appendPath(obj.name)
-            .appendQueryParameter(PARAM_ID, String.valueOf(obj.id));
+                  .appendPath(obj.name)
+                  .appendQueryParameter(PARAM_ID, String.valueOf(obj.id));
         }
-        
+
         private class TrackFile extends FreeTrackFile {
 
           TrackFile(Track track) {
             super(track);
           }
-          
+
           @Override
           public VfsObject getParent() {
             return GroupDir.this;
@@ -354,7 +355,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
           @Override
           Uri.Builder trackUri() {
             return groupUri()
-              .appendPath(track.filename);
+                    .appendPath(track.filename);
           }
         }
       }
@@ -363,7 +364,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
   private class FreeTrackFile extends StubObject implements VfsFile {
 
-    protected final Track track;
+    final Track track;
 
     FreeTrackFile(Track track) {
       this.track = track;
@@ -378,7 +379,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     public String getName() {
       return track.filename;
     }
-    
+
     @Override
     public VfsObject getParent() {
       return null;
@@ -393,7 +394,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(track.path);
     }
-    
+
     Uri.Builder trackUri() {
       return Storage.makeUri().encodedPath(track.path);
     }

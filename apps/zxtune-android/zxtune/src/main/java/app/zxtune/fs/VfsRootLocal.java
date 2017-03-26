@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Implementation of VfsRoot over local files
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
@@ -13,6 +9,7 @@ package app.zxtune.fs;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.text.format.Formatter;
 
@@ -23,12 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import app.zxtune.Log;
 import app.zxtune.R;
 
 final class VfsRootLocal extends StubObject implements VfsRoot {
-  
-  private final static String SCHEME = "file";
-  
+
+  private static final String TAG = VfsRootLocal.class.getName();
+  private static final String SCHEME = "file";
+
   private final Context context;
 
   public VfsRootLocal(Context context) {
@@ -37,7 +36,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
 
   @Override
   public Uri getUri() {
-    return buildUri(""); 
+    return buildUri("");
   }
 
   @Override
@@ -51,10 +50,11 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject getParent() {
     return null;
   }
-  
+
   @Override
   public Object getExtension(String id) {
     if (VfsExtensions.ICON_RESOURCE.equals(id)) {
@@ -63,7 +63,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
       return super.getExtension(id);
     }
   }
-  
+
   @Override
   public void enumerate(Visitor visitor) {
     for (File root : File.listRoots()) {
@@ -75,6 +75,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) {
     if (SCHEME.equals(uri.getScheme())) {
       final String path = uri.getPath();
@@ -87,11 +88,12 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
       return null;
     }
   }
-  
+
   private static Uri buildUri(String path) {
-    return new Uri.Builder().scheme(SCHEME).path(path).build(); 
+    return new Uri.Builder().scheme(SCHEME).path(path).build();
   }
-  
+
+  @Nullable
   private VfsObject buildObject(File obj) {
     if (obj.isDirectory()) {
       return buildDir(obj);
@@ -101,22 +103,22 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
       return null;
     }
   }
-  
+
   private VfsDir buildDir(File obj) {
     return new LocalDir(obj);
   }
-  
+
   private VfsFile buildFile(File obj) {
     return new LocalFile(obj);
   }
-  
+
+  @Nullable
   private VfsObject resolvePath(String path) {
     final File obj = new File(path);
     return buildObject(obj);
   }
 
-  
-  private List<File> getExternalStorages() {
+  private static List<File> getExternalStorages() {
     final List<File> result = new ArrayList<File>(5);
     final File mounts = new File("/proc/mounts");
     try {
@@ -127,7 +129,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
         final String[] fields = line.split(" ");
         final String device = fields[0];
         if (device.startsWith("/dev/block/vold")
-         || device.equals("/dev/fuse")) {
+                || device.equals("/dev/fuse")) {
           final String mountpoint = fields[1];
           final File point = new File(mountpoint);
           if (point.exists() && point.canRead() && !result.contains(point)) {
@@ -136,18 +138,19 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
         }
       }
     } catch (IOException e) {
+      Log.w(TAG, e, "Failed to get external storages");
     }
     if (result.isEmpty()) {
       result.add(Environment.getExternalStorageDirectory());
     }
     return result;
   }
-  
+
   private class LocalObject extends StubObject implements VfsObject {
-    
-    protected final File object;
-    protected final String name;
-    
+
+    final File object;
+    final String name;
+
     public LocalObject(File obj, String name) {
       this.object = obj;
       this.name = name;
@@ -167,22 +170,22 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
     public VfsObject getParent() {
       final File parent = object.getParentFile();
       return parent != null
-        ? new LocalDir(parent)
-        : VfsRootLocal.this;
+              ? new LocalDir(parent)
+              : VfsRootLocal.this;
     }
   }
 
   private static String getDirName(File dir) {
     final String name = dir.getName();
-    return 0 != name.length() ? name : dir.getAbsolutePath(); 
+    return 0 != name.length() ? name : dir.getAbsolutePath();
   }
-  
+
   private class LocalDir extends LocalObject implements VfsDir {
 
     public LocalDir(File dir) {
       super(dir, getDirName(dir));
     }
-    
+
     @Override
     public void enumerate(Visitor visitor) throws IOException {
       final File[] files = object.listFiles();

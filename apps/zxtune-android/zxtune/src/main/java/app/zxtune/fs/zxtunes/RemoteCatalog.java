@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Remote implementation of catalog
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.zxtunes;
@@ -15,6 +11,7 @@ import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.StartElementListener;
+import android.support.annotation.Nullable;
 import android.util.Xml;
 
 import org.xml.sax.Attributes;
@@ -38,7 +35,7 @@ final class RemoteCatalog extends Catalog {
   private static final String ALL_AUTHORS_QUERY = API + "scope=authors&fields=nickname,name,tracks";
   //return nothing really, but required for more logical model
   private static final String ALL_TRACKS_QUERY = API
-      + "scope=tracks&fields=filename,title,duration,date";
+          + "scope=tracks&fields=filename,title,duration,date";
   private static final String AUTHOR_TRACKS_QUERY = ALL_TRACKS_QUERY + "&author_id=%d";
   private static final String DOWNLOAD_QUERY = SITE + "downloads.php?id=%d";
 
@@ -70,12 +67,12 @@ final class RemoteCatalog extends Catalog {
   public boolean searchSupported() {
     return http.hasConnection();
   }
-  
+
   @Override
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     throw new IOException("Search is not supported on remote side");
   }
-  
+
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
@@ -83,7 +80,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   private void performQuery(HttpURLConnection connection, RootElement root)
-      throws IOException {
+          throws IOException {
     try {
       final InputStream stream = new BufferedInputStream(connection.getInputStream());
       Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
@@ -96,7 +93,8 @@ final class RemoteCatalog extends Catalog {
       connection.disconnect();
     }
   }
-  
+
+  @Nullable
   private static Integer asInt(String str) {
     if (str == null) {
       return null;
@@ -163,7 +161,11 @@ final class RemoteCatalog extends Catalog {
     private String nickname;
     private String name;
     private Integer tracks;
-    
+
+    AuthorBuilder() {
+      reset();
+    }
+
     final void setId(String val) {
       id = Integer.valueOf(val);
     }
@@ -180,17 +182,23 @@ final class RemoteCatalog extends Catalog {
       tracks = Integer.valueOf(val);
     }
 
+    @Nullable
     final Author captureResult() {
       final Author res = isValid() && hasTracks() ? new Author(id, nickname, name) : null;
-      id = tracks = null;
-      nickname = name = null;
+      reset();
       return res;
     }
-    
+
+    private void reset() {
+      id = tracks = null;
+      nickname = null;
+      name = "";
+    }
+
     private boolean isValid() {
       return id != null && nickname != null;
     }
-    
+
     private boolean hasTracks() {
       return tracks != null && tracks != 0;
     }
@@ -259,7 +267,11 @@ final class RemoteCatalog extends Catalog {
     private String title;
     private Integer duration;
     private Integer date;
-    
+
+    ModuleBuilder() {
+      reset();
+    }
+
     final void setId(String val) {
       id = Integer.valueOf(val);
     }
@@ -280,13 +292,19 @@ final class RemoteCatalog extends Catalog {
       date = Integer.valueOf(val);
     }
 
+    @Nullable
     final Track captureResult() {
       final Track res = isValid() ? new Track(id, filename, title, duration, date) : null;
-      id = duration = date = null;
-      filename = title = null;
+      reset();
       return res;
     }
-    
+
+    private void reset() {
+      id = duration = date = null;
+      filename = null;
+      title = "";
+    }
+
     private boolean isValid() {
       return id != null && filename != null;
     }

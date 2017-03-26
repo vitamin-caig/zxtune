@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Caching catalog implementation
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.zxtunes;
@@ -23,9 +19,9 @@ import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
 
 final class CachingCatalog extends Catalog {
-  
-  private final static String TAG = CachingCatalog.class.getName();
-  
+
+  private static final String TAG = CachingCatalog.class.getName();
+
   private final TimeStamp AUTHORS_TTL = days(30);
   private final TimeStamp TRACKS_TTL = days(7);
 
@@ -42,7 +38,7 @@ final class CachingCatalog extends Catalog {
     this.db = db;
     this.executor = new CommandExecutor("zxtunes");
   }
-  
+
   @Override
   public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
     executor.executeQueryCommand("authors", new QueryCommand() {
@@ -50,7 +46,7 @@ final class CachingCatalog extends Catalog {
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorsLifetime(AUTHORS_TTL);
       }
-      
+
       @Override
       public Transaction startTransaction() throws IOException {
         return db.startTransaction();
@@ -68,7 +64,7 @@ final class CachingCatalog extends Catalog {
       }
     });
   }
-  
+
   @Override
   public void queryAuthorTracks(final Author author, final TracksVisitor visitor) throws IOException {
     executor.executeQueryCommand("tracks", new QueryCommand() {
@@ -76,7 +72,7 @@ final class CachingCatalog extends Catalog {
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorTracksLifetime(author, TRACKS_TTL);
       }
-      
+
       @Override
       public Transaction startTransaction() throws IOException {
         return db.startTransaction();
@@ -94,7 +90,7 @@ final class CachingCatalog extends Catalog {
       }
     });
   }
-  
+
   @Override
   public boolean searchSupported() {
     //TODO: rework logic to more clear
@@ -106,9 +102,9 @@ final class CachingCatalog extends Catalog {
     }
     return true;
   }
-  
+
   @Override
-  public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
+  public void findTracks(String query, FoundTracksVisitor visitor) {
     //TODO: query also remote catalog when search will be enabled
     db.findTracks(query, visitor);
   }
@@ -131,13 +127,13 @@ final class CachingCatalog extends Catalog {
   }
 
   private class CachingAuthorsVisitor extends AuthorsVisitor {
-    
+
     private final AuthorsVisitor delegate;
-    
+
     CachingAuthorsVisitor(AuthorsVisitor delegate) {
       this.delegate = delegate;
     }
-    
+
     @Override
     public void setCountHint(int count) {
       delegate.setCountHint(count);
@@ -149,17 +145,17 @@ final class CachingCatalog extends Catalog {
       db.addAuthor(obj);
     }
   }
-  
+
   private class CachingTracksVisitor extends TracksVisitor {
-    
+
     private final TracksVisitor delegate;
     private final Author author;
-    
+
     CachingTracksVisitor(TracksVisitor delegate, Author author) {
       this.delegate = delegate;
       this.author = author;
     }
-    
+
     @Override
     public void setCountHint(int count) {
       delegate.setCountHint(count);

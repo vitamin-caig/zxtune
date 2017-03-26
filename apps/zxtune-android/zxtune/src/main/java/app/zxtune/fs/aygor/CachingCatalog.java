@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs.aygor;
@@ -23,11 +19,11 @@ import app.zxtune.fs.VfsCache;
 class CachingCatalog extends Catalog {
 
   //private final static String TAG = CachingCatalog.class.getName();
-  private final static String CACHE_HTML_FILE = File.separator + RemoteCatalog.VERSION + ".html";
+  private static final String CACHE_HTML_FILE = File.separator + RemoteCatalog.VERSION + ".html";
 
   private final Catalog remote;
   private final VfsCache cacheDir;
-  
+
   public CachingCatalog(Catalog remote, VfsCache cacheDir) {
     this.remote = remote;
     this.cacheDir = cacheDir;
@@ -58,7 +54,7 @@ class CachingCatalog extends Catalog {
     }
     return content;
   }
-  
+
   @Override
   public boolean isDirContent(ByteBuffer buffer) {
     return remote.isDirContent(buffer);

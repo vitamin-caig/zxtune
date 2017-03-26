@@ -42,9 +42,8 @@ public class CommandExecutor {
       return cached;
     }
     final T remote = cmd.fetchFromRemote();
-    if (remote != null) {
-      Analytics.sendVfsRemoteEvent(id, scope);
-    }
+    //log executed remote request in despite of result
+    Analytics.sendVfsRemoteEvent(id, scope);
     return remote;
   }
 }

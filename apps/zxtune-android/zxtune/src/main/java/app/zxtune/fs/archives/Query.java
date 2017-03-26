@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- * 
  * @brief Playlist query helper
- * 
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs.archives;
@@ -39,7 +35,7 @@ public class Query {
   private static final String ARCHIVE_PATH = "archive";
   private static final String INFO_PATH = "info";
   private static final String DIR_PATH = "dir";
-  
+
   private static final Type TYPE_ARCHIVE_ITEM;
   private static final Type TYPE_INFO_ITEM;
   private static final Type TYPE_DIR_ITEMS;
@@ -82,13 +78,13 @@ public class Query {
       throw new IllegalArgumentException("Wrong URI: " + uri);
     }
   }
-  
+
   public static Uri archiveUriFor(Uri uri) {
-      final Uri.Builder builder = new Uri.Builder()
-      .scheme(ContentResolver.SCHEME_CONTENT)
-      .authority(AUTHORITY)
-      .path(ARCHIVE_PATH)
-      .appendPath(uri.toString());
+    final Uri.Builder builder = new Uri.Builder()
+            .scheme(ContentResolver.SCHEME_CONTENT)
+            .authority(AUTHORITY)
+            .path(ARCHIVE_PATH)
+            .appendPath(uri.toString());
     return builder.build();
   }
 
@@ -96,13 +92,13 @@ public class Query {
     final int uriType = uriTemplate.match(uri);
     return uriType == TYPE_ARCHIVE_ITEM.id;
   }
-  
+
   public static Uri infoUriFor(Uri uri) {
     final Uri.Builder builder = new Uri.Builder()
-      .scheme(ContentResolver.SCHEME_CONTENT)
-      .authority(AUTHORITY)
-      .path(INFO_PATH)
-      .appendPath(uri.toString());
+            .scheme(ContentResolver.SCHEME_CONTENT)
+            .authority(AUTHORITY)
+            .path(INFO_PATH)
+            .appendPath(uri.toString());
     return builder.build();
   }
 
@@ -113,13 +109,13 @@ public class Query {
 
   public static Uri listDirUriFor(Uri uri) {
     final Uri.Builder builder = new Uri.Builder()
-      .scheme(ContentResolver.SCHEME_CONTENT)
-      .authority(AUTHORITY)
-      .path(DIR_PATH)
-      .appendPath(uri.toString());
+            .scheme(ContentResolver.SCHEME_CONTENT)
+            .authority(AUTHORITY)
+            .path(DIR_PATH)
+            .appendPath(uri.toString());
     return builder.build();
   }
-  
+
   public static boolean isListDirUri(Uri uri) {
     final int uriType = uriTemplate.match(uri);
     return uriType == TYPE_DIR_ITEMS.id;

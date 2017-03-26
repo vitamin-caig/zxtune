@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Remote implementation of catalog
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.modarchive;
@@ -20,6 +16,7 @@ import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
+import android.support.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
 
@@ -41,19 +38,19 @@ import app.zxtune.fs.HttpProvider;
  *
  * Authors:
  *   ${API}/xml-tools.php?key=${key}&request=search_artist&page=${page}
- *   
+ *
  * references author's tracks at
  *   ${API}/xml-tools.php?key=${key}&request=view_modules_by_artistid&query=${id}&page=${page}
- *   
+ *
  * references tracks at
  *   ${API}/downloads.php?moduleid=${moduleid}
- * 
+ *
  * Genres:
  *   ${API}/xml-tools.php?key=${key}&request=view_genres (no paging)
- *   
+ *
  * references genre's tracks at
  *   ${API}/xml-tools.php?key=${key}&request=search&type=genre&query=${genreid}&page=${page}
- *   
+ *
  * Search:
  *   ${API}/xml-tools.php?key=${key}&request=search&type=filename_or_songtitle&query=*${query}*&page=${page}
  */
@@ -61,7 +58,7 @@ import app.zxtune.fs.HttpProvider;
 class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
-  
+
   private static class ApiUriBuilder {
     private final Uri.Builder delegate;
 
@@ -70,21 +67,21 @@ class RemoteCatalog extends Catalog {
       delegate.scheme("http");
       delegate.authority("api.modarchive.org");
     }
-    
+
     final ApiUriBuilder setRequest(String request) {
       delegate.appendQueryParameter("request", request);
       return this;
     }
-    
+
     final ApiUriBuilder setQuery(String query) {
       delegate.appendQueryParameter("query", query);
       return this;
     }
-    
+
     final ApiUriBuilder setQuery(int query) {
       return setQuery(Integer.toString(query));
     }
-    
+
     final ApiUriBuilder setType(String type) {
       delegate.appendQueryParameter("type", type);
       return this;
@@ -117,7 +114,7 @@ class RemoteCatalog extends Catalog {
     final Bundle metaData = getAppMetadata(context);
     this.key = metaData.getString("key.modarchive");
   }
-  
+
   private static Bundle getAppMetadata(Context context) {
     try {
       final ApplicationInfo info = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
@@ -141,40 +138,40 @@ class RemoteCatalog extends Catalog {
     final RootElement root = createGenresParserRoot(visitor);
     loadSinglePage(uri, root);
   }
-  
+
   @Override
   public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_modules_by_artistid").setQuery(author.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
   }
-  
+
   @Override
   public void queryTracks(Genre genre, TracksVisitor visitor) throws IOException {
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("genre").setQuery(genre.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
   }
-  
+
   @Override
   public boolean searchSupported() {
     return http.hasConnection();
   }
-  
+
   @Override
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("filename_or_songtitle").setQuery("*" + query + "*").build();
     final RootElement root = createFoundTracksParserRoot(visitor);
     loadPages(uri, root);
   }
-  
+
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     final String query = ApiUriBuilder.forDownload(id).build();
     return http.getContent(query);
   }
-  
-  private RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {
+
+  private static RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {
     final AuthorBuilder builder = new AuthorBuilder();
     final RootElement root = createRootElement();
     root.getChild("total_results").setEndTextElementListener(new EndTextElementListener() {
@@ -199,32 +196,33 @@ class RemoteCatalog extends Catalog {
     bindAuthorFields(item, builder);
     return root;
   }
-  
+
   private static class AuthorBuilder {
     private Integer id;
     private String alias;
-    
+
     final void setId(String val) {
       id = asInt(val);
     }
-    
+
     final void setAlias(String val) {
       alias = val;
     }
-    
+
+    @Nullable
     final Author captureResult() {
       final Author res = isValid() ? new Author(id, alias) : null;
       id = null;
       alias = null;
       return res;
     }
-    
+
     private boolean isValid() {
       return id != null && alias != null;
     }
   }
-  
-  private RootElement createGenresParserRoot(final GenresVisitor visitor) {
+
+  private static RootElement createGenresParserRoot(final GenresVisitor visitor) {
     final GenreBuilder builder = new GenreBuilder();
     final RootElement root = createRootElement();
     root.getChild("results").setEndTextElementListener(new EndTextElementListener() {
@@ -249,7 +247,7 @@ class RemoteCatalog extends Catalog {
     item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        builder.setId(body);        
+        builder.setId(body);
       }
     });
     item.getChild("text").setEndTextElementListener(new EndTextElementListener() {
@@ -271,32 +269,33 @@ class RemoteCatalog extends Catalog {
     private Integer id;
     private String text;
     private Integer files;
-    
+
     final void setId(String val) {
       id = asInt(val);
     }
-    
+
     final void setText(String val) {
       text = val;
     }
-    
+
     final void setFiles(String val) {
-      files = asInt(val); 
+      files = asInt(val);
     }
-    
+
+    @Nullable
     final Genre captureResult() {
       final Genre res = isValid() ? new Genre(id, text, files) : null;
       id = files = null;
       text = null;
       return res;
     }
-    
+
     private boolean isValid() {
       return id != null && text != null && files != null;
     }
   }
 
-  private RootElement createTracksParserRoot(final TracksVisitor visitor) {
+  private static RootElement createTracksParserRoot(final TracksVisitor visitor) {
     final TrackBuilder builder = new TrackBuilder();
     final RootElement root = createRootElement();
     root.getChild("total_results").setEndTextElementListener(new EndTextElementListener() {
@@ -327,36 +326,37 @@ class RemoteCatalog extends Catalog {
     private String filename;
     private String title;
     private Integer size;
-    
+
     final void setId(String val) {
       id = asInt(val);
     }
-    
+
     final void setFilename(String val) {
       filename = val;
     }
-    
+
     final void setTitle(String val) {
       title = val;
     }
-    
+
     final void setSize(String val) {
-      size = asInt(val); 
+      size = asInt(val);
     }
-    
+
+    @Nullable
     final Track captureResult() {
       final Track res = isValid() ? new Track(id, filename, title, size) : null;
       id = size = null;
       filename = title = null;
       return res;
     }
-    
+
     private boolean isValid() {
       return id != null && filename != null && title != null && size != null;
     }
   }
-  
-  private RootElement createFoundTracksParserRoot(final FoundTracksVisitor visitor) {
+
+  private static RootElement createFoundTracksParserRoot(final FoundTracksVisitor visitor) {
     final TrackBuilder trackBuilder = new TrackBuilder();
     final AuthorBuilder authorBuilder = new AuthorBuilder();
     final RootElement root = createRootElement();
@@ -374,7 +374,7 @@ class RemoteCatalog extends Catalog {
       @Override
       public void end() {
         final Track track = trackBuilder.captureResult();
-        Author author = authorBuilder.captureResult();
+        final Author author = authorBuilder.captureResult();
         if (track != null) {
           visitor.accept(author != null ? author : Author.UNKNOWN, track);
         }
@@ -384,12 +384,12 @@ class RemoteCatalog extends Catalog {
     bindAuthorFields(item.getChild("artist_info").getChild("artist"), authorBuilder);
     return root;
   }
-  
+
   private static void bindTrackFields(Element item, final TrackBuilder builder) {
     item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        builder.setId(body);        
+        builder.setId(body);
       }
     });
     item.getChild("filename").setEndTextElementListener(new EndTextElementListener() {
@@ -412,7 +412,7 @@ class RemoteCatalog extends Catalog {
       }
     });
   }
-  
+
   private static void bindAuthorFields(Element item, final AuthorBuilder builder) {
     item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
       @Override
@@ -427,7 +427,7 @@ class RemoteCatalog extends Catalog {
       }
     });
   }
-  
+
   private void loadPages(String baseUri, RootElement root) throws IOException {
     final AtomicInteger totalPages = new AtomicInteger(1);
     root.getChild("totalpages").setEndTextElementListener(new EndTextElementListener() {
@@ -445,12 +445,12 @@ class RemoteCatalog extends Catalog {
       loadSinglePage(pageUri, root);
     }
   }
-  
+
   private void loadSinglePage(String uri, RootElement root) throws IOException {
     final HttpURLConnection connection = http.connect(uri);
     performXmlQuery(connection, root);
   }
-  
+
   private void performXmlQuery(HttpURLConnection connection, RootElement root) throws IOException {
     try {
       final InputStream stream = new BufferedInputStream(connection.getInputStream());
@@ -464,7 +464,8 @@ class RemoteCatalog extends Catalog {
       connection.disconnect();
     }
   }
-  
+
+  @Nullable
   private static Integer asInt(String str) {
     if (str == null) {
       return null;
@@ -474,7 +475,7 @@ class RemoteCatalog extends Catalog {
       return null;
     }
   }
-  
+
   private static RootElement createRootElement() {
     return new RootElement("modarchive");
   }

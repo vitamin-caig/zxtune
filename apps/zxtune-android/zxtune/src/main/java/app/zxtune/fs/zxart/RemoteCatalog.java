@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Remote implementation of catalog
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.zxart;
@@ -15,6 +11,7 @@ import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
+import android.support.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
 
@@ -79,17 +76,17 @@ final class RemoteCatalog extends Catalog {
     final RootElement root = createPartiesParserRoot(visitor);
     performQuery(connection, root);
   }
-  
+
   @Override
   public void queryPartyTracks(Party party, TracksVisitor visitor) throws IOException {
     queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.id));
   }
-  
+
   @Override
   public void queryTopTracks(int limit, TracksVisitor visitor) throws IOException {
     queryTracks(visitor, String.format(Locale.US, TOP_TRACKS_QUERY, limit));
   }
-  
+
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
     final HttpURLConnection connection = http.connect(query);
     final RootElement root = createModulesParserRoot(visitor);
@@ -100,14 +97,14 @@ final class RemoteCatalog extends Catalog {
   public boolean searchSupported() {
     return http.hasConnection();
   }
-  
+
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     final String url = String.format(Locale.US, FIND_TRACKS_QUERY, Uri.encode(query));
     final HttpURLConnection connection = http.connect(url);
     final RootElement root = createModulesParserRoot(visitor);
     performQuery(connection, root);
   }
-  
+
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
@@ -115,7 +112,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   private void performQuery(HttpURLConnection connection, RootElement root)
-      throws IOException {
+          throws IOException {
     try {
       final InputStream stream = new BufferedInputStream(connection.getInputStream());
       Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
@@ -128,7 +125,8 @@ final class RemoteCatalog extends Catalog {
       connection.disconnect();
     }
   }
-  
+
+  @Nullable
   private static Integer asInt(String str) {
     if (str == null) {
       return null;
@@ -201,13 +199,14 @@ final class RemoteCatalog extends Catalog {
       name = val;
     }
 
+    @Nullable
     final Author captureResult() {
       final Author res = isValid() ? new Author(id, nickname, name) : null;
       id = null;
       nickname = name = null;
       return res;
     }
-    
+
     private boolean isValid() {
       return id != null && nickname != null;
     }
@@ -270,7 +269,7 @@ final class RemoteCatalog extends Catalog {
     final void setName(String val) {
       name = val;
     }
-    
+
     final void setYear(String val) {
       try {
         year = Integer.valueOf(val);
@@ -279,6 +278,7 @@ final class RemoteCatalog extends Catalog {
       }
     }
 
+    @Nullable
     final Party captureResult() {
       final Party res = isValid() ? new Party(id, name, year) : null;
       id = null;
@@ -286,12 +286,12 @@ final class RemoteCatalog extends Catalog {
       year = 0;
       return res;
     }
-    
+
     private boolean isValid() {
       return id != null && name != null;
     }
   }
-  
+
   private static RootElement createModulesParserRoot(final TracksVisitor visitor) {
     final ModuleBuilder builder = new ModuleBuilder();
     final RootElement result = createRootElement();
@@ -347,7 +347,7 @@ final class RemoteCatalog extends Catalog {
     bindXmlActions(item, builder);
     return result;
   }
-  
+
   private static void bindXmlActions(Element item, final ModuleBuilder builder) {
     item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
       @Override
@@ -431,7 +431,7 @@ final class RemoteCatalog extends Catalog {
     private String compo;
     private int partyplace;
     private Integer authorId;
-    
+
     ModuleBuilder() {
       reset();
     }
@@ -450,15 +450,15 @@ final class RemoteCatalog extends Catalog {
     final void setTitle(String val) {
       title = val;
     }
-    
+
     final void setInternalAuthor(String val) {
       internalAuthor = val;
     }
-    
+
     final void setInternalTitle(String val) {
       internalTitle = val;
     }
-    
+
     final void setVotes(String val) {
       votes = val;
     }
@@ -474,11 +474,11 @@ final class RemoteCatalog extends Catalog {
         year = 0;
       }
     }
-    
+
     final void setCompo(String val) {
       compo = val;
     }
-    
+
     final void setPartyplace(String val) {
       try {
         partyplace = Integer.valueOf(val);
@@ -486,7 +486,7 @@ final class RemoteCatalog extends Catalog {
         partyplace = 0;
       }
     }
-    
+
     final void setAuthorId(String val) {
       try {
         authorId = Integer.valueOf(val);
@@ -494,7 +494,8 @@ final class RemoteCatalog extends Catalog {
         authorId = null;
       }
     }
-    
+
+    @Nullable
     final Author captureResultAuthor() {
       if (authorId != null) {
         final String fakeName = "Author" + authorId;
@@ -506,23 +507,24 @@ final class RemoteCatalog extends Catalog {
       }
     }
 
+    @Nullable
     final Track captureResult() {
       title = Util.formatTrackTitle(internalAuthor, internalTitle, title);
       final Track res = isValid()
-        ? new Track(id, filename, title, votes, duration, year, compo, partyplace)
-        : null;
+              ? new Track(id, filename, title, votes, duration, year, compo, partyplace)
+              : null;
       reset();
       return res;
     }
-    
+
     private void reset() {
       id = null;
       filename = null;
       year = partyplace = 0;
-      votes = duration = title = internalAuthor = internalTitle = compo = "".intern();
+      votes = duration = title = internalAuthor = internalTitle = compo = "";
       authorId = null;
     }
-    
+
     private boolean isValid() {
       return id != null && filename != null;
     }

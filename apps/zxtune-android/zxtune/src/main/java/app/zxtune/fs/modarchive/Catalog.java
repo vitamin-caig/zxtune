@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Catalog interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.modarchive;
@@ -19,32 +15,39 @@ import app.zxtune.fs.HttpProvider;
 import app.zxtune.fs.VfsCache;
 
 public abstract class Catalog {
-  
-  public static abstract class AuthorsVisitor {
 
-    public void setCountHint(int count) {}
+  public abstract static class AuthorsVisitor {
+
+    public void setCountHint(int count) {
+    }
+
     public abstract void accept(Author obj);
   }
 
-  public static abstract class GenresVisitor {
-    
-    public void setCountHint(int count) {}
+  public abstract static class GenresVisitor {
+
+    public void setCountHint(int count) {
+    }
+
     public abstract void accept(Genre obj);
   }
-  
-  public static abstract class TracksVisitor {
 
-    public void setCountHint(int count) {}
+  public abstract static class TracksVisitor {
+
+    public void setCountHint(int count) {
+    }
+
     public abstract void accept(Track obj);
   }
-  
-  public static abstract class FoundTracksVisitor {
-    
-    public void setCountHint(int size) {}
-    
+
+  public abstract static class FoundTracksVisitor {
+
+    public void setCountHint(int size) {
+    }
+
     public abstract void accept(Author author, Track track);
   }
-  
+
   /**
    * Query authors by handle filter
    * @param visitor result receiver
@@ -58,7 +61,7 @@ public abstract class Catalog {
    * @throws IOException
    */
   public abstract void queryGenres(GenresVisitor visitor) throws IOException;
-  
+
   /**
    * Query authors's tracks
    * @param author scope
@@ -74,12 +77,12 @@ public abstract class Catalog {
    * @throws IOException
    */
   public abstract void queryTracks(Genre genre, TracksVisitor visitor) throws IOException;
-  
+
   /**
    * Checks whether tracks can be found directly from catalogue instead of scanning
    */
   public abstract boolean searchSupported();
-  
+
   /**
    * Find tracks by query substring
    * @param query string to search in filename/title
@@ -87,7 +90,7 @@ public abstract class Catalog {
    * @throws IOException
    */
   public abstract void findTracks(String query, FoundTracksVisitor visitor) throws IOException;
-  
+
   /**
    * Get track file content
    * @param id track identifier

@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief DAL helper
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.zxart;
@@ -14,6 +10,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -36,43 +33,43 @@ import app.zxtune.fs.dbhelpers.Utils;
  * duration TEXT, year INTEGER, partyplace INTEGER) 
  * CREATE TABLE {authors,parties}_tracks (hash INTEGER UNIQUE, group_id INTEGER, track_id INTEGER)
  * use hash as 1000000 * author +  * track to support multiple insertings of same pair
- * 
+ *
  * Version 2
  * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, filename TEXT NOT NULL, title TEXT, votes TEXT, 
  * duration TEXT, year INTEGER, compo TEXT, partyplace INTEGER)
- * 
+ *
  * Version 3
- * 
+ *
  * Change format of {authors,parties}_tracks to grouping
  * Use timestamps
- * 
+ *
  */
 
 final class Database {
 
-  final static String TAG = Database.class.getName();
+  private static final String TAG = Database.class.getName();
 
-  final static String NAME = "www.zxart.ee";
-  final static int VERSION = 3;
+  private static final String NAME = "www.zxart.ee";
+  private static final int VERSION = 3;
 
-  final static class Tables {
+  static final class Tables {
 
-    final static class Authors extends Objects {
+    static final class Authors extends Objects {
 
       static enum Fields {
         _id, nickname, name
       }
 
-      final static String NAME = "authors";
+      static final String NAME = "authors";
 
-      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
-          + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
-          + " TEXT);";
+      static final String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
+              + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
+              + " TEXT);";
 
       Authors(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
-      
+
       final void add(Author obj) {
         add(obj.id, obj.nickname, obj.name);
       }
@@ -85,22 +82,22 @@ final class Database {
       }
     }
 
-    final static class Parties extends Objects {
+    static final class Parties extends Objects {
 
       static enum Fields {
         _id, name, year
       }
 
-      final static String NAME = "parties";
+      static final String NAME = "parties";
 
-      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
-          + " INTEGER PRIMARY KEY, " + Fields.name + " TEXT NOT NULL, " + Fields.year
-          + " INTEGER NOT NULL);";
+      static final String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
+              + " INTEGER PRIMARY KEY, " + Fields.name + " TEXT NOT NULL, " + Fields.year
+              + " INTEGER NOT NULL);";
 
       Parties(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
-      
+
       final void add(Party obj) {
         add(obj.id, obj.name, obj.year);
       }
@@ -113,23 +110,23 @@ final class Database {
       }
     }
 
-    final static class Tracks extends Objects {
+    static final class Tracks extends Objects {
 
       static enum Fields {
         _id, filename, title, votes, duration, year, compo, partyplace
       }
 
-      final static String NAME = "tracks";
+      static final String NAME = "tracks";
 
-      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
-          + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
-          + " TEXT, " + Fields.votes + " TEXT, " + Fields.duration + " INTEGER, " + Fields.year
-          + " INTEGER, " + Fields.compo + " TEXT, " + Fields.partyplace + " INTEGER);";
-      
+      static final String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
+              + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
+              + " TEXT, " + Fields.votes + " TEXT, " + Fields.duration + " INTEGER, " + Fields.year
+              + " INTEGER, " + Fields.compo + " TEXT, " + Fields.partyplace + " INTEGER);";
+
       Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
       }
-      
+
       final void add(Track obj) {
         add(obj.id, obj.filename, obj.title, obj.votes, obj.duration, obj.year, obj.compo, obj.partyplace);
       }
@@ -137,7 +134,7 @@ final class Database {
       static Track createTrack(Cursor cursor) {
         return createTrack(cursor, 0);
       }
-      
+
       static Track createTrack(Cursor cursor, int fieldOffset) {
         final int id = cursor.getInt(fieldOffset + Tables.Tracks.Fields._id.ordinal());
         final String filename = cursor.getString(fieldOffset + Tables.Tracks.Fields.filename.ordinal());
@@ -149,17 +146,17 @@ final class Database {
         final int partyplace = cursor.getInt(fieldOffset + Tables.Tracks.Fields.partyplace.ordinal());
         return new Track(id, filename, title, votes, duration, year, compo, partyplace);
       }
-      
+
       static String getSelection(String subquery) {
         return Fields._id + " IN (" + subquery + ")";
       }
     }
-    
-    final static class AuthorsTracks extends Grouping {
 
-      final static String NAME = "authors_tracks";
-      final static String CREATE_QUERY = Grouping.createQuery(NAME);
-      
+    static final class AuthorsTracks extends Grouping {
+
+      static final String NAME = "authors_tracks";
+      static final String CREATE_QUERY = Grouping.createQuery(NAME);
+
       AuthorsTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
@@ -167,17 +164,17 @@ final class Database {
       final void add(Author author, Track track) {
         add(author.id, track.id);
       }
-      
+
       final String getTracksIdsSelection(Author author) {
         return getIdsSelection(author.id);
       }
     }
 
-    final static class PartiesTracks extends Grouping {
+    static final class PartiesTracks extends Grouping {
 
-      final static String NAME = "parties_tracks";
-      final static String CREATE_QUERY = Grouping.createQuery(NAME);
-      
+      static final String NAME = "parties_tracks";
+      static final String CREATE_QUERY = Grouping.createQuery(NAME);
+
       PartiesTracks(DBProvider helper) throws IOException {
         super(helper, NAME, 32);
       }
@@ -185,7 +182,7 @@ final class Database {
       final void add(Party party, Track track) {
         add(party.id, track.id);
       }
-      
+
       final String getTracksIdsSelection(Party party) {
         return getIdsSelection(party.id);
       }
@@ -211,9 +208,9 @@ final class Database {
     this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
     this.findQuery = "SELECT * " +
-        "FROM authors LEFT OUTER JOIN tracks ON " +
-        "tracks." + Tables.Tracks.getSelection(authorsTracks.getIdsSelection("authors._id")) +
-        " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
+            "FROM authors LEFT OUTER JOIN tracks ON " +
+            "tracks." + Tables.Tracks.getSelection(authorsTracks.getIdsSelection("authors._id")) +
+            " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
     this.cacheDir = cache.createNested("www.zxart.ee");
   }
 
@@ -224,11 +221,11 @@ final class Database {
   final Timestamps.Lifetime getAuthorsLifetime(TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Authors.NAME, ttl);
   }
-  
+
   final Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl);
   }
-  
+
   final Timestamps.Lifetime getPartiesLifetime(TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Parties.NAME, ttl);
   }
@@ -236,11 +233,11 @@ final class Database {
   final Timestamps.Lifetime getPartyTracksLifetime(Party party, TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Parties.NAME + party.id, ttl);
   }
-  
+
   final Timestamps.Lifetime getTopLifetime(TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Tracks.NAME, ttl);
   }
-  
+
   final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Authors.NAME, null, null, null, null, null, null);
@@ -284,7 +281,7 @@ final class Database {
   final void addParty(Party obj) {
     parties.add(obj);
   }
-  
+
   final boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
     final String selection = Tables.Tracks.getSelection(authorsTracks.getTracksIdsSelection(author));
     return queryTracks(selection, visitor);
@@ -300,14 +297,14 @@ final class Database {
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     return queryTracks(cursor, visitor);
   }
-  
+
   final boolean queryTopTracks(int limit, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, null, null, null, null,
             Tables.Tracks.Fields.votes.name() + " DESC", Integer.toString(limit));
     return queryTracks(cursor, visitor);
   }
-  
+
   private static boolean queryTracks(Cursor cursor, Catalog.TracksVisitor visitor) {
     try {
       final int count = cursor.getCount();
@@ -323,7 +320,7 @@ final class Database {
     }
     return false;
   }
-  
+
   final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.rawQuery(findQuery, new String[]{query});
@@ -341,11 +338,11 @@ final class Database {
       cursor.close();
     }
   }
-  
+
   final void addTrack(Track track) {
     tracks.add(track);
   }
-  
+
   final void addAuthorTrack(Author author, Track track) {
     authorsTracks.add(author, track);
   }
@@ -354,6 +351,7 @@ final class Database {
     partiesTracks.add(party, track);
   }
 
+  @Nullable
   final ByteBuffer getTrackContent(int id) {
     final String filename = Integer.toString(id);
     return cacheDir.getCachedFileContent(filename);

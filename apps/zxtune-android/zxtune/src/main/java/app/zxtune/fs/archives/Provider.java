@@ -1,19 +1,18 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs.archives;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -33,35 +32,40 @@ import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.dbhelpers.Transaction;
 
 public final class Provider extends ContentProvider {
-  
+
   private static final String TAG = Provider.class.getName();
-  
+
   private Database db;
-  
+
   @Override
   public boolean onCreate() {
+    final Context ctx = getContext();
+    if (ctx == null) {
+      return false;
+    }
     try {
-      db = new Database(getContext());
+      db = new Database(ctx);
       return true;
     } catch (IOException e) {
       return false;
     }
   }
-  
+
   @Override
-  public int delete(Uri arg0, String arg1, String[] arg2) {
+  public int delete(@NonNull Uri arg0, String arg1, String[] arg2) {
     return 0;
   }
 
   @Override
-  public String getType(Uri uri) {
+  public String getType(@NonNull Uri uri) {
     return Query.mimeTypeOf(uri);
   }
 
   @Override
-  public Uri insert(Uri uri, ContentValues values) {
+  @Nullable
+  public Uri insert(@NonNull Uri uri, ContentValues values) {
     if (!Query.isArchiveUri(uri)) {
-      return null;
+      throw new IllegalArgumentException("Not an archive uri");
     }
     try {
       final Identifier fileId = new Identifier(Query.getPathFrom(uri));
@@ -78,14 +82,14 @@ public final class Provider extends ContentProvider {
           public void onModule(String subpath, Module module) {
             final Identifier moduleId = new Identifier(path, subpath);
             final DirEntry dirEntry = DirEntry.create(moduleId);
-            
+
             final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
             final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
             final String description = Util.formatTrackTitle(author, title, "");
             final long frameDuration = module.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT);
             final TimeStamp duration = TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
             final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
-            
+
             db.addTrack(track);
             final int doneTracks = modulesCount.incrementAndGet();
             if (0 == doneTracks % 100) {
@@ -119,7 +123,7 @@ public final class Provider extends ContentProvider {
       throw new IOException("Failed to open " + path);
     }
   }
-  
+
   private void addDirEntries(HashSet<Identifier> dirs) {
     final HashSet<Identifier> created = new HashSet<Identifier>();
     for (Identifier dir : dirs) {
@@ -137,13 +141,13 @@ public final class Provider extends ContentProvider {
   }
 
   @Override
-  public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+  public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
     return 0;
   }
-  
+
   @Override
-  public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
-      String sortOrder) {
+  public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs,
+                      String sortOrder) {
     final Uri path = Query.getPathFrom(uri);
     if (Query.isArchiveUri(uri)) {
       return db.queryArchive(path);
@@ -152,7 +156,7 @@ public final class Provider extends ContentProvider {
     } else if (Query.isInfoUri(uri)) {
       return db.queryInfo(path);
     } else {
-      return null; 
+      throw new IllegalArgumentException("Not an archive uri");
     }
   }
 }

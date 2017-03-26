@@ -1,14 +1,12 @@
 /**
- *
  * @file
- *
  * @brief Caching catalog implementation
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.modland;
+
+import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,7 +22,7 @@ import app.zxtune.fs.dbhelpers.Transaction;
 
 final class CachingCatalog extends Catalog {
 
-  private final static String TAG = CachingCatalog.class.getName();
+  private static final String TAG = CachingCatalog.class.getName();
 
   private final TimeStamp GROUPS_TTL = days(30);
   private final TimeStamp GROUP_TRACKS_TTL = days(14);
@@ -32,7 +30,7 @@ final class CachingCatalog extends Catalog {
   private static TimeStamp days(int val) {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
   }
-  
+
   private final Catalog remote;
   private final Database db;
   private final Grouping authors;
@@ -58,7 +56,7 @@ final class CachingCatalog extends Catalog {
   public Grouping getCollections() {
     return collections;
   }
-  
+
   @Override
   public Grouping getFormats() {
     return formats;
@@ -81,7 +79,7 @@ final class CachingCatalog extends Catalog {
         public Timestamps.Lifetime getLifetime() {
           return db.getGroupsLifetime(category, filter, GROUPS_TTL);
         }
-        
+
         @Override
         public Transaction startTransaction() throws IOException {
           return db.startTransaction();
@@ -101,25 +99,27 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
+    @Nullable
     public Group query(final int id) throws IOException {
       final String categoryElement = category.substring(0, category.length() - 1);
       return executor.executeFetchCommand(categoryElement, new FetchCommand<Group>() {
-          @Override
-          public Group fetchFromCache() {
-            return db.queryGroup(category, id);
-          }
+        @Override
+        public Group fetchFromCache() {
+          return db.queryGroup(category, id);
+        }
 
-          @Override
-          public Group fetchFromRemote() throws IOException {
-            Log.d(TAG, "No %s id=%d in cache. Query from remote", category, id);
-            final Group res = remote.query(id);
-            if (res != null) {
-              Log.d(TAG, "Cache %s id=%d", category, id);
-              db.addGroup(category, res);
-            }
-            return res;
+        @Override
+        @Nullable
+        public Group fetchFromRemote() throws IOException {
+          Log.d(TAG, "No %s id=%d in cache. Query from remote", category, id);
+          final Group res = remote.query(id);
+          if (res != null) {
+            Log.d(TAG, "Cache %s id=%d", category, id);
+            db.addGroup(category, res);
           }
-        });
+          return res;
+        }
+      });
     }
 
     @Override
@@ -129,7 +129,7 @@ final class CachingCatalog extends Catalog {
         public Timestamps.Lifetime getLifetime() {
           return db.getGroupTracksLifetime(category, id, GROUP_TRACKS_TTL);
         }
-        
+
         @Override
         public Transaction startTransaction() throws IOException {
           return db.startTransaction();
@@ -157,6 +157,7 @@ final class CachingCatalog extends Catalog {
         }
 
         @Override
+        @Nullable
         public Track fetchFromRemote() throws IOException {
           Log.d(TAG, "Track %s not found in %s=%d", filename, category, id);
           //fill cache
@@ -199,7 +200,7 @@ final class CachingCatalog extends Catalog {
       this.delegate = delegate;
       this.category = category;
     }
-    
+
     @Override
     public void setCountHint(int count) {
       delegate.setCountHint(count);
@@ -223,7 +224,7 @@ final class CachingCatalog extends Catalog {
       this.category = category;
       this.group = group;
     }
-    
+
     @Override
     public void setCountHint(int count) {
       delegate.setCountHint(count);

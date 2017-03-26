@@ -1,17 +1,14 @@
 /**
- *
  * @file
- *
  * @brief Implementation of VfsRoot over http://amp.dascene.net catalogue
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.text.format.Formatter;
 
 import java.io.IOException;
@@ -28,7 +25,7 @@ import app.zxtune.fs.modarchive.Track;
 
 final class VfsRootModarchive extends StubObject implements VfsRoot {
 
-  private final static String TAG = VfsRootModarchive.class.getName();
+  private static final String TAG = VfsRootModarchive.class.getName();
 
   private final Context context;
   private final Catalog catalog;
@@ -37,9 +34,9 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   VfsRootModarchive(Context context, HttpProvider http, VfsCache cache) throws IOException {
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
-    this.groupings = new GroupingDir[] {
-        new AuthorsDir(),
-        new GenresDir(),
+    this.groupings = new GroupingDir[]{
+            new AuthorsDir(),
+            new GenresDir(),
     };
   }
 
@@ -59,10 +56,11 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject getParent() {
     return null;
   }
-  
+
   @Override
   public Object getExtension(String id) {
     if (VfsExtensions.ICON_RESOURCE.equals(id)) {
@@ -83,6 +81,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) {
     if (Identifier.isFromRoot(uri)) {
       final List<String> path = uri.getPathSegments();
@@ -92,6 +91,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     }
   }
 
+  @Nullable
   private VfsObject resolve(Uri uri, List<String> path) {
     // due to identical structure of groupings, may resolve here
     // use plain algo with most frequent cases check first
@@ -102,7 +102,8 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
       return resolveDir(uri, path);
     }
   }
-  
+
+  @Nullable
   private VfsObject resolveDir(Uri uri, List<String> path) {
     final Author author = Identifier.findAuthor(uri, path);
     if (author != null) {
@@ -140,9 +141,9 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
         return super.getExtension(id);
       }
     }
-    
+
     abstract String getPath();
-  };
+  }
 
   private final class AuthorsDir extends GroupingDir {
 
@@ -278,7 +279,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     public String getName() {
       return genre.name;
     }
-    
+
     @Override
     public String getDescription() {
       return context.getResources().getQuantityString(R.plurals.tracks, genre.tracks, genre.tracks);
@@ -305,7 +306,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
       });
     }
   }
-  
+
   private class TrackFile extends StubObject implements VfsFile {
 
     private final Uri uri;
@@ -325,7 +326,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     public String getName() {
       return track.filename;
     }
-    
+
     @Override
     public String getDescription() {
       return track.title;
@@ -339,7 +340,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
         return super.getExtension(id);
       }
     }
-    
+
     @Override
     public VfsObject getParent() {
       final List<String> path = uri.getPathSegments();
@@ -359,16 +360,16 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     private String getShareUrl() {
       return String.format(Locale.US, "http://modarchive.org/index.php?request=view_player&query=%d",
-          track.id);
+              track.id);
     }
   }
 
   private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
-    
+
     @Override
     public void find(String query, final Visitor visitor) throws IOException {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
-        
+
         @Override
         public void accept(Author author, Track track) {
           final Uri.Builder authorsUri = Identifier.forAuthor(author);

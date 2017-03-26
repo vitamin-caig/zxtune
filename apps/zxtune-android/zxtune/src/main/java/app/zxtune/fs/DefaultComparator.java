@@ -1,14 +1,12 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs;
+
+import android.support.annotation.Nullable;
 
 import java.util.Comparator;
 
@@ -78,6 +76,7 @@ public class DefaultComparator implements Comparator<VfsObject> {
     }
   }
 
+  @Nullable
   private static Integer parseNumber(String str) {
     final int size = str.length();
     for (int pos = 0; pos < size; ++pos) {
@@ -92,7 +91,7 @@ public class DefaultComparator implements Comparator<VfsObject> {
   public static Comparator<VfsObject> instance() {
     return Holder.INSTANCE;
   }
-  
+
   //onDemand holder idiom
   private static class Holder {
     public static final DefaultComparator INSTANCE = new DefaultComparator();

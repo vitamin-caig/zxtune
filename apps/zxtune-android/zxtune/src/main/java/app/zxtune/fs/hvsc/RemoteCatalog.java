@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs.hvsc;
@@ -22,10 +18,10 @@ import java.util.regex.Pattern;
 import app.zxtune.fs.HttpProvider;
 
 class RemoteCatalog extends Catalog {
-  
+
   //private static final String TAG = RemoteCatalog.class.getName();
   //use tagged names for html content
-  protected static final String VERSION = "prg.dtu.dk";
+  static final String VERSION = "prg.dtu.dk";
   private static final String STORAGE_MIRROR = "http://www.prg.dtu.dk/HVSC/C64Music/";
   private static final byte[] HTML_SIGNATURE = {'<', '!', 'D', 'O', 'C', 'T', 'Y', 'P', 'E'};
   private static final String DIR_MARKUP = "DIR";
@@ -33,13 +29,13 @@ class RemoteCatalog extends Catalog {
   // $1 - DIR or empty
   // $2 - name
   // $3 - size
-  private final static Pattern ENTRIES =
-      Pattern.compile("alt=\"\\[(" + DIR_MARKUP + "|" + FILE_MARKUP + ")\\]\"></td><td>" + //type
-      "<a href=\"([^/\"]+).+?</a>.+?" + //name
-      "\\d{2}-[A-Za-z]{3}-\\d{4} \\d{2}:\\d{2}.+?" + //date 
-      "([\\d.]+[KM]?|-)",//size
-      Pattern.DOTALL);
-  
+  private static final Pattern ENTRIES =
+          Pattern.compile("alt=\"\\[(" + DIR_MARKUP + "|" + FILE_MARKUP + ")\\]\"></td><td>" + //type
+                          "<a href=\"([^/\"]+).+?</a>.+?" + //name
+                          "\\d{2}-[A-Za-z]{3}-\\d{4} \\d{2}:\\d{2}.+?" + //date
+                          "([\\d.]+[KM]?|-)",//size
+                  Pattern.DOTALL);
+
   private final HttpProvider http;
 
   public RemoteCatalog(HttpProvider http) {
@@ -51,7 +47,7 @@ class RemoteCatalog extends Catalog {
     final String pathStr = TextUtils.join("/", path);
     return http.getContent(STORAGE_MIRROR + pathStr);
   }
-  
+
   @Override
   public boolean isDirContent(ByteBuffer buf) {
     final byte[] head = new byte[HTML_SIGNATURE.length];
@@ -65,7 +61,7 @@ class RemoteCatalog extends Catalog {
     if (!isDirContent(data)) {
       throw new UnsupportedOperationException();
     }
-    final String chars = toString(data); 
+    final String chars = toString(data);
     final Matcher matcher = ENTRIES.matcher(chars);
     while (matcher.find()) {
       final String dirMark = matcher.group(1);
@@ -78,9 +74,9 @@ class RemoteCatalog extends Catalog {
       }
     }
   }
-  
+
   private static String toString(ByteBuffer data) throws IOException {
-    if (data.hasArray()) { 
+    if (data.hasArray()) {
       return new String(data.array(), "UTF-8");
     } else {
       final byte[] buff = new byte[data.remaining()];

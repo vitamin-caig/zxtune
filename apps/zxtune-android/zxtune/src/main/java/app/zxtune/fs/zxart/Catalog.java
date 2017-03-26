@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Catalog interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.zxart;
@@ -19,41 +15,45 @@ import app.zxtune.fs.HttpProvider;
 import app.zxtune.fs.VfsCache;
 
 public abstract class Catalog {
-  
-  public static abstract class AuthorsVisitor {
-    
-    public void setCountHint(int size) {}
-    
+
+  public abstract static class AuthorsVisitor {
+
+    public void setCountHint(int size) {
+    }
+
     public abstract void accept(Author obj);
   }
-  
-  public static abstract class PartiesVisitor {
 
-    public void setCountHint(int size) {}
-    
+  public abstract static class PartiesVisitor {
+
+    public void setCountHint(int size) {
+    }
+
     public abstract void accept(Party obj);
   }
-  
-  public static abstract class TracksVisitor {
-    
-    public void setCountHint(int size) {}
+
+  public abstract static class TracksVisitor {
+
+    public void setCountHint(int size) {
+    }
 
     public abstract void accept(Track obj);
   }
 
-  public static abstract class FoundTracksVisitor {
-    
-    public void setCountHint(int size) {}
-    
+  public abstract static class FoundTracksVisitor {
+
+    public void setCountHint(int size) {
+    }
+
     public abstract void accept(Author author, Track track);
   }
-  
+
   /**
    * Query authors object
    * @param visitor result receiver
    */
   public abstract void queryAuthors(AuthorsVisitor visitor) throws IOException;
-  
+
   /**
    * Query tracks objects
    * @param author tracks owner
@@ -73,19 +73,19 @@ public abstract class Catalog {
    * @param visitor result receiver
    */
   public abstract void queryPartyTracks(Party party, TracksVisitor visitor) throws IOException;
-  
+
   /**
    * Query top tracks (not cached
    * @param limit count
    * @param visitor result receiver
    */
   public abstract void queryTopTracks(int limit, TracksVisitor visitor) throws IOException;
-  
+
   /**
    * Checks whether tracks can be found directly from catalogue instead of scanning
    */
   public abstract boolean searchSupported();
-  
+
   /**
    * Find tracks by query substring
    * @param query string to search in filename/title
@@ -93,9 +93,9 @@ public abstract class Catalog {
    * @throws IOException
    */
   public abstract void findTracks(String query, FoundTracksVisitor visitor) throws IOException;
-  
+
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
-  
+
   public static Catalog create(Context context, HttpProvider http, VfsCache cache) throws IOException {
     final Catalog remote = new RemoteCatalog(http);
     final Database db = new Database(context, cache);

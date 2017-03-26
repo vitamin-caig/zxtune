@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Http access helper
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
@@ -14,6 +10,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,8 +24,8 @@ import app.zxtune.R;
 
 public class HttpProvider {
 
-  private final static String TAG = HttpProvider.class.getName();
-  private final static int MAX_REMOTE_FILE_SIZE = 5 * 1024 * 1024;//5Mb
+  private static final String TAG = HttpProvider.class.getName();
+  private static final int MAX_REMOTE_FILE_SIZE = 5 * 1024 * 1024;//5Mb
 
   private final Context context;
   private static ByteBuffer htmlBuffer;
@@ -40,7 +37,8 @@ public class HttpProvider {
       System.setProperty("http.keepAlive", "false");
     }
   }
-  
+
+
   public final HttpURLConnection connect(String uri) throws IOException {
     try {
       final URL url = new URL(uri);
@@ -53,6 +51,7 @@ public class HttpProvider {
       throw e;
     }
   }
+
 
   public final ByteBuffer getContent(String uri) throws IOException {
     try {
@@ -68,7 +67,8 @@ public class HttpProvider {
       throw e;
     }
   }
-  
+
+
   public final synchronized String getHtml(String uri) throws IOException {
     try {
       final HttpURLConnection connection = connect(uri);
@@ -86,10 +86,11 @@ public class HttpProvider {
   }
 
   //! result buffer is not direct so required wrapping
-  private ByteBuffer getContent(InputStream stream, ByteBuffer cache) throws IOException {
+
+  private ByteBuffer getContent(InputStream stream, @Nullable ByteBuffer cache) throws IOException {
     byte[] buffer = cache != null ? cache.array() : new byte[256 * 1024];
     int size = 0;
-    for (;;) {
+    for (; ; ) {
       size = readPartialContent(stream, buffer, size);
       if (size == buffer.length) {
         CheckSizeLimit(size);
@@ -116,13 +117,14 @@ public class HttpProvider {
     }
     return offset;
   }
-  
+
+
   private static byte[] reallocate(byte[] buf) {
     final byte[] result = new byte[buf.length * 2];
     System.arraycopy(buf, 0, result, 0, buf.length);
     return result;
   }
-  
+
   private void CheckSizeLimit(int size) throws IOException {
     if (size > MAX_REMOTE_FILE_SIZE) {
       Analytics.sendTooBigFileEvent(size);

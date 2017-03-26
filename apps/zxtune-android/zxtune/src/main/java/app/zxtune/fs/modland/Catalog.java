@@ -1,16 +1,13 @@
 /**
- *
  * @file
- *
  * @brief Catalog interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.modland;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -20,16 +17,18 @@ import app.zxtune.fs.VfsCache;
 
 public abstract class Catalog {
 
-  public static abstract class GroupsVisitor {
+  public abstract static class GroupsVisitor {
 
-    public void setCountHint(int size) {}
-    
+    public void setCountHint(int size) {
+    }
+
     public abstract void accept(Group obj);
   }
 
-  public static abstract class TracksVisitor {
+  public abstract static class TracksVisitor {
 
-    public void setCountHint(int size) {}
+    public void setCountHint(int size) {
+    }
 
     //too many tracks possible, so enable breaking
     public abstract boolean accept(Track obj);
@@ -51,6 +50,7 @@ public abstract class Catalog {
      * @return null if no object found
      * @throws IOException
      */
+    @Nullable
     public Group query(int id) throws IOException;
 
     /**
@@ -60,7 +60,7 @@ public abstract class Catalog {
      * @throws IOException
      */
     public void queryTracks(int id, TracksVisitor visitor) throws IOException;
-    
+
     /**
      * Query track by name
      * @param id object identifier
@@ -68,11 +68,14 @@ public abstract class Catalog {
      * @return null if nothing found
      * @throws IOException
      */
+    @Nullable
     public Track findTrack(int id, String filename) throws IOException;
   }
 
   public abstract Grouping getAuthors();
+
   public abstract Grouping getCollections();
+
   public abstract Grouping getFormats();
 
   /**

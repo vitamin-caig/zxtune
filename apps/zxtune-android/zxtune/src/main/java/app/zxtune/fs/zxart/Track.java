@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Track description POJO
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.zxart;
@@ -20,7 +16,7 @@ public final class Track {
   public final int year;
   public final String compo;
   public final int partyplace;
-  
+
   public Track(int id, String filename, String title, String votes, String duration, int year, String compo, int partyplace) {
     this.id = id;
     this.filename = filename;

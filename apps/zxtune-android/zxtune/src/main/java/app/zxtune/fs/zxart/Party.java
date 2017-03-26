@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Party description POJO
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.zxart;

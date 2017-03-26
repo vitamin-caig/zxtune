@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs.zxart;
@@ -24,7 +20,7 @@ import app.zxtune.fs.dbhelpers.Transaction;
 
 final class CachingCatalog extends Catalog {
 
-  private final static String TAG = CachingCatalog.class.getName();
+  private static final String TAG = CachingCatalog.class.getName();
 
   private final TimeStamp AUTHORS_TTL = days(7);
   private final TimeStamp PARTIES_TTL = days(7);
@@ -51,7 +47,7 @@ final class CachingCatalog extends Catalog {
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorsLifetime(AUTHORS_TTL);
       }
-      
+
       @Override
       public Transaction startTransaction() throws IOException {
         return db.startTransaction();
@@ -72,13 +68,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthorTracks(final Author author, final TracksVisitor visitor)
-      throws IOException {
+          throws IOException {
     executor.executeQueryCommand("tracks", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorTracksLifetime(author, TRACKS_TTL);
       }
-      
+
       @Override
       public Transaction startTransaction() throws IOException {
         return db.startTransaction();
@@ -104,7 +100,7 @@ final class CachingCatalog extends Catalog {
       public Timestamps.Lifetime getLifetime() {
         return db.getPartiesLifetime(PARTIES_TTL);
       }
-      
+
       @Override
       public Transaction startTransaction() throws IOException {
         return db.startTransaction();
@@ -125,13 +121,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryPartyTracks(final Party party, final TracksVisitor visitor)
-      throws IOException {
+          throws IOException {
     executor.executeQueryCommand("tracks", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getPartyTracksLifetime(party, TRACKS_TTL);
       }
-      
+
       @Override
       public Transaction startTransaction() throws IOException {
         return db.startTransaction();
@@ -157,7 +153,7 @@ final class CachingCatalog extends Catalog {
       public Timestamps.Lifetime getLifetime() {
         return db.getTopLifetime(TRACKS_TTL);
       }
-      
+
       @Override
       public Transaction startTransaction() throws IOException {
         return db.startTransaction();
@@ -180,7 +176,7 @@ final class CachingCatalog extends Catalog {
   public boolean searchSupported() {
     return true;
   }
-  
+
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     if (remote.searchSupported()) {
       Log.d(TAG, "Use remote-side search");
@@ -190,7 +186,7 @@ final class CachingCatalog extends Catalog {
       db.findTracks(query, visitor);
     }
   }
-  
+
   @Override
   public ByteBuffer getTrackContent(final int id) throws IOException {
     return executor.executeFetchCommand("file", new FetchCommand<ByteBuffer>() {
@@ -209,13 +205,13 @@ final class CachingCatalog extends Catalog {
   }
 
   private class CachingAuthorsVisitor extends AuthorsVisitor {
-    
+
     private final AuthorsVisitor delegate;
-    
+
     CachingAuthorsVisitor(AuthorsVisitor delegate) {
       this.delegate = delegate;
     }
-    
+
     @Override
     public void setCountHint(int count) {
       delegate.setCountHint(count);
@@ -229,13 +225,13 @@ final class CachingCatalog extends Catalog {
   }
 
   private class CachingPartiesVisitor extends PartiesVisitor {
-    
+
     private final PartiesVisitor delegate;
-    
+
     CachingPartiesVisitor(PartiesVisitor delegate) {
       this.delegate = delegate;
     }
-    
+
     @Override
     public void setCountHint(int count) {
       delegate.setCountHint(count);
@@ -250,7 +246,7 @@ final class CachingCatalog extends Catalog {
 
   private class CachingTracksVisitor extends TracksVisitor {
 
-    private TracksVisitor delegate;
+    private final TracksVisitor delegate;
     private final Author author;
     private final Party party;
 
@@ -271,7 +267,7 @@ final class CachingCatalog extends Catalog {
       this.author = null;
       this.party = null;
     }
-    
+
     @Override
     public void setCountHint(int count) {
       delegate.setCountHint(count);

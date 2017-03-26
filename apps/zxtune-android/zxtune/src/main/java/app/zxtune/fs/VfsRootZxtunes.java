@@ -1,17 +1,14 @@
 /**
- *
  * @file
- *
  * @brief Implementation of VfsRoot over http://zxtunes.com catalogue
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.util.SparseIntArray;
 
 import java.io.IOException;
@@ -29,7 +26,7 @@ import app.zxtune.fs.zxtunes.Track;
 
 final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
-  private final static String TAG = VfsRootZxtunes.class.getName();
+  private static final String TAG = VfsRootZxtunes.class.getName();
 
   private final Context context;
   private final Catalog catalog;
@@ -38,8 +35,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   VfsRootZxtunes(Context context, HttpProvider http, VfsCache cache) throws IOException {
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
-    this.groups = new GroupingDir[] {
-        new AuthorsDir()
+    this.groups = new GroupingDir[]{
+            new AuthorsDir()
     };
   }
 
@@ -59,6 +56,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject getParent() {
     return null;
   }
@@ -83,6 +81,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) {
     if (Identifier.isFromRoot(uri)) {
       final List<String> path = uri.getPathSegments();
@@ -92,6 +91,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     }
   }
 
+  @Nullable
   private VfsObject resolve(Uri uri, List<String> path) {
     final String category = Identifier.findCategory(path);
     if (category == null) {
@@ -116,7 +116,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     abstract String getPath();
 
     abstract VfsObject resolve(Uri uri, List<String> path);
-  };
+  }
 
   private class AuthorsDir extends GroupingDir {
 
@@ -143,7 +143,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
         return super.getExtension(id);
       }
     }
-    
+
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(new Catalog.AuthorsVisitor() {
@@ -173,11 +173,12 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       }
       final VfsObject dir = resolveDir(uri, path);
       return dir != null
-          ? dir
-          : this;
+              ? dir
+              : this;
     }
   }
 
+  @Nullable
   private VfsObject resolveDir(Uri uri, List<String> path) {
     final Author author = Identifier.findAuthor(uri, path);
     if (author == null) {
@@ -185,8 +186,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     }
     final Integer date = Identifier.findDate(uri, path);
     return date != null
-        ? new AuthorDateDir(author, date)
-        : new AuthorDir(author);
+            ? new AuthorDateDir(author, date)
+            : new AuthorDir(author);
   }
 
   private class AuthorDir extends StubObject implements VfsDir {
@@ -243,7 +244,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     }
   }
 
-  private static boolean isEmptyDate(Integer date) {
+  private static boolean isEmptyDate(@Nullable Integer date) {
     return date == null || 0 == date;
   }
 
@@ -302,7 +303,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     }
   }
 
-  private final static TimeStamp FRAME_DURATION = TimeStamp.createFrom(20, TimeUnit.MILLISECONDS);
+  private static final TimeStamp FRAME_DURATION = TimeStamp.createFrom(20, TimeUnit.MILLISECONDS);
 
   private class TrackFile extends StubObject implements VfsFile {
 
@@ -347,8 +348,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     @Override
     public String getSize() {
       return module.duration != null
-          ? FRAME_DURATION.multiplies(module.duration).toString()
-          : "".intern();
+              ? FRAME_DURATION.multiplies(module.duration).toString()
+              : "";
     }
 
     @Override
@@ -356,19 +357,22 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       return catalog.getTrackContent(module.id);
     }
 
+    @Nullable
     private String getShareUrl() {
       final Author author = Identifier.findAuthor(uri, uri.getPathSegments());
-      return String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.id,
-          module.id);
+      return author != null
+              ? String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.id,
+              module.id)
+              : null;
     }
   }
 
   private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
-    
+
     @Override
     public void find(String query, final Visitor visitor) throws IOException {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
-        
+
         @Override
         public void accept(Author author, Track track) {
           final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), track).build();

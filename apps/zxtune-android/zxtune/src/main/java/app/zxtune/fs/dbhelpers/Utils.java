@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Different db-related utils
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.dbhelpers;
@@ -29,7 +25,7 @@ public final class Utils {
       }
     }
   }
-  
+
   private static ArrayList<String> getObjects(SQLiteDatabase db, String type) {
     final String[] columns = {"name"};
     final String selection = "type = ?";

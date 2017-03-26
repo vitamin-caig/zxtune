@@ -1,24 +1,20 @@
 /**
- *
  * @file
- *
  * @brief Implementation of VfsRoot over http://hvsc.c64.org collection
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
 
 /**
- *
  * Paths:
- *
+ * <p/>
  * 1) aygor:/${FilePath} - direct access to files or folders starting from http://abrimaal.pro-e.pl/ayon/ dir
  */
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -31,9 +27,9 @@ import app.zxtune.fs.aygor.Catalog;
 
 final class VfsRootAygor extends StubObject implements VfsRoot {
 
-  private final static String TAG = VfsRootAygor.class.getName();
+  private static final String TAG = VfsRootAygor.class.getName();
 
-  private final static String SCHEME = "aygor";
+  private static final String SCHEME = "aygor";
 
   private final Context context;
   private final Catalog catalog;
@@ -42,7 +38,7 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
   VfsRootAygor(Context context, HttpProvider http, VfsCache cache) {
     this.context = context;
     this.catalog = Catalog.create(http, cache);
-    this.root = new AyonMusicSubdir(Collections.<String> emptyList());
+    this.root = new AyonMusicSubdir(Collections.<String>emptyList());
   }
 
   @Override
@@ -61,6 +57,7 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject getParent() {
     return null;
   }
@@ -73,13 +70,14 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
       return super.getExtension(id);
     }
   }
-  
+
   @Override
   public void enumerate(Visitor visitor) throws IOException {
     root.enumerate(visitor);
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
@@ -87,32 +85,33 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
     return null;
   }
 
-  private Uri.Builder rootUri() {
+  private static Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }
 
+  @Nullable
   private VfsObject resolvePath(Uri uri) throws IOException {
     final List<String> path = uri.getPathSegments();
     if (path.isEmpty()) {
       return this;
     } else {
-      return root.resolve(uri, path);
+      return root.resolve(path);
     }
   }
-  
+
   private abstract class AyonMusicObject extends StubObject implements VfsObject {
 
-    protected final List<String> path;
-    
+    final List<String> path;
+
     AyonMusicObject(String path) {
       this.path = new ArrayList<String>();
       this.path.add(path);
     }
-    
+
     AyonMusicObject(List<String> path) {
       this.path = path;
     }
-    
+
     @Override
     public Uri getUri() {
       final Uri.Builder builder = rootUri();
@@ -121,7 +120,7 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
       }
       return builder.build();
     }
-    
+
     @Override
     public String getName() {
       return path.get(path.size() - 1);
@@ -135,15 +134,11 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
               : new AyonMusicSubdir(path.subList(0, depth - 1));
     }
   }
-  
+
   //starting from ayon
   private class AyonMusicSubdir extends AyonMusicObject implements VfsDir {
 
     private ByteBuffer content;
-
-    AyonMusicSubdir(String path) {
-      super(path);
-    }
 
     AyonMusicSubdir(List<String> path) {
       super(path);
@@ -171,12 +166,13 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
       });
     }
 
-    final VfsObject resolve(Uri uri, List<String> path) throws IOException {
+    final VfsObject resolve(List<String> path) throws IOException {
       final ByteBuffer content = catalog.getFileContent(path);
       return catalog.isDirContent(content)
               ? new AyonMusicSubdir(path, content)
               : new AyonMusicFile(path, content);
     }
+
 
     private ByteBuffer getContent() throws IOException {
       if (content == null) {
@@ -213,10 +209,10 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
       return result;
     }
   }
-    
+
   private class AyonMusicFile extends AyonMusicObject implements VfsFile {
 
-    private String size;
+    private final String size;
     private ByteBuffer content;
 
     AyonMusicFile(List<String> path, String size) {

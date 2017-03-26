@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Remote implementation of catalog
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.modland;
@@ -34,17 +30,17 @@ class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
-  private final static String SITE = "http://www.exotica.org.uk/";
-  private final static String API = SITE + "mediawiki/index.php?title=Special:Modland";
-  private final static String GROUPS_QUERY = API + "&md=b_%s&st=%s";
-  private final static String GROUP_TRACKS_QUERY = API + "&md=%s&id=%d";
+  private static final String SITE = "http://www.exotica.org.uk/";
+  private static final String API = SITE + "mediawiki/index.php?title=Special:Modland";
+  private static final String GROUPS_QUERY = API + "&md=b_%s&st=%s";
+  private static final String GROUP_TRACKS_QUERY = API + "&md=%s&id=%d";
 
-  private final static String STORAGE_MIRROR = "http://ftp.amigascne.org/mirrors/ftp.modland.com";
+  private static final String STORAGE_MIRROR = "http://ftp.amigascne.org/mirrors/ftp.modland.com";
 
-  private final static Pattern PAGINATOR =
-    Pattern.compile("<caption>Browsing (.+?) - (\\d+) results? - showing page (\\d+) of (\\d+).</caption>");
-  private final static Pattern TRACKS =
-    Pattern.compile("file=(pub/modules/.+?).>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
+  private static final Pattern PAGINATOR =
+          Pattern.compile("<caption>Browsing (.+?) - (\\d+) results? - showing page (\\d+) of (\\d+).</caption>");
+  private static final Pattern TRACKS =
+          Pattern.compile("file=(pub/modules/.+?).>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
 
   private final HttpProvider http;
   private final Grouping authors;
@@ -67,7 +63,7 @@ class RemoteCatalog extends Catalog {
   public Grouping getCollections() {
     return collections;
   }
-  
+
   @Override
   public Grouping getFormats() {
     return formats;
@@ -76,7 +72,7 @@ class RemoteCatalog extends Catalog {
   private static String decodeHtml(String txt) {
     return Html.fromHtml(txt).toString();
   }
-  
+
   private static String makeGroupsQuery(String type, String filter) {
     return String.format(Locale.US, GROUPS_QUERY, type, Uri.encode(filter));
   }
@@ -84,22 +80,22 @@ class RemoteCatalog extends Catalog {
   private static String makeGroupTracksQuery(String type, int authorId) {
     return String.format(Locale.US, GROUP_TRACKS_QUERY, type, authorId);
   }
-  
+
   private abstract class BaseGrouping implements Grouping {
-    
+
     private final Pattern entries;
-    
+
     BaseGrouping() {
       this.entries = Pattern.compile(
-          "<td><a href=.+?md=" + getCategoryTag() + "&amp;id=(\\d+).>(.+?)</a>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
+              "<td><a href=.+?md=" + getCategoryTag() + "&amp;id=(\\d+).>(.+?)</a>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
     }
-    
+
     @Override
     public void query(String filter, final GroupsVisitor visitor) throws IOException {
       loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
-        
+
         private boolean countReported;
-        
+
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
           if (!countReported) {
@@ -111,7 +107,7 @@ class RemoteCatalog extends Catalog {
         }
       });
     }
-    
+
     private void parseAuthors(CharSequence content, GroupsVisitor visitor) {
       final Matcher matcher = entries.matcher(content);
       while (matcher.find()) {
@@ -155,13 +151,14 @@ class RemoteCatalog extends Catalog {
         }
       });
     }
-    
+
     @Override
     public Track findTrack(int id, final String filename) throws IOException {
       final AtomicReference<Track> result = new AtomicReference<Track>();
       queryTracks(id, new TracksVisitor() {
         @Override
-        public void setCountHint(int size) {}
+        public void setCountHint(int size) {
+        }
 
         @Override
         public boolean accept(Track obj) {
@@ -175,18 +172,19 @@ class RemoteCatalog extends Catalog {
       });
       return result.get();
     }
-    
+
     abstract String getTracksHeader();
+
     abstract String getCategoryTag();
   }
-  
+
   private class Authors extends BaseGrouping {
 
     @Override
     String getTracksHeader() {
       return "Modules from author ";
     }
-    
+
     @Override
     String getCategoryTag() {
       return "aut";
@@ -199,26 +197,26 @@ class RemoteCatalog extends Catalog {
     String getTracksHeader() {
       return "Modules from collection ";
     }
-    
+
     @Override
     String getCategoryTag() {
       return "col";
     }
   }
-  
+
   private class Formats extends BaseGrouping {
 
     @Override
     String getTracksHeader() {
       return "Modules in format ";
     }
-    
+
     @Override
     String getCategoryTag() {
       return "for";
     }
   }
-  
+
   private static boolean parseTracks(CharSequence content, TracksVisitor visitor) {
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
@@ -243,7 +241,7 @@ class RemoteCatalog extends Catalog {
   private void loadPages(String query, PagesVisitor visitor) throws IOException {
     for (int pg = 1; ; ++pg) {
       final String uri = query + String.format(Locale.US, "&pg=%d", pg);
-      final String chars = http.getHtml(uri); 
+      final String chars = http.getHtml(uri);
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
         Log.d(TAG, "Load page: %s", matcher.group());
@@ -255,7 +253,7 @@ class RemoteCatalog extends Catalog {
           throw new UnsupportedOperationException("Invalid paginator structure");
         }
         if (visitor.onPage(header, Integer.valueOf(results), chars)
-            && pg < Integer.valueOf(pagesTotal)) {
+                && pg < Integer.valueOf(pagesTotal)) {
           continue;
         }
       }

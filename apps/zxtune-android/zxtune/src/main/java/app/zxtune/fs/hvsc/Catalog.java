@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Catalog interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.hvsc;
@@ -18,9 +14,10 @@ import app.zxtune.fs.HttpProvider;
 import app.zxtune.fs.VfsCache;
 
 public abstract class Catalog {
-  
+
   public interface DirVisitor {
     void acceptDir(String name);
+
     void acceptFile(String name, String size);
   }
 
@@ -31,22 +28,22 @@ public abstract class Catalog {
    * @throws IOException
    */
   public abstract ByteBuffer getFileContent(List<String> path) throws IOException;
-  
+
   /**
    * Check if buffer contains directory page 
-   * @param buffer
+   * @param buffer html page content
    * @return true if so
    */
   public abstract boolean isDirContent(ByteBuffer buffer);
 
   /**
-   * 
-   * @param data
-   * @param visitor
+   *
+   * @param data html page content
+   * @param visitor result receiver
    * @throws IOException
    */
   public abstract void parseDir(ByteBuffer data, DirVisitor visitor) throws IOException;
-  
+
   public static Catalog create(HttpProvider http, VfsCache cache) {
     final Catalog remote = new RemoteCatalog(http);
     final VfsCache cacheDir = cache.createNested("hvsc");
