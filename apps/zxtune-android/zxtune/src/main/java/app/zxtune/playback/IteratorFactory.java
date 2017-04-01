@@ -44,7 +44,7 @@ public final class IteratorFactory {
   //TODO: implement abstract iterator-typed visitor and preferences notification 
   static class NavigationMode {
     
-    private final static String KEY = "playlist.navigation_mode";
+    private static final String KEY = "playlist.navigation_mode";
     private final SharedPreferences prefs;
     
     NavigationMode(Context context) {

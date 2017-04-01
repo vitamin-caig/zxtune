@@ -28,32 +28,27 @@ public interface Item {
   public Identifier getDataId();
 
   /**
-   * @return Item's title
-   * @note may be empty
+   * @return Item's title (possibly empty)
    */
   public String getTitle();
 
   /**
-   * @return Item's author
-   * @note may be empty
+   * @return Item's author (possibly empty)
    */
   public String getAuthor();
   
   /**
-   * @return Item's program information
-   * @note may be empty
+   * @return Item's program information (possibly empty)
    */
   public String getProgram();
   
   /**
-   * @return Item's comment
-   * @note may be empty
+   * @return Item's comment (possibly empty)
    */
   public String getComment();
   
   /**
-   * @return Item's internal strings
-   * @note may be empty
+   * @return Item's internal strings (possibly empty)
    */
   public String getStrings();
 

@@ -19,9 +19,6 @@ public class ItemStub implements Item {
 
   private static final String EMPTY_STRING = "";
   
-  protected ItemStub() {
-  }
-  
   @Override
   public Uri getId() {
     return Uri.EMPTY;

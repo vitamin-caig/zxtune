@@ -106,6 +106,9 @@ class PlaylistIterator implements Iterator {
   
   private void loadItem(DatabaseIterator iter) {
     final app.zxtune.playlist.Item meta = iter.getItem();
+    if (meta == null) {
+      return;
+    }
     scanner.analyzeIdentifier(meta.getLocation(), new Scanner.Callback() {
       
       @Override

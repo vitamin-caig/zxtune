@@ -121,6 +121,7 @@ public class FileIterator implements Iterator {
           });
           addItem(PlayableItemStub.instance());//limiter
         } catch (Error e) {
+          Log.w(TAG, e, "Error in FileIterator.start()");
         }
       }
     });
@@ -156,6 +157,7 @@ public class FileIterator implements Iterator {
       //put limiter back
       itemsQueue.put(item);
     } catch (InterruptedException e) {
+      Log.d(TAG, "Interrupted FileIterator.takeNextItem");
     }
     return false;
   }
@@ -178,7 +180,7 @@ public class FileIterator implements Iterator {
   
   static class FileItem implements PlayableItem {
 
-    private final static String EMPTY_STRING = "";
+    private static final String EMPTY_STRING = "";
     private ZXTune.Module module;
     private final Uri id;
     private final Identifier dataId;

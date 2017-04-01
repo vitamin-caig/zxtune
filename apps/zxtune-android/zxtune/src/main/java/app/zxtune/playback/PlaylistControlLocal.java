@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.util.SparseIntArray;
 
 import app.zxtune.Analytics;
@@ -40,7 +41,7 @@ final class PlaylistControlLocal implements PlaylistControl {
     intent.setAction(ScanService.ACTION_START);
     intent.putExtra(ScanService.EXTRA_PATHS, uris);
     context.startService(intent);
-    Analytics.sendPlaylistEvent("Add", Integer.valueOf(uris.length));
+    Analytics.sendPlaylistEvent("Add", uris.length);
   }
   
   @Override
@@ -53,7 +54,7 @@ final class PlaylistControlLocal implements PlaylistControl {
     deleteItems(null);
   }
   
-  private void deleteItems(String selection) {
+  private void deleteItems(@Nullable String selection) {
     db.deletePlaylistItems(selection, null);
     notifyPlaylist();
     Analytics.sendPlaylistEvent("Delete", selection != null ? "selection" : "global");
@@ -110,7 +111,6 @@ final class PlaylistControlLocal implements PlaylistControl {
     final int count = Math.abs(delta) + 1;
     final String ord = PlaylistQuery.limitedOrder(delta > 0 ? delta + 1 : delta - 1);
     final Cursor cur = db.queryPlaylistItems(proj, sel, null, ord);
-    assert cur.getCount() == count;
     final int[] ids = new int[count];
     final int[] pos = new int[count];
     try {
@@ -120,7 +120,6 @@ final class PlaylistControlLocal implements PlaylistControl {
         pos[i] = cur.getInt(1);
         ++i;
       }
-      assert i == count;
     } finally {
       cur.close();
     }

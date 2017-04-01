@@ -37,8 +37,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   
   private static final String TAG = PlaybackServiceLocal.class.getName();
   
-  private final static String PREF_LAST_PLAYED_PATH = "last_played_path";
-  private final static String PREF_LAST_PLAYED_POSITION = "last_played_position";
+  private static final String PREF_LAST_PLAYED_PATH = "last_played_path";
+  private static final String PREF_LAST_PLAYED_POSITION = "last_played_position";
   
   private final Context context;
   private final ExecutorService executor;

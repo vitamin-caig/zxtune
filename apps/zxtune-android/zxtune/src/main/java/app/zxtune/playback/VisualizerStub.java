@@ -12,9 +12,6 @@ package app.zxtune.playback;
 
 public class VisualizerStub implements Visualizer {
 
-  // permit inheritance
-  protected VisualizerStub() {}
-
   @Override
   public int getSpectrum(int[] bands, int[] levels) {
     return 0;
