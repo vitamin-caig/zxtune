@@ -21,10 +21,11 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/encoding.h>
-#include <strings/trim.h>
 //std includes
 #include <array>
 #include <cassert>
+//boost includes
+#include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -67,7 +68,7 @@ namespace Chiptune
       }
     } PACK_POST;
 
-    typedef char InstrumentName[16];
+    using InstrumentName = std::array<char, 16>;
 
     PACK_PRE struct RawInstrument
     {
@@ -798,10 +799,16 @@ namespace Chiptune
       std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
+    
+    StringView Trim(StringView str)
+    {
+      //empty samples' names are filled with FF
+      return boost::algorithm::trim_copy_if(str, boost::is_from_range('\x00', '\x20') || boost::is_any_of("\xff"));
+    }
 
     String DecodeString(StringView str)
     {
-      return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+      return Strings::ToAutoUtf8(Trim(str));
     }
     
     template<class Version>
