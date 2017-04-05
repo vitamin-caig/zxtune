@@ -39,11 +39,9 @@ namespace Module
 
   //! @brief Recursively search all the modules inside location
   //! @param params Parameters for plugins
-  //! @param location Start data location
+  //! @param data Data to scan
   //! @param callback Detect callback
-  //! @return Size in bytes of source data processed
-  std::size_t Detect(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback);//for internal usage
-  std::size_t Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& callback);
+  void Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& callback);
 
   //! @brief Opens module directly from location
   //! @param params Parameters for plugins

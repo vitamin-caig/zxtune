@@ -24,6 +24,7 @@
 #include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <core/src/location.h>
 #include <debug/log.h>
 #include <io/api.h>
 #include <module/attributes.h>

@@ -11,6 +11,7 @@
 //local includes
 #include "archived.h"
 #include "core/src/callback.h"
+#include "core/src/detect.h"
 #include "core/plugins/plugins_types.h"
 #include "core/plugins/utils.h"
 //common includes

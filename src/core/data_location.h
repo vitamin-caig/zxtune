@@ -13,7 +13,6 @@
 //library includes
 #include <analysis/path.h>
 #include <binary/container.h>
-#include <parameters/accessor.h>
 
 namespace ZXTune
 {
@@ -28,11 +27,4 @@ namespace ZXTune
     virtual Analysis::Path::Ptr GetPath() const = 0;
     virtual Analysis::Path::Ptr GetPluginsChain() const = 0;
   };
-
-  //! @param coreParams Parameters for plugins processing
-  //! @param data Source data to be processed
-  //! @param subpath Subpath in source data to be resolved
-  //! @return Object if path is valid. No object elsewhere
-  DataLocation::Ptr CreateLocation(Binary::Container::Ptr data);
-  DataLocation::Ptr OpenLocation(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath);
 }

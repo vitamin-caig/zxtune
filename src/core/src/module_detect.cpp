@@ -266,10 +266,10 @@ namespace Module
     return OpenInternal(params, location, callback);
   }
 
-  std::size_t Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& callback)
+  void Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& callback)
   {
     const ResolveAdditionalFilesAdapter adapter(params, data, callback);
-    return Detect(params, ZXTune::CreateLocation(data), adapter);
+    Detect(params, ZXTune::CreateLocation(data), adapter);
   }
   
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)

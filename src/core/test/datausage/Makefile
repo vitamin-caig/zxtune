@@ -15,7 +15,7 @@ libraries.common = analysis \
                    tools
 
 #3rdparty
-libraries.3rdparty = gme he hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
+libraries.3rdparty = gme he hvl lazyusf2 lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
 
 libraries.boost += filesystem system
 

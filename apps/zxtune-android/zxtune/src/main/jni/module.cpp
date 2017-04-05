@@ -94,8 +94,7 @@ namespace
 
   void DetectModules(Binary::Container::Ptr data, Module::DetectCallback& cb)
   {
-    auto location = ZXTune::CreateLocation(std::move(data));
-    Module::Detect(*Parameters::GlobalOptions(), std::move(location), cb);
+    Module::Detect(*Parameters::GlobalOptions(), std::move(data), cb);
   }
 }
 
