@@ -17,9 +17,7 @@
 #include <math/numeric.h>
 #include <module/players/analyzer.h>
 #include <parameters/tracking_helper.h>
-#include <sound/gainer.h>
 #include <sound/mixer_factory.h>
-#include <sound/sound_parameters.h>
 
 namespace Module
 {
@@ -160,91 +158,6 @@ namespace Module
     bool Looped;
   };
 
-  class FadeoutFilter : public Sound::Receiver
-  {
-  public:
-    typedef std::shared_ptr<FadeoutFilter> Ptr;
-
-    FadeoutFilter(uint_t start, uint_t duration, Sound::FadeGainer::Ptr target)
-      : Start(start)
-      , Duration(duration)
-      , Target(std::move(target))
-    {
-    }
-
-    void ApplyData(Sound::Chunk chunk) override
-    {
-      Target->ApplyData(std::move(chunk));
-    }
-
-    void Flush() override
-    {
-      if (const TrackState::Ptr state = State.lock())
-      {
-        if (state->Frame() >= Start)
-        {
-          Target->SetFading(Sound::Gain::Type(-1), Duration);
-          State.reset();
-        }
-      }
-      Target->Flush();
-    }
-
-    void SetTrackState(TrackState::Ptr state)
-    {
-      State = state;
-    }
-  private:
-    const uint_t Start;
-    const uint_t Duration;
-    const Sound::FadeGainer::Ptr Target;
-    std::weak_ptr<const TrackState> State;
-  };
-
-  Sound::FadeGainer::Ptr CreateFadeGainer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-  {
-    Parameters::IntType fadeIn = Parameters::ZXTune::Sound::FADEIN_DEFAULT;
-    Parameters::IntType fadeOut = Parameters::ZXTune::Sound::FADEOUT_DEFAULT;
-    params->FindValue(Parameters::ZXTune::Sound::FADEIN, fadeIn);
-    params->FindValue(Parameters::ZXTune::Sound::FADEOUT, fadeOut);
-    if (fadeIn == 0 && fadeOut == 0)
-    {
-      return Sound::FadeGainer::Ptr();
-    }
-    Dbg("Using fade in for %1% uS, fade out for %2% uS", fadeIn, fadeOut);
-    const Sound::FadeGainer::Ptr gainer = Sound::CreateFadeGainer();
-    gainer->SetTarget(target);
-    if (fadeIn != 0)
-    {
-      gainer->SetGain(Sound::Gain::Type());
-      const Parameters::IntType frameDuration = Sound::RenderParameters::Create(params)->FrameDuration().Get();
-      const uint_t fadeInFrames = static_cast<uint_t>((fadeIn + frameDuration) / frameDuration);
-      Dbg("Fade in for %1% frames", fadeInFrames);
-      gainer->SetFading(Sound::Gain::Type(1), fadeInFrames);
-    }
-    else
-    {
-      gainer->SetGain(Sound::Gain::Type(1));
-    }
-    return gainer;
-  }
-
-  FadeoutFilter::Ptr CreateFadeOutFilter(Parameters::Accessor::Ptr params, Information::Ptr info, Sound::FadeGainer::Ptr target)
-  {
-    Parameters::IntType fadeOut = Parameters::ZXTune::Sound::FADEOUT_DEFAULT;
-    params->FindValue(Parameters::ZXTune::Sound::FADEOUT, fadeOut);
-    if (fadeOut == 0)
-    {
-      return FadeoutFilter::Ptr();
-    }
-    const Parameters::IntType frameDuration = Sound::RenderParameters::Create(params)->FrameDuration().Get();
-    const uint_t fadeOutFrames = static_cast<uint_t>((fadeOut + frameDuration) / frameDuration);
-    const uint_t totalFrames = info->FramesCount();
-    const uint_t startFadingFrame = totalFrames - fadeOutFrames;
-    Dbg("Fade out for %1% frames starting from %2% frame out of %3%", fadeOutFrames, startFadingFrame, totalFrames);
-    return MakePtr<FadeoutFilter>(startFadingFrame, fadeOutFrames, target);
-  }
-
   class StubAnalyzer : public Module::Analyzer
   {
   public:
@@ -292,27 +205,8 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
     {
-      if (const Sound::FadeGainer::Ptr fade = CreateFadeGainer(params, target))
-      {
-        if (FadeoutFilter::Ptr fadeout = CreateFadeOutFilter(params, holder.GetModuleInformation(), fade))
-        {
-          const Devices::AYM::Chip::Ptr chip = CreateChip(params, fadeout);
-          const Renderer::Ptr result = holder.CreateRenderer(params, chip);
-          fadeout->SetTrackState(result->GetTrackState());
-          return result;
-        }
-        else
-        {
-          //only fade in
-          const Devices::AYM::Chip::Ptr chip = CreateChip(params, fade);
-          return holder.CreateRenderer(params, chip);
-        }
-      }
-      else
-      {
-        const Devices::AYM::Chip::Ptr chip = CreateChip(params, target);
-        return holder.CreateRenderer(params, chip);
-      }
+      const Devices::AYM::Chip::Ptr chip = CreateChip(params, target);
+      return holder.CreateRenderer(params, chip);
     }
   }
 }
