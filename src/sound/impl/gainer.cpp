@@ -9,99 +9,72 @@
 **/
 
 //common includes
-#include <error.h>
 #include <make_ptr.h>
 //library includes
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <math/fixedpoint.h>
 #include <sound/gainer.h>
 //boost includes
 #include <boost/integer/static_log2.hpp>
 
-#define FILE_TAG F5996093
-
 namespace Sound
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const auto USED_GAIN_BITS = boost::static_log2<Gain::Type::PRECISION>::value + Sample::BITS;
+  const auto AVAIL_GAIN_BITS = 8 * sizeof(Gain::Type::ValueType);
+    
+  static_assert(USED_GAIN_BITS < AVAIL_GAIN_BITS, "Not enough bits");
+  const Gain::Type MAX_LEVEL(1 << (AVAIL_GAIN_BITS - USED_GAIN_BITS));
 
   class GainCore
   {
   public:
     GainCore()
       : Level()
-      , Step()
     {
     }
 
     Sample Apply(Sample in) const
     {
-      static const Coeff ONE(1);
-      static const Coeff ZERO(0);
-      if (Level == ONE)
-      {
-        return in;
-      }
-      else if (Level == ZERO)
-      {
-        return Sample();
-      }
-      return Sample((Level * in.Left()).Round(), (Level * in.Right()).Round());
+      return Sample(Clamp((Level * in.Left()).Round()), Clamp((Level * in.Right()).Round()));
     }
 
     void SetGain(Gain::Type in)
     {
-      static const Gain::Type MIN(0, Gain::Type::PRECISION);
-      static const Gain::Type MAX(Gain::Type::PRECISION, Gain::Type::PRECISION);
-      if (in < MIN || in > MAX)
-      {
-        throw Error(THIS_LINE, translate("Failed to set gain value: out of range."));
-      }
-      Level = Coeff(in);
+      Level = std::min(in, MAX_LEVEL);
     }
-
-    void SetFading(Gain::Type delta, uint_t step)
-    {
-      Step = Coeff(delta) / step;
-    }
-
-    void ApplyStep()
-    {
-      static const Coeff ONE(1);
-      static const Coeff ZERO(0);
-      if (Step != ZERO)
-      {
-        Level += Step;
-        if (Level > ONE || Level < ZERO)
-        {
-          Level = Step < ZERO ? ZERO : ONE;
-          Step = ZERO;
-        }
-      }
-    }
+    
   private:
-    typedef Math::FixedPoint<int64_t, int64_t(1) << 31> Coeff;
-    static_assert(8 * sizeof(Coeff) >= boost::static_log2<Coeff::PRECISION>::value + Sample::BITS, "Not enough bits");
-    Coeff Level;
-    Coeff Step;
+    static Sample::Type Clamp(Gain::Type::ValueType in)
+    {
+      return Math::Clamp<Gain::Type::ValueType>(in, Sample::MIN, Sample::MAX);
+    }
+
+  private:
+    Gain::Type Level;
   };
 
-  class FixedPointGainer : public FadeGainer
+  class FixedPointGainer : public Receiver
   {
   public:
-    FixedPointGainer()
-      : Delegate(Receiver::CreateStub())
+    FixedPointGainer(GainSource::Ptr gain, Receiver::Ptr delegate)
+      : Gain(std::move(gain))
+      , Delegate(std::move(delegate))
       , Core()
     {
     }
 
     void ApplyData(Chunk in) override
     {
-      for (auto& val : in)
+      static const Gain::Type IDENTITY(1);
+      const auto gain = Gain->Get();
+      if (gain != IDENTITY)
       {
-        val = Core.Apply(val);
+        Core.SetGain(Gain->Get());
+        for (auto& val : in)
+        {
+          val = Core.Apply(val);
+        }
       }
-      Core.ApplyStep();
       return Delegate->ApplyData(std::move(in));
     }
 
@@ -110,30 +83,14 @@ namespace Sound
       Delegate->Flush();
     }
 
-    void SetTarget(Receiver::Ptr delegate) override
-    {
-      Delegate = delegate ? delegate : Receiver::CreateStub();
-    }
-
-    void SetGain(Gain::Type gain) override
-    {
-      Core.SetGain(gain);
-    }
-
-    void SetFading(Gain::Type delta, uint_t step) override
-    {
-      Core.SetFading(delta, step);
-    }
   private:
-    Receiver::Ptr Delegate;
+    const GainSource::Ptr Gain;
+    const Receiver::Ptr Delegate;
     GainCore Core;
   };
-}
 
-namespace Sound
-{
-  FadeGainer::Ptr CreateFadeGainer()
+  Receiver::Ptr CreateGainer(GainSource::Ptr gain, Receiver::Ptr delegate)
   {
-    return MakePtr<FixedPointGainer>();
+    return MakePtr<FixedPointGainer>(std::move(gain), std::move(delegate));
   }
 }
