@@ -25,6 +25,7 @@
 #include <module/additional_files.h>
 #include <module/players/analyzer.h>
 #include <module/players/duration.h>
+#include <module/players/fading.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
@@ -307,13 +308,13 @@ namespace PSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(ModuleData::Ptr data, Information::Ptr info, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Data(std::move(data))
-      , Iterator(std::move(iterator))
+      , Iterator(Module::CreateStreamStateIterator(info))
       , State(Iterator->GetStateObserver())
       , Engine(MakePtr<PSXEngine>())
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
-      , Target(std::move(target))
+      , SoundParams(Sound::RenderParameters::Create(params))
+      , Target(Module::CreateFadingReceiver(std::move(params), std::move(info), State, std::move(target)))
       , Looped()
     {
       Engine->Initialize(*Data);
@@ -416,7 +417,7 @@ namespace PSF
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), std::move(target), std::move(params));
+      return MakePtr<Renderer>(Tune, Info, std::move(target), std::move(params));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties, Time::Seconds defaultDuration)
