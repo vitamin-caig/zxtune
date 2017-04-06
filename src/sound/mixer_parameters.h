@@ -31,6 +31,7 @@ namespace Parameters
         NameType LEVEL(uint_t totalChannels, uint_t inChannel, uint_t outChannel);
 
         //! @brief Function to get defaul percent-based level
+        //! @see Parameters#ZXTune#Sound#GAIN_PRECISION
         IntType LEVEL_DEFAULT(uint_t totalChannels, uint_t inChannel, uint_t outChannel);
         //@}
       }

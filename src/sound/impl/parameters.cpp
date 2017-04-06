@@ -70,6 +70,7 @@ namespace Parameters
       extern const NameType LOOPED = PREFIX + "looped";
       extern const NameType FADEIN = PREFIX + "fadein";
       extern const NameType FADEOUT = PREFIX + "fadeout";
+      extern const NameType GAIN = PREFIX + "gain";
 
       namespace Mixer
       {

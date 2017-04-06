@@ -34,6 +34,7 @@ namespace Parameters
 
       //@{
       //! @name Frame duration in microseconds
+      const IntType FRAMEDURATION_PRECISION = 1000000;
 
       //! Default value- 20mS (50Hz)
       const IntType FRAMEDURATION_DEFAULT = 20000;
@@ -52,6 +53,7 @@ namespace Parameters
 
       //@{
       //! @name Fadein in microseconds
+      const IntType FADEIN_PRECISION = 1000000;
 
       //! Default value- no fading
       const IntType FADEIN_DEFAULT = 0;
@@ -61,12 +63,22 @@ namespace Parameters
 
       //@{
       //! @name Fadeout in microseconds
+      const IntType FADEOUT_PRECISION = 1000000;
 
       //! Default value- no fading
       const IntType FADEOUT_DEFAULT = 0;
       //! Parameter name
       extern const NameType FADEOUT;
       //@}
+      
+      //@{
+      //! @name Gain in percents
+      const IntType GAIN_PRECISION = 100;
+      
+      //! Default value - no gain
+      const IntType GAIN_DEFAULT = GAIN_PRECISION;
+      //! Parameter name
+      extern const NameType GAIN;
     }
   }
 }

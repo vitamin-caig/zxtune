@@ -14,22 +14,23 @@
 #include <parameters/accessor.h>
 #include <sound/matrix_mixer.h>
 #include <sound/mixer_parameters.h>
+#include <sound/sound_parameters.h>
 //std includes
 #include <utility>
 
 namespace Sound
 {
   typedef std::array<Gain::Type, Sample::CHANNELS> MultiConfigValue;
-  const int_t CONFIG_VALUE_PRECISION = 100;
 
   void GetMatrixRow(const Parameters::Accessor& params, uint_t channels, uint_t inChan, MultiConfigValue& out)
   {
     for (uint_t outChan = 0; outChan != out.size(); ++outChan)
     {
-      const Parameters::NameType name = Parameters::ZXTune::Sound::Mixer::LEVEL(channels, inChan, outChan);
-      Parameters::IntType val = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
+      using namespace Parameters::ZXTune::Sound;
+      const auto name = Mixer::LEVEL(channels, inChan, outChan);
+      auto val = Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
       params.FindValue(name, val);
-      out[outChan] = Gain::Type(static_cast<int_t>(val), CONFIG_VALUE_PRECISION);
+      out[outChan] = Gain::Type(static_cast<int_t>(val), GAIN_PRECISION);
     }
   }
 
