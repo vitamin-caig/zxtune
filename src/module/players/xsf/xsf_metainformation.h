@@ -45,6 +45,8 @@ namespace Module
       Time::Milliseconds Duration;
       Time::Milliseconds Fadeout;
       
+      float Volume = 0.0f;
+      
       void Merge(const MetaInformation& rh);
       
       void Dump(Parameters::Modifier& out) const;

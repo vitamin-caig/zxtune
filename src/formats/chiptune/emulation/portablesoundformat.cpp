@@ -55,6 +55,7 @@ namespace PortableSoundFormat
     const char XSFBY_SUFFIX[] = "sfby";
     const char LENGTH[] = "length";
     const char FADE[] = "fade";
+    const char VOLUME[] = "volume";
     
     static String MakeName(StringView str)
     {
@@ -201,6 +202,10 @@ namespace PortableSoundFormat
         {
           target.SetFade(ParseTime(value));
         }
+        else if (name == Tags::VOLUME)
+        {
+          target.SetVolume(ParseVolume(value));
+        }
         else
         {
           target.SetTag(name, value);
@@ -272,6 +277,11 @@ namespace PortableSoundFormat
         end = val.find_first_of(':', start = end + 1);
       }
       return Time::Milliseconds(result.Get() * 60 + result.PER_SECOND * std::atof(val.c_str() + start));
+    }
+    
+    static float ParseVolume(String val)
+    {
+      return std::atof(val.c_str());
     }
   private:
     Binary::InputStream Stream;

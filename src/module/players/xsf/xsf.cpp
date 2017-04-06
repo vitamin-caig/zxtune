@@ -139,6 +139,11 @@ namespace Module
         GetMeta().Fadeout = fade;
       }
 
+      void SetVolume(float vol) override
+      {
+        GetMeta().Volume = vol;
+      }
+      
       void SetTag(String name, String value) override
       {
         if (name == "_refresh")

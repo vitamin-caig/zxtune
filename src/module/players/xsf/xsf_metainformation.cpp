@@ -13,6 +13,7 @@
 //library includes
 #include <module/players/properties_helper.h>
 #include <parameters/modifier.h>
+#include <sound/sound_parameters.h>
 
 namespace Module
 {
@@ -41,6 +42,7 @@ namespace Module
       MergeVal(RefreshRate, rh.RefreshRate);
       MergeVal(Duration, rh.Duration);
       MergeVal(Fadeout, rh.Fadeout);
+      MergeVal(Volume, rh.Volume);
       //TODO: merge tags
     }
     
@@ -102,6 +104,16 @@ namespace Module
       }
       
       props.SetDate(Year);
+      
+      if (Volume != 0.0)
+      {
+        out.SetValue(Parameters::ZXTune::Sound::GAIN, Parameters::ZXTune::Sound::GAIN_PRECISION * Volume);
+      }
+
+      if (!(Fadeout == Time::Milliseconds()))
+      {
+        out.SetValue(Parameters::ZXTune::Sound::FADEOUT, Parameters::ZXTune::Sound::FADEOUT_PRECISION * Fadeout.Get() / Fadeout.PER_SECOND);
+      }
     }
   }
 }

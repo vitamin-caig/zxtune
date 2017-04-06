@@ -42,6 +42,8 @@ namespace Formats
         virtual void SetLength(Time::Milliseconds duration) = 0;
         virtual void SetFade(Time::Milliseconds duration) = 0;
 
+        virtual void SetVolume(float vol) = 0;
+
         virtual void SetTag(String name, String value) = 0;
         //! @note number is 1-based and equal to 1 for _lib and X for _libX
         virtual void SetLibrary(uint_t num, String filename) = 0;
