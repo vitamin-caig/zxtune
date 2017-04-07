@@ -36,7 +36,7 @@ public:
     }
     else
     {
-      return HandleType();
+      throw std::runtime_error("Invalid object");
     }
   }
 
@@ -44,9 +44,14 @@ public:
   {
     static const PtrType NullPtr;
     const auto it = Storage.find(handle);
-    return it != Storage.end()
-      ? it->second
-      : NullPtr;
+    if (it != Storage.end())
+    {
+      return it->second;
+    }
+    else
+    {
+      throw std::runtime_error("Invalid handle");
+    }
   }
 
   PtrType Fetch(HandleType handle)

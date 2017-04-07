@@ -336,6 +336,43 @@ extern "C" {
 #define app_zxtune_ZXTune_Plugins_DeviceType_SAA1099 64L
 #undef app_zxtune_ZXTune_Plugins_DeviceType_MOS6581
 #define app_zxtune_ZXTune_Plugins_DeviceType_MOS6581 128L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_SPC700
+#define app_zxtune_ZXTune_Plugins_DeviceType_SPC700 256L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_MULTIDEVICE
+#define app_zxtune_ZXTune_Plugins_DeviceType_MULTIDEVICE 512L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_RP2A0X
+#define app_zxtune_ZXTune_Plugins_DeviceType_RP2A0X 1024L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_LR35902
+#define app_zxtune_ZXTune_Plugins_DeviceType_LR35902 2048L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_CO12294
+#define app_zxtune_ZXTune_Plugins_DeviceType_CO12294 4096L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_HUC6270
+#define app_zxtune_ZXTune_Plugins_DeviceType_HUC6270 8192L
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_Plugins_ContainerType */
+
+#ifndef _Included_app_zxtune_ZXTune_Plugins_ContainerType
+#define _Included_app_zxtune_ZXTune_Plugins_ContainerType
+#ifdef __cplusplus
+extern "C" {
+#endif
+#undef app_zxtune_ZXTune_Plugins_ContainerType_ARCHIVE
+#define app_zxtune_ZXTune_Plugins_ContainerType_ARCHIVE 0L
+#undef app_zxtune_ZXTune_Plugins_ContainerType_COMPRESSOR
+#define app_zxtune_ZXTune_Plugins_ContainerType_COMPRESSOR 1L
+#undef app_zxtune_ZXTune_Plugins_ContainerType_SNAPSHOT
+#define app_zxtune_ZXTune_Plugins_ContainerType_SNAPSHOT 2L
+#undef app_zxtune_ZXTune_Plugins_ContainerType_DISKIMAGE
+#define app_zxtune_ZXTune_Plugins_ContainerType_DISKIMAGE 3L
+#undef app_zxtune_ZXTune_Plugins_ContainerType_DECOMPILER
+#define app_zxtune_ZXTune_Plugins_ContainerType_DECOMPILER 4L
+#undef app_zxtune_ZXTune_Plugins_ContainerType_MULTITRACK
+#define app_zxtune_ZXTune_Plugins_ContainerType_MULTITRACK 5L
+#undef app_zxtune_ZXTune_Plugins_ContainerType_SCANER
+#define app_zxtune_ZXTune_Plugins_ContainerType_SCANER 6L
 #ifdef __cplusplus
 }
 #endif

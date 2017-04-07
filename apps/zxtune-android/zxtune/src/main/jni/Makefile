@@ -17,8 +17,8 @@ libraries.3rdparty = gme he hvl lazyusf2 lhasa lzma sidplayfp snesspc unrar xmp 
 
 include $(path_step)/makefile.mak
 
-zxtune.h: ../src/app/zxtune/ZXTune.java
-	javah -classpath ../src -o $@ app.zxtune.ZXTune
+zxtune.h: ../java/app/zxtune/ZXTune.java
+	javah -classpath ../java -o $@ app.zxtune.ZXTune
 
 install_$(platform):
 	$(call copyfile_cmd,$(target),$(DESTDIR))
