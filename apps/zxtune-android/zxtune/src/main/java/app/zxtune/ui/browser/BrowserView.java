@@ -11,6 +11,7 @@
 package app.zxtune.ui.browser;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.TextView;
@@ -47,7 +48,7 @@ public class BrowserView extends ListViewCompat {
   }
   
   //Use proxy structure due to view state lost on setAdapter
-  final void setModel(BrowserViewModel model) {
+  final void setModel(@Nullable BrowserViewModel model) {
     ((BrowserViewAdapter) getAdapter()).setModel(model);
   }
   

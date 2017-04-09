@@ -25,9 +25,9 @@ import app.zxtune.ui.StatusNotification;
 
 public class PreferencesActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
-  public final static String ACTION_PREFERENCE_CHANGED = PreferencesActivity.class.getName() + ".PREFERENCE_CHANGED";
-  public final static String EXTRA_PREFERENCE_NAME = "name";
-  public final static String EXTRA_PREFERENCE_VALUE = "value";
+  public static final String ACTION_PREFERENCE_CHANGED = PreferencesActivity.class.getName() + ".PREFERENCE_CHANGED";
+  public static final String EXTRA_PREFERENCE_NAME = "name";
+  public static final String EXTRA_PREFERENCE_VALUE = "value";
     
   @SuppressWarnings("deprecation")
   @Override

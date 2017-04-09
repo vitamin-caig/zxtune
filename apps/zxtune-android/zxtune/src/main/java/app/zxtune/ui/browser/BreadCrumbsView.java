@@ -13,6 +13,7 @@ package app.zxtune.ui.browser;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -64,7 +65,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     listener = new StubDirSelectionListener();
   }
 
-  public final void setDir(VfsDir dir) {
+  public final void setDir(@Nullable VfsDir dir) {
     if (dir == null || Uri.EMPTY.equals(dir.getUri())) {
       hideButtons(0, container.getChildCount());
     } else {
@@ -85,7 +86,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
 
   private void fillButtons(ArrayList<VfsDir> dirs) {
     int idx = 0;
-    for (int lim = dirs.size(); idx != lim; ++idx) {
+    for (final int lim = dirs.size(); idx != lim; ++idx) {
       showButton(idx, dirs.get(idx));
     }
     hideButtons(idx, container.getChildCount());
@@ -136,6 +137,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     return but;
   }
 
+  @Nullable
   private Drawable getIcon(VfsDir dir) {
     final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
     return icon != null

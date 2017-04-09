@@ -19,9 +19,9 @@ import app.zxtune.playback.PlaybackControl;
 
 class HeadphonesPlugHandler extends BroadcastReceiver {
 
-  private final static String STATE_FIELD_NAME = "state";
-  private final static int STATE_UNPLUGGED = 0;
-  private final static int STATE_PLUGGED = 1;
+  private static final String STATE_FIELD_NAME = "state";
+  private static final int STATE_UNPLUGGED = 0;
+  private static final int STATE_PLUGGED = 1;
   
   private final PlaybackControl control;
 

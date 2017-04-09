@@ -13,6 +13,7 @@ package app.zxtune.ui;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.SearchView;
 import android.util.SparseBooleanArray;
@@ -68,6 +69,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
 
   @Override
+  @Nullable
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.browser, container, false) : null;
   }

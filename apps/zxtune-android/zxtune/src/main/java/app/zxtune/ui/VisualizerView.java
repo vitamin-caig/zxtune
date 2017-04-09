@@ -177,8 +177,14 @@ public class VisualizerView extends View {
           }
         }
       }
-      for (lowerChange = 0; lowerChange != changes.length && !changes[lowerChange]; ++lowerChange);
-      for (upperChange = changes.length; upperChange > lowerChange && !changes[upperChange - 1]; --upperChange);
+      lowerChange = 0;
+      while (lowerChange != changes.length && !changes[lowerChange]) {
+        ++lowerChange;
+      }
+      upperChange = changes.length;
+      while (upperChange > lowerChange && !changes[upperChange - 1]) {
+        --upperChange;
+      }
     }
 
     private void fallBars() {

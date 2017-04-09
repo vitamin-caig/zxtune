@@ -10,6 +10,7 @@
 
 package app.zxtune.ui.browser;
 
+import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -28,6 +29,7 @@ class BrowserViewAdapter extends BaseAdapter {
   } 
     
   @Override
+  @Nullable
   public Object getItem(int position) {
     return model.getItem(position);
   }
@@ -47,7 +49,7 @@ class BrowserViewAdapter extends BaseAdapter {
     return model.isEmpty();
   }
 
-  final void setModel(BrowserViewModel model) {
+  final void setModel(@Nullable BrowserViewModel model) {
     setInitialModel(model);
     if (model != null) {
       notifyDataSetChanged();
@@ -56,13 +58,13 @@ class BrowserViewAdapter extends BaseAdapter {
     }
   }
     
-  final void setInitialModel(BrowserViewModel model) {
+  private void setInitialModel(@Nullable BrowserViewModel model) {
     if (this.model != model) {
       this.model = getSafeModel(model);
     }
   }
   
-  private static BrowserViewModel getSafeModel(BrowserViewModel model) {
+  private static BrowserViewModel getSafeModel(@Nullable BrowserViewModel model) {
     if (model != null) {
       return model;
     } else {

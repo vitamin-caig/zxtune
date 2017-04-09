@@ -34,6 +34,8 @@ import app.zxtune.playlist.XspfIterator;
 
 public final class Scanner {
 
+  private static final String TAG = Scanner.class.getName();
+
   public interface Callback {
     
     void onModule(Identifier id, ZXTune.Module module);
@@ -66,10 +68,10 @@ public final class Scanner {
   
   private void analyzeRealObject(Uri uri, Callback cb) throws IOException {
     final VfsObject obj = Vfs.resolve(uri);
-    analyzeObject(uri, obj, cb);
+    analyzeObject(obj, cb);
   }
   
-  private void analyzeObject(Uri uri, VfsObject obj, Callback cb) throws IOException {
+  private void analyzeObject(VfsObject obj, Callback cb) throws IOException {
     if (obj instanceof VfsDir) {
       analyzeDir((VfsDir) obj, cb);
     } else if (obj instanceof VfsFile) {
@@ -174,7 +176,7 @@ public final class Scanner {
     if (!analyzeArchiveFile(id, cb)) {
       final Uri uri = id.getFullLocation();
       final VfsObject obj = VfsArchive.resolve(uri);
-      analyzeObject(uri, obj, cb);
+      analyzeObject(obj, cb);
     }
   }
   
@@ -182,7 +184,8 @@ public final class Scanner {
   private boolean analyzeArchiveFile(Identifier id, Callback cb) throws IOException {
     final VfsFile archive = openArchive(id.getDataLocation());
     try {
-      final ZXTune.Module module = openModule(archive, id.getSubpath());
+      final ByteBuffer content = archive.getContent();
+      final ZXTune.Module module = ZXTune.loadModule(content, id.getSubpath());
       try {
         cb.onModule(id, module);
         return true;
@@ -191,6 +194,7 @@ public final class Scanner {
         throw e;
       }
     } catch (InvalidObjectException e) {
+      Log.w(TAG, e, "Failed to analyzer archive file");
     }
     return false;
   }
@@ -207,10 +211,5 @@ public final class Scanner {
     } else {
       throw new IOException("Failed to resolve archive " + uri); 
     }
-  }
-  
-  private static ZXTune.Module openModule(VfsFile file, String subpath) throws IOException {
-    final ByteBuffer content = file.getContent();
-    return ZXTune.loadModule(content, subpath);
   }
 }

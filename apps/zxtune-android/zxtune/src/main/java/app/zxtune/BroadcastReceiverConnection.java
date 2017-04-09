@@ -16,7 +16,7 @@ import android.content.IntentFilter;
 
 public class BroadcastReceiverConnection implements Releaseable {
   
-  protected final Context context;
+  private final Context context;
   private final BroadcastReceiver receiver;
   
   public BroadcastReceiverConnection(Context context, BroadcastReceiver receiver, IntentFilter filter) {

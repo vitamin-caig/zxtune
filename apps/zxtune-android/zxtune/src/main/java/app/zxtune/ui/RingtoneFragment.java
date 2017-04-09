@@ -29,13 +29,6 @@ public class RingtoneFragment extends DialogFragment {
   
   private static final String TAG = RingtoneFragment.class.getName();
 
-  private static final TimeStamp PREDEFINED_DURATIONS[] = {
-    TimeStamp.createFrom(30, TimeUnit.SECONDS),
-    TimeStamp.createFrom(1, TimeUnit.MINUTES),
-    TimeStamp.createFrom(2, TimeUnit.MINUTES),
-    TimeStamp.createFrom(3, TimeUnit.MINUTES),
-  };
-  
   static DialogFragment createInstance(Item item) {
     final Bundle args = new Bundle();
     args.putParcelable("url", item.getDataId().getFullLocation());
@@ -51,13 +44,16 @@ public class RingtoneFragment extends DialogFragment {
     final View result = inflater.inflate(R.layout.ringtone, container, false);
     
     final ViewGroup buttons = (ViewGroup) result.findViewById(R.id.ringtone_durations);
-    fillDurations(inflater, buttons);
+    fillDurations(buttons);
     return result;
   }
   
-  private void fillDurations(LayoutInflater inflater, ViewGroup container) {
+  private void fillDurations(ViewGroup container) {
 
-    final Uri uri = (Uri) getArguments().getParcelable("url");
+    final Uri uri = getArguments().getParcelable("url");
+    if (uri == null) {
+      return;
+    }
 
     final Button.OnClickListener listener = new Button.OnClickListener() {
       @Override

@@ -13,6 +13,7 @@ package app.zxtune.ui;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
@@ -67,7 +68,7 @@ public class ListViewCompat extends ListView {
   }
   
   public final void storeViewPosition(int pos) {
-    setTag(Integer.valueOf(pos));
+    setTag(pos);
   }
   
   public final void useStoredViewPosition() {
@@ -235,7 +236,7 @@ public class ListViewCompat extends ListView {
       this.listener = listener;
     }
 
-    final void setDelegate(OnItemClickListener delegate) {
+    final void setDelegate(@Nullable OnItemClickListener delegate) {
       this.delegate = delegate;
     }
 
@@ -244,7 +245,7 @@ public class ListViewCompat extends ListView {
       if (actionModeCompat != null) {
         listener.onItemCheckedStateChanged(new ActionModeSupp(actionModeCompat), position, id,
             isItemChecked(position));
-      } else {
+      } else if (delegate != null) {
         delegate.onItemClick(parent, view, position, id);
       }
     }

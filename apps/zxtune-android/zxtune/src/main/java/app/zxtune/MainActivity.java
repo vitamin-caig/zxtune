@@ -170,13 +170,16 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   private void rateApplication() {
     final Intent intent = new Intent(Intent.ACTION_VIEW);
     intent.setData(Uri.parse("market://details?id=" + getPackageName()));
-    if (!safeStartActivity(intent)) {
+    if (safeStartActivity(intent)) {
+      Analytics.sendUIEvent("Rate");
+    } else {
       intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName()));
-      if (!safeStartActivity(intent)) {
+      if (safeStartActivity(intent)) {
+        Analytics.sendUIEvent("Rate");
+      } else {
         Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
       }
     }
-    Analytics.sendUIEvent("Rate");
   }
   
   private boolean safeStartActivity(Intent intent) {

@@ -217,7 +217,11 @@ public class ScanService extends IntentService {
     }
 
     private void transferItems() throws InterruptedException {
-      while (transferSingleItem()) {}
+      for (;;) {
+        if (!transferSingleItem()) {
+          break;
+        }
+      }
     }
     
     private boolean transferSingleItem() throws InterruptedException {
@@ -248,8 +252,8 @@ public class ScanService extends IntentService {
 
   private class NotifyTask implements Runnable {
 
-    private final static int NOTIFICATION_DELAY = 100;
-    private final static int NOTIFICATION_PERIOD = 2000;
+    private static final int NOTIFICATION_DELAY = 100;
+    private static final int NOTIFICATION_PERIOD = 2000;
 
     private WakeLock wakeLock;
     private StatusNotification notification;
@@ -290,7 +294,7 @@ public class ScanService extends IntentService {
 
     private class StatusNotification {
 
-      private final static int notificationId = R.drawable.ic_stat_notify_scan;
+      private static final int notificationId = R.drawable.ic_stat_notify_scan;
       private final NotificationManager manager;
       private final NotificationCompat.Builder builder;
       private final CharSequence titlePrefix;

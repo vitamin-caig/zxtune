@@ -36,7 +36,7 @@ public class StatusNotification extends CallbackStub {
   }
   
   //http://stackoverflow.com/questions/12586938/clickable-custom-view-in-notification-on-android-2-3-or-lower
-  public final static boolean BUTTONS_SUPPORTED = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB; 
+  public static final boolean BUTTONS_SUPPORTED = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
   
   private final Type type;
   private final Handler scheduler;
@@ -45,8 +45,8 @@ public class StatusNotification extends CallbackStub {
   private final NotificationManager manager;
   private final NotificationCompat.Builder builder;
   private final RemoteViews content;
-  private final static int notificationId = R.drawable.ic_stat_notify_play;
-  private final static int NOTIFICATION_DELAY = 200;
+  private static final int notificationId = R.drawable.ic_stat_notify_play;
+  private static final int NOTIFICATION_DELAY = 200;
   
   public StatusNotification(Service service, Type type) {
     this.type = type;

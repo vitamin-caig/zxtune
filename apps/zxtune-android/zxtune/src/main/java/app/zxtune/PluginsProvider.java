@@ -16,6 +16,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 public final class PluginsProvider extends ContentProvider {
   
@@ -55,8 +56,8 @@ public final class PluginsProvider extends ContentProvider {
     }
   }
   
-  private final static String AUTHORITY = "app.zxtune.plugins";
-  private final static String MIME = "vnd.android.cursor.dir/vnd." + AUTHORITY;
+  private static final String AUTHORITY = "app.zxtune.plugins";
+  private static final String MIME = "vnd.android.cursor.dir/vnd." + AUTHORITY;
   
   @Override
   public boolean onCreate() {
@@ -64,27 +65,27 @@ public final class PluginsProvider extends ContentProvider {
   }
   
   @Override
-  public int delete(Uri arg0, String arg1, String[] arg2) {
+  public int delete(@NonNull Uri arg0, String arg1, String[] arg2) {
     return 0;
   }
 
   @Override
-  public String getType(Uri uri) {
+  public String getType(@NonNull Uri uri) {
     return MIME;
   }
 
   @Override
-  public Uri insert(Uri uri, ContentValues values) {
+  public Uri insert(@NonNull Uri uri, ContentValues values) {
     return null;
   }
 
   @Override
-  public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+  public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
     return 0;
   }
   
   @Override
-  public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+  public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs,
       String sortOrder) {
     final String[] columns = {Columns.Type.name(), Columns.Description.name()}; 
     final MatrixCursor res = new MatrixCursor(columns);

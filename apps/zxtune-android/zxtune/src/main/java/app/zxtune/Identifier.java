@@ -15,8 +15,8 @@ import android.text.TextUtils;
 
 public class Identifier {
   
-  private final static String SUBPATH_DELIMITER = "/";
-  public final static Identifier EMPTY = new Identifier(Uri.EMPTY);
+  private static final String SUBPATH_DELIMITER = "/";
+  public static final Identifier EMPTY = new Identifier(Uri.EMPTY);
 
   /**
    * Identifier is not fully compatible with playlists from desktop version of zxtune
@@ -66,7 +66,7 @@ public class Identifier {
     return subpath;
   }
   
-  public final Identifier withSubpath(String subpath) {
+  private Identifier withSubpath(String subpath) {
     return new Identifier(location, subpath);
   }
   
@@ -100,7 +100,11 @@ public class Identifier {
   
   @Override
   public boolean equals(Object rh) {
-    final Identifier id = (Identifier) rh;
-    return fullpath.equals(id.fullpath);
+    if (rh instanceof Identifier) {
+      final Identifier id = (Identifier) rh;
+      return fullpath.equals(id.fullpath);
+    } else {
+      return false;
+    }
   }
 }

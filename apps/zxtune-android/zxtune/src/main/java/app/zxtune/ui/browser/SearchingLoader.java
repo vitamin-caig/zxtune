@@ -22,7 +22,7 @@ import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsIterator;
 
-public class SearchingLoader extends AsyncTaskLoader<Void> {
+class SearchingLoader extends AsyncTaskLoader<Void> {
   
   public interface Callback {
     public void onFileFound(VfsFile file);
@@ -66,6 +66,7 @@ public class SearchingLoader extends AsyncTaskLoader<Void> {
         }
       }
     } catch (OperationCanceledException e) {
+      Log.w(TAG, e, "Search is canceled");
     }
     return null;
   }

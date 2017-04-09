@@ -15,6 +15,7 @@ import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.TextElementListener;
+import android.support.annotation.NonNull;
 import android.util.Xml;
 
 import org.xml.sax.Attributes;
@@ -116,7 +117,7 @@ public final class XspfIterator {
     return new InputStream() {
       
       @Override
-      public int available() throws IOException {
+      public int available()  {
         return buf.remaining();
       }
       
@@ -136,14 +137,14 @@ public final class XspfIterator {
       }
       
       @Override
-      public int read() throws IOException {
+      public int read() {
         return buf.hasRemaining()
           ? buf.get()
           : -1;
       }
       
       @Override
-      public int read(byte[] bytes, int off, int len) {
+      public int read(@NonNull byte[] bytes, int off, int len) {
         if (buf.hasRemaining()) {
           len = Math.min(len, buf.remaining());
           buf.get(bytes, off, len);

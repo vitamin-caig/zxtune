@@ -32,7 +32,7 @@ public class WidgetHandler extends AppWidgetProvider {
     update(context, ItemStub.instance());
   }
   
-  public static void update(Context context, Item nowPlaying) {
+  private static void update(Context context, Item nowPlaying) {
     final AppWidgetManager mgr = AppWidgetManager.getInstance(context);
     final int[] widgets = mgr.getAppWidgetIds(new ComponentName(context, WidgetHandler.class));
     if (widgets.length == 0) {

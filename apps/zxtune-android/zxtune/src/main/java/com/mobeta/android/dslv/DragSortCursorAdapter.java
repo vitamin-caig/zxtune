@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.Nullable;
 import android.util.SparseIntArray;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,15 +37,15 @@ public abstract class DragSortCursorAdapter extends CursorAdapter implements Dra
 
     private ArrayList<Integer> mRemovedCursorPositions = new ArrayList<Integer>();
     
-    public DragSortCursorAdapter(Context context, Cursor c) {
+    public DragSortCursorAdapter(Context context, @Nullable Cursor c) {
         super(context, c);
     }
 
-    public DragSortCursorAdapter(Context context, Cursor c, boolean autoRequery) {
+    public DragSortCursorAdapter(Context context, @Nullable Cursor c, boolean autoRequery) {
         super(context, c, autoRequery);
     }
 
-    public DragSortCursorAdapter(Context context, Cursor c, int flags) {
+    public DragSortCursorAdapter(Context context, @Nullable Cursor c, int flags) {
         super(context, c, flags);
     }
 

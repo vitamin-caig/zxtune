@@ -15,6 +15,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -28,9 +29,9 @@ import app.zxtune.playlist.Statistics;
 
 public class PlaylistStatisticsFragment extends DialogFragment {
 
-  private final static String IDS_KEY = "ids";
+  private static final String IDS_KEY = "ids";
   
-  public static DialogFragment createInstance(long[] ids) {
+  public static DialogFragment createInstance(@Nullable long[] ids) {
     final DialogFragment res = new PlaylistStatisticsFragment();
     final Bundle args = new Bundle();
     args.putLongArray(IDS_KEY, ids);

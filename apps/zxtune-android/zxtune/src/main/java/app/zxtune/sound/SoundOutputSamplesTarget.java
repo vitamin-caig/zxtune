@@ -18,14 +18,14 @@ import app.zxtune.Log;
 import app.zxtune.sound.SamplesSource.Channels;
 import app.zxtune.sound.SamplesSource.Sample;
 
-final public class SoundOutputSamplesTarget implements SamplesTarget {
+public final class SoundOutputSamplesTarget implements SamplesTarget {
 
   private static final String TAG = SoundOutputSamplesTarget.class.getName();
   
-  private final static int CHANNEL_OUT = AudioFormat.CHANNEL_OUT_STEREO;
-  private final static int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
-  private final static int STREAM = AudioManager.STREAM_MUSIC;
-  private final static int DEFAULT_LATENCY = 80;// minimal is ~55
+  private static final int CHANNEL_OUT = AudioFormat.CHANNEL_OUT_STEREO;
+  private static final int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
+  private static final int STREAM = AudioManager.STREAM_MUSIC;
+  private static final int DEFAULT_LATENCY = 80;// minimal is ~55
   
   private final int bufferSize;
   private AudioTrack target;
@@ -60,7 +60,6 @@ final public class SoundOutputSamplesTarget implements SamplesTarget {
   
   @Override
   public void start() {
-    assert target.getPlayState() == AudioTrack.PLAYSTATE_STOPPED;
     target.play();
   }
 
@@ -79,7 +78,6 @@ final public class SoundOutputSamplesTarget implements SamplesTarget {
 
   @Override
   public void stop() {
-    assert target.getPlayState() == AudioTrack.PLAYSTATE_PLAYING;
     target.stop();
   }
 

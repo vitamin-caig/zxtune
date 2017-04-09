@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -52,10 +53,10 @@ import app.zxtune.playback.VisualizerStub;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
-  private final static String TAG = NowPlayingFragment.class.getName();
-  private final static int REQUEST_SHARE = 1;
-  private final static int REQUEST_SEND = 2;
-  private final static String EXTRA_ITEM = TAG + ".EXTRA_LOCATION";
+  private static final String TAG = NowPlayingFragment.class.getName();
+  private static final int REQUEST_SHARE = 1;
+  private static final int REQUEST_SEND = 2;
+  private static final String EXTRA_ITEM = TAG + ".EXTRA_LOCATION";
 
   private PlaybackService service;
   private Callback callback;
@@ -111,11 +112,8 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     try {
-      if (trackActionsMenu.selectItem(item)) {
-        return true;
-      } else {
-        return super.onOptionsItemSelected(item);
-      }
+      return trackActionsMenu.selectItem(item)
+              || super.onOptionsItemSelected(item);
     } catch (Exception e) {//use the most common type
       Log.w(TAG, e, "onOptionsItemSelected");
       final Throwable cause = e.getCause();
@@ -126,7 +124,8 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
   
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  @Nullable
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.now_playing, container, false) : null;
   }
 
@@ -161,7 +160,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     if (data != null && (isShare || isSend)) {
       final String method = isShare ? "Share" : "Send";
       final String appName = data.getComponent().getPackageName();
-      final Item item = (Item) data.getParcelableExtra(EXTRA_ITEM);
+      final Item item = data.getParcelableExtra(EXTRA_ITEM);
       Analytics.sendSocialEvent(method, appName, item);
 
       data.removeExtra(EXTRA_ITEM);
@@ -394,7 +393,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       return context.getString(R.string.share_text, getRemotePage());
     }
     
-    private final Uri getLocalPath() throws IOException {
+    private Uri getLocalPath() throws IOException {
       final Uri uri = item.getDataId().getDataLocation();
       if (uri.getScheme().equals("file")) {
         return uri;
@@ -402,7 +401,8 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       final VfsFile file = openFile(uri);
       return createLocalPath(file);
     }
-    
+
+    @Nullable
     private String getRemotePage() throws IOException {
       final VfsFile file = openFile(item.getDataId().getDataLocation());
       if (file != null) {

@@ -24,9 +24,9 @@ import app.zxtune.playback.ItemStub;
 
 class InformationView {
 
-  private final static String FORMAT = "<b><big>%1$s:</big></b><br>&nbsp;%2$s";
-  private final static String RAW_FORMAT = "<br><tt>%1$s</tt>";
-  private final static String LINEBREAK = "<br>";
+  private static final String FORMAT = "<b><big>%1$s:</big></b><br>&nbsp;%2$s";
+  private static final String RAW_FORMAT = "<br><tt>%1$s</tt>";
+  private static final String LINEBREAK = "<br>";
 
   //private final ScrollView frame;
   private final TextView content;

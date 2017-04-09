@@ -14,6 +14,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 
 public class DatabaseIterator {
   
@@ -25,11 +26,12 @@ public class DatabaseIterator {
     this.item = loadItem(current);
   }
   
-  private DatabaseIterator(ContentResolver resolver, Item current) {
+  private DatabaseIterator(ContentResolver resolver, @Nullable Item current) {
     this.resolver = resolver;
     this.item = current;
   }
 
+  @Nullable
   public final Item getItem() {
     return item;
   }
@@ -40,20 +42,24 @@ public class DatabaseIterator {
   
   public final DatabaseIterator getNext() {
     Item next = null;
-    if (isValid()) {
+    if (item != null) {
       final Long curId = PlaylistQuery.idOf(item.getUri());
-      final String selection = PlaylistQuery.positionSelection(">", curId); 
-      next = selectFirstFrom(selection);
+      if (curId != null) {
+        final String selection = PlaylistQuery.positionSelection(">", curId);
+        next = selectFirstFrom(selection);
+      }
     }
     return new DatabaseIterator(resolver, next);
   }
   
   public final DatabaseIterator getPrev() {
     Item prev = null;
-    if (isValid()) {
+    if (item != null) {
       final Long curId = PlaylistQuery.idOf(item.getUri());
-      final String selection = PlaylistQuery.positionSelection("<", curId);
-      prev = selectLastFrom(selection);
+      if (curId != null) {
+        final String selection = PlaylistQuery.positionSelection("<", curId);
+        prev = selectLastFrom(selection);
+      }
     }
     return new DatabaseIterator(resolver, prev);
   }
@@ -78,30 +84,36 @@ public class DatabaseIterator {
     final Item rand = select("RANDOM() LIMIT 1");
     return new DatabaseIterator(resolver, rand);
   }
-  
-  private Item selectFirstFrom(String selection) {
+
+  @Nullable
+  private Item selectFirstFrom(@Nullable String selection) {
     return select(selection, PlaylistQuery.limitedOrder(1));
   }
-  
-  private Item selectLastFrom(String selection) {
+
+  @Nullable
+  private Item selectLastFrom(@Nullable String selection) {
     return select(selection, PlaylistQuery.limitedOrder(-1));
   }
 
+  @Nullable
   private Item select(String order) {
     return select(null, order);
   }
 
-  private Item select(String selection, String order) {
+  @Nullable
+  private Item select(@Nullable String selection, String order) {
     final Cursor cursor = resolver.query(PlaylistQuery.ALL, null, selection, null, order);
     return loadItem(cursor);
   }
-  
+
+  @Nullable
   private Item loadItem(Uri id) {
     final Cursor cursor = resolver.query(id, null, null, null, null);
     return loadItem(cursor);
   }
-  
-  private Item loadItem(Cursor cursor) {
+
+  @Nullable
+  private Item loadItem(@Nullable Cursor cursor) {
     try {
       return cursor != null && cursor.moveToFirst()
         ? new Item(cursor)

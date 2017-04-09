@@ -12,6 +12,7 @@ package app.zxtune;
 
 import android.app.IntentService;
 import android.app.NotificationManager;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -22,6 +23,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.Toast;
 
@@ -43,10 +45,10 @@ public class RingtoneService extends IntentService {
 
   private static final String TAG = RingtoneService.class.getName();
   
-  public static final String ACTION_MAKERINGTONE = TAG + ".makeringtone";
-  public static final String EXTRA_MODULE = "module";
-  public static final String EXTRA_DURATION_SECONDS = "duration";
-  public static final long DEFAULT_DURATION_SECONDS = 30;
+  private static final String ACTION_MAKERINGTONE = TAG + ".makeringtone";
+  private static final String EXTRA_MODULE = "module";
+  private static final String EXTRA_DURATION_SECONDS = "duration";
+  private static final long DEFAULT_DURATION_SECONDS = 30;
   
   private final Handler handler;
   
@@ -126,10 +128,10 @@ public class RingtoneService extends IntentService {
     
   private File getTargetLocation(PlayableItem item, TimeStamp duration) {
     final File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RINGTONES);
-    if (!dir.exists()) {
-      dir.mkdirs();
+    if (dir.mkdirs()) {
+      Log.d(TAG, "Created ringtones directory");
     }
-    final long moduleId = getModuleId(item); 
+    final long moduleId = getModuleId(item);
     final String filename = String.format(Locale.US, "%d_%d.wav", moduleId, duration.convertTo(TimeUnit.SECONDS)); 
     Log.d(TAG, "Dir: %s filename: %s", dir, filename);
     return new File(dir, filename);
@@ -187,20 +189,22 @@ public class RingtoneService extends IntentService {
     values.put(MediaStore.Audio.Media.IS_MUSIC, false);
     return values;
   }
-  
+
+  @Nullable
   private Uri createOrUpdateRingtone(ContentValues values) {
+    final ContentResolver resolver = getContentResolver();
     final String path = values.getAsString(MediaStore.MediaColumns.DATA);
     final Uri tableUri = MediaStore.Audio.Media.getContentUriForPath(path);
-    final Cursor query = getContentResolver().query(tableUri,
+    final Cursor query = resolver.query(tableUri,
         new String[] {MediaStore.MediaColumns._ID},
         MediaStore.MediaColumns.DATA + " = '" + path + "'", null,
         null);
     Uri ringtoneUri;
     try {
-      if (query.moveToFirst()) {
+      if (query != null && query.moveToFirst()) {
         final long id = query.getLong(0);
         ringtoneUri = ContentUris.withAppendedId(tableUri, id);
-        if (0 != getContentResolver().update(ringtoneUri, values,
+        if (0 != resolver.update(ringtoneUri, values,
             MediaStore.Audio.Media.IS_RINGTONE + " = 1",
             null)) {
           Log.d(TAG, "Updated ringtone at %s", ringtoneUri);
@@ -208,11 +212,13 @@ public class RingtoneService extends IntentService {
           Log.d(TAG, "Failed to update ringtone %s", ringtoneUri);
         }
       } else {
-        ringtoneUri = getContentResolver().insert(tableUri, values);
+        ringtoneUri = resolver.insert(tableUri, values);
         Log.d(TAG, "Registered new ringtone at %s", ringtoneUri);
       }
     } finally {
-      query.close();
+      if (query != null) {
+        query.close();
+      }
     }
     return ringtoneUri;
   }

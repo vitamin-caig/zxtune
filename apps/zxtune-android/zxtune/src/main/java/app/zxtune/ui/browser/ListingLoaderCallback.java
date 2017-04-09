@@ -12,6 +12,7 @@ package app.zxtune.ui.browser;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.widget.ProgressBar;
@@ -21,18 +22,18 @@ import app.zxtune.fs.VfsDir;
 
 class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, ListingLoader.Callback {
   
-  private final VfsDir dir;
+  @Nullable private final VfsDir dir;
   private final Handler handler;
   private BrowserController control;
   
-  private ListingLoaderCallback(VfsDir dir) {
+  private ListingLoaderCallback(@Nullable VfsDir dir, BrowserController control) {
     this.dir = dir;
     this.handler = new Handler();
+    this.control = control;
   }
   
-  static LoaderManager.LoaderCallbacks<Object> create(BrowserController ctrl, VfsDir dir) {
-    final ListingLoaderCallback cb = new ListingLoaderCallback(dir);
-    cb.control = ctrl;
+  static LoaderManager.LoaderCallbacks<Object> create(BrowserController ctrl, @Nullable VfsDir dir) {
+    final ListingLoaderCallback cb = new ListingLoaderCallback(dir, ctrl);
     ctrl.listing.setModel(null);
     ctrl.listingStarted();
     return cb;
@@ -40,9 +41,7 @@ class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Li
   
   static LoaderManager.LoaderCallbacks<Object> create(BrowserController ctrl, ListingLoader loader) {
     final ListingLoaderCallback cb = (ListingLoaderCallback) loader.getCallback();
-    synchronized (cb) {
-      cb.control = ctrl;
-    }
+    cb.setControl(ctrl);
     if (loader.isStarted()) {
       ctrl.listingStarted();
     }
@@ -52,10 +51,7 @@ class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Li
   
   static void detachLoader(ListingLoader loader) {
     final ListingLoaderCallback cb = (ListingLoaderCallback) loader.getCallback();
-    synchronized (cb) {
-      cb.control = null;
-      cb.handler.removeCallbacksAndMessages(null);
-    }
+    cb.setControl(null);
   }
 
   @Override
@@ -63,16 +59,23 @@ class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Li
     return new ListingLoader(MainApplication.getInstance(), dir, this);
   }
 
+  private synchronized void setControl(@Nullable BrowserController control) {
+    this.control = control;
+    if (control == null) {
+      this.handler.removeCallbacksAndMessages(null);
+    }
+  }
+
   @Override
   public synchronized void onLoadFinished(Loader<Object> loader, Object result) {
-    if (control == null) {
-      return;
-    } else if (result instanceof BrowserViewModel) {
-      control.loadingFinished();
-      control.listing.setModel((BrowserViewModel) result);
-      control.listing.useStoredViewPosition();
-    } else {
-      control.loadingFailed((Exception) result);
+    if (control != null) {
+      if (result instanceof BrowserViewModel) {
+        control.loadingFinished();
+        control.listing.setModel((BrowserViewModel) result);
+        control.listing.useStoredViewPosition();
+      } else {
+        control.loadingFailed((Exception) result);
+      }
     }
   }
 

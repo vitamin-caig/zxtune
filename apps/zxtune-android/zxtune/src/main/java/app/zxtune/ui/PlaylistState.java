@@ -15,8 +15,8 @@ import android.content.SharedPreferences.Editor;
 
 class PlaylistState {
   
-  private final static String PREF_PLAYLIST = "playlist_";
-  private final static String PREF_PLAYLIST_VIEWPOS = PREF_PLAYLIST + "viewpos";
+  private static final String PREF_PLAYLIST = "playlist_";
+  private static final String PREF_PLAYLIST_VIEWPOS = PREF_PLAYLIST + "viewpos";
   private final SharedPreferences prefs;
 
   PlaylistState(SharedPreferences prefs) {

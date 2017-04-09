@@ -15,6 +15,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.support.annotation.Nullable;
 import android.view.KeyEvent;
 
 public class MediaButtonsHandler extends BroadcastReceiver {
@@ -57,6 +58,7 @@ public class MediaButtonsHandler extends BroadcastReceiver {
     }
   }
 
+  @Nullable
   private Intent getMediaButtonIntent(KeyEvent event) {
     final int action = event.getAction();
     if (action != KeyEvent.ACTION_UP || 0 != event.getRepeatCount()) {

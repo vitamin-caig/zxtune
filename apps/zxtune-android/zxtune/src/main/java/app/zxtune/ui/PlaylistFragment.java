@@ -11,8 +11,10 @@
 package app.zxtune.ui;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -135,16 +137,17 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     return true;
   }
   
-  private void savePlaylist(long[] ids) {
+  private void savePlaylist(@Nullable long[] ids) {
     PlaylistSaveFragment.createInstance(ids).show(getFragmentManager(), "save");
   }
   
-  private void showStatistics(long[] ids) {
+  private void showStatistics(@Nullable long[] ids) {
     PlaylistStatisticsFragment.createInstance(ids).show(getFragmentManager(), "statistics");
   }
   
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  @Nullable
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.playlist, container, false) : null;
   }
   
@@ -285,7 +288,9 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
     
     private void updateView() {
-      getActivity().getContentResolver().notifyChange(PlaylistQuery.ALL, null);
+      final Activity activity = getActivity();
+      final ContentResolver resolver = activity.getContentResolver();
+      resolver.notifyChange(PlaylistQuery.ALL, null);
     }
   }
   

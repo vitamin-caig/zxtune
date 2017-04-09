@@ -10,6 +10,7 @@
 
 package app.zxtune.ui.browser;
 
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -30,8 +31,8 @@ import app.zxtune.fs.VfsObject;
 
 public class BrowserController {
   
-  private final static String TAG = BrowserController.class.getName();
-  private final static int LOADER_ID = BrowserController.class.hashCode();
+  private static final String TAG = BrowserController.class.getName();
+  private static final int LOADER_ID = BrowserController.class.hashCode();
   
   private final LoaderManager loaderManager;
   private final BrowserState state;
@@ -162,7 +163,8 @@ public class BrowserController {
       listing.showError(e);
     }
   }
-  
+
+  @Nullable
   private VfsDir getCurrentDir() throws IOException {
     final VfsObject obj = VfsArchive.resolve(state.getCurrentPath());
     if (obj instanceof VfsDir) {
@@ -172,14 +174,14 @@ public class BrowserController {
     }
   }
   
-  private void setDirectory(VfsDir dir) {
+  private void setDirectory(@Nullable VfsDir dir) {
     position.setDir(dir);
     loadListing(dir, state.getCurrentViewPosition());
   }
   
   //Required to call forceLoad due to bug in support library.
   //Some methods on callback does not called... 
-  private void loadListing(VfsDir dir, int viewPosition) {
+  private void loadListing(@Nullable VfsDir dir, int viewPosition) {
     loaderManager.destroyLoader(LOADER_ID);
     listing.storeViewPosition(viewPosition);
     final LoaderManager.LoaderCallbacks<?> cb = ListingLoaderCallback.create(this, dir);

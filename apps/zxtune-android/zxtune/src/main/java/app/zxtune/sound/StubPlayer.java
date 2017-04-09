@@ -12,9 +12,6 @@ package app.zxtune.sound;
 
 public class StubPlayer implements Player {
   
-  // permit inheritance
-  protected StubPlayer() {}
-
   @Override
   public void startPlayback() {}
 

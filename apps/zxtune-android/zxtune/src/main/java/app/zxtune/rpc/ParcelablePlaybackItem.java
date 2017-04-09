@@ -13,6 +13,7 @@ package app.zxtune.rpc;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
@@ -34,8 +35,9 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
           return new ParcelablePlaybackItem[size];
         }
       };
-      
-  public static ParcelablePlaybackItem create(Item src) {
+
+  @Nullable
+  public static ParcelablePlaybackItem create(@Nullable Item src) {
     return src != null ? new ParcelablePlaybackItem(src) : null;
   }
 

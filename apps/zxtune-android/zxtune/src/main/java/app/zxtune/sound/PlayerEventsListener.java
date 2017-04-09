@@ -32,7 +32,7 @@ public interface PlayerEventsListener {
   
   /**
    * Called on unexpected error occurred
-   * @param e
+   * @param e Exception happened
    */
   public void onError(Exception e);
 }

@@ -18,10 +18,10 @@ import java.util.Locale;
 
 class BrowserState {
   
-  private final static String PREF_BROWSER = "browser_";
-  private final static String PREF_BROWSER_CURRENT = PREF_BROWSER + "current";
-  private final static String PREF_BROWSER_PATH_TEMPLATE = PREF_BROWSER + "%d_path";
-  private final static String PREF_BROWSER_VIEWPOS_TEMPLATE = PREF_BROWSER + "%d_viewpos";
+  private static final String PREF_BROWSER = "browser_";
+  private static final String PREF_BROWSER_CURRENT = PREF_BROWSER + "current";
+  private static final String PREF_BROWSER_PATH_TEMPLATE = PREF_BROWSER + "%d_path";
+  private static final String PREF_BROWSER_VIEWPOS_TEMPLATE = PREF_BROWSER + "%d_viewpos";
   private final SharedPreferences prefs;
   private PathAndPosition current;
   

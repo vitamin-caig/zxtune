@@ -19,7 +19,7 @@ import app.zxtune.Log;
  * Synchronized methods protect this from parallel modifications.
  * State's monitor used to synchronize state transitions
  */
-final public class AsyncPlayer implements Player {
+public final class AsyncPlayer implements Player {
 
   private static final String TAG = AsyncPlayer.class.getName();
 

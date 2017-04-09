@@ -80,8 +80,8 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
 
     try {
       // move our seekbar to the new view we've been given
-      ViewParent oldContainer = seekBar.getParent();
-      ViewGroup newContainer = (ViewGroup) view.findViewById(R.id.seekBarPrefBarContainer);
+      final ViewParent oldContainer = seekBar.getParent();
+      final ViewGroup newContainer = (ViewGroup) view.findViewById(R.id.seekBarPrefBarContainer);
 
       if (oldContainer != newContainer) {
         // remove the seekbar from the old view
@@ -101,16 +101,17 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
     if (view != null && !view.isEnabled()) {
       seekBar.setEnabled(false);
     }
-
-    updateView(view);
+    if (view != null) {
+      updateView(view);
+    }
   }
 
   /**
    * Update a SeekBarPreference view with our current state
    * 
-   * @param view
+   * @param view view container to update
    */
-  protected void updateView(View view) {
+  private void updateView(View view) {
 
     try {
       statusText = (TextView) view.findViewById(R.id.seekBarPrefValue);

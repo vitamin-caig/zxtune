@@ -1,6 +1,7 @@
 package app.zxtune.ui;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +24,7 @@ public final class ListItemViewHolder {
     this.detail = (TextView) view.findViewById(R.id.list_item_text_detail);
   }
 
-  public final void setIcon(Integer res) {
+  public final void setIcon(@Nullable Integer res) {
     if (res != null) {
       icon.setImageResource(res);
       icon.setVisibility(View.VISIBLE);
@@ -40,11 +41,11 @@ public final class ListItemViewHolder {
     setText(aux, text);
   }
 
-  public void setDetailText(String text) {
+  public void setDetailText(@Nullable String text) {
     setText(detail, text);
   }
 
-  private static void setText(TextView view, String text) {
+  private static void setText(TextView view, @Nullable String text) {
     if (text == null || text.isEmpty()) {
       view.setVisibility(View.GONE);
     } else {

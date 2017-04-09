@@ -18,7 +18,7 @@ import app.zxtune.Log;
 
 public final class SyncPlayer implements Player {
 
-  private final static String TAG = SyncPlayer.class.getName();
+  private static final String TAG = SyncPlayer.class.getName();
   private final PlayerEventsListener events;
   private final Exchanger<short[]> buffers;
   private SamplesSource source;
@@ -51,7 +51,6 @@ public final class SyncPlayer implements Player {
 
   @Override
   public void stopPlayback() {
-    assert isActive;
     isActive = false;
   }
   
@@ -62,7 +61,6 @@ public final class SyncPlayer implements Player {
   
   @Override
   public void release() {
-    assert consumeThread == null;
     source.release();
     source = null;
     target.release();

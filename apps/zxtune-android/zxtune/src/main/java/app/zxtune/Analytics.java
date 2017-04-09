@@ -2,6 +2,7 @@ package app.zxtune;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
@@ -132,7 +133,7 @@ public class Analytics {
     send(event);
   }
 
-  public static void sendPlaylistEvent(String action, Object parameter) {
+  public static void sendPlaylistEvent(String action, @Nullable Object parameter) {
     final CustomEvent event = new CustomEvent("Playlist");
     event.putCustomAttribute("Action", action);
     if (parameter instanceof String) {

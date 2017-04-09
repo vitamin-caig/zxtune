@@ -14,6 +14,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.UriMatcher;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 
 import java.util.Arrays;
 
@@ -76,6 +77,7 @@ public class PlaylistQuery {
     }
   }
 
+  @Nullable
   public static Long idOf(Uri uri) {
     final int uriType = uriTemplate.match(uri);
     if (uriType == TYPE_ALL_ITEMS.id) {
@@ -87,7 +89,7 @@ public class PlaylistQuery {
     }
   }
 
-  public static Uri uriFor(Long id) {
+  public static Uri uriFor(@Nullable Long id) {
     final Uri.Builder builder =
         new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
             .path(ITEMS_PATH);
@@ -101,7 +103,8 @@ public class PlaylistQuery {
     return Database.Tables.Playlist.Fields._id + " = " + id;
   }
 
-  public static String selectionFor(long ids[]) {
+  @Nullable
+  public static String selectionFor(@Nullable long ids[]) {
     if (ids == null) {
       return null;
     } else {

@@ -15,7 +15,7 @@ import android.app.Activity;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 
-public final class UiThreadCallbackAdapter implements Callback {
+final class UiThreadCallbackAdapter implements Callback {
   
   private final Activity activity;
   private final Callback delegate;

@@ -16,11 +16,11 @@ import java.io.RandomAccessFile;
 
 public final class WaveWriteSamplesTarget implements SamplesTarget {
   
-  static final int SAMPLERATE = 44100;
-  static final int CHANNELS = 1;
-  static final int BYTES_PER_SAMPLE = 2;
+  private static final int SAMPLERATE = 44100;
+  private static final int CHANNELS = 1;
+  private static final int BYTES_PER_SAMPLE = 2;
   
-  final byte header[] = {
+  private static final byte header[] = {
       //+0
       'R', 'I', 'F', 'F',
       //+4 - file size - 8
@@ -48,13 +48,14 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
       //+40 - data size
       0, 0, 0, 0
   };
-  static final int OFFSET_WAVESIZE = 4;
-  static final int OFFSET_SAMPLERATE = 24;
-  static final int OFFSET_BPS = 28;
-  static final int OFFSET_DATA_SIZE = 40;
-  byte buffer[];
-  final RandomAccessFile file;
-  int doneBytes;
+  private static final int OFFSET_WAVESIZE = 4;
+  private static final int OFFSET_SAMPLERATE = 24;
+  private static final int OFFSET_BPS = 28;
+  private static final int OFFSET_DATA_SIZE = 40;
+
+  private byte buffer[];
+  private final RandomAccessFile file;
+  private int doneBytes;
 
   public WaveWriteSamplesTarget(String filename) {
     this.buffer = new byte[CHANNELS * BYTES_PER_SAMPLE * SAMPLERATE];
@@ -123,10 +124,8 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
       buffer = new byte[size];
     }
   }
-  
+
   private void convertBuffer(short[] input, int outBytes) {
-    assert BYTES_PER_SAMPLE == 2;
-    assert CHANNELS == 1;
     for (int in = 0, out = 0; out < outBytes; )
     {
       int sample = 0;

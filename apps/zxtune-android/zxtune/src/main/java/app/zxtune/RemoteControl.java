@@ -31,9 +31,9 @@ import app.zxtune.playback.PlaybackService;
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class RemoteControl implements Releaseable {
 
-  final static boolean SUPPORT_REMOTE_CONTROL = Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
-  private final static String TAG = RemoteControl.class.getName();
-  private final static AudioManager.OnAudioFocusChangeListener HANDLER =
+  private static final boolean SUPPORT_REMOTE_CONTROL = Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
+  private static final String TAG = RemoteControl.class.getName();
+  private static final AudioManager.OnAudioFocusChangeListener HANDLER =
       new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {

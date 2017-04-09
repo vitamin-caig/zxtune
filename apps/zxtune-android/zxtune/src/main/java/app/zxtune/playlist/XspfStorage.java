@@ -24,18 +24,22 @@ import java.io.InvalidObjectException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.Log;
 import app.zxtune.R;
 
 public class XspfStorage {
-  
-  private final static String EXTENSION = ".xspf"; 
+
+  private static final String TAG = XspfStorage.class.getName();
+  private static final String EXTENSION = ".xspf";
   private final File root;
   private final ArrayList<String> names;
 
   public XspfStorage(Context context) {
     final String path = context.getString(R.string.playlists_storage_path);
     this.root = new File(Environment.getExternalStorageDirectory() + File.separator + path);
-    root.mkdirs();
+    if (root.mkdirs()) {
+      Log.d(TAG, "Created playlists storage dir");
+    }
     this.names = new ArrayList<String>();
 
     fillNames();

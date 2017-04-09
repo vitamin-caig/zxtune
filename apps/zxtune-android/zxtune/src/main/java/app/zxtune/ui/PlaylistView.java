@@ -14,6 +14,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -103,11 +104,11 @@ public class PlaylistView extends DragSortListView
 
     private DropListener dropListener;
 
-    PlaylistCursorAdapter(Context context, Cursor cursor, boolean autoRequery) {
+    PlaylistCursorAdapter(Context context, @Nullable Cursor cursor, boolean autoRequery) {
       super(context, cursor, autoRequery);
     }
 
-    PlaylistCursorAdapter(Context context, Cursor cursor, int flags) {
+    PlaylistCursorAdapter(Context context, @Nullable Cursor cursor, int flags) {
       super(context, cursor, flags);
     }
     

@@ -16,6 +16,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.Nullable;
 import android.util.SparseIntArray;
 
 import app.zxtune.Log;
@@ -159,7 +160,7 @@ public class Database {
   }
 
   // ! @return Cursor with queried values
-  public final Cursor queryPlaylistItems(String[] columns, String selection, String[] selectionArgs,
+  public final Cursor queryPlaylistItems(String[] columns, @Nullable String selection, @Nullable String[] selectionArgs,
       String orderBy) {
     Log.d(TAG, "queryPlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -174,14 +175,14 @@ public class Database {
   }
 
   // ! @return count of deleted items
-  public final int deletePlaylistItems(String selection, String[] selectionArgs) {
+  public final int deletePlaylistItems(@Nullable String selection, @Nullable String[] selectionArgs) {
     Log.d(TAG, "deletePlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.delete(Tables.Playlist.NAME, selection, selectionArgs);
   }
 
   // ! @return count of updated items
-  public final int updatePlaylistItems(ContentValues values, String selection, String[] selectionArgs) {
+  public final int updatePlaylistItems(ContentValues values, String selection, @Nullable String[] selectionArgs) {
     //update tracks table directly to avoid on update trigger
     Log.d(TAG, "updatePlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getWritableDatabase();

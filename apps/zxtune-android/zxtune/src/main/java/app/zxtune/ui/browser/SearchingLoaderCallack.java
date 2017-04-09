@@ -12,6 +12,7 @@ package app.zxtune.ui.browser;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.widget.BaseAdapter;
@@ -28,16 +29,16 @@ class SearchingLoaderCallback implements LoaderManager.LoaderCallbacks<Void>, Se
   private final Handler handler;
   private BrowserController control;
   
-  private SearchingLoaderCallback(VfsDir dir, String query) {
+  private SearchingLoaderCallback(VfsDir dir, String query, BrowserController control) {
     this.dir = dir;
     this.query = query;
     this.model = new RealBrowserViewModel(MainApplication.getInstance());
     this.handler = new Handler();
+    this.control = control;
   }
   
   static LoaderManager.LoaderCallbacks<Void> create(BrowserController ctrl, VfsDir dir, String query) {
-    final SearchingLoaderCallback cb = new SearchingLoaderCallback(dir, query);
-    cb.control = ctrl;
+    final SearchingLoaderCallback cb = new SearchingLoaderCallback(dir, query, ctrl);
     ctrl.listing.setModel(cb.model);
     ctrl.searchingStarted();
     return cb;
@@ -45,10 +46,7 @@ class SearchingLoaderCallback implements LoaderManager.LoaderCallbacks<Void>, Se
   
   static LoaderManager.LoaderCallbacks<Void> create(BrowserController ctrl, SearchingLoader loader) {
     final SearchingLoaderCallback cb = (SearchingLoaderCallback) loader.getCallback();
-    synchronized (cb) {
-      cb.control = ctrl;
-      ctrl.listing.setModel(cb.model);
-    }
+    cb.setControl(ctrl);
     if (loader.isStarted()) {
       ctrl.searchingStarted();
     }
@@ -58,10 +56,7 @@ class SearchingLoaderCallback implements LoaderManager.LoaderCallbacks<Void>, Se
   
   static void detachLoader(SearchingLoader loader) {
     final SearchingLoaderCallback cb = (SearchingLoaderCallback) loader.getCallback();
-    synchronized (cb) {
-      cb.control = null;
-      cb.handler.removeCallbacksAndMessages(null);
-    }
+    cb.setControl(null);
   }
   
   @Override
@@ -77,6 +72,16 @@ class SearchingLoaderCallback implements LoaderManager.LoaderCallbacks<Void>, Se
   @Override
   public void onLoaderReset(Loader<Void> loader) {
     loadingFinished();
+  }
+
+  private synchronized void setControl(@Nullable BrowserController control) {
+    if (control != null) {
+      this.control = control;
+      control.listing.setModel(this.model);
+    } else {
+      this.control = null;
+      this.handler.removeCallbacksAndMessages(null);
+    }
   }
   
   @Override

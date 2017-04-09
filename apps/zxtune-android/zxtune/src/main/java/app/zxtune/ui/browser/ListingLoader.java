@@ -11,6 +11,7 @@
 package app.zxtune.ui.browser;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.v4.content.AsyncTaskLoader;
 
 import java.util.Comparator;
@@ -24,7 +25,7 @@ import app.zxtune.fs.VfsObject;
 //http://developer.android.com/intl/ru/reference/android/content/AsyncTaskLoader.html
 
 // Returns BrowserViewModel or Exception
-public class ListingLoader extends AsyncTaskLoader<Object> {
+class ListingLoader extends AsyncTaskLoader<Object> {
 
   public interface Callback {
     public void onProgressInit(int total);
@@ -32,11 +33,11 @@ public class ListingLoader extends AsyncTaskLoader<Object> {
   }
   
   private static final String TAG = ListingLoader.class.getName();
-  private final VfsDir dir;
+  @Nullable private final VfsDir dir;
   private final Callback cb;
   private final CancellationSignal signal;
 
-  ListingLoader(Context context, VfsDir dir, Callback cb) {
+  ListingLoader(Context context, @Nullable VfsDir dir, Callback cb) {
     super(context);
     this.dir = dir;
     this.cb = cb;
@@ -57,6 +58,9 @@ public class ListingLoader extends AsyncTaskLoader<Object> {
   @SuppressWarnings("unchecked")
   @Override
   public Object loadInBackground() {
+    if (dir == null) {
+      return new EmptyBrowserViewModel();
+    }
     final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
     try {
       dir.enumerate(new VfsDir.Visitor() {

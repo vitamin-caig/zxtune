@@ -13,11 +13,11 @@ package app.zxtune.sound;
 public interface SamplesSource {
 
   public static final class Channels {
-    public final static int COUNT = 2;
+    public static final int COUNT = 2;
   }
 
   public static final class Sample {
-    public final static int BYTES = 2;
+    public static final int BYTES = 2;
   }
   
   /**

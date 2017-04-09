@@ -30,7 +30,7 @@ import app.zxtune.ui.StatusNotification;
 
 public class MainService extends Service {
 
-  private final static String TAG = MainService.class.getName();
+  private static final String TAG = MainService.class.getName();
 
   private String PREF_MEDIABUTTONS;
   private boolean PREF_MEDIABUTTONS_DEFAULT;
@@ -49,11 +49,11 @@ public class MainService extends Service {
   private Releaseable widgetHandler;
   private Releaseable settingsChangedHandler;
   
-  public final static String ACTION_PREV = TAG + ".prev";
-  public final static String ACTION_NEXT = TAG + ".next";
-  public final static String ACTION_PLAY = TAG + ".play";
-  public final static String ACTION_PAUSE = TAG + ".pause";
-  public final static String ACTION_PLAYPAUSE = TAG + ".playpause";
+  public static final String ACTION_PREV = TAG + ".prev";
+  public static final String ACTION_NEXT = TAG + ".next";
+  public static final String ACTION_PLAY = TAG + ".play";
+  public static final String ACTION_PAUSE = TAG + ".pause";
+  public static final String ACTION_PLAYPAUSE = TAG + ".playpause";
 
   @Override
   public void onCreate() {

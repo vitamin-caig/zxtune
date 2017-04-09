@@ -17,6 +17,7 @@ import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -33,14 +34,14 @@ import app.zxtune.playlist.XspfStorage;
 
 public class PlaylistSaveFragment extends DialogFragment {
 
-  private final static String TAG = PlaylistSaveFragment.class.getName();
-  private final static String IDS_KEY = "ids";
-  private final static String NAME_KEY = "name";
+  private static final String TAG = PlaylistSaveFragment.class.getName();
+  private static final String IDS_KEY = "ids";
+  private static final String NAME_KEY = "name";
 
   private XspfStorage storage;
   private EditText name;
   
-  public static DialogFragment createInstance(long[] ids) {
+  public static DialogFragment createInstance(@Nullable long[] ids) {
     final DialogFragment res = new PlaylistSaveFragment();
     final Bundle args = new Bundle();
     args.putLongArray(IDS_KEY, ids);
@@ -143,19 +144,23 @@ public class PlaylistSaveFragment extends DialogFragment {
     
     private final Context context;
     private final XspfStorage storage;
-    private final long[] ids;
+    @Nullable private final long[] ids;
     
-    SavePlaylistOperation(Context context, XspfStorage storage, long[] ids) {
+    SavePlaylistOperation(Context context, XspfStorage storage, @Nullable long[] ids) {
       this.context = context;
       this.storage = storage;
       this.ids = ids;
     }
     
     @Override
+    @Nullable
     protected Exception doInBackground(String... name) {
       try {
         final Cursor cursor = context.getContentResolver().query(PlaylistQuery.ALL, null, 
           PlaylistQuery.selectionFor(ids), null, null);
+        if (cursor == null) {
+          return new Exception("Failed to query playlist");
+        }
         try {
           storage.createPlaylist(name[0], cursor);
         } finally {
