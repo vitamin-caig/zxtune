@@ -111,23 +111,27 @@ class RemoteControl implements Releaseable {
 
     @Override
     public void onItemChanged(Item item) {
-      final MetadataEditor meta = controlClient.editMetadata(true);
-      //TODO: extract code
-      final String author = item.getAuthor();
-      final String title = item.getTitle();
-      final boolean noAuthor = author.length() == 0;
-      final boolean noTitle = title.length() == 0;
-      if (noAuthor && noTitle) {
-        final String filename = item.getDataId().getDisplayFilename();
-        meta.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, filename);
-      } else {
-        meta.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, author);
-        meta.putString(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST, author);
-        meta.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, title);
+      try {
+        final MetadataEditor meta = controlClient.editMetadata(true);
+        //TODO: extract code
+        final String author = item.getAuthor();
+        final String title = item.getTitle();
+        final boolean noAuthor = author.length() == 0;
+        final boolean noTitle = title.length() == 0;
+        if (noAuthor && noTitle) {
+          final String filename = item.getDataId().getDisplayFilename();
+          meta.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, filename);
+        } else {
+          meta.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, author);
+          meta.putString(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST, author);
+          meta.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, title);
+        }
+        meta.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
+                item.getDuration().convertTo(TimeUnit.MILLISECONDS));
+        meta.apply();
+      } catch (Exception e) {
+        Log.w(TAG, e, "onItemChanged()");
       }
-      meta.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
-          item.getDuration().convertTo(TimeUnit.MILLISECONDS));
-      meta.apply();
     }
   }
 }

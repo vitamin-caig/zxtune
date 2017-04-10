@@ -82,7 +82,7 @@ public final class SyncPlayer implements Player {
     }
   }
 
-  private void produceCycle() throws InterruptedException {
+  private void produceCycle() throws Exception {
     try {
       Log.d(TAG, "Started produce cycle");
       source.initialize(target.getSampleRate());
@@ -123,7 +123,7 @@ public final class SyncPlayer implements Player {
     }
   }
 
-  private void consumeCycle() throws InterruptedException {
+  private void consumeCycle() throws Exception {
     short[] buf = new short[target.getPreferableBufferSize()];
     for (;;) {
       buf = buffers.exchange(buf);

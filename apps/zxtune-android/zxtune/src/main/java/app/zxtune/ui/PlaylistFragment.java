@@ -82,22 +82,26 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     final SubMenu sortMenuRoot = sortItem.getSubMenu();
     for (PlaylistControl.SortBy sortBy : PlaylistControl.SortBy.values()) {
       for (PlaylistControl.SortOrder sortOrder : PlaylistControl.SortOrder.values()) {
-        final MenuItem item = sortMenuRoot.add(getMenuTitle(sortBy));
-        final PlaylistControl.SortBy by = sortBy;
-        final PlaylistControl.SortOrder order = sortOrder;
-        item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-          @Override
-          public boolean onMenuItemClick(MenuItem item) {
-            getService().getPlaylistControl().sort(by, order);
-            return true;
-          }
-        });
-        item.setIcon(getMenuIcon(sortOrder));
+        try {
+          final MenuItem item = sortMenuRoot.add(getMenuTitle(sortBy));
+          final PlaylistControl.SortBy by = sortBy;
+          final PlaylistControl.SortOrder order = sortOrder;
+          item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+              getService().getPlaylistControl().sort(by, order);
+              return true;
+            }
+          });
+          item.setIcon(getMenuIcon(sortOrder));
+        } catch (Exception e) {
+          Log.w(TAG, e, "onCreateOptionsMenu");
+        }
       }
     }
   }
   
-  private static int getMenuTitle(PlaylistControl.SortBy by) {
+  private static int getMenuTitle(PlaylistControl.SortBy by) throws Exception {
     if (PlaylistControl.SortBy.title.equals(by)) {
       return R.string.information_title;
     } else if (PlaylistControl.SortBy.author.equals(by)) {
@@ -105,17 +109,17 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     } else if (PlaylistControl.SortBy.duration.equals(by)) {
       return R.string.statistics_duration;//TODO: extract
     } else {
-      throw new RuntimeException();
+      throw new Exception("Invalid sort order");
     }
   }
   
-  private static int getMenuIcon(PlaylistControl.SortOrder order) {
+  private static int getMenuIcon(PlaylistControl.SortOrder order) throws Exception {
     if (PlaylistControl.SortOrder.asc.equals(order)) {
       return android.R.drawable.arrow_up_float;
     } else if (PlaylistControl.SortOrder.desc.equals(order)) {
       return android.R.drawable.arrow_down_float;
     } else {
-      throw new RuntimeException();
+      throw new Exception("Invalid sor order");
     }
   }
   

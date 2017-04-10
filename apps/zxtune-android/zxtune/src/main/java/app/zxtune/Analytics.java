@@ -58,24 +58,28 @@ public class Analytics {
   }
 
   private static void sendPlayEvent(PlayableItem item) {
-    final Identifier id = item.getDataId();
-    final Uri location = id.getFullLocation();
-    final ZXTune.Module module = item.getModule();
-    final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "Unknown");
-    final String program = module.getProperty(ZXTune.Module.Attributes.PROGRAM, "Unknown");
-    final String container = module.getProperty(ZXTune.Module.Attributes.CONTAINER, "None");
-    final TimeStamp duration = item.getDuration();
-    final boolean fromBrowser = item.getId().equals(location);
+    try {
+      final Identifier id = item.getDataId();
+      final Uri location = id.getFullLocation();
+      final ZXTune.Module module = item.getModule();
+      final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "Unknown");
+      final String program = module.getProperty(ZXTune.Module.Attributes.PROGRAM, "Unknown");
+      final String container = module.getProperty(ZXTune.Module.Attributes.CONTAINER, "None");
+      final TimeStamp duration = item.getDuration();
+      final boolean fromBrowser = item.getId().equals(location);
 
-    final CustomEvent event = new CustomEvent("Play");
-    fillSource(event, location);
-    event.putCustomAttribute("Type", type)
-            .putCustomAttribute("TypeDetailed", type + "/" + program)
-            .putCustomAttribute("Container", container)
-            .putCustomAttribute("Duration", duration.convertTo(TimeUnit.SECONDS))
-            .putCustomAttribute("Library", fromBrowser ? "Browser" : "Playlist")
-    ;
-    send(event);
+      final CustomEvent event = new CustomEvent("Play");
+      fillSource(event, location);
+      event.putCustomAttribute("Type", type)
+              .putCustomAttribute("TypeDetailed", type + "/" + program)
+              .putCustomAttribute("Container", container)
+              .putCustomAttribute("Duration", duration.convertTo(TimeUnit.SECONDS))
+              .putCustomAttribute("Library", fromBrowser ? "Browser" : "Playlist")
+      ;
+      send(event);
+    } catch (Exception e) {
+      Log.w(TAG, e, "sendPlayEvent");
+    }
   }
 
   public static void sendBrowseEvent(VfsDir dir) {

@@ -24,6 +24,8 @@ import app.zxtune.playback.ItemStub;
 
 public class WidgetHandler extends AppWidgetProvider {
 
+  private static final String TAG = WidgetHandler.class.getName();
+
   @Override
   public void onUpdate(Context context, AppWidgetManager appWidgetManager,
       int[] appWidgetIds) {
@@ -46,9 +48,13 @@ public class WidgetHandler extends AppWidgetProvider {
     widgetView.setOnClickPendingIntent(R.id.widget_ctrl_play, createServiceIntent(context, MainService.ACTION_PLAY));
     widgetView.setOnClickPendingIntent(R.id.widget_ctrl_pause, createServiceIntent(context, MainService.ACTION_PAUSE));
     widgetView.setOnClickPendingIntent(R.id.widget_ctrl_next, createServiceIntent(context, MainService.ACTION_NEXT));
-    
-    final String info = Util.formatTrackTitle(nowPlaying.getAuthor(), nowPlaying.getTitle(), nowPlaying.getDataId().getDisplayFilename());
-    widgetView.setTextViewText(R.id.widget_text, info);
+
+    try {
+      final String info = Util.formatTrackTitle(nowPlaying.getAuthor(), nowPlaying.getTitle(), nowPlaying.getDataId().getDisplayFilename());
+      widgetView.setTextViewText(R.id.widget_text, info);
+    } catch (Exception e) {
+      Log.w(TAG, e, "update()");
+    }
     
     mgr.updateAppWidget(widgets, widgetView);
   }

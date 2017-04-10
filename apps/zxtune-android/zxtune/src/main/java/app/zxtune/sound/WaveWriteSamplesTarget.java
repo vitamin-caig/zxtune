@@ -57,12 +57,12 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
   private final RandomAccessFile file;
   private int doneBytes;
 
-  public WaveWriteSamplesTarget(String filename) {
+  public WaveWriteSamplesTarget(String filename) throws Exception {
     this.buffer = new byte[CHANNELS * BYTES_PER_SAMPLE * SAMPLERATE];
     try {
       this.file = new RandomAccessFile(filename, "rw");
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);
+      throw new Exception(e);
     }
   }
 
@@ -77,42 +77,30 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
   }
 
   @Override
-  public void start() {
-    try {
-      file.seek(header.length);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void start() throws Exception {
+    file.seek(header.length);
     doneBytes = 0;
   }
 
   @Override
-  public void writeSamples(short[] input) {
+  public void writeSamples(short[] input) throws Exception {
     final int inSamples = input.length / SamplesSource.Channels.COUNT;
     final int outBytes = inSamples * SamplesSource.Sample.BYTES; 
     allocateBuffer(outBytes);
     convertBuffer(input, outBytes);
-    try {
-      file.write(buffer, 0, outBytes);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    file.write(buffer, 0, outBytes);
     doneBytes += outBytes;
   }
 
   @Override
-  public void stop() {
+  public void stop() throws Exception {
     setHeaderLE32(OFFSET_SAMPLERATE, SAMPLERATE);
     setHeaderLE32(OFFSET_BPS, SAMPLERATE * BYTES_PER_SAMPLE);
     setHeaderLE32(OFFSET_DATA_SIZE, doneBytes);
     setHeaderLE32(OFFSET_WAVESIZE, header.length - 8 + doneBytes);
-    try {
-      file.seek(0);
-      file.write(header);
-      file.seek(header.length + doneBytes);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    file.seek(0);
+    file.write(header);
+    file.seek(header.length + doneBytes);
   }
 
   @Override

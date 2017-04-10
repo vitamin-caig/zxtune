@@ -40,10 +40,10 @@ public class FileIterator implements Iterator {
   private final LinkedBlockingQueue<PlayableItem> itemsQueue;
   private final ArrayList<Identifier> history;
   private int historyDepth;
-  private IOException lastError;
+  private Exception lastError;
   private PlayableItem item;
   
-  public FileIterator(Context context, Uri[] uris) throws IOException {
+  public FileIterator(Context context, Uri[] uris) throws Exception {
     this.scanner = new Scanner();
     this.executor = Executors.newCachedThreadPool();
     this.itemsQueue = new LinkedBlockingQueue<PlayableItem>(1);
@@ -55,7 +55,7 @@ public class FileIterator implements Iterator {
         throw lastError;
       }
       accountNoTracksFiles(uris);
-      throw new IOException(context.getString(R.string.no_tracks_found));
+      throw new Exception(context.getString(R.string.no_tracks_found));
     }
   }
   
@@ -115,12 +115,12 @@ public class FileIterator implements Iterator {
             }
             
             @Override
-            public void onIOError(IOException e) {
+            public void onError(Exception e) {
               lastError = e;
             }
           });
           addItem(PlayableItemStub.instance());//limiter
-        } catch (Error e) {
+        } catch (Error e) {//use unchecked exception to process interruptions
           Log.w(TAG, e, "Error in FileIterator.start()");
         }
       }
@@ -172,7 +172,8 @@ public class FileIterator implements Iterator {
       }
       
       @Override
-      public void onIOError(IOException e) {
+      public void onError(Exception e) {
+        Log.w(TAG, e, "Error");
       }
     });
     return item != current;
@@ -202,32 +203,32 @@ public class FileIterator implements Iterator {
     }
 
     @Override
-    public String getTitle() {
+    public String getTitle() throws Exception {
       return module.getProperty(ZXTune.Module.Attributes.TITLE, EMPTY_STRING);
     }
 
     @Override
-    public String getAuthor() {
+    public String getAuthor() throws Exception {
       return module.getProperty(ZXTune.Module.Attributes.AUTHOR, EMPTY_STRING);
     }
     
     @Override
-    public String getProgram() {
+    public String getProgram() throws Exception {
       return module.getProperty(ZXTune.Module.Attributes.PROGRAM, EMPTY_STRING);
     }
     
     @Override
-    public String getComment() {
+    public String getComment() throws Exception {
       return module.getProperty(ZXTune.Module.Attributes.COMMENT, EMPTY_STRING);
     }
     
     @Override
-    public String getStrings() {
+    public String getStrings() throws Exception {
       return module.getProperty(ZXTune.Module.Attributes.STRINGS, EMPTY_STRING);
     }
 
     @Override
-    public TimeStamp getDuration() {
+    public TimeStamp getDuration() throws Exception {
       final long frameDuration = module.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT);
       return TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
     }

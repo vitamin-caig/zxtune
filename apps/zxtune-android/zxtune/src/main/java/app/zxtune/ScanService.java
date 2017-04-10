@@ -24,7 +24,6 @@ import android.os.PowerManager.WakeLock;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -137,7 +136,7 @@ public class ScanService extends IntentService {
           break;
         }
       } while (insertThread.isActive() && iter.next());
-    } catch (IOException e) {
+    } catch (Exception e) {
       error = e;
       Log.w(TAG, e, "Scan failed");
       insertThread.cancel();
@@ -201,13 +200,15 @@ public class ScanService extends IntentService {
         }
       } catch (InterruptedException e) {
         Log.d(getName(), "interrupted");
+      } catch (Exception e) {
+        Log.w(getName(), e, "run()");
       } finally {
         Log.d(getName(), "stopping");
         cleanup();
       }
     }
     
-    private void performTransfer() throws InterruptedException {
+    private void performTransfer() throws Exception {
       tracking.start();
       try {
         transferItems();
@@ -216,7 +217,7 @@ public class ScanService extends IntentService {
       }
     }
 
-    private void transferItems() throws InterruptedException {
+    private void transferItems() throws Exception {
       for (;;) {
         if (!transferSingleItem()) {
           break;
@@ -224,7 +225,7 @@ public class ScanService extends IntentService {
       }
     }
     
-    private boolean transferSingleItem() throws InterruptedException {
+    private boolean transferSingleItem() throws Exception {
       final PlayableItem item = queue.take();
       if (item == PlayableItemStub.instance()) {
         return false;
@@ -233,7 +234,7 @@ public class ScanService extends IntentService {
       return true;
     }
 
-    private void insertItem(PlayableItem item) {
+    private void insertItem(PlayableItem item) throws Exception {
       try {
         final Item listItem = new Item(item.getDataId(), item.getModule());
         getContentResolver().insert(PlaylistQuery.ALL, listItem.toContentValues());

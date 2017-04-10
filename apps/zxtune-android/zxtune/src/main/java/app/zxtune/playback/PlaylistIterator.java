@@ -118,8 +118,8 @@ class PlaylistIterator implements Iterator {
       }
       
       @Override
-      public void onIOError(IOException e) {
-        Log.w(TAG, e, "Ignore I/O error");
+      public void onError(Exception e) {
+        Log.w(TAG, e, "Ignore error");
       }
     });
   }
@@ -155,17 +155,17 @@ class PlaylistIterator implements Iterator {
     }
     
     @Override
-    public String getProgram() {
+    public String getProgram() throws Exception {
       return content.getProgram();
     }
 
     @Override
-    public String getComment() {
+    public String getComment() throws Exception {
       return content.getComment();
     }
     
     @Override
-    public String getStrings() {
+    public String getStrings() throws Exception {
       return content.getStrings();
     }
     

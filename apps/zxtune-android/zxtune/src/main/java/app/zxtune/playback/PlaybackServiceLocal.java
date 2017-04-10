@@ -14,7 +14,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +49,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private Holder holder;
 
   private static interface Command {
-    void execute() throws IOException;
+    void execute() throws Exception;
   }
     
   public PlaybackServiceLocal(Context context) {
@@ -91,7 +90,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
     
     @Override
-    public void execute() throws IOException {
+    public void execute() throws Exception {
       final Iterator iter = IteratorFactory.createIterator(context, uris);
       setNewIterator(iter);
       seek.setPosition(position);
@@ -104,7 +103,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   
   private class StoreSessionCommand implements Command {
     @Override
-    public void execute() throws IOException {
+    public void execute() throws Exception {
       final Uri nowPlaying = getNowPlaying().getId();
       if (!Uri.EMPTY.equals(nowPlaying)) {
         final String path = nowPlaying.toString();
@@ -132,13 +131,13 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void execute() throws IOException {
+    public void execute() throws Exception {
       final Iterator iter = IteratorFactory.createIterator(context, uris);
       play(iter);
     }
   }
   
-  private synchronized void setNewIterator(Iterator iter) throws IOException {
+  private synchronized void setNewIterator(Iterator iter) throws Exception {
     if (holder.iterator != iter) {
       Log.d(TAG, "Update iterator %s -> %s", holder.iterator, iter);
       holder.iterator.release();
@@ -159,18 +158,18 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
   
   
-  private synchronized void play(Iterator iter) throws IOException {
+  private synchronized void play(Iterator iter) throws Exception {
     setNewIterator(iter);
     holder.player.startPlayback();
   }
   
-  private synchronized void playNext() throws IOException {
+  private synchronized void playNext() throws Exception {
     if (holder.iterator.next()) {
       play(holder.iterator);
     }
   }
   
-  private synchronized void playPrev() throws IOException {
+  private synchronized void playPrev() throws Exception {
     if (holder.iterator.prev()) {
       play(holder.iterator);
     }
@@ -281,7 +280,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.visualizer = VisualizerStub.instance();
     }
     
-    Holder(Iterator iterator, PlayerEventsListener events) throws IOException {
+    Holder(Iterator iterator, PlayerEventsListener events) throws Exception {
       this.iterator = iterator;
       this.item = iterator.getItem();
       final ZXTune.Player lowPlayer = item.getModule().createPlayer();
@@ -333,7 +332,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       executeCommand(new Command() {
 
         @Override
-        public void execute() throws IOException {
+        public void execute() throws Exception {
           playNext();
         }
       });
@@ -344,7 +343,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       executeCommand(new Command() {
 
         @Override
-        public void execute() throws IOException {
+        public void execute() throws Exception {
           playPrev();
         }
         
@@ -378,21 +377,21 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final class DispatchedSeekControl implements SeekControl {
 
     @Override
-    public synchronized TimeStamp getDuration() {
+    public synchronized TimeStamp getDuration() throws Exception {
       synchronized (PlaybackServiceLocal.this) {
         return holder.seek.getDuration();
       }
     }
 
     @Override
-    public synchronized TimeStamp getPosition() {
+    public synchronized TimeStamp getPosition() throws Exception {
       synchronized (PlaybackServiceLocal.this) {
         return holder.seek.getPosition();
       }
     }
 
     @Override
-    public synchronized void setPosition(TimeStamp position) {
+    public synchronized void setPosition(TimeStamp position) throws Exception {
       synchronized (PlaybackServiceLocal.this) {
         holder.seek.setPosition(position);
       }
@@ -402,7 +401,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final class DispatchedVisualizer implements Visualizer {
     
     @Override
-    public synchronized int getSpectrum(int[] bands, int[] levels) {
+    public synchronized int getSpectrum(int[] bands, int[] levels) throws Exception {
       synchronized (PlaybackServiceLocal.this) {
         return holder.visualizer.getSpectrum(bands, levels);
       }
@@ -428,8 +427,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void onFinish() {
-      seek.setPosition(TimeStamp.EMPTY);
-      ctrl.next();
+      try {
+        seek.setPosition(TimeStamp.EMPTY);
+        ctrl.next();
+      } catch (Exception e) {
+        onError(e);
+      }
     }
 
     @Override
@@ -450,7 +453,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     private final TimeStamp frameDuration;
     private volatile TimeStamp seekRequest;
     
-    public SeekableSamplesSource(ZXTune.Player player, TimeStamp totalDuration) {
+    public SeekableSamplesSource(ZXTune.Player player, TimeStamp totalDuration) throws Exception {
       this.player = player;
       this.totalDuration = totalDuration;
       final long frameDurationUs = player.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT); 
@@ -459,12 +462,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
     
     @Override
-    public void initialize(int sampleRate) {
+    public void initialize(int sampleRate) throws Exception {
       player.setProperty(ZXTune.Properties.Sound.FREQUENCY, sampleRate);
     }
 
     @Override
-    public boolean getSamples(short[] buf) {
+    public boolean getSamples(short[] buf) throws Exception {
       if (seekRequest != null) {
         final int frame = (int) seekRequest.divides(frameDuration); 
         player.setPosition(frame);
@@ -485,7 +488,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public TimeStamp getPosition() {
+    public TimeStamp getPosition() throws Exception {
       TimeStamp res = seekRequest;
       if (res == null) {
         final int frame = player.getPosition();
@@ -509,7 +512,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public int getSpectrum(int[] bands, int[] levels) {
+    public int getSpectrum(int[] bands, int[] levels) throws Exception {
       return player.analyze(bands, levels);
     }
   }

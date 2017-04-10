@@ -28,8 +28,6 @@ import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InvalidObjectException;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -121,12 +119,12 @@ public class RingtoneService extends IntentService {
     }
   }
 
-  private PlayableItem load(Uri uri) throws IOException {
+  private PlayableItem load(Uri uri) throws Exception {
     final FileIterator iter = new FileIterator(this, new Uri[] {uri});
     return iter.getItem();
   }
     
-  private File getTargetLocation(PlayableItem item, TimeStamp duration) {
+  private File getTargetLocation(PlayableItem item, TimeStamp duration) throws Exception {
     final File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RINGTONES);
     if (dir.mkdirs()) {
       Log.d(TAG, "Created ringtones directory");
@@ -137,7 +135,7 @@ public class RingtoneService extends IntentService {
     return new File(dir, filename);
   }
   
-  private static long getModuleId(PlayableItem item) {
+  private static long getModuleId(PlayableItem item) throws Exception {
     return item.getModule().getProperty("CRC"/*ZXTune.Module.Attributes.CRC*/, item.getDataId().hashCode());
   }
   
@@ -149,7 +147,7 @@ public class RingtoneService extends IntentService {
     }
   }; 
   
-  private void convert(PlayableItem item, TimeStamp limit, File location) throws InvalidObjectException {
+  private void convert(PlayableItem item, TimeStamp limit, File location)  throws Exception {
     makeToast(getString(R.string.ringtone_create_started), Toast.LENGTH_SHORT);
     final TimeLimitedSamplesSource source = new TimeLimitedSamplesSource(item.getModule().createPlayer(), limit);
     final WaveWriteSamplesTarget target = new WaveWriteSamplesTarget(location.getAbsolutePath());
@@ -162,7 +160,7 @@ public class RingtoneService extends IntentService {
     }
   }
   
-  private String setAsRingtone(PlayableItem item, TimeStamp limit, File path) {
+  private String setAsRingtone(PlayableItem item, TimeStamp limit, File path) throws Exception {
     final ContentValues values = createRingtoneData(item, limit, path);
 
     final Uri ringtoneUri = createOrUpdateRingtone(values);
@@ -172,7 +170,7 @@ public class RingtoneService extends IntentService {
     return values.getAsString(MediaStore.MediaColumns.TITLE);
   }
   
-  private static ContentValues createRingtoneData(PlayableItem item, TimeStamp limit, File path) {
+  private static ContentValues createRingtoneData(PlayableItem item, TimeStamp limit, File path) throws Exception {
     final ContentValues values = new ContentValues();
     values.put(MediaStore.MediaColumns.DATA, path.getAbsolutePath());
     values.put(MediaStore.MediaColumns.MIME_TYPE, "audio/wav");
@@ -229,7 +227,7 @@ public class RingtoneService extends IntentService {
     private final TimeStamp limit;
     private int restSamples;
     
-    public TimeLimitedSamplesSource(ZXTune.Player player, TimeStamp limit) {
+    public TimeLimitedSamplesSource(ZXTune.Player player, TimeStamp limit) throws Exception {
       this.player = player;
       this.limit = limit;
       player.setPosition(0);
@@ -237,13 +235,13 @@ public class RingtoneService extends IntentService {
     }
     
     @Override
-    public void initialize(int sampleRate) {
+    public void initialize(int sampleRate) throws Exception {
       player.setProperty(ZXTune.Properties.Sound.FREQUENCY, sampleRate);
       restSamples = (int) (limit.convertTo(TimeUnit.SECONDS) * sampleRate);
     }
 
     @Override
-    public boolean getSamples(short[] buf) {
+    public boolean getSamples(short[] buf) throws Exception {
       if (restSamples > 0 && player.render(buf)) {
         restSamples -= buf.length / SamplesSource.Channels.COUNT;
         return true;

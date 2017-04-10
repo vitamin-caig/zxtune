@@ -32,6 +32,8 @@ import app.zxtune.playback.Visualizer;
 
 public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
 
+  private static final String TAG = PlaybackServiceServer.class.getName();
+
   private final PlaybackService delegate;
   private final PlaylistControl playlist;
   private final PlaybackControl playback;
@@ -50,7 +52,12 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
 
   @Override
   public ParcelablePlaybackItem getNowPlaying() {
-    return ParcelablePlaybackItem.create(delegate.getNowPlaying());
+    try {
+      return ParcelablePlaybackItem.create(delegate.getNowPlaying());
+    } catch (Exception e) {
+      Log.w(TAG, e, "getNowPlaying()");
+    }
+    return null;
   }
   
   @Override
@@ -130,17 +137,31 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   
   @Override
   public long getDuration() {
-    return seek.getDuration().convertTo(TimeUnit.MILLISECONDS);
+    try {
+      return seek.getDuration().convertTo(TimeUnit.MILLISECONDS);
+    } catch (Exception e) {
+      Log.w(TAG, e, "getDuration()");
+    }
+    return 0;
   }
   
   @Override
   public long getPosition() {
-    return seek.getPosition().convertTo(TimeUnit.MILLISECONDS);
+    try {
+      return seek.getPosition().convertTo(TimeUnit.MILLISECONDS);
+    } catch (Exception e) {
+      Log.w(TAG, e, "getPosition()");
+    }
+    return 0;
   }
   
   @Override
   public void setPosition(long ms) {
-    seek.setPosition(TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS));
+    try {
+      seek.setPosition(TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS));
+    } catch (Exception e) {
+      Log.w(TAG, e, "setPosition()");
+    }
   }
   
   @Override
@@ -148,12 +169,17 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     final int MAX_BANDS = 32;
     final int[] bands = new int[MAX_BANDS];
     final int[] levels = new int[MAX_BANDS];
-    final int chans = visualizer.getSpectrum(bands, levels);
-    final int[] res = new int[chans];
-    for (int idx = 0; idx != chans; ++idx) {
-      res[idx] = (levels[idx] << 8) | bands[idx];
+    try {
+      final int chans = visualizer.getSpectrum(bands, levels);
+      final int[] res = new int[chans];
+      for (int idx = 0; idx != chans; ++idx) {
+        res[idx] = (levels[idx] << 8) | bands[idx];
+      }
+      return res;
+    } catch (Exception e) {
+      Log.w(TAG, e, "getSpectrum()");
     }
-    return res;
+    return new int[1];
   }
   
   @Override
@@ -194,7 +220,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     public void onItemChanged(Item item) {
       try {
         delegate.onItemChanged(ParcelablePlaybackItem.create(item));
-      } catch (RemoteException e) {
+      } catch (Exception e) {
         Log.w(TAG, e, "onItemChanged()");
       }
     }

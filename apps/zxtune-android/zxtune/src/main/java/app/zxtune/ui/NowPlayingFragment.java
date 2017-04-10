@@ -281,7 +281,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       subMenu.setEnabled(false);
     }
     
-    final boolean selectItem(MenuItem item) throws IOException {
+    final boolean selectItem(MenuItem item) throws Exception {
       if (item == null) {
         return false;
       }
@@ -354,7 +354,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       return item;
     }
     
-    final Intent makeSendIntent() throws IOException {
+    final Intent makeSendIntent() throws Exception {
       final Uri localFile = getLocalPath();
       final Intent result = makeIntent("application/octet");
       result.putExtra(Intent.EXTRA_SUBJECT, getTitle());
@@ -364,7 +364,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       return result;
     }
     
-    final Intent makeShareIntent() throws IOException {
+    final Intent makeShareIntent() throws Exception {
       //text/html is not recognized by twitter/facebook
       final Intent result = makeIntent("text/plain");
       result.putExtra(Intent.EXTRA_SUBJECT, getTitle());
@@ -380,7 +380,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       return result;
     }
     
-    private String getTitle() {
+    private String getTitle() throws Exception {
       return Util.formatTrackTitle(item.getTitle(), item.getAuthor(), item.getDataId().getDisplayFilename());
     }
     

@@ -24,14 +24,14 @@ public interface SamplesSource {
    * Initialize stream for input
    * @param sampleRate required sample rate in Hz (e.g. 44100)
    */
-  public void initialize(int sampleRate);
+  public void initialize(int sampleRate) throws Exception;
   
   /**
    * Acquire next sound chunk
    * @param buf result buffer of 16-bit signed interleaved stereo signal
    * @return true if buffer filled
    */
-  public boolean getSamples(short[] buf);
+  public boolean getSamples(short[] buf) throws Exception;
   
   /**
    * Release all internal resources

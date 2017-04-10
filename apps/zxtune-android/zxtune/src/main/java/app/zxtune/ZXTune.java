@@ -10,7 +10,6 @@
 
 package app.zxtune;
 
-import java.io.InvalidObjectException;
 import java.nio.ByteBuffer;
 
 public final class ZXTune {
@@ -32,7 +31,7 @@ public final class ZXTune {
        * @param defVal Default value
        * @return Property value or defVal if not found
        */
-      long getProperty(String name, long defVal);
+      long getProperty(String name, long defVal) throws Exception;
 
       /**
        * Getting string property
@@ -41,7 +40,7 @@ public final class ZXTune {
        * @param defVal Default value
        * @return Property value or defVal if not found
        */
-      String getProperty(String name, String defVal);
+      String getProperty(String name, String defVal) throws Exception;
     }
 
     /**
@@ -55,7 +54,7 @@ public final class ZXTune {
        * @param name Name of the property
        * @param value Value of the property
        */
-      void setProperty(String name, long value);
+      void setProperty(String name, long value) throws Exception;
 
       /**
        * Setting string property
@@ -63,36 +62,36 @@ public final class ZXTune {
        * @param name Name of the property
        * @param value Value of the property
        */
-      void setProperty(String name, String value);
+      void setProperty(String name, String value) throws Exception;
     }
     
     /**
      * Prefix for all properties
      */
-    public final static String PREFIX = "zxtune.";
+    public static final String PREFIX = "zxtune.";
 
     /**
      * Sound properties 'namespace'
      */
     public static final class Sound {
       
-      public final static String PREFIX = Properties.PREFIX + "sound.";
+      public static final String PREFIX = Properties.PREFIX + "sound.";
 
       /**
        * Sound frequency in Hz
        */
-      public final static String FREQUENCY = PREFIX + "frequency";
+      public static final String FREQUENCY = PREFIX + "frequency";
 
       /**
        * Frame duration in microseconds
        */
-      public final static String FRAMEDURATION = PREFIX + "frameduration";
-      public final static long FRAMEDURATION_DEFAULT = 20000;
+      public static final String FRAMEDURATION = PREFIX + "frameduration";
+      public static final long FRAMEDURATION_DEFAULT = 20000;
       
       /**
        * Loop mode
        */
-      public final static String LOOPED = PREFIX + "looped";
+      public static final String LOOPED = PREFIX + "looped";
     }
 
     /**
@@ -100,16 +99,16 @@ public final class ZXTune {
      */
     public static final class Core {
       
-      public final static String PREFIX = Properties.PREFIX + "core.";
+      public static final String PREFIX = Properties.PREFIX + "core.";
 
       /**
        * AY/YM properties 'namespace'
        */
       public static final class Aym {
         
-        public final static String PREFIX = Core.PREFIX + "aym.";
+        public static final String PREFIX = Core.PREFIX + "aym.";
 
-        public final static String INTERPOLATION = PREFIX + "interpolation";
+        public static final String INTERPOLATION = PREFIX + "interpolation";
       }
     }
   }
@@ -127,50 +126,50 @@ public final class ZXTune {
       /**
        * Type. Several uppercased letters used to identify format
        */
-      public final static String TYPE = "Type";
+      public static final String TYPE = "Type";
 
       /**
        * Title or name of the module
        */
-      public final static String TITLE = "Title";
+      public static final String TITLE = "Title";
 
       /**
        * Author or creator of the module
        */
-      public final static String AUTHOR = "Author";
+      public static final String AUTHOR = "Author";
       
       /**
        * Program module created in compatible with
        */
-      public final static String PROGRAM = "Program";
+      public static final String PROGRAM = "Program";
       
       /**
        * Comment for module
        */
-      public final static String COMMENT = "Comment";
+      public static final String COMMENT = "Comment";
 
       /**
        * Module strings
        */
-      public final static String STRINGS = "Strings";
+      public static final String STRINGS = "Strings";
 
       /**
        * Module container
        */
-      public final static String CONTAINER = "Container";
+      public static final String CONTAINER = "Container";
     }
 
     /**
      * @return Module's duration in frames
      */
-    int getDuration();
+    int getDuration() throws Exception;
 
     /**
      * Creates new player object
      * 
-     * @throws InvalidObjectException in case of error
+     * @throws Exception in case of error
      */
-    Player createPlayer() throws InvalidObjectException;
+    Player createPlayer() throws Exception;
   }
 
   /**
@@ -181,26 +180,26 @@ public final class ZXTune {
     /**
      * @return Index of next rendered frame
      */
-    int getPosition();
+    int getPosition() throws Exception;
 
     /**
      * @param bands Array of bands to store
      * @param levels Array of levels to store
      * @return Count of actually stored entries
      */
-    int analyze(int bands[], int levels[]);
+    int analyze(int bands[], int levels[]) throws Exception;
     
     /**
      * Render next result.length bytes of sound data
      * @param result Buffer to put data
      * @return Is there more data to render
      */
-    boolean render(short[] result);
+    boolean render(short[] result) throws Exception;
     
     /**
      * @param pos Index of next rendered frame
      */
-    void setPosition(int pos);
+    void setPosition(int pos) throws Exception;
   }
   
   public static class GlobalOptions implements Properties.Accessor, Properties.Modifier {
@@ -233,39 +232,39 @@ public final class ZXTune {
     }
     
     private static class Holder {
-      public final static GlobalOptions INSTANCE = new GlobalOptions(); 
+      public static final GlobalOptions INSTANCE = new GlobalOptions();
     }
   }
 
-  public final static class Plugins {
+  public static final class Plugins {
     
-    public final static class DeviceType {
+    public static final class DeviceType {
       //ZXTune::Capabilities::Module::Device::Type
-      public final static int AY38910 = 1;
-      public final static int TURBOSOUND = 2;
-      public final static int BEEPER = 4;
-      public final static int YM2203 = 8;
-      public final static int TURBOFM = 16;
-      public final static int DAC = 32;
-      public final static int SAA1099 = 64;
-      public final static int MOS6581 = 128;
-      public final static int SPC700 = 256;
-      public final static int MULTIDEVICE = 512;
-      public final static int RP2A0X = 1024;
-      public final static int LR35902 = 2048;
-      public final static int CO12294 = 4096;
-      public final static int HUC6270 = 8192;
+      public static final int AY38910 = 1;
+      public static final int TURBOSOUND = 2;
+      public static final int BEEPER = 4;
+      public static final int YM2203 = 8;
+      public static final int TURBOFM = 16;
+      public static final int DAC = 32;
+      public static final int SAA1099 = 64;
+      public static final int MOS6581 = 128;
+      public static final int SPC700 = 256;
+      public static final int MULTIDEVICE = 512;
+      public static final int RP2A0X = 1024;
+      public static final int LR35902 = 2048;
+      public static final int CO12294 = 4096;
+      public static final int HUC6270 = 8192;
     }
     
-    public final static class ContainerType {
+    public static final class ContainerType {
       //ZXTune::Capabilities::Container::Type
-      public final static int ARCHIVE = 0;
-      public final static int COMPRESSOR = 1;
-      public final static int SNAPSHOT = 2;
-      public final static int DISKIMAGE = 3;
-      public final static int DECOMPILER = 4;
-      public final static int MULTITRACK = 5;
-      public final static int SCANER = 6;
+      public static final int ARCHIVE = 0;
+      public static final int COMPRESSOR = 1;
+      public static final int SNAPSHOT = 2;
+      public static final int DISKIMAGE = 3;
+      public static final int DECOMPILER = 4;
+      public static final int MULTITRACK = 5;
+      public static final int SCANER = 6;
     }
     
     public interface Visitor {
@@ -286,15 +285,16 @@ public final class ZXTune {
   
   /**
    * Simple data factory
-   * @param Content raw content
+   * @param content raw content
+   * @param subpath module subpath in content
    * @return New object
    */
-  public static Module loadModule(ByteBuffer content, String subpath) throws InvalidObjectException {
+  public static Module loadModule(ByteBuffer content, String subpath) throws Exception {
     return new NativeModule(Module_Create(makeDirectBuffer(content), subpath));
   }
   
   public interface ModuleDetectCallback {
-    void onModule(String subpath, Module obj);
+    void onModule(String subpath, Module obj) throws Exception;
   }
   
   static class ModuleDetectCallbackNativeAdapter {
@@ -305,22 +305,18 @@ public final class ZXTune {
       this.delegate = delegate;
     }
 
-    final void onModule(String subpath, int handle) {
-      try {
-        delegate.onModule(subpath, new NativeModule(handle));
-      } catch (InvalidObjectException e) {
-        //TODO
-      }
+    final void onModule(String subpath, int handle) throws Exception {
+      delegate.onModule(subpath, new NativeModule(handle));
     }
   }
   
-  public static void detectModules(ByteBuffer content, ModuleDetectCallback cb) {
+  public static void detectModules(ByteBuffer content, ModuleDetectCallback cb) throws Exception {
     Module_Detect(makeDirectBuffer(content), new ModuleDetectCallbackNativeAdapter(cb));
   }
   
-  private static ByteBuffer makeDirectBuffer(ByteBuffer content) {
+  private static ByteBuffer makeDirectBuffer(ByteBuffer content) throws Exception {
     if (content.position() != 0) {
-      throw new Error("Input data should have zero position");
+      throw new Exception("Input data should have zero position");
     }
     if (content.isDirect()) {
       return content;
@@ -340,10 +336,7 @@ public final class ZXTune {
 
     protected int handle;
 
-    protected NativeObject(int handle) throws InvalidObjectException {
-      if (0 == handle) {
-        throw new InvalidObjectException(getClass().getName());
-      }
+    protected NativeObject(int handle) {
       this.handle = handle;
     }
 
@@ -356,74 +349,74 @@ public final class ZXTune {
 
   private static final class NativeModule extends NativeObject implements Module {
 
-    NativeModule(int handle) throws InvalidObjectException {
+    NativeModule(int handle) {
       super(handle);
     }
 
     @Override
-    public int getDuration() {
+    public int getDuration() throws Exception {
       return Module_GetDuration(handle);
     }
 
     @Override
-    public long getProperty(String name, long defVal) {
+    public long getProperty(String name, long defVal) throws Exception {
       return Module_GetProperty(handle, name, defVal);
     }
 
     @Override
-    public String getProperty(String name, String defVal) {
+    public String getProperty(String name, String defVal) throws Exception {
       return Module_GetProperty(handle, name, defVal);
     }
 
     @Override
-    public Player createPlayer() throws InvalidObjectException {
+    public Player createPlayer() throws Exception {
       return new NativePlayer(Module_CreatePlayer(handle));
     }
   }
 
   private static final class NativePlayer extends NativeObject implements Player {
 
-    NativePlayer(int handle) throws InvalidObjectException {
+    NativePlayer(int handle) {
       super(handle);
     }
 
     @Override
-    public boolean render(short[] result) {
+    public boolean render(short[] result) throws Exception {
       return Player_Render(handle, result);
     }
     
     @Override
-    public int analyze(int bands[], int levels[]) {
+    public int analyze(int bands[], int levels[]) throws Exception {
       return Player_Analyze(handle, bands, levels);
     }
 
     @Override
-    public int getPosition() {
+    public int getPosition() throws Exception {
       return Player_GetPosition(handle);
     }
 
     @Override
-    public void setPosition(int pos) {
+    public void setPosition(int pos) throws Exception {
       Player_SetPosition(handle, pos);
     }
     
     @Override
-    public long getProperty(String name, long defVal) {
+    public long getProperty(String name, long defVal) throws Exception {
       return Player_GetProperty(handle, name, defVal);
     }
 
     @Override
-    public String getProperty(String name, String defVal) {
+    public String getProperty(String name, String defVal) throws Exception {
       return Player_GetProperty(handle, name, defVal);
     }
 
     @Override
-    public void setProperty(String name, long val) {
+    public void setProperty(String name, long val) throws Exception {
       Player_SetProperty(handle, name, val);
     }
 
     @Override
-    public void setProperty(String name, String val) {
+    public void setProperty(String name, String val) throws Exception {
       Player_SetProperty(handle, name, val);
     }
   }
@@ -442,22 +435,22 @@ public final class ZXTune {
   private static native void Handle_Close(int handle);
 
   // working with module
-  private static native int Module_Create(ByteBuffer data, String subpath);
-  private static native void Module_Detect(ByteBuffer data, ModuleDetectCallbackNativeAdapter cb);
-  private static native int Module_GetDuration(int module);
-  private static native long Module_GetProperty(int module, String name, long defVal);
-  private static native String Module_GetProperty(int module, String name, String defVal);
-  private static native int Module_CreatePlayer(int module);
+  private static native int Module_Create(ByteBuffer data, String subpath) throws Exception;
+  private static native void Module_Detect(ByteBuffer data, ModuleDetectCallbackNativeAdapter cb) throws Exception;
+  private static native int Module_GetDuration(int module) throws Exception;
+  private static native long Module_GetProperty(int module, String name, long defVal) throws Exception;
+  private static native String Module_GetProperty(int module, String name, String defVal) throws Exception;
+  private static native int Module_CreatePlayer(int module) throws Exception;
 
   // working with player
-  private static native boolean Player_Render(int player, short[] result);
-  private static native int Player_Analyze(int player, int bands[], int levels[]);
-  private static native int Player_GetPosition(int player);
-  private static native void Player_SetPosition(int player, int pos);
-  private static native long Player_GetProperty(int player, String name, long defVal);
-  private static native String Player_GetProperty(int player, String name, String defVal);
-  private static native void Player_SetProperty(int player, String name, long val);
-  private static native void Player_SetProperty(int player, String name, String val);
+  private static native boolean Player_Render(int player, short[] result) throws Exception;
+  private static native int Player_Analyze(int player, int bands[], int levels[]) throws Exception;
+  private static native int Player_GetPosition(int player) throws Exception;
+  private static native void Player_SetPosition(int player, int pos) throws Exception;
+  private static native long Player_GetProperty(int player, String name, long defVal) throws Exception;
+  private static native String Player_GetProperty(int player, String name, String defVal) throws Exception;
+  private static native void Player_SetProperty(int player, String name, long val) throws Exception;
+  private static native void Player_SetProperty(int player, String name, String val) throws Exception;
   
   // working with plugins
   private static native void Plugins_Enumerate(Plugins.Visitor visitor);

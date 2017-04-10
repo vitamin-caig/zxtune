@@ -236,20 +236,24 @@ public class MainService extends Service {
   }
   
   private static void setProperty(String name, Object value, ZXTune.Properties.Modifier target) {
-    if (value instanceof String) {
-      setProperty(name, (String) value, target);
-    } else if (value instanceof Long) {
-      setProperty(name, ((Long) value).longValue(), target);
-    } else if (value instanceof Integer) {
-      setProperty(name, ((Integer) value).longValue(), target);
-    } else if (value instanceof Boolean) {
-      setProperty(name, (Boolean) value ? 1 : 0, target);
-    } else {
-      throw new RuntimeException("Unknown type of property: " + value.getClass().getName());
+    try {
+      if (value instanceof String) {
+        setProperty(name, (String) value, target);
+      } else if (value instanceof Long) {
+        setProperty(name, ((Long) value).longValue(), target);
+      } else if (value instanceof Integer) {
+        setProperty(name, ((Integer) value).longValue(), target);
+      } else if (value instanceof Boolean) {
+        setProperty(name, (Boolean) value ? 1 : 0, target);
+      } else {
+        throw new Exception("Unknown type of property: " + value.getClass().getName());
+      }
+    } catch (Exception e) {
+      Log.w(TAG, e, "setProperty");
     }
   }
   
-  private static void setProperty(String name, String value, ZXTune.Properties.Modifier target) {
+  private static void setProperty(String name, String value, ZXTune.Properties.Modifier target) throws Exception {
     try {
       target.setProperty(name, Long.parseLong(value));
     } catch (NumberFormatException e) {
@@ -257,7 +261,7 @@ public class MainService extends Service {
     }
   }
   
-  private static void setProperty(String name, long value, ZXTune.Properties.Modifier target) {
+  private static void setProperty(String name, long value, ZXTune.Properties.Modifier target) throws Exception {
     target.setProperty(name, value);
   }
 }

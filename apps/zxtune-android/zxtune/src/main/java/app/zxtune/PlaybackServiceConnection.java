@@ -64,8 +64,12 @@ public class PlaybackServiceConnection extends Fragment {
     super.onCreate(savedInstanceState);
     
     setRetainInstance(true);
-    
-    connect();
+
+    try {
+      connect();
+    } catch (Exception e) {
+      Log.w(TAG, e, "onActivityCreated()");
+    }
   }
   
   @Override
@@ -88,14 +92,14 @@ public class PlaybackServiceConnection extends Fragment {
     disconnect();
   }
   
-  private synchronized void connect() {
+  private synchronized void connect() throws Exception {
     Log.d(TAG, "Connecting to service");
     final Context context = getAppContext();
     final Intent intent = new Intent(context, MainService.class);
     context.startService(intent);
     final ServiceConnection connection = new ServiceConnectionCallback();
     if (!context.bindService(intent, connection, Context.BIND_AUTO_CREATE)) {
-      throw new RuntimeException("Failed to bind to service");
+      throw new Exception("Failed to bind to service");
     }
     this.connection = connection;
   }

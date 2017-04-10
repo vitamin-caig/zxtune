@@ -36,7 +36,7 @@ public class Item {
     this.duration = TimeStamp.createFrom(cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal()), TimeUnit.MILLISECONDS);
   }
 
-  public Item(Identifier location, ZXTune.Module module) {
+  public Item(Identifier location, ZXTune.Module module) throws Exception {
     this.id = -1;
     this.location = location;
     this.title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");

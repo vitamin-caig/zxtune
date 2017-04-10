@@ -21,6 +21,7 @@ import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
 
+import app.zxtune.Log;
 import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
@@ -34,6 +35,8 @@ public class StatusNotification extends CallbackStub {
     DEFAULT,
     WITH_CONTROLS
   }
+
+  private static final String TAG = StatusNotification.class.getName();
   
   //http://stackoverflow.com/questions/12586938/clickable-custom-view-in-notification-on-android-2-3-or-lower
   public static final boolean BUTTONS_SUPPORTED = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
@@ -84,20 +87,24 @@ public class StatusNotification extends CallbackStub {
   
   @Override
   public void onItemChanged(Item item) {
-    final String filename = item.getDataId().getDisplayFilename();
-    String title = item.getTitle();
-    final String author = item.getAuthor();
-    final String ticker = Util.formatTrackTitle(title, author, filename);
-    if (ticker.equals(filename)) {
-      title = filename;
-    }
-    builder.setTicker(ticker);
-    if (BUTTONS_SUPPORTED && Type.WITH_CONTROLS.equals(type)) {
-      content.setTextViewText(R.id.notification_title, title);
-      content.setTextViewText(R.id.notification_author, author);
-      builder.setContent(content);
-    } else {
-      builder.setContentTitle(title).setContentText(author);
+    try {
+      final String filename = item.getDataId().getDisplayFilename();
+      String title = item.getTitle();
+      final String author = item.getAuthor();
+      final String ticker = Util.formatTrackTitle(title, author, filename);
+      if (ticker.equals(filename)) {
+        title = filename;
+      }
+      builder.setTicker(ticker);
+      if (BUTTONS_SUPPORTED && Type.WITH_CONTROLS.equals(type)) {
+        content.setTextViewText(R.id.notification_title, title);
+        content.setTextViewText(R.id.notification_author, author);
+        builder.setContent(content);
+      } else {
+        builder.setContentTitle(title).setContentText(author);
+      }
+    } catch (Exception e) {
+      Log.w(TAG, e, "onIntemChanged()");
     }
   }
 

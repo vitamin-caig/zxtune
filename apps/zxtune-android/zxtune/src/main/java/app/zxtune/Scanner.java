@@ -13,7 +13,6 @@ package app.zxtune;
 import android.net.Uri;
 
 import java.io.IOException;
-import java.io.InvalidObjectException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ public final class Scanner {
   public interface Callback {
     
     void onModule(Identifier id, ZXTune.Module module);
-    void onIOError(IOException e);
+    void onError(Exception e);
   }
   
   private final HashMap<Uri, VfsFile> archivesCache;
@@ -61,17 +60,17 @@ public final class Scanner {
       } else {
         analyzeArchiveObject(id, cb);
       }
-    } catch (IOException e) {
-      cb.onIOError(e);
+    } catch (Exception e) {
+      cb.onError(e);
     }
   }
   
-  private void analyzeRealObject(Uri uri, Callback cb) throws IOException {
+  private void analyzeRealObject(Uri uri, Callback cb) throws Exception {
     final VfsObject obj = Vfs.resolve(uri);
     analyzeObject(obj, cb);
   }
   
-  private void analyzeObject(VfsObject obj, Callback cb) throws IOException {
+  private void analyzeObject(VfsObject obj, Callback cb) throws Exception {
     if (obj instanceof VfsDir) {
       analyzeDir((VfsDir) obj, cb);
     } else if (obj instanceof VfsFile) {
@@ -79,7 +78,7 @@ public final class Scanner {
     }
   }
   
-  private void analyzeDir(VfsDir directory, Callback cb) throws IOException {
+  private void analyzeDir(VfsDir directory, Callback cb) throws Exception {
     //analyze depth first
     final ArrayList<VfsDir> dirs = new ArrayList<VfsDir>();
     final ArrayList<VfsFile> files = new ArrayList<VfsFile>();
@@ -113,7 +112,7 @@ public final class Scanner {
     }
   }
   
-  private void analyzeFile(VfsFile file, Callback cb) throws IOException {
+  private void analyzeFile(VfsFile file, Callback cb) throws Exception {
     //may be called from recursion, so additionally check for archived objects
     final Identifier id = new Identifier(file.getUri());
     if (!id.getSubpath().isEmpty()) {
@@ -133,8 +132,8 @@ public final class Scanner {
         analyzePlaylist(file.getUri(), XspfIterator.create(file.getContent()), cb);
         return true;
       }
-    } catch (IOException e) {
-      cb.onIOError(e);
+    } catch (Exception e) {
+      cb.onError(e);
     }
     return false;
   }
@@ -155,24 +154,25 @@ public final class Scanner {
     return path.length() > 2 && path.charAt(1) == ':';
   }
   
-  private static void analyzeRealFile(VfsFile file, final Callback cb) throws IOException {
+  private static void analyzeRealFile(VfsFile file, final Callback cb) throws Exception {
     final Uri uri = file.getUri();
     final ByteBuffer content = file.getContent();
     ZXTune.detectModules(content, new ZXTune.ModuleDetectCallback() {
       
       @Override
-      public void onModule(String subpath, Module obj) {
+      public void onModule(String subpath, Module obj) throws Exception {
         try {
           cb.onModule(new Identifier(uri, subpath), obj);
-        } catch (Error e) {
+        } catch (Exception e) {
           obj.release();
-          throw e;
+          //do not rethrow error - it comes from particular module, not from callback
+          //throw e;
         }
       }
     });
   }
   
-  private void analyzeArchiveObject(Identifier id, Callback cb) throws IOException {
+  private void analyzeArchiveObject(Identifier id, Callback cb) throws Exception {
     if (!analyzeArchiveFile(id, cb)) {
       final Uri uri = id.getFullLocation();
       final VfsObject obj = VfsArchive.resolve(uri);
@@ -181,7 +181,7 @@ public final class Scanner {
   }
   
   
-  private boolean analyzeArchiveFile(Identifier id, Callback cb) throws IOException {
+  private boolean analyzeArchiveFile(Identifier id, Callback cb) throws Exception {
     final VfsFile archive = openArchive(id.getDataLocation());
     try {
       final ByteBuffer content = archive.getContent();
@@ -189,11 +189,11 @@ public final class Scanner {
       try {
         cb.onModule(id, module);
         return true;
-      } catch (Error e) {
+      } catch (Exception e) {
         module.release();
         throw e;
       }
-    } catch (InvalidObjectException e) {
+    } catch (Exception e) {
       Log.w(TAG, e, "Failed to analyzer archive file");
     }
     return false;

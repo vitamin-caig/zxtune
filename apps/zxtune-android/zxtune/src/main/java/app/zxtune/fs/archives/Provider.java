@@ -83,19 +83,24 @@ public final class Provider extends ContentProvider {
             final Identifier moduleId = new Identifier(path, subpath);
             final DirEntry dirEntry = DirEntry.create(moduleId);
 
-            final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
-            final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
-            final String description = Util.formatTrackTitle(author, title, "");
-            final long frameDuration = module.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT);
-            final TimeStamp duration = TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
-            final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
+            try {
+              final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
+              final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
+              final String description = Util.formatTrackTitle(author, title, "");
+              final long frameDuration = module.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT);
+              final TimeStamp duration = TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
+              final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
 
-            db.addTrack(track);
-            final int doneTracks = modulesCount.incrementAndGet();
-            if (0 == doneTracks % 100) {
-              Log.d(TAG, "Found tracks: %d", doneTracks);
+              db.addTrack(track);
+              final int doneTracks = modulesCount.incrementAndGet();
+              if (0 == doneTracks % 100) {
+                Log.d(TAG, "Found tracks: %d", doneTracks);
+              }
+            } catch (Exception e) {
+              Log.w(TAG, e, "Skip module");
+            } finally {
+              module.release();
             }
-            module.release();
             if (!dirEntry.isRoot()) {
               db.addDirEntry(dirEntry);
               dirEntries.add(dirEntry.parent);
@@ -106,10 +111,10 @@ public final class Provider extends ContentProvider {
         addDirEntries(dirEntries);
         transaction.succeed();
       } finally {
-        transaction.finish();
+          transaction.finish();
       }
       return Query.archiveUriFor(path);
-    } catch (IOException e) {
+    } catch (Exception e) {
       Log.w(TAG, e, "InsertToArchive");
     }
     return null;

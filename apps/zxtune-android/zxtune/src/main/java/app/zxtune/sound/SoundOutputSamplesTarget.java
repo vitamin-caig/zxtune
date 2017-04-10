@@ -64,14 +64,14 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
   }
 
   @Override
-  public void writeSamples(short[] buffer) {
+  public void writeSamples(short[] buffer) throws Exception {
     for (int pos = 0, toWrite = buffer.length; toWrite != 0;) {
       final int written = target.write(buffer, pos, toWrite);
       if (written > 0) {
         pos += written;
         toWrite -= written;
       } else {
-        throw new RuntimeException("Failed to write samples: " + written);
+        throw new Exception("Failed to write samples: " + written);
       }
     }
   }

@@ -37,7 +37,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
       };
 
   @Nullable
-  public static ParcelablePlaybackItem create(@Nullable Item src) {
+  public static ParcelablePlaybackItem create(@Nullable Item src) throws Exception {
     return src != null ? new ParcelablePlaybackItem(src) : null;
   }
 
@@ -50,7 +50,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
   private final String strings;
   private final TimeStamp duration;
 
-  private ParcelablePlaybackItem(Item src) {
+  private ParcelablePlaybackItem(Item src) throws Exception {
     this.id = src.getId();
     this.dataId = src.getDataId();
     this.title = src.getTitle();

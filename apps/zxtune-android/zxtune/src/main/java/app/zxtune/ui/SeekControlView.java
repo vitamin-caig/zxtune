@@ -17,12 +17,15 @@ import android.widget.TextView;
 
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.SeekControlStub;
 
 class SeekControlView {
+
+  private static final String TAG = SeekControlView.class.getName();
   
   private final TextView currentTime;
   private final TextView totalTime;
@@ -43,7 +46,11 @@ class SeekControlView {
       public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if (fromUser) {
           final TimeStamp pos = TimeStamp.createFrom(progress, TimeUnit.SECONDS);
-          control.setPosition(pos);
+          try {
+            control.setPosition(pos);
+          } catch (Exception e) {
+            Log.w(TAG, e, "onProgressChanged()");
+          }
         }
       }
       
@@ -63,11 +70,15 @@ class SeekControlView {
     currentPosition.setEnabled(enabled);
     updateTask.stop();
     if (enabled) {
-      final TimeStamp duration = control.getDuration();
-      totalTime.setText(duration.toString());
-      currentPosition.setProgress(0);
-      currentPosition.setMax((int) duration.convertTo(TimeUnit.SECONDS));
-      updateTask.run();
+      try {
+        final TimeStamp duration = control.getDuration();
+        totalTime.setText(duration.toString());
+        currentPosition.setProgress(0);
+        currentPosition.setMax((int) duration.convertTo(TimeUnit.SECONDS));
+        updateTask.run();
+      } catch (Exception e) {
+        Log.w(TAG, e, "setEnabled()");
+      }
     }
   }
   
@@ -75,11 +86,15 @@ class SeekControlView {
 
     @Override
     public void run() {
-      final TimeStamp pos = control.getPosition();
-      currentPosition.setProgress((int) pos.convertTo(TimeUnit.SECONDS));
-      currentTime.setText(pos.toString());
-      
-      timer.postDelayed(this, 1000);
+      try {
+        final TimeStamp pos = control.getPosition();
+        currentPosition.setProgress((int) pos.convertTo(TimeUnit.SECONDS));
+        currentTime.setText(pos.toString());
+
+        timer.postDelayed(this, 1000);
+      } catch (Exception e) {
+        Log.w(TAG, e, "updateViewTask.run()");
+      }
     }
     
     final void stop() {

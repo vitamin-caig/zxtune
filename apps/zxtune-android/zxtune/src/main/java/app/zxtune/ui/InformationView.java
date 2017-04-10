@@ -18,11 +18,14 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.ItemStub;
 
 class InformationView {
+
+  private static final String TAG = InformationView.class.getName();
 
   private static final String FORMAT = "<b><big>%1$s:</big></b><br>&nbsp;%2$s";
   private static final String RAW_FORMAT = "<br><tt>%1$s</tt>";
@@ -50,16 +53,20 @@ class InformationView {
   }
 
   final void update(Item item) {
-    final StringBuilder builder = new StringBuilder();
-    addNonEmptyField(builder, locationField, Uri.decode(item.getDataId().toString()));
-    addNonEmptyField(builder, titleField, item.getTitle());
-    addNonEmptyField(builder, authorField, item.getAuthor());
-    addNonEmptyField(builder, programField, item.getProgram());
-    addNonEmptyField(builder, commentField, item.getComment());
-    addNonEmptyRawField(builder, item.getStrings());
-    final CharSequence styledVal = Html.fromHtml(builder.toString());
-    content.setText(styledVal);
-    content.scrollTo(0, 0);
+    try {
+      final StringBuilder builder = new StringBuilder();
+      addNonEmptyField(builder, locationField, Uri.decode(item.getDataId().toString()));
+      addNonEmptyField(builder, titleField, item.getTitle());
+      addNonEmptyField(builder, authorField, item.getAuthor());
+      addNonEmptyField(builder, programField, item.getProgram());
+      addNonEmptyField(builder, commentField, item.getComment());
+      addNonEmptyRawField(builder, item.getStrings());
+      final CharSequence styledVal = Html.fromHtml(builder.toString());
+      content.setText(styledVal);
+      content.scrollTo(0, 0);
+    } catch (Exception e) {
+      Log.w(TAG, e, "update()");
+    }
   }
   
   private void addNonEmptyField(StringBuilder builder, String fieldName, String fieldValue) {

@@ -18,5 +18,5 @@ public interface Visualizer {
    * @param levels array of current spectrum levels playing (usually less than 16)
    * @return count of actually stored values in bands/levels (less or equal of min(bands.length, levels.length))
    */
-  public int getSpectrum(int[] bands, int[] levels);
+  public int getSpectrum(int[] bands, int[] levels) throws Exception;
 }

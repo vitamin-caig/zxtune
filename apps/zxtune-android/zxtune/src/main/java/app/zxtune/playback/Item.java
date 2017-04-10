@@ -30,30 +30,30 @@ public interface Item {
   /**
    * @return Item's title (possibly empty)
    */
-  public String getTitle();
+  public String getTitle() throws Exception;
 
   /**
    * @return Item's author (possibly empty)
    */
-  public String getAuthor();
+  public String getAuthor() throws Exception;
   
   /**
    * @return Item's program information (possibly empty)
    */
-  public String getProgram();
+  public String getProgram() throws Exception;
   
   /**
    * @return Item's comment (possibly empty)
    */
-  public String getComment();
+  public String getComment() throws Exception;
   
   /**
    * @return Item's internal strings (possibly empty)
    */
-  public String getStrings();
+  public String getStrings() throws Exception;
 
   /**
    * @return Item's duration
    */
-  public TimeStamp getDuration();
+  public TimeStamp getDuration() throws Exception;
 }

@@ -137,16 +137,19 @@ public class VisualizerView extends View {
     }
 
     final boolean update() {
-      final int channels = source.getSpectrum(bands, levels);
-      updateValues(channels);
-      if (lowerChange != upperChange) {
-        final int updateLeft = visibleRect.left + BAR_WIDTH * lowerChange;
-        final int updateRight = visibleRect.left + BAR_WIDTH * upperChange;
-        invalidate(updateLeft, visibleRect.top, updateRight, visibleRect.bottom);
-        return true;
-      } else {
-        return false;
+      try {
+        final int channels = source.getSpectrum(bands, levels);
+        updateValues(channels);
+        if (lowerChange != upperChange) {
+          final int updateLeft = visibleRect.left + BAR_WIDTH * lowerChange;
+          final int updateRight = visibleRect.left + BAR_WIDTH * upperChange;
+          invalidate(updateLeft, visibleRect.top, updateRight, visibleRect.bottom);
+          return true;
+        }
+      } catch (Exception e) {
+        Log.w(TAG, e, "update()");
       }
+      return false;
     }
 
     final void draw(Canvas canvas) {

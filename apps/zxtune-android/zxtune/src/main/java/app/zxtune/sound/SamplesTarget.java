@@ -25,17 +25,17 @@ public interface SamplesTarget {
   /**
    * Initialize target
    */
-  public void start();
+  public void start() throws Exception;
   
   /**
    * @param buffer sound data in S16/stereo/interleaved format
    */
-  public void writeSamples(short[] buffer);
+  public void writeSamples(short[] buffer) throws Exception;
 
   /**
    * Deinitialize target
    */
-  public void stop();
+  public void stop() throws Exception;
   
   /**
    * Release all internal resources

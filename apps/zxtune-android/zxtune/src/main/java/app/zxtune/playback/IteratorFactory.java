@@ -32,7 +32,7 @@ public final class IteratorFactory {
    * @return new iterator
    * @throws IOException
    */
-  public static Iterator createIterator(Context context, Uri[] uris) throws IOException {
+  public static Iterator createIterator(Context context, Uri[] uris) throws Exception {
     final Uri first = uris[0];
     if (isPlaylistUri(first)) {
       return new PlaylistIterator(context, first);
