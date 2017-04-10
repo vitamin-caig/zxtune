@@ -214,6 +214,15 @@ namespace Player
   }
 }
 
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Close
+  (JNIEnv* /*env*/, jclass /*self*/, jint handle)
+{
+  if (Player::Storage::Instance().Fetch(handle))
+  {
+    Dbg("Player::Close(handle=%1%)", handle);
+  }
+}
+
 JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
   (JNIEnv* env, jclass /*self*/, jint playerHandle, jshortArray buffer)
 {

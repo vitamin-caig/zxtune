@@ -296,11 +296,11 @@ public final class ZXTune {
   public interface ModuleDetectCallback {
     void onModule(String subpath, Module obj) throws Exception;
   }
-  
+
   static class ModuleDetectCallbackNativeAdapter {
 
     private final ModuleDetectCallback delegate;
-    
+
     public ModuleDetectCallbackNativeAdapter(ModuleDetectCallback delegate) {
       this.delegate = delegate;
     }
@@ -309,11 +309,11 @@ public final class ZXTune {
       delegate.onModule(subpath, new NativeModule(handle));
     }
   }
-  
+
   public static void detectModules(ByteBuffer content, ModuleDetectCallback cb) throws Exception {
     Module_Detect(makeDirectBuffer(content), new ModuleDetectCallbackNativeAdapter(cb));
   }
-  
+
   private static ByteBuffer makeDirectBuffer(ByteBuffer content) throws Exception {
     if (content.position() != 0) {
       throw new Exception("Input data should have zero position");
@@ -329,28 +329,17 @@ public final class ZXTune {
     }
   }
 
-  /**
-   * Base object of all the native implementations
-   */
-  private static class NativeObject implements Releaseable {
+  private static final class NativeModule implements Releaseable, Module {
+  
+    private final int handle;
 
-    protected int handle;
-
-    protected NativeObject(int handle) {
+    NativeModule(int handle) {
       this.handle = handle;
     }
 
     @Override
     public void release() {
-      Handle_Close(handle);
-      handle = 0;
-    }
-  }
-
-  private static final class NativeModule extends NativeObject implements Module {
-
-    NativeModule(int handle) {
-      super(handle);
+      Module_Close(handle);
     }
 
     @Override
@@ -374,17 +363,24 @@ public final class ZXTune {
     }
   }
 
-  private static final class NativePlayer extends NativeObject implements Player {
+  private static final class NativePlayer implements Releaseable, Player {
+
+    private final int handle;
 
     NativePlayer(int handle) {
-      super(handle);
+      this.handle = handle;
+    }
+
+    @Override
+    public void release() {
+      Player_Close(handle);
     }
 
     @Override
     public boolean render(short[] result) throws Exception {
       return Player_Render(handle, result);
     }
-    
+
     @Override
     public int analyze(int bands[], int levels[]) throws Exception {
       return Player_Analyze(handle, bands, levels);
@@ -399,7 +395,7 @@ public final class ZXTune {
     public void setPosition(int pos) throws Exception {
       Player_SetPosition(handle, pos);
     }
-    
+
     @Override
     public long getProperty(String name, long defVal) throws Exception {
       return Player_GetProperty(handle, name, defVal);
@@ -424,15 +420,12 @@ public final class ZXTune {
   static {
     System.loadLibrary("zxtune");
   }
-  
+
   // working with global options
   private static native long GlobalOptions_GetProperty(String name, long defVal);
   private static native String GlobalOptions_GetProperty(String name, String defVal);
   private static native void GlobalOptions_SetProperty(String name, long value);
   private static native void GlobalOptions_SetProperty(String name, String value);
-
-  // working with handles
-  private static native void Handle_Close(int handle);
 
   // working with module
   private static native int Module_Create(ByteBuffer data, String subpath) throws Exception;
@@ -441,6 +434,7 @@ public final class ZXTune {
   private static native long Module_GetProperty(int module, String name, long defVal) throws Exception;
   private static native String Module_GetProperty(int module, String name, String defVal) throws Exception;
   private static native int Module_CreatePlayer(int module) throws Exception;
+  private static native void Module_Close(int module);
 
   // working with player
   private static native boolean Player_Render(int player, short[] result) throws Exception;
@@ -451,7 +445,8 @@ public final class ZXTune {
   private static native String Player_GetProperty(int player, String name, String defVal) throws Exception;
   private static native void Player_SetProperty(int player, String name, long val) throws Exception;
   private static native void Player_SetProperty(int player, String name, String val) throws Exception;
-  
+  private static native void Player_Close(int player);
+
   // working with plugins
   private static native void Plugins_Enumerate(Plugins.Visitor visitor);
 }

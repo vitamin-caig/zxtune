@@ -41,14 +41,6 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_GlobalOptions_1SetProperty__Ljava_
 
 /*
  * Class:     app_zxtune_ZXTune
- * Method:    Handle_Close
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Handle_1Close
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     app_zxtune_ZXTune
  * Method:    Module_Create
  * Signature: (Ljava/nio/ByteBuffer;Ljava/lang/String;)I
  */
@@ -93,6 +85,14 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lan
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     app_zxtune_ZXTune
+ * Method:    Module_Close
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Close
   (JNIEnv *, jclass, jint);
 
 /*
@@ -158,6 +158,14 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_S
  */
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2Ljava_lang_String_2
   (JNIEnv *, jclass, jint, jstring, jstring);
+
+/*
+ * Class:     app_zxtune_ZXTune
+ * Method:    Player_Close
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Close
+  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     app_zxtune_ZXTune
@@ -403,17 +411,6 @@ extern "C" {
 
 #ifndef _Included_app_zxtune_ZXTune_ModuleDetectCallbackNativeAdapter
 #define _Included_app_zxtune_ZXTune_ModuleDetectCallbackNativeAdapter
-#ifdef __cplusplus
-extern "C" {
-#endif
-#ifdef __cplusplus
-}
-#endif
-#endif
-/* Header for class app_zxtune_ZXTune_NativeObject */
-
-#ifndef _Included_app_zxtune_ZXTune_NativeObject
-#define _Included_app_zxtune_ZXTune_NativeObject
 #ifdef __cplusplus
 extern "C" {
 #endif

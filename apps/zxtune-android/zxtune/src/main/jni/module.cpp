@@ -100,6 +100,15 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
   });
 }
 
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Close
+  (JNIEnv* /*env*/, jclass /*self*/, jint handle)
+{
+  if (Module::Storage::Instance().Fetch(handle))
+  {
+    Dbg("Module::Close(handle=%1%)", handle);
+  }
+}
+
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Detect
   (JNIEnv* env, jclass /*self*/, jobject buffer, jobject cb)
 {
