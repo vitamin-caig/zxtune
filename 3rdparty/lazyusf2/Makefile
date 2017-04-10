@@ -16,9 +16,14 @@ source_files += ai/ai_controller \
                 $(addprefix usf/, usf resampler) \
                 vi/vi_controller
 
-source_files := $(addsuffix .c,$(source_files))
-
 include_dirs := .
 windows_definitions += WIN32
+
+ifdef lazyusf2.debug
+$(platform)_definitions += DEBUG_INFO
+source_files += debugger/dbg_decoder
+endif
+
+source_files := $(addsuffix .c,$(source_files))
 
 include $(path_step)/makefile.mak

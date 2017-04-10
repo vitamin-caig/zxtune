@@ -51,11 +51,24 @@ static osal_inline unsigned hshift(uint32_t address)
 
 static osal_inline uint32_t read_mem(usf_state_t* state, uint32_t addr)
 {
-    return state->io.read[addr >> 16](state, addr);
+    const uint32_t res = state->io.read[addr >> 16](state, addr);
+#ifdef DEBUG_INFO
+    if (state->debug_log)
+    {
+      fprintf(state->debug_log, "read(%08x) = %08x\n", addr, res);
+    }
+#endif    
+    return res;
 }
 
 static osal_inline void write_mem(usf_state_t* state, uint32_t addr, uint32_t value, uint32_t mask)
 {
+#ifdef DEBUG_INFO
+    if (state->debug_log)
+    {
+      fprintf(state->debug_log, "write(%08x, %08x & %08x)\n", addr, value, mask);
+    }
+#endif    
     state->io.write[addr >> 16](state, addr, value, mask);
 }
 

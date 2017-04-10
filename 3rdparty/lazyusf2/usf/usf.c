@@ -50,7 +50,7 @@ void usf_clear(void * state)
     create_memory(USF_STATE);
 
 #ifdef DEBUG_INFO
-    USF_STATE->debug_log = 0;
+    USF_STATE->debug_log = fopen("lazyusf.log", "wt");
 #endif
 }
 
