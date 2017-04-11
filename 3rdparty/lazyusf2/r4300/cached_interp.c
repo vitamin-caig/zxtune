@@ -98,7 +98,7 @@
          state->PC->ops(state); \
          update_count(state); \
          state->delay_slot=0; \
-         if (take_jump && !state->skip_jump) \
+         if (take_jump) \
          { \
             jump_to(state, jump_target); \
          } \
@@ -471,28 +471,38 @@ const cpu_instruction_table cached_interpreter_table = {
    NOTCOMPILED2
 };
 
-static unsigned int osal_fastcall update_invalid_addr(usf_state_t * state, unsigned int addr)
+static osal_inline void osal_fastcall update_invalid_ph_addr(usf_state_t* state, uint32_t addr)
 {
-   if (addr >= 0x80000000 && addr < 0xc0000000)
-     {
-    if (state->invalid_code[addr>>12]) state->invalid_code[(addr^0x20000000)>>12] = 1;
-    if (state->invalid_code[(addr^0x20000000)>>12]) state->invalid_code[addr>>12] = 1;
-    return addr;
-     }
-   else
-     {
-    unsigned int paddr = virtual_to_physical_address(state, addr, 2);
-    if (paddr)
+   const uint32_t page = addr / TLB_PAGE_SIZE;
+   const uint32_t mirr_page = page ^ (0x20000000 / TLB_PAGE_SIZE);
+   if (state->invalid_code[page] != state->invalid_code[mirr_page])
+   {
+     state->invalid_code[page] = state->invalid_code[mirr_page] = 1;
+   }
+}
+
+static uint32_t osal_fastcall update_invalid_addr(usf_state_t * state, uint32_t addr)
+{
+   if (is_mapped(addr))
+   {
+      const uint32_t ph_addr = virtual_to_physical_address(state, addr, 2);
+      if (ph_addr)
       {
-         unsigned int beg_paddr = paddr - (addr - (addr&~0xFFF));
-         update_invalid_addr(state, paddr);
-         if (state->invalid_code[(beg_paddr+0x000)>>12]) state->invalid_code[addr>>12] = 1;
-         if (state->invalid_code[(beg_paddr+0xFFC)>>12]) state->invalid_code[addr>>12] = 1;
-         if (state->invalid_code[addr>>12]) state->invalid_code[(beg_paddr+0x000)>>12] = 1;
-         if (state->invalid_code[addr>>12]) state->invalid_code[(beg_paddr+0xFFC)>>12] = 1;
+         const uint32_t page = addr / TLB_PAGE_SIZE;
+         const uint32_t ph_page = ph_addr / TLB_PAGE_SIZE;
+         if (state->invalid_code[page] != state->invalid_code[ph_page])
+         {
+           state->invalid_code[page] = state->invalid_code[ph_page] = 1;
+         }
+         update_invalid_ph_addr(state, ph_addr);
       }
-    return paddr;
-     }
+      return ph_addr;
+   }
+   else
+   {
+     update_invalid_ph_addr(state, addr);
+     return addr;
+   }
 }
 
 void osal_fastcall jump_to(usf_state_t * state, uint32_t addr)
