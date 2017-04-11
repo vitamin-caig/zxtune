@@ -34,11 +34,6 @@ struct usf_state_helper
 #include <stdio.h>
 #endif
 
-#ifndef RCPREG_DEFINED
-#define RCPREG_DEFINED
-typedef uint32_t RCPREG;
-#endif
-
 #ifndef INTERUPT_STRUCTS
 #define INTERUPT_STRUCTS
 #define POOL_CAPACITY 16
@@ -172,52 +167,6 @@ struct usf_state
     const uint32_t* SRC; // currently recompiled instruction in the input stream
     int check_nop; // next instruction is nop ?
 
-    // RSP vector registers, need to be aligned to 16 bytes
-    // when SSE2 or SSSE3 is enabled, or for any hope of
-    // auto vectorization
-
-    // usf_clear takes care of aligning the structure within
-    // the memory block passed into it, treating the pointer
-    // as usf_state_helper, and storing an offset from the
-    // pointer to the actual usf_state structure. The size
-    // which is indicated for allocation accounts for this
-    // with two pages of padding.
-
-    int16_t VR[32][8];
-    int16_t VACC[3][8];
-    
-    // RSP virtual registers, also needs alignment
-    int32_t SR[32];
-    
-    // rsp/rsp.c, not necessarily in need of alignment
-    RCPREG* CR[16];
-    
-    // rsp/vu/cf.h, all need alignment
-    int16_t ne[8]; /* $vco:  high byte "NOTEQUAL" */
-    int16_t co[8]; /* $vco:  low byte "carry/borrow in/out" */
-    int16_t clip[8]; /* $vcc:  high byte (clip tests:  VCL, VCH, VCR) */
-    int16_t comp[8]; /* $vcc:  low byte (VEQ, VNE, VLT, VGE, VCL, VCH, VCR) */
-    int16_t vce[8]; /* $vce:  vector compare extension register */
-    
-    // All further members of the structure need not be aligned
-
-    // rsp/vu/divrom.h
-    int32_t DivIn; /* buffered numerator of division read from vector file */
-    int32_t DivOut; /* global division result set by VRCP/VRCPL/VRSQ/VRSQH */
-#if (0)
-    int32_t MovIn; /* We do not emulate this register (obsolete, for VMOV). */
-#endif
-    
-    int32_t DPH;
-    
-    // rsp/rsp.h
-    int32_t stage; // unused since EMULATE_STATIC_PC is defined by default in rsp/config.h
-    int32_t temp_PC;
-    int16_t MFC0_count[32];
-    
-    unsigned char * DMEM;
-    unsigned char * IMEM;
-    
     // rsp_hle
     struct hle_t hle;
 
