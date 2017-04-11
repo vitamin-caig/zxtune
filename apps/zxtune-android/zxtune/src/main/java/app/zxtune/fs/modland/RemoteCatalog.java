@@ -30,7 +30,7 @@ class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
-  private static final String SITE = "http://www.exotica.org.uk/";
+  private static final String SITE = "https://www.exotica.org.uk/";
   private static final String API = SITE + "mediawiki/index.php?title=Special:Modland";
   private static final String GROUPS_QUERY = API + "&md=b_%s&st=%s";
   private static final String GROUP_TRACKS_QUERY = API + "&md=%s&id=%d";
