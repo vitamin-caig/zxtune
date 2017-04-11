@@ -369,6 +369,7 @@ namespace USF
       , Head(std::move(head))
     {
       LoadDependenciesFrom(Head);
+      Head.CloneData();
     }
     
     Module::Information::Ptr GetModuleInformation() const override
@@ -405,9 +406,10 @@ namespace USF
       if (XSF::Parse(name, *data, file))
       {
         Dbg("Resolving dependency '%1%'", name);
-        LoadDependenciesFrom(file);
         const auto it = Dependencies.find(name);
         Require(it != Dependencies.end() && 0 == it->second.Version);
+        LoadDependenciesFrom(file);
+        file.CloneData();
         it->second = std::move(file);
       }
     }
@@ -485,7 +487,6 @@ namespace USF
       {
         MergeSections(GetDependency(*it), dst);
       }
-      Require(!!data.ReservedSection);
       dst.AddSection(*data.ReservedSection);
       if (data.Meta)
       {

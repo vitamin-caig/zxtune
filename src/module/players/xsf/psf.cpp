@@ -491,8 +491,8 @@ namespace PSF
       , Properties(std::move(properties))
       , Head(std::move(head))
     {
-      CloneData(Head);
       LoadDependenciesFrom(Head);
+      Head.CloneData();
     }
     
     Module::Information::Ptr GetModuleInformation() const override
@@ -529,28 +529,14 @@ namespace PSF
       if (XSF::Parse(name, *data, file))
       {
         Dbg("Resolving dependency '%1%'", name);
-        LoadDependenciesFrom(file);
         const auto it = Dependencies.find(name);
         Require(it != Dependencies.end() && 0 == it->second.Version);
-        CloneData(file);
+        LoadDependenciesFrom(file);
+        file.CloneData();
         it->second = std::move(file);
       }
     }
   private:
-    static void CloneData(XSF::File& file)
-    {
-      CloneContainer(file.ProgramSection);
-      CloneContainer(file.ReservedSection);
-    }
-
-    static void CloneContainer(Binary::Container::Ptr& data)
-    {
-      if (data)
-      {
-        data = Binary::CreateContainer(data->Start(), data->Size());
-      }
-    }
-
     void LoadDependenciesFrom(const XSF::File& file)
     {
       Require(Head.Version == file.Version);
