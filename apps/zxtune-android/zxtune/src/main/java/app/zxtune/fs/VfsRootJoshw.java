@@ -49,6 +49,8 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
             new AudiobaseDir("smd", R.string.vfs_joshw_smd_name, R.string.vfs_joshw_smd_description),
             new AudiobaseDir("spc", R.string.vfs_joshw_spc_name, R.string.vfs_joshw_spc_description),
             new AudiobaseDir("kss", R.string.vfs_joshw_kss_name, R.string.vfs_joshw_kss_description),
+            new AudiobaseDir("psf", R.string.vfs_joshw_psf_name, R.string.vfs_joshw_psf_description),
+            new AudiobaseDir("usf", R.string.vfs_joshw_usf_name, R.string.vfs_joshw_usf_description),
     };
   }
 
