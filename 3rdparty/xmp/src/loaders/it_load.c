@@ -466,7 +466,7 @@ static int it_load(struct module_data *m, HIO_HANDLE *f, const int start)
 
 	    if (cwtv > 0x50) {
 		version_sec = ((cwtv - 0x050) * 86400) + 1254355200;
-		if (localtime_r(&version_sec, &version)) {
+		if (localtime_s(&version_sec, &version)) {
 		    snprintf(tracker_name, 40, "Schism Tracker %04d-%02d-%02d",
 				version.tm_year + 1900, version.tm_mon + 1,
 				version.tm_mday);
