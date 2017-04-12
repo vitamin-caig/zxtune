@@ -510,7 +510,7 @@ void osal_fastcall jump_to(usf_state_t * state, uint32_t addr)
    uint32_t paddr;
    if (state->skip_jump) return;
    paddr = update_invalid_addr(state, addr);
-   if (!paddr) return;
+   if (!paddr) {return;}
    const uint32_t page = addr / TLB_PAGE_SIZE;
    state->actual = state->blocks[page];
    if (state->invalid_code[page])

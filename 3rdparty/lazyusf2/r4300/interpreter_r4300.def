@@ -512,7 +512,7 @@ DECLARE_INSTRUCTION(LL)
 
 DECLARE_INSTRUCTION(LWC1)
 {
-   if (check_cop1_unusable(state)) return;
+   if (check_cop1_unusable(state)) {return;}
    const uint8_t lslfft = lfft;
    const uint32_t lslfaddr = (uint32_t)(lfoffset + state->reg[lfbase]);
    ADD_TO_PC(1);
@@ -525,7 +525,7 @@ DECLARE_INSTRUCTION(LWC1)
 
 DECLARE_INSTRUCTION(LDC1)
 {
-   if (check_cop1_unusable(state)) return;
+   if (check_cop1_unusable(state)) {return;}
    const uint8_t lslfft = lfft;
    const uint32_t lslfaddr = (uint32_t)(lfoffset + state->reg[lfbase]);
    ADD_TO_PC(1);
@@ -574,7 +574,7 @@ DECLARE_INSTRUCTION(SC)
 
 DECLARE_INSTRUCTION(SWC1)
 {
-   if (check_cop1_unusable(state)) return;
+   if (check_cop1_unusable(state)) {return;}
    const uint8_t lslfft = lfft;
    const uint32_t lslfaddr = (uint32_t)(lfoffset + state->reg[lfbase]);
    ADD_TO_PC(1);
@@ -589,7 +589,7 @@ DECLARE_INSTRUCTION(SWC1)
 
 DECLARE_INSTRUCTION(SDC1)
 {
-   if (check_cop1_unusable(state)) return;
+   if (check_cop1_unusable(state)) {return;}
    const uint8_t lslfft = lfft;
    const uint32_t lslfaddr = (uint32_t)(lfoffset + state->reg[lfbase]);
    ADD_TO_PC(1);
