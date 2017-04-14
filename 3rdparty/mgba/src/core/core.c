@@ -19,7 +19,7 @@
 #include <mgba/internal/gba/gba.h>
 #endif
 
-static struct mCoreFilter {
+static const struct mCoreFilter {
 	bool (*filter)(struct VFile*);
 	struct mCore* (*open)(void);
 	enum mPlatform platform;

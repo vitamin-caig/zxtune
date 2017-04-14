@@ -22,7 +22,7 @@
 mLOG_DEFINE_CATEGORY(GBA_MEM, "GBA Memory", "gba.memory");
 
 static void _pristineCow(struct GBA* gba);
-static uint32_t _deadbeef[1] = { 0xE710B710 }; // Illegal instruction on both ARM and Thumb
+static const uint32_t _deadbeef[1] = { 0xE710B710 }; // Illegal instruction on both ARM and Thumb
 
 static void GBASetActiveRegion(struct ARMCore* cpu, uint32_t region);
 static int32_t GBAMemoryStall(struct ARMCore* cpu, int32_t wait);

@@ -51,23 +51,24 @@ const int GBAVideoObjSizes[16][2] = {
 	{ 0, 0 },
 };
 
-static struct GBAVideoRenderer dummyRenderer = {
-	.init = GBAVideoDummyRendererInit,
-	.reset = GBAVideoDummyRendererReset,
-	.deinit = GBAVideoDummyRendererDeinit,
-	.writeVideoRegister = GBAVideoDummyRendererWriteVideoRegister,
-	.writeVRAM = GBAVideoDummyRendererWriteVRAM,
-	.writePalette = GBAVideoDummyRendererWritePalette,
-	.writeOAM = GBAVideoDummyRendererWriteOAM,
-	.drawScanline = GBAVideoDummyRendererDrawScanline,
-	.finishFrame = GBAVideoDummyRendererFinishFrame,
-	.getPixels = GBAVideoDummyRendererGetPixels,
-	.putPixels = GBAVideoDummyRendererPutPixels,
-};
+struct GBAVideoRenderer* CreateDummyRenderer() {
+	struct GBAVideoRenderer* const result = calloc(sizeof(struct GBAVideoRenderer), 1);
+	result->init = GBAVideoDummyRendererInit;
+	result->reset = GBAVideoDummyRendererReset;
+	result->deinit = GBAVideoDummyRendererDeinit;
+	result->writeVideoRegister = GBAVideoDummyRendererWriteVideoRegister;
+	result->writeVRAM = GBAVideoDummyRendererWriteVRAM;
+	result->writePalette = GBAVideoDummyRendererWritePalette;
+	result->writeOAM = GBAVideoDummyRendererWriteOAM;
+	result->drawScanline = GBAVideoDummyRendererDrawScanline;
+	result->finishFrame = GBAVideoDummyRendererFinishFrame;
+	result->getPixels = GBAVideoDummyRendererGetPixels;
+	result->putPixels = GBAVideoDummyRendererPutPixels;
+	return result;
+}
 
 void GBAVideoInit(struct GBAVideo* video) {
-	video->renderer = &dummyRenderer;
-	video->renderer->cache = NULL;
+	video->renderer = video->dummyRenderer = CreateDummyRenderer();
 	video->vram = 0;
 	video->frameskip = 0;
 	video->event.name = "GBA Video";
@@ -105,13 +106,18 @@ void GBAVideoReset(struct GBAVideo* video) {
 }
 
 void GBAVideoDeinit(struct GBAVideo* video) {
-	GBAVideoAssociateRenderer(video, &dummyRenderer);
+	video->renderer->deinit(video->renderer);
+	video->renderer = 0;
+	free(video->dummyRenderer);
+	video->dummyRenderer = 0;
 	mappedMemoryFree(video->vram, SIZE_VRAM);
+	video->vram = 0;
 }
 
 void GBAVideoAssociateRenderer(struct GBAVideo* video, struct GBAVideoRenderer* renderer) {
+	const struct mTileCache* const cache = video->renderer->cache;
 	video->renderer->deinit(video->renderer);
-	renderer->cache = video->renderer->cache;
+	renderer->cache = cache;
 	video->renderer = renderer;
 	renderer->palette = video->palette;
 	renderer->vram = video->vram;

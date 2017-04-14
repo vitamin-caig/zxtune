@@ -173,6 +173,7 @@ struct GBAVideoRenderer {
 struct GBAVideo {
 	struct GBA* p;
 	struct GBAVideoRenderer* renderer;
+	struct GBAVideoRenderer* dummyRenderer;
 	struct mTimingEvent event;
 
 	// VCOUNT
