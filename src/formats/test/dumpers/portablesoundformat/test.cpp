@@ -13,6 +13,7 @@
 #include <formats/chiptune/emulation/portablesoundformat.h>
 #include <formats/chiptune/emulation/playstationsoundformat.h>
 #include <formats/chiptune/emulation/playstation2soundformat.h>
+#include <formats/chiptune/emulation/gameboyadvancesoundformat.h>
 #include <strings/format.h>
 #include <time/duration.h>
 #include <memory>
@@ -116,6 +117,38 @@ namespace
       }
     };
   };
+  
+  class GSFDumper : public SimpleDumper
+  {
+  public:
+    void DumpProgram(const Binary::Container& blob) const override
+    {
+      SimpleDumper::DumpProgram(blob);
+      try
+      {
+        GBARomDumper delegate;
+        Formats::Chiptune::GameBoyAdvanceSoundFormat::ParseRom(blob, delegate);
+      }
+      catch (const std::exception&)
+      {
+        std::cout << "  Corrupted GBA Rom" << std::endl;
+      }
+    }
+  private:
+    class GBARomDumper : public Formats::Chiptune::GameBoyAdvanceSoundFormat::Builder
+    {
+    public:
+      void SetEntryPoint(uint32_t addr) override
+      {
+        std::cout << Strings::Format("  EntryPoint=0x%08x", addr) << std::endl;
+      }
+      
+      void SetRom(uint32_t addr, const Binary::Data& content) override
+      {
+        std::cout << Strings::Format("  ROM: %1% (0x%1$08x) bytes at 0x%2$08x", content.Size(), addr) << std::endl;
+      }
+    };
+  };
 
   class PSFDumper : public Formats::Chiptune::PortableSoundFormat::Builder
   {
@@ -186,6 +219,11 @@ namespace
       std::cout << " Fade: " << Time::MillisecondsDuration(fade.Get(), Time::Milliseconds(1)).ToString() << std::endl;
     }
     
+    void SetVolume(float vol) override
+    {
+      std::cout << " Volume: " << vol << std::endl;
+    }
+    
     void SetTag(String name, String value) override
     {
       std::cout << " " << name << ": " << value << std::endl;
@@ -228,10 +266,12 @@ namespace
     {
       switch (ver)
       {
-      case 0x01:
+      case Formats::Chiptune::PlaystationSoundFormat::VERSION_ID:
         return MakePtr<PSF1Dumper>();
-      case 0x02:
+      case Formats::Chiptune::Playstation2SoundFormat::VERSION_ID:
         return MakePtr<PSF2Dumper>();
+      case Formats::Chiptune::GameBoyAdvanceSoundFormat::VERSION_ID:
+        return MakePtr<GSFDumper>();
       default:
         return MakePtr<SimpleDumper>();
       }
