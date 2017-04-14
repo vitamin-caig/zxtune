@@ -24,6 +24,13 @@ enum mLogLevel {
 	mLOG_ALL = 0x7F
 };
 
+#ifdef DISABLE_LOGGING
+
+#define mLOG(CATEGORY, LEVEL, ...)
+#define mLOG_DECLARE_CATEGORY(CATEGORY)
+#define mLOG_DEFINE_CATEGORY(CATEGORY, NAME, ID)
+
+#else
 struct Table;
 struct mLogFilter {
 	int defaultLevels;
@@ -67,6 +74,8 @@ void mLog(int category, enum mLogLevel level, const char* format, ...);
 	const char* _mLOG_CAT_ ## CATEGORY ## _ID = ID;
 
 mLOG_DECLARE_CATEGORY(STATUS)
+
+#endif
 
 CXX_GUARD_END
 

@@ -3,7 +3,7 @@ path_step := ../..
 include defines.mak
 
 source_files += $(addprefix arm/,arm decoder-arm decoder-thumb isa-arm isa-thumb) \
-                $(addprefix core/,cheats config core interface log sync tile-cache timing) \
+                $(addprefix core/,cheats config core interface sync tile-cache timing) \
                 $(addprefix gb/,gb_audio) \
                 $(addprefix gba/,gba_audio gba_core gba_cheats gba gba_bios gba_dma gba_hardware gba_io gba_memory gba_overrides gba_savedata gba_serialize gba_sio gba_timer gba_vfame gba_video hle-bios) \
                 $(addprefix gba/cheats/,codebreaker gameshark parv3) \

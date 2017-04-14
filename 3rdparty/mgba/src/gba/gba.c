@@ -469,7 +469,7 @@ void GBADebug(struct GBA* gba, uint16_t flags) {
 		char oolBuf[0x101];
 		strncpy(oolBuf, gba->debugString, sizeof(gba->debugString));
 		oolBuf[0x100] = '\0';
-		mLog(_mLOG_CAT_GBA_DEBUG(), level, "%s", oolBuf);
+		mLOG(_mLOG_CAT_GBA_DEBUG(), level, "%s", oolBuf);
 	}
 	gba->debugFlags = GBADebugFlagsClearSend(gba->debugFlags);
 }
