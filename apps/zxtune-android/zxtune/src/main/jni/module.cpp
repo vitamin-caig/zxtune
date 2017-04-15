@@ -22,6 +22,7 @@
 #include <binary/container_factories.h>
 #include <core/module_open.h>
 #include <core/module_detect.h>
+#include <module/additional_files.h>
 
 namespace
 {
@@ -160,5 +161,40 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
     Dbg("Module::CreatePlayer(handle=%x)", moduleHandle);
     const auto& module = Module::Storage::Instance().Get(moduleHandle);
     return Player::Create(module);
+  });
+}
+
+
+JNIEXPORT jobjectArray JNICALL Java_app_zxtune_ZXTune_Module_1GetAdditionalFiles
+  (JNIEnv* env, jclass /*self*/, jint moduleHandle)
+{
+  return Jni::Call(env, [=] ()
+  {
+    const auto& module = Module::Storage::Instance().Get(moduleHandle);
+    if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
+    {
+      const auto& filenames = files->Enumerate();
+      if (const auto count = filenames.size())
+      {
+        const auto result = env->NewObjectArray(count, env->FindClass("java/lang/String"), nullptr);
+        for (std::size_t i = 0; i < count; ++i)
+        {
+          env->SetObjectArrayElement(result, i, Jni::MakeJstring(env, filenames[i]));
+        }
+        return result;
+      }
+    }
+    return jobjectArray(nullptr);
+  });
+}
+
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1ResolveAdditionalFile
+  (JNIEnv* env, jclass /*self*/, jint moduleHandle, jstring fileName, jobject data)
+{
+  return Jni::Call(env, [=] ()
+  {
+    const auto& module = Module::Storage::Instance().Get(moduleHandle);
+    auto& files = const_cast<Module::AdditionalFiles&>(dynamic_cast<const Module::AdditionalFiles&>(*module));
+    files.Resolve(Jni::MakeString(env, fileName), CreateContainer(env, data));
   });
 }

@@ -156,8 +156,7 @@ public final class Scanner {
   
   private static void analyzeRealFile(VfsFile file, final Callback cb) throws Exception {
     final Uri uri = file.getUri();
-    final ByteBuffer content = file.getContent();
-    ZXTune.detectModules(content, new ZXTune.ModuleDetectCallback() {
+    Core.detectModules(file, new ZXTune.ModuleDetectCallback() {
       
       @Override
       public void onModule(String subpath, Module obj) throws Exception {
@@ -165,6 +164,7 @@ public final class Scanner {
           cb.onModule(new Identifier(uri, subpath), obj);
         } catch (Exception e) {
           obj.release();
+          Log.w(TAG, e, "Failed analyzeRealFile.onModule");
           //do not rethrow error - it comes from particular module, not from callback
           //throw e;
         }
@@ -180,12 +180,10 @@ public final class Scanner {
     }
   }
   
-  
   private boolean analyzeArchiveFile(Identifier id, Callback cb) throws Exception {
     final VfsFile archive = openArchive(id.getDataLocation());
     try {
-      final ByteBuffer content = archive.getContent();
-      final ZXTune.Module module = ZXTune.loadModule(content, id.getSubpath());
+      final ZXTune.Module module = Core.loadModule(archive, id.getSubpath());
       try {
         cb.onModule(id, module);
         return true;

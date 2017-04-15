@@ -114,9 +114,26 @@ public final class ZXTune {
   }
 
   /**
+   * Interface to additional files access
+   */
+  public interface AdditionalFiles {
+    /**
+     * @return null if no additional files required, empty array if all the files are resolved,
+     * else list of required filenames relative to current one
+     */
+    String[] getAdditionalFiles() throws Exception;
+
+    /**
+     * @param name additional file name as returned by ListAdditionalFiles
+     * @param data additional file content
+     */
+    void resolveAdditionalFile(String name, ByteBuffer data) throws Exception;
+  }
+
+  /**
    * Module interface
    */
-  public interface Module extends Releaseable, Properties.Accessor {
+  public interface Module extends Releaseable, Properties.Accessor, AdditionalFiles {
 
     /**
      * Attributes 'namespace'
@@ -329,7 +346,7 @@ public final class ZXTune {
     }
   }
 
-  private static final class NativeModule implements Releaseable, Module {
+  private static final class NativeModule implements Module {
   
     private final int handle;
 
@@ -338,13 +355,18 @@ public final class ZXTune {
     }
 
     @Override
-    public void release() {
-      Module_Close(handle);
+    public int getDuration() throws Exception {
+      return Module_GetDuration(handle);
     }
 
     @Override
-    public int getDuration() throws Exception {
-      return Module_GetDuration(handle);
+    public Player createPlayer() throws Exception {
+      return new NativePlayer(Module_CreatePlayer(handle));
+    }
+
+    @Override
+    public void release() {
+      Module_Close(handle);
     }
 
     @Override
@@ -358,22 +380,22 @@ public final class ZXTune {
     }
 
     @Override
-    public Player createPlayer() throws Exception {
-      return new NativePlayer(Module_CreatePlayer(handle));
+    public String[] getAdditionalFiles() throws Exception {
+      return Module_GetAdditionalFiles(handle);
+    }
+
+    @Override
+    public void resolveAdditionalFile(String name, ByteBuffer data) throws Exception {
+      Module_ResolveAdditionalFile(handle, name, makeDirectBuffer(data));
     }
   }
 
-  private static final class NativePlayer implements Releaseable, Player {
+  private static final class NativePlayer implements Player {
 
     private final int handle;
 
     NativePlayer(int handle) {
       this.handle = handle;
-    }
-
-    @Override
-    public void release() {
-      Player_Close(handle);
     }
 
     @Override
@@ -394,6 +416,11 @@ public final class ZXTune {
     @Override
     public void setPosition(int pos) throws Exception {
       Player_SetPosition(handle, pos);
+    }
+
+    @Override
+    public void release() {
+      Player_Close(handle);
     }
 
     @Override
@@ -434,6 +461,8 @@ public final class ZXTune {
   private static native long Module_GetProperty(int module, String name, long defVal) throws Exception;
   private static native String Module_GetProperty(int module, String name, String defVal) throws Exception;
   private static native int Module_CreatePlayer(int module) throws Exception;
+  private static native String[] Module_GetAdditionalFiles(int module) throws Exception;
+  private static native void Module_ResolveAdditionalFile(int module, String name, ByteBuffer data) throws Exception;
   private static native void Module_Close(int module);
 
   // working with player

@@ -89,6 +89,22 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
 
 /*
  * Class:     app_zxtune_ZXTune
+ * Method:    Module_GetAdditionalFiles
+ * Signature: (I)[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_app_zxtune_ZXTune_Module_1GetAdditionalFiles
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     app_zxtune_ZXTune
+ * Method:    Module_ResolveAdditionalFile
+ * Signature: (ILjava/lang/String;Ljava/nio/ByteBuffer;)V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1ResolveAdditionalFile
+  (JNIEnv *, jclass, jint, jstring, jobject);
+
+/*
+ * Class:     app_zxtune_ZXTune
  * Method:    Module_Close
  * Signature: (I)V
  */
@@ -240,6 +256,17 @@ extern "C" {
 
 #ifndef _Included_app_zxtune_ZXTune_Properties_Core_Aym
 #define _Included_app_zxtune_ZXTune_Properties_Core_Aym
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_AdditionalFiles */
+
+#ifndef _Included_app_zxtune_ZXTune_AdditionalFiles
+#define _Included_app_zxtune_ZXTune_AdditionalFiles
 #ifdef __cplusplus
 extern "C" {
 #endif

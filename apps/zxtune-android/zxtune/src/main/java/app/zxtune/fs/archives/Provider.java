@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import app.zxtune.Core;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -72,12 +73,11 @@ public final class Provider extends ContentProvider {
       final Uri path = fileId.getDataLocation();
       Log.d(TAG, "Add archive content of %s", path);
       final VfsFile file = openFile(path);
-      final ByteBuffer data = file.getContent();
       final HashSet<Identifier> dirEntries = new HashSet<Identifier>();
       final Transaction transaction = db.startTransaction();
       final AtomicInteger modulesCount = new AtomicInteger(0);
       try {
-        ZXTune.detectModules(data, new ZXTune.ModuleDetectCallback() {
+        Core.detectModules(file, new ZXTune.ModuleDetectCallback() {
           @Override
           public void onModule(String subpath, Module module) {
             final Identifier moduleId = new Identifier(path, subpath);
