@@ -173,7 +173,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     search.setOnFocusChangeListener(new View.OnFocusChangeListener() {
       @Override
       public void onFocusChange(View v, boolean hasFocus) {
-        if (0 == search.getQuery().length()) {
+        if (!search.isIconified() && 0 == search.getQuery().length()) {
           search.setIconified(true);
         }
       }
