@@ -25,7 +25,15 @@ import app.zxtune.R;
 public class HttpProvider {
 
   private static final String TAG = HttpProvider.class.getName();
-  private static final int MAX_REMOTE_FILE_SIZE = 5 * 1024 * 1024;//5Mb
+
+  /*
+    386M http://psf.joshw.info/g/Gekioh Shooting King [Geki Ou - Shienryu] [Shienryu Arcade Hits] (1999-05-20)(Warashi).7z
+    Contains psf/psflib files along with nonsupported (xa)
+    
+    81M https://psf.joshw.info/f/Final Fantasy IV (1997-03-21)(Square)(Tose)(Square).7z
+    Contains 54 psf2 files
+  */
+  private static final int MAX_REMOTE_FILE_SIZE = 100 * 1024 * 1024;
 
   private final Context context;
   private static ByteBuffer htmlBuffer;
