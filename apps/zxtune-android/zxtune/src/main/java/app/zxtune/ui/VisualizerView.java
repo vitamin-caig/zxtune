@@ -89,11 +89,11 @@ public class VisualizerView extends View {
     final int padBottom = getPaddingBottom();
     final int padHorizontal = padLeft + padRight;
     final int padVertical = padTop + padBottom;
-    if (padHorizontal < w || padVertical < h) {
+    if (padHorizontal < w && padVertical < h) {
       visibleRect.left = padLeft;
-      visibleRect.right = w - padHorizontal;
+      visibleRect.right = w - padRight;
       visibleRect.top = padTop;
-      visibleRect.bottom = h - padVertical;
+      visibleRect.bottom = h - padBottom;
     } else {
       visibleRect.set(0, 0, w, h);
     }
