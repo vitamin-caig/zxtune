@@ -302,7 +302,7 @@ final class VfsRootHvsc extends StubObject implements VfsRoot {
 
         @Override
         public VfsObject getParent() {
-          return C64MusicSubdir.this;
+          return new C64MusicSubdir(path.subList(0, path.size() - 1));
         }
 
         @Override
