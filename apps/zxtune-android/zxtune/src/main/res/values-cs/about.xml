@@ -5,31 +5,32 @@
   <string name="about_plugins">Přídavné moduly</string>
   <!-- about-related -->
   <string name="about_author">
-Myšlenka, kód: <b>Vitamin/CAIG</b>\n
-Návrh: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n
-Český překlad: <b>Pavel Fric</b>\n
-\n
-Použité zdroje:\n
-\tAYEmul by <b>S.Bulba</b>\n
-\tAYFly by <b>Ander</b>\n
-\tPusher by <b>Himik/ZxZ</b>\n
-Použité knihovny:\n
-\tboost\n
-\tzlib od <b>Jean-Loup Gailly</b> a <b>Mark Adler</b>\n
-\tz80ex od <b>Boo-boo</b>\n
-\tlhasa od <b>Simon Howard</b>\n
-\tDragSortListView od <b>Carl A.Bauer</b>\n
-\tunrar od <b>Alexander Roshal</b>\n
-\tlibxmp od <b>Claudio Matsuoka</b>\n
-\tlibsidplayfp+resid\n
-\tsnes_spc od <b>Shay Green</b>\n
-\tGame_Music_Emu od <b>Shay Green</b> and <b>Chris Moeller</b>\n
-\t7-Zip od <b>Igor Pavlov</b>\n
-\tHVL2WAV od <b>Peter Gordon</b>\n
-\tCrashlytics od <b>Twitter</b>\n
-\tHighly Experimental od <b>Neill Corlett</b>\n
-\n
-Věnováno <b>Lizzi</b>
+    Myšlenka, kód: <b>Vitamin/CAIG</b>\n
+    Návrh: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n
+    Český překlad: <b>Pavel Fric</b>\n
+    \n
+    Použité zdroje:\n
+    \tAYEmul by <b>S.Bulba</b>\n
+    \tAYFly by <b>Ander</b>\n
+    \tPusher by <b>Himik/ZxZ</b>\n
+    Použité knihovny:\n
+    \tboost\n
+    \tzlib od <b>Jean-Loup Gailly</b> a <b>Mark Adler</b>\n
+    \tz80ex od <b>Boo-boo</b>\n
+    \tlhasa od <b>Simon Howard</b>\n
+    \tDragSortListView od <b>Carl A.Bauer</b>\n
+    \tunrar od <b>Alexander Roshal</b>\n
+    \tlibxmp od <b>Claudio Matsuoka</b>\n
+    \tlibsidplayfp+resid\n
+    \tsnes_spc od <b>Shay Green</b>\n
+    \tGame_Music_Emu od <b>Shay Green</b> and <b>Chris Moeller</b>\n
+    \t7-Zip od <b>Igor Pavlov</b>\n
+    \tHVL2WAV od <b>Peter Gordon</b>\n
+    \tCrashlytics od <b>Twitter</b>\n
+    \tHighly Experimental od <b>Neill Corlett</b>\n
+    \tlazyusf2 od <b>Christopher Snowhill</b>\n
+    \n
+    Věnováno <b>Lizzi</b>
   </string>
   <!-- players -->
   <string name="plugin_player_dac">Digitální formáty</string>
