@@ -51,7 +51,7 @@ namespace USF
     ModuleData() = default;
     ModuleData(const ModuleData&) = delete;
     
-    std::list<Dump> Sections;
+    std::list<Binary::Data::Ptr> Sections;
     XSF::MetaInformation::Ptr Meta;
     
     uint_t GetRefreshRate() const
@@ -154,11 +154,11 @@ namespace USF
       return std::vector<ChannelState>();
     }
   private:
-    void SetupSections(const std::list<Dump>& sections)
+    void SetupSections(const std::list<Binary::Data::Ptr>& sections)
     {
       for (const auto& blob : sections)
       {
-        Require(-1 != ::usf_upload_section(Emu.GetRaw(), blob.data(), blob.size()));
+        Require(-1 != ::usf_upload_section(Emu.GetRaw(), static_cast<const uint8_t*>(blob->Start()), blob->Size()));
       }
     }
     
@@ -319,13 +319,40 @@ namespace USF
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
-  
-  Dump CreateDump(const Binary::Data& data)
+
+  class ModuleDataBuilder
   {
-    const auto start = static_cast<const uint8_t*>(data.Start());
-    const auto size = data.Size();
-    return Dump(start, start + size);
-  }
+  public:
+    void AddSection(Binary::Data::Ptr data)
+    {
+      Require(!!data);
+      Sections.emplace_back(std::move(data));
+    }
+    
+    void AddMeta(const XSF::MetaInformation& meta)
+    {
+      if (!Meta)
+      {
+        Meta = MakeRWPtr<XSF::MetaInformation>(meta);
+      }
+      else
+      {
+        Meta->Merge(meta);
+      }
+    }
+    
+    ModuleData::Ptr CaptureResult()
+    {
+      auto res = MakeRWPtr<ModuleData>();
+      res->Sections = std::move(Sections);
+      res->Meta = std::move(Meta);
+      return res;
+    }
+  private:
+    std::list<Binary::Data::Ptr> Sections;
+    XSF::MetaInformation::RWPtr Meta;
+  };
+  
   
   class XsfView
   {
@@ -348,12 +375,15 @@ namespace USF
     ModuleData::Ptr CreateModuleData() const
     {
       Require(File.Dependencies.empty());
-      const ModuleData::RWPtr result = MakeRWPtr<ModuleData>();
-      result->Meta = File.Meta;
-      Require(!File.ProgramSection);
+      ModuleDataBuilder builder;
+      Require(!File.PackedProgramSection);
       Require(!!File.ReservedSection);
-      result->Sections.emplace_back(CreateDump(*File.ReservedSection));
-      return result;
+      builder.AddSection(Binary::CreateContainer(File.ReservedSection->Start(), File.ReservedSection->Size()));
+      if (File.Meta)
+      {
+        builder.AddMeta(*File.Meta);
+      }
+      return builder.CaptureResult();
     }
   private:
     const XSF::File& File;
@@ -439,38 +469,6 @@ namespace USF
       return *Delegate;
     }
     
-    class ModuleDataBuilder
-    {
-    public:
-      void AddSection(const Binary::Data& data)
-      {
-        Sections.emplace_back(CreateDump(data));
-      }
-      
-      void AddMeta(const XSF::MetaInformation& meta)
-      {
-        if (!Meta)
-        {
-          Meta = MakeRWPtr<XSF::MetaInformation>(meta);
-        }
-        else
-        {
-          Meta->Merge(meta);
-        }
-      }
-      
-      ModuleData::Ptr CaptureResult()
-      {
-        auto res = MakeRWPtr<ModuleData>();
-        res->Sections = std::move(Sections);
-        res->Meta = std::move(Meta);
-        return res;
-      }
-    private:
-      std::list<Dump> Sections;
-      XSF::MetaInformation::RWPtr Meta;
-    };
-    
     ModuleData::Ptr MergeDependencies() const
     {
       ModuleDataBuilder builder;
@@ -487,7 +485,7 @@ namespace USF
       {
         MergeSections(GetDependency(*it), dst);
       }
-      dst.AddSection(*data.ReservedSection);
+      dst.AddSection(data.ReservedSection);
       if (data.Meta)
       {
         dst.AddMeta(*data.Meta);

@@ -22,17 +22,6 @@ namespace Module
 {
   namespace PSF
   {
-    void PsxVfs::Prefetch()
-    {
-      for (auto& file : Files)
-      {
-        if (file.second)
-        {
-          Require(file.second->Start() != nullptr);
-        }
-      }
-    }
-    
     String PsxVfs::ToUpper(const char* str)
     {
       String res;

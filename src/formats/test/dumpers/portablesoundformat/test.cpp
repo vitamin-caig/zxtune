@@ -10,6 +10,7 @@
 
 #include "../../utils.h"
 #include <make_ptr.h>
+#include <binary/compression/zlib_container.h>
 #include <formats/chiptune/emulation/portablesoundformat.h>
 #include <formats/chiptune/emulation/playstationsoundformat.h>
 #include <formats/chiptune/emulation/playstation2soundformat.h>
@@ -164,9 +165,10 @@ namespace
       Dumper->DumpReserved(*blob);
     }
     
-    void SetProgramSection(Binary::Container::Ptr blob) override
+    void SetPackedProgramSection(Binary::Container::Ptr blob) override
     {
-      Dumper->DumpProgram(*blob);
+      const auto unpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(blob));
+      Dumper->DumpProgram(*unpacked);
     }
     
     void SetTitle(String title) override

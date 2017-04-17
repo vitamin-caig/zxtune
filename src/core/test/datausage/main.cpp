@@ -19,17 +19,28 @@ namespace
     void Add(Module::Holder::Ptr module)
     {
       Modules.push_back(module);
-      const auto props = module->GetModuleProperties();
-      String str;
-      Require(props->FindValue(Module::ATTR_TYPE, str));
-      ++Types[str];
     }
     
     void Report()
     {
       std::cout << Modules.size() << " modules total\n";
+      std::map<String, uint_t> types;
+      for (const auto& module : Modules)
+      {
+        try
+        {
+          const auto props = module->GetModuleProperties();
+          String str;
+          Require(props->FindValue(Module::ATTR_TYPE, str));
+          ++types[str];
+        }
+        catch (const Error& err)
+        {
+          ++types[err.GetText()];
+        }
+      }
       std::cout << "Types:\n";
-      for (const auto& type : Types)
+      for (const auto& type : types)
       {
         std::cout << type.first << ": " << type.second << '\n';
       }
@@ -37,7 +48,6 @@ namespace
     }
   private:
     std::list<Module::Holder::Ptr> Modules;
-    std::map<String, uint_t> Types;
   };
   
   class DetectCallbackAdapter : public Module::DetectCallback

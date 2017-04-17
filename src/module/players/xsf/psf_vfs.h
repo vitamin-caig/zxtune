@@ -33,8 +33,6 @@ namespace Module
         Files[ToUpper(name.c_str())] = std::move(data);
       }
       
-      void Prefetch();
-      
       bool Find(const char* name, Binary::Container::Ptr& data) const
       {
         const auto it = Files.find(ToUpper(name));

@@ -35,7 +35,7 @@ namespace Module
       {
         Version = rh.Version;
         ReservedSection = std::move(rh.ReservedSection);
-        ProgramSection = std::move(rh.ProgramSection);
+        PackedProgramSection = std::move(rh.PackedProgramSection);
         Meta = std::move(rh.Meta);
         Dependencies = std::move(rh.Dependencies);
         return *this;
@@ -44,12 +44,12 @@ namespace Module
       void CloneData()
       {
         Clone(ReservedSection);
-        Clone(ProgramSection);
+        Clone(PackedProgramSection);
       }
       
       uint_t Version = 0;
       Binary::Container::Ptr ReservedSection;
-      Binary::Container::Ptr ProgramSection;
+      Binary::Container::Ptr PackedProgramSection;
       MetaInformation::Ptr Meta;
       
       Strings::Array Dependencies;

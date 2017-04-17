@@ -28,7 +28,7 @@ namespace Formats
         virtual void SetVersion(uint_t ver) = 0;
 
         virtual void SetReservedSection(Binary::Container::Ptr blob) = 0;
-        virtual void SetProgramSection(Binary::Container::Ptr blob) = 0;
+        virtual void SetPackedProgramSection(Binary::Container::Ptr blob) = 0;
         
         virtual void SetTitle(String title) = 0;
         virtual void SetArtist(String artist) = 0;

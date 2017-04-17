@@ -84,9 +84,9 @@ namespace Module
         Result.ReservedSection = std::move(blob);
       }
       
-      void SetProgramSection(Binary::Container::Ptr blob) override
+      void SetPackedProgramSection(Binary::Container::Ptr blob) override
       {
-        Result.ProgramSection = std::move(blob);
+        Result.PackedProgramSection = std::move(blob);
       }
       
       void SetTitle(String title) override

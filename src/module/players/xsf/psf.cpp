@@ -20,6 +20,7 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
+#include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <module/additional_files.h>
@@ -438,6 +439,57 @@ namespace PSF
     const Parameters::Accessor::Ptr Properties;
   };
   
+  class ModuleDataBuilder
+  {
+  public:
+    void AddExe(Binary::Data::Ptr packedSection)
+    {
+      Require(!Vfs);
+      if (!Exe)
+      {
+        Exe = MakeRWPtr<PsxExe>();
+      }
+      const auto unpackedSection = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packedSection));
+      PsxExe::Parse(*unpackedSection, *Exe);
+    }
+    
+    void AddVfs(const Binary::Container& reservedSection)
+    {
+      Require(!Exe);
+      if (!Vfs)
+      {
+        Vfs = MakeRWPtr<PsxVfs>();
+      }
+      PsxVfs::Parse(reservedSection, *Vfs);
+    }
+    
+    void AddMeta(const XSF::MetaInformation& meta)
+    {
+      if (!Meta)
+      {
+        Meta = MakeRWPtr<XSF::MetaInformation>(meta);
+      }
+      else
+      {
+        Meta->Merge(meta);
+      }
+    }
+    
+    ModuleData::Ptr CaptureResult(uint_t version)
+    {
+      auto res = MakeRWPtr<ModuleData>();
+      res->Version = version;
+      res->Exe = std::move(Exe);
+      res->Vfs = std::move(Vfs);
+      res->Meta = std::move(Meta);
+      return res;
+    }
+  private:
+    PsxExe::RWPtr Exe;
+    PsxVfs::RWPtr Vfs;
+    XSF::MetaInformation::RWPtr Meta;
+  };
+  
   class XsfView
   {
   public:
@@ -458,25 +510,22 @@ namespace PSF
     
     ModuleData::Ptr CreateModuleData() const
     {
-      Require(File.Dependencies.empty());
-      const ModuleData::RWPtr result = MakeRWPtr<ModuleData>();
-      result->Version = File.Version;
-      result->Meta = File.Meta;
-      Require(!!File.ProgramSection != !!File.ReservedSection);
-      if (File.ProgramSection)
+      Require(IsSingleTrack());
+      ModuleDataBuilder builder;
+      if (File.PackedProgramSection)
       {
-        auto exe = MakeRWPtr<PsxExe>();
-        PsxExe::Parse(*File.ProgramSection, *exe);
-        result->Exe = std::move(exe);
+        builder.AddExe(File.PackedProgramSection);
       }
-      else
+      if (File.ReservedSection)
       {
-        auto vfs = MakeRWPtr<PsxVfs>();
-        PsxVfs::Parse(*File.ReservedSection, *vfs);
-        vfs->Prefetch();
-        result->Vfs = std::move(vfs);
+        const auto clonedSection = Binary::CreateContainer(File.ReservedSection->Start(), File.ReservedSection->Size());
+        builder.AddVfs(*clonedSection);
       }
-      return result;
+      if (File.Meta)
+      {
+        builder.AddMeta(*File.Meta);
+      }
+      return builder.CaptureResult(File.Version);
     }
   private:
     const XSF::File& File;
@@ -562,65 +611,14 @@ namespace PSF
       return *Delegate;
     }
     
-    class ModuleDataBuilder
-    {
-    public:
-      void AddExe(const Binary::Container& blob)
-      {
-        Require(!Vfs);
-        if (!Exe)
-        {
-          Exe = MakeRWPtr<PsxExe>();
-        }
-        PsxExe::Parse(blob, *Exe);
-      }
-      
-      void AddVfs(const Binary::Container& blob)
-      {
-        Require(!Exe);
-        if (!Vfs)
-        {
-          Vfs = MakeRWPtr<PsxVfs>();
-        }
-        PsxVfs::Parse(blob, *Vfs);
-      }
-      
-      void AddMeta(const XSF::MetaInformation& meta)
-      {
-        if (!Meta)
-        {
-          Meta = MakeRWPtr<XSF::MetaInformation>(meta);
-        }
-        else
-        {
-          Meta->Merge(meta);
-        }
-      }
-      
-      ModuleData::Ptr CaptureResult(uint_t version)
-      {
-        auto res = MakeRWPtr<ModuleData>();
-        res->Version = version;
-        res->Exe = std::move(Exe);
-        res->Vfs = std::move(Vfs);
-        res->Meta = std::move(Meta);
-        return res;
-      }
-    private:
-      PsxExe::RWPtr Exe;
-      PsxVfs::RWPtr Vfs;
-      XSF::MetaInformation::RWPtr Meta;
-    };
-    
     ModuleData::Ptr MergeDependencies() const
     {
       ModuleDataBuilder builder;
-      Require(!!Head.ProgramSection != !!Head.ReservedSection);
-      if (Head.ProgramSection)
+      if (Head.PackedProgramSection)
       {
         MergeExe(Head, builder);
       }
-      else
+      if (Head.ReservedSection)
       {
         MergeVfs(Head, builder);
       }
@@ -629,14 +627,13 @@ namespace PSF
     
     void MergeExe(const XSF::File& data, ModuleDataBuilder& dst) const
     {
-      Require(!!data.ProgramSection);
       auto it = data.Dependencies.begin();
       const auto lim = data.Dependencies.end();
       if (it != lim)
       {
         MergeExe(GetDependency(*it), dst);
       }
-      dst.AddExe(*data.ProgramSection);
+      dst.AddExe(data.PackedProgramSection);
       if (data.Meta)
       {
         dst.AddMeta(*data.Meta);
@@ -652,7 +649,6 @@ namespace PSF
     
     void MergeVfs(const XSF::File& data, ModuleDataBuilder& dst) const
     {
-      Require(!!data.ReservedSection);
       for (const auto& dep : data.Dependencies)
       {
         MergeVfs(GetDependency(dep), dst);

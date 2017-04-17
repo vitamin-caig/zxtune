@@ -18,6 +18,7 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
+#include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/additional_files.h>
 #include <module/players/analyzer.h>
@@ -365,6 +366,44 @@ namespace GSF
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
+
+  class ModuleDataBuilder
+  {
+  public:
+    void AddRom(Binary::Data::Ptr packedSection)
+    {
+      Require(!!packedSection);
+      if (!Rom)
+      {
+        Rom = MakeRWPtr<GbaRom>();
+      }
+      const auto unpackedSection = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packedSection));
+      GbaRom::Parse(*unpackedSection, *Rom);
+    }
+
+    void AddMeta(const XSF::MetaInformation& meta)
+    {
+      if (!Meta)
+      {
+        Meta = MakeRWPtr<XSF::MetaInformation>(meta);
+      }
+      else
+      {
+        Meta->Merge(meta);
+      }
+    }
+    
+    ModuleData::Ptr CaptureResult()
+    {
+      auto res = MakeRWPtr<ModuleData>();
+      res->Rom = std::move(Rom);
+      res->Meta = std::move(Meta);
+      return res;
+    }
+  private:
+    GbaRom::RWPtr Rom;
+    XSF::MetaInformation::RWPtr Meta;
+  };
   
   class XsfView
   {
@@ -387,16 +426,14 @@ namespace GSF
     ModuleData::Ptr CreateModuleData() const
     {
       Require(File.Dependencies.empty());
-      const ModuleData::RWPtr result = MakeRWPtr<ModuleData>();
-      result->Meta = File.Meta;
-      if (File.ProgramSection)
+      ModuleDataBuilder builder;
+      if (File.Meta)
       {
-        auto rom = MakeRWPtr<GbaRom>();
-        GbaRom::Parse(*File.ProgramSection, *rom);
-        result->Rom = std::move(rom);
+        builder.AddMeta(*File.Meta);
       }
+      builder.AddRom(File.PackedProgramSection);
       //don't know anything about reserved section state
-      return result;
+      return builder.CaptureResult();
     }
   private:
     const XSF::File& File;
@@ -482,42 +519,6 @@ namespace GSF
       return *Delegate;
     }
     
-    class ModuleDataBuilder
-    {
-    public:
-      void AddRom(const Binary::Container& blob)
-      {
-        if (!Rom)
-        {
-          Rom = MakeRWPtr<GbaRom>();
-        }
-        GbaRom::Parse(blob, *Rom);
-      }
-      
-      void AddMeta(const XSF::MetaInformation& meta)
-      {
-        if (!Meta)
-        {
-          Meta = MakeRWPtr<XSF::MetaInformation>(meta);
-        }
-        else
-        {
-          Meta->Merge(meta);
-        }
-      }
-      
-      ModuleData::Ptr CaptureResult()
-      {
-        auto res = MakeRWPtr<ModuleData>();
-        res->Rom = std::move(Rom);
-        res->Meta = std::move(Meta);
-        return res;
-      }
-    private:
-      GbaRom::RWPtr Rom;
-      XSF::MetaInformation::RWPtr Meta;
-    };
-    
     ModuleData::Ptr MergeDependencies() const
     {
       ModuleDataBuilder builder;
@@ -531,12 +532,12 @@ namespace GSF
       {
         MergeRom(GetDependency(data.Dependencies.front()), dst);
       }
-      Require(!!data.ProgramSection);
-      dst.AddRom(*data.ProgramSection);
+      dst.AddRom(data.PackedProgramSection);
       if (data.Meta)
       {
         dst.AddMeta(*data.Meta);
       }
+      //no other dependencies supported
     }
     
     const XSF::File& GetDependency(const String& name) const
