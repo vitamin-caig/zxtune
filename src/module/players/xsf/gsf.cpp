@@ -149,6 +149,7 @@ namespace GSF
       const auto romFile = VFileMemChunk(rom.Data.data(), rom.Data.size());
       Require(romFile != 0);
       Core->loadROM(Core, romFile);
+      Reset();
     }
     
     ~GbaCore()
