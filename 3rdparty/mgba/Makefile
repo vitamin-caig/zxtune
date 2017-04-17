@@ -9,7 +9,7 @@ source_files += $(addprefix arm/,arm decoder-arm decoder-thumb isa-arm isa-thumb
                 $(addprefix gba/cheats/,codebreaker gameshark parv3) \
                 third-party/blip_buf/blip_buf \
                 third-party/inih/ini \
-                $(addprefix util/,circle-buffer configuration crc32 formatting patch patch-ips patch-ups hash string table vfs vfs/vfs-fd vfs/vfs-mem)
+                $(addprefix util/,circle-buffer configuration crc32 formatting patch patch-ips patch-ups hash string table vfs vfs/vfs-file vfs/vfs-mem)
 
 ifneq ($(findstring $(platform),windows mingw),)
 source_files += platform/windows/memory
