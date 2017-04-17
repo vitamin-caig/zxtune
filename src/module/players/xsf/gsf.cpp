@@ -127,7 +127,8 @@ namespace GSF
     {
       AVStream* const self = safe_ptr_cast<AVStream*>(in);
       int16_t dummy[AUDIO_BUFFER_SIZE];
-      const auto done = std::min(blip_read_samples(left, dummy, AUDIO_BUFFER_SIZE, false), blip_read_samples(right, dummy, AUDIO_BUFFER_SIZE, false));
+      const auto toSkip = std::min(self->SamplesToSkip, AUDIO_BUFFER_SIZE);
+      const auto done = std::min(blip_read_samples(left, dummy, toSkip, false), blip_read_samples(right, dummy, toSkip, false));
       self->SamplesToSkip -= done;
     }
   private:
