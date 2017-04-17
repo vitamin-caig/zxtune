@@ -176,6 +176,16 @@ public class Analytics {
     send(event);
   }
 
+  public static void setFile(Uri uri, String subpath, int size) {
+    //obfuscate user-sensitive data (paths)
+    final String location = "file".equals(uri.getScheme())
+            ? uri.getLastPathSegment()
+            : uri.toString();
+    Crashlytics.setString("file.location", location);
+    Crashlytics.setString("file.subpath", subpath);
+    Crashlytics.setInt("file.size", size);
+  }
+
   private static void send(CustomEvent event) {
     Answers.getInstance().logCustom(event);
     Log.d(TAG, event.toString());

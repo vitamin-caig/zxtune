@@ -18,6 +18,7 @@ public class Core {
 
   public static ZXTune.Module loadModule(VfsFile file, String subpath) throws Exception {
     final ByteBuffer content = file.getContent();
+    Analytics.setFile(file.getUri(), subpath, content.limit());
     final ZXTune.Module obj = ZXTune.loadModule(content, subpath);
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
@@ -33,6 +34,7 @@ public class Core {
 
   public static void detectModules(VfsFile file, ZXTune.ModuleDetectCallback callback) throws Exception {
     final ByteBuffer content = file.getContent();
+    Analytics.setFile(file.getUri(), "*", content.limit());
     ZXTune.detectModules(content, new ModuleDetectCallbackAdapter(file, callback));
   }
 
@@ -69,7 +71,7 @@ public class Core {
       return getResolver().resolve(obj, files);
     }
 
-    private Resolver getResolver() throws IOException {
+    private Resolver getResolver() {
       if (resolver == null) {
         resolver = new Resolver(location);
       }
