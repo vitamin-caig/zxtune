@@ -532,7 +532,18 @@ namespace GME
       },
       &Formats::Multitrack::CreateKSSXDecoder,
       &Formats::Chiptune::CreateKSSXDecoder
-    }
+    },
+    //hes
+    {
+      {
+        "HES",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::HUC6270,
+        &Create< ::Hes_Emu>,
+        &DefaultDataCreator
+      },
+      &Formats::Multitrack::CreateHESDecoder,
+      &Formats::Chiptune::CreateHESDecoder
+    },
   };
   
   struct SingletrackPluginDescription
@@ -545,16 +556,6 @@ namespace GME
 
   const SingletrackPluginDescription SINGLETRACK_PLUGINS[] =
   {
-    //hes
-    {
-      {
-        "HES",
-        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::HUC6270,
-        &Create< ::Hes_Emu>,
-        &DefaultDataCreator
-      },
-      &Formats::Chiptune::CreateHESDecoder
-    },
     //vgm
     {
       {

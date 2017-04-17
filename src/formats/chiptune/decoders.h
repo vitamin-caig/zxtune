@@ -53,7 +53,6 @@ namespace Formats
     Decoder::Ptr CreateSPCDecoder();
     Decoder::Ptr CreateMultiTrackContainerDecoder();
     Decoder::Ptr CreateAYEMULDecoder();
-    Decoder::Ptr CreateHESDecoder();
     Decoder::Ptr CreateVideoGameMusicDecoder();
     Decoder::Ptr CreateGYMDecoder();
     Decoder::Ptr CreateAbyssHighestExperienceDecoder();

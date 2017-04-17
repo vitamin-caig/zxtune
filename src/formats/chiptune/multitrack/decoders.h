@@ -23,5 +23,6 @@ namespace Formats
     Decoder::Ptr CreateGBSDecoder(Formats::Multitrack::Decoder::Ptr decoder);
     Decoder::Ptr CreateSAPDecoder(Formats::Multitrack::Decoder::Ptr decoder);
     Decoder::Ptr CreateKSSXDecoder(Formats::Multitrack::Decoder::Ptr decoder);
+    Decoder::Ptr CreateHESDecoder(Formats::Multitrack::Decoder::Ptr decoder);
   }
 }

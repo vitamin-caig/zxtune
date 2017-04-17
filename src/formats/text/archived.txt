@@ -68,3 +68,7 @@ __cpp> "}//namespace Text\n"
 #KSSX
 < KSSX_ARCHIVE_DECODER_DESCRIPTION
 > "Multi-KSSX"
+
+#HES
+< HES_ARCHIVE_DECODER_DESCRIPTION
+> "Multi-HES"
