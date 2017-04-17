@@ -11,11 +11,7 @@ source_files += $(addprefix arm/,arm decoder-arm decoder-thumb isa-arm isa-thumb
                 third-party/inih/ini \
                 $(addprefix util/,circle-buffer configuration crc32 formatting patch patch-ips patch-ups hash string table vfs vfs/vfs-file vfs/vfs-mem)
 
-ifneq ($(findstring $(platform),windows mingw),)
-source_files += platform/windows/memory
-else
-source_files += platform/posix/memory
-endif
+source_files += platform/portable/memory
                 
 source_files := $(addprefix src/,$(addsuffix .c,$(source_files)))
 
