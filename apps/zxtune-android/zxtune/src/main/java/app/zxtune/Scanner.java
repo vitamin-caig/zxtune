@@ -176,25 +176,29 @@ public final class Scanner {
     if (!analyzeArchiveFile(id, cb)) {
       final Uri uri = id.getFullLocation();
       final VfsObject obj = VfsArchive.resolve(uri);
-      analyzeObject(obj, cb);
+      if (obj instanceof VfsDir) {
+        analyzeDir((VfsDir) obj, cb);
+      }
+      //expired archive file
     }
   }
   
   private boolean analyzeArchiveFile(Identifier id, Callback cb) throws Exception {
     final VfsFile archive = openArchive(id.getDataLocation());
+    ZXTune.Module module;
     try {
-      final ZXTune.Module module = Core.loadModule(archive, id.getSubpath());
-      try {
-        cb.onModule(id, module);
-        return true;
-      } catch (Exception e) {
-        module.release();
-        throw e;
-      }
+      module = Core.loadModule(archive, id.getSubpath());
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to analyzer archive file");
+      return false;
     }
-    return false;
+    try {
+      cb.onModule(id, module);
+    } catch (Exception e) {
+      module.release();
+      throw e;
+    }
+    return true;
   }
   
   private VfsFile openArchive(Uri uri) throws IOException {
