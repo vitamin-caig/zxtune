@@ -115,7 +115,7 @@ void GBAudioReset(struct GBAudio* audio) {
 	}
 	audio->ch1 = (struct GBAudioSquareChannel) { .envelope = { .dead = 2 } };
 	audio->ch2 = (struct GBAudioSquareChannel) { .envelope = { .dead = 2 } };
-	audio->ch3 = (struct GBAudioWaveChannel) { .bank = 0 };
+  audio->ch3 = (struct GBAudioWaveChannel) { 0 };
 	// TODO: DMG randomness
 	audio->ch3.wavedata8[0] = 0x00;
 	audio->ch3.wavedata8[1] = 0xFF;
