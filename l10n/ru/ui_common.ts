@@ -39,6 +39,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://www.petergordon.org.uk/&quot;&gt;HVL2WAV&lt;/a&gt; sources by &lt;b&gt;Peter Gordon&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://github.com/kode54/Highly_Experimental/&quot;&gt;Highly Experimental&lt;/a&gt; library by &lt;b&gt;Neill Corlett&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://bitbucket.org/kode54/lazyusf2/&quot;&gt;lazyusf2&lt;/a&gt; library by &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://mgba.io/&quot;&gt;mGBA&lt;/a&gt; sources by &lt;b&gt;Jeffrey Pfau&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
@@ -72,6 +73,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://www.petergordon.org.uk/&quot;&gt;HVL2WAV&lt;/a&gt; от &lt;b&gt;Peter Gordon&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/kode54/Highly_Experimental/&quot;&gt;Highly Experimental&lt;/a&gt; от &lt;b&gt;Neill Corlett&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://bitbucket.org/kode54/lazyusf2/&quot;&gt;lazyusf2&lt;/a&gt; от &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://mgba.io/&quot;&gt;mGBA&lt;/a&gt; от &lt;b&gt;Jeffrey Pfau&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Посвящается &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
