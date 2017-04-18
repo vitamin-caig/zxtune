@@ -10,20 +10,6 @@
 
 CXX_GUARD_START
 
-#include "locale.h"
-
-#if defined(__APPLE__) || defined(__FreeBSD__)
-#include "xlocale.h"
-#elif !defined(HAVE_LOCALE)
-typedef const char* locale_t;
-#endif
-
-int ftostr_l(char* restrict str, size_t size, float f, locale_t locale);
-
-#ifndef HAVE_STRTOF_L
-float strtof_l(const char* restrict str, char** restrict end, locale_t locale);
-#endif
-
 int ftostr_u(char* restrict str, size_t size, float f);
 float strtof_u(const char* restrict str, char** restrict end);
 
