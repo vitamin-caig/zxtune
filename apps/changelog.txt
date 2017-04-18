@@ -5,6 +5,25 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3890 from 18.04.2017
+
+[+] Added support of PlayStation 1&2 Sound Format (PSF,PSF2)
+[+] Added support of Nintendo Ultra64 Sound Format (USF)
+[+] Added support of GameBoy Advance Sound Format (GSF)
+[+] Supported packed GYM files (BB#74)
+[*] Treat HES files as multitrack (32 tracks total)
+[*] Full support of UTF-8
+[*] Fix Vortex Tracker text format parsing
+[*] Fixed PT3 note gliss effect (BB#71)
+[*] xtractor: fixed crash
+[*] zxtune123: fixed raw data export
+[+] zxtune-android: add psf, gsf and usf subcatalogues at joshw.info catalogue
+[*] zxtune-android: improve errors processing
+[*] zxtune-android: fix Modland archive entry point
+[*] zxtune-android: fix HVSC navigation issue (BB#69)
+[*] zxtune-android: increase maximum downloaded file size up to 100Mb
+[*] zxtune-android: fixed some crashes
+
 --- Rev3750 from 06.12.2016
 
 [*] Samples for DAC-based modules are copied from input data instead of sharing
