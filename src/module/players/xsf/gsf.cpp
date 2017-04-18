@@ -58,18 +58,6 @@ namespace GSF
     
     GbaRom::Ptr Rom;
     XSF::MetaInformation::Ptr Meta;
-    
-    uint_t GetRefreshRate() const
-    {
-      if (Meta && Meta->RefreshRate)
-      {
-        return Meta->RefreshRate;
-      }
-      else
-      {
-        return 60;//NTSC by default
-      }
-    }
   };
   
   class AVStream : public mAVStream
@@ -353,8 +341,8 @@ namespace GSF
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties, Time::Seconds defaultDuration)
     {
-      const auto period = Time::GetPeriodForFrequency<Time::Milliseconds>(tune->GetRefreshRate());
-      const auto duration = tune->Meta && tune->Meta->Duration.Get() ? tune->Meta->Duration : Time::Milliseconds(defaultDuration);
+      const auto period = Sound::GetFrameDuration(*properties);
+      const decltype(period) duration = tune->Meta && tune->Meta->Duration.Get() ? tune->Meta->Duration : decltype(tune->Meta->Duration)(defaultDuration);
       const uint_t frames = duration.Get() / period.Get();
       const Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
@@ -525,21 +513,44 @@ namespace GSF
     {
       ModuleDataBuilder builder;
       MergeRom(Head, builder);
+      MergeMeta(Head, builder);
       return builder.CaptureResult();
     }
     
+    /* https://bitbucket.org/zxtune/zxtune/wiki/GSFFormat
+    
+    Look at the official psf specs for lib loading order.  Multiple libs are
+    now supported.
+
+    */
     void MergeRom(const XSF::File& data, ModuleDataBuilder& dst) const
     {
-      if (!data.Dependencies.empty())
+      auto it = data.Dependencies.begin();
+      const auto lim = data.Dependencies.end();
+      if (it != lim)
       {
-        MergeRom(GetDependency(data.Dependencies.front()), dst);
+        MergeRom(GetDependency(*it), dst);
       }
       dst.AddRom(data.PackedProgramSection);
+      if (it != lim)
+      {
+        for (++it; it != lim; ++it)
+        {
+          MergeRom(GetDependency(*it), dst);
+        }
+      }
+    }
+    
+    void MergeMeta(const XSF::File& data, ModuleDataBuilder& dst) const
+    {
+      for (const auto& dep : data.Dependencies)
+      {
+        MergeMeta(GetDependency(dep), dst);
+      }
       if (data.Meta)
       {
         dst.AddMeta(*data.Meta);
       }
-      //no other dependencies supported
     }
     
     const XSF::File& GetDependency(const String& name) const
