@@ -431,6 +431,7 @@ namespace PSF
       {
         tune->Meta->Dump(*properties);
       }
+      properties->SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Stamp<uint64_t, Parameters::ZXTune::Sound::FRAMEDURATION_PRECISION>(period).Get());
       return MakePtr<Holder>(std::move(tune), info, std::move(properties));
     }
   private:
@@ -622,9 +623,24 @@ namespace PSF
       {
         MergeVfs(Head, builder);
       }
+      MergeMeta(Head, builder);
       return builder.CaptureResult(Head.Version);
     }
     
+    /* https://bitbucket.org/zxtune/zxtune/wiki/MiniPSF
+    
+    The proper way to load a minipsf is as follows:
+    - Load the executable data from the minipsf - this becomes the current executable.
+    - Check for the presence of a "_lib" tag. If present:
+      - RECURSIVELY load the executable data from the given library file. (Make sure to limit recursion to avoid crashing - I usually limit it to 10 levels)
+      - Make the _lib executable the current one.
+      - If applicable, we will use the initial program counter/stack pointer from the _lib executable.
+      - Superimpose the originally loaded minipsf executable on top of the current executable. If applicable, use the start address and size to determine where to .
+    - Check for the presence of "_libN" tags for N=2 and up (use "_lib%d")
+      - RECURSIVELY load and superimpose all these EXEs on top of the current EXE. Do not modify the current program counter or stack pointer.
+      - Start at N=2. Stop at the first tag name that doesn't exist.
+    - (done)    
+    */
     void MergeExe(const XSF::File& data, ModuleDataBuilder& dst) const
     {
       auto it = data.Dependencies.begin();
@@ -634,10 +650,6 @@ namespace PSF
         MergeExe(GetDependency(*it), dst);
       }
       dst.AddExe(data.PackedProgramSection);
-      if (data.Meta)
-      {
-        dst.AddMeta(*data.Meta);
-      }
       if (it != lim)
       {
         for (++it; it != lim; ++it)
@@ -647,6 +659,17 @@ namespace PSF
       }
     }
     
+    /* https://bitbucket.org/zxtune/zxtune/wiki/MiniPSF2
+    
+    The proper way to load a MiniPSF2 is as follows:
+    - First, recursively load the virtual filesystems from each PSF2 file named by a library tag.
+      - The first tag is "_lib"
+      - The remaining tags are "_libN" for N>=2 (use "_lib%d")
+      - Stop at the first tag name that doesn't exist.
+    - Then, load the virtual filesystem from the current PSF2 file.
+
+    If there are conflicting or redundant filenames, they should be overwritten in memory in the order in which the filesystem data was parsed. Later takes priority.
+    */
     void MergeVfs(const XSF::File& data, ModuleDataBuilder& dst) const
     {
       for (const auto& dep : data.Dependencies)
@@ -654,6 +677,14 @@ namespace PSF
         MergeVfs(GetDependency(dep), dst);
       }
       dst.AddVfs(*data.ReservedSection);
+    }
+    
+    void MergeMeta(const XSF::File& data, ModuleDataBuilder& dst) const
+    {
+      for (const auto& dep : data.Dependencies)
+      {
+        MergeMeta(GetDependency(dep), dst);
+      }
       if (data.Meta)
       {
         dst.AddMeta(*data.Meta);
