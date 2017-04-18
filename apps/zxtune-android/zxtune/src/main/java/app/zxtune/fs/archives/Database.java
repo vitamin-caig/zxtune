@@ -89,12 +89,17 @@ import app.zxtune.fs.dbhelpers.Utils;
  *  
  * Version 3
  *  use REPLACE instead of INSERT in views insert triggers
+ *
+ * Version 4
+ *  set of new formats supported
+ *
+ * TODO: use app.version as db version
  */
 
 class Database {
 
   private static final String NAME = "archives";
-  private static final int VERSION = 3;
+  private static final int VERSION = 4;
   private static final String TAG = Database.class.getName();
 
   static final class Tables {
@@ -192,8 +197,6 @@ class Database {
                         "END;";
       }
 
-      ;
-
       Tracks(DBProvider helper) throws IOException {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
@@ -217,8 +220,6 @@ class Database {
         private static final String CREATE_QUERY =
                 "CREATE INDEX dirs_index ON dirs_internal (parent_id);";
       }
-
-      ;
     }
 
     static final class Dirs extends Objects {
@@ -248,8 +249,6 @@ class Database {
                         "WHERE self.path = new.path AND parent.path = new.parent;" +
                         "END;";
       }
-
-      ;
 
       Dirs(DBProvider helper) throws IOException {
         super(helper, NAME, "INSERT", Fields.values().length);
