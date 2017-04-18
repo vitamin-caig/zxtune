@@ -21,7 +21,16 @@ namespace Formats
     {
       const uint_t VERSION_ID = 0x21;
       
-      //TODO: add SR64 parser
+      class Builder
+      {
+      public:
+        virtual ~Builder() = default;
+        
+        virtual void SetRom(uint32_t offset, const Binary::Data& content) = 0;
+        virtual void SetSaveState(uint32_t offset, const Binary::Data& content) = 0;
+      };
+
+      void ParseSection(const Binary::Container& data, Builder& target);
     }
 
     Decoder::Ptr CreateUSFDecoder();

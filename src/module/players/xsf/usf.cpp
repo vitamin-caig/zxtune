@@ -42,7 +42,7 @@ namespace Module
 namespace USF
 {
   const Debug::Stream Dbg("Module::USFSupp");
-
+  
   struct ModuleData
   {
     using Ptr = std::shared_ptr<const ModuleData>;
@@ -53,18 +53,6 @@ namespace USF
     
     std::list<Binary::Data::Ptr> Sections;
     XSF::MetaInformation::Ptr Meta;
-    
-    uint_t GetRefreshRate() const
-    {
-      if (Meta && Meta->RefreshRate)
-      {
-        return Meta->RefreshRate;
-      }
-      else
-      {
-        return 60;//NTSC by default
-      }
-    }
   };
   
   class UsfHolder
@@ -201,7 +189,8 @@ namespace USF
       , Target(Module::CreateFadingReceiver(std::move(params), std::move(info), State, std::move(target)))
       , Looped()
     {
-      SamplesPerFrame = Engine->GetSoundFrequency() / data.GetRefreshRate();
+      const auto frameDuration = SoundParams->FrameDuration();
+      SamplesPerFrame = frameDuration.Get() * Engine->GetSoundFrequency() / frameDuration.PER_SECOND;
       ApplyParameters();
     }
 
@@ -304,8 +293,8 @@ namespace USF
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties, Time::Seconds defaultDuration)
     {
-      const auto period = Time::GetPeriodForFrequency<Time::Milliseconds>(tune->GetRefreshRate());
-      const auto duration = tune->Meta && tune->Meta->Duration.Get() ? tune->Meta->Duration : Time::Milliseconds(defaultDuration);
+      const auto period = Sound::GetFrameDuration(*properties);
+      const decltype(period) duration = tune->Meta && tune->Meta->Duration.Get() ? tune->Meta->Duration : decltype(tune->Meta->Duration)(defaultDuration);
       const uint_t frames = duration.Get() / period.Get();
       const Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
@@ -352,7 +341,6 @@ namespace USF
     std::list<Binary::Data::Ptr> Sections;
     XSF::MetaInformation::RWPtr Meta;
   };
-  
   
   class XsfView
   {
@@ -473,19 +461,38 @@ namespace USF
     {
       ModuleDataBuilder builder;
       MergeSections(Head, builder);
+      MergeMeta(Head, builder);
       return builder.CaptureResult();
     }
     
+    /* https://bitbucket.org/zxtune/zxtune/wiki/USFFormat
+    
+    Loading a USF or USFlib/miniUSF
+
+    1. initialize the ROM and save state to zero.
+    2. if the USF contains a _lib tag (_libn not supported as of this version)
+       recursively load the specified file starting from step 2
+    3. load the ROM and save state, replacing any data with the same addresses that
+       may have already been loaded
+
+    By convention a file that includes a _lib tag is named with a .miniusf extension
+    and a file that is included via a _lib tag is name with a .usflib extension.
+    */
     void MergeSections(const XSF::File& data, ModuleDataBuilder& dst) const
     {
-      Require(!!data.ReservedSection);
-      auto it = data.Dependencies.begin();
-      const auto lim = data.Dependencies.end();
-      if (it != lim)
+      if (!data.Dependencies.empty())
       {
-        MergeSections(GetDependency(*it), dst);
+        MergeSections(GetDependency(data.Dependencies.front()), dst);
       }
       dst.AddSection(data.ReservedSection);
+    }
+    
+    void MergeMeta(const XSF::File& data, ModuleDataBuilder& dst) const
+    {
+      for (const auto& dep : data.Dependencies)
+      {
+        MergeMeta(GetDependency(dep), dst);
+      }
       if (data.Meta)
       {
         dst.AddMeta(*data.Meta);

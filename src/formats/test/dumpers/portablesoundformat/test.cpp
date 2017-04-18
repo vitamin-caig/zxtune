@@ -14,6 +14,7 @@
 #include <formats/chiptune/emulation/portablesoundformat.h>
 #include <formats/chiptune/emulation/playstationsoundformat.h>
 #include <formats/chiptune/emulation/playstation2soundformat.h>
+#include <formats/chiptune/emulation/ultra64soundformat.h>
 #include <formats/chiptune/emulation/gameboyadvancesoundformat.h>
 #include <strings/format.h>
 #include <time/duration.h>
@@ -116,6 +117,72 @@ namespace
       {
         std::cout << "  " << path << " (" << (content ? content->Size() : std::size_t(0)) << " bytes)" << std::endl;
       }
+    };
+  };
+  
+  class USFDumper : public SimpleDumper
+  {
+  public:
+    void DumpProgram(const Binary::Container& blob) const override
+    {
+      SimpleDumper::DumpProgram(blob);
+    }
+
+    void DumpReserved(const Binary::Container& blob) const override
+    {
+      SimpleDumper::DumpReserved(blob);
+      try
+      {
+        USFStateDumper delegate;
+        Formats::Chiptune::Ultra64SoundFormat::ParseSection(blob, delegate);
+        delegate.Dump();
+      }
+      catch (const std::exception&)
+      {
+        std::cout << "  Corrupted USF state" << std::endl;
+      }
+    }
+  private:
+    class USFStateDumper : public Formats::Chiptune::Ultra64SoundFormat::Builder
+    {
+    public:
+      void SetRom(uint32_t offset, const Binary::Data& content) override
+      {
+        Rom.Account(offset, content);
+      }
+      
+      void SetSaveState(uint32_t offset, const Binary::Data& content) override
+      {
+        SaveState.Account(offset, content);
+      }
+      
+      void Dump() const
+      {
+        std::cout << "  ROM: " << Rom.ToString() << std::endl;
+        std::cout << "  SaveState: " << SaveState.ToString() << std::endl;
+      }
+    private:
+      struct Area
+      {
+        uint_t ChunksCount = 0;
+        std::size_t ChunksSize = 0;
+        uint_t End = 0;
+        
+        void Account(uint32_t offset, const Binary::Data& content)
+        {
+          ++ChunksCount;
+          const auto size = content.Size();
+          ChunksSize += size;
+          End = std::max<uint_t>(End, offset + size);
+        }
+        
+        String ToString() const
+        {
+          return Strings::Format("%1% chunks with %2% bytes total (%3%%% covered)", ChunksCount, ChunksSize, 100.0 * ChunksSize / End);
+        }
+      };
+      Area Rom;
+      Area SaveState;
     };
   };
   
@@ -272,6 +339,8 @@ namespace
         return MakePtr<PSF1Dumper>();
       case Formats::Chiptune::Playstation2SoundFormat::VERSION_ID:
         return MakePtr<PSF2Dumper>();
+      case Formats::Chiptune::Ultra64SoundFormat::VERSION_ID:
+        return MakePtr<USFDumper>();
       case Formats::Chiptune::GameBoyAdvanceSoundFormat::VERSION_ID:
         return MakePtr<GSFDumper>();
       default:
