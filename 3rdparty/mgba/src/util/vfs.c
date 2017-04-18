@@ -16,8 +16,8 @@
 
 struct VFile* VFileOpen(const char* path, int flags) {
 #ifdef USE_VFS_FILE
-	const char* chflags;
-	switch (flags & (O_RDONLY|_O_WRONLY|_O_RDWR)) {
+	const char* chflags = "";
+	switch (flags & (O_RDONLY|O_WRONLY|O_RDWR)) {
 	case O_WRONLY:
 		if (flags & O_APPEND) {
 			chflags = "ab";
