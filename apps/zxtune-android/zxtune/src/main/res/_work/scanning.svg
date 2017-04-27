@@ -7,93 +7,19 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="120"
    height="120"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
+   inkscape:version="0.92.1 r"
    sodipodi:docname="scanning.svg"
    inkscape:export-filename="/mnt/devel/zxtune/trunk/apps/zxtune-android/res/drawable-ldpi-v11/ic_stat_notify_play.png"
    inkscape:export-xdpi="12.65625"
    inkscape:export-ydpi="12.65625">
   <defs
-     id="defs4">
-    <linearGradient
-       id="linearGradient3781">
-      <stop
-         style="stop-color:#696969;stop-opacity:1;"
-         offset="0"
-         id="stop3783" />
-      <stop
-         style="stop-color:#0a0a0a;stop-opacity:1;"
-         offset="1"
-         id="stop3785" />
-    </linearGradient>
-    <linearGradient
-       id="linearGradient3856">
-      <stop
-         style="stop-color:#828282;stop-opacity:1;"
-         offset="0"
-         id="stop3858" />
-      <stop
-         style="stop-color:#919191;stop-opacity:1;"
-         offset="1"
-         id="stop3860" />
-    </linearGradient>
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient3856"
-       id="linearGradient3862"
-       x1="10"
-       y1="987.36218"
-       x2="95"
-       y2="987.36218"
-       gradientUnits="userSpaceOnUse"
-       spreadMethod="pad"
-       gradientTransform="translate(11.5,0.999985)" />
-    <filter
-       id="filter3882"
-       inkscape:label="Inner Shadow"
-       inkscape:menu="Shadows and Glows"
-       inkscape:menu-tooltip="Adds a colorizable drop shadow inside"
-       color-interpolation-filters="sRGB">
-      <feGaussianBlur
-         id="feGaussianBlur3884"
-         stdDeviation="0.01"
-         result="result8" />
-      <feOffset
-         id="feOffset3886"
-         dx="1"
-         dy="0"
-         result="result11" />
-      <feComposite
-         id="feComposite3888"
-         in2="result11"
-         result="result6"
-         in="SourceGraphic"
-         operator="in" />
-      <feFlood
-         id="feFlood3890"
-         result="result10"
-         in="result6"
-         flood-opacity="0.10211267605633803"
-         flood-color="rgb(255,255,255)" />
-      <feBlend
-         id="feBlend3892"
-         in2="result10"
-         mode="normal"
-         in="result6"
-         result="result12" />
-      <feComposite
-         id="feComposite3894"
-         in2="SourceGraphic"
-         result="result2"
-         operator="in" />
-    </filter>
-  </defs>
+     id="defs4" />
   <sodipodi:namedview
      id="base"
      pagecolor="#000000"
@@ -101,20 +27,21 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.25098039"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6474939"
-     inkscape:cx="52.227739"
-     inkscape:cy="56.701227"
+     inkscape:zoom="4.3636364"
+     inkscape:cx="59.999989"
+     inkscape:cy="59.999979"
      inkscape:document-units="px"
-     inkscape:current-layer="v11"
+     inkscape:current-layer="svg2"
      showgrid="true"
      inkscape:window-width="1280"
-     inkscape:window-height="726"
-     inkscape:window-x="-4"
-     inkscape:window-y="-3"
+     inkscape:window-height="695"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      showguides="true"
      inkscape:guide-bbox="true"
-     borderlayer="true">
+     borderlayer="true"
+     inkscape:pagecheckerboard="true">
     <inkscape:grid
        type="xygrid"
        id="grid2985"
@@ -131,28 +58,13 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
-  <g
-     inkscape:label="Android3"
-     inkscape:groupmode="layer"
-     id="v11"
-     transform="translate(0,-932.36218)"
-     style="display:inline">
+  <g>
     <path
-       transform="matrix(0.53571429,0,0,0.53571429,25.714285,462.88243)"
-       style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;display:inline;filter:url(#filter3882)"
-       d="m 73.333334,932.36219 0,84.00001 c 0,0 -6.833334,-8 -21.833334,-8 -15,0 -30,10 -30,20 0,10 15,20 30,20 15,0 35,-10 35,-20 l 0,-68.13254 c 0,0 3.320534,-1.86749 8.320534,8.13251 5,10 0,25 0,25 0,0 11.679466,-10 11.679466,-20 0,-10 0,-15 -15,-25 -15,-10 -18.166666,-15.99998 -18.166666,-15.99998 z"
-       id="path4901"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cczzzcczczzc" />
-    <path
-       id="path4903"
-       d="m 60,5 0,4.875 C 40.387132,9.8869461 23.410294,21.171683 15.1875,37.59375 l 9.03125,4.5 C 30.789037,28.99424 44.346918,20 60,20 L 60,25 75,15 60,5 z m 22.4375,10.15625 -4.53125,9.0625 C 91.00576,30.789037 100,44.346918 100,60 l -5,0 10,15 10,-15 -4.875,0 c 1e-5,-0.01052 0,-0.02073 0,-0.03125 0,-19.614548 -11.272402,-36.58904 -27.6875,-44.8125 z M 15,45 5,60 9.90625,60 c 0.011939,19.588046 11.290108,36.546705 27.6875,44.78125 l 4.5,-9 C 28.99424,89.210963 20,75.653082 20,60 L 25,60 15,45 z M 95.78125,77.90625 C 89.210963,91.00576 75.653082,100 60,100 l 0,-5 -15,10 15,10 0,-4.90625 c 0.01052,1e-5 0.02073,0 0.03125,0 19.599524,0 36.550693,-11.283716 44.78125,-27.6875 l -9.03125,-4.5 z"
-       style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;display:inline"
-       transform="translate(0,932.36218)"
+       d="m 60,5 v 5 C 40,10 23,21 15,38 l 9,4.5 C 31,29 44,20 60,20 v 5 L 75,15 Z m 22,10 -5,9 c 14,7 23,20 23,36 h -5 l 10,15 10,-15 h -5 C 110,40 99,23 82,15 Z M 65,30 v 45 c 0,0 -4,-4 -12,-4 -8,0 -16,5 -16,11 0,5 8,11 16,11 8,0 19,-5 19,-11 V 45 c 0,0 2,-1 4,4 3,5 0,13 0,13 0,0 6,-5 6,-11 0,-5 0,-8 -8,-13 -7,-5 -9,-8 -9,-8 z M 15,45 5,60 h 5 c 0,20 11,37 28,45 l 5,-9 C 29,89 20,76 20,60 h 5 z m 81,33 c -7,13 -20,22 -36,22 v -5 l -15,10 15,10 v -5 c 20,0 37,-11 45,-28 z"
        inkscape:connector-curvature="0" />
   </g>
 </svg>

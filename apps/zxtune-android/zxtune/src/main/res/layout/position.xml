@@ -39,5 +39,5 @@
     style="@style/Button"
     android:layout_weight="0"
     android:layout_marginLeft="@dimen/spacing_full"
-    />
+    android:scaleType="center"/>
 </LinearLayout>

@@ -2,7 +2,7 @@
     xmlns:sabd="http://schemas.android.com/apk/res-auto" >
   <item
     android:id="@+id/action_play"
-    android:icon="@drawable/ic_menu_play"
+    android:icon="@drawable/ic_play"
     android:title="@string/play"
     sabd:showAsAction="ifRoom" />
   <item
