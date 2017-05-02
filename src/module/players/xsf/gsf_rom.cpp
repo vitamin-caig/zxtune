@@ -40,7 +40,7 @@ namespace Module
       
       void SetRom(uint32_t address, const Binary::Data& content) override
       {
-        const auto addr = address & 0x1fffff;
+        const auto addr = address & 0x1fffffff;
         const auto size = content.Size();
 
         if (const auto oldSize = Rom.Data.size())
