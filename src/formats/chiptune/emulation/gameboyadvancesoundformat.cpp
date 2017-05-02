@@ -57,7 +57,7 @@ Offset         Size    Description
 
       String GetDescription() const override
       {
-        return "GameBoy Advance Sound Format";
+        return Text::GAMEBOYADVANCESOUNDFORMAT_DECODER_DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

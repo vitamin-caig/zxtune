@@ -298,3 +298,7 @@ __cpp> "}//namespace Text\n"
 #USF
 < ULTRA64SOUNDFORMAT_DECODER_DESCRIPTION
 > "Ultra64 Sound Format"
+
+#GSF
+< GAMEBOYADVANCESOUNDFORMAT_DECODER_DESCRIPTION
+> "GameBoy Advance Sound Format"
