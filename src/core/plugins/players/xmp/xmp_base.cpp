@@ -618,18 +618,18 @@ namespace Xmp
       ,
       &far_loader
     },
-    /*
-    //Startrekker   may require additional files
+    //Startrekker
     {
       "MOD"
       ,
       "?{1080}"
-      "('F|'E)('L|'X)('T|'O)"
+      "('F   |'E)"
+      "('L   |'X)"
+      "('T   |'O)"
       "('4|'8|'M)"
       ,
       &flt_loader
     },
-    */
     //Funktracker
     {
       "FNK"
