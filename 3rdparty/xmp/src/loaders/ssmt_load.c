@@ -176,7 +176,7 @@ static int mtp_load(struct module_data *m, HIO_HANDLE *f, const int start)
 			}
 		}
 	}
-
+#ifndef NO_EXTERNALFILES
 	/* Read instrument data */
 	D_(D_INFO "Instruments    : %d ", mod->ins);
 
@@ -211,6 +211,6 @@ static int mtp_load(struct module_data *m, HIO_HANDLE *f, const int start)
 				mod->xxs[i].flg & XMP_SAMPLE_LOOP ? 'L' : ' ',
 				mod->xxi[i].sub[0].vol);
 	}
-
+#endif
 	return 0;
 }

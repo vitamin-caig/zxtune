@@ -67,7 +67,9 @@ const struct format_loader *const format_loader[NUM_FORMATS + 2] = {
 	&ims_loader,
 	&ssn_loader,
 	&fnk_loader,
+#ifndef NO_EXTERNALFILES
 	&mfp_loader,
+#endif
 	/* &alm_loader, */
 	&polly_loader,
 #ifndef NO_PROWIZARD

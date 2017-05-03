@@ -575,6 +575,7 @@ skip_test:
 	flags = ptkloop ? SAMPLE_FLAG_FULLREP : 0;
 
 	if (ptsong) {
+#ifndef NO_EXTERNALFILES
 	    HIO_HANDLE *s;
 	    char sn[256];
 	    snprintf(sn, XMP_NAME_SIZE, "%s%s", pathname, mod->xxi[i].name);
@@ -586,6 +587,9 @@ skip_test:
 		}
 		hio_close(s);
 	    }
+#else
+    return -1;
+#endif      
 	} else {
 	    if (load_sample(m, f, flags, &mod->xxs[i], NULL) < 0)
 		return -1;

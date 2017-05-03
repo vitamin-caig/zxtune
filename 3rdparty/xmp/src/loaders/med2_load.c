@@ -159,7 +159,7 @@ int med2_load(struct module_data *m, HIO_HANDLE *f, const int start)
 	}
 
 	/* Load samples */
-
+#ifndef NO_EXTERNALFILES
 	D_(D_INFO "Instruments    : %d ", mod->ins);
 
 	for (i = 0; i < 31; i++) {
@@ -175,7 +175,7 @@ int med2_load(struct module_data *m, HIO_HANDLE *f, const int start)
 				(char *)mod->xxi[i].name, name, 256);
 
 		if (found) {
-			snprintf(path, PATH_MAX, "%s/%s", ins_path, name);
+			snprintf(path, sizeof(path), "%s/%s", ins_path, name);
 			if ((s = hio_open_file(path, "rb"))) {
 				hio_stat(s, &stat);
 				mod->xxs[i].len = stat.st_size;
@@ -201,6 +201,6 @@ int med2_load(struct module_data *m, HIO_HANDLE *f, const int start)
 				return -1;
 		}
 	}
-
+#endif
 	return 0;
 }
