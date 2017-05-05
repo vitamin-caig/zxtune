@@ -2,17 +2,22 @@
 
 #include "StdAfx.h"
 
+#include <string.h>
+
 #include "LimitedStreams.h"
-#include "../../Common/Defs.h"
 
 STDMETHODIMP CLimitedSequentialInStream::Read(void *data, UInt32 size, UInt32 *processedSize)
 {
   UInt32 realProcessedSize = 0;
-  UInt32 sizeToRead = (UInt32)MyMin((_size - _pos), (UInt64)size);
-  HRESULT result = S_OK;
-  if (sizeToRead > 0)
   {
-    result = _stream->Read(data, sizeToRead, &realProcessedSize);
+    const UInt64 rem = _size - _pos;
+    if (size > rem)
+      size = (UInt32)rem;
+  }
+  HRESULT result = S_OK;
+  if (size != 0)
+  {
+    result = _stream->Read(data, size, &realProcessedSize);
     _pos += realProcessedSize;
     if (realProcessedSize == 0)
       _wasFinished = true;
@@ -32,9 +37,11 @@ STDMETHODIMP CLimitedInStream::Read(void *data, UInt32 size, UInt32 *processedSi
     return S_OK;
     // return (_virtPos == _size) ? S_OK: E_FAIL; // ERROR_HANDLE_EOF
   }
-  UInt64 rem = _size - _virtPos;
-  if (rem < size)
-    size = (UInt32)rem;
+  {
+    const UInt64 rem = _size - _virtPos;
+    if (size > rem)
+      size = (UInt32)rem;
+  }
   UInt64 newPos = _startOffset + _virtPos;
   if (newPos != _physPos)
   {
@@ -84,26 +91,34 @@ STDMETHODIMP CClusterInStream::Read(void *data, UInt32 size, UInt32 *processedSi
     *processedSize = 0;
   if (_virtPos >= Size)
     return S_OK;
+  {
+    UInt64 rem = Size - _virtPos;
+    if (size > rem)
+      size = (UInt32)rem;
+  }
+  if (size == 0)
+    return S_OK;
 
   if (_curRem == 0)
   {
-    UInt32 blockSize = (UInt32)1 << BlockSizeLog;
-    UInt32 virtBlock = (UInt32)(_virtPos >> BlockSizeLog);
-    UInt32 offsetInBlock = (UInt32)_virtPos & (blockSize - 1);
-    UInt32 phyBlock = Vector[virtBlock];
+    const UInt32 blockSize = (UInt32)1 << BlockSizeLog;
+    const UInt32 virtBlock = (UInt32)(_virtPos >> BlockSizeLog);
+    const UInt32 offsetInBlock = (UInt32)_virtPos & (blockSize - 1);
+    const UInt32 phyBlock = Vector[virtBlock];
+    
     UInt64 newPos = StartOffset + ((UInt64)phyBlock << BlockSizeLog) + offsetInBlock;
     if (newPos != _physPos)
     {
       _physPos = newPos;
       RINOK(SeekToPhys());
     }
+
     _curRem = blockSize - offsetInBlock;
+    
     for (int i = 1; i < 64 && (virtBlock + i) < (UInt32)Vector.Size() && phyBlock + i == Vector[virtBlock + i]; i++)
       _curRem += (UInt32)1 << BlockSizeLog;
-    UInt64 rem = Size - _virtPos;
-    if (_curRem > rem)
-      _curRem = (UInt32)rem;
   }
+  
   if (size > _curRem)
     size = _curRem;
   HRESULT res = Stream->Read(data, size, &size);

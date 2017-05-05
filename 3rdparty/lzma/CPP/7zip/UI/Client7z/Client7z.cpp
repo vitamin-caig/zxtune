@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 
+#include "../../../Common/MyWindows.h"
+
 #include "../../../Common/Defs.h"
 #include "../../../Common/MyInitGuid.h"
 
@@ -307,7 +309,7 @@ STDMETHODIMP CArchiveExtractCallback::GetStream(UInt32 index,
     NCOM::CPropVariant prop;
     RINOK(_archiveHandler->GetProperty(index, kpidMTime, &prop));
     _processedFileInfo.MTimeDefined = false;
-    switch(prop.vt)
+    switch (prop.vt)
     {
       case VT_EMPTY:
         // _processedFileInfo.MTime = _utcMTimeDefault;
@@ -439,7 +441,7 @@ STDMETHODIMP CArchiveExtractCallback::SetOperationResult(Int32 operationResult)
     }
   }
 
-  if (_outFileStream != NULL)
+  if (_outFileStream)
   {
     if (_processedFileInfo.MTimeDefined)
       _outFileStreamSpec->SetMTime(&_processedFileInfo.MTime);
@@ -497,7 +499,6 @@ public:
   STDMETHOD(SetCompleted)(const UInt64 *completeValue);
 
   // IUpdateCallback2
-  STDMETHOD(EnumProperties)(IEnumSTATPROPSTG **enumerator);
   STDMETHOD(GetUpdateItemInfo)(UInt32 index,
       Int32 *newData, Int32 *newProperties, UInt32 *indexInArchive);
   STDMETHOD(GetProperty)(UInt32 index, PROPID propID, PROPVARIANT *value);
@@ -549,20 +550,14 @@ STDMETHODIMP CArchiveUpdateCallback::SetCompleted(const UInt64 * /* completeValu
   return S_OK;
 }
 
-
-STDMETHODIMP CArchiveUpdateCallback::EnumProperties(IEnumSTATPROPSTG ** /* enumerator */)
-{
-  return E_NOTIMPL;
-}
-
 STDMETHODIMP CArchiveUpdateCallback::GetUpdateItemInfo(UInt32 /* index */,
       Int32 *newData, Int32 *newProperties, UInt32 *indexInArchive)
 {
-  if (newData != NULL)
+  if (newData)
     *newData = BoolToInt(true);
-  if (newProperties != NULL)
+  if (newProperties)
     *newProperties = BoolToInt(true);
-  if (indexInArchive != NULL)
+  if (indexInArchive)
     *indexInArchive = (UInt32)(Int32)-1;
   return S_OK;
 }
@@ -580,7 +575,7 @@ STDMETHODIMP CArchiveUpdateCallback::GetProperty(UInt32 index, PROPID propID, PR
 
   {
     const CDirItem &dirItem = (*DirItems)[index];
-    switch(propID)
+    switch (propID)
     {
       case kpidPath:  prop = dirItem.Name; break;
       case kpidIsDir:  prop = dirItem.isDir(); break;
@@ -698,7 +693,7 @@ STDMETHODIMP CArchiveUpdateCallback::CryptoGetTextPassword2(Int32 *passwordIsDef
   return StringToBstr(Password, password);
 }
 
-//////////////////////////////////////////////////////////////////////////
+
 // Main function
 
 #define NT_CHECK_FAIL_ACTION PrintError("Unsupported Windows version"); return 1;
@@ -714,12 +709,14 @@ int MY_CDECL main(int numArgs, const char *args[])
     PrintStringLn(kHelpString);
     return 1;
   }
+  
   NDLL::CLibrary lib;
   if (!lib.Load(NDLL::GetModuleDirPrefix() + FTEXT(kDllName)))
   {
     PrintError("Can not load 7-zip library");
     return 1;
   }
+
   Func_CreateObject createObjectFunc = (Func_CreateObject)lib.GetProc("CreateObject");
   if (!createObjectFunc)
   {
@@ -737,7 +734,9 @@ int MY_CDECL main(int numArgs, const char *args[])
     }
     c = (char)MyCharLower_Ascii(command[0]);
   }
+
   FString archiveName = CmdStringToFString(args[2]);
+  
   if (c == 'a')
   {
     // create archive command
@@ -771,6 +770,7 @@ int MY_CDECL main(int numArgs, const char *args[])
         dirItems.Add(di);
       }
     }
+
     COutFileStream *outFileStreamSpec = new COutFileStream;
     CMyComPtr<IOutStream> outFileStream = outFileStreamSpec;
     if (!outFileStreamSpec->Create(archiveName, false))
@@ -817,17 +817,21 @@ int MY_CDECL main(int numArgs, const char *args[])
     */
     
     HRESULT result = outArchive->UpdateItems(outFileStream, dirItems.Size(), updateCallback);
+    
     updateCallbackSpec->Finilize();
+    
     if (result != S_OK)
     {
       PrintError("Update Error");
       return 1;
     }
+    
     FOR_VECTOR (i, updateCallbackSpec->FailedFiles)
     {
       PrintNewLine();
       PrintError("Error for file", updateCallbackSpec->FailedFiles[i]);
     }
+    
     if (updateCallbackSpec->FailedFiles.Size() != 0)
       return 1;
   }
@@ -840,6 +844,7 @@ int MY_CDECL main(int numArgs, const char *args[])
     }
 
     bool listCommand;
+    
     if (c == 'l')
       listCommand = true;
     else if (c == 'x')
@@ -918,7 +923,27 @@ int MY_CDECL main(int numArgs, const char *args[])
       extractCallbackSpec->PasswordIsDefined = false;
       // extractCallbackSpec->PasswordIsDefined = true;
       // extractCallbackSpec->Password = L"1";
+
+      /*
+      const wchar_t *names[] =
+      {
+        L"mt",
+        L"mtf"
+      };
+      const unsigned kNumProps = sizeof(names) / sizeof(names[0]);
+      NCOM::CPropVariant values[kNumProps] =
+      {
+        (UInt32)1,
+        false
+      };
+      CMyComPtr<ISetProperties> setProperties;
+      archive->QueryInterface(IID_ISetProperties, (void **)&setProperties);
+      if (setProperties)
+        setProperties->SetProperties(names, values, kNumProps);
+      */
+
       HRESULT result = archive->Extract(NULL, (UInt32)(Int32)(-1), false, extractCallback);
+  
       if (result != S_OK)
       {
         PrintError("Extract Error");
@@ -926,5 +951,6 @@ int MY_CDECL main(int numArgs, const char *args[])
       }
     }
   }
+
   return 0;
 }

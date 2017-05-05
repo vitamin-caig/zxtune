@@ -271,7 +271,7 @@ static const unsigned kCommandIndex = 0;
 static const char *kCannotFindListFile = "Cannot find listfile";
 static const char *kIncorrectListFile = "Incorrect item in listfile.\nCheck charset encoding and -scs switch.";
 static const char *kTerminalOutError = "I won't write compressed data to a terminal";
-static const char *kSameTerminalError = "I won't write data and program's messages to same terminal";
+static const char *kSameTerminalError = "I won't write data and program's messages to same stream";
 static const char *kEmptyFilePath = "Empty file path";
 static const char *kCannotFindArchive = "Cannot find archive";
 
@@ -387,7 +387,7 @@ static void AddRenamePair(CObjectVector<CRenamePair> *renamePairs,
     val.Add_LF();
     if (type == NRecursedType::kRecursed)
       val.AddAscii("-r");
-    else if (type == NRecursedType::kRecursed)
+    else if (type == NRecursedType::kWildcardOnlyRecursed)
       val.AddAscii("-r0");
     throw CArcCmdLineException("Unsupported rename command:", val);
   }
@@ -917,7 +917,7 @@ void CArcCmdLineParser::Parse1(const UStringVector &commandStrings,
 
   if (parser[NKey::kAffinity].ThereIs)
   {
-    const UString &s = us2fs(parser[NKey::kAffinity].PostStrings[0]);
+    const UString &s = parser[NKey::kAffinity].PostStrings[0];
     if (!s.IsEmpty())
     {
       UInt32 v = 0;
@@ -1053,7 +1053,7 @@ void CArcCmdLineParser::Parse2(CArcCmdLineOptions &options)
   const UStringVector &nonSwitchStrings = parser.NonSwitchStrings;
   unsigned numNonSwitchStrings = nonSwitchStrings.Size();
   if (numNonSwitchStrings < kMinNonSwitchWords)
-    throw CArcCmdLineException("The command must be spcified");
+    throw CArcCmdLineException("The command must be specified");
 
   if (!ParseArchiveCommand(nonSwitchStrings[kCommandIndex], options.Command))
     throw CArcCmdLineException("Unsupported command:", nonSwitchStrings[kCommandIndex]);
@@ -1219,8 +1219,26 @@ void CArcCmdLineParser::Parse2(CArcCmdLineOptions &options)
     
     if (isExtractGroupCommand)
     {
-      if (options.StdOutMode && options.IsStdOutTerminal && options.IsStdErrTerminal)
-        throw CArcCmdLineException(kSameTerminalError);
+      if (options.StdOutMode)
+      {
+        if (
+                  options.Number_for_Percents == k_OutStream_stdout
+            // || options.Number_for_Out      == k_OutStream_stdout
+            // || options.Number_for_Errors   == k_OutStream_stdout
+            ||
+            (
+              (options.IsStdOutTerminal && options.IsStdErrTerminal)
+              &&
+              (
+                      options.Number_for_Percents != k_OutStream_disabled
+                // || options.Number_for_Out      != k_OutStream_disabled
+                // || options.Number_for_Errors   != k_OutStream_disabled
+              )
+            )
+           )
+          throw CArcCmdLineException(kSameTerminalError);
+      }
+      
       if (parser[NKey::kOutputDir].ThereIs)
       {
         eo.OutputDir = us2fs(parser[NKey::kOutputDir].PostStrings[0]);
@@ -1293,8 +1311,18 @@ void CArcCmdLineParser::Parse2(CArcCmdLineOptions &options)
 
     if (updateOptions.StdOutMode && updateOptions.EMailMode)
       throw CArcCmdLineException("stdout mode and email mode cannot be combined");
-    if (updateOptions.StdOutMode && options.IsStdOutTerminal)
-      throw CArcCmdLineException(kTerminalOutError);
+    
+    if (updateOptions.StdOutMode)
+    {
+      if (options.IsStdOutTerminal)
+        throw CArcCmdLineException(kTerminalOutError);
+      
+      if (options.Number_for_Percents == k_OutStream_stdout
+          || options.Number_for_Out == k_OutStream_stdout
+          || options.Number_for_Errors == k_OutStream_stdout)
+        throw CArcCmdLineException(kSameTerminalError);
+    }
+    
     if (updateOptions.StdInMode)
       updateOptions.StdInFileName = parser[NKey::kStdIn].PostStrings.Front();
 
@@ -1329,5 +1357,5 @@ void CArcCmdLineParser::Parse2(CArcCmdLineOptions &options)
   {
   }
   else
-    throw 9815676711;
+    throw 20150919;
 }

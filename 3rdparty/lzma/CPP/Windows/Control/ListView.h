@@ -3,9 +3,11 @@
 #ifndef __WINDOWS_CONTROL_LISTVIEW_H
 #define __WINDOWS_CONTROL_LISTVIEW_H
 
-#include "../Window.h"
+#include "../../Common/MyWindows.h"
 
 #include <commctrl.h>
+
+#include "../Window.h"
 
 namespace NWindows {
 namespace NControl {
@@ -30,6 +32,18 @@ public:
 
   int InsertColumn(int columnIndex, const LVCOLUMN *columnInfo) { return ListView_InsertColumn(_window, columnIndex, columnInfo); }
   int InsertColumn(int columnIndex, LPCTSTR text, int width);
+  bool SetColumnOrderArray(int count, const int *columns) { return BOOLToBool(ListView_SetColumnOrderArray(_window, count, columns)); }
+
+  /*
+  int GetNumColumns()
+  {
+    HWND header = ListView_GetHeader(_window);
+    if (!header)
+      return -1;
+    return Header_GetItemCount(header);
+  }
+  */
+
   int InsertItem(const LVITEM* item) { return ListView_InsertItem(_window, item); }
   int InsertItem(int index, LPCTSTR text);
   bool SetItem(const LVITEM* item) { return BOOLToBool(ListView_SetItem(_window, item)); }
@@ -37,11 +51,11 @@ public:
 
   #ifndef _UNICODE
 
-  int InsertColumn(int columnIndex, const LVCOLUMNW *columnInfo) { return (int)SendMessage(LVM_INSERTCOLUMNW, (WPARAM)columnIndex, (LPARAM)columnInfo); }
+  int InsertColumn(int columnIndex, const LVCOLUMNW *columnInfo) { return (int)SendMsg(LVM_INSERTCOLUMNW, (WPARAM)columnIndex, (LPARAM)columnInfo); }
   int InsertColumn(int columnIndex, LPCWSTR text, int width);
-  int InsertItem(const LV_ITEMW* item) { return (int)SendMessage(LVM_INSERTITEMW, 0, (LPARAM)item); }
+  int InsertItem(const LV_ITEMW* item) { return (int)SendMsg(LVM_INSERTITEMW, 0, (LPARAM)item); }
   int InsertItem(int index, LPCWSTR text);
-  bool SetItem(const LV_ITEMW* item) { return BOOLToBool((BOOL)SendMessage(LVM_SETITEMW, 0, (LPARAM)item)); }
+  bool SetItem(const LV_ITEMW* item) { return BOOLToBool((BOOL)SendMsg(LVM_SETITEMW, 0, (LPARAM)item)); }
   int SetSubItem(int index, int subIndex, LPCWSTR text);
 
   #endif

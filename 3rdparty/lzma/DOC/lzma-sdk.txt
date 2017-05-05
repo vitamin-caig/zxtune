@@ -1,4 +1,4 @@
-LZMA SDK 15.00
+LZMA SDK 16.04
 --------------
 
 LZMA SDK provides the documentation, samples, header files,
@@ -33,8 +33,9 @@ Some code in LZMA SDK is based on public domain code from another developers:
   1) PPMd var.H (2001): Dmitry Shkarin
   2) SHA-256: Wei Dai (Crypto++ library)
 
-You can copy, modify, distribute and perform LZMA SDK code, even for commercial purposes,
-all without asking permission.
+Anyone is free to copy, modify, publish, use, compile, sell, or distribute the 
+original LZMA SDK code, either in source code form or as a compiled binary, for 
+any purpose, commercial or non-commercial, and by any means.
 
 LZMA SDK code is compatible with open source licenses, for example, you can 
 include it to GNU GPL or GNU LGPL code.

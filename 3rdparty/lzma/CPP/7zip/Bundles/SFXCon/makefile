@@ -4,6 +4,7 @@ CFLAGS = $(CFLAGS) \
   -DEXTRACT_ONLY \
   -DNO_READ_FROM_CODER \
   -D_SFX \
+  -D_CONSOLE \
 
 CURRENT_OBJS = \
   $O\SfxCon.obj \
@@ -72,7 +73,6 @@ AR_OBJS = \
 
 AR_COMMON_OBJS = \
   $O\CoderMixer2.obj \
-  $O\CrossThreadProgress.obj \
   $O\ItemNameUtils.obj \
   $O\MultiStream.obj \
   $O\OutStreamWithCRC.obj \
@@ -81,7 +81,6 @@ AR_COMMON_OBJS = \
 7Z_OBJS = \
   $O\7zDecode.obj \
   $O\7zExtract.obj \
-  $O\7zFolderOutStream.obj \
   $O\7zHandler.obj \
   $O\7zIn.obj \
   $O\7zRegister.obj \
@@ -116,6 +115,7 @@ C_OBJS = \
   $O\BraIA64.obj \
   $O\CpuArch.obj \
   $O\Delta.obj \
+  $O\DllSecur.obj \
   $O\Lzma2Dec.obj \
   $O\LzmaDec.obj \
   $O\Ppmd7.obj \

@@ -2,6 +2,8 @@
 
 #include "StdAfx.h"
 
+#include "../../../Common/MyWindows.h"
+
 #include <Shlwapi.h>
 
 #include "../../../Common/MyInitGuid.h"
@@ -25,6 +27,8 @@
 #include "../../UI/FileManager/MyWindowsNew.h"
 #include "../../UI/GUI/ExtractGUI.h"
 #include "../../UI/GUI/ExtractRes.h"
+
+#include "../../../../C/DllSecur.h"
 
 using namespace NWindows;
 using namespace NFile;
@@ -218,6 +222,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */,
 
   try
   {
+    #ifdef _WIN32
+    LoadSecurityDlls();
+    #endif
+
     return WinMain2();
   }
   catch(const CNewException &)

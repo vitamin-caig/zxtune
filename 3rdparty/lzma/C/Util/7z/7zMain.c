@@ -1,5 +1,5 @@
 /* 7zMain.c - Test application for 7z Decoder
-2015-05-11 : Igor Pavlov : Public domain */
+2016-05-16 : Igor Pavlov : Public domain */
 
 #include "Precomp.h"
 
@@ -310,10 +310,10 @@ static void ConvertFileTimeToString(const CNtfsFileTime *nt, char *s)
     ms[1] = 29;
   for (mon = 0;; mon++)
   {
-    unsigned s = ms[mon];
-    if (v < s)
+    unsigned d = ms[mon];
+    if (v < d)
       break;
-    v -= s;
+    v -= d;
   }
   s = UIntToStr(s, year, 4); *s++ = '-';
   UIntToStr_2(s, mon + 1); s[2] = '-'; s += 3;
@@ -328,22 +328,20 @@ void PrintError(char *sz)
   printf("\nERROR: %s\n", sz);
 }
 
-#ifdef USE_WINDOWS_FILE
 static void GetAttribString(UInt32 wa, Bool isDir, char *s)
 {
+  #ifdef USE_WINDOWS_FILE
   s[0] = (char)(((wa & FILE_ATTRIBUTE_DIRECTORY) != 0 || isDir) ? 'D' : '.');
   s[1] = (char)(((wa & FILE_ATTRIBUTE_READONLY ) != 0) ? 'R': '.');
   s[2] = (char)(((wa & FILE_ATTRIBUTE_HIDDEN   ) != 0) ? 'H': '.');
   s[3] = (char)(((wa & FILE_ATTRIBUTE_SYSTEM   ) != 0) ? 'S': '.');
   s[4] = (char)(((wa & FILE_ATTRIBUTE_ARCHIVE  ) != 0) ? 'A': '.');
-  s[5] = '\0';
+  s[5] = 0;
+  #else
+  s[0] = (char)(((wa & (1 << 4)) != 0 || isDir) ? 'D' : '.');
+  s[1] = 0;
+  #endif
 }
-#else
-static void GetAttribString(UInt32, Bool, char *s)
-{
-  s[0] = '\0';
-}
-#endif
 
 // #define NUM_PARENTS_MAX 128
 

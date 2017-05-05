@@ -299,6 +299,8 @@ public:
   UInt64 AvailPhySize; // PhySize, but it's reduced if exceed end of file
   // bool offsetDefined;
 
+  UInt64 GetEstmatedPhySize() const { return PhySizeDefined ? PhySize : FileSize; }
+
   UInt64 ArcStreamOffset; // offset of stream that is open by Archive Handler
   Int64 GetGlobalOffset() const { return ArcStreamOffset + Offset; } // it's global offset of archive
 
@@ -398,6 +400,14 @@ struct CArchiveLink
   HRESULT Open(COpenOptions &options);
   HRESULT Open2(COpenOptions &options, IOpenCallbackUI *callbackUI);
   HRESULT Open3(COpenOptions &options, IOpenCallbackUI *callbackUI);
+
+  HRESULT Open_Strict(COpenOptions &options, IOpenCallbackUI *callbackUI)
+  {
+    HRESULT result = Open3(options, callbackUI);
+    if (result == S_OK && NonOpen_ErrorInfo.ErrorFormatIndex >= 0)
+      result = S_FALSE;
+    return result;
+  }
 
   HRESULT ReOpen(COpenOptions &options);
 };

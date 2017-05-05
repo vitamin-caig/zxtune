@@ -282,7 +282,8 @@ STDMETHODIMP CHandler::UpdateItems(ISequentialOutStream *outStream, UInt32 numIt
   bool need_CTime = (Write_CTime.Def && Write_CTime.Val);
   bool need_ATime = (Write_ATime.Def && Write_ATime.Val);
   bool need_MTime = (Write_MTime.Def && Write_MTime.Val || !Write_MTime.Def);
-  if (db)
+  
+  if (db && !db->Files.IsEmpty())
   {
     if (!Write_CTime.Def) need_CTime = !db->CTime.Defs.IsEmpty();
     if (!Write_ATime.Def) need_ATime = !db->ATime.Defs.IsEmpty();
@@ -508,14 +509,19 @@ STDMETHODIMP CHandler::UpdateItems(ISequentialOutStream *outStream, UInt32 numIt
 
     if (ui.NewData)
     {
-      NCOM::CPropVariant prop;
-      RINOK(updateCallback->GetProperty(i, kpidSize, &prop));
-      if (prop.vt != VT_UI8)
-        return E_INVALIDARG;
-      ui.Size = (UInt64)prop.uhVal.QuadPart;
-      if (ui.Size != 0 && ui.IsAnti)
-        return E_INVALIDARG;
+      ui.Size = 0;
+      if (!ui.IsDir)
+      {
+        NCOM::CPropVariant prop;
+        RINOK(updateCallback->GetProperty(i, kpidSize, &prop));
+        if (prop.vt != VT_UI8)
+          return E_INVALIDARG;
+        ui.Size = (UInt64)prop.uhVal.QuadPart;
+        if (ui.Size != 0 && ui.IsAnti)
+          return E_INVALIDARG;
+      }
     }
+    
     updateItems.Add(ui);
   }
 
@@ -613,6 +619,8 @@ STDMETHODIMP CHandler::UpdateItems(ISequentialOutStream *outStream, UInt32 numIt
   options.NumSolidFiles = _numSolidFiles;
   options.NumSolidBytes = _numSolidBytes;
   options.SolidExtension = _solidExtension;
+  options.UseTypeSorting = _useTypeSorting;
+
   options.RemoveSfxBlock = _removeSfxBlock;
   // options.VolumeMode = _volumeMode;
 
@@ -667,14 +675,16 @@ STDMETHODIMP CHandler::UpdateItems(ISequentialOutStream *outStream, UInt32 numIt
 static HRESULT ParseBond(UString &srcString, UInt32 &coder, UInt32 &stream)
 {
   stream = 0;
-  int index = ParseStringToUInt32(srcString, coder);
-  if (index == 0)
-    return E_INVALIDARG;
-  srcString.DeleteFrontal(index);
+  {
+    unsigned index = ParseStringToUInt32(srcString, coder);
+    if (index == 0)
+      return E_INVALIDARG;
+    srcString.DeleteFrontal(index);
+  }
   if (srcString[0] == 's')
   {
     srcString.Delete(0);
-    int index = ParseStringToUInt32(srcString, stream);
+    unsigned index = ParseStringToUInt32(srcString, stream);
     if (index == 0)
       return E_INVALIDARG;
     srcString.DeleteFrontal(index);
@@ -701,6 +711,7 @@ void COutHandler::InitProps()
   // _volumeMode = false;
 
   InitSolid();
+  _useTypeSorting = false;
 }
 
 HRESULT COutHandler::SetSolidFromString(const UString &s)
@@ -820,6 +831,8 @@ HRESULT COutHandler::SetProperty(const wchar_t *nameSpec, const PROPVARIANT &val
     if (name.IsEqualTo("tm")) return PROPVARIANT_to_BoolPair(value, Write_MTime);
     
     if (name.IsEqualTo("mtf")) return PROPVARIANT_to_bool(value, _useMultiThreadMixer);
+
+    if (name.IsEqualTo("qs")) return PROPVARIANT_to_bool(value, _useTypeSorting);
 
     // if (name.IsEqualTo("v"))  return PROPVARIANT_to_bool(value, _volumeMode);
   }

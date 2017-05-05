@@ -149,14 +149,6 @@ SOURCE=..\..\Archive\7z\7zExtract.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\Archive\7z\7zFolderOutStream.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\Archive\7z\7zFolderOutStream.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\Archive\7z\7zHandler.cpp
 # End Source File
 # Begin Source File
@@ -194,14 +186,6 @@ SOURCE=..\..\Archive\Common\CoderMixer2.cpp
 # Begin Source File
 
 SOURCE=..\..\Archive\Common\CoderMixer2.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\Archive\Common\CrossThreadProgress.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\Archive\Common\CrossThreadProgress.h
 # End Source File
 # Begin Source File
 
@@ -338,14 +322,6 @@ SOURCE=..\..\UI\FileManager\ComboDialog.cpp
 # Begin Source File
 
 SOURCE=..\..\UI\FileManager\ComboDialog.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\UI\FileManager\MessagesDialog.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\UI\FileManager\MessagesDialog.h
 # End Source File
 # Begin Source File
 
@@ -909,6 +885,15 @@ SOURCE=..\..\..\..\C\Delta.c
 # Begin Source File
 
 SOURCE=..\..\..\..\C\Delta.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\C\DllSecur.c
+# SUBTRACT CPP /YX /Yc /Yu
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\C\DllSecur.h
 # End Source File
 # Begin Source File
 

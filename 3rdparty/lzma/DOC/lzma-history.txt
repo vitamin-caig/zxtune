@@ -1,6 +1,63 @@
 HISTORY of the LZMA SDK
 -----------------------
 
+16.04          2016-10-04
+-------------------------
+- The bug was fixed in DllSecur.c.
+
+
+16.03          2016-09-28
+-------------------------
+- SFX modules now use some protection against DLL preloading attack.
+- Some bugs in 7z code were fixed.
+
+
+16.02          2016-05-21
+-------------------------
+- The BUG in 16.00 - 16.01 was fixed:
+  Split Handler (SplitHandler.cpp) returned incorrect 
+  total size value (kpidSize) for split archives.
+
+
+16.01          2016-05-19
+-------------------------	
+- Some internal changes to reduce the number of compiler warnings.
+
+
+16.00          2016-05-10
+-------------------------	
+- Some bugs were fixed.
+
+
+15.12          2015-11-19
+-------------------------	
+- The BUG in C version of 7z decoder was fixed:
+  7zDec.c : SzDecodeLzma2()
+  7z decoder could mistakenly report about decoding error for some 7z archives
+  that use LZMA2 compression method.
+  The probability to get that mistaken decoding error report was about 
+  one error per 16384 solid blocks for solid blocks larger than 16 KB (compressed size). 
+- The BUG (in 9.26-15.11) in C version of 7z decoder was fixed:
+  7zArcIn.c : SzReadHeader2()
+  7z decoder worked incorrectly for 7z archives that contain 
+  empty solid blocks, that can be placed to 7z archive, if some file is 
+  unavailable for reading during archive creation.
+
+
+15.09 beta     2015-10-16
+-------------------------	
+- The BUG in LZMA / LZMA2 encoding code was fixed.
+  The BUG in LzFind.c::MatchFinder_ReadBlock() function.
+  If input data size is larger than (4 GiB - dictionary_size),
+  the following code worked incorrectly:
+  -  LZMA : LzmaEnc_MemEncode(), LzmaEncode() : LZMA encoding functions 
+     for compressing from memory to memory. 
+     That BUG is not related to LZMA encoder version that works via streams.
+  -  LZMA2 : multi-threaded version of LZMA2 encoder worked incorrectly, if 
+     default value of chunk size (CLzma2EncProps::blockSize) is changed 
+     to value larger than (4 GiB - dictionary_size).
+
+
 9.38 beta      2015-01-03
 -------------------------	
 - The BUG in 9.31-9.37 was fixed:
