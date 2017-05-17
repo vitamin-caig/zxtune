@@ -19,7 +19,6 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/chiptune/container.h>
-#include <math/numeric.h>
 #include <strings/encoding.h>
 #include <strings/prefixed_index.h>
 #include <strings/trim.h>
@@ -107,8 +106,6 @@ namespace PortableSoundFormat
       }
       if (compressedSize)
       {
-        //program section is 4-byte aligned
-        Stream.Seek(Math::Align<uint32_t>(Stream.GetPosition(), 4));
         auto programPacked = Stream.ReadData(compressedSize);
         CheckCrc(*programPacked, compressedCrc);
         Dbg("Program section %1% bytes", compressedSize);
@@ -297,189 +294,6 @@ namespace PortableSoundFormat
     }
   }
 
-  /*
-  class PackedBlobBuilder : public BlobBuilder
-  {
-  public:
-    PackedBlobBuilder()
-      : Version(0)
-    {
-    }
-    
-    void SetVersion(uint_t ver) override
-    {
-      Version = ver;
-    }
-
-    void SetReservedSection(Binary::Container::Ptr blob) override
-    {
-      Reserved = std::move(blob);
-    }
-    
-    void SetPackedProgramSection(Binary::Container::Ptr blob) override
-    {
-      Program = std::move(blob);
-    }
-    
-    void SetTitle(String title) override
-    {
-      SetTag(Tags::TITLE, std::move(title));
-    }
-    
-    void SetArtist(String artist) override
-    {
-      SetTag(Tags::ARTIST, std::move(artist));
-    }
-    
-    void SetGame(String game) override
-    {
-      SetTag(Tags::GAME, std::move(game));
-    }
-    
-    void SetYear(String date)
-    {
-      SetTag(Tags::YEAR, std::move(date));
-    }
-    
-    void SetGenre(String genre)
-    {
-      SetTag(Tags::GENRE, std::move(genre));
-    }
-    
-    void SetComment(String comment)
-    {
-      SetTag(Tags::COMMENT, std::move(comment));
-    }
-    
-    void SetCopyright(String copyright)
-    {
-      SetTag(Tags::COPYRIGHT, std::move(copyright));
-    }
-    
-    void SetDumper(String dumper)
-    {
-      //TODO:
-    }
-
-    void SetLength(Time::Milliseconds duration)
-    {
-      SetTag(Tags::LENGTH, ToString(duration));
-    }
-    
-    void SetFade(Time::Milliseconds duration)
-    {
-      SetTag(Tags::FADE, ToString(duration));
-    }
-    
-    void SetTag(String name, String value) override
-    {
-      if (Tags.empty())
-      {
-        Tags.emplace_back(Tags::UTF8, "1");
-      }
-      Require(name == Tags::COMMENT || TagNames.insert(name).second);
-      Tags.emplace_back(name, value);
-    }
-    
-    void SetLibrary(uint_t num, String filename) override
-    {
-      Require(num > 0);
-      SetTag(num == 1 ? Tags::LIB_PREFIX : Strings::PrefixedIndex(Tags::LIB_PREFIX, num).ToString(), std::move(filename));
-    }
-
-    Binary::Container::Ptr GetResult() const
-    {
-      Require(Version != 0);
-      //Require(!Tags.empty());
-      PSFBuilder result;
-      result.AddSignature(Version);
-      if (Reserved)
-      {
-        result.AddBlobs(Reserved->Start(), Reserved->Size(), Program.data(), Program.size());
-      }
-      else
-      {
-        result.AddBlobs(nullptr, 0, Program.data(), Program.size());
-      }
-      for (const auto& tag : Tags)
-      {
-        result.AddTag(tag.first, tag.second);
-      }
-      return result.CaptureResult();
-    }
-  private:
-    static String ToString(Time::Milliseconds stamp)
-    {
-      return Time::MillisecondsDuration(stamp.Get(), Time::Milliseconds(1)).ToString();
-    }
-  
-    class PSFBuilder
-    {
-    public:
-      void AddSignature(uint_t version)
-      {
-        Delegate.Add(SIGNATURE, sizeof(SIGNATURE));
-        Delegate.Add<uint8_t>(version);
-      }
-      
-      void AddBlobs(const void* resData, std::size_t resSize, const void* prgData, std::size_t prgSize)
-      {
-        const uint32_t prgCrc = prgSize ? Crc32(static_cast<const uint8_t*>(prgData), prgSize) : 0;
-        Delegate.Add(fromLE<uint32_t>(resSize));
-        Delegate.Add(fromLE<uint32_t>(prgSize));
-        Delegate.Add(fromLE<uint32_t>(prgCrc));
-        if (resSize)
-        {
-          Delegate.Add(resData, resSize);
-        }
-        if (prgSize)
-        {
-          Delegate.Resize(Math::Align<std::size_t>(Delegate.Size(), 4));
-          Delegate.Add(prgData, prgSize);
-        }
-      }
-      
-      void AddTag(const String& name, const String& value)
-      {
-        AddTagsSignature();
-        const auto size = name.size() + 1 + value.size() + 1;
-        auto dst = static_cast<char*>(Delegate.Allocate(size));
-        dst = std::copy(name.begin(), name.end(), dst);
-        *dst++ = '=';
-        dst = std::copy(value.begin(), value.end(), dst);
-        *dst = '\x0a';
-      }
-      
-      Binary::Container::Ptr CaptureResult()
-      {
-        return Delegate.CaptureResult();
-      }
-    private:
-      void AddTagsSignature()
-      {
-        if (!HasTagsSignature)
-        {
-          Delegate.Add(TAG_SIGNATURE, sizeof(TAG_SIGNATURE));
-          HasTagsSignature = true;
-        }
-      }
-    private:
-      Binary::DataBuilder Delegate;
-      bool HasTagsSignature = false;
-    };
-  private:
-    uint_t Version;
-    Binary::Data::Ptr Reserved;
-    Dump Program;
-    std::set<String> TagNames;
-    std::vector<std::pair<String, String>> Tags;
-  };
-      
-  BlobBuilder::Ptr CreateBlobBuilder()
-  {
-    return MakePtr<PackedBlobBuilder>();
-  }
-  */
 }
 }
 }

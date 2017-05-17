@@ -51,16 +51,6 @@ namespace Formats
 
       //! @return subcontainer of data
       Container::Ptr Parse(const Binary::Container& data, Builder& target);
-      
-      class BlobBuilder : public Builder
-      {
-      public:
-        typedef std::shared_ptr<BlobBuilder> Ptr;
-        
-        virtual Binary::Container::Ptr GetResult() const = 0;
-      };
-      
-      BlobBuilder::Ptr CreateBlobBuilder();
     }
   }
 }
