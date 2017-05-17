@@ -137,7 +137,7 @@ namespace GSF
       Core->init(Core);
       mCoreInitConfig(Core, NULL);
       //core owns rom file memory, so copy it
-      const auto romFile = VFileMemChunk(rom.Data.data(), rom.Data.size());
+      const auto romFile = VFileMemChunk(rom.Content.Data.data(), rom.Content.Data.size());
       Require(romFile != 0);
       Core->loadROM(Core, romFile);
       Reset();

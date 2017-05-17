@@ -10,8 +10,8 @@
 
 #pragma once
 
-//common includes
-#include <types.h>
+//local includes
+#include "memory_region.h"
 //std includes
 #include <memory>
 
@@ -34,8 +34,7 @@ namespace Module
       GbaRom& operator = (const GbaRom&) = delete;
       
       uint32_t EntryPoint = 0;
-      uint32_t Start = 0;
-      Dump Data;
+      MemoryRegion Content;
       
       static void Parse(const Binary::Container& data, GbaRom& rom);
     };

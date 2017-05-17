@@ -15,8 +15,6 @@
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/emulation/gameboyadvancesoundformat.h>
-//std includes
-#include <cstring>
 
 namespace Module
 {
@@ -40,27 +38,7 @@ namespace Module
       
       void SetRom(uint32_t address, const Binary::Data& content) override
       {
-        const auto addr = address & 0x1fffffff;
-        const auto size = content.Size();
-
-        if (const auto oldSize = Rom.Data.size())
-        {
-          const auto newAddr = std::min(addr, Rom.Start);
-          const auto newEnd = std::max(addr + size, Rom.Start + oldSize);
-          Rom.Data.resize(newEnd - newAddr);
-          if (newAddr < Rom.Start)
-          {
-            std::memcpy(Rom.Data.data() + (Rom.Start - newAddr), Rom.Data.data(), oldSize);
-            Rom.Start = newAddr;
-          }
-          std::memcpy(Rom.Data.data() + (addr - newAddr), content.Start(), size);
-        }
-        else
-        {
-          const auto src = static_cast<const uint8_t*>(content.Start());
-          Rom.Data.assign(src, src + size);
-          Rom.Start = addr;
-        }
+        Rom.Content.Update(address & 0x1fffffff, content.Start(), content.Size());
       }
     private:
       GbaRom& Rom;

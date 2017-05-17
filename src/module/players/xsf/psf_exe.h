@@ -10,8 +10,8 @@
 
 #pragma once
 
-//common includes
-#include <types.h>
+//local includes
+#include "memory_region.h"
 //std includes
 #include <memory>
 
@@ -36,8 +36,7 @@ namespace Module
       uint_t RefreshRate = 0;
       uint32_t PC = 0;
       uint32_t SP = 0;
-      uint32_t StartAddress = 0;
-      Dump RAM;
+      MemoryRegion RAM;
       
       static void Parse(const Binary::Container& data, PsxExe& exe);
     };

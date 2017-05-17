@@ -270,14 +270,14 @@ namespace PSF
   private:
     void SetupExe(const PsxExe& exe)
     {
-      SetRAM(exe.StartAddress, exe.RAM.data(), exe.RAM.size());
+      SetRAM(exe.RAM);
       SetRegisters(exe.PC, exe.SP);
     }
     
-    void SetRAM(uint32_t startAddr, const void* src, std::size_t size)
+    void SetRAM(const MemoryRegion& mem)
     {
       const auto iop = ::psx_get_iop_state(Emu.get());
-      ::iop_upload_to_ram(iop, startAddr, src, size);
+      ::iop_upload_to_ram(iop, mem.Start, mem.Data.data(), mem.Data.size());
     }
     
     void SetRegisters(uint32_t pc, uint32_t sp)
