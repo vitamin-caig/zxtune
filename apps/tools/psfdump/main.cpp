@@ -14,6 +14,7 @@
 #include <binary/data_builder.h>
 #include <binary/compression/zlib_container.h>
 #include <formats/chiptune/emulation/gameboyadvancesoundformat.h>
+#include <formats/chiptune/emulation/nintendodssoundformat.h>
 #include <formats/chiptune/emulation/playstationsoundformat.h>
 #include <formats/chiptune/emulation/playstation2soundformat.h>
 #include <formats/chiptune/emulation/portablesoundformat.h>
@@ -299,6 +300,48 @@ namespace
     };
   };
 
+  class TwoSFDumper : public SectionDumper
+  {
+  public:
+    void DumpProgram(const Binary::Container& blob) const override
+    {
+      try
+      {
+        Write(2, "DS ROM:");
+        ChunkDumper delegate;
+        Formats::Chiptune::NintendoDSSoundFormat::ParseRom(blob, delegate);
+      }
+      catch (const std::exception&)
+      {
+        Write(3, "Corrupted");
+      }
+    }
+
+    void DumpReserved(const Binary::Container& blob) const override
+    {
+      try
+      {
+        Write(2, "DS Savestate:");
+        ChunkDumper delegate;
+        Formats::Chiptune::NintendoDSSoundFormat::ParseState(blob, delegate);
+      }
+      catch (const std::exception&)
+      {
+        Write(3, "Corrupted");
+      }
+    }
+  private:
+    class ChunkDumper : public Formats::Chiptune::NintendoDSSoundFormat::Builder
+    {
+    public:
+      void SetChunk(uint32_t offset, const Binary::Data& content) override
+      {
+        Write(3, "%1% (0x%1$08x) bytes at 0x%2$08x", content.Size(), offset);
+        DumpHex(4, content.Start(), content.Size());
+      }
+    };
+  };
+  
   class PSFDumper : public Formats::Chiptune::PortableSoundFormat::Builder
   {
   public:
@@ -431,6 +474,8 @@ namespace
         return MakePtr<USFDumper>();
       case Formats::Chiptune::GameBoyAdvanceSoundFormat::VERSION_ID:
         return MakePtr<GSFDumper>();
+      case Formats::Chiptune::NintendoDSSoundFormat::VERSION_ID:
+        return MakePtr<TwoSFDumper>();
       default:
         return MakePtr<SectionDumper>();
       }
