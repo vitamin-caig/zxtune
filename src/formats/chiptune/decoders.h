@@ -62,5 +62,6 @@ namespace Formats
     Decoder::Ptr CreatePSF2Decoder();
     Decoder::Ptr CreateUSFDecoder();
     Decoder::Ptr CreateGSFDecoder();
+    Decoder::Ptr Create2SFDecoder();
   }
 }

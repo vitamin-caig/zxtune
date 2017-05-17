@@ -302,3 +302,7 @@ __cpp> "}//namespace Text\n"
 #GSF
 < GAMEBOYADVANCESOUNDFORMAT_DECODER_DESCRIPTION
 > "GameBoy Advance Sound Format"
+
+#2SF
+< NINTENDODSSOUNDFORMAT_DECODER_DESCRIPTION
+> "Nintendo DS Sound Format"
