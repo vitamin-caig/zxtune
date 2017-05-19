@@ -161,9 +161,8 @@ namespace
 
     void Open(const QStringList& items) override
     {
-      Playlist::UI::View& pl = GetEmptyPlaylist();
+      auto& pl = GetCmdlineTarget();
       pl.AddItems(items);
-      QTimer::singleShot(1000, pl.GetPlaylist()->GetIterator(), SLOT(Reset()));
     }
 
     QMenu* GetActionsMenu() const override
@@ -464,6 +463,27 @@ namespace
       Dbg("Store current playlist %1% (visible is %2%), track %3%", idx, widgetsContainer->currentIndex(), trk);
       Options->SetValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
       Options->SetValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
+    }
+
+    
+    Playlist::UI::View& GetCmdlineTarget()
+    {
+      using namespace Parameters::ZXTuneQT::Playlist;
+      Parameters::IntType target = CMDLINE_TARGET_DEFAULT;
+      Options->FindValue(CMDLINE_TARGET, target);
+      switch (target)
+      {
+      case CMDLINE_TARGET_ACTIVE:
+        return GetActivePlaylist();
+      case CMDLINE_TARGET_VISIBLE:
+        return GetVisiblePlaylist();
+      default:
+        {
+          auto& pl = GetEmptyPlaylist();
+          QTimer::singleShot(1000, pl.GetPlaylist()->GetIterator(), SLOT(Reset()));
+          return pl;
+        }
+      }
     }
   private:
     const Parameters::Container::Ptr Options;
