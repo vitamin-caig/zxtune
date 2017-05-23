@@ -24,6 +24,8 @@
 #include <module/players/aym/aym_base.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/container.h>
+//std includes
+#include <map>
 //text includes
 #include <src/core/text/core.h>
 #include <src/core/text/plugins.h>
@@ -88,8 +90,7 @@ namespace Module
   {
   public:
     ResolveAdditionalFilesAdapter(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& delegate)
-      : Params(params)
-      , Data(std::move(data))
+      : Source(std::unique_ptr<AdditionalFilesSource>(new FullpathFilesSource(params, std::move(data))))
       , Delegate(delegate)
     {
     }
@@ -104,7 +105,7 @@ namespace Module
           Dbg("Archived multifile %1% at '%2%'", decoder->Id(), path->AsString());
           try
           {
-            const ArchivedFilesSource source(dir, Params, Data);
+            const ArchivedFilesSource source(dir, Source);
             ResolveAdditionalFiles(source, *files);
           }
           catch (const Error& e)
@@ -125,10 +126,9 @@ namespace Module
     class ArchivedFilesSource : public AdditionalFilesSource
     {
     public:
-      ArchivedFilesSource(Analysis::Path::Ptr dir, const Parameters::Accessor& params, Binary::Container::Ptr data)
+      ArchivedFilesSource(Analysis::Path::Ptr dir, const AdditionalFilesSource& delegate)
         : Dir(std::move(dir))
-        , Params(params)
-        , Data(std::move(data))
+        , Delegate(delegate)
       {
       }
       
@@ -136,17 +136,59 @@ namespace Module
       {
         const auto subpath = Dir->Append(name)->AsString();
         Dbg("Resolve '%1%' as '%2%'", name, subpath);
-        const auto location = ZXTune::OpenLocation(Params, Data, subpath);
-        return location->GetData();
+        return Delegate.Get(subpath);
       }
     private:
       const Analysis::Path::Ptr Dir;
+      const AdditionalFilesSource& Delegate;
+    };
+    
+    class CachedFilesSource : public AdditionalFilesSource
+    {
+    public:
+      CachedFilesSource(std::unique_ptr<const AdditionalFilesSource> delegate)
+        : Delegate(std::move(delegate))
+      {
+      }
+      
+      Binary::Container::Ptr Get(const String& name) const override
+      {
+        auto& cached = Cache[name];
+        if (!cached)
+        {
+          cached = Delegate->Get(name);
+        }
+        else
+        {
+          Dbg("Use cached");
+        }
+        return cached;
+      }
+    private:
+      const std::unique_ptr<const AdditionalFilesSource> Delegate;
+      mutable std::map<String, Binary::Container::Ptr> Cache;
+    };
+    
+    class FullpathFilesSource : public AdditionalFilesSource
+    {
+    public:
+      FullpathFilesSource(const Parameters::Accessor& params, Binary::Container::Ptr data)
+        : Params(params)
+        , Data(std::move(data))
+      {
+      }
+      
+      Binary::Container::Ptr Get(const String& name) const override
+      {
+        const auto location = ZXTune::OpenLocation(Params, Data, name);
+        return location->GetData();
+      }
+    private:
       const Parameters::Accessor& Params;
       const Binary::Container::Ptr Data;
     };
   private:
-    const Parameters::Accessor& Params;
-    const Binary::Container::Ptr Data;
+    const CachedFilesSource Source;
     const DetectCallback& Delegate;
   };
 
