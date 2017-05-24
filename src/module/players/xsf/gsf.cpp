@@ -12,26 +12,21 @@
 #include "gsf.h"
 #include "gsf_rom.h"
 #include "xsf.h"
+#include "xsf_factory.h"
 //common includes
 #include <contract.h>
-#include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
-#include <module/additional_files.h>
 #include <module/players/analyzer.h>
-#include <module/players/duration.h>
 #include <module/players/fading.h>
-#include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//std includes
-#include <map>
 //3rdparty includes
 #include <mgba/core/core.h>
 #include <mgba/gba/core.h>
@@ -40,13 +35,11 @@
 
 #undef min
 
-#define FILE_TAG AD921CF6
-
 namespace Module
 {
 namespace GSF
 {
-  const Debug::Stream Dbg("Module::GSFSupp");
+  const Debug::Stream Dbg("Module::GSF");
 
   struct ModuleData
   {
@@ -342,17 +335,17 @@ namespace GSF
       return MakePtr<Renderer>(*Tune, Info, std::move(target), std::move(params));
     }
     
-    static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties, Time::Seconds defaultDuration)
+    static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
       const auto period = Sound::GetFrameDuration(*properties);
-      const decltype(period) duration = tune->Meta && tune->Meta->Duration.Get() ? tune->Meta->Duration : decltype(tune->Meta->Duration)(defaultDuration);
+      const decltype(period) duration = tune->Meta->Duration;
       const uint_t frames = duration.Get() / period.Get();
-      const Information::Ptr info = CreateStreamInfo(frames);
+      Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
       {
         tune->Meta->Dump(*properties);
       }
-      return MakePtr<Holder>(std::move(tune), info, std::move(properties));
+      return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
     }
   private:
     const ModuleData::Ptr Tune;
@@ -398,238 +391,69 @@ namespace GSF
     XSF::MetaInformation::RWPtr Meta;
   };
   
-  class XsfView
+  class Factory : public XSF::Factory
   {
   public:
-    explicit XsfView(const XSF::File& file)
-      : File(file)
+    Holder::Ptr CreateSinglefileModule(const XSF::File& file, Parameters::Container::Ptr properties) const override
     {
-    }
-    
-    bool IsSingleTrack() const
-    {
-      return File.Dependencies.empty();
-    }
-    
-    bool IsMultiTrack() const
-    {
-      return !File.Dependencies.empty();
-    }
-    
-    ModuleData::Ptr CreateModuleData() const
-    {
-      Require(File.Dependencies.empty());
       ModuleDataBuilder builder;
-      if (File.Meta)
+      if (file.Meta)
       {
-        builder.AddMeta(*File.Meta);
+        builder.AddMeta(*file.Meta);
       }
-      builder.AddRom(File.PackedProgramSection);
+      builder.AddRom(file.PackedProgramSection);
       //don't know anything about reserved section state
-      return builder.CaptureResult();
-    }
-  private:
-    const XSF::File& File;
-  };
- 
-  class MultiFileHolder : public Module::Holder
-                        , public Module::AdditionalFiles
-  {
-  public:
-    MultiFileHolder(XSF::File head, Parameters::Container::Ptr properties, Time::Seconds defaultDuration)
-      : DefaultDuration(defaultDuration)
-      , Properties(std::move(properties))
-      , Head(std::move(head))
-    {
-      LoadDependenciesFrom(Head);
-      Head.CloneData();
+      return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
     
-    Module::Information::Ptr GetModuleInformation() const override
-    {
-      return GetDelegate().GetModuleInformation();
-    }
-
-    Parameters::Accessor::Ptr GetModuleProperties() const override
-    {
-      return GetDelegate().GetModuleProperties();
-    }
-
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
-    {
-      return GetDelegate().CreateRenderer(std::move(params), std::move(target));
-    }
-    
-    Strings::Array Enumerate() const override
-    {
-      Strings::Array result;
-      for (const auto& dep : Dependencies)
-      {
-        if (0 == dep.second.Version)
-        {
-          result.push_back(dep.first);
-        }
-      }
-      return result;
-    }
-    
-    void Resolve(const String& name, Binary::Container::Ptr data) override
-    {
-      XSF::File file;
-      if (XSF::Parse(name, *data, file))
-      {
-        Dbg("Resolving dependency '%1%'", name);
-        LoadDependenciesFrom(file);
-        file.CloneData();
-        const auto it = Dependencies.find(name);
-        Require(it != Dependencies.end() && 0 == it->second.Version);
-        it->second = std::move(file);
-      }
-    }
-  private:
-    void LoadDependenciesFrom(const XSF::File& file)
-    {
-      Require(Head.Version == file.Version);
-      for (const auto& dep : file.Dependencies)
-      {
-        Require(!dep.empty());
-        Require(Dependencies.emplace(dep, XSF::File()).second);
-        Dbg("Found unresolved dependency '%1%'", dep);
-      }
-    }
-    
-    const Module::Holder& GetDelegate() const
-    {
-      if (!Delegate)
-      {
-        Require(!Dependencies.empty());
-        auto mergedData = MergeDependencies();
-        FillStrings();
-        Delegate = GSF::Holder::Create(std::move(mergedData), std::move(Properties), DefaultDuration);
-        Dependencies.clear();
-        Head = XSF::File();
-      }
-      return *Delegate;
-    }
-    
-    ModuleData::Ptr MergeDependencies() const
+    Holder::Ptr CreateMultifileModule(const XSF::File& file, const std::map<String, XSF::File>& additionalFiles, Parameters::Container::Ptr properties) const
     {
       ModuleDataBuilder builder;
-      MergeRom(Head, builder);
-      MergeMeta(Head, builder);
-      return builder.CaptureResult();
+      MergeRom(file, additionalFiles, builder);
+      MergeMeta(file, additionalFiles, builder);
+      return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
-    
+  private:
     /* https://bitbucket.org/zxtune/zxtune/wiki/GSFFormat
     
     Look at the official psf specs for lib loading order.  Multiple libs are
     now supported.
 
     */
-    void MergeRom(const XSF::File& data, ModuleDataBuilder& dst) const
+    static void MergeRom(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
     {
       auto it = data.Dependencies.begin();
       const auto lim = data.Dependencies.end();
       if (it != lim)
       {
-        MergeRom(GetDependency(*it), dst);
+        MergeRom(additionalFiles.at(*it), additionalFiles, dst);
       }
       dst.AddRom(data.PackedProgramSection);
       if (it != lim)
       {
         for (++it; it != lim; ++it)
         {
-          MergeRom(GetDependency(*it), dst);
+          MergeRom(additionalFiles.at(*it), additionalFiles, dst);
         }
       }
     }
     
-    void MergeMeta(const XSF::File& data, ModuleDataBuilder& dst) const
+    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
     {
       for (const auto& dep : data.Dependencies)
       {
-        MergeMeta(GetDependency(dep), dst);
+        MergeMeta(additionalFiles.at(dep), additionalFiles, dst);
       }
       if (data.Meta)
       {
         dst.AddMeta(*data.Meta);
       }
     }
-    
-    const XSF::File& GetDependency(const String& name) const
-    {
-      const auto it = Dependencies.find(name);
-      if (it == Dependencies.end() || 0 == it->second.Version)
-      {
-        Dbg("GSF: unresolved '%1%'", name);
-        throw MakeFormattedError(THIS_LINE, "Unresolved dependency '%1%'", name);
-      }
-      Dbg("GSF: apply '%1%'", name);
-      return it->second;
-    }
-    
-    void FillStrings() const
-    {
-      Strings::Array linear;
-      linear.reserve(Dependencies.size());
-      for (const auto& dep : Dependencies)
-      {
-        linear.push_back(dep.first);
-      }
-      PropertiesHelper(*Properties).SetStrings(linear);
-    }
-  private:
-    const Time::Seconds DefaultDuration;
-    mutable Parameters::Container::Ptr Properties;
-    mutable XSF::File Head;
-    mutable std::map<String, XSF::File> Dependencies;
-    
-    mutable Holder::Ptr Delegate;
   };
   
-  class Factory : public Module::Factory
+  Module::Factory::Ptr CreateFactory()
   {
-  public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
-    {
-      try
-      {
-        Dbg("Try to parse GSF");
-        XSF::File file;
-        if (const auto source = XSF::Parse(rawData, file))
-        {
-          PropertiesHelper props(*properties);
-          props.SetSource(*source);
-
-          const XsfView xsf(file);
-          if (xsf.IsSingleTrack())
-          {
-            Dbg("Singlefile GSF");
-            auto tune = xsf.CreateModuleData();
-            return Holder::Create(std::move(tune), std::move(properties), GetDuration(params));
-          }
-          else if (xsf.IsMultiTrack())
-          {
-            Dbg("Multifile GSF");
-            return MakePtr<MultiFileHolder>(std::move(file), std::move(properties), GetDuration(params));
-          }
-          else
-          {
-            Dbg("Invalid GSF");
-          }
-        }
-      }
-      catch (const std::exception&)
-      {
-        Dbg("Failed to parse GSF");
-      }
-      return Module::Holder::Ptr();
-    }
-  };
-  
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
+    return XSF::CreateFactory(MakePtr<Factory>());
   }
 }
 }

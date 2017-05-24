@@ -12,9 +12,9 @@
 #include "2sf.h"
 #include "memory_region.h"
 #include "xsf.h"
+#include "xsf_factory.h"
 //common includes
 #include <contract.h>
-#include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
@@ -23,11 +23,8 @@
 #include <devices/details/analysis_map.h>
 #include <formats/chiptune/emulation/nintendodssoundformat.h>
 #include <math/bitops.h>
-#include <module/additional_files.h>
 #include <module/players/analyzer.h>
-#include <module/players/duration.h>
 #include <module/players/fading.h>
-#include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
@@ -36,18 +33,15 @@
 #include <sound/sound_parameters.h>
 //std includes
 #include <list>
-#include <map>
 //3rdparty includes
 #include <3rdparty/vio2sf/desmume/SPU.h>
 #include <3rdparty/vio2sf/desmume/state.h>
-
-#define FILE_TAG 6934F890
 
 namespace Module
 {
 namespace TwoSF
 {
-  const Debug::Stream Dbg("Module::2SFSupp");
+  const Debug::Stream Dbg("Module::2SF");
   
   struct ModuleData
   {
@@ -377,17 +371,17 @@ namespace TwoSF
       return MakePtr<Renderer>(Tune, Info, std::move(target), std::move(params));
     }
     
-    static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties, Time::Seconds defaultDuration)
+    static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
       const auto period = Sound::GetFrameDuration(*properties);
-      const decltype(period) duration = tune->Meta && tune->Meta->Duration.Get() ? tune->Meta->Duration : decltype(tune->Meta->Duration)(defaultDuration);
+      const decltype(period) duration = tune->Meta->Duration;
       const uint_t frames = duration.Get() / period.Get();
-      const Information::Ptr info = CreateStreamInfo(frames);
+      Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
       {
         tune->Meta->Dump(*properties);
       }
-      return MakePtr<Holder>(std::move(tune), info, std::move(properties));
+      return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
     }
   private:
     const ModuleData::Ptr Tune;
@@ -436,139 +430,40 @@ namespace TwoSF
     XSF::MetaInformation::RWPtr Meta;
   };
   
-  class XsfView
+  class Factory : public XSF::Factory
   {
   public:
-    explicit XsfView(const XSF::File& file)
-      : File(file)
-    {
-    }
-    
-    bool IsSingleTrack() const
-    {
-      return File.Dependencies.empty();
-    }
-    
-    bool IsMultiTrack() const
-    {
-      return !File.Dependencies.empty();
-    }
-    
-    ModuleData::Ptr CreateModuleData() const
-    {
-      Require(File.Dependencies.empty());
-      ModuleDataBuilder builder;
-      if (File.PackedProgramSection)
-      {
-        builder.AddProgramSection(Binary::CreateContainer(File.PackedProgramSection->Start(), File.PackedProgramSection->Size()));
-      }
-      if (File.ReservedSection)
-      {
-        builder.AddReservedSection(Binary::CreateContainer(File.ReservedSection->Start(), File.ReservedSection->Size()));
-      }
-      if (File.Meta)
-      {
-        builder.AddMeta(*File.Meta);
-      }
-      return builder.CaptureResult();
-    }
-  private:
-    const XSF::File& File;
-  };
- 
-  class MultiFileHolder : public Module::Holder
-                        , public Module::AdditionalFiles
-  {
-  public:
-    MultiFileHolder(XSF::File head, Parameters::Container::Ptr properties, Time::Seconds defaultDuration)
-      : DefaultDuration(defaultDuration)
-      , Properties(std::move(properties))
-      , Head(std::move(head))
-    {
-      LoadDependenciesFrom(Head);
-      Head.CloneData();
-    }
-    
-    Module::Information::Ptr GetModuleInformation() const override
-    {
-      return GetDelegate().GetModuleInformation();
-    }
-
-    Parameters::Accessor::Ptr GetModuleProperties() const override
-    {
-      return GetDelegate().GetModuleProperties();
-    }
-
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
-    {
-      return GetDelegate().CreateRenderer(std::move(params), std::move(target));
-    }
-    
-    Strings::Array Enumerate() const override
-    {
-      Strings::Array result;
-      for (const auto& dep : Dependencies)
-      {
-        if (0 == dep.second.Version)
-        {
-          result.push_back(dep.first);
-        }
-      }
-      return result;
-    }
-    
-    void Resolve(const String& name, Binary::Container::Ptr data) override
-    {
-      XSF::File file;
-      if (XSF::Parse(name, *data, file))
-      {
-        Dbg("Resolving dependency '%1%'", name);
-        const auto it = Dependencies.find(name);
-        Require(it != Dependencies.end() && 0 == it->second.Version);
-        LoadDependenciesFrom(file);
-        file.CloneData();
-        it->second = std::move(file);
-      }
-    }
-  private:
-    void LoadDependenciesFrom(const XSF::File& file)
-    {
-      Require(Head.Version == file.Version);
-      for (const auto& dep : file.Dependencies)
-      {
-        Require(!dep.empty());
-        Require(Dependencies.emplace(dep, XSF::File()).second);
-        Dbg("Found unresolved dependency '%1%'", dep);
-      }
-    }
-    
-    const Module::Holder& GetDelegate() const
-    {
-      if (!Delegate)
-      {
-        Require(!Dependencies.empty());
-        auto mergedData = MergeDependencies();
-        FillStrings();
-        Delegate = TwoSF::Holder::Create(std::move(mergedData), std::move(Properties), DefaultDuration);
-        Dependencies.clear();
-        Head = XSF::File();
-      }
-      return *Delegate;
-    }
-    
-    ModuleData::Ptr MergeDependencies() const
+    Holder::Ptr CreateSinglefileModule(const XSF::File& file, Parameters::Container::Ptr properties) const override
     {
       ModuleDataBuilder builder;
-      MergeSections(Head, builder);
-      MergeMeta(Head, builder);
-      return builder.CaptureResult();
+      if (file.PackedProgramSection)
+      {
+        builder.AddProgramSection(Binary::CreateContainer(file.PackedProgramSection->Start(), file.PackedProgramSection->Size()));
+      }
+      if (file.ReservedSection)
+      {
+        builder.AddReservedSection(Binary::CreateContainer(file.ReservedSection->Start(), file.ReservedSection->Size()));
+      }
+      if (file.Meta)
+      {
+        builder.AddMeta(*file.Meta);
+      }
+      return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
     
-    void MergeSections(const XSF::File& data, ModuleDataBuilder& dst) const
+    Holder::Ptr CreateMultifileModule(const XSF::File& file, const std::map<String, XSF::File>& additionalFiles, Parameters::Container::Ptr properties) const
+    {
+      ModuleDataBuilder builder;
+      MergeSections(file, additionalFiles, builder);
+      MergeMeta(file, additionalFiles, builder);
+      return Holder::Create(builder.CaptureResult(), std::move(properties));
+    }
+  private:
+    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
     {
       if (!data.Dependencies.empty())
       {
-        MergeSections(GetDependency(data.Dependencies.front()), dst);
+        MergeSections(additionalFiles.at(data.Dependencies.front()), additionalFiles, dst);
       }
       if (data.PackedProgramSection)
       {
@@ -580,92 +475,22 @@ namespace TwoSF
       }
     }
     
-    void MergeMeta(const XSF::File& data, ModuleDataBuilder& dst) const
+    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
     {
       for (const auto& dep : data.Dependencies)
       {
-        MergeMeta(GetDependency(dep), dst);
+        MergeMeta(additionalFiles.at(dep), additionalFiles, dst);
       }
       if (data.Meta)
       {
         dst.AddMeta(*data.Meta);
       }
     }
-    
-    const XSF::File& GetDependency(const String& name) const
-    {
-      const auto it = Dependencies.find(name);
-      if (it == Dependencies.end() || 0 == it->second.Version)
-      {
-        Dbg("2SF: unresolved '%1%'", name);
-        throw MakeFormattedError(THIS_LINE, "Unresolved dependency '%1%'", name);
-      }
-      Dbg("2SF: apply '%1%'", name);
-      return it->second;
-    }
-    
-    void FillStrings() const
-    {
-      Strings::Array linear;
-      linear.reserve(Dependencies.size());
-      for (const auto& dep : Dependencies)
-      {
-        linear.push_back(dep.first);
-      }
-      PropertiesHelper(*Properties).SetStrings(linear);
-    }
-  private:
-    const Time::Seconds DefaultDuration;
-    mutable Parameters::Container::Ptr Properties;
-    mutable XSF::File Head;
-    mutable std::map<String, XSF::File> Dependencies;
-    
-    mutable Holder::Ptr Delegate;
   };
   
-  class Factory : public Module::Factory
+  Module::Factory::Ptr CreateFactory()
   {
-  public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
-    {
-      try
-      {
-        Dbg("Try to parse 2SF");
-        XSF::File file;
-        if (const auto source = XSF::Parse(rawData, file))
-        {
-          PropertiesHelper props(*properties);
-          props.SetSource(*source);
-
-          const XsfView xsf(file);
-          if (xsf.IsSingleTrack())
-          {
-            Dbg("Singlefile 2SF");
-            auto tune = xsf.CreateModuleData();
-            return Holder::Create(std::move(tune), std::move(properties), GetDuration(params));
-          }
-          else if (xsf.IsMultiTrack())
-          {
-            Dbg("Multifile 2SF");
-            return MakePtr<MultiFileHolder>(std::move(file), std::move(properties), GetDuration(params));
-          }
-          else
-          {
-            Dbg("Invalid 2SF");
-          }
-        }
-      }
-      catch (const std::exception&)
-      {
-        Dbg("Failed to parse 2SF");
-      }
-      return Module::Holder::Ptr();
-    }
-  };
-  
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
+    return XSF::CreateFactory(MakePtr<Factory>());
   }
 }
 }
