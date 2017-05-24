@@ -105,14 +105,14 @@ namespace Module
       
       props.SetDate(Year);
       
-      if (Volume != 0.0)
+      if (Volume)
       {
         out.SetValue(Parameters::ZXTune::Sound::GAIN, Parameters::ZXTune::Sound::GAIN_PRECISION * Volume);
       }
 
-      if (!(Fadeout == Time::Milliseconds()))
+      if (const auto fadeout = Fadeout.Get())
       {
-        out.SetValue(Parameters::ZXTune::Sound::FADEOUT, Parameters::ZXTune::Sound::FADEOUT_PRECISION * Fadeout.Get() / Fadeout.PER_SECOND);
+        out.SetValue(Parameters::ZXTune::Sound::FADEOUT, Parameters::ZXTune::Sound::FADEOUT_PRECISION * fadeout / Fadeout.PER_SECOND);
       }
     }
   }
