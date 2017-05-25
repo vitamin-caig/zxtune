@@ -28,6 +28,7 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //3rdparty includes
+#include <3rdparty/mgba/defines.h>
 #include <mgba/core/core.h>
 #include <mgba/gba/core.h>
 #include <mgba/core/blip_buf.h>
