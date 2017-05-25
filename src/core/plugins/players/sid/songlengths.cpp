@@ -24,7 +24,7 @@ namespace Sid
   struct SongEntry
   {
     const uint32_t HashCrc32;
-    const unsigned Seconds;
+    const uint32_t Seconds;
     
     bool operator < (uint32_t hashCrc32) const
     {
