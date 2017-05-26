@@ -25,6 +25,8 @@ android {
         targetSdkVersion 23
         //supported languages
         resConfigs "en", "de", "ru", "es", "cs"
+        //supported densities for vector drawables rasterization
+        generatedDensities = ["mdpi", "hdpi", "xhdpi", "xxhdpi"]
     }
 }
 
