@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:viewportWidth="400"
+    android:viewportHeight="400"
+    android:width="32dp"
+    android:height="32dp">
+    <path
+        android:pathData="M0 0H400V400H0Z"
+        android:fillColor="#4093cc" />
+    <path
+        android:pathData="M125 300v-10c5 0 10 0 10 -5v-65c0 -10 -5 -10 -25 -10v-10c0 -10 10 -15 25 -15 40 0 55 30 55 55 0 25 -15 60 -55 60zm5 -205v15c15 0 15 0 15 15 -5 0 -15 5 -15 15 0 10 5 25 25 25 20 0 30 -10 30 -30 0 -20 -10 -40 -40 -40zm-30 30v155c0 5 10 10 20 10v10H105C85 300 45 270 45 200 45 130 85 95 110 95h15v15c-15 0 -25 5 -25 15zm180 125h-65v-25l60 -70v25l-45 55h50zm80 50v-15l-20 -5v-30h25V235H340V95h-25l-30 30v155l-20 5v15z"
+        android:fillColor="#ffffff" />
+</vector>

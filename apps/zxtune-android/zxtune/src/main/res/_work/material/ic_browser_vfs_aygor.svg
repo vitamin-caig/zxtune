@@ -1,0 +1,8 @@
+<svg height="32" width="32" viewBox="0 0 384 384" xmlns="http://www.w3.org/2000/svg">
+    <path
+        fill="#faec29"
+        d="M12,372v-120l60-120v-120h84v120l60,120v120h-96v-120h-12v120z"/>
+    <path
+        fill="#7efa17"
+        d="M168,12v120l60,120v120h84v-120l60-120v-120h-96v120h-12v-120z"/>
+</svg>
