@@ -21,7 +21,6 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -297,13 +296,13 @@ public class ScanService extends IntentService {
 
       private static final int notificationId = R.drawable.ic_stat_notify_scan;
       private final NotificationManager manager;
-      private final NotificationCompat.Builder builder;
+      private final Notification.Builder builder;
       private final CharSequence titlePrefix;
 
       StatusNotification() {
         this.manager =
             (NotificationManager) ScanService.this.getSystemService(Context.NOTIFICATION_SERVICE);
-        this.builder = new NotificationCompat.Builder(ScanService.this);
+        this.builder = new Notification.Builder(ScanService.this);
         this.titlePrefix = getText(R.string.scanning_title);
         final Intent cancelIntent = new Intent(ScanService.this, ScanService.class);
         cancelIntent.setAction(ACTION_CANCEL);
@@ -323,7 +322,7 @@ public class ScanService extends IntentService {
         final int items = addedItems.get();
         str.append(getResources().getQuantityString(R.plurals.tracks, items, items));
         builder.setContentTitle(str.toString());
-        final Notification notification = builder.build();
+        final Notification notification = builder.getNotification();
         manager.notify(notificationId, notification);
       }
 

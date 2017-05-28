@@ -10,10 +10,10 @@
 
 package app.zxtune.ui.browser;
 
+import android.app.Fragment;
+import android.app.LoaderManager;
+import android.content.Loader;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -52,7 +52,7 @@ public class BrowserController {
   }
   
   public final void resetViews() {
-    final Loader<?> loader = loaderManager.getLoader(LOADER_ID); 
+    final Loader<?> loader = loaderManager.getLoader(LOADER_ID);
     if (loader instanceof SearchingLoader) {
       SearchingLoaderCallback.detachLoader((SearchingLoader) loader);
     } else if (loader instanceof ListingLoader) {

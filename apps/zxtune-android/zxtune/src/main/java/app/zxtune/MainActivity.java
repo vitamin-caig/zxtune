@@ -10,16 +10,16 @@
 
 package app.zxtune;
 
+import android.app.DialogFragment;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,7 +33,7 @@ import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.PlaylistFragment;
 import app.zxtune.ui.ViewPagerAdapter;
 
-public class MainActivity extends ActionBarActivity implements PlaybackServiceConnection.Callback {
+public class MainActivity extends AppCompatActivity implements PlaybackServiceConnection.Callback {
   
   private static final int NO_PAGE = -1;
   private PlaybackService service;
@@ -45,7 +45,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+    requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
     setContentView(R.layout.main_activity);
 
     fillPages();
@@ -101,7 +101,9 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   @Override
   public void onServiceConnected(PlaybackService service) {
     this.service = service;
-    for (Fragment f : getSupportFragmentManager().getFragments()) {
+    final int[] ids = {R.id.now_playing, R.id.playlist_view, R.id.browser_view};
+    for (int id : ids) {
+      final Fragment f = getFragmentManager().findFragmentById(id);
       if (f instanceof PlaybackServiceConnection.Callback) {
         ((PlaybackServiceConnection.Callback) f).onServiceConnected(service);
       }
@@ -125,7 +127,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   }
   
   private void fillPages() { 
-    final FragmentManager manager = getSupportFragmentManager();
+    final FragmentManager manager = getFragmentManager();
     final FragmentTransaction transaction = manager.beginTransaction();
     if (null == manager.findFragmentById(R.id.now_playing)) {
       transaction.replace(R.id.now_playing, NowPlayingFragment.createInstance());
@@ -193,14 +195,14 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   
   private void showAbout() {
     final DialogFragment fragment = AboutFragment.createInstance();
-    fragment.show(getSupportFragmentManager(), "about");
+    fragment.show(getFragmentManager(), "about");
     Analytics.sendUIEvent("About");
   }
   
   private void quit() {
     if (service != null) {
       service.getPlaybackControl().stop();
-      PlaybackServiceConnection.shutdown(getSupportFragmentManager());
+      PlaybackServiceConnection.shutdown(getFragmentManager());
     }
     finish();
   }

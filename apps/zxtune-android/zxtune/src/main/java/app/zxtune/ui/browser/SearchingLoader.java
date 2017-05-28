@@ -10,9 +10,9 @@
 
 package app.zxtune.ui.browser;
 
+import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.net.Uri;
-import android.support.v4.content.AsyncTaskLoader;
 
 import java.io.IOException;
 

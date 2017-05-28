@@ -11,6 +11,7 @@
 package app.zxtune;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -24,7 +25,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.Toast;
 
 import java.io.File;
@@ -82,13 +82,13 @@ public class RingtoneService extends IntentService {
   }
   
   private void showNotification(String moduleTitle) {
-    final Builder builder = new Builder(this);
+    final Notification.Builder builder = new Notification.Builder(this);
     builder.setOngoing(false);
     builder.setSmallIcon(R.drawable.ic_stat_notify_ringtone);
     builder.setContentTitle(getString(R.string.ringtone_changed));
     builder.setContentText(moduleTitle);
     final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    manager.notify(RingtoneService.class.hashCode(), builder.build());
+    manager.notify(RingtoneService.class.hashCode(), builder.getNotification());
   }
   
   @Override

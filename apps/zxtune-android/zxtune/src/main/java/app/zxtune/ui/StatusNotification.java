@@ -18,7 +18,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
-import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
 
 import app.zxtune.Log;
@@ -46,7 +45,7 @@ public class StatusNotification extends CallbackStub {
   private final Runnable delayedHide;
   private final Service service;
   private final NotificationManager manager;
-  private final NotificationCompat.Builder builder;
+  private final Notification.Builder builder;
   private final RemoteViews content;
   private static final int notificationId = R.drawable.ic_stat_notify_play;
   private static final int NOTIFICATION_DELAY = 200;
@@ -57,7 +56,7 @@ public class StatusNotification extends CallbackStub {
     this.delayedHide = new DelayedHideCallback();
     this.service = service;
     this.manager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
-    this.builder = new NotificationCompat.Builder(service);
+    this.builder = new Notification.Builder(service);
     this.content = new RemoteViews(service.getPackageName(), R.layout.notification);
     builder.setOngoing(true);
     builder.setContentIntent(createActivateIntent());
@@ -129,7 +128,7 @@ public class StatusNotification extends CallbackStub {
   }
 
   private Notification makeNotification() {
-    final Notification notification = builder.build();
+    final Notification notification = builder.getNotification();
     manager.notify(notificationId, notification);
     return notification;
   }

@@ -10,16 +10,16 @@
 
 package app.zxtune.ui;
 
+import android.app.DialogFragment;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -94,7 +94,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     // https://code.google.com/p/android/issues/detail?id=2410
     // https://code.google.com/p/android/issues/detail?id=2746
     // https://code.google.com/p/android/issues/detail?id=176377
-    ((ActionBarActivity) getActivity()).getSupportActionBar().addOnMenuVisibilityListener(new ActionBar.OnMenuVisibilityListener() {
+    ((AppCompatActivity) getActivity()).getSupportActionBar().addOnMenuVisibilityListener(new ActionBar.OnMenuVisibilityListener() {
       @Override
       public void onMenuVisibilityChanged(boolean isVisible) {
         if (!isVisible) {
@@ -250,7 +250,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     
     @Override
     public void onIOStatusChanged(boolean isActive) {
-      final ActionBarActivity activity = (ActionBarActivity)getActivity();
+      final AppCompatActivity activity = (AppCompatActivity)getActivity();
       //Seems like may be called before activity attach
       if (activity != null) {
         activity.setSupportProgressBarIndeterminateVisibility(isActive);
@@ -259,7 +259,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     
     @Override
     public void onError(final String error) {
-      final ActionBarActivity activity = (ActionBarActivity)getActivity();
+      final AppCompatActivity activity = (AppCompatActivity)getActivity();
       //Seems like may be called before activity attach
       if (activity != null) {
         Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
@@ -303,7 +303,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
           break;
         case R.id.action_make_ringtone:
           final DialogFragment fragment = RingtoneFragment.createInstance(data.getItem());
-          fragment.show(getActivity().getSupportFragmentManager(), "ringtone");
+          fragment.show(getActivity().getFragmentManager(), "ringtone");
           break;
         default:
           return false;

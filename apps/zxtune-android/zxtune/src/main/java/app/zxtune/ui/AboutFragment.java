@@ -10,19 +10,19 @@
 
 package app.zxtune.ui;
 
+import android.app.DialogFragment;
+import android.app.LoaderManager;
 import android.content.Context;
+import android.content.CursorLoader;
+import android.content.Loader;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.support.v4.util.ArrayMap;
 import android.support.v4.view.ViewPager;
+import android.util.ArrayMap;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,7 +51,7 @@ public class AboutFragment extends DialogFragment {
     final ViewPager pager = (ViewPager) res.findViewById(R.id.about_pager);
     pager.setAdapter(new ViewPagerAdapter(pager));
     final ExpandableListView plugins = (ExpandableListView) res.findViewById(R.id.about_plugins);
-    getLoaderManager().initLoader(0, null, new LoaderCallbacks<Cursor>() {
+    getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
 
       @Override
       public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {

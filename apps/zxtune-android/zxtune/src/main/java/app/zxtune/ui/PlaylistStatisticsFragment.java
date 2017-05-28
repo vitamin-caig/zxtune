@@ -12,14 +12,14 @@ package app.zxtune.ui;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.LoaderManager;
 import android.content.Context;
+import android.content.CursorLoader;
+import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.widget.ArrayAdapter;
 
 import app.zxtune.Analytics;
@@ -54,7 +54,7 @@ public class PlaylistStatisticsFragment extends DialogFragment {
   }
   
   private void setupLoader(final ArrayAdapter<String> items) {
-    getLoaderManager().initLoader(0, null, new LoaderCallbacks<Cursor>() {
+    getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
       @Override
       public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
         final Bundle args = getArguments();
