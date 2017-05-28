@@ -76,6 +76,7 @@ public final class Provider extends ContentProvider {
       final HashSet<Identifier> dirEntries = new HashSet<Identifier>();
       final Transaction transaction = db.startTransaction();
       final AtomicInteger modulesCount = new AtomicInteger(0);
+      final AtomicInteger logPeriod = new AtomicInteger(10);
       try {
         Core.detectModules(file, new ZXTune.ModuleDetectCallback() {
           @Override
@@ -93,8 +94,12 @@ public final class Provider extends ContentProvider {
 
               db.addTrack(track);
               final int doneTracks = modulesCount.incrementAndGet();
-              if (0 == doneTracks % 100) {
+              final int period = logPeriod.get();
+              if (0 == doneTracks % period) {
                 Log.d(TAG, "Found tracks: %d", doneTracks);
+                if (10 == doneTracks / period) {
+                  logPeriod.set(period * 10);
+                }
               }
             } catch (Exception e) {
               Log.w(TAG, e, "Skip module");
@@ -107,6 +112,7 @@ public final class Provider extends ContentProvider {
             }
           }
         });
+        Log.d(TAG, "Found %d tracks total", modulesCount.get());
         db.addArchive(new Archive(file.getUri(), modulesCount.get()));
         addDirEntries(dirEntries);
         transaction.succeed();
