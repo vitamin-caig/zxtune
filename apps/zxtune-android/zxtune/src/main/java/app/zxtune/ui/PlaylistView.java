@@ -88,7 +88,7 @@ public class PlaylistView extends DragSortListView
   @Override
   public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
     getCursorAdapter().changeCursor(cursor);
-    useStoredViewPosition();
+    ListViewTools.useStoredViewPosition(this);
   }
 
   @Override

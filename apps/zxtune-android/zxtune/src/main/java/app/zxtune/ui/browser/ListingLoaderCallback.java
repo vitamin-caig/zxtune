@@ -19,6 +19,7 @@ import android.widget.ProgressBar;
 
 import app.zxtune.MainApplication;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.ui.ListViewTools;
 
 class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, ListingLoader.Callback {
   
@@ -72,7 +73,7 @@ class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Li
       if (result instanceof BrowserViewModel) {
         control.loadingFinished();
         control.listing.setModel((BrowserViewModel) result);
-        control.listing.useStoredViewPosition();
+        ListViewTools.useStoredViewPosition(control.listing);
       } else {
         control.loadingFailed((Exception) result);
       }

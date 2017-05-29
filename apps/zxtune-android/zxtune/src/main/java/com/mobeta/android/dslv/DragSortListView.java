@@ -21,8 +21,6 @@
 
 package com.mobeta.android.dslv;
 
-import java.util.ArrayList;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
@@ -43,15 +41,17 @@ import android.widget.BaseAdapter;
 import android.widget.Checkable;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+
+import java.util.ArrayList;
+
 import app.zxtune.R;
-import app.zxtune.ui.ListViewCompat;
 
 /**
  * ListView subclass that mediates drag and drop resorting of items.
  * 
  * @author heycosmo
  */
-public class DragSortListView extends ListViewCompat {
+public class DragSortListView extends ListView {
 
   /**
    * The View that floats above the ListView and represents the dragged item.

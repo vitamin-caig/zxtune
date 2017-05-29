@@ -15,6 +15,7 @@ import android.app.LoaderManager;
 import android.content.Loader;
 import android.support.annotation.Nullable;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
+import app.zxtune.ui.ListViewTools;
 
 public class BrowserController {
   
@@ -183,7 +185,7 @@ public class BrowserController {
   //Some methods on callback does not called... 
   private void loadListing(@Nullable VfsDir dir, int viewPosition) {
     loaderManager.destroyLoader(LOADER_ID);
-    listing.storeViewPosition(viewPosition);
+    ListViewTools.storeViewPosition(listing, viewPosition);
     final LoaderManager.LoaderCallbacks<?> cb = ListingLoaderCallback.create(this, dir);
     loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
   }

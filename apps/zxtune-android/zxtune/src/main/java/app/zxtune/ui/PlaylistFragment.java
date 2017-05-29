@@ -16,6 +16,7 @@ import android.content.ContentResolver;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,7 +24,9 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import app.zxtune.Identifier;
@@ -163,12 +166,13 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     listing.setOnItemClickListener(new OnItemClickListener());
     listing.setPlayitemStateSource(playingState);
     listing.setEmptyView(view.findViewById(R.id.playlist_stub));
+    listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
     listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
     setEmptyText(R.string.starting);
 
     if (savedInstanceState == null) {
       Log.d(TAG, "Loading persistent state");
-      listing.storeViewPosition(state.getCurrentViewPosition());
+      ListViewTools.storeViewPosition(listing, state.getCurrentViewPosition());
     }
     listing.setRemoveListener(new PlaylistView.RemoveListener() {
       @Override
@@ -299,14 +303,14 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   }
   
   private String getActionModeTitle() {
-    final int count = listing.getCheckedItemsCount();
+    final int count = listing.getCheckedItemCount();
     return getResources().getQuantityString(R.plurals.tracks, count, count);
   }
   
-  private class MultiChoiceModeListener implements ListViewCompat.MultiChoiceModeListener {
+  private class MultiChoiceModeListener implements ListView.MultiChoiceModeListener {
 
     @Override
-    public boolean onCreateActionMode(ListViewCompat.ActionMode mode, Menu menu) {
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
       final MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.selection, menu);
       inflater.inflate(R.menu.playlist_items, menu);
@@ -315,13 +319,13 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
 
     @Override
-    public boolean onPrepareActionMode(ListViewCompat.ActionMode mode, Menu menu) {
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
       return false;
     }
 
     @Override
-    public boolean onActionItemClicked(ListViewCompat.ActionMode mode, MenuItem item) {
-      if (listing.processActionItemClick(item.getItemId())) {
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+      if (ListViewTools.processActionItemClick(listing, item.getItemId())) {
         return true;
       } else {
         switch (item.getItemId()) {
@@ -343,12 +347,11 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
 
     @Override
-    public void onDestroyActionMode(ListViewCompat.ActionMode mode) {
+    public void onDestroyActionMode(ActionMode mode) {
     }
 
     @Override
-    public void onItemCheckedStateChanged(ListViewCompat.ActionMode mode, int position, long id,
-        boolean checked) {
+    public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
       mode.setTitle(getActionModeTitle());
     }
   }

@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.SparseBooleanArray;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,9 +24,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 
@@ -103,6 +106,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     final BrowserView listing = (BrowserView) view.findViewById(R.id.browser_content);
     listing.setOnItemClickListener(new OnItemClickListener());
     listing.setEmptyView(view.findViewById(R.id.browser_stub));
+    listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
     listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
     return listing;
   }
@@ -229,7 +233,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
   
   private String getActionModeTitle() {
-    final int count = listing.getCheckedItemsCount();
+    final int count = listing.getCheckedItemCount();
     return getResources().getQuantityString(R.plurals.items, count, count);
   }
 
@@ -267,10 +271,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
   }
 
-  private class MultiChoiceModeListener implements ListViewCompat.MultiChoiceModeListener {
+  private class MultiChoiceModeListener implements ListView.MultiChoiceModeListener {
 
     @Override
-    public boolean onCreateActionMode(ListViewCompat.ActionMode mode, Menu menu) {
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
       setEnabledRecursive(sources, false);
       final MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.selection, menu);
@@ -280,13 +284,13 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
 
     @Override
-    public boolean onPrepareActionMode(ListViewCompat.ActionMode mode, Menu menu) {
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
       return false;
     }
 
     @Override
-    public boolean onActionItemClicked(ListViewCompat.ActionMode mode, MenuItem item) {
-      if (listing.processActionItemClick(item.getItemId())) {
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+      if (ListViewTools.processActionItemClick(listing, item.getItemId())) {
         return true;
       } else {
         switch (item.getItemId()) {
@@ -305,18 +309,17 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
 
     @Override
-    public void onDestroyActionMode(ListViewCompat.ActionMode mode) {
+    public void onDestroyActionMode(ActionMode mode) {
       setEnabledRecursive(sources, true);
     }
 
     @Override
-    public void onItemCheckedStateChanged(ListViewCompat.ActionMode mode, int position, long id,
-        boolean checked) {
+    public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
       mode.setTitle(getActionModeTitle());
     }
     
     private Uri[] getSelectedItemsUris() {
-      final Uri[] result = new Uri[listing.getCheckedItemsCount()];
+      final Uri[] result = new Uri[listing.getCheckedItemCount()];
       final SparseBooleanArray selected = listing.getCheckedItemPositions();
       final ListAdapter adapter = listing.getAdapter();
       int pos = 0;

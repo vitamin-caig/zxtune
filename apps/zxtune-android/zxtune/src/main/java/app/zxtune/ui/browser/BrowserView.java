@@ -14,11 +14,10 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 
-import app.zxtune.ui.ListViewCompat;
-
-public class BrowserView extends ListViewCompat {
+public class BrowserView extends ListView {
   
   private TextView emptyView;
 
