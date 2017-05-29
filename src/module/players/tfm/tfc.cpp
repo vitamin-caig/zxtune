@@ -22,6 +22,7 @@
 #include <boost/range/algorithm/max_element.hpp>
 //text includes
 #include <core/text/plugins.h>
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -233,6 +234,7 @@ namespace TFC
         if (data->Size())
         {
           props.SetSource(*container);
+          props.SetPlatform(Platforms::ZX_SPECTRUM);
           return TFM::CreateStreamedChiptune(data, properties);
         }
       }

@@ -42,6 +42,8 @@
 #include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
 //boost includes
 #include <boost/algorithm/string/predicate.hpp>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -431,6 +433,8 @@ namespace Sid
 
         const uint_t fps = tuneInfo.songSpeed() == SidTuneInfo::SPEED_CIA_1A || tuneInfo.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
         props.SetFramesFrequency(fps);
+        
+        props.SetPlatform(Platforms::COMMODORE_64);
 
         const Information::Ptr info = MakePtr<Information>(GetDuration(params), tune, fps, songIdx);
         return MakePtr<Holder>(tune, info, properties);

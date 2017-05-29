@@ -33,6 +33,8 @@
 //3rdparty
 #include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
 #include <3rdparty/snesspc/snes_spc/SPC_Filter.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -412,6 +414,7 @@ namespace SPC
           const SPC::Ptr tune = MakePtr<SPC>(rawData);
           props.SetSource(*container);
           props.SetFramesFrequency(50);
+          props.SetPlatform(Platforms::SUPER_NINTENDO_ENTERTAINMENT_SYSTEM);
           const Time::Milliseconds duration = dataBuilder.GetDuration(params);
           const Time::Milliseconds period = Time::Milliseconds(20);
           const uint_t frames = duration.Get() / period.Get();

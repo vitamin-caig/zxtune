@@ -25,6 +25,8 @@
 #include <unordered_map>
 //boost includes
 #include <boost/functional/hash.hpp>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -787,6 +789,7 @@ namespace SQTracker
       if (const auto container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else

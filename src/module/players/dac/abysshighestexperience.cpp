@@ -25,6 +25,8 @@
 #include <sound/sound_parameters.h>
 //3rdparty
 #include <3rdparty/hvl/hvl_replay.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -407,6 +409,7 @@ namespace AHX
         if (const auto container = Decoder->Parse(rawData, dataBuilder))
         {
           props.SetSource(*container);
+          props.SetPlatform(Platforms::AMIGA);
 
           const HVL::Ptr tune = MakePtr<HVL>(*container);
           const Information::Ptr info = MakePtr<Information>(*container);

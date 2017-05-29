@@ -43,6 +43,7 @@ namespace Module
     void SetVersion(uint_t major, uint_t minor);
     void SetVersion(const String& version);
     void SetDate(const String& date);
+    void SetPlatform(const String& platform);
     
     //Sound
     void SetFramesFrequency(uint_t hz);

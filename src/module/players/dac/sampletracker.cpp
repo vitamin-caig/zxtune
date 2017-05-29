@@ -15,6 +15,8 @@
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/digital/sampletracker.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -44,6 +46,7 @@ namespace SampleTracker
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
       {
         props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
         return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), properties, CHANNELS_COUNT);
       }
       else

@@ -19,6 +19,8 @@
 #include <formats/chiptune/aym/protracker2.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -453,6 +455,7 @@ namespace ProTracker2
       if (const auto container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else

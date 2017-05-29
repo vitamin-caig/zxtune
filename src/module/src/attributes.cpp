@@ -21,6 +21,7 @@ namespace Module
   extern const std::string ATTR_COMMENT("Comment");
   extern const std::string ATTR_VERSION("Version");
   extern const std::string ATTR_STRINGS("Strings");
+  extern const std::string ATTR_PLATFORM("Platform");
 
   extern const std::string ATTR_CRC("CRC");
   extern const std::string ATTR_FIXEDCRC("FixedCRC");

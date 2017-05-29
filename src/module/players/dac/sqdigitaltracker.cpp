@@ -18,6 +18,8 @@
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <module/players/tracking.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -310,6 +312,7 @@ namespace SQDigitalTracker
       if (const auto container = Formats::Chiptune::SQDigitalTracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else

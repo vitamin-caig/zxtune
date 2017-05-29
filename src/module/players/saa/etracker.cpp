@@ -17,6 +17,8 @@
 #include <formats/chiptune/saa/etracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -487,6 +489,7 @@ namespace ETracker
       if (const auto container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetPlatform(Platforms::SAM_COUPE);
         const SAA::Chiptune::Ptr chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
         return SAA::CreateHolder(chiptune);
       }

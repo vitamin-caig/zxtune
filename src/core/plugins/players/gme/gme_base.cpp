@@ -9,11 +9,14 @@
 **/
 
 //local includes
+#include "kss_supp.h"
+#include "vgm_supp.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
@@ -48,6 +51,10 @@
 #include <3rdparty/gme/gme/Vgm_Emu.h>
 #include <3rdparty/gme/gme/Gym_Emu.h>
 #include <3rdparty/gme/gme/Kss_Emu.h>
+//text includes
+#include <module/text/platforms.h>
+
+#define FILE_TAG 513E65A8
 
 namespace Module
 {
@@ -111,7 +118,7 @@ namespace GME
     {
       if (soundFreq != SoundFreq)
       {
-        Load(soundFreq);
+        Reload(soundFreq);
       }
     }
     
@@ -142,19 +149,24 @@ namespace GME
 
     void Load(uint_t soundFreq)
     {
-      const int oldPos = Emu ? Emu->tell() : 0;
       EmuPtr emu = CreateEmu();
       CheckError(emu->set_sample_rate(soundFreq));
       CheckError(emu->load_mem(&Data.front(), Data.size()));
-      CheckError(emu->start_track(Track));
-      if (oldPos)
-      {
-        CheckError(emu->seek(oldPos));
-      }
       Emu.swap(emu);
       SoundFreq = soundFreq;
     }
 
+    void Reload(uint_t soundFreq)
+    {
+      const int oldPos = Emu ? Emu->tell() : 0;
+      Load(soundFreq);
+      Reset();
+      if (oldPos)
+      {
+        CheckError(Emu->seek(oldPos));
+      }
+    }
+    
     Devices::Details::AnalysisMap& GetAnalysisFor(int freq) const
     {
       Devices::Details::AnalysisMap& result = Analysis[freq];
@@ -294,7 +306,14 @@ namespace GME
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+      try
+      {
+        return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+      }
+      catch (const std::exception& e)
+      {
+        throw Error(THIS_LINE, e.what());
+      }
     }
   private:
     const GME::Ptr Tune;
@@ -308,12 +327,15 @@ namespace GME
     return Dump(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size());
   }
   
+  using PlatformDetector = String (*)(const Dump&);
+  
   struct PluginDescription
   {
     const Char* const Id;
     const uint_t ChiptuneCaps;
     const EmuCreator CreateEmu;
     const decltype(&DefaultDataCreator) CreateData;
+    const PlatformDetector DetectPlatform;
   };
   
   namespace GYM
@@ -340,7 +362,7 @@ namespace GME
       return result;
     }
   }
-  
+ 
   const Time::Milliseconds PERIOD(20);
   
   Time::Milliseconds GetProperties(const GME& gme, PropertiesHelper& props)
@@ -400,8 +422,10 @@ namespace GME
             Require(HasContainer(Desc.Id, properties));
           }
 
-          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, Desc.CreateData(*container), container->StartTrackIndex());
           PropertiesHelper props(*properties);
+          auto data = Desc.CreateData(*container);
+          props.SetPlatform(Desc.DetectPlatform(data));
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, std::move(data), container->StartTrackIndex());
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
           const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
@@ -444,8 +468,10 @@ namespace GME
       {
         if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
         {
-          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, Desc.CreateData(*container), 0);
           PropertiesHelper props(*properties);
+          auto data = Desc.CreateData(*container);
+          props.SetPlatform(Desc.DetectPlatform(data));
+          const GME::Ptr tune = MakePtr<GME>(Desc.CreateEmu, std::move(data), 0);
           const Time::Milliseconds storedDuration = GetProperties(*tune, props);
           const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
           const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
@@ -484,7 +510,8 @@ namespace GME
         "NSF",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
         &Create< ::Nsf_Emu>,
-        &DefaultDataCreator
+        &DefaultDataCreator,
+        [](const Dump&) -> String {return Platforms::NINTENDO_ENTERTAINMENT_SYSTEM;}
       },
       &Formats::Multitrack::CreateNSFDecoder,
       &Formats::Chiptune::CreateNSFDecoder,
@@ -495,7 +522,8 @@ namespace GME
         "NSFE",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
         &Create< ::Nsfe_Emu>,
-        &DefaultDataCreator
+        &DefaultDataCreator,
+        [](const Dump&) -> String {return Platforms::NINTENDO_ENTERTAINMENT_SYSTEM;}
       },
       &Formats::Multitrack::CreateNSFEDecoder,
       &Formats::Chiptune::CreateNSFEDecoder,
@@ -506,7 +534,8 @@ namespace GME
         "GBS",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::LR35902,
         &Create< ::Gbs_Emu>,
-        &DefaultDataCreator
+        &DefaultDataCreator,
+        [](const Dump&) -> String {return Platforms::GAME_BOY;}
       },
       &Formats::Multitrack::CreateGBSDecoder,
       &Formats::Chiptune::CreateGBSDecoder,
@@ -517,7 +546,8 @@ namespace GME
         "SAP",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
         &Create< ::Sap_Emu>,
-        &DefaultDataCreator
+        &DefaultDataCreator,
+        [](const Dump&) -> String {return Platforms::ATARI;}
       },
       &Formats::Multitrack::CreateSAPDecoder,
       &Formats::Chiptune::CreateSAPDecoder,
@@ -528,7 +558,8 @@ namespace GME
         "KSSX",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
         &Create< ::Kss_Emu>,
-        &DefaultDataCreator
+        &DefaultDataCreator,
+        &KSS::DetectPlatform
       },
       &Formats::Multitrack::CreateKSSXDecoder,
       &Formats::Chiptune::CreateKSSXDecoder
@@ -539,7 +570,8 @@ namespace GME
         "HES",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::HUC6270,
         &Create< ::Hes_Emu>,
-        &DefaultDataCreator
+        &DefaultDataCreator,
+        [](const Dump&) -> String {return Platforms::PC_ENGINE;}
       },
       &Formats::Multitrack::CreateHESDecoder,
       &Formats::Chiptune::CreateHESDecoder
@@ -562,7 +594,8 @@ namespace GME
         "VGM",
         ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI,
         &Create< ::Vgm_Emu>,
-        &DefaultDataCreator
+        &DefaultDataCreator,
+        &VGM::DetectPlatform
       },
       &Formats::Chiptune::CreateVideoGameMusicDecoder
     },
@@ -572,7 +605,8 @@ namespace GME
         "GYM",
         ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI,
         &Create< ::Gym_Emu>,
-        &GYM::CreateData
+        &GYM::CreateData,
+        [](const Dump&) -> String {return Platforms::SEGA_GENESIS;}
       },
       &Formats::Chiptune::CreateGYMDecoder
     },
@@ -582,7 +616,8 @@ namespace GME
         "KSS",
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
         &Create< ::Kss_Emu>,
-        &DefaultDataCreator
+        &DefaultDataCreator,
+        &KSS::DetectPlatform
       },
       &Formats::Chiptune::CreateKSSDecoder
     }

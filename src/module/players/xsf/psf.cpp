@@ -22,6 +22,7 @@
 #include <binary/container_factories.h>
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
+#include <module/attributes.h>
 #include <module/players/analyzer.h>
 #include <module/players/fading.h>
 #include <module/players/streaming.h>
@@ -36,6 +37,8 @@
 #include <3rdparty/he/Core/psx.h>
 #include <3rdparty/he/Core/r3000.h>
 #include <3rdparty/he/Core/spu.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -423,6 +426,7 @@ namespace PSF
       {
         tune->Meta->Dump(*properties);
       }
+      properties->SetValue(ATTR_PLATFORM, tune->Version == 1 ? Platforms::PLAYSTATION : Platforms::PLAYSTATION_2);
       properties->SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Stamp<uint64_t, Parameters::ZXTune::Sound::FRAMEDURATION_PRECISION>(period).Get());
       return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
     }

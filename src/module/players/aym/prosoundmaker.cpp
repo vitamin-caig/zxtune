@@ -22,6 +22,8 @@
 #include <module/players/simple_orderlist.h>
 //boost includes
 #include <boost/optional.hpp>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -525,6 +527,7 @@ namespace ProSoundMaker
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProSoundMaker::ParseCompiled(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else

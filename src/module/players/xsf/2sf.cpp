@@ -23,6 +23,7 @@
 #include <devices/details/analysis_map.h>
 #include <formats/chiptune/emulation/nintendodssoundformat.h>
 #include <math/bitops.h>
+#include <module/attributes.h>
 #include <module/players/analyzer.h>
 #include <module/players/fading.h>
 #include <module/players/streaming.h>
@@ -36,6 +37,8 @@
 //3rdparty includes
 #include <3rdparty/vio2sf/desmume/SPU.h>
 #include <3rdparty/vio2sf/desmume/state.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -381,6 +384,7 @@ namespace TwoSF
       {
         tune->Meta->Dump(*properties);
       }
+      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS);
       return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
     }
   private:

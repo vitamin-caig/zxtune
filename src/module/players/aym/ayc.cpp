@@ -19,6 +19,8 @@
 #include <core/core_parameters.h>
 #include <formats/chiptune/aym/ayc.h>
 #include <module/players/properties_helper.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -115,6 +117,7 @@ namespace AYC
         {
           PropertiesHelper props(*properties);
           props.SetSource(*container);
+          props.SetPlatform(Platforms::AMSTRAD_CPC);
           properties->SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, 1000000);
           return AYM::CreateStreamedChiptune(data, properties);
         }

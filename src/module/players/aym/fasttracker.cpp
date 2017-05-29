@@ -20,6 +20,8 @@
 #include <math/numeric.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -576,6 +578,7 @@ namespace FastTracker
       if (const auto container = Formats::Chiptune::FastTracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else

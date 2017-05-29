@@ -20,6 +20,8 @@
 #include <math/numeric.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -366,6 +368,7 @@ namespace ProTracker1
       if (const auto container = Formats::Chiptune::ProTracker1::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
       }
       else

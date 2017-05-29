@@ -22,6 +22,7 @@
 #include <module/players/simple_orderlist.h>
 //text includes
 #include <core/text/plugins.h>
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -408,6 +409,7 @@ namespace ProTracker3
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
         const uint_t patOffset = dataBuilder.GetPatOffset();
         auto modData = dataBuilder.CaptureResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)

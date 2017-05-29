@@ -17,6 +17,8 @@
 #include <module/players/streaming.h>
 //library includes
 #include <formats/chiptune/fm/tfd.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -144,6 +146,7 @@ namespace TFD
         if (data->Size())
         {
           props.SetSource(*container);
+          props.SetPlatform(Platforms::ZX_SPECTRUM);
           return TFM::CreateStreamedChiptune(data, properties);
         }
       }

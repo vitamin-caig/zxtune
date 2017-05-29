@@ -20,6 +20,7 @@
 #include <binary/container_factories.h>
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
+#include <module/attributes.h>
 #include <module/players/analyzer.h>
 #include <module/players/fading.h>
 #include <module/players/streaming.h>
@@ -33,6 +34,8 @@
 #include <mgba/gba/core.h>
 #include <mgba/core/blip_buf.h>
 #include <mgba-util/vfs.h>
+//text includes
+#include <module/text/platforms.h>
 
 #undef min
 
@@ -346,6 +349,7 @@ namespace GSF
       {
         tune->Meta->Dump(*properties);
       }
+      properties->SetValue(ATTR_PLATFORM, Platforms::GAME_BOY_ADVANCE);
       return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
     }
   private:

@@ -36,6 +36,8 @@ namespace Module
   extern const std::string ATTR_VERSION;
   //! Strings (e.g. from sample names)
   extern const std::string ATTR_STRINGS;
+  //! Platform id
+  extern const std::string ATTR_PLATFORM;
   //@}
 
   //@{

@@ -93,6 +93,11 @@ namespace Module
   {
     Delegate.SetValue(ATTR_DATE, date);
   }
+
+  void PropertiesHelper::SetPlatform(const String& platform)
+  {
+    Delegate.SetValue(ATTR_PLATFORM, platform);
+  }
   
   void PropertiesHelper::SetFramesFrequency(uint_t freq)
   {
