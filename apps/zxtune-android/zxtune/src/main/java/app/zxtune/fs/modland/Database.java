@@ -162,8 +162,8 @@ final class Database {
 
   Database(Context context, VfsCache cache) throws IOException {
     this.helper = new DBProvider(Helper.create(context));
-    this.groups = new HashMap<String, Tables.Groups>();
-    this.groupTracks = new HashMap<String, Tables.GroupTracks>();
+    this.groups = new HashMap<>();
+    this.groupTracks = new HashMap<>();
     for (String group : Tables.LIST) {
       groups.put(group, new Tables.Groups(helper, group));
       groupTracks.put(group, new Tables.GroupTracks(helper, group));

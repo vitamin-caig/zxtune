@@ -15,7 +15,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,7 +72,7 @@ public final class Provider extends ContentProvider {
       final Uri path = fileId.getDataLocation();
       Log.d(TAG, "Add archive content of %s", path);
       final VfsFile file = openFile(path);
-      final HashSet<Identifier> dirEntries = new HashSet<Identifier>();
+      final HashSet<Identifier> dirEntries = new HashSet<>();
       final Transaction transaction = db.startTransaction();
       final AtomicInteger modulesCount = new AtomicInteger(0);
       final AtomicInteger logPeriod = new AtomicInteger(10);
@@ -136,7 +135,7 @@ public final class Provider extends ContentProvider {
   }
 
   private void addDirEntries(HashSet<Identifier> dirs) {
-    final HashSet<Identifier> created = new HashSet<Identifier>();
+    final HashSet<Identifier> created = new HashSet<>();
     for (Identifier dir : dirs) {
       for (Identifier toCreate = dir; !created.contains(toCreate); ) {
         final DirEntry dirEntry = DirEntry.create(toCreate);

@@ -230,7 +230,9 @@ public class MainService extends Service {
         setupNotification(type);
       } else if (key.startsWith(ZXTune.Properties.PREFIX)) {
         final Object value = intent.getExtras().get(PreferencesActivity.EXTRA_PREFERENCE_VALUE);
-        setProperty(key, value, ZXTune.GlobalOptions.instance());
+        if (value != null) {
+          setProperty(key, value, ZXTune.GlobalOptions.instance());
+        }
       }
     }
   }

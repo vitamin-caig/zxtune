@@ -14,7 +14,6 @@ import android.net.Uri;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -44,7 +43,7 @@ public final class Scanner {
   private final HashMap<Uri, VfsFile> archivesCache;
   
   public Scanner() {
-    this.archivesCache = new HashMap<Uri, VfsFile>();
+    this.archivesCache = new HashMap<>();
   }
   
   public final void analyze(Uri[] uris, Callback cb) {
@@ -80,8 +79,8 @@ public final class Scanner {
   
   private void analyzeDir(VfsDir directory, Callback cb) throws Exception {
     //analyze depth first
-    final ArrayList<VfsDir> dirs = new ArrayList<VfsDir>();
-    final ArrayList<VfsFile> files = new ArrayList<VfsFile>();
+    final ArrayList<VfsDir> dirs = new ArrayList<>();
+    final ArrayList<VfsFile> files = new ArrayList<>();
     directory.enumerate(new VfsDir.Visitor() {
       
       @Override
@@ -185,7 +184,7 @@ public final class Scanner {
   
   private boolean analyzeArchiveFile(Identifier id, Callback cb) throws Exception {
     final VfsFile archive = openArchive(id.getDataLocation());
-    ZXTune.Module module;
+    final ZXTune.Module module;
     try {
       module = Core.loadModule(archive, id.getSubpath());
     } catch (Exception e) {

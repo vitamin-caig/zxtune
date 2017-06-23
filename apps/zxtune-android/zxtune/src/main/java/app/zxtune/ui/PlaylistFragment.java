@@ -61,7 +61,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     this.playingState = new NowPlayingState();
     setHasOptionsMenu(true);
   }
-  
+
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);

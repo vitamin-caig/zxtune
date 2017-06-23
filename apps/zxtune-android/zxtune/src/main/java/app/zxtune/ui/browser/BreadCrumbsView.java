@@ -69,7 +69,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     if (dir == null || Uri.EMPTY.equals(dir.getUri())) {
       hideButtons(0, container.getChildCount());
     } else {
-      final ArrayList<VfsDir> elems = new ArrayList<VfsDir>();
+      final ArrayList<VfsDir> elems = new ArrayList<>();
       while (dir != null) {
         elems.add(dir);
         dir = (VfsDir) dir.getParent();

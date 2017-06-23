@@ -22,7 +22,7 @@ import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import android.util.ArrayMap;
+import android.support.v4.util.ArrayMap;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -61,18 +61,18 @@ public class AboutFragment extends DialogFragment {
       @Override
       public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         final Context ctx = getActivity();
-        final ArrayList<ArrayMap<String, String>> groups = new ArrayList<ArrayMap<String, String>>();
-        final ArrayList<ArrayList<ArrayMap<String, String>>> childs = new ArrayList<ArrayList<ArrayMap<String, String>>>();
+        final ArrayList<ArrayMap<String, String>> groups = new ArrayList<>();
+        final ArrayList<ArrayList<ArrayMap<String, String>>> children = new ArrayList<>();
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
           final int type = cursor.getInt(PluginsProvider.Columns.Type.ordinal());
           final String descr = cursor.getString(PluginsProvider.Columns.Description.ordinal());
           while (type >= groups.size()) {
             groups.add(new ArrayMap<String, String>());
-            childs.add(new ArrayList<ArrayMap<String, String>>());
+            children.add(new ArrayList<ArrayMap<String, String>>());
           }
-          final ArrayMap<String, String> plugin = new ArrayMap<String, String>(1);
+          final ArrayMap<String, String> plugin = new ArrayMap<>(1);
           plugin.put(PluginsProvider.Columns.Description.name(), "\t" + descr);
-          childs.get(type).add(plugin);
+          children.get(type).add(plugin);
         }
         for (int type = 0; type != groups.size(); ++type) {
           groups.get(type).put(PluginsProvider.Columns.Type.name(), ctx.getString(getPluginTypeString(type)));
@@ -84,7 +84,7 @@ public class AboutFragment extends DialogFragment {
         final int[] childTo = {android.R.id.text1};
         final SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(getActivity(), 
             groups, android.R.layout.simple_expandable_list_item_1, groupFrom, groupTo,
-            childs, android.R.layout.simple_list_item_1, childFrom, childTo);
+                children, android.R.layout.simple_list_item_1, childFrom, childTo);
         
         plugins.setAdapter(adapter);
       }

@@ -440,7 +440,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      final HashSet<String> compos = new HashSet<String>();
+      final HashSet<String> compos = new HashSet<>();
       catalog.queryPartyTracks(party, new Catalog.TracksVisitor() {
         @Override
         public void accept(Track obj) {

@@ -104,7 +104,7 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
     final List<String> path;
 
     AyonMusicObject(String path) {
-      this.path = new ArrayList<String>();
+      this.path = new ArrayList<>();
       this.path.add(path);
     }
 
@@ -203,7 +203,7 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
     }
 
     private ArrayList<String> createNestedPath(String name) {
-      final ArrayList<String> result = new ArrayList<String>(path.size() + 1);
+      final ArrayList<String> result = new ArrayList<>(path.size() + 1);
       result.addAll(path);
       result.add(name);
       return result;

@@ -80,7 +80,7 @@ public class RingtoneService extends IntentService {
       }
     });
   }
-  
+
   private void showNotification(String moduleTitle) {
     final Notification.Builder builder = new Notification.Builder(this);
     builder.setOngoing(false);

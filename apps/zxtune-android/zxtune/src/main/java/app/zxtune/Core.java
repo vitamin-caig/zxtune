@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -14,7 +15,7 @@ import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 
 public class Core {
-  private final static String TAG = Core.class.getName();
+  private static final String TAG = Core.class.getName();
 
   public static ZXTune.Module loadModule(VfsFile file, String subpath) throws Exception {
     final ByteBuffer content = file.getContent();
@@ -28,7 +29,7 @@ public class Core {
       return new Resolver(file).resolve(obj, files);
     } else {
       //was not resolved by ZXTune library core
-      throw new Exception(String.format(Locale.US, "Unresolved additional files '%s'", files.toString()));
+      throw new Exception(String.format(Locale.US, "Unresolved additional files '%s'", Arrays.toString(files)));
     }
   }
 
@@ -70,7 +71,7 @@ public class Core {
           delegate.onModule(subpath, resolve(obj, files));
         } else {
           //was not resolved by core
-          Log.d(TAG, "Unresolved additional files '%s'", files.toString());
+          Log.d(TAG, "Unresolved additional files '%s'", Arrays.toString(files));
         }
       } catch (IOException e) {
         Log.w(TAG, e, "Skip module at %s in %s", subpath, location.getUri());
@@ -92,8 +93,8 @@ public class Core {
   private static class Resolver {
 
     private VfsDir parent;
-    private HashMap<String, VfsFile> files = new HashMap<String, VfsFile>();
-    private HashMap<String, VfsDir> dirs = new HashMap<String, VfsDir>();
+    private final HashMap<String, VfsFile> files = new HashMap<>();
+    private final HashMap<String, VfsDir> dirs = new HashMap<>();
 
     Resolver(VfsFile content) {
       final VfsObject parent = content.getParent();
@@ -105,8 +106,8 @@ public class Core {
     final ZXTune.Module resolve(ZXTune.Module module, String[] files) throws Exception {
       while (files != null && 0 != files.length) {
         resolveIteration(module, files);
-        String[] newFiles = module.getAdditionalFiles();
-        if (files.equals(newFiles)) {
+        final String[] newFiles = module.getAdditionalFiles();
+        if (Arrays.equals(files, newFiles)) {
           throw new Exception("Nothing resolved");
         }
         files = newFiles;

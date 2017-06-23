@@ -32,8 +32,8 @@ class RealBrowserViewModel implements BrowserViewModel {
   
   RealBrowserViewModel(Context context) {
     this.context = context;
-    this.dirs = new ArrayList<VfsDir>();
-    this.files = new ArrayList<VfsFile>();
+    this.dirs = new ArrayList<>();
+    this.files = new ArrayList<>();
   }
   
   final void add(VfsDir dir) {

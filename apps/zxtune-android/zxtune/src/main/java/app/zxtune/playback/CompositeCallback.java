@@ -21,7 +21,7 @@ public final class CompositeCallback implements Callback {
   private boolean lastIOStatus;
   
   public CompositeCallback() {
-    this.delegates = new LinkedList<Callback>();
+    this.delegates = new LinkedList<>();
   }
   
   @Override

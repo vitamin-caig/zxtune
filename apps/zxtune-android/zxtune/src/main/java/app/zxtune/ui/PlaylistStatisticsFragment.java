@@ -44,7 +44,7 @@ public class PlaylistStatisticsFragment extends DialogFragment {
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     final Context ctx = getActivity();
     
-    final ArrayAdapter<String> adapter = new ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1);
+    final ArrayAdapter<String> adapter = new ArrayAdapter<>(ctx, android.R.layout.simple_list_item_1);
     final AlertDialog result = new AlertDialog.Builder(ctx)
       .setTitle(R.string.statistics)
       .setAdapter(adapter, null)

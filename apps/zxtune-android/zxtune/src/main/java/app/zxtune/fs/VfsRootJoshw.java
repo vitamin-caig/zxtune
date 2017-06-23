@@ -183,7 +183,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
       ByteBuffer content;
 
       MusicObject(String path) {
-        this.path = new ArrayList<String>();
+        this.path = new ArrayList<>();
         this.path.add(path);
       }
 
@@ -280,7 +280,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
       }
 
       private ArrayList<String> createNestedPath(String name) {
-        final ArrayList<String> result = new ArrayList<String>(path.size() + 1);
+        final ArrayList<String> result = new ArrayList<>(path.size() + 1);
         result.addAll(path);
         result.add(name);
         return result;
@@ -333,7 +333,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
           endOfName = filename.lastIndexOf('.');
         }
         name = filename.substring(0, endOfName - 1).trim();
-        final TreeSet<String> meta = new TreeSet<String>();
+        final TreeSet<String> meta = new TreeSet<>();
         for (int prevMetaPos = endOfName; ; ) {
           final int metaPos = filename.indexOf('(', prevMetaPos);
           if (metaPos == -1) {

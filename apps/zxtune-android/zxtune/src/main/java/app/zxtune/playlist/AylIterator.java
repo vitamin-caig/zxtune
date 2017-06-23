@@ -62,7 +62,7 @@ public final class AylIterator {
 
   private static ArrayList<ReferencesIterator.Entry> parse(BufferedReader reader) throws IOException {
     final LinkedList<String> strings = readStrings(reader);
-    final ArrayList<ReferencesIterator.Entry> result = new ArrayList<ReferencesIterator.Entry>(strings.size());
+    final ArrayList<ReferencesIterator.Entry> result = new ArrayList<>(strings.size());
     parseAllParameters(strings);
     while (!strings.isEmpty()) {
       final ReferencesIterator.Entry entry = new ReferencesIterator.Entry();
@@ -74,7 +74,7 @@ public final class AylIterator {
   }
   
   private static LinkedList<String> readStrings(BufferedReader reader) throws IOException {
-    final LinkedList<String> res = new LinkedList<String>();
+    final LinkedList<String> res = new LinkedList<>();
     String line;
     while ((line = reader.readLine()) != null) {
       res.add(line.trim());

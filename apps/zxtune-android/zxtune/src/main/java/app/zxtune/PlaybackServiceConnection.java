@@ -71,7 +71,7 @@ public class PlaybackServiceConnection extends Fragment {
       Log.w(TAG, e, "onActivityCreated()");
     }
   }
-  
+
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);

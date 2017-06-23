@@ -11,7 +11,6 @@
 package app.zxtune.sound;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public final class WaveWriteSamplesTarget implements SamplesTarget {

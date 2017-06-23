@@ -54,9 +54,9 @@ public final class VfsIterator {
 
   public VfsIterator(Uri[] paths, ErrorHandler handler) {
     this.handler = handler;
-    this.files = new ArrayDeque<VfsFile>();
-    this.dirs = new ArrayDeque<VfsDir>();
-    this.paths = new ArrayDeque<Uri>(paths.length);
+    this.files = new ArrayDeque<>();
+    this.dirs = new ArrayDeque<>();
+    this.paths = new ArrayDeque<>(paths.length);
     Collections.addAll(this.paths, paths);
     prefetch();
   }

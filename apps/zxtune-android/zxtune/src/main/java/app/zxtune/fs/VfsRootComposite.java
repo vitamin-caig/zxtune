@@ -20,7 +20,7 @@ final class VfsRootComposite extends StubObject implements VfsRoot {
   private final ArrayList<VfsRoot> subRoots;
 
   VfsRootComposite() {
-    subRoots = new ArrayList<VfsRoot>();
+    subRoots = new ArrayList<>();
   }
 
   final void addSubroot(VfsRoot root) {

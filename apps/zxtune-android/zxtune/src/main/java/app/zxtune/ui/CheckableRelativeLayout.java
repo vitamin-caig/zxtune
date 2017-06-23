@@ -37,12 +37,12 @@ public class CheckableRelativeLayout extends RelativeLayout implements Checkable
   }
   
   /*
-   * Delegate checking to childs or self if ther're no checkable childrens at all
+   * Delegate checking to children or self if there are no checkable children at all
    */
   @Override
   public void onFinishInflate() {
     super.onFinishInflate();
-    final LinkedList<Checkable> delegates = new LinkedList<Checkable>();
+    final LinkedList<Checkable> delegates = new LinkedList<>();
     addCheckables(this, delegates);
     if (!delegates.isEmpty()) {
       this.delegates = delegates;

@@ -28,7 +28,7 @@ public final class SyncPlayer implements Player {
 
   public SyncPlayer(SamplesSource source, SamplesTarget target, PlayerEventsListener events) {
     this.events = events;
-    this.buffers = new Exchanger<short[]>();
+    this.buffers = new Exchanger<>();
     this.source = source;
     this.target = target;
     this.isActive = false;

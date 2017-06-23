@@ -34,7 +34,7 @@ public final class XspfIterator {
 
   private static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
     try {
-      final ArrayList<ReferencesIterator.Entry> result = new ArrayList<ReferencesIterator.Entry>();
+      final ArrayList<ReferencesIterator.Entry> result = new ArrayList<>();
       final RootElement root = createPlaylistParseRoot(result);
       Xml.parse(newInputStream(buf), Xml.Encoding.UTF_8, root.getContentHandler());
       return result;

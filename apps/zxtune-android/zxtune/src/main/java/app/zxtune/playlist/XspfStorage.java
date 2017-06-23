@@ -40,7 +40,7 @@ public class XspfStorage {
     if (root.mkdirs()) {
       Log.d(TAG, "Created playlists storage dir");
     }
-    this.names = new ArrayList<String>();
+    this.names = new ArrayList<>();
 
     fillNames();
   }

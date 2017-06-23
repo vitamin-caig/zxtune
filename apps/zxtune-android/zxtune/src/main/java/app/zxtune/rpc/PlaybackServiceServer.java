@@ -12,6 +12,7 @@ package app.zxtune.rpc;
 
 import android.net.Uri;
 import android.os.RemoteException;
+import android.support.annotation.Nullable;
 
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -47,9 +48,10 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     this.playback = delegate.getPlaybackControl();
     this.seek = delegate.getSeekControl();
     this.visualizer = delegate.getVisualizer();
-    this.callbacks = new HashMap<IRemoteCallback, Callback>();
+    this.callbacks = new HashMap<>();
   }
 
+  @Nullable
   @Override
   public ParcelablePlaybackItem getNowPlaying() {
     try {

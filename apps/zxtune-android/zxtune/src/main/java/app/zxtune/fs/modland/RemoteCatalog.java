@@ -154,7 +154,7 @@ class RemoteCatalog extends Catalog {
 
     @Override
     public Track findTrack(int id, final String filename) throws IOException {
-      final AtomicReference<Track> result = new AtomicReference<Track>();
+      final AtomicReference<Track> result = new AtomicReference<>();
       queryTracks(id, new TracksVisitor() {
         @Override
         public void setCountHint(int size) {

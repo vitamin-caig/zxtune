@@ -150,7 +150,7 @@ public class ScanService extends IntentService {
 
     InsertItemsThread() {
       super(TAG + ".InsertItemsThread");
-      this.queue = new ArrayBlockingQueue<PlayableItem>(MAX_QUEUE_SIZE);
+      this.queue = new ArrayBlockingQueue<>(MAX_QUEUE_SIZE);
       this.active = new AtomicBoolean();
     }
 

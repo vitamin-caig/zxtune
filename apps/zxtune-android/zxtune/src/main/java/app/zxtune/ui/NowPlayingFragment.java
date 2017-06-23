@@ -94,14 +94,17 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     // https://code.google.com/p/android/issues/detail?id=2410
     // https://code.google.com/p/android/issues/detail?id=2746
     // https://code.google.com/p/android/issues/detail?id=176377
-    ((AppCompatActivity) getActivity()).getSupportActionBar().addOnMenuVisibilityListener(new ActionBar.OnMenuVisibilityListener() {
-      @Override
-      public void onMenuVisibilityChanged(boolean isVisible) {
-        if (!isVisible) {
-          trackActionsMenu.close();
+    final ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+    if (bar != null) {
+      bar.addOnMenuVisibilityListener(new ActionBar.OnMenuVisibilityListener() {
+        @Override
+        public void onMenuVisibilityChanged(boolean isVisible) {
+          if (!isVisible) {
+            trackActionsMenu.close();
+          }
         }
-      }
-    });
+      });
+    }
     bindViewsToConnectedService();
   }
   

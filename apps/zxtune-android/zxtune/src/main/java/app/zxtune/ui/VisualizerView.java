@@ -116,7 +116,7 @@ public class VisualizerView extends View {
     private boolean[] changes;
     private int lowerChange;
     private int upperChange;
-    
+
     public SpectrumVisualizer() {
       this.barRect = new Rect();
       this.paint = new Paint();

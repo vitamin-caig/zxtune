@@ -119,7 +119,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
   }
 
   private static List<File> getExternalStorages() {
-    final List<File> result = new ArrayList<File>(5);
+    final List<File> result = new ArrayList<>(5);
     final File mounts = new File("/proc/mounts");
     try {
       final Scanner scan = new Scanner(mounts);

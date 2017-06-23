@@ -13,14 +13,12 @@ package app.zxtune.playback;
 import android.content.Context;
 import android.net.Uri;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.Analytics;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
@@ -46,8 +44,8 @@ public class FileIterator implements Iterator {
   public FileIterator(Context context, Uri[] uris) throws Exception {
     this.scanner = new Scanner();
     this.executor = Executors.newCachedThreadPool();
-    this.itemsQueue = new LinkedBlockingQueue<PlayableItem>(1);
-    this.history = new ArrayList<Identifier>();
+    this.itemsQueue = new LinkedBlockingQueue<>(1);
+    this.history = new ArrayList<>();
     this.historyDepth = 0;
     start(uris);
     if (!takeNextItem()) {

@@ -15,7 +15,6 @@ import android.app.LoaderManager;
 import android.content.Loader;
 import android.support.annotation.Nullable;
 import android.view.View;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import java.io.IOException;
