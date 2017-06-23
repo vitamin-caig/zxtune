@@ -35,7 +35,11 @@ public class Core {
   public static void detectModules(VfsFile file, ZXTune.ModuleDetectCallback callback) throws Exception {
     final ByteBuffer content = file.getContent();
     Analytics.setFile(file.getUri(), "*", content.limit());
-    ZXTune.detectModules(content, new ModuleDetectCallbackAdapter(file, callback));
+    final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback);
+    ZXTune.detectModules(content, adapter);
+    if (0 == adapter.getDetectedModulesCount()) {
+      Analytics.sendNoTracksFoundEvent(file.getUri());
+    }
   }
 
   private static class ModuleDetectCallbackAdapter implements ZXTune.ModuleDetectCallback {
@@ -43,14 +47,20 @@ public class Core {
     private final VfsFile location;
     private final ZXTune.ModuleDetectCallback delegate;
     private Resolver resolver;
+    private int modulesCount = 0;
 
     ModuleDetectCallbackAdapter(VfsFile location, ZXTune.ModuleDetectCallback delegate) {
       this.location = location;
       this.delegate = delegate;
     }
 
+    final int getDetectedModulesCount() {
+      return modulesCount;
+    }
+
     @Override
     public void onModule(String subpath, ZXTune.Module obj) throws Exception {
+      ++modulesCount;
       try {
         final String[] files = obj.getAdditionalFiles();
         if (files == null || files.length == 0) {

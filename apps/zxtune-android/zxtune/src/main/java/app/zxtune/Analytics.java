@@ -163,6 +163,14 @@ public class Analytics {
     send(event);
   }
 
+  public static void sendNoTracksFoundEvent(Uri uri) {
+    final String source = uri.getScheme();
+    final String filename = uri.getLastPathSegment();
+    final int extPos = filename.lastIndexOf('.');
+    final String type = extPos != -1 ? filename.substring(extPos + 1) : "None";
+    Analytics.sendNoTracksFoundEvent(source, type);
+  }
+
   public static void sendNoTracksFoundEvent(String source, String type) {
     final CustomEvent event = new CustomEvent("Investigation");
     event.putCustomAttribute("NoTracksType", type);
