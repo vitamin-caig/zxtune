@@ -119,6 +119,10 @@ public class MainService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     Log.d(TAG, "StartCommand called");
+    if (intent == null) {
+      //service is restarted after its process gone away
+      return START_NOT_STICKY;
+    }
     final String action = intent.getAction();
     final PlaybackControl ctrl = service.getPlaybackControl();
     if (ACTION_PREV.equals(action)) {

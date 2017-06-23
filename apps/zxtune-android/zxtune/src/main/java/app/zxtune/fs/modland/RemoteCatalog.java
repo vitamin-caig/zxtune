@@ -250,7 +250,7 @@ class RemoteCatalog extends Catalog {
         final String page = matcher.group(3);
         final String pagesTotal = matcher.group(4);
         if (pg != Integer.valueOf(page)) {
-          throw new UnsupportedOperationException("Invalid paginator structure");
+          throw new IOException("Invalid paginator structure");
         }
         if (visitor.onPage(header, Integer.valueOf(results), chars)
                 && pg < Integer.valueOf(pagesTotal)) {
