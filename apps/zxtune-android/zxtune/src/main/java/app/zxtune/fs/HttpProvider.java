@@ -96,7 +96,7 @@ public class HttpProvider {
   //! result buffer is not direct so required wrapping
 
   private ByteBuffer getContent(InputStream stream, @Nullable ByteBuffer cache) throws IOException {
-    byte[] buffer = cache != null ? cache.array() : new byte[256 * 1024];
+    byte[] buffer = cache != null ? cache.array() : new byte[1024 * 1024];
     int size = 0;
     for (; ; ) {
       size = readPartialContent(stream, buffer, size);
@@ -128,7 +128,7 @@ public class HttpProvider {
 
 
   private static byte[] reallocate(byte[] buf) {
-    final byte[] result = new byte[buf.length * 2];
+    final byte[] result = new byte[Math.min(buf.length * 2, MAX_REMOTE_FILE_SIZE + 1)];
     System.arraycopy(buf, 0, result, 0, buf.length);
     return result;
   }
