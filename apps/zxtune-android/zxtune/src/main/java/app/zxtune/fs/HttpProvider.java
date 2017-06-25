@@ -36,7 +36,7 @@ public class HttpProvider {
   private static final int MAX_REMOTE_FILE_SIZE = 100 * 1024 * 1024;
 
   private final Context context;
-  private static ByteBuffer htmlBuffer;
+  private ByteBuffer htmlBuffer;
 
   public HttpProvider(Context context) {
     this.context = context;
