@@ -15,6 +15,7 @@ import android.net.Uri;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.BuildConfig;
 import app.zxtune.Log;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Objects;
@@ -93,13 +94,13 @@ import app.zxtune.fs.dbhelpers.Utils;
  * Version 4
  *  set of new formats supported
  *
- * TODO: use app.version as db version
+ * After app version code is used as an archive version
  */
 
 class Database {
 
   private static final String NAME = "archives";
-  private static final int VERSION = 4;
+  private static final int VERSION = BuildConfig.VERSION_CODE;
   private static final String TAG = Database.class.getName();
 
   static final class Tables {
