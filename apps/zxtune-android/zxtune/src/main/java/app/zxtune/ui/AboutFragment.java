@@ -15,14 +15,13 @@ import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v4.util.ArrayMap;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +33,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import app.zxtune.BuildConfig;
 import app.zxtune.PluginsProvider;
 import app.zxtune.R;
 
@@ -101,15 +101,8 @@ public class AboutFragment extends DialogFragment {
   }
   
   private String getApplicationInfo() {
-    try {
-      final Context context = getActivity();
-      final PackageInfo info =
-          context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-      return String.format(Locale.US, "%s b%d (%s)", context.getString(info.applicationInfo.labelRes),
-          info.versionCode, info.versionName);
-    } catch (NameNotFoundException e) {
-      return e.getLocalizedMessage();
-    }
+    return String.format(Locale.US, "%s b%d (%s)", getActivity().getString(R.string.app_name),
+            BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME);
   }
 
   private String getSystemInfo() {
@@ -131,7 +124,11 @@ public class AboutFragment extends DialogFragment {
 
     public void buildOSInfo() {
       addString(String.format("Android %s (API v%d)", Build.VERSION.RELEASE, Build.VERSION.SDK_INT));
-      addString(String.format("%s (%s/%s)", Build.MODEL, Build.CPU_ABI, Build.CPU_ABI2));
+      if (Build.VERSION.SDK_INT >= 21) {
+        addString(String.format("%s (%s)", Build.MODEL, TextUtils.join("/", Build.SUPPORTED_ABIS)));
+      } else {
+        addString(String.format("%s (%s/%s)", Build.MODEL, Build.CPU_ABI, Build.CPU_ABI2));
+      }
     }
 
     public void buildConfigurationInfo() {
@@ -204,8 +201,10 @@ public class AboutFragment extends DialogFragment {
           return "hdpi";
         case DisplayMetrics.DENSITY_XHIGH:
           return "xhdpi";
-        case 480/*DisplayMetrics.DENSITY_XXHIGH*/:
+        case 480/*DisplayMetrics.DENSITY_XXHIGH APIv16+ */:
           return "xxhdpi";
+        case 640/*DisplayMetrics.DENSITY_XXXHIGH APIv18+ */:
+          return "xxxhdpi";
         default:
           return String.format(Locale.US, "%ddpi", density);
       }

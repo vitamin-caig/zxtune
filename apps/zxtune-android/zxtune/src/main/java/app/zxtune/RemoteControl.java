@@ -10,7 +10,6 @@
 
 package app.zxtune;
 
-import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -18,7 +17,6 @@ import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.RemoteControlClient;
 import android.media.RemoteControlClient.MetadataEditor;
-import android.os.Build;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,10 +26,8 @@ import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
 
 //TODO: position change support starting from 18 
-@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class RemoteControl implements Releaseable {
 
-  private static final boolean SUPPORT_REMOTE_CONTROL = Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
   private static final String TAG = RemoteControl.class.getName();
   private static final AudioManager.OnAudioFocusChangeListener HANDLER =
       new AudioManager.OnAudioFocusChangeListener() {
@@ -67,18 +63,14 @@ class RemoteControl implements Releaseable {
   }
 
   public static Releaseable subscribe(Context context, PlaybackService svc) {
-    if (SUPPORT_REMOTE_CONTROL) {
-      final Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
-      mediaButtonIntent.setComponent(MediaButtonsHandler.getName(context));
-      final PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(
-          context.getApplicationContext(), 0, mediaButtonIntent, 0);
-      final RemoteControlClient controlClient = new RemoteControlClient(mediaPendingIntent);
-      final AudioManager audioManager = (AudioManager) context
-          .getSystemService(Context.AUDIO_SERVICE);
-      return new RemoteControl(audioManager, controlClient, svc);
-    } else {
-      return ReleaseableStub.instance();
-    }
+    final Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+    mediaButtonIntent.setComponent(MediaButtonsHandler.getName(context));
+    final PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(
+        context.getApplicationContext(), 0, mediaButtonIntent, 0);
+    final RemoteControlClient controlClient = new RemoteControlClient(mediaPendingIntent);
+    final AudioManager audioManager = (AudioManager) context
+        .getSystemService(Context.AUDIO_SERVICE);
+    return new RemoteControl(audioManager, controlClient, svc);
   }
 
   private class AudioFocus implements Releaseable {

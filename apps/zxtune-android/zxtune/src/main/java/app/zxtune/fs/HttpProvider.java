@@ -9,7 +9,6 @@ package app.zxtune.fs;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
 import android.support.annotation.Nullable;
 
 import java.io.IOException;
@@ -40,10 +39,6 @@ public class HttpProvider {
 
   public HttpProvider(Context context) {
     this.context = context;
-    // HTTP connection reuse which was buggy pre-froyo
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
-      System.setProperty("http.keepAlive", "false");
-    }
   }
 
 

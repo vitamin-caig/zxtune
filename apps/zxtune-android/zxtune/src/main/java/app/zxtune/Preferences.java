@@ -10,11 +10,8 @@
 
 package app.zxtune;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
-import android.preference.PreferenceManager;
 
 public class Preferences {
 
@@ -22,9 +19,7 @@ public class Preferences {
   }
 
   public static SharedPreferences getDefaultSharedPreferences(Context context) {
-    return Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
-      ? PreferenceManager.getDefaultSharedPreferences(context)
-      : context.getSharedPreferences(getDefaultSharedPreferencesName(context),
+    return context.getSharedPreferences(getDefaultSharedPreferencesName(context),
           getDefaultSharedPreferencesMode());
   }
 
@@ -32,7 +27,6 @@ public class Preferences {
     return context.getPackageName() + "_preferences";
   }
   
-  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   private static int getDefaultSharedPreferencesMode() {
     return Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS;
   }

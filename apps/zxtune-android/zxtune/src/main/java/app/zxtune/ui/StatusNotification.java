@@ -16,7 +16,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Handler;
 import android.widget.RemoteViews;
 
@@ -36,9 +35,6 @@ public class StatusNotification extends CallbackStub {
   }
 
   private static final String TAG = StatusNotification.class.getName();
-  
-  //http://stackoverflow.com/questions/12586938/clickable-custom-view-in-notification-on-android-2-3-or-lower
-  public static final boolean BUTTONS_SUPPORTED = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
   
   private final Type type;
   private final Handler scheduler;
@@ -95,7 +91,7 @@ public class StatusNotification extends CallbackStub {
         title = filename;
       }
       builder.setTicker(ticker);
-      if (BUTTONS_SUPPORTED && Type.WITH_CONTROLS.equals(type)) {
+      if (Type.WITH_CONTROLS.equals(type)) {
         content.setTextViewText(R.id.notification_title, title);
         content.setTextViewText(R.id.notification_author, author);
         builder.setContent(content);
