@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ ! -x ~/buildbot.config ]; then
   echo "No ~/buildbot.config found!"
