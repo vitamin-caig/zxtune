@@ -7,5 +7,7 @@
 # Crashlytics https://docs.fabric.io/android/crashlytics/dex-and-proguard.html
 -keep class com.crashlytics.** { *; }
 -dontwarn com.crashlytics.**
+-keep public class * extends java.lang.Exception
+-keepattributes SourceFile, LineNumberTable, *Annotation*
 
 -dontobfuscate
