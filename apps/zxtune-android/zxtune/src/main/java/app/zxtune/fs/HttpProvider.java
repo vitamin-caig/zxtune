@@ -41,7 +41,6 @@ public class HttpProvider {
     this.context = context;
   }
 
-
   public final HttpURLConnection connect(String uri) throws IOException {
     try {
       final URL url = new URL(uri);
@@ -61,7 +60,8 @@ public class HttpProvider {
       final HttpURLConnection connection = connect(uri);
       try {
         final InputStream stream = connection.getInputStream();
-        return getContent(stream, null);
+        final int size = connection.getContentLength();
+        return getContent(stream, size > 0 ? ByteBuffer.wrap(new byte[size]) : null);
       } finally {
         connection.disconnect();
       }
