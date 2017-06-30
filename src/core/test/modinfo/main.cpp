@@ -36,20 +36,35 @@ namespace
       "Channels: " << info.ChannelsCount() << std::endl <<
       "Initial tempo: " << info.Tempo() << std::endl;
   }
+  
+  class PrintValuesVisitor : public Parameters::Visitor
+  {
+  public:
+    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
+    {
+      Write(name, Parameters::ConvertToString(val));
+    }
+
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    {
+      Write(name, Parameters::ConvertToString(val));
+    }
+    
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+    {
+      Write(name, Parameters::ConvertToString(val));
+    }
+  private:
+    static void Write(const Parameters::NameType& name, const String& value)
+    {
+      std::cout << name.Name() << ": " << value << std::endl;
+    }
+  };
 
   void ShowProperties(const Parameters::Accessor& props)
   {
-    static const char TEMPLATE[] =
-      "Title: [Title]\n"
-      "Author: [Author]\n"
-      "Program: [Program]\n"
-      "Type: [Type]\n"
-      "Size: [Size]\n"
-      "[Comment]\n"
-    ;
-   
-    const Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> fields(props);
-    std::cout << Strings::Template::Instantiate(TEMPLATE, fields) << std::endl;
+    static PrintValuesVisitor PRINTER;
+    props.Process(PRINTER);
   }
 
   void ShowModuleProperties(const Module::Holder& module)
