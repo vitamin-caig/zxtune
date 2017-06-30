@@ -70,6 +70,8 @@
     <string name="vfs_joshw_usf_description" translatable="false">http://usf.joshw.info</string>
     <string name="vfs_joshw_gsf_name" translatable="false">GameBoy Advance</string>
     <string name="vfs_joshw_gsf_description" translatable="false">http://gsf.joshw.info</string>
+    <string name="vfs_joshw_2sf_name" translatable="false">Nintendo DS</string>
+    <string name="vfs_joshw_2sf_description" translatable="false">http://2sf.joshw.info</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_root_name" translatable="false">Amiga Music Preservation</string>
     <string name="vfs_amp_root_description" translatable="false">http://amp.dascene.net</string>
