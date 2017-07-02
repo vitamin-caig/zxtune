@@ -119,7 +119,7 @@ public class Database {
 
     public static final class Playlist {
       public static enum Fields {
-        _id, pos, location, author, title, duration, properties
+        _id, pos, location, author, title, duration, properties, state
       }
 
       static final String NAME = "playlist";

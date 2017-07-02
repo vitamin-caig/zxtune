@@ -12,7 +12,6 @@ package app.zxtune.ui;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.ContentResolver;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -29,15 +28,10 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.Preferences;
 import app.zxtune.R;
-import app.zxtune.Releaseable;
-import app.zxtune.playback.CallbackStub;
-import app.zxtune.playback.CallbackSubscription;
-import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaybackServiceStub;
 import app.zxtune.playback.PlaylistControl;
@@ -47,10 +41,8 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
 
   private static final String TAG = PlaylistFragment.class.getName();
   private PlaybackService service;
-  private Releaseable connection;
   private PlaylistState state;
   private PlaylistView listing;
-  private final NowPlayingState playingState;
 
   public static Fragment createInstance() {
     return new PlaylistFragment();
@@ -58,7 +50,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   
   public PlaylistFragment() {
     this.service = PlaybackServiceStub.instance();
-    this.playingState = new NowPlayingState();
     setHasOptionsMenu(true);
   }
 
@@ -164,7 +155,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
 
     listing = (PlaylistView) view.findViewById(R.id.playlist_content);
     listing.setOnItemClickListener(new OnItemClickListener());
-    listing.setPlayitemStateSource(playingState);
     listing.setEmptyView(view.findViewById(R.id.playlist_stub));
     listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
     listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
@@ -206,7 +196,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     
     Log.d(TAG, "Saving persistent state");
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
-    unbindFromService();//may affect playlistState
   }
   
   @Override
@@ -225,8 +214,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     final boolean serviceConnected = service != PlaybackServiceStub.instance();
     final boolean viewCreated = listing != null;
     if (serviceConnected && viewCreated) {
-      Log.d(TAG, "Subscribe to service events");
-      connection = new CallbackSubscription(service, playingState);
       //do not display anything before service started to prevent empty clicks
       loadListing();
     }
@@ -241,64 +228,12 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     ((TextView) listing.getEmptyView()).setText(res);
   }
   
-  private void unbindFromService() {
-    try {
-      if (connection != null) {
-        Log.d(TAG, "Unsubscribe from service events");
-        connection.release();
-      }
-    } finally {
-      connection = null;
-    }
-  }
-  
   private class OnItemClickListener implements PlaylistView.OnItemClickListener {
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
       final Uri[] toPlay = {PlaylistQuery.uriFor(id)};
       service.setNowPlaying(toPlay);
-    }
-  }
-  
-  private class NowPlayingState extends CallbackStub implements PlaylistView.PlayitemStateSource {
-    
-    private boolean isPlaying;
-    private Uri nowPlayingPlaylist;
-    
-    public NowPlayingState() {
-      isPlaying = false;
-      nowPlayingPlaylist = Uri.EMPTY;
-    }
-    
-    @Override
-    public void onStatusChanged(boolean nowPlaying) {
-      if (isPlaying != nowPlaying) {
-        isPlaying = nowPlaying;
-        updateView();
-      }
-    }
-    
-    @Override
-    public void onItemChanged(Item item) {
-      final Uri id = item.getId();
-      final Identifier contentId = item.getDataId();
-      final Uri playlistId = 0 == id.compareTo(contentId.getFullLocation()) ? Uri.EMPTY : id;
-      if (0 != playlistId.compareTo(nowPlayingPlaylist)) {
-        nowPlayingPlaylist = playlistId;
-        updateView();
-      }
-    }
-
-    @Override
-    public boolean isPlaying(Uri playlistUri) {
-      return isPlaying && 0 == playlistUri.compareTo(nowPlayingPlaylist);
-    }
-    
-    private void updateView() {
-      final Activity activity = getActivity();
-      final ContentResolver resolver = activity.getContentResolver();
-      resolver.notifyChange(PlaylistQuery.ALL, null);
     }
   }
   

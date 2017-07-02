@@ -28,28 +28,14 @@ import com.mobeta.android.dslv.DragSortListView;
 
 import app.zxtune.R;
 import app.zxtune.playlist.Item;
+import app.zxtune.playlist.ItemState;
 import app.zxtune.playlist.PlaylistQuery;
 
 public class PlaylistView extends DragSortListView
     implements
       LoaderManager.LoaderCallbacks<Cursor> {
 
-  interface PlayitemStateSource {
-
-    boolean isPlaying(Uri playlistUri);
-  }
-
-  private static class StubPlayitemStateSource implements PlayitemStateSource {
-
-    @Override
-    public boolean isPlaying(Uri playlistUri) {
-      return false;
-    }
-  }
-
   private static final int LOADER_ID = PlaylistView.class.hashCode();
-
-  private PlayitemStateSource state;
 
   public PlaylistView(Context context, AttributeSet attr) {
     super(context, attr);
@@ -69,10 +55,6 @@ public class PlaylistView extends DragSortListView
     } else {
       super.setDropListener(listener);
     }
-  }
-
-  final void setPlayitemStateSource(PlayitemStateSource source) {
-    this.state = null != source ? source : new StubPlayitemStateSource();
   }
 
   final void load(LoaderManager manager) {
@@ -125,8 +107,8 @@ public class PlaylistView extends DragSortListView
       }
       holder.setAuxText(item.getAuthor());
       holder.setDetailText(item.getDuration().toString());
-      final Uri uri = item.getUri();
-      final int icon = state.isPlaying(uri) ? R.drawable.ic_playing : R.drawable.ic_drag_handler;
+      final ItemState state = new ItemState(cursor);
+      final int icon = state.isPlaying() ? R.drawable.ic_playing : R.drawable.ic_drag_handler;
       holder.setIcon(icon);
     }
 

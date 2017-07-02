@@ -10,6 +10,7 @@
 
 package app.zxtune.playback;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -24,6 +25,8 @@ import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
+import app.zxtune.playlist.ItemState;
+import app.zxtune.playlist.PlaylistQuery;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
@@ -62,6 +65,54 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.visualizer = new DispatchedVisualizer();
     this.holder = new Holder();
     this.callbacks.add(new Analytics.PlaybackEventsCallback());
+    this.callbacks.add(new PlayingState(context));
+  }
+
+  private static class PlayingState extends CallbackStub {
+
+    private final ContentResolver resolver;
+    private boolean isPlaying;
+    private Uri dataLocation;
+    private Long playlistId;
+
+    PlayingState(Context context) {
+      this.resolver = context.getContentResolver();
+      this.isPlaying = false;
+      this.dataLocation = Uri.EMPTY;
+      this.playlistId = null;
+    }
+
+    @Override
+    public void onStatusChanged(boolean nowPlaying) {
+      if (isPlaying != nowPlaying) {
+        isPlaying = nowPlaying;
+        update();
+      }
+    }
+
+    @Override
+    public void onItemChanged(Item item) {
+      final Uri newId = item.getId();
+      final Uri newDataLocation = item.getDataId().getFullLocation();
+      final Long newPlaylistId = 0 == newId.compareTo(newDataLocation) ? null : PlaylistQuery.idOf(newId);
+      if (playlistId != null && newPlaylistId == null) {
+        //disable playlist item
+        updatePlaylist(playlistId, false);
+      }
+      playlistId = newPlaylistId;
+      dataLocation = newDataLocation;
+      update();
+    }
+
+    private void update() {
+      if (playlistId != null) {
+        updatePlaylist(playlistId, isPlaying);
+      }
+    }
+
+    private void updatePlaylist(long id, boolean isPlaying) {
+      resolver.update(PlaylistQuery.uriFor(id), new ItemState(isPlaying).toContentValues(), null, null);
+    }
   }
 
   @Override
