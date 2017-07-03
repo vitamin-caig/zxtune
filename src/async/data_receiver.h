@@ -20,6 +20,7 @@
 #include <async/sized_queue.h>
 //std includes
 #include <algorithm>
+#include <functional>
 #include <list>
 
 namespace Async
