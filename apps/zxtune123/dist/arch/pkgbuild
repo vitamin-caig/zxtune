@@ -1,7 +1,7 @@
 # Maintainer: vitamin.caig@gmail.com
 pkgname=zxtune123
 pkgdesc="Commandline version of crossplatform ZX Spectrum music player and ripper"
-url="http://zxtune.bitbucket.org/"
+url="https://zxtune.bitbucket.io/"
 license=('GPL3')
 optdepends=(
  'alsa-lib: for ALSA output support'
