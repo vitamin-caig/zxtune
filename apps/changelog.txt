@@ -5,6 +5,19 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3950 from 04.07.2017
+
+[+] Added support of Nintendo DS Sound Format (2SF)
+[+] Added support of Startrekker format (MOD)
+[*] Speedup archived multifile tracks browsing
+[*] Fixed GSF patches parsing
+[*] Updated SID songs lengths database to HVSC v66
+[+] zxtune-qt: items opened via cmdline also can be added to active or currently visible playlist
+[+] zxtune-android: added http://2sf.joshw.info subcatalogue
+[*] zxtune-android: vector in-app icons
+[-] zxtune-android: minimal supported Android version limited to 4.0.0 (API v14)
+[*] zxtune-android: fixed some reported crashes
+
 --- Rev3890 from 18.04.2017
 
 [+] Added support of PlayStation 1&2 Sound Format (PSF,PSF2)
