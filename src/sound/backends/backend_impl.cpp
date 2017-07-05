@@ -166,7 +166,6 @@ namespace Sound
       try
       {
         Dbg("Initializing");
-        Render->Reset();
         Callback->OnStart();
       }
       catch (const Error& e)

@@ -83,7 +83,8 @@ namespace GME
       , Track(track)
       , SoundFreq(0)
     {
-      Load(Parameters::ZXTune::Sound::FREQUENCY_DEFAULT);
+      const uint_t FAKE_SOUND_FREQUENCY = 30000;
+      Load(FAKE_SOUND_FREQUENCY);
     }
     
     uint_t GetTotalTracks() const
@@ -149,7 +150,7 @@ namespace GME
 
     void Load(uint_t soundFreq)
     {
-      EmuPtr emu = CreateEmu();
+      auto emu = CreateEmu();
       CheckError(emu->set_sample_rate(soundFreq));
       CheckError(emu->load_mem(&Data.front(), Data.size()));
       Emu.swap(emu);
@@ -158,7 +159,7 @@ namespace GME
 
     void Reload(uint_t soundFreq)
     {
-      const int oldPos = Emu ? Emu->tell() : 0;
+      const auto oldPos = Emu ? Emu->tell() : 0;
       Load(soundFreq);
       Reset();
       if (oldPos)
