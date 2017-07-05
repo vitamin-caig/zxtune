@@ -5,6 +5,11 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3960 from 05.07.2017
+
+[*] zxtune-android: fixed silent playback of some formats on some devices.
+[*] zxtune-android: fixed some crashes
+
 --- Rev3950 from 04.07.2017
 
 [+] Added support of Nintendo DS Sound Format (2SF)
