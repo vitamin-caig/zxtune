@@ -20,7 +20,6 @@
       <intent-filter>
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
-        <category android:name="android.intent.category.BROWSABLE"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.as0"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.asc"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.AS0"/>
@@ -92,6 +91,7 @@
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gdm"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gtk"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mod"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MOD"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mtn"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.imf"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ims"/>
@@ -123,6 +123,7 @@
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.cop"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.COP"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.sid"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.SID"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psid"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.rsid"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.spc"/>
