@@ -10,8 +10,4 @@
   <string name="pref_control_headset_mediabuttons_title">Utilice los botones de medios de comunicación</string>
   <!--control.headset.unplugging-->
   <string name="pref_control_headset_unplugging_title">Pausa si desenchufada</string>
-  <!--notification-->
-  <string name="pref_control_notification_title">Notificaciones</string>
-  <!--control.notification.buttons-->
-  <string name="pref_control_notification_buttons_title">Botones en el área de notificaciones</string>
 </resources>

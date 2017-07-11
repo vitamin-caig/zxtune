@@ -11,8 +11,8 @@
 package app.zxtune;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -36,8 +36,6 @@ public class MainService extends Service {
   private boolean PREF_MEDIABUTTONS_DEFAULT;
   private String PREF_UNPLUGGING;
   private boolean PREF_UNPLUGGING_DEFAULT;
-  private String PREF_NOTIFICATIONBUTTONS;
-  private boolean PREF_NOTIFICATIONBUTTONS_DEFAULT;
 
   private PlaybackServiceLocal service;
   private IBinder binder;
@@ -65,8 +63,6 @@ public class MainService extends Service {
         resources.getBoolean(R.bool.pref_control_headset_mediabuttons_default);
     PREF_UNPLUGGING = resources.getString(R.string.pref_control_headset_unplugging);
     PREF_UNPLUGGING_DEFAULT = resources.getBoolean(R.bool.pref_control_headset_unplugging_default);
-    PREF_NOTIFICATIONBUTTONS = resources.getString(R.string.pref_control_notification_buttons);
-    PREF_NOTIFICATIONBUTTONS_DEFAULT = resources.getBoolean(R.bool.pref_control_notification_buttons_default);
     mediaButtonsHandler = ReleaseableStub.instance();
     remoteControlHandler = ReleaseableStub.instance();
     headphonesPlugHandler = ReleaseableStub.instance();
@@ -79,7 +75,7 @@ public class MainService extends Service {
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(this);
     connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
     connectHeadphonesPlugging(prefs.getBoolean(PREF_UNPLUGGING, PREF_UNPLUGGING_DEFAULT));
-    setupNotification(prefs.getBoolean(PREF_NOTIFICATIONBUTTONS, PREF_NOTIFICATIONBUTTONS_DEFAULT));
+    setupNotification();
     setupWidgets();
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
       final String key = entry.getKey();
@@ -187,11 +183,9 @@ public class MainService extends Service {
     }
   }
   
-  private void setupNotification(boolean buttons) {
-    Log.d(TAG, "setupNotification buttons = %b", buttons);
-    final StatusNotification.Type type = buttons 
-        ? StatusNotification.Type.WITH_CONTROLS : StatusNotification.Type.DEFAULT; 
-    final StatusNotification cb = new StatusNotification(this, type);
+  private void setupNotification() {
+    Log.d(TAG, "setupNotification called");
+    final StatusNotification cb = new StatusNotification(this);
     notificationTypeHandler = new CallbackSubscription(service, cb);
   }
   
@@ -227,11 +221,6 @@ public class MainService extends Service {
             intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
                 PREF_UNPLUGGING_DEFAULT);
         connectHeadphonesPlugging(use);
-      } else if (PREF_NOTIFICATIONBUTTONS.equals(key)) {
-        final boolean type = 
-            intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
-                PREF_NOTIFICATIONBUTTONS_DEFAULT);
-        setupNotification(type);
       } else if (key.startsWith(ZXTune.Properties.PREFIX)) {
         final Object value = intent.getExtras().get(PreferencesActivity.EXTRA_PREFERENCE_VALUE);
         if (value != null) {

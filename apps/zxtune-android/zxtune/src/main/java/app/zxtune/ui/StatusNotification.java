@@ -11,13 +11,12 @@
 package app.zxtune.ui;
 
 import android.app.Notification;
-import android.app.NotificationManager;
+import android.support.v7.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
-import android.widget.RemoteViews;
 
 import app.zxtune.Log;
 import app.zxtune.MainActivity;
@@ -29,35 +28,37 @@ import app.zxtune.playback.Item;
 
 public class StatusNotification extends CallbackStub {
   
-  public enum Type {
-    DEFAULT,
-    WITH_CONTROLS
-  }
-
   private static final String TAG = StatusNotification.class.getName();
   
-  private final Type type;
   private final Handler scheduler;
   private final Runnable delayedHide;
   private final Service service;
-  private final NotificationManager manager;
-  private final Notification.Builder builder;
-  private final RemoteViews content;
+  private final NotificationManagerCompat manager;
+  private final NotificationCompat.Builder builder;
   private static final int notificationId = R.drawable.ic_stat_notify_play;
   private static final int NOTIFICATION_DELAY = 200;
   
-  public StatusNotification(Service service, Type type) {
-    this.type = type;
+  public StatusNotification(Service service) {
     this.scheduler = new Handler();
     this.delayedHide = new DelayedHideCallback();
     this.service = service;
-    this.manager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
-    this.builder = new Notification.Builder(service);
-    this.content = new RemoteViews(service.getPackageName(), R.layout.notification);
-    builder.setOngoing(true);
-    builder.setContentIntent(createActivateIntent());
-    content.setOnClickPendingIntent(R.id.notification_ctrl_stop, createStopIntent());
-    content.setOnClickPendingIntent(R.id.notification_ctrl_next, createNavigateNextIntent());
+    this.manager = NotificationManagerCompat.from(service);
+    this.builder = new NotificationCompat.Builder(service);
+    builder
+      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+      .setOngoing(true)
+      .setSmallIcon(R.drawable.ic_stat_notify_play)
+      .setContentIntent(createActivateIntent())
+      .addAction(R.drawable.ic_prev, "", createNavigatePrevIntent())
+      .addAction(R.drawable.ic_stop, "", createStopIntent())
+      .addAction(R.drawable.ic_next, "", createNavigateNextIntent())
+      .setStyle(new NotificationCompat.MediaStyle()
+        .setShowActionsInCompactView(0, 1, 2)
+        //TODO: enable when pause mode will be available
+        //.setCancelButtonIntent(createStopIntent())
+        //.setShowCancelButton(true)
+      )
+    ;
   }
   
   private PendingIntent createActivateIntent() {
@@ -66,6 +67,10 @@ public class StatusNotification extends CallbackStub {
     return PendingIntent.getActivity(service, 0, intent, 0);
   }
   
+  private PendingIntent createNavigatePrevIntent() {
+    return createServiceIntent(MainService.ACTION_PREV);
+  }
+
   private PendingIntent createStopIntent() {
     return createServiceIntent(MainService.ACTION_PAUSE);
   }
@@ -91,13 +96,7 @@ public class StatusNotification extends CallbackStub {
         title = filename;
       }
       builder.setTicker(ticker);
-      if (Type.WITH_CONTROLS.equals(type)) {
-        content.setTextViewText(R.id.notification_title, title);
-        content.setTextViewText(R.id.notification_author, author);
-        builder.setContent(content);
-      } else {
-        builder.setContentTitle(title).setContentText(author);
-      }
+      builder.setContentTitle(title).setContentText(author);
     } catch (Exception e) {
       Log.w(TAG, e, "onIntemChanged()");
     }
@@ -124,7 +123,7 @@ public class StatusNotification extends CallbackStub {
   }
 
   private Notification makeNotification() {
-    final Notification notification = builder.getNotification();
+    final Notification notification = builder.build();
     manager.notify(notificationId, notification);
     return notification;
   }
