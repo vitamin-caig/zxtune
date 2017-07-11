@@ -16,6 +16,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.Manifest;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
@@ -52,6 +53,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
     if (savedInstanceState == null) {
       getOpenRequestFromIntent();
     }
+    Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+    Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    Permission.request(this, Manifest.permission.READ_PHONE_STATE);
   }
   
   @Override
