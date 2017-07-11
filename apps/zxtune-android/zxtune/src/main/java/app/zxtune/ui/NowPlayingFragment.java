@@ -305,8 +305,10 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
           pickAndSend(toShare, item.getTitle(), REQUEST_SHARE);
           break;
         case R.id.action_make_ringtone:
-          final DialogFragment fragment = RingtoneFragment.createInstance(data.getItem());
-          fragment.show(getActivity().getFragmentManager(), "ringtone");
+          final DialogFragment fragment = RingtoneFragment.createInstance(getActivity(), data.getItem());
+          if (fragment != null) {
+            fragment.show(getActivity().getFragmentManager(), "ringtone");
+          }
           break;
         default:
           return false;

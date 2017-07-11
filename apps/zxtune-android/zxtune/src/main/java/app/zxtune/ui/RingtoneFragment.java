@@ -10,6 +10,7 @@
 
 package app.zxtune.ui;
 
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import android.widget.Button;
 
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.Permission;
 import app.zxtune.R;
 import app.zxtune.RingtoneService;
 import app.zxtune.TimeStamp;
@@ -29,7 +31,10 @@ public class RingtoneFragment extends DialogFragment {
   
   private static final String TAG = RingtoneFragment.class.getName();
 
-  static DialogFragment createInstance(Item item) {
+  static DialogFragment createInstance(Activity activity, Item item) {
+    if (!Permission.requestSystemSettings(activity)) {
+      return null;
+    }
     final Bundle args = new Bundle();
     args.putParcelable("url", item.getDataId().getFullLocation());
     final DialogFragment result = new RingtoneFragment();
