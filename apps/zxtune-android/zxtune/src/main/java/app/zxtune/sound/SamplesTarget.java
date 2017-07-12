@@ -26,7 +26,13 @@ public interface SamplesTarget {
    * Initialize target
    */
   public void start() throws Exception;
-  
+
+  /**
+   * Pause target. No underrun happens if no data called.
+   * Mode is active till next writeSamples or stop call
+   */
+  public void pause() throws Exception;
+
   /**
    * @param buffer sound data in S16/stereo/interleaved format
    */

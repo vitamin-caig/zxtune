@@ -13,9 +13,9 @@ package app.zxtune.playback;
 public interface Callback {
 
   /**
-   * Called on status change (all changes before connection are lost)
+   * Called on state change (all changes before connection are lost)
    */
-  public void onStatusChanged(boolean isPlaying);
+  public void onStateChanged(PlaybackControl.State state);
 
   /**
    * Called on active item change

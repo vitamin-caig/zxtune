@@ -17,6 +17,7 @@ import app.zxtune.fs.VfsDir;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlayableItem;
+import app.zxtune.playback.PlaybackControl;
 import io.fabric.sdk.android.Fabric;
 
 public class Analytics {
@@ -36,7 +37,8 @@ public class Analytics {
     private Item lastItem = null;
 
     @Override
-    public void onStatusChanged(boolean isPlaying) {
+    public void onStateChanged(PlaybackControl.State state) {
+      final boolean isPlaying = state == PlaybackControl.State.PLAYING;
       if (isPlaying && lastItem != null) {
         sendPlayEvent((PlayableItem) lastItem);
         lastItem = null;

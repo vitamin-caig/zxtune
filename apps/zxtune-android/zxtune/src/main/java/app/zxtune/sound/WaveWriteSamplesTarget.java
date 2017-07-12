@@ -82,6 +82,9 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
   }
 
   @Override
+  public void pause() {}
+
+  @Override
   public void writeSamples(short[] input) throws Exception {
     final int inSamples = input.length / SamplesSource.Channels.COUNT;
     final int outBytes = inSamples * SamplesSource.Sample.BYTES; 

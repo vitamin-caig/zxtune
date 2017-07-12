@@ -59,8 +59,13 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
   }
   
   @Override
-  public void start() {
+  public void start() throws Exception {
     target.play();
+  }
+
+  @Override
+  public void pause() throws Exception {
+    target.pause();
   }
 
   @Override
@@ -70,6 +75,8 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
       if (written > 0) {
         pos += written;
         toWrite -= written;
+      } else if (target.getPlayState() == AudioTrack.PLAYSTATE_PAUSED) {
+        target.play();
       } else {
         throw new Exception("Failed to write samples: " + written);
       }

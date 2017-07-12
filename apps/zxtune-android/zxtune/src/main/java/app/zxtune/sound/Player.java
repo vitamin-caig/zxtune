@@ -18,8 +18,12 @@ public interface Player {
   public void startPlayback();
 
   public void stopPlayback();
+
+  public void pausePlayback();
   
   public boolean isStarted();
+
+  public boolean isPaused();
   
   public void release();
 }

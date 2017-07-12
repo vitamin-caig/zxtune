@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
+import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
 
 //TODO: position change support starting from 18 
@@ -96,9 +97,18 @@ class RemoteControl implements Releaseable {
   private class StatusCallback extends CallbackStub {
 
     @Override
-    public void onStatusChanged(boolean isPlaying) {
-      controlClient.setPlaybackState(isPlaying ? RemoteControlClient.PLAYSTATE_PLAYING
-          : RemoteControlClient.PLAYSTATE_STOPPED);
+    public void onStateChanged(PlaybackControl.State state) {
+      switch (state) {
+        case STOPPED:
+          controlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+          break;
+        case PLAYING:
+          controlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+          break;
+        case PAUSED:
+          controlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
+          break;
+      }
     }
 
     @Override

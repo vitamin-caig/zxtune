@@ -21,10 +21,11 @@ class PhoneCallHandler extends PhoneStateListener {
   private static final String TAG = PhoneCallHandler.class.getName();
     
   private final PlaybackControl control;
-  private boolean playedOnCall;
+  private PlaybackControl.State stateBeforeCall;
   
   private PhoneCallHandler(PlaybackControl control) {
     this.control = control;
+    this.stateBeforeCall = PlaybackControl.State.STOPPED;
   }
   
   public static Releaseable subscribe(Context context, PlaybackControl control) {
@@ -50,14 +51,15 @@ class PhoneCallHandler extends PhoneStateListener {
   }
   
   private void processCall() {
-    if (playedOnCall = control.isPlaying()) {
-      control.stop();
+    stateBeforeCall = control.getState();
+    if (stateBeforeCall == PlaybackControl.State.PLAYING) {
+      control.pause();
     }
   }
   
   private void processIdle() {
-    if (playedOnCall && !control.isPlaying()) {
-      playedOnCall = false;
+    if (stateBeforeCall == PlaybackControl.State.PLAYING) {
+      stateBeforeCall = PlaybackControl.State.STOPPED;
       control.play();
     }
   }

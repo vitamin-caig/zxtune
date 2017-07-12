@@ -16,20 +16,21 @@ import java.util.List;
 public final class CompositeCallback implements Callback {
   
   private final List<Callback> delegates;
-  private boolean lastStatus;
+  private PlaybackControl.State lastState;
   private Item lastItem;
   private boolean lastIOStatus;
   
   public CompositeCallback() {
     this.delegates = new LinkedList<>();
+    this.lastState = PlaybackControl.State.STOPPED;
   }
   
   @Override
-  public void onStatusChanged(boolean isPlaying) {
+  public void onStateChanged(PlaybackControl.State state) {
     synchronized (delegates) {
-      lastStatus = isPlaying;
+      lastState = state;
       for (Callback cb : delegates) {
-        cb.onStatusChanged(isPlaying);
+        cb.onStateChanged(state);
       }
     }
   }
@@ -69,7 +70,7 @@ public final class CompositeCallback implements Callback {
       if (lastItem != null) {
         callback.onItemChanged(lastItem);
       }
-      callback.onStatusChanged(lastStatus);
+      callback.onStateChanged(lastState);
       callback.onIOStatusChanged(lastIOStatus);
       return delegates.size();
     }

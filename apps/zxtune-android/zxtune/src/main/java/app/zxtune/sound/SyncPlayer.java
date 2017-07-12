@@ -10,56 +10,71 @@
 
 package app.zxtune.sound;
 
-import android.os.Process;
-
-import java.util.concurrent.Exchanger;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import app.zxtune.Log;
 
-public final class SyncPlayer implements Player {
+public final class SyncPlayer {
 
   private static final String TAG = SyncPlayer.class.getName();
+
+  private static final int STOPPED = 0;
+  private static final int STARTED = 1;
+  private static final int PAUSING = 2;
+  private static final int PAUSED = 3;
+  private static final int RESUMING = 4;
+
   private final PlayerEventsListener events;
-  private final Exchanger<short[]> buffers;
+  private final AtomicInteger state;
   private SamplesSource source;
   private SamplesTarget target;
-  private Thread consumeThread;
-  private volatile boolean isActive;
 
   public SyncPlayer(SamplesSource source, SamplesTarget target, PlayerEventsListener events) {
     this.events = events;
-    this.buffers = new Exchanger<>();
+    this.state = new AtomicInteger(STOPPED);
     this.source = source;
     this.target = target;
-    this.isActive = false;
   }
 
-  @Override
-  public void startPlayback() {
+  public final void play() {
     try {
-      startConsumeThread();
-      produceCycle();
-    } catch (InterruptedException e) {
-      Log.w(TAG, e, "Interrupted producing sound data");
+      source.initialize(target.getSampleRate());
+      final short[] buf = new short[target.getPreferableBufferSize()];
+      target.start();
+      try {
+        Log.d(TAG, "Start transfer cycle");
+        transferCycle(buf);
+      } finally {
+        Log.d(TAG, "Stop transfer cycle");
+        target.stop();
+      }
     } catch (Exception e) {
       events.onError(e);
-    } finally {
-      stopConsumeThread();
-      events.onStop();
     }
   }
 
-  @Override
-  public void stopPlayback() {
-    isActive = false;
+  public final void pause() {
+    state.compareAndSet(STARTED, PAUSING);
   }
-  
-  @Override
-  public boolean isStarted() {
-    return isActive;
+
+  public final void resume() {
+    if (state.compareAndSet(PAUSED, RESUMING)) {
+      synchronized (state) {
+        state.notify();
+      }
+    }
   }
-  
-  @Override
+
+  public final void stop() {
+    if (state.compareAndSet(PAUSED, STOPPED)) {
+      synchronized (state) {
+        state.notify();
+      }
+    } else {
+      state.set(STOPPED);
+    }
+  }
+
   public void release() {
     source.release();
     source = null;
@@ -67,70 +82,39 @@ public final class SyncPlayer implements Player {
     target = null;
   }
 
-  private void startConsumeThread() {
-    consumeThread = new ConsumeThread();
-    consumeThread.start();
-  }
-
-  private void stopConsumeThread() {
+  private void transferCycle(short[] buf) {
+    events.onStart();
+    state.set(STARTED);
     try {
-      consumeThread.join();
-    } catch (InterruptedException e) {
-      Log.w(TAG, e, "Interrupted while stopping consume thread");
-    } finally {
-      consumeThread = null;
-    }
-  }
-
-  private void produceCycle() throws Exception {
-    try {
-      Log.d(TAG, "Started produce cycle");
-      source.initialize(target.getSampleRate());
-      target.start();
-      isActive = true;
-      events.onStart();
-      short[] buf = new short[target.getPreferableBufferSize()];
-      while (isActive) {
-        if (source.getSamples(buf)) {
-          buf = buffers.exchange(buf);
+      while (!state.compareAndSet(STOPPED, STOPPED)) {
+        if (state.compareAndSet(PAUSING, PAUSED)) {
+          doPause();
+        } else if (source.getSamples(buf)) {
+          target.writeSamples(buf);
         } else {
           events.onFinish();
-          isActive = false;
+          break;
         }
       }
+    } catch (InterruptedException e) {
+      Log.d(TAG, "Interrupted transfer cycle");
+    } catch (Exception e) {
+      events.onError(e);
     } finally {
-      buffers.exchange(null);
-      target.stop();
-      Log.d(TAG, "Stopped produce cycle");
+      state.set(STOPPED);
+      events.onStop();
     }
   }
 
-  private class ConsumeThread extends Thread {
-    @Override
-    public void run() {
-      Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
-      try {
-        Log.d(TAG, "Started consume cycle");
-        consumeCycle();
-      } catch (InterruptedException e) {
-        Log.w(TAG, e, "Interrupted consume cycle");
-      } catch (Exception e) {
-        events.onError(e);
-        isActive = false;
-      } finally {
-        Log.d(TAG, "Stopped consume cycle");
+  private void doPause() throws InterruptedException {
+    events.onPause();
+    synchronized (state) {
+      while (state.compareAndSet(PAUSED, PAUSED)) {
+        state.wait();
       }
     }
-  }
-
-  private void consumeCycle() throws Exception {
-    short[] buf = new short[target.getPreferableBufferSize()];
-    for (;;) {
-      buf = buffers.exchange(buf);
-      if (null == buf) {
-        break;
-      }
-      target.writeSamples(buf);
+    if (state.compareAndSet(RESUMING, STARTED)) {
+      events.onStart();
     }
   }
 }

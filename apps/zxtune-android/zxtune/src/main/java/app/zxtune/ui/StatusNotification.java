@@ -11,12 +11,13 @@
 package app.zxtune.ui;
 
 import android.app.Notification;
-import android.support.v7.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
+import android.support.v4.app.NotificationCompat.Action;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v7.app.NotificationCompat;
 
 import app.zxtune.Log;
 import app.zxtune.MainActivity;
@@ -25,6 +26,7 @@ import app.zxtune.R;
 import app.zxtune.Util;
 import app.zxtune.playback.CallbackStub;
 import app.zxtune.playback.Item;
+import app.zxtune.playback.PlaybackControl;
 
 public class StatusNotification extends CallbackStub {
   
@@ -48,15 +50,18 @@ public class StatusNotification extends CallbackStub {
       .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
       .setOngoing(true)
       .setSmallIcon(R.drawable.ic_stat_notify_play)
+      .setLargeIcon(null)
+      .setWhen(0)
       .setContentIntent(createActivateIntent())
-      .addAction(R.drawable.ic_prev, "", createNavigatePrevIntent())
-      .addAction(R.drawable.ic_stop, "", createStopIntent())
-      .addAction(R.drawable.ic_next, "", createNavigateNextIntent())
+      .addAction(R.drawable.ic_prev, "", createServiceIntent(MainService.ACTION_PREV))
+      .addAction(createPauseAction())
+      .addAction(R.drawable.ic_stop, "", createServiceIntent(MainService.ACTION_STOP))
+      .addAction(R.drawable.ic_next, "", createServiceIntent(MainService.ACTION_NEXT))
       .setStyle(new NotificationCompat.MediaStyle()
-        .setShowActionsInCompactView(0, 1, 2)
-        //TODO: enable when pause mode will be available
-        //.setCancelButtonIntent(createStopIntent())
-        //.setShowCancelButton(true)
+                      .setShowActionsInCompactView(0, 1, 2, 3)
+              //Takes way too much place on 4.4.2
+              //.setCancelButtonIntent(createServiceIntent(MainService.ACTION_STOP))
+              //.setShowCancelButton(true)
       )
     ;
   }
@@ -67,18 +72,14 @@ public class StatusNotification extends CallbackStub {
     return PendingIntent.getActivity(service, 0, intent, 0);
   }
   
-  private PendingIntent createNavigatePrevIntent() {
-    return createServiceIntent(MainService.ACTION_PREV);
+  private Action createPauseAction() {
+    return new NotificationCompat.Action(R.drawable.ic_pause, "", createServiceIntent(MainService.ACTION_PAUSE));
   }
 
-  private PendingIntent createStopIntent() {
-    return createServiceIntent(MainService.ACTION_PAUSE);
+  private Action createPlayAction() {
+    return new NotificationCompat.Action(R.drawable.ic_play, "", createServiceIntent(MainService.ACTION_PLAY));
   }
 
-  private PendingIntent createNavigateNextIntent() {
-    return createServiceIntent(MainService.ACTION_NEXT);
-  }
-  
   private PendingIntent createServiceIntent(String action) {
     final Intent intent = new Intent(service, service.getClass());
     intent.setAction(action);
@@ -95,17 +96,22 @@ public class StatusNotification extends CallbackStub {
       if (ticker.equals(filename)) {
         title = filename;
       }
-      builder.setTicker(ticker);
-      builder.setContentTitle(title).setContentText(author);
+      builder
+//        .setTicker(ticker)
+        .setContentTitle(title)
+        .setContentText(author);
     } catch (Exception e) {
       Log.w(TAG, e, "onIntemChanged()");
     }
   }
 
   @Override
-  public void onStatusChanged(boolean isPlaying) {
+  public void onStateChanged(PlaybackControl.State state) {
+    final boolean isPlaying = state != PlaybackControl.State.STOPPED;
+    final boolean isPaused = state == PlaybackControl.State.PAUSED;
     if (isPlaying) {
       scheduler.removeCallbacks(delayedHide);
+      builder.mActions.set(1, isPaused ? createPlayAction() : createPauseAction());
       showNotification();
     } else {
       scheduler.postDelayed(delayedHide, NOTIFICATION_DELAY);
@@ -113,7 +119,6 @@ public class StatusNotification extends CallbackStub {
   }
   
   private void showNotification() {
-    builder.setSmallIcon(R.drawable.ic_stat_notify_play);
     service.startForeground(notificationId, makeNotification());
   }
   

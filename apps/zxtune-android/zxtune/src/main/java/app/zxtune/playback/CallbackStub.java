@@ -13,7 +13,7 @@ package app.zxtune.playback;
 public abstract class CallbackStub implements Callback {
 
   @Override
-  public void onStatusChanged(boolean isPlaying) {
+  public void onStateChanged(PlaybackControl.State state) {
   }
 
   @Override

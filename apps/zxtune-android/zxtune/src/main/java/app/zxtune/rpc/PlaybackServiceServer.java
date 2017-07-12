@@ -96,15 +96,20 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   public void play() {
     playback.play();
   }
-  
+
+  @Override
+  public void pause() {
+    playback.pause();
+  }
+
   @Override
   public void stop() {
     playback.stop();
   }
   
   @Override
-  public boolean isPlaying() {
-    return playback.isPlaying();
+  public int getState() {
+    return playback.getState().ordinal();
   }
     
   @Override
@@ -210,9 +215,9 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     }
     
     @Override
-    public void onStatusChanged(boolean isPlaying) {
+    public void onStateChanged(PlaybackControl.State state) {
       try {
-        delegate.onStatusChanged(isPlaying);
+        delegate.onStateChanged(state.ordinal());
       } catch (RemoteException e) {
         Log.w(TAG, e, "onStatusChanged()");
       }

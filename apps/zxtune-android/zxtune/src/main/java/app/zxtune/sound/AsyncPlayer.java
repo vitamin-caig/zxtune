@@ -23,7 +23,7 @@ public final class AsyncPlayer implements Player {
 
   private static final String TAG = AsyncPlayer.class.getName();
 
-  private Player sync;
+  private SyncPlayer sync;
   private final PlayerEventsListener events;
   private final Object stateGuard;
   private Player state;
@@ -55,11 +55,26 @@ public final class AsyncPlayer implements Player {
       state.stopPlayback();
     }
   }
+
+  @Override
+  public void pausePlayback() {
+    Log.d(TAG, "Pause");
+    synchronized (stateGuard) {
+      state.pausePlayback();
+    }
+  }
   
   @Override
   public boolean isStarted() {
     synchronized (stateGuard) {
       return state.isStarted();
+    }
+  }
+
+  @Override
+  public boolean isPaused() {
+    synchronized (stateGuard) {
+      return state.isPaused();
     }
   }
   
@@ -110,9 +125,42 @@ public final class AsyncPlayer implements Player {
     }
 
     @Override
+    public void onPause() {
+      setState(new PausedPlayer());
+      events.onPause();
+    }
+
+    @Override
     public void onError(Exception e) {
       events.onError(e);
     }
+  }
+
+  private void doStart() {
+    playThread = new PlayThread();
+    playThread.start();
+    waitForStateChange();
+  }
+
+  private void doStop() {
+    try {
+      sync.stop();
+      waitForStateChange();
+      playThread.join();
+      playThread = null;
+    } catch (InterruptedException e) {
+      Log.w(TAG, e, "Interrupted while stop");
+    }
+  }
+
+  private void doPause() {
+    sync.pause();
+    waitForStateChange();
+  }
+
+  private void doResume() {
+    sync.resume();
+    waitForStateChange();
   }
   
   private final class StoppedPlayer extends StubPlayer {
@@ -123,9 +171,7 @@ public final class AsyncPlayer implements Player {
 
     @Override
     public void startPlayback() {
-      playThread = new PlayThread();
-      playThread.start();
-      waitForStateChange();
+      doStart();
     }
   }
 
@@ -137,14 +183,12 @@ public final class AsyncPlayer implements Player {
     
     @Override
     public void stopPlayback() {
-      try {
-        sync.stopPlayback();
-        waitForStateChange();
-        playThread.join();
-        playThread = null;
-      } catch (InterruptedException e) {
-        Log.w(TAG, e, "Interrupted while stop");
-      }
+      doStop();
+    }
+
+    @Override
+    public void pausePlayback() {
+      doPause();
     }
 
     @Override
@@ -153,11 +197,33 @@ public final class AsyncPlayer implements Player {
     }
   }
 
+  private final class PausedPlayer extends StubPlayer {
+
+    PausedPlayer() {
+      Log.d(TAG, "Paused");
+    }
+
+    @Override
+    public void startPlayback() {
+      doResume();
+    }
+
+    @Override
+    public void stopPlayback() {
+      doStop();
+    }
+
+    @Override
+    public boolean isPaused() {
+      return true;
+    }
+  }
+
   private class PlayThread extends Thread {
     @Override
     public void run() {
       Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
-      sync.startPlayback();
+      sync.play();
     }
   }
 }

@@ -154,7 +154,7 @@ public class RingtoneService extends IntentService {
     final PlayerEventsListener events = new NotifyEventsListener(); 
     final SyncPlayer player = new SyncPlayer(source, target, events);
     try {
-      player.startPlayback();
+      player.play();
     } finally {
       player.release();
     }

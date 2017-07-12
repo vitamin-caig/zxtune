@@ -51,7 +51,8 @@ public class MainService extends Service {
   public static final String ACTION_NEXT = TAG + ".next";
   public static final String ACTION_PLAY = TAG + ".play";
   public static final String ACTION_PAUSE = TAG + ".pause";
-  public static final String ACTION_PLAYPAUSE = TAG + ".playpause";
+  public static final String ACTION_STOP = TAG + ".stop";
+  public static final String ACTION_TOGGLE_PLAY = TAG + ".toggle_play";
 
   @Override
   public void onCreate() {
@@ -128,9 +129,11 @@ public class MainService extends Service {
     } else if (ACTION_PLAY.equals(action)) {
       ctrl.play();
     } else if (ACTION_PAUSE.equals(action)) {
+      ctrl.pause();
+    } else if (ACTION_STOP.equals(action)) {
       ctrl.stop();
-    } else if (ACTION_PLAYPAUSE.equals(action)) {
-      if (ctrl.isPlaying()) {
+    } else if (ACTION_TOGGLE_PLAY.equals(action)) {
+      if (ctrl.getState() == PlaybackControl.State.PLAYING) {
         ctrl.stop();
       } else {
         ctrl.play();
@@ -198,8 +201,8 @@ public class MainService extends Service {
     service.restoreSession();
     service.subscribe(new CallbackStub() {
       @Override
-      public void onStatusChanged(boolean isPlaying) {
-        if (!isPlaying) {
+      public void onStateChanged(PlaybackControl.State state) {
+        if (state == PlaybackControl.State.STOPPED) {
           service.storeSession();
         }
       }

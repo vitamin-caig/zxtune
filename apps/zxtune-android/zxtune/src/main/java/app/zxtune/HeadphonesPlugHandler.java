@@ -45,8 +45,8 @@ class HeadphonesPlugHandler extends BroadcastReceiver {
       case STATE_PLUGGED:
         break;
       case STATE_UNPLUGGED:
-        if (control.isPlaying()) {
-          control.stop();
+        if (PlaybackControl.State.PLAYING == control.getState()) {
+          control.pause();
         }
     }
   }

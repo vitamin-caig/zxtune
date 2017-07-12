@@ -14,6 +14,7 @@ import android.app.Activity;
 
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
+import app.zxtune.playback.PlaybackControl;
 
 final class UiThreadCallbackAdapter implements Callback {
   
@@ -26,11 +27,11 @@ final class UiThreadCallbackAdapter implements Callback {
   }
 
   @Override
-  public void onStatusChanged(final boolean isPlaying) {
+  public void onStateChanged(final PlaybackControl.State state) {
     activity.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        delegate.onStatusChanged(isPlaying);
+        delegate.onStateChanged(state);
       }
     });
   }

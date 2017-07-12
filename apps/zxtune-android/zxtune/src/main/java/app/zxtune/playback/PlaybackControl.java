@@ -11,7 +11,16 @@
 package app.zxtune.playback;
 
 public interface PlaybackControl {
-  
+
+  /**
+   * Current state
+   */
+  public enum State {
+    STOPPED,
+    PLAYING,
+    PAUSED
+  }
+
   /**
    * Track playback mode
    */
@@ -38,6 +47,11 @@ public interface PlaybackControl {
    * Activate currently playing item
    */
   public void play();
+
+  /*
+   * Pause currently playing item
+   */
+  public void pause();
   
   /*
    * Stop currently playing item
@@ -45,9 +59,9 @@ public interface PlaybackControl {
   public void stop();
   
   /*
-   * @return true if something is played now
+   * @return current state
    */
-  public boolean isPlaying();
+  public State getState();
   
   /*
    * Play next item in sequence

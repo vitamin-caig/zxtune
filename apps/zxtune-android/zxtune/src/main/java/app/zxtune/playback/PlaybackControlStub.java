@@ -16,16 +16,17 @@ public class PlaybackControlStub implements PlaybackControl {
   }
 
   @Override
-  public void play() {
-  }
+  public void play() {}
 
   @Override
-  public void stop() {
-  }
+  public void pause() {}
 
   @Override
-  public boolean isPlaying() {
-    return false;
+  public void stop() {}
+
+  @Override
+  public State getState() {
+    return State.STOPPED;
   }
   
   @Override

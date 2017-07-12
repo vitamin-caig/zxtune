@@ -171,7 +171,16 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.w(TAG, e, "play()");
       }
     }
-    
+
+    @Override
+    public void pause() {
+      try {
+        delegate.pause();
+      } catch (RemoteException e) {
+        Log.w(TAG, e, "pause()");
+      }
+    }
+
     @Override
     public void stop() {
       try {
@@ -180,14 +189,14 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.w(TAG, e, "stop()");
       }
     }
-    
+
     @Override
-    public boolean isPlaying() {
+    public State getState() {
       try {
-        return delegate.isPlaying();
+        return State.values()[delegate.getState()];
       } catch (RemoteException e) {
         Log.w(TAG, e, "isPlaying()");
-        return false;
+        return State.STOPPED;
       }
     }
     
@@ -309,8 +318,8 @@ public final class PlaybackServiceClient implements PlaybackService {
     }
     
     @Override
-    public void onStatusChanged(boolean isPlaying) {
-      delegate.onStatusChanged(isPlaying);
+    public void onStateChanged(int state) {
+      delegate.onStateChanged(PlaybackControl.State.values()[state]);
     }
     
     @Override

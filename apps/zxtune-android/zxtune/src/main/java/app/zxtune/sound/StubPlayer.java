@@ -17,9 +17,17 @@ public class StubPlayer implements Player {
 
   @Override
   public void stopPlayback() {}
+
+  @Override
+  public void pausePlayback() {}
   
   @Override
   public boolean isStarted() {
+    return false;
+  }
+
+  @Override
+  public boolean isPaused() {
     return false;
   }
 

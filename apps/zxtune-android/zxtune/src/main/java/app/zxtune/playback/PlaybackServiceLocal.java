@@ -83,9 +83,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void onStatusChanged(boolean nowPlaying) {
-      if (isPlaying != nowPlaying) {
-        isPlaying = nowPlaying;
+    public void onStateChanged(PlaybackControl.State state) {
+      final boolean isPlaying = state != PlaybackControl.State.STOPPED;
+      if (this.isPlaying != isPlaying) {
+        this.isPlaying = isPlaying;
         update();
       }
     }
@@ -372,9 +373,19 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public synchronized boolean isPlaying() {
+    public synchronized void pause() {
       synchronized (PlaybackServiceLocal.this) {
-        return holder.player.isStarted();
+        holder.player.pausePlayback();
+      }
+    }
+
+    @Override
+    public synchronized PlaybackControl.State getState() {
+      synchronized (PlaybackServiceLocal.this) {
+        return holder.player.isStarted()
+                ? (holder.player.isPaused() ? State.PAUSED
+                : State.PLAYING)
+                : State.STOPPED;
       }
     }
 
@@ -473,7 +484,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     
     @Override
     public void onStart() {
-      callback.onStatusChanged(true);
+      callback.onStateChanged(PlaybackControl.State.PLAYING);
     }
 
     @Override
@@ -487,8 +498,13 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
+    public void onPause() {
+      callback.onStateChanged(PlaybackControl.State.PAUSED);
+    }
+
+    @Override
     public void onStop() {
-      callback.onStatusChanged(false);
+      callback.onStateChanged(PlaybackControl.State.STOPPED);
     }
 
     @Override

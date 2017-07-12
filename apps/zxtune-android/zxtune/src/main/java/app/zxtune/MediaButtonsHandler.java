@@ -77,7 +77,7 @@ public class MediaButtonsHandler extends BroadcastReceiver {
         return new Intent(MainService.ACTION_PAUSE);
       case KeyEvent.KEYCODE_HEADSETHOOK:
       case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-        return new Intent(MainService.ACTION_PLAYPAUSE);
+        return new Intent(MainService.ACTION_TOGGLE_PLAY);
       case KeyEvent.KEYCODE_MEDIA_NEXT:
         return new Intent(MainService.ACTION_NEXT);
       default:

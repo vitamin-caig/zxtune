@@ -16,7 +16,7 @@ package app.zxtune.sound;
 public interface PlayerEventsListener {
 
   /**
-   * Called when playback is started
+   * Called when playback is started or resumed
    */
   public void onStart();
 
@@ -29,6 +29,11 @@ public interface PlayerEventsListener {
    * Called when playback stopped (also called after onFinish)
    */
   public void onStop();
+
+  /**
+   * Called when playback is paused
+   */
+  public void onPause();
   
   /**
    * Called on unexpected error occurred

@@ -23,6 +23,9 @@ public class StubPlayerEventsListener implements PlayerEventsListener {
 
   @Override
   public void onStop() {}
+
+  @Override
+  public void onPause() {}
   
   @Override
   public void onError(Exception e) {}
