@@ -55,10 +55,10 @@ public class StatusNotification extends CallbackStub {
       .setContentIntent(createActivateIntent())
       .addAction(R.drawable.ic_prev, "", createServiceIntent(MainService.ACTION_PREV))
       .addAction(createPauseAction())
-      .addAction(R.drawable.ic_stop, "", createServiceIntent(MainService.ACTION_STOP))
       .addAction(R.drawable.ic_next, "", createServiceIntent(MainService.ACTION_NEXT))
+        .addAction(R.drawable.ic_stop, "", createServiceIntent(MainService.ACTION_STOP))
       .setStyle(new NotificationCompat.MediaStyle()
-                      .setShowActionsInCompactView(0, 1, 2, 3)
+                      .setShowActionsInCompactView(0/*prev*/, 1/*play/pause*/, 2/*next*/)
               //Takes way too much place on 4.4.2
               //.setCancelButtonIntent(createServiceIntent(MainService.ACTION_STOP))
               //.setShowCancelButton(true)
