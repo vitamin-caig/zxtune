@@ -44,13 +44,13 @@ import app.zxtune.fs.VfsObject;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.ItemStub;
+import app.zxtune.playback.stubs.ItemStub;
 import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.PlaybackControlStub;
+import app.zxtune.playback.stubs.PlaybackControlStub;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.PlaybackServiceStub;
-import app.zxtune.playback.SeekControlStub;
-import app.zxtune.playback.VisualizerStub;
+import app.zxtune.playback.stubs.PlaybackServiceStub;
+import app.zxtune.playback.stubs.SeekControlStub;
+import app.zxtune.playback.stubs.VisualizerStub;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 

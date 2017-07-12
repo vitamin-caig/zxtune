@@ -20,7 +20,7 @@ import android.view.View;
 
 import app.zxtune.Log;
 import app.zxtune.playback.Visualizer;
-import app.zxtune.playback.VisualizerStub;
+import app.zxtune.playback.stubs.VisualizerStub;
 
 public class VisualizerView extends View {
   

@@ -8,9 +8,8 @@
  *
  */
 
-package app.zxtune.playback;
+package app.zxtune.playback.service;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -25,12 +24,24 @@ import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
-import app.zxtune.playlist.ItemState;
-import app.zxtune.playlist.PlaylistQuery;
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.CompositeCallback;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.Iterator;
+import app.zxtune.playback.IteratorFactory;
+import app.zxtune.playback.stubs.IteratorStub;
+import app.zxtune.playback.PlayableItem;
+import app.zxtune.playback.stubs.PlayableItemStub;
+import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.PlaylistControl;
+import app.zxtune.playback.SeekControl;
+import app.zxtune.playback.stubs.SeekControlStub;
+import app.zxtune.playback.Visualizer;
+import app.zxtune.playback.stubs.VisualizerStub;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
-import app.zxtune.sound.SamplesSource;
 import app.zxtune.sound.SamplesTarget;
 import app.zxtune.sound.SoundOutputSamplesTarget;
 import app.zxtune.sound.StubPlayer;
@@ -45,10 +56,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final Context context;
   private final ExecutorService executor;
   private final CompositeCallback callbacks;
-  private final PlaylistControl playlist;
-  private final PlaybackControl playback;
-  private final SeekControl seek;
-  private final Visualizer visualizer;
+  private final PlaylistControlLocal playlist;
+  private final DispatchedPlaybackControl playback;
+  private final DispatchedSeekControl seek;
+  private final DispatchedVisualizer visualizer;
   private Holder holder;
 
   private static interface Command {
@@ -64,56 +75,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
     this.holder = new Holder();
+    //essential callbacks
     this.callbacks.add(new Analytics.PlaybackEventsCallback());
-    this.callbacks.add(new PlayingState(context));
-  }
-
-  private static class PlayingState extends CallbackStub {
-
-    private final ContentResolver resolver;
-    private boolean isPlaying;
-    private Uri dataLocation;
-    private Long playlistId;
-
-    PlayingState(Context context) {
-      this.resolver = context.getContentResolver();
-      this.isPlaying = false;
-      this.dataLocation = Uri.EMPTY;
-      this.playlistId = null;
-    }
-
-    @Override
-    public void onStateChanged(PlaybackControl.State state) {
-      final boolean isPlaying = state != PlaybackControl.State.STOPPED;
-      if (this.isPlaying != isPlaying) {
-        this.isPlaying = isPlaying;
-        update();
-      }
-    }
-
-    @Override
-    public void onItemChanged(Item item) {
-      final Uri newId = item.getId();
-      final Uri newDataLocation = item.getDataId().getFullLocation();
-      final Long newPlaylistId = 0 == newId.compareTo(newDataLocation) ? null : PlaylistQuery.idOf(newId);
-      if (playlistId != null && newPlaylistId == null) {
-        //disable playlist item
-        updatePlaylist(playlistId, false);
-      }
-      playlistId = newPlaylistId;
-      dataLocation = newDataLocation;
-      update();
-    }
-
-    private void update() {
-      if (playlistId != null) {
-        updatePlaylist(playlistId, isPlaying);
-      }
-    }
-
-    private void updatePlaylist(long id, boolean isPlaying) {
-      resolver.update(PlaylistQuery.uriFor(id), new ItemState(isPlaying).toContentValues(), null, null);
-    }
+    this.callbacks.add(new PlayingStateCallback(context));
   }
 
   @Override
@@ -469,118 +433,5 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       }
     }
   }
-
-  private static final class PlaybackEvents implements PlayerEventsListener {
-
-    private final Callback callback;
-    private final PlaybackControl ctrl;
-    private final SeekControl seek;
-    
-    public PlaybackEvents(Callback callback, PlaybackControl ctrl, SeekControl seek) {
-      this.callback = callback;
-      this.ctrl = ctrl;
-      this.seek = seek;
-    }
-    
-    @Override
-    public void onStart() {
-      callback.onStateChanged(PlaybackControl.State.PLAYING);
-    }
-
-    @Override
-    public void onFinish() {
-      try {
-        seek.setPosition(TimeStamp.EMPTY);
-        ctrl.next();
-      } catch (Exception e) {
-        onError(e);
-      }
-    }
-
-    @Override
-    public void onPause() {
-      callback.onStateChanged(PlaybackControl.State.PAUSED);
-    }
-
-    @Override
-    public void onStop() {
-      callback.onStateChanged(PlaybackControl.State.STOPPED);
-    }
-
-    @Override
-    public void onError(Exception e) {
-      Log.w(TAG, e, "Error occurred");
-    }
-  }
-  
-  private static final class SeekableSamplesSource implements SamplesSource, SeekControl {
-
-    private ZXTune.Player player;
-    private final TimeStamp totalDuration;
-    private final TimeStamp frameDuration;
-    private volatile TimeStamp seekRequest;
-    
-    public SeekableSamplesSource(ZXTune.Player player, TimeStamp totalDuration) throws Exception {
-      this.player = player;
-      this.totalDuration = totalDuration;
-      final long frameDurationUs = player.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT); 
-      this.frameDuration = TimeStamp.createFrom(frameDurationUs, TimeUnit.MICROSECONDS);
-      player.setPosition(0);
-    }
-    
-    @Override
-    public void initialize(int sampleRate) throws Exception {
-      player.setProperty(ZXTune.Properties.Sound.FREQUENCY, sampleRate);
-    }
-
-    @Override
-    public boolean getSamples(short[] buf) throws Exception {
-      if (seekRequest != null) {
-        final int frame = (int) seekRequest.divides(frameDuration); 
-        player.setPosition(frame);
-        seekRequest = null;
-      }
-      return player.render(buf);
-    }
-
-    @Override
-    public void release() {
-      player.release();
-      player = null;
-    }
-    
-    @Override
-    public TimeStamp getDuration() {
-      return totalDuration; 
-    }
-
-    @Override
-    public TimeStamp getPosition() throws Exception {
-      TimeStamp res = seekRequest;
-      if (res == null) {
-        final int frame = player.getPosition();
-        res = frameDuration.multiplies(frame); 
-      }
-      return res;
-    }
-
-    @Override
-    public void setPosition(TimeStamp pos) {
-      seekRequest = pos;
-    }
-  }
-  
-  private static final class PlaybackVisualizer implements Visualizer {
-    
-    private final ZXTune.Player player;
-    
-    public PlaybackVisualizer(ZXTune.Player player) {
-      this.player = player;
-    }
-
-    @Override
-    public int getSpectrum(int[] bands, int[] levels) throws Exception {
-      return player.analyze(bands, levels);
-    }
-  }
 }
+

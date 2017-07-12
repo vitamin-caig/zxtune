@@ -33,7 +33,7 @@ import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.Preferences;
 import app.zxtune.R;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.PlaybackServiceStub;
+import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playlist.PlaylistQuery;
 

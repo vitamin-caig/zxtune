@@ -8,7 +8,7 @@
  *
  */
 
-package app.zxtune.playback;
+package app.zxtune.playback.service;
 
 import android.content.Context;
 import android.content.Intent;
@@ -19,13 +19,11 @@ import android.util.SparseIntArray;
 
 import app.zxtune.Analytics;
 import app.zxtune.ScanService;
+import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playlist.Database;
 import app.zxtune.playlist.PlaylistQuery;
 
-/**
- * Local implementation of PlaylistControl
- */
-final class PlaylistControlLocal implements PlaylistControl {
+class PlaylistControlLocal implements PlaylistControl {
 
   private final Context context;
   private final Database db;

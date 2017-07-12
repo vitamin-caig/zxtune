@@ -8,7 +8,11 @@
  * 
  */
 
-package app.zxtune.playback;
+package app.zxtune.playback.stubs;
+
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.PlaybackControl;
 
 public abstract class CallbackStub implements Callback {
 

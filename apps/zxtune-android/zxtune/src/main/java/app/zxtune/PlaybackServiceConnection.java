@@ -23,7 +23,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.PlaybackServiceStub;
+import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.rpc.IRemotePlaybackService;
 import app.zxtune.rpc.PlaybackServiceClient;
 

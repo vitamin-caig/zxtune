@@ -26,6 +26,7 @@ import app.zxtune.Scanner;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
 import app.zxtune.ZXTune.Module;
+import app.zxtune.playback.stubs.PlayableItemStub;
 
 public class FileIterator implements Iterator {
   

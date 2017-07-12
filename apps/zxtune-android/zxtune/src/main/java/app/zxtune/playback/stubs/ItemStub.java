@@ -8,12 +8,13 @@
  *
  */
 
-package app.zxtune.playback;
+package app.zxtune.playback.stubs;
 
 import android.net.Uri;
 
 import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
+import app.zxtune.playback.Item;
 
 public class ItemStub implements Item {
 

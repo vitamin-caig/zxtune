@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import app.zxtune.playback.Iterator;
 import app.zxtune.playback.IteratorFactory;
 import app.zxtune.playback.PlayableItem;
-import app.zxtune.playback.PlayableItemStub;
+import app.zxtune.playback.stubs.PlayableItemStub;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.PlaylistQuery;
 

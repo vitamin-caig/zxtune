@@ -42,20 +42,20 @@ public final class IteratorFactory {
   }
   
   //TODO: implement abstract iterator-typed visitor and preferences notification 
-  static class NavigationMode {
+  public static class NavigationMode {
     
     private static final String KEY = "playlist.navigation_mode";
     private final SharedPreferences prefs;
     
-    NavigationMode(Context context) {
+    public NavigationMode(Context context) {
       this.prefs = Preferences.getDefaultSharedPreferences(context);
     }
     
-    final void set(SequenceMode mode) {
+    public final void set(SequenceMode mode) {
       prefs.edit().putString(KEY, mode.toString()).apply();
     }
     
-    final SequenceMode get() {
+    public final SequenceMode get() {
       return SequenceMode.valueOf(prefs.getString(KEY, SequenceMode.ORDERED.toString()));
     }
   }

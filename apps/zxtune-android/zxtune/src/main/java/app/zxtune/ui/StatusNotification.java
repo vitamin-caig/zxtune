@@ -24,7 +24,7 @@ import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.Util;
-import app.zxtune.playback.CallbackStub;
+import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 

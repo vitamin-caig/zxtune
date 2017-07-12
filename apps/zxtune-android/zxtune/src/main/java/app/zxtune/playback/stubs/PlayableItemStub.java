@@ -8,9 +8,10 @@
  *
  */
 
-package app.zxtune.playback;
+package app.zxtune.playback.stubs;
 
 import app.zxtune.ZXTune;
+import app.zxtune.playback.PlayableItem;
 
 public class PlayableItemStub extends ItemStub implements PlayableItem {
   

@@ -20,7 +20,7 @@ import android.media.RemoteControlClient.MetadataEditor;
 
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.playback.CallbackStub;
+import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;

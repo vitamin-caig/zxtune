@@ -21,7 +21,7 @@ import android.widget.TextView;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.ItemStub;
+import app.zxtune.playback.stubs.ItemStub;
 
 class InformationView {
 

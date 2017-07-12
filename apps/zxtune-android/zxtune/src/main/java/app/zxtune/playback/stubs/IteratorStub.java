@@ -8,7 +8,10 @@
  *
  */
 
-package app.zxtune.playback;
+package app.zxtune.playback.stubs;
+
+import app.zxtune.playback.Iterator;
+import app.zxtune.playback.PlayableItem;
 
 public final class IteratorStub implements Iterator {
 

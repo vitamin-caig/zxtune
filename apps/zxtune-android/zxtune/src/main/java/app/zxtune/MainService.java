@@ -21,10 +21,10 @@ import android.os.IBinder;
 
 import java.util.Map;
 
-import app.zxtune.playback.CallbackStub;
+import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.PlaybackServiceLocal;
+import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.rpc.PlaybackServiceServer;
 import app.zxtune.ui.StatusNotification;
 

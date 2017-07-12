@@ -39,7 +39,7 @@ import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.PlaybackServiceStub;
+import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.ui.browser.BreadCrumbsView;
 import app.zxtune.ui.browser.BrowserController;
 import app.zxtune.ui.browser.BrowserView;

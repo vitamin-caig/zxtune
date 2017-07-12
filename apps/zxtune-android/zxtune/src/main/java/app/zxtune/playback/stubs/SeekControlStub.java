@@ -9,9 +9,10 @@
  */
 
 
-package app.zxtune.playback;
+package app.zxtune.playback.stubs;
 
 import app.zxtune.TimeStamp;
+import app.zxtune.playback.SeekControl;
 
 public final class SeekControlStub implements SeekControl {
 

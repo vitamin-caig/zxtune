@@ -8,7 +8,9 @@
  *
  */
 
-package app.zxtune.playback;
+package app.zxtune.playback.stubs;
+
+import app.zxtune.playback.PlaybackControl;
 
 public class PlaybackControlStub implements PlaybackControl {
 

@@ -21,7 +21,7 @@ import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.SeekControl;
-import app.zxtune.playback.SeekControlStub;
+import app.zxtune.playback.stubs.SeekControlStub;
 
 class SeekControlView {
 

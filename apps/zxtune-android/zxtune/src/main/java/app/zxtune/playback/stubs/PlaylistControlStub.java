@@ -8,9 +8,11 @@
  *
  */
 
-package app.zxtune.playback;
+package app.zxtune.playback.stubs;
 
 import android.net.Uri;
+
+import app.zxtune.playback.PlaylistControl;
 
 public class PlaylistControlStub implements PlaylistControl {
 
