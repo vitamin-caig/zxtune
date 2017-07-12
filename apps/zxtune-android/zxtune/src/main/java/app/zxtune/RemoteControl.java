@@ -20,32 +20,24 @@ import android.media.RemoteControlClient.MetadataEditor;
 
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.stubs.CallbackStub;
 
 //TODO: position change support starting from 18 
 class RemoteControl implements Releaseable {
 
   private static final String TAG = RemoteControl.class.getName();
-  private static final AudioManager.OnAudioFocusChangeListener HANDLER =
-      new AudioManager.OnAudioFocusChangeListener() {
-        @Override
-        public void onAudioFocusChange(int focusChange) {
-        }
-      };
   private final AudioManager audioManager;
   private final RemoteControlClient controlClient;
   private final Releaseable callback;
-  private final Releaseable focus;
 
   private RemoteControl(AudioManager manager, RemoteControlClient controlClient, PlaybackService svc) {
     this.audioManager = manager;
     this.controlClient = controlClient;
     this.callback = new CallbackSubscription(svc, new StatusCallback());
-    this.focus = tryCaptureFocus();
     audioManager.registerRemoteControlClient(controlClient);
     controlClient.setTransportControlFlags(getTransportControlFlags());
   }
@@ -59,7 +51,6 @@ class RemoteControl implements Releaseable {
   @Override
   public void release() {
     audioManager.unregisterRemoteControlClient(controlClient);
-    focus.release();
     callback.release();
   }
 
@@ -72,26 +63,6 @@ class RemoteControl implements Releaseable {
     final AudioManager audioManager = (AudioManager) context
         .getSystemService(Context.AUDIO_SERVICE);
     return new RemoteControl(audioManager, controlClient, svc);
-  }
-
-  private class AudioFocus implements Releaseable {
-
-    @Override
-    public void release() {
-      audioManager.abandonAudioFocus(HANDLER);
-      Log.d(TAG, "Released audio focus");
-    }
-  }
-
-  private Releaseable tryCaptureFocus() {
-    if (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(HANDLER,
-        AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)) {
-      Log.d(TAG, "Gained audio focus");
-      return new AudioFocus();
-    } else {
-      Log.d(TAG, "Failed to gain audio focus");
-      return ReleaseableStub.instance();
-    }
   }
 
   private class StatusCallback extends CallbackStub {

@@ -39,7 +39,6 @@ public class MainService extends Service {
 
   private PlaybackServiceLocal service;
   private IBinder binder;
-  private Releaseable phoneCallHandler;
   private Releaseable mediaButtonsHandler;
   private Releaseable remoteControlHandler;
   private Releaseable headphonesPlugHandler;
@@ -71,8 +70,6 @@ public class MainService extends Service {
     
     service = new PlaybackServiceLocal(getApplicationContext());
     binder = new PlaybackServiceServer(service);
-    final PlaybackControl control = service.getPlaybackControl();
-    phoneCallHandler = PhoneCallHandler.subscribe(this, control);
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(this);
     connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
     connectHeadphonesPlugging(prefs.getBoolean(PREF_UNPLUGGING, PREF_UNPLUGGING_DEFAULT));
@@ -105,8 +102,6 @@ public class MainService extends Service {
     remoteControlHandler = null;
     mediaButtonsHandler.release();
     mediaButtonsHandler = null;
-    phoneCallHandler.release();
-    phoneCallHandler = null;
     binder = null;
     service.release();
     service = null;

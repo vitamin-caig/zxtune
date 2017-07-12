@@ -78,6 +78,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     //essential callbacks
     this.callbacks.add(new Analytics.PlaybackEventsCallback());
     this.callbacks.add(new PlayingStateCallback(context));
+    this.callbacks.add(new AudioFocusHandler(context, this.playback));
   }
 
   @Override

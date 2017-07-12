@@ -55,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
     }
     Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
     Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-    Permission.request(this, Manifest.permission.READ_PHONE_STATE);
   }
   
   @Override
