@@ -8,6 +8,4 @@
   <string name="pref_control_headset_summary">Ne pro všechna zařízení</string>
   <!-- control.headset.mediabuttons -->
   <string name="pref_control_headset_mediabuttons_title">Použít multimediální klávesy</string>
-  <!-- control.headset.unplugging -->
-  <string name="pref_control_headset_unplugging_title">Pozastavit při oddělení</string>
 </resources>

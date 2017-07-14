@@ -8,6 +8,4 @@
   <string name="pref_control_headset_summary">Nicht für alle Geräte</string>
   <!-- control.headset.mediabuttons -->
   <string name="pref_control_headset_mediabuttons_title">Verwenden Sie Media-Tasten</string>
-  <!-- control.headset.unplugging -->
-  <string name="pref_control_headset_unplugging_title">Pausieren beim Trennen</string>
 </resources>

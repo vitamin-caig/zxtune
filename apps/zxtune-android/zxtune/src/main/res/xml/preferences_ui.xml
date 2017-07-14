@@ -12,11 +12,6 @@
       android:summary="@string/pref_control_headset_summary"
       android:defaultValue="@bool/pref_control_headset_mediabuttons_default"
       />
-    <CheckBoxPreference
-      android:key="@string/pref_control_headset_unplugging"
-      android:title="@string/pref_control_headset_unplugging_title"
-      android:defaultValue="@bool/pref_control_headset_unplugging_default"
-      />
   </PreferenceCategory>
   </PreferenceScreen>
 </PreferenceScreen>

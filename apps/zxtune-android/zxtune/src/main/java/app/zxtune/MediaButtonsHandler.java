@@ -20,6 +20,8 @@ import android.view.KeyEvent;
 
 public class MediaButtonsHandler extends BroadcastReceiver {
 
+  private final static String TAG = MediaButtonsHandler.class.getName();
+
   static Releaseable subscribe(Context context) {
     return new MediaButtonsConnection(context);
   }
@@ -49,17 +51,28 @@ public class MediaButtonsHandler extends BroadcastReceiver {
 
   @Override
   public void onReceive(Context context, Intent intent) {
-    if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
-      final Intent toSend = getMediaButtonIntent((KeyEvent) intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT));
-      if (toSend != null) {
-        toSend.setClass(context, MainService.class);
-        context.startService(toSend);
-      }
+    Log.d(TAG, "onReceive(intent=%s)", intent);
+    final String action = getAction(intent);
+    if (action != null) {
+      context.startService(new Intent(action).setClass(context, MainService.class));
     }
   }
 
   @Nullable
-  private Intent getMediaButtonIntent(@Nullable KeyEvent event) {
+  private static String getAction(Intent intent) {
+    final String action = intent.getAction();
+    if (Intent.ACTION_MEDIA_BUTTON.equals(action)) {
+      final KeyEvent event = (KeyEvent) intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+      return getAction(event);
+    } else if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
+      return MainService.ACTION_PAUSE;
+    } else {
+      return null;
+    }
+  }
+
+  @Nullable
+  private static String getAction(@Nullable KeyEvent event) {
     if (event == null) {
       return null;
     }
@@ -69,17 +82,18 @@ public class MediaButtonsHandler extends BroadcastReceiver {
     }
     switch (event.getKeyCode()) {
       case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-        return new Intent(MainService.ACTION_PREV);
+        return MainService.ACTION_PREV;
       case KeyEvent.KEYCODE_MEDIA_PLAY:
-        return new Intent(MainService.ACTION_PLAY);
+        return MainService.ACTION_PLAY;
       case KeyEvent.KEYCODE_MEDIA_PAUSE:
+        return MainService.ACTION_PAUSE;
       case KeyEvent.KEYCODE_MEDIA_STOP:
-        return new Intent(MainService.ACTION_PAUSE);
+        return MainService.ACTION_STOP;
       case KeyEvent.KEYCODE_HEADSETHOOK:
       case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-        return new Intent(MainService.ACTION_TOGGLE_PLAY);
+        return MainService.ACTION_TOGGLE_PLAY;
       case KeyEvent.KEYCODE_MEDIA_NEXT:
-        return new Intent(MainService.ACTION_NEXT);
+        return MainService.ACTION_NEXT;
       default:
         return null;
     }

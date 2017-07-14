@@ -8,6 +8,4 @@
   <string name="pref_control_headset_summary">Доступно не для всех устройств</string>
   <!-- control.headset.mediabuttons -->
   <string name="pref_control_headset_mediabuttons_title">Управление кнопками</string>
-  <!-- control.headset.unplugging -->
-  <string name="pref_control_headset_unplugging_title">Пауза при отключении</string>
 </resources>

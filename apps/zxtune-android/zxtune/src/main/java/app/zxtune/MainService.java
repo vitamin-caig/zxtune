@@ -34,14 +34,11 @@ public class MainService extends Service {
 
   private String PREF_MEDIABUTTONS;
   private boolean PREF_MEDIABUTTONS_DEFAULT;
-  private String PREF_UNPLUGGING;
-  private boolean PREF_UNPLUGGING_DEFAULT;
 
   private PlaybackServiceLocal service;
   private IBinder binder;
   private Releaseable mediaButtonsHandler;
   private Releaseable remoteControlHandler;
-  private Releaseable headphonesPlugHandler;
   private Releaseable notificationTypeHandler;
   private Releaseable widgetHandler;
   private Releaseable settingsChangedHandler;
@@ -61,18 +58,14 @@ public class MainService extends Service {
     PREF_MEDIABUTTONS = resources.getString(R.string.pref_control_headset_mediabuttons);
     PREF_MEDIABUTTONS_DEFAULT =
         resources.getBoolean(R.bool.pref_control_headset_mediabuttons_default);
-    PREF_UNPLUGGING = resources.getString(R.string.pref_control_headset_unplugging);
-    PREF_UNPLUGGING_DEFAULT = resources.getBoolean(R.bool.pref_control_headset_unplugging_default);
     mediaButtonsHandler = ReleaseableStub.instance();
     remoteControlHandler = ReleaseableStub.instance();
-    headphonesPlugHandler = ReleaseableStub.instance();
     notificationTypeHandler = ReleaseableStub.instance();
     
     service = new PlaybackServiceLocal(getApplicationContext());
     binder = new PlaybackServiceServer(service);
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(this);
     connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
-    connectHeadphonesPlugging(prefs.getBoolean(PREF_UNPLUGGING, PREF_UNPLUGGING_DEFAULT));
     setupNotification();
     setupWidgets();
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
@@ -96,8 +89,6 @@ public class MainService extends Service {
     widgetHandler = null;
     notificationTypeHandler.release();
     notificationTypeHandler = null;
-    headphonesPlugHandler.release();
-    headphonesPlugHandler = null;
     remoteControlHandler.release();
     remoteControlHandler = null;
     mediaButtonsHandler.release();
@@ -169,18 +160,6 @@ public class MainService extends Service {
     }
   }
 
-  private void connectHeadphonesPlugging(boolean connect) {
-    Log.d(TAG, "connectHeadPhonesPlugging = %b", connect);
-    final boolean connected = headphonesPlugHandler != ReleaseableStub.instance();
-    if (connect != connected) {
-      headphonesPlugHandler.release();
-      headphonesPlugHandler =
-          connect
-              ? HeadphonesPlugHandler.subscribe(this, service.getPlaybackControl())
-              : ReleaseableStub.instance();
-    }
-  }
-  
   private void setupNotification() {
     Log.d(TAG, "setupNotification called");
     final StatusNotification cb = new StatusNotification(this);
@@ -214,11 +193,6 @@ public class MainService extends Service {
             intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
                 PREF_MEDIABUTTONS_DEFAULT);
         connectMediaButtons(use);
-      } else if (PREF_UNPLUGGING.equals(key)) {
-        final boolean use =
-            intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
-                PREF_UNPLUGGING_DEFAULT);
-        connectHeadphonesPlugging(use);
       } else if (key.startsWith(ZXTune.Properties.PREFIX)) {
         final Object value = intent.getExtras().get(PreferencesActivity.EXTRA_PREFERENCE_VALUE);
         if (value != null) {

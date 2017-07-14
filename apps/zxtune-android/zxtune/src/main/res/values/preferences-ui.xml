@@ -10,9 +10,5 @@
   <string name="pref_control_headset_mediabuttons" translatable="false">control.headset.mediabuttons</string>
   <bool name="pref_control_headset_mediabuttons_default">false</bool>
   <string name="pref_control_headset_mediabuttons_title">Use media buttons</string>
-  <!-- control.headset.unplugging -->
-  <string name="pref_control_headset_unplugging" translatable="false">control.headset.unplugging</string>
-  <bool name="pref_control_headset_unplugging_default">false</bool>
-  <string name="pref_control_headset_unplugging_title">Pause if unplugged</string>
 
 </resources>
