@@ -10,17 +10,16 @@
 
 package app.zxtune;
 
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
+import android.view.View;
 import android.widget.RemoteViews;
 
+import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.stubs.ItemStub;
 
 public class WidgetHandler extends AppWidgetProvider {
 
@@ -31,51 +30,65 @@ public class WidgetHandler extends AppWidgetProvider {
       int[] appWidgetIds) {
     super.onUpdate(context, appWidgetManager, appWidgetIds);
 
-    update(context, ItemStub.instance());
+    update(context, createView(context));
   }
   
-  private static void update(Context context, Item nowPlaying) {
+  private static void update(Context context, RemoteViews widgetView) {
     final AppWidgetManager mgr = AppWidgetManager.getInstance(context);
     final int[] widgets = mgr.getAppWidgetIds(new ComponentName(context, WidgetHandler.class));
-    if (widgets.length == 0) {
-      return;
+    if (widgets.length != 0) {
+      mgr.updateAppWidget(widgets, widgetView);
     }
+  }
 
+  private static RemoteViews createView(Context context) {
     final RemoteViews widgetView = new RemoteViews(context.getPackageName(), R.layout.widget);
-    
-    widgetView.setOnClickPendingIntent(R.id.widget_openapp, createApplicationIntent(context));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_prev, createServiceIntent(context, MainService.ACTION_PREV));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_play, createServiceIntent(context, MainService.ACTION_PLAY));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_pause, createServiceIntent(context, MainService.ACTION_PAUSE));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_next, createServiceIntent(context, MainService.ACTION_NEXT));
 
-    try {
-      final String info = Util.formatTrackTitle(nowPlaying.getAuthor(), nowPlaying.getTitle(), nowPlaying.getDataId().getDisplayFilename());
-      widgetView.setTextViewText(R.id.widget_text, info);
-    } catch (Exception e) {
-      Log.w(TAG, e, "update()");
-    }
-    
-    mgr.updateAppWidget(widgets, widgetView);
-  }
-  
-  private static PendingIntent createApplicationIntent(Context context) {
-    final Intent intent = new Intent(context, MainActivity.class);
-    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    return PendingIntent.getActivity(context, 0, intent, 0);
-  }
-  
-  private static PendingIntent createServiceIntent(Context context, String action) {
-    final Intent intent = new Intent(context, MainService.class);
-    intent.setAction(action);
-    return PendingIntent.getService(context, 0, intent, 0);
+    widgetView.setOnClickPendingIntent(R.id.widget_openapp, MainActivity.createPendingIntent(context));
+    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_prev, MainService.createPendingIntent(context, MainService.ACTION_PREV));
+    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_play, MainService.createPendingIntent(context, MainService.ACTION_PLAY));
+    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_pause, MainService.createPendingIntent(context, MainService.ACTION_STOP));
+    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_next, MainService.createPendingIntent(context, MainService.ACTION_NEXT));
+
+    widgetView.setViewVisibility(R.id.widget_ctrl_pause, View.GONE);
+
+    return widgetView;
   }
   
   public static class WidgetNotification extends CallbackStub {
 
+    private final Context ctx;
+    private final RemoteViews views;
+
+    public WidgetNotification(Context ctx) {
+      this.ctx = ctx;
+      this.views = createView(ctx);
+    }
+
+    @Override
+    public void onStateChanged(PlaybackControl.State state) {
+      final boolean playing = state == PlaybackControl.State.PLAYING;
+      views.setViewVisibility(R.id.widget_ctrl_play, playing ? View.GONE : View.VISIBLE);
+      views.setViewVisibility(R.id.widget_ctrl_pause, playing ? View.VISIBLE : View.GONE);
+
+      updateView();
+    }
+
     @Override
     public void onItemChanged(Item item) {
-      update(MainApplication.getInstance(), item);
+
+      try {
+        final String info = Util.formatTrackTitle(item.getAuthor(), item.getTitle(), item.getDataId().getDisplayFilename());
+        views.setTextViewText(R.id.widget_text, info);
+
+        updateView();
+      } catch (Exception e) {
+        Log.w(TAG, e, "update()");
+      }
+    }
+
+    private void updateView() {
+      update(ctx, views);
     }
   }
 }

@@ -52,7 +52,7 @@ public class StatusNotification extends CallbackStub {
       .setSmallIcon(R.drawable.ic_stat_notify_play)
       .setLargeIcon(null)
       .setWhen(0)
-      .setContentIntent(createActivateIntent())
+      .setContentIntent(MainActivity.createPendingIntent(service))
       .addAction(R.drawable.ic_prev, "", createServiceIntent(MainService.ACTION_PREV))
       .addAction(createPauseAction())
       .addAction(R.drawable.ic_next, "", createServiceIntent(MainService.ACTION_NEXT))
@@ -66,12 +66,6 @@ public class StatusNotification extends CallbackStub {
     ;
   }
   
-  private PendingIntent createActivateIntent() {
-    final Intent intent = new Intent(service, MainActivity.class);
-    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    return PendingIntent.getActivity(service, 0, intent, 0);
-  }
-  
   private Action createPauseAction() {
     return new NotificationCompat.Action(R.drawable.ic_pause, "", createServiceIntent(MainService.ACTION_PAUSE));
   }
@@ -81,9 +75,7 @@ public class StatusNotification extends CallbackStub {
   }
 
   private PendingIntent createServiceIntent(String action) {
-    final Intent intent = new Intent(service, service.getClass());
-    intent.setAction(action);
-    return PendingIntent.getService(service, 0, intent, 0);
+    return MainService.createPendingIntent(service, action);
   }
   
   @Override

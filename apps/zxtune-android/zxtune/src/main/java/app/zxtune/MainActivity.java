@@ -14,7 +14,9 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.Manifest;
 import android.net.Uri;
@@ -42,6 +44,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
   private int browserPageIndex;
   private BrowserFragment browser;
   private Uri openRequest;
+
+  public static PendingIntent createPendingIntent(Context ctx) {
+    final Intent intent = new Intent(ctx, MainActivity.class);
+    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+    return PendingIntent.getActivity(ctx, 0, intent, 0);
+  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {

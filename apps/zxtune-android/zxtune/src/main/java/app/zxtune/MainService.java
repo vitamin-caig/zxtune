@@ -10,6 +10,7 @@
 
 package app.zxtune;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.BroadcastReceiver;
@@ -18,9 +19,12 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 
 import java.util.Map;
 
+import app.zxtune.playback.service.AudioFocusHandler;
+import app.zxtune.playback.service.PlayingStateCallback;
 import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.PlaybackControl;
@@ -39,8 +43,6 @@ public class MainService extends Service {
   private IBinder binder;
   private Releaseable mediaButtonsHandler;
   private Releaseable remoteControlHandler;
-  private Releaseable notificationTypeHandler;
-  private Releaseable widgetHandler;
   private Releaseable settingsChangedHandler;
   
   public static final String ACTION_PREV = TAG + ".prev";
@@ -49,6 +51,15 @@ public class MainService extends Service {
   public static final String ACTION_PAUSE = TAG + ".pause";
   public static final String ACTION_STOP = TAG + ".stop";
   public static final String ACTION_TOGGLE_PLAY = TAG + ".toggle_play";
+
+  public static Intent createIntent(Context ctx, @Nullable String action) {
+    return new Intent(ctx, MainService.class).setAction(action);
+  }
+
+  public static PendingIntent createPendingIntent(Context ctx, String action) {
+    final Intent intent = createIntent(ctx, action);
+    return PendingIntent.getService(ctx, 0, intent, 0);
+  }
 
   @Override
   public void onCreate() {
@@ -60,14 +71,13 @@ public class MainService extends Service {
         resources.getBoolean(R.bool.pref_control_headset_mediabuttons_default);
     mediaButtonsHandler = ReleaseableStub.instance();
     remoteControlHandler = ReleaseableStub.instance();
-    notificationTypeHandler = ReleaseableStub.instance();
-    
+
     service = new PlaybackServiceLocal(getApplicationContext());
     binder = new PlaybackServiceServer(service);
+
+    setupCallbacks(getApplicationContext());
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(this);
     connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
-    setupNotification();
-    setupWidgets();
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
       final String key = entry.getKey();
       if (key.startsWith(ZXTune.Properties.PREFIX)) {
@@ -85,10 +95,6 @@ public class MainService extends Service {
     Log.d(TAG, "Destroying");
     settingsChangedHandler.release();
     settingsChangedHandler = null;
-    widgetHandler.release();
-    widgetHandler = null;
-    notificationTypeHandler.release();
-    notificationTypeHandler = null;
     remoteControlHandler.release();
     remoteControlHandler = null;
     mediaButtonsHandler.release();
@@ -133,6 +139,14 @@ public class MainService extends Service {
     Log.d(TAG, "onBind called");
     return binder;
   }
+
+  private void setupCallbacks(Context ctx) {
+    service.subscribe(new Analytics.PlaybackEventsCallback());
+    service.subscribe(new PlayingStateCallback(ctx));
+    service.subscribe(new AudioFocusHandler(ctx, service.getPlaybackControl()));
+    service.subscribe(new StatusNotification(this));
+    service.subscribe(new WidgetHandler.WidgetNotification(ctx));
+  }
   
   private void connectMediaButtons(boolean connect) {
     Log.d(TAG, "connectMediaButtons = %b", connect);
@@ -160,17 +174,6 @@ public class MainService extends Service {
     }
   }
 
-  private void setupNotification() {
-    Log.d(TAG, "setupNotification called");
-    final StatusNotification cb = new StatusNotification(this);
-    notificationTypeHandler = new CallbackSubscription(service, cb);
-  }
-  
-  private void setupWidgets() {
-    final WidgetHandler.WidgetNotification cb = new WidgetHandler.WidgetNotification();
-    widgetHandler = new CallbackSubscription(service, cb);
-  }
-  
   private void setupServiceSessions() {
     service.restoreSession();
     service.subscribe(new CallbackStub() {

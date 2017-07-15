@@ -95,7 +95,7 @@ public class PlaybackServiceConnection extends Fragment {
   private synchronized void connect() throws Exception {
     Log.d(TAG, "Connecting to service");
     final Context context = getAppContext();
-    final Intent intent = new Intent(context, MainService.class);
+    final Intent intent = MainService.createIntent(context, null);
     context.startService(intent);
     final ServiceConnection connection = new ServiceConnectionCallback();
     if (!context.bindService(intent, connection, Context.BIND_AUTO_CREATE)) {

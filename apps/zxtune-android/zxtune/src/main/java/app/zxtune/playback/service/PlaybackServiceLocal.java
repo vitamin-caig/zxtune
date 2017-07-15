@@ -18,7 +18,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
@@ -29,15 +28,15 @@ import app.zxtune.playback.CompositeCallback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.Iterator;
 import app.zxtune.playback.IteratorFactory;
-import app.zxtune.playback.stubs.IteratorStub;
 import app.zxtune.playback.PlayableItem;
-import app.zxtune.playback.stubs.PlayableItemStub;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.SeekControl;
-import app.zxtune.playback.stubs.SeekControlStub;
 import app.zxtune.playback.Visualizer;
+import app.zxtune.playback.stubs.IteratorStub;
+import app.zxtune.playback.stubs.PlayableItemStub;
+import app.zxtune.playback.stubs.SeekControlStub;
 import app.zxtune.playback.stubs.VisualizerStub;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
@@ -75,10 +74,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
     this.holder = new Holder();
-    //essential callbacks
-    this.callbacks.add(new Analytics.PlaybackEventsCallback());
-    this.callbacks.add(new PlayingStateCallback(context));
-    this.callbacks.add(new AudioFocusHandler(context, this.playback));
   }
 
   @Override

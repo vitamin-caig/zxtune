@@ -10,14 +10,14 @@ import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playlist.ItemState;
 import app.zxtune.playlist.PlaylistQuery;
 
-class PlayingStateCallback extends CallbackStub {
+public class PlayingStateCallback extends CallbackStub {
 
     private final ContentResolver resolver;
     private boolean isPlaying;
     private Uri dataLocation;
     private Long playlistId;
 
-    PlayingStateCallback(Context context) {
+    public PlayingStateCallback(Context context) {
         this.resolver = context.getContentResolver();
         this.isPlaying = false;
         this.dataLocation = Uri.EMPTY;

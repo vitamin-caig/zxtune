@@ -8,7 +8,7 @@ import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.sound.SoundOutputSamplesTarget;
 
-class AudioFocusHandler extends CallbackStub implements AudioManager.OnAudioFocusChangeListener {
+public class AudioFocusHandler extends CallbackStub implements AudioManager.OnAudioFocusChangeListener {
 
   private static final String TAG = AudioFocusHandler.class.getName();
 
@@ -23,7 +23,7 @@ class AudioFocusHandler extends CallbackStub implements AudioManager.OnAudioFocu
   private final PlaybackControl control;
   private State state;
 
-  AudioFocusHandler(Context ctx, PlaybackControl ctrl) {
+  public AudioFocusHandler(Context ctx, PlaybackControl ctrl) {
     this.manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
     this.control = ctrl;
     this.state = State.STOPPED;

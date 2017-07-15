@@ -54,7 +54,7 @@ public class MediaButtonsHandler extends BroadcastReceiver {
     Log.d(TAG, "onReceive(intent=%s)", intent);
     final String action = getAction(intent);
     if (action != null) {
-      context.startService(new Intent(action).setClass(context, MainService.class));
+      context.startService(MainService.createIntent(context, action));
     }
   }
 
@@ -62,7 +62,7 @@ public class MediaButtonsHandler extends BroadcastReceiver {
   private static String getAction(Intent intent) {
     final String action = intent.getAction();
     if (Intent.ACTION_MEDIA_BUTTON.equals(action)) {
-      final KeyEvent event = (KeyEvent) intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+      final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
       return getAction(event);
     } else if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
       return MainService.ACTION_PAUSE;
