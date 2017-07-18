@@ -32,7 +32,8 @@ public class PreferencesActivity extends PreferenceActivity implements OnSharedP
     //empty now
     //addPreferencesFromResource(R.xml.preferences_ui);
     addPreferencesFromResource(R.xml.preferences_emulation);
-    addPreferencesFromResource(R.xml.preferences_sound);
+    //not used now
+    //addPreferencesFromResource(R.xml.preferences_sound);
     initPreferenceSummary(getPreferenceScreen());
   }
   

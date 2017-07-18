@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+  <!--
   <PreferenceScreen
     android:title="@string/pref_emulation_title"
     >
+  -->
   <!-- ay/ym -->
-  <PreferenceCategory
+  <PreferenceScreen
     android:title="@string/pref_zxtune_aym_title"
     >
     <ListPreference
@@ -35,9 +37,65 @@
       android:entryValues="@array/pref_zxtune_aym_layout_values"
       android:defaultValue="@integer/pref_zxtune_aym_layout_default"
       />
-  </PreferenceCategory>
+  <!-- 3-channel mixer -->
+  <PreferenceScreen
+    android:title="@string/pref_zxtune_sound_mixer_3_x_x_title"
+    >
+    <!-- A -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_0_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_0_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_0_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_0_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_0_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+    <!-- B -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_1_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_1_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_1_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_1_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_1_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+    <!-- C -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_2_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_2_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_2_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_2_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_2_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+  </PreferenceScreen>
+  </PreferenceScreen>
   <!-- dac -->
-  <PreferenceCategory
+  <PreferenceScreen
     android:title="@string/pref_zxtune_dac_title"
     >
     <CheckBoxPreference
@@ -45,9 +103,9 @@
       android:title="@string/pref_zxtune_dac_interpolation_title"
       android:defaultValue="@integer/pref_zxtune_dac_interpolation_default"
       />
-  </PreferenceCategory>
+  </PreferenceScreen>
   <!-- saa -->
-  <PreferenceCategory
+  <PreferenceScreen
     android:title="@string/pref_zxtune_saa_title"
     >
     <ListPreference
@@ -57,9 +115,9 @@
       android:entryValues="@array/pref_interpolation_values"
       android:defaultValue="@integer/pref_zxtune_saa_interpolation_default"
       />
-  </PreferenceCategory>
+  </PreferenceScreen>
   <!-- sid -->
-  <PreferenceCategory
+  <PreferenceScreen
     android:title="@string/pref_zxtune_sid_title"
     >
     <ListPreference
@@ -74,9 +132,9 @@
       android:title="@string/pref_zxtune_sid_filter_title"
       android:defaultValue="@integer/pref_zxtune_sid_filter_default"
       />
-  </PreferenceCategory>
+  </PreferenceScreen>
   <!-- other -->
-  <PreferenceCategory
+  <PreferenceScreen
     android:title="@string/pref_zxtune_other_title"
     >
     <ListPreference
@@ -86,6 +144,6 @@
       android:entryValues="@array/pref_zxtune_default_duration_values"
       android:defaultValue="@integer/pref_zxtune_default_duration_default"
     />
-  </PreferenceCategory>
   </PreferenceScreen>
+  <!--</PreferenceScreen>-->
 </PreferenceScreen>
