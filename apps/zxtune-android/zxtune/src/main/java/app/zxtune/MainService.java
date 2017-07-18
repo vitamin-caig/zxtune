@@ -13,22 +13,15 @@ package app.zxtune;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
-import android.content.BroadcastReceiver;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-import java.util.Map;
-
+import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.service.AudioFocusHandler;
+import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.service.PlayingStateCallback;
 import app.zxtune.playback.stubs.CallbackStub;
-import app.zxtune.playback.CallbackSubscription;
-import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.rpc.PlaybackServiceServer;
 import app.zxtune.ui.StatusNotification;
 
@@ -36,21 +29,19 @@ public class MainService extends Service {
 
   private static final String TAG = MainService.class.getName();
 
-  private String PREF_MEDIABUTTONS;
-  private boolean PREF_MEDIABUTTONS_DEFAULT;
-
   private PlaybackServiceLocal service;
   private IBinder binder;
-  private Releaseable mediaButtonsHandler;
-  private Releaseable remoteControlHandler;
+
+  private RemoteControl remoteControl;
   private Releaseable settingsChangedHandler;
-  
+
   public static final String ACTION_PREV = TAG + ".prev";
   public static final String ACTION_NEXT = TAG + ".next";
   public static final String ACTION_PLAY = TAG + ".play";
   public static final String ACTION_PAUSE = TAG + ".pause";
   public static final String ACTION_STOP = TAG + ".stop";
-  public static final String ACTION_TOGGLE_PLAY = TAG + ".toggle_play";
+  public static final String ACTION_TOGGLE_PLAY_STOP = TAG + ".toggle_play_stop";
+  public static final String ACTION_TOGGLE_PLAY_PAUSE = TAG + ".toggle_play_pause";
 
   public static Intent createIntent(Context ctx, @Nullable String action) {
     return new Intent(ctx, MainService.class).setAction(action);
@@ -65,28 +56,10 @@ public class MainService extends Service {
   public void onCreate() {
     Log.d(TAG, "Creating");
 
-    final Resources resources = getResources();
-    PREF_MEDIABUTTONS = resources.getString(R.string.pref_control_headset_mediabuttons);
-    PREF_MEDIABUTTONS_DEFAULT =
-        resources.getBoolean(R.bool.pref_control_headset_mediabuttons_default);
-    mediaButtonsHandler = ReleaseableStub.instance();
-    remoteControlHandler = ReleaseableStub.instance();
-
     service = new PlaybackServiceLocal(getApplicationContext());
     binder = new PlaybackServiceServer(service);
 
     setupCallbacks(getApplicationContext());
-    final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(this);
-    connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
-    for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
-      final String key = entry.getKey();
-      if (key.startsWith(ZXTune.Properties.PREFIX)) {
-        setProperty(key, entry.getValue(), ZXTune.GlobalOptions.instance());
-      }
-    }
-    settingsChangedHandler =
-        new BroadcastReceiverConnection(this, new ChangedSettingsReceiver(), new IntentFilter(
-            PreferencesActivity.ACTION_PREFERENCE_CHANGED));
     setupServiceSessions();
   }
   
@@ -95,10 +68,8 @@ public class MainService extends Service {
     Log.d(TAG, "Destroying");
     settingsChangedHandler.release();
     settingsChangedHandler = null;
-    remoteControlHandler.release();
-    remoteControlHandler = null;
-    mediaButtonsHandler.release();
-    mediaButtonsHandler = null;
+    remoteControl.release();
+    remoteControl = null;
     binder = null;
     service.release();
     service = null;
@@ -124,9 +95,15 @@ public class MainService extends Service {
       ctrl.pause();
     } else if (ACTION_STOP.equals(action)) {
       ctrl.stop();
-    } else if (ACTION_TOGGLE_PLAY.equals(action)) {
+    } else if (ACTION_TOGGLE_PLAY_STOP.equals(action)) {
       if (ctrl.getState() == PlaybackControl.State.PLAYING) {
         ctrl.stop();
+      } else {
+        ctrl.play();
+      }
+    } else if (ACTION_TOGGLE_PLAY_PAUSE.equals(action)) {
+      if (ctrl.getState() == PlaybackControl.State.PLAYING) {
+        ctrl.pause();
       } else {
         ctrl.play();
       }
@@ -141,37 +118,16 @@ public class MainService extends Service {
   }
 
   private void setupCallbacks(Context ctx) {
+    //should be always paired
+    service.subscribe(new AudioFocusHandler(ctx, service.getPlaybackControl()));
+    remoteControl = RemoteControl.subscribe(ctx, service);
+
     service.subscribe(new Analytics.PlaybackEventsCallback());
     service.subscribe(new PlayingStateCallback(ctx));
-    service.subscribe(new AudioFocusHandler(ctx, service.getPlaybackControl()));
-    service.subscribe(new StatusNotification(this));
     service.subscribe(new WidgetHandler.WidgetNotification(ctx));
-  }
-  
-  private void connectMediaButtons(boolean connect) {
-    Log.d(TAG, "connectMediaButtons = %b", connect);
-    final boolean connected = mediaButtonsHandler != ReleaseableStub.instance();
-    if (connect != connected) {
-      mediaButtonsHandler.release();
-      mediaButtonsHandler =
-          connect
-              ? MediaButtonsHandler.subscribe(this)
-              : ReleaseableStub.instance();
-    }
-    //Remote control is impossible without media buttons control enabling, so enable it here
-    connectRemoteControl(connect);
-  }
-  
-  private void connectRemoteControl(boolean connect) {
-    Log.d(TAG, "connectRemoteControl = %b", connect);
-    final boolean connected = remoteControlHandler != ReleaseableStub.instance();
-    if (connect != connected) {
-      remoteControlHandler.release();
-      remoteControlHandler =
-          connect
-              ? RemoteControl.subscribe(this, service)
-              : ReleaseableStub.instance();
-    }
+
+    service.subscribe(new StatusNotification(this, remoteControl.getSessionToken()));
+    settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
   }
 
   private void setupServiceSessions() {
@@ -184,54 +140,5 @@ public class MainService extends Service {
         }
       }
     });
-  }
-
-  private class ChangedSettingsReceiver extends BroadcastReceiver {
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-      final String key = intent.getStringExtra(PreferencesActivity.EXTRA_PREFERENCE_NAME);
-      if (PREF_MEDIABUTTONS.equals(key)) {
-        final boolean use =
-            intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
-                PREF_MEDIABUTTONS_DEFAULT);
-        connectMediaButtons(use);
-      } else if (key.startsWith(ZXTune.Properties.PREFIX)) {
-        final Object value = intent.getExtras().get(PreferencesActivity.EXTRA_PREFERENCE_VALUE);
-        if (value != null) {
-          setProperty(key, value, ZXTune.GlobalOptions.instance());
-        }
-      }
-    }
-  }
-  
-  private static void setProperty(String name, Object value, ZXTune.Properties.Modifier target) {
-    try {
-      if (value instanceof String) {
-        setProperty(name, (String) value, target);
-      } else if (value instanceof Long) {
-        setProperty(name, ((Long) value).longValue(), target);
-      } else if (value instanceof Integer) {
-        setProperty(name, ((Integer) value).longValue(), target);
-      } else if (value instanceof Boolean) {
-        setProperty(name, (Boolean) value ? 1 : 0, target);
-      } else {
-        throw new Exception("Unknown type of property: " + value.getClass().getName());
-      }
-    } catch (Exception e) {
-      Log.w(TAG, e, "setProperty");
-    }
-  }
-  
-  private static void setProperty(String name, String value, ZXTune.Properties.Modifier target) throws Exception {
-    try {
-      target.setProperty(name, Long.parseLong(value));
-    } catch (NumberFormatException e) {
-      target.setProperty(name,  value);
-    }
-  }
-  
-  private static void setProperty(String name, long value, ZXTune.Properties.Modifier target) throws Exception {
-    target.setProperty(name, value);
   }
 }

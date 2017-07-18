@@ -152,7 +152,7 @@
     <provider android:name="app.zxtune.playlist.Provider" android:authorities="app.zxtune.playlist" android:exported="false"/>
     <provider android:name="app.zxtune.PluginsProvider" android:authorities="app.zxtune.plugins" android:process=":service" android:exported="false"/>
     <provider android:name="app.zxtune.fs.archives.Provider" android:authorities="app.zxtune.archive" android:process=":service" android:exported="false"/>
-    <receiver android:name=".MediaButtonsHandler">
+    <receiver android:name=".MediaEventsHandler">
       <intent-filter>
         <action android:name="android.intent.action.MEDIA_BUTTON"/>
         <action android:name="android.media.AUDIO_BECOMING_NOISY" />

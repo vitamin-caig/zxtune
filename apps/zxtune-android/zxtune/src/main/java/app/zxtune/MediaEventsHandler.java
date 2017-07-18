@@ -18,35 +18,12 @@ import android.media.AudioManager;
 import android.support.annotation.Nullable;
 import android.view.KeyEvent;
 
-public class MediaButtonsHandler extends BroadcastReceiver {
+public class MediaEventsHandler extends BroadcastReceiver {
 
-  private final static String TAG = MediaButtonsHandler.class.getName();
+  private static final String TAG = MediaEventsHandler.class.getName();
 
-  static Releaseable subscribe(Context context) {
-    return new MediaButtonsConnection(context);
-  }
-
-  static ComponentName getName(Context context) {
-    return new ComponentName(context.getApplicationContext(), MediaButtonsHandler.class);
-  }
-
-  private static class MediaButtonsConnection implements Releaseable {
-    
-    private final Context context;
-
-    MediaButtonsConnection(Context context) {
-      this.context = context;
-      getAudioManager().registerMediaButtonEventReceiver(MediaButtonsHandler.getName(context));
-    }
-
-    @Override
-    public void release() {
-      getAudioManager().unregisterMediaButtonEventReceiver(MediaButtonsHandler.getName(context));
-    }
-
-    private AudioManager getAudioManager() {
-      return (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-    }
+  public static ComponentName getName(Context context) {
+    return new ComponentName(context.getApplicationContext(), MediaEventsHandler.class);
   }
 
   @Override
@@ -90,8 +67,10 @@ public class MediaButtonsHandler extends BroadcastReceiver {
       case KeyEvent.KEYCODE_MEDIA_STOP:
         return MainService.ACTION_STOP;
       case KeyEvent.KEYCODE_HEADSETHOOK:
+        //else another player may steal sound session and control
+        return MainService.ACTION_TOGGLE_PLAY_PAUSE;
       case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-        return MainService.ACTION_TOGGLE_PLAY;
+        return MainService.ACTION_TOGGLE_PLAY_PAUSE;
       case KeyEvent.KEYCODE_MEDIA_NEXT:
         return MainService.ACTION_NEXT;
       default:
