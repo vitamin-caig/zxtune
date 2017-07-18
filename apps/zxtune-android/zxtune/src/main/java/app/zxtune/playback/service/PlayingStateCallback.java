@@ -4,9 +4,9 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 
-import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playlist.ItemState;
 import app.zxtune.playlist.PlaylistQuery;
 

@@ -21,12 +21,12 @@ import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CompositeCallback;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.stubs.ItemStub;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
+import app.zxtune.playback.stubs.ItemStub;
 
 public final class PlaybackServiceClient implements PlaybackService {
 

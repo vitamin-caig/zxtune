@@ -17,9 +17,9 @@ import android.content.Context;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
-import app.zxtune.playback.Item;
 
 public class WidgetHandler extends AppWidgetProvider {
 
