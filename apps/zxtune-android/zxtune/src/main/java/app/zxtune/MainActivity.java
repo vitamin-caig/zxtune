@@ -10,6 +10,8 @@
 
 package app.zxtune;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -18,8 +20,8 @@ import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.Manifest;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -61,7 +63,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
     if (savedInstanceState == null) {
       getOpenRequestFromIntent();
     }
-    Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+    if (Build.VERSION.SDK_INT >= 16) {
+      Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+    }
     Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
   }
   
