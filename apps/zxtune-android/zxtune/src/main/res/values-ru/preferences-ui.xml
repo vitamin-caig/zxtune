@@ -3,9 +3,4 @@
   <!-- ui -->
   <string name="pref_ui_title">Интерфейс</string>
 
-  <!-- headset -->
-  <string name="pref_control_headset_title">Управление с гарнитуры</string>
-  <string name="pref_control_headset_summary">Доступно не для всех устройств</string>
-  <!-- control.headset.mediabuttons -->
-  <string name="pref_control_headset_mediabuttons_title">Управление кнопками</string>
 </resources>

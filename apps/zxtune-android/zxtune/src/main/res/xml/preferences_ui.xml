@@ -3,15 +3,5 @@
   <PreferenceScreen
     android:title="@string/pref_ui_title"
     >
-  <PreferenceCategory
-    android:title="@string/pref_control_headset_title"
-    >
-    <CheckBoxPreference
-      android:key="@string/pref_control_headset_mediabuttons"
-      android:title="@string/pref_control_headset_mediabuttons_title"
-      android:summary="@string/pref_control_headset_summary"
-      android:defaultValue="@bool/pref_control_headset_mediabuttons_default"
-      />
-  </PreferenceCategory>
   </PreferenceScreen>
 </PreferenceScreen>

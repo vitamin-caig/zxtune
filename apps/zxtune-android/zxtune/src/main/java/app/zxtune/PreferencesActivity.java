@@ -29,7 +29,8 @@ public class PreferencesActivity extends PreferenceActivity implements OnSharedP
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    addPreferencesFromResource(R.xml.preferences_ui);
+    //empty now
+    //addPreferencesFromResource(R.xml.preferences_ui);
     addPreferencesFromResource(R.xml.preferences_emulation);
     addPreferencesFromResource(R.xml.preferences_sound);
     initPreferenceSummary(getPreferenceScreen());

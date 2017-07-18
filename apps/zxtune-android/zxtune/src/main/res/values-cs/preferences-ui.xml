@@ -3,9 +3,4 @@
   <!-- ui -->
   <string name="pref_ui_title">Rozhraní</string>
 
-  <!-- headset -->
-  <string name="pref_control_headset_title">Ovládání sluchátek</string>
-  <string name="pref_control_headset_summary">Ne pro všechna zařízení</string>
-  <!-- control.headset.mediabuttons -->
-  <string name="pref_control_headset_mediabuttons_title">Použít multimediální klávesy</string>
 </resources>

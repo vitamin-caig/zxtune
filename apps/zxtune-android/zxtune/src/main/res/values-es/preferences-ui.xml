@@ -3,9 +3,4 @@
   <!-- ui -->
   <string name="pref_ui_title">Interfaz</string>
 
-  <!--headset-->
-  <string name="pref_control_headset_title">Controlar de auriculares</string>
-  <string name="pref_control_headset_summary">Disponible no para todos los dispositivos</string>
-  <!--control.headset.mediabuttons-->
-  <string name="pref_control_headset_mediabuttons_title">Utilice los botones de medios de comunicación</string>
 </resources>
