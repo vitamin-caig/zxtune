@@ -38,9 +38,6 @@ extern "C" {
 #endif
 
 
-extern volatile BOOL execute;
-extern BOOL click;
-
 /*
  * The firmware language values
  */
