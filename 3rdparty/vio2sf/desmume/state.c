@@ -22,11 +22,6 @@
 
 #define ROM_MASK 3
 
-#ifdef GDB_STUB
-static struct armcpu_ctrl_iface *arm9_ctrl_iface = 0;
-static struct armcpu_ctrl_iface *arm7_ctrl_iface = 0;
-#endif
-
 static int SNDStateInit(NDS_state *state, int buffersize)
 {
     state->sample_buffer = (s16 *) malloc(buffersize * sizeof(s16) * 2);
@@ -264,11 +259,7 @@ int state_init(struct NDS_state *state)
     
     state->partie = 1;
     
-#ifdef GDB_STUB
-    if (NDS_Init(state, &arm9_base_memory_iface, &arm9_ctrl_iface, &arm7_base_memory_iface, &arm7_ctrl_iface))
-#else
     if (NDS_Init(state))
-#endif
         return -1;
     
     SPU_ChangeSoundCore(state, &SNDState);
@@ -730,9 +721,6 @@ static void load_setstate(struct NDS_state *state, const u8 *ss, u32 ss_size)
 	/* Read in shared memory */
 	load_getu8 (state->MMU->SWIRAM, 0x8000, &ss, sse);
     
-#ifdef GDB_STUB
-#else
 	gdb_stub_fix(state->NDS_ARM9);
 	gdb_stub_fix(state->NDS_ARM7);
-#endif
 }

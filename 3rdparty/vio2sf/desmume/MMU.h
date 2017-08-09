@@ -102,39 +102,6 @@ typedef struct MMU_struct {
 		  
 } MMU_struct;
 
-struct armcpu_memory_iface {
-  /** the 32 bit instruction prefetch */
-  u32 FASTCALL (*prefetch32)( void *data, u32 adr);
-
-  /** the 16 bit instruction prefetch */
-  u16 FASTCALL (*prefetch16)( void *data, u32 adr);
-
-  /** read 8 bit data value */
-  u8 FASTCALL (*read8)( void *data, u32 adr);
-  /** read 16 bit data value */
-  u16 FASTCALL (*read16)( void *data, u32 adr);
-  /** read 32 bit data value */
-  u32 FASTCALL (*read32)( void *data, u32 adr);
-
-  /** write 8 bit data value */
-  void FASTCALL (*write8)( void *data, u32 adr, u8 val);
-  /** write 16 bit data value */
-  void FASTCALL (*write16)( void *data, u32 adr, u16 val);
-  /** write 32 bit data value */
-  void FASTCALL (*write32)( void *data, u32 adr, u32 val);
-
-  void *data;
-};
-
-#if 0
-static void mmu_select_savetype(NDS_state *state, int type, int *bmemtype, u32 *bmemsize) {
-	if (type<0 || type > 5) return;
-	*bmemtype=save_types[type][0];
-	*bmemsize=save_types[type][1];
-	mc_realloc(&state->MMU->bupmem, *bmemtype, *bmemsize);
-}
-#endif
-
 void MMU_Init(NDS_state *);
 void MMU_DeInit(NDS_state *);
 
@@ -179,14 +146,6 @@ void FASTCALL MMU_write32(NDS_state *, u32 proc, u32 adr, u32 val);
 #endif
  
 void FASTCALL MMU_doDMA(NDS_state *, u32 proc, u32 num);
-
-
-/*
- * The base ARM memory interfaces
- */
-extern struct armcpu_memory_iface arm9_base_memory_iface;
-extern struct armcpu_memory_iface arm7_base_memory_iface;
-extern struct armcpu_memory_iface arm9_direct_memory_iface;	
 
 
 #ifdef __cplusplus

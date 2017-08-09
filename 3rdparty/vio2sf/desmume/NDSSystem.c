@@ -137,15 +137,7 @@ copy_firmware_user_data( u8 *dest_buffer, const u8 *fw_data) {
 }
 
 
-#ifdef GDB_STUB
-int NDS_Init( NDS_state *state,
-              struct armcpu_memory_iface *arm9_mem_if,
-              struct armcpu_ctrl_iface **arm9_ctrl_iface,
-              struct armcpu_memory_iface *arm7_mem_if,
-              struct armcpu_ctrl_iface **arm7_ctrl_iface) {
-#else
 int NDS_Init( NDS_state *state) {
-#endif
      state->nds->ARM9Cycle = 0;
      state->nds->ARM7Cycle = 0;
      state->nds->cycles = 0;
@@ -157,13 +149,8 @@ int NDS_Init( NDS_state *state) {
      if (Screen_Init(state, GFXCORE_DUMMY) != 0)
         return -1;
      
- #ifdef GDB_STUB
-     armcpu_new(state,state->NDS_ARM7,1, arm7_mem_if, arm7_ctrl_iface);
-     armcpu_new(state,state->NDS_ARM9,0, arm9_mem_if, arm9_ctrl_iface);
-#else
 	 armcpu_new(state,state->NDS_ARM7,1);
      armcpu_new(state,state->NDS_ARM9,0);
-#endif
 
      if (SPU_Init(state, 0, 0) != 0)
         return -1;
@@ -457,11 +444,7 @@ static void dma_check(NDS_state *state)
 
 	if((state->MMU->reg_IF[0]&state->MMU->reg_IE[0]) && (state->MMU->reg_IME[0]))
 	{
-#ifdef GDB_STUB
-		if ( armcpu_flagIrq( state->NDS_ARM9))
-#else
 		if ( armcpu_irqExeption(state->NDS_ARM9))
-#endif
 		{
 			state->nds->ARM9Cycle = state->nds->cycles;
 		}
@@ -469,11 +452,7 @@ static void dma_check(NDS_state *state)
 
 	if((state->MMU->reg_IF[1]&state->MMU->reg_IE[1]) && (state->MMU->reg_IME[1]))
 	{
-#ifdef GDB_STUB
-		if ( armcpu_flagIrq( state->NDS_ARM7))
-#else
 		if ( armcpu_irqExeption(state->NDS_ARM7))
-#endif
 		{
 			state->nds->ARM7Cycle = state->nds->cycles;
 		}

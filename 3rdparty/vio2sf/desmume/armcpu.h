@@ -143,35 +143,6 @@ typedef union
 } Status_Reg;
 #endif
 
-/**
- * The control interface to a CPU
- */
-struct armcpu_ctrl_iface {
-  /** stall the processor */
-  void (*stall)( void *instance);
-
-  /** unstall the processor */
-  void (*unstall)( void *instance);
-
-  /** read a register value */
-  u32 (*read_reg)( void *instance, u32 reg_num);
-
-  /** set a register value */
-  void (*set_reg)( void *instance, u32 reg_num, u32 value);
-
-  /** install the post execute function */
-  void (*install_post_ex_fn)( void *instance,
-                              void (*fn)( void *, u32 adr, int thumb),
-                              void *fn_data);
-
-  /** remove the post execute function */
-  void (*remove_post_ex_fn)( void *instance);
-
-  /** the private data passed to all interface functions */
-  void *data;
-};
-
-
 typedef void* armcp_t;
     
 typedef struct armcpu_t
@@ -204,45 +175,14 @@ typedef struct armcpu_t
         u32 (* *swi_tab)(struct armcpu_t * cpu);
     
     NDS_state *state;
-
-#ifdef GDB_STUB
-  /** there is a pending irq for the cpu */
-  int irq_flag;
-
-  /** the post executed function (if installed) */
-  void (*post_ex_fn)( void *, u32 adr, int thumb);
-
-  /** data for the post executed function */
-  void *post_ex_fn_data;
-
-
-  /** flag indicating if the processor is stalled */
-  int stalled;
-
-  /** the memory interface */
-  struct armcpu_memory_iface *mem_if;
-
-  /** the ctrl interface */
-  struct armcpu_ctrl_iface ctrl_iface;
-#endif
 } armcpu_t;
 
-#ifdef GDB_STUB
-int armcpu_new( NDS_state *, armcpu_t *armcpu, u32 id, struct armcpu_memory_iface *mem_if,
-                struct armcpu_ctrl_iface **ctrl_iface_ret);
-#else
 int armcpu_new( NDS_state *, armcpu_t *armcpu, u32 id);
-#endif
 void armcpu_init(armcpu_t *armcpu, u32 adr);
 u32 armcpu_switchMode(armcpu_t *armcpu, u8 mode);
-#ifndef GDB_STUB
-static u32 armcpu_prefetch(armcpu_t *armcpu);
-#endif
 u32 armcpu_exec(armcpu_t *armcpu);
 BOOL armcpu_irqExeption(armcpu_t *armcpu);
-//BOOL armcpu_prefetchExeption(armcpu_t *armcpu);
-BOOL
-armcpu_flagIrq( armcpu_t *armcpu);
+BOOL armcpu_flagIrq( armcpu_t *armcpu);
 
 
 static INLINE void NDS_makeARM9Int(NDS_state *state, u32 num)

@@ -165,15 +165,7 @@ struct NDS_fw_config_data {
   struct NDS_fw_touchscreen_cal touch_cal[2];
 };
 
-#ifdef GDB_STUB
-int NDS_Init( NDS_state *,
-              struct armcpu_memory_iface *arm9_mem_if,
-              struct armcpu_ctrl_iface **arm9_ctrl_iface,
-              struct armcpu_memory_iface *arm7_mem_if,
-              struct armcpu_ctrl_iface **arm7_ctrl_iface);
-#else
 int NDS_Init ( NDS_state * );
-#endif
 
 void NDS_DeInit(NDS_state *);
 void

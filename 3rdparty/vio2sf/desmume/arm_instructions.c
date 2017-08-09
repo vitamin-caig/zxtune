@@ -27,24 +27,12 @@
 #include "MMU.h"
 
 
-// Use this macros for reading/writing, so the GDB stub isn't broken
-#ifdef GDB_STUB
-	#define READ32(a,b)		cpu->mem_if->read32(a,b)
-	#define WRITE32(a,b,c)	cpu->mem_if->write32(a,b,c)
-	#define READ16(a,b)		cpu->mem_if->read16(a,b)
-	#define WRITE16(a,b,c)	cpu->mem_if->write16(a,b,c)
-	#define READ8(a,b)		cpu->mem_if->read8(a,b)
-	#define WRITE8(a,b,c)	cpu->mem_if->write8(a,b,c)
-#else
 	#define READ32(a,b)		MMU_read32(cpu->state, cpu->proc_ID, b)
 	#define WRITE32(a,b,c)	MMU_write32(cpu->state, cpu->proc_ID,b,c)
 	#define READ16(a,b)		MMU_read16(cpu->state, cpu->proc_ID, b)
 	#define WRITE16(a,b,c)	MMU_write16(cpu->state, cpu->proc_ID,b,c)
 	#define READ8(a,b)		MMU_read8(cpu->state, cpu->proc_ID, b)
 	#define WRITE8(a,b,c)	MMU_write8(cpu->state, cpu->proc_ID,b,c)
-#endif
-
-
 
 #define LSL_IMM shift_op = cpu->R[REG_POS(i,0)]<<((i>>7)&0x1F);
 
