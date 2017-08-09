@@ -195,22 +195,4 @@ void SPU_KeyOn(NDS_state *, int channel);
 void SPU_Emulate_core(NDS_state *);
 void SPU_Emulate_user(NDS_state *, bool mix = true);
 
-class WavWriter
-{
-public:
-	WavWriter();
-	bool open(const std::string & fname);
-	void close();
-	void update(void* soundData, int numSamples);
-	bool isRecording() const;
-private:
-	FILE *spufp;
-};
-
-
-void WAV_End(NDS_state *);
-bool WAV_Begin(NDS_state *, const char* fname);
-bool WAV_IsRecording(NDS_state *);
-void WAV_WavSoundUpdate(NDS_state *, void* soundData, int numSamples);
-
 #endif
