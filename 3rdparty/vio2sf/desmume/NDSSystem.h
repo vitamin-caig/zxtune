@@ -28,7 +28,6 @@
 #include "GPU.h"
 
 #include "mem.h"
-//#include "wifi.h"
 
 #include "ARM9.h"
 

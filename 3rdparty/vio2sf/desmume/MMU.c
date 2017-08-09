@@ -40,7 +40,6 @@
 #define cflash_read(s,a) 0
 #define cflash_write(s,a,d)
 #include "cp15.h"
-//#include "wifi.h"
 #include "registers.h"
 #include "isqrt.h"
 
@@ -534,17 +533,6 @@ u8 FASTCALL MMU_read8(NDS_state *state, u32 proc, u32 adr)
 	if ((adr>=0x9000000)&&(adr<0x9900000))
 		return (unsigned char)cflash_read(state, adr);
 
-#ifdef EXPERIMENTAL_WIFI
-	/* wifi mac access */
-	if ((proc==ARMCPU_ARM7) && (adr>=0x04800000)&&(adr<0x05000000))
-	{
-		if (adr & 1)
-			return (WIFI_read16(&state->wifiMac,adr) >> 8) & 0xFF;
-		else
-			return WIFI_read16(&state->wifiMac,adr) & 0xFF;
-	}
-#endif
-    
     if (state->array_rom_coverage)
     {
         if (state->MMU->MMU_MEM[proc][(adr>>20)&0xFF] == state->MMU->CART_ROM)
@@ -571,12 +559,6 @@ u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
 	// CFlash reading, Mic
 	if ((adr>=0x08800000)&&(adr<0x09900000))
 	   return (unsigned short)cflash_read(state, adr);
-
-#ifdef EXPERIMENTAL_WIFI
-	/* wifi mac access */
-	if ((proc==ARMCPU_ARM7) && (adr>=0x04800000)&&(adr<0x05000000))
-		return WIFI_read16(&state->wifiMac,adr) ;
-#endif
 
 	adr &= 0x0FFFFFFF;
 
@@ -1214,18 +1196,8 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 		return;
 	}
 
-#ifdef EXPERIMENTAL_WIFI
-
-	/* wifi mac access */
-	if ((proc==ARMCPU_ARM7) && (adr>=0x04800000)&&(adr<0x05000000))
-	{
-		WIFI_write16(&state->wifiMac,adr,val) ;
-		return ;
-	}
-#else
 	if ((proc==ARMCPU_ARM7) && (adr>=0x04800000)&&(adr<0x05000000))
 		return ;
-#endif
 
 	adr &= 0x0FFFFFFF;
 

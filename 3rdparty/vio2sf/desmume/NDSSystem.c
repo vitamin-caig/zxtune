@@ -155,10 +155,6 @@ int NDS_Init( NDS_state *state) {
      if (SPU_Init(state, 0, 0) != 0)
         return -1;
 
-#ifdef EXPERIMENTAL_WIFI
-	 WIFI_Init(&state->wifiMac) ;
-#endif
-
      return 0;
 }
 
