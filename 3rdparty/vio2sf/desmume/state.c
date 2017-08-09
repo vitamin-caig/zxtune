@@ -22,13 +22,37 @@
 
 #define ROM_MASK 3
 
-#define SNDCORE_DUMMY 0
-#define SNDCORE_STATE 0
-
 #ifdef GDB_STUB
 static struct armcpu_ctrl_iface *arm9_ctrl_iface = 0;
 static struct armcpu_ctrl_iface *arm7_ctrl_iface = 0;
 #endif
+
+static int SNDStateInit(NDS_state *state, int buffersize)
+{
+    state->sample_buffer = (s16 *) malloc(buffersize * sizeof(s16) * 2);
+    state->sample_pointer = 0;
+    state->sample_size = buffersize;
+    
+	return state->sample_buffer == NULL ? -1 : 0;
+}
+
+static void SNDStateDeInit(NDS_state *state)
+{
+    if ( state->sample_buffer ) free( state->sample_buffer );
+    state->sample_buffer = NULL;
+}
+
+static void SNDStateUpdateAudio(NDS_state *state, s16 *buffer, u32 num_samples)
+{
+    memcpy( state->sample_buffer + state->sample_pointer * 2, buffer, num_samples * sizeof(s16) * 2);
+    state->sample_pointer += num_samples;
+}
+
+SoundInterface_struct SNDState = {
+	SNDStateInit,
+	SNDStateDeInit,
+	SNDStateUpdateAudio,
+};
 
 int state_init(struct NDS_state *state)
 {
@@ -240,8 +264,6 @@ int state_init(struct NDS_state *state)
     
     state->partie = 1;
     
-    state->SPU_currentCoreNum = SNDCORE_DUMMY;
-
 #ifdef GDB_STUB
     if (NDS_Init(state, &arm9_base_memory_iface, &arm9_ctrl_iface, &arm7_base_memory_iface, &arm7_ctrl_iface))
 #else
@@ -249,7 +271,7 @@ int state_init(struct NDS_state *state)
 #endif
         return -1;
     
-    SPU_ChangeSoundCore(state, 0, 44100);
+    SPU_ChangeSoundCore(state, &SNDState);
 
 	state->execute = FALSE;
     
@@ -471,40 +493,6 @@ void state_render(struct NDS_state *state, s16 * buffer, unsigned int sample_cou
 		}
 	}
 }
-
-static int SNDStateInit(NDS_state *state, int buffersize)
-{
-    state->sample_buffer = (s16 *) malloc(buffersize * sizeof(s16) * 2);
-    state->sample_pointer = 0;
-    state->sample_size = buffersize;
-    
-	return state->sample_buffer == NULL ? -1 : 0;
-}
-
-static void SNDStateDeInit(NDS_state *state)
-{
-    if ( state->sample_buffer ) free( state->sample_buffer );
-    state->sample_buffer = NULL;
-}
-
-static void SNDStateUpdateAudio(NDS_state *state, s16 *buffer, u32 num_samples)
-{
-    memcpy( state->sample_buffer + state->sample_pointer * 2, buffer, num_samples * sizeof(s16) * 2);
-    state->sample_pointer += num_samples;
-}
-
-SoundInterface_struct SNDState = {
-	SNDCORE_STATE,
-	"State Sound Interface",
-	SNDStateInit,
-	SNDStateDeInit,
-	SNDStateUpdateAudio,
-};
-
-SoundInterface_struct *SNDCoreList[2] = {
-	&SNDState,
-	NULL
-};
 
 static u16 getwordle(const unsigned char *pData)
 {

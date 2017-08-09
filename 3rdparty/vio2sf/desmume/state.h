@@ -17,8 +17,6 @@ extern "C" {
 
 typedef struct SoundInterface_struct SoundInterface_struct;
     
-extern SoundInterface_struct *SNDCoreList[2];
-
 typedef struct NDS_state
 {
     // configuration
@@ -66,7 +64,6 @@ typedef struct NDS_state
 
     struct SPU_struct *SPU_core;
     double samples;
-    int SPU_currentCoreNum; /* = SNDCORE_DUMMY;*/
     int spu_core_samples;
     long tot_samples;
     

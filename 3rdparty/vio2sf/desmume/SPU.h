@@ -74,9 +74,6 @@ static FORCEINLINE s32 spumuldiv7(s32 val, u8 multiplier) {
 	return (multiplier == 127) ? val : ((val * multiplier) >> 7);
 }
 
-#define SNDCORE_DEFAULT         -1
-#define SNDCORE_DUMMY           0
-
 #define CHANSTAT_STOPPED          0
 #define CHANSTAT_PLAY             1
 #define CHANSTAT_EMPTYBUFFER      2
@@ -91,18 +88,6 @@ enum SPUInterpolationMode
 };
 
 typedef struct NDS_state NDS_state;
-
-typedef struct SoundInterface_struct
-{
-   int id;
-   const char *Name;
-   int (*Init)(NDS_state *, int buffersize);
-   void (*DeInit)(NDS_state *);
-   void (*UpdateAudio)(NDS_state *, s16 *buffer, u32 num_samples);
-} SoundInterface_struct;
-
-extern SoundInterface_struct SNDDummy;
-extern SoundInterface_struct SNDFile;
 
 static bool resampler_initialized = false;
 
@@ -182,7 +167,5 @@ struct SPU_struct
    //kills all channels but leaves SPU otherwise running normally
    void ShutUp();
 };
-
-SoundInterface_struct *SPU_SoundCore(NDS_state *);
 
 #endif

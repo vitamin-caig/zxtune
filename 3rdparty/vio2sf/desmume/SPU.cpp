@@ -27,6 +27,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "spu_exports.h"
+
 //#undef FORCEINLINE
 //#define FORCEINLINE
 
@@ -111,7 +113,7 @@ static FORCEINLINE T MinMax(T val, T min, T max)
 
 //////////////////////////////////////////////////////////////////////////////
 
-extern "C" int SPU_ChangeSoundCore(NDS_state *state, int coreid, int buffersize)
+extern "C" int SPU_ChangeSoundCore(NDS_state *state, SoundInterface_struct *core)
 {
 	int i;
 
@@ -119,44 +121,19 @@ extern "C" int SPU_ChangeSoundCore(NDS_state *state, int coreid, int buffersize)
 	if (state->SNDCore)
 		state->SNDCore->DeInit(state);
 
-	// So which core do we want?
-	if (coreid == SNDCORE_DEFAULT)
-		coreid = 0; // Assume we want the first one
+  state->SNDCore = core;
 
-	state->SPU_currentCoreNum = coreid;
-
-	// Go through core list and find the id
-	for (i = 0; SNDCoreList[i] != NULL; i++)
-	{
-		if (SNDCoreList[i]->id == coreid)
-		{
-			// Set to current core
-			state->SNDCore = SNDCoreList[i];
-			break;
-		}
-	}
-
-	//If the user picked the dummy core, disable the user spu
-	if(state->SNDCore == &SNDDummy)
-		return 0;
-
-	//If the core wasnt found in the list for some reason, disable the user spu
 	if (state->SNDCore == NULL)
 		return -1;
 
 	// Since it failed, instead of it being fatal, disable the user spu
-	if (state->SNDCore->Init(state, buffersize * 2) == -1)
+	if (state->SNDCore->Init(state, state->SPU_core->bufsize * 2) == -1)
 	{
 		state->SNDCore = 0;
 		return -1;
 	}
 
 	return 0;
-}
-
-SoundInterface_struct *SPU_SoundCore(NDS_state *state)
-{
-	return state->SNDCore;
 }
 
 extern "C" void SPU_Reset(NDS_state *state)
@@ -868,39 +845,3 @@ extern "C" void SPU_EmulateSamples(NDS_state *state, int numsamples)
 	SPU_MixAudio(state,true,state->SPU_core,numsamples);
 	state->SNDCore->UpdateAudio(state,state->SPU_core->outbuf,numsamples);
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// Dummy Sound Interface
-//////////////////////////////////////////////////////////////////////////////
-
-int SNDDummyInit(NDS_state *, int buffersize);
-void SNDDummyDeInit(NDS_state *);
-void SNDDummyUpdateAudio(NDS_state *, s16 *buffer, u32 num_samples);
-
-SoundInterface_struct SNDDummy = {
-	SNDCORE_DUMMY,
-	"Dummy Sound Interface",
-	SNDDummyInit,
-	SNDDummyDeInit,
-	SNDDummyUpdateAudio,
-};
-
-//////////////////////////////////////////////////////////////////////////////
-
-int SNDDummyInit(NDS_state *, int buffersize)
-{
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-void SNDDummyDeInit(NDS_state *)
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-void SNDDummyUpdateAudio(NDS_state *, s16 *buffer, u32 num_samples)
-{
-}
-
