@@ -214,28 +214,6 @@ extern "C" int SPU_Init(NDS_state *state, int coreid, int buffersize)
 
 //////////////////////////////////////////////////////////////////////////////
 
-void SPU_Pause(NDS_state *state, int pause)
-{
-	if (state->SNDCore == NULL) return;
-
-	if(pause)
-		state->SNDCore->MuteAudio(state);
-	else
-		state->SNDCore->UnMuteAudio(state);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-void SPU_SetVolume(NDS_state *state, int volume)
-{
-	if (state->SNDCore)
-		state->SNDCore->SetVolume(state, volume);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-
-
 void SPU_struct::reset()
 {
 	memset(sndbuf,0,bufsize*2*4);
@@ -885,27 +863,6 @@ static void SPU_MixAudio(NDS_state *state, bool actuallyMix, SPU_struct *SPU, in
 
 //////////////////////////////////////////////////////////////////////////////
 
-
-//emulates one hline of the cpu core.
-//this will produce a variable number of samples, calculated to keep a 44100hz output
-//in sync with the emulator framerate
-static const int dots_per_clock = 6;
-static const int dots_per_hline = 355;
-static const double time_per_hline = (double)1.0/((double)ARM7_CLOCK/dots_per_clock/dots_per_hline);
-static const double samples_per_hline = time_per_hline * 44100;
-void SPU_Emulate_core(NDS_state *state)
-{
-	state->samples += samples_per_hline;
-	state->spu_core_samples = (int)(state->samples);
-	state->samples -= state->spu_core_samples;
-	
-	//TODO 
-	/*if(driver->AVI_IsRecording() || driver->WAV_IsRecording())
-		SPU_MixAudio<true>(SPU_core,spu_core_samples);
-	else 
-		SPU_MixAudio<false>(SPU_core,spu_core_samples);*/
-}
-
 extern "C" void SPU_EmulateSamples(NDS_state *state, int numsamples)
 {
 	SPU_MixAudio(state,true,state->SPU_core,numsamples);
@@ -919,10 +876,6 @@ extern "C" void SPU_EmulateSamples(NDS_state *state, int numsamples)
 int SNDDummyInit(NDS_state *, int buffersize);
 void SNDDummyDeInit(NDS_state *);
 void SNDDummyUpdateAudio(NDS_state *, s16 *buffer, u32 num_samples);
-u32 SNDDummyGetAudioSpace(NDS_state *);
-void SNDDummyMuteAudio(NDS_state *);
-void SNDDummyUnMuteAudio(NDS_state *);
-void SNDDummySetVolume(NDS_state *, int volume);
 
 SoundInterface_struct SNDDummy = {
 	SNDCORE_DUMMY,
@@ -930,10 +883,6 @@ SoundInterface_struct SNDDummy = {
 	SNDDummyInit,
 	SNDDummyDeInit,
 	SNDDummyUpdateAudio,
-	SNDDummyGetAudioSpace,
-	SNDDummyMuteAudio,
-	SNDDummyUnMuteAudio,
-	SNDDummySetVolume
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -955,27 +904,3 @@ void SNDDummyUpdateAudio(NDS_state *, s16 *buffer, u32 num_samples)
 {
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
-u32 SNDDummyGetAudioSpace(NDS_state *)
-{
-	return 740;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-void SNDDummyMuteAudio(NDS_state *)
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-void SNDDummyUnMuteAudio(NDS_state *)
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-void SNDDummySetVolume(NDS_state *, int volume)
-{
-}

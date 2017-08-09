@@ -493,37 +493,12 @@ static void SNDStateUpdateAudio(NDS_state *state, s16 *buffer, u32 num_samples)
     state->sample_pointer += num_samples;
 }
 
-static u32 SNDStateGetAudioSpace(NDS_state *state)
-{
-	return (u32)(state->sample_size - state->sample_pointer);
-}
-
-static void SNDStateMuteAudio(NDS_state *state)
-{
-    (void)state;
-}
-
-static void SNDStateUnMuteAudio(NDS_state *state)
-{
-    (void)state;
-}
-
-static void SNDStateSetVolume(NDS_state *state, int volume)
-{
-    (void)state;
-    (void)volume;
-}
-
 SoundInterface_struct SNDState = {
 	SNDCORE_STATE,
 	"State Sound Interface",
 	SNDStateInit,
 	SNDStateDeInit,
 	SNDStateUpdateAudio,
-	SNDStateGetAudioSpace,
-	SNDStateMuteAudio,
-	SNDStateUnMuteAudio,
-	SNDStateSetVolume
 };
 
 SoundInterface_struct *SNDCoreList[2] = {

@@ -99,10 +99,6 @@ typedef struct SoundInterface_struct
    int (*Init)(NDS_state *, int buffersize);
    void (*DeInit)(NDS_state *);
    void (*UpdateAudio)(NDS_state *, s16 *buffer, u32 num_samples);
-   u32 (*GetAudioSpace)(NDS_state *);
-   void (*MuteAudio)(NDS_state *);
-   void (*UnMuteAudio)(NDS_state *);
-   void (*SetVolume)(NDS_state *, int volume);
 } SoundInterface_struct;
 
 extern SoundInterface_struct SNDDummy;
@@ -188,10 +184,5 @@ struct SPU_struct
 };
 
 SoundInterface_struct *SPU_SoundCore(NDS_state *);
-
-void SPU_Pause(NDS_state *, int pause);
-void SPU_SetVolume(NDS_state *, int volume);
-void SPU_KeyOn(NDS_state *, int channel);
-void SPU_Emulate_core(NDS_state *);
 
 #endif
