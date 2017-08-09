@@ -193,6 +193,5 @@ void SPU_Pause(NDS_state *, int pause);
 void SPU_SetVolume(NDS_state *, int volume);
 void SPU_KeyOn(NDS_state *, int channel);
 void SPU_Emulate_core(NDS_state *);
-void SPU_Emulate_user(NDS_state *, bool mix = true);
 
 #endif

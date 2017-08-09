@@ -65,7 +65,6 @@ typedef struct NDS_state
     u32 DMADst[2][4]; /* = {{0, 0, 0, 0}, {0, 0, 0, 0}};*/
 
     struct SPU_struct *SPU_core;
-    struct SPU_struct *SPU_user;
     double samples;
     int SPU_currentCoreNum; /* = SNDCORE_DUMMY;*/
     int spu_core_samples;

@@ -115,8 +115,6 @@ extern "C" int SPU_ChangeSoundCore(NDS_state *state, int coreid, int buffersize)
 {
 	int i;
 
-	delete state->SPU_user; state->SPU_user = 0;
-
 	// Make sure the old core is freed
 	if (state->SNDCore)
 		state->SNDCore->DeInit(state);
@@ -153,10 +151,6 @@ extern "C" int SPU_ChangeSoundCore(NDS_state *state, int coreid, int buffersize)
 		return -1;
 	}
 
-	//enable the user spu
-	//well, not really
-	//SPU_user = new SPU_struct(buffersize);
-
 	return 0;
 }
 
@@ -170,13 +164,6 @@ extern "C" void SPU_Reset(NDS_state *state)
 	int i;
 
 	state->SPU_core->reset();
-	if(state->SPU_user) state->SPU_user->reset();
-
-	if(state->SNDCore && state->SPU_user) {
-		state->SNDCore->DeInit(state);
-		state->SNDCore->Init(state, state->SPU_user->bufsize*2);
-		//todo - check success?
-	}
 
 	// Reset Registers
 	for (i = 0x400; i < 0x51D; i++)
@@ -288,7 +275,6 @@ extern "C" void SPU_DeInit(NDS_state *state)
 	state->SNDCore = 0;
 
 	delete state->SPU_core; state->SPU_core=0;
-	delete state->SPU_user; state->SPU_user=0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -400,7 +386,6 @@ extern "C" void SPU_WriteByte(struct NDS_state *state, u32 addr, u8 val)
 	if (addr < 0x500)
 	{
 		state->SPU_core->WriteByte(addr,val);
-		if(state->SPU_user) state->SPU_user->WriteByte(addr,val);
 	}
 
 	T1WriteByte(state->MMU->ARM7_REG, addr, val);
@@ -454,7 +439,6 @@ extern "C" void SPU_WriteWord(NDS_state *state, u32 addr, u16 val)
 	if (addr < 0x500)
 	{
 		state->SPU_core->WriteWord(addr,val);
-		if(state->SPU_user) state->SPU_user->WriteWord(addr,val);
 	}
 
 	T1WriteWord(state->MMU->ARM7_REG, addr, val);
@@ -504,7 +488,6 @@ extern "C" void SPU_WriteLong(NDS_state *state, u32 addr, u32 val)
 	if (addr < 0x500)
 	{
 		state->SPU_core->WriteLong(addr,val);
-		if(state->SPU_user) state->SPU_user->WriteLong(addr,val);
 	}
 
 	T1WriteLong(state->MMU->ARM7_REG, addr, val);
@@ -927,27 +910,6 @@ extern "C" void SPU_EmulateSamples(NDS_state *state, int numsamples)
 {
 	SPU_MixAudio(state,true,state->SPU_core,numsamples);
 	state->SNDCore->UpdateAudio(state,state->SPU_core->outbuf,numsamples);
-}
-
-extern "C" void SPU_Emulate_user(NDS_state *state, BOOL mix)
-{
-	if(!state->SPU_user)
-		return;
-
-	u32 audiosize;
-
-	// Check to see how much free space there is
-	// If there is some, fill up the buffer
-	audiosize = state->SNDCore->GetAudioSpace(state);
-
-	if (audiosize > 0)
-	{
-		//printf("mix %i samples\n", audiosize);
-		if (audiosize > state->SPU_user->bufsize)
-			audiosize = state->SPU_user->bufsize;
-		if (mix) SPU_MixAudio(state,true,state->SPU_user,audiosize);
-		state->SNDCore->UpdateAudio(state,state->SPU_user->outbuf, audiosize);
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////////
