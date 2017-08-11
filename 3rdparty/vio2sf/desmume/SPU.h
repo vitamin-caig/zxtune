@@ -69,9 +69,10 @@ FORCEINLINE s32 s32floor(float f)
 
 static FORCEINLINE u32 sputrunc(float f) { return u32floor(f); }
 static FORCEINLINE u32 sputrunc(double d) { return u32floor(d); }
+static FORCEINLINE s32 spumuldiv7fast(s32 val, u8 multiplier) { return (val * multiplier) >> 7; }
 static FORCEINLINE s32 spumuldiv7(s32 val, u8 multiplier) {
 	assert(multiplier <= 127);
-	return (multiplier == 127) ? val : ((val * multiplier) >> 7);
+	return (multiplier == 127) ? val : spumuldiv7fast(val, multiplier);
 }
 
 #define CHANSTAT_STOPPED          0

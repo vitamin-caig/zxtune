@@ -111,8 +111,6 @@ static FORCEINLINE T MinMax(T val, T min, T max)
 
 extern "C" int SPU_ChangeSoundCore(NDS_state *state, SoundInterface_struct *core)
 {
-	int i;
-
 	// Make sure the old core is freed
 	if (state->SNDCore)
 		state->SNDCore->DeInit(state);
@@ -440,25 +438,25 @@ extern "C" void SPU_WriteLong(NDS_state *state, u32 addr, u32 val)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-static FORCEINLINE void Fetch8BitDataInternal(channel_struct *chan, s32 *data)
+static FORCEINLINE s32 Fetch8BitDataInternal(channel_struct * const chan)
 {
-	u32 loc = sputrunc(chan->samppos);
-	*data = (s32)chan->buf8[loc] << 8;
+	const u32 loc = sputrunc(chan->samppos);
+	return (s32)chan->buf8[loc] << 8;
 }
 
-static FORCEINLINE void Fetch16BitDataInternal(const channel_struct * const chan, s32 *data)
+static FORCEINLINE s32 Fetch16BitDataInternal(channel_struct * const chan)
 {
-	const s16* const buf16 = chan->buf16;
-	*data = (s32)buf16[sputrunc(chan->samppos)];
+  const u32 loc = sputrunc(chan->samppos);
+	return (s32)chan->buf16[loc];
 }
 
-static FORCEINLINE void FetchADPCMDataInternal(channel_struct * const chan, s32 * const data)
+static FORCEINLINE s32 FetchADPCMDataInternal(channel_struct * const chan)
 {
 	// No sense decoding, just return the last sample
-	if (chan->lastsamppos != sputrunc(chan->samppos)){
+  const u32 curpos = sputrunc(chan->samppos);
+	if (chan->lastsamppos != curpos){
 
-	    const u32 endExclusive = sputrunc(chan->samppos+1);
-	    for (u32 i = chan->lastsamppos+1; i < endExclusive; i++)
+	    for (u32 i = chan->lastsamppos+1; i < curpos + 1; i++)
 	    {
 	    	const u32 shift = (i&1)<<2;
 	    	const u32 data4bit = (((u32)chan->buf8[i >> 1]) >> shift);
@@ -467,40 +465,33 @@ static FORCEINLINE void FetchADPCMDataInternal(channel_struct * const chan, s32 
 	    	chan->index = precalcindextbl[chan->index][data4bit & 0x7];
 
 	    	chan->pcm16b_last = chan->pcm16b;
-			chan->pcm16b = (s16)(MinMax(chan->pcm16b+diff, -0x8000, 0x7FFF));
+  			chan->pcm16b = (s16)(MinMax(chan->pcm16b+diff, -0x8000, 0x7FFF));
 
-			if(i == (chan->loopstart<<3)) {
-				chan->loop_pcm16b = chan->pcm16b;
-				chan->loop_index = chan->index;
-			}
+  			if(i == (chan->loopstart<<3)) {
+  				chan->loop_pcm16b = chan->pcm16b;
+  				chan->loop_index = chan->index;
+  			}
 	    }
 
-	    chan->lastsamppos = sputrunc(chan->samppos);
+	    chan->lastsamppos = curpos;
     }
 
-	*data = (s32)chan->pcm16b;
+	return (s32)chan->pcm16b;
 }
 
-static FORCEINLINE void FetchPSGDataInternal(channel_struct *chan, s32 *data)
+static FORCEINLINE s32 FetchPSGDataInternal(channel_struct *chan)
 {
 	if(chan->num < 8)
 	{
-		*data = 0;
+		return 0;
 	}
 	else if(chan->num < 14)
 	{
-		*data = (s32)wavedutytbl[chan->waveduty][(sputrunc(chan->samppos)) & 0x7];
+		return (s32)wavedutytbl[chan->waveduty][(sputrunc(chan->samppos)) & 0x7];
 	}
 	else
 	{
-		if(chan->lastsamppos == sputrunc(chan->samppos))
-		{
-			*data = (s32)chan->psgnoise_last;
-			return;
-		}
-
-		u32 max = sputrunc(chan->samppos);
-		for(u32 i = chan->lastsamppos; i < max; i++)
+    for (const u32 curpos = sputrunc(chan->samppos); chan->lastsamppos < curpos; ++chan->lastsamppos)
 		{
 			if(chan->x & 0x1)
 			{
@@ -514,9 +505,7 @@ static FORCEINLINE void FetchPSGDataInternal(channel_struct *chan, s32 *data)
 			}
 		}
 
-		chan->lastsamppos = sputrunc(chan->samppos);
-
-		*data = (s32)chan->psgnoise_last;
+		return (s32)chan->psgnoise_last;
 	}
 }
 
@@ -537,13 +526,25 @@ static FORCEINLINE void MixR(SPU_struct* SPU, channel_struct *chan, s32 data)
 static FORCEINLINE void MixLR(SPU_struct* SPU, channel_struct *chan, s32 data)
 {
 	data = spumuldiv7(data, chan->vol) >> chan->datashift;
-	SPU->sndbuf[SPU->bufpos<<1] += spumuldiv7(data, 127 - chan->pan);
-	SPU->sndbuf[(SPU->bufpos<<1)+1] += spumuldiv7(data, chan->pan);
+	SPU->sndbuf[SPU->bufpos<<1] += spumuldiv7fast(data, 127 - chan->pan);
+	SPU->sndbuf[(SPU->bufpos<<1)+1] += spumuldiv7fast(data, chan->pan);
 }
 
-//////////////////////////////////////////////////////////////////////////////
+typedef void (*MixFunc)(SPU_struct* SPU, channel_struct *chan, s32 data);
 
-static FORCEINLINE void TestForLoop(NDS_state *state, SPU_struct *SPU, channel_struct *chan)
+//////////////////////////////////////////////////////////////////////////////
+static FORCEINLINE void StopChannel(SPU_struct *SPU, channel_struct *chan)
+{
+  NDS_state* const state = SPU->state;
+  chan->status = CHANSTAT_STOPPED;
+  if(SPU == state->SPU_core)
+  {
+   		state->MMU->ARM7_REG[0x403 + (((chan-SPU->channels) ) * 0x10)] &= 0x7F;
+  }
+  SPU->bufpos = SPU->buflength;
+}
+
+static FORCEINLINE void AdvanceSample(SPU_struct *SPU, channel_struct *chan)
 {
 	chan->samppos += chan->sampinc;
 
@@ -552,21 +553,13 @@ static FORCEINLINE void TestForLoop(NDS_state *state, SPU_struct *SPU, channel_s
 		// Do we loop? Or are we done?
 		if (chan->repeat == 1)
 		{
-      do
-      {
-			  chan->samppos -= chan->samplimit - chan->samploop;
-      }
-      while (chan->samppos > chan->samplimit);
+		  chan->samppos -= chan->samplimit - chan->samploop;
 		}
 		else
 		{
 			if (!chan->resampler || !resampler_get_sample_count(chan->resampler))
 			{
-				chan->status = CHANSTAT_STOPPED;
-
-				if(SPU == state->SPU_core)
-					state->MMU->ARM7_REG[0x403 + (((chan-SPU->channels) ) * 0x10)] &= 0x7F;
-				SPU->bufpos = SPU->buflength;
+        StopChannel(SPU, chan);
 			}
 			else
 			{
@@ -576,7 +569,7 @@ static FORCEINLINE void TestForLoop(NDS_state *state, SPU_struct *SPU, channel_s
 	}
 }
 
-static FORCEINLINE void TestForLoop2(NDS_state *state, SPU_struct *SPU, channel_struct *chan)
+static FORCEINLINE void AdvanceADPCMSample(SPU_struct *SPU, channel_struct *chan)
 {
 	chan->samppos += chan->sampinc;
 
@@ -585,11 +578,7 @@ static FORCEINLINE void TestForLoop2(NDS_state *state, SPU_struct *SPU, channel_
 		// Do we loop? Or are we done?
 		if (chan->repeat == 1)
 		{
-      do
-      {
-			  chan->samppos -= chan->samplimit - chan->samploop;
-      }
-      while (chan->samppos > chan->samplimit);
+		  chan->samppos -= chan->samplimit - chan->samploop;
 
 			if(chan->loop_index == K_ADPCM_LOOPING_RECOVERY_INDEX)
 			{
@@ -608,10 +597,7 @@ static FORCEINLINE void TestForLoop2(NDS_state *state, SPU_struct *SPU, channel_
 		{
 			if (!chan->resampler || !resampler_get_sample_count(chan->resampler))
 			{
-				chan->status = CHANSTAT_STOPPED;
-				if(SPU == state->SPU_core)
-					state->MMU->ARM7_REG[0x403 + (((chan-SPU->channels) ) * 0x10)] &= 0x7F;
-				SPU->bufpos = SPU->buflength;
+        StopChannel(SPU, chan);
 			}
 			else
 			{
@@ -621,221 +607,189 @@ static FORCEINLINE void TestForLoop2(NDS_state *state, SPU_struct *SPU, channel_
 	}
 }
 
-static FORCEINLINE void Fetch8BitData(SPUInterpolationMode INTERPOLATE_MODE, NDS_state *state, SPU_struct* const SPU, channel_struct *chan, s32 *data)
+template<MixFunc Mix>
+static void Render8BitSample(SPU_struct* const SPU, channel_struct *chan)
 {
 	const float saved_inc = chan->sampinc;
 	chan->sampinc = 1.0;
 
 	resampler_set_rate( chan->resampler, saved_inc );
 
-	while (chan->status != CHANSTAT_EMPTYBUFFER && resampler_get_free_count(chan->resampler))
+  for (; SPU->bufpos < SPU->buflength; SPU->bufpos++)
 	{
-		s32 sample;
-		Fetch8BitDataInternal(chan, &sample);
-		TestForLoop(state, SPU, chan);
-		resampler_write_sample(chan->resampler, sample);
-	}
+   	while (chan->status != CHANSTAT_EMPTYBUFFER && resampler_get_free_count(chan->resampler))
+   	{
+   		const s32 sample = Fetch8BitDataInternal(chan);
+   		AdvanceSample(SPU, chan);
+   		resampler_write_sample(chan->resampler, sample);
+   	}
 
-	chan->sampinc = saved_inc;
+    if (resampler_get_sample_count(chan->resampler))
+    {
+     	const s32 data = resampler_get_sample(chan->resampler);
+     	resampler_remove_sample(chan->resampler, 1);
+      Mix(SPU, chan, data);
+    }
+    else
+    {
+        StopChannel(SPU, chan);
+    }
+  }
 
-	if (!resampler_get_sample_count(chan->resampler))
-	{
-		chan->status = CHANSTAT_STOPPED;
-		if(SPU == state->SPU_core)
-			state->MMU->ARM7_REG[0x403 + (((chan-SPU->channels) ) * 0x10)] &= 0x7F;
-		SPU->bufpos = SPU->buflength;
-	}
-
-	*data = resampler_get_sample(chan->resampler);
-	resampler_remove_sample(chan->resampler, 1);
+  chan->sampinc = saved_inc;
 }
 
-static FORCEINLINE void Fetch16BitData(SPUInterpolationMode INTERPOLATE_MODE, NDS_state *state, SPU_struct* const SPU, channel_struct *chan, s32 *data)
+template<MixFunc Mix>
+static void Render16BitSample(SPU_struct* const SPU, channel_struct *chan)
 {
 	const float saved_inc = chan->sampinc;
 	chan->sampinc = 1.0;
 
 	resampler_set_rate( chan->resampler, saved_inc );
 
-	while (chan->status != CHANSTAT_EMPTYBUFFER && resampler_get_free_count(chan->resampler))
+  for (; SPU->bufpos < SPU->buflength; SPU->bufpos++)
 	{
-		s32 sample;
-		Fetch16BitDataInternal(chan, &sample);
-		TestForLoop(state, SPU, chan);
-		resampler_write_sample(chan->resampler, sample);
-	}
+  	while (chan->status != CHANSTAT_EMPTYBUFFER && resampler_get_free_count(chan->resampler))
+  	{
+  		const s32 sample = Fetch16BitDataInternal(chan);
+  		AdvanceSample(SPU, chan);
+  		resampler_write_sample(chan->resampler, sample);
+  	}
 
-	chan->sampinc = saved_inc;
-
-	if (!resampler_get_sample_count(chan->resampler))
-	{
-		chan->status = CHANSTAT_STOPPED;
-		if(SPU == state->SPU_core)
-			state->MMU->ARM7_REG[0x403 + (((chan-SPU->channels) ) * 0x10)] &= 0x7F;
-		SPU->bufpos = SPU->buflength;
-	}
-
-	*data = resampler_get_sample(chan->resampler);
-	resampler_remove_sample(chan->resampler, 1);
+  	if (resampler_get_sample_count(chan->resampler))
+    {
+    	const s32 data = resampler_get_sample(chan->resampler);
+    	resampler_remove_sample(chan->resampler, 1);
+      Mix(SPU, chan, data);
+    }
+    else
+  	{
+      StopChannel(SPU, chan);
+  	}
+  }
+  chan->sampinc = saved_inc;
 }
 
-static FORCEINLINE void FetchADPCMData(SPUInterpolationMode INTERPOLATE_MODE, NDS_state *state, SPU_struct* const SPU, channel_struct *chan, s32 *data)
+template<MixFunc Mix>
+static void RenderADPCMSample(SPU_struct* const SPU, channel_struct *chan)
 {
 	const float saved_inc = chan->sampinc;
 	chan->sampinc = 1.0;
 
 	resampler_set_rate( chan->resampler, saved_inc );
 
-	while (chan->status != CHANSTAT_EMPTYBUFFER && resampler_get_free_count(chan->resampler))
+  for (; SPU->bufpos < SPU->buflength; SPU->bufpos++)
 	{
-		s32 sample;
-		FetchADPCMDataInternal(chan, &sample);
-		TestForLoop2(state, SPU, chan);
-		resampler_write_sample(chan->resampler, sample);
-	}
+  	while (chan->status != CHANSTAT_EMPTYBUFFER && resampler_get_free_count(chan->resampler))
+  	{
+  		const s32 sample = FetchADPCMDataInternal(chan);
+  		AdvanceADPCMSample(SPU, chan);
+  		resampler_write_sample(chan->resampler, sample);
+  	}
 
-	chan->sampinc = saved_inc;
-
-	if (!resampler_get_sample_count(chan->resampler))
-	{
-		chan->status = CHANSTAT_STOPPED;
-		if(SPU == state->SPU_core)
-			state->MMU->ARM7_REG[0x403 + (((chan-SPU->channels) ) * 0x10)] &= 0x7F;
-		SPU->bufpos = SPU->buflength;
-	}
-
-	*data = resampler_get_sample(chan->resampler);
-	resampler_remove_sample(chan->resampler, 1);
+  	if (resampler_get_sample_count(chan->resampler))
+    {
+    	const s32 data = resampler_get_sample(chan->resampler);
+    	resampler_remove_sample(chan->resampler, 1);
+      Mix(SPU, chan, data);
+    }
+    else
+  	{
+      StopChannel(SPU, chan);
+  	}
+  }
+  chan->sampinc = saved_inc;
 }
 
-static FORCEINLINE void FetchPSGData(SPUInterpolationMode INTERPOLATE_MODE, channel_struct *chan, s32 *data)
+template<MixFunc Mix>
+static void RenderPSGSample(SPU_struct* const SPU, channel_struct *chan)
 {
 	resampler_set_rate( chan->resampler, chan->sampinc );
     
-	while (resampler_get_free_count(chan->resampler))
+  for (; SPU->bufpos < SPU->buflength; SPU->bufpos++)
 	{
-		s32 sample;
-		FetchPSGDataInternal(chan, &sample);
-		chan->samppos += 1.0;
-		resampler_write_sample(chan->resampler, sample);
-	}
+  	while (resampler_get_free_count(chan->resampler))
+  	{
+  		const s32 sample = FetchPSGDataInternal(chan);
+  		chan->samppos += 1.0;
+  		resampler_write_sample(chan->resampler, sample);
+  	}
 
-    /* No need to check if resampler is empty since we always fill it completely, 
-     * and PSG channels never report terminating on their own.
-     */
-    
-	*data = resampler_get_sample(chan->resampler);
-	resampler_remove_sample(chan->resampler, 1);
+      /* No need to check if resampler is empty since we always fill it completely, 
+       * and PSG channels never report terminating on their own.
+       */
+      
+  	const s32 data = resampler_get_sample(chan->resampler);
+  	resampler_remove_sample(chan->resampler, 1);
+    Mix(SPU, chan, data);
+  }
 }
 
-FORCEINLINE static void SPU_Mix(int CHANNELS, SPU_struct* SPU, channel_struct *chan, s32 data)
+template<MixFunc Mix>
+static void __SPU_ChanUpdate(SPU_struct* const SPU, channel_struct* const chan)
 {
-	switch(CHANNELS)
+	switch(chan->format)
 	{
-		case 0: MixL(SPU, chan, data); break;
-		case 1: MixLR(SPU, chan, data); break;
-		case 2: MixR(SPU, chan, data); break;
-	}
-}
-
-FORCEINLINE static void ____SPU_ChanUpdate(NDS_state *state, int CHANNELS, int FORMAT, SPUInterpolationMode INTERPOLATE_MODE, SPU_struct* const SPU, channel_struct* const chan)
-{
-	for (; SPU->bufpos < SPU->buflength; SPU->bufpos++)
-	{
-		if(CHANNELS != -1)
-		{
-			s32 data;
-			switch(FORMAT)
-			{
-				case 0: Fetch8BitData(INTERPOLATE_MODE, state, SPU, chan, &data); break;
-				case 1: Fetch16BitData(INTERPOLATE_MODE, state, SPU, chan, &data); break;
-				case 2: FetchADPCMData(INTERPOLATE_MODE, state, SPU, chan, &data); break;
-				case 3: FetchPSGData(INTERPOLATE_MODE, chan, &data); break;
-			}
-			SPU_Mix(CHANNELS, SPU, chan, data);
-		}
+		case 0: Render8BitSample<Mix>(SPU, chan); break;
+		case 1: Render16BitSample<Mix>(SPU, chan); break;
+		case 2: RenderADPCMSample<Mix>(SPU, chan); break;
+		case 3: RenderPSGSample<Mix>(SPU, chan); break;
 	}
 }
 
-FORCEINLINE static void ___SPU_ChanUpdate(NDS_state *state, int FORMAT, SPUInterpolationMode INTERPOLATE_MODE, const bool actuallyMix, SPU_struct* const SPU, channel_struct* const chan)
+FORCEINLINE static void _SPU_ChanUpdate(SPU_struct* const SPU, channel_struct* const chan)
 {
-	if(!actuallyMix)
-		____SPU_ChanUpdate(state,-1,FORMAT,INTERPOLATE_MODE,SPU,chan);
-	else if (chan->pan == 0)
-		____SPU_ChanUpdate(state,0,FORMAT,INTERPOLATE_MODE,SPU,chan);
+  if (chan->pan == 0)
+    __SPU_ChanUpdate<MixL>(SPU, chan);
 	else if (chan->pan == 127)
-		____SPU_ChanUpdate(state,2,FORMAT,INTERPOLATE_MODE,SPU,chan);
+    __SPU_ChanUpdate<MixR>(SPU, chan);
 	else
-		____SPU_ChanUpdate(state,1,FORMAT,INTERPOLATE_MODE,SPU,chan);
+    __SPU_ChanUpdate<MixLR>(SPU, chan);
 }
 
-FORCEINLINE static void __SPU_ChanUpdate(NDS_state *state, SPUInterpolationMode INTERPOLATE_MODE, const bool actuallyMix, SPU_struct* const SPU, channel_struct* const chan)
+static void SPU_MixAudio(NDS_state *state, SPU_struct *SPU, int length)
 {
-	___SPU_ChanUpdate(state,chan->format,INTERPOLATE_MODE,actuallyMix, SPU, chan);
-}
-
-FORCEINLINE static void _SPU_ChanUpdate(NDS_state *state, const bool actuallyMix, SPU_struct* const SPU, channel_struct* const chan)
-{
-	__SPU_ChanUpdate(state, spuInterpolationMode(state),actuallyMix, SPU, chan);
-}
-
-
-static void SPU_MixAudio(NDS_state *state, bool actuallyMix, SPU_struct *SPU, int length)
-{
-	u8 vol;
-
-	if(actuallyMix)
-	{
-		memset(SPU->sndbuf, 0, length*4*2);
-		memset(SPU->outbuf, 0, length*2*2);
-	}
+	memset(SPU->sndbuf, 0, length*4*2);
 	
-	//---not appropriate for 2sf player
-	// If the sound speakers are disabled, don't output audio
-	//if(!(T1ReadWord(MMU->ARM7_REG, 0x304) & 0x01))
-	//	return;
-
-	// If Master Enable isn't set, don't output audio
-	//if (!(T1ReadByte(MMU->ARM7_REG, 0x501) & 0x80))
-	//	return;
-	//------------------------
-
-	vol = T1ReadByte(state->MMU->ARM7_REG, 0x500) & 0x7F;
+	const u8 vol = T1ReadByte(state->MMU->ARM7_REG, 0x500) & 0x7F;
 
 	for(int i=0;i<16;i++)
 	{
 		channel_struct *chan = &SPU->channels[i];
 	
-		if (chan->status == CHANSTAT_STOPPED)
+		if (chan->status == CHANSTAT_STOPPED || isChannelMuted(state, i))
 			continue;
 
 		SPU->bufpos = 0;
 		SPU->buflength = length;
 
 		// Mix audio
-		_SPU_ChanUpdate(state, !isChannelMuted(state, i) && actuallyMix, SPU, chan);
+		_SPU_ChanUpdate(SPU, chan);
 	}
 
-	// convert from 32-bit->16-bit
-	if(actuallyMix)
+  // convert from 32-bit->16-bit
+  if (vol == 0x7f)
+  {
+  	for (int i = 0; i < length*2; i++)
+		{
+			// Apply Master Volume
+      SPU->outbuf[i] = MinMax(SPU->sndbuf[i], -0x8000, 0x7FFF);
+		}
+  }
+  else
+  {
 		for (int i = 0; i < length*2; i++)
 		{
 			// Apply Master Volume
-			SPU->sndbuf[i] = spumuldiv7(SPU->sndbuf[i], vol);
-
-			if (SPU->sndbuf[i] > 0x7FFF)
-				SPU->outbuf[i] = 0x7FFF;
-			else if (SPU->sndbuf[i] < -0x8000)
-				SPU->outbuf[i] = -0x8000;
-			else
-				SPU->outbuf[i] = (s16)SPU->sndbuf[i];
+      SPU->outbuf[i] = MinMax(spumuldiv7fast(SPU->sndbuf[i], vol), -0x8000, 0x7FFF);
 		}
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 extern "C" void SPU_EmulateSamples(NDS_state *state, int numsamples)
 {
-	SPU_MixAudio(state,true,state->SPU_core,numsamples);
-	state->SNDCore->UpdateAudio(state,state->SPU_core->outbuf,numsamples);
+	SPU_MixAudio(state, state->SPU_core,numsamples);
+	state->SNDCore->UpdateAudio(state, state->SPU_core->outbuf, numsamples);
 }
