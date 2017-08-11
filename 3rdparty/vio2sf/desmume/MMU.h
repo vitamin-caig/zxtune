@@ -70,7 +70,7 @@ typedef struct MMU_struct {
         
         u8 ARM9_RW_MODE;
         
-        FIFO fifos[16];
+        FIFO* fifos;
 
         const u32 * MMU_WAIT16[2];
         const u32 * MMU_WAIT32[2];

@@ -167,6 +167,7 @@ void MMU_Init(NDS_state *state) {
 	state->MMU->MMU_WAIT32[0] = MMU_ARM9_WAIT32;
 	state->MMU->MMU_WAIT32[1] = MMU_ARM7_WAIT32;
 
+  state->MMU->fifos = calloc(16, sizeof(FIFO));
 	for(i = 0;i < 16;i++)
 		FIFOInit(state->MMU->fifos + i);
 	
@@ -182,6 +183,7 @@ void MMU_DeInit(NDS_state *state) {
 	LOG("MMU deinit\n");
     mc_free(&state->MMU->fw);
     mc_free(&state->MMU->bupmem);
+    free(state->MMU->fifos);
 }
 
 //Card rom & ram

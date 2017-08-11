@@ -32,12 +32,12 @@ extern "C" {
 
 typedef struct
 {
-       u32 data[0x8000];
        u32 begin;
        u32 end;
        BOOL full;
        BOOL empty;
        BOOL error;
+       u32 data[0x8000];
 } FIFO;
 
 void FIFOInit(FIFO * fifo);
