@@ -146,8 +146,17 @@ void MMU_Init(NDS_state *state) {
 	LOG("MMU init\n");
 
 	memset(state->MMU, 0, sizeof(MMU_struct));
+  
+  state->MMU->ARM7_MEM = calloc(0x34000, 1);
+  state->MMU->ARM7_BIOS = state->MMU->ARM7_MEM;
+  state->MMU->ARM7_ERAM = state->MMU->ARM7_BIOS + 0x4000;
+  state->MMU->ARM7_REG = state->MMU->ARM7_ERAM + 0x10000;
+  state->MMU->ARM7_WIRAM = state->MMU->ARM7_REG + 0x10000;
+  
+  state->MMU->SWIRAM = calloc(0x8000, 1);
 
 	state->MMU->CART_ROM = state->MMU->UNUSED_RAM;
+  state->MMU->CART_RAM = calloc(0x10000, 1);
 
         for(i = 0x80; i<0xA0; ++i)
         {
@@ -184,6 +193,13 @@ void MMU_DeInit(NDS_state *state) {
     mc_free(&state->MMU->fw);
     mc_free(&state->MMU->bupmem);
     free(state->MMU->fifos);
+    state->MMU->fifos = 0;
+    free(state->MMU->CART_RAM);
+    state->MMU->CART_RAM = 0;
+    free(state->MMU->SWIRAM);
+    state->MMU->SWIRAM = 0;
+    free(state->MMU->ARM7_MEM);
+    state->MMU->ARM7_MEM = state->MMU->ARM7_BIOS = state->MMU->ARM7_ERAM = state->MMU->ARM7_REG = state->MMU->ARM7_WIRAM = 0;
 }
 
 //Card rom & ram

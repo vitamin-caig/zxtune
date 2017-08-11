@@ -81,6 +81,8 @@ int state_init(struct NDS_state *state)
     state->SubScreen = (NDS_Screen *) calloc(1, sizeof(NDS_Screen));
     if (!state->SubScreen)
         return -1;
+        
+    MMU_Init(state);
     
     for (i = 0; i < 0x10; ++i)
     {
@@ -276,8 +278,10 @@ void state_deinit(struct NDS_state *state)
 {
     if (state->MMU)
         MMU_unsetRom(state);
-    if (state->nds && state->MMU && state->NDS_ARM7 && state->NDS_ARM9 && state->MainScreen && state->SubScreen)
+    if (state->nds && state->NDS_ARM7 && state->NDS_ARM9 && state->MainScreen && state->SubScreen)
         NDS_DeInit(state);
+    if (state->MMU)
+        MMU_DeInit(state);
     if (state->nds) free(state->nds);
     state->nds = NULL;
     if (state->NDS_ARM7) free(state->NDS_ARM7);

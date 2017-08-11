@@ -47,20 +47,18 @@ extern "C" {
  
 typedef struct MMU_struct {
         //ARM7 mem
-        u8 ARM7_BIOS[0x4000];
-        u8 ARM7_ERAM[0x10000];
-        u8 ARM7_REG[0x10000];
-        u8 ARM7_WIRAM[0x10000];
+        u8* ARM7_MEM;
+        u8* ARM7_BIOS;//0x4000;
+        u8* ARM7_ERAM;//0x10000;
+        u8* ARM7_REG;//0x10000;
+        u8* ARM7_WIRAM;//0x10000;
         
-	u8 vram_mode[9];
-	u8 vScreen;
-
         //Shared ram
-        u8 SWIRAM[0x8000];
+        u8* SWIRAM;//0x8000;
         
         //Card rom & ram
-        u8 * CART_ROM;
-        u8 CART_RAM[0x10000];
+        u8* CART_ROM;
+        u8* CART_RAM;//0x10000;
 
 	//Unused ram
 	u8 UNUSED_RAM[4];
@@ -70,7 +68,7 @@ typedef struct MMU_struct {
         
         u8 ARM9_RW_MODE;
         
-        FIFO* fifos;
+        FIFO* fifos;//16
 
         const u32 * MMU_WAIT16[2];
         const u32 * MMU_WAIT32[2];
@@ -99,6 +97,9 @@ typedef struct MMU_struct {
         nds_dscard	dscard[2];
 		u32			CheckTimers;
 		u32			CheckDMAs;
+
+  u8 vram_mode[9];
+	u8 vScreen;
 		  
 } MMU_struct;
 

@@ -137,7 +137,7 @@ int NDS_Init( NDS_state *state) {
      state->nds->ARM9Cycle = 0;
      state->nds->ARM7Cycle = 0;
      state->nds->cycles = 0;
-     MMU_Init(state);
+
      state->nds->nextHBlank = 3168;
      state->nds->VCount = 0;
      state->nds->lignerendu = FALSE;
@@ -173,7 +173,6 @@ void NDS_DeInit(NDS_state *state) {
      state->nds->nextHBlank = 3168;
      SPU_DeInit(state);
      Screen_DeInit(state);
-     MMU_DeInit(state);
 }
 
 BOOL NDS_SetROM(NDS_state *state, u8 * rom, u32 mask)
