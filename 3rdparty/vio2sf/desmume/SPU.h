@@ -127,20 +127,22 @@ struct channel_struct
    u16 timer;
    u16 loopstart;
    u32 length;
-   u32 totlength;
-   double double_totlength_shifted;
+
    union {
-		s8 *buf8;
-		s16 *buf16;
+     s8* buf8;
+     s16* buf16;
    };
-   double sampcnt;
-   double sampinc;
+   float samppos;
+   float sampinc;
+   float samploop;
+   float samplimit;
    // ADPCM specific
-   u32 lastsampcnt;
+   u32 lastsamppos;
    s16 pcm16b, pcm16b_last;
    s16 loop_pcm16b;
    int index;
    int loop_index;
+   // PSG specific
    u16 x;
    s16 psgnoise_last;
    void *resampler;

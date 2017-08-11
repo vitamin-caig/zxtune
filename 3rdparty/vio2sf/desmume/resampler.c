@@ -330,12 +330,11 @@ void resampler_clear(void *_r)
     }
 }
 
-void resampler_set_rate(void *_r, double new_factor)
+void resampler_set_rate(void *_r, float new_factor)
 {
     resampler * r = ( resampler * ) _r;
     r->phase_inc = new_factor;
-    new_factor = 1.0 / new_factor;
-    r->inv_phase_inc = new_factor;
+    r->inv_phase_inc = 1.0 / new_factor;
 }
 
 void resampler_write_sample(void *_r, short s)

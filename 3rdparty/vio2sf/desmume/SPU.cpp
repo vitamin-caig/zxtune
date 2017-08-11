@@ -57,10 +57,6 @@ bool isChannelMuted(NDS_state *state, int num) { return state->dwChannelMute&(1<
 SPUInterpolationMode spuInterpolationMode(NDS_state *state) { return (SPUInterpolationMode)state->dwInterpolation; }
 //=========================================================
 
-//#undef FORCEINLINE
-//#define FORCEINLINE
-
-//const int shift = (FORMAT == 0 ? 2 : 1);
 static const int format_shift[] = { 2, 1, 3, 0 };
 
 static const s8 indextbl[8] =
@@ -96,7 +92,7 @@ static const s16 wavedutytbl[8][8] = {
 static s32 precalcdifftbl[89][16];
 static u8 precalcindextbl[89][8];
 
-static const double ARM7_CLOCK = 33513982;
+static const float ARM7_CLOCK = 33513982;
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -151,10 +147,6 @@ extern "C" void SPU_Reset(NDS_state *state)
 
 
 //////////////////////////////////////////////////////////////////////////////
-
-//static double cos_lut[256];
-
-
 
 extern "C" int SPU_Init(NDS_state *state, int coreid, int buffersize)
 {
@@ -242,7 +234,14 @@ void SPU_struct::ShutUp()
 
 static FORCEINLINE void adjust_channel_timer(channel_struct *chan)
 {
-	chan->sampinc = (((double)ARM7_CLOCK) / (44100 * 2)) / (double)(0x10000 - chan->timer);
+	chan->sampinc = float(ARM7_CLOCK) / (44100 * 2) / (0x10000 - chan->timer);
+}
+
+static FORCEINLINE void adjust_channel_sample(channel_struct *chan)
+{
+   const int shift = format_shift[chan->format];
+   chan->samploop = chan->loopstart << shift;
+   chan->samplimit = chan->samploop + (chan->length << shift);
 }
 
 void SPU_struct::KeyOn(int channel)
@@ -254,21 +253,18 @@ void SPU_struct::KeyOn(int channel)
     resampler_set_quality(thischan.resampler, thischan.format == 3 ? RESAMPLER_QUALITY_BLEP : spuInterpolationMode(state));
 
 	adjust_channel_timer(&thischan);
+  adjust_channel_sample(&thischan);
 
 	//   LOG("Channel %d key on: vol = %d, datashift = %d, hold = %d, pan = %d, waveduty = %d, repeat = %d, format = %d, source address = %07X, timer = %04X, loop start = %04X, length = %06X, cpu->state->MMUARM7_REG[0x501] = %02X\n", channel, chan->vol, chan->datashift, chan->hold, chan->pan, chan->waveduty, chan->repeat, chan->format, chan->addr, chan->timer, chan->loopstart, chan->length, T1ReadByte(MMU->ARM7_REG, 0x501));
 	switch(thischan.format)
 	{
 	case 0: // 8-bit
 		thischan.buf8 = (s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
-	//	thischan.loopstart = thischan.loopstart << 2;
-	//	thischan.length = (thischan.length << 2) + thischan.loopstart;
-		thischan.sampcnt = 0;
+		thischan.samppos = 0;
 		break;
 	case 1: // 16-bit
 		thischan.buf16 = (s16 *)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
-	//	thischan.loopstart = thischan.loopstart << 1;
-	//	thischan.length = (thischan.length << 1) + thischan.loopstart;
-		thischan.sampcnt = 0;
+		thischan.samppos = 0;
 		break;
 	case 2: // ADPCM
 		{
@@ -276,11 +272,9 @@ void SPU_struct::KeyOn(int channel)
 			thischan.pcm16b = (s16)((thischan.buf8[1] << 8) | thischan.buf8[0]);
 			thischan.pcm16b_last = thischan.pcm16b;
 			thischan.index = thischan.buf8[2] & 0x7F;
-			thischan.lastsampcnt = 7;
-			thischan.sampcnt = 8;
+			thischan.lastsamppos = 7;
+			thischan.samppos = 8;
 			thischan.loop_index = K_ADPCM_LOOPING_RECOVERY_INDEX;
-		//	thischan.loopstart = thischan.loopstart << 3;
-		//	thischan.length = (thischan.length << 3) + thischan.loopstart;
 			break;
 		}
 	case 3: // PSG
@@ -293,13 +287,11 @@ void SPU_struct::KeyOn(int channel)
 
 	if(thischan.format != 3)
 	{
-		if(thischan.double_totlength_shifted == 0)
+		if(thischan.samplimit == 0)
 		{
 			thischan.status = CHANSTAT_STOPPED;
 		}
 	}
-	
-	thischan.double_totlength_shifted = (double)(thischan.totlength << format_shift[thischan.format]);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -375,8 +367,7 @@ void SPU_struct::WriteWord(u32 addr, u16 val)
 		break;
 	case 0xA:
 		thischan.loopstart = val;
-		thischan.totlength = thischan.length + thischan.loopstart;
-		thischan.double_totlength_shifted = (double)(thischan.totlength << format_shift[thischan.format]);
+    adjust_channel_sample(&thischan);
 		break;
 	case 0xC:
 		WriteLong(addr,((u32)T1ReadWord(state->MMU->ARM7_REG, addr+2) << 16) | val);
@@ -426,12 +417,12 @@ void SPU_struct::WriteLong(u32 addr, u32 val)
 	case 0x8:
 		thischan.timer = val & 0xFFFF;
 		thischan.loopstart = val >> 16;
-		adjust_channel_timer(&thischan);
+  	adjust_channel_timer(&thischan);
+    adjust_channel_sample(&thischan);
 		break;
 	case 0xC:
 		thischan.length = val & 0x3FFFFF;
-		thischan.totlength = thischan.length + thischan.loopstart;
-		thischan.double_totlength_shifted = (double)(thischan.totlength << format_shift[thischan.format]);
+    adjust_channel_sample(&thischan);
 		break;
 	}
 }
@@ -451,23 +442,23 @@ extern "C" void SPU_WriteLong(NDS_state *state, u32 addr, u32 val)
 //////////////////////////////////////////////////////////////////////////////
 static FORCEINLINE void Fetch8BitDataInternal(channel_struct *chan, s32 *data)
 {
-	u32 loc = sputrunc(chan->sampcnt);
+	u32 loc = sputrunc(chan->samppos);
 	*data = (s32)chan->buf8[loc] << 8;
 }
 
 static FORCEINLINE void Fetch16BitDataInternal(const channel_struct * const chan, s32 *data)
 {
 	const s16* const buf16 = chan->buf16;
-	*data = (s32)buf16[sputrunc(chan->sampcnt)];
+	*data = (s32)buf16[sputrunc(chan->samppos)];
 }
 
 static FORCEINLINE void FetchADPCMDataInternal(channel_struct * const chan, s32 * const data)
 {
 	// No sense decoding, just return the last sample
-	if (chan->lastsampcnt != sputrunc(chan->sampcnt)){
+	if (chan->lastsamppos != sputrunc(chan->samppos)){
 
-	    const u32 endExclusive = sputrunc(chan->sampcnt+1);
-	    for (u32 i = chan->lastsampcnt+1; i < endExclusive; i++)
+	    const u32 endExclusive = sputrunc(chan->samppos+1);
+	    for (u32 i = chan->lastsamppos+1; i < endExclusive; i++)
 	    {
 	    	const u32 shift = (i&1)<<2;
 	    	const u32 data4bit = (((u32)chan->buf8[i >> 1]) >> shift);
@@ -484,7 +475,7 @@ static FORCEINLINE void FetchADPCMDataInternal(channel_struct * const chan, s32 
 			}
 	    }
 
-	    chan->lastsampcnt = sputrunc(chan->sampcnt);
+	    chan->lastsamppos = sputrunc(chan->samppos);
     }
 
 	*data = (s32)chan->pcm16b;
@@ -498,18 +489,18 @@ static FORCEINLINE void FetchPSGDataInternal(channel_struct *chan, s32 *data)
 	}
 	else if(chan->num < 14)
 	{
-		*data = (s32)wavedutytbl[chan->waveduty][(sputrunc(chan->sampcnt)) & 0x7];
+		*data = (s32)wavedutytbl[chan->waveduty][(sputrunc(chan->samppos)) & 0x7];
 	}
 	else
 	{
-		if(chan->lastsampcnt == sputrunc(chan->sampcnt))
+		if(chan->lastsamppos == sputrunc(chan->samppos))
 		{
 			*data = (s32)chan->psgnoise_last;
 			return;
 		}
 
-		u32 max = sputrunc(chan->sampcnt);
-		for(u32 i = chan->lastsampcnt; i < max; i++)
+		u32 max = sputrunc(chan->samppos);
+		for(u32 i = chan->lastsamppos; i < max; i++)
 		{
 			if(chan->x & 0x1)
 			{
@@ -523,7 +514,7 @@ static FORCEINLINE void FetchPSGDataInternal(channel_struct *chan, s32 *data)
 			}
 		}
 
-		chan->lastsampcnt = sputrunc(chan->sampcnt);
+		chan->lastsamppos = sputrunc(chan->samppos);
 
 		*data = (s32)chan->psgnoise_last;
 	}
@@ -552,20 +543,20 @@ static FORCEINLINE void MixLR(SPU_struct* SPU, channel_struct *chan, s32 data)
 
 //////////////////////////////////////////////////////////////////////////////
 
-static FORCEINLINE void TestForLoop(NDS_state *state, int FORMAT, SPU_struct *SPU, channel_struct *chan)
+static FORCEINLINE void TestForLoop(NDS_state *state, SPU_struct *SPU, channel_struct *chan)
 {
-	const int shift = (FORMAT == 0 ? 2 : 1);
+	chan->samppos += chan->sampinc;
 
-	chan->sampcnt += chan->sampinc;
-
-	if (chan->sampcnt > chan->double_totlength_shifted)
+	if (chan->samppos > chan->samplimit)
 	{
 		// Do we loop? Or are we done?
 		if (chan->repeat == 1)
 		{
-			while (chan->sampcnt > chan->double_totlength_shifted)
-				chan->sampcnt -= chan->double_totlength_shifted - (double)(chan->loopstart << shift);
-			//chan->sampcnt = (double)(chan->loopstart << shift);
+      do
+      {
+			  chan->samppos -= chan->samplimit - chan->samploop;
+      }
+      while (chan->samppos > chan->samplimit);
 		}
 		else
 		{
@@ -587,27 +578,30 @@ static FORCEINLINE void TestForLoop(NDS_state *state, int FORMAT, SPU_struct *SP
 
 static FORCEINLINE void TestForLoop2(NDS_state *state, SPU_struct *SPU, channel_struct *chan)
 {
-	chan->sampcnt += chan->sampinc;
+	chan->samppos += chan->sampinc;
 
-	if (chan->sampcnt > chan->double_totlength_shifted)
+	if (chan->samppos > chan->samplimit)
 	{
 		// Do we loop? Or are we done?
 		if (chan->repeat == 1)
 		{
-			while (chan->sampcnt > chan->double_totlength_shifted)
-				chan->sampcnt -= chan->double_totlength_shifted - (double)(chan->loopstart << 3);
+      do
+      {
+			  chan->samppos -= chan->samplimit - chan->samploop;
+      }
+      while (chan->samppos > chan->samplimit);
 
 			if(chan->loop_index == K_ADPCM_LOOPING_RECOVERY_INDEX)
 			{
 				chan->pcm16b = (s16)((chan->buf8[1] << 8) | chan->buf8[0]);
 				chan->index = chan->buf8[2] & 0x7F;
-				chan->lastsampcnt = 7;
+				chan->lastsamppos = 7;
 			}
 			else
 			{
 				chan->pcm16b = chan->loop_pcm16b;
 				chan->index = chan->loop_index;
-				chan->lastsampcnt = (chan->loopstart << 3);
+				chan->lastsamppos = (chan->loopstart << 3);
 			}
 		}
 		else
@@ -629,7 +623,7 @@ static FORCEINLINE void TestForLoop2(NDS_state *state, SPU_struct *SPU, channel_
 
 static FORCEINLINE void Fetch8BitData(SPUInterpolationMode INTERPOLATE_MODE, NDS_state *state, SPU_struct* const SPU, channel_struct *chan, s32 *data)
 {
-	double saved_inc = chan->sampinc;
+	const float saved_inc = chan->sampinc;
 	chan->sampinc = 1.0;
 
 	resampler_set_rate( chan->resampler, saved_inc );
@@ -638,7 +632,7 @@ static FORCEINLINE void Fetch8BitData(SPUInterpolationMode INTERPOLATE_MODE, NDS
 	{
 		s32 sample;
 		Fetch8BitDataInternal(chan, &sample);
-		TestForLoop(state, 0, SPU, chan);
+		TestForLoop(state, SPU, chan);
 		resampler_write_sample(chan->resampler, sample);
 	}
 
@@ -658,7 +652,7 @@ static FORCEINLINE void Fetch8BitData(SPUInterpolationMode INTERPOLATE_MODE, NDS
 
 static FORCEINLINE void Fetch16BitData(SPUInterpolationMode INTERPOLATE_MODE, NDS_state *state, SPU_struct* const SPU, channel_struct *chan, s32 *data)
 {
-	double saved_inc = chan->sampinc;
+	const float saved_inc = chan->sampinc;
 	chan->sampinc = 1.0;
 
 	resampler_set_rate( chan->resampler, saved_inc );
@@ -667,7 +661,7 @@ static FORCEINLINE void Fetch16BitData(SPUInterpolationMode INTERPOLATE_MODE, ND
 	{
 		s32 sample;
 		Fetch16BitDataInternal(chan, &sample);
-		TestForLoop(state, 1, SPU, chan);
+		TestForLoop(state, SPU, chan);
 		resampler_write_sample(chan->resampler, sample);
 	}
 
@@ -687,7 +681,7 @@ static FORCEINLINE void Fetch16BitData(SPUInterpolationMode INTERPOLATE_MODE, ND
 
 static FORCEINLINE void FetchADPCMData(SPUInterpolationMode INTERPOLATE_MODE, NDS_state *state, SPU_struct* const SPU, channel_struct *chan, s32 *data)
 {
-	double saved_inc = chan->sampinc;
+	const float saved_inc = chan->sampinc;
 	chan->sampinc = 1.0;
 
 	resampler_set_rate( chan->resampler, saved_inc );
@@ -722,7 +716,7 @@ static FORCEINLINE void FetchPSGData(SPUInterpolationMode INTERPOLATE_MODE, chan
 	{
 		s32 sample;
 		FetchPSGDataInternal(chan, &sample);
-		chan->sampcnt += 1.0;
+		chan->samppos += 1.0;
 		resampler_write_sample(chan->resampler, sample);
 	}
 
