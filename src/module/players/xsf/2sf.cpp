@@ -225,7 +225,7 @@ namespace TwoSF
       //required power of 2 size
       const auto alignedRomSize = uint32_t(1) << Math::Log2(Rom.Data.size());
       Rom.Data.resize(alignedRomSize);
-      ::state_setrom(&State, Rom.Data.data(), alignedRomSize, false/*coverage*/);
+      ::state_setrom(&State, Rom.Data.data(), alignedRomSize);
     }
     
     void SetupState(const std::list<Binary::Container::Ptr>& blocks)
