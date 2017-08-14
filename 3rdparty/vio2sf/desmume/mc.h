@@ -58,10 +58,6 @@ typedef struct
         u32 size;       /* memory size */
 	BOOL writeable_buffer;	/* is "data" writeable ? */
         int type; /* type of Memory */
-        char *filename;
-        FILE *fp;
-        u8 autodetectbuf[32768];
-        int autodetectsize;
 } memory_chip_t;
 
 #define NDS_FW_SIZE_V1 (256 * 1024)		/* size of fw memory on nds v1 */
@@ -70,8 +66,6 @@ typedef struct
 void mc_init(memory_chip_t *mc, int type);    /* reset and init values for memory struct */
 u8 *mc_alloc(memory_chip_t *mc, u32 size);  /* alloc mc memory */
 void mc_realloc(memory_chip_t *mc, int type, u32 size);      /* realloc mc memory */
-void mc_load_file(memory_chip_t *mc, const char* filename); /* load save file and setup fp */
-int mc_load_duc(memory_chip_t *mc, const char* filename); /* load Action Replay DS save file */
 void mc_free(memory_chip_t *mc);    /* delete mc memory */
 void mc_reset_com(memory_chip_t *mc);       /* reset communication with mc */
 u8 fw_transfer(memory_chip_t *mc, u8 data); /* transfer to, then receive data from firmware */

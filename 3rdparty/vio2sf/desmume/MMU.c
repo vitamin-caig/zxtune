@@ -172,22 +172,15 @@ void MMU_Init(NDS_state *state) {
 	
         mc_init(&state->MMU->fw, MC_TYPE_FLASH);  /* init fw device */
         mc_alloc(&state->MMU->fw, NDS_FW_SIZE_V1);
-        state->MMU->fw.fp = NULL;
 
         // Init Backup Memory device, this should really be done when the rom is loaded
         mc_init(&state->MMU->bupmem, MC_TYPE_AUTODETECT);
         mc_alloc(&state->MMU->bupmem, 1);
-        state->MMU->bupmem.fp = NULL;
-
-} 
+}
 
 void MMU_DeInit(NDS_state *state) {
 	LOG("MMU deinit\n");
-//    if (MMU->fw.fp)
-//       fclose(MMU->fw.fp);
     mc_free(&state->MMU->fw);
-//    if (MMU->bupmem.fp)
-//       fclose(MMU->bupmem.fp);
     mc_free(&state->MMU->bupmem);
 }
 

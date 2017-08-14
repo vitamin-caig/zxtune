@@ -58,7 +58,6 @@ void mc_init(memory_chip_t *mc, int type)
         mc->write_enable = FALSE;
         mc->writeable_buffer = FALSE;
         mc->type = type;
-        mc->autodetectsize = 0;
                                
         switch(mc->type)
         {
