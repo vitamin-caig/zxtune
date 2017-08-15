@@ -38,37 +38,6 @@
 #define FORCEINLINE
 #endif
 
-FORCEINLINE u32 u32floor(float f)
-{
-#ifdef ENABLE_SSE2
-	return (u32)_mm_cvtt_ss2si(_mm_set_ss(f));
-#else
-	return (u32)f;
-#endif
-}
-FORCEINLINE u32 u32floor(double d)
-{
-#ifdef ENABLE_SSE2
-	return (u32)_mm_cvttsd_si32(_mm_set_sd(d));
-#else
-	return (u32)d;
-#endif
-}
-
-//same as above but works for negative values too.
-//be sure that the results are the same thing as floorf!
-FORCEINLINE s32 s32floor(float f)
-{
-#ifdef ENABLE_SSE2
-	return _mm_cvtss_si32( _mm_add_ss(_mm_set_ss(-0.5f),_mm_add_ss(_mm_set_ss(f), _mm_set_ss(f))) ) >> 1;
-#else
-	return (s32)floorf(f);
-#endif
-}
-
-
-static FORCEINLINE u32 sputrunc(float f) { return u32floor(f); }
-static FORCEINLINE u32 sputrunc(double d) { return u32floor(d); }
 static FORCEINLINE s32 spumuldiv7fast(s32 val, u8 multiplier) { return (val * multiplier) >> 7; }
 static FORCEINLINE s32 spumuldiv7(s32 val, u8 multiplier) {
 	assert(multiplier <= 127);
@@ -133,10 +102,10 @@ struct channel_struct
      s8* buf8;
      s16* buf16;
    };
-   float samppos;
+   u32 samppos;
    float sampinc;
-   float samploop;
-   float samplimit;
+   u32 samploop;
+   u32 samplimit;
    // ADPCM specific
    u32 lastsamppos;
    s16 pcm16b, pcm16b_last;

@@ -265,30 +265,25 @@ void SPU_struct::KeyOn(int channel)
 		thischan.samppos = 0;
 		break;
 	case 2: // ADPCM
-		{
-			thischan.buf8 = (s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
-			thischan.pcm16b = (s16)((thischan.buf8[1] << 8) | thischan.buf8[0]);
-			thischan.pcm16b_last = thischan.pcm16b;
-			thischan.index = thischan.buf8[2] & 0x7F;
-			thischan.lastsamppos = 7;
-			thischan.samppos = 8;
-			thischan.loop_index = K_ADPCM_LOOPING_RECOVERY_INDEX;
-			break;
-		}
+ 		thischan.buf8 = (s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
+ 		thischan.pcm16b = (s16)((thischan.buf8[1] << 8) | thischan.buf8[0]);
+ 		thischan.pcm16b_last = thischan.pcm16b;
+ 		thischan.index = thischan.buf8[2] & 0x7F;
+ 		thischan.lastsamppos = 7;
+ 		thischan.samppos = 8;
+ 		thischan.loop_index = K_ADPCM_LOOPING_RECOVERY_INDEX;
+ 		break;
 	case 3: // PSG
-		{
-			thischan.x = 0x7FFF;
-			break;
-		}
-	default: break;
+ 		thischan.x = 0x7FFF;
+ 		thischan.lastsamppos = 0;
+ 		break;
+	default:
+    break;
 	}
 
-	if(thischan.format != 3)
+	if(thischan.samplimit == 0 && thischan.format != 3)
 	{
-		if(thischan.samplimit == 0)
-		{
-			thischan.status = CHANSTAT_STOPPED;
-		}
+ 		thischan.status = CHANSTAT_STOPPED;
 	}
 }
 
@@ -440,41 +435,32 @@ extern "C" void SPU_WriteLong(NDS_state *state, u32 addr, u32 val)
 //////////////////////////////////////////////////////////////////////////////
 static FORCEINLINE s32 Fetch8BitDataInternal(channel_struct * const chan)
 {
-	const u32 loc = sputrunc(chan->samppos);
-	return (s32)chan->buf8[loc] << 8;
+	return (s32)chan->buf8[chan->samppos] << 8;
 }
 
 static FORCEINLINE s32 Fetch16BitDataInternal(channel_struct * const chan)
 {
-  const u32 loc = sputrunc(chan->samppos);
-	return (s32)chan->buf16[loc];
+	return (s32)chan->buf16[chan->samppos];
 }
 
 static FORCEINLINE s32 FetchADPCMDataInternal(channel_struct * const chan)
 {
-	// No sense decoding, just return the last sample
-  const u32 curpos = sputrunc(chan->samppos);
-	if (chan->lastsamppos != curpos){
+  while (chan->lastsamppos < chan->samppos) {
+    ++chan->lastsamppos;
+   	const u32 shift = (chan->lastsamppos&1)<<2;
+   	const u32 data4bit = (((u32)chan->buf8[chan->lastsamppos >> 1]) >> shift);
 
-	    for (u32 i = chan->lastsamppos+1; i < curpos + 1; i++)
-	    {
-	    	const u32 shift = (i&1)<<2;
-	    	const u32 data4bit = (((u32)chan->buf8[i >> 1]) >> shift);
+   	const s32 diff = precalcdifftbl[chan->index][data4bit & 0xF];
+   	chan->index = precalcindextbl[chan->index][data4bit & 0x7];
 
-	    	const s32 diff = precalcdifftbl[chan->index][data4bit & 0xF];
-	    	chan->index = precalcindextbl[chan->index][data4bit & 0x7];
+   	chan->pcm16b_last = chan->pcm16b;
+ 		chan->pcm16b = (s16)(MinMax(chan->pcm16b+diff, -0x8000, 0x7FFF));
 
-	    	chan->pcm16b_last = chan->pcm16b;
-  			chan->pcm16b = (s16)(MinMax(chan->pcm16b+diff, -0x8000, 0x7FFF));
-
-  			if(i == (chan->loopstart<<3)) {
-  				chan->loop_pcm16b = chan->pcm16b;
-  				chan->loop_index = chan->index;
-  			}
-	    }
-
-	    chan->lastsamppos = curpos;
-    }
+ 		if(chan->lastsamppos == chan->samploop) {
+ 			chan->loop_pcm16b = chan->pcm16b;
+ 			chan->loop_index = chan->index;
+ 		}
+  }
 
 	return (s32)chan->pcm16b;
 }
@@ -487,11 +473,11 @@ static FORCEINLINE s32 FetchPSGDataInternal(channel_struct *chan)
 	}
 	else if(chan->num < 14)
 	{
-		return (s32)wavedutytbl[chan->waveduty][(sputrunc(chan->samppos)) & 0x7];
+		return (s32)wavedutytbl[chan->waveduty][chan->samppos & 0x7];
 	}
 	else
 	{
-    for (const u32 curpos = sputrunc(chan->samppos); chan->lastsamppos < curpos; ++chan->lastsamppos)
+    for (; chan->lastsamppos < chan->samppos; ++chan->lastsamppos)
 		{
 			if(chan->x & 0x1)
 			{
@@ -546,7 +532,7 @@ static FORCEINLINE void StopChannel(SPU_struct *SPU, channel_struct *chan)
 
 static FORCEINLINE void AdvanceSample(SPU_struct *SPU, channel_struct *chan)
 {
-	chan->samppos += chan->sampinc;
+	++chan->samppos;
 
 	if (chan->samppos > chan->samplimit)
 	{
@@ -571,7 +557,7 @@ static FORCEINLINE void AdvanceSample(SPU_struct *SPU, channel_struct *chan)
 
 static FORCEINLINE void AdvanceADPCMSample(SPU_struct *SPU, channel_struct *chan)
 {
-	chan->samppos += chan->sampinc;
+	++chan->samppos;
 
 	if (chan->samppos > chan->samplimit)
 	{
@@ -610,10 +596,7 @@ static FORCEINLINE void AdvanceADPCMSample(SPU_struct *SPU, channel_struct *chan
 template<MixFunc Mix>
 static void Render8BitSample(SPU_struct* const SPU, channel_struct *chan)
 {
-	const float saved_inc = chan->sampinc;
-	chan->sampinc = 1.0;
-
-	resampler_set_rate( chan->resampler, saved_inc );
+	resampler_set_rate( chan->resampler, chan->sampinc );
 
   for (; SPU->bufpos < SPU->buflength; SPU->bufpos++)
 	{
@@ -635,17 +618,12 @@ static void Render8BitSample(SPU_struct* const SPU, channel_struct *chan)
         StopChannel(SPU, chan);
     }
   }
-
-  chan->sampinc = saved_inc;
 }
 
 template<MixFunc Mix>
 static void Render16BitSample(SPU_struct* const SPU, channel_struct *chan)
 {
-	const float saved_inc = chan->sampinc;
-	chan->sampinc = 1.0;
-
-	resampler_set_rate( chan->resampler, saved_inc );
+	resampler_set_rate( chan->resampler, chan->sampinc );
 
   for (; SPU->bufpos < SPU->buflength; SPU->bufpos++)
 	{
@@ -667,16 +645,12 @@ static void Render16BitSample(SPU_struct* const SPU, channel_struct *chan)
       StopChannel(SPU, chan);
   	}
   }
-  chan->sampinc = saved_inc;
 }
 
 template<MixFunc Mix>
 static void RenderADPCMSample(SPU_struct* const SPU, channel_struct *chan)
 {
-	const float saved_inc = chan->sampinc;
-	chan->sampinc = 1.0;
-
-	resampler_set_rate( chan->resampler, saved_inc );
+	resampler_set_rate( chan->resampler, chan->sampinc );
 
   for (; SPU->bufpos < SPU->buflength; SPU->bufpos++)
 	{
@@ -698,7 +672,6 @@ static void RenderADPCMSample(SPU_struct* const SPU, channel_struct *chan)
       StopChannel(SPU, chan);
   	}
   }
-  chan->sampinc = saved_inc;
 }
 
 template<MixFunc Mix>
@@ -711,7 +684,7 @@ static void RenderPSGSample(SPU_struct* const SPU, channel_struct *chan)
   	while (resampler_get_free_count(chan->resampler))
   	{
   		const s32 sample = FetchPSGDataInternal(chan);
-  		chan->samppos += 1.0;
+  		++chan->samppos;
   		resampler_write_sample(chan->resampler, sample);
   	}
 
