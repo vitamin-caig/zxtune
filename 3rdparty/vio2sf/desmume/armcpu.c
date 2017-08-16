@@ -260,10 +260,19 @@ u32 armcpu_switchMode(armcpu_t *armcpu, u8 mode)
 	return oldmode;
 }
 
-static u32
-armcpu_prefetch(armcpu_t *armcpu)
+static FASTCALL u32 armcpu_prefetch(armcpu_t *armcpu)
 {
-	if(armcpu->CPSR.bits.T == 0)
+  if(armcpu->CPSR.bits.T)
+  {
+    armcpu->instruction = MMU_read16_acl(armcpu->state, armcpu->proc_ID, armcpu->next_instruction,CP15_ACCESS_EXECUTE);
+
+  	armcpu->instruct_adr = armcpu->next_instruction;
+  	armcpu->next_instruction += 2;
+  	armcpu->R[15] = armcpu->next_instruction + 2;
+
+  	return armcpu->WAIT16[(armcpu->instruct_adr>>24)&0xF];
+  }
+  else
 	{
 		armcpu->instruction = MMU_read32_acl(armcpu->state, armcpu->proc_ID, armcpu->next_instruction,CP15_ACCESS_EXECUTE);
 
@@ -273,14 +282,6 @@ armcpu_prefetch(armcpu_t *armcpu)
           
     return armcpu->WAIT32[(armcpu->instruct_adr>>24)&0xF];
 	}
-
-	armcpu->instruction = MMU_read16_acl(armcpu->state, armcpu->proc_ID, armcpu->next_instruction,CP15_ACCESS_EXECUTE);
-
-	armcpu->instruct_adr = armcpu->next_instruction;
-	armcpu->next_instruction += 2;
-	armcpu->R[15] = armcpu->next_instruction + 2;
-
-	return armcpu->WAIT16[(armcpu->instruct_adr>>24)&0xF];
 }
  
 BOOL armcpu_irqExeption(armcpu_t *armcpu)
@@ -317,22 +318,12 @@ armcpu_flagIrq( armcpu_t *armcpu) {
 
 u32 armcpu_exec(armcpu_t *armcpu)
 {
-        u32 c = 1;
-
-	if(armcpu->CPSR.bits.T == 0)
-	{
-/*        if((TEST_COND(CONDITION(armcpu->instruction), armcpu->CPSR)) || ((CONDITION(armcpu->instruction)==0xF)&&(CODE(armcpu->instruction)==0x5)))*/
-        if((TEST_COND(CONDITION(armcpu->instruction), CODE(armcpu->instruction), armcpu->CPSR)))
-		{
-			c += arm_instructions_set[INSTRUCTION_INDEX(armcpu->instruction)](armcpu);
-		}
-		c += armcpu_prefetch(armcpu);
-		return c;
-	}
-
-	c += thumb_instructions_set[armcpu->instruction>>6](armcpu);
-
-	c += armcpu_prefetch(armcpu);
-	return c;
+  const u32 inst = armcpu->CPSR.bits.T
+    ? thumb_instructions_set[armcpu->instruction>>6](armcpu)
+    : (TEST_COND(CONDITION(armcpu->instruction), CODE(armcpu->instruction), armcpu->CPSR)
+       ? arm_instructions_set[INSTRUCTION_INDEX(armcpu->instruction)](armcpu)
+       : 0
+      );
+  
+  return 1 + inst + armcpu_prefetch(armcpu);
 }
-
