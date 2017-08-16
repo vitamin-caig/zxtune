@@ -274,8 +274,17 @@ void SPU_struct::KeyOn(int channel)
  		thischan.loop_index = K_ADPCM_LOOPING_RECOVERY_INDEX;
  		break;
 	case 3: // PSG
+    /*
+      Via: http://problemkaputt.de/gbatek.htm#dssoundnotes
+
+      Each duty cycle consists of eight HIGH or LOW samples, so the sound frequency is 1/8th of the selected sample rate.
+      The duty cycle always starts at the begin of the LOW period when the sound gets (re-)started.
+      
+      Noise randomly switches between HIGH and LOW samples <...> The initial value when (re-)starting the sound is X=7FFFh
+    */
  		thischan.x = 0x7FFF;
  		thischan.lastsamppos = 0;
+  	thischan.samppos = 0;
  		break;
 	default:
     break;
