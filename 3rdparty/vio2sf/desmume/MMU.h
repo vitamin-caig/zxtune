@@ -97,10 +97,6 @@ typedef struct MMU_struct {
         nds_dscard	dscard[2];
 		u32			CheckTimers;
 		u32			CheckDMAs;
-
-  u8 vram_mode[9];
-	u8 vScreen;
-		  
 } MMU_struct;
 
 void MMU_Init(NDS_state *);
