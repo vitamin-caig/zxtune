@@ -142,9 +142,6 @@ int NDS_Init( NDS_state *state) {
      state->nds->VCount = 0;
      state->nds->lignerendu = FALSE;
 
-     if (Screen_Init(state, GFXCORE_DUMMY) != 0)
-        return -1;
-     
 	 armcpu_new(state,state->NDS_ARM7,1);
      armcpu_new(state,state->NDS_ARM9,0);
 
@@ -172,7 +169,6 @@ void NDS_DeInit(NDS_state *state) {
 
      state->nds->nextHBlank = 3168;
      SPU_DeInit(state);
-     Screen_DeInit(state);
 }
 
 BOOL NDS_SetROM(NDS_state *state, u8 * rom, u32 mask)
@@ -318,11 +314,6 @@ void NDS_Reset( NDS_state *state)
 		MMU_write32 (state, 0, 0x027FFE00+i*4, LE_TO_LOCAL_32(((u32*)state->MMU->CART_ROM)[i]));
 	}
      
-   state->MainScreen->offset = 0;
-   state->SubScreen->offset = 192;
-     
-   //MMU_write32(state, 0, 0x02007FFC, 0xE92D4030);
-
      //ARM7 BIOS IRQ HANDLER
      MMU_write32(state, 1, 0x00, 0xE25EF002);
      MMU_write32(state, 1, 0x04, 0xEAFFFFFE);
@@ -355,8 +346,6 @@ void NDS_Reset( NDS_state *state)
 
    free(header);
 
-   GPU_Reset(state->MainScreen->gpu, 0);
-   GPU_Reset(state->SubScreen->gpu, 1);
    SPU_Reset(state);
 
    state->execute = oldexecute;

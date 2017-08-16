@@ -25,8 +25,6 @@
 #include "armcpu.h"
 #include "MMU.h"
 
-#include "GPU.h"
-
 #include "mem.h"
 
 #include "ARM9.h"
@@ -216,15 +214,6 @@ NDS_exec(NDS_state *, s32 nb, BOOL force);
                  state->NDS_ARM7->wIRQ = TRUE;
                  //execute = FALSE;
        }
-       
-       static INLINE void NDS_swapScreen(NDS_state *state)
-       {
-	       u16 tmp = state->MainScreen->offset;
-	       state->MainScreen->offset = state->SubScreen->offset;
-	       state->SubScreen->offset = tmp;
-       }
- 
- 
 
 void NDS_exec_frame(NDS_state *, int cpu_clockdown_level_arm9, int cpu_clockdown_level_arm7);
 void NDS_exec_hframe(NDS_state *, int cpu_clockdown_level_arm9, int cpu_clockdown_level_arm7);

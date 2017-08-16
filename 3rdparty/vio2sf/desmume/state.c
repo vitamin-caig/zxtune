@@ -12,12 +12,12 @@
 
 #include "NDSSystem.h"
 #include "MMU.h"
-#include "GPU.h"
 #include "armcpu.h"
 #include "cp15.h"
 #include "spu_exports.h"
 
 #include "state.h"
+#include "registers.h"
 
 #define ROM_MASK 3
 
@@ -74,14 +74,6 @@ int state_init(struct NDS_state *state)
     if (!state->ARM9Mem)
         return -1;
     
-    state->MainScreen = (NDS_Screen *) calloc(1, sizeof(NDS_Screen));
-    if (!state->MainScreen)
-        return -1;
-    
-    state->SubScreen = (NDS_Screen *) calloc(1, sizeof(NDS_Screen));
-    if (!state->SubScreen)
-        return -1;
-        
     MMU_Init(state);
     
     for (i = 0; i < 0x10; ++i)
@@ -278,7 +270,7 @@ void state_deinit(struct NDS_state *state)
 {
     if (state->MMU)
         MMU_unsetRom(state);
-    if (state->nds && state->NDS_ARM7 && state->NDS_ARM9 && state->MainScreen && state->SubScreen)
+    if (state->nds && state->NDS_ARM7 && state->NDS_ARM9)
         NDS_DeInit(state);
     if (state->MMU)
         MMU_DeInit(state);
@@ -292,10 +284,6 @@ void state_deinit(struct NDS_state *state)
     state->MMU = NULL;
     if (state->ARM9Mem) free(state->ARM9Mem);
     state->ARM9Mem = NULL;
-    if (state->MainScreen) free(state->MainScreen);
-    state->MainScreen = NULL;
-    if (state->SubScreen) free(state->SubScreen);
-    state->SubScreen = NULL;
 }
 
 void state_setrom(struct NDS_state *state, u8 * rom, u32 rom_size)

@@ -43,62 +43,6 @@
 #include "registers.h"
 #include "isqrt.h"
 
-#if VIO2SF_GPU_ENABLE
-#include "render3D.h"
-#else
-#define GPU_setVideoProp(p1, p2)
-#define GPU_setBGProp(p1, p2, p3)
-
-#define GPU_setBLDCNT(p1, p2) 
-#define GPU_setBLDALPHA(p1, p2) 
-#define GPU_setBLDY(p1, p2) 
-#define GPU_setMOSAIC(p1, p2) 
-
-
-#define GPU_remove(p1,p2)
-#define GPU_addBack(p1,p2)
-
-#define GPU_ChangeGraphicsCore(p1) 0
-
-#define GPU_set_DISPCAPCNT(p1, p2) 
-#define GPU_ligne(p1, p2) 
-#define GPU_setMasterBrightness(p1, p2)
-
-#define GPU_setWIN0_H(p1, p2)
-#define GPU_setWIN0_H0(p1, p2)
-#define GPU_setWIN0_H1(p1, p2)
-
-#define GPU_setWIN0_V(p1, p2)
-#define GPU_setWIN0_V0(p1, p2)
-#define GPU_setWIN0_V1(p1, p2)
-
-#define GPU_setWIN1_H(p1, p2)
-#define GPU_setWIN1_H0(p1, p2)
-#define GPU_setWIN1_H1(p1, p2)
-
-#define GPU_setWIN1_V(p1, p2)
-#define GPU_setWIN1_V0(p1, p2)
-#define GPU_setWIN1_V1(p1, p2)
-
-#define GPU_setWININ(p1, p2)
-#define GPU_setWININ0(p1, p2)
-#define GPU_setWININ1(p1, p2)
-
-#define GPU_setWINOUT16(p1, p2)
-#define GPU_setWINOUT(p1, p2)
-#define GPU_setWINOBJ(p1, p2)
-
-#define GPU_setBLDCNT_LOW(p1, p2)
-#define GPU_setBLDCNT_HIGH(p1, p2)
-#define GPU_setBLDCNT(p1, p2)
-
-#define GPU_setBLDALPHA(p1, p2)
-#define GPU_setBLDALPHA_EVA(p1, p2)
-#define GPU_setBLDALPHA_EVB(p1, p2)
-
-#define GPU_setBLDY_EVY(p1, p2)
-#endif
-
 #define ROM_MASK 3
 
 /*
@@ -109,20 +53,10 @@
 #define INTERNAL_DTCM_READ 1
 #define INTERNAL_DTCM_WRITE 1
 
-//#define LOG_CARD
-//#define LOG_GPU
-//#define LOG_DMA
-//#define LOG_DMA2
-//#define LOG_DIV
-
 #define DUP2(x)  x, x
 #define DUP4(x)  x, x, x, x
 #define DUP8(x)  x, x, x, x,  x, x, x, x
 #define DUP16(x) x, x, x, x,  x, x, x, x,  x, x, x, x,  x, x, x, x
-
-#if 0
-#endif
-	   
 
 const u32 MMU_ARM9_WAIT16[16]={
 	1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 1, 1, 1, 1, 1,
@@ -250,21 +184,10 @@ void MMU_clearMem(NDS_state *state)
 	
 	memset(state->MMU->dscard,        0, sizeof(nds_dscard) * 2);
 	
-	state->MainScreen->offset = 192;
-	state->SubScreen->offset  = 0;
-
-        /* setup the texture slot pointers */
-#if 0
-        state->ARM9Mem->textureSlotAddr[0] = state->ARM9Mem->blank_memory;
-        state->ARM9Mem->textureSlotAddr[1] = state->ARM9Mem->blank_memory;
-        state->ARM9Mem->textureSlotAddr[2] = state->ARM9Mem->blank_memory;
-        state->ARM9Mem->textureSlotAddr[3] = state->ARM9Mem->blank_memory;
-#else
-        state->ARM9Mem->textureSlotAddr[0] = &state->ARM9Mem->ARM9_LCD[0x20000 * 0];
-        state->ARM9Mem->textureSlotAddr[1] = &state->ARM9Mem->ARM9_LCD[0x20000 * 1];
-        state->ARM9Mem->textureSlotAddr[2] = &state->ARM9Mem->ARM9_LCD[0x20000 * 2];
-        state->ARM9Mem->textureSlotAddr[3] = &state->ARM9Mem->ARM9_LCD[0x20000 * 3];
-#endif
+  state->ARM9Mem->textureSlotAddr[0] = &state->ARM9Mem->ARM9_LCD[0x20000 * 0];
+  state->ARM9Mem->textureSlotAddr[1] = &state->ARM9Mem->ARM9_LCD[0x20000 * 1];
+  state->ARM9Mem->textureSlotAddr[2] = &state->ARM9Mem->ARM9_LCD[0x20000 * 2];
+  state->ARM9Mem->textureSlotAddr[3] = &state->ARM9Mem->ARM9_LCD[0x20000 * 3];
 }
 
 /* the VRAM blocks keep their content even when not blended in */
@@ -568,14 +491,6 @@ u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
 		/* Adress is an IO register */
 		switch(adr)
 		{
-
-#if VIO2SF_GPU_ENABLE
-			case 0x04000604:
-				return (state->gpu3D->NDS_3D_GetNumPolys(state->gpu3D)&2047);
-			case 0x04000606:
-				return (state->gpu3D->NDS_3D_GetNumVertex(state->gpu3D)&8191);
-#endif
-
 			case REG_IPCFIFORECV :               /* TODO (clear): ??? */
 				state->execute = FALSE;
 				return 1;
@@ -668,12 +583,7 @@ u32 FASTCALL MMU_read32(NDS_state *state, u32 proc, u32 adr)
 			case 0x04000678:
 			case 0x0400067C:
 			{
-				//LOG("4000640h..67Fh - CLIPMTX_RESULT - Read Current Clip Coordinates Matrix (R)");
-#if VIO2SF_GPU_ENABLE
-				return state->gpu3D->NDS_3D_GetClipMatrix (state->gpu3D, (adr-0x04000640)/4);
-#else
 				return 0;
-#endif
 			}
 			case 0x04000680:
 			case 0x04000684:
@@ -685,22 +595,12 @@ u32 FASTCALL MMU_read32(NDS_state *state, u32 proc, u32 adr)
 			case 0x0400069C:
 			case 0x040006A0:
 			{
-#if VIO2SF_GPU_ENABLE
-				//LOG("4000680h..6A3h - VECMTX_RESULT - Read Current Directional Vector Matrix (R)");
-				return state->gpu3D->NDS_3D_GetDirectionalMatrix (state->gpu3D, (adr-0x04000680)/4);
-#else
 				return 0;
-#endif
 			}
 
 			case 0x4000604:
 			{
-#if VIO2SF_GPU_ENABLE
-				return (state->gpu3D->NDS_3D_GetNumPolys(state->gpu3D)&2047) & ((state->gpu3D->NDS_3D_GetNumVertex(state->gpu3D)&8191) << 16);
-				//LOG ("read32 - RAM_COUNT -> 0x%X", ((u32 *)(MMU->MMU_MEM[proc][(adr>>20)&0xFF]))[(adr&MMU->MMU_MASK[proc][(adr>>20)&0xFF])>>2]);
-#else
 				return 0;
-#endif
 			}
 			
 			case REG_IME :
@@ -826,120 +726,6 @@ void FASTCALL MMU_write8(NDS_state *state, u32 proc, u32 adr, u8 val)
 
 	switch(adr)
 	{
-		case REG_DISPA_WIN0H: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN0_H1 (state->MainScreen->gpu, val);
-			break ; 	 
-		case REG_DISPA_WIN0H+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN0_H0 (state->MainScreen->gpu, val);
-			break ; 	 
-		case REG_DISPA_WIN1H: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN1_H1 (state->MainScreen->gpu,val);
-			break ; 	 
-		case REG_DISPA_WIN1H+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN1_H0 (state->MainScreen->gpu,val);
-			break ; 	 
-
-		case REG_DISPB_WIN0H: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN0_H1(state->SubScreen->gpu,val);
-			break ; 	 
-		case REG_DISPB_WIN0H+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN0_H0(state->SubScreen->gpu,val);
-			break ; 	 
-		case REG_DISPB_WIN1H: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN1_H1(state->SubScreen->gpu,val);
-			break ; 	 
-		case REG_DISPB_WIN1H+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN1_H0(state->SubScreen->gpu,val);
-			break ;
-
-		case REG_DISPA_WIN0V: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN0_V1(state->MainScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPA_WIN0V+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN0_V0(state->MainScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPA_WIN1V: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN1_V1(state->MainScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPA_WIN1V+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN1_V0(state->MainScreen->gpu,val) ;
-			break ; 	 
-
-		case REG_DISPB_WIN0V: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN0_V1(state->SubScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPB_WIN0V+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN0_V0(state->SubScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPB_WIN1V: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN1_V1(state->SubScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPB_WIN1V+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWIN1_V0(state->SubScreen->gpu,val) ;
-			break ;
-
-		case REG_DISPA_WININ: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWININ0(state->MainScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPA_WININ+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWININ1(state->MainScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPA_WINOUT: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWINOUT(state->MainScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPA_WINOUT+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWINOBJ(state->MainScreen->gpu,val);
-			break ; 	 
-
-		case REG_DISPB_WININ: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWININ0(state->SubScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPB_WININ+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWININ1(state->SubScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPB_WINOUT: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWINOUT(state->SubScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPB_WINOUT+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setWINOBJ(state->SubScreen->gpu,val) ;
-			break ;
-
-
-		case REG_DISPA_BLDCNT:
-			if(proc == ARMCPU_ARM9) GPU_setBLDCNT_HIGH(state->MainScreen->gpu,val);
-			break;
-		case REG_DISPA_BLDCNT+1:
-			if(proc == ARMCPU_ARM9) GPU_setBLDCNT_LOW (state->MainScreen->gpu,val);
-			break;
-
-		case REG_DISPB_BLDCNT: 	 
-			if(proc == ARMCPU_ARM9) GPU_setBLDCNT_HIGH (state->SubScreen->gpu,val);
-			break;
-		case REG_DISPB_BLDCNT+1: 	 
-			if(proc == ARMCPU_ARM9) GPU_setBLDCNT_LOW (state->SubScreen->gpu,val);
-			break;
-
-		case REG_DISPA_BLDALPHA: 	 
-			if(proc == ARMCPU_ARM9) GPU_setBLDALPHA_EVB(state->MainScreen->gpu,val) ;
-			break;
-		case REG_DISPA_BLDALPHA+1:
-			if(proc == ARMCPU_ARM9) GPU_setBLDALPHA_EVA(state->MainScreen->gpu,val) ;
-			break;
-
-		case REG_DISPB_BLDALPHA:
-			if(proc == ARMCPU_ARM9) GPU_setBLDALPHA_EVB(state->SubScreen->gpu,val) ;
-			break;
-		case REG_DISPB_BLDALPHA+1:
-			if(proc == ARMCPU_ARM9) GPU_setBLDALPHA_EVA(state->SubScreen->gpu,val);
-			break;
-
-		case REG_DISPA_BLDY: 	 
-			if(proc == ARMCPU_ARM9) GPU_setBLDY_EVY(state->MainScreen->gpu,val) ;
-			break ; 	 
-		case REG_DISPB_BLDY: 	 
-			if(proc == ARMCPU_ARM9) GPU_setBLDY_EVY(state->SubScreen->gpu,val) ;
-			break;
-
 		/* TODO: EEEK ! Controls for VRAMs A, B, C, D are missing ! */
 		/* TODO: Not all mappings of VRAMs are handled... (especially BG and OBJ modes) */
 		case REG_VRAMCNTA:
@@ -1198,133 +984,7 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 		/* Adress is an IO register */
 		switch(adr)
 		{
-#if VIO2SF_GPU_ENABLE
-			case 0x0400035C:
-			{
-				((u16 *)(state->MMU->MMU_MEM[proc][0x40]))[0x35C>>1] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_FogOffset (state->gpu3D, val);
-				}
-				return;
-			}
-			case 0x04000340:
-			{
-				((u16 *)(state->MMU->MMU_MEM[proc][0x40]))[0x340>>1] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_AlphaFunc(state->gpu3D, val);
-				}
-				return;
-			}
-			case 0x04000060:
-			{
-				((u16 *)(state->MMU->MMU_MEM[proc][0x40]))[0x060>>1] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Control(state->gpu3D, val);
-				}
-				return;
-			}
-			case 0x04000354:
-			{
-				((u16 *)(state->MMU->MMU_MEM[proc][0x40]))[0x354>>1] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_ClearDepth(state->gpu3D, val);
-				}
-				return;
-			}
-#endif
-
-			case REG_DISPA_BLDCNT: 	 
-				if(proc == ARMCPU_ARM9) GPU_setBLDCNT(state->MainScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPB_BLDCNT: 	 
-				if(proc == ARMCPU_ARM9) GPU_setBLDCNT(state->SubScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPA_BLDALPHA: 	 
-				if(proc == ARMCPU_ARM9) GPU_setBLDALPHA(state->MainScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPB_BLDALPHA: 	 
-				if(proc == ARMCPU_ARM9) GPU_setBLDALPHA(state->SubScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPA_BLDY: 	 
-				if(proc == ARMCPU_ARM9) GPU_setBLDY_EVY(state->MainScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPB_BLDY: 	 
-				if(proc == ARMCPU_ARM9) GPU_setBLDY_EVY(state->SubScreen->gpu,val) ;
-				break;
-			case REG_DISPA_MASTERBRIGHT:
-				GPU_setMasterBrightness (state->MainScreen->gpu, val);
-				break;
-				/*
-			case REG_DISPA_MOSAIC: 	 
-				if(proc == ARMCPU_ARM9) GPU_setMOSAIC(state->MainScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPB_MOSAIC: 	 
-				if(proc == ARMCPU_ARM9) GPU_setMOSAIC(state->SubScreen->gpu,val) ;
-				break ;
-				*/
-
-			case REG_DISPA_WIN0H: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWIN0_H (state->MainScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPA_WIN1H: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWIN1_H(state->MainScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPB_WIN0H: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWIN0_H(state->SubScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPB_WIN1H: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWIN1_H(state->SubScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPA_WIN0V: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWIN0_V(state->MainScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPA_WIN1V: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWIN1_V(state->MainScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPB_WIN0V: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWIN0_V(state->SubScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPB_WIN1V: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWIN1_V(state->SubScreen->gpu,val) ;
-				break ; 	 
-			case REG_DISPA_WININ: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWININ(state->MainScreen->gpu, val) ;
-				break ; 	 
-			case REG_DISPA_WINOUT: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWINOUT16(state->MainScreen->gpu, val) ;
-				break ; 	 
-			case REG_DISPB_WININ: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWININ(state->SubScreen->gpu, val) ;
-				break ; 	 
-			case REG_DISPB_WINOUT: 	 
-				if(proc == ARMCPU_ARM9) GPU_setWINOUT16(state->SubScreen->gpu, val) ;
-				break ;
-
-			case REG_DISPB_MASTERBRIGHT:
-				GPU_setMasterBrightness (state->SubScreen->gpu, val);
-				break;
-			
-            case REG_POWCNT1 :
-				if(proc == ARMCPU_ARM9)
-				{
-					if(val & (1<<15))
-					{
-						LOG("Main core on top\n");
-						state->MainScreen->offset = 0;
-						state->SubScreen->offset = 192;
-						//nds->swapScreen();
-					}
-					else
-					{
-						LOG("Main core on bottom (%04X)\n", val);
-						state->MainScreen->offset = 192;
-						state->SubScreen->offset = 0;
-					}
-				}
+      case REG_POWCNT1 :
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x304, val);
 				return;
 
@@ -1467,43 +1127,27 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				/* NOTICE: Perhaps we have to use gbatek-like reg names instead of libnds-like ones ...*/
 				
                         case REG_DISPA_BG0CNT :
-				//GPULOG("MAIN BG0 SETPROP 16B %08X\r\n", val);
-				if(proc == ARMCPU_ARM9) GPU_setBGProp(state->MainScreen->gpu, 0, val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x8, val);
 				return;
                         case REG_DISPA_BG1CNT :
-				//GPULOG("MAIN BG1 SETPROP 16B %08X\r\n", val);
-				if(proc == ARMCPU_ARM9) GPU_setBGProp(state->MainScreen->gpu, 1, val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xA, val);
 				return;
                         case REG_DISPA_BG2CNT :
-				//GPULOG("MAIN BG2 SETPROP 16B %08X\r\n", val);
-				if(proc == ARMCPU_ARM9) GPU_setBGProp(state->MainScreen->gpu, 2, val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xC, val);
 				return;
                         case REG_DISPA_BG3CNT :
-				//GPULOG("MAIN BG3 SETPROP 16B %08X\r\n", val);
-				if(proc == ARMCPU_ARM9) GPU_setBGProp(state->MainScreen->gpu, 3, val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xE, val);
 				return;
                         case REG_DISPB_BG0CNT :
-				//GPULOG("SUB BG0 SETPROP 16B %08X\r\n", val);
-				if(proc == ARMCPU_ARM9) GPU_setBGProp(state->SubScreen->gpu, 0, val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x1008, val);
 				return;
                         case REG_DISPB_BG1CNT :
-				//GPULOG("SUB BG1 SETPROP 16B %08X\r\n", val);
-				if(proc == ARMCPU_ARM9) GPU_setBGProp(state->SubScreen->gpu, 1, val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x100A, val);
 				return;
                         case REG_DISPB_BG2CNT :
-				//GPULOG("SUB BG2 SETPROP 16B %08X\r\n", val);
-				if(proc == ARMCPU_ARM9) GPU_setBGProp(state->SubScreen->gpu, 2, val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x100C, val);
 				return;
                         case REG_DISPB_BG3CNT :
-				//GPULOG("SUB BG3 SETPROP 16B %08X\r\n", val);
-				if(proc == ARMCPU_ARM9) GPU_setBGProp(state->SubScreen->gpu, 3, val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x100E, val);
 				return;
                         case REG_IME : {
@@ -1639,7 +1283,6 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				{
 				//execute = FALSE;
 				u32 v = (T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0) & 0xFFFF) | ((u32) val << 16);
-				GPU_setVideoProp(state->MainScreen->gpu, v);
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0, v);
 				}
 				return;
@@ -1647,29 +1290,22 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				if(proc == ARMCPU_ARM9)
 				{
 				u32 v = (T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0) & 0xFFFF0000) | val;
-				GPU_setVideoProp(state->MainScreen->gpu, v);
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0, v);
 				}
 				return;
                         case REG_DISPA_DISPCAPCNT :
-				if(proc == ARMCPU_ARM9)
-				{
-					GPU_set_DISPCAPCNT(state->MainScreen->gpu,val);
-				}
 				return;
                         case REG_DISPB_DISPCNT+2 : 
 				if(proc == ARMCPU_ARM9)
 				{
 				//execute = FALSE;
 				u32 v = (T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x1000) & 0xFFFF) | ((u32) val << 16);
-				GPU_setVideoProp(state->SubScreen->gpu, v);
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x1000, v);
 				}
 				return;
                         case REG_DISPB_DISPCNT :
 				{
 				u32 v = (T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x1000) & 0xFFFF0000) | val;
-				GPU_setVideoProp(state->SubScreen->gpu, v);
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x1000, v);
 				}
 				return;
@@ -1814,456 +1450,20 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 		{
 			// Geometry commands (aka Dislay Lists) - Parameters:X
 			((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x400>>2] = val;
-#if VIO2SF_GPU_ENABLE
-			if(proc==ARMCPU_ARM9)
-			{
-				state->gpu3D->NDS_3D_CallList(state->gpu3D, val);
-			}
-#endif
 		}
 		else
 		switch(adr)
 		{
-#if VIO2SF_GPU_ENABLE
-			// Alpha test reference value - Parameters:1
-			case 0x04000340:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x340>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_AlphaFunc(state->gpu3D, val);
-				}
-				return;
-			}
-			// Clear background color setup - Parameters:2
-			case 0x04000350:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x350>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_ClearColor(state->gpu3D, val);
-				}
-				return;
-			}
-			// Clear background depth setup - Parameters:2
-			case 0x04000354:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x354>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_ClearDepth(state->gpu3D, val);
-				}
-				return;
-			}
-			// Fog Color - Parameters:4b
-			case 0x04000358:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x358>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_FogColor(state->gpu3D, val);
-				}
-				return;
-			}
-			case 0x0400035C:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x35C>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_FogOffset(state->gpu3D, val);
-				}
-				return;
-			}
-			// Matrix mode - Parameters:1
-			case 0x04000440:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x440>>2] = val;
-
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_MatrixMode(state->gpu3D, val);
-				}
-				return;
-			}
-			// Push matrix - Parameters:0
-			case 0x04000444:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x444>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_PushMatrix(state->gpu3D);
-				}
-				return;
-			}
-			// Pop matrix/es - Parameters:1
-			case 0x04000448:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x448>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_PopMatrix(state->gpu3D, val);
-				}
-				return;
-			}
-			// Store matrix in the stack - Parameters:1
-			case 0x0400044C:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x44C>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_StoreMatrix(state->gpu3D, val);
-				}
-				return;
-			}
-			// Restore matrix from the stack - Parameters:1
-			case 0x04000450:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x450>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_RestoreMatrix(state->gpu3D, val);
-				}
-				return;
-			}
-			// Load Identity matrix - Parameters:0
-			case 0x04000454:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x454>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_LoadIdentity(state->gpu3D);
-				}
-				return;
-			}
-			// Load 4x4 matrix - Parameters:16
-			case 0x04000458:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x458>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_LoadMatrix4x4(state->gpu3D, val);
-				}
-				return;
-			}
-			// Load 4x3 matrix - Parameters:12
-			case 0x0400045C:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x45C>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_LoadMatrix4x3(state->gpu3D, val);
-				}
-				return;
-			}
-			// Multiply 4x4 matrix - Parameters:16
-			case 0x04000460:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x460>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_MultMatrix4x4(state->gpu3D, val);
-				}
-				return;
-			}
-			// Multiply 4x4 matrix - Parameters:12
-			case 0x04000464:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x464>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_MultMatrix4x3(state->gpu3D, val);
-				}
-				return;
-			}
-			// Multiply 3x3 matrix - Parameters:9
-			case 0x04000468 :
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x468>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_MultMatrix3x3(state->gpu3D, val);
-				}
-				return;
-			}
-			// Multiply current matrix by scaling matrix - Parameters:3
-			case 0x0400046C:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x46C>>2] = val;
-				if(proc==ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Scale(state->gpu3D, val);
-				}
-				return;
-			}
-			// Multiply current matrix by translation matrix - Parameters:3
-			case 0x04000470:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x470>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Translate(state->gpu3D, val);
-				}
-				return;
-			}
-			// Set vertex color - Parameters:1
-			case 0x04000480:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x480>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Color3b(state->gpu3D, val);
-				}
-				return;
-			}
-			// Set vertex normal - Parameters:1
-			case 0x04000484:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x484>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Normal(state->gpu3D, val);
-				}
-				return;
-			}
-			// Set vertex texture coordinate - Parameters:1
-			case 0x04000488:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x488>>2] = val;
-				if(proc==ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_TexCoord(state->gpu3D, val);
-				}
-				return;
-			}
-			// Set vertex position 16b/coordinate - Parameters:2
-			case 0x0400048C:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x48C>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Vertex16b(state->gpu3D, val);
-				}
-				return;
-			}
-			// Set vertex position 10b/coordinate - Parameters:1
-			case 0x04000490:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x490>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Vertex10b(state->gpu3D, val);
-				}
-				return;
-			}
-			// Set vertex XY position - Parameters:1
-			case 0x04000494:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x494>>2] = val;
-				if(proc==ARMCPU_ARM9)
-				{
-                    state->gpu3D->NDS_3D_Vertex3_cord(state->gpu3D,0,1,val);
-				}
-				return;
-			}
-			// Set vertex XZ position - Parameters:1
-			case 0x04000498:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x498>>2] = val;
-				if(proc==ARMCPU_ARM9)
-				{
-                    state->gpu3D->NDS_3D_Vertex3_cord(state->gpu3D,0,2,val);
-				}
-				return;
-			}
-			// Set vertex YZ position - Parameters:1
-			case 0x0400049C:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x49C>>2] = val;
-				if(proc==ARMCPU_ARM9)
-				{
-                    state->gpu3D->NDS_3D_Vertex3_cord(state->gpu3D,1,2,val);
-				}
-				return;
-			}
-			// Set vertex difference position (offset from the last vertex) - Parameters:1
-			case 0x040004A0:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x4A0>>2] = val;
-				if(proc==ARMCPU_ARM9)
-				{
-                    state->gpu3D->NDS_3D_Vertex_rel (state->gpu3D,val);
-				}
-				return;
-			}
-			// Set polygon attributes - Parameters:1
-			case 0x040004A4:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x4A4>>2] = val;
-                if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_PolygonAttrib(state->gpu3D,val);
-				}
-				return;
-			}
-			// Set texture parameteres - Parameters:1
-			case 0x040004A8:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x4A8>>2] = val;
-				if(proc==ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_TexImage(state->gpu3D,val);
-				}
-				return;
-			}
-			// Set palette base address - Parameters:1
-			case 0x040004AC:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x4AC>>2] = val&0x1FFF;
-				if(proc==ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_TexPalette(state->gpu3D, val&0x1FFFF);
-				}
-				return;
-			}
-			// Set material diffuse/ambient parameters - Parameters:1
-			case 0x040004C0:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x4C0>>2] = val;
-                if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Material0 (state->gpu3D, val);
-				}
-				return;
-			}
-			// Set material reflection/emission parameters - Parameters:1
-			case 0x040004C4:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x4C4>>2] = val;
-                if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Material1 (state->gpu3D, val);
-				}
-				return;
-			}
-			// Light direction vector - Parameters:1
-			case 0x040004C8:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x4C8>>2] = val;
-                if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_LightDirection (state->gpu3D, val);
-				}
-				return;
-			}
-			// Light color - Parameters:1
-			case 0x040004CC:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x4CC>>2] = val;
-                if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_LightColor(state->gpu3D, val);
-				}
-				return;
-			}
-			// Material Shininess - Parameters:32
-			case 0x040004D0:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x4D0>>2] = val;
-                if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Shininess(state->gpu3D, val);
-				}
-				return;
-			}
-			// Begin vertex list - Parameters:1
-			case 0x04000500:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x500>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Begin(state->gpu3D, val);
-				}
-				return;
-			}
-			// End vertex list - Parameters:0
-			case 0x04000504:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x504>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_End(state->gpu3D);
-				}
-				return;
-			}
-			// Swap rendering engine buffers - Parameters:1
-			case 0x04000540:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x540>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_Flush(state->gpu3D, val);
-				}
-				return;
-			}
-			// Set viewport coordinates - Parameters:1
-			case 0x04000580:
-			{
-				((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x580>>2] = val;
-				if(proc == ARMCPU_ARM9)
-				{
-					state->gpu3D->NDS_3D_ViewPort(state->gpu3D, val);
-				}
-				return;
-			}
-#endif
-
 			case REG_DISPA_WININ: 	 
-			{
-	            if(proc == ARMCPU_ARM9) 	 
-	            { 	 
-	                    GPU_setWININ	(state->MainScreen->gpu, val & 0xFFFF) ;
-	                    GPU_setWINOUT16	(state->MainScreen->gpu, (val >> 16) & 0xFFFF) ;
-	            } 	 
-	            break;
-			}
 			case REG_DISPB_WININ:
-			{
-	            if(proc == ARMCPU_ARM9) 	 
-	            { 	 
-	                    GPU_setWININ	(state->SubScreen->gpu, val & 0xFFFF) ;
-	                    GPU_setWINOUT16	(state->SubScreen->gpu, (val >> 16) & 0xFFFF) ;
-	            } 	 
-	            break;
-			}
-
 			case REG_DISPA_BLDCNT:
-			{
-				if (proc == ARMCPU_ARM9) 	 
-				{ 	 
-					GPU_setBLDCNT   (state->MainScreen->gpu,val&0xffff);
-					GPU_setBLDALPHA (state->MainScreen->gpu,val>>16);
-				}
-				break;
-			}
 			case REG_DISPB_BLDCNT:
-			{
-				if (proc == ARMCPU_ARM9) 	 
-				{ 	 
-					GPU_setBLDCNT   (state->SubScreen->gpu,val&0xffff);
-					GPU_setBLDALPHA (state->SubScreen->gpu,val>>16);
-				}
 				break;
-			}
-                        case REG_DISPA_DISPCNT :
-								if(proc == ARMCPU_ARM9) GPU_setVideoProp(state->MainScreen->gpu, val);
-				
-				//GPULOG("MAIN INIT 32B %08X\r\n", val);
+      case REG_DISPA_DISPCNT :
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0, val);
 				return;
 				
-                        case REG_DISPB_DISPCNT : 
-				if (proc == ARMCPU_ARM9) GPU_setVideoProp(state->SubScreen->gpu, val);
-				//GPULOG("SUB INIT 32B %08X\r\n", val);
+      case REG_DISPB_DISPCNT : 
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x1000, val);
 				return;
 			case REG_VRAMCNTA:
@@ -2675,42 +1875,20 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 								case REG_DISPA_DISPCAPCNT :
 				if(proc == ARMCPU_ARM9)
 				{
-					GPU_set_DISPCAPCNT(state->MainScreen->gpu,val);
 					T1WriteLong(state->ARM9Mem->ARM9_REG, 0x64, val);
 				}
 				return;
 				
                         case REG_DISPA_BG0CNT :
-				if (proc == ARMCPU_ARM9)
-				{
-					GPU_setBGProp(state->MainScreen->gpu, 0, (val&0xFFFF));
-					GPU_setBGProp(state->MainScreen->gpu, 1, (val>>16));
-				}
-				//if((val>>16)==0x400) execute = FALSE;
 				T1WriteLong(state->ARM9Mem->ARM9_REG, 8, val);
 				return;
                         case REG_DISPA_BG2CNT :
-				if (proc == ARMCPU_ARM9)
-				{
-					GPU_setBGProp(state->MainScreen->gpu, 2, (val&0xFFFF));
-					GPU_setBGProp(state->MainScreen->gpu, 3, (val>>16));
-				}
 				T1WriteLong(state->ARM9Mem->ARM9_REG, 0xC, val);
 				return;
                         case REG_DISPB_BG0CNT :
-				if (proc == ARMCPU_ARM9)
-				{
-					GPU_setBGProp(state->SubScreen->gpu, 0, (val&0xFFFF));
-					GPU_setBGProp(state->SubScreen->gpu, 1, (val>>16));
-				}
 				T1WriteLong(state->ARM9Mem->ARM9_REG, 0x1008, val);
 				return;
                         case REG_DISPB_BG2CNT :
-				if (proc == ARMCPU_ARM9)
-				{
-					GPU_setBGProp(state->SubScreen->gpu, 2, (val&0xFFFF));
-					GPU_setBGProp(state->SubScreen->gpu, 3, (val>>16));
-				}
 				T1WriteLong(state->ARM9Mem->ARM9_REG, 0x100C, val);
 				return;
 			case REG_DISPA_DISPMMEMFIFO:

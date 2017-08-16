@@ -2,7 +2,6 @@
 #define DEBUG_H
 
 #define LOG(...)
-#define GPULOG(...)
 #define DIVLOG(...)
 #define SQRTLOG(...)
 #define CARDLOG(...)

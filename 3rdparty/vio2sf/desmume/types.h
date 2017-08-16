@@ -65,35 +65,6 @@ typedef u32 uint32;
 #define uint32 u32 //uint32 is defined in Leopard somewhere, avoid conflicts
 #endif
 
-/*---------- GPU3D fixed-points types -----------*/
-
-typedef s32 f32;
-#define inttof32(n)          ((n) << 12)
-#define f32toint(n)          ((n) >> 12)
-#define floattof32(n)        ((int32)((n) * (1 << 12)))
-#define f32tofloat(n)        (((float)(n)) / (float)(1<<12))
-
-typedef s16 t16;
-#define f32tot16(n)          ((t16)(n >> 8))
-#define inttot16(n)          ((n) << 4)
-#define t16toint(n)          ((n) >> 4)
-#define floattot16(n)        ((t16)((n) * (1 << 4)))
-#define t16ofloat(n)         (((float)(n)) / (float)(1<<4))
-
-typedef s16 v16;
-#define inttov16(n)          ((n) << 12)
-#define f32tov16(n)          (n)
-#define floattov16(n)        ((v16)((n) * (1 << 12)))
-#define v16toint(n)          ((n) >> 12)
-#define v16tofloat(n)        (((float)(n)) / (float)(1<<12))
-
-typedef s16 v10;
-#define inttov10(n)          ((n) << 9)
-#define f32tov10(n)          ((v10)(n >> 3))
-#define v10toint(n)          ((n) >> 9)
-#define floattov10(n)        ((v10)((n) * (1 << 9)))
-#define v10tofloat(n)        (((float)(n)) / (float)(1<<9))
-
 /*----------------------*/
 
 #ifndef OBJ_C
