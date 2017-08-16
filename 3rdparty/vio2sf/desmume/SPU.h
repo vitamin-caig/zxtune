@@ -99,24 +99,21 @@ struct channel_struct
    u32 length;
 
    union {
-     s8* buf8;
-     s16* buf16;
+     const s8* buf8;
+     const s16* buf16;
    };
    u32 samppos;
    float sampinc;
    u32 samploop;
    u32 samplimit;
-   // ADPCM specific
-   u32 lastsamppos;
-   s16 pcm16b;
-   s16 loop_pcm16b;
-   int index;
-   int loop_index;
    // PSG specific
+   u32 lastsamppos;
    u16 x;
    s16 psgnoise_last;
    void *resampler;
 } ;
+
+struct SamplesCache;
 
 struct SPU_struct
 {
@@ -128,6 +125,7 @@ struct SPU_struct
    u32 bufsize;
    NDS_state *state;
    channel_struct channels[16];
+   SamplesCache* cache;
 
    void reset();
    ~SPU_struct();

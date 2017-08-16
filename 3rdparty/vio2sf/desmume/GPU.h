@@ -388,21 +388,6 @@ typedef struct _reg_dispx {
     u32 dispA_DISPMMEMFIFO;           // 0x04000068
 } REG_DISPx ;
 
-
-
-
-
-
-
-
-#ifndef min
-#define min(a,b) (((a)<(b))?(a):(b))
-#endif
-
-#ifndef max
-#define max(a,b) (((a)>(b))?(a):(b))
-#endif
-
 typedef BOOL (*fun_gl_Begin) (int screen);
 typedef void (*fun_gl_End) (int screen);
 // the GUI should use this function prior to all gl calls

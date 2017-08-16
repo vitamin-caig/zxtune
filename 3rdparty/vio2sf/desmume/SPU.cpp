@@ -29,18 +29,7 @@
 
 #include "spu_exports.h"
 
-//#undef FORCEINLINE
-//#define FORCEINLINE
-
 #define _SPU_CPP_
-
-#define _USE_MATH_DEFINES
-#include <math.h>
-#ifndef M_PI
-#define M_PI 3.1415926535897932386
-#endif
-
-#define K_ADPCM_LOOPING_RECOVERY_INDEX 99999
 
 #include "debug.h"
 #include "MMU.h"
@@ -51,6 +40,10 @@
 #include "matrix.h"
 
 #include "state.h"
+
+#include <algorithm>
+#include <map>
+#include <vector>
 
 //===================CONFIGURATION========================
 bool isChannelMuted(NDS_state *state, int num) { return state->dwChannelMute&(1<<num) ? true : false; }
@@ -150,11 +143,6 @@ extern "C" int SPU_Init(NDS_state *state, int coreid, int buffersize)
 {
 	int i, j;
 
-	//__asm int 3;
-
-	//for(int i=0;i<256;i++)
-	//	cos_lut[i] = cos(i/256.0*M_PI);
-
 	state->SPU_core = new SPU_struct(state, 44100); //pick a really big number just to make sure the plugin doesnt request more
 	SPU_Reset(state);
 
@@ -180,6 +168,52 @@ extern "C" int SPU_Init(NDS_state *state, int coreid, int buffersize)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+struct SamplesCache
+{
+  std::map<u32, std::vector<s16>> Samples;
+  
+  void Lookup(channel_struct& chan)
+  {
+    auto& buf = Samples[chan.addr];
+    if (buf.size() < chan.samplimit)
+    {
+      buf.resize(chan.samplimit);
+      Decrunch(chan.buf8, buf);
+    }
+    chan.buf16 = buf.data();
+    if (chan.samploop < 8)
+    {
+      chan.samploop = 8;
+    }
+  }
+  
+private:
+  static void Decrunch(const s8* adpcm, std::vector<s16>& result)
+  {
+    s16 pcm16b = (s16)((adpcm[1] << 8) | adpcm[0]);
+    int index = adpcm[2] & 0x7F;
+    auto it = std::fill_n(result.begin(), 8, 0);
+    const auto lim = result.end();
+    adpcm += 4;
+    while (it < lim)
+    {
+      auto data = (u32)(*adpcm);
+      ++adpcm;
+      
+      const auto diff_lo = precalcdifftbl[index][data & 0xF];
+      index = precalcindextbl[index][data & 0x7];
+      *it = pcm16b = (s16)(MinMax(pcm16b + diff_lo, -0x8000, 0x7FFF));
+      ++it;
+
+      data >>= 4;
+      const auto diff_hi = precalcdifftbl[index][data & 0xF];
+      index = precalcindextbl[index][data & 0x7];
+      *it = pcm16b = (s16)(MinMax(pcm16b + diff_hi, -0x8000, 0x7FFF));
+      ++it;
+    }
+  }
+};
+
 
 void SPU_struct::reset()
 {
@@ -200,15 +234,18 @@ SPU_struct::SPU_struct(struct NDS_state *pstate, int buffersize)
 	, buflength(0)
 	, sndbuf(0)
 	, outbuf(0)
+  , cache(0)
 	, bufsize(buffersize)
 {
 	sndbuf = new s32[buffersize*2];
 	outbuf = new s16[buffersize*2];
+  cache = new SamplesCache();
 	reset();
 }
 
 SPU_struct::~SPU_struct()
 {
+  delete cache;
 	if(sndbuf) delete[] sndbuf;
 	if(outbuf) delete[] outbuf;
 }
@@ -253,24 +290,20 @@ void SPU_struct::KeyOn(int channel)
 	adjust_channel_timer(&thischan);
   adjust_channel_sample(&thischan);
 
-	//   LOG("Channel %d key on: vol = %d, datashift = %d, hold = %d, pan = %d, waveduty = %d, repeat = %d, format = %d, source address = %07X, timer = %04X, loop start = %04X, length = %06X, cpu->state->MMUARM7_REG[0x501] = %02X\n", channel, chan->vol, chan->datashift, chan->hold, chan->pan, chan->waveduty, chan->repeat, chan->format, chan->addr, chan->timer, chan->loopstart, chan->length, T1ReadByte(MMU->ARM7_REG, 0x501));
 	switch(thischan.format)
 	{
 	case 0: // 8-bit
-		thischan.buf8 = (s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
+		thischan.buf8 = (const s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
 		thischan.samppos = 0;
 		break;
 	case 1: // 16-bit
-		thischan.buf16 = (s16 *)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
+		thischan.buf16 = (const s16 *)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
 		thischan.samppos = 0;
 		break;
 	case 2: // ADPCM
- 		thischan.buf8 = (s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
- 		thischan.pcm16b = (s16)((thischan.buf8[1] << 8) | thischan.buf8[0]);
- 		thischan.index = thischan.buf8[2] & 0x7F;
- 		thischan.lastsamppos = 7;
+ 		thischan.buf8 = (const s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
  		thischan.samppos = 8;
- 		thischan.loop_index = K_ADPCM_LOOPING_RECOVERY_INDEX;
+    cache->Lookup(thischan);
  		break;
 	case 3: // PSG
     /*
@@ -451,27 +484,6 @@ static FORCEINLINE s32 Fetch16BitDataInternal(channel_struct * const chan)
 	return (s32)chan->buf16[chan->samppos];
 }
 
-static FORCEINLINE s32 FetchADPCMDataInternal(channel_struct * const chan)
-{
-  while (chan->lastsamppos < chan->samppos) {
-    ++chan->lastsamppos;
-   	const u32 shift = (chan->lastsamppos&1)<<2;
-   	const u32 data4bit = (((u32)chan->buf8[chan->lastsamppos >> 1]) >> shift);
-
-   	const s32 diff = precalcdifftbl[chan->index][data4bit & 0xF];
-   	chan->index = precalcindextbl[chan->index][data4bit & 0x7];
-
- 		chan->pcm16b = (s16)(MinMax(chan->pcm16b+diff, -0x8000, 0x7FFF));
-
- 		if(chan->lastsamppos == chan->samploop) {
- 			chan->loop_pcm16b = chan->pcm16b;
- 			chan->loop_index = chan->index;
- 		}
-  }
-
-	return (s32)chan->pcm16b;
-}
-
 static FORCEINLINE s32 FetchPSGDataInternal(channel_struct *chan)
 {
 	if(chan->num < 8)
@@ -555,36 +567,6 @@ static FORCEINLINE bool FinishedSample(channel_struct *chan)
   return false;
 }
 
-static FORCEINLINE bool FinishedADPCMSample(channel_struct *chan)
-{
-	if (chan->samppos >= chan->samplimit)
-	{
-		// Do we loop? Or are we done?
-		if (chan->repeat == 1)
-		{
-		  chan->samppos -= chan->samplimit - chan->samploop;
-
-			if(chan->loop_index == K_ADPCM_LOOPING_RECOVERY_INDEX)
-			{
-				chan->pcm16b = (s16)((chan->buf8[1] << 8) | chan->buf8[0]);
-				chan->index = chan->buf8[2] & 0x7F;
-				chan->lastsamppos = 7;
-			}
-			else
-			{
-				chan->pcm16b = chan->loop_pcm16b;
-				chan->index = chan->loop_index;
-				chan->lastsamppos = (chan->loopstart << 3);
-			}
-		}
-		else
-		{
-      return true;
-		}
-	}
-  return false;
-}
-
 static FORCEINLINE bool FinishedPSGSample(channel_struct */*chan*/)
 {
   return false;
@@ -644,8 +626,8 @@ static void __SPU_ChanUpdate(SPU_struct* const SPU, channel_struct* const chan)
 	switch(chan->format)
 	{
 		case 0: RenderSample<Fetch8BitDataInternal, FinishedSample, Mix>(SPU, chan); break;
-		case 1: RenderSample<Fetch16BitDataInternal, FinishedSample, Mix>(SPU, chan); break;
-		case 2: RenderSample<FetchADPCMDataInternal, FinishedADPCMSample, Mix>(SPU, chan); break;
+		case 1: 
+		case 2: RenderSample<Fetch16BitDataInternal, FinishedSample, Mix>(SPU, chan); break;
 		case 3: RenderSample<FetchPSGDataInternal, FinishedPSGSample, Mix>(SPU, chan); break;
 	}
 }
