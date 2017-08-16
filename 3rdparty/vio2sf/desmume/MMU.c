@@ -291,6 +291,129 @@ u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
     /* Returns data from memory */
 	return T1ReadWord(state->MMU->MMU_MEM[proc][(adr >> 20) & 0xFF], adr & state->MMU->MMU_MASK[proc][(adr >> 20) & 0xFF]);
 }
+
+static u32 FASTCALL MMU_read32_io(NDS_state *state, u32 proc, u32 adr)
+{
+	switch(adr & 0xffffff)
+	{
+		// This is hacked due to the only current 3D core
+		case 0x04000600 & 0xffffff:
+          {
+              u32 fifonum = IPCFIFO+proc;
+
+			u32 gxstat =	(state->MMU->fifos[fifonum].empty<<26) |
+							(1<<25) | 
+							(state->MMU->fifos[fifonum].full<<24) |
+							/*((NDS_nbpush[0]&1)<<13) | ((NDS_nbpush[2]&0x1F)<<8) |*/ 
+							2;
+
+			LOG ("GXSTAT: 0x%X", gxstat);
+
+			return	gxstat;
+          }
+
+		case 0x04000640 & 0xffffff:
+		case 0x04000644 & 0xffffff:
+		case 0x04000648 & 0xffffff:
+		case 0x0400064C & 0xffffff:
+		case 0x04000650 & 0xffffff:
+		case 0x04000654 & 0xffffff:
+		case 0x04000658 & 0xffffff:
+		case 0x0400065C & 0xffffff:
+		case 0x04000660 & 0xffffff:
+		case 0x04000664 & 0xffffff:
+		case 0x04000668 & 0xffffff:
+		case 0x0400066C & 0xffffff:
+		case 0x04000670 & 0xffffff:
+		case 0x04000674 & 0xffffff:
+		case 0x04000678 & 0xffffff:
+		case 0x0400067C & 0xffffff:
+		case 0x04000680 & 0xffffff:
+		case 0x04000684 & 0xffffff:
+		case 0x04000688 & 0xffffff:
+		case 0x0400068C & 0xffffff:
+		case 0x04000690 & 0xffffff:
+		case 0x04000694 & 0xffffff:
+		case 0x04000698 & 0xffffff:
+		case 0x0400069C & 0xffffff:
+		case 0x040006A0 & 0xffffff:
+		case 0x04000604 & 0xffffff:
+		{
+			return 0;
+		}
+		
+		case REG_IME & 0xffffff :
+			return state->MMU->reg_IME[proc];
+		case REG_IE & 0xffffff :
+			return state->MMU->reg_IE[proc];
+		case REG_IF & 0xffffff :
+			return state->MMU->reg_IF[proc];
+		case REG_IPCFIFORECV & 0xffffff :
+		{
+			u16 IPCFIFO_CNT = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x184);
+			if(IPCFIFO_CNT&0x8000)
+			{
+			//execute = FALSE;
+			u32 fifonum = IPCFIFO+proc;
+			u32 val = FIFOValue(state->MMU->fifos + fifonum);
+			u32 remote = (proc+1) & 1;
+			u16 IPCFIFO_CNT_remote = T1ReadWord(state->MMU->MMU_MEM[remote][0x40], 0x184);
+			IPCFIFO_CNT |= (state->MMU->fifos[fifonum].empty<<8) | (state->MMU->fifos[fifonum].full<<9) | (state->MMU->fifos[fifonum].error<<14);
+			IPCFIFO_CNT_remote |= (state->MMU->fifos[fifonum].empty) | (state->MMU->fifos[fifonum].full<<1);
+			T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184, IPCFIFO_CNT);
+			T1WriteWord(state->MMU->MMU_MEM[remote][0x40], 0x184, IPCFIFO_CNT_remote);
+			if ((state->MMU->fifos[fifonum].empty) && (IPCFIFO_CNT & BIT(2)))
+				NDS_makeInt(state, remote,17) ; /* remote: SEND FIFO EMPTY */
+			return val;
+			}
+		}
+		return 0;
+                      case REG_TM0CNTL & 0xffffff :
+                      case REG_TM1CNTL & 0xffffff :
+                      case REG_TM2CNTL & 0xffffff :
+                      case REG_TM3CNTL & 0xffffff :
+		{
+			u32 val = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], (adr + 2) & 0xFFF);
+			return state->MMU->timer[proc][(adr&0xF)>>2] | (val<<16);
+		}	
+                      case REG_GCDATAIN & 0xffffff:
+		{
+                              u32 val;
+
+                              if(!state->MMU->dscard[proc].adress) return 0;
+
+                              val = T1ReadLong(state->MMU->CART_ROM, state->MMU->dscard[proc].adress);
+
+			state->MMU->dscard[proc].adress += 4;	/* increment adress */
+			
+			state->MMU->dscard[proc].transfer_count--;	/* update transfer counter */
+			if(state->MMU->dscard[proc].transfer_count) /* if transfer is not ended */
+			{
+				return val;	/* return data */
+			}
+			else	/* transfer is done */
+                              {                                                       
+                                      T1WriteLong(state->MMU->MMU_MEM[proc][(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, T1ReadLong(state->MMU->MMU_MEM[proc][(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff) & ~(0x00800000 | 0x80000000));
+				/* = 0x7f7fffff */
+				
+				/* if needed, throw irq for the end of transfer */
+                                      if(T1ReadWord(state->MMU->MMU_MEM[proc][(REG_AUXSPICNT >> 20) & 0xff], REG_AUXSPICNT & 0xfff) & 0x4000)
+				{
+                                              if(proc == ARMCPU_ARM7) NDS_makeARM7Int(state, 19);
+                                              else NDS_makeARM9Int(state, 19);
+				}
+				
+				return val;
+			}
+		}
+
+		default :
+			break;
+	}
+	
+	/* Returns data from memory */
+	return T1ReadLong(state->MMU->MMU_MEM[proc][(adr >> 20) & 0xFF], adr & state->MMU->MMU_MASK[proc][(adr >> 20) & 0xFF]);
+}
 	 
 u32 FASTCALL MMU_read32(NDS_state *state, u32 proc, u32 adr)
 {
@@ -311,144 +434,12 @@ u32 FASTCALL MMU_read32(NDS_state *state, u32 proc, u32 adr)
 	if((adr >> 24) == 4)
 	{
 		/* Adress is an IO register */
-		switch(adr)
-		{
-			// This is hacked due to the only current 3D core
-			case 0x04000600:
-            {
-                u32 fifonum = IPCFIFO+proc;
-
-				u32 gxstat =	(state->MMU->fifos[fifonum].empty<<26) |
-								(1<<25) | 
-								(state->MMU->fifos[fifonum].full<<24) |
-								/*((NDS_nbpush[0]&1)<<13) | ((NDS_nbpush[2]&0x1F)<<8) |*/ 
-								2;
-
-				LOG ("GXSTAT: 0x%X", gxstat);
-
-				return	gxstat;
-            }
-
-			case 0x04000640:
-			case 0x04000644:
-			case 0x04000648:
-			case 0x0400064C:
-			case 0x04000650:
-			case 0x04000654:
-			case 0x04000658:
-			case 0x0400065C:
-			case 0x04000660:
-			case 0x04000664:
-			case 0x04000668:
-			case 0x0400066C:
-			case 0x04000670:
-			case 0x04000674:
-			case 0x04000678:
-			case 0x0400067C:
-			{
-				return 0;
-			}
-			case 0x04000680:
-			case 0x04000684:
-			case 0x04000688:
-			case 0x0400068C:
-			case 0x04000690:
-			case 0x04000694:
-			case 0x04000698:
-			case 0x0400069C:
-			case 0x040006A0:
-			{
-				return 0;
-			}
-
-			case 0x4000604:
-			{
-				return 0;
-			}
-			
-			case REG_IME :
-				return state->MMU->reg_IME[proc];
-			case REG_IE :
-				return state->MMU->reg_IE[proc];
-			case REG_IF :
-				return state->MMU->reg_IF[proc];
-			case REG_IPCFIFORECV :
-			{
-				u16 IPCFIFO_CNT = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x184);
-				if(IPCFIFO_CNT&0x8000)
-				{
-				//execute = FALSE;
-				u32 fifonum = IPCFIFO+proc;
-				u32 val = FIFOValue(state->MMU->fifos + fifonum);
-				u32 remote = (proc+1) & 1;
-				u16 IPCFIFO_CNT_remote = T1ReadWord(state->MMU->MMU_MEM[remote][0x40], 0x184);
-				IPCFIFO_CNT |= (state->MMU->fifos[fifonum].empty<<8) | (state->MMU->fifos[fifonum].full<<9) | (state->MMU->fifos[fifonum].error<<14);
-				IPCFIFO_CNT_remote |= (state->MMU->fifos[fifonum].empty) | (state->MMU->fifos[fifonum].full<<1);
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184, IPCFIFO_CNT);
-				T1WriteWord(state->MMU->MMU_MEM[remote][0x40], 0x184, IPCFIFO_CNT_remote);
-				if ((state->MMU->fifos[fifonum].empty) && (IPCFIFO_CNT & BIT(2)))
-					NDS_makeInt(state, remote,17) ; /* remote: SEND FIFO EMPTY */
-				return val;
-				}
-			}
-			return 0;
-                        case REG_TM0CNTL :
-                        case REG_TM1CNTL :
-                        case REG_TM2CNTL :
-                        case REG_TM3CNTL :
-			{
-				u32 val = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], (adr + 2) & 0xFFF);
-				return state->MMU->timer[proc][(adr&0xF)>>2] | (val<<16);
-			}	
-			/*
-			case 0x04000640 :	// TODO (clear): again, ??? 
-				LOG("read proj\r\n");
-			return 0;
-			case 0x04000680 :
-				LOG("read roat\r\n");
-			return 0;
-			case 0x04000620 :
-				LOG("point res\r\n");
-			return 0;
-			*/
-                        case REG_GCDATAIN:
-			{
-                                u32 val;
-
-                                if(!state->MMU->dscard[proc].adress) return 0;
-
-                                val = T1ReadLong(state->MMU->CART_ROM, state->MMU->dscard[proc].adress);
-
-				state->MMU->dscard[proc].adress += 4;	/* increment adress */
-				
-				state->MMU->dscard[proc].transfer_count--;	/* update transfer counter */
-				if(state->MMU->dscard[proc].transfer_count) /* if transfer is not ended */
-				{
-					return val;	/* return data */
-				}
-				else	/* transfer is done */
-                                {                                                       
-                                        T1WriteLong(state->MMU->MMU_MEM[proc][(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, T1ReadLong(state->MMU->MMU_MEM[proc][(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff) & ~(0x00800000 | 0x80000000));
-					/* = 0x7f7fffff */
-					
-					/* if needed, throw irq for the end of transfer */
-                                        if(T1ReadWord(state->MMU->MMU_MEM[proc][(REG_AUXSPICNT >> 20) & 0xff], REG_AUXSPICNT & 0xfff) & 0x4000)
-					{
-                                                if(proc == ARMCPU_ARM7) NDS_makeARM7Int(state, 19);
-                                                else NDS_makeARM9Int(state, 19);
-					}
-					
-					return val;
-				}
-			}
-
-			default :
-				break;
-		}
-	}
-	
-	/* Returns data from memory */
-	return T1ReadLong(state->MMU->MMU_MEM[proc][(adr >> 20) & 0xFF], adr & state->MMU->MMU_MASK[proc][(adr >> 20) & 0xFF]);
+    return MMU_read32_io(state, proc, adr);
+  }
+  else
+  {
+    return T1ReadLong(state->MMU->MMU_MEM[proc][(adr >> 20) & 0xFF], adr & state->MMU->MMU_MASK[proc][(adr >> 20) & 0xFF]);
+  }
 }
 	
 void FASTCALL MMU_write8(NDS_state *state, u32 proc, u32 adr, u8 val)
