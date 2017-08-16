@@ -267,7 +267,6 @@ void SPU_struct::KeyOn(int channel)
 	case 2: // ADPCM
  		thischan.buf8 = (s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
  		thischan.pcm16b = (s16)((thischan.buf8[1] << 8) | thischan.buf8[0]);
- 		thischan.pcm16b_last = thischan.pcm16b;
  		thischan.index = thischan.buf8[2] & 0x7F;
  		thischan.lastsamppos = 7;
  		thischan.samppos = 8;
@@ -462,7 +461,6 @@ static FORCEINLINE s32 FetchADPCMDataInternal(channel_struct * const chan)
    	const s32 diff = precalcdifftbl[chan->index][data4bit & 0xF];
    	chan->index = precalcindextbl[chan->index][data4bit & 0x7];
 
-   	chan->pcm16b_last = chan->pcm16b;
  		chan->pcm16b = (s16)(MinMax(chan->pcm16b+diff, -0x8000, 0x7FFF));
 
  		if(chan->lastsamppos == chan->samploop) {
@@ -542,7 +540,7 @@ static FORCEINLINE void StopChannel(SPU_struct *SPU, channel_struct *chan)
 
 static FORCEINLINE bool FinishedSample(channel_struct *chan)
 {
-	if (chan->samppos > chan->samplimit)
+	if (chan->samppos >= chan->samplimit)
 	{
 		// Do we loop? Or are we done?
 		if (chan->repeat == 1)
@@ -559,7 +557,7 @@ static FORCEINLINE bool FinishedSample(channel_struct *chan)
 
 static FORCEINLINE bool FinishedADPCMSample(channel_struct *chan)
 {
-	if (chan->samppos > chan->samplimit)
+	if (chan->samppos >= chan->samplimit)
 	{
 		// Do we loop? Or are we done?
 		if (chan->repeat == 1)

@@ -108,7 +108,7 @@ struct channel_struct
    u32 samplimit;
    // ADPCM specific
    u32 lastsamppos;
-   s16 pcm16b, pcm16b_last;
+   s16 pcm16b;
    s16 loop_pcm16b;
    int index;
    int loop_index;
