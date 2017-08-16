@@ -45,6 +45,11 @@ extern "C" {
 #define IPCFIFO  0
 #define MAIN_MEMORY_DISP_FIFO 2
  
+extern const u32 MMU_ARM9_WAIT16[16];
+extern const u32 MMU_ARM9_WAIT32[16];
+extern const u32 MMU_ARM7_WAIT16[16];
+extern const u32 MMU_ARM7_WAIT32[16];
+
 typedef struct MMU_struct {
         //ARM7 mem
         u8* ARM7_MEM;
@@ -69,9 +74,6 @@ typedef struct MMU_struct {
         u8 ARM9_RW_MODE;
         
         FIFO* fifos;//16
-
-        const u32 * MMU_WAIT16[2];
-        const u32 * MMU_WAIT32[2];
 
         u32 DTCMRegion;
         u32 ITCMRegion;

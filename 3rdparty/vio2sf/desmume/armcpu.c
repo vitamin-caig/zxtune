@@ -96,11 +96,19 @@ int armcpu_new( NDS_state *state, armcpu_t *armcpu, u32 id)
     
 	armcpu->proc_ID = id;
 
-	if(id==0) 
+	if(id==0)
+  {
 		armcpu->swi_tab = ARM9_swi_tab;
+    armcpu->WAIT16 = MMU_ARM9_WAIT16;
+    armcpu->WAIT32 = MMU_ARM9_WAIT32;
+  }
 	else 
+  {
 		armcpu->swi_tab = ARM7_swi_tab;
-
+    armcpu->WAIT16 = MMU_ARM7_WAIT16;
+    armcpu->WAIT32 = MMU_ARM7_WAIT32;
+  }
+    
 	armcpu_init(armcpu, 0);
 
 	return 0;
@@ -263,7 +271,7 @@ armcpu_prefetch(armcpu_t *armcpu)
 		armcpu->next_instruction += 4;
 		armcpu->R[15] = armcpu->next_instruction + 4;
           
-    return armcpu->state->MMU->MMU_WAIT32[armcpu->proc_ID][(armcpu->instruct_adr>>24)&0xF];
+    return armcpu->WAIT32[(armcpu->instruct_adr>>24)&0xF];
 	}
 
 	armcpu->instruction = MMU_read16_acl(armcpu->state, armcpu->proc_ID, armcpu->next_instruction,CP15_ACCESS_EXECUTE);
@@ -272,7 +280,7 @@ armcpu_prefetch(armcpu_t *armcpu)
 	armcpu->next_instruction += 2;
 	armcpu->R[15] = armcpu->next_instruction + 2;
 
-	return armcpu->state->MMU->MMU_WAIT16[armcpu->proc_ID][(armcpu->instruct_adr>>24)&0xF];
+	return armcpu->WAIT16[(armcpu->instruct_adr>>24)&0xF];
 }
  
 BOOL armcpu_irqExeption(armcpu_t *armcpu)

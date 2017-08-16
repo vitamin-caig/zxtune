@@ -157,6 +157,8 @@ typedef struct armcpu_t
         u32 (* *swi_tab)(struct armcpu_t * cpu);
     
     NDS_state *state;
+    const u32* WAIT16;
+    const u32* WAIT32;
 } armcpu_t;
 
 int armcpu_new( NDS_state *, armcpu_t *armcpu, u32 id);

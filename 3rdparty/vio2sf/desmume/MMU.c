@@ -105,11 +105,6 @@ void MMU_Init(NDS_state *state) {
 
 	state->MMU->ITCMRegion = 0x00800000;
 
-	state->MMU->MMU_WAIT16[0] = MMU_ARM9_WAIT16;
-	state->MMU->MMU_WAIT16[1] = MMU_ARM7_WAIT16;
-	state->MMU->MMU_WAIT32[0] = MMU_ARM9_WAIT32;
-	state->MMU->MMU_WAIT32[1] = MMU_ARM7_WAIT32;
-
   state->MMU->fifos = calloc(16, sizeof(FIFO));
 	for(i = 0;i < 16;i++)
 		FIFOInit(state->MMU->fifos + i);
