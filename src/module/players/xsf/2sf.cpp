@@ -124,19 +124,7 @@ namespace TwoSF
     
     void Skip(uint_t samples)
     {
-      const auto prevInterpolation = State.dwInterpolation;
-      State.dwInterpolation = 0;
-      {
-        const auto BUFFER_SIZE = 1024;
-        s16 dummy[BUFFER_SIZE * Sound::Sample::CHANNELS];
-        while (samples)
-        {
-          const auto toRender = std::min<uint_t>(samples, BUFFER_SIZE);
-          ::state_render(&State, dummy, toRender);
-          samples -= toRender;
-        }
-      }
-      State.dwInterpolation = prevInterpolation;
+      ::state_render(&State, nullptr, samples);
     }
 
     std::vector<ChannelState> GetState() const override
