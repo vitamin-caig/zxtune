@@ -685,10 +685,49 @@ static void SPU_MixAudio(NDS_state *state, SPU_struct *SPU, int length)
   }
 }
 
+static void _SPU_ChanSkip(SPU_struct* const SPU, channel_struct* const chan, int numsamples)
+{
+  chan->samppos += numsamples;
+  if (chan->format != 3 && chan->samppos >= chan->samplimit)
+  {
+    if (chan->repeat == 1)
+    {
+      chan->samppos = chan->samploop + (chan->samppos - chan->samplimit) % (chan->samplimit - chan->samploop);
+    }
+    else
+    {
+      StopChannel(SPU, chan);
+      chan->samppos = chan->samplimit;
+    }
+  }
+}
+
+static void SPU_SkipAudio(NDS_state *state, SPU_struct *SPU, int length)
+{
+  for(int i=0;i<16;i++)
+	{
+		channel_struct *chan = &SPU->channels[i];
+	
+		if (isChannelMuted(state, i) || 
+        !chan->resampler || 
+        chan->status == CHANSTAT_STOPPED)
+    {
+			continue;
+    }
+
+		_SPU_ChanSkip(SPU, chan, chan->sampinc * length);
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 extern "C" void SPU_EmulateSamples(NDS_state *state, int numsamples)
 {
 	SPU_MixAudio(state, state->SPU_core,numsamples);
 	state->SNDCore->UpdateAudio(state, state->SPU_core->outbuf, numsamples);
+}
+
+extern "C" void SPU_SkipSamples(NDS_state *state, int numsamples)
+{
+  SPU_SkipAudio(state, state->SPU_core, numsamples);
 }

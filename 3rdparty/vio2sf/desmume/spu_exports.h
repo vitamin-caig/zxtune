@@ -20,6 +20,7 @@ void SPU_WriteLong(NDS_state *, u32 addr, u32 val);
 void SPU_WriteByte(NDS_state *, u32 addr, u8 val);
 void SPU_WriteWord(NDS_state *, u32 addr, u16 val);
 void SPU_EmulateSamples(NDS_state *, int numsamples);
+void SPU_SkipSamples(NDS_state *, int numsamples);
 int SPU_ChangeSoundCore(NDS_state *, SoundInterface_struct *);
 void SPU_Reset(NDS_state *);
 int SPU_Init(NDS_state *, int, int);

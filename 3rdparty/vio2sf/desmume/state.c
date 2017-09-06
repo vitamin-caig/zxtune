@@ -390,6 +390,52 @@ void state_loadstate(struct NDS_state *state, const u8 *ss, u32 ss_size)
     state->execute = TRUE;
 }
 
+static unsigned state_exec_frame(struct NDS_state *state)
+{
+#define HBASE_CYCLES (33509300.322234)
+#define HLINE_CYCLES (6 * (99 + 256))
+#define HSAMPLES ((u32)((44100.0 * HLINE_CYCLES) / HBASE_CYCLES))
+#define VDIVISION 100
+#define VLINES 263
+#define VBASE_CYCLES (((double)HBASE_CYCLES) / VDIVISION)
+#define VSAMPLES ((u32)((44100.0 * HLINE_CYCLES * VLINES) / HBASE_CYCLES))
+            
+ 	unsigned numsamples;
+ 	if (state->sync_type == 1)
+ 	{
+ 		/* vsync */
+ 		state->cycles += ((44100 / VDIVISION) * HLINE_CYCLES * VLINES);
+ 		if (state->cycles >= (u32)(VBASE_CYCLES * (VSAMPLES + 1)))
+ 		{
+ 			numsamples = (VSAMPLES + 1);
+ 			state->cycles -= (u32)(VBASE_CYCLES * (VSAMPLES + 1));
+ 		}
+ 		else
+ 		{
+ 			numsamples = (VSAMPLES + 0);
+ 			state->cycles -= (u32)(VBASE_CYCLES * (VSAMPLES + 0));
+ 		}
+ 		NDS_exec_frame(state, state->arm9_clockdown_level, state->arm7_clockdown_level);
+ 	}
+ 	else
+ 	{
+ 		/* hsync */
+ 		state->cycles += (44100 * HLINE_CYCLES);
+ 		if (state->cycles >= (u32)(HBASE_CYCLES * (HSAMPLES + 1)))
+ 		{
+ 			numsamples = (HSAMPLES + 1);
+ 			state->cycles -= (u32)(HBASE_CYCLES * (HSAMPLES + 1));
+ 		}
+ 		else
+ 		{
+ 			numsamples = (HSAMPLES + 0);
+ 			state->cycles -= (u32)(HBASE_CYCLES * (HSAMPLES + 0));
+ 		}
+ 		NDS_exec_hframe(state, state->arm9_clockdown_level, state->arm7_clockdown_level);
+ 	}
+  return numsamples;
+}
+
 void state_render(struct NDS_state *state, s16 * buffer, unsigned int sample_count)
 {
     s16 * ptr = buffer;
@@ -399,75 +445,45 @@ void state_render(struct NDS_state *state, s16 * buffer, unsigned int sample_cou
 		unsigned long remain_samples = state->sample_pointer;
 		if (remain_samples > 0)
 		{
-			if (remain_samples > sample_count)
+			if (remain_samples >= sample_count)
 			{
-				memcpy(ptr, state->sample_buffer, sample_count * sizeof(s16) * 2);
-                memmove(state->sample_buffer, state->sample_buffer + sample_count * 2, ( remain_samples - sample_count ) * sizeof(s16) * 2 );
+        if (ptr)
+        {
+				  memcpy(ptr, state->sample_buffer, sample_count * sizeof(s16) * 2);
+  			  ptr += sample_count * 2;
+        }
+        memmove(state->sample_buffer, state->sample_buffer + sample_count * 2, ( remain_samples - sample_count ) * sizeof(s16) * 2 );
 				state->sample_pointer -= sample_count;
-				ptr += sample_count * 2;
 				remain_samples -= sample_count; /**/
 				sample_count = 0;  /**/
 				break;
 			}
 			else
 			{
-				memcpy(ptr, state->sample_buffer, remain_samples * sizeof(s16) * 2);
+        if (ptr)
+        {
+				  memcpy(ptr, state->sample_buffer, remain_samples * sizeof(s16) * 2);
+  			  ptr += remain_samples * 2;
+        }
 				state->sample_pointer = 0;
-				ptr += remain_samples * 2;
 				sample_count -= remain_samples;
 				remain_samples = 0;
 			}
 		}
 		while (remain_samples == 0 && state->sample_pointer < 1024)
 		{
-            
-            /*
-             #define HBASE_CYCLES (16756000*2)
-             #define HBASE_CYCLES (33512000*1)
-             #define HBASE_CYCLES (33509300.322234)
-             */
-#define HBASE_CYCLES (33509300.322234)
-#define HLINE_CYCLES (6 * (99 + 256))
-#define HSAMPLES ((u32)((44100.0 * HLINE_CYCLES) / HBASE_CYCLES))
-#define VDIVISION 100
-#define VLINES 263
-#define VBASE_CYCLES (((double)HBASE_CYCLES) / VDIVISION)
-#define VSAMPLES ((u32)((44100.0 * HLINE_CYCLES * VLINES) / HBASE_CYCLES))
-            
-			int numsamples;
-			if (state->sync_type == 1)
-			{
-				/* vsync */
-				state->cycles += ((44100 / VDIVISION) * HLINE_CYCLES * VLINES);
-				if (state->cycles >= (u32)(VBASE_CYCLES * (VSAMPLES + 1)))
-				{
-					numsamples = (VSAMPLES + 1);
-					state->cycles -= (u32)(VBASE_CYCLES * (VSAMPLES + 1));
-				}
-				else
-				{
-					numsamples = (VSAMPLES + 0);
-					state->cycles -= (u32)(VBASE_CYCLES * (VSAMPLES + 0));
-				}
-				NDS_exec_frame(state, state->arm9_clockdown_level, state->arm7_clockdown_level);
-			}
-			else
-			{
-				/* hsync */
-				state->cycles += (44100 * HLINE_CYCLES);
-				if (state->cycles >= (u32)(HBASE_CYCLES * (HSAMPLES + 1)))
-				{
-					numsamples = (HSAMPLES + 1);
-					state->cycles -= (u32)(HBASE_CYCLES * (HSAMPLES + 1));
-				}
-				else
-				{
-					numsamples = (HSAMPLES + 0);
-					state->cycles -= (u32)(HBASE_CYCLES * (HSAMPLES + 0));
-				}
-				NDS_exec_hframe(state, state->arm9_clockdown_level, state->arm7_clockdown_level);
-			}
-			SPU_EmulateSamples(state, numsamples);
+      unsigned numsamples = state_exec_frame(state);
+      if (!ptr)
+      {
+        const unsigned to_skip = numsamples <= sample_count ? numsamples : sample_count;
+        SPU_SkipSamples(state, to_skip);
+        numsamples -= to_skip;
+        sample_count -= to_skip;
+      }
+      if (numsamples)
+      {
+			  SPU_EmulateSamples(state, numsamples);
+      }
 		}
 	}
 }
