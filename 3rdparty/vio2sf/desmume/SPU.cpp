@@ -132,8 +132,6 @@ extern "C" void SPU_Reset(NDS_state *state)
 	// Reset Registers
 	for (i = 0x400; i < 0x51D; i++)
 		T1WriteByte(state->MMU->ARM7_REG, i, 0);
-    
-	state->samples = 0;
 }
 
 

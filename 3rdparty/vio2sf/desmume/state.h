@@ -57,9 +57,6 @@ typedef struct NDS_state
     u32 rom_mask; /* = 0;*/
     
     struct SPU_struct *SPU_core;
-    double samples;
-    int spu_core_samples;
-    long tot_samples;
     
     SoundInterface_struct *SNDCore;
     
