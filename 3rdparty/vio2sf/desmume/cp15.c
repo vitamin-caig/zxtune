@@ -429,7 +429,7 @@ u32 CP15wait4IRQ(armcpu_t *cpu)
 	cpu->R[15] = cpu->instruct_adr;
 	cpu->next_instruction = cpu->R[15];
 	/* CHECKME: IME shouldn't be modified (?) */
-	cpu->state->MMU->reg_IME[0] = 1;
+	cpu->state->MMU->Cores[0].reg_IME = 1;
 	return 1;
 }
 

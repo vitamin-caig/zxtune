@@ -171,11 +171,13 @@ BOOL armcpu_flagIrq( armcpu_t *armcpu);
 
 static INLINE void NDS_makeARM9Int(NDS_state *state, u32 num)
 {
-        /* flag the interrupt request source */
-        state->MMU->reg_IF[0] |= (1<<num);
+  MMU_Core_struct* core = state->MMU->Cores + 0;
+
+  /* flag the interrupt request source */
+  core->reg_IF |= (1<<num);
 
         /* generate the interrupt if enabled */
-	if ((state->MMU->reg_IE[0] & (1 << num)) && state->MMU->reg_IME[0])
+	if ((core->reg_IE & (1 << num)) && core->reg_IME)
 	{
 		state->NDS_ARM9->wIRQ = TRUE;
 		state->NDS_ARM9->waitIRQ = FALSE;
@@ -184,11 +186,13 @@ static INLINE void NDS_makeARM9Int(NDS_state *state, u32 num)
 
 static INLINE void NDS_makeARM7Int(NDS_state *state, u32 num)
 {
+  MMU_Core_struct* core = state->MMU->Cores + 1;
+
         /* flag the interrupt request source */
-	state->MMU->reg_IF[1] |= (1<<num);
+	core->reg_IF |= (1<<num);
 
         /* generate the interrupt if enabled */
-	if ((state->MMU->reg_IE[1] & (1 << num)) && state->MMU->reg_IME[1])
+	if ((core->reg_IE & (1 << num)) && core->reg_IME)
 	{
 		state->NDS_ARM7->wIRQ = TRUE;
 		state->NDS_ARM7->waitIRQ = FALSE;

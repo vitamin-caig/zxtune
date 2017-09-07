@@ -340,10 +340,10 @@ void state_loadstate(struct NDS_state *state, const u8 *ss, u32 ss_size)
             
 			/* set initial interrupt state */
             
-			state->MMU->reg_IME[0] = 0x00000001;
-			state->MMU->reg_IE[0]  = 0x00042001;
-			state->MMU->reg_IME[1] = 0x00000001;
-			state->MMU->reg_IE[1]  = 0x0104009d;
+			state->MMU->Cores[0].reg_IME = 0x00000001;
+			state->MMU->Cores[0].reg_IE  = 0x00042001;
+			state->MMU->Cores[1].reg_IME = 0x00000001;
+			state->MMU->Cores[1].reg_IE  = 0x0104009d;
 		}
 		else if (state->initial_frames > 0)
 		{
@@ -367,10 +367,12 @@ void state_loadstate(struct NDS_state *state, const u8 *ss, u32 ss_size)
         
 		for (proc = 0; proc < 2; proc++)
 		{
-			MMU_write16(state, proc, REG_TM0CNTH, T1ReadWord(state->MMU->MMU_MEM[proc][0x40], REG_TM0CNTH & 0xFFF));
-			MMU_write16(state, proc, REG_TM1CNTH, T1ReadWord(state->MMU->MMU_MEM[proc][0x40], REG_TM1CNTH & 0xFFF));
-			MMU_write16(state, proc, REG_TM2CNTH, T1ReadWord(state->MMU->MMU_MEM[proc][0x40], REG_TM2CNTH & 0xFFF));
-			MMU_write16(state, proc, REG_TM3CNTH, T1ReadWord(state->MMU->MMU_MEM[proc][0x40], REG_TM3CNTH & 0xFFF));
+      MMU_Core_struct* const core = state->MMU->Cores + proc;
+      u8* const mem = core->MemMap[0x40];
+			MMU_write16(state, proc, REG_TM0CNTH, T1ReadWord(mem, REG_TM0CNTH & 0xFFF));
+			MMU_write16(state, proc, REG_TM1CNTH, T1ReadWord(mem, REG_TM1CNTH & 0xFFF));
+			MMU_write16(state, proc, REG_TM2CNTH, T1ReadWord(mem, REG_TM2CNTH & 0xFFF));
+			MMU_write16(state, proc, REG_TM3CNTH, T1ReadWord(mem, REG_TM3CNTH & 0xFFF));
 		}
 	}
 	else if (state->initial_frames > 0)

@@ -288,18 +288,19 @@ void SPU_struct::KeyOn(int channel)
 	adjust_channel_timer(&thischan);
   adjust_channel_sample(&thischan);
 
+  MMU_Core_struct* const core = state->MMU->Cores + 1;
 	switch(thischan.format)
 	{
 	case 0: // 8-bit
-		thischan.buf8 = (const s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
+		thischan.buf8 = (const s8*)&core->MemMap[(thischan.addr>>20)&0xFF][(thischan.addr & core->MemMask[(thischan.addr >> 20) & 0xFF])];
 		thischan.samppos = 0;
 		break;
 	case 1: // 16-bit
-		thischan.buf16 = (const s16 *)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
+		thischan.buf16 = (const s16 *)&core->MemMap[(thischan.addr>>20)&0xFF][(thischan.addr & core->MemMask[(thischan.addr >> 20) & 0xFF])];
 		thischan.samppos = 0;
 		break;
 	case 2: // ADPCM
- 		thischan.buf8 = (const s8*)&state->MMU->MMU_MEM[1][(thischan.addr>>20)&0xFF][(thischan.addr & state->MMU->MMU_MASK[1][(thischan.addr >> 20) & 0xFF])];
+ 		thischan.buf8 = (const s8*)&core->MemMap[(thischan.addr>>20)&0xFF][(thischan.addr & core->MemMask[(thischan.addr >> 20) & 0xFF])];
  		thischan.samppos = 8;
     cache->Lookup(thischan);
  		break;

@@ -353,63 +353,29 @@ void NDS_Reset( NDS_state *state)
 
 static void dma_check(NDS_state *state)
 {
-	if((state->MMU->DMA[0].Channels[0].Active)&&(state->MMU->DMA[0].Channels[0].Cycle<=state->nds->cycles))
-	{
-		T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*0), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*0)) & 0x7FFFFFFF);
-		if((state->MMU->DMA[0].Channels[0].Crt)&(1<<30)) NDS_makeARM9Int(state, 8);
-		state->MMU->DMA[0].Channels[0].Active = FALSE;
-	}
+  MMU_Core_struct* const core0 = state->MMU->Cores + 0;
+  for (int chanId = 0; chanId < 4; ++chanId)
+  {
+    if((core0->DMA[chanId].Active)&&(core0->DMA[chanId].Cycle<=state->nds->cycles))
+    {
+    	T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*chanId), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*chanId)) & 0x7FFFFFFF);
+  		if((core0->DMA[chanId].Crt)&(1<<30)) NDS_makeARM9Int(state, 8 + chanId);
+  		core0->DMA[chanId].Active = FALSE;
+    }
+  }
+  
+  MMU_Core_struct* const core1 = state->MMU->Cores + 1;
+  for (int chanId = 0; chanId < 4; ++chanId)
+  {
+    if((core1->DMA[chanId].Active)&&(core1->DMA[chanId].Cycle<=state->nds->cycles))
+    {
+    	T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*chanId), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*chanId)) & 0x7FFFFFFF);
+  		if((core1->DMA[chanId].Crt)&(1<<30)) NDS_makeARM7Int(state, 8 + chanId);
+  		core1->DMA[chanId].Active = FALSE;
+    }
+  }
 
-	if((state->MMU->DMA[0].Channels[1].Active)&&(state->MMU->DMA[0].Channels[1].Cycle<=state->nds->cycles))
-	{
-		T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*1), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*1)) & 0x7FFFFFFF);
-		if((state->MMU->DMA[0].Channels[1].Crt)&(1<<30)) NDS_makeARM9Int(state, 9);
-		state->MMU->DMA[0].Channels[1].Active = FALSE;
-	}
-
-	if((state->MMU->DMA[0].Channels[2].Active)&&(state->MMU->DMA[0].Channels[2].Cycle<=state->nds->cycles))
-	{
-		T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*2), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*2)) & 0x7FFFFFFF);
-		if((state->MMU->DMA[0].Channels[2].Crt)&(1<<30)) NDS_makeARM9Int(state, 10);
-		state->MMU->DMA[0].Channels[2].Active = FALSE;
-	}
-
-	if((state->MMU->DMA[0].Channels[3].Active)&&(state->MMU->DMA[0].Channels[3].Cycle<=state->nds->cycles))
-	{
-		T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*3), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*3)) & 0x7FFFFFFF);
-		if((state->MMU->DMA[0].Channels[3].Crt)&(1<<30)) NDS_makeARM9Int(state, 11);
-		state->MMU->DMA[0].Channels[3].Active = FALSE;
-	}
-
-	if((state->MMU->DMA[1].Channels[0].Active)&&(state->MMU->DMA[1].Channels[0].Cycle<=state->nds->cycles))
-	{
-		T1WriteLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*0), T1ReadLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*0)) & 0x7FFFFFFF);
-		if((state->MMU->DMA[1].Channels[0].Crt)&(1<<30)) NDS_makeARM7Int(state, 8);
-		state->MMU->DMA[1].Channels[0].Active = FALSE;
-	}
-
-	if((state->MMU->DMA[1].Channels[1].Active)&&(state->MMU->DMA[1].Channels[1].Cycle<=state->nds->cycles))
-	{
-		T1WriteLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*1), T1ReadLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*1)) & 0x7FFFFFFF);
-		if((state->MMU->DMA[1].Channels[1].Crt)&(1<<30)) NDS_makeARM7Int(state, 9);
-		state->MMU->DMA[1].Channels[1].Active = FALSE;
-	}
-
-	if((state->MMU->DMA[1].Channels[2].Active)&&(state->MMU->DMA[1].Channels[2].Cycle<=state->nds->cycles))
-	{
-		T1WriteLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*2), T1ReadLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*2)) & 0x7FFFFFFF);
-		if((state->MMU->DMA[1].Channels[2].Crt)&(1<<30)) NDS_makeARM7Int(state, 10);
-		state->MMU->DMA[1].Channels[2].Active = FALSE;
-	}
-
-	if((state->MMU->DMA[1].Channels[3].Active)&&(state->MMU->DMA[1].Channels[3].Cycle<=state->nds->cycles))
-	{
-		T1WriteLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*3), T1ReadLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*3)) & 0x7FFFFFFF);
-		if((state->MMU->DMA[1].Channels[3].Crt)&(1<<30)) NDS_makeARM7Int(state, 11);
-		state->MMU->DMA[1].Channels[3].Active = FALSE;
-	}
-
-	if((state->MMU->reg_IF[0]&state->MMU->reg_IE[0]) && (state->MMU->reg_IME[0]))
+	if((core0->reg_IF&core0->reg_IE) && (core0->reg_IME))
 	{
 		if ( armcpu_irqExeption(state->NDS_ARM9))
 		{
@@ -417,7 +383,7 @@ static void dma_check(NDS_state *state)
 		}
 	}
 
-	if((state->MMU->reg_IF[1]&state->MMU->reg_IE[1]) && (state->MMU->reg_IME[1]))
+	if((core1->reg_IF&core1->reg_IE) && (core1->reg_IME))
 	{
 		if ( armcpu_irqExeption(state->NDS_ARM7))
 		{
@@ -432,20 +398,21 @@ static void timer_check(NDS_state *state)
 	int p, t;
 	for (p = 0; p < 2; p++)
 	{
+    MMU_Core_struct* const core = state->MMU->Cores + p;
 		for (t = 0; t < 4; t++)
 		{
 			state->nds->timerOver[p][t] = 0;
-			if(state->MMU->Timers[p].Channels[t].On)
+			if(core->Timers[t].On)
 			{
-				if(state->MMU->Timers[p].Channels[t].Run)
+				if(core->Timers[t].Run)
 				{
-					switch(state->MMU->Timers[p].Channels[t].Mode)
+					switch(core->Timers[t].Mode)
 					{
 					case 0xFFFF :
 						if(t > 0 && state->nds->timerOver[p][t - 1])
 						{
-							++(state->MMU->Timers[p].Channels[t].Counter);
-							state->nds->timerOver[p][t] = !state->MMU->Timers[p].Channels[t].Counter;
+							++(core->Timers[t].Counter);
+							state->nds->timerOver[p][t] = !core->Timers[t].Counter;
 							if (state->nds->timerOver[p][t])
 							{
 								if (p == 0)
@@ -458,17 +425,17 @@ static void timer_check(NDS_state *state)
 									if(T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 0x102 + (t << 2)) & 0x40)
 										NDS_makeARM7Int(state, 3 + t);
 								}
-								state->MMU->Timers[p].Channels[t].Counter = state->MMU->Timers[p].Channels[t].Reload;
+								core->Timers[t].Counter = core->Timers[t].Reload;
 							}
 						}
 						break;
 					default :
 						{
-							state->nds->diff = (state->nds->cycles >> state->MMU->Timers[p].Channels[t].Mode) - (state->nds->timerCycle[p][t] >> state->MMU->Timers[p].Channels[t].Mode);
-							state->nds->old = state->MMU->Timers[p].Channels[t].Counter;
-							state->MMU->Timers[p].Channels[t].Counter += state->nds->diff;
-							state->nds->timerCycle[p][t] += state->nds->diff << state->MMU->Timers[p].Channels[t].Mode;
-							state->nds->timerOver[p][t] = state->nds->old >= state->MMU->Timers[p].Channels[t].Counter;
+							state->nds->diff = (state->nds->cycles >> core->Timers[t].Mode) - (state->nds->timerCycle[p][t] >> core->Timers[t].Mode);
+							state->nds->old = core->Timers[t].Counter;
+							core->Timers[t].Counter += state->nds->diff;
+							state->nds->timerCycle[p][t] += state->nds->diff << core->Timers[t].Mode;
+							state->nds->timerOver[p][t] = state->nds->old >= core->Timers[t].Counter;
 							if(state->nds->timerOver[p][t])
 							{
 								if (p == 0)
@@ -481,7 +448,7 @@ static void timer_check(NDS_state *state)
 									if(T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 0x102 + (t << 2)) & 0x40)
 										NDS_makeARM7Int(state, 3 + t);
 								}
-								state->MMU->Timers[p].Channels[t].Counter = state->MMU->Timers[p].Channels[t].Reload + state->MMU->Timers[p].Channels[t].Counter - state->nds->old;
+								core->Timers[t].Counter = core->Timers[t].Reload + core->Timers[t].Counter - state->nds->old;
 							}
 						}
 						break;
@@ -489,7 +456,7 @@ static void timer_check(NDS_state *state)
 				}
 				else
 				{
-					state->MMU->Timers[p].Channels[t].Run = TRUE;
+					core->Timers[t].Run = TRUE;
 					state->nds->timerCycle[p][t] = state->nds->cycles;
 				}
 			}
@@ -522,14 +489,12 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 
 			if(state->nds->VCount<192)
 			{
-				if(state->MMU->DMA[0].Channels[0].StartTime == 2)
-					MMU_doDMA(state, 0, 0);
-				if(state->MMU->DMA[0].Channels[1].StartTime == 2)
-					MMU_doDMA(state, 0, 1);
-				if(state->MMU->DMA[0].Channels[2].StartTime == 2)
-					MMU_doDMA(state, 0, 2);
-				if(state->MMU->DMA[0].Channels[3].StartTime == 2)
-					MMU_doDMA(state, 0, 3);
+        MMU_Core_struct* const core0 = state->MMU->Cores + 0;
+        for (int chanId = 0; chanId < 4; ++chanId)
+        {
+          if (core0->DMA[chanId].StartTime == 2)
+            MMU_doDMA(state, 0, chanId);
+        }
 			}
 		}
 		else
@@ -542,57 +507,23 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 			T1WriteWord(state->MMU->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) & 0xFFFD);
 			T1WriteWord(state->MMU->ARM7Mem->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) & 0xFFFD);
 
-			if(state->MMU->DMA[0].Channels[0].StartTime == 3)
-				MMU_doDMA(state, 0, 0);
-			if(state->MMU->DMA[0].Channels[1].StartTime == 3)
-				MMU_doDMA(state, 0, 1);
-			if(state->MMU->DMA[0].Channels[2].StartTime == 3)
-				MMU_doDMA(state, 0, 2);
-			if(state->MMU->DMA[0].Channels[3].StartTime == 3)
-				MMU_doDMA(state, 0, 3);
-
-			// Main memory display
-			if(state->MMU->DMA[0].Channels[0].StartTime == 4)
-			{
-				MMU_doDMA(state, 0, 0);
-				state->MMU->DMA[0].Channels[0].StartTime = 0;
-			}
-			if(state->MMU->DMA[0].Channels[1].StartTime == 4)
-			{
-				MMU_doDMA(state, 0, 1);
-				state->MMU->DMA[0].Channels[1].StartTime = 0;
-			}
-			if(state->MMU->DMA[0].Channels[2].StartTime == 4)
-			{
-				MMU_doDMA(state, 0, 2);
-				state->MMU->DMA[0].Channels[2].StartTime = 0;
-			}
-			if(state->MMU->DMA[0].Channels[3].StartTime == 4)
-			{
-				MMU_doDMA(state, 0, 3);
-				state->MMU->DMA[0].Channels[3].StartTime = 0;
-			}
-
-			if(state->MMU->DMA[1].Channels[0].StartTime == 4)
-			{
-				MMU_doDMA(state, 1, 0);
-				state->MMU->DMA[1].Channels[0].StartTime = 0;
-			}
-			if(state->MMU->DMA[1].Channels[1].StartTime == 4)
-			{
-				MMU_doDMA(state, 1, 1);
-				state->MMU->DMA[0].Channels[1].StartTime = 0;
-			}
-			if(state->MMU->DMA[1].Channels[2].StartTime == 4)
-			{
-				MMU_doDMA(state, 1, 2);
-				state->MMU->DMA[1].Channels[2].StartTime = 0;
-			}
-			if(state->MMU->DMA[1].Channels[3].StartTime == 4)
-			{
-				MMU_doDMA(state, 1, 3);
-				state->MMU->DMA[1].Channels[3].StartTime = 0;
-			}
+      MMU_Core_struct* const core0 = state->MMU->Cores + 0;
+      for (int chanId = 0; chanId < 4; ++chanId)
+      {
+        if (core0->DMA[chanId].StartTime == 3)
+          MMU_doDMA(state, 0, chanId);
+      }
+  		// Main memory display
+      for (int coreId = 0; coreId < 2; ++coreId)
+      {
+        MMU_Core_struct* const core = state->MMU->Cores + coreId;
+        for (int chanId = 0; chanId < 4; ++chanId)
+        {
+          if (core->DMA[chanId].StartTime == 4)
+            MMU_doDMA(state, coreId, chanId);
+          core->DMA[chanId].StartTime = 0;
+        }
+      }
                             
 			if(state->nds->VCount == 192)
 			{
@@ -602,23 +533,15 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 				NDS_ARM9VBlankInt(state);
 				NDS_ARM7VBlankInt(state);
 
-				if(state->MMU->DMA[0].Channels[0].StartTime == 1)
-					MMU_doDMA(state, 0, 0);
-				if(state->MMU->DMA[0].Channels[1].StartTime == 1)
-					MMU_doDMA(state, 0, 1);
-				if(state->MMU->DMA[0].Channels[2].StartTime == 1)
-					MMU_doDMA(state, 0, 2);
-				if(state->MMU->DMA[0].Channels[3].StartTime == 1)
-					MMU_doDMA(state, 0, 3);
-
-				if(state->MMU->DMA[1].Channels[0].StartTime == 1)
-					MMU_doDMA(state, 1, 0);
-				if(state->MMU->DMA[1].Channels[1].StartTime == 1)
-					MMU_doDMA(state, 1, 1);
-				if(state->MMU->DMA[1].Channels[2].StartTime == 1)
-					MMU_doDMA(state, 1, 2);
-				if(state->MMU->DMA[1].Channels[3].StartTime == 1)
-					MMU_doDMA(state, 1, 3);
+        for (int coreId = 0; coreId < 2; ++coreId)
+        {
+          MMU_Core_struct* const core = state->MMU->Cores + coreId;
+          for (int chanId = 0; chanId < 4; ++chanId)
+          {
+            if (core->DMA[chanId].StartTime == 1)
+              MMU_doDMA(state, coreId, chanId);
+          }
+        }
 			}
 			else if(state->nds->VCount == 263)
 			{
@@ -633,40 +556,21 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 				state->nds->ARM9Cycle -= cycles_per_frame;
 				state->nds->ARM7Cycle -= cycles_per_frame;
 				nb -= cycles_per_frame;
-				if(state->MMU->Timers[0].Channels[0].On)
-					state->nds->timerCycle[0][0] -= cycles_per_frame;
-				if(state->MMU->Timers[0].Channels[1].On)
-					state->nds->timerCycle[0][1] -= cycles_per_frame;
-				if(state->MMU->Timers[0].Channels[2].On)
-					state->nds->timerCycle[0][2] -= cycles_per_frame;
-				if(state->MMU->Timers[0].Channels[3].On)
-					state->nds->timerCycle[0][3] -= cycles_per_frame;
-
-				if(state->MMU->Timers[1].Channels[0].On)
-					state->nds->timerCycle[1][0] -= cycles_per_frame;
-				if(state->MMU->Timers[1].Channels[1].On)
-					state->nds->timerCycle[1][1] -= cycles_per_frame;
-				if(state->MMU->Timers[1].Channels[2].On)
-					state->nds->timerCycle[1][2] -= cycles_per_frame;
-				if(state->MMU->Timers[1].Channels[3].On)
-					state->nds->timerCycle[1][3] -= cycles_per_frame;
-				if(state->MMU->DMA[0].Channels[0].Active)
-					state->MMU->DMA[0].Channels[0].Cycle -= cycles_per_frame;
-				if(state->MMU->DMA[0].Channels[1].Active)
-					state->MMU->DMA[0].Channels[1].Cycle -= cycles_per_frame;
-				if(state->MMU->DMA[0].Channels[2].Active)
-					state->MMU->DMA[0].Channels[2].Cycle -= cycles_per_frame;
-				if(state->MMU->DMA[0].Channels[3].Active)
-					state->MMU->DMA[0].Channels[3].Cycle -= cycles_per_frame;
-				if(state->MMU->DMA[1].Channels[0].Active)
-					state->MMU->DMA[1].Channels[0].Cycle -= cycles_per_frame;
-				if(state->MMU->DMA[1].Channels[1].Active)
-					state->MMU->DMA[1].Channels[1].Cycle -= cycles_per_frame;
-				if(state->MMU->DMA[1].Channels[2].Active)
-					state->MMU->DMA[1].Channels[2].Cycle -= cycles_per_frame;
-				if(state->MMU->DMA[1].Channels[3].Active)
-					state->MMU->DMA[1].Channels[3].Cycle -= cycles_per_frame;
-
+        
+        for (int coreId = 0; coreId < 2; ++coreId)
+        {
+          MMU_Core_struct* const core = state->MMU->Cores + coreId;
+          for (int chanId = 0; chanId < 4; ++chanId)
+          {
+            if (core->Timers[chanId].On)
+              state->nds->timerCycle[coreId][chanId] -= cycles_per_frame;
+          }
+          for (int chanId = 0; chanId < 4; ++chanId)
+          {
+            if (core->DMA[chanId].Active)
+              core->DMA[chanId].Cycle -= cycles_per_frame;
+          }
+        }
 			}
 
 			T1WriteWord(state->MMU->ARM9Mem->ARM9_REG, 6, state->nds->VCount);

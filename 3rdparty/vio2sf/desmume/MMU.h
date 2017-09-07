@@ -51,30 +51,35 @@ extern const u32 MMU_ARM9_WAIT32[16];
 extern const u32 MMU_ARM7_WAIT16[16];
 extern const u32 MMU_ARM7_WAIT32[16];
 
-typedef struct DMA_Channel_struct {
+typedef struct DMA_struct {
     u32 Src;
     u32 Dst;
     u32 StartTime;
     s32 Cycle;
     u32 Crt;
     BOOL Active;
-} DMA_Channel_struct;
-
-typedef struct DMA_struct {
-    DMA_Channel_struct Channels[4];
 } DMA_struct;
 
-typedef struct Timer_Channel_struct {
+typedef struct Timer_struct {
     u16 Counter;
     s32 Mode;
     u32 On;
     u32 Run;
     u16 Reload;
-} Timer_Channel_struct;
-
-typedef struct Timer_struct {
-    Timer_Channel_struct Channels[4];
 } Timer_struct;
+
+typedef struct MMU_Core_struct {
+    u8** MemMap;
+    u32* MemMask;
+    
+    Timer_struct Timers[4];
+    u32 reg_IME;
+    u32 reg_IE;
+    u32 reg_IF;
+    
+    DMA_struct DMA[4];
+    nds_dscard dscard;
+} MMU_Core_struct;
 
 typedef struct MMU_struct {
         ARM9_struct* ARM9Mem;
@@ -90,9 +95,6 @@ typedef struct MMU_struct {
 	//Unused ram
 	u8 UNUSED_RAM[4];
         
-        u8 * * MMU_MEM[2];
-        u32 * MMU_MASK[2];
-        
         u8 ARM9_RW_MODE;
         
         FIFO* fifos;//16
@@ -100,16 +102,8 @@ typedef struct MMU_struct {
         u32 DTCMRegion;
         u32 ITCMRegion;
         
-        Timer_struct Timers[2];
+        MMU_Core_struct Cores[2];
         
-        u32 reg_IME[2];
-        u32 reg_IE[2];
-        u32 reg_IF[2];
-        
-        DMA_struct DMA[2];
-        
-        nds_dscard	dscard[2];
-		  
         memory_chip_t fw;
         memory_chip_t bupmem;
 } MMU_struct;

@@ -182,7 +182,7 @@ NDS_exec(NDS_state *, s32 nb, BOOL force);
        {
             if(T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) & 0x10)
             {
-                 state->MMU->reg_IF[0] |= 2;// & (MMU->reg_IME[0] << 1);// (MMU->reg_IE[0] & (1<<1));
+                 state->MMU->Cores[0].reg_IF |= 2;// & (MMU->reg_IME[0] << 1);// (MMU->reg_IE[0] & (1<<1));
                  state->NDS_ARM9->wIRQ = TRUE;
             }
        }
@@ -191,7 +191,7 @@ NDS_exec(NDS_state *, s32 nb, BOOL force);
        {
             if(T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) & 0x10)
             {
-                 state->MMU->reg_IF[1] |= 2;// & (MMU->reg_IME[1] << 1);// (MMU->reg_IE[1] & (1<<1));
+                 state->MMU->Cores[1].reg_IF |= 2;// & (MMU->reg_IME[1] << 1);// (MMU->reg_IE[1] & (1<<1));
                  state->NDS_ARM7->wIRQ = TRUE;
             }
        }
@@ -200,7 +200,7 @@ NDS_exec(NDS_state *, s32 nb, BOOL force);
        {
             if(T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) & 0x8)
             {
-                 state->MMU->reg_IF[0] |= 1;// & (MMU->reg_IME[0]);// (MMU->reg_IE[0] & 1);
+                 state->MMU->Cores[0].reg_IF |= 1;// & (MMU->reg_IME[0]);// (MMU->reg_IE[0] & 1);
                  state->NDS_ARM9->wIRQ = TRUE;
                       //execute = FALSE;
                       /*logcount++;*/
@@ -210,7 +210,7 @@ NDS_exec(NDS_state *, s32 nb, BOOL force);
        static INLINE void NDS_ARM7VBlankInt(NDS_state *state)
        {
             if(T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) & 0x8)
-                 state->MMU->reg_IF[1] |= 1;// & (MMU->reg_IME[1]);// (MMU->reg_IE[1] & 1);
+                 state->MMU->Cores[1].reg_IF |= 1;// & (MMU->reg_IME[1]);// (MMU->reg_IE[1] & 1);
                  state->NDS_ARM7->wIRQ = TRUE;
                  //execute = FALSE;
        }

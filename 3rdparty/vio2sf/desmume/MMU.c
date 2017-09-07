@@ -95,10 +95,10 @@ void MMU_Init(NDS_state *state) {
            state->MMU_ARM7_MEM_MAP[i] = state->MMU->CART_ROM;
         }
 
-	state->MMU->MMU_MEM[0] = state->MMU_ARM9_MEM_MAP;
-	state->MMU->MMU_MEM[1] = state->MMU_ARM7_MEM_MAP;
-	state->MMU->MMU_MASK[0]= state->MMU_ARM9_MEM_MASK;
-	state->MMU->MMU_MASK[1] = state->MMU_ARM7_MEM_MASK;
+	state->MMU->Cores[0].MemMap = state->MMU_ARM9_MEM_MAP;
+	state->MMU->Cores[1].MemMap = state->MMU_ARM7_MEM_MAP;
+	state->MMU->Cores[0].MemMask= state->MMU_ARM9_MEM_MASK;
+	state->MMU->Cores[1].MemMask = state->MMU_ARM7_MEM_MASK;
 
 	state->MMU->ITCMRegion = 0x00800000;
 
@@ -130,8 +130,18 @@ void MMU_DeInit(NDS_state *state) {
     state->MMU->ARM9Mem = 0;
 }
 
-//Card rom & ram
-
+static void MMU_clearCoreMem(MMU_Core_struct* mmu)
+{
+  memset(&mmu->Timers, 0, sizeof(mmu->Timers));
+	
+	memset(&mmu->reg_IME, 0, sizeof(mmu->reg_IME));
+	memset(&mmu->reg_IE, 0, sizeof(mmu->reg_IE));
+	memset(&mmu->reg_IF, 0, sizeof(mmu->reg_IF));
+	
+	memset(&mmu->DMA, 0, sizeof(mmu->DMA));
+	
+	memset(&mmu->dscard, 0, sizeof(mmu->dscard));
+}
 
 void MMU_clearMem(NDS_state *state)
 {
@@ -159,15 +169,8 @@ void MMU_clearMem(NDS_state *state)
 	state->MMU->DTCMRegion = 0;
 	state->MMU->ITCMRegion = 0x00800000;
 	
-  memset(state->MMU->Timers, 0, sizeof(state->MMU->Timers));
-	
-	memset(state->MMU->reg_IME,       0, sizeof(u32) * 2);
-	memset(state->MMU->reg_IE,        0, sizeof(u32) * 2);
-	memset(state->MMU->reg_IF,        0, sizeof(u32) * 2);
-	
-	memset(state->MMU->DMA, 0, sizeof(state->MMU->DMA));
-	
-	memset(state->MMU->dscard,        0, sizeof(nds_dscard) * 2);
+  MMU_clearCoreMem(state->MMU->Cores + 0);
+  MMU_clearCoreMem(state->MMU->Cores + 1);
 }
 
 void MMU_setRom(NDS_state *state, u8 * rom, u32 mask)
@@ -213,9 +216,9 @@ u8 FASTCALL MMU_read8(NDS_state *state, u32 proc, u32 adr)
 	if ((adr>=0x9000000)&&(adr<0x9900000))
 		return (unsigned char)cflash_read(state, adr);
 
-  return state->MMU->MMU_MEM[proc][(adr>>20)&0xFF][adr&state->MMU->MMU_MASK[proc][(adr>>20)&0xFF]];
+  MMU_Core_struct* const core = state->MMU->Cores + proc;
+  return core->MemMap[(adr>>20)&0xFF][adr&core->MemMask[(adr>>20)&0xFF]];
 }
-
 
 
 u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
@@ -234,6 +237,8 @@ u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
 
 	adr &= 0x0FFFFFFF;
 
+  MMU_Core_struct* const core = state->MMU->Cores + proc;
+  
 	if(adr&0x04000000)
 	{
 		/* Adress is an IO register */
@@ -244,23 +249,23 @@ u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
 				return 1;
 				
 			case REG_IME :
-				return (u16)state->MMU->reg_IME[proc];
+				return (u16)core->reg_IME;
 				
 			case REG_IE :
-				return (u16)state->MMU->reg_IE[proc];
+				return (u16)core->reg_IE;
 			case REG_IE + 2 :
-				return (u16)(state->MMU->reg_IE[proc]>>16);
+				return (u16)(core->reg_IE>>16);
 				
 			case REG_IF :
-				return (u16)state->MMU->reg_IF[proc];
+				return (u16)core->reg_IF;
 			case REG_IF + 2 :
-				return (u16)(state->MMU->reg_IF[proc]>>16);
+				return (u16)(core->reg_IF>>16);
 				
 			case REG_TM0CNTL :
 			case REG_TM1CNTL :
 			case REG_TM2CNTL :
 			case REG_TM3CNTL :
-				return state->MMU->Timers[proc].Channels[(adr&0xF)>>2].Counter;
+				return core->Timers[(adr&0xF)>>2].Counter;
 			
 			case 0x04000630 :
 				LOG("vect res\r\n");	/* TODO (clear): ??? */
@@ -274,11 +279,12 @@ u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
 	}
 	
     /* Returns data from memory */
-	return T1ReadWord(state->MMU->MMU_MEM[proc][(adr >> 20) & 0xFF], adr & state->MMU->MMU_MASK[proc][(adr >> 20) & 0xFF]);
+	return T1ReadWord(core->MemMap[(adr >> 20) & 0xFF], adr & core->MemMask[(adr >> 20) & 0xFF]);
 }
 
 static u32 FASTCALL MMU_read32_io(NDS_state *state, u32 proc, u32 adr)
 {
+  MMU_Core_struct* const core = state->MMU->Cores + proc;
 	switch(adr & 0xffffff)
 	{
 		// This is hacked due to the only current 3D core
@@ -328,25 +334,26 @@ static u32 FASTCALL MMU_read32_io(NDS_state *state, u32 proc, u32 adr)
 		}
 		
 		case REG_IME & 0xffffff :
-			return state->MMU->reg_IME[proc];
+			return core->reg_IME;
 		case REG_IE & 0xffffff :
-			return state->MMU->reg_IE[proc];
+			return core->reg_IE;
 		case REG_IF & 0xffffff :
-			return state->MMU->reg_IF[proc];
+			return core->reg_IF;
 		case REG_IPCFIFORECV & 0xffffff :
 		{
-			u16 IPCFIFO_CNT = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x184);
+			u16 IPCFIFO_CNT = T1ReadWord(core->MemMap[0x40], 0x184);
 			if(IPCFIFO_CNT&0x8000)
 			{
 			//execute = FALSE;
 			u32 fifonum = IPCFIFO+proc;
 			u32 val = FIFOValue(state->MMU->fifos + fifonum);
 			u32 remote = (proc+1) & 1;
-			u16 IPCFIFO_CNT_remote = T1ReadWord(state->MMU->MMU_MEM[remote][0x40], 0x184);
+      MMU_Core_struct* const remote_core = state->MMU->Cores + remote;
+			u16 IPCFIFO_CNT_remote = T1ReadWord(remote_core->MemMap[0x40], 0x184);
 			IPCFIFO_CNT |= (state->MMU->fifos[fifonum].empty<<8) | (state->MMU->fifos[fifonum].full<<9) | (state->MMU->fifos[fifonum].error<<14);
 			IPCFIFO_CNT_remote |= (state->MMU->fifos[fifonum].empty) | (state->MMU->fifos[fifonum].full<<1);
-			T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184, IPCFIFO_CNT);
-			T1WriteWord(state->MMU->MMU_MEM[remote][0x40], 0x184, IPCFIFO_CNT_remote);
+			T1WriteWord(core->MemMap[0x40], 0x184, IPCFIFO_CNT);
+			T1WriteWord(remote_core->MemMap[0x40], 0x184, IPCFIFO_CNT_remote);
 			if ((state->MMU->fifos[fifonum].empty) && (IPCFIFO_CNT & BIT(2)))
 				NDS_makeInt(state, remote,17) ; /* remote: SEND FIFO EMPTY */
 			return val;
@@ -358,34 +365,33 @@ static u32 FASTCALL MMU_read32_io(NDS_state *state, u32 proc, u32 adr)
                       case REG_TM2CNTL & 0xffffff :
                       case REG_TM3CNTL & 0xffffff :
 		{
-			u32 val = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], (adr + 2) & 0xFFF);
-			return state->MMU->Timers[proc].Channels[(adr&0xF)>>2].Counter | (val<<16);
+			u32 val = T1ReadWord(core->MemMap[0x40], (adr + 2) & 0xFFF);
+			return core->Timers[(adr&0xF)>>2].Counter | (val<<16);
 		}	
                       case REG_GCDATAIN & 0xffffff:
 		{
                               u32 val;
 
-                              if(!state->MMU->dscard[proc].adress) return 0;
+                              if(!core->dscard.adress) return 0;
 
-                              val = T1ReadLong(state->MMU->CART_ROM, state->MMU->dscard[proc].adress);
+                              val = T1ReadLong(state->MMU->CART_ROM, core->dscard.adress);
 
-			state->MMU->dscard[proc].adress += 4;	/* increment adress */
+			core->dscard.adress += 4;	/* increment adress */
 			
-			state->MMU->dscard[proc].transfer_count--;	/* update transfer counter */
-			if(state->MMU->dscard[proc].transfer_count) /* if transfer is not ended */
+			core->dscard.transfer_count--;	/* update transfer counter */
+			if(core->dscard.transfer_count) /* if transfer is not ended */
 			{
 				return val;	/* return data */
 			}
 			else	/* transfer is done */
                               {                                                       
-                                      T1WriteLong(state->MMU->MMU_MEM[proc][(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, T1ReadLong(state->MMU->MMU_MEM[proc][(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff) & ~(0x00800000 | 0x80000000));
+                                      T1WriteLong(core->MemMap[(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, T1ReadLong(core->MemMap[(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff) & ~(0x00800000 | 0x80000000));
 				/* = 0x7f7fffff */
 				
 				/* if needed, throw irq for the end of transfer */
-                                      if(T1ReadWord(state->MMU->MMU_MEM[proc][(REG_AUXSPICNT >> 20) & 0xff], REG_AUXSPICNT & 0xfff) & 0x4000)
+                                      if(T1ReadWord(core->MemMap[(REG_AUXSPICNT >> 20) & 0xff], REG_AUXSPICNT & 0xfff) & 0x4000)
 				{
-                                              if(proc == ARMCPU_ARM7) NDS_makeARM7Int(state, 19);
-                                              else NDS_makeARM9Int(state, 19);
+                                              NDS_makeInt(state, proc, 19);
 				}
 				
 				return val;
@@ -397,7 +403,7 @@ static u32 FASTCALL MMU_read32_io(NDS_state *state, u32 proc, u32 adr)
 	}
 	
 	/* Returns data from memory */
-	return T1ReadLong(state->MMU->MMU_MEM[proc][(adr >> 20) & 0xFF], adr & state->MMU->MMU_MASK[proc][(adr >> 20) & 0xFF]);
+	return T1ReadLong(core->MemMap[(adr >> 20) & 0xFF], adr & core->MemMask[(adr >> 20) & 0xFF]);
 }
 	 
 u32 FASTCALL MMU_read32(NDS_state *state, u32 proc, u32 adr)
@@ -423,7 +429,8 @@ u32 FASTCALL MMU_read32(NDS_state *state, u32 proc, u32 adr)
   }
   else
   {
-    return T1ReadLong(state->MMU->MMU_MEM[proc][(adr >> 20) & 0xFF], adr & state->MMU->MMU_MASK[proc][(adr >> 20) & 0xFF]);
+    MMU_Core_struct* const core = state->MMU->Cores + proc;
+    return T1ReadLong(core->MemMap[(adr >> 20) & 0xFF], adr & core->MemMask[(adr >> 20) & 0xFF]);
   }
 }
 	
@@ -462,7 +469,8 @@ void FASTCALL MMU_write8(NDS_state *state, u32 proc, u32 adr, u8 val)
 		/* FIXME handle 8 bit writes */
 		return ;
 	}
-	state->MMU->MMU_MEM[proc][(adr>>20)&0xFF][adr&state->MMU->MMU_MASK[proc][(adr>>20)&0xFF]]=val;
+  MMU_Core_struct* const core = state->MMU->Cores + proc;
+	core->MemMap[(adr>>20)&0xFF][adr & core->MemMask[(adr>>20)&0xFF]]=val;
 }
 
 void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
@@ -498,17 +506,18 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
            }
         }
 
+  MMU_Core_struct* const core = state->MMU->Cores + proc;
 	if((adr >> 24) == 4)
 	{
 		/* Adress is an IO register */
 		switch(adr)
 		{
       case REG_POWCNT1 :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x304, val);
+				T1WriteWord(core->MemMap[0x40], 0x304, val);
 				return;
 
                         case REG_AUXSPICNT:
-                                T1WriteWord(state->MMU->MMU_MEM[proc][(REG_AUXSPICNT >> 20) & 0xff], REG_AUXSPICNT & 0xfff, val);
+                                T1WriteWord(core->MemMap[(REG_AUXSPICNT >> 20) & 0xff], REG_AUXSPICNT & 0xfff, val);
                                 state->AUX_SPI_CNT = val;
 
                                 if (val == 0)
@@ -521,7 +530,7 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
                                    state->AUX_SPI_CMD = val & 0xFF;
                                 }
 
-                                T1WriteWord(state->MMU->MMU_MEM[proc][(REG_AUXSPIDATA >> 20) & 0xff], REG_AUXSPIDATA & 0xfff, bm_transfer(&state->MMU->bupmem, (u8)val));
+                                T1WriteWord(core->MemMap[(REG_AUXSPIDATA >> 20) & 0xff], REG_AUXSPIDATA & 0xfff, bm_transfer(&state->MMU->bupmem, (u8)val));
 				return;
 
 			case REG_SPICNT :
@@ -546,7 +555,7 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
                                     state->SPI_CNT = val;
                                 }
 				
-				T1WriteWord(state->MMU->MMU_MEM[proc][(REG_SPICNT >> 20) & 0xff], REG_SPICNT & 0xfff, val);
+				T1WriteWord(core->MemMap[(REG_SPICNT >> 20) & 0xff], REG_SPICNT & 0xfff, val);
 				return;
 				
 			case REG_SPIDATA :
@@ -559,7 +568,7 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 						state->SPI_CMD = val;
 					}
 			
-                                        spicnt = T1ReadWord(state->MMU->MMU_MEM[proc][(REG_SPICNT >> 20) & 0xff], REG_SPICNT & 0xfff);
+                                        spicnt = T1ReadWord(core->MemMap[(REG_SPICNT >> 20) & 0xff], REG_SPICNT & 0xfff);
 					
                                         switch((spicnt >> 8) & 0x3)
 					{
@@ -569,10 +578,10 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
                                                 case 1 : /* firmware memory device */
                                                         if((spicnt & 0x3) != 0)      /* check SPI baudrate (must be 4mhz) */
 							{
-								T1WriteWord(state->MMU->MMU_MEM[proc][(REG_SPIDATA >> 20) & 0xff], REG_SPIDATA & 0xfff, 0);
+								T1WriteWord(core->MemMap[(REG_SPIDATA >> 20) & 0xff], REG_SPIDATA & 0xfff, 0);
 								break;
 							}
-							T1WriteWord(state->MMU->MMU_MEM[proc][(REG_SPIDATA >> 20) & 0xff], REG_SPIDATA & 0xfff, fw_transfer(&state->MMU->fw, (u8)val));
+							T1WriteWord(core->MemMap[(REG_SPIDATA >> 20) & 0xff], REG_SPIDATA & 0xfff, fw_transfer(&state->MMU->fw, (u8)val));
 
 							return;
 							
@@ -640,43 +649,43 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 					}
 				}
 				
-				T1WriteWord(state->MMU->MMU_MEM[proc][(REG_SPIDATA >> 20) & 0xff], REG_SPIDATA & 0xfff, val);
+				T1WriteWord(core->MemMap[(REG_SPIDATA >> 20) & 0xff], REG_SPIDATA & 0xfff, val);
 				return;
 				
 				/* NOTICE: Perhaps we have to use gbatek-like reg names instead of libnds-like ones ...*/
 				
                         case REG_DISPA_BG0CNT :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x8, val);
+				T1WriteWord(core->MemMap[0x40], 0x8, val);
 				return;
                         case REG_DISPA_BG1CNT :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xA, val);
+				T1WriteWord(core->MemMap[0x40], 0xA, val);
 				return;
                         case REG_DISPA_BG2CNT :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xC, val);
+				T1WriteWord(core->MemMap[0x40], 0xC, val);
 				return;
                         case REG_DISPA_BG3CNT :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xE, val);
+				T1WriteWord(core->MemMap[0x40], 0xE, val);
 				return;
                         case REG_DISPB_BG0CNT :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x1008, val);
+				T1WriteWord(core->MemMap[0x40], 0x1008, val);
 				return;
                         case REG_DISPB_BG1CNT :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x100A, val);
+				T1WriteWord(core->MemMap[0x40], 0x100A, val);
 				return;
                         case REG_DISPB_BG2CNT :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x100C, val);
+				T1WriteWord(core->MemMap[0x40], 0x100C, val);
 				return;
                         case REG_DISPB_BG3CNT :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x100E, val);
+				T1WriteWord(core->MemMap[0x40], 0x100E, val);
 				return;
                         case REG_IME : {
-			        u32 old_val = state->MMU->reg_IME[proc];
+			        u32 old_val = core->reg_IME;
 				u32 new_val = val & 1;
-				state->MMU->reg_IME[proc] = new_val;
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x208, val);
+				core->reg_IME = new_val;
+				T1WriteLong(core->MemMap[0x40], 0x208, val);
 				if ( new_val && old_val != new_val) {
 				  /* raise an interrupt request to the CPU if needed */
-				  if ( state->MMU->reg_IE[proc] & state->MMU->reg_IF[proc]) {
+				  if ( core->reg_IE & core->reg_IF) {
 				    state->NDS_ARM7->wIRQ = TRUE;
 				    state->NDS_ARM7->waitIRQ = FALSE;
 				  }
@@ -704,10 +713,10 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				return ;
 
 			case REG_IE :
-				state->MMU->reg_IE[proc] = (state->MMU->reg_IE[proc]&0xFFFF0000) | val;
-				if ( state->MMU->reg_IME[proc]) {
+				core->reg_IE = (core->reg_IE&0xFFFF0000) | val;
+				if ( core->reg_IME) {
 				  /* raise an interrupt request to the CPU if needed */
-				  if ( state->MMU->reg_IE[proc] & state->MMU->reg_IF[proc]) {
+				  if ( core->reg_IE & core->reg_IF) {
 				    state->NDS_ARM7->wIRQ = TRUE;
 				    state->NDS_ARM7->waitIRQ = FALSE;
 				  }
@@ -715,57 +724,60 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				return;
 			case REG_IE + 2 :
 				state->execute = FALSE;
-				state->MMU->reg_IE[proc] = (state->MMU->reg_IE[proc]&0xFFFF) | (((u32)val)<<16);
+				core->reg_IE = (core->reg_IE&0xFFFF) | (((u32)val)<<16);
 				return;
 				
 			case REG_IF :
 				state->execute = FALSE;
-				state->MMU->reg_IF[proc] &= (~((u32)val));
+				core->reg_IF &= (~((u32)val));
 				return;
 			case REG_IF + 2 :
 				state->execute = FALSE;
-				state->MMU->reg_IF[proc] &= (~(((u32)val)<<16));
+				core->reg_IF &= (~(((u32)val)<<16));
 				return;
 				
                         case REG_IPCSYNC :
 				{
 				u32 remote = (proc+1)&1;
-				u16 IPCSYNC_remote = T1ReadWord(state->MMU->MMU_MEM[remote][0x40], 0x180);
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x180, (val&0xFFF0)|((IPCSYNC_remote>>8)&0xF));
-				T1WriteWord(state->MMU->MMU_MEM[remote][0x40], 0x180, (IPCSYNC_remote&0xFFF0)|((val>>8)&0xF));
-				state->MMU->reg_IF[remote] |= ((IPCSYNC_remote & (1<<14))<<2) & ((val & (1<<13))<<3);// & (MMU->reg_IME[remote] << 16);// & (MMU->reg_IE[remote] & (1<<16));//
+        MMU_Core_struct* const remote_core = state->MMU->Cores + remote;
+				u16 IPCSYNC_remote = T1ReadWord(remote_core->MemMap[0x40], 0x180);
+				T1WriteWord(core->MemMap[0x40], 0x180, (val&0xFFF0)|((IPCSYNC_remote>>8)&0xF));
+				T1WriteWord(remote_core->MemMap[0x40], 0x180, (IPCSYNC_remote&0xFFF0)|((val>>8)&0xF));
+				remote_core->reg_IF |= ((IPCSYNC_remote & (1<<14))<<2) & ((val & (1<<13))<<3);// & (MMU->reg_IME[remote] << 16);// & (MMU->reg_IE[remote] & (1<<16));//
 				//execute = FALSE;
 				}
 				return;
                         case REG_IPCFIFOCNT :
 				{
-					u32 cnt_l = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x184) ;
-					u32 cnt_r = T1ReadWord(state->MMU->MMU_MEM[(proc+1) & 1][0x40], 0x184) ;
+    			u32 remote = (proc+1)&1;
+          MMU_Core_struct* const remote_core = state->MMU->Cores + remote;
+					u32 cnt_l = T1ReadWord(core->MemMap[0x40], 0x184) ;
+					u32 cnt_r = T1ReadWord(remote_core->MemMap[0x40], 0x184) ;
 					if ((val & 0x8000) && !(cnt_l & 0x8000))
 					{
 						/* this is the first init, the other side didnt init yet */
 						/* so do a complete init */
 						FIFOInit(state->MMU->fifos + (IPCFIFO+proc));
-						T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184,0x8101) ;
+						T1WriteWord(core->MemMap[0x40], 0x184,0x8101) ;
 						/* and then handle it as usual */
 					}
 
 				if(val & 0x4008)
 				{
 					FIFOInit(state->MMU->fifos + (IPCFIFO+((proc+1)&1)));
-					T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184, (cnt_l & 0x0301) | (val & 0x8404) | 1);
-					T1WriteWord(state->MMU->MMU_MEM[proc^1][0x40], 0x184, (cnt_r & 0xC507) | 0x100);
-					state->MMU->reg_IF[proc] |= ((val & 4)<<15);// & (MMU->reg_IME[proc]<<17);// & (MMU->reg_IE[proc]&0x20000);//
+					T1WriteWord(core->MemMap[0x40], 0x184, (cnt_l & 0x0301) | (val & 0x8404) | 1);
+					T1WriteWord(remote_core->MemMap[0x40], 0x184, (cnt_r & 0xC507) | 0x100);
+					core->reg_IF |= ((val & 4)<<15);// & (MMU->reg_IME[proc]<<17);// & (MMU->reg_IE[proc]&0x20000);//
 					return;
 				}
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184, T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x184) | (val & 0xBFF4));
+				T1WriteWord(core->MemMap[0x40], 0x184, T1ReadWord(core->MemMap[0x40], 0x184) | (val & 0xBFF4));
 				}
 				return;
                         case REG_TM0CNTL :
                         case REG_TM1CNTL :
                         case REG_TM2CNTL :
                         case REG_TM3CNTL :
-				state->MMU->Timers[proc].Channels[(adr>>2)&3].Reload = val;
+				core->Timers[(adr>>2)&3].Reload = val;
 				return;
                         case REG_TM0CNTH :
                         case REG_TM1CNTH :
@@ -773,43 +785,43 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
                         case REG_TM3CNTH :
 				if(val&0x80)
 				{
-				  state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Counter = state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Reload;
+				  core->Timers[((adr-2)>>2)&0x3].Counter = core->Timers[((adr-2)>>2)&0x3].Reload;
 				}
-				state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].On = val & 0x80;
+				core->Timers[((adr-2)>>2)&0x3].On = val & 0x80;
 				switch(val&7)
 				{
 				case 0 :
-					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 0+1;//proc;
+					core->Timers[((adr-2)>>2)&0x3].Mode = 0+1;//proc;
 					break;
 				case 1 :
-					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 6+1;//proc;
+					core->Timers[((adr-2)>>2)&0x3].Mode = 6+1;//proc;
 					break;
 				case 2 :
-					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 8+1;//proc;
+					core->Timers[((adr-2)>>2)&0x3].Mode = 8+1;//proc;
 					break;
 				case 3 :
-					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 10+1;//proc;
+					core->Timers[((adr-2)>>2)&0x3].Mode = 10+1;//proc;
 					break;
 				default :
-					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 0xFFFF;
+					core->Timers[((adr-2)>>2)&0x3].Mode = 0xFFFF;
 					break;
 				}
 				if(!(val & 0x80))
-				state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Run = FALSE;
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], adr & 0xFFF, val);
+				core->Timers[((adr-2)>>2)&0x3].Run = FALSE;
+				T1WriteWord(core->MemMap[0x40], adr & 0xFFF, val);
 				return;
                         case REG_DISPA_DISPCNT+2 : 
 				{
 				//execute = FALSE;
-				u32 v = (T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0) & 0xFFFF) | ((u32) val << 16);
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0, v);
+				u32 v = (T1ReadLong(core->MemMap[0x40], 0) & 0xFFFF) | ((u32) val << 16);
+				T1WriteLong(core->MemMap[0x40], 0, v);
 				}
 				return;
                         case REG_DISPA_DISPCNT :
 				if(proc == ARMCPU_ARM9)
 				{
-				u32 v = (T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0) & 0xFFFF0000) | val;
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0, v);
+				u32 v = (T1ReadLong(core->MemMap[0x40], 0) & 0xFFFF0000) | val;
+				T1WriteLong(core->MemMap[0x40], 0, v);
 				}
 				return;
                         case REG_DISPA_DISPCAPCNT :
@@ -818,14 +830,14 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				if(proc == ARMCPU_ARM9)
 				{
 				//execute = FALSE;
-				u32 v = (T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x1000) & 0xFFFF) | ((u32) val << 16);
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x1000, v);
+				u32 v = (T1ReadLong(core->MemMap[0x40], 0x1000) & 0xFFFF) | ((u32) val << 16);
+				T1WriteLong(core->MemMap[0x40], 0x1000, v);
 				}
 				return;
                         case REG_DISPB_DISPCNT :
 				{
-				u32 v = (T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x1000) & 0xFFFF0000) | val;
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x1000, v);
+				u32 v = (T1ReadLong(core->MemMap[0x40], 0x1000) & 0xFFFF0000) | val;
+				T1WriteLong(core->MemMap[0x40], 0x1000, v);
 				}
 				return;
 			//case 0x020D8460 :
@@ -838,13 +850,13 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma0 %04X\r\n", val);
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xBA, val);
-				state->MMU->DMA[proc].Channels[0].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
-				state->MMU->DMA[proc].Channels[0].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
-                                v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB8);
-				state->MMU->DMA[proc].Channels[0].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
-				state->MMU->DMA[proc].Channels[0].Crt = v;
-				if(state->MMU->DMA[proc].Channels[0].StartTime == 0)
+				T1WriteWord(core->MemMap[0x40], 0xBA, val);
+				core->DMA[0].Src = T1ReadLong(core->MemMap[0x40], 0xB0);
+				core->DMA[0].Dst = T1ReadLong(core->MemMap[0x40], 0xB4);
+                                v = T1ReadLong(core->MemMap[0x40], 0xB8);
+				core->DMA[0].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
+				core->DMA[0].Crt = v;
+				if(core->DMA[0].StartTime == 0)
 					MMU_doDMA(state, proc, 0);
 				}
 				return;
@@ -853,13 +865,13 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
                                 u32 v;
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma1 %04X\r\n", val);
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xC6, val);
-				state->MMU->DMA[proc].Channels[1].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
-				state->MMU->DMA[proc].Channels[1].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
-                                v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC4);
-				state->MMU->DMA[proc].Channels[1].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
-				state->MMU->DMA[proc].Channels[1].Crt = v;
-				if(state->MMU->DMA[proc].Channels[1].StartTime == 0)
+				T1WriteWord(core->MemMap[0x40], 0xC6, val);
+				core->DMA[1].Src = T1ReadLong(core->MemMap[0x40], 0xBC);
+				core->DMA[1].Dst = T1ReadLong(core->MemMap[0x40], 0xC0);
+                                v = T1ReadLong(core->MemMap[0x40], 0xC4);
+				core->DMA[1].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
+				core->DMA[1].Crt = v;
+				if(core->DMA[1].StartTime == 0)
 					MMU_doDMA(state, proc, 1);
 				}
 				return;
@@ -868,13 +880,13 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
                                 u32 v;
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma2 %04X\r\n", val);
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xD2, val);
-				state->MMU->DMA[proc].Channels[2].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
-				state->MMU->DMA[proc].Channels[2].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
-                                v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD0);
-				state->MMU->DMA[proc].Channels[2].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
-				state->MMU->DMA[proc].Channels[2].Crt = v;
-				if(state->MMU->DMA[proc].Channels[2].StartTime == 0)
+				T1WriteWord(core->MemMap[0x40], 0xD2, val);
+				core->DMA[2].Src = T1ReadLong(core->MemMap[0x40], 0xC8);
+				core->DMA[2].Dst = T1ReadLong(core->MemMap[0x40], 0xCC);
+                                v = T1ReadLong(core->MemMap[0x40], 0xD0);
+				core->DMA[2].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
+				core->DMA[2].Crt = v;
+				if(core->DMA[2].StartTime == 0)
 					MMU_doDMA(state, proc, 2);
 				}
 				return;
@@ -883,24 +895,24 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
                                 u32 v;
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma3 %04X\r\n", val);
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xDE, val);
-				state->MMU->DMA[proc].Channels[3].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
-				state->MMU->DMA[proc].Channels[3].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
-                                v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xDC);
-				state->MMU->DMA[proc].Channels[3].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
-				state->MMU->DMA[proc].Channels[3].Crt = v;
+				T1WriteWord(core->MemMap[0x40], 0xDE, val);
+				core->DMA[3].Src = T1ReadLong(core->MemMap[0x40], 0xD4);
+				core->DMA[3].Dst = T1ReadLong(core->MemMap[0x40], 0xD8);
+                                v = T1ReadLong(core->MemMap[0x40], 0xDC);
+				core->DMA[3].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
+				core->DMA[3].Crt = v;
 		
-				if(state->MMU->DMA[proc].Channels[3].StartTime == 0)
+				if(core->DMA[3].StartTime == 0)
 					MMU_doDMA(state, proc, 3);
 				}
 				return;
                         //case REG_AUXSPICNT : execute = FALSE;
 			default :
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], adr&state->MMU->MMU_MASK[proc][(adr>>20)&0xFF], val);
+				T1WriteWord(core->MemMap[0x40], adr & core->MemMask[(adr>>20)&0xFF], val);
 				return;
 		}
 	}
-	T1WriteWord(state->MMU->MMU_MEM[proc][(adr>>20)&0xFF], adr&state->MMU->MMU_MASK[proc][(adr>>20)&0xFF], val);
+	T1WriteWord(core->MemMap[(adr>>20)&0xFF], adr & core->MemMask[(adr>>20)&0xFF], val);
 } 
 
 
@@ -939,12 +951,13 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 		} ;
 
 
+  MMU_Core_struct* const core = state->MMU->Cores + proc;
 	if((adr>>24)==4)
 	{
 		if (adr >= 0x04000400 && adr < 0x04000440)
 		{
 			// Geometry commands (aka Dislay Lists) - Parameters:X
-			((u32 *)(state->MMU->MMU_MEM[proc][0x40]))[0x400>>2] = val;
+			((u32 *)(core->MemMap[0x40]))[0x400>>2] = val;
 		}
 		else
 		switch(adr)
@@ -955,11 +968,11 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 			case REG_DISPB_BLDCNT:
 				break;
       case REG_DISPA_DISPCNT :
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0, val);
+				T1WriteLong(core->MemMap[0x40], 0, val);
 				return;
 				
       case REG_DISPB_DISPCNT : 
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x1000, val);
+				T1WriteLong(core->MemMap[0x40], 0x1000, val);
 				return;
 			case REG_VRAMCNTA:
 			case REG_VRAMCNTE:
@@ -973,13 +986,13 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 				return ;
 
                         case REG_IME : {
-			        u32 old_val = state->MMU->reg_IME[proc];
+			        u32 old_val = core->reg_IME;
 				u32 new_val = val & 1;
-				state->MMU->reg_IME[proc] = new_val;
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x208, val);
+				core->reg_IME = new_val;
+				T1WriteLong(core->MemMap[0x40], 0x208, val);
 				if ( new_val && old_val != new_val) {
 				  /* raise an interrupt request to the CPU if needed */
-				  if ( state->MMU->reg_IE[proc] & state->MMU->reg_IF[proc]) {
+				  if ( core->reg_IE & core->reg_IF) {
 				    state->NDS_ARM7->wIRQ = TRUE;
 				    state->NDS_ARM7->waitIRQ = FALSE;
 				  }
@@ -988,10 +1001,10 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 			}
 				
 			case REG_IE :
-				state->MMU->reg_IE[proc] = val;
-				if ( state->MMU->reg_IME[proc]) {
+				core->reg_IE = val;
+				if ( core->reg_IME) {
 				  /* raise an interrupt request to the CPU if needed */
-				  if ( state->MMU->reg_IE[proc] & state->MMU->reg_IF[proc]) {
+				  if ( core->reg_IE & core->reg_IF) {
 				    state->NDS_ARM7->wIRQ = TRUE;
 				    state->NDS_ARM7->waitIRQ = FALSE;
 				  }
@@ -999,41 +1012,41 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 				return;
 			
 			case REG_IF :
-				state->MMU->reg_IF[proc] &= (~val);
+				core->reg_IF &= (~val);
 				return;
                         case REG_TM0CNTL :
                         case REG_TM1CNTL :
                         case REG_TM2CNTL :
                         case REG_TM3CNTL :
-				state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Reload = (u16)val;
+				core->Timers[(adr>>2)&0x3].Reload = (u16)val;
 				if(val&0x800000)
 				{
-					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Counter = state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Reload;
+					core->Timers[(adr>>2)&0x3].Counter = core->Timers[(adr>>2)&0x3].Reload;
 				}
-				state->MMU->Timers[proc].Channels[(adr>>2)&0x3].On = val & 0x800000;
+				core->Timers[(adr>>2)&0x3].On = val & 0x800000;
 				switch((val>>16)&7)
 				{
 					case 0 :
-					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 0+1;//proc;
+					core->Timers[(adr>>2)&0x3].Mode = 0+1;//proc;
 					break;
 					case 1 :
-					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 6+1;//proc;
+					core->Timers[(adr>>2)&0x3].Mode = 6+1;//proc;
 					break;
 					case 2 :
-					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 8+1;//proc;
+					core->Timers[(adr>>2)&0x3].Mode = 8+1;//proc;
 					break;
 					case 3 :
-					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 10+1;//proc;
+					core->Timers[(adr>>2)&0x3].Mode = 10+1;//proc;
 					break;
 					default :
-					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 0xFFFF;
+					core->Timers[(adr>>2)&0x3].Mode = 0xFFFF;
 					break;
 				}
 				if(!(val & 0x800000))
 				{
-					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Run = FALSE;
+					core->Timers[(adr>>2)&0x3].Run = FALSE;
 				}
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], adr & 0xFFF, val);
+				T1WriteLong(core->MemMap[0x40], adr & 0xFFF, val);
 				return;
                         case REG_DIVDENOM :
 				{
@@ -1042,20 +1055,20 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 					s64 den = 1;
 					s64 res;
 					s64 mod;
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x298, val);
-                                        cnt = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x280);
+					T1WriteLong(core->MemMap[0x40], 0x298, val);
+                                        cnt = T1ReadWord(core->MemMap[0x40], 0x280);
 					switch(cnt&3)
 					{
 					case 0:
 					{
-						num = (s64) (s32) T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x290);
-						den = (s64) (s32) T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x298);
+						num = (s64) (s32) T1ReadLong(core->MemMap[0x40], 0x290);
+						den = (s64) (s32) T1ReadLong(core->MemMap[0x40], 0x298);
 					}
 					break;
 					case 1:
 					{
-						num = (s64) T1ReadQuad(state->MMU->MMU_MEM[proc][0x40], 0x290);
-						den = (s64) (s32) T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x298);
+						num = (s64) T1ReadQuad(core->MemMap[0x40], 0x290);
+						den = (s64) (s32) T1ReadLong(core->MemMap[0x40], 0x298);
 					}
 					break;
 					case 2:
@@ -1082,11 +1095,11 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 					DIVLOG("BOUT1 %08X%08X / %08X%08X = %08X%08X\r\n", (u32)(num>>32), (u32)num, 
 											(u32)(den>>32), (u32)den, 
 											(u32)(res>>32), (u32)res);
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2A0, (u32) res);
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2A4, (u32) (res >> 32));
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2A8, (u32) mod);
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2AC, (u32) (mod >> 32));
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x280, cnt);
+					T1WriteLong(core->MemMap[0x40], 0x2A0, (u32) res);
+					T1WriteLong(core->MemMap[0x40], 0x2A4, (u32) (res >> 32));
+					T1WriteLong(core->MemMap[0x40], 0x2A8, (u32) mod);
+					T1WriteLong(core->MemMap[0x40], 0x2AC, (u32) (mod >> 32));
+					T1WriteLong(core->MemMap[0x40], 0x280, cnt);
 				}
 				return;
                         case REG_DIVDENOM+4 :
@@ -1096,8 +1109,8 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 				s64 den = 1;
 				s64 res;
 				s64 mod;
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x29C, val);
-                                cnt = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x280);
+				T1WriteLong(core->MemMap[0x40], 0x29C, val);
+                                cnt = T1ReadWord(core->MemMap[0x40], 0x280);
 				switch(cnt&3)
 				{
 				case 0:
@@ -1112,8 +1125,8 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 				break;
 				case 2:
 				{
-					num = (s64) T1ReadQuad(state->MMU->MMU_MEM[proc][0x40], 0x290);
-					den = (s64) T1ReadQuad(state->MMU->MMU_MEM[proc][0x40], 0x298);
+					num = (s64) T1ReadQuad(core->MemMap[0x40], 0x290);
+					den = (s64) T1ReadQuad(core->MemMap[0x40], 0x298);
 				}
 				break;
 				default: 
@@ -1135,11 +1148,11 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 				DIVLOG("BOUT2 %08X%08X / %08X%08X = %08X%08X\r\n", (u32)(num>>32), (u32)num, 
 										(u32)(den>>32), (u32)den, 
 										(u32)(res>>32), (u32)res);
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2A0, (u32) res);
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2A4, (u32) (res >> 32));
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2A8, (u32) mod);
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2AC, (u32) (mod >> 32));
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x280, cnt);
+				T1WriteLong(core->MemMap[0x40], 0x2A0, (u32) res);
+				T1WriteLong(core->MemMap[0x40], 0x2A4, (u32) (res >> 32));
+				T1WriteLong(core->MemMap[0x40], 0x2A8, (u32) mod);
+				T1WriteLong(core->MemMap[0x40], 0x2AC, (u32) (mod >> 32));
+				T1WriteLong(core->MemMap[0x40], 0x280, cnt);
 			}
 			return;
                         case REG_SQRTPARAM :
@@ -1147,193 +1160,197 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
                                         u16 cnt;
 					u64 v = 1;
 					//execute = FALSE;
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2B8, val);
-                                        cnt = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x2B0);
+					T1WriteLong(core->MemMap[0x40], 0x2B8, val);
+                                        cnt = T1ReadWord(core->MemMap[0x40], 0x2B0);
 					switch(cnt&1)
 					{
 					case 0:
-						v = (u64) T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x2B8);
+						v = (u64) T1ReadLong(core->MemMap[0x40], 0x2B8);
 						break;
 					case 1:
 						return;
 					}
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2B4, (u32) isqrt64(v));
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2B0, cnt & 0x7FFF);
+					T1WriteLong(core->MemMap[0x40], 0x2B4, (u32) isqrt64(v));
+					T1WriteLong(core->MemMap[0x40], 0x2B0, cnt & 0x7FFF);
 					SQRTLOG("BOUT1 sqrt(%08X%08X) = %08X\r\n", (u32)(v>>32), (u32)v, 
-										T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x2B4));
+										T1ReadLong(core->MemMap[0x40], 0x2B4));
 				}
 				return;
                         case REG_SQRTPARAM+4 :
 				{
                                         u16 cnt;
 					u64 v = 1;
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2BC, val);
-                                        cnt = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x2B0);
+					T1WriteLong(core->MemMap[0x40], 0x2BC, val);
+                                        cnt = T1ReadWord(core->MemMap[0x40], 0x2B0);
 					switch(cnt&1)
 					{
 					case 0:
 						return;
 						//break;
 					case 1:
-						v = T1ReadQuad(state->MMU->MMU_MEM[proc][0x40], 0x2B8);
+						v = T1ReadQuad(core->MemMap[0x40], 0x2B8);
 						break;
 					}
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2B4, (u32) isqrt64(v));
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x2B0, cnt & 0x7FFF);
+					T1WriteLong(core->MemMap[0x40], 0x2B4, (u32) isqrt64(v));
+					T1WriteLong(core->MemMap[0x40], 0x2B0, cnt & 0x7FFF);
 					SQRTLOG("BOUT2 sqrt(%08X%08X) = %08X\r\n", (u32)(v>>32), (u32)v, 
-										T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0x2B4));
+										T1ReadLong(core->MemMap[0x40], 0x2B4));
 				}
 				return;
                         case REG_IPCSYNC :
 				{
 					//execute=FALSE;
 					u32 remote = (proc+1)&1;
-					u32 IPCSYNC_remote = T1ReadLong(state->MMU->MMU_MEM[remote][0x40], 0x180);
-					T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0x180, (val&0xFFF0)|((IPCSYNC_remote>>8)&0xF));
-					T1WriteLong(state->MMU->MMU_MEM[remote][0x40], 0x180, (IPCSYNC_remote&0xFFF0)|((val>>8)&0xF));
-					state->MMU->reg_IF[remote] |= ((IPCSYNC_remote & (1<<14))<<2) & ((val & (1<<13))<<3);// & (MMU->reg_IME[remote] << 16);// & (MMU->reg_IE[remote] & (1<<16));//
+          MMU_Core_struct* const remote_core = state->MMU->Cores + remote;
+					u32 IPCSYNC_remote = T1ReadLong(remote_core->MemMap[0x40], 0x180);
+					T1WriteLong(core->MemMap[0x40], 0x180, (val&0xFFF0)|((IPCSYNC_remote>>8)&0xF));
+					T1WriteLong(remote_core->MemMap[0x40], 0x180, (IPCSYNC_remote&0xFFF0)|((val>>8)&0xF));
+					remote_core->reg_IF |= ((IPCSYNC_remote & (1<<14))<<2) & ((val & (1<<13))<<3);// & (MMU->reg_IME[remote] << 16);// & (MMU->reg_IE[remote] & (1<<16));//
 				}
 				return;
                         case REG_IPCFIFOCNT :
 							{
-					u32 cnt_l = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x184) ;
-					u32 cnt_r = T1ReadWord(state->MMU->MMU_MEM[(proc+1) & 1][0x40], 0x184) ;
+  				u32 remote = (proc+1)&1;
+          MMU_Core_struct* const remote_core = state->MMU->Cores + remote;
+					u32 cnt_l = T1ReadWord(core->MemMap[0x40], 0x184) ;
+					u32 cnt_r = T1ReadWord(remote_core->MemMap[0x40], 0x184) ;
 					if ((val & 0x8000) && !(cnt_l & 0x8000))
 					{
 						/* this is the first init, the other side didnt init yet */
 						/* so do a complete init */
 						FIFOInit(state->MMU->fifos + (IPCFIFO+proc));
-						T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184,0x8101) ;
+						T1WriteWord(core->MemMap[0x40], 0x184,0x8101) ;
 						/* and then handle it as usual */
 					}
 				if(val & 0x4008)
 				{
 					FIFOInit(state->MMU->fifos + (IPCFIFO+((proc+1)&1)));
-					T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184, (cnt_l & 0x0301) | (val & 0x8404) | 1);
-					T1WriteWord(state->MMU->MMU_MEM[proc^1][0x40], 0x184, (cnt_r & 0xC507) | 0x100);
-					state->MMU->reg_IF[proc] |= ((val & 4)<<15);// & (MMU->reg_IME[proc]<<17);// & (MMU->reg_IE[proc]&0x20000);//
+					T1WriteWord(core->MemMap[0x40], 0x184, (cnt_l & 0x0301) | (val & 0x8404) | 1);
+					T1WriteWord(remote_core->MemMap[0x40], 0x184, (cnt_r & 0xC507) | 0x100);
+					core->reg_IF |= ((val & 4)<<15);// & (MMU->reg_IME[proc]<<17);// & (MMU->reg_IE[proc]&0x20000);//
 					return;
 				}
-				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184, val & 0xBFF4);
+				T1WriteWord(core->MemMap[0x40], 0x184, val & 0xBFF4);
 				//execute = FALSE;
 				return;
 							}
                         case REG_IPCFIFOSEND :
 				{
-					u16 IPCFIFO_CNT = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], 0x184);
+					u16 IPCFIFO_CNT = T1ReadWord(core->MemMap[0x40], 0x184);
 					if(IPCFIFO_CNT&0x8000)
 					{
 					//if(val==43) execute = FALSE;
 					u32 remote = (proc+1)&1;
+          MMU_Core_struct* const remote_core = state->MMU->Cores + remote;
 					u32 fifonum = IPCFIFO+remote;
                                         u16 IPCFIFO_CNT_remote;
 					FIFOAdd(state->MMU->fifos + fifonum, val);
 					IPCFIFO_CNT = (IPCFIFO_CNT & 0xFFFC) | (state->MMU->fifos[fifonum].full<<1);
-                                        IPCFIFO_CNT_remote = T1ReadWord(state->MMU->MMU_MEM[remote][0x40], 0x184);
+                                        IPCFIFO_CNT_remote = T1ReadWord(remote_core->MemMap[0x40], 0x184);
 					IPCFIFO_CNT_remote = (IPCFIFO_CNT_remote & 0xFCFF) | (state->MMU->fifos[fifonum].full<<10);
-					T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0x184, IPCFIFO_CNT);
-					T1WriteWord(state->MMU->MMU_MEM[remote][0x40], 0x184, IPCFIFO_CNT_remote);
-					state->MMU->reg_IF[remote] |= ((IPCFIFO_CNT_remote & (1<<10))<<8);// & (MMU->reg_IME[remote] << 18);// & (MMU->reg_IE[remote] & 0x40000);//
+					T1WriteWord(core->MemMap[0x40], 0x184, IPCFIFO_CNT);
+					T1WriteWord(remote_core->MemMap[0x40], 0x184, IPCFIFO_CNT_remote);
+					remote_core->reg_IF |= ((IPCFIFO_CNT_remote & (1<<10))<<8);// & (MMU->reg_IME[remote] << 18);// & (MMU->reg_IE[remote] & 0x40000);//
 					//execute = FALSE;
 					}
 				}
 				return;
 			case REG_DMA0CNTL :
 				//LOG("32 bit dma0 %04X\r\n", val);
-				state->MMU->DMA[proc].Channels[0].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
-				state->MMU->DMA[proc].Channels[0].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
-				state->MMU->DMA[proc].Channels[0].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
-				state->MMU->DMA[proc].Channels[0].Crt = val;
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xB8, val);
-				if( state->MMU->DMA[proc].Channels[0].StartTime == 0 ||
-					state->MMU->DMA[proc].Channels[0].StartTime == 7)		// Start Immediately
+				core->DMA[0].Src = T1ReadLong(core->MemMap[0x40], 0xB0);
+				core->DMA[0].Dst = T1ReadLong(core->MemMap[0x40], 0xB4);
+				core->DMA[0].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
+				core->DMA[0].Crt = val;
+				T1WriteLong(core->MemMap[0x40], 0xB8, val);
+				if( core->DMA[0].StartTime == 0 ||
+					core->DMA[0].StartTime == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 0);
 				return;
 			case REG_DMA1CNTL:
 				//LOG("32 bit dma1 %04X\r\n", val);
-				state->MMU->DMA[proc].Channels[1].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
-				state->MMU->DMA[proc].Channels[1].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
-				state->MMU->DMA[proc].Channels[1].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
-				state->MMU->DMA[proc].Channels[1].Crt = val;
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xC4, val);
-				if(state->MMU->DMA[proc].Channels[1].StartTime == 0 ||
-					state->MMU->DMA[proc].Channels[1].StartTime == 7)		// Start Immediately
+				core->DMA[1].Src = T1ReadLong(core->MemMap[0x40], 0xBC);
+				core->DMA[1].Dst = T1ReadLong(core->MemMap[0x40], 0xC0);
+				core->DMA[1].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
+				core->DMA[1].Crt = val;
+				T1WriteLong(core->MemMap[0x40], 0xC4, val);
+				if(core->DMA[1].StartTime == 0 ||
+					core->DMA[1].StartTime == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 1);
 				return;
 			case REG_DMA2CNTL :
 				//LOG("32 bit dma2 %04X\r\n", val);
-				state->MMU->DMA[proc].Channels[2].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
-				state->MMU->DMA[proc].Channels[2].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
-				state->MMU->DMA[proc].Channels[2].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
-				state->MMU->DMA[proc].Channels[2].Crt = val;
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xD0, val);
-				if(state->MMU->DMA[proc].Channels[2].StartTime == 0 ||
-					state->MMU->DMA[proc].Channels[2].StartTime == 7)		// Start Immediately
+				core->DMA[2].Src = T1ReadLong(core->MemMap[0x40], 0xC8);
+				core->DMA[2].Dst = T1ReadLong(core->MemMap[0x40], 0xCC);
+				core->DMA[2].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
+				core->DMA[2].Crt = val;
+				T1WriteLong(core->MemMap[0x40], 0xD0, val);
+				if(core->DMA[2].StartTime == 0 ||
+					core->DMA[2].StartTime == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 2);
 				return;
 			case 0x040000DC :
 				//LOG("32 bit dma3 %04X\r\n", val);
-				state->MMU->DMA[proc].Channels[3].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
-				state->MMU->DMA[proc].Channels[3].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
-				state->MMU->DMA[proc].Channels[3].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
-				state->MMU->DMA[proc].Channels[3].Crt = val;
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xDC, val);
-				if(	state->MMU->DMA[proc].Channels[3].StartTime == 0 ||
-					state->MMU->DMA[proc].Channels[3].StartTime == 7)		// Start Immediately
+				core->DMA[3].Src = T1ReadLong(core->MemMap[0x40], 0xD4);
+				core->DMA[3].Dst = T1ReadLong(core->MemMap[0x40], 0xD8);
+				core->DMA[3].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
+				core->DMA[3].Crt = val;
+				T1WriteLong(core->MemMap[0x40], 0xDC, val);
+				if(	core->DMA[3].StartTime == 0 ||
+					core->DMA[3].StartTime == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 3);
 				return;
                         case REG_GCROMCTRL :
 				{
 					int i;
 
-                                        if(MEM_8(state->MMU->MMU_MEM[proc], REG_GCCMDOUT) == 0xB7)
+                                        if(MEM_8(core->MemMap, REG_GCCMDOUT) == 0xB7)
 					{
-                                                state->MMU->dscard[proc].adress = (MEM_8(state->MMU->MMU_MEM[proc], REG_GCCMDOUT+1) << 24) | (MEM_8(state->MMU->MMU_MEM[proc], REG_GCCMDOUT+2) << 16) | (MEM_8(state->MMU->MMU_MEM[proc], REG_GCCMDOUT+3) << 8) | (MEM_8(state->MMU->MMU_MEM[proc], REG_GCCMDOUT+4));
-						state->MMU->dscard[proc].transfer_count = 0x80;// * ((val>>24)&7));
+                                                core->dscard.adress = (MEM_8(core->MemMap, REG_GCCMDOUT+1) << 24) | (MEM_8(core->MemMap, REG_GCCMDOUT+2) << 16) | (MEM_8(core->MemMap, REG_GCCMDOUT+3) << 8) | (MEM_8(core->MemMap, REG_GCCMDOUT+4));
+						core->dscard.transfer_count = 0x80;// * ((val>>24)&7));
 					}
-                                        else if (MEM_8(state->MMU->MMU_MEM[proc], REG_GCCMDOUT) == 0xB8)
+                                        else if (MEM_8(core->MemMap, REG_GCCMDOUT) == 0xB8)
                                         {
                                                 // Get ROM chip ID
                                                 val |= 0x800000; // Data-Word Status
-                                                T1WriteLong(state->MMU->MMU_MEM[proc][(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, val);
-                                                state->MMU->dscard[proc].adress = 0;
+                                                T1WriteLong(core->MemMap[(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, val);
+                                                core->dscard.adress = 0;
                                         }
 					else
 					{
-                                                LOG("CARD command: %02X\n", MEM_8(state->MMU->MMU_MEM[proc], REG_GCCMDOUT));
+                                                LOG("CARD command: %02X\n", MEM_8(core->MemMap, REG_GCCMDOUT));
 					}
 					
 					//CARDLOG("%08X : %08X %08X\r\n", adr, val, adresse[proc]);
                     val |= 0x00800000;
 					
-					if(state->MMU->dscard[proc].adress == 0)
+					if(core->dscard.adress == 0)
 					{
                                                 val &= ~0x80000000; 
-                                                T1WriteLong(state->MMU->MMU_MEM[proc][(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, val);
+                                                T1WriteLong(core->MemMap[(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, val);
 						return;
 					}
-                                        T1WriteLong(state->MMU->MMU_MEM[proc][(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, val);
+                                        T1WriteLong(core->MemMap[(REG_GCROMCTRL >> 20) & 0xff], REG_GCROMCTRL & 0xfff, val);
 										
 					/* launch DMA if start flag was set to "DS Cart" */
 					if(proc == ARMCPU_ARM7) i = 2;
 					else i = 5;
 					
-					if(proc == ARMCPU_ARM9 && state->MMU->DMA[proc].Channels[0].StartTime == i)	/* dma0/1 on arm7 can't start on ds cart event */
+					if(proc == ARMCPU_ARM9 && core->DMA[0].StartTime == i)	/* dma0/1 on arm7 can't start on ds cart event */
 					{
 						MMU_doDMA(state, proc, 0);
 						return;
 					}
-					else if(proc == ARMCPU_ARM9 && state->MMU->DMA[proc].Channels[1].StartTime == i)
+					else if(proc == ARMCPU_ARM9 && core->DMA[1].StartTime == i)
 					{
 						MMU_doDMA(state, proc, 1);
 						return;
 					}
-					else if(state->MMU->DMA[proc].Channels[2].StartTime == i)
+					else if(core->DMA[2].StartTime == i)
 					{
 						MMU_doDMA(state, proc, 2);
 						return;
 					}
-					else if(state->MMU->DMA[proc].Channels[3].StartTime == i)
+					else if(core->DMA[3].StartTime == i)
 					{
 						MMU_doDMA(state, proc, 3);
 						return;
@@ -1372,67 +1389,69 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 			//case 0x21FDFF0 :  if(val==0) execute = FALSE;
 			//case 0x21FDFB0 :  if(val==0) execute = FALSE;
 			default :
-				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], adr & state->MMU->MMU_MASK[proc][(adr>>20)&0xFF], val);
+				T1WriteLong(core->MemMap[0x40], adr & core->MemMask[(adr>>20)&0xFF], val);
 				return;
 		}
 	}
-	T1WriteLong(state->MMU->MMU_MEM[proc][(adr>>20)&0xFF], adr&state->MMU->MMU_MASK[proc][(adr>>20)&0xFF], val);
+	T1WriteLong(core->MemMap[(adr>>20)&0xFF], adr & core->MemMask[(adr>>20)&0xFF], val);
 }
 
 
 void FASTCALL MMU_doDMA(NDS_state *state, u32 proc, u32 num)
 {
-	u32 src = state->MMU->DMA[proc].Channels[num].Src;
-	u32 dst = state->MMU->DMA[proc].Channels[num].Dst;
+  MMU_Core_struct* const core = state->MMU->Cores + proc;
+  
+	u32 src = core->DMA[num].Src;
+	u32 dst = core->DMA[num].Dst;
         u32 taille;
 
 	if(src==dst)
 	{
-		T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xB8 + (0xC*num), T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB8 + (0xC*num)) & 0x7FFFFFFF);
+		T1WriteLong(core->MemMap[0x40], 0xB8 + (0xC*num), T1ReadLong(core->MemMap[0x40], 0xB8 + (0xC*num)) & 0x7FFFFFFF);
 		return;
 	}
 	
-	if((!(state->MMU->DMA[proc].Channels[num].Crt&(1<<31)))&&(!(state->MMU->DMA[proc].Channels[num].Crt&(1<<25))))
+	if((!(core->DMA[num].Crt&(1<<31)))&&(!(core->DMA[num].Crt&(1<<25))))
 	{       /* not enabled and not to be repeated */
-		state->MMU->DMA[proc].Channels[num].StartTime = 0;
-		state->MMU->DMA[proc].Channels[num].Cycle = 0;
+		core->DMA[num].StartTime = 0;
+		core->DMA[num].Cycle = 0;
 		//MMU->DMA[proc].Channels[num].Active = FALSE;
 		return;
 	}
 	
 	
 	/* word count */
-	taille = (state->MMU->DMA[proc].Channels[num].Crt&0xFFFF);
+	taille = (core->DMA[num].Crt&0xFFFF);
 	
 	// If we are in "Main memory display" mode just copy an entire 
 	// screen (256x192 pixels). 
 	//    Reference:  http://nocash.emubase.de/gbatek.htm#dsvideocaptureandmainmemorydisplaymode
 	//       (under DISP_MMEM_FIFO)
-	if ((state->MMU->DMA[proc].Channels[num].StartTime==4) &&		// Must be in main memory display mode
+	if ((core->DMA[num].StartTime==4) &&		// Must be in main memory display mode
 		(taille==4) &&							// Word must be 4
-		(((state->MMU->DMA[proc].Channels[num].Crt>>26)&1) == 1))	// Transfer mode must be 32bit wide
+		(((core->DMA[num].Crt>>26)&1) == 1))	// Transfer mode must be 32bit wide
 		taille = 256*192/2;
 	
-	if(state->MMU->DMA[proc].Channels[num].StartTime == 5)
+	if(core->DMA[num].StartTime == 5)
 		taille *= 0x80;
 	
-	state->MMU->DMA[proc].Channels[num].Cycle = taille + state->nds->cycles;
-	state->MMU->DMA[proc].Channels[num].Active = TRUE;
+	core->DMA[num].Cycle = taille + state->nds->cycles;
+	core->DMA[num].Active = TRUE;
 	
 	DMALOG("proc %d, dma %d src %08X dst %08X start %d taille %d repeat %s %08X\r\n",
-		proc, num, src, dst, state->MMU->DMA[proc].Channels[num].StartTime, taille,
-		(state->MMU->DMA[proc].Channels[num].Crt&(1<<25))?"on":"off",state->MMU->DMA[proc].Channels[num].Crt);
+		proc, num, src, dst, core->DMA[num].StartTime, taille,
+		(core->DMA[num].Crt&(1<<25))?"on":"off",core->DMA[num].Crt);
 	
-	if(!(state->MMU->DMA[proc].Channels[num].Crt&(1<<25)))
-		state->MMU->DMA[proc].Channels[num].StartTime = 0;
+	if(!(core->DMA[num].Crt&(1<<25)))
+		core->DMA[num].StartTime = 0;
 	
 	// transfer
 	{
 		u32 i=0;
 		// 32 bit or 16 bit transfer ?
-		int sz = ((state->MMU->DMA[proc].Channels[num].Crt>>26)&1)? 4 : 2;
+		int sz = ((core->DMA[num].Crt>>26)&1)? 4 : 2;
 		int dstinc,srcinc;
-		int u=(state->MMU->DMA[proc].Channels[num].Crt>>21);
+		int u=(core->DMA[num].Crt>>21);
 		switch(u & 0x3) {
 			case 0 :  dstinc =  sz; break;
 			case 1 :  dstinc = -sz; break;
@@ -1446,7 +1465,7 @@ void FASTCALL MMU_doDMA(NDS_state *state, u32 proc, u32 num)
 			case 3 :  // reserved
 				return;
 		}
-		if ((state->MMU->DMA[proc].Channels[num].Crt>>26)&1)
+		if ((core->DMA[num].Crt>>26)&1)
 			for(; i < taille; ++i)
 			{
 				MMU_write32(state, proc, dst, MMU_read32(state, proc, src));
