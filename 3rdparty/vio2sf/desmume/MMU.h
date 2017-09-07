@@ -50,6 +50,19 @@ extern const u32 MMU_ARM9_WAIT32[16];
 extern const u32 MMU_ARM7_WAIT16[16];
 extern const u32 MMU_ARM7_WAIT32[16];
 
+typedef struct DMA_Channel_struct {
+    u32 Src;
+    u32 Dst;
+    u32 StartTime;
+    s32 Cycle;
+    u32 Crt;
+    BOOL Active;
+} DMA_Channel_struct;
+
+typedef struct DMA_struct {
+    DMA_Channel_struct Channels[4];
+} DMA_struct;
+
 typedef struct MMU_struct {
         //ARM7 mem
         u8* ARM7_MEM;
@@ -88,12 +101,8 @@ typedef struct MMU_struct {
         u32 reg_IE[2];
         u32 reg_IF[2];
         
-        u32 DMAStartTime[2][4];
-        s32 DMACycle[2][4];
-        u32 DMACrt[2][4];
-        BOOL DMAing[2][4];
-        u32 DMASrc[2][4]; /* = {{0, 0, 0, 0}, {0, 0, 0, 0}};*/
-        u32 DMADst[2][4]; /* = {{0, 0, 0, 0}, {0, 0, 0, 0}};*/
+        DMA_struct DMA[2];
+        
         nds_dscard	dscard[2];
 		  
         memory_chip_t fw;

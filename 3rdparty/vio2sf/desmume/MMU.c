@@ -172,10 +172,7 @@ void MMU_clearMem(NDS_state *state)
 	memset(state->MMU->reg_IE,        0, sizeof(u32) * 2);
 	memset(state->MMU->reg_IF,        0, sizeof(u32) * 2);
 	
-	memset(state->MMU->DMAStartTime,  0, sizeof(u32) * 2 * 4);
-	memset(state->MMU->DMACycle,      0, sizeof(s32) * 2 * 4);
-	memset(state->MMU->DMACrt,        0, sizeof(u32) * 2 * 4);
-	memset(state->MMU->DMAing,        0, sizeof(BOOL) * 2 * 4);
+	memset(state->MMU->DMA, 0, sizeof(state->MMU->DMA));
 	
 	memset(state->MMU->dscard,        0, sizeof(nds_dscard) * 2);
 }
@@ -849,12 +846,12 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma0 %04X\r\n", val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xBA, val);
-				state->MMU->DMASrc[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
-				state->MMU->DMADst[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
+				state->MMU->DMA[proc].Channels[0].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
+				state->MMU->DMA[proc].Channels[0].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
                                 v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB8);
-				state->MMU->DMAStartTime[proc][0] = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
-				state->MMU->DMACrt[proc][0] = v;
-				if(state->MMU->DMAStartTime[proc][0] == 0)
+				state->MMU->DMA[proc].Channels[0].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
+				state->MMU->DMA[proc].Channels[0].Crt = v;
+				if(state->MMU->DMA[proc].Channels[0].StartTime == 0)
 					MMU_doDMA(state, proc, 0);
 				}
 				return;
@@ -864,12 +861,12 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma1 %04X\r\n", val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xC6, val);
-				state->MMU->DMASrc[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
-				state->MMU->DMADst[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
+				state->MMU->DMA[proc].Channels[1].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
+				state->MMU->DMA[proc].Channels[1].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
                                 v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC4);
-				state->MMU->DMAStartTime[proc][1] = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
-				state->MMU->DMACrt[proc][1] = v;
-				if(state->MMU->DMAStartTime[proc][1] == 0)
+				state->MMU->DMA[proc].Channels[1].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
+				state->MMU->DMA[proc].Channels[1].Crt = v;
+				if(state->MMU->DMA[proc].Channels[1].StartTime == 0)
 					MMU_doDMA(state, proc, 1);
 				}
 				return;
@@ -879,12 +876,12 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma2 %04X\r\n", val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xD2, val);
-				state->MMU->DMASrc[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
-				state->MMU->DMADst[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
+				state->MMU->DMA[proc].Channels[2].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
+				state->MMU->DMA[proc].Channels[2].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
                                 v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD0);
-				state->MMU->DMAStartTime[proc][2] = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
-				state->MMU->DMACrt[proc][2] = v;
-				if(state->MMU->DMAStartTime[proc][2] == 0)
+				state->MMU->DMA[proc].Channels[2].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
+				state->MMU->DMA[proc].Channels[2].Crt = v;
+				if(state->MMU->DMA[proc].Channels[2].StartTime == 0)
 					MMU_doDMA(state, proc, 2);
 				}
 				return;
@@ -894,13 +891,13 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma3 %04X\r\n", val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xDE, val);
-				state->MMU->DMASrc[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
-				state->MMU->DMADst[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
+				state->MMU->DMA[proc].Channels[3].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
+				state->MMU->DMA[proc].Channels[3].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
                                 v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xDC);
-				state->MMU->DMAStartTime[proc][3] = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
-				state->MMU->DMACrt[proc][3] = v;
+				state->MMU->DMA[proc].Channels[3].StartTime = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
+				state->MMU->DMA[proc].Channels[3].Crt = v;
 		
-				if(state->MMU->DMAStartTime[proc][3] == 0)
+				if(state->MMU->DMA[proc].Channels[3].StartTime == 0)
 					MMU_doDMA(state, proc, 3);
 				}
 				return;
@@ -1250,46 +1247,46 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 				return;
 			case REG_DMA0CNTL :
 				//LOG("32 bit dma0 %04X\r\n", val);
-				state->MMU->DMASrc[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
-				state->MMU->DMADst[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
-				state->MMU->DMAStartTime[proc][0] = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
-				state->MMU->DMACrt[proc][0] = val;
+				state->MMU->DMA[proc].Channels[0].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
+				state->MMU->DMA[proc].Channels[0].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
+				state->MMU->DMA[proc].Channels[0].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
+				state->MMU->DMA[proc].Channels[0].Crt = val;
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xB8, val);
-				if( state->MMU->DMAStartTime[proc][0] == 0 ||
-					state->MMU->DMAStartTime[proc][0] == 7)		// Start Immediately
+				if( state->MMU->DMA[proc].Channels[0].StartTime == 0 ||
+					state->MMU->DMA[proc].Channels[0].StartTime == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 0);
 				return;
 			case REG_DMA1CNTL:
 				//LOG("32 bit dma1 %04X\r\n", val);
-				state->MMU->DMASrc[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
-				state->MMU->DMADst[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
-				state->MMU->DMAStartTime[proc][1] = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
-				state->MMU->DMACrt[proc][1] = val;
+				state->MMU->DMA[proc].Channels[1].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
+				state->MMU->DMA[proc].Channels[1].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
+				state->MMU->DMA[proc].Channels[1].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
+				state->MMU->DMA[proc].Channels[1].Crt = val;
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xC4, val);
-				if(state->MMU->DMAStartTime[proc][1] == 0 ||
-					state->MMU->DMAStartTime[proc][1] == 7)		// Start Immediately
+				if(state->MMU->DMA[proc].Channels[1].StartTime == 0 ||
+					state->MMU->DMA[proc].Channels[1].StartTime == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 1);
 				return;
 			case REG_DMA2CNTL :
 				//LOG("32 bit dma2 %04X\r\n", val);
-				state->MMU->DMASrc[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
-				state->MMU->DMADst[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
-				state->MMU->DMAStartTime[proc][2] = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
-				state->MMU->DMACrt[proc][2] = val;
+				state->MMU->DMA[proc].Channels[2].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
+				state->MMU->DMA[proc].Channels[2].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
+				state->MMU->DMA[proc].Channels[2].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
+				state->MMU->DMA[proc].Channels[2].Crt = val;
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xD0, val);
-				if(state->MMU->DMAStartTime[proc][2] == 0 ||
-					state->MMU->DMAStartTime[proc][2] == 7)		// Start Immediately
+				if(state->MMU->DMA[proc].Channels[2].StartTime == 0 ||
+					state->MMU->DMA[proc].Channels[2].StartTime == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 2);
 				return;
 			case 0x040000DC :
 				//LOG("32 bit dma3 %04X\r\n", val);
-				state->MMU->DMASrc[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
-				state->MMU->DMADst[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
-				state->MMU->DMAStartTime[proc][3] = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
-				state->MMU->DMACrt[proc][3] = val;
+				state->MMU->DMA[proc].Channels[3].Src = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
+				state->MMU->DMA[proc].Channels[3].Dst = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
+				state->MMU->DMA[proc].Channels[3].StartTime = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
+				state->MMU->DMA[proc].Channels[3].Crt = val;
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xDC, val);
-				if(	state->MMU->DMAStartTime[proc][3] == 0 ||
-					state->MMU->DMAStartTime[proc][3] == 7)		// Start Immediately
+				if(	state->MMU->DMA[proc].Channels[3].StartTime == 0 ||
+					state->MMU->DMA[proc].Channels[3].StartTime == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 3);
 				return;
                         case REG_GCROMCTRL :
@@ -1328,22 +1325,22 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 					if(proc == ARMCPU_ARM7) i = 2;
 					else i = 5;
 					
-					if(proc == ARMCPU_ARM9 && state->MMU->DMAStartTime[proc][0] == i)	/* dma0/1 on arm7 can't start on ds cart event */
+					if(proc == ARMCPU_ARM9 && state->MMU->DMA[proc].Channels[0].StartTime == i)	/* dma0/1 on arm7 can't start on ds cart event */
 					{
 						MMU_doDMA(state, proc, 0);
 						return;
 					}
-					else if(proc == ARMCPU_ARM9 && state->MMU->DMAStartTime[proc][1] == i)
+					else if(proc == ARMCPU_ARM9 && state->MMU->DMA[proc].Channels[1].StartTime == i)
 					{
 						MMU_doDMA(state, proc, 1);
 						return;
 					}
-					else if(state->MMU->DMAStartTime[proc][2] == i)
+					else if(state->MMU->DMA[proc].Channels[2].StartTime == i)
 					{
 						MMU_doDMA(state, proc, 2);
 						return;
 					}
-					else if(state->MMU->DMAStartTime[proc][3] == i)
+					else if(state->MMU->DMA[proc].Channels[3].StartTime == i)
 					{
 						MMU_doDMA(state, proc, 3);
 						return;
@@ -1392,8 +1389,8 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 
 void FASTCALL MMU_doDMA(NDS_state *state, u32 proc, u32 num)
 {
-	u32 src = state->MMU->DMASrc[proc][num];
-	u32 dst = state->MMU->DMADst[proc][num];
+	u32 src = state->MMU->DMA[proc].Channels[num].Src;
+	u32 dst = state->MMU->DMA[proc].Channels[num].Dst;
         u32 taille;
 
 	if(src==dst)
@@ -1402,47 +1399,47 @@ void FASTCALL MMU_doDMA(NDS_state *state, u32 proc, u32 num)
 		return;
 	}
 	
-	if((!(state->MMU->DMACrt[proc][num]&(1<<31)))&&(!(state->MMU->DMACrt[proc][num]&(1<<25))))
+	if((!(state->MMU->DMA[proc].Channels[num].Crt&(1<<31)))&&(!(state->MMU->DMA[proc].Channels[num].Crt&(1<<25))))
 	{       /* not enabled and not to be repeated */
-		state->MMU->DMAStartTime[proc][num] = 0;
-		state->MMU->DMACycle[proc][num] = 0;
-		//MMU->DMAing[proc][num] = FALSE;
+		state->MMU->DMA[proc].Channels[num].StartTime = 0;
+		state->MMU->DMA[proc].Channels[num].Cycle = 0;
+		//MMU->DMA[proc].Channels[num].Active = FALSE;
 		return;
 	}
 	
 	
 	/* word count */
-	taille = (state->MMU->DMACrt[proc][num]&0xFFFF);
+	taille = (state->MMU->DMA[proc].Channels[num].Crt&0xFFFF);
 	
 	// If we are in "Main memory display" mode just copy an entire 
 	// screen (256x192 pixels). 
 	//    Reference:  http://nocash.emubase.de/gbatek.htm#dsvideocaptureandmainmemorydisplaymode
 	//       (under DISP_MMEM_FIFO)
-	if ((state->MMU->DMAStartTime[proc][num]==4) &&		// Must be in main memory display mode
+	if ((state->MMU->DMA[proc].Channels[num].StartTime==4) &&		// Must be in main memory display mode
 		(taille==4) &&							// Word must be 4
-		(((state->MMU->DMACrt[proc][num]>>26)&1) == 1))	// Transfer mode must be 32bit wide
+		(((state->MMU->DMA[proc].Channels[num].Crt>>26)&1) == 1))	// Transfer mode must be 32bit wide
 		taille = 256*192/2;
 	
-	if(state->MMU->DMAStartTime[proc][num] == 5)
+	if(state->MMU->DMA[proc].Channels[num].StartTime == 5)
 		taille *= 0x80;
 	
-	state->MMU->DMACycle[proc][num] = taille + state->nds->cycles;
-	state->MMU->DMAing[proc][num] = TRUE;
+	state->MMU->DMA[proc].Channels[num].Cycle = taille + state->nds->cycles;
+	state->MMU->DMA[proc].Channels[num].Active = TRUE;
 	
 	DMALOG("proc %d, dma %d src %08X dst %08X start %d taille %d repeat %s %08X\r\n",
-		proc, num, src, dst, state->MMU->DMAStartTime[proc][num], taille,
-		(state->MMU->DMACrt[proc][num]&(1<<25))?"on":"off",state->MMU->DMACrt[proc][num]);
+		proc, num, src, dst, state->MMU->DMA[proc].Channels[num].StartTime, taille,
+		(state->MMU->DMA[proc].Channels[num].Crt&(1<<25))?"on":"off",state->MMU->DMA[proc].Channels[num].Crt);
 	
-	if(!(state->MMU->DMACrt[proc][num]&(1<<25)))
-		state->MMU->DMAStartTime[proc][num] = 0;
+	if(!(state->MMU->DMA[proc].Channels[num].Crt&(1<<25)))
+		state->MMU->DMA[proc].Channels[num].StartTime = 0;
 	
 	// transfer
 	{
 		u32 i=0;
 		// 32 bit or 16 bit transfer ?
-		int sz = ((state->MMU->DMACrt[proc][num]>>26)&1)? 4 : 2;
+		int sz = ((state->MMU->DMA[proc].Channels[num].Crt>>26)&1)? 4 : 2;
 		int dstinc,srcinc;
-		int u=(state->MMU->DMACrt[proc][num]>>21);
+		int u=(state->MMU->DMA[proc].Channels[num].Crt>>21);
 		switch(u & 0x3) {
 			case 0 :  dstinc =  sz; break;
 			case 1 :  dstinc = -sz; break;
@@ -1456,7 +1453,7 @@ void FASTCALL MMU_doDMA(NDS_state *state, u32 proc, u32 num)
 			case 3 :  // reserved
 				return;
 		}
-		if ((state->MMU->DMACrt[proc][num]>>26)&1)
+		if ((state->MMU->DMA[proc].Channels[num].Crt>>26)&1)
 			for(; i < taille; ++i)
 			{
 				MMU_write32(state, proc, dst, MMU_read32(state, proc, src));
