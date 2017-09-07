@@ -63,6 +63,18 @@ typedef struct DMA_struct {
     DMA_Channel_struct Channels[4];
 } DMA_struct;
 
+typedef struct Timer_Channel_struct {
+    u16 Counter;
+    s32 Mode;
+    u32 On;
+    u32 Run;
+    u16 Reload;
+} Timer_Channel_struct;
+
+typedef struct Timer_struct {
+    Timer_Channel_struct Channels[4];
+} Timer_struct;
+
 typedef struct MMU_struct {
         //ARM7 mem
         u8* ARM7_MEM;
@@ -91,11 +103,7 @@ typedef struct MMU_struct {
         u32 DTCMRegion;
         u32 ITCMRegion;
         
-        u16 timer[2][4];
-        s32 timerMODE[2][4];
-        u32 timerON[2][4];
-        u32 timerRUN[2][4];
-        u16 timerReload[2][4];
+        Timer_struct Timers[2];
         
         u32 reg_IME[2];
         u32 reg_IE[2];

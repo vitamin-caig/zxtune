@@ -435,17 +435,17 @@ static void timer_check(NDS_state *state)
 		for (t = 0; t < 4; t++)
 		{
 			state->nds->timerOver[p][t] = 0;
-			if(state->MMU->timerON[p][t])
+			if(state->MMU->Timers[p].Channels[t].On)
 			{
-				if(state->MMU->timerRUN[p][t])
+				if(state->MMU->Timers[p].Channels[t].Run)
 				{
-					switch(state->MMU->timerMODE[p][t])
+					switch(state->MMU->Timers[p].Channels[t].Mode)
 					{
 					case 0xFFFF :
 						if(t > 0 && state->nds->timerOver[p][t - 1])
 						{
-							++(state->MMU->timer[p][t]);
-							state->nds->timerOver[p][t] = !state->MMU->timer[p][t];
+							++(state->MMU->Timers[p].Channels[t].Counter);
+							state->nds->timerOver[p][t] = !state->MMU->Timers[p].Channels[t].Counter;
 							if (state->nds->timerOver[p][t])
 							{
 								if (p == 0)
@@ -458,17 +458,17 @@ static void timer_check(NDS_state *state)
 									if(T1ReadWord(state->MMU->ARM7_REG, 0x102 + (t << 2)) & 0x40)
 										NDS_makeARM7Int(state, 3 + t);
 								}
-								state->MMU->timer[p][t] = state->MMU->timerReload[p][t];
+								state->MMU->Timers[p].Channels[t].Counter = state->MMU->Timers[p].Channels[t].Reload;
 							}
 						}
 						break;
 					default :
 						{
-							state->nds->diff = (state->nds->cycles >> state->MMU->timerMODE[p][t]) - (state->nds->timerCycle[p][t] >> state->MMU->timerMODE[p][t]);
-							state->nds->old = state->MMU->timer[p][t];
-							state->MMU->timer[p][t] += state->nds->diff;
-							state->nds->timerCycle[p][t] += state->nds->diff << state->MMU->timerMODE[p][t];
-							state->nds->timerOver[p][t] = state->nds->old >= state->MMU->timer[p][t];
+							state->nds->diff = (state->nds->cycles >> state->MMU->Timers[p].Channels[t].Mode) - (state->nds->timerCycle[p][t] >> state->MMU->Timers[p].Channels[t].Mode);
+							state->nds->old = state->MMU->Timers[p].Channels[t].Counter;
+							state->MMU->Timers[p].Channels[t].Counter += state->nds->diff;
+							state->nds->timerCycle[p][t] += state->nds->diff << state->MMU->Timers[p].Channels[t].Mode;
+							state->nds->timerOver[p][t] = state->nds->old >= state->MMU->Timers[p].Channels[t].Counter;
 							if(state->nds->timerOver[p][t])
 							{
 								if (p == 0)
@@ -481,7 +481,7 @@ static void timer_check(NDS_state *state)
 									if(T1ReadWord(state->MMU->ARM7_REG, 0x102 + (t << 2)) & 0x40)
 										NDS_makeARM7Int(state, 3 + t);
 								}
-								state->MMU->timer[p][t] = state->MMU->timerReload[p][t] + state->MMU->timer[p][t] - state->nds->old;
+								state->MMU->Timers[p].Channels[t].Counter = state->MMU->Timers[p].Channels[t].Reload + state->MMU->Timers[p].Channels[t].Counter - state->nds->old;
 							}
 						}
 						break;
@@ -489,7 +489,7 @@ static void timer_check(NDS_state *state)
 				}
 				else
 				{
-					state->MMU->timerRUN[p][t] = TRUE;
+					state->MMU->Timers[p].Channels[t].Run = TRUE;
 					state->nds->timerCycle[p][t] = state->nds->cycles;
 				}
 			}
@@ -633,22 +633,22 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 				state->nds->ARM9Cycle -= cycles_per_frame;
 				state->nds->ARM7Cycle -= cycles_per_frame;
 				nb -= cycles_per_frame;
-				if(state->MMU->timerON[0][0])
+				if(state->MMU->Timers[0].Channels[0].On)
 					state->nds->timerCycle[0][0] -= cycles_per_frame;
-				if(state->MMU->timerON[0][1])
+				if(state->MMU->Timers[0].Channels[1].On)
 					state->nds->timerCycle[0][1] -= cycles_per_frame;
-				if(state->MMU->timerON[0][2])
+				if(state->MMU->Timers[0].Channels[2].On)
 					state->nds->timerCycle[0][2] -= cycles_per_frame;
-				if(state->MMU->timerON[0][3])
+				if(state->MMU->Timers[0].Channels[3].On)
 					state->nds->timerCycle[0][3] -= cycles_per_frame;
 
-				if(state->MMU->timerON[1][0])
+				if(state->MMU->Timers[1].Channels[0].On)
 					state->nds->timerCycle[1][0] -= cycles_per_frame;
-				if(state->MMU->timerON[1][1])
+				if(state->MMU->Timers[1].Channels[1].On)
 					state->nds->timerCycle[1][1] -= cycles_per_frame;
-				if(state->MMU->timerON[1][2])
+				if(state->MMU->Timers[1].Channels[2].On)
 					state->nds->timerCycle[1][2] -= cycles_per_frame;
-				if(state->MMU->timerON[1][3])
+				if(state->MMU->Timers[1].Channels[3].On)
 					state->nds->timerCycle[1][3] -= cycles_per_frame;
 				if(state->MMU->DMA[0].Channels[0].Active)
 					state->MMU->DMA[0].Channels[0].Cycle -= cycles_per_frame;

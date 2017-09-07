@@ -162,11 +162,7 @@ void MMU_clearMem(NDS_state *state)
 	state->MMU->DTCMRegion = 0;
 	state->MMU->ITCMRegion = 0x00800000;
 	
-	memset(state->MMU->timer,         0, sizeof(u16) * 2 * 4);
-	memset(state->MMU->timerMODE,     0, sizeof(s32) * 2 * 4);
-	memset(state->MMU->timerON,       0, sizeof(u32) * 2 * 4);
-	memset(state->MMU->timerRUN,      0, sizeof(u32) * 2 * 4);
-	memset(state->MMU->timerReload,   0, sizeof(u16) * 2 * 4);
+  memset(state->MMU->Timers, 0, sizeof(state->MMU->Timers));
 	
 	memset(state->MMU->reg_IME,       0, sizeof(u32) * 2);
 	memset(state->MMU->reg_IE,        0, sizeof(u32) * 2);
@@ -267,7 +263,7 @@ u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
 			case REG_TM1CNTL :
 			case REG_TM2CNTL :
 			case REG_TM3CNTL :
-				return state->MMU->timer[proc][(adr&0xF)>>2];
+				return state->MMU->Timers[proc].Channels[(adr&0xF)>>2].Counter;
 			
 			case 0x04000630 :
 				LOG("vect res\r\n");	/* TODO (clear): ??? */
@@ -366,7 +362,7 @@ static u32 FASTCALL MMU_read32_io(NDS_state *state, u32 proc, u32 adr)
                       case REG_TM3CNTL & 0xffffff :
 		{
 			u32 val = T1ReadWord(state->MMU->MMU_MEM[proc][0x40], (adr + 2) & 0xFFF);
-			return state->MMU->timer[proc][(adr&0xF)>>2] | (val<<16);
+			return state->MMU->Timers[proc].Channels[(adr&0xF)>>2].Counter | (val<<16);
 		}	
                       case REG_GCDATAIN & 0xffffff:
 		{
@@ -772,7 +768,7 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
                         case REG_TM1CNTL :
                         case REG_TM2CNTL :
                         case REG_TM3CNTL :
-				state->MMU->timerReload[proc][(adr>>2)&3] = val;
+				state->MMU->Timers[proc].Channels[(adr>>2)&3].Reload = val;
 				return;
                         case REG_TM0CNTH :
                         case REG_TM1CNTH :
@@ -780,29 +776,29 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
                         case REG_TM3CNTH :
 				if(val&0x80)
 				{
-				  state->MMU->timer[proc][((adr-2)>>2)&0x3] = state->MMU->timerReload[proc][((adr-2)>>2)&0x3];
+				  state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Counter = state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Reload;
 				}
-				state->MMU->timerON[proc][((adr-2)>>2)&0x3] = val & 0x80;
+				state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].On = val & 0x80;
 				switch(val&7)
 				{
 				case 0 :
-					state->MMU->timerMODE[proc][((adr-2)>>2)&0x3] = 0+1;//proc;
+					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 0+1;//proc;
 					break;
 				case 1 :
-					state->MMU->timerMODE[proc][((adr-2)>>2)&0x3] = 6+1;//proc;
+					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 6+1;//proc;
 					break;
 				case 2 :
-					state->MMU->timerMODE[proc][((adr-2)>>2)&0x3] = 8+1;//proc;
+					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 8+1;//proc;
 					break;
 				case 3 :
-					state->MMU->timerMODE[proc][((adr-2)>>2)&0x3] = 10+1;//proc;
+					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 10+1;//proc;
 					break;
 				default :
-					state->MMU->timerMODE[proc][((adr-2)>>2)&0x3] = 0xFFFF;
+					state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Mode = 0xFFFF;
 					break;
 				}
 				if(!(val & 0x80))
-				state->MMU->timerRUN[proc][((adr-2)>>2)&0x3] = FALSE;
+				state->MMU->Timers[proc].Channels[((adr-2)>>2)&0x3].Run = FALSE;
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], adr & 0xFFF, val);
 				return;
                         case REG_DISPA_DISPCNT+2 : 
@@ -1012,33 +1008,33 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
                         case REG_TM1CNTL :
                         case REG_TM2CNTL :
                         case REG_TM3CNTL :
-				state->MMU->timerReload[proc][(adr>>2)&0x3] = (u16)val;
+				state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Reload = (u16)val;
 				if(val&0x800000)
 				{
-					state->MMU->timer[proc][(adr>>2)&0x3] = state->MMU->timerReload[proc][(adr>>2)&0x3];
+					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Counter = state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Reload;
 				}
-				state->MMU->timerON[proc][(adr>>2)&0x3] = val & 0x800000;
+				state->MMU->Timers[proc].Channels[(adr>>2)&0x3].On = val & 0x800000;
 				switch((val>>16)&7)
 				{
 					case 0 :
-					state->MMU->timerMODE[proc][(adr>>2)&0x3] = 0+1;//proc;
+					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 0+1;//proc;
 					break;
 					case 1 :
-					state->MMU->timerMODE[proc][(adr>>2)&0x3] = 6+1;//proc;
+					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 6+1;//proc;
 					break;
 					case 2 :
-					state->MMU->timerMODE[proc][(adr>>2)&0x3] = 8+1;//proc;
+					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 8+1;//proc;
 					break;
 					case 3 :
-					state->MMU->timerMODE[proc][(adr>>2)&0x3] = 10+1;//proc;
+					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 10+1;//proc;
 					break;
 					default :
-					state->MMU->timerMODE[proc][(adr>>2)&0x3] = 0xFFFF;
+					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Mode = 0xFFFF;
 					break;
 				}
 				if(!(val & 0x800000))
 				{
-					state->MMU->timerRUN[proc][(adr>>2)&0x3] = FALSE;
+					state->MMU->Timers[proc].Channels[(adr>>2)&0x3].Run = FALSE;
 				}
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], adr & 0xFFF, val);
 				return;
