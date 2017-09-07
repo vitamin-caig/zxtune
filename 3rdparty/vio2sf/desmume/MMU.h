@@ -92,13 +92,12 @@ typedef struct MMU_struct {
         s32 DMACycle[2][4];
         u32 DMACrt[2][4];
         BOOL DMAing[2][4];
+        u32 DMASrc[2][4]; /* = {{0, 0, 0, 0}, {0, 0, 0, 0}};*/
+        u32 DMADst[2][4]; /* = {{0, 0, 0, 0}, {0, 0, 0, 0}};*/
+        nds_dscard	dscard[2];
 		  
         memory_chip_t fw;
         memory_chip_t bupmem;
-		  
-        nds_dscard	dscard[2];
-		u32			CheckTimers;
-		u32			CheckDMAs;
 } MMU_struct;
 
 void MMU_Init(NDS_state *);

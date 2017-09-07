@@ -56,9 +56,6 @@ typedef struct NDS_state
     
     u32 rom_mask; /* = 0;*/
     
-    u32 DMASrc[2][4]; /* = {{0, 0, 0, 0}, {0, 0, 0, 0}};*/
-    u32 DMADst[2][4]; /* = {{0, 0, 0, 0}, {0, 0, 0, 0}};*/
-
     struct SPU_struct *SPU_core;
     double samples;
     int spu_core_samples;

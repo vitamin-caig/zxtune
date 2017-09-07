@@ -849,19 +849,13 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma0 %04X\r\n", val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xBA, val);
-				state->DMASrc[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
-				state->DMADst[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
+				state->MMU->DMASrc[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
+				state->MMU->DMADst[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
                                 v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB8);
 				state->MMU->DMAStartTime[proc][0] = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
 				state->MMU->DMACrt[proc][0] = v;
 				if(state->MMU->DMAStartTime[proc][0] == 0)
 					MMU_doDMA(state, proc, 0);
-				#ifdef LOG_DMA2
-				//else
-				{
-					LOG("proc %d, dma %d src %08X dst %08X %s\r\n", proc, 0, state->DMASrc[proc][0], state->DMADst[proc][0], (val&(1<<25))?"ON":"OFF");
-				}
-				#endif
 				}
 				return;
                                 case REG_DMA1CNTH :
@@ -870,19 +864,13 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma1 %04X\r\n", val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xC6, val);
-				state->DMASrc[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
-				state->DMADst[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
+				state->MMU->DMASrc[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
+				state->MMU->DMADst[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
                                 v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC4);
 				state->MMU->DMAStartTime[proc][1] = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
 				state->MMU->DMACrt[proc][1] = v;
 				if(state->MMU->DMAStartTime[proc][1] == 0)
 					MMU_doDMA(state, proc, 1);
-				#ifdef LOG_DMA2
-				//else
-				{
-					LOG("proc %d, dma %d src %08X dst %08X %s\r\n", proc, 1, state->DMASrc[proc][1], state->DMADst[proc][1], (val&(1<<25))?"ON":"OFF");
-				}
-				#endif
 				}
 				return;
                                 case REG_DMA2CNTH :
@@ -891,19 +879,13 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma2 %04X\r\n", val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xD2, val);
-				state->DMASrc[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
-				state->DMADst[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
+				state->MMU->DMASrc[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
+				state->MMU->DMADst[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
                                 v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD0);
 				state->MMU->DMAStartTime[proc][2] = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
 				state->MMU->DMACrt[proc][2] = v;
 				if(state->MMU->DMAStartTime[proc][2] == 0)
 					MMU_doDMA(state, proc, 2);
-				#ifdef LOG_DMA2
-				//else
-				{
-					LOG("proc %d, dma %d src %08X dst %08X %s\r\n", proc, 2, state->DMASrc[proc][2], state->DMADst[proc][2], (val&(1<<25))?"ON":"OFF");
-				}
-				#endif
 				}
 				return;
                                 case REG_DMA3CNTH :
@@ -912,20 +894,14 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 				//if(val&0x8000) execute = FALSE;
 				//LOG("16 bit dma3 %04X\r\n", val);
 				T1WriteWord(state->MMU->MMU_MEM[proc][0x40], 0xDE, val);
-				state->DMASrc[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
-				state->DMADst[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
+				state->MMU->DMASrc[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
+				state->MMU->DMADst[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
                                 v = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xDC);
 				state->MMU->DMAStartTime[proc][3] = (proc ? (v>>28) & 0x3 : (v>>27) & 0x7);
 				state->MMU->DMACrt[proc][3] = v;
 		
 				if(state->MMU->DMAStartTime[proc][3] == 0)
 					MMU_doDMA(state, proc, 3);
-				#ifdef LOG_DMA2
-				//else
-				{
-					LOG("proc %d, dma %d src %08X dst %08X %s\r\n", proc, 3, state->DMASrc[proc][3], state->DMADst[proc][3], (val&(1<<25))?"ON":"OFF");
-				}
-				#endif
 				}
 				return;
                         //case REG_AUXSPICNT : execute = FALSE;
@@ -1274,72 +1250,47 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 				return;
 			case REG_DMA0CNTL :
 				//LOG("32 bit dma0 %04X\r\n", val);
-				state->DMASrc[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
-				state->DMADst[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
+				state->MMU->DMASrc[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB0);
+				state->MMU->DMADst[proc][0] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xB4);
 				state->MMU->DMAStartTime[proc][0] = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
 				state->MMU->DMACrt[proc][0] = val;
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xB8, val);
 				if( state->MMU->DMAStartTime[proc][0] == 0 ||
 					state->MMU->DMAStartTime[proc][0] == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 0);
-				#ifdef LOG_DMA2
-				else
-				{
-					LOG("proc %d, dma %d src %08X dst %08X start taille %d %d\r\n", proc, 0, state->DMASrc[proc][0], state->DMADst[proc][0], 0, ((state->MMU->DMACrt[proc][0]>>27)&7));
-				}
-				#endif
-				//execute = FALSE;
 				return;
 			case REG_DMA1CNTL:
 				//LOG("32 bit dma1 %04X\r\n", val);
-				state->DMASrc[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
-				state->DMADst[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
+				state->MMU->DMASrc[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xBC);
+				state->MMU->DMADst[proc][1] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC0);
 				state->MMU->DMAStartTime[proc][1] = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
 				state->MMU->DMACrt[proc][1] = val;
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xC4, val);
 				if(state->MMU->DMAStartTime[proc][1] == 0 ||
 					state->MMU->DMAStartTime[proc][1] == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 1);
-				#ifdef LOG_DMA2
-				else
-				{
-					LOG("proc %d, dma %d src %08X dst %08X start taille %d %d\r\n", proc, 1, state->DMASrc[proc][1], state->DMADst[proc][1], 0, ((state->MMU->DMACrt[proc][1]>>27)&7));
-				}
-				#endif
 				return;
 			case REG_DMA2CNTL :
 				//LOG("32 bit dma2 %04X\r\n", val);
-				state->DMASrc[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
-				state->DMADst[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
+				state->MMU->DMASrc[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xC8);
+				state->MMU->DMADst[proc][2] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xCC);
 				state->MMU->DMAStartTime[proc][2] = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
 				state->MMU->DMACrt[proc][2] = val;
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xD0, val);
 				if(state->MMU->DMAStartTime[proc][2] == 0 ||
 					state->MMU->DMAStartTime[proc][2] == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 2);
-				#ifdef LOG_DMA2
-				else
-				{
-					LOG("proc %d, dma %d src %08X dst %08X start taille %d %d\r\n", proc, 2, state->DMASrc[proc][2], state->DMADst[proc][2], 0, ((state->MMU->DMACrt[proc][2]>>27)&7));
-				}
-				#endif
 				return;
 			case 0x040000DC :
 				//LOG("32 bit dma3 %04X\r\n", val);
-				state->DMASrc[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
-				state->DMADst[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
+				state->MMU->DMASrc[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD4);
+				state->MMU->DMADst[proc][3] = T1ReadLong(state->MMU->MMU_MEM[proc][0x40], 0xD8);
 				state->MMU->DMAStartTime[proc][3] = (proc ? (val>>28) & 0x3 : (val>>27) & 0x7);
 				state->MMU->DMACrt[proc][3] = val;
 				T1WriteLong(state->MMU->MMU_MEM[proc][0x40], 0xDC, val);
 				if(	state->MMU->DMAStartTime[proc][3] == 0 ||
 					state->MMU->DMAStartTime[proc][3] == 7)		// Start Immediately
 					MMU_doDMA(state, proc, 3);
-				#ifdef LOG_DMA2
-				else
-				{
-					LOG("proc %d, dma %d src %08X dst %08X start taille %d %d\r\n", proc, 3, state->DMASrc[proc][3], state->DMADst[proc][3], 0, ((state->MMU->DMACrt[proc][3]>>27)&7));
-				}
-				#endif
 				return;
                         case REG_GCROMCTRL :
 				{
@@ -1441,8 +1392,8 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 
 void FASTCALL MMU_doDMA(NDS_state *state, u32 proc, u32 num)
 {
-	u32 src = state->DMASrc[proc][num];
-	u32 dst = state->DMADst[proc][num];
+	u32 src = state->MMU->DMASrc[proc][num];
+	u32 dst = state->MMU->DMADst[proc][num];
         u32 taille;
 
 	if(src==dst)
