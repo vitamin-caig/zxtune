@@ -38,8 +38,6 @@ typedef struct NDS_state
 
     struct MMU_struct * MMU;
     
-    struct ARM9_struct * ARM9Mem;
-    
     u8 * MMU_ARM9_MEM_MAP[256];
     u32  MMU_ARM9_MEM_MASK[256];
     u8 * MMU_ARM7_MEM_MAP[256];

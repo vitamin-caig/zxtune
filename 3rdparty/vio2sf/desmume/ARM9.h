@@ -18,8 +18,6 @@ typedef struct ARM9_struct {
         u8 ARM9_BOBJ[0x20000];
         u8 ARM9_LCD[0xA4000];
         u8 ARM9_OAM[0x800];
-
-  u8 *blank_memory[0x20000];
 } ARM9_struct;
 
 #endif

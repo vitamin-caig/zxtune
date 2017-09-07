@@ -28,6 +28,7 @@
 #include "dscard.h"
 
 #include "ARM9.h"
+#include "ARM7.h"
 #include "mc.h"
 
 #include "state.h"
@@ -76,12 +77,8 @@ typedef struct Timer_struct {
 } Timer_struct;
 
 typedef struct MMU_struct {
-        //ARM7 mem
-        u8* ARM7_MEM;
-        u8* ARM7_BIOS;//0x4000;
-        u8* ARM7_ERAM;//0x10000;
-        u8* ARM7_REG;//0x10000;
-        u8* ARM7_WIRAM;//0x10000;
+        ARM9_struct* ARM9Mem;
+        ARM7_struct* ARM7Mem;
         
         //Shared ram
         u8* SWIRAM;//0x8000;

@@ -131,7 +131,7 @@ extern "C" void SPU_Reset(NDS_state *state)
 
 	// Reset Registers
 	for (i = 0x400; i < 0x51D; i++)
-		T1WriteByte(state->MMU->ARM7_REG, i, 0);
+		T1WriteByte(state->MMU->ARM7Mem->ARM7_REG, i, 0);
 }
 
 
@@ -367,7 +367,7 @@ extern "C" void SPU_WriteByte(struct NDS_state *state, u32 addr, u8 val)
 		state->SPU_core->WriteByte(addr,val);
 	}
 
-	T1WriteByte(state->MMU->ARM7_REG, addr, val);
+	T1WriteByte(state->MMU->ARM7Mem->ARM7_REG, addr, val);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -402,10 +402,10 @@ void SPU_struct::WriteWord(u32 addr, u16 val)
     adjust_channel_sample(&thischan);
 		break;
 	case 0xC:
-		WriteLong(addr,((u32)T1ReadWord(state->MMU->ARM7_REG, addr+2) << 16) | val);
+		WriteLong(addr,((u32)T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, addr+2) << 16) | val);
 		break;
 	case 0xE:
-		WriteLong(addr,((u32)T1ReadWord(state->MMU->ARM7_REG, addr-2)) | ((u32)val<<16));
+		WriteLong(addr,((u32)T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, addr-2)) | ((u32)val<<16));
 		break;
 	}
 }
@@ -419,7 +419,7 @@ extern "C" void SPU_WriteWord(NDS_state *state, u32 addr, u16 val)
 		state->SPU_core->WriteWord(addr,val);
 	}
 
-	T1WriteWord(state->MMU->ARM7_REG, addr, val);
+	T1WriteWord(state->MMU->ARM7Mem->ARM7_REG, addr, val);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -468,7 +468,7 @@ extern "C" void SPU_WriteLong(NDS_state *state, u32 addr, u32 val)
 		state->SPU_core->WriteLong(addr,val);
 	}
 
-	T1WriteLong(state->MMU->ARM7_REG, addr, val);
+	T1WriteLong(state->MMU->ARM7Mem->ARM7_REG, addr, val);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -544,7 +544,7 @@ static FORCEINLINE void StopChannel(SPU_struct *SPU, channel_struct *chan)
   chan->status = CHANSTAT_STOPPED;
   if(SPU == state->SPU_core)
   {
-   		state->MMU->ARM7_REG[0x403 + (((chan-SPU->channels) ) * 0x10)] &= 0x7F;
+   		state->MMU->ARM7Mem->ARM7_REG[0x403 + (((chan-SPU->channels) ) * 0x10)] &= 0x7F;
   }
 }
 
@@ -644,7 +644,7 @@ static void SPU_MixAudio(NDS_state *state, SPU_struct *SPU, int length)
 {
 	memset(SPU->sndbuf, 0, length*4*2);
 	
-	const u8 vol = T1ReadByte(state->MMU->ARM7_REG, 0x500) & 0x7F;
+	const u8 vol = T1ReadByte(state->MMU->ARM7Mem->ARM7_REG, 0x500) & 0x7F;
 
 	for(int i=0;i<16;i++)
 	{

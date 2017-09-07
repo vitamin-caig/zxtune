@@ -81,11 +81,8 @@ void MMU_Init(NDS_state *state) {
 
 	memset(state->MMU, 0, sizeof(MMU_struct));
   
-  state->MMU->ARM7_MEM = calloc(0x34000, 1);
-  state->MMU->ARM7_BIOS = state->MMU->ARM7_MEM;
-  state->MMU->ARM7_ERAM = state->MMU->ARM7_BIOS + 0x4000;
-  state->MMU->ARM7_REG = state->MMU->ARM7_ERAM + 0x10000;
-  state->MMU->ARM7_WIRAM = state->MMU->ARM7_REG + 0x10000;
+  state->MMU->ARM9Mem = calloc(sizeof(ARM9_struct), 1);
+  state->MMU->ARM7Mem = calloc(sizeof(ARM7_struct), 1);
   
   state->MMU->SWIRAM = calloc(0x8000, 1);
 
@@ -127,8 +124,10 @@ void MMU_DeInit(NDS_state *state) {
     state->MMU->CART_RAM = 0;
     free(state->MMU->SWIRAM);
     state->MMU->SWIRAM = 0;
-    free(state->MMU->ARM7_MEM);
-    state->MMU->ARM7_MEM = state->MMU->ARM7_BIOS = state->MMU->ARM7_ERAM = state->MMU->ARM7_REG = state->MMU->ARM7_WIRAM = 0;
+    free(state->MMU->ARM7Mem);
+    state->MMU->ARM7Mem = 0;
+    free(state->MMU->ARM9Mem);
+    state->MMU->ARM9Mem = 0;
 }
 
 //Card rom & ram
@@ -138,23 +137,21 @@ void MMU_clearMem(NDS_state *state)
 {
 	int i;
 
-	memset(state->ARM9Mem->ARM9_ABG,  0, 0x080000);
-	memset(state->ARM9Mem->ARM9_AOBJ, 0, 0x040000);
-	memset(state->ARM9Mem->ARM9_BBG,  0, 0x020000);
-	memset(state->ARM9Mem->ARM9_BOBJ, 0, 0x020000);
-	memset(state->ARM9Mem->ARM9_DTCM, 0, 0x4000);
-	memset(state->ARM9Mem->ARM9_ITCM, 0, 0x8000);
-	memset(state->ARM9Mem->ARM9_LCD,  0, 0x0A4000);
-	memset(state->ARM9Mem->ARM9_OAM,  0, 0x0800);
-	memset(state->ARM9Mem->ARM9_REG,  0, 0x01000000);
-	memset(state->ARM9Mem->ARM9_VMEM, 0, 0x0800);
-	memset(state->ARM9Mem->ARM9_WRAM, 0, 0x01000000);
-	memset(state->ARM9Mem->MAIN_MEM,  0, 0x400000);
+	memset(state->MMU->ARM9Mem->ARM9_ABG,  0, 0x080000);
+	memset(state->MMU->ARM9Mem->ARM9_AOBJ, 0, 0x040000);
+	memset(state->MMU->ARM9Mem->ARM9_BBG,  0, 0x020000);
+	memset(state->MMU->ARM9Mem->ARM9_BOBJ, 0, 0x020000);
+	memset(state->MMU->ARM9Mem->ARM9_DTCM, 0, 0x4000);
+	memset(state->MMU->ARM9Mem->ARM9_ITCM, 0, 0x8000);
+	memset(state->MMU->ARM9Mem->ARM9_LCD,  0, 0x0A4000);
+	memset(state->MMU->ARM9Mem->ARM9_OAM,  0, 0x0800);
+	memset(state->MMU->ARM9Mem->ARM9_REG,  0, 0x01000000);
+	memset(state->MMU->ARM9Mem->ARM9_VMEM, 0, 0x0800);
+	memset(state->MMU->ARM9Mem->ARM9_WRAM, 0, 0x01000000);
+	memset(state->MMU->ARM9Mem->MAIN_MEM,  0, 0x400000);
 
-	memset(state->ARM9Mem->blank_memory,  0, 0x020000);
-	
-	memset(state->MMU->ARM7_ERAM,     0, 0x010000);
-	memset(state->MMU->ARM7_REG,      0, 0x010000);
+	memset(state->MMU->ARM7Mem->ARM7_ERAM,     0, 0x010000);
+	memset(state->MMU->ARM7Mem->ARM7_REG,      0, 0x010000);
 	
 	for(i = 0;i < 16;i++)
 	FIFOInit(state->MMU->fifos + i);
@@ -208,7 +205,7 @@ u8 FASTCALL MMU_read8(NDS_state *state, u32 proc, u32 adr)
 #ifdef INTERNAL_DTCM_READ
 	if((proc==ARMCPU_ARM9)&((adr&(~0x3FFF))==state->MMU->DTCMRegion))
 	{
-		return state->ARM9Mem->ARM9_DTCM[adr&0x3FFF];
+		return state->MMU->ARM9Mem->ARM9_DTCM[adr&0x3FFF];
 	}
 #endif
 	
@@ -227,7 +224,7 @@ u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
 	if((proc == ARMCPU_ARM9) && ((adr & ~0x3FFF) == state->MMU->DTCMRegion))
 	{
 		/* Returns data from DTCM (ARM9 only) */
-		return T1ReadWord(state->ARM9Mem->ARM9_DTCM, adr & 0x3FFF);
+		return T1ReadWord(state->MMU->ARM9Mem->ARM9_DTCM, adr & 0x3FFF);
 	}
 #endif
 	
@@ -409,7 +406,7 @@ u32 FASTCALL MMU_read32(NDS_state *state, u32 proc, u32 adr)
 	if((proc == ARMCPU_ARM9) && ((adr & ~0x3FFF) == state->MMU->DTCMRegion))
 	{
 		/* Returns data from DTCM (ARM9 only) */
-		return T1ReadLong(state->ARM9Mem->ARM9_DTCM, adr & 0x3FFF);
+		return T1ReadLong(state->MMU->ARM9Mem->ARM9_DTCM, adr & 0x3FFF);
 	}
 #endif
 	
@@ -436,7 +433,7 @@ void FASTCALL MMU_write8(NDS_state *state, u32 proc, u32 adr, u8 val)
 	if((proc == ARMCPU_ARM9) && ((adr & ~0x3FFF) == state->MMU->DTCMRegion))
 	{
 		/* Writes data in DTCM (ARM9 only) */
-		state->ARM9Mem->ARM9_DTCM[adr&0x3FFF] = val;
+		state->MMU->ARM9Mem->ARM9_DTCM[adr&0x3FFF] = val;
 		return ;
 	}
 #endif
@@ -474,7 +471,7 @@ void FASTCALL MMU_write16(NDS_state *state, u32 proc, u32 adr, u16 val)
 	if((proc == ARMCPU_ARM9) && ((adr & ~0x3FFF) == state->MMU->DTCMRegion))
 	{
 		/* Writes in DTCM (ARM9 only) */
-		T1WriteWord(state->ARM9Mem->ARM9_DTCM, adr & 0x3FFF, val);
+		T1WriteWord(state->MMU->ARM9Mem->ARM9_DTCM, adr & 0x3FFF, val);
 		return;
 	}
 #endif
@@ -912,7 +909,7 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 #ifdef INTERNAL_DTCM_WRITE
 	if((proc==ARMCPU_ARM9)&((adr&(~0x3FFF))==state->MMU->DTCMRegion))
 	{
-		T1WriteLong(state->ARM9Mem->ARM9_DTCM, adr & 0x3FFF, val);
+		T1WriteLong(state->MMU->ARM9Mem->ARM9_DTCM, adr & 0x3FFF, val);
 		return ;
 	}
 #endif
@@ -1348,21 +1345,21 @@ void FASTCALL MMU_write32(NDS_state *state, u32 proc, u32 adr, u32 val)
 								case REG_DISPA_DISPCAPCNT :
 				if(proc == ARMCPU_ARM9)
 				{
-					T1WriteLong(state->ARM9Mem->ARM9_REG, 0x64, val);
+					T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0x64, val);
 				}
 				return;
 				
                         case REG_DISPA_BG0CNT :
-				T1WriteLong(state->ARM9Mem->ARM9_REG, 8, val);
+				T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 8, val);
 				return;
                         case REG_DISPA_BG2CNT :
-				T1WriteLong(state->ARM9Mem->ARM9_REG, 0xC, val);
+				T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xC, val);
 				return;
                         case REG_DISPB_BG0CNT :
-				T1WriteLong(state->ARM9Mem->ARM9_REG, 0x1008, val);
+				T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0x1008, val);
 				return;
                         case REG_DISPB_BG2CNT :
-				T1WriteLong(state->ARM9Mem->ARM9_REG, 0x100C, val);
+				T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0x100C, val);
 				return;
 			case REG_DISPA_DISPMMEMFIFO:
 			{

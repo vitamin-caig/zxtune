@@ -355,56 +355,56 @@ static void dma_check(NDS_state *state)
 {
 	if((state->MMU->DMA[0].Channels[0].Active)&&(state->MMU->DMA[0].Channels[0].Cycle<=state->nds->cycles))
 	{
-		T1WriteLong(state->ARM9Mem->ARM9_REG, 0xB8 + (0xC*0), T1ReadLong(state->ARM9Mem->ARM9_REG, 0xB8 + (0xC*0)) & 0x7FFFFFFF);
+		T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*0), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*0)) & 0x7FFFFFFF);
 		if((state->MMU->DMA[0].Channels[0].Crt)&(1<<30)) NDS_makeARM9Int(state, 8);
 		state->MMU->DMA[0].Channels[0].Active = FALSE;
 	}
 
 	if((state->MMU->DMA[0].Channels[1].Active)&&(state->MMU->DMA[0].Channels[1].Cycle<=state->nds->cycles))
 	{
-		T1WriteLong(state->ARM9Mem->ARM9_REG, 0xB8 + (0xC*1), T1ReadLong(state->ARM9Mem->ARM9_REG, 0xB8 + (0xC*1)) & 0x7FFFFFFF);
+		T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*1), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*1)) & 0x7FFFFFFF);
 		if((state->MMU->DMA[0].Channels[1].Crt)&(1<<30)) NDS_makeARM9Int(state, 9);
 		state->MMU->DMA[0].Channels[1].Active = FALSE;
 	}
 
 	if((state->MMU->DMA[0].Channels[2].Active)&&(state->MMU->DMA[0].Channels[2].Cycle<=state->nds->cycles))
 	{
-		T1WriteLong(state->ARM9Mem->ARM9_REG, 0xB8 + (0xC*2), T1ReadLong(state->ARM9Mem->ARM9_REG, 0xB8 + (0xC*2)) & 0x7FFFFFFF);
+		T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*2), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*2)) & 0x7FFFFFFF);
 		if((state->MMU->DMA[0].Channels[2].Crt)&(1<<30)) NDS_makeARM9Int(state, 10);
 		state->MMU->DMA[0].Channels[2].Active = FALSE;
 	}
 
 	if((state->MMU->DMA[0].Channels[3].Active)&&(state->MMU->DMA[0].Channels[3].Cycle<=state->nds->cycles))
 	{
-		T1WriteLong(state->ARM9Mem->ARM9_REG, 0xB8 + (0xC*3), T1ReadLong(state->ARM9Mem->ARM9_REG, 0xB8 + (0xC*3)) & 0x7FFFFFFF);
+		T1WriteLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*3), T1ReadLong(state->MMU->ARM9Mem->ARM9_REG, 0xB8 + (0xC*3)) & 0x7FFFFFFF);
 		if((state->MMU->DMA[0].Channels[3].Crt)&(1<<30)) NDS_makeARM9Int(state, 11);
 		state->MMU->DMA[0].Channels[3].Active = FALSE;
 	}
 
 	if((state->MMU->DMA[1].Channels[0].Active)&&(state->MMU->DMA[1].Channels[0].Cycle<=state->nds->cycles))
 	{
-		T1WriteLong(state->MMU->ARM7_REG, 0xB8 + (0xC*0), T1ReadLong(state->MMU->ARM7_REG, 0xB8 + (0xC*0)) & 0x7FFFFFFF);
+		T1WriteLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*0), T1ReadLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*0)) & 0x7FFFFFFF);
 		if((state->MMU->DMA[1].Channels[0].Crt)&(1<<30)) NDS_makeARM7Int(state, 8);
 		state->MMU->DMA[1].Channels[0].Active = FALSE;
 	}
 
 	if((state->MMU->DMA[1].Channels[1].Active)&&(state->MMU->DMA[1].Channels[1].Cycle<=state->nds->cycles))
 	{
-		T1WriteLong(state->MMU->ARM7_REG, 0xB8 + (0xC*1), T1ReadLong(state->MMU->ARM7_REG, 0xB8 + (0xC*1)) & 0x7FFFFFFF);
+		T1WriteLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*1), T1ReadLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*1)) & 0x7FFFFFFF);
 		if((state->MMU->DMA[1].Channels[1].Crt)&(1<<30)) NDS_makeARM7Int(state, 9);
 		state->MMU->DMA[1].Channels[1].Active = FALSE;
 	}
 
 	if((state->MMU->DMA[1].Channels[2].Active)&&(state->MMU->DMA[1].Channels[2].Cycle<=state->nds->cycles))
 	{
-		T1WriteLong(state->MMU->ARM7_REG, 0xB8 + (0xC*2), T1ReadLong(state->MMU->ARM7_REG, 0xB8 + (0xC*2)) & 0x7FFFFFFF);
+		T1WriteLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*2), T1ReadLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*2)) & 0x7FFFFFFF);
 		if((state->MMU->DMA[1].Channels[2].Crt)&(1<<30)) NDS_makeARM7Int(state, 10);
 		state->MMU->DMA[1].Channels[2].Active = FALSE;
 	}
 
 	if((state->MMU->DMA[1].Channels[3].Active)&&(state->MMU->DMA[1].Channels[3].Cycle<=state->nds->cycles))
 	{
-		T1WriteLong(state->MMU->ARM7_REG, 0xB8 + (0xC*3), T1ReadLong(state->MMU->ARM7_REG, 0xB8 + (0xC*3)) & 0x7FFFFFFF);
+		T1WriteLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*3), T1ReadLong(state->MMU->ARM7Mem->ARM7_REG, 0xB8 + (0xC*3)) & 0x7FFFFFFF);
 		if((state->MMU->DMA[1].Channels[3].Crt)&(1<<30)) NDS_makeARM7Int(state, 11);
 		state->MMU->DMA[1].Channels[3].Active = FALSE;
 	}
@@ -450,12 +450,12 @@ static void timer_check(NDS_state *state)
 							{
 								if (p == 0)
 								{
-									if(T1ReadWord(state->ARM9Mem->ARM9_REG, 0x102 + (t << 2)) & 0x40)
+									if(T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 0x102 + (t << 2)) & 0x40)
 										NDS_makeARM9Int(state, 3 + t);
 								}
 								else
 								{
-									if(T1ReadWord(state->MMU->ARM7_REG, 0x102 + (t << 2)) & 0x40)
+									if(T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 0x102 + (t << 2)) & 0x40)
 										NDS_makeARM7Int(state, 3 + t);
 								}
 								state->MMU->Timers[p].Channels[t].Counter = state->MMU->Timers[p].Channels[t].Reload;
@@ -473,12 +473,12 @@ static void timer_check(NDS_state *state)
 							{
 								if (p == 0)
 								{
-									if(T1ReadWord(state->ARM9Mem->ARM9_REG, 0x102 + (t << 2)) & 0x40)
+									if(T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 0x102 + (t << 2)) & 0x40)
 										NDS_makeARM9Int(state, 3 + t);
 								}
 								else
 								{
-									if(T1ReadWord(state->MMU->ARM7_REG, 0x102 + (t << 2)) & 0x40)
+									if(T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 0x102 + (t << 2)) & 0x40)
 										NDS_makeARM7Int(state, 3 + t);
 								}
 								state->MMU->Timers[p].Channels[t].Counter = state->MMU->Timers[p].Channels[t].Reload + state->MMU->Timers[p].Channels[t].Counter - state->nds->old;
@@ -515,8 +515,8 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 		/* HBLANK */
 		if (h)
 		{
-			T1WriteWord(state->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->ARM9Mem->ARM9_REG, 4) | 2);
-			T1WriteWord(state->MMU->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7_REG, 4) | 2);
+			T1WriteWord(state->MMU->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) | 2);
+			T1WriteWord(state->MMU->ARM7Mem->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) | 2);
 			NDS_ARM9HBlankInt(state);
 			NDS_ARM7HBlankInt(state);
 
@@ -539,8 +539,8 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 
 			state->nds->nextHBlank += 4260;
 			++state->nds->VCount;
-			T1WriteWord(state->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->ARM9Mem->ARM9_REG, 4) & 0xFFFD);
-			T1WriteWord(state->MMU->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7_REG, 4) & 0xFFFD);
+			T1WriteWord(state->MMU->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) & 0xFFFD);
+			T1WriteWord(state->MMU->ARM7Mem->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) & 0xFFFD);
 
 			if(state->MMU->DMA[0].Channels[0].StartTime == 3)
 				MMU_doDMA(state, 0, 0);
@@ -597,8 +597,8 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 			if(state->nds->VCount == 192)
 			{
 				/* VBLANK */
-				T1WriteWord(state->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->ARM9Mem->ARM9_REG, 4) | 1);
-				T1WriteWord(state->MMU->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7_REG, 4) | 1);
+				T1WriteWord(state->MMU->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) | 1);
+				T1WriteWord(state->MMU->ARM7Mem->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) | 1);
 				NDS_ARM9VBlankInt(state);
 				NDS_ARM7VBlankInt(state);
 
@@ -626,8 +626,8 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 				/* VDISP */
 				state->nds->nextHBlank = 3168;
 				state->nds->VCount = 0;
-				T1WriteWord(state->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->ARM9Mem->ARM9_REG, 4) & 0xFFFE);
-				T1WriteWord(state->MMU->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7_REG, 4) & 0xFFFE);
+				T1WriteWord(state->MMU->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) & 0xFFFE);
+				T1WriteWord(state->MMU->ARM7Mem->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) & 0xFFFE);
 
 				state->nds->cycles -= cycles_per_frame;
 				state->nds->ARM9Cycle -= cycles_per_frame;
@@ -669,28 +669,28 @@ void NDS_exec_hframe(NDS_state *state, int cpu_clockdown_level_arm9, int cpu_clo
 
 			}
 
-			T1WriteWord(state->ARM9Mem->ARM9_REG, 6, state->nds->VCount);
-			T1WriteWord(state->MMU->ARM7_REG, 6, state->nds->VCount);
+			T1WriteWord(state->MMU->ARM9Mem->ARM9_REG, 6, state->nds->VCount);
+			T1WriteWord(state->MMU->ARM7Mem->ARM7_REG, 6, state->nds->VCount);
 
-			vmatch = T1ReadWord(state->ARM9Mem->ARM9_REG, 4);
+			vmatch = T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4);
 			if(state->nds->VCount==((vmatch>>8)|((vmatch<<1)&(1<<8))))
 			{
-				T1WriteWord(state->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->ARM9Mem->ARM9_REG, 4) | 4);
-				if(T1ReadWord(state->ARM9Mem->ARM9_REG, 4) & 32)
+				T1WriteWord(state->MMU->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) | 4);
+				if(T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) & 32)
 					NDS_makeARM9Int(state, 2);
 			}
 			else
-				T1WriteWord(state->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->ARM9Mem->ARM9_REG, 4) & 0xFFFB);
+				T1WriteWord(state->MMU->ARM9Mem->ARM9_REG, 4, T1ReadWord(state->MMU->ARM9Mem->ARM9_REG, 4) & 0xFFFB);
 
-			vmatch = T1ReadWord(state->MMU->ARM7_REG, 4);
+			vmatch = T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4);
 			if(state->nds->VCount==((vmatch>>8)|((vmatch<<1)&(1<<8))))
 			{
-				T1WriteWord(state->MMU->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7_REG, 4) | 4);
-				if(T1ReadWord(state->MMU->ARM7_REG, 4) & 32)
+				T1WriteWord(state->MMU->ARM7Mem->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) | 4);
+				if(T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) & 32)
 					NDS_makeARM7Int(state, 2);
 			}
 			else
-				T1WriteWord(state->MMU->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7_REG, 4) & 0xFFFB);
+				T1WriteWord(state->MMU->ARM7Mem->ARM7_REG, 4, T1ReadWord(state->MMU->ARM7Mem->ARM7_REG, 4) & 0xFFFB);
 
 			timer_check(state);
 			dma_check(state);

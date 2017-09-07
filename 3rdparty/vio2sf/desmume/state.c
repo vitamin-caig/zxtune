@@ -70,27 +70,23 @@ int state_init(struct NDS_state *state)
     if (!state->MMU)
         return -1;
     
-    state->ARM9Mem = (ARM9_struct *) calloc(1, sizeof(ARM9_struct));
-    if (!state->ARM9Mem)
-        return -1;
-    
     MMU_Init(state);
     
     for (i = 0; i < 0x10; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_ITCM;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_ITCM;
         state->MMU_ARM9_MEM_MASK[i] = 0x00007FFF;
     }
     
     for (; i < 0x20; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_WRAM;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_WRAM;
         state->MMU_ARM9_MEM_MASK[i] = 0x00FFFFFF;
     }
     
     for (; i < 0x30; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->MAIN_MEM;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->MAIN_MEM;
         state->MMU_ARM9_MEM_MASK[i] = 0x003FFFFF;
     }
 
@@ -102,49 +98,49 @@ int state_init(struct NDS_state *state)
     
     for (; i < 0x50; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_REG;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_REG;
         state->MMU_ARM9_MEM_MASK[i] = 0x00FFFFFF;
     }
 
     for (; i < 0x60; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_VMEM;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_VMEM;
         state->MMU_ARM9_MEM_MASK[i] = 0x000007FF;
     }
     
     for (; i < 0x62; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_ABG;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_ABG;
         state->MMU_ARM9_MEM_MASK[i] = 0x0007FFFF;
     }
     
     for (; i < 0x64; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_BBG;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_BBG;
         state->MMU_ARM9_MEM_MASK[i] = 0x0001FFFF;
     }
     
     for (; i < 0x66; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_AOBJ;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_AOBJ;
         state->MMU_ARM9_MEM_MASK[i] = 0x0003FFFF;
     }
     
     for (; i < 0x68; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_BOBJ;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_BOBJ;
         state->MMU_ARM9_MEM_MASK[i] = 0x0001FFFF;
     }
     
     for (; i < 0x70; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_LCD;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_LCD;
         state->MMU_ARM9_MEM_MASK[i] = 0x000FFFFF;
     }
     
     for (; i < 0x80; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_OAM;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_OAM;
         state->MMU_ARM9_MEM_MASK[i] = 0x000007FF;
     }
     
@@ -168,13 +164,13 @@ int state_init(struct NDS_state *state)
     
     for (; i < 0x100; ++i)
     {
-        state->MMU_ARM9_MEM_MAP[i] = state->ARM9Mem->ARM9_BIOS;
+        state->MMU_ARM9_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_BIOS;
         state->MMU_ARM9_MEM_MASK[i] = 0x00007FFF;
     }
     
     for (i = 0; i < 0x10; ++i)
     {
-        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM7_BIOS;
+        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM7Mem->ARM7_BIOS;
         state->MMU_ARM7_MEM_MASK[i] = 0x00003FFF;
     }
     
@@ -186,7 +182,7 @@ int state_init(struct NDS_state *state)
     
     for (; i < 0x30; ++i)
     {
-        state->MMU_ARM7_MEM_MAP[i] = state->ARM9Mem->MAIN_MEM;
+        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM9Mem->MAIN_MEM;
         state->MMU_ARM7_MEM_MASK[i] = 0x003FFFFF;
     }
 
@@ -198,19 +194,19 @@ int state_init(struct NDS_state *state)
     
     for (; i < 0x40; ++i)
     {
-        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM7_ERAM;
+        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM7Mem->ARM7_ERAM;
         state->MMU_ARM7_MEM_MASK[i] = 0x0000FFFF;
     }
 
     for (; i < 0x48; ++i)
     {
-        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM7_REG;
+        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM7Mem->ARM7_REG;
         state->MMU_ARM7_MEM_MASK[i] = 0x00FFFFFF;
     }
     
     for (; i < 0x50; ++i)
     {
-        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM7_WIRAM;
+        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM7Mem->ARM7_WIRAM;
         state->MMU_ARM7_MEM_MASK[i] = 0x0000FFFF;
     }
     
@@ -222,7 +218,7 @@ int state_init(struct NDS_state *state)
     
     for (; i < 0x70; ++i)
     {
-        state->MMU_ARM7_MEM_MAP[i] = state->ARM9Mem->ARM9_ABG;
+        state->MMU_ARM7_MEM_MAP[i] = state->MMU->ARM9Mem->ARM9_ABG;
         state->MMU_ARM7_MEM_MASK[i] = 0x0003FFFF;
     }
 
@@ -282,8 +278,6 @@ void state_deinit(struct NDS_state *state)
     state->NDS_ARM9 = NULL;
     if (state->MMU) free(state->MMU);
     state->MMU = NULL;
-    if (state->ARM9Mem) free(state->ARM9Mem);
-    state->ARM9Mem = NULL;
 }
 
 void state_setrom(struct NDS_state *state, u8 * rom, u32 rom_size)
@@ -703,23 +697,23 @@ static void load_setstate(struct NDS_state *state, const u8 *ss, u32 ss_size)
 	load_getu16(&state->nds->touchY, 1, &ss, sse);
     
 	/* Read in memory/registers specific to the ARM9 */
-	load_getu8 (state->ARM9Mem->ARM9_ITCM, 0x8000, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_DTCM, 0x4000, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_WRAM, 0x1000000, &ss, sse);
-	load_getu8 (state->ARM9Mem->MAIN_MEM, 0x400000, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_REG, 0x10000, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_VMEM, 0x800, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_OAM, 0x800, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_ABG, 0x80000, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_BBG, 0x20000, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_AOBJ, 0x40000, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_BOBJ, 0x20000, &ss, sse);
-	load_getu8 (state->ARM9Mem->ARM9_LCD, 0xA4000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_ITCM, 0x8000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_DTCM, 0x4000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_WRAM, 0x1000000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->MAIN_MEM, 0x400000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_REG, 0x10000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_VMEM, 0x800, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_OAM, 0x800, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_ABG, 0x80000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_BBG, 0x20000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_AOBJ, 0x40000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_BOBJ, 0x20000, &ss, sse);
+	load_getu8 (state->MMU->ARM9Mem->ARM9_LCD, 0xA4000, &ss, sse);
     
 	/* Read in memory/registers specific to the ARM7 */
-	load_getu8 (state->MMU->ARM7_ERAM, 0x10000, &ss, sse);
-	load_getu8 (state->MMU->ARM7_REG, 0x10000, &ss, sse);
-	load_getu8 (state->MMU->ARM7_WIRAM, 0x10000, &ss, sse);
+	load_getu8 (state->MMU->ARM7Mem->ARM7_ERAM, 0x10000, &ss, sse);
+	load_getu8 (state->MMU->ARM7Mem->ARM7_REG, 0x10000, &ss, sse);
+	load_getu8 (state->MMU->ARM7Mem->ARM7_WIRAM, 0x10000, &ss, sse);
     
 	/* Read in shared memory */
 	load_getu8 (state->MMU->SWIRAM, 0x8000, &ss, sse);
