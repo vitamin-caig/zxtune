@@ -86,13 +86,24 @@ namespace
   class PlayerControl : public Player::Control
   {
   public:
-    PlayerControl(Parameters::Container::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
-      : Params(std::move(params))
+    PlayerControl(Parameters::Accessor::Ptr props, Parameters::Modifier::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
+      : Props(std::move(props))
+      , Params(std::move(params))
       , Renderer(std::move(render))
       , Buffer(std::move(buffer))
       , TrackState(Renderer->GetTrackState())
       , Analyser(Renderer->GetAnalyzer())
     {
+    }
+    
+    Parameters::Accessor::Ptr GetProperties() const override
+    {
+      return Props;
+    }
+    
+    Parameters::Modifier::Ptr GetParameters() const override
+    {
+      return Params;
     }
     
     uint_t GetPosition() const override
@@ -112,11 +123,6 @@ namespace
       return doneEntries;
     }
 
-    Parameters::Container::Ptr GetParameters() const override
-    {
-      return Params;
-    }
-    
     bool Render(uint_t samples, int16_t* buffer) override
     {
       for (;;)
@@ -144,7 +150,8 @@ namespace
       Renderer->SetPosition(frame);
     }
   private:
-    const Parameters::Container::Ptr Params;
+    const Parameters::Accessor::Ptr Props;
+    const Parameters::Modifier::Ptr Params;
     const Module::Renderer::Ptr Renderer;
     const BufferTarget::Ptr Buffer;
     const Module::TrackState::Ptr TrackState;
@@ -159,7 +166,7 @@ namespace
     auto properties = Parameters::CreateMergedAccessor(localParameters, std::move(internalProperties), std::move(globalParameters));
     auto buffer = MakePtr<BufferTarget>();
     auto renderer = module->CreateRenderer(properties, buffer);
-    return MakePtr<PlayerControl>(std::move(localParameters), std::move(renderer), std::move(buffer));
+    return MakePtr<PlayerControl>(std::move(properties), std::move(localParameters), std::move(renderer), std::move(buffer));
   }
 
   template<class StorageType, class ResultType>
@@ -280,9 +287,9 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_
   return Jni::Call(env, [=] ()
   {
     const auto& player = Player::Storage::Instance().Get(playerHandle);
-    const auto& params = player->GetParameters();
-    const Jni::PropertiesReadHelper props(env, *params);
-    return props.Get(propName, defVal);
+    const auto& props= player->GetProperties();
+    const Jni::PropertiesReadHelper helper(env, *props);
+    return helper.Get(propName, defVal);
   });
 }
 
@@ -292,9 +299,9 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lan
   return Jni::Call(env, [=] ()
   {
     const auto& player = Player::Storage::Instance().Get(playerHandle);
-    const auto& params = player->GetParameters();
-    const Jni::PropertiesReadHelper props(env, *params);
-    return props.Get(propName, defVal);
+    const auto& props = player->GetProperties();
+    const Jni::PropertiesReadHelper helper(env, *props);
+    return helper.Get(propName, defVal);
   });
 }
 
@@ -305,8 +312,8 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_S
   {
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     const auto& params = player->GetParameters();
-    Jni::PropertiesWriteHelper props(env, *params);
-    props.Set(propName, value);
+    Jni::PropertiesWriteHelper helper(env, *params);
+    helper.Set(propName, value);
   });
 }
 
@@ -317,7 +324,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_S
   {
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     const auto& params = player->GetParameters();
-    Jni::PropertiesWriteHelper props(env, *params);
-    props.Set(propName, value);
+    Jni::PropertiesWriteHelper helper(env, *params);
+    helper.Set(propName, value);
   });
 }
