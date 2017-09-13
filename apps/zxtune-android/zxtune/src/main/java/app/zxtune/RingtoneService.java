@@ -31,6 +31,8 @@ import java.io.File;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.core.Player;
+import app.zxtune.core.Properties;
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.sound.PlayerEventsListener;
@@ -223,20 +225,20 @@ public class RingtoneService extends IntentService {
   
   private static class TimeLimitedSamplesSource implements SamplesSource {
 
-    private ZXTune.Player player;
+    private Player player;
     private final TimeStamp limit;
     private int restSamples;
     
-    public TimeLimitedSamplesSource(ZXTune.Player player, TimeStamp limit) throws Exception {
+    public TimeLimitedSamplesSource(Player player, TimeStamp limit) throws Exception {
       this.player = player;
       this.limit = limit;
       player.setPosition(0);
-      player.setProperty(ZXTune.Properties.Sound.LOOPED, 1);
+      player.setProperty(Properties.Sound.LOOPED, 1);
     }
     
     @Override
     public void initialize(int sampleRate) throws Exception {
-      player.setProperty(ZXTune.Properties.Sound.FREQUENCY, sampleRate);
+      player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
       restSamples = (int) (limit.convertTo(TimeUnit.SECONDS) * sampleRate);
     }
 

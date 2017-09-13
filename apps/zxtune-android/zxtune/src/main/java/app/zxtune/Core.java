@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 
+import app.zxtune.core.Module;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
@@ -17,10 +18,10 @@ import app.zxtune.fs.VfsObject;
 public class Core {
   private static final String TAG = Core.class.getName();
 
-  public static ZXTune.Module loadModule(VfsFile file, String subpath) throws Exception {
+  public static Module loadModule(VfsFile file, String subpath) throws Exception {
     final ByteBuffer content = file.getContent();
     Analytics.setFile(file.getUri(), subpath, content.limit());
-    final ZXTune.Module obj = ZXTune.loadModule(content, subpath);
+    final Module obj = ZXTune.loadModule(content, subpath);
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
       return obj;
@@ -60,7 +61,7 @@ public class Core {
     }
 
     @Override
-    public void onModule(String subpath, ZXTune.Module obj) throws Exception {
+    public void onModule(String subpath, Module obj) throws Exception {
       ++modulesCount;
       try {
         final String[] files = obj.getAdditionalFiles();
@@ -78,7 +79,7 @@ public class Core {
       }
     }
 
-    private ZXTune.Module resolve(ZXTune.Module obj, String[] files) throws Exception {
+    private Module resolve(Module obj, String[] files) throws Exception {
       return getResolver().resolve(obj, files);
     }
 
@@ -103,7 +104,7 @@ public class Core {
       }
     }
 
-    final ZXTune.Module resolve(ZXTune.Module module, String[] files) throws Exception {
+    final Module resolve(Module module, String[] files) throws Exception {
       while (files != null && 0 != files.length) {
         resolveIteration(module, files);
         final String[] newFiles = module.getAdditionalFiles();
@@ -115,7 +116,7 @@ public class Core {
       return module;
     }
 
-    private void resolveIteration(ZXTune.Module module, String[] files) throws Exception {
+    private void resolveIteration(Module module, String[] files) throws Exception {
       for (String name : files) {
         Log.d(TAG, "Resolve %s", name);
         module.resolveAdditionalFile(name, getFileContent(name));

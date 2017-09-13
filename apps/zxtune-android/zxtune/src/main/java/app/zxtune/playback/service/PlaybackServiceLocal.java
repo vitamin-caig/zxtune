@@ -23,6 +23,7 @@ import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
+import app.zxtune.core.Properties;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CompositeCallback;
 import app.zxtune.playback.Item;
@@ -295,7 +296,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     Holder(Iterator iterator, PlayerEventsListener events) throws Exception {
       this.iterator = iterator;
       this.item = iterator.getItem();
-      final ZXTune.Player lowPlayer = item.getModule().createPlayer();
+      final app.zxtune.core.Player lowPlayer = item.getModule().createPlayer();
       final SeekableSamplesSource source = new SeekableSamplesSource(lowPlayer, item.getDuration());
       final SamplesTarget target = SoundOutputSamplesTarget.create();
       this.player = AsyncPlayer.create(source, target, events);
@@ -374,15 +375,15 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public TrackMode getTrackMode() {
-      final long val = ZXTune.GlobalOptions.instance().getProperty(ZXTune.Properties.Sound.LOOPED, 0);
+      final long val = ZXTune.GlobalOptions.instance().getProperty(Properties.Sound.LOOPED, 0);
       return val != 0 ? TrackMode.LOOPED : TrackMode.REGULAR;
     }
     
     @Override
     public void setTrackMode(TrackMode mode) {
       final long val = mode == TrackMode.LOOPED ? 1 : 0;
-      ZXTune.GlobalOptions.instance().setProperty(ZXTune.Properties.Sound.LOOPED, val);
-      saveProperty(ZXTune.Properties.Sound.LOOPED, val);
+      ZXTune.GlobalOptions.instance().setProperty(Properties.Sound.LOOPED, val);
+      saveProperty(Properties.Sound.LOOPED, val);
     }
     
     @Override

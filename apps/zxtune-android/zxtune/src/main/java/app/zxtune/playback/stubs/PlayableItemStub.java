@@ -10,7 +10,7 @@
 
 package app.zxtune.playback.stubs;
 
-import app.zxtune.ZXTune;
+import app.zxtune.core.Module;
 import app.zxtune.playback.PlayableItem;
 
 public class PlayableItemStub extends ItemStub implements PlayableItem {
@@ -19,7 +19,7 @@ public class PlayableItemStub extends ItemStub implements PlayableItem {
   }
   
   @Override
-  public ZXTune.Module getModule() {
+  public Module getModule() {
     throw new IllegalStateException("Should not be called");
   }
 

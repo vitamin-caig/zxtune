@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
-import app.zxtune.ZXTune;
+import app.zxtune.core.Module;
+import app.zxtune.core.ModuleAttributes;
 
 public class Item {
 
@@ -36,11 +37,11 @@ public class Item {
     this.duration = TimeStamp.createFrom(cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal()), TimeUnit.MILLISECONDS);
   }
 
-  public Item(Identifier location, ZXTune.Module module) throws Exception {
+  public Item(Identifier location, Module module) throws Exception {
     this.id = -1;
     this.location = location;
-    this.title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
-    this.author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
+    this.title = module.getProperty(ModuleAttributes.TITLE, "");
+    this.author = module.getProperty(ModuleAttributes.AUTHOR, "");
     //TODO
     this.duration = TimeStamp.createFrom(module.getDuration() * 20, TimeUnit.MILLISECONDS);
   }

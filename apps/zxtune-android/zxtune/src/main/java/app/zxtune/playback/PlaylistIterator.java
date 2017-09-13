@@ -20,8 +20,7 @@ import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.Scanner;
 import app.zxtune.TimeStamp;
-import app.zxtune.ZXTune;
-import app.zxtune.ZXTune.Module;
+import app.zxtune.core.Module;
 import app.zxtune.playlist.DatabaseIterator;
 
 class PlaylistIterator implements Iterator {
@@ -175,7 +174,7 @@ class PlaylistIterator implements Iterator {
     }
     
     @Override
-    public ZXTune.Module getModule() {
+    public Module getModule() {
       return content.getModule();
     }
     

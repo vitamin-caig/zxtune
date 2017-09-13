@@ -8,6 +8,9 @@ import android.content.SharedPreferences;
 
 import java.util.Map;
 
+import app.zxtune.core.Properties;
+import app.zxtune.core.PropertiesModifier;
+
 class ChangedSettingsReceiver extends BroadcastReceiver {
 
   private static final String TAG = ChangedSettingsReceiver.class.getName();
@@ -19,7 +22,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(ctx);
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
       final String key = entry.getKey();
-      if (key.startsWith(ZXTune.Properties.PREFIX)) {
+      if (key.startsWith(Properties.PREFIX)) {
         setProperty(key, entry.getValue(), ZXTune.GlobalOptions.instance());
       }
     }
@@ -32,7 +35,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     final String key = intent.getStringExtra(PreferencesActivity.EXTRA_PREFERENCE_NAME);
-    if (key.startsWith(ZXTune.Properties.PREFIX)) {
+    if (key.startsWith(Properties.PREFIX)) {
       final Object value = intent.getExtras().get(PreferencesActivity.EXTRA_PREFERENCE_VALUE);
       if (value != null) {
         setProperty(key, value, ZXTune.GlobalOptions.instance());
@@ -40,7 +43,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     }
   }
 
-  private static void setProperty(String name, Object value, ZXTune.Properties.Modifier target) {
+  private static void setProperty(String name, Object value, PropertiesModifier target) {
     try {
       if (value instanceof String) {
         setProperty(name, (String) value, target);
@@ -58,7 +61,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     }
   }
 
-  private static void setProperty(String name, String value, ZXTune.Properties.Modifier target) throws Exception {
+  private static void setProperty(String name, String value, PropertiesModifier target) throws Exception {
     try {
       target.setProperty(name, Long.parseLong(value));
     } catch (NumberFormatException e) {
@@ -66,7 +69,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     }
   }
 
-  private static void setProperty(String name, long value, ZXTune.Properties.Modifier target) throws Exception {
+  private static void setProperty(String name, long value, PropertiesModifier target) throws Exception {
     target.setProperty(name, value);
   }
 }

@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import app.zxtune.ZXTune.Module;
+import app.zxtune.core.Module;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsArchive;
@@ -36,7 +36,7 @@ public final class Scanner {
 
   public interface Callback {
     
-    void onModule(Identifier id, ZXTune.Module module);
+    void onModule(Identifier id, Module module);
     void onError(Exception e);
   }
   
@@ -184,7 +184,7 @@ public final class Scanner {
   
   private boolean analyzeArchiveFile(Identifier id, Callback cb) throws Exception {
     final VfsFile archive = openArchive(id.getDataLocation());
-    final ZXTune.Module module;
+    final Module module;
     try {
       module = Core.loadModule(archive, id.getSubpath());
     } catch (Exception e) {

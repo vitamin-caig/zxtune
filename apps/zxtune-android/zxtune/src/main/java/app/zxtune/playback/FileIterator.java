@@ -24,8 +24,9 @@ import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.Scanner;
 import app.zxtune.TimeStamp;
-import app.zxtune.ZXTune;
-import app.zxtune.ZXTune.Module;
+import app.zxtune.core.Module;
+import app.zxtune.core.ModuleAttributes;
+import app.zxtune.core.Properties;
 import app.zxtune.playback.stubs.PlayableItemStub;
 
 public class FileIterator implements Iterator {
@@ -180,11 +181,11 @@ public class FileIterator implements Iterator {
   static class FileItem implements PlayableItem {
 
     private static final String EMPTY_STRING = "";
-    private ZXTune.Module module;
+    private Module module;
     private final Uri id;
     private final Identifier dataId;
 
-    public FileItem(Identifier id, ZXTune.Module module) {
+    public FileItem(Identifier id, Module module) {
       this.module = module;
       this.id = id.getFullLocation();
       this.dataId = id;
@@ -202,37 +203,37 @@ public class FileIterator implements Iterator {
 
     @Override
     public String getTitle() throws Exception {
-      return module.getProperty(ZXTune.Module.Attributes.TITLE, EMPTY_STRING);
+      return module.getProperty(ModuleAttributes.TITLE, EMPTY_STRING);
     }
 
     @Override
     public String getAuthor() throws Exception {
-      return module.getProperty(ZXTune.Module.Attributes.AUTHOR, EMPTY_STRING);
+      return module.getProperty(ModuleAttributes.AUTHOR, EMPTY_STRING);
     }
     
     @Override
     public String getProgram() throws Exception {
-      return module.getProperty(ZXTune.Module.Attributes.PROGRAM, EMPTY_STRING);
+      return module.getProperty(ModuleAttributes.PROGRAM, EMPTY_STRING);
     }
     
     @Override
     public String getComment() throws Exception {
-      return module.getProperty(ZXTune.Module.Attributes.COMMENT, EMPTY_STRING);
+      return module.getProperty(ModuleAttributes.COMMENT, EMPTY_STRING);
     }
     
     @Override
     public String getStrings() throws Exception {
-      return module.getProperty(ZXTune.Module.Attributes.STRINGS, EMPTY_STRING);
+      return module.getProperty(ModuleAttributes.STRINGS, EMPTY_STRING);
     }
 
     @Override
     public TimeStamp getDuration() throws Exception {
-      final long frameDuration = module.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT);
+      final long frameDuration = module.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
       return TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
     }
 
     @Override
-    public ZXTune.Module getModule() {
+    public Module getModule() {
       return module;
     }
 

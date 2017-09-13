@@ -1,13 +1,13 @@
 package app.zxtune.playback.service;
 
-import app.zxtune.ZXTune;
+import app.zxtune.core.Player;
 import app.zxtune.playback.Visualizer;
 
 class PlaybackVisualizer implements Visualizer {
 
-  private final ZXTune.Player player;
+  private final Player player;
 
-  PlaybackVisualizer(ZXTune.Player player) {
+  PlaybackVisualizer(Player player) {
     this.player = player;
   }
 

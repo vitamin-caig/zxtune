@@ -25,7 +25,9 @@ import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.Util;
 import app.zxtune.ZXTune;
-import app.zxtune.ZXTune.Module;
+import app.zxtune.core.Module;
+import app.zxtune.core.ModuleAttributes;
+import app.zxtune.core.Properties;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
@@ -84,10 +86,10 @@ public final class Provider extends ContentProvider {
             final DirEntry dirEntry = DirEntry.create(moduleId);
 
             try {
-              final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
-              final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
+              final String author = module.getProperty(ModuleAttributes.AUTHOR, "");
+              final String title = module.getProperty(ModuleAttributes.TITLE, "");
               final String description = Util.formatTrackTitle(author, title, "");
-              final long frameDuration = module.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT);
+              final long frameDuration = module.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
               final TimeStamp duration = TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
               final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
 

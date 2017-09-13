@@ -3,28 +3,29 @@ package app.zxtune.playback.service;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
-import app.zxtune.ZXTune;
+import app.zxtune.core.Player;
+import app.zxtune.core.Properties;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.sound.SamplesSource;
 
 class SeekableSamplesSource implements SamplesSource, SeekControl {
 
-  private ZXTune.Player player;
+  private Player player;
   private final TimeStamp totalDuration;
   private final TimeStamp frameDuration;
   private volatile TimeStamp seekRequest;
 
-  SeekableSamplesSource(ZXTune.Player player, TimeStamp totalDuration) throws Exception {
+  SeekableSamplesSource(Player player, TimeStamp totalDuration) throws Exception {
     this.player = player;
     this.totalDuration = totalDuration;
-    final long frameDurationUs = player.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT);
+    final long frameDurationUs = player.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
     this.frameDuration = TimeStamp.createFrom(frameDurationUs, TimeUnit.MICROSECONDS);
     player.setPosition(0);
   }
 
   @Override
   public void initialize(int sampleRate) throws Exception {
-    player.setProperty(ZXTune.Properties.Sound.FREQUENCY, sampleRate);
+    player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
   }
 
   @Override

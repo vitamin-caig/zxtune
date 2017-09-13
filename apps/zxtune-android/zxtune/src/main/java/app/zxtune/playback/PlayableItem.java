@@ -11,12 +11,12 @@
 package app.zxtune.playback;
 
 import app.zxtune.Releaseable;
-import app.zxtune.ZXTune;
+import app.zxtune.core.Module;
 
 public interface PlayableItem extends Item, Releaseable {
 
   /**
    * @return Associated module
    */
-  public ZXTune.Module getModule();
+  public Module getModule();
 }

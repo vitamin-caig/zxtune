@@ -12,6 +12,8 @@ import com.crashlytics.android.ndk.CrashlyticsNdk;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.core.Module;
+import app.zxtune.core.ModuleAttributes;
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.playback.Callback;
@@ -63,10 +65,10 @@ public class Analytics {
     try {
       final Identifier id = item.getDataId();
       final Uri location = id.getFullLocation();
-      final ZXTune.Module module = item.getModule();
-      final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "Unknown");
-      final String program = module.getProperty(ZXTune.Module.Attributes.PROGRAM, "Unknown");
-      final String container = module.getProperty(ZXTune.Module.Attributes.CONTAINER, "None");
+      final Module module = item.getModule();
+      final String type = module.getProperty(ModuleAttributes.TYPE, "Unknown");
+      final String program = module.getProperty(ModuleAttributes.PROGRAM, "Unknown");
+      final String container = module.getProperty(ModuleAttributes.CONTAINER, "None");
       final TimeStamp duration = item.getDuration();
       final boolean fromBrowser = item.getId().equals(location);
 
