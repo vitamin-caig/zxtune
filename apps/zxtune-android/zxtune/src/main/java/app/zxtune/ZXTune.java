@@ -19,7 +19,7 @@ import app.zxtune.core.PropertiesContainer;
 public final class ZXTune {
 
   public static class GlobalOptions implements PropertiesContainer {
-    
+
     private GlobalOptions() {
     }
 
@@ -218,6 +218,11 @@ public final class ZXTune {
     }
 
     @Override
+    public int getPlaybackPerformance() throws Exception {
+      return Player_GetPlaybackPerformance(handle);
+    }
+
+    @Override
     public void release() {
       Player_Close(handle);
     }
@@ -269,6 +274,7 @@ public final class ZXTune {
   private static native int Player_Analyze(int player, int bands[], int levels[]) throws Exception;
   private static native int Player_GetPosition(int player) throws Exception;
   private static native void Player_SetPosition(int player, int pos) throws Exception;
+  private static native int Player_GetPlaybackPerformance(int player) throws Exception;
   private static native long Player_GetProperty(int player, String name, long defVal) throws Exception;
   private static native String Player_GetProperty(int player, String name, String defVal) throws Exception;
   private static native void Player_SetProperty(int player, String name, long val) throws Exception;

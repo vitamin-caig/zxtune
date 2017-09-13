@@ -30,4 +30,9 @@ public interface Player extends Releaseable, PropertiesAccessor, PropertiesModif
    * @param pos Index of next rendered frame
    */
   void setPosition(int pos) throws Exception;
+
+  /**
+   * @return rendering performance in percents
+   */
+  int getPlaybackPerformance() throws Exception;
 }

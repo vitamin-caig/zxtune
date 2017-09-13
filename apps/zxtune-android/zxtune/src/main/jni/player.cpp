@@ -22,7 +22,9 @@
 //library includes
 #include <parameters/merged_accessor.h>
 #include <sound/mixer_factory.h>
+#include <sound/sound_parameters.h>
 //std includes
+#include <ctime>
 #include <deque>
 
 namespace
@@ -38,6 +40,7 @@ namespace
 
     void ApplyData(Sound::Chunk data) override
     {
+      TotalSamples += data.size();
       Buffers.emplace_back(std::move(data));
     }
 
@@ -60,6 +63,11 @@ namespace
       }
       return copied * Sound::Sample::CHANNELS;
     }
+    
+    uint64_t GetTotalSamplesDone() const
+    {
+      return TotalSamples;
+    }
   private:
     struct Buff
     {
@@ -81,6 +89,39 @@ namespace
       std::size_t Avail;
     };
     std::deque<Buff> Buffers;
+    uint64_t TotalSamples = 0;
+  };
+  
+  class RenderingPerformanceAccountant
+  {
+  public:
+    void StartAccounting()
+    {
+      LastStart = std::clock();
+    }
+
+    void StopAccounting()
+    {
+      Clocks += std::clock() - LastStart;
+      ++Frames;
+    }
+    
+    uint_t Measure(uint64_t totalSamples, uint_t sampleRate) const
+    {
+      if (const uint64_t totalClocks = Clocks + Frames / 2) //compensate measuring error
+      {
+        // 100 * (totalSamples / sampleRate) / (totalClocks / CLOCKS_PER_SEC)
+        return (totalSamples * CLOCKS_PER_SEC * 100) / (totalClocks * sampleRate);
+      }
+      else
+      {
+        return 0;
+      }
+    }
+  private:
+    std::clock_t LastStart = 0;
+    std::clock_t Clocks = 0;
+    uint_t Frames = 0;
   };
 
   class PlayerControl : public Player::Control
@@ -125,7 +166,8 @@ namespace
 
     bool Render(uint_t samples, int16_t* buffer) override
     {
-      for (;;)
+      bool hasMoreFrames = true;
+      while (hasMoreFrames)
       {
         if (const std::size_t got = Buffer->GetSamples(samples, buffer))
         {
@@ -136,10 +178,9 @@ namespace
             break;
           }
         }
-        if (!Renderer->RenderFrame())
-        {
-          break;
-        }
+        RenderingPerformance.StartAccounting();
+        hasMoreFrames = Renderer->RenderFrame();
+        RenderingPerformance.StopAccounting();
       }
       std::fill_n(buffer, samples, 0);
       return samples == 0;
@@ -149,6 +190,13 @@ namespace
     {
       Renderer->SetPosition(frame);
     }
+
+    uint_t GetPlaybackPerformance() const override
+    {
+      Parameters::IntType sampleRate = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      Props->FindValue(Parameters::ZXTune::Sound::FREQUENCY, sampleRate);
+      return RenderingPerformance.Measure(Buffer->GetTotalSamplesDone(), sampleRate);
+    }
   private:
     const Parameters::Accessor::Ptr Props;
     const Parameters::Modifier::Ptr Params;
@@ -156,6 +204,7 @@ namespace
     const BufferTarget::Ptr Buffer;
     const Module::TrackState::Ptr TrackState;
     const Module::Analyzer::Ptr Analyser;
+    RenderingPerformanceAccountant RenderingPerformance;
   };
 
   Player::Control::Ptr CreateControl(Module::Holder::Ptr module)
@@ -278,6 +327,15 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetPosition
   return Jni::Call(env, [=] ()
   {
     Player::Storage::Instance().Get(playerHandle)->Seek(position);
+  });
+}
+
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPlaybackPerformance
+  (JNIEnv* env, jclass /*self*/, jint playerHandle)
+{
+  return Jni::Call(env, [=] ()
+  {
+    return Player::Storage::Instance().Get(playerHandle)->GetPlaybackPerformance();
   });
 }
 

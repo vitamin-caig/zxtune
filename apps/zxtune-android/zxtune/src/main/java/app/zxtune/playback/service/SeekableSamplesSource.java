@@ -2,6 +2,7 @@ package app.zxtune.playback.service;
 
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.Analytics;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Player;
 import app.zxtune.core.Properties;
@@ -40,8 +41,8 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
 
   @Override
   public void release() {
+    Analytics.sendPerformanceEvent(player);
     player.release();
-    player = null;
   }
 
   @Override

@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
+import app.zxtune.core.Player;
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.playback.Callback;
@@ -83,6 +84,20 @@ public class Analytics {
       send(event);
     } catch (Exception e) {
       Log.w(TAG, e, "sendPlayEvent");
+    }
+  }
+
+  public static void sendPerformanceEvent(Player player) {
+    try {
+      final int perf = player.getPlaybackPerformance();
+      if (perf != 0) {
+        final String type = player.getProperty(ModuleAttributes.TYPE, "Unknown");
+        final CustomEvent event = new CustomEvent("Performance");
+        event.putCustomAttribute(type + " playback,%", perf);
+        send(event);
+      }
+    } catch (Exception e) {
+      Log.w(TAG, e, "sendPerformanceEvent");
     }
   }
 

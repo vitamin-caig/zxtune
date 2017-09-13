@@ -145,6 +145,14 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetPosition
 
 /*
  * Class:     app_zxtune_ZXTune
+ * Method:    Player_GetPlaybackPerformance
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPlaybackPerformance
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     app_zxtune_ZXTune
  * Method:    Player_GetProperty
  * Signature: (ILjava/lang/String;J)J
  */
