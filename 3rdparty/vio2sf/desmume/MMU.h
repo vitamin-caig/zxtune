@@ -69,8 +69,8 @@ typedef struct Timer_struct {
 } Timer_struct;
 
 typedef struct MMU_Core_struct {
-    u8** MemMap;
-    u32* MemMask;
+    u8* MemMap[256];
+    u32 MemMask[256];
     
     Timer_struct Timers[4];
     u32 reg_IME;

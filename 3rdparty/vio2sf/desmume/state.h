@@ -38,11 +38,6 @@ typedef struct NDS_state
 
     struct MMU_struct * MMU;
     
-    u8 * MMU_ARM9_MEM_MAP[256];
-    u32  MMU_ARM9_MEM_MASK[256];
-    u8 * MMU_ARM7_MEM_MAP[256];
-    u32  MMU_ARM7_MEM_MASK[256];
-
     BOOL execute;
 
     u16 partie; /* = 1; */
@@ -51,8 +46,6 @@ typedef struct NDS_state
     u16 SPI_CMD; /* = 0;*/
     u16 AUX_SPI_CNT; /* = 0;*/
     u16 AUX_SPI_CMD; /* = 0;*/
-    
-    u32 rom_mask; /* = 0;*/
     
     struct SPU_struct *SPU_core;
     

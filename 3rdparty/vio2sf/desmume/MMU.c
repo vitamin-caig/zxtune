@@ -74,6 +74,224 @@ const u32 MMU_ARM7_WAIT32[16]={
 	1, 1, 1, 1, 1, 1, 1, 1, 8, 8, 5, 1, 1, 1, 1, 1,
 };
 
+/* http://problemkaputt.de/gbatek.htm#dsmemorymaps
+NDS9 Memory Map
+  00000000h  Instruction TCM (32KB) (not moveable) (mirror-able to 1000000h)
+  0xxxx000h  Data TCM        (16KB) (moveable)
+  02000000h  Main Memory     (4MB)
+  03000000h  Shared WRAM     (0KB, 16KB, or 32KB can be allocated to ARM9)
+  04000000h  ARM9-I/O Ports
+  05000000h  Standard Palettes (2KB) (Engine A BG/OBJ, Engine B BG/OBJ)
+  06000000h  VRAM - Engine A, BG VRAM  (max 512KB)
+  06200000h  VRAM - Engine B, BG VRAM  (max 128KB)
+  06400000h  VRAM - Engine A, OBJ VRAM (max 256KB)
+  06600000h  VRAM - Engine B, OBJ VRAM (max 128KB)
+  06800000h  VRAM - "LCDC"-allocated (max 656KB)
+  07000000h  OAM (2KB) (Engine A, Engine B)
+  08000000h  GBA Slot ROM (max 32MB)
+  0A000000h  GBA Slot RAM (max 64KB)
+  FFFF0000h  ARM9-BIOS (32KB) (only 3K used)
+The ARM9 Exception Vectors are located at FFFF0000h. The IRQ handler redirects to [DTCM+3FFCh].
+*/
+
+static void MMU_Init_Arm9(MMU_struct *mmu) {
+    int i;
+    MMU_Core_struct* const core = mmu->Cores + ARMCPU_ARM9;
+    
+    for (i = 0; i < 0x10; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_ITCM;
+        core->MemMask[i] = 0x00007FFF;
+    }
+    
+    for (; i < 0x20; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_WRAM;
+        core->MemMask[i] = 0x00FFFFFF;
+    }
+    
+    for (; i < 0x30; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->MAIN_MEM;
+        core->MemMask[i] = 0x003FFFFF;
+    }
+
+    for (; i < 0x40; ++i)
+    {
+        core->MemMap[i] = mmu->SWIRAM;
+        core->MemMask[i] = 0x00007FFF;
+    }
+    
+    for (; i < 0x50; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_REG;
+        core->MemMask[i] = 0x00FFFFFF;
+    }
+
+    for (; i < 0x60; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_VMEM;
+        core->MemMask[i] = 0x000007FF;
+    }
+    
+    for (; i < 0x62; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_ABG;
+        core->MemMask[i] = 0x0007FFFF;
+    }
+    
+    for (; i < 0x64; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_BBG;
+        core->MemMask[i] = 0x0001FFFF;
+    }
+    
+    for (; i < 0x66; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_AOBJ;
+        core->MemMask[i] = 0x0003FFFF;
+    }
+    
+    for (; i < 0x68; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_BOBJ;
+        core->MemMask[i] = 0x0001FFFF;
+    }
+    
+    for (; i < 0x70; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_LCD;
+        core->MemMask[i] = 0x000FFFFF;
+    }
+    
+    for (; i < 0x80; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_OAM;
+        core->MemMask[i] = 0x000007FF;
+    }
+    
+    for (; i < 0xA0; ++i)
+    {
+        core->MemMap[i] = NULL;
+        core->MemMask[i] = ROM_MASK;
+    }
+
+    for (; i < 0xB0; ++i)
+    {
+        core->MemMap[i] = mmu->CART_RAM;
+        core->MemMask[i] = 0x0000FFFF;
+    }
+    
+    for (; i < 0xF0; ++i)
+    {
+        core->MemMap[i] = mmu->UNUSED_RAM;
+        core->MemMask[i] = 0x00000003;
+    }
+    
+    for (; i < 0x100; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_BIOS;
+        core->MemMask[i] = 0x00007FFF;
+    }
+}
+
+/*
+NDS7 Memory Map
+  00000000h  ARM7-BIOS (16KB)
+  02000000h  Main Memory (4MB)
+  03000000h  Shared WRAM (0KB, 16KB, or 32KB can be allocated to ARM7)
+  03800000h  ARM7-WRAM (64KB)
+  04000000h  ARM7-I/O Ports
+  04800000h  Wireless Communications Wait State 0 (8KB RAM at 4804000h)
+  04808000h  Wireless Communications Wait State 1 (I/O Ports at 4808000h)
+  06000000h  VRAM allocated as Work RAM to ARM7 (max 256K)
+  08000000h  GBA Slot ROM (max 32MB)
+  0A000000h  GBA Slot RAM (max 64KB)
+*/
+
+static void MMU_Init_Arm7(MMU_struct *mmu) {
+    int i;
+    MMU_Core_struct* const core = mmu->Cores + ARMCPU_ARM7;
+
+    for (i = 0; i < 0x10; ++i)
+    {
+        core->MemMap[i] = mmu->ARM7Mem->ARM7_BIOS;
+        core->MemMask[i] = 0x00003FFF;
+    }
+    
+    for (; i < 0x20; ++i)
+    {
+        core->MemMap[i] = mmu->UNUSED_RAM;
+        core->MemMask[i] = 0x00000003;
+    }
+    
+    for (; i < 0x30; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->MAIN_MEM;
+        core->MemMask[i] = 0x003FFFFF;
+    }
+
+    for (; i < 0x38; ++i)
+    {
+        core->MemMap[i] = mmu->SWIRAM;
+        core->MemMask[i] = 0x00007FFF;
+    }
+    
+    for (; i < 0x40; ++i)
+    {
+        core->MemMap[i] = mmu->ARM7Mem->ARM7_ERAM;
+        core->MemMask[i] = 0x0000FFFF;
+    }
+
+    for (; i < 0x48; ++i)
+    {
+        core->MemMap[i] = mmu->ARM7Mem->ARM7_REG;
+        core->MemMask[i] = 0x00FFFFFF;
+    }
+    
+    for (; i < 0x50; ++i)
+    {
+        core->MemMap[i] = mmu->ARM7Mem->ARM7_WIRAM;
+        core->MemMask[i] = 0x0000FFFF;
+    }
+    
+    for (; i < 0x60; ++i)
+    {
+        core->MemMap[i] = mmu->UNUSED_RAM;
+        core->MemMask[i] = 0x00000003;
+    }
+    
+    for (; i < 0x70; ++i)
+    {
+        core->MemMap[i] = mmu->ARM9Mem->ARM9_ABG;
+        core->MemMask[i] = 0x0003FFFF;
+    }
+
+    for (; i < 0x80; ++i)
+    {
+        core->MemMap[i] = mmu->UNUSED_RAM;
+        core->MemMask[i] = 0x00000003;
+    }
+    
+    for (; i < 0xA0; ++i)
+    {
+        core->MemMap[i] = NULL;
+        core->MemMask[i] = ROM_MASK;
+    }
+    
+    for (; i < 0xB0; ++i)
+    {
+        core->MemMap[i] = mmu->CART_RAM;
+        core->MemMask[i] = 0x0000FFFF;
+    }
+    
+    for (; i < 0x100; ++i)
+    {
+        core->MemMap[i] = mmu->UNUSED_RAM;
+        core->MemMask[i] = 0x00000003;
+    }
+}
+
 void MMU_Init(NDS_state *state) {
 	int i;
 
@@ -89,29 +307,21 @@ void MMU_Init(NDS_state *state) {
 	state->MMU->CART_ROM = state->MMU->UNUSED_RAM;
   state->MMU->CART_RAM = calloc(0x10000, 1);
 
-        for(i = 0x80; i<0xA0; ++i)
-        {
-           state->MMU_ARM9_MEM_MAP[i] = state->MMU->CART_ROM;
-           state->MMU_ARM7_MEM_MAP[i] = state->MMU->CART_ROM;
-        }
-
-	state->MMU->Cores[0].MemMap = state->MMU_ARM9_MEM_MAP;
-	state->MMU->Cores[1].MemMap = state->MMU_ARM7_MEM_MAP;
-	state->MMU->Cores[0].MemMask= state->MMU_ARM9_MEM_MASK;
-	state->MMU->Cores[1].MemMask = state->MMU_ARM7_MEM_MASK;
-
 	state->MMU->ITCMRegion = 0x00800000;
 
   state->MMU->fifos = calloc(16, sizeof(FIFO));
 	for(i = 0;i < 16;i++)
 		FIFOInit(state->MMU->fifos + i);
 	
-        mc_init(&state->MMU->fw, MC_TYPE_FLASH);  /* init fw device */
-        mc_alloc(&state->MMU->fw, NDS_FW_SIZE_V1);
+  mc_init(&state->MMU->fw, MC_TYPE_FLASH);  /* init fw device */
+  mc_alloc(&state->MMU->fw, NDS_FW_SIZE_V1);
 
-        // Init Backup Memory device, this should really be done when the rom is loaded
-        mc_init(&state->MMU->bupmem, MC_TYPE_AUTODETECT);
-        mc_alloc(&state->MMU->bupmem, 1);
+  // Init Backup Memory device, this should really be done when the rom is loaded
+  mc_init(&state->MMU->bupmem, MC_TYPE_AUTODETECT);
+  mc_alloc(&state->MMU->bupmem, 1);
+  
+  MMU_Init_Arm9(state->MMU);
+  MMU_Init_Arm7(state->MMU);
 }
 
 void MMU_DeInit(NDS_state *state) {
@@ -175,32 +385,22 @@ void MMU_clearMem(NDS_state *state)
 
 void MMU_setRom(NDS_state *state, u8 * rom, u32 mask)
 {
-	unsigned int i;
 	state->MMU->CART_ROM = rom;
 	
-	for(i = 0x80; i<0xA0; ++i)
-	{
-		state->MMU_ARM9_MEM_MAP[i] = rom;
-		state->MMU_ARM7_MEM_MAP[i] = rom;
-		state->MMU_ARM9_MEM_MASK[i] = mask;
-		state->MMU_ARM7_MEM_MASK[i] = mask;
+  for (int proc = 0; proc < 2; ++proc)
+  {
+    MMU_Core_struct* const core = state->MMU->Cores + proc;
+    for(int i = 0x80; i<0xA0; ++i)
+	  {
+      core->MemMap[i] = rom;
+      core->MemMask[i] = mask;
+    }
 	}
-	state->rom_mask = mask;
 }
 
 void MMU_unsetRom(NDS_state *state)
 {
-	unsigned int i;
-	state->MMU->CART_ROM=state->MMU->UNUSED_RAM;
-	
-	for(i = 0x80; i<0xA0; ++i)
-	{
-		state->MMU_ARM9_MEM_MAP[i] = state->MMU->UNUSED_RAM;
-		state->MMU_ARM7_MEM_MAP[i] = state->MMU->UNUSED_RAM;
-		state->MMU_ARM9_MEM_MASK[i] = ROM_MASK;
-		state->MMU_ARM7_MEM_MASK[i] = ROM_MASK;
-	}
-	state->rom_mask = ROM_MASK;
+  MMU_setRom(state, state->MMU->UNUSED_RAM, ROM_MASK);
 }
 
 u8 FASTCALL MMU_read8(NDS_state *state, u32 proc, u32 adr)
