@@ -20,53 +20,55 @@ android {
             ndkConfig.abiFilters getListProperty("flavors.fat.abifilters", "armeabi armeabi-v7a")
         }
 
-        x86 {
-            dimension "abi"
-            versionCode 1
-            versionName "x86"
-            ndkConfig.abiFilters "x86"
-        }
-
-        x86_64 {
-            dimension "abi"
-            versionCode 2
-            versionName "x86-64"
-            ndkConfig.abiFilters "x86-64"
-        }
-
-        mips {
-            dimension "abi"
-            versionCode 3
-            versionName "mips"
-            ndkConfig.abiFilters "mips"
-        }
-
-        mips64 {
-            dimension "abi"
-            versionCode 4
-            versionName "mips64"
-            ndkConfig.abiFilters "mips64"
-        }
-
+        // make ARM flavors the lowest ones
+        // some of the devices provide ARM emulation on other platform, so make them more prioritized
         arm {
             dimension "abi"
-            versionCode 5
+            versionCode 1
             versionName "armeabi"
             ndkConfig.abiFilters "armeabi"
         }
 
         arm7 {
             dimension "abi"
-            versionCode 6
+            versionCode 2
             versionName "armeabi-v7a"
             ndkConfig.abiFilters "armeabi-v7a"
         }
 
         arm64 {
             dimension "abi"
-            versionCode 7
+            versionCode 3
             versionName "arm64-v8a"
             ndkConfig.abiFilters "arm64-v8a"
+        }
+
+        x86 {
+            dimension "abi"
+            versionCode 4
+            versionName "x86"
+            ndkConfig.abiFilters "x86"
+        }
+
+        x86_64 {
+            dimension "abi"
+            versionCode 5
+            versionName "x86-64"
+            ndkConfig.abiFilters "x86-64"
+        }
+
+        mips {
+            dimension "abi"
+            versionCode 6
+            versionName "mips"
+            ndkConfig.abiFilters "mips"
+        }
+
+        mips64 {
+            dimension "abi"
+            versionCode 7
+            versionName "mips64"
+            ndkConfig.abiFilters "mips64"
         }
     }
     
