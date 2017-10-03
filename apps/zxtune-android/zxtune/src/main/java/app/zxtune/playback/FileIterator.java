@@ -112,7 +112,7 @@ public class FileIterator implements Iterator {
             public void onModule(Identifier id, Module module) {
               addItem(new FileItem(id, module));
             }
-            
+
             @Override
             public void onError(Exception e) {
               lastError = e;
@@ -120,7 +120,11 @@ public class FileIterator implements Iterator {
           });
           addItem(PlayableItemStub.instance());//limiter
         } catch (Error e) {//use unchecked exception to process interruptions
-          Log.w(TAG, e, "Error in FileIterator.start()");
+          if (e.getCause() instanceof InterruptedException) {
+            Log.d(TAG, "Interrupted");
+          } else {
+            Log.w(TAG, e, "Error in FileIterator.start()");
+          }
         }
       }
     });
@@ -142,7 +146,7 @@ public class FileIterator implements Iterator {
     try {
       itemsQueue.put(item);
     } catch (InterruptedException e) {
-      throw new Error("Interrupted");
+      throw new Error("Interrupted", e);
     }
   }
   
