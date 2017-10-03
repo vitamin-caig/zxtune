@@ -58,6 +58,7 @@ android {
         }
 
         develop {
+            initWith debug
             signingConfig signingConfigs.release
         }
     }
