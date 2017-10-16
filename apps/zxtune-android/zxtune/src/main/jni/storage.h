@@ -14,6 +14,7 @@
 #include <pointers.h>
 //std includes
 #include <map>
+#include <mutex>
 
 template<class PtrType>
 class ObjectsStorage
@@ -30,6 +31,7 @@ public:
   {
     if (obj)
     {
+      const std::lock_guard<std::mutex> guard(Lock);
       const HandleType handle = GetNextHandle();
       Storage.insert(typename StorageType::value_type(handle, std::move(obj)));
       return handle;
@@ -42,7 +44,7 @@ public:
 
   const PtrType& Get(HandleType handle) const
   {
-    static const PtrType NullPtr;
+    const std::lock_guard<std::mutex> guard(Lock);
     const auto it = Storage.find(handle);
     if (it != Storage.end())
     {
@@ -56,6 +58,7 @@ public:
 
   PtrType Fetch(HandleType handle)
   {
+    const std::lock_guard<std::mutex> guard(Lock);
     const auto it = Storage.find(handle);
     if (it != Storage.end())
     {
@@ -80,4 +83,5 @@ private:
   typedef std::map<HandleType, PtrType> StorageType;
   StorageType Storage;
   HandleType NextHandle;
+  mutable std::mutex Lock;
 };
