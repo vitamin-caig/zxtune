@@ -352,13 +352,9 @@ void mixer_softmixer(struct context_data *ctx)
 			if (vi->pos >= vi->end) {
 				samples = 0;
 			} else {
-				samples = 1 + (((int64)(vi->end - vi->pos) <<
-					SMIX_SHIFT) - vi->frac) / step;
-			}
-
-			/* ...inside the tick boundaries */
-			if (samples > size) {
-				samples = size;
+				const int64 samp = 1 + (((int64)(vi->end - vi->pos) << SMIX_SHIFT) - vi->frac) / step;
+			        /* ...inside the tick boundaries */
+				samples = samp > size ? size : samp;
 			}
 
 			if (vi->vol) {
@@ -401,9 +397,9 @@ void mixer_softmixer(struct context_data *ctx)
 				}
 			}
 
-			vi->frac += step * samples;
-			vi->pos += vi->frac >> SMIX_SHIFT;
-			vi->frac &= SMIX_MASK;
+                        const int64 newPos = (int64)step * samples + vi->frac;
+			vi->frac = newPos & SMIX_MASK;
+			vi->pos += newPos >> SMIX_SHIFT;
 
 			/* No more samples in this tick */
 			size -= samples;
