@@ -246,43 +246,6 @@ namespace
     HolderAndData::Receiver::Ptr Pipe;
   };
 
-  class FinishPlaybackCallback : public Sound::BackendCallback
-  {
-  public:
-    void OnStart() override
-    {
-      Event.Reset();
-    }
-
-    void OnFrame(const Module::TrackState& /*state*/) override
-    {
-    }
-
-    void OnStop() override
-    {
-    }
-
-    void OnPause() override
-    {
-    }
-
-    void OnResume() override
-    {
-    }
-
-    void OnFinish() override
-    {
-      Event.Set(1);
-    }
-
-    void Wait()
-    {
-      Event.Wait(1);
-    }
-  private:
-    Async::Event<uint_t> Event;
-  };
-
   class Benchmark : public OnItemCallback
   {
   public:
@@ -303,15 +266,12 @@ namespace
 
       Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
 
-      FinishPlaybackCallback cb;
-      const Sound::Backend::Ptr backend = Sounder.CreateBackend(holder, "null", Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
-      const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
+      const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), Sound::Receiver::CreateStub());
       const Time::Timer timer;
       for (unsigned i = 0; i != Iterations; ++i)
       {
-        control->SetPosition(0);
-        control->Play();
-        cb.Wait();
+        renderer->SetPosition(0);
+        while (renderer->RenderFrame()) {}
       }
       const Time::Microseconds real = timer.Elapsed();
       const double relSpeed = double(total.Get()) / real.Get();
