@@ -41,7 +41,18 @@ class Chip_Resampler_Emu : public Emu {
 	}
 
 public:
-	Chip_Resampler_Emu()      { last_time = disabled_time; out = NULL; }
+	Chip_Resampler_Emu()
+		: last_time( disabled_time )
+		, out( NULL )
+		, sample_buf_size( 0 )
+		, oversamples_per_frame( 0 )
+		, buf_pos( 0 )
+		, buffered( 0 )
+		, resampler_size( 0 )
+		, gain_( 0 )
+	{
+	}
+	
 	blargg_err_t setup( double oversample, double rolloff, double gain )
 	{
 		gain_ = (int) ((1 << gain_bits) * gain);
