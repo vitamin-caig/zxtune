@@ -78,7 +78,7 @@ void mc_init(memory_chip_t *mc, int type)
 u8 *mc_alloc(memory_chip_t *mc, u32 size)
 {
 	u8 *buffer;
-	buffer = malloc(size);
+	buffer = calloc(size, 1);
 
 	mc->data = buffer;
 	if(!buffer) { return NULL; }
