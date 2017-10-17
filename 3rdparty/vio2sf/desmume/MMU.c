@@ -411,10 +411,12 @@ u8 FASTCALL MMU_read8(NDS_state *state, u32 proc, u32 adr)
 		return state->MMU->ARM9Mem->ARM9_DTCM[adr&0x3FFF];
 	}
 #endif
-	
+
 	// CFlash reading, Mic
 	if ((adr>=0x9000000)&&(adr<0x9900000))
+  {
 		return (unsigned char)cflash_read(state, adr);
+  }
 
   MMU_Core_struct* const core = state->MMU->Cores + proc;
   return core->MemMap[(adr>>20)&0xFF][adr&core->MemMask[(adr>>20)&0xFF]];
@@ -433,7 +435,9 @@ u16 FASTCALL MMU_read16(NDS_state *state, u32 proc, u32 adr)
 	
 	// CFlash reading, Mic
 	if ((adr>=0x08800000)&&(adr<0x09900000))
+  {
 	   return (unsigned short)cflash_read(state, adr);
+  }
 
 	adr &= 0x0FFFFFFF;
 
@@ -618,7 +622,9 @@ u32 FASTCALL MMU_read32(NDS_state *state, u32 proc, u32 adr)
 	
 	// CFlash reading, Mic
 	if ((adr>=0x9000000)&&(adr<0x9900000))
+  {
 	   return (unsigned long)cflash_read(state, adr);
+  }
 		
 	adr &= 0x0FFFFFFF;
 

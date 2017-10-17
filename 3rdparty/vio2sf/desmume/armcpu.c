@@ -114,7 +114,7 @@ int armcpu_new( NDS_state *state, armcpu_t *armcpu, u32 id)
 	return 0;
 } 
 
-static u32 armcpu_prefetch(armcpu_t *armcpu);
+static FASTCALL u32 armcpu_prefetch(armcpu_t *armcpu);
 
 void armcpu_init(armcpu_t *armcpu, u32 adr)
 {
