@@ -36,7 +36,7 @@ namespace Binary
     template<class T>
     const T* GetField(std::size_t offset) const
     {
-      return offset + sizeof(T) <= Size
+      return offset < Size && offset + sizeof(T) <= Size
         ? safe_ptr_cast<const T*>(Start + offset)
         : nullptr;
     }
