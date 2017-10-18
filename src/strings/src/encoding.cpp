@@ -759,6 +759,10 @@ namespace Strings
       static const Codepage8Bit<Traits> instance;
       return instance;
     }
+  private:
+    Codepage8Bit()
+    {
+    }
   };
   
   //https://en.wikipedia.org/wiki/Shift_JIS
@@ -780,7 +784,7 @@ namespace Strings
           //non-altered
           continue;
         }
-        else if (s1 > 0xa1 && s1 < 0xe0)
+        else if (s1 > 0xa0 && s1 < 0xe0)
         {
           //do not support half-width katakana due to detection problem
           return false;
@@ -837,6 +841,10 @@ namespace Strings
       return instance;
     }
   private:
+    ShiftJIS()
+    {
+    }
+
     static uint32_t GetUnicode(uint_t s1, uint_t s2)
     {
 #include "sjis2unicode.inc"
