@@ -47,7 +47,11 @@ namespace Chiptune
     const uint_t CLOCKRATE_MAX = 10000000;//10MHz
 
     const uint_t INTFREQ_MIN = 25;
+    const uint_t INTFREQ_DEFAULT = 50;
     const uint_t INTFREQ_MAX = 100;
+    
+    const uint_t DURATION_MIN = 1;
+    const uint_t DURATION_MAX = 30 * 60;
 
     const std::size_t MAX_STRING_SIZE = 254;
 
@@ -60,15 +64,18 @@ namespace Chiptune
         IdentifierType Signature;
         RegistersDump Row;
       } PACK_POST;
+      
+      const std::size_t MIN_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MIN;
+      const std::size_t MAX_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MAX;
 
-      bool CheckSize(std::size_t size)
+      bool CheckMinSize(std::size_t size)
       {
-        return size >= sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN;
+        return size >= MIN_SIZE;
       }
 
       bool FastCheck(const void* data, std::size_t size)
       {
-        return CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
+        return CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
     }
 
@@ -82,14 +89,17 @@ namespace Chiptune
         RegistersDump Row;
       } PACK_POST;
 
-      bool CheckSize(std::size_t size)
+      const std::size_t MIN_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MIN;
+      const std::size_t MAX_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MAX;
+
+      bool CheckMinSize(std::size_t size)
       {
-        return size >= sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN;
+        return size >= MIN_SIZE;
       }
 
       bool FastCheck(const void* data, std::size_t size)
       {
-        return CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
+        return CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
     }
 
@@ -103,14 +113,17 @@ namespace Chiptune
         RegistersDump Row;
       } PACK_POST;
 
-      bool CheckSize(std::size_t size)
+      const std::size_t MIN_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MIN + sizeof(uint32_t);
+      const std::size_t MAX_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MAX + sizeof(uint32_t);
+
+      bool CheckMinSize(std::size_t size)
       {
-        return size >= sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN + sizeof(uint32_t);
+        return size >= MIN_SIZE;
       }
 
       bool FastCheck(const void* data, std::size_t size)
       {
-        return CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
+        return CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
     }
 
@@ -134,28 +147,31 @@ namespace Chiptune
 
         bool Interleaved() const
         {
-          return 0 != (Attrs & 0x01000000);
+          return 0 != (fromLE(Attrs) & 0x01000000);
         }
 
         bool DrumsSigned() const
         {
-          return 0 != (Attrs & 0x02000000);
+          return 0 != (fromLE(Attrs) & 0x02000000);
         }
 
         bool Drums4Bit() const
         {
-          return 0 != (Attrs & 0x04000000);
+          return 0 != (fromLE(Attrs) & 0x04000000);
         }
       } PACK_POST;
 
-      bool CheckSize(std::size_t size)
+      const std::size_t MIN_SIZE = sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN * DURATION_MIN;
+      const std::size_t MAX_SIZE = sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MAX * DURATION_MAX;
+
+      bool CheckMinSize(std::size_t size)
       {
-        return size >= sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN;
+        return size >= MIN_SIZE;
       }
 
       bool FastCheck(const void* data, std::size_t size)
       {
-        return CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
+        return CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
     }
 
@@ -165,7 +181,7 @@ namespace Chiptune
 
       bool FastCheck(const void* data, std::size_t size)
       {
-        return Ver5::CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
+        return Ver5::CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
     }
 
@@ -204,10 +220,11 @@ namespace Chiptune
           return false;
         }
         const std::size_t origSize = fromLE(hdr.OriginalSize);
-        return Ver2::CheckSize(origSize)
-            || Ver3::CheckSize(origSize)
-            || Ver3b::CheckSize(origSize)
-            || Ver5::CheckSize(origSize);
+        return Math::InRange(origSize, Ver2::MIN_SIZE, Ver2::MAX_SIZE)
+            || Math::InRange(origSize, Ver3::MIN_SIZE, Ver3::MAX_SIZE)
+            || Math::InRange(origSize, Ver3b::MIN_SIZE, Ver3b::MAX_SIZE)
+            || Math::InRange(origSize, Ver5::MIN_SIZE, Ver5::MAX_SIZE)
+        ;
       }
     }
 #ifdef USE_PRAGMA_PACK
