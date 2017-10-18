@@ -183,19 +183,16 @@ namespace Chiptune
 
       std::size_t GetUsedSize() const
       {
+        //8-bit offsets
         return sizeof(RawObject) + GetSize() * sizeof(Line);
       }
 
-      Line GetLine(uint_t idx) const
+      const Line& GetLine(uint_t idx) const
       {
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(this + 1);
-        //using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
-        Line res;
-        res.FlagsAndNoiseAddon = src[offset++];
-        res.NoteAddon = src[offset++];
-        return res;
+        return Lines[idx];
       }
+      
+      Line Lines[1];
     } PACK_POST;
 
     PACK_PRE struct RawSample : RawObject
@@ -285,7 +282,8 @@ namespace Chiptune
 
       std::size_t GetUsedSize() const
       {
-        return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
+        //16-bit offsets
+        return sizeof(RawObject) + GetSize() * sizeof(Line);
       }
 
       const Line& GetLine(uint_t idx) const
@@ -303,7 +301,7 @@ namespace Chiptune
     static_assert(sizeof(RawHeader) == 212, "Invalid layout");
     static_assert(sizeof(RawPosition) == 2, "Invalid layout");
     static_assert(sizeof(RawPattern) == 6, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 3, "Invalid layout");
+    static_assert(sizeof(RawOrnament) == 5, "Invalid layout");
     static_assert(sizeof(RawOrnament::Line) == 2, "Invalid layout");
     static_assert(sizeof(RawSample) == 8, "Invalid layout");
     static_assert(sizeof(RawSample::Line) == 5, "Invalid layout");
