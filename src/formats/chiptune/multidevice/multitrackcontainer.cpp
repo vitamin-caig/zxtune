@@ -535,13 +535,15 @@ namespace Chiptune
       try
       {
         FileParser file(target);
-        const Binary::Container::Ptr result = IFF::Parse(data, file); 
-        return CreateCalculatingCrcContainer(result, 0, result->Size());
+        if (const Binary::Container::Ptr result = IFF::Parse(data, file))
+        {
+          return CreateCalculatingCrcContainer(result, 0, result->Size());
+        }
       }
       catch (const std::exception& /*e*/)
       {
-        return Formats::Chiptune::Container::Ptr();
       }
+      return Formats::Chiptune::Container::Ptr();
     }
 
     Builder& GetStubBuilder()
