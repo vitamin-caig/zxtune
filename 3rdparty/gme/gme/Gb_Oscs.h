@@ -20,7 +20,7 @@ struct voice_status_t;
 class Gb_Osc {
 protected:
 	Gb_Osc()
-		: outputs( {0, 0, 0, 0} )
+		: outputs()
 		, output( 0 )
 		, regs( 0 )
 		, mode( 0 )
