@@ -95,6 +95,7 @@ namespace Module
       : Params(std::move(params))
       , Fading(fading)
       , Status(std::move(status))
+      , Looped()
     {
     }
 
@@ -109,16 +110,19 @@ namespace Module
       if (Params.IsChanged())
       {
         using namespace Parameters::ZXTune::Sound;
-        auto gain = GAIN_DEFAULT;
-        Params->FindValue(GAIN, gain);
-        Maximum = Sound::Gain::Type(gain, GAIN_PRECISION);
+        auto val = GAIN_DEFAULT;
+        Params->FindValue(GAIN, val);
+        Maximum = Sound::Gain::Type(val, GAIN_PRECISION);
+        val = 0;
+        Params->FindValue(LOOPED, val);
+        Looped = val;
       }
       const auto pos = Status->Frame();
       if (Fading.IsFadein(pos))
       {
         Current = Fading.GetFadein(Maximum, pos);
       }
-      else if (Fading.IsFadeout(pos))
+      else if (Looped == 0 && Fading.IsFadeout(pos))
       {
         Current = Fading.GetFadeout(Maximum, pos);
       }
@@ -133,6 +137,7 @@ namespace Module
     const TrackState::Ptr Status;
     mutable Sound::Gain::Type Maximum;
     mutable Sound::Gain::Type Current;
+    mutable Parameters::IntType Looped;
   };
 
   Sound::GainSource::Ptr CreateGainSource(Parameters::Accessor::Ptr params, Information::Ptr info, TrackState::Ptr status)
