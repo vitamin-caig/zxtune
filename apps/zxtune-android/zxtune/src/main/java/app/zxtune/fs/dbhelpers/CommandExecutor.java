@@ -12,27 +12,38 @@ public class CommandExecutor {
     this.id = id;
   }
 
-  public final void executeQueryCommand(String scope, QueryCommand cmd) throws IOException {
-    final Timestamps.Lifetime lifetime = cmd.getLifetime();
-    IOException remoteError = null;
-    if (lifetime.isExpired()) {
-      final Transaction transaction = cmd.startTransaction();
-      try {
-        cmd.queryFromRemote();
-        lifetime.update();
-        transaction.succeed();
-        Analytics.sendVfsRemoteEvent(id, scope);
-        return;
-      } catch (IOException e) {
-        remoteError = e;
-      } finally {
-        transaction.finish();
+  public final void executeQuery(String scope, QueryCommand cmd) throws IOException {
+    if (cmd.getLifetime().isExpired()) {
+      refreshAndQuery(scope, cmd);
+    } else {
+      cmd.queryFromCache();
+      Analytics.sendVfsCacheEvent(id, scope);
+    }
+  }
+
+  private void refreshAndQuery(String scope, QueryCommand cmd) throws IOException {
+    try {
+      executeRefresh(scope, cmd);
+      cmd.queryFromCache();
+    } catch (IOException e) {
+      if (cmd.queryFromCache()) {
+        Analytics.sendVfsCacheEvent(id, scope);
+      } else {
+        throw e;
       }
     }
-    if (!cmd.queryFromCache() && remoteError != null) {
-      throw remoteError;
+  }
+
+  public final void executeRefresh(String scope, QueryCommand cmd) throws IOException {
+    final Transaction transaction = cmd.startTransaction();
+    try {
+      cmd.updateCache();
+      cmd.getLifetime().update();
+      transaction.succeed();
+      Analytics.sendVfsRemoteEvent(id, scope);
+    } finally {
+      transaction.finish();
     }
-    Analytics.sendVfsCacheEvent(id, scope);
   }
 
   public final <T> T executeFetchCommand(String scope, FetchCommand<T> cmd) throws IOException {

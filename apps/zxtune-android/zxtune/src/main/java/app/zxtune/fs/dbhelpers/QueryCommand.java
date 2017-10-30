@@ -14,7 +14,7 @@ public interface QueryCommand {
 
   Transaction startTransaction() throws IOException;
 
-  boolean queryFromCache();
+  void updateCache() throws IOException;
 
-  void queryFromRemote() throws IOException;
+  boolean queryFromCache();
 }

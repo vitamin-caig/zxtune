@@ -102,6 +102,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryGroups(GroupsVisitor visitor) throws IOException {
+    Log.d(TAG, "queryGroups()");
     final String content = http.getHtml(GROUPS_URI);
     final Matcher matcher = GROUPS.matcher(content);
     while (matcher.find()) {
@@ -113,18 +114,21 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthors(String handleFilter, AuthorsVisitor visitor) throws IOException {
+    Log.d(TAG, "queryAuthors(handleFilter=%s)", handleFilter);
     final String uri = String.format(Locale.US, BY_HANDLE_URI_FORMAT, handleFilter);
     queryAuthorsInternal(uri, visitor);
   }
 
   @Override
   public void queryAuthors(Country country, AuthorsVisitor visitor) throws IOException {
+    Log.d(TAG, "queryAuthors(country=%d)", country.id);
     final String uri = String.format(Locale.US, BY_COUNTRY_URI_FORMAT, country.id);
     queryAuthorsInternal(uri, visitor);
   }
 
   @Override
   public void queryAuthors(Group group, AuthorsVisitor visitor) throws IOException {
+    Log.d(TAG, "queryAuthors(group=%d)", group.id);
     final String uri = String.format(Locale.US, BY_GROUP_URI_FORMAT, group.id);
     queryAuthorsInternal(uri, visitor);
   }
@@ -151,6 +155,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
+    Log.d(TAG, "queryTracks(author=%d)", author.id);
     final String uri = String.format(Locale.US, AUTHOR_TRACKS_URI_FORMAT, author.id);
     final String content = http.getHtml(uri);
     final Matcher matcher = TRACKS.matcher(content);
@@ -169,6 +174,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void findTracks(String query, final FoundTracksVisitor visitor) throws IOException {
+    Log.d(TAG, "findTracks(query=%s)", query);
     final String uri = String.format(Locale.US, FIND_TRACK_URI_FORMAT, Uri.encode(query));
     loadPages(uri, new PagesVisitor() {
       @Override
@@ -193,6 +199,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
+    Log.d(TAG, "getTrackContent(%d)", id);
     final String uri = String.format(Locale.US, TRACK_URI_FORMAT, id);
     return http.getContent(uri);
   }

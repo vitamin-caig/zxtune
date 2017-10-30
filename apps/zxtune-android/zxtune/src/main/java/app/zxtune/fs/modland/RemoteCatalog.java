@@ -92,6 +92,7 @@ class RemoteCatalog extends Catalog {
 
     @Override
     public void query(String filter, final GroupsVisitor visitor) throws IOException {
+      Log.d(TAG, "queryGroups(type=%s, filter=%s)", getCategoryTag(), filter);
       loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
 
         private boolean countReported;
@@ -120,6 +121,7 @@ class RemoteCatalog extends Catalog {
 
     @Override
     public Group query(final int id) throws IOException {
+      Log.d(TAG, "queryGroup(type=%s, id=%d)", getCategoryTag(), id);
       final Group[] result = new Group[1];
       loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
         @Override
@@ -137,6 +139,7 @@ class RemoteCatalog extends Catalog {
 
     @Override
     public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
+      Log.d(TAG, "queryGroupTracks(type=%s, id=%d)", getCategoryTag(), id);
       loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
 
         private boolean countReported;
@@ -154,6 +157,7 @@ class RemoteCatalog extends Catalog {
 
     @Override
     public Track findTrack(int id, final String filename) throws IOException {
+      Log.d(TAG, "findGroupTrack(type=%s, id=%d, filename=%s)", getCategoryTag(), id, filename);
       final AtomicReference<Track> result = new AtomicReference<>();
       queryTracks(id, new TracksVisitor() {
         @Override
@@ -231,6 +235,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public ByteBuffer getTrackContent(String id) throws IOException {
+    Log.d(TAG, "getTrackContent(id=%d)", id);
     return http.getContent(STORAGE_MIRROR + id);
   }
 

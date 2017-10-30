@@ -24,6 +24,7 @@ import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
+import app.zxtune.Log;
 import app.zxtune.Util;
 import app.zxtune.fs.HttpProvider;
 
@@ -60,6 +61,7 @@ final class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
+    Log.d(TAG, "queryAuthors()");
     final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
@@ -67,11 +69,13 @@ final class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException {
+    Log.d(TAG, "queryAuthorTracks(author=%d)", author.id);
     queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
   }
 
   @Override
   public void queryParties(PartiesVisitor visitor) throws IOException {
+    Log.d(TAG, "queryParties()");
     final HttpURLConnection connection = http.connect(ALL_PARTIES_QUERY);
     final RootElement root = createPartiesParserRoot(visitor);
     performQuery(connection, root);
@@ -79,11 +83,13 @@ final class RemoteCatalog extends Catalog {
 
   @Override
   public void queryPartyTracks(Party party, TracksVisitor visitor) throws IOException {
+    Log.d(TAG, "queryPartyTracks(party=%d)", party.id);
     queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.id));
   }
 
   @Override
   public void queryTopTracks(int limit, TracksVisitor visitor) throws IOException {
+    Log.d(TAG, "queryTopTracks()");
     queryTracks(visitor, String.format(Locale.US, TOP_TRACKS_QUERY, limit));
   }
 
@@ -99,6 +105,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
+    Log.d(TAG, "findTracks(query=%s)", query);
     final String url = String.format(Locale.US, FIND_TRACKS_QUERY, Uri.encode(query));
     final HttpURLConnection connection = http.connect(url);
     final RootElement root = createModulesParserRoot(visitor);
@@ -107,6 +114,7 @@ final class RemoteCatalog extends Catalog {
 
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
+    Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
     return http.getContent(query);
   }

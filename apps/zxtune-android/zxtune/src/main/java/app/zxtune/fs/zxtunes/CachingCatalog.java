@@ -41,7 +41,7 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
-    executor.executeQueryCommand("authors", new QueryCommand() {
+    executor.executeQuery("authors", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorsLifetime(AUTHORS_TTL);
@@ -53,21 +53,25 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public boolean queryFromCache() {
-        return db.queryAuthors(visitor);
+      public void updateCache() throws IOException {
+        remote.queryAuthors(new AuthorsVisitor() {
+          @Override
+          public void accept(Author obj) {
+            db.addAuthor(obj);
+          }
+        });
       }
 
       @Override
-      public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Authors cache is empty/expired");
-        remote.queryAuthors(new CachingAuthorsVisitor(visitor));
+      public boolean queryFromCache() {
+        return db.queryAuthors(visitor);
       }
     });
   }
 
   @Override
   public void queryAuthorTracks(final Author author, final TracksVisitor visitor) throws IOException {
-    executor.executeQueryCommand("tracks", new QueryCommand() {
+    executor.executeQuery("tracks", new QueryCommand() {
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorTracksLifetime(author, TRACKS_TTL);
@@ -79,14 +83,19 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public boolean queryFromCache() {
-        return db.queryAuthorTracks(author, visitor);
+      public void updateCache() throws IOException {
+        remote.queryAuthorTracks(author, new TracksVisitor() {
+          @Override
+          public void accept(Track obj) {
+            db.addTrack(obj);
+            db.addAuthorTrack(author, obj);
+          }
+        });
       }
 
       @Override
-      public void queryFromRemote() throws IOException {
-        Log.d(TAG, "Tracks cache is empty/expired for author=%d", author.id);
-        remote.queryAuthorTracks(author, new CachingTracksVisitor(visitor, author));
+      public boolean queryFromCache() {
+        return db.queryAuthorTracks(author, visitor);
       }
     });
   }
@@ -124,48 +133,5 @@ final class CachingCatalog extends Catalog {
         return res;
       }
     });
-  }
-
-  private class CachingAuthorsVisitor extends AuthorsVisitor {
-
-    private final AuthorsVisitor delegate;
-
-    CachingAuthorsVisitor(AuthorsVisitor delegate) {
-      this.delegate = delegate;
-    }
-
-    @Override
-    public void setCountHint(int count) {
-      delegate.setCountHint(count);
-    }
-
-    @Override
-    public void accept(Author obj) {
-      delegate.accept(obj);
-      db.addAuthor(obj);
-    }
-  }
-
-  private class CachingTracksVisitor extends TracksVisitor {
-
-    private final TracksVisitor delegate;
-    private final Author author;
-
-    CachingTracksVisitor(TracksVisitor delegate, Author author) {
-      this.delegate = delegate;
-      this.author = author;
-    }
-
-    @Override
-    public void setCountHint(int count) {
-      delegate.setCountHint(count);
-    }
-
-    @Override
-    public void accept(Track track) {
-      delegate.accept(track);
-      db.addTrack(track);
-      db.addAuthorTrack(author, track);
-    }
   }
 }

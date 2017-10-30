@@ -126,6 +126,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
+    Log.d(TAG, "queryAuthors()");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search_artist").build();
     final RootElement root = createAuthorsParserRoot(visitor);
     loadPages(uri, root);
@@ -134,6 +135,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryGenres(GenresVisitor visitor) throws IOException {
+    Log.d(TAG, "queryGenres()");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_genres").build();
     final RootElement root = createGenresParserRoot(visitor);
     loadSinglePage(uri, root);
@@ -141,6 +143,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
+    Log.d(TAG, "queryTracks(author=%d)", author.id);
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_modules_by_artistid").setQuery(author.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
@@ -148,6 +151,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void queryTracks(Genre genre, TracksVisitor visitor) throws IOException {
+    Log.d(TAG, "queryTracks(genre=%d)", genre.id);
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("genre").setQuery(genre.id).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root);
@@ -160,6 +164,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
+    Log.d(TAG, "findTracks(query=%s)", query);
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("filename_or_songtitle").setQuery("*" + query + "*").build();
     final RootElement root = createFoundTracksParserRoot(visitor);
     loadPages(uri, root);
@@ -167,6 +172,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
+    Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = ApiUriBuilder.forDownload(id).build();
     return http.getContent(query);
   }
