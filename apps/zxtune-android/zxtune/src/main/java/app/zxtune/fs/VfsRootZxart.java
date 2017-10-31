@@ -480,8 +480,28 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
   }
 
+  private static class PartyCompoTracksComparator implements Comparator<VfsObject> {
+    @Override
+    public int compare(VfsObject lh, VfsObject rh) {
+      final int lhPlace = ((BaseTrackFile) lh).module.partyplace;
+      final int rhPlace = ((BaseTrackFile) rh).module.partyplace;
+      return lhPlace == rhPlace
+          ? 0
+          : (lhPlace < rhPlace ? -1 : +1);
+    }
+
+    public static Comparator<VfsObject> instance() {
+      return Holder.INSTANCE;
+    }
+
+    //onDemand holder idiom
+    private static class Holder {
+      public static final PartyCompoTracksComparator INSTANCE = new PartyCompoTracksComparator();
+    }
+  }
+
   // custom ordering by party place
-  private class PartyCompoDir extends StubObject implements VfsDir, Comparator<VfsObject> {
+  private class PartyCompoDir extends StubObject implements VfsDir {
 
     private final Party party;
     private final CompoName compo;
@@ -506,6 +526,16 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       return new PartyDir(party);
     }
 
+    @Nullable
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.COMPARATOR.equals(id)) {
+        return PartyCompoTracksComparator.instance();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryPartyTracks(party, new Catalog.TracksVisitor() {
@@ -523,15 +553,6 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
           }
         }
       });
-    }
-
-    @Override
-    public int compare(VfsObject lh, VfsObject rh) {
-      final int lhPlace = ((BaseTrackFile) lh).module.partyplace;
-      final int rhPlace = ((BaseTrackFile) rh).module.partyplace;
-      return lhPlace == rhPlace
-              ? 0
-              : (lhPlace < rhPlace ? -1 : +1);
     }
   }
 
@@ -553,8 +574,26 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
   }
 
+  private static class TopTracksComparator implements Comparator<VfsObject> {
+    @Override
+    public int compare(VfsObject lh, VfsObject rh) {
+      // assume that votes can be compared in lexicographical order
+      return -String.CASE_INSENSITIVE_ORDER.compare(((VfsFile) lh).getSize(),
+          ((VfsFile) rh).getSize());
+    }
+
+    public static Comparator<VfsObject> instance() {
+      return Holder.INSTANCE;
+    }
+
+    //onDemand holder idiom
+    private static class Holder {
+      public static final TopTracksComparator INSTANCE = new TopTracksComparator();
+    }
+  }
+
   // custom ordering by votes desc
-  private class TopTracksDir extends GroupingDir implements Comparator<VfsObject> {
+  private class TopTracksDir extends GroupingDir {
 
     @Override
     public String getName() {
@@ -569,6 +608,16 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     @Override
     public VfsObject getParent() {
       return VfsRootZxart.this;
+    }
+
+    @Nullable
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.COMPARATOR.equals(id)) {
+        return TopTracksComparator.instance();
+      } else {
+        return super.getExtension(id);
+      }
     }
 
     @Override
@@ -599,13 +648,6 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       return track != null
               ? new TopTrackFile(uri, track)
               : this;
-    }
-
-    @Override
-    public int compare(VfsObject lh, VfsObject rh) {
-      // assume that votes can be compared in lexicographical order
-      return -String.CASE_INSENSITIVE_ORDER.compare(((VfsFile) lh).getSize(),
-              ((VfsFile) rh).getSize());
     }
 
     private class TopTrackFile extends BaseTrackFile {

@@ -27,4 +27,7 @@ public final class VfsExtensions {
   }
 
   public static final String SEARCH_ENGINE = "SEARCH_ENGINE";
+
+  // Comparator<VfsObject>
+  public static final String COMPARATOR = "COMPARATOR";
 }

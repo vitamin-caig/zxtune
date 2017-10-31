@@ -18,6 +18,7 @@ import java.util.Comparator;
 
 import app.zxtune.Log;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 
@@ -90,8 +91,9 @@ class ListingLoader extends AsyncTaskLoader<Object> {
           cb.onProgressUpdate(++counter);
         }
       });
-      if (dir instanceof Comparator<?>) {
-        model.sort((Comparator<VfsObject>)dir);
+      final Object extension = dir.getExtension(VfsExtensions.COMPARATOR);
+      if (extension instanceof Comparator<?>) {
+        model.sort((Comparator<VfsObject>) extension);
       } else {
         model.sort();
       }

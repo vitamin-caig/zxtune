@@ -24,6 +24,7 @@ import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.playlist.AylIterator;
@@ -85,6 +86,7 @@ public final class Scanner {
       
       @Override
       public void onItemsCount(int count) {
+        files.ensureCapacity(count);
       }
       
       @Override
@@ -97,8 +99,9 @@ public final class Scanner {
         dirs.add(dir);
       }
     });
-    final Comparator<VfsObject> comparator = directory instanceof Comparator<?>
-      ? (Comparator<VfsObject>) directory
+    final Object extension = directory.getExtension(VfsExtensions.COMPARATOR);
+    final Comparator<VfsObject> comparator = extension instanceof Comparator<?>
+      ? (Comparator<VfsObject>) extension
       : DefaultComparator.instance();
     Collections.sort(dirs, comparator);
     Collections.sort(files, comparator);
