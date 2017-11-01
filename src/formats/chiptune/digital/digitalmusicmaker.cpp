@@ -274,7 +274,7 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
         Strings::Array names(SAMPLES_COUNT);
-        for (uint_t samIdx = 1; samIdx != SAMPLES_COUNT; ++samIdx)
+        for (uint_t samIdx = 1; samIdx < SAMPLES_COUNT; ++samIdx)
         {
           const SampleInfo& srcSample = Source.SampleDescriptions[samIdx - 1];
           if (srcSample.Name[0] != '.')
@@ -306,11 +306,15 @@ namespace Chiptune
 
       void ParseMixins(Builder& target) const
       {
+        //disable UB with out-of-bound array access
+        const MixedLine* const mixings = Source.Mixings;
         //big mixins amount support
-        for (uint_t mixIdx = 0; mixIdx != 64; ++mixIdx)
+        const uint_t availMixingsCount = 64;
+        const uint_t maxMixingsCount = (RawData.Size() - offsetof(Header, Mixings)) / sizeof(MixedLine);
+        for (uint_t mixIdx = 0, mixLimit = std::min(availMixingsCount, maxMixingsCount); mixIdx < mixLimit; ++mixIdx)
         {
           Dbg("Parse mixin %1%", mixIdx);
-          const MixedLine& src = Source.Mixings[mixIdx];
+          const MixedLine& src = mixings[mixIdx];
           const std::unique_ptr<ChannelBuilder> dst = target.SetSampleMixin(mixIdx, src.Period);
           ParseChannel(src.Mixin, *dst);
         }
@@ -321,7 +325,7 @@ namespace Chiptune
         const bool is4bitSamples = true;//TODO: detect
         const std::size_t limit = RawData.Size();
         Binary::Container::Ptr regions[8];
-        for (std::size_t layIdx = 0, lastData = 256 * Source.HeaderSizeSectors; layIdx != Source.EndOfBanks.size(); ++layIdx)
+        for (std::size_t layIdx = 0, lastData = 256 * Source.HeaderSizeSectors; layIdx < Source.EndOfBanks.size(); ++layIdx)
         {
           static const uint_t BANKS[] = {0, 1, 3, 4, 6, 7};
 
@@ -354,7 +358,7 @@ namespace Chiptune
           }
         }
         
-        for (uint_t samIdx = 1; samIdx != SAMPLES_COUNT; ++samIdx)
+        for (uint_t samIdx = 1; samIdx < SAMPLES_COUNT; ++samIdx)
         {
           const SampleInfo& srcSample = Source.SampleDescriptions[samIdx - 1];
           if (srcSample.Name[0] == '.')
@@ -421,7 +425,7 @@ namespace Chiptune
 
       static void ParseLine(const Pattern::Line& line, PatternBuilder& patBuilder, Builder& target)
       {
-        for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
+        for (uint_t chanNum = 0; chanNum < CHANNELS_COUNT; ++chanNum)
         {
           const Pattern::Line::Channel& srcChan = line.Channels[chanNum];
           std::unique_ptr<ChannelBuilder> dstChan = target.StartChannel(chanNum);
