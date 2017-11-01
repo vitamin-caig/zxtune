@@ -399,8 +399,8 @@ namespace ZXTune
 
     ScanDataLocation(DataLocation::Ptr parent, String subPlugin, std::size_t offset)
       : Parent(std::move(parent))
-      , Subdata(MakePtr<ScanDataContainer>(Parent->GetData(), offset))
       , Subplugin(std::move(subPlugin))
+      , Subdata(MakePtr<ScanDataContainer>(Parent->GetData(), offset))
     {
     }
 
@@ -442,12 +442,20 @@ namespace ZXTune
 
     void Move(std::size_t step)
     {
-      return Subdata->Move(step);
+      if (!Subdata.unique())
+      {
+        Dbg("Subdata is captured. Duplicate.");
+        Subdata = MakePtr<ScanDataContainer>(Parent->GetData(), Subdata->GetOffset() + step);
+      }
+      else
+      {
+        Subdata->Move(step);
+      }
     }
   private:
     const DataLocation::Ptr Parent;
-    const ScanDataContainer::Ptr Subdata;
     const String Subplugin;
+    ScanDataContainer::Ptr Subdata;
   };
 
   template<class P>
