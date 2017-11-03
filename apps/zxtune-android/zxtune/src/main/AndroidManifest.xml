@@ -133,11 +133,25 @@
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.sap"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.hes"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.kss"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.kssx"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.vgm"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gym"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.hes"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.kss"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ahx"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.hvl"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minipsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psf2"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minipsf2"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.usf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.miniusf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minigsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.2sf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mini2sf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.dsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minidsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ssf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minissf"/>
       </intent-filter>
     </activity>
     <activity android:name=".PreferencesActivity" android:label="@string/prefs">
