@@ -743,7 +743,7 @@ namespace Chiptune
         , Decoded(*Result)
       {
         Decoded.reserve(targetSize);
-        while (offset--)
+        for (; offset; --offset)
         {
           Decoded.push_back(Stream.GetByte());
         }

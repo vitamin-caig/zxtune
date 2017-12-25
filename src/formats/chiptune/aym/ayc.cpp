@@ -201,8 +201,7 @@ namespace Chiptune
           std::size_t srcPtr = source.ReadBackRef();
           Require(count >= counter);
           Require(srcPtr < bufSize);
-          count -= counter;
-          while (counter--)
+          for (count -= counter; counter; --counter)
           {
             buf[cursor++] = buf[srcPtr++];
             if (cursor >= bufSize)

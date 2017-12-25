@@ -502,8 +502,9 @@ namespace Chiptune
         for (uint_t chan = 0; chan < 3; ++chan)
         {
           ParserState::ChannelState& state = src.Channels[chan];
-          if (state.Counter--)
+          if (state.Counter)
           {
+            --state.Counter;
             continue;
           }
           builder.StartChannel(chan);
@@ -553,7 +554,7 @@ namespace Chiptune
           }
           else
           {
-            state.Period = (cmd - 0xa1) & 0xff;
+            state.Period = (cmd + 0x100 - 0xa1) & 0xff;
           }
         }
       }

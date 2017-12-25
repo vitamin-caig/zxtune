@@ -790,8 +790,9 @@ namespace Chiptune
         for (uint_t idx = 0; idx < 3; ++idx)
         {
           ChannelState& chan = src.Channels[idx];
-          if (chan.Counter--)
+          if (chan.Counter)
           {
+            --chan.Counter;
             continue;
           }
           builder.StartChannel(idx);
@@ -963,7 +964,7 @@ namespace Chiptune
       std::size_t GetPositionsCount() const
       {
         const std::size_t positionsSize = GetAreaSize(POSITIONS);
-        return Undefined != positionsSize && 0 == positionsSize % sizeof(RawPosition)
+        return Undefined != positionsSize && positionsSize > 0 && 0 == positionsSize % sizeof(RawPosition)
           ? positionsSize / sizeof(RawPosition) - 1
           : 0;
       }

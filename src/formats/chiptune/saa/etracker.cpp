@@ -554,8 +554,9 @@ namespace Chiptune
         for (uint_t chan = 0; chan < 6; ++chan)
         {
           ParserState::ChannelState& state = src.Channels[chan];
-          if (state.Counter--)
+          if (state.Counter)
           {
+            --state.Counter;
             continue;
           }
           builder.StartChannel(chan);

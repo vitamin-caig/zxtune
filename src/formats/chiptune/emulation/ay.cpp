@@ -142,6 +142,7 @@ namespace Chiptune
       String GetString(const int16_t* beOffset) const
       {
         const uint8_t* const strStart = GetPointer(beOffset);
+        Require(strStart < Finish);
         const uint8_t* const strEnd = std::find(strStart, Finish, 0);
         Require(Ranges->AddRange(strStart - Start, strEnd - strStart + 1));
         const StringView str(safe_ptr_cast<const char*>(strStart), strEnd - strStart);

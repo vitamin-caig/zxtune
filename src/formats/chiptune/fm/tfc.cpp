@@ -172,7 +172,7 @@ namespace Chiptune
             context.RepeatFrames = Get<uint8_t>(cursor++);
             const int_t offset = fromBE(Get<int16_t>(cursor));
             context.RetAddr = cursor += 2;
-            return cursor + offset;
+            return AdvanceCursor(cursor, offset);
           }
           else
           {
@@ -188,12 +188,12 @@ namespace Chiptune
         {
           const int_t offset = fromBE(Get<int16_t>(cursor));
           cursor += 2;
-          ParseFrameData(cursor + offset, target);
+          ParseFrameData(AdvanceCursor(cursor, offset), target);
         }
         else if (0xff == cmd)//%11111111
         {
           const int_t offset = -256 + Get<uint8_t>(cursor++);
-          ParseFrameData(cursor + offset, target);
+          ParseFrameData(AdvanceCursor(cursor, offset), target);
         }
         else if (cmd >= 0xe0)//%111ttttt
         {
@@ -220,6 +220,21 @@ namespace Chiptune
         return Max;
       }
     private:
+      static std::size_t AdvanceCursor(std::size_t cursor, std::ptrdiff_t offset)
+      {
+        //disable UB
+        if (offset >= 0)
+        {
+          return cursor + offset;
+        }
+        else
+        {
+          const auto back = static_cast<std::size_t>(-offset);
+          Require(cursor >= back);
+          return cursor - back;
+        }
+      }
+      
       std::size_t ParseFrameData(std::size_t cursor, Builder& target) const
       {
         const uint_t data = Get<uint8_t>(cursor++);
@@ -299,6 +314,7 @@ namespace Chiptune
             }
           }
         }
+        Require(container.GetMin() < container.GetMax());//anything parsed
 
         const std::size_t usedSize = std::max(container.GetMax(), stream.GetPosition());
         const std::size_t fixedOffset = container.GetMin();
