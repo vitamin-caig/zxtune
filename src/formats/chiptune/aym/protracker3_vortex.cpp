@@ -428,6 +428,32 @@ namespace ProTracker3
     private:
       uint_t Loop;
     };
+    
+    class StringStream
+    {
+    public:
+      explicit StringStream(Binary::InputStream& delegate)
+        : Delegate(delegate)
+      {
+      }
+      
+      StringView ReadString()
+      {
+        return Strings::TrimSpaces(Delegate.ReadString());
+      }
+      
+      std::size_t GetPosition() const
+      {
+        return Delegate.GetPosition();
+      }
+      
+      std::size_t GetRestSize() const
+      {
+        return Delegate.GetRestSize();
+      }
+    private:
+      Binary::InputStream& Delegate;
+    };
 
     /*
        Format parts types
@@ -443,7 +469,7 @@ namespace ProTracker3
       {
       }
 
-      explicit ModuleHeader(Binary::InputStream& src)
+      explicit ModuleHeader(StringStream& src)
         : Version(0)
         , Table(PROTRACKER)
         , Tempo(0)
@@ -559,7 +585,7 @@ namespace ProTracker3
     struct OrnamentObject : Ornament
     {
     public:
-      OrnamentObject(const SectionHeader& header, Binary::InputStream& src)
+      OrnamentObject(const SectionHeader& header, StringStream& src)
         : Index(header.GetIndex())
       {
         Require(Math::InRange<uint_t>(Index, 0, MAX_ORNAMENTS_COUNT - 1));
@@ -609,7 +635,7 @@ namespace ProTracker3
     {
       static const std::size_t NO_LOOP = ~std::size_t(0);
     public:
-      SampleObject(const SectionHeader& header, Binary::InputStream& src)
+      SampleObject(const SectionHeader& header, StringStream& src)
         : Index(header.GetIndex())
       {
         Require(Math::InRange<uint_t>(Index, 0, MAX_SAMPLES_COUNT - 1));
@@ -1112,7 +1138,7 @@ namespace ProTracker3
         Lines.reserve(MAX_PATTERN_SIZE);
       }
 
-      PatternObject(const SectionHeader& header, Binary::InputStream& src)
+      PatternObject(const SectionHeader& header, StringStream& src)
         : Index(header.GetIndex())
       {
         Require(Math::InRange<uint_t>(Index, 0, MAX_PATTERNS_COUNT - 1));
@@ -1231,7 +1257,7 @@ namespace ProTracker3
         }
       }
     private:
-      Binary::InputStream& Source;
+      StringStream Source;
       Builder& Target;
     };
 
