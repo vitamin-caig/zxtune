@@ -47,6 +47,9 @@ extern const Char DIGITALSTUDIO_VERSION_AY[] = {
 extern const Char DIGITALSTUDIO_VERSION_DAC[] = {
   ' ','(','C','o','v','o','x','/','S','D',')',0
 };
+extern const Char DREAMCASTSOUNDFORMAT_DECODER_DESCRIPTION[] = {
+  'D','r','e','a','m','c','a','s','t',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
+};
 extern const Char ETRACKER_DECODER_DESCRIPTION[] = {
   'E','-','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
@@ -161,6 +164,9 @@ extern const Char SAMPLETRACKER_DECODER_DESCRIPTION[] = {
 extern const Char SAP_DECODER_DESCRIPTION[] = {
   'S','l','i','g','h','t',' ','A','t','a','r','i',' ','P','l','a','y','e','r',' ','S','o','u','n','d',' ','F',
   'o','r','m','a','t',0
+};
+extern const Char SEGASATURNSOUNDFORMAT_DECODER_DESCRIPTION[] = {
+  'S','e','g','a',' ','S','a','t','u','r','n',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
 };
 extern const Char SID_DECODER_DESCRIPTION[] = {
   'C','o','m','m','o','d','o','r','e','6','4',' ','R','S','I','D','/','P','S','I','D',0

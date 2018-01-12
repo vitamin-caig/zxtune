@@ -306,3 +306,11 @@ __cpp> "}//namespace Text\n"
 #2SF
 < NINTENDODSSOUNDFORMAT_DECODER_DESCRIPTION
 > "Nintendo DS Sound Format"
+
+#SSF
+< SEGASATURNSOUNDFORMAT_DECODER_DESCRIPTION
+> "Sega Saturn Sound Format"
+
+#DSF
+< DREAMCASTSOUNDFORMAT_DECODER_DESCRIPTION
+> "Dreamcast Sound Format"
