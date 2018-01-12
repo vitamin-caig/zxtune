@@ -10,6 +10,7 @@
 
 #include "yam.h"
 
+#ifndef NO_DYNAREC
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -19,20 +20,21 @@
 #include <errno.h>
 #endif
 
-#include <stdlib.h>
-#include <math.h>
-
-#ifndef _WIN32
-#define __cdecl
-#define __fastcall __attribute__((regparm(3)))
-#endif
-
 /* No dynarec for x86_64 yet */
 #if defined(_WIN32) || defined(__i386__)
 #define ENABLE_DYNAREC
 #endif
 #if defined(_WIN64) || defined(__amd64__)
 #undef ENABLE_DYNAREC
+#endif
+#endif //NO_DYNAREC
+
+#include <stdlib.h>
+#include <math.h>
+
+#ifndef _WIN32
+#define __cdecl
+#define __fastcall __attribute__((regparm(3)))
 #endif
 
 // no 'conversion from _blah_ possible loss of data' warnings
