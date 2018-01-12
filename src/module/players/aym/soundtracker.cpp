@@ -290,7 +290,7 @@ namespace SoundTracker
         if (const uint_t loop = sample.GetLoop())
         {
           Position = loop & 0x1f;
-          CountDown = sample.GetLoopLimit() - loop;
+          CountDown = sample.GetLoopLimit() - loop + 1;
         }
         else
         {

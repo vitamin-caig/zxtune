@@ -395,7 +395,7 @@ namespace Chiptune
           res.Effect = 0 != (eff & 0x1000) ? (eff & 0xfff) : -(eff & 0xfff);
         }
         dst.Loop = std::min<uint_t>(src.Loop, SAMPLE_SIZE);
-        dst.LoopLimit = std::min<uint_t>(src.Loop + src.LoopSize + 1, SAMPLE_SIZE);
+        dst.LoopLimit = std::min<uint_t>(src.Loop + src.LoopSize, SAMPLE_SIZE);
         return dst;
       }
 
