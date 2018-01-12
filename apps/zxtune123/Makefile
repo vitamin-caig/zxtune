@@ -23,7 +23,7 @@ libraries.common = analysis async \
                   parameters platform platform_application platform_version \
                   sound sound_backends strings \
                   tools
-libraries.3rdparty = gme he hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar vio2sf xmp z80ex zlib
+libraries.3rdparty = gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar vio2sf xmp z80ex zlib
 
 #platform
 windows_libraries = advapi32 ole32 oldnames shell32 user32
