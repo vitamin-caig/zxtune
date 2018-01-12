@@ -99,7 +99,7 @@ namespace Chiptune
 
     static_assert(sizeof(Header) == 0x14, "Invalid layout");
     
-    const std::size_t MAX_SIZE = 1048576;
+    const std::size_t MAX_SIZE = 131072;
 
     class Parser
     {
