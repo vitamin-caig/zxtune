@@ -21,6 +21,9 @@ extern const Char COLECOVISION[] = {
 extern const Char COMMODORE_64[] = {
   'C','o','m','m','o','d','o','r','e',' ','6','4',0
 };
+extern const Char DREAMCAST[] = {
+  'D','r','e','a','m','c','a','s','t',0
+};
 extern const Char GAME_BOY[] = {
   'G','a','m','e',' ','B','o','y',0
 };
@@ -66,6 +69,9 @@ extern const Char SEGA_GENESIS[] = {
 };
 extern const Char SEGA_MASTER_SYSTEM[] = {
   'S','e','g','a',' ','M','a','s','t','e','r',' ','S','y','s','t','e','m',0
+};
+extern const Char SEGA_SATURN[] = {
+  'S','e','g','a',' ','S','a','t','u','r','n',0
 };
 extern const Char SG_1000[] = {
   'S','G','-','1','0','0','0',0

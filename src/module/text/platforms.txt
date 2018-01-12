@@ -86,3 +86,9 @@ __cpp> "}//namespace Platforms\n"
 
 < COLECOVISION
 > "ColecoVision"
+
+< SEGA_SATURN
+> "Sega Saturn"
+
+< DREAMCAST
+> "Dreamcast"
