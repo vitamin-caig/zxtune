@@ -71,6 +71,7 @@ namespace Parameters
       extern const NameType FADEIN = PREFIX + "fadein";
       extern const NameType FADEOUT = PREFIX + "fadeout";
       extern const NameType GAIN = PREFIX + "gain";
+      extern const NameType SILENCE_LIMIT = PREFIX + "silencelimit";
 
       namespace Mixer
       {

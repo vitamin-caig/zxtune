@@ -79,6 +79,16 @@ namespace Parameters
       const IntType GAIN_DEFAULT = GAIN_PRECISION;
       //! Parameter name
       extern const NameType GAIN;
+      //@}
+      
+      //@{
+      const IntType SILENCE_LIMIT_PRECISION = 1;
+      
+      //! Default value - no silence detection
+      const IntType SILENCE_LIMIT_DEFAULT = 0;
+      //! Parameter name
+      extern const NameType SILENCE_LIMIT;
+      //@}
     }
   }
 }

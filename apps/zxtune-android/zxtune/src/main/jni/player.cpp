@@ -22,6 +22,7 @@
 //library includes
 #include <parameters/merged_accessor.h>
 #include <sound/mixer_factory.h>
+#include <sound/silence.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <ctime>
@@ -214,7 +215,8 @@ namespace
     auto internalProperties = module->GetModuleProperties();
     auto properties = Parameters::CreateMergedAccessor(localParameters, std::move(internalProperties), std::move(globalParameters));
     auto buffer = MakePtr<BufferTarget>();
-    auto renderer = module->CreateRenderer(properties, buffer);
+    auto pipeline = CreateSilenceDetector(properties, buffer);
+    auto renderer = module->CreateRenderer(properties, std::move(pipeline));
     return MakePtr<PlayerControl>(std::move(properties), std::move(localParameters), std::move(renderer), std::move(buffer));
   }
 
