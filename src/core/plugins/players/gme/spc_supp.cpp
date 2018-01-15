@@ -73,6 +73,7 @@ namespace SPC
       CheckError(Spc.load_spc(&Data.front(), Data.size()));
       Spc.clear_echo();
       Filter.clear();
+      Filter.set_gain(::SPC_Filter::gain_unit * 1.4);//as in GME
     }
     
     void Render(uint_t samples, Sound::ChunkBuilder& target)
