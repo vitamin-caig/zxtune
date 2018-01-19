@@ -1,0 +1,21 @@
+<schema xmlns="http://schemas.microsoft.com/windows/2006/propertydescription" schemaVersion="1.0">
+	<propertyDescriptionList publisher="Piotr Fusik" product="ASAP">
+		<propertyDescription name="ASAP.Subsongs" formatID="{5AE26367-B5CF-444D-B163-2CBC99B41287}" propID="1">
+			<description>Number of songs in the file.</description>
+			<typeInfo type="UInt32" isViewable="true" />
+			<labelInfo label="Subsongs" />
+		</propertyDescription>
+		<propertyDescription name="ASAP.PALNTSC" formatID="{5AE26367-B5CF-444D-B163-2CBC99B41287}" propID="2">
+			<description>PAL/NTSC system.</description>
+			<typeInfo type="String" isViewable="true" />
+			<labelInfo label="PAL/NTSC" />
+			<displayInfo displayType="Enumerated">
+				<editControl control="DropList"/>
+				<enumeratedList>
+					<enum value="PAL" text="PAL" />
+					<enum value="NTSC" text="NTSC" />
+				</enumeratedList>
+			</displayInfo>
+		</propertyDescription>
+	</propertyDescriptionList>
+</schema>

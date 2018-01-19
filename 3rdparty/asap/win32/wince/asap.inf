@@ -1,0 +1,115 @@
+[Version]
+Signature = "$Windows NT$"
+Provider = "Foxoft"
+CESignature = "$Windows CE$"
+
+[CEStrings]
+AppName = "ASAP"
+InstallDir = "%CE1%\ASAP"
+
+[CEDevice]
+VersionMin=3.0
+VersionMax=10.0
+BuildMax=0xE0000000
+
+[CEDevice.ARM]
+ProcessorType = %arm_cpu%
+
+[SourceDisksNames]
+1 = ,"WASAP"
+
+[SourceDisksFiles]
+"wasap.exe" = 1
+"gspasap.dll" = 1
+"asap_dsf.dll" = 1
+
+[DestinationDirs]
+Files.App = 0,%InstallDir%
+Files.GSPlayer = 0,"%CE1%\GreenSoftware"
+Files.DShow = 0,%InstallDir%
+Shortcuts = 0,%CE11%
+
+[Files.App]
+"wasap.exe",,,1
+
+[Files.GSPlayer]
+"gspasap.dll",,,
+
+[Files.DShow]
+"asap_dsf.dll",,,1
+
+[Shortcuts]
+WASAP,0,wasap.exe
+
+[Reg.DShow]
+HKCR,CLSID\{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}\InprocServer32,,,"""%InstallDir%\asap_dsf.dll"""
+HKCR,CLSID\{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}\InprocServer32,ThreadingModel,,"both"
+HKCR,CLSID\{083863F1-70DE-11D0-BD40-00A0C911CE86}\Instance\{8E6205A0-19E2-4037-AF32-B29A9B9D0C93},FriendlyName,,"ASAP source filter"
+HKCR,CLSID\{083863F1-70DE-11D0-BD40-00A0C911CE86}\Instance\{8E6205A0-19E2-4037-AF32-B29A9B9D0C93},CLSID,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,CLSID\{083863F1-70DE-11D0-BD40-00A0C911CE86}\Instance\{8E6205A0-19E2-4037-AF32-B29A9B9D0C93},FilterData,1,02,00,00,00,00,00,60,00,01,00,00,00,00,00,00,00,30,70,69,33,08,00,00,00,00,00,00,00,01,00,00,00,00,00,00,00,00,00,00,00,30,74,79,33,00,00,00,00,38,00,00,00,48,00,00,00,61,75,64,73,00,00,10,00,80,00,00,AA,00,38,9B,71,01,00,00,00,00,00,10,00,80,00,00,AA,00,38,9B,71
+HKCR,Media Type\Extensions\.sap,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.cmc,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.cm3,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.cmr,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.cms,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.dmc,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.dlt,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.mpt,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.mpd,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.rmt,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.tmc,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.tm8,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.tm2,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKCR,Media Type\Extensions\.fc,Source Filter,,"{8E6205A0-19E2-4037-AF32-B29A9B9D0C93}"
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.sap,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.cmc,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.cm3,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.cmr,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.cms,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.dmc,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.dlt,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.mpt,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.mpd,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.rmt,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.tmc,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.tm8,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.tm2,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.fc,Permissions,0x10001,15
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.sap,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.cmc,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.cm3,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.cmr,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.cms,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.dmc,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.dlt,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.mpt,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.mpd,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.rmt,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.tmc,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.tm8,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.tm2,Runtime,0x10001,7
+HKLM,Software\Microsoft\Multimedia\WMPlayer\Extensions\.fc,Runtime,0x10001,7
+HKLM,Software\Microsoft\MediaPlayer\Player\Extensions\MUIDescriptions,ASAP,,"ASAP files (*.sap;*.cmc;*.cm3;*.cmr;*.cms;*.dmc;*.dlt;*.mpt;*.mpd;*.rmt;*.tmc;*.tm8;*.tm2;*.fc)"
+HKLM,Software\Microsoft\MediaPlayer\Player\Extensions\Types,ASAP,,"*.sap;*.cmc;*.cm3;*.cmr;*.cms;*.dmc;*.dlt;*.mpt;*.mpd;*.rmt;*.tmc;*.tm8;*.tm2;*.fc"
+
+[Reg.Ext]
+HKCR,asap.file\shell\open\command,,,"""%InstallDir%\wasap.exe"" ""%%1"""
+HKCR,.sap,,,"asap.file"
+HKCR,.cmc,,,"asap.file"
+HKCR,.cm3,,,"asap.file"
+HKCR,.cmr,,,"asap.file"
+HKCR,.cms,,,"asap.file"
+HKCR,.dmc,,,"asap.file"
+HKCR,.dlt,,,"asap.file"
+HKCR,.mpt,,,"asap.file"
+HKCR,.mpd,,,"asap.file"
+HKCR,.rmt,,,"asap.file"
+HKCR,.tmc,,,"asap.file"
+HKCR,.tm8,,,"asap.file"
+HKCR,.tm2,,,"asap.file"
+HKCR,.fc,,,"asap.file"
+
+[DefaultInstall]
+CopyFiles = Files.App, Files.GSPlayer, Files.DShow
+CEShortcuts = Shortcuts
+AddReg = Reg.DShow, Reg.Ext

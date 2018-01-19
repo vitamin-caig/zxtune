@@ -1,0 +1,25 @@
+How to use
+----------
+
+ASAP2WAV
+~~~~~~~~
+
+Enter the following command line to see the syntax:
+
+---------------------------------------------------------------------------
+java -jar asap2wav.jar
+---------------------------------------------------------------------------
+
+Unless you specify the `-o`/`--output` option, the output filename will be
+constructed from the input filename with the extension changed to `wav`.
+
+
+Java midlet
+~~~~~~~~~~~
+
+Midlet is an application for mobile phones.
+The ASAP midlet requires CLDC 1.1 and MIDP 2.0
+and thus will not work on very old Java implementations.
+The midlet has a file browser for selecting music files,
+which should be stored in phone memory or on a memory card.
+J2ME platforms usually start playback after the music is completely rendered.

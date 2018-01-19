@@ -1,0 +1,95 @@
+cmc
+	dta	c' cmc data file '*,$8e,$95,$0d,$20
+	dta	3 ; tempo
+:64	dta	l(pattern)
+:64	dta	h(pattern)
+; pattern=$ffff => no pattern
+:26	dta	1,2,3,4,5,6	; 1-4 instrument params, 5-6: accent map
+:26	dta	1,2,3,4,5,6,7,8	; instrument envelope BADCFE...
+:$55	dta	1	; track 1
+:$55	dta	2	; track 2
+:$55	dta	3	; track 3
+	dta	0xff
+; offset=$300
+; patterns...
+
+mpt
+:32	dta	a(instr)
+; instr=0 => no instrument
+:64	dta	a(pattern)
+; pattern=0 => no pattern
+:4*64	dta	0 ; note2frequency
+:4	dta	l(track)
+:4	dta	h(track)
+	dta	$40	; pattern_len
+	dta	6	; tempo
+; track1
+; track2
+; track3
+; track4
+; instruments...
+; patterns...
+
+rmt
+	dta	c'RMT4' ; c'RMT8'
+	dta	$40 ; pattern_len
+	dta	6	; tempo
+	dta	1	; per frame
+	dta	1	; instrspeed
+	dta	a(instrtable,patltable,pathtable,song)
+:x	dta	a(instr) ; instrtable
+:x	dta	l(pattern) ; patltable
+:x	dta	h(pattern) ; pathtable
+; instruments
+; patterns
+; song
+:x	dta	b(1,2,3,4) ; 8 if RMT8
+	dta	$fe,pos,a(songpos) ; jmp in song
+
+tmc
+:30	dta	c'T'	; title
+	dta	2	; tempo
+	dta	4	; per frame
+:64	dta	l(instr)
+:64	dta	h(instr)
+; instr=0 => no instr
+:128	dta	l(pattern)
+:128	dta	h(pattern)
+:16*x	dta	0	; song
+:80*x	dta	0	; instruments
+; patterns
+
+tm2
+	dta 14,21,13+128,c'TMC SONG FILE 2.0'*,13+128,21,14
+	dta a($1580) ; total bytes in memory
+	dta	1,16,20,0,0 ; POKEY config?
+	dta	5	; tempo
+	dta	1	; per frame
+	dta	c' '
+:30	dta	c'T' ; title 1st line
+	dta	c' '
+	dta	c' '
+:30	dta	c'T' ; title 2nd line
+	dta	c' '
+	dta	c' '
+:30	dta	c'T' ; title 3rd line
+	dta	c' '
+:128	dta	l(instr)
+:256	dta	l(pattern)
+:256	dta	h(pattern)
+:128	dta	h(instr)
+; instr=0 => no instr
+; song data
+:x	dta	pattern7,transp7,...pattern0,transp0,patlen
+; patlen=0 = stop, patlen>=$80 = jump transp0
+; instruments&patterns
+
+fc ; no DOS header
+	dta	'F'-' ','C'-' '
+	dta	tempo
+:256	dta	track1
+:256	dta	track2
+:256	dta	track3
+:32	dta	env,audc,depth,effect	; instruments
+:64*x	dta	0	; patterns
+:32*x	dta	0	; envelopes

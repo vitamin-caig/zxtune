@@ -1,0 +1,7 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Name: asap
+Source: http://asap.sourceforge.net
+
+Files: *
+Copyright: 2005-2014 Piotr Fusik <fox@scene.pl>
+License: GPL-2+

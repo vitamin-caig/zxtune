@@ -1,0 +1,28 @@
+	opt	h-
+	dta	c'SAP',13,10
+	dta	c'AUTHOR "Piotr Fusik (0xF)"',13,10
+	dta	c'NAME "POKEY Pure Sound Test"',13,10
+	dta	c'DATE "09/06/2011"',13,10
+	dta	c'TYPE D',13,10
+	dta	c'INIT 3000',13,10
+	dta	c'PLAYER 3004',13,10
+	dta	c'TIME 00:05',13,10
+	opt	h+
+
+	org	f:$3000
+main
+	cli
+	jmp	*
+player
+	php
+	pla
+	ldx	#$30
+	ldy	#$af
+	and	#4
+	beq	izero
+	ldx	#$a0
+	ldy	#$cf
+izero
+	stx	^20
+	sty	^21
+	rts

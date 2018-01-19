@@ -1,0 +1,69 @@
+scrptr	equ	$8a	; 2 bytes
+printptr	equ	$8c	; 2 bytes
+
+	org	$3000
+main
+	lda	<title
+	ldx	>title
+	jsr	print
+
+	lda	#100
+	cmp:rne	^4b
+	mwa	#nmi	$fffa
+	mva	#$40	^4e
+
+	ldx	#0
+	lda	#123
+	cmp:rne	^4b
+	lda	20
+:3	sta	^4a
+	cmp	20,x
+	bne	error
+
+	lda	#123
+	cmp:rne	^4b
+	lda	20
+:3	sta	^4a
+	nop
+	cmp	20
+	beq	error
+
+	lda	<pass
+	ldx	>pass
+	jsr	print
+	mwa	#$af30	$d200
+	jmp	*
+
+error
+	lda	<fail
+	ldx	>fail
+	jsr	print
+	mwa	#$cfa0	$d200
+	jmp	*
+
+put_char
+	mvx	#11	$342
+	mwx	#0	$348
+	rts	;FIXME jmp	$e456
+
+print
+	sta	printptr
+	stx	printptr+1
+	jmp	print_2
+print_1
+	jsr	put_char
+	inw	printptr
+print_2
+	lda	(printptr),0
+	bne	print_1
+	rts
+
+nmi
+	inc	20
+	rti
+
+title	dta	c'ANTIC: VBLKI...',0
+pass	dta	c'Pass',$9b,0
+fail	dta	c'FAIL.',$9b,0
+
+	run	main

@@ -1,0 +1,6 @@
+<Deployment xmlns="http://schemas.microsoft.com/client/2007/deployment"
+	EntryPointAssembly="SilverASAP" EntryPointType="SilverASAP" RuntimeVersion="4.0">
+	<Deployment.Parts>
+		<AssemblyPart Source="SilverASAP.dll" />
+	</Deployment.Parts>
+</Deployment>

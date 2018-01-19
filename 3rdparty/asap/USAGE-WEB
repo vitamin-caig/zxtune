@@ -1,0 +1,196 @@
+How to embed ASAP on your website
+---------------------------------
+
+There are four independent web-enabled versions of ASAP:
+
+- Flash Player (`asap.swf`)
+- Java applet (`asap_applet.jar`)
+- Silverlight (`SilverASAP.xap`)
+- JavaScript (`asap.js` and `asapweb.js`)
+
+Flash Player is the most likely one to work in today's web browsers.
+Java and Silverlight use least processor time, however many of your visitors
+may have no Java nor Silverlight installed.
+JavaScript seems to be the future and even now works fine
+if you have a modern browser and a powerful processor.
+Choose for yourself. :)
+
+All four versions were tested against Internet Explorer 6 and 9, Firefox 13, Chrome 19.
+
+You can embed Atari music using just HTML markup. For more control:
+pause, stop, changing music without reloading the page, displaying titles,
+you need some JavaScript code.
+
+
+Flash Player
+~~~~~~~~~~~~
+
+To embed the player in your web page, use the following XHTML syntax:
+
+---------------------------------------------------------------------------
+<object width="0" height="0" type="application/x-shockwave-flash" data="asap.swf">
+    <param name="movie" value="asap.swf" />
+    <param name="wmode" value="transparent" />
+    <param name="FlashVars" value="file=File.sap" />
+</object>
+---------------------------------------------------------------------------
+
+The player will play the specified file. It doesn't display anything.
+The `wmove` parameter prevents a single white pixel in Internet Explorer.
+
+The player understands the following parameters (in ampersand-separated `FlashVars`):
+
+- `file` - URL of the file to play.
+- `song` - zero-based subsong number.
+- `onLoad` - JavaScript code or function name to be executed when file is loaded.
+This is a safe place to call `getTitle()` etc - see below.
+Playback starts after the JavaScript code returns.
+- `onPlaybackEnd` - JavaScript code or function name to be executed when song playback ends.
+Will not be called as a result of `asapStop()`.
+
+All the above parameters are optional.
+
+The player contains the following methods that can be called from JavaScript:
+
+- `asapPlay(filename : String, song : int = -1) : void` - plays the specified song (-1 for the default)
+- `asapStop() : void` - stops playback
+- `asapPause() : Boolean` - toggles pause and returns `true` if pause has been enabled
+- `getAuthor() : String` - returns the AUTHOR tag of the playing song
+- `getTitle() : String` - returns the NAME tag of the playing song
+- `getDate() : String` - returns the DATE tag of the playing song
+
+
+Java applet
+~~~~~~~~~~~
+
+To embed the applet in a web page, use the following HTML syntax:
+
+---------------------------------------------------------------------------
+<applet width="40" height="45" archive="asap_applet.jar" code="ASAPApplet">
+    <param name="file" value="File.sap" />
+</applet>
+---------------------------------------------------------------------------
+
+or the following XHTML:
+
+---------------------------------------------------------------------------
+<object width="40" height="45" type="application/x-java-applet">
+    <param name="archive" value="asap_applet.jar" />
+    <param name="code" value="ASAPApplet" />
+    <param name="file" value="File.sap" />
+</object>
+---------------------------------------------------------------------------
+
+The applet will play the specified file and display POKEY channel volume
+meters scaled to the applet area (you can specify a different size).
+There are four volume meters for mono music and eight for stereo.
+
+The applet understands the following parameters:
+
+- `file` - URL of the file to play.
+- `song` - zero-based subsong number.
+- `background` - background color specified as six hexadecimal digits (`"rrggbb"`).
+- `foreground` - volume bars color specified as six hexadecimal digits (`"rrggbb"`).
+- `onLoad` - JavaScript code to be executed when file is loaded.
+This is a safe place to call `getTitle()` etc - see below.
+Playback starts after the JavaScript code returns.
+- `onPlaybackEnd` - JavaScript code to be executed when playback ends.
+Will not be called as a result of `stop()`.
+
+All the above parameters are optional. For `onLoad` and `onPlaybackEnd` to work,
+add the `mayscript` attribute to the `applet` element.
+
+The applet contains the following methods that can be called from JavaScript:
+
+- `void play(String filename, int song)` - plays the specified song (-1 for default)
+- `void stop()` - stops playback
+- `boolean togglePause()` - toggles pause and returns `true` if pause has been enabled
+- `String getAuthor()` - returns the AUTHOR tag of the playing song
+- `String getTitle()` - returns the NAME tag of the playing song
+- `String getDate()` - returns the DATE tag of the playing song
+
+
+Silverlight
+~~~~~~~~~~~
+
+To embed the player in your web page, use the following XHTML syntax:
+
+---------------------------------------------------------------------------
+<object width="0" height="0" type="application/x-silverlight-2" data="data:application/x-silverlight-2,">
+    <param name="source" value="SilverASAP.xap" />
+    <param name="initParams" value="file=File.sap" />
+    <a href="http://go.microsoft.com/fwlink/?LinkID=124807" style="text-decoration: none;">
+        <img src="http://go.microsoft.com/fwlink/?LinkId=108181" alt="Get Microsoft Silverlight" style="border-style: none" />
+    </a>
+</object>
+---------------------------------------------------------------------------
+
+The player will play the specified file. It doesn't display anything.
+
+The player understands the following parameters (in ampersand-separated `initParams`):
+
+- `file` - URL of the file to play.
+- `song` - zero-based subsong number.
+- `onLoad` - JavaScript code to be executed when file is loaded.
+This is a safe place to access `Title` etc - see below.
+Playback starts after the JavaScript code returns.
+- `onPlaybackEnd` - JavaScript code to be executed when song playback ends.
+Will not be called as a result of `Stop()`.
+
+All the above parameters are optional.
+
+The player contains the following methods that can be called from JavaScript:
+
+- `void Play(string filename, int song)` - plays the specified song (-1 for the default)
+- `void Stop()` - stops playback
+- `bool Pause()` - toggles pause and returns `true` if pause has been enabled
+
+and the following properties:
+
+- `string Author` - returns the AUTHOR tag of the playing song
+- `string Title` - returns the NAME tag of the playing song
+- `string Date` - returns the DATE tag of the playing song
+
+The above methods and properties are available in the `ASAP` object.
+That is, for Silverlight you need JavaScript code such as:
+---------------------------------------------------------------------------
+`document.getElementById('asap').Content.ASAP.Stop()`.
+---------------------------------------------------------------------------
+
+
+JavaScript
+~~~~~~~~~~
+
+To embed the player in your web page, use the following XHTML syntax:
+
+---------------------------------------------------------------------------
+<script type="text/javascript" src="resampler.js"> </script>
+<script type="text/javascript" src="swfobject.js"> </script>
+<script type="text/javascript" src="XAudioServer.js"> </script>
+<script type="text/javascript" src="asap.js"> </script>
+<script type="text/javascript" src="asapweb.js"> </script>
+<script type="text/javascript" src="binaryHttpRequest.js"> </script>
+<input type="button" value="Play" onclick="binaryHttpRequest('File.sap', asap.play)" />
+<input type="button" value="Stop" onclick="asap.stop()" /><br />
+---------------------------------------------------------------------------
+
+The `<script>` elements are best placed inside the `<head>` element.
+`resampler.js`, `swfobject.js` and `XAudioServer.js`
+should come from https://github.com/grantgalitz/XAudioJS[XAudioJS].
+Also take `XAudioJS.swf` and `XAudioServerMediaStreamWorker.js` from this project.
+
+The player has the following JavaScript API:
+
+- `asap.play(filename, module, song)` - plays the specified song (omit for the default).
+`module` is the file contents as an array of unsigned bytes.
+You may download it from the server using `binaryHttpRequest` as in the above example,
+make a JavaScript array with the file contents or even use HTML 5 local file access
+(see http://asap.sourceforge.net/javascript.html[online demo]).
+- `asap.stop()` - stops playback.
+- `asap.onLoad = function() { ... }` - code to be executed just before the playback is started.
+Safe place to access `asap.title` etc - see below.
+- `asap.onPlaybackEnd = function() { ... }` - code to be executed when song playback ends.
+Will not be called as a result of `asap.stop()`.
+- `asap.author` - contains the AUTHOR tag of the playing song
+- `asap.title` - contains the NAME tag of the playing song
+- `asap.date` - contains the DATE tag of the playing song

@@ -1,0 +1,703 @@
+; Deassembled with da65 by Mono / Tristesse
+
+  opt ?+ o+ h+ c-
+
+;irqens = $10
+audf1 = $d200
+;audc1 = $d201
+audf2 = $d202
+;audc2 = $d203
+;audctl = $d208
+;irqen = $d20e
+;irqst = $d20e
+skctl = $d20f
+  
+audf12 = $d210
+audc12 = $d211
+audf22 = $d212
+audc22 = $d213
+audf32 = $d214
+audc32 = $d215
+audf42 = $d216
+audc42 = $d217
+audctl2 = $d218
+stimer2 = $d219
+irqen2 = $d21e
+skctl2 = $d21f
+
+; FC player zpg
+; = $1c..$1f
+track1ad = $e0
+track2ad = $e2
+track3ad = $e4
+trackad = track1ad
+track1pos = $e6
+track2pos = $e8
+track3pos = $ea
+trackpos = track1pos
+pat1pos = $e7
+pat2pos = $e9
+pat3pos = $eb
+patpos = pat1pos
+note1dur = $ec
+note2dur = $ee
+note3dur = $f0
+notedur = note1dur
+pat1delay = $ed
+pat2delay = $ef
+pat3delay = $f1
+patdelay = pat1delay
+patad = $f2
+songno = $f4
+
+
+
+dataad = $fc
+instrad = $fe
+
+  org $400
+  jmp initplay
+;  jmp dosound
+  
+dosound:
+  jsr setpokey
+  jmp fc_play
+  
+; Initialize playing of FC module.
+initplay:
+  ldx #<$a00
+  ldy #>$a00
+;doinit:
+  jsr fc_init
+;  jmp setpokey
+
+; Setting POKEY registers due to panning settings.
+setpokey:
+  ldx #8
+?loop:
+  lda L0710_audf1s,x
+  sta audf1,x
+  sta audf12,x
+  dex
+  bpl ?loop
+  rts
+
+findsongbegin:
+  sta songno
+  
+  ldx #0
+?find:
+  stx track1pos
+  stx track2pos
+  stx track3pos
+  lda #0
+  sta pat1pos
+  sta pat2pos
+  sta pat3pos
+  sta note1dur
+  sta note2dur
+  sta note3dur
+  sta pat1delay
+  sta pat2delay
+  sta pat3delay
+  txa
+  ldy #2
+  ldx #4
+?calc:
+  jsr ?calcsongad
+  dey
+  dex
+  dex
+  bpl ?calc
+?loop:
+  ldx #4
+?chk:
+  jsr ?chksongend
+  dex
+  dex
+  bpl ?chk
+  
+  lda #$ff
+  cmp track1pos
+  beq ?end
+  cmp track2pos
+  beq ?end
+  cmp track3pos
+  beq ?end
+  
+  lda #$fe
+  ldy #0
+  cmp (track1ad),y
+  beq ?end
+  cmp (track2ad),y
+  beq ?end
+  cmp (track3ad),y
+  beq ?end
+  lda (track1ad),y
+  and (track2ad),y
+  and (track3ad),y
+  cmp #$ff
+  bne ?loop
+
+?end:
+  ldx #4
+?corr:
+  jsr ?corrpos
+  dex
+  dex
+  bpl ?corr
+  ldx track1pos
+  cpx track2pos
+  scs
+  ldx track2pos
+  cpx track3pos
+  scs
+  ldx track3pos
+  inx
+  
+  dec songno
+  bne ?find
+  txa
+  rts
+  
+?corrpos:
+  lda patpos,x
+  seq
+  inc trackpos,x
+  rts
+  
+?chksongend:
+  lda (trackad,x)
+  cmp #$fe
+  bcs ?ret
+  lda trackpos,x
+  cmp #$ff
+  beq ?ret
+  
+  lda patdelay,x
+  bne ?decdelay
+  
+  lda (trackad,x)
+  cmp #$40
+  bcc ?pattern
+  sne
+  jsr ?incpos	;ommit AUDCTL
+  jsr ?incpos
+  jmp ?chksongend
+
+?decdelay: 
+  dec patdelay,x
+?ret:
+  rts
+  
+?incpos:
+  inc trackad,x
+  sne
+  inc trackad+1,x
+  ldy trackpos,x
+  iny
+  seq
+  inc trackpos,x
+  rts
+
+?pattern:
+  tay
+  lda L0722_lpatternad,y
+  sta patad
+  lda L0782_hpatternad,y
+  sta patad+1
+?next:
+  ldy patpos,x
+  inc patpos,x
+  lda (patad),y
+  cmp #$40
+  bcc ?note
+  cmp #$60
+  bcc ?duration
+  cmp #$ff
+  bcc ?next
+  
+  lda #0
+  sta patdelay,x
+  sta notedur,x
+  sta patpos,x
+  jsr ?incpos
+  jmp ?chksongend
+
+?note:
+  lda notedur,x
+  sta patdelay,x
+  rts
+  
+?duration:
+  and #$1f
+  sta notedur,x
+  jmp ?next
+  
+?calcsongad:
+  pha
+  clc
+  adc L0802_ltrackad,y
+  sta trackad,x
+  lda #0
+  adc L0805_htrackad,y
+  sta trackad+1,x
+  pla
+  rts
+
+; Initialize of FC player
+fc_init:
+  stx dataad
+  sty dataad+1
+  pha
+
+  ;calculate note durations table
+  ldy #2
+  lda (dataad),y          ;TODO: change to primitive tempocntr
+  ldx #0
+?fctempoloop:
+  sta L07E2_delaytab,x
+  clc
+  adc (dataad),y
+  inx
+  cpx #$20
+  bcc ?fctempoloop
+  
+  ;update track addresses
+  lda dataad
+  ldx dataad+1
+  clc
+  adc #3
+  scc
+  inx
+  sta L0802_ltrackad
+  stx L0805_htrackad
+  inx
+  sta L0802_ltrackad+1
+  stx L0805_htrackad+1
+  inx
+  sta L0802_ltrackad+2
+  stx L0805_htrackad+2
+  
+  ;update instruments table address
+  inx
+  sta instrad
+  stx instrad+1
+  
+  ;update patterns address
+  clc
+  adc #$20*4
+  scc
+  inx
+  sta dataad
+  stx dataad+1
+  
+  ldx #0
+  ldy #0
+?fcpatternsloop:
+  lda dataad
+  sta L0722_lpatternad,y
+  lda dataad+1
+  sta L0782_hpatternad,y
+?fcpatternendloop:
+  lda (dataad,x)
+  inc dataad
+  sne
+  inc dataad+1
+  cmp #$ff
+  bne ?fcpatternendloop
+  iny
+  cpy #$40
+  bcc ?fcpatternsloop
+  
+  ;update instruments envelope address
+  ldx #0
+?fcinstrenvelopesloop:
+  lda dataad
+  sta L0762_linstrenvad,x
+  lda dataad+1
+  sta L07C2_hinstrenvad,x
+  ldy #0
+?fcinstrenvendloop:
+  lda (dataad),y
+  iny
+  cmp #$ff
+  bne ?fcinstrenvendloop
+  tya
+  clc
+  adc dataad
+  sta dataad
+  scc
+  inc dataad+1
+  inx
+  cpx #$20
+  bcc ?fcinstrenvelopesloop
+  
+  pla
+
+?fcinitmus:
+  seq
+  jsr findsongbegin
+  sta L0400_beginmusic
+  
+?fcreset:
+  lda #$40
+  sta L070E_playerstate
+;  jmp fc_player
+
+; Playing FC
+fc_play:
+  ;jmp fc_player
+  
+fc_player:
+;        jsr     L0410
+;        ldx     #$08
+;L0406:  lda     L0710_audf1s,x
+;        sta     audf1,x
+;        dex
+;        bpl     L0406
+;        rts
+        
+L0410:  bit     L070E_playerstate
+        bmi     L043C
+        bvc     L044C
+        lda     #$00
+        ldx     #$0B
+L041B:  sta     L06E1_patternpos,x
+        dex
+        bpl     L041B
+        sta     L070E_playerstate
+        ldx     #$02
+L0426:  lda     #$08
+        sta     L070B_transp,x
+        lda     L0400_beginmusic
+        sta     L06DE_trackpos,x
+        dex
+        bpl     L0426
+        lda     #$50
+        sta     L0718_audctls
+        jmp     L044C
+        
+; Music restart
+L043C:  lda     #$00
+        ldx     #$07
+L0440:  sta     L0710_audf1s,x
+        dex
+        bpl     L0440
+        lda     #$80
+        sta     L070E_playerstate
+        rts
+        
+L044C:  inc     L070F_evenframe
+        ldx     #$02
+L0451:  stx     $1E   ;# number
+        inx
+        txa
+        asl     @
+        tay
+        sty     $1F   ;# offset (++<<)
+        dex
+        lda     L0802_ltrackad,x
+        sta     $1C
+        lda     L0805_htrackad,x
+        sta     $1D
+        lda     L06E4_delaycntr,x
+        beq     L046C
+        jmp     L0554
+L046C:  ldy     L06DE_trackpos,x
+        lda     ($1C),y
+        cmp     #$40
+        beq     L0483
+        cmp     #$FF
+        beq     L0491
+        cmp     #$FE
+        bne     L04AA
+        sta     L070E_playerstate
+        jmp     L062F
+        
+L0483:  iny
+        lda     ($1C),y
+        sta     L0718_audctls
+        iny
+        tya
+        sta     L06DE_trackpos,x
+        jmp     L046C
+        
+L0491:  lda     L0400_beginmusic
+        sta     L06DE_trackpos,x
+        lda     #$50
+        sta     L0718_audctls
+        lda     #$00
+        sta     L06E4_delaycntr,x
+        sta     L06E7_delay,x
+        sta     L06E1_patternpos,x
+        jmp     L046C
+        
+L04AA:  pha
+        and     #$80
+        beq     L04BA
+        inc     L06DE_trackpos,x
+        pla
+        and     #$0F
+        sta     L070B_transp,x
+        bpl     L046C
+        
+L04BA:  pla
+        tay
+        lda     L0722_lpatternad,y
+        sta     $1C
+        lda     L0782_hpatternad,y
+        sta     $1D
+        lda     L06E7_delay,x
+        sta     L06E4_delaycntr,x
+        lda     #$00
+        sta     L0702_slidedir,x
+        
+L04D1:  ldy     L06E1_patternpos,x
+        lda     ($1C),y
+        bmi     L04DF
+        asl     @
+        bmi     L0500
+        lsr     @
+        jmp     L0515
+        
+L04DF:  asl     @
+        asl     @
+        tay
+        
+        ;modified by mono for play .FC file directly
+        lda (instrad),y
+        sta L06ED_instrenvno,x
+        iny
+        lda (instrad),y
+        sta L06F3_distort,x
+        iny
+        lda (instrad),y
+        sta L06F6_vibrato,x
+        iny
+        lda (instrad),y
+        sta L06F9_effect,x
+        ;lda     L0808_instrdef,y
+        ;sta     L06ED_instrenvno,x
+        ;lda     L0808_instrdef+1,y
+        ;sta     L06F3_distort,x
+        ;lda     L0808_instrdef+2,y
+        ;sta     L06F6_vibrato,x
+        ;lda     L0808_instrdef+3,y
+        ;sta     L06F9_effect,x
+        inc     L06E1_patternpos,x
+        jmp     L04D1
+        
+L0500:  lsr     @
+        and     #$1F
+        tax
+        lda     L07E2_delaytab,x
+        ldx     $1E
+        sta     L06E4_delaycntr,x
+        sta     L06E7_delay,x
+        inc     L06E1_patternpos,x
+        jmp     L04D1
+        
+L0515:  sta     L06FF_note,x
+        clc
+        adc     L070B_transp,x
+        tay
+        cpx     #$00
+        bne     L0530
+        lda     L0656_lfreqtab,y
+        sta     L0710_audf1s
+        lda     L0696_hfreqtab,y
+        sta     L0712_audf2s
+        jmp     L053B
+L0530:  lda     L0628_freqtab,y
+        sta     L06EA_freq,x
+        ldy     $1F
+        sta     L0710_audf1s,y
+L053B:  lda     #$00
+        sta     L06F0_instrenvpos,x
+        inc     L06E1_patternpos,x
+	
+        ldy     L06E1_patternpos,x
+        lda     ($1C),y
+        cmp     #$FF
+        bne     L0554
+        lda     #$00
+        sta     L06E1_patternpos,x
+        inc     L06DE_trackpos,x
+        
+L0554:  lda     L06ED_instrenvno,x
+        tay
+        lda     L0762_linstrenvad,y
+        sta     L056A
+        lda     L07C2_hinstrenvad,y
+        sta     L056B
+        ldx     $1E
+        ldy     L06F0_instrenvpos,x
+L056A           = * + 1
+L056B           = * + 2
+        lda     $FFFF,y ;get envelope
+        cmp     #$FF
+        beq     L0597
+        bpl     L0582
+        ldy     $1F
+        sta     L0711_audc1s,y
+        lda     #$00
+        sta     L0710_audf1s,y
+        inc     L06F0_instrenvpos,x
+        jmp     L05F8
+        
+L0582:  ldy     $1F
+        inc     L06F0_instrenvpos,x
+        ora     L06F3_distort,x
+        sta     L0711_audc1s,y
+        cpx     #$00
+        beq     L0597
+        lda     L06EA_freq,x
+        sta     L0710_audf1s,y
+        
+L0597:  lda     L06F6_vibrato,x
+        beq     L05BF
+        lda     L070F_evenframe
+        and     #$01
+        bne     L05A8
+        lda     L06F6_vibrato,x
+        bne     L05AA
+L05A8:  lda     #$00
+L05AA:  sta     L05B2
+        clc
+        lda     L06FF_note,x
+L05B2           = * + 1
+        adc     #$02
+        adc     L070B_transp,x
+        tay
+        lda     L0628_freqtab,y
+        ldy     $1F
+        sta     L0710_audf1s,y
+        
+L05BF:  lda     L06F9_effect,x
+        beq     L05F8
+        bmi     L05E6
+L05C6:  ldy     L06FC_finevibrpos,x
+        inc     L06FC_finevibrpos,x
+        lda     L0719_finevibrenv,y
+        cmp     #$1F
+        bne     L05DA
+        lda     #$00
+        sta     L06FC_finevibrpos,x
+        beq     L05C6
+L05DA:  clc
+        adc     L06EA_freq,x
+        ldy     $1F
+        sta     L0710_audf1s,y
+        jmp     L05F8
+L05E6:  lda     L06EA_freq,x
+        cmp     #$FF
+        beq     L05F8
+        inc     L06EA_freq,x
+        inc     L06EA_freq,x
+        ldy     $1F
+        sta     L0710_audf1s,y
+        
+L05F8:  lda     L0702_slidedir,x
+        beq     L0626
+        lda     L0705_slidedelay,x
+        beq     L0608
+        dec     L0705_slidedelay,x
+        jmp     L0626
+L0608:  lda     L0702_slidedir,x
+        bpl     L0617
+        clc
+        lda     L06EA_freq,x
+        adc     L0708_slidestep,x
+        jmp     L061E
+L0617:  sec
+        lda     L06EA_freq,x
+        sbc     L0708_slidestep,x
+L061E:  sta     L06EA_freq,x
+        ldy     $1F
+        sta     L0710_audf1s,y
+        
+L0626:
+L0628_freqtab           = * + 2
+        dec     L06E4_delaycntr,x
+        dex
+        bmi     L062F
+        jmp     L0451
+L062F:  rts
+
+;Freq tables (1ch)     ;adres tablicy jest cofniety o 8, bo jest transpozycja 8 by default!!!!!!!!!
+        .db   $FF,$F1,$E4,$D7,$CB,$C0,$B5,$AA
+        .db   $A1,$98,$8F,$87,$7F,$78,$72,$6B
+        .db   $65,$5F,$5A,$55,$50,$4B,$47,$43
+        .db   $3F,$3C,$38,$35,$32,$2F,$2C,$2A
+        .db   $27,$25,$23,$21,$1F,$1D
+L0656_lfreqtab:  .db   $1C,$1A,$17,$16,$13,$0F,$07,$00
+;Lo freq table
+        .db   $38,$8C,$00,$6A,$E8,$6A,$EF,$80
+        .db   $08,$AE,$46,$E6,$95,$41,$F6,$B0
+        .db   $6E,$30,$F6,$BB,$84,$52,$22,$F4
+        .db   $C8,$A0,$7A,$55,$34,$14,$F5,$D8
+        .db   $BD,$A4,$8D,$77,$60,$4E,$38,$27
+        .db   $15,$06,$F7,$E8,$DB,$CF,$C3,$B8
+        .db   $AC,$A2,$9A,$90,$88,$7F,$78,$70
+L0696_hfreqtab:  .db   $6A,$64,$5E,$57,$52,$32,$0A,$00
+;Hi freq table
+        .db   $0B,$0A,$0A,$09,$08,$08,$07,$07
+        .db   $07,$06,$06,$05,$05,$05,$04,$04
+        .db   $04,$04,$03,$03,$03,$03,$03,$02
+        .db   $02,$02,$02,$02,$02,$02,$01,$01
+        .db   $01,$01,$01,$01,$01,$01,$01,$01
+        .db   $01,$01,$00,$00,$00,$00,$00,$00
+        .db   $00,$00,$00,$00,$00,$00,$00,$00
+        .db   $00,$00,$00,$00,$00,$00,$00,$00
+        
+L06DE_trackpos:  .db   $00,$00,$00
+L06E1_patternpos:  .db   $00,$00,$00
+L06E4_delaycntr:  .db   $00,$00,$00
+L06E7_delay:  .db   $00,$00,$00
+L06EA_freq:  .db   $00,$00,$00
+L06ED_instrenvno:  .db   $00,$00,$00
+L06F0_instrenvpos:  .db   $00,$00,$00
+L06F3_distort:  .db   $00,$00,$00
+L06F6_vibrato:  .db   $00,$00,$00
+L06F9_effect:  .db   $00,$00,$00
+L06FC_finevibrpos:  .db   $00,$00,$00
+L06FF_note:  .db   $00,$00,$00
+L0702_slidedir:  .db   $00,$00,$00
+L0705_slidedelay:  .db   $00,$00,$00
+L0708_slidestep:  .db   $00,$00,$00
+L070B_transp:  .db   $00,$00,$00
+L070E_playerstate:  .db   $00
+L070F_evenframe:  .db   $00
+; POKEY shadow registers
+L0710_audf1s:  .db   $00
+L0711_audc1s:  .db   $00
+L0712_audf2s:  .db   $00,$00,$00,$00,$00,$00
+L0718_audctls:  .db   $50
+
+L0719_finevibrenv:  .db   $00,$00,$01,$01,$00,$00,$FF,$FF,$1F
+
+L0400_beginmusic:  .ds 1
+
+; part of compiled music adapted to universal player
+
+;Lo patterns addr
+L0722_lpatternad:  .ds 64
+;Lo instr addr
+L0762_linstrenvad:  .ds 32
+;Hi patterns addr
+L0782_hpatternad:  .ds 64
+;Hi instr addr
+L07C2_hinstrenvad:  .ds 32
+;Note duration (calculated based on tempo)
+L07E2_delaytab:  .ds 32
+        
+;Lo track addr
+L0802_ltrackad:  .ds 3
+;Hi track addr
+L0805_htrackad:  .ds 3
+
+  ert * >= 0xa00
+
+  end
+

@@ -1,0 +1,29 @@
+Source: asap
+Maintainer: Piotr Fusik <fox@scene.pl>
+Section: contrib/sound
+Priority: optional
+Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 7), libgstreamer0.10-dev, libvlccore-dev
+
+Package: asap
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Provides "asapconv" command-line converter of Atari 8-bit music
+ to WAV files. Supports the following file formats:
+ SAP, CMC, CM3, CMR, CMS, DMC, DLT, MPT, MPD, RMT, TMC, TM8, TM2, FC.
+
+Package: asap-dev
+Architecture: any
+Description: Development library providing Atari 8-bit music emulation.
+
+Package: asap-gstreamer0.10
+Architecture: any
+Depends: libgstreamer0.10-0 (>= 0.10.36), ${shlibs:Depends}
+Description: Provides playback of Atari 8-bit music in the SAP format
+ in GStreamer-based players.
+
+Package: asap-vlc
+Architecture: any
+Depends: vlc, ${shlibs:Depends}
+Description: Provides playback of Atari 8-bit music in VLC.
+ Supports the following file formats: SAP, RMT, FC.

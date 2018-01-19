@@ -1,0 +1,39 @@
+	ift	SAP
+	opt	h-
+	dta	c'SAP',13,10
+	dta	c'AUTHOR "Piotr Fusik (0xF)"',13,10
+	dta	c'NAME "POKEY Pure Sound Test"',13,10
+	dta	c'DATE "03/06/2011"',13,10
+	dta	c'TYPE D',13,10
+	dta	c'INIT 3000',13,10
+	dta	c'TIME 00:08',13,10
+	opt	h+
+	eif
+
+	org	f:$3000
+main
+:!SAP	sei:inc	^4e
+	mva	#3	^2f
+	mva	#0	^28
+
+	mva	#$af	^21
+test_start
+	lda	#255
+test_loop
+	sta	^20
+	ldx	<-15556
+	ldy	>-15556
+wait_loop
+	sta	^4a
+	inx
+	bne	wait_loop
+	iny
+	bne	wait_loop
+	tax
+	beq	test_start
+	lsr	@
+	jmp	test_loop
+
+	ift	!SAP
+	run	main
+	eif

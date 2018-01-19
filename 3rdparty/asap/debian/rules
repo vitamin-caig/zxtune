@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# skip "make clean" to avoid dependency on xasm, mads and cito
+override_dh_auto_clean:
+
+override_dh_auto_build:
+	$(MAKE) asapconv lib asap-gstreamer asap-vlc
+
+# skip "make check" to avoid dependency on Acid800
+override_dh_auto_test:
+
+override_dh_auto_install:
+	$(MAKE) DESTDIR=$$(pwd)/debian/tmp prefix=/usr install install-gstreamer install-vlc
