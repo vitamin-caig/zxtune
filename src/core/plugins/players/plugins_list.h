@@ -57,6 +57,7 @@ namespace ZXTune
   void RegisterGSFSupport(PlayerPluginsRegistrator& registrator);
   void Register2SFSupport(PlayerPluginsRegistrator& registrator);
   void RegisterSDSFSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterASAPPlugins(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
@@ -103,5 +104,6 @@ namespace ZXTune
     RegisterGSFSupport(registrator);
     Register2SFSupport(registrator);
     RegisterSDSFSupport(registrator);
+    RegisterASAPPlugins(registrator);
   }
 }

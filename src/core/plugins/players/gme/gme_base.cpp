@@ -541,18 +541,6 @@ namespace GME
       &Formats::Multitrack::CreateGBSDecoder,
       &Formats::Chiptune::CreateGBSDecoder,
     },
-    //sap
-    {
-      {
-        "SAP",
-        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
-        &Create< ::Sap_Emu>,
-        &DefaultDataCreator,
-        [](const Dump&) -> String {return Platforms::ATARI;}
-      },
-      &Formats::Multitrack::CreateSAPDecoder,
-      &Formats::Chiptune::CreateSAPDecoder,
-    },
     //kssx
     {
       {
