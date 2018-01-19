@@ -17,9 +17,6 @@ source_files += $(addprefix gme/,Nes_Fds_Apu.cpp Nes_Fme7_Apu.cpp Nes_Namco_Apu.
 #gbs
 source_files += $(addprefix gme/,Gbs_Emu.cpp Gbs_Core.cpp Gbs_Cpu.cpp Gb_Apu.cpp Gb_Cpu.cpp Gb_Oscs.cpp)
 
-#sap
-source_files += $(addprefix gme/,Sap_Emu.cpp Sap_Core.cpp Sap_Apu.cpp Sap_Cpu.cpp)
-
 #hes
 source_files += $(addprefix gme/,Hes_Emu.cpp Hes_Core.cpp Hes_Apu.cpp Hes_Apu_Adpcm.cpp Hes_Cpu.cpp)
 
