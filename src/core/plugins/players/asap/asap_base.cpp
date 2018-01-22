@@ -26,6 +26,7 @@
 #include <formats/chiptune/multitrack/multitrack.h>
 #include <math/numeric.h>
 #include <module/attributes.h>
+#include <module/players/analyzer.h>
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
@@ -34,8 +35,6 @@
 #include <sound/render_params.h>
 #include <sound/resampler.h>
 #include <strings/optimize.h>
-//std includes
-#include <map>
 //boost includes
 #include <boost/algorithm/string/predicate.hpp>
 //3rdparty
@@ -155,15 +154,6 @@ namespace ASAP
     int Track;
     int Channels;
   };
-
-  class StubAnalyzer : public Module::Analyzer
-  {
-  public:
-    std::vector<Module::Analyzer::ChannelState> GetState() const override
-    {
-      return {};
-    }
-  };
   
   class Renderer : public Module::Renderer
   {
@@ -172,6 +162,7 @@ namespace ASAP
       : Tune(std::move(tune))
       , Iterator(std::move(iterator))
       , State(Iterator->GetStateObserver())
+      , Analyzer(Module::CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
@@ -188,7 +179,7 @@ namespace ASAP
 
     Module::Analyzer::Ptr GetAnalyzer() const override
     {
-      return MakePtr<StubAnalyzer>();
+      return Analyzer;
     }
 
     bool RenderFrame() override
@@ -200,7 +191,9 @@ namespace ASAP
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
         Tune->Render(SamplesPerFrame, builder);
-        Resampler->ApplyData(builder.CaptureResult());
+        auto buf = builder.CaptureResult();
+        Analyzer->AddSoundData(buf);
+        Resampler->ApplyData(std::move(buf));
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -251,6 +244,7 @@ namespace ASAP
     const AsapTune::Ptr Tune;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
+    const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;

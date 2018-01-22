@@ -21,6 +21,7 @@
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/attributes.h>
+#include <module/players/analyzer.h>
 #include <module/players/fading.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
@@ -107,11 +108,9 @@ namespace SDSF
     }
   };
  
-  class SegaEngine : public Module::Analyzer
+  class SegaEngine
   {
   public:
-    using Ptr = std::shared_ptr<SegaEngine>;
-  
     void Initialize(const ModuleData& data)
     {
       Vers = static_cast<HTLibrary::Version>(data.Version - 0x10);
@@ -155,11 +154,6 @@ namespace SDSF
         skippedSamples += toSkip;
       }
     }
-
-    std::vector<ChannelState> GetState() const override
-    {
-      return {};
-    }
   private:
     void SetupSections(const std::list<Binary::Data::Ptr>& sections)
     {
@@ -195,13 +189,13 @@ namespace SDSF
       : Data(std::move(data))
       , Iterator(Module::CreateStreamStateIterator(info))
       , State(Iterator->GetStateObserver())
-      , Engine(MakePtr<SegaEngine>())
+      , Analyzer(CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(params))
       , Target(Module::CreateFadingReceiver(std::move(params), std::move(info), State, std::move(target)))
       , Looped()
     {
-      Engine->Initialize(*Data);
-      SamplesPerFrame = Engine->GetSoundFrequency() / Data->GetRefreshRate();
+      Engine.Initialize(*Data);
+      SamplesPerFrame = Engine.GetSoundFrequency() / Data->GetRefreshRate();
       ApplyParameters();
     }
 
@@ -212,7 +206,7 @@ namespace SDSF
 
     Module::Analyzer::Ptr GetAnalyzer() const override
     {
-      return Engine;
+      return Analyzer;
     }
 
     bool RenderFrame() override
@@ -221,7 +215,9 @@ namespace SDSF
       {
         ApplyParameters();
 
-        Resampler->ApplyData(Engine->Render(SamplesPerFrame));
+        auto data = Engine.Render(SamplesPerFrame);
+        Analyzer->AddSoundData(data);
+        Resampler->ApplyData(std::move(data));
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -235,7 +231,7 @@ namespace SDSF
     {
       SoundParams.Reset();
       Iterator->Reset();
-      Engine->Initialize(*Data);
+      Engine.Initialize(*Data);
     }
 
     void SetPosition(uint_t frame) override
@@ -249,7 +245,7 @@ namespace SDSF
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
-        Resampler = Sound::CreateResampler(Engine->GetSoundFrequency(), SoundParams->SoundFreq(), Target);
+        Resampler = Sound::CreateResampler(Engine.GetSoundFrequency(), SoundParams->SoundFreq(), Target);
       }
     }
 
@@ -258,19 +254,20 @@ namespace SDSF
       uint_t current = State->Frame();
       if (frame < current)
       {
-        Engine->Initialize(*Data);
+        Engine.Initialize(*Data);
         current = 0;
       }
       if (const uint_t delta = frame - current)
       {
-        Engine->Skip(delta * SamplesPerFrame);
+        Engine.Skip(delta * SamplesPerFrame);
       }
     }
   private:
     const ModuleData::Ptr Data;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
-    const SegaEngine::Ptr Engine;
+    const SoundAnalyzer::Ptr Analyzer;
+    SegaEngine Engine;
     uint_t SamplesPerFrame;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;

@@ -82,11 +82,9 @@ namespace USF
     std::unique_ptr<uint8_t[]> Data;
   };
   
-  class USFEngine : public Module::Analyzer
+  class USFEngine
   {
   public:
-    using Ptr = std::shared_ptr<USFEngine>;
-  
     explicit USFEngine(const ModuleData& data)
       : Emu()
     {
@@ -133,11 +131,6 @@ namespace USF
         skippedSamples += toSkip;
       }
     }
-
-    std::vector<ChannelState> GetState() const override
-    {
-      return std::vector<ChannelState>();
-    }
   private:
     void SetupSections(const std::list<Binary::Data::Ptr>& sections)
     {
@@ -179,15 +172,16 @@ namespace USF
   {
   public:
     Renderer(const ModuleData& data, Information::Ptr info, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Engine(MakePtr<USFEngine>(data))
+      : Engine(data)
       , Iterator(Module::CreateStreamStateIterator(info))
       , State(Iterator->GetStateObserver())
+      , Analyzer(CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(params))
       , Target(Module::CreateFadingReceiver(std::move(params), std::move(info), State, std::move(target)))
       , Looped()
     {
       const auto frameDuration = SoundParams->FrameDuration();
-      SamplesPerFrame = frameDuration.Get() * Engine->GetSoundFrequency() / frameDuration.PER_SECOND;
+      SamplesPerFrame = frameDuration.Get() * Engine.GetSoundFrequency() / frameDuration.PER_SECOND;
       ApplyParameters();
     }
 
@@ -198,7 +192,7 @@ namespace USF
 
     Module::Analyzer::Ptr GetAnalyzer() const override
     {
-      return Engine;
+      return Analyzer;
     }
 
     bool RenderFrame() override
@@ -207,7 +201,9 @@ namespace USF
       {
         ApplyParameters();
 
-        Resampler->ApplyData(Engine->Render(SamplesPerFrame));
+        auto data = Engine.Render(SamplesPerFrame);
+        Analyzer->AddSoundData(data);
+        Resampler->ApplyData(std::move(data));
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -221,7 +217,7 @@ namespace USF
     {
       SoundParams.Reset();
       Iterator->Reset();
-      Engine->Reset();
+      Engine.Reset();
     }
 
     void SetPosition(uint_t frame) override
@@ -235,7 +231,7 @@ namespace USF
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
-        Resampler = Sound::CreateResampler(Engine->GetSoundFrequency(), SoundParams->SoundFreq(), Target);
+        Resampler = Sound::CreateResampler(Engine.GetSoundFrequency(), SoundParams->SoundFreq(), Target);
       }
     }
 
@@ -244,18 +240,19 @@ namespace USF
       uint_t current = State->Frame();
       if (frame < current)
       {
-        Engine->Reset();
+        Engine.Reset();
         current = 0;
       }
       if (const uint_t delta = frame - current)
       {
-        Engine->Skip(delta * SamplesPerFrame);
+        Engine.Skip(delta * SamplesPerFrame);
       }
     }
   private:
-    const USFEngine::Ptr Engine;
+    USFEngine Engine;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
+    const SoundAnalyzer::Ptr Analyzer;
     uint_t SamplesPerFrame;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
