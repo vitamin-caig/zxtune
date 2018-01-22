@@ -20,14 +20,16 @@ namespace Sound
     void ApplyData(Chunk in) override
     {
       Require(Counter < Limit);
-      const std::size_t silent = std::count(in.begin(), in.end(), Sample{});
-      if (silent == in.size())
+      const auto silent = LastSample;
+      if (std::all_of(in.begin(), in.end(), [&silent](Sound::Sample in) {return in == silent;}))
       {
-        Counter += silent;
+        Counter += in.size();
       }
       else
       {
-        Counter = 0;
+        LastSample = in.back();
+        //approximate counting
+        Counter = std::count(in.begin(), in.end(), LastSample);
       }
       Delegate->ApplyData(std::move(in));
     }
@@ -39,6 +41,7 @@ namespace Sound
   private:
     const Ptr Delegate;
     const uint_t Limit;
+    Sample LastSample;
     uint_t Counter;
   };
 
