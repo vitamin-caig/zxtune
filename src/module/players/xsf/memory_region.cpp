@@ -24,7 +24,7 @@ namespace Module
       Data.resize(newEnd - newAddr);
       if (newAddr < Start)
       {
-        std::memcpy(Data.data() + (Start - newAddr), Data.data(), oldSize);
+        std::memmove(Data.data() + (Start - newAddr), Data.data(), oldSize);
         Start = newAddr;
       }
       std::memcpy(Data.data() + (addr - newAddr), data, size);

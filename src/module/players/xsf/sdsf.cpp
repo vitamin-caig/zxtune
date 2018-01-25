@@ -160,19 +160,19 @@ namespace SDSF
       for (const auto& packed : sections)
       {
         const auto unpackedSection = Binary::Compression::Zlib::CreateDeferredDecompressContainer(packed);
-        const auto rawStart = unpackedSection->Start();
         const auto rawSize = unpackedSection->Size();
-        const auto toCopy = LimitSection(rawStart, rawSize);
+        Require(rawSize > sizeof(uint32_t));
+        const auto rawStart = static_cast<uint32_t*>(const_cast<void*>(unpackedSection->Start()));
+        const auto toCopy = FixupSection(rawStart, rawSize);
         //TODO: make input const
-        Dbg("Section %1% -> %2% -> %3% bytes", packed->Size(), rawSize, toCopy);
-        Require(0 == ::sega_upload_program(Emu.get(), static_cast<uint8_t*>(const_cast<void*>(rawStart)), toCopy));
+        Dbg("Section %1% -> %2%  @ 0x%3$08x", packed->Size(), toCopy, fromLE(*rawStart));
+        Require(0 == ::sega_upload_program(Emu.get(), rawStart, toCopy));
       }
     }
     
-    std::size_t LimitSection(const void* data, std::size_t size) const
+    std::size_t FixupSection(uint32_t* data, std::size_t size) const
     {
-      Require(size > sizeof(uint32_t));
-      const auto start = fromLE(*static_cast<const uint32_t*>(data));
+      const auto start = fromLE(*data &= fromLE<uint32_t>(0x7fffff));
       const uint32_t end = start + (size - sizeof(start));
       const uint32_t realEnd = std::min(end, HTLibrary::GetMemoryEnd(Vers));
       return sizeof(start) + (realEnd - start);
