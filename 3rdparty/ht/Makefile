@@ -7,11 +7,11 @@ source_files += $(addprefix Core/,\
   satsound \
   sega \
   yam \
-  m68k/m68kcpu \
-  m68k/m68kops \
+  c68k/c68k \
+  c68k/c68kexec \
 )
 
-defines += EMU_COMPILE EMU_LITTLE_ENDIAN LSB_FIRST USE_M68K NO_DYNAREC
+defines += EMU_COMPILE EMU_LITTLE_ENDIAN LSB_FIRST C68K_NO_JUMP_TABLE NO_DYNAREC
 
 source_files := $(addsuffix .c,$(source_files))
 
