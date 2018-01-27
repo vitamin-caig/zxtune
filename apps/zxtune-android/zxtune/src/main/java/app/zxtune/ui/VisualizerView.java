@@ -102,9 +102,9 @@ public class VisualizerView extends View {
   
   private final class SpectrumVisualizer {
     
-    private static final int MAX_BANDS = 32;
+    private static final int MAX_BANDS = 96;
     private static final int MAX_LEVEL = 100;
-    private static final int BAR_WIDTH = 3;
+    private static final int MIN_BAR_WIDTH = 3;
     private static final int BAR_PADDING = 1;
     private static final int FALL_SPEED = 10;
 
@@ -112,24 +112,28 @@ public class VisualizerView extends View {
     private final Paint paint;
     private final int[] bands;
     private final int[] levels;
+    private int barWidth;
     private int[] values;
     private boolean[] changes;
     private int lowerChange;
     private int upperChange;
 
-    public SpectrumVisualizer() {
+    SpectrumVisualizer() {
       this.barRect = new Rect();
       this.paint = new Paint();
       this.paint.setColor(getResources().getColor(android.R.color.primary_text_dark));
       this.bands = new int[MAX_BANDS];
       this.levels = new int[MAX_BANDS];
+      this.barWidth = MIN_BAR_WIDTH;
       this.values = new int[1];
       this.changes = new boolean[1];
     }
     
     final void sizeChanged() {
       barRect.bottom = visibleRect.bottom;
-      final int bars = visibleRect.width() / BAR_WIDTH;
+      final int width = visibleRect.width();
+      barWidth = Math.max(width / MAX_BANDS, MIN_BAR_WIDTH);
+      final int bars = Math.max(width / barWidth, 1);
       values = new int[bars];
       changes = new boolean[bars];
       lowerChange = 0;
@@ -140,8 +144,8 @@ public class VisualizerView extends View {
       final int channels = source.getSpectrum(bands, levels);
       updateValues(channels);
       if (lowerChange != upperChange) {
-        final int updateLeft = visibleRect.left + BAR_WIDTH * lowerChange;
-        final int updateRight = visibleRect.left + BAR_WIDTH * upperChange;
+        final int updateLeft = visibleRect.left + barWidth * lowerChange;
+        final int updateRight = visibleRect.left + barWidth * upperChange;
         invalidate(updateLeft, visibleRect.top, updateRight, visibleRect.bottom);
         return true;
       }
@@ -149,8 +153,8 @@ public class VisualizerView extends View {
     }
 
     final void draw(Canvas canvas) {
-      barRect.left = visibleRect.left + BAR_WIDTH * lowerChange;
-      barRect.right = barRect.left + BAR_WIDTH - BAR_PADDING;
+      barRect.left = visibleRect.left + barWidth * lowerChange;
+      barRect.right = barRect.left + barWidth - BAR_PADDING;
       final int height = visibleRect.height();
       for (int band = lowerChange; band < upperChange; ++band) {
         if (changes[band]) {
@@ -158,7 +162,7 @@ public class VisualizerView extends View {
           canvas.drawRect(barRect, paint);
           changes[band] = false;
         }
-        barRect.offset(BAR_WIDTH, 0);
+        barRect.offset(barWidth, 0);
       }
     }
 
