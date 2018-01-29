@@ -57,7 +57,6 @@ namespace Module
   private:
     static const std::size_t WindowSizeLog = 10;
     static const std::size_t WindowSize = 1 << WindowSizeLog;
-    static const std::size_t Points = WindowSize / 2;
 
   public:
     using Ptr = std::shared_ptr<FFTAnalyzer>;
@@ -82,15 +81,13 @@ namespace Module
       static const uint_t BANDS = 96;
       std::vector<ChannelState> result;
       result.reserve(BANDS);
-      const auto& levels = FFT();
+      const auto& levels = FFT<BANDS>();
       ChannelState res;
       for (res.Band = 0; res.Band < BANDS; ++res.Band)
       {
-        const auto begin = levels.begin() + res.Band * levels.size() / BANDS;
-        const auto end = levels.begin() + (res.Band + 1) * levels.size() / BANDS;
-        const auto maximum = *std::max_element(begin, end);
-        if ((res.Level = std::min<uint_t>(100, maximum / 32)))
+        if (const auto rawLevel = levels[res.Band])
         {
+          res.Level = std::min<uint_t>(100, rawLevel);
           result.push_back(res);
         }
       }
@@ -111,8 +108,26 @@ namespace Module
         }
         for (std::size_t idx = 0; idx < Sinus.size(); ++idx)
         {
-          const float angle = 2. * 3.14159265358 * idx / WindowSize;
+          const auto angle = GetAngle(idx);
           Sinus[idx] = std::sin(angle);
+        }
+        HammingWindow();
+      }
+      
+      static float GetAngle(std::size_t idx)
+      {
+        return 2.0f * 3.14159265358f * idx / WindowSize;
+      }
+      
+      //http://dspsystem.narod.ru/add/win/win.html
+      void HammingWindow()
+      {
+        const auto a0 = 0.54f;
+        const auto a1 = 0.46f;
+        for (std::size_t idx = 0; idx < Window.size(); ++idx)
+        {
+          const auto angle = GetAngle(idx);
+          Window[idx] = a0 - a1 * std::cos(angle);
         }
       }
       
@@ -134,9 +149,15 @@ namespace Module
         return reversed;
       }
     public:
-      static uint_t Reverse(uint_t val)
+      static std::array<Complex, WindowSize> ToComplex(const std::array<int_t, WindowSize>& input, std::size_t offset)
       {
-        return Instance().BitRev[val];
+        const auto& self = Instance();
+        std::array<Complex, WindowSize> result;
+        for (std::size_t idx = 0; idx < WindowSize; ++idx)
+        {
+          result[idx] = self.Window[idx] * input[(offset + self.BitRev[idx]) % WindowSize];
+        }
+        return result;
       }
       
       static Complex Polar(uint_t val)
@@ -147,17 +168,13 @@ namespace Module
     private:
       std::array<uint_t, WindowSize> BitRev;
       std::array<float, WindowSize> Sinus;
+      std::array<float, WindowSize> Window;
     };
   
+    template<std::size_t Points>
     std::array<uint_t, Points> FFT() const
     {
-      std::array<Complex, WindowSize> cplx;
-      {
-        for (std::size_t idx = 0; idx < WindowSize; ++idx)
-        {
-          cplx[idx] = Input[(Cursor + Lookup::Reverse(idx)) % WindowSize];
-        }
-      }
+      auto cplx = Lookup::ToComplex(Input, Cursor);
       uint_t exchanges = 1;
       uint_t factFact = WindowSize / 2;
       for (uint_t i = WindowSizeLog; i != 0; --i, exchanges *= 2, factFact /= 2)
@@ -178,9 +195,8 @@ namespace Module
       std::array<uint_t, Points> result;
       for (std::size_t i = 0; i < result.size(); ++i)
       {
-        result[i] = std::abs(cplx[i + 1]) / 256;
+        result[i] = std::abs(cplx[i + 1]) / (256 * 32);
       }
-      result.back() /= 2;
       return result;
     }
   private:
