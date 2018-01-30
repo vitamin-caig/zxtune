@@ -215,7 +215,7 @@ namespace
     auto internalProperties = module->GetModuleProperties();
     auto properties = Parameters::CreateMergedAccessor(localParameters, std::move(internalProperties), std::move(globalParameters));
     auto buffer = MakePtr<BufferTarget>();
-    auto pipeline = CreateSilenceDetector(properties, buffer);
+    auto pipeline = Sound::CreateSilenceDetector(properties, buffer);
     auto renderer = module->CreateRenderer(properties, std::move(pipeline));
     return MakePtr<PlayerControl>(std::move(properties), std::move(localParameters), std::move(renderer), std::move(buffer));
   }
