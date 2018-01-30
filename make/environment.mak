@@ -11,34 +11,36 @@ endif
 endif
 
 #android
-android.boost.version = 1.58.0
+android.boost.version = 1.65.1
 android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector -fomit-frame-pointer -Wa,--noexecstack
 android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now
 #assume that all the platforms are little-endian
 #this required to use boost which doesn't know anything about __armel__ or __mipsel__
-android.definitions = ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N
+android.definitions = ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N LITTLE_ENDIAN
 # x86
-android.x86.toolchain = $(toolchains.root)/x86-linux-android
+android.x86.toolchain = $(toolchains.root)/i686-linux-android
 android.x86.execprefix = $(android.x86.toolchain)/bin/i686-linux-android-
 android.x86.boost.version = $(android.boost.version)
+android.x86.definitions = __ANDROID_API__=14
 android.x86.ld.flags = -Wl,--icf=safe
 # armeabi
-android.armeabi.toolchain = $(toolchains.root)/armeabi-linux-android
+android.armeabi.toolchain = $(toolchains.root)/arm-linux-androideabi
 android.armeabi.execprefix = $(android.armeabi.toolchain)/bin/arm-linux-androideabi-
 android.armeabi.boost.version = $(android.boost.version)
+android.armeabi.definitions = __ANDROID_API__=14
 android.armeabi.cxx.flags = -march=armv5te -mtune=xscale -msoft-float -mthumb -finline-limit=64
-android.armeabi.ld.flags = $(android.x86.ld.flags)
 # armeabi-v7a
 android.armeabi-v7a.toolchain = $(android.armeabi.toolchain)
 android.armeabi-v7a.execprefix = $(android.armeabi.execprefix)
 android.armeabi-v7a.boost.version = $(android.boost.version)
+android.armeabi-v7a.definitions = __ANDROID_API__=14
 android.armeabi-v7a.cxx.flags = -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -mthumb -finline-limit=64
 android.armeabi-v7a.ld.flags = -march=armv7-a -Wl,--fix-cortex-a8
-android.armeabi-v7a.ld.flags = $(android.x86.ld.flags)
 # arm64-v8a
 android.arm64-v8a.toolchain = $(toolchains.root)/aarch64-linux-android
 android.arm64-v8a.execprefix = $(android.arm64-v8a.toolchain)/bin/aarch64-linux-android-
 android.arm64-v8a.boost.version = $(android.boost.version)
+android.arm64-v8a.definitions = __ANDROID_API__=21
 # mips
 android.mips.toolchain = $(toolchains.root)/mipsel-linux-android
 android.mips.execprefix = $(android.mips.toolchain)/bin/mipsel-linux-android-
