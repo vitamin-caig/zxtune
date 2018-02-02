@@ -55,4 +55,14 @@
     <item>15 minut</item>
     <item>30 minut</item>
   </string-array>
+  <!-- zxtune.sound.silence_limit -->
+  <string  name="pref_zxtune_silence_limit_title">Detekce ticha</string>
+  <string-array name="pref_zxtune_silence_limit_entries">
+    <item>Nic</item>
+    <item>3 sekundy</item>
+    <item>4 sekundy</item>
+    <item>5 sekund</item>
+    <item>10 sekund</item>
+    <item>15 sekund</item>
+  </string-array>
 </resources>

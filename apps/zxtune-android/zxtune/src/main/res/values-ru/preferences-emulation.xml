@@ -55,4 +55,14 @@
     <item>15 минут</item>
     <item>30 минут</item>
   </string-array>
+  <!-- zxtune.sound.silence_limit -->
+  <string  name="pref_zxtune_silence_limit_title">Обнаружение тишины</string>
+  <string-array name="pref_zxtune_silence_limit_entries">
+    <item>Нет</item>
+    <item>3 секунды</item>
+    <item>4 секунды</item>
+    <item>5 секунд</item>
+    <item>10 секунд</item>
+    <item>15 секунд</item>
+  </string-array>
 </resources>

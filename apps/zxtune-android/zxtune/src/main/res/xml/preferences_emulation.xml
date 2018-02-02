@@ -144,6 +144,13 @@
       android:entryValues="@array/pref_zxtune_default_duration_values"
       android:defaultValue="@integer/pref_zxtune_default_duration_default"
     />
+    <ListPreference
+        android:key="@string/pref_zxtune_silence_limit"
+        android:title="@string/pref_zxtune_silence_limit_title"
+        android:entries="@array/pref_zxtune_silence_limit_entries"
+        android:entryValues="@array/pref_zxtune_silence_limit_values"
+        android:defaultValue="@integer/pref_zxtune_silence_limit_default"
+        />
   </PreferenceScreen>
   <!--</PreferenceScreen>-->
 </PreferenceScreen>

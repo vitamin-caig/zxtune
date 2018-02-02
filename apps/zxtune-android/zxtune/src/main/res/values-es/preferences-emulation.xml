@@ -43,4 +43,14 @@
     <item>15 minutos</item>
     <item>30 minutos</item>
   </string-array>
+  <!-- zxtune.sound.silence_limit -->
+  <string  name="pref_zxtune_silence_limit_title">Detección de silencio</string>
+  <string-array name="pref_zxtune_silence_limit_entries">
+    <item>Ninguna</item>
+    <item>3 segundos</item>
+    <item>4 segundos</item>
+    <item>5 segundos</item>
+    <item>10 segundos</item>
+    <item>15 segundos</item>
+  </string-array>
 </resources>
