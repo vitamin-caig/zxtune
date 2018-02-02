@@ -173,7 +173,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   
   @Override
   public int[] getSpectrum() {
-    final int MAX_BANDS = 32;
+    final int MAX_BANDS = 96;
     final int[] bands = new int[MAX_BANDS];
     final int[] levels = new int[MAX_BANDS];
     try {
