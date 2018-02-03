@@ -115,7 +115,7 @@ android {
             outputs.dir libsDir
             doLast {
                 def cpuCount = Runtime.runtime.availableProcessors()
-                def jniDir = variant.ndkCompile.sourceFolders.first()
+                def jniDir = variant.ndkCompile.source.first().parent
                 variant.ndkCompile.abiFilters.each { arch ->
                     def baseCmd = "arch=${arch} -C ${jniDir}"
                     callMake("${baseCmd} -j ${cpuCount}")
@@ -137,7 +137,7 @@ android {
             //optimize incremental builds - assume existing objFolder means that all libs are ready
             outputs.dir objsDir
             doLast {
-                def jniDir = variant.ndkCompile.sourceFolders.first()
+                def jniDir = variant.ndkCompile.source.first().parent
                 variant.ndkCompile.abiFilters.each { arch ->
                     def baseCmd = "arch=${arch} -C ${jniDir}"
                     def objDir = file("${objsDir}/${arch}")
