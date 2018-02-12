@@ -16,7 +16,11 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
+import java.util.Random;
+
 public class DatabaseIterator {
+
+  private final static Random rand = new Random();
   
   private final ContentResolver resolver;
   private final Item item;
@@ -81,8 +85,17 @@ public class DatabaseIterator {
   }
   
   public final DatabaseIterator getRandom() {
-    final Item rand = select("RANDOM() LIMIT 1");
-    return new DatabaseIterator(resolver, rand);
+    final Cursor cursor = resolver.query(PlaylistQuery.ALL, null, null, null, null);
+    if (cursor != null) {
+      try {
+        if (cursor.moveToFirst() && cursor.move(rand.nextInt(cursor.getCount()))) {
+          return new DatabaseIterator(resolver, new Item(cursor));
+        }
+      } finally {
+        cursor.close();
+      }
+    }
+    return new DatabaseIterator(resolver, null);
   }
 
   @Nullable
