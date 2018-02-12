@@ -410,22 +410,27 @@
         <translation>Частота звука, Гц</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="68"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="65"/>
+        <source>Silence detection, S</source>
+        <translation>Детектор тишины, с</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="82"/>
         <source>Backends settings</source>
         <translation>Настройки подсистем</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="91"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="105"/>
         <source>Move up</source>
         <translation>Вверх</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="135"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="149"/>
         <source>Move down</source>
         <translation>Вниз</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="150"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="164"/>
         <source>Select backend to setup</source>
         <translation>Выберите подсистему для настройки</translation>
     </message>

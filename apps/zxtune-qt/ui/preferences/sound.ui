@@ -59,6 +59,20 @@
       <item row="1" column="1">
        <widget class="QComboBox" name="soundFrequencyValue"/>
       </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="silenceLimitLabel">
+        <property name="text">
+         <string>Silence detection, S</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="silenceLimitValue">
+        <property name="maximum">
+         <number>30</number>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

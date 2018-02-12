@@ -68,11 +68,13 @@ namespace
       FillFrequences();
       FillBackends();
 
-      Parameters::IntegerValue::Bind(*frameDurationValue, *Options, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT);
-      Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      using namespace Parameters;
+      IntegerValue::Bind(*frameDurationValue, *Options, ZXTune::Sound::FRAMEDURATION, ZXTune::Sound::FRAMEDURATION_DEFAULT);
+      IntType freq = ZXTune::Sound::FREQUENCY_DEFAULT;
       Options->FindValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
       SetFrequency(freq);
       Require(connect(soundFrequencyValue, SIGNAL(currentIndexChanged(int)), SLOT(ChangeSoundFrequency(int))));
+      IntegerValue::Bind(*silenceLimitValue, *Options, ZXTune::Sound::SILENCE_LIMIT, ZXTune::Sound::SILENCE_LIMIT_DEFAULT);
 
       Require(connect(backendsList, SIGNAL(currentRowChanged(int)), SLOT(SelectBackend(int))));
       Require(connect(moveUp, SIGNAL(released()), SLOT(MoveBackendUp())));
