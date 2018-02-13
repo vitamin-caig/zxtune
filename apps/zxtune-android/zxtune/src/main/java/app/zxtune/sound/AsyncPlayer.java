@@ -137,7 +137,13 @@ public final class AsyncPlayer implements Player {
   }
 
   private void doStart() {
-    playThread = new PlayThread();
+    playThread = new Thread("PlayerThread") {
+      @Override
+      public void run() {
+        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
+        sync.play();
+      }
+    };
     playThread.start();
     waitForStateChange();
   }
@@ -216,14 +222,6 @@ public final class AsyncPlayer implements Player {
     @Override
     public boolean isPaused() {
       return true;
-    }
-  }
-
-  private class PlayThread extends Thread {
-    @Override
-    public void run() {
-      Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
-      sync.play();
     }
   }
 }
