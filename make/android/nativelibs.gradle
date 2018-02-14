@@ -86,6 +86,13 @@ android {
 
         variant.mergedFlavor.versionCode = code
         variant.mergedFlavor.versionName = name
+
+        //Required for gradle 3.0+
+        //https://stackoverflow.com/questions/46990900/gradle-versionname-and-versioncode-not-working-after-3-0-update
+        variant.outputs.all { output ->
+            output.setVersionCodeOverride(code)
+            output.setVersionNameOverride(name)
+        }
     }
 
     def flavorsFilter = getListProperty("flavors.abi", "fat")
