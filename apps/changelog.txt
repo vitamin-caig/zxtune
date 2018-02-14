@@ -5,6 +5,21 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4100 from 14.02.2018
+
+[+] Added support of Sega Dreamcast format (DSF)
+[+] Added support of Sega Saturn format (SSF)
+[+] Support silence detection while playback (BB#87)
+[*] Fixed Vortex Tracker .txt parsing
+[*] Fixed SoundTracker playback (BB#101)
+[*] Increased SPC playback volume
+[*] Use ASAP library for .sap playback
+[*] Use FFT spectrum analyzer as a default for some formats
+[*] Fixed reported and found crashes
+[+] zxtune-android: add dsf and ssf subcatalogues at joshw.info catalogue
+[*] zxtune-android: improved shuffled playlist playback
+[*] zxtune-android: improved playback performance
+
 --- Rev4040 from 19.10.2017
 
 [*] Speedup 2SF tracks rendering and seeking
