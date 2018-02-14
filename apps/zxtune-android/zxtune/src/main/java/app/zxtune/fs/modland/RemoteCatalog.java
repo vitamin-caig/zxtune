@@ -235,7 +235,7 @@ class RemoteCatalog extends Catalog {
 
   @Override
   public ByteBuffer getTrackContent(String id) throws IOException {
-    Log.d(TAG, "getTrackContent(id=%d)", id);
+    Log.d(TAG, "getTrackContent(id=%s)", id);
     return http.getContent(STORAGE_MIRROR + id);
   }
 

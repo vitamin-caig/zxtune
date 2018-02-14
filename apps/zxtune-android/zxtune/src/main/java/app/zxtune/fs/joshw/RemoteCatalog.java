@@ -61,7 +61,7 @@ class RemoteCatalog extends Catalog {
   @Override
   public void parseDir(ByteBuffer data, DirVisitor visitor) throws IOException {
     if (!isDirContent(data)) {
-      throw new UnsupportedOperationException();
+      throw new IOException("Not a directory file");
     }
     final String chars = toString(data);
     final Matcher matcher = ENTRIES.matcher(chars);
