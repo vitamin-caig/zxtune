@@ -294,9 +294,6 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
         return true;
       } else {
         switch (item.getItemId()) {
-          case R.id.action_play:
-            getService().setNowPlaying(getSelectedItemsUris());
-            break;
           case R.id.action_add:
             getService().getPlaylistControl().add(getSelectedItemsUris());
             break;
