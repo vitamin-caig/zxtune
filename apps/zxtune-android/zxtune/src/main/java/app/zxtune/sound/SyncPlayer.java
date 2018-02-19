@@ -34,16 +34,16 @@ public final class SyncPlayer {
   private AsyncSamplesSource source;
   private SamplesTarget target;
 
-  public SyncPlayer(SamplesSource source, SamplesTarget target, PlayerEventsListener events) {
+  public SyncPlayer(SamplesSource source, SamplesTarget target, PlayerEventsListener events) throws Exception {
     this.events = events;
     this.state = new AtomicInteger(STOPPED);
+    source.initialize(target.getSampleRate());
     this.source = new AsyncSamplesSource(source, target.getPreferableBufferSize());
     this.target = target;
   }
 
   public final void play() {
     try {
-      source.initialize(target.getSampleRate());
       target.start();
       try {
         Log.d(TAG, "Start transfer cycle");
@@ -127,19 +127,23 @@ public final class SyncPlayer {
 
   private static class AsyncSamplesSource {
 
+    private static final int STOPPED = 0;
+    private static final int ACTIVE = 1;
+    private static final int FINISHED = 2;
+    private static final int RELEASED = 3;
+
     private final SamplesSource source;
     private final Exchanger<short[]> exchanger;
     private short[] inputBuffer;
     private short[] outputBuffer;
-    private volatile boolean isActive;
     private final Thread thread;
+    private final AtomicInteger state;
 
     AsyncSamplesSource(@NonNull SamplesSource source, int bufferSize) {
       this.source = source;
       this.exchanger = new Exchanger<>();
       this.inputBuffer = new short[bufferSize];
       this.outputBuffer = new short[bufferSize];
-      this.isActive = true;
       this.thread = new Thread("RenderThread") {
         @Override
         public void run() {
@@ -147,27 +151,31 @@ public final class SyncPlayer {
           renderCycle();
         }
       };
-      thread.start();
-    }
-
-    final void initialize(int sampleRate) throws Exception {
-      source.initialize(sampleRate);
+      this.state = new AtomicInteger(STOPPED);
     }
 
     final void release() {
       try {
-        thread.interrupt();
-        thread.join();
+        if (state.compareAndSet(ACTIVE, FINISHED)) {
+          thread.interrupt();
+        }
+        if (!state.compareAndSet(STOPPED, STOPPED)) {
+          thread.join();
+        }
       } catch (InterruptedException e) {
         Log.d(TAG, "Interrupted while releasing async samples source");
       } finally {
         source.release();
+        state.set(RELEASED);
       }
     }
 
     @Nullable
     final short[] getNextSamples() throws InterruptedException {
-      if (isActive) {
+      if (state.compareAndSet(STOPPED, ACTIVE)) {
+        thread.start();
+      }
+      if (state.compareAndSet(ACTIVE, ACTIVE)) {
         outputBuffer = exchanger.exchange(outputBuffer);
         return outputBuffer;
       } else {
@@ -177,7 +185,7 @@ public final class SyncPlayer {
 
     private void renderCycle() {
       try {
-        while (isActive) {
+        while (state.compareAndSet(ACTIVE, ACTIVE)) {
           final boolean hasNextSamples = source.getSamples(inputBuffer);
           inputBuffer = exchanger.exchange(inputBuffer);
           if (!hasNextSamples) {
@@ -187,7 +195,7 @@ public final class SyncPlayer {
       } catch (InterruptedException e) {
       } catch (Exception e) {
       } finally {
-        isActive = false;
+        state.set(FINISHED);
       }
     }
   }

@@ -29,14 +29,14 @@ public final class AsyncPlayer implements Player {
   private Player state;
   private Thread playThread;
 
-  private AsyncPlayer(SamplesSource source, SamplesTarget target, PlayerEventsListener events) {
+  private AsyncPlayer(SamplesSource source, SamplesTarget target, PlayerEventsListener events) throws Exception {
     this.sync = new SyncPlayer(source, target, new EventsSynchronized());
     this.events = events;
     this.stateGuard = new Object();
     this.state = new StoppedPlayer();
   }
 
-  public static Player create(SamplesSource source, SamplesTarget target, PlayerEventsListener events) {
+  public static Player create(SamplesSource source, SamplesTarget target, PlayerEventsListener events) throws Exception {
     return new AsyncPlayer(source, target, events);
   }
 
