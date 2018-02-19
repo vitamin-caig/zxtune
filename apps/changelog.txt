@@ -5,6 +5,11 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4110 from 20.02.2018
+
+[*] zxtune-android: fixed playback problems on some devices
+[*] zxtune-android: fixed reported and found crashes.
+
 --- Rev4100 from 14.02.2018
 
 [+] Added support of Sega Dreamcast format (DSF)
