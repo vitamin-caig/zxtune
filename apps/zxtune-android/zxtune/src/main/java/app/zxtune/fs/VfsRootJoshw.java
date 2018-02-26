@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 import app.zxtune.R;
+import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.joshw.Catalog;
 
 final class VfsRootJoshw extends StubObject implements VfsRoot {
@@ -39,7 +40,7 @@ final class VfsRootJoshw extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final AudiobaseDir bases[];
 
-  VfsRootJoshw(Context context, HttpProvider http, VfsCache cache) {
+  VfsRootJoshw(Context context, HttpProvider http, CacheDir cache) {
     this.context = context;
     this.catalog = Catalog.create(http, cache);
     this.bases = new AudiobaseDir[]{

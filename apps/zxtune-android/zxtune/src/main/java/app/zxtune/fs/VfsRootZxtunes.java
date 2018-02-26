@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.zxtunes.Author;
 import app.zxtune.fs.zxtunes.Catalog;
 import app.zxtune.fs.zxtunes.Identifier;
@@ -32,7 +33,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupingDir groups[];
 
-  VfsRootZxtunes(Context context, HttpProvider http, VfsCache cache) throws IOException {
+  VfsRootZxtunes(Context context, HttpProvider http, CacheDir cache) throws IOException {
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groups = new GroupingDir[]{

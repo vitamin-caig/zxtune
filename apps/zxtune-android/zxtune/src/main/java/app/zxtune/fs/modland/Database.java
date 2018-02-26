@@ -15,12 +15,10 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
@@ -55,7 +53,7 @@ final class Database {
 
     static final class Groups extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, name, tracks
       }
 
@@ -108,7 +106,7 @@ final class Database {
 
     static final class Tracks extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, path, size
       }
 
@@ -158,9 +156,8 @@ final class Database {
   private final HashMap<String, Tables.GroupTracks> groupTracks;
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
-  private final VfsCache cacheDir;
 
-  Database(Context context, VfsCache cache) throws IOException {
+  Database(Context context) throws IOException {
     this.helper = new DBProvider(Helper.create(context));
     this.groups = new HashMap<>();
     this.groupTracks = new HashMap<>();
@@ -170,7 +167,6 @@ final class Database {
     }
     this.tracks = new Tables.Tracks(helper);
     this.timestamps = new Timestamps(helper);
-    this.cacheDir = cache.createNested("ftp.modland.com");
   }
 
   final Transaction startTransaction() throws IOException {
@@ -267,15 +263,6 @@ final class Database {
 
   final void addGroupTrack(String category, int id, Track obj) {
     groupTracks.get(category).add(id, obj.id);
-  }
-
-  @Nullable
-  final ByteBuffer getTrackContent(String id) {
-    return cacheDir.getCachedFileContent(id);
-  }
-
-  final void addTrackContent(String id, ByteBuffer content) {
-    cacheDir.putCachedFileContent(id, content);
   }
 
   private static class Helper extends SQLiteOpenHelper {

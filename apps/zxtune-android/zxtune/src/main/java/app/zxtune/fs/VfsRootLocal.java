@@ -216,7 +216,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
 
     @Override
     public ByteBuffer getContent() throws IOException {
-      return VfsCache.readFrom(object);
+      return Io.readFrom(object);
     }
   }
 }

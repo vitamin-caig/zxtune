@@ -30,6 +30,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import app.zxtune.R;
+import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.modland.Catalog;
 import app.zxtune.fs.modland.Group;
 import app.zxtune.fs.modland.Track;
@@ -67,7 +68,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupsDir groups[];
 
-  VfsRootModland(Context context, HttpProvider http, VfsCache cache) throws IOException {
+  VfsRootModland(Context context, HttpProvider http, CacheDir cache) throws IOException {
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groups = new GroupsDir[]{

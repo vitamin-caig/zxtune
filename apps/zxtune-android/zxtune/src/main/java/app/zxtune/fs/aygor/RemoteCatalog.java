@@ -7,6 +7,7 @@
 package app.zxtune.fs.aygor;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.io.IOException;
@@ -44,6 +45,7 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
+  @NonNull
   public ByteBuffer getFileContent(List<String> path) throws IOException {
     final String pathStr = TextUtils.join("/", path);
     return http.getContent(STORAGE_MIRROR + pathStr);

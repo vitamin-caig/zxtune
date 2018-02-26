@@ -6,12 +6,14 @@
 
 package app.zxtune.fs.aygor;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
 import app.zxtune.fs.HttpProvider;
-import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.cache.CacheDir;
 
 public abstract class Catalog {
 
@@ -25,8 +27,8 @@ public abstract class Catalog {
    * Get file content
    * @param path path to module starting from ayon/..
    * @return content
-   * @throws IOException
    */
+  @NonNull
   public abstract ByteBuffer getFileContent(List<String> path) throws IOException;
 
   /**
@@ -40,13 +42,11 @@ public abstract class Catalog {
    *
    * @param data html page content
    * @param visitor parse result receiver
-   * @throws IOException
    */
   public abstract void parseDir(ByteBuffer data, DirVisitor visitor) throws IOException;
 
-  public static Catalog create(HttpProvider http, VfsCache cache) {
+  public static Catalog create(HttpProvider http, CacheDir cache) {
     final Catalog remote = new RemoteCatalog(http);
-    final VfsCache cacheDir = cache.createNested("aygor");
-    return new CachingCatalog(remote, cacheDir);
+    return new CachingCatalog(remote, cache);
   }
 }

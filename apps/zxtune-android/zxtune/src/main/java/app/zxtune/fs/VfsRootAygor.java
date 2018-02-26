@@ -24,6 +24,7 @@ import java.util.List;
 
 import app.zxtune.R;
 import app.zxtune.fs.aygor.Catalog;
+import app.zxtune.fs.cache.CacheDir;
 
 final class VfsRootAygor extends StubObject implements VfsRoot {
 
@@ -35,7 +36,7 @@ final class VfsRootAygor extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final AyonMusicSubdir root;
 
-  VfsRootAygor(Context context, HttpProvider http, VfsCache cache) {
+  VfsRootAygor(Context context, HttpProvider http, CacheDir cache) {
     this.context = context;
     this.catalog = Catalog.create(http, cache);
     this.root = new AyonMusicSubdir(Collections.<String>emptyList());

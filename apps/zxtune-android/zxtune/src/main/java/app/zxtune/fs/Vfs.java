@@ -12,6 +12,8 @@ import android.net.Uri;
 import java.io.IOException;
 
 import app.zxtune.MainApplication;
+import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.cache.CacheFactory;
 
 public final class Vfs {
 
@@ -37,7 +39,7 @@ public final class Vfs {
       final VfsRootComposite composite = new VfsRootComposite();
       final Context appContext = MainApplication.getInstance();
       final HttpProvider http = new HttpProvider(appContext);
-      final VfsCache cache = VfsCache.create(appContext);
+      final CacheDir cache = CacheFactory.create(appContext);
       composite.addSubroot(new VfsRootLocal(appContext));
       composite.addSubroot(new VfsRootZxtunes(appContext, http, cache));
       composite.addSubroot(new VfsRootPlaylists(appContext));

@@ -6,12 +6,15 @@
 
 package app.zxtune.fs.zxtunes;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.FetchCommand;
 import app.zxtune.fs.dbhelpers.QueryCommand;
@@ -31,11 +34,13 @@ final class CachingCatalog extends Catalog {
 
   private final Catalog remote;
   private final Database db;
+  private final CacheDir cache;
   private final CommandExecutor executor;
 
-  public CachingCatalog(Catalog remote, Database db) {
+  public CachingCatalog(Catalog remote, Database db, CacheDir cache) {
     this.remote = remote;
     this.db = db;
+    this.cache = cache.createNested("www.zxtunes.com");
     this.executor = new CommandExecutor("zxtunes");
   }
 
@@ -119,17 +124,19 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
+  @NonNull
   public ByteBuffer getTrackContent(final int id) throws IOException {
+    final String filename = Integer.toString(id);
     return executor.executeFetchCommand("file", new FetchCommand<ByteBuffer>() {
       @Override
       public ByteBuffer fetchFromCache() {
-        return db.getTrackContent(id);
+        return cache.findFile(filename);
       }
 
       @Override
       public ByteBuffer fetchFromRemote() throws IOException {
         final ByteBuffer res = remote.getTrackContent(id);
-        db.addTrackContent(id, res);
+        cache.createFile(filename, res);
         return res;
       }
     });

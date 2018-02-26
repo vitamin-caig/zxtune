@@ -37,10 +37,11 @@ import app.zxtune.R;
 import app.zxtune.Releaseable;
 import app.zxtune.Util;
 import app.zxtune.fs.Vfs;
-import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
+import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.cache.CacheFactory;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
@@ -430,9 +431,9 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     
     private Uri createLocalPath(VfsFile file) throws IOException {
       //TODO: rework
-      final VfsCache cache = VfsCache.create(context).createNested("sent");
+      final CacheDir cache = CacheFactory.createMinimal(context).createNested("sent");
       final String filename = file.getUri().getLastPathSegment();
-      return cache.putAnyCachedFileContent(filename, file.getContent());
+      return cache.createFile(filename, file.getContent());
     }
   }
 }

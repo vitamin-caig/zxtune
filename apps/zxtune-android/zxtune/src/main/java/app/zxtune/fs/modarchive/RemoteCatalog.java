@@ -16,6 +16,7 @@ import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
@@ -171,6 +172,7 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
+  @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = ApiUriBuilder.forDownload(id).build();
@@ -460,7 +462,11 @@ class RemoteCatalog extends Catalog {
   private void performXmlQuery(HttpURLConnection connection, RootElement root) throws IOException {
     try {
       final InputStream stream = new BufferedInputStream(connection.getInputStream());
-      Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
+      try {
+        Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
+      } finally {
+        stream.close();
+      }
     } catch (SAXException e) {
       throw new IOException(e);
     } catch (IOException e) {

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 import app.zxtune.R;
+import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.zxart.Author;
 import app.zxtune.fs.zxart.Catalog;
 import app.zxtune.fs.zxart.Identifier;
@@ -34,7 +35,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupingDir groups[];
 
-  public VfsRootZxart(Context context, HttpProvider http, VfsCache cache) throws IOException {
+  public VfsRootZxart(Context context, HttpProvider http, CacheDir cache) throws IOException {
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groups = new GroupingDir[]{

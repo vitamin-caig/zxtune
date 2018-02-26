@@ -6,6 +6,7 @@
 
 package app.zxtune.fs.joshw;
 
+import android.support.annotation.NonNull;
 import android.text.Html;
 import android.text.TextUtils;
 
@@ -43,6 +44,7 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
+  @NonNull
   public ByteBuffer getFileContent(List<String> path) throws IOException {
     final String catalogue = path.get(0);
     final List<String> localPath = path.subList(1, path.size());

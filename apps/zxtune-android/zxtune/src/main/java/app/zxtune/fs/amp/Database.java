@@ -10,14 +10,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.amp.Catalog.AuthorsVisitor;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
@@ -54,7 +51,7 @@ final class Database {
 
     static final class Authors extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, handle, real_name
       }
 
@@ -65,7 +62,6 @@ final class Database {
               "handle TEXT NOT NULL, " +
               "real_name TEXT NOT NULL" +
               ");";
-      ;
 
       Authors(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
@@ -89,7 +85,7 @@ final class Database {
 
     static final class Tracks extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, filename, size
       }
 
@@ -163,7 +159,7 @@ final class Database {
 
     static final class Groups extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, name
       }
 
@@ -173,7 +169,6 @@ final class Database {
               "_id INTEGER PRIMARY KEY, " +
               "name TEXT NOT NULL" +
               ");";
-      ;
 
       Groups(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
@@ -218,9 +213,8 @@ final class Database {
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
   private final String findQuery;
-  private final VfsCache cacheDir;
 
-  Database(Context context, VfsCache cache) throws IOException {
+  Database(Context context) throws IOException {
     this.helper = new DBProvider(Helper.create(context));
     this.countryAuthors = new Tables.CountryAuthors(helper);
     this.groupAuthors = new Tables.GroupAuthors(helper);
@@ -233,7 +227,6 @@ final class Database {
             "FROM authors LEFT OUTER JOIN tracks ON " +
             "tracks." + Tables.Tracks.getSelection(authorTracks.getIdsSelection("authors._id")) +
             " WHERE tracks.filename LIKE '%' || ? || '%'";
-    this.cacheDir = cache.createNested("amp.dascene.net");
   }
 
   final Transaction startTransaction() throws IOException {
@@ -354,12 +347,6 @@ final class Database {
     }
   }
 
-  @Nullable
-  final ByteBuffer getTrackContent(int id) {
-    final String filename = Integer.toString(id);
-    return cacheDir.getCachedFileContent(filename);
-  }
-
   final void addCountryAuthor(Country country, Author author) {
     countryAuthors.add(country, author);
   }
@@ -382,11 +369,6 @@ final class Database {
 
   final void addAuthorTrack(Author author, Track track) {
     authorTracks.add(author, track);
-  }
-
-  final void addTrackContent(int id, ByteBuffer content) {
-    final String filename = Integer.toString(id);
-    cacheDir.putCachedFileContent(filename, content);
   }
 
   private static class Helper extends SQLiteOpenHelper {

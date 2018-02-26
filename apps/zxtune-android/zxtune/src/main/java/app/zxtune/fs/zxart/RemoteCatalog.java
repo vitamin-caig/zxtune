@@ -11,6 +11,7 @@ import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
@@ -113,6 +114,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
+  @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);

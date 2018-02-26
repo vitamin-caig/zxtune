@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.zxtune.R;
+import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.hvsc.Catalog;
 
 final class VfsRootHvsc extends StubObject implements VfsRoot {
@@ -36,7 +37,7 @@ final class VfsRootHvsc extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupsDir groups[];
 
-  VfsRootHvsc(Context context, HttpProvider http, VfsCache cache) {
+  VfsRootHvsc(Context context, HttpProvider http, CacheDir cache) {
     this.context = context;
     this.catalog = Catalog.create(http, cache);
     this.groups = new GroupsDir[]{

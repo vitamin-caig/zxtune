@@ -17,7 +17,6 @@ import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
@@ -52,7 +51,7 @@ final class Database {
 
     static final class Authors extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, nickname, name
       }
 
@@ -80,7 +79,7 @@ final class Database {
 
     static final class Tracks extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, filename, title, duration, date
       }
 
@@ -141,9 +140,8 @@ final class Database {
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
   private final String findQuery;
-  private final VfsCache cacheDir;
 
-  Database(Context context, VfsCache cache) throws IOException {
+  Database(Context context) throws IOException {
     this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorsTracks = new Tables.AuthorsTracks(helper);
@@ -153,7 +151,6 @@ final class Database {
             "FROM authors LEFT OUTER JOIN tracks ON " +
             "tracks." + Tables.Tracks.getSelection(authorsTracks.getIdsSelection("authors._id")) +
             " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
-    this.cacheDir = cache.createNested("www.zxtunes.com");
   }
 
   final Transaction startTransaction() throws IOException {
@@ -237,17 +234,6 @@ final class Database {
 
   final void addAuthorTrack(Author author, Track track) {
     authorsTracks.add(author, track);
-  }
-
-  @Nullable
-  final ByteBuffer getTrackContent(int id) {
-    final String filename = Integer.toString(id);
-    return cacheDir.getCachedFileContent(filename);
-  }
-
-  final void addTrackContent(int id, ByteBuffer content) {
-    final String filename = Integer.toString(id);
-    cacheDir.putCachedFileContent(filename, content);
   }
 
   private static class Helper extends SQLiteOpenHelper {

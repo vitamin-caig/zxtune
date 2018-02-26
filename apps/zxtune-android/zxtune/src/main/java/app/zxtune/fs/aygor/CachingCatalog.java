@@ -6,6 +6,7 @@
 
 package app.zxtune.fs.aygor;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -14,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import app.zxtune.Analytics;
-import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.cache.CacheDir;
 
 class CachingCatalog extends Catalog {
 
@@ -22,35 +23,36 @@ class CachingCatalog extends Catalog {
   private static final String CACHE_HTML_FILE = File.separator + RemoteCatalog.VERSION + ".html";
 
   private final Catalog remote;
-  private final VfsCache cacheDir;
+  private final CacheDir cache;
 
-  public CachingCatalog(Catalog remote, VfsCache cacheDir) {
+  public CachingCatalog(Catalog remote, CacheDir cache) {
     this.remote = remote;
-    this.cacheDir = cacheDir;
+    this.cache = cache.createNested("aygor");
   }
 
   @Override
+  @NonNull
   public ByteBuffer getFileContent(List<String> path) throws IOException {
     final String relPath = TextUtils.join(File.separator, path);
-    final ByteBuffer cache = cacheDir.getCachedFileContent(relPath);
-    if (cache != null) {
+    final ByteBuffer cached = cache.findFile(relPath);
+    if (cached != null) {
       sendCacheEvent("file");
-      return cache;
+      return cached;
     }
     final String relPathHtml = relPath + CACHE_HTML_FILE;
-    final ByteBuffer cacheHtml = cacheDir.getCachedFileContent(relPathHtml);
+    final ByteBuffer cachedHtml = cache.findFile(relPathHtml);
     //workaround for possible broken cache
-    if (cacheHtml != null && isDirContent(cacheHtml)) {
+    if (cachedHtml != null && isDirContent(cachedHtml)) {
       sendCacheEvent("dir");
-      return cacheHtml;
+      return cachedHtml;
     }
     final ByteBuffer content = remote.getFileContent(path);
     if (isDirContent(content)) {
       sendRemoteEvent("dir");
-      cacheDir.putAnyCachedFileContent(relPathHtml, content);
+      cache.createFile(relPathHtml, content);
     } else {
       sendRemoteEvent("file");
-      cacheDir.putCachedFileContent(relPath, content);
+      cache.createFile(relPath, content);
     }
     return content;
   }

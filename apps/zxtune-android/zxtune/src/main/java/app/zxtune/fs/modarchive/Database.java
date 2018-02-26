@@ -10,14 +10,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.VfsCache;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
@@ -49,7 +46,7 @@ final class Database {
 
     static final class Authors extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, alias
       }
 
@@ -59,7 +56,6 @@ final class Database {
               "_id INTEGER PRIMARY KEY, " +
               "alias TEXT NOT NULL" +
               ");";
-      ;
 
       Authors(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
@@ -74,15 +70,11 @@ final class Database {
         final String alias = cursor.getString(Fields.alias.ordinal());
         return new Author(id, alias);
       }
-
-      static String getSelection(String subquery) {
-        return Fields._id + " IN (" + subquery + ")";
-      }
     }
 
     static final class Tracks extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, filename, title, size
       }
 
@@ -140,7 +132,7 @@ final class Database {
 
     static final class Genres extends Objects {
 
-      static enum Fields {
+      enum Fields {
         _id, name, tracks
       }
 
@@ -151,7 +143,6 @@ final class Database {
               "name TEXT NOT NULL, " +
               "tracks INTEGER NOT NULL" +
               ");";
-      ;
 
       Genres(DBProvider helper) throws IOException {
         super(helper, NAME, Fields.values().length);
@@ -196,9 +187,8 @@ final class Database {
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
   private final String findQuery;
-  private final VfsCache cacheDir;
 
-  Database(Context context, VfsCache cache) throws IOException {
+  Database(Context context) throws IOException {
     this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorTracks = new Tables.AuthorTracks(helper);
@@ -210,7 +200,6 @@ final class Database {
             "FROM authors LEFT OUTER JOIN tracks ON " +
             "tracks." + Tables.Tracks.getSelection(authorTracks.getIdsSelection("authors._id")) +
             " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
-    this.cacheDir = cache.createNested("modarchive.org");
   }
 
   final Transaction startTransaction() throws IOException {
@@ -333,17 +322,6 @@ final class Database {
 
   final void addGenreTrack(Genre genre, Track track) {
     genreTracks.add(genre, track);
-  }
-
-  @Nullable
-  final ByteBuffer getTrackContent(int id) {
-    final String filename = Integer.toString(id);
-    return cacheDir.getCachedFileContent(filename);
-  }
-
-  final void addTrackContent(int id, ByteBuffer content) {
-    final String filename = Integer.toString(id);
-    cacheDir.putCachedFileContent(filename, content);
   }
 
   private static class Helper extends SQLiteOpenHelper {

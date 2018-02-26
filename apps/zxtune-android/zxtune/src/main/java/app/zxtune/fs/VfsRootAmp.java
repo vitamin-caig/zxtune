@@ -23,6 +23,7 @@ import app.zxtune.fs.amp.Country;
 import app.zxtune.fs.amp.Group;
 import app.zxtune.fs.amp.Identifier;
 import app.zxtune.fs.amp.Track;
+import app.zxtune.fs.cache.CacheDir;
 
 final class VfsRootAmp extends StubObject implements VfsRoot {
 
@@ -32,7 +33,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   private final Catalog catalog;
   private final GroupingDir groupings[];
 
-  VfsRootAmp(Context context, HttpProvider http, VfsCache cache) throws IOException {
+  VfsRootAmp(Context context, HttpProvider http, CacheDir cache) throws IOException {
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groupings = new GroupingDir[]{

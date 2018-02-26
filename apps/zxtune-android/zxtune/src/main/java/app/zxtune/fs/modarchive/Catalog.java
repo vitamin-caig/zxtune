@@ -7,12 +7,13 @@
 package app.zxtune.fs.modarchive;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import app.zxtune.fs.HttpProvider;
-import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.cache.CacheDir;
 
 public abstract class Catalog {
 
@@ -51,14 +52,12 @@ public abstract class Catalog {
   /**
    * Query authors by handle filter
    * @param visitor result receiver
-   * @throws IOException
    */
   public abstract void queryAuthors(AuthorsVisitor visitor) throws IOException;
 
   /**
    * Query all genres 
    * @param visitor result receiver
-   * @throws IOException
    */
   public abstract void queryGenres(GenresVisitor visitor) throws IOException;
 
@@ -66,7 +65,6 @@ public abstract class Catalog {
    * Query authors's tracks
    * @param author scope
    * @param visitor result receiver
-   * @throws IOException
    */
   public abstract void queryTracks(Author author, TracksVisitor visitor) throws IOException;
 
@@ -74,7 +72,6 @@ public abstract class Catalog {
    * Query genre's tracks
    * @param genre scope
    * @param visitor result receiver
-   * @throws IOException
    */
   public abstract void queryTracks(Genre genre, TracksVisitor visitor) throws IOException;
 
@@ -87,7 +84,6 @@ public abstract class Catalog {
    * Find tracks by query substring
    * @param query string to search in filename/title
    * @param visitor result receiver
-   * @throws IOException
    */
   public abstract void findTracks(String query, FoundTracksVisitor visitor) throws IOException;
 
@@ -95,13 +91,13 @@ public abstract class Catalog {
    * Get track file content
    * @param id track identifier
    * @return content
-   * @throws IOException
    */
+  @NonNull
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
 
-  public static Catalog create(Context context, HttpProvider http, VfsCache cache) throws IOException {
+  public static Catalog create(Context context, HttpProvider http, CacheDir cache) throws IOException {
     final Catalog remote = new RemoteCatalog(context, http);
-    final Database db = new Database(context, cache);
-    return new CachingCatalog(remote, db);
+    final Database db = new Database(context);
+    return new CachingCatalog(remote, db, cache);
   }
 }

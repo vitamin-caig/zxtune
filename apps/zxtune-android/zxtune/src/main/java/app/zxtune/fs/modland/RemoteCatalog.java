@@ -7,6 +7,7 @@
 package app.zxtune.fs.modland;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.Html;
 
 import java.io.IOException;
@@ -234,6 +235,7 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
+  @NonNull
   public ByteBuffer getTrackContent(String id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%s)", id);
     return http.getContent(STORAGE_MIRROR + id);
