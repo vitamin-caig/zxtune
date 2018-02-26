@@ -44,16 +44,12 @@ public class HttpProvider {
   public final HttpURLConnection connect(String uri) throws IOException {
     try {
       final URL url = new URL(uri);
-      final HttpURLConnection result = (HttpURLConnection) url.openConnection();
-      CheckSizeLimit(result.getContentLength());
-      Log.d(TAG, "Fetch %d bytes via %s", result.getContentLength(), uri);
-      return result;
+      return (HttpURLConnection) url.openConnection();
     } catch (IOException e) {
       Log.d(TAG, "Fetch %s: %s", uri, e.toString());
       throw e;
     }
   }
-
 
   public final ByteBuffer getContent(String uri) throws IOException {
     try {
@@ -61,6 +57,8 @@ public class HttpProvider {
       try {
         final InputStream stream = connection.getInputStream();
         final int size = connection.getContentLength();
+        Log.d(TAG, "Fetch %d bytes via %s", size, uri);
+        CheckSizeLimit(size);
         return getContent(stream, size > 0 ? ByteBuffer.wrap(new byte[size]) : null);
       } finally {
         connection.disconnect();
