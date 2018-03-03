@@ -1,0 +1,79 @@
+package app.zxtune.fs.cache;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import app.zxtune.Log;
+
+class TransactionalOutputStream extends OutputStream {
+  private static final String TAG = TransactionalOutputStream.class.getName();
+
+  private final File target;
+  private final File temporary;
+  private OutputStream delegate;
+  private boolean confirmed = false;
+
+  TransactionalOutputStream(File target) throws IOException {
+    Log.d(TAG, "Write cached file %s", target.getAbsolutePath());
+    this.target = target;
+    this.temporary = new File(target.getPath() + "~" + Integer.toString(hashCode()));
+    if (target.getParentFile().mkdirs()) {
+      Log.d(TAG, "Created cache dir");
+    }
+    delegate = new FileOutputStream(temporary);
+  }
+
+  @Override
+  public void close() throws IOException {
+    delegate.close();
+    delegate = null;
+    if (confirmed && temporary.renameTo(target)) {
+      return;
+    } else if (!temporary.delete()) {
+      throw new IOException("Failed to delete " + temporary);
+    }
+  }
+
+  @Override
+  public void flush() throws IOException {
+    try {
+      delegate.flush();
+      confirmed = true;
+    } catch (IOException e) {
+      confirmed = false;
+      throw e;
+    }
+  }
+
+  @Override
+  public void write(byte[] b) throws IOException {
+    try {
+      delegate.write(b);
+    } catch (IOException e) {
+      confirmed = false;
+      throw e;
+    }
+  }
+
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    try {
+      delegate.write(b, off, len);
+    } catch (IOException e) {
+      confirmed = false;
+      throw e;
+    }
+  }
+
+  @Override
+  public void write(int b) throws IOException {
+    try {
+      delegate.write(b);
+    } catch (IOException e) {
+      confirmed = false;
+      throw e;
+    }
+  }
+}

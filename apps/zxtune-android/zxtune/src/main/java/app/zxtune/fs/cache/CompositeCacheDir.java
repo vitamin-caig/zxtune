@@ -3,6 +3,8 @@ package app.zxtune.fs.cache;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 final class CompositeCacheDir implements CacheDir {
@@ -15,9 +17,9 @@ final class CompositeCacheDir implements CacheDir {
 
   @Nullable
   @Override
-  public ByteBuffer findFile(String id) {
+  public ByteBuffer findFile(String... ids) {
     for (CacheDir delegate : delegates) {
-      final ByteBuffer res = delegate.findFile(id);
+      final ByteBuffer res = delegate.findFile(ids);
       if (res != null) {
         return res;
       }
@@ -27,7 +29,22 @@ final class CompositeCacheDir implements CacheDir {
 
   @Override
   public Uri createFile(String id, ByteBuffer data) {
-    return delegates[0].createFile(id, data);
+    return getPrimary().createFile(id, data);
+  }
+
+  @Override
+  public OutputStream createFile(String id) throws IOException {
+    IOException ex = null;
+    for (CacheDir sub : delegates) {
+      try {
+        return sub.createFile(id);
+      } catch (IOException e) {
+        if (ex == null) {
+          ex = e;
+        }
+      }
+    }
+    throw ex;
   }
 
   @Override
@@ -37,5 +54,9 @@ final class CompositeCacheDir implements CacheDir {
       nested[idx] = delegates[idx].createNested(id);
     }
     return new CompositeCacheDir(nested);
+  }
+
+  private CacheDir getPrimary() {
+    return delegates[0];
   }
 }
