@@ -9,10 +9,12 @@ package app.zxtune.fs;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -51,6 +53,7 @@ public class HttpProvider {
     }
   }
 
+  @NonNull
   public final ByteBuffer getContent(String uri) throws IOException {
     try {
       final HttpURLConnection connection = connect(uri);
@@ -69,7 +72,30 @@ public class HttpProvider {
     }
   }
 
+  public final void getContent(String uri, OutputStream output) throws IOException {
+    try {
+      final HttpURLConnection connection = connect(uri);
+      try {
+        final byte[] buf = new byte[65536];
+        final InputStream stream = connection.getInputStream();
+        for (;;) {
+          final int portion = readPartialContent(stream, buf, 0);
+          if (portion != 0) {
+            output.write(buf, 0, portion);
+          } else {
+            break;
+          }
+        }
+      } finally {
+        connection.disconnect();
+      }
+    } catch (IOException e) {
+      checkConnectionError();
+      throw e;
+    }
+  }
 
+  @NonNull
   public final synchronized String getHtml(String uri) throws IOException {
     try {
       final HttpURLConnection connection = connect(uri);
@@ -87,7 +113,7 @@ public class HttpProvider {
   }
 
   //! result buffer is not direct so required wrapping
-
+  @NonNull
   private ByteBuffer getContent(InputStream stream, @Nullable ByteBuffer cache) throws IOException {
     byte[] buffer = cache != null ? cache.array() : new byte[1024 * 1024];
     int size = 0;
@@ -141,7 +167,7 @@ public class HttpProvider {
 
   public final boolean hasConnection() {
     final ConnectivityManager mgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-    final NetworkInfo info = mgr.getActiveNetworkInfo();
+    final NetworkInfo info = mgr != null ? mgr.getActiveNetworkInfo() : null;
     return info != null && info.isConnected();
   }
 }
