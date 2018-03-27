@@ -62,9 +62,11 @@ namespace ASAP
       , Channels()
     {
       CheckError(::ASAP_Load(Module, ("dummy." + id).c_str(), static_cast<const unsigned char*>(data.Start()), data.Size()), "ASAP_Load");
+      Reset();//required for subsequential calls
       Info = ::ASAP_GetInfo(Module);
       Require(Track == ::ASAPInfo_GetDefaultSong(Info));
       Channels = ::ASAPInfo_GetChannels(Info);
+      Dbg("Track %1%, %2% channels", Track, Channels);
       Require(Channels == 1 || Channels == 2);
     }
     
@@ -169,7 +171,6 @@ namespace ASAP
       , SamplesPerFrame()
     {
       ApplyParameters();
-      Tune->Reset();
     }
 
     TrackState::Ptr GetTrackState() const override

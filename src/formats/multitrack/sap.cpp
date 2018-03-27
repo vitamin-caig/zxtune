@@ -48,8 +48,8 @@ namespace Multitrack
     typedef std::array<uint8_t, 5> TextSignatureType;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
-    const std::string SONGS = "SONGS";
-    const std::string DEFSONG = "DEFSONG";
+    const StringView SONGS = "SONGS";
+    const StringView DEFSONG = "DEFSONG";
     
     typedef std::array<uint8_t, 2> BinarySignatureType;
     const BinarySignatureType BINARY_SIGNATURE = {{0xff, 0xff}};
@@ -61,7 +61,7 @@ namespace Multitrack
     public:
       virtual ~Builder() = default;
 
-      virtual void SetProperty(String name, String value) = 0;
+      virtual void SetProperty(StringView name, StringView value) = 0;
       virtual void SetBlock(const uint_t start, const uint8_t* data, std::size_t size) = 0;
     };
     
@@ -77,7 +77,7 @@ namespace Multitrack
       {
       }
       
-      void SetProperty(String name, String value) override
+      void SetProperty(StringView name, StringView value) override
       {
         if (name == DEFSONG)
         {
@@ -88,7 +88,14 @@ namespace Multitrack
         {
           Require(Strings::Parse(value, TracksCount));
         }
-        Lines.push_back(name + " " + value);
+        if (value.empty())
+        {
+          Lines.push_back(name.to_string());
+        }
+        else
+        {
+          Lines.emplace_back(name.to_string() + " " + value.to_string());
+        }
       }
       
       void SetBlock(const uint_t start, const uint8_t* data, std::size_t size) override
@@ -122,7 +129,7 @@ namespace Multitrack
         Binary::DataBuilder builder;
         builder.Add(TEXT_SIGNATURE);
         DumpTextPart(builder);
-        AddString(DEFSONG + ' ' + Strings::ConvertFrom(startTrack), builder);
+        AddString(DEFSONG.to_string() + " " + Strings::ConvertFrom(startTrack), builder);
         builder.Add(BINARY_SIGNATURE);
         DumpBinaryPart(builder);
         return builder.CaptureResult();
