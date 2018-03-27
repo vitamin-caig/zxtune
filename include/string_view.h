@@ -29,7 +29,12 @@ public:
   
   static const size_type npos = size_type(-1);
 
-  basic_string_view() = default;
+  basic_string_view()
+    : start(nullptr)
+    , finish(nullptr)
+  {
+  }
+  
   basic_string_view(const basic_string_view&) = default;
   basic_string_view& operator = (const basic_string_view&) = default;
   
@@ -164,7 +169,9 @@ public:
   //NOTE: not compatible
   std::basic_string<C, Traits> to_string() const
   {
-    return std::basic_string<C, Traits>(start, finish);
+    return empty()
+      ? std::basic_string<C, Traits>()
+      : std::basic_string<C, Traits>(start, finish);
   }
 private:
   const_iterator start;
