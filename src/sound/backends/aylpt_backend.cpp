@@ -138,6 +138,7 @@ namespace AyLpt
 
     virtual void FrameFinish(Chunk /*buffer*/)
     {
+      NextFrameTime += FrameDuration;
     }
   private:
     void Reset()
