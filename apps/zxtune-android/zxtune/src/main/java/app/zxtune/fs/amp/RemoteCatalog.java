@@ -7,9 +7,11 @@
 package app.zxtune.fs.amp;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.Html;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -198,10 +200,17 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
+  @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(%d)", id);
     final String uri = String.format(Locale.US, TRACK_URI_FORMAT, id);
     return http.getContent(uri);
+  }
+
+  final void getTrackContent(int id, OutputStream stream) throws IOException {
+    Log.d(TAG, "getTrackContent(%d)", id);
+    final String uri = String.format(Locale.US, TRACK_URI_FORMAT, id);
+    http.getContent(uri, stream);
   }
 
   interface PagesVisitor {
