@@ -9,6 +9,7 @@ package app.zxtune.fs.zxtunes;
 import android.support.annotation.NonNull;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
@@ -32,12 +33,12 @@ final class CachingCatalog extends Catalog {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
   }
 
-  private final Catalog remote;
+  private final RemoteCatalog remote;
   private final Database db;
   private final CacheDir cache;
   private final CommandExecutor executor;
 
-  public CachingCatalog(Catalog remote, Database db, CacheDir cache) {
+  public CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
     this.remote = remote;
     this.db = db;
     this.cache = cache.createNested("www.zxtunes.com");
@@ -134,10 +135,28 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
+      @NonNull
       public ByteBuffer updateCache() throws IOException {
-        final ByteBuffer res = remote.getTrackContent(id);
-        cache.createFile(filename, res);
-        return res;
+        try {
+          fillCache();
+          final ByteBuffer data = cache.findFile(filename);
+          if (data != null) {
+            return data;
+          }
+        } catch (IOException e) {
+          Log.w(TAG, e, "getTrackContent");
+        }
+        return remote.getTrackContent(id);
+      }
+
+      private void fillCache() throws IOException {
+        final OutputStream stream = cache.createFile(filename);
+        try {
+          remote.getTrackContent(id, stream);
+          stream.flush();
+        } finally {
+          stream.close();
+        }
       }
     });
   }
