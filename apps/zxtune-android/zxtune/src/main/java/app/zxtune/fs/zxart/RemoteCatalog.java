@@ -21,6 +21,7 @@ import org.xml.sax.SAXException;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.Locale;
@@ -119,6 +120,12 @@ final class RemoteCatalog extends Catalog {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
     return http.getContent(query);
+  }
+
+  final void getTrackContent(int id, OutputStream stream) throws IOException {
+    Log.d(TAG, "getTrackContent(id=%d)", id);
+    final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
+    http.getContent(query, stream);
   }
 
   private void performQuery(HttpURLConnection connection, RootElement root)
