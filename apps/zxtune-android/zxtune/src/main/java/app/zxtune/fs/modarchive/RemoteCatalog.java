@@ -26,6 +26,7 @@ import org.xml.sax.SAXException;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -177,6 +178,12 @@ class RemoteCatalog extends Catalog {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = ApiUriBuilder.forDownload(id).build();
     return http.getContent(query);
+  }
+
+  final void getTrackContent(int id, OutputStream stream) throws IOException {
+    Log.d(TAG, "getTrackContent(id=%d)", id);
+    final String query = ApiUriBuilder.forDownload(id).build();
+    http.getContent(query, stream);
   }
 
   private static RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {

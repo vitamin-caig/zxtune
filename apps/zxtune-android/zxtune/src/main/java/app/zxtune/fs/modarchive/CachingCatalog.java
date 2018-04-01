@@ -9,9 +9,11 @@ package app.zxtune.fs.modarchive;
 import android.support.annotation.NonNull;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
@@ -22,6 +24,8 @@ import app.zxtune.fs.dbhelpers.Transaction;
 
 final class CachingCatalog extends Catalog {
 
+  private static final String TAG = CachingCatalog.class.getName();
+
   private final TimeStamp AUTHORS_TTL = days(2);
   private final TimeStamp GENRES_TTL = days(30);
   private final TimeStamp TRACKS_TTL = days(2);
@@ -30,12 +34,12 @@ final class CachingCatalog extends Catalog {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
   }
 
-  private final Catalog remote;
+  private final RemoteCatalog remote;
   private final Database db;
   private CacheDir cache;
   private final CommandExecutor executor;
 
-  public CachingCatalog(Catalog remote, Database db, CacheDir cache) {
+  public CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
     this.remote = remote;
     this.db = db;
     this.cache = cache.createNested("modarchive.org");
@@ -193,10 +197,28 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
+      @NonNull
       public ByteBuffer updateCache() throws IOException {
-        final ByteBuffer res = remote.getTrackContent(id);
-        cache.createFile(filename, res);
-        return res;
+        try {
+          fillCache();
+          final ByteBuffer data = cache.findFile(filename);
+          if (data != null) {
+            return data;
+          }
+        } catch (IOException e) {
+          Log.w(TAG, e, "getTrackContent");
+        }
+        return remote.getTrackContent(id);
+      }
+
+      private void fillCache() throws IOException {
+        final OutputStream stream = cache.createFile(filename);
+        try {
+          remote.getTrackContent(id, stream);
+          stream.flush();
+        } finally {
+          stream.close();
+        }
       }
     });
   }
