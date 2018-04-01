@@ -9,10 +9,12 @@ package app.zxtune.fs.modland;
 import android.support.annotation.NonNull;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
@@ -23,6 +25,8 @@ import app.zxtune.fs.dbhelpers.Transaction;
 
 final class CachingCatalog extends Catalog {
 
+  private static final String TAG = CachingCatalog.class.getName();
+
   private final TimeStamp GROUPS_TTL = days(30);
   private final TimeStamp GROUP_TRACKS_TTL = days(14);
 
@@ -30,7 +34,7 @@ final class CachingCatalog extends Catalog {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
   }
 
-  private final Catalog remote;
+  private final RemoteCatalog remote;
   private final Database db;
   private final CacheDir cache;
   private final Grouping authors;
@@ -38,7 +42,7 @@ final class CachingCatalog extends Catalog {
   private final Grouping formats;
   private final CommandExecutor executor;
 
-  public CachingCatalog(Catalog remote, Database db, CacheDir cache) {
+  public CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
     this.remote = remote;
     this.db = db;
     this.cache = cache.createNested("ftp.modland.com");
@@ -196,10 +200,28 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
+      @NonNull
       public ByteBuffer updateCache() throws IOException {
-        final ByteBuffer res = remote.getTrackContent(id);
-        cache.createFile(id, res);
-        return res;
+        try {
+          fillCache();
+          final ByteBuffer data = cache.findFile(id);
+          if (data != null) {
+            return data;
+          }
+        } catch (IOException e) {
+          Log.w(TAG, e, "getTrackContent");
+        }
+        return remote.getTrackContent(id);
+      }
+
+      private void fillCache() throws IOException {
+        final OutputStream stream = cache.createFile(id);
+        try {
+          remote.getTrackContent(id, stream);
+          stream.flush();
+        } finally {
+          stream.close();
+        }
       }
     });
   }

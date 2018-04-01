@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.text.Html;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
@@ -243,6 +244,11 @@ class RemoteCatalog extends Catalog {
   public ByteBuffer getTrackContent(String id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%s)", id);
     return http.getContent(STORAGE_MIRROR + id);
+  }
+
+  final void getTrackContent(String id, OutputStream stream) throws IOException {
+    Log.d(TAG, "getTrackContent(id=%s)", id);
+    http.getContent(STORAGE_MIRROR + id, stream);
   }
 
   interface PagesVisitor {
