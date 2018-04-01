@@ -92,7 +92,7 @@ class RemoteCatalog extends Catalog {
     }
 
     @Override
-    public void query(String filter, final GroupsVisitor visitor) throws IOException {
+    public void queryGroups(String filter, final GroupsVisitor visitor) throws IOException {
       Log.d(TAG, "queryGroups(type=%s, filter=%s)", getCategoryTag(), filter);
       loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
 
@@ -121,21 +121,25 @@ class RemoteCatalog extends Catalog {
     }
 
     @Override
-    public Group query(final int id) throws IOException {
-      Log.d(TAG, "queryGroup(type=%s, id=%d)", getCategoryTag(), id);
-      final Group[] result = new Group[1];
+    public Group getGroup(final int id) throws IOException {
+      Log.d(TAG, "getGroup(type=%s, id=%d)", getCategoryTag(), id);
+      final Group[] resultRef = new Group[1];
       loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
           final String tracksHeader = getTracksHeader();
           if (header.startsWith(tracksHeader)) {
             final String name = header.substring(tracksHeader.length());
-            result[0] = new Group(id, decodeHtml(name), results);
+            resultRef[0] = new Group(id, decodeHtml(name), results);
           }
           return false;
         }
       });
-      return result[0];
+      final Group result = resultRef[0];
+      if (result != null) {
+        return result;
+      }
+      throw new IOException(String.format(Locale.US,"Failed to find group with id=%d", id));
     }
 
     @Override
@@ -157,25 +161,25 @@ class RemoteCatalog extends Catalog {
     }
 
     @Override
-    public Track findTrack(int id, final String filename) throws IOException {
-      Log.d(TAG, "findGroupTrack(type=%s, id=%d, filename=%s)", getCategoryTag(), id, filename);
-      final AtomicReference<Track> result = new AtomicReference<>();
+    public Track getTrack(int id, final String filename) throws IOException {
+      Log.d(TAG, "getGroupTrack(type=%s, id=%d, filename=%s)", getCategoryTag(), id, filename);
+      final Track[] resultRef = {null};
       queryTracks(id, new TracksVisitor() {
-        @Override
-        public void setCountHint(int size) {
-        }
-
         @Override
         public boolean accept(Track obj) {
           if (obj.filename.equals(filename)) {
-            result.set(obj);
+            resultRef[0] = obj;
             return false;
           } else {
             return true;
           }
         }
       });
-      return result.get();
+      final Track result = resultRef[0];
+      if (result != null) {
+        return result;
+      }
+      throw new IOException(String.format(Locale.US, "Failed to get track '%s' with id=%d", filename, id));
     }
 
     abstract String getTracksHeader();

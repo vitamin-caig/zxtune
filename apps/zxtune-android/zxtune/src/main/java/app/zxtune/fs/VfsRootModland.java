@@ -247,7 +247,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
       @Override
       public void enumerate(final Visitor visitor) throws IOException {
-        group.query(letter, new Catalog.GroupsVisitor() {
+        group.queryGroups(letter, new Catalog.GroupsVisitor() {
 
           @Override
           public void setCountHint(int count) {
@@ -267,10 +267,8 @@ final class VfsRootModland extends StubObject implements VfsRoot {
           return this;
         } else {
           final int id = Integer.parseInt(uri.getQueryParameter(PARAM_ID));
-          final Group obj = group.query(id);
-          return obj != null
-                  ? new GroupDir(obj).resolve(path)
-                  : null;
+          final Group obj = group.getGroup(id);
+          return new GroupDir(obj).resolve(path);
         }
       }
 
@@ -329,10 +327,8 @@ final class VfsRootModland extends StubObject implements VfsRoot {
             return this;
           } else {
             final String filename = path.get(POS_FILENAME);
-            final Track track = group.findTrack(obj.id, filename);
-            return track != null
-                    ? new TrackFile(track)
-                    : null;
+            final Track track = group.getTrack(obj.id, filename);
+            return new TrackFile(track);
           }
         }
 

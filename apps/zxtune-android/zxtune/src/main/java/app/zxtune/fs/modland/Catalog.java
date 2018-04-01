@@ -42,15 +42,14 @@ public abstract class Catalog {
      * @param filter letter(s) or '#' for non-letter entries
      * @param visitor result receiver
      */
-    void query(String filter, GroupsVisitor visitor) throws IOException;
+    void queryGroups(String filter, GroupsVisitor visitor) throws IOException;
 
     /**
      * Query single group object
      * @param id object identifier
-     * @return null if no object found
      */
-    @Nullable
-    Group query(int id) throws IOException;
+    @NonNull
+    Group getGroup(int id) throws IOException;
 
     /**
      * Query group's tracks
@@ -63,10 +62,9 @@ public abstract class Catalog {
      * Query track by name
      * @param id object identifier
      * @param filename track filename
-     * @return null if nothing found
      */
-    @Nullable
-    Track findTrack(int id, String filename) throws IOException;
+    @NonNull
+    Track getTrack(int id, String filename) throws IOException;
   }
 
   public abstract Grouping getAuthors();

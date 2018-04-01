@@ -7,10 +7,10 @@
 package app.zxtune.fs.modland;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
@@ -74,7 +74,7 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
-    public void query(final String filter, final GroupsVisitor visitor) throws IOException {
+    public void queryGroups(final String filter, final GroupsVisitor visitor) throws IOException {
       executor.executeQuery(category, new QueryCommand() {
         @Override
         public Timestamps.Lifetime getLifetime() {
@@ -88,7 +88,7 @@ final class CachingCatalog extends Catalog {
 
         @Override
         public void updateCache() throws IOException {
-          remote.query(filter, new GroupsVisitor() {
+          remote.queryGroups(filter, new GroupsVisitor() {
             @Override
             public void accept(Group obj) {
               db.addGroup(category, obj);
@@ -104,8 +104,8 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
-    @Nullable
-    public Group query(final int id) throws IOException {
+    public Group getGroup(final int id) throws IOException {
+      // It's impossible to fill all the cache, so query/update for specified group
       final String categoryElement = category.substring(0, category.length() - 1);
       return executor.executeFetchCommand(categoryElement, new FetchCommand<Group>() {
         @Override
@@ -114,12 +114,9 @@ final class CachingCatalog extends Catalog {
         }
 
         @Override
-        @Nullable
         public Group updateCache() throws IOException {
-          final Group res = remote.query(id);
-          if (res != null) {
-            db.addGroup(category, res);
-          }
+          final Group res = remote.getGroup(id);
+          db.addGroup(category, res);
           return res;
         }
       });
@@ -158,7 +155,9 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
-    public Track findTrack(final int id, final String filename) throws IOException {
+    public Track getTrack(final int id, final String filename) throws IOException {
+      // Just query all the category tracks and store found one
+      final Track[] resultRef = {null};
       return executor.executeFetchCommand("track", new FetchCommand<Track>() {
         @Override
         public Track fetchFromCache() {
@@ -166,17 +165,22 @@ final class CachingCatalog extends Catalog {
         }
 
         @Override
-        @Nullable
         public Track updateCache() throws IOException {
-          //fill cache
           queryTracks(id, new TracksVisitor() {
 
             @Override
             public boolean accept(Track obj) {
+              if (obj.filename.equals(filename)) {
+                resultRef[0] = obj;
+              }
               return true;
             }
           });
-          return db.findTrack(category, id, filename);
+          final Track result = resultRef[0];
+          if (result != null) {
+            return result;
+          }
+          throw new IOException(String.format(Locale.US, "Failed to get track '%s' with id=%d", filename, id));
         }
       });
     }
