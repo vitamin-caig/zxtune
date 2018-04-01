@@ -52,7 +52,7 @@ public class CommandExecutor {
       Analytics.sendVfsCacheEvent(id, scope);
       return cached;
     }
-    final T remote = cmd.fetchFromRemote();
+    final T remote = cmd.updateCache();
     //log executed remote request in despite of result
     Analytics.sendVfsRemoteEvent(id, scope);
     return remote;

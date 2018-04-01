@@ -115,7 +115,7 @@ final class CachingCatalog extends Catalog {
 
         @Override
         @Nullable
-        public Group fetchFromRemote() throws IOException {
+        public Group updateCache() throws IOException {
           final Group res = remote.query(id);
           if (res != null) {
             db.addGroup(category, res);
@@ -167,7 +167,7 @@ final class CachingCatalog extends Catalog {
 
         @Override
         @Nullable
-        public Track fetchFromRemote() throws IOException {
+        public Track updateCache() throws IOException {
           //fill cache
           queryTracks(id, new TracksVisitor() {
 
@@ -192,7 +192,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public ByteBuffer fetchFromRemote() throws IOException {
+      public ByteBuffer updateCache() throws IOException {
         final ByteBuffer res = remote.getTrackContent(id);
         cache.createFile(id, res);
         return res;

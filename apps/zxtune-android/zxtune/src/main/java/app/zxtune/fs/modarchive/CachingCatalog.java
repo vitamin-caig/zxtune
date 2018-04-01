@@ -193,7 +193,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public ByteBuffer fetchFromRemote() throws IOException {
+      public ByteBuffer updateCache() throws IOException {
         final ByteBuffer res = remote.getTrackContent(id);
         cache.createFile(filename, res);
         return res;
