@@ -75,6 +75,11 @@ namespace ASAP
       ::ASAP_Delete(Module);
     }
     
+    int GetSongsCount() const
+    {
+      return ::ASAPInfo_GetSongs(Info);
+    }
+    
     Time::Milliseconds GetDuration(Time::Milliseconds defValue) const
     {
       const auto duration = ::ASAPInfo_GetDuration(Info, Track);
@@ -359,7 +364,7 @@ namespace ASAP
     const ChiptuneDecoderCreator CreateChiptuneDecoder;
   };
   
-  const MultitrackPluginDescription PLUGINS[] =
+  const MultitrackPluginDescription MULTITRACK_PLUGINS[] =
   {
     {
       //sap
@@ -371,6 +376,69 @@ namespace ASAP
       &Formats::Chiptune::CreateSAPDecoder,
     }
   };
+
+  class SingletrackFactory : public Module::Factory
+  {
+  public:
+    SingletrackFactory(PluginDescription desc, Formats::Chiptune::Decoder::Ptr decoder)
+      : Desc(std::move(desc))
+      , Decoder(std::move(decoder))
+    {
+    }
+    
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    {
+      try
+      {
+        if (const auto container = Decoder->Decode(rawData))
+        {
+          const auto tune = MakePtr<AsapTune>(Desc.Id, rawData, 0);
+          
+          Require(tune->GetSongsCount() == 1);
+          
+          PropertiesHelper props(*properties);
+          props.SetPlatform(Platforms::ATARI);
+          tune->GetProperties(rawData, props);
+          const auto defaultDuration = GetDuration(params);
+          const auto duration = tune->GetDuration(defaultDuration);
+          const decltype(duration) frameDuration = Sound::GetFrameDuration(*properties);
+          const Information::Ptr info = CreateStreamInfo(duration.Get() / frameDuration.Get());
+        
+          props.SetSource(*container);
+        
+          return MakePtr<Holder>(tune, info, properties);
+        }
+      }
+      catch (const std::exception& e)
+      {
+        Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
+      }
+      return Module::Holder::Ptr();
+    }
+  private:
+    const PluginDescription Desc;
+    const Formats::Chiptune::Decoder::Ptr Decoder;
+  };
+  
+  struct SingletrackPluginDescription
+  {
+    typedef Formats::Chiptune::Decoder::Ptr (*ChiptuneDecoderCreator)();
+
+    PluginDescription Desc;
+    const ChiptuneDecoderCreator CreateChiptuneDecoder;
+  };
+
+  const SingletrackPluginDescription SINGLETRACK_PLUGINS[] =
+  {
+    //rmt
+    {
+      {
+        "RMT",
+        ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
+      },
+      &Formats::Chiptune::CreateRasterMusicTrackerDecoder
+    },
+  };
 }
 }
 
@@ -378,11 +446,18 @@ namespace ZXTune
 {
   void RegisterASAPPlugins(PlayerPluginsRegistrator& registrator)
   {
-    for (const auto& desc : Module::ASAP::PLUGINS)
+    for (const auto& desc : Module::ASAP::MULTITRACK_PLUGINS)
     {
       const Formats::Multitrack::Decoder::Ptr multi = desc.CreateMultitrackDecoder();
       const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder(multi);
       const Module::Factory::Ptr factory = MakePtr<Module::ASAP::MultitrackFactory>(desc.Desc, multi);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
+      registrator.RegisterPlugin(plugin);
+    }
+    for (const auto& desc : Module::ASAP::SINGLETRACK_PLUGINS)
+    {
+      const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder();
+      const Module::Factory::Ptr factory = MakePtr<Module::ASAP::SingletrackFactory>(desc.Desc, decoder);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
