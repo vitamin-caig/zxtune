@@ -158,6 +158,9 @@ extern const Char PSG_DECODER_DESCRIPTION[] = {
   'P','r','o','g','r','a','m','m','a','b','l','e',' ','S','o','u','n','d',' ','G','e','n','e','r','a','t','o',
   'r',0
 };
+extern const Char RASTERMUSICTRACKER_DECODER_DESCRIPTION[] = {
+  'R','a','s','t','e','r',' ','M','u','s','i','c',' ','T','r','a','c','k','e','r',0
+};
 extern const Char SAMPLETRACKER_DECODER_DESCRIPTION[] = {
   'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
 };

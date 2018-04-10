@@ -65,5 +65,6 @@ namespace Formats
     Decoder::Ptr Create2SFDecoder();
     Decoder::Ptr CreateSSFDecoder();
     Decoder::Ptr CreateDSFDecoder();
+    Decoder::Ptr CreateRasterMusicTrackerDecoder();
   }
 }

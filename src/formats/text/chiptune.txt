@@ -314,3 +314,7 @@ __cpp> "}//namespace Text\n"
 #DSF
 < DREAMCASTSOUNDFORMAT_DECODER_DESCRIPTION
 > "Dreamcast Sound Format"
+
+#RMT
+< RASTERMUSICTRACKER_DECODER_DESCRIPTION
+> "Raster Music Tracker"
