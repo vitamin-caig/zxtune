@@ -91,7 +91,6 @@ namespace FastTracker
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_PROTRACKER3_ST);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -99,6 +98,22 @@ namespace FastTracker
       return Meta;
     }
 
+    void SetNoteTable(Formats::Chiptune::FastTracker::NoteTable table) override
+    {
+      switch (table)
+      {
+      case Formats::Chiptune::FastTracker::NoteTable::SOUNDTRACKER:
+        Properties.SetFrequencyTable(TABLE_SOUNDTRACKER);
+        break;
+      case Formats::Chiptune::FastTracker::NoteTable::FASTTRACKER:
+        Properties.SetFrequencyTable(TABLE_FASTTRACKER);
+        break;
+      default:
+        Properties.SetFrequencyTable(TABLE_PROTRACKER2);
+        break;
+      }
+    }
+    
     void SetInitialTempo(uint_t tempo) override
     {
       Data->InitialTempo = tempo;

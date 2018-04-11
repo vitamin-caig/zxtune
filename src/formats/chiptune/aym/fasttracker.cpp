@@ -82,12 +82,19 @@ namespace Chiptune
     {
       'M', 'o', 'd', 'u', 'l', 'e', ':', ' '
     };
+    
+    enum NoteTableCode : uint8_t
+    {
+      PROTRACKER2 = ';',
+      SOUNDTRACKER = 0x01,
+      FASTTRACKER = 0x02
+    };
 
     PACK_PRE struct RawId
     {
       uint8_t Identifier[8];//"Module: "
       std::array<char, 42> Title;
-      uint8_t Semicolon;//";"
+      uint8_t NoteTableSign;//";"
       std::array<char, 18> Editor;
 
       bool HasTitle() const
@@ -98,7 +105,23 @@ namespace Chiptune
 
       bool HasProgram() const
       {
-        return Semicolon == ';';
+        return NoteTableSign == NoteTableCode::PROTRACKER2
+            || NoteTableSign == NoteTableCode::SOUNDTRACKER
+            || NoteTableSign == NoteTableCode::FASTTRACKER
+        ;
+      }
+      
+      NoteTable GetNoteTable() const
+      {
+        switch (NoteTableSign)
+        {
+        case NoteTableCode::SOUNDTRACKER:
+          return NoteTable::SOUNDTRACKER;
+        case NoteTableCode::FASTTRACKER:
+          return NoteTable::FASTTRACKER;
+        default:
+          return NoteTable::PROTRACKER2;
+        }
       }
     } PACK_POST;
 
@@ -313,6 +336,7 @@ namespace Chiptune
       {
         return GetStubMetaBuilder();
       }
+      void SetNoteTable(NoteTable /*table*/) override {}
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSample(uint_t /*index*/, Sample /*sample*/) override {}
       void SetOrnament(uint_t /*index*/, Ornament /*ornament*/) override {}
@@ -352,6 +376,11 @@ namespace Chiptune
         return Delegate.GetMetaBuilder();
       }
 
+      void SetNoteTable(NoteTable table) override
+      {
+        return Delegate.SetNoteTable(table);
+      }
+      
       void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
@@ -524,6 +553,7 @@ namespace Chiptune
       {
         builder.SetInitialTempo(Source.Tempo);
         const RawId& in = Source.Metainfo;
+        builder.SetNoteTable(in.GetNoteTable());
         MetaBuilder& meta = builder.GetMetaBuilder();
         if (in.HasProgram())
         {
