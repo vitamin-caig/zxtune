@@ -26,7 +26,7 @@
 
 void HleVerboseMessage(void* user_defined, const char *message, ...);
 void HleErrorMessage(void* user_defined, const char *message, ...);
-void HleWarnMessage(void* user_defined, const char *message, ...);
+#define HleWarnMessage HleVerboseMessage
 
 void HleCheckInterrupts(void* user_defined);
 void HleProcessDlistList(void* user_defined);

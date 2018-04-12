@@ -126,7 +126,6 @@ static void connect_all(
 m64p_error main_start(usf_state_t * state)
 {
     unsigned int RDRAMSize;
-    unsigned int disable_extra_mem;
 
     memcpy(&RDRAMSize, state->save_state + 4, 4);
     to_little_endian_buffer(&RDRAMSize, 4, 1);
@@ -148,7 +147,7 @@ m64p_error main_start(usf_state_t * state)
                 &state->g_ai, &state->g_pi, &state->g_rdram, &state->g_si, &state->g_vi,
                 state->g_rom, state->g_rom_size);
 
-    init_memory(state, (disable_extra_mem == 0) ? 0x800000 : 0x400000);
+    init_memory(state, RDRAMSize);
 
     /* connect external audio sink to AI component */
     state->g_ai.user_data = state;

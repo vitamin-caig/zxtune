@@ -339,6 +339,11 @@ void create_memory(usf_state_t* state)
 
 void init_memory(usf_state_t * state, uint32_t rdram_size)
 {
+    if (rdram_size > RDRAM_MAX_SIZE)
+    {
+        rdram_size = RDRAM_MAX_SIZE;
+    }
+
     const memory_region ram_rom[] =
     {
         {0x80000000, 0x80000000 + rdram_size - 1, M64P_MEM_RDRAM, RW(rdram_dram)},
@@ -348,6 +353,7 @@ void init_memory(usf_state_t * state, uint32_t rdram_size)
 
     map_regions(&state->io, MEMORY_MAP);
     map_regions(&state->io, ram_rom);
+    state->g_rdram.dram_size = rdram_size;
     //fixup cart_rom
     const memory_region rom = {0x90000000, 0x90000000 + state->g_rom_size - 1, M64P_MEM_ROM, R(cart_rom), W(nothing)};
     map_single_region(&state->io, &rom);
