@@ -14,6 +14,7 @@
 #include "xsf_factory.h"
 //common includes
 #include <contract.h>
+#include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
@@ -33,6 +34,8 @@
 #include <3rdparty/lazyusf2/usf/usf.h>
 //text includes
 #include <module/text/platforms.h>
+
+#define FILE_TAG 59F6FD73
 
 namespace Module
 {
@@ -114,8 +117,10 @@ namespace USF
       {
         const auto toRender = std::min<uint32_t>(samples - doneSamples, 1024);
         const auto dst = safe_ptr_cast<short int*>(&result[doneSamples]);
-        const auto res = ::usf_render(Emu.GetRaw(), dst, toRender, nullptr);
-        Require(res == nullptr);
+        if (const auto res = ::usf_render(Emu.GetRaw(), dst, toRender, nullptr))
+        {
+          throw MakeFormattedError(THIS_LINE, "USF: failed to render: %1%", res);
+        }
         doneSamples += toRender;
       }
       return result;
@@ -126,8 +131,10 @@ namespace USF
       for (uint32_t skippedSamples = 0; skippedSamples < samples; )
       {
         const auto toSkip = std::min<uint32_t>(samples - skippedSamples, 1024);
-        const auto res = ::usf_render(Emu.GetRaw(), nullptr, toSkip, nullptr);
-        Require(res == nullptr);
+        if (const auto res = ::usf_render(Emu.GetRaw(), nullptr, toSkip, nullptr))
+        {
+          throw MakeFormattedError(THIS_LINE, "USF: failed to skip: %1%", res);
+        }
         skippedSamples += toSkip;
       }
     }
@@ -136,7 +143,10 @@ namespace USF
     {
       for (const auto& blob : sections)
       {
-        Require(-1 != ::usf_upload_section(Emu.GetRaw(), static_cast<const uint8_t*>(blob->Start()), blob->Size()));
+        if (-1 == ::usf_upload_section(Emu.GetRaw(), static_cast<const uint8_t*>(blob->Start()), blob->Size()))
+        {
+          throw MakeFormattedError(THIS_LINE, "USF: failed to upload_section");
+        }
       }
     }
     
@@ -159,7 +169,10 @@ namespace USF
     void DetectSoundFrequency()
     {
       int32_t freq = 0;
-      Require(nullptr == ::usf_render(Emu.GetRaw(), nullptr, 0, &freq));
+      if (const auto res = ::usf_render(Emu.GetRaw(), nullptr, 0, &freq))
+      {
+        throw MakeFormattedError(THIS_LINE, "USF: failed to detect frequency: %1%", res);
+      }
       Reset();
       SoundFrequency = freq;
     }
