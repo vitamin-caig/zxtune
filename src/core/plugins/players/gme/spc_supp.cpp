@@ -72,6 +72,7 @@ namespace SPC
       Spc.reset();
       CheckError(Spc.load_spc(&Data.front(), Data.size()));
       Spc.clear_echo();
+      Spc.disable_surround(true);
       Filter.clear();
       Filter.set_gain(::SPC_Filter::gain_unit * 1.4);//as in GME
     }
