@@ -995,7 +995,8 @@ blargg_err_t Vgm_Core::init_chips( double* rate, bool reinit )
 {
 	int ymz280b_rate = get_le32( header().ymz280b_rate ) & 0xBFFFFFFF;
 	int ymf262_rate = get_le32( header().ymf262_rate ) & 0xBFFFFFFF;
-	int ym3812_rate = get_le32( header().ym3812_rate ) & 0xBFFFFFFF;
+	//bit31 is used for stereo panning (not emulated here)
+	int ym3812_rate = get_le32( header().ym3812_rate ) & 0x3FFFFFFF;
 	int ym2612_rate = get_le32( header().ym2612_rate ) & 0xBFFFFFFF;
 	int ym2610_rate = get_le32( header().ym2610_rate ) & 0x3FFFFFFF;
 	int ym2608_rate = get_le32( header().ym2608_rate ) & 0x3FFFFFFF;
