@@ -122,8 +122,7 @@ Blip_Buffer::blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec 
 
 blip_resampled_time_t Blip_Buffer::clock_rate_factor( long rate ) const
 {
-	double ratio = (double) sample_rate_ / rate;
-	blip_long factor = (blip_long) floor( ratio * (1L << BLIP_BUFFER_ACCURACY) + 0.5 );
+	blip_long factor = (blip_long) (((long long) sample_rate_ << BLIP_BUFFER_ACCURACY) / rate);
 	assert( factor > 0 || !sample_rate_ ); // fails if clock/output ratio is too large
 	return (blip_resampled_time_t) factor;
 }
