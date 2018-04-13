@@ -14,6 +14,7 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/data_adapter.h>
 #include <binary/input_stream.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
@@ -117,9 +118,17 @@ namespace Chiptune
         Stream.Seek(0x18);
         const auto startAddress = fromLE(Stream.ReadField<uint32_t>());
         const std::size_t size = fromLE(Stream.ReadField<uint32_t>());
-        Stream.Seek(HEADER_SIZE);
         Dbg("Text section %u (%u in header) bytes at 0x%08x", Stream.GetRestSize(), size, startAddress);
-        target.SetTextSection(startAddress, *Stream.ReadRestData());
+        if (size)
+        {
+          Stream.Seek(HEADER_SIZE);
+          target.SetTextSection(startAddress, *Stream.ReadRestData());
+        }
+        else
+        {
+          static const Binary::DataAdapter EMPTY(nullptr, 0);
+          target.SetTextSection(startAddress, EMPTY);
+        }
       }
       
       void ParseStackSection(Builder& target)
