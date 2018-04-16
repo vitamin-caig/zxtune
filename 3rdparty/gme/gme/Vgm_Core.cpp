@@ -2053,6 +2053,10 @@ blip_time_t Vgm_Core::run( vgm_time_t end_time )
 			int data_size = get_le24( pos + 8 );
 			if ( !data_size ) data_size += 0x01000000;
 			void * data_ptr = (void *) GetPointerFromPCMBank( type, data_start );
+			if ( !data_ptr ) {
+				pos += 11;
+				break;
+			}
 			switch ( type )
 			{
 			case rf5c68_ram_block:
