@@ -46,7 +46,7 @@ namespace TFM
     {
       for (const auto& reg : regs)
       {
-        ::YM2203WriteRegs(Chips[reg.Chip()].get(), reg.Index(), reg.Value());
+        ::YM2203WriteRegs(Chips.at(reg.Chip()).get(), reg.Index(), reg.Value());
       }
     }
 
