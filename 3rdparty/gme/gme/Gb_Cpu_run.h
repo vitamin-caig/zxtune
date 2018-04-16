@@ -147,8 +147,10 @@ int const c10 = 0x10; // cz
 	
 loop:
 	
-	check( (unsigned) pc < 0x10000 + 1 ); // +1 so emulator can catch wrap-around
-	check( (unsigned) sp < 0x10000 );
+	//check( (unsigned) pc < 0x10000 + 1 ); // +1 so emulator can catch wrap-around
+	//check( (unsigned) sp < 0x10000 );
+  pc &= 0xffff;
+  sp &= 0xffff;
 	
 	byte const* instr = CODE_PAGE( pc );
 	int op;

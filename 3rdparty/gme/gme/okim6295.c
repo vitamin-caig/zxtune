@@ -58,12 +58,15 @@ struct _okim6295_state
 	#define OKIM6295_VOICES		4
 	struct ADPCMVoice voice[OKIM6295_VOICES];
 	//running_device *device;
-	INT32 command;
-	UINT8 bank_installed;
+	INT16 command;
+	//UINT8 bank_installed;
 	INT32 bank_offs;
 	UINT8 pin7_state;
+	UINT8 nmk_mode;
+	UINT8 nmk_bank[4];
 	//sound_stream *stream;	/* which stream are we playing on? */
 	UINT32 master_clock;	/* master clock frequency */
+	UINT32 initial_clock;
 	
 	UINT32				ROMSize;
 	UINT8*				ROM;
@@ -216,13 +219,46 @@ INT16 clock_adpcm(struct adpcm_state *state, UINT8 nibble)
 
 ***********************************************************************************************/
 
-static UINT8 memory_raw_read_byte(okim6295_state *info, offs_t offset)
+#define NMK_BNKTBLBITS	8
+#define NMK_BNKTBLSIZE	(1 << NMK_BNKTBLBITS)	// 0x100
+#define NMK_TABLESIZE	(4 * NMK_BNKTBLSIZE)	// 0x400
+#define NMK_TABLEMASK	(NMK_TABLESIZE - 1)		// 0x3FF
+
+#define NMK_BANKBITS	16
+#define NMK_BANKSIZE	(1 << NMK_BANKBITS)		// 0x10000
+#define NMK_BANKMASK	(NMK_BANKSIZE - 1)		// 0xFFFF
+#define NMK_ROMBASE		(4 * NMK_BANKSIZE)		// 0x40000
+
+static UINT8 memory_raw_read_byte(okim6295_state *chip, offs_t offset)
 {
 	offs_t CurOfs;
 	
-	CurOfs = info->bank_offs | offset;
-	if (CurOfs < info->ROMSize)
-		return info->ROM[CurOfs];
+	if (! chip->nmk_mode)
+	{
+		CurOfs = chip->bank_offs | offset;
+	}
+	else
+	{
+		UINT8 BankID;
+		
+		if (offset < NMK_TABLESIZE && (chip->nmk_mode & 0x80))
+		{
+			// pages sample table
+			BankID = offset >> NMK_BNKTBLBITS;
+			CurOfs = offset & NMK_TABLEMASK;	// 0x3FF, not 0xFF
+		}
+		else
+		{
+			BankID = offset >> NMK_BANKBITS;
+			CurOfs = offset & NMK_BANKMASK;
+		}
+		CurOfs |= (chip->nmk_bank[BankID & 0x03] << NMK_BANKBITS);
+		// I modified MAME to write a clean sample ROM.
+		// (Usually it moves the data by NMK_ROMBASE.)
+		//CurOfs += NMK_ROMBASE;
+	}
+	if (CurOfs < chip->ROMSize)
+		return chip->ROM[CurOfs];
 	else
 		return 0x00;
 }
@@ -388,11 +424,14 @@ void * device_start_okim6295(int clock)
 	compute_tables();
 
 	info->command = -1;
-	info->bank_installed = FALSE;
+	//info->bank_installed = FALSE;
 	info->bank_offs = 0;
+	info->nmk_mode = 0x00;
+	memset(info->nmk_bank, 0x00, 4 * sizeof(UINT8));
 	//info->device = device;
 
 	//info->master_clock = device->clock;
+	info->initial_clock = clock;
 	info->master_clock = clock & 0x7FFFFFFF;
 	info->pin7_state = (clock & 0x80000000) >> 31;
 
@@ -438,6 +477,15 @@ void device_reset_okim6295(void *chip)
 	okim6295_state *info = (okim6295_state *) chip;
 	int voice;
 
+	//stream_update(info->stream);
+	
+	info->command = -1;
+	info->bank_offs = 0;
+	info->nmk_mode = 0x00;
+	memset(info->nmk_bank, 0x00, 4 * sizeof(UINT8));
+	info->master_clock = info->initial_clock & 0x7FFFFFFF;
+	info->pin7_state = (info->initial_clock & 0x80000000) >> 31;
+	
 	for (voice = 0; voice < OKIM6295_VOICES; voice++)
 	{
 		info->voice[voice].volume = 0;
@@ -461,20 +509,21 @@ void okim6295_set_bank_base(okim6295_state *info, int base)
 	//okim6295_state *info = get_safe_token(device);
 	//stream_update(info->stream);
 
-	/* if we are setting a non-zero base, and we have no bank, allocate one */
-	if (!info->bank_installed && base != 0)
+	// if we are setting a non-zero base, and we have no bank, allocate one
+	/*if (!info->bank_installed && base != 0)
 	{
-		/* override our memory map with a bank */
+		// override our memory map with a bank
 		//memory_install_read_bank(device->space(), 0x00000, 0x3ffff, 0, 0, device->tag());
 		info->bank_installed = TRUE;
 	}
 
-	/* if we have a bank number, set the base pointer */
+	// if we have a bank number, set the base pointer
 	if (info->bank_installed)
 	{
 		info->bank_offs = base;
 		//memory_set_bankptr(device->machine, device->tag(), device->region->base.u8 + base);
-	}
+	}*/
+	info->bank_offs = base;
 }
 
 
@@ -664,6 +713,9 @@ void okim6295_w(void *_chip, offs_t offset, UINT8 data)
 		chip->master_clock |= data << 16;
 		break;
 	case 0x0B:
+		if ((data >> 7) != chip->pin7_state)
+			printf("Pin 7 changed!\n");
+		data &= 0x7F;	// fix a bug in MAME VGM logs
 		chip->master_clock &= ~0xFF000000;
 		chip->master_clock |= data << 24;
 		okim6295_clock_changed(chip);
@@ -671,8 +723,17 @@ void okim6295_w(void *_chip, offs_t offset, UINT8 data)
 	case 0x0C:
 		okim6295_set_pin7(chip, data);
 		break;
+	case 0x0E:	// NMK112 bank switch enable
+		chip->nmk_mode = data;
+		break;
 	case 0x0F:
 		okim6295_set_bank_base(chip, data << 18);
+		break;
+	case 0x10:
+	case 0x11:
+	case 0x12:
+	case 0x13:
+		chip->nmk_bank[offset & 0x03] = data;
 		break;
 	}
 	
