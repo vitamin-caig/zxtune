@@ -33,7 +33,7 @@ namespace Chiptune
     const SignatureType SIGNATURE = {{'V', 'g', 'm', ' '}};
 
     const uint_t VERSION_MIN = 100;
-    const uint_t VERSION_MAX = 170;
+    const uint_t VERSION_MAX = 171;
     
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -107,7 +107,7 @@ namespace Chiptune
         "'V'g'm' " //signature
         "????"     //eof offset
         //version
-        "00-09|10-19|20-29|30-39|40-49|50-59|60-69|70"
+        "00-09|10-19|20-29|30-39|40-49|50-59|60-69|70-71"
         "01 00 00"
      ;
 
