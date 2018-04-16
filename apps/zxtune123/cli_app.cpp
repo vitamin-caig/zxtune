@@ -264,18 +264,34 @@ namespace
       props->FindValue(Module::ATTR_FULLPATH, path);
       props->FindValue(Module::ATTR_TYPE, type);
 
-      Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
-
-      const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), Sound::Receiver::CreateStub());
-      const Time::Timer timer;
-      for (unsigned i = 0; i != Iterations; ++i)
+      try
       {
-        renderer->SetPosition(0);
-        while (renderer->RenderFrame()) {}
+        Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
+
+        const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), Sound::Receiver::CreateStub());
+        const Time::Timer timer;
+        for (unsigned i = 0; i != Iterations; ++i)
+        {
+          renderer->SetPosition(0);
+          while (renderer->RenderFrame()) {}
+        }
+        const Time::Microseconds real = timer.Elapsed();
+        const double relSpeed = double(total.Get()) / real.Get();
+        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed));
+        return;
       }
-      const Time::Microseconds real = timer.Elapsed();
-      const double relSpeed = double(total.Get()) / real.Get();
-      Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed));
+      catch (const std::exception&)
+      {
+        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, -1));
+      }
+      catch (const Error&)
+      {
+        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, -2));
+      }
+      catch (...)
+      {
+        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, -3));
+      }
     }
   private:
     const unsigned Iterations;
