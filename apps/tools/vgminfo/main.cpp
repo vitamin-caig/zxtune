@@ -358,18 +358,13 @@ namespace
       {
         return false;
       }
-      if (ParseFixedCommand(code, stream)
+      return ParseFixedCommand(code, stream)
           || ParseDataBlock(code, stream)
           || ParseRamWrite(code, stream)
           || ParseDacControl(code, stream)
-          || ParseBuggyCommand(code, stream))
-      {
-        return true;
-      }
-      else
-      {
-        Add(Strings::Format("unknown 0x%02x @ 0x%x", uint_t(code), offset));
-      }
+          || ParseBuggyCommand(code, stream)
+          || ParseUnknownCommand(code, stream)
+      ;
     }
     
     void Dump() const
@@ -676,6 +671,20 @@ namespace
         return true;
       }
       return false;
+    }
+
+    bool ParseUnknownCommand(uint8_t code, Stream& stream)
+    {
+      static const std::size_t SIZES[] =
+      {
+      //0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+        1, 1, 1, 2, 2, 3, 1, 1, 1, 1, 3, 3, 4, 4, 5, 5
+      };
+      const auto size = SIZES[code >> 4];
+      const std::size_t curPos = stream.GetPos();
+      Add(Strings::Format("unknown 0x%02x (%u bytes) @ 0x%x", uint_t(code), size, curPos - 1));
+      stream.Skip(size - 1);
+      return true;
     }
     
     void Add(const String& cmd)
