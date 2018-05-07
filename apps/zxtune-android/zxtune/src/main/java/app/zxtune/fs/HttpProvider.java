@@ -9,6 +9,7 @@ package app.zxtune.fs;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -43,9 +44,9 @@ public class HttpProvider {
     this.context = context;
   }
 
-  public final HttpURLConnection connect(String uri) throws IOException {
+  public final HttpURLConnection connect(Uri uri) throws IOException {
     try {
-      final URL url = new URL(uri);
+      final URL url = new URL(uri.toString());
       return (HttpURLConnection) url.openConnection();
     } catch (IOException e) {
       Log.d(TAG, "Fetch %s: %s", uri, e.toString());
@@ -54,7 +55,7 @@ public class HttpProvider {
   }
 
   @NonNull
-  public final ByteBuffer getContent(String uri) throws IOException {
+  public final ByteBuffer getContent(Uri uri) throws IOException {
     try {
       final HttpURLConnection connection = connect(uri);
       try {
@@ -72,7 +73,7 @@ public class HttpProvider {
     }
   }
 
-  public final void getContent(String uri, OutputStream output) throws IOException {
+  public final void getContent(Uri uri, OutputStream output) throws IOException {
     try {
       final HttpURLConnection connection = connect(uri);
       try {
@@ -96,7 +97,7 @@ public class HttpProvider {
   }
 
   @NonNull
-  public final synchronized String getHtml(String uri) throws IOException {
+  public final synchronized String getHtml(Uri uri) throws IOException {
     try {
       final HttpURLConnection connection = connect(uri);
       try {

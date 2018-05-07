@@ -6,6 +6,7 @@
 
 package app.zxtune.fs.zxtunes;
 
+import android.net.Uri;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
@@ -51,7 +52,7 @@ final class RemoteCatalog extends Catalog {
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
     Log.d(TAG, "queryAuthors()");
-    final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
+    final HttpURLConnection connection = http.connect(Uri.parse(ALL_AUTHORS_QUERY));
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
   }
@@ -63,7 +64,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
-    final HttpURLConnection connection = http.connect(query);
+    final HttpURLConnection connection = http.connect(Uri.parse(query));
     final RootElement root = createModulesParserRoot(visitor);
     performQuery(connection, root);
   }
@@ -83,13 +84,13 @@ final class RemoteCatalog extends Catalog {
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return http.getContent(query);
+    return http.getContent(Uri.parse(query));
   }
 
   final void getTrackContent(int id, OutputStream stream) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    http.getContent(query, stream);
+    http.getContent(Uri.parse(query), stream);
   }
 
   private void performQuery(HttpURLConnection connection, RootElement root)

@@ -29,11 +29,11 @@ final class RemoteCatalog extends Catalog {
   @NonNull
   @Override
   public ByteBuffer getFileContent(Path path) throws IOException {
-    return http.getContent(path.getRemoteUrl());
+    return http.getContent(path.getRemoteUri());
   }
 
   final void getFileContent(Path path, OutputStream target) throws IOException {
-    http.getContent(path.getRemoteUrl(), target);
+    http.getContent(path.getRemoteUri(), target);
   }
 
   @Override

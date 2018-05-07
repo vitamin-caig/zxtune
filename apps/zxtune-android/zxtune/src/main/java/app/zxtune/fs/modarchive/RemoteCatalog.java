@@ -177,13 +177,13 @@ class RemoteCatalog extends Catalog {
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = ApiUriBuilder.forDownload(id).build();
-    return http.getContent(query);
+    return http.getContent(Uri.parse(query));
   }
 
   final void getTrackContent(int id, OutputStream stream) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = ApiUriBuilder.forDownload(id).build();
-    http.getContent(query, stream);
+    http.getContent(Uri.parse(query), stream);
   }
 
   private static RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {
@@ -462,7 +462,7 @@ class RemoteCatalog extends Catalog {
   }
 
   private void loadSinglePage(String uri, RootElement root) throws IOException {
-    final HttpURLConnection connection = http.connect(uri);
+    final HttpURLConnection connection = http.connect(Uri.parse(uri));
     performXmlQuery(connection, root);
   }
 

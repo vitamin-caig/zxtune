@@ -243,12 +243,12 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(String id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%s)", id);
-    return http.getContent(STORAGE_MIRROR + id);
+    return http.getContent(Uri.parse(STORAGE_MIRROR + id));
   }
 
   final void getTrackContent(String id, OutputStream stream) throws IOException {
     Log.d(TAG, "getTrackContent(id=%s)", id);
-    http.getContent(STORAGE_MIRROR + id, stream);
+    http.getContent(Uri.parse(STORAGE_MIRROR + id), stream);
   }
 
   interface PagesVisitor {
@@ -258,7 +258,7 @@ class RemoteCatalog extends Catalog {
   private void loadPages(String query, PagesVisitor visitor) throws IOException {
     for (int pg = 1; ; ++pg) {
       final String uri = query + String.format(Locale.US, "&pg=%d", pg);
-      final String chars = http.getHtml(uri);
+      final String chars = http.getHtml(Uri.parse(uri));
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
         Log.d(TAG, "Load page: %s", matcher.group());

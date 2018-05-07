@@ -64,7 +64,7 @@ final class RemoteCatalog extends Catalog {
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
     Log.d(TAG, "queryAuthors()");
-    final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
+    final HttpURLConnection connection = http.connect(Uri.parse(ALL_AUTHORS_QUERY));
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
   }
@@ -78,7 +78,7 @@ final class RemoteCatalog extends Catalog {
   @Override
   public void queryParties(PartiesVisitor visitor) throws IOException {
     Log.d(TAG, "queryParties()");
-    final HttpURLConnection connection = http.connect(ALL_PARTIES_QUERY);
+    final HttpURLConnection connection = http.connect(Uri.parse(ALL_PARTIES_QUERY));
     final RootElement root = createPartiesParserRoot(visitor);
     performQuery(connection, root);
   }
@@ -96,7 +96,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
-    final HttpURLConnection connection = http.connect(query);
+    final HttpURLConnection connection = http.connect(Uri.parse(query));
     final RootElement root = createModulesParserRoot(visitor);
     performQuery(connection, root);
   }
@@ -108,8 +108,8 @@ final class RemoteCatalog extends Catalog {
 
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     Log.d(TAG, "findTracks(query=%s)", query);
-    final String url = String.format(Locale.US, FIND_TRACKS_QUERY, Uri.encode(query));
-    final HttpURLConnection connection = http.connect(url);
+    final String uri = String.format(Locale.US, FIND_TRACKS_QUERY, Uri.encode(query));
+    final HttpURLConnection connection = http.connect(Uri.parse(uri));
     final RootElement root = createModulesParserRoot(visitor);
     performQuery(connection, root);
   }
@@ -119,13 +119,13 @@ final class RemoteCatalog extends Catalog {
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return http.getContent(query);
+    return http.getContent(Uri.parse(query));
   }
 
   final void getTrackContent(int id, OutputStream stream) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    http.getContent(query, stream);
+    http.getContent(Uri.parse(query), stream);
   }
 
   private void performQuery(HttpURLConnection connection, RootElement root)

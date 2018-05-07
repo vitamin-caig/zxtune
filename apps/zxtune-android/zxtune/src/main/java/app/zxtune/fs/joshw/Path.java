@@ -4,8 +4,6 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,8 +16,6 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
 
   private static final String SCHEME = "joshw";
 
-  private static final String STORAGE_MIRROR = "http://%s.joshw.info/%s";
-
   private final String catalogue;
   private final List<String> elements;
 
@@ -29,8 +25,12 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   @Override
-  public String getRemoteUrl() {
-    return String.format(Locale.US, STORAGE_MIRROR, catalogue, TextUtils.join("/", elements));
+  public Uri getRemoteUri() {
+    return new Uri.Builder()
+            .scheme("http")
+            .authority(String.format(Locale.US, "%s.joshw.info", catalogue))
+            .path(TextUtils.join("/", elements))
+            .build();
   }
 
   @Override
@@ -100,7 +100,7 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   public final boolean isCatalogue() {
-    return elements.isEmpty();
+    return elements.isEmpty() && !TextUtils.isEmpty(catalogue);
   }
 
   public final String getCatalogue() {

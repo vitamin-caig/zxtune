@@ -16,8 +16,6 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
 
   private static final String SCHEME = "hvsc";
 
-  private static final String STORAGE_MIRROR = "http://www.prg.dtu.dk/HVSC/C64Music/";
-
   private final List<String> elements;
 
   private Path(List<String> elements) {
@@ -25,8 +23,12 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   @Override
-  public String getRemoteUrl() {
-    return STORAGE_MIRROR + getLocalId();
+  public Uri getRemoteUri() {
+    return new Uri.Builder()
+            .scheme("http")
+            .authority("www.prg.dtu.dk")
+            .path("HVSC/C64Music/" + getLocalId())
+            .build();
   }
 
   @Override
@@ -50,11 +52,10 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
 
   @Override
   public Uri getUri() {
-    final Uri.Builder builder = new Uri.Builder().scheme(SCHEME);
-    for (String el : elements) {
-      builder.appendPath(el);
-    }
-    return builder.build();
+    return new Uri.Builder()
+            .scheme(SCHEME)
+            .path(getLocalId())
+            .build();
   }
 
   @Override
