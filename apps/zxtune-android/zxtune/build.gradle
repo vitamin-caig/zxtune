@@ -50,6 +50,17 @@ apply from: "${treeRoot}/make/android/nativelibs.gradle"
 
 android {
     defaultConfig {
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+}
+
+dependencies {
+    androidTestImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+}
+
+android {
+    defaultConfig {
         manifestPlaceholders = [ modarchiveKey: localProperties.getProperty("key.modarchive"),
                                  crashlyticsKey: localProperties.getProperty("key.crashlytics") ]
     }
