@@ -43,6 +43,8 @@ namespace Chiptune
     const std::size_t MAX_STRING_SIZE = 64;
     const std::size_t MAX_COMMENT_SIZE = 384;
 
+    const std::size_t MIN_FRAMES = 150;//~3sec
+
     typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE = { {'T', 'F', 'M', 'D'} };
@@ -126,6 +128,7 @@ namespace Chiptune
         target.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
 
         const std::size_t fixedOffset = stream.GetPosition();
+        std::size_t totalFrames = 0;
         for (;;)
         {
           const uint8_t val = stream.ReadField<uint8_t>();
@@ -136,10 +139,15 @@ namespace Chiptune
           switch (val)
           {
           case BEGIN_FRAME:
+            ++totalFrames;
             target.BeginFrames(1);
             break;
           case SKIP_FRAMES:
-            target.BeginFrames(3 + stream.ReadField<uint8_t>());
+            {
+              const uint_t frames = 3 + stream.ReadField<uint8_t>();
+              totalFrames += frames;
+              target.BeginFrames(frames);
+            }
             break;
           case SELECT_SECOND_CHIP:
             target.SelectChip(1);
@@ -155,6 +163,7 @@ namespace Chiptune
             break;
           }
         }
+        Require(totalFrames >= MIN_FRAMES);
         const std::size_t usedSize = stream.GetPosition();
         const auto subData = stream.GetReadData();
         return CreateCalculatingCrcContainer(subData, fixedOffset, usedSize - fixedOffset);
