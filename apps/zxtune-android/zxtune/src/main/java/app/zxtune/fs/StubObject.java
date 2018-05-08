@@ -8,7 +8,7 @@ package app.zxtune.fs;
 
 import android.support.annotation.Nullable;
 
-abstract class StubObject implements VfsObject {
+public abstract class StubObject implements VfsObject {
 
   @Override
   public String getDescription() {
