@@ -12,11 +12,11 @@ package app.zxtune.sound;
 
 public interface SamplesSource {
 
-  public static final class Channels {
+  final class Channels {
     public static final int COUNT = 2;
   }
 
-  public static final class Sample {
+  final class Sample {
     public static final int BYTES = 2;
   }
   
@@ -24,17 +24,17 @@ public interface SamplesSource {
    * Initialize stream for input
    * @param sampleRate required sample rate in Hz (e.g. 44100)
    */
-  public void initialize(int sampleRate) throws Exception;
+  void initialize(int sampleRate) throws Exception;
   
   /**
    * Acquire next sound chunk
    * @param buf result buffer of 16-bit signed interleaved stereo signal
    * @return true if buffer filled
    */
-  public boolean getSamples(short[] buf) throws Exception;
+  boolean getSamples(short[] buf) throws Exception;
   
   /**
    * Release all internal resources
    */
-  public void release();
+  void release();
 }
