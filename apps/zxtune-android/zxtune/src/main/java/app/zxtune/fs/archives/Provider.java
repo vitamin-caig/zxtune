@@ -88,7 +88,7 @@ public final class Provider extends ContentProvider {
             try {
               final String author = module.getProperty(ModuleAttributes.AUTHOR, "");
               final String title = module.getProperty(ModuleAttributes.TITLE, "");
-              final String description = Util.formatTrackTitle(author, title, "");
+              final String description = Util.formatTrackTitle(title, author, "");
               final long frameDuration = module.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
               final TimeStamp duration = TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
               final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
