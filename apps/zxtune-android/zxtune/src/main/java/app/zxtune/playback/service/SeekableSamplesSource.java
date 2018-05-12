@@ -40,6 +40,12 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
   }
 
   @Override
+  public void reset() throws Exception {
+    player.setPosition(0);
+    seekRequest = null;
+  }
+
+  @Override
   public void release() {
     Analytics.sendPerformanceEvent(player);
     player.release();

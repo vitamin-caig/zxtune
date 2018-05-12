@@ -32,6 +32,12 @@ public interface SamplesSource {
    * @return true if buffer filled
    */
   boolean getSamples(short[] buf) throws Exception;
+
+  /**
+   * Reset playback to initial position keeping sampleRate and other params intact
+   * @throws Exception
+   */
+  void reset() throws Exception;
   
   /**
    * Release all internal resources

@@ -253,6 +253,11 @@ public class RingtoneService extends IntentService {
     }
 
     @Override
+    public void reset() throws Exception {
+      player.setPosition(0);
+    }
+
+    @Override
     public void release() {
       player.release();
       player = null;

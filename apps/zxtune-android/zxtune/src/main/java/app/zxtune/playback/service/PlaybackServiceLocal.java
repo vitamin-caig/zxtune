@@ -155,7 +155,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       Log.d(TAG, "Update iterator %s -> %s", holder.iterator, iter);
       holder.iterator.release();
     }
-    final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
+    final PlayerEventsListener events = new PlaybackEvents(callbacks, playback);
     setNewHolder(new Holder(iter, events));
   }
   

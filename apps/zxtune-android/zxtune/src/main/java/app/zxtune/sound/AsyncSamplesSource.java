@@ -62,8 +62,11 @@ class AsyncSamplesSource {
       thread.start();
     }
     if (state.compareAndSet(ACTIVE, ACTIVE)) {
-      outputBuffer = exchanger.exchange(outputBuffer);
-      return outputBuffer;
+      final short[] result = exchanger.exchange(outputBuffer);
+      if (result != null) {
+        outputBuffer = result;
+      }
+      return result;
     } else {
       return null;
     }
@@ -71,11 +74,12 @@ class AsyncSamplesSource {
 
   private void renderCycle() {
     try {
-      while (state.compareAndSet(ACTIVE, ACTIVE)) {
+      while (true) {
         final boolean hasNextSamples = source.getSamples(inputBuffer);
         inputBuffer = exchanger.exchange(inputBuffer);
         if (!hasNextSamples) {
-          break;
+          exchanger.exchange(null);
+          source.reset();
         }
       }
     } catch (InterruptedException e) {

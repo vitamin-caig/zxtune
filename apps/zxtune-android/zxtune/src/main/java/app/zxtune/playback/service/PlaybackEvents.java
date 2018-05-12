@@ -1,10 +1,8 @@
 package app.zxtune.playback.service;
 
 import app.zxtune.Log;
-import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.SeekControl;
 import app.zxtune.sound.PlayerEventsListener;
 
 class PlaybackEvents implements PlayerEventsListener {
@@ -13,12 +11,10 @@ class PlaybackEvents implements PlayerEventsListener {
 
   private final Callback callback;
   private final PlaybackControl ctrl;
-  private final SeekControl seek;
 
-  PlaybackEvents(Callback callback, PlaybackControl ctrl, SeekControl seek) {
+  PlaybackEvents(Callback callback, PlaybackControl ctrl) {
     this.callback = callback;
     this.ctrl = ctrl;
-    this.seek = seek;
   }
 
   @Override
@@ -29,7 +25,6 @@ class PlaybackEvents implements PlayerEventsListener {
   @Override
   public void onFinish() {
     try {
-      seek.setPosition(TimeStamp.EMPTY);
       ctrl.next();
     } catch (Exception e) {
       onError(e);
