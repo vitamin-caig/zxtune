@@ -5,6 +5,21 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4160 from 14.05.2018
+
+[+] Added support of Raster Music Tracker (.RMT)
+[+] Supported additional FastTracker frequency tables (BB#102)
+[*] Fixed AYLPT backend
+[*] Fixes in .SAP parsing
+[*] Fixes in .SPC playback
+[*] Fixed .VGM v1.71 support
+[*] Fixed playback of .AY files with simultanous AY and beeper (BB#106)
+[*] Fixed reported and found crashes
+[*] zxtune-android: fixed network access for some Android 8+ devices
+[*] zxtune-android: reduced memory usage while network operations
+[*] zxtune-android: fixed HVSC access, simplified catalogue structure
+[*] zxtune-android: fixed some hangs
+
 --- Rev4110 from 20.02.2018
 
 [*] zxtune-android: fixed playback problems on some devices
