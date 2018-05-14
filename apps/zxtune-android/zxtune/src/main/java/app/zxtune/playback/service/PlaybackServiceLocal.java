@@ -47,12 +47,12 @@ import app.zxtune.sound.SoundOutputSamplesTarget;
 import app.zxtune.sound.StubPlayer;
 
 public class PlaybackServiceLocal implements PlaybackService, Releaseable {
-  
+
   private static final String TAG = PlaybackServiceLocal.class.getName();
-  
+
   private static final String PREF_LAST_PLAYED_PATH = "last_played_path";
   private static final String PREF_LAST_PLAYED_POSITION = "last_played_position";
-  
+
   private final Context context;
   private final ExecutorService executor;
   private final CompositeCallback callbacks;
@@ -60,12 +60,13 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final DispatchedPlaybackControl playback;
   private final DispatchedSeekControl seek;
   private final DispatchedVisualizer visualizer;
+  private final Object holderGuard;
   private Holder holder;
 
-  private static interface Command {
+  private interface Command {
     void execute() throws Exception;
   }
-    
+
   public PlaybackServiceLocal(Context context) {
     this.context = context;
     this.executor = Executors.newSingleThreadExecutor();
@@ -74,14 +75,17 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.playback = new DispatchedPlaybackControl();
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
+    this.holderGuard = new Object();
     this.holder = new Holder();
   }
 
   @Override
-  public synchronized Item getNowPlaying() {
-    return holder.item;
+  public Item getNowPlaying() {
+    synchronized (holderGuard) {
+      return holder.item;
+    }
   }
-  
+
   public final void restoreSession() {
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
     final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
@@ -91,17 +95,17 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       executeCommand(new RestoreSessionCommand(Uri.parse(path), TimeStamp.createFrom(position, TimeUnit.MILLISECONDS)));
     }
   }
-  
+
   private class RestoreSessionCommand implements Command {
 
     private final Uri[] uris;
     private final TimeStamp position;
-    
+
     RestoreSessionCommand(Uri uri, TimeStamp position) {
       this.uris = new Uri[] {uri};
       this.position = position;
     }
-    
+
     @Override
     public void execute() throws Exception {
       final Iterator iter = IteratorFactory.createIterator(context, uris);
@@ -109,11 +113,11 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       seek.setPosition(position);
     }
   }
-  
+
   public final void storeSession() {
     executeCommand(new StoreSessionCommand());
   }
-  
+
   private class StoreSessionCommand implements Command {
     @Override
     public void execute() throws Exception {
@@ -129,16 +133,16 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       }
     }
   }
-  
+
   @Override
   public void setNowPlaying(Uri[] uris) {
     executeCommand(new SetNowPlayingCommand(uris));
   }
-  
+
   private class SetNowPlayingCommand implements Command {
-    
+
     private final Uri[] uris;
-    
+
     SetNowPlayingCommand(Uri[] uris) {
       this.uris = uris;
     }
@@ -149,45 +153,67 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       play(iter);
     }
   }
-  
-  private synchronized void setNewIterator(Iterator iter) throws Exception {
-    if (holder.iterator != iter) {
-      Log.d(TAG, "Update iterator %s -> %s", holder.iterator, iter);
-      holder.iterator.release();
-    }
+
+  private void setNewIterator(Iterator iter) throws Exception {
     final PlayerEventsListener events = new PlaybackEvents(callbacks, playback);
     setNewHolder(new Holder(iter, events));
   }
-  
-  private synchronized void setNewHolder(Holder holder) {
-    final Holder oldHolder = this.holder;
-    oldHolder.player.stopPlayback();
-    try {
-      this.holder = holder;
-      callbacks.onItemChanged(holder.item);
-    } finally {
-      oldHolder.release();
+
+  private void setNewHolder(Holder holder) {
+    playback.stop();
+    synchronized (holderGuard) {
+      final Holder oldHolder = this.holder;
+      try {
+        this.holder = holder;
+        if (oldHolder.iterator != holder.iterator) {
+          Log.d(TAG, "Update iterator %s -> %s", oldHolder.iterator, holder.iterator);
+          oldHolder.iterator.release();
+        }
+        callbacks.onItemChanged(holder.item);
+      } finally {
+        oldHolder.release();
+      }
     }
   }
-  
-  
-  private synchronized void play(Iterator iter) throws Exception {
+
+
+  private void play(Iterator iter) throws Exception {
     setNewIterator(iter);
-    holder.player.startPlayback();
+    getPlayer().startPlayback();
   }
-  
-  private synchronized void playNext() throws Exception {
-    if (holder.iterator.next()) {
-      play(holder.iterator);
+
+  private void playNext() throws Exception {
+    final Iterator next = getNextIterator();
+    if (next != null) {
+      play(next);
     }
   }
-  
-  private synchronized void playPrev() throws Exception {
-    if (holder.iterator.prev()) {
-      play(holder.iterator);
+
+  private Iterator getNextIterator() {
+    synchronized (holderGuard) {
+      return holder.iterator.next() ? holder.iterator : null;
     }
   }
-  
+
+  private void playPrev() throws Exception {
+    final Iterator prev = getPrevIterator();
+    if (prev != null) {
+      play(prev);
+    }
+  }
+
+  private Iterator getPrevIterator() {
+    synchronized (holderGuard) {
+      return holder.iterator.prev() ? holder.iterator : null;
+    }
+  }
+
+  private Player getPlayer() {
+    synchronized (holderGuard) {
+        return holder.player;
+    }
+  }
+
   @Override
   public PlaylistControl getPlaylistControl() {
     return playlist;
@@ -212,7 +238,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   public void subscribe(Callback callback) {
     callbacks.add(callback);
   }
-  
+
   @Override
   public void unsubscribe(Callback callback) {
     callbacks.remove(callback);
@@ -221,7 +247,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   @Override
   public void release() {
     shutdownExecutor();
-    synchronized (this) {
+    synchronized (holderGuard) {
       try {
         holder.player.stopPlayback();
       } finally {
@@ -231,7 +257,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       }
     }
   }
-  
+
   private void shutdownExecutor() {
     try {
       do {
@@ -251,10 +277,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       Log.w(TAG, e, cmd.getClass().getName());
     }
   }
-  
+
   private void executeCommandImpl(final Command cmd) {
     executor.execute(new Runnable() {
-
       @Override
       public void run() {
         try {
@@ -271,12 +296,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       }
     });
   }
-  
+
   private void saveProperty(String name, long value) {
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
     prefs.edit().putLong(name, value).apply();
   }
-  
+
   private static class Holder implements Releaseable {
 
     public final Iterator iterator;
@@ -284,7 +309,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     public final Player player;
     public final SeekControl seek;
     public final Visualizer visualizer;
-    
+
     Holder() {
       this.iterator = IteratorStub.instance();
       this.item = PlayableItemStub.instance();
@@ -292,7 +317,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.seek = SeekControlStub.instance();
       this.visualizer = VisualizerStub.instance();
     }
-    
+
     Holder(Iterator iterator, PlayerEventsListener events) throws Exception {
       this.iterator = iterator;
       this.item = iterator.getItem();
@@ -303,57 +328,49 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.seek = source;
       this.visualizer = new PlaybackVisualizer(lowPlayer);
     }
-    
+
     @Override
     public void release() {
       player.release();
       item.release();
     }
   }
-  
+
   private final class DispatchedPlaybackControl implements PlaybackControl {
-    
+
     private final IteratorFactory.NavigationMode navigation;
-    
+
     DispatchedPlaybackControl() {
       this.navigation = new IteratorFactory.NavigationMode(context);
     }
-    
+
     @Override
     public void play() {
-      synchronized (PlaybackServiceLocal.this) {
-        holder.player.startPlayback();
-      }
+      getPlayer().startPlayback();
     }
 
     @Override
-    public synchronized void stop() {
-      synchronized (PlaybackServiceLocal.this) {
-        holder.player.stopPlayback();
-      }
+    public void stop() {
+      getPlayer().stopPlayback();
     }
 
     @Override
-    public synchronized void pause() {
-      synchronized (PlaybackServiceLocal.this) {
-        holder.player.pausePlayback();
-      }
+    public void pause() {
+      getPlayer().pausePlayback();
     }
 
     @Override
-    public synchronized PlaybackControl.State getState() {
-      synchronized (PlaybackServiceLocal.this) {
-        return holder.player.isStarted()
-                ? (holder.player.isPaused() ? State.PAUSED
-                : State.PLAYING)
-                : State.STOPPED;
-      }
+    public PlaybackControl.State getState() {
+      final Player player = getPlayer();
+      return player.isStarted()
+              ? (player.isPaused() ? State.PAUSED
+              : State.PLAYING)
+              : State.STOPPED;
     }
 
     @Override
-    public synchronized void next() {
+    public void next() {
       executeCommand(new Command() {
-
         @Override
         public void execute() throws Exception {
           playNext();
@@ -362,14 +379,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public synchronized void prev() {
+    public void prev() {
       executeCommand(new Command() {
-
         @Override
         public void execute() throws Exception {
           playPrev();
         }
-        
       });
     }
 
@@ -378,55 +393,59 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       final long val = ZXTune.GlobalOptions.instance().getProperty(Properties.Sound.LOOPED, 0);
       return val != 0 ? TrackMode.LOOPED : TrackMode.REGULAR;
     }
-    
+
     @Override
     public void setTrackMode(TrackMode mode) {
       final long val = mode == TrackMode.LOOPED ? 1 : 0;
       ZXTune.GlobalOptions.instance().setProperty(Properties.Sound.LOOPED, val);
       saveProperty(Properties.Sound.LOOPED, val);
     }
-    
+
     @Override
     public SequenceMode getSequenceMode() {
       return navigation.get();
     }
-    
+
     @Override
     public void setSequenceMode(SequenceMode mode) {
       navigation.set(mode);
     }
   }
-  
+
   private final class DispatchedSeekControl implements SeekControl {
 
     @Override
-    public synchronized TimeStamp getDuration() throws Exception {
-      synchronized (PlaybackServiceLocal.this) {
-        return holder.seek.getDuration();
-      }
+    public TimeStamp getDuration() throws Exception {
+      return getSeek().getDuration();
     }
 
     @Override
-    public synchronized TimeStamp getPosition() throws Exception {
-      synchronized (PlaybackServiceLocal.this) {
-        return holder.seek.getPosition();
-      }
+    public TimeStamp getPosition() throws Exception {
+      return getSeek().getPosition();
     }
 
     @Override
-    public synchronized void setPosition(TimeStamp position) throws Exception {
-      synchronized (PlaybackServiceLocal.this) {
-        holder.seek.setPosition(position);
+    public void setPosition(TimeStamp position) throws Exception {
+      getSeek().setPosition(position);
+    }
+
+    private SeekControl getSeek() {
+      synchronized (holderGuard) {
+        return holder.seek;
       }
     }
   }
-  
+
   private final class DispatchedVisualizer implements Visualizer {
-    
+
     @Override
-    public synchronized int getSpectrum(int[] bands, int[] levels) throws Exception {
-      synchronized (PlaybackServiceLocal.this) {
-        return holder.visualizer.getSpectrum(bands, levels);
+    public int getSpectrum(int[] bands, int[] levels) throws Exception {
+      return getVisualizer().getSpectrum(bands, levels);
+    }
+
+    private Visualizer getVisualizer() {
+      synchronized (holderGuard) {
+        return holder.visualizer;
       }
     }
   }
