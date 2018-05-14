@@ -26,7 +26,7 @@ namespace Beeper
   public:
     void SetNewData(bool level)
     {
-      Levels = level ? Sound::Sample(Sound::Sample::MAX / 2, Sound::Sample::MAX / 2) : Sound::Sample();
+      Levels = level ? Sound::Sample(Sound::Sample::MAX / 4, Sound::Sample::MAX / 4) : Sound::Sample();
     }
     
     void Tick(uint_t /*ticks*/)

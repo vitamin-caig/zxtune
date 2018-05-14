@@ -770,12 +770,12 @@ namespace AYEMUL
       {
         if (chunk.size() <= Storage.size())
         {
-          std::transform(chunk.begin(), chunk.end(), Storage.begin(), Storage.begin(), &MaxSample);
+          std::transform(chunk.begin(), chunk.end(), Storage.begin(), Storage.begin(), &AvgSample);
           Delegate->ApplyData(std::move(Storage));
         }
         else
         {
-          std::transform(Storage.begin(), Storage.end(), chunk.begin(), chunk.begin(), &MaxSample);
+          std::transform(Storage.begin(), Storage.end(), chunk.begin(), chunk.begin(), &AvgSample);
           Delegate->ApplyData(std::move(chunk));
         }
         Delegate->Flush();
@@ -791,9 +791,14 @@ namespace AYEMUL
     {
     }
   private:
-    static inline Sound::Sample MaxSample(Sound::Sample lh, Sound::Sample rh)
+    static inline Sound::Sample::Type Avg(Sound::Sample::Type lh, Sound::Sample::Type rh)
     {
-      return Sound::Sample(std::max(lh.Left(), rh.Left()), std::max(lh.Right(), rh.Right()));
+      return (Sound::Sample::WideType(lh) + rh) / 2;
+    }
+  
+    static inline Sound::Sample AvgSample(Sound::Sample lh, Sound::Sample rh)
+    {
+      return Sound::Sample(Avg(lh.Left(), rh.Left()), Avg(lh.Right(), rh.Right()));
     }
   private:
     const Sound::Receiver::Ptr Delegate;
