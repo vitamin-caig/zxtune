@@ -32,10 +32,10 @@ public final class Log {
   }
 
   public static void w(String tag, Throwable e, String msg) {
-    android.util.Log.w(tag, msg, e);
-    if (e instanceof DeadObjectException) {
-      logDeadObjectException(e);
-    } else {
+    if (BuildConfig.DEBUG) {
+      android.util.Log.w(tag, msg, e);
+    }
+    if (needLogException(e)) {
       Analytics.logException(e);
     }
   }
@@ -44,10 +44,13 @@ public final class Log {
     w(tag, e, String.format(Locale.US, msg, params));
   }
 
-  private static void logDeadObjectException(Throwable e) {
-    if (!deadObjectExceptionLogged) {
+  private static boolean needLogException(Throwable e) {
+    if (e instanceof DeadObjectException) {
+      if (deadObjectExceptionLogged) {
+        return false;
+      }
       deadObjectExceptionLogged = true;
-      Analytics.logException(e);
     }
+    return true;
   }
 }
