@@ -18,6 +18,7 @@ import java.util.Locale;
 
 import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.modarchive.Author;
 import app.zxtune.fs.modarchive.Catalog;
 import app.zxtune.fs.modarchive.Genre;

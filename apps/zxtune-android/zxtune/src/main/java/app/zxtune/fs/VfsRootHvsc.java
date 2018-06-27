@@ -14,6 +14,7 @@ import java.io.IOException;
 
 import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
 import app.zxtune.fs.hvsc.Path;

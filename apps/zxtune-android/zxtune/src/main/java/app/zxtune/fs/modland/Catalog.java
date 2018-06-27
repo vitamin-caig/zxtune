@@ -8,13 +8,12 @@ package app.zxtune.fs.modland;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import app.zxtune.fs.HttpProvider;
 import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.http.HttpProvider;
 
 public abstract class Catalog {
 

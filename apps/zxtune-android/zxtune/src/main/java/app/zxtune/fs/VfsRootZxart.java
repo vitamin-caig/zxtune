@@ -21,6 +21,7 @@ import java.util.Locale;
 
 import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.zxart.Author;
 import app.zxtune.fs.zxart.Catalog;
 import app.zxtune.fs.zxart.Identifier;

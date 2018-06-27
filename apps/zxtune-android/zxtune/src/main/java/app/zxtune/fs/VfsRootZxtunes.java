@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.zxtunes.Author;
 import app.zxtune.fs.zxtunes.Catalog;
 import app.zxtune.fs.zxtunes.Identifier;

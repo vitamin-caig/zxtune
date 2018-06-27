@@ -18,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.zxtune.Log;
-import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.http.HttpProvider;
 
 /**
  * Authors:

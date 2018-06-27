@@ -27,12 +27,11 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import app.zxtune.Log;
-import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.http.HttpProvider;
 
 /**
  * API entry point:
@@ -462,25 +461,18 @@ class RemoteCatalog extends Catalog {
   }
 
   private void loadSinglePage(String uri, RootElement root) throws IOException {
-    final HttpURLConnection connection = http.connect(Uri.parse(uri));
-    performXmlQuery(connection, root);
+    final InputStream stream = http.getInputStream(Uri.parse(uri));
+    performXmlQuery(stream, root);
   }
 
-  private void performXmlQuery(HttpURLConnection connection, RootElement root) throws IOException {
+  private void performXmlQuery(InputStream httpStream, RootElement root) throws IOException {
     try {
-      final InputStream stream = new BufferedInputStream(connection.getInputStream());
-      try {
-        Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
-      } finally {
-        stream.close();
-      }
+      final InputStream stream = new BufferedInputStream(httpStream);
+      Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
     } catch (SAXException e) {
       throw new IOException(e);
-    } catch (IOException e) {
-      http.checkConnectionError();
-      throw e;
     } finally {
-      connection.disconnect();
+      httpStream.close();
     }
   }
 

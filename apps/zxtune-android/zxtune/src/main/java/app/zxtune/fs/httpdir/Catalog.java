@@ -7,15 +7,13 @@
 package app.zxtune.fs.httpdir;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.List;
 
-import app.zxtune.fs.HttpProvider;
 import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.http.HttpProvider;
 
 public abstract class Catalog {
 

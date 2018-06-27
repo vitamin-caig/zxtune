@@ -14,6 +14,8 @@ import java.io.IOException;
 import app.zxtune.MainApplication;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.cache.CacheFactory;
+import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.HttpProviderFactory;
 
 public final class Vfs {
 
@@ -38,7 +40,7 @@ public final class Vfs {
     if (rootSingleton == null) {
       final VfsRootComposite composite = new VfsRootComposite();
       final Context appContext = MainApplication.getInstance();
-      final HttpProvider http = new HttpProvider(appContext);
+      final HttpProvider http = HttpProviderFactory.createProvider(appContext);
       final CacheDir cache = CacheFactory.create(appContext);
       composite.addSubroot(new VfsRootLocal(appContext));
       composite.addSubroot(new VfsRootZxtunes(appContext, http, cache));

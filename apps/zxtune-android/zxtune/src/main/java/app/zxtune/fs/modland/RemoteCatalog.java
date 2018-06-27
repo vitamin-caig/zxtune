@@ -14,12 +14,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.zxtune.Log;
-import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.http.HttpProvider;
 
 /**
  * Use pure http response parsing via regex in despite that page structure seems to be xml well formed.

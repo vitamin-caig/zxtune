@@ -2,7 +2,6 @@ package app.zxtune.fs.httpdir;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -14,7 +13,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.http.HttpProvider;
 
 final class RemoteCatalog extends Catalog {
 

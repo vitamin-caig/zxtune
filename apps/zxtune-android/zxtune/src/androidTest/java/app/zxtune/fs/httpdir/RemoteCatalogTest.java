@@ -11,7 +11,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.HttpProviderFactory;
 
 public class RemoteCatalogTest {
 
@@ -26,7 +27,7 @@ public class RemoteCatalogTest {
     @Before
     public void setUp() {
         final Context ctx = InstrumentationRegistry.getTargetContext();
-        final HttpProvider http = new HttpProvider(ctx);
+        final HttpProvider http = HttpProviderFactory.createProvider(ctx);
         catalog = new RemoteCatalog(http);
     }
 

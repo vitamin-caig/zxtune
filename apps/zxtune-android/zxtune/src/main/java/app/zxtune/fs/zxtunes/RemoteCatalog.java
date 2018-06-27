@@ -23,12 +23,11 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import app.zxtune.Log;
-import app.zxtune.fs.HttpProvider;
+import app.zxtune.fs.http.HttpProvider;
 
 final class RemoteCatalog extends Catalog {
 
@@ -52,9 +51,9 @@ final class RemoteCatalog extends Catalog {
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
     Log.d(TAG, "queryAuthors()");
-    final HttpURLConnection connection = http.connect(Uri.parse(ALL_AUTHORS_QUERY));
+    final InputStream stream = http.getInputStream(Uri.parse(ALL_AUTHORS_QUERY));
     final RootElement root = createAuthorsParserRoot(visitor);
-    performQuery(connection, root);
+    performQuery(stream, root);
   }
 
   @Override
@@ -64,9 +63,9 @@ final class RemoteCatalog extends Catalog {
   }
 
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
-    final HttpURLConnection connection = http.connect(Uri.parse(query));
+    final InputStream stream = http.getInputStream(Uri.parse(query));
     final RootElement root = createModulesParserRoot(visitor);
-    performQuery(connection, root);
+    performQuery(stream, root);
   }
 
   @Override
@@ -93,18 +92,15 @@ final class RemoteCatalog extends Catalog {
     http.getContent(Uri.parse(query), stream);
   }
 
-  private void performQuery(HttpURLConnection connection, RootElement root)
+  private void performQuery(InputStream httpStream, RootElement root)
           throws IOException {
     try {
-      final InputStream stream = new BufferedInputStream(connection.getInputStream());
+      final InputStream stream = new BufferedInputStream(httpStream);
       Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
     } catch (SAXException e) {
       throw new IOException(e);
-    } catch (IOException e) {
-      http.checkConnectionError();
-      throw e;
     } finally {
-      connection.disconnect();
+      httpStream.close();
     }
   }
 

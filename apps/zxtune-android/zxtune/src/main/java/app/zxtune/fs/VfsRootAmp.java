@@ -24,6 +24,7 @@ import app.zxtune.fs.amp.Group;
 import app.zxtune.fs.amp.Identifier;
 import app.zxtune.fs.amp.Track;
 import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.http.HttpProvider;
 
 final class VfsRootAmp extends StubObject implements VfsRoot {
 
