@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<app.zxtune.ui.CheckableRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<app.zxtune.ui.utils.CheckableRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/block"
     android:background="@drawable/checkable_background"
     >
@@ -45,4 +45,4 @@
         android:layout_centerVertical="true"
         android:drawablePadding="@dimen/spacing_half" />
 
-</app.zxtune.ui.CheckableRelativeLayout>
+</app.zxtune.ui.utils.CheckableRelativeLayout>

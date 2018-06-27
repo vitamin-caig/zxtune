@@ -29,6 +29,8 @@ import app.zxtune.R;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.ItemState;
 import app.zxtune.playlist.PlaylistQuery;
+import app.zxtune.ui.utils.ListItemViewHolder;
+import app.zxtune.ui.utils.ListViewTools;
 
 public class PlaylistView extends DragSortListView
     implements

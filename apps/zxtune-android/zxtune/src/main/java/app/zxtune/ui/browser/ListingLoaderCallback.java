@@ -19,7 +19,7 @@ import android.widget.ProgressBar;
 
 import app.zxtune.MainApplication;
 import app.zxtune.fs.VfsDir;
-import app.zxtune.ui.ListViewTools;
+import app.zxtune.ui.utils.ListViewTools;
 
 class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, ListingLoader.Callback {
   

@@ -19,7 +19,7 @@ import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
-import app.zxtune.ui.ListItemViewHolder;
+import app.zxtune.ui.utils.ListItemViewHolder;
 
 class BrowserViewHolder {
 

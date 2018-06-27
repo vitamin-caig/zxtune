@@ -43,6 +43,7 @@ import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.ui.browser.BreadCrumbsView;
 import app.zxtune.ui.browser.BrowserController;
 import app.zxtune.ui.browser.BrowserView;
+import app.zxtune.ui.utils.ListViewTools;
 
 public class BrowserFragment extends Fragment implements PlaybackServiceConnection.Callback {
 

@@ -52,6 +52,7 @@ import app.zxtune.playback.stubs.PlaybackControlStub;
 import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.playback.stubs.SeekControlStub;
 import app.zxtune.playback.stubs.VisualizerStub;
+import app.zxtune.ui.utils.UiThreadCallbackAdapter;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 

@@ -45,13 +45,13 @@
     <PreferenceCategory
       android:title="@string/pref_zxtune_sound_mixer_x_0_x_title"
       >
-      <app.zxtune.ui.SeekBarPreference
+      <app.zxtune.ui.utils.SeekBarPreference
         android:key="@string/pref_zxtune_sound_mixer_3_0_0"
         android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
         android:defaultValue="@integer/pref_zxtune_sound_mixer_3_0_0_default"
         android:max="100"
       />
-      <app.zxtune.ui.SeekBarPreference
+      <app.zxtune.ui.utils.SeekBarPreference
         android:key="@string/pref_zxtune_sound_mixer_3_0_1"
         android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
         android:defaultValue="@integer/pref_zxtune_sound_mixer_3_0_1_default"
@@ -62,13 +62,13 @@
     <PreferenceCategory
       android:title="@string/pref_zxtune_sound_mixer_x_1_x_title"
       >
-      <app.zxtune.ui.SeekBarPreference
+      <app.zxtune.ui.utils.SeekBarPreference
         android:key="@string/pref_zxtune_sound_mixer_3_1_0"
         android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
         android:defaultValue="@integer/pref_zxtune_sound_mixer_3_1_0_default"
         android:max="100"
       />
-      <app.zxtune.ui.SeekBarPreference
+      <app.zxtune.ui.utils.SeekBarPreference
         android:key="@string/pref_zxtune_sound_mixer_3_1_1"
         android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
         android:defaultValue="@integer/pref_zxtune_sound_mixer_3_1_1_default"
@@ -79,13 +79,13 @@
     <PreferenceCategory
       android:title="@string/pref_zxtune_sound_mixer_x_2_x_title"
       >
-      <app.zxtune.ui.SeekBarPreference
+      <app.zxtune.ui.utils.SeekBarPreference
         android:key="@string/pref_zxtune_sound_mixer_3_2_0"
         android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
         android:defaultValue="@integer/pref_zxtune_sound_mixer_3_2_0_default"
         android:max="100"
       />
-      <app.zxtune.ui.SeekBarPreference
+      <app.zxtune.ui.utils.SeekBarPreference
         android:key="@string/pref_zxtune_sound_mixer_3_2_1"
         android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
         android:defaultValue="@integer/pref_zxtune_sound_mixer_3_2_1_default"

@@ -9,7 +9,7 @@
  *
  */
 
-package app.zxtune.ui;
+package app.zxtune.ui.utils;
 
 import android.content.Context;
 import android.content.res.TypedArray;

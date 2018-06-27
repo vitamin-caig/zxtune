@@ -8,7 +8,7 @@
  *
  */
 
-package app.zxtune.ui;
+package app.zxtune.ui.utils;
 
 import android.app.Activity;
 
@@ -16,7 +16,7 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 
-final class UiThreadCallbackAdapter implements Callback {
+public final class UiThreadCallbackAdapter implements Callback {
   
   private final Activity activity;
   private final Callback delegate;

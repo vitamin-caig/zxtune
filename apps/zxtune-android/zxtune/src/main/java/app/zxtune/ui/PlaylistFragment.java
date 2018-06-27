@@ -36,6 +36,7 @@ import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.playlist.PlaylistQuery;
+import app.zxtune.ui.utils.ListViewTools;
 
 public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
 

@@ -28,7 +28,7 @@ import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
-import app.zxtune.ui.ListViewTools;
+import app.zxtune.ui.utils.ListViewTools;
 
 public class BrowserController {
   
