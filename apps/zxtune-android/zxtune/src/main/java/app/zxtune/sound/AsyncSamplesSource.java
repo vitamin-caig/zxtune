@@ -1,6 +1,5 @@
 package app.zxtune.sound;
 
-import android.os.Process;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -33,7 +32,6 @@ class AsyncSamplesSource {
     this.thread = new Thread("RenderThread") {
       @Override
       public void run() {
-        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
         renderCycle();
       }
     };

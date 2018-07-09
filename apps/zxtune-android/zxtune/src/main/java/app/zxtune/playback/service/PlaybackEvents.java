@@ -1,5 +1,7 @@
 package app.zxtune.playback.service;
 
+import android.support.annotation.NonNull;
+
 import app.zxtune.Log;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.PlaybackControl;
@@ -42,7 +44,7 @@ class PlaybackEvents implements PlayerEventsListener {
   }
 
   @Override
-  public void onError(Exception e) {
+  public void onError(@NonNull Exception e) {
     Log.w(TAG, e, "Error occurred");
   }
 }

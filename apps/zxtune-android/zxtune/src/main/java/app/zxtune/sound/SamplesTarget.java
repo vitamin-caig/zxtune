@@ -10,41 +10,43 @@
 
 package app.zxtune.sound;
 
+import android.support.annotation.NonNull;
+
 public interface SamplesTarget {
 
   /**
    * @return target sample rate in Hz
    */
-  public int getSampleRate();
+  int getSampleRate();
   
   /**
    * @return buffer size in samples
    */
-  public int getPreferableBufferSize();
+  int getPreferableBufferSize();
 
   /**
    * Initialize target
    */
-  public void start() throws Exception;
+  void start() throws Exception;
 
   /**
    * Pause target. No underrun happens if no data called.
    * Mode is active till next writeSamples or stop call
    */
-  public void pause() throws Exception;
+  void pause() throws Exception;
 
   /**
    * @param buffer sound data in S16/stereo/interleaved format
    */
-  public void writeSamples(short[] buffer) throws Exception;
+  void writeSamples(@NonNull short[] buffer) throws Exception;
 
   /**
    * Deinitialize target
    */
-  public void stop() throws Exception;
+  void stop() throws Exception;
   
   /**
    * Release all internal resources
    */
-  public void release();
+  void release();
 }

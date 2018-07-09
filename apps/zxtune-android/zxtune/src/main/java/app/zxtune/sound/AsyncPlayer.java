@@ -10,7 +10,7 @@
 
 package app.zxtune.sound;
 
-import android.os.Process;
+import android.support.annotation.NonNull;
 
 import app.zxtune.Log;
 
@@ -131,7 +131,7 @@ public final class AsyncPlayer implements Player {
     }
 
     @Override
-    public void onError(Exception e) {
+    public void onError(@NonNull Exception e) {
       events.onError(e);
     }
   }
@@ -140,7 +140,6 @@ public final class AsyncPlayer implements Player {
     playThread = new Thread("PlayerThread") {
       @Override
       public void run() {
-        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
         sync.play();
       }
     };

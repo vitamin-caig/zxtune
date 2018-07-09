@@ -10,6 +10,8 @@
 
 package app.zxtune.sound;
 
+import android.support.annotation.NonNull;
+
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 
@@ -85,7 +87,7 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
   public void pause() {}
 
   @Override
-  public void writeSamples(short[] input) throws Exception {
+  public void writeSamples(@NonNull short[] input) throws Exception {
     final int inSamples = input.length / SamplesSource.Channels.COUNT;
     final int outBytes = inSamples * SamplesSource.Sample.BYTES; 
     allocateBuffer(outBytes);

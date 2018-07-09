@@ -8,15 +8,17 @@
  *
  */
 
-package app.zxtune.sound;
+package app.zxtune.device.sound;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.support.annotation.NonNull;
 
 import app.zxtune.Log;
 import app.zxtune.sound.SamplesSource.Channels;
 import app.zxtune.sound.SamplesSource.Sample;
+import app.zxtune.sound.SamplesTarget;
 
 public final class SoundOutputSamplesTarget implements SamplesTarget {
 
@@ -59,17 +61,17 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
   }
   
   @Override
-  public void start() throws Exception {
+  public void start() {
     target.play();
   }
 
   @Override
-  public void pause() throws Exception {
+  public void pause() {
     target.pause();
   }
 
   @Override
-  public void writeSamples(short[] buffer) throws Exception {
+  public void writeSamples(@NonNull short[] buffer) throws Exception {
     for (int pos = 0, toWrite = buffer.length; toWrite != 0;) {
       final int written = target.write(buffer, pos, toWrite);
       if (written > 0) {

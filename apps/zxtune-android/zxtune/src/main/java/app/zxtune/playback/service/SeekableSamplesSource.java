@@ -1,5 +1,7 @@
 package app.zxtune.playback.service;
 
+import android.support.annotation.NonNull;
+
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Analytics;
@@ -30,7 +32,7 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
   }
 
   @Override
-  public boolean getSamples(short[] buf) throws Exception {
+  public boolean getSamples(@NonNull short[] buf) throws Exception {
     if (seekRequest != null) {
       final int frame = (int) seekRequest.divides(frameDuration);
       player.setPosition(frame);

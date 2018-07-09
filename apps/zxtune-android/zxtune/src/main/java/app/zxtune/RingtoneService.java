@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
@@ -144,7 +145,7 @@ public class RingtoneService extends IntentService {
   //TODO: rework errors processing scheme
   private class NotifyEventsListener extends StubPlayerEventsListener {
     @Override
-    public void onError(Exception e) {
+    public void onError(@NonNull Exception e) {
       makeToast(e);
     }
   }; 
@@ -243,7 +244,7 @@ public class RingtoneService extends IntentService {
     }
 
     @Override
-    public boolean getSamples(short[] buf) throws Exception {
+    public boolean getSamples(@NonNull short[] buf) throws Exception {
       if (restSamples > 0 && player.render(buf)) {
         restSamples -= buf.length / SamplesSource.Channels.COUNT;
         return true;

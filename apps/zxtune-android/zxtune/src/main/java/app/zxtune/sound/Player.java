@@ -15,15 +15,15 @@ package app.zxtune.sound;
  */
 public interface Player {
 
-  public void startPlayback();
+  void startPlayback();
 
-  public void stopPlayback();
+  void stopPlayback();
 
-  public void pausePlayback();
+  void pausePlayback();
   
-  public boolean isStarted();
+  boolean isStarted();
 
-  public boolean isPaused();
+  boolean isPaused();
   
-  public void release();
+  void release();
 }

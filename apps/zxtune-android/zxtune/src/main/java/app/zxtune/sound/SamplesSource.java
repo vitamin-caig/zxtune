@@ -10,6 +10,8 @@
 
 package app.zxtune.sound;
 
+import android.support.annotation.NonNull;
+
 public interface SamplesSource {
 
   final class Channels {
@@ -31,7 +33,7 @@ public interface SamplesSource {
    * @param buf result buffer of 16-bit signed interleaved stereo signal
    * @return true if buffer filled
    */
-  boolean getSamples(short[] buf) throws Exception;
+  boolean getSamples(@NonNull short[] buf) throws Exception;
 
   /**
    * Reset playback to initial position keeping sampleRate and other params intact

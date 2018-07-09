@@ -43,7 +43,7 @@ import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
 import app.zxtune.sound.SamplesTarget;
-import app.zxtune.sound.SoundOutputSamplesTarget;
+import app.zxtune.device.sound.SoundOutputSamplesTarget;
 import app.zxtune.sound.StubPlayer;
 
 public class PlaybackServiceLocal implements PlaybackService, Releaseable {

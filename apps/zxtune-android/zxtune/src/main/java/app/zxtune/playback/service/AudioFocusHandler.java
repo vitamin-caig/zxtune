@@ -6,7 +6,7 @@ import android.media.AudioManager;
 import app.zxtune.Log;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
-import app.zxtune.sound.SoundOutputSamplesTarget;
+import app.zxtune.device.sound.SoundOutputSamplesTarget;
 
 public class AudioFocusHandler extends CallbackStub implements AudioManager.OnAudioFocusChangeListener {
 
