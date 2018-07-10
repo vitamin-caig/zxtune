@@ -97,7 +97,7 @@ namespace
       std::vector<char> narrow(str.size());
       const auto narrowSize = ::WideCharToMultiByte(CP_OEMCP, 0, wide.data(), wideSize, narrow.data(), narrow.size(), 0, 0);
       DWORD realSize = 0;
-      ::WriteConsole(Handle, narrow.data(), narrowSize, &realSize, NULL);
+      ::WriteFile(Handle, narrow.data(), narrowSize, &realSize, NULL);
     }
   private:
     const HANDLE Handle;
