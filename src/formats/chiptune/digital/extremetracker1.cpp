@@ -443,7 +443,7 @@ namespace Chiptune
       {
         Positions result;
         result.Loop = Source.LoopPosition;
-        result.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + Source.Length);
+        result.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + std::max<uint_t>(Source.Length, 1));
         Dbg("Positions: %1%, loop to %2%", result.GetSize(), result.GetLoop());
         target.SetPositions(std::move(result));
       }
@@ -606,7 +606,7 @@ namespace Chiptune
       //tempo
       "03-0f"
       //length
-      "01-64"
+      "00-64"
       //title
       "20-7f{30}"
       //unknown
