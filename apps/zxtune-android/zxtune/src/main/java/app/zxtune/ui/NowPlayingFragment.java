@@ -52,7 +52,9 @@ import app.zxtune.playback.stubs.PlaybackControlStub;
 import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.playback.stubs.SeekControlStub;
 import app.zxtune.playback.stubs.VisualizerStub;
+import app.zxtune.ui.controllers.VisualizerController;
 import app.zxtune.ui.utils.UiThreadCallbackAdapter;
+import app.zxtune.ui.views.SpectrumAnalyzerView;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
@@ -64,8 +66,8 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   private PlaybackService service;
   private Callback callback;
   private Releaseable callbackConnection;
+  private final VisualizerController visualizer = new VisualizerController();
   private SeekControlView seek;
-  private VisualizerView visualizer;
   private InformationView info;
   private PlaybackControlsView ctrls;
   private TrackActionsMenu trackActionsMenu;
@@ -139,7 +141,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     seek = new SeekControlView(view);
-    visualizer = (VisualizerView) view.findViewById(R.id.visualizer);
+    visualizer.setView((SpectrumAnalyzerView) view.findViewById(R.id.visualizer));
     info = new InformationView(view);
     ctrls = new PlaybackControlsView(view);
     bindViewsToConnectedService();
@@ -188,7 +190,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   
   @Override
   public void onDestroyView() {
-    visualizer.setEnabled(false);
+    visualizer.shutdown();
     seek.setEnabled(false);
     super.onDestroyView();
   }
@@ -244,7 +246,11 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     @Override
     public void onStateChanged(PlaybackControl.State state) {
       final boolean isPlaying = state == PlaybackControl.State.PLAYING;
-      visualizer.setEnabled(isPlaying);
+      if (isPlaying) {
+        visualizer.startUpdates();
+      } else {
+        visualizer.stopUpdates();
+      }
       seek.setEnabled(isPlaying);
       ctrls.updateStatus(isPlaying);
     }

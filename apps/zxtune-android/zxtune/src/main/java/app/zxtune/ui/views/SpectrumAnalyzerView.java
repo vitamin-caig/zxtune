@@ -8,58 +8,44 @@
  *
  */
 
-package app.zxtune.ui;
+package app.zxtune.ui.views;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
 
-import app.zxtune.Log;
-import app.zxtune.playback.Visualizer;
-import app.zxtune.playback.stubs.VisualizerStub;
+public class SpectrumAnalyzerView extends View {
 
-public class VisualizerView extends View {
-  
-  private static final String TAG = VisualizerView.class.getName();
-  private Visualizer source;
-  //use dedicated looper for smooth visualizer
-  private Handler looper;
-  private UpdateViewTask updateTask;
+  public static final int MAX_BANDS = 96;
+  public static final int MAX_LEVEL = 100;
+  private static final int MIN_BAR_WIDTH = 3;
+  private static final int BAR_PADDING = 1;
+  private static final int FALL_SPEED = 10;
 
   private Rect visibleRect;
   
   private SpectrumVisualizer visualizer;
   
-  public VisualizerView(Context context, AttributeSet attrs, int defStyle) {
+  public SpectrumAnalyzerView(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
     init();
   }
   
-  public VisualizerView(Context context, AttributeSet attrs) {
+  public SpectrumAnalyzerView(Context context, AttributeSet attrs) {
     super(context, attrs);
     init();
   }
   
-  public VisualizerView(Context context) {
+  public SpectrumAnalyzerView(Context context) {
     super(context);
     init();
   }
-  
-  final synchronized void setSource(Visualizer source) {
-    this.source = source;
-  }
-  
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    updateTask.stop();
-    if (enabled) {
-      updateTask.run();
-    }
+
+  public final boolean update(int channels, int[] bands, int[] levels) {
+    return visualizer.update(channels, bands, levels);
   }
   
   @Override
@@ -68,21 +54,18 @@ public class VisualizerView extends View {
   }
   
   @Override
-  protected synchronized void onDraw(Canvas canvas) {
+  protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     visualizer.draw(canvas);
   }
   
   private void init() {
-    source = VisualizerStub.instance();
-    looper = new Handler();
-    updateTask = new UpdateViewTask();
     visibleRect = new Rect();
     visualizer = new SpectrumVisualizer();
     setWillNotDraw(false);
   }
   
-  private synchronized void fillVisibleRect(int w, int h) {
+  private void fillVisibleRect(int w, int h) {
     final int padLeft = getPaddingLeft();
     final int padRight = getPaddingRight();
     final int padTop = getPaddingTop();
@@ -102,16 +85,8 @@ public class VisualizerView extends View {
   
   private final class SpectrumVisualizer {
     
-    private static final int MAX_BANDS = 96;
-    private static final int MAX_LEVEL = 100;
-    private static final int MIN_BAR_WIDTH = 3;
-    private static final int BAR_PADDING = 1;
-    private static final int FALL_SPEED = 10;
-
     private final Rect barRect;
     private final Paint paint;
-    private final int[] bands;
-    private final int[] levels;
     private int barWidth;
     private int[] values;
     private boolean[] changes;
@@ -122,8 +97,6 @@ public class VisualizerView extends View {
       this.barRect = new Rect();
       this.paint = new Paint();
       this.paint.setColor(getResources().getColor(android.R.color.primary_text_dark));
-      this.bands = new int[MAX_BANDS];
-      this.levels = new int[MAX_BANDS];
       this.barWidth = MIN_BAR_WIDTH;
       this.values = new int[1];
       this.changes = new boolean[1];
@@ -140,16 +113,16 @@ public class VisualizerView extends View {
       upperChange = bars - 1;
     }
 
-    final boolean update() throws Exception {
-      final int channels = source.getSpectrum(bands, levels);
-      updateValues(channels);
+    final boolean update(int channels, int[] bars, int[] levels) {
+      updateValues(channels, bars, levels);
       if (lowerChange != upperChange) {
         final int updateLeft = visibleRect.left + barWidth * lowerChange;
         final int updateRight = visibleRect.left + barWidth * upperChange;
         invalidate(updateLeft, visibleRect.top, updateRight, visibleRect.bottom);
         return true;
+      } else {
+        return false;
       }
-      return false;
     }
 
     final void draw(Canvas canvas) {
@@ -166,7 +139,7 @@ public class VisualizerView extends View {
       }
     }
 
-    private void updateValues(int channels) {
+    private void updateValues(int channels, int[] bands, int[] levels) {
       fallBars();
       final int height = visibleRect.height();
       for (int idx = 0; idx != channels; ++idx) {
@@ -198,27 +171,6 @@ public class VisualizerView extends View {
           changes[i] = true;
         }
       }
-    }
-  }
-  
-  private final class UpdateViewTask implements Runnable {
-    
-    @Override
-    public void run() {
-      try {
-        update();
-        looper.postDelayed(this, 100);
-      } catch (Exception e) {
-        Log.w(TAG, e, "UpdateViewTask");
-      }
-    }
-    
-    private synchronized boolean update() throws Exception {
-      return visualizer.update();
-    }
-
-    final void stop() {
-      looper.removeCallbacks(this);
     }
   }
 }
