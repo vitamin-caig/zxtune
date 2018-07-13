@@ -31,7 +31,6 @@ namespace
   {
     std::cout <<
       "Positions: " << info.PositionsCount() << " (" << info.LoopPosition() << ')' << std::endl <<
-      "Patterns: " << info.PatternsCount() << std::endl <<
       "Frames: " << info.FramesCount() << " (" << info.LoopFrame() << ')' << std::endl <<
       "Channels: " << info.ChannelsCount() << std::endl <<
       "Initial tempo: " << info.Tempo() << std::endl;

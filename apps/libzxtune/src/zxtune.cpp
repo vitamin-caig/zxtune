@@ -304,7 +304,6 @@ bool ZXTune_GetModuleInfo(ZXTuneHandle module, ZXTuneModuleInfo* info)
     const Module::Information::Ptr modinfo = holder->GetModuleInformation();
     info->Positions = modinfo->PositionsCount();
     info->LoopPosition = modinfo->LoopPosition();
-    info->Patterns = modinfo->PatternsCount();
     info->Frames = modinfo->FramesCount();
     info->LoopFrame = modinfo->LoopFrame();
     info->Channels = modinfo->ChannelsCount();

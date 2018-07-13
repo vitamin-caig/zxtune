@@ -158,10 +158,6 @@ namespace TurboSound
     {
       return First->LoopPosition();
     }
-    uint_t PatternsCount() const override
-    {
-      return First->PatternsCount() + Second->PatternsCount();
-    }
     uint_t FramesCount() const override
     {
       return First->FramesCount();

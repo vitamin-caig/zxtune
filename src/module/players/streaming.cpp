@@ -116,10 +116,6 @@ namespace Module
     {
       return 0;
     }
-    uint_t PatternsCount() const override
-    {
-      return 0;
-    }
     uint_t FramesCount() const override
     {
       return TotalFrames;

@@ -314,11 +314,6 @@ namespace Module
       return Model->GetOrder().GetLoopPosition();
     }
 
-    uint_t PatternsCount() const override
-    {
-      return Model->GetPatterns().GetSize();
-    }
-
     uint_t FramesCount() const override
     {
       Initialize();

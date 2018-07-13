@@ -75,11 +75,6 @@ namespace AHX
       return Hvl->ht_PosJump;
     }
 
-    uint_t PatternsCount() const override
-    {
-      return Hvl->ht_TrackNr;//????
-    }
-
     uint_t FramesCount() const override
     {
       if (!CachedFramesCount)

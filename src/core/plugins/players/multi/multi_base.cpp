@@ -83,10 +83,6 @@ namespace Module
     {
       return Delegate->LoopPosition();
     }
-    uint_t PatternsCount() const override
-    {
-      return Delegate->PatternsCount();
-    }
     uint_t FramesCount() const override
     {
       return Delegate->FramesCount();

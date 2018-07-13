@@ -135,11 +135,6 @@ namespace Xmp
       return Info.rst;
     }
 
-    uint_t PatternsCount() const override
-    {
-      return Info.pat;
-    }
-
     uint_t FramesCount() const override
     {
       return Frames;

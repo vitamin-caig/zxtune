@@ -28,7 +28,7 @@ namespace Module
 
     //! Current position (up to Information::PositionsCount)
     virtual uint_t Position() const = 0;
-    //! Current pattern (up to Information::PatternsCount)
+    //! Current pattern
     virtual uint_t Pattern() const = 0;
     //! Current pattern size
     virtual uint_t PatternSize() const = 0;

@@ -308,11 +308,6 @@ namespace Sid
       return 0;
     }
 
-    uint_t PatternsCount() const override
-    {
-      return 0;
-    }
-
     uint_t FramesCount() const override
     {
       if (!Frames)

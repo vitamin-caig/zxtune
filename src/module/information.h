@@ -30,8 +30,6 @@ namespace Module
     virtual uint_t PositionsCount() const = 0;
     //! Loop position index
     virtual uint_t LoopPosition() const = 0;
-    //! Total patterns count
-    virtual uint_t PatternsCount() const = 0;
     //! Total frames count
     virtual uint_t FramesCount() const = 0;
     //! Loop position frame

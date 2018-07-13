@@ -49,7 +49,6 @@ typedef struct
 {
   int Positions;
   int LoopPosition;
-  int Patterns;
   int Frames;
   int LoopFrame;
   int Channels;

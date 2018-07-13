@@ -1466,11 +1466,6 @@ namespace TFMMusicMaker
       return Data->Order->GetLoopPosition();
     }
 
-    uint_t PatternsCount() const override
-    {
-      return Data->Patterns->GetSize();
-    }
-
     uint_t FramesCount() const override
     {
       Initialize();
