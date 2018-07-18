@@ -26,15 +26,15 @@ public final class SyncPlayer {
 
   private final PlayerEventsListener events;
   private final AtomicInteger state;
-  private AsyncSamplesSource source;
-  private SamplesTarget target;
+  private SamplesSource source;
+  private AsyncSamplesTarget target;
 
   public SyncPlayer(SamplesSource source, SamplesTarget target, PlayerEventsListener events) throws Exception {
     this.events = events;
     this.state = new AtomicInteger(STOPPED);
     source.initialize(target.getSampleRate());
-    this.source = new AsyncSamplesSource(source, target.getPreferableBufferSize());
-    this.target = target;
+    this.source = source;
+    this.target = new AsyncSamplesTarget(target);
   }
 
   public final void play() {
@@ -89,10 +89,11 @@ public final class SyncPlayer {
         if (state.compareAndSet(PAUSING, PAUSED)) {
           doPause();
         } else {
-          final short[] buf = source.getNextSamples();
-          if (buf != null) {
-            target.writeSamples(buf);
+          final short[] buf = target.getBuffer();
+          if (source.getSamples(buf)) {
+            target.commitBuffer();
           } else {
+            source.reset();
             events.onFinish();
             break;
           }
@@ -108,7 +109,8 @@ public final class SyncPlayer {
     }
   }
 
-  private void doPause() throws InterruptedException {
+  private void doPause() throws Exception {
+    target.pause();
     events.onPause();
     synchronized (state) {
       while (state.compareAndSet(PAUSED, PAUSED)) {
