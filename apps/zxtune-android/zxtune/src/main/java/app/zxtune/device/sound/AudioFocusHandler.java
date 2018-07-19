@@ -1,4 +1,4 @@
-package app.zxtune.playback.service;
+package app.zxtune.device.sound;
 
 import android.content.Context;
 import android.media.AudioManager;
@@ -6,13 +6,12 @@ import android.media.AudioManager;
 import app.zxtune.Log;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
-import app.zxtune.device.sound.SoundOutputSamplesTarget;
 
 public class AudioFocusHandler extends CallbackStub implements AudioManager.OnAudioFocusChangeListener {
 
   private static final String TAG = AudioFocusHandler.class.getName();
 
-  private static enum State {
+  private enum State {
     STOPPED,
     PLAYING,
     PAUSED,

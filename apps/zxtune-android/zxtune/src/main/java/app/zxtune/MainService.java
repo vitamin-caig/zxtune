@@ -18,7 +18,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 
 import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.service.AudioFocusHandler;
+import app.zxtune.device.sound.AudioFocusHandler;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.service.PlayingStateCallback;
 import app.zxtune.playback.stubs.CallbackStub;
