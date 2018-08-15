@@ -36,11 +36,7 @@ import app.zxtune.core.Player;
 import app.zxtune.core.Properties;
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
-import app.zxtune.sound.PlayerEventsListener;
-import app.zxtune.sound.SamplesSource;
-import app.zxtune.sound.StubPlayerEventsListener;
-import app.zxtune.sound.SyncPlayer;
-import app.zxtune.sound.WaveWriteSamplesTarget;
+import app.zxtune.sound.*;
 
 public class RingtoneService extends IntentService {
 
@@ -148,16 +144,27 @@ public class RingtoneService extends IntentService {
     public void onError(@NonNull Exception e) {
       makeToast(e);
     }
+
+    @Override
+    public void onFinish() {
+      synchronized (this) {
+        notifyAll();
+      }
+    }
   }; 
   
   private void convert(PlayableItem item, TimeStamp limit, File location)  throws Exception {
     makeToast(getString(R.string.ringtone_create_started), Toast.LENGTH_SHORT);
     final TimeLimitedSamplesSource source = new TimeLimitedSamplesSource(item.getModule().createPlayer(), limit);
     final WaveWriteSamplesTarget target = new WaveWriteSamplesTarget(location.getAbsolutePath());
-    final PlayerEventsListener events = new NotifyEventsListener(); 
-    final SyncPlayer player = new SyncPlayer(source, target, events);
+    final PlayerEventsListener events = new NotifyEventsListener();
+    final app.zxtune.sound.Player player = AsyncPlayer.create(source, target, events);
     try {
-      player.play();
+      synchronized (events) {
+        player.startPlayback();
+        events.wait();
+        player.stopPlayback();
+      }
     } finally {
       player.release();
     }
