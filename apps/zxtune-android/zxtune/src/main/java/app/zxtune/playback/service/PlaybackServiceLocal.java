@@ -76,7 +76,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
     this.holderGuard = new Object();
-    this.holder = new Holder();
+    this.holder = Holder.instance();
   }
 
   @Override
@@ -109,8 +109,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void execute() throws Exception {
       final Iterator iter = IteratorFactory.createIterator(context, uris);
-      setNewIterator(iter);
-      seek.setPosition(position);
+      synchronized (holderGuard) {
+        setNewIterator(iter);
+        seek.setPosition(position);
+      }
     }
   }
 
@@ -160,26 +162,27 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   private void setNewHolder(Holder holder) {
-    playback.stop();
-    synchronized (holderGuard) {
-      final Holder oldHolder = this.holder;
-      try {
-        this.holder = holder;
-        if (oldHolder.iterator != holder.iterator) {
-          Log.d(TAG, "Update iterator %s -> %s", oldHolder.iterator, holder.iterator);
-          oldHolder.iterator.release();
-        }
-        callbacks.onItemChanged(holder.item);
-      } finally {
-        oldHolder.release();
+    final Holder oldHolder = this.holder;
+    this.holder = Holder.instance();
+    oldHolder.player.stopPlayback();
+    try {
+      this.holder = holder;
+      if (oldHolder.iterator != holder.iterator) {
+        Log.d(TAG, "Update iterator %s -> %s", oldHolder.iterator, holder.iterator);
+        oldHolder.iterator.release();
       }
+      callbacks.onItemChanged(holder.item);
+    } finally {
+      oldHolder.release();
     }
   }
 
 
   private void play(Iterator iter) throws Exception {
-    setNewIterator(iter);
-    getPlayer().startPlayback();
+    synchronized (holderGuard) {
+      setNewIterator(iter);
+      holder.player.startPlayback();
+    }
   }
 
   private void playNext() throws Exception {
@@ -205,12 +208,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private Iterator getPrevIterator() {
     synchronized (holderGuard) {
       return holder.iterator.prev() ? holder.iterator : null;
-    }
-  }
-
-  private Player getPlayer() {
-    synchronized (holderGuard) {
-        return holder.player;
     }
   }
 
@@ -253,7 +250,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       } finally {
         holder.iterator.release();
         holder.release();
-        holder = new Holder();
+        holder = Holder.instance();
       }
     }
   }
@@ -310,7 +307,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     public final SeekControl seek;
     public final Visualizer visualizer;
 
-    Holder() {
+    private Holder() {
       this.iterator = IteratorStub.instance();
       this.item = PlayableItemStub.instance();
       this.player = StubPlayer.instance();
@@ -334,6 +331,16 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       player.release();
       item.release();
     }
+
+    public static Holder instance() {
+      return Singleton.INSTANCE;
+    }
+
+    //onDemand holder idiom
+    private static class Singleton {
+      public static final Holder INSTANCE = new Holder();
+    }
+
   }
 
   private final class DispatchedPlaybackControl implements PlaybackControl {
@@ -346,26 +353,49 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void play() {
-      getPlayer().startPlayback();
+      executeCommand(new Command() {
+        @Override
+        public void execute() {
+          synchronized (holderGuard) {
+            holder.player.startPlayback();
+          }
+        }
+      });
     }
 
     @Override
     public void stop() {
-      getPlayer().stopPlayback();
+      executeCommand(new Command() {
+        @Override
+        public void execute() {
+          synchronized (holderGuard) {
+            holder.player.stopPlayback();
+          }
+        }
+      });
     }
 
     @Override
     public void pause() {
-      getPlayer().pausePlayback();
+      executeCommand(new Command() {
+        @Override
+        public void execute() {
+          synchronized (holderGuard) {
+            holder.player.pausePlayback();
+          }
+        }
+      });
     }
 
     @Override
     public PlaybackControl.State getState() {
-      final Player player = getPlayer();
-      return player.isStarted()
-              ? (player.isPaused() ? State.PAUSED
-              : State.PLAYING)
-              : State.STOPPED;
+      synchronized (holderGuard) {
+        final Player player = holder.player;
+        return player.isStarted()
+            ? (player.isPaused() ? State.PAUSED
+            : State.PLAYING)
+            : State.STOPPED;
+      }
     }
 
     @Override
@@ -416,22 +446,22 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public TimeStamp getDuration() throws Exception {
-      return getSeek().getDuration();
+      synchronized (holderGuard) {
+        return holder.seek.getDuration();
+      }
     }
 
     @Override
     public TimeStamp getPosition() throws Exception {
-      return getSeek().getPosition();
+      synchronized (holderGuard) {
+        return holder.seek.getPosition();
+      }
     }
 
     @Override
     public void setPosition(TimeStamp position) throws Exception {
-      getSeek().setPosition(position);
-    }
-
-    private SeekControl getSeek() {
       synchronized (holderGuard) {
-        return holder.seek;
+        holder.seek.setPosition(position);
       }
     }
   }
@@ -440,12 +470,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public int getSpectrum(int[] bands, int[] levels) throws Exception {
-      return getVisualizer().getSpectrum(bands, levels);
-    }
-
-    private Visualizer getVisualizer() {
       synchronized (holderGuard) {
-        return holder.visualizer;
+        return holder.visualizer.getSpectrum(bands, levels);
       }
     }
   }
