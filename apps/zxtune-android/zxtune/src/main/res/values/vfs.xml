@@ -220,6 +220,9 @@
     <string name="vfs_modarchive_authors_description">Browse by artists</string>
     <string name="vfs_modarchive_genres_name">Genres</string>
     <string name="vfs_modarchive_genres_description">Browse by genres</string>
+    <!-- asma -->
+    <string name="vfs_asma_root_name" translatable="false">Atari SAP Music Archive</string>
+    <string name="vfs_asma_root_description" translatable="false">http://asma.atari.org</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
