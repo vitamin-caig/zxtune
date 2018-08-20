@@ -92,6 +92,7 @@ final class HttpUrlConnectionProvider implements HttpProvider {
     try {
       final byte[] buf = new byte[65536];
       final InputStream stream = connection.getInputStream();
+      Log.d(TAG, "Fetch %d bytes stream via %s", connection.getContentLength(), uri);
       for (;;) {
         final int portion = readPartialContent(stream, buf, 0);
         if (portion != 0) {

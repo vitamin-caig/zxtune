@@ -22,12 +22,14 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   @Override
-  public Uri getRemoteUri() {
-    return new Uri.Builder()
+  public Uri[] getRemoteUris() {
+    return new Uri[] {
+        new Uri.Builder()
             .scheme("http")
             .authority("abrimaal.pro-e.pl")
             .path("ayon/" + getLocalId())
-            .build();
+            .build()
+    };
   }
 
   @Override

@@ -22,13 +22,15 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   @Override
-  public Uri getRemoteUri() {
+  public Uri[] getRemoteUris() {
     final String suffix = isFile() ? "" : "/";
-    return new Uri.Builder()
+    return new Uri[]{
+        new Uri.Builder()
             .scheme("https")
             .authority("storage.zxtune.ru")
             .path("browse/asma/" + getLocalId() + suffix)
-            .build();
+            .build()
+    };
   }
 
   @Override

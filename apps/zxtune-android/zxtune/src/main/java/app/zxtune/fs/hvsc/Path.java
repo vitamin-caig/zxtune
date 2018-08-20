@@ -23,12 +23,26 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   @Override
-  public Uri getRemoteUri() {
-    return new Uri.Builder()
+  public Uri[] getRemoteUris() {
+    final String path = elements.isEmpty() ? "" : (getLocalId() + (isFile() ? "" : "/"));
+    return new Uri[]{
+        new Uri.Builder()
+            .scheme("https")
+            .authority("storage.zxtune.ru")
+            .path("browse/hvsc/" + path)
+            .build(),
+        new Uri.Builder()
             .scheme("http")
             .authority("www.prg.dtu.dk")
-            .path("HVSC/C64Music/" + getLocalId())
-            .build();
+            .path("HVSC/C64Music/" + path)
+            .build(),
+        new Uri.Builder()
+            .scheme("http")
+            .authority("www.c64.org")
+            .path("HVSC/" + path)
+            .build()
+
+    };
   }
 
   @Override
@@ -53,9 +67,9 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   @Override
   public Uri getUri() {
     return new Uri.Builder()
-            .scheme(SCHEME)
-            .path(getLocalId())
-            .build();
+        .scheme(SCHEME)
+        .path(getLocalId())
+        .build();
   }
 
   @Override
@@ -63,8 +77,8 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   public String getName() {
     final int count = elements.size();
     return count > 0
-            ? elements.get(count - 1)
-            : null;
+        ? elements.get(count - 1)
+        : null;
   }
 
   @Override

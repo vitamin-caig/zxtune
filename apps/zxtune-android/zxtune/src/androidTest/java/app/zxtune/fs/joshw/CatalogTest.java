@@ -31,7 +31,7 @@ public class CatalogTest extends RemoteCatalogTest {
                 //first
                 "NARC (1990-08)(Williams)(Rare)(Acclaim).7z",   "3.3K",
                 //escaped
-                "North & South (1990-09-21)(Kemco).7z",         "11K",
+                "North & South (1990-09-21)(Kemco).7z",         "10.6K",//11K for native
                 //last
                 "Nuts & Milk (1984-07-28)(Hudson).7z",          "3.0K"
         };

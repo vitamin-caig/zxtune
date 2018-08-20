@@ -25,12 +25,20 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   @Override
-  public Uri getRemoteUri() {
-    return new Uri.Builder()
-            .scheme("http")
-            .authority(String.format(Locale.US, "%s.joshw.info", catalogue))
-            .path(TextUtils.join("/", elements))
-            .build();
+  public Uri[] getRemoteUris() {
+    final String path = elements.isEmpty() ? "" : (TextUtils.join("/", elements) + (isFile() ? "" : "/"));
+    return new Uri[] {
+        new Uri.Builder()
+        .scheme("https")
+        .authority("storage.zxtune.ru")
+        .path("browse/joshw/" + catalogue + "/" + path)
+        .build(),
+        new Uri.Builder()
+        .scheme("http")
+        .authority(catalogue + ".joshw.info")
+        .path(path)
+        .build()
+    };
   }
 
   @Override

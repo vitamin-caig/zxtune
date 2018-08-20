@@ -43,7 +43,9 @@ public class PathTest {
   @Test
   public void testEscaping() {
     final Path path = Path.parse(Uri.parse("aygor:/games/Commando[CPC].ay"));
-    assertEquals("getRemoteUri", "http://abrimaal.pro-e.pl/ayon/games/Commando%5BCPC%5D.ay", path.getRemoteUri().toString());
+    final Uri[] uris = path.getRemoteUris();
+    assertEquals("getRemoteUris.length", 1, uris.length);
+    assertEquals("getRemoteUris[0]", "http://abrimaal.pro-e.pl/ayon/games/Commando%5BCPC%5D.ay", uris[0].toString());
     assertEquals("getLocalId", "games/Commando[CPC].ay", path.getLocalId());
     assertEquals("getUri", "aygor:/games/Commando%5BCPC%5D.ay", path.getUri().toString());
     assertEquals("getName", "Commando[CPC].ay", path.getName());
@@ -52,7 +54,9 @@ public class PathTest {
   }
 
   private static void verifyEmpty(Path path) {
-    assertEquals("getRemoteUri", "http://abrimaal.pro-e.pl/ayon/", path.getRemoteUri().toString());
+    final Uri[] uris = path.getRemoteUris();
+    assertEquals("getRemoteUris.length", 1, uris.length);
+    assertEquals("getRemoteUris[0]", "http://abrimaal.pro-e.pl/ayon/", uris[0].toString());
     assertEquals("getLocalId", "", path.getLocalId());
     assertEquals("getUri", "aygor:", path.getUri().toString());
     assertEquals("getName", null, path.getName());
@@ -62,7 +66,9 @@ public class PathTest {
   }
 
   private static void verifyDir(Path path) {
-    assertEquals("getRemoteUri", "http://abrimaal.pro-e.pl/ayon/dir", path.getRemoteUri().toString());
+    final Uri[] uris = path.getRemoteUris();
+    assertEquals("getRemoteUris.length", 1, uris.length);
+    assertEquals("getRemoteUris[0]", "http://abrimaal.pro-e.pl/ayon/dir", uris[0].toString());
     assertEquals("getLocalId", "dir", path.getLocalId());
     assertEquals("getUri", "aygor:/dir", path.getUri().toString());
     assertEquals("getName", "dir", path.getName());
@@ -71,7 +77,9 @@ public class PathTest {
   }
 
   private static void verifyFile(Path path) {
-    assertEquals("getRemoteUri", "http://abrimaal.pro-e.pl/ayon/dir/file.ay", path.getRemoteUri().toString());
+    final Uri[] uris = path.getRemoteUris();
+    assertEquals("getRemoteUris.length", 1, uris.length);
+    assertEquals("getRemoteUris[0]", "http://abrimaal.pro-e.pl/ayon/dir/file.ay", uris[0].toString());
     assertEquals("getLocalId", "dir/file.ay", path.getLocalId());
     assertEquals("getUri", "aygor:/dir/file.ay", path.getUri().toString());
     assertEquals("getName", "file.ay", path.getName());

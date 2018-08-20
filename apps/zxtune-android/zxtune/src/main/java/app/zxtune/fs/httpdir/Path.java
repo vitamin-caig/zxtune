@@ -3,7 +3,7 @@ package app.zxtune.fs.httpdir;
 import android.net.Uri;
 
 public interface Path {
-  Uri getRemoteUri();
+  Uri[] getRemoteUris();
   String getLocalId();
   Uri getUri();
   String getName();

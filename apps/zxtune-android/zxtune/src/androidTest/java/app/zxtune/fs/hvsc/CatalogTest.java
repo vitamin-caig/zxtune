@@ -30,8 +30,8 @@ public class CatalogTest extends RemoteCatalogTest {
         final Path path = Path.parse(Uri.parse("hvsc:/MUSICIANS/O/OPM"));
         final String[] entries = {
                 "Fantjes_Beat.sid",             "1.9K",
-                "Rockmonitor_3.sid",            "35K",
-                "Rockmonitor_5_Demosong.sid",   "18K",
+                "Rockmonitor_3.sid",            "35.1K",//35K for native
+                "Rockmonitor_5_Demosong.sid",   "18.3K",//18K for native
                 "Sid_Slam.sid",                 "1.8K",
                 "Zoolook.sid",                  "3.2K"
         };
