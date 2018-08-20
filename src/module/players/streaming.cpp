@@ -42,11 +42,6 @@ namespace Module
       return 0;
     }
 
-    uint_t PatternSize() const override
-    {
-      return 0;
-    }
-
     uint_t Line() const override
     {
       return 0;

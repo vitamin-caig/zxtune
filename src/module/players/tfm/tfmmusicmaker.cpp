@@ -1168,11 +1168,6 @@ namespace TFMMusicMaker
       return Plain.Pattern;
     }
 
-    uint_t PatternSize() const override
-    {
-      return CurPatternObject->GetSize();
-    }
-
     uint_t Line() const override
     {
       return Plain.Line;

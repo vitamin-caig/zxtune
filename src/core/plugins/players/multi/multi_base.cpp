@@ -297,10 +297,6 @@ namespace Module
     {
       return Delegates.front()->Pattern();
     }
-    uint_t PatternSize() const override
-    {
-      return Delegates.front()->PatternSize();
-    }
     uint_t Line() const override
     {
       return Delegates.front()->Line();

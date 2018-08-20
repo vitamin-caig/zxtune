@@ -155,16 +155,6 @@ namespace Xmp
       return Info.spd;
     }
 
-    std::vector<uint_t> GetPatternSizes() const
-    {
-      std::vector<uint_t> res(Info.pat);
-      for (uint_t i = 0; i != Info.pat; ++i)
-      {
-        res[i] = Info.xxp[i]->rows;
-      }
-      return res;
-    }
-
     TimeType GetFrameDuration() const
     {
       //fps = 50 * bpm / 125
@@ -181,8 +171,7 @@ namespace Xmp
   {
   public:
     TrackState(Information::Ptr info, StatePtr state)
-      : PatternSizes(info->GetPatternSizes())
-      , FrameDuration(info->GetFrameDuration())
+      : FrameDuration(info->GetFrameDuration())
       , State(std::move(state))
     {
     }
@@ -195,11 +184,6 @@ namespace Xmp
     uint_t Pattern() const override
     {
       return State->pattern;
-    }
-
-    uint_t PatternSize() const override
-    {
-      return PatternSizes[State->pattern];
     }
 
     uint_t Line() const override
@@ -227,7 +211,6 @@ namespace Xmp
       return State->virt_used;//????
     }
   private:
-    const std::vector<uint_t> PatternSizes;
     const TimeType FrameDuration;
     const StatePtr State;
   };

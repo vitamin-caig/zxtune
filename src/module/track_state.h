@@ -30,9 +30,7 @@ namespace Module
     virtual uint_t Position() const = 0;
     //! Current pattern
     virtual uint_t Pattern() const = 0;
-    //! Current pattern size
-    virtual uint_t PatternSize() const = 0;
-    //! Current line in pattern (up to Status::PatternSize)
+    //! Current line in pattern
     virtual uint_t Line() const = 0;
     //! Current tempo
     virtual uint_t Tempo() const = 0;

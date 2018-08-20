@@ -197,11 +197,6 @@ namespace TurboSound
       return First->Pattern();
     }
 
-    uint_t PatternSize() const override
-    {
-      return First->PatternSize();
-    }
-
     uint_t Line() const override
     {
       return First->Line();

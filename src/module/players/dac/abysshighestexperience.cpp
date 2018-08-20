@@ -139,11 +139,6 @@ namespace AHX
       return Hvl->ht_PosNr;//TODO
     }
 
-    uint_t PatternSize() const override
-    {
-      return Hvl->ht_TrackLength;
-    }
-
     uint_t Line() const override
     {
       return Hvl->ht_NoteNr;
