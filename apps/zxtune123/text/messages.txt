@@ -446,4 +446,7 @@
 > " [%1%%%]"
 
 < BENCHMARK_RESULT
-> "x%|3$.2f| (%2%) %1%"
+> "x%|3$.2f|\t(%2%)\t%1%\t[0x%4$08x]"
+
+< BENCHMARK_FAIL
+> "Fail\t(%2%)\t%1%\t[%3%]"

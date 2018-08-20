@@ -9,6 +9,7 @@ extern const Char ABOUT_SECTION[];
 extern const Char ANALYZER_DESC[];
 extern const Char ANALYZER_KEY[];
 extern const Char BENCHMARK_DESC[];
+extern const Char BENCHMARK_FAIL[];
 extern const Char BENCHMARK_KEY[];
 extern const Char BENCHMARK_RESULT[];
 extern const Char CLI_SECTION[];

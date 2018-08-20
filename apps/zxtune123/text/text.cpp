@@ -34,11 +34,15 @@ extern const Char BENCHMARK_DESC[] = {
   'n','t','.','\n',
   0
 };
+extern const Char BENCHMARK_FAIL[] = {
+  'F','a','i','l','\t','(','%','2','%',')','\t','%','1','%','\t','[','%','3','%',']',0
+};
 extern const Char BENCHMARK_KEY[] = {
   'b','e','n','c','h','m','a','r','k',0
 };
 extern const Char BENCHMARK_RESULT[] = {
-  'x','%','|','3','$','.','2','f','|',' ','(','%','2','%',')',' ','%','1','%',0
+  'x','%','|','3','$','.','2','f','|','\t','(','%','2','%',')','\t','%','1','%','\t','[','0','x','%','4','$',
+  '0','8','x',']',0
 };
 extern const Char CLI_SECTION[] = {
   'O','t','h','e','r',' ','o','p','t','i','o','n','s',0

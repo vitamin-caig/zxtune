@@ -16,6 +16,7 @@
 #include "sound.h"
 #include "source.h"
 //common includes
+#include <crc.h>
 #include <error_tools.h>
 #include <progress_callback.h>
 //library includes
@@ -267,8 +268,8 @@ namespace
       try
       {
         Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
-
-        const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), Sound::Receiver::CreateStub());
+        HashSumSoundReceiver receiver;
+        const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), MakeSingletonPointer(receiver));
         const Time::Timer timer;
         for (unsigned i = 0; i != Iterations; ++i)
         {
@@ -277,22 +278,41 @@ namespace
         }
         const Time::Microseconds real = timer.Elapsed();
         const double relSpeed = double(total.Get()) / real.Get();
-        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed));
-        return;
+        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed, receiver.GetHash()));
       }
-      catch (const std::exception&)
+      catch (const std::exception& e)
       {
-        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, -1));
+        Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, e.what()));
       }
-      catch (const Error&)
+      catch (const Error& e)
       {
-        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, -2));
+        Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, e.ToString()));
       }
       catch (...)
       {
-        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, -3));
+        Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, "Unknown error"));
       }
     }
+  private:
+    class HashSumSoundReceiver : public Sound::Receiver
+    {
+    public:
+      void ApplyData(Sound::Chunk data) override
+      {
+          Crc32 = ::Crc32(safe_ptr_cast<const uint8_t*>(data.data()), data.size() * sizeof(data.front()), Crc32);
+      }
+
+      void Flush() override
+      {
+      }
+
+      uint32_t GetHash() const
+      {
+        return Crc32;
+      }
+    private:
+      uint32_t Crc32 = 0;
+    };
   private:
     const unsigned Iterations;
     SoundComponent& Sounder;
