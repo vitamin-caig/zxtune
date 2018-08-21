@@ -103,6 +103,10 @@ private:
                  *scan = &event;
                  break;
              }
+             else if (*scan == &event)
+             {
+                 break;
+             }
              scan = &((*scan)->next);
          }
     }
@@ -126,9 +130,17 @@ protected:
 
     void yield(Event& event)
     {
-      event.triggerTime = firstEvent ? firstEvent->triggerTime : 0;
-      event.next = firstEvent;
-      firstEvent = &event;
+        if (firstEvent)
+        {
+            event.triggerTime = firstEvent->triggerTime;
+            schedule(event);
+        }
+        else
+        {
+            event.triggerTime = 0;
+            event.next = 0;
+            firstEvent = &event;
+        }
     }
 public:
     EventScheduler () :
