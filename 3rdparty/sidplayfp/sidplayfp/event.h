@@ -85,7 +85,7 @@ public:
     virtual void event() = 0;
 
 protected:
-    ~Event() {}
+    virtual ~Event() {}
 };
 
 /**
@@ -174,7 +174,7 @@ public:
     virtual event_phase_t phase() const = 0;
 
 protected:
-    ~EventContext() {}
+    virtual ~EventContext() {}
 };
 
 #endif // EVENT_H

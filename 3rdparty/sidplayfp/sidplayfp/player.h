@@ -101,7 +101,6 @@ private:
 
 public:
     Player();
-    ~Player() {}
 
     const SidConfig &config() const { return m_cfg; }
 

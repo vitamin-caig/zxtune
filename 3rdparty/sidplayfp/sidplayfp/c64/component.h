@@ -35,7 +35,7 @@ public:
     virtual void reset() = 0;
 
 protected:
-    ~component() {}
+    virtual ~component() {}
 };
 
 #endif // COMPONENT_H

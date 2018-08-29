@@ -202,7 +202,6 @@ private:
 
 public:
     c64();
-    ~c64() {}
 
     EventContext &context() { return m_scheduler; }
     MMU &memory() { return mmu; }

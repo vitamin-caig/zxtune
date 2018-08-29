@@ -53,7 +53,7 @@ public:
     virtual void lightpen(bool state) = 0;
 
 protected:
-    ~c64env() {}
+    virtual ~c64env() {}
 };
 
 #endif // C64ENV_H

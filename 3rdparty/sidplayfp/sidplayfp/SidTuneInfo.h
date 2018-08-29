@@ -201,7 +201,7 @@ public:
     virtual const char* infoFileName() const =0;
 
 protected:
-    ~SidTuneInfo() {}
+    virtual ~SidTuneInfo() {}
 };
 
 #endif  /* SIDTUNEINFO_H */
