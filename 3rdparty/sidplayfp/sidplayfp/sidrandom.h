@@ -27,24 +27,22 @@
 class sidrandom
 {
 private:
-    unsigned int m_seed;
+    unsigned long m_seed;
 
 public:
-    /**
-     * Initialize PRNG.
-     *
-     * @param seed
-     */
-    sidrandom(unsigned int seed) :
-        m_seed(seed * 1103515245 + 12345) {}
+    sidrandom(unsigned seed = 1)
+        : m_seed(seed)
+    {
+    }
 
     /**
      * Generate new pseudo-random number.
      */
-    unsigned int next()
+    unsigned next()
     {
-        m_seed = m_seed * 13 + 1;
-        return m_seed;
+        //standard K&R implementation
+        m_seed = m_seed * 1103515245 + 12345;
+        return ((unsigned)(m_seed / 65536) % 32768);
     }
 };
 

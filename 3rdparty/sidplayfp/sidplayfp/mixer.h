@@ -24,9 +24,9 @@
 #ifndef MIXER_H
 #define MIXER_H
 
-#include <stdint.h>
-#include <cstdlib>
+#include <sidrandom.h>
 
+#include <stdint.h>
 #include <vector>
 
 class sidemu;
@@ -58,6 +58,7 @@ private:
 
     std::vector<mixer_func_t> m_mix;
 
+    sidrandom m_rand;
     int oldRandomValue;
 
     // Mixer settings
@@ -73,7 +74,7 @@ private:
     int triangularDithering()
     {
         const int prevValue = oldRandomValue;
-        oldRandomValue = rand() & (VOLUME_MAX-1);
+        oldRandomValue = m_rand.next() & (VOLUME_MAX-1);
         return oldRandomValue - prevValue;
     }
 

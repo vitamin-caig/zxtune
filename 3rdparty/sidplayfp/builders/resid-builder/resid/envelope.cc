@@ -69,7 +69,7 @@ namespace reSID
 // The described method is thus sufficient for exact calculation of the rate
 // periods.
 //
-reg16 EnvelopeGenerator::rate_counter_period[] = {
+const reg16 EnvelopeGenerator::rate_counter_period[] = {
       9,  //   2ms*1.0MHz/256 =     7.81
      32,  //   8ms*1.0MHz/256 =    31.25
      63,  //  16ms*1.0MHz/256 =    62.50
@@ -126,7 +126,7 @@ reg16 EnvelopeGenerator::rate_counter_period[] = {
 // envelope counter are compared to the 4-bit sustain value.
 // This has been verified by sampling ENV3.
 //
-reg8 EnvelopeGenerator::sustain_level[] = {
+const reg8 EnvelopeGenerator::sustain_level[] = {
   0x00,
   0x11,
   0x22,
@@ -158,7 +158,7 @@ unsigned short EnvelopeGenerator::model_dac[2][1 << 8] = {
 // ----------------------------------------------------------------------------
 EnvelopeGenerator::EnvelopeGenerator()
 {
-  static bool class_init;
+  static bool class_init = false;
 
   if (!class_init) {
     // Build DAC lookup tables for 8-bit DACs.
