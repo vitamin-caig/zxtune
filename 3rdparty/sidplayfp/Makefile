@@ -15,8 +15,9 @@ source_dirs += utils/MD5
 
 source_dirs += builders/resid-builder \
                builders/resid-builder/resid
-               
-defines += FAST_AND_ROUGH
+
+#disable for digital tunes playback (e.g. hvsc/MUSICIANS/L/LMan/Vortex.sid)
+#defines += FAST_AND_ROUGH
 
 include_files = defines.h
 
