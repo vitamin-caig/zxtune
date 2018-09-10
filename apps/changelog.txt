@@ -5,6 +5,13 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4190 from 10.09.2018
+
+[*] Fixed ET1 tracks playback
+[*] Fixed digital SID tunes playback
+[+] zxtune-android: added ASMA online catalogue
+[*] zxtune-android: fixed some reported and found crashes and hangs
+
 --- Rev4160 from 14.05.2018
 
 [+] Added support of Raster Music Tracker (.RMT)
