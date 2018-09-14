@@ -44,4 +44,7 @@
     <string name="no_tracks_found">Поддерживаемых треков не найдено</string>
     <string name="track">Трек</string>
     <string name="starting">Запуск...</string>
+    <!-- notifications -->
+    <string name="notification_channel_name_events">События</string>
+    <string name="notification_channel_name_services">Сервисы</string>
 </resources>

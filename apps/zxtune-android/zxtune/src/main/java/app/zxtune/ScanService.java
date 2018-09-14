@@ -11,8 +11,6 @@
 package app.zxtune;
 
 import android.app.IntentService;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -22,17 +20,17 @@ import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.widget.Toast;
-
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import app.zxtune.device.ui.Notifications;
 import app.zxtune.playback.Iterator;
 import app.zxtune.playback.IteratorFactory;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.stubs.PlayableItemStub;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.PlaylistQuery;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScanService extends IntentService {
 
@@ -294,23 +292,18 @@ public class ScanService extends IntentService {
 
     private class StatusNotification {
 
-      private static final int notificationId = R.drawable.ic_stat_notify_scan;
-      private final NotificationManager manager;
-      private final Notification.Builder builder;
       private final CharSequence titlePrefix;
+      private Notifications.Controller delegate;
 
       StatusNotification() {
-        this.manager =
-            (NotificationManager) ScanService.this.getSystemService(Context.NOTIFICATION_SERVICE);
-        this.builder = new Notification.Builder(ScanService.this);
         this.titlePrefix = getText(R.string.scanning_title);
+        this.delegate = Notifications.createForService(ScanService.this, R.drawable.ic_stat_notify_scan);
         final Intent cancelIntent = new Intent(ScanService.this, ScanService.class);
         cancelIntent.setAction(ACTION_CANCEL);
-        builder
+        delegate.getBuilder()
             .setContentIntent(
                 PendingIntent.getService(ScanService.this, 0, cancelIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT)).setOngoing(true).setProgress(0, 0, true)
-            .setSmallIcon(notificationId)
             .setContentTitle(titlePrefix)
             .setContentText(getText(R.string.scanning_text));
       }
@@ -321,13 +314,12 @@ public class ScanService extends IntentService {
         str.append(" ");
         final int items = addedItems.get();
         str.append(getResources().getQuantityString(R.plurals.tracks, items, items));
-        builder.setContentTitle(str.toString());
-        final Notification notification = builder.getNotification();
-        manager.notify(notificationId, notification);
+        delegate.getBuilder().setContentTitle(str.toString());
+        delegate.show();
       }
 
       final void hide() {
-        manager.cancel(notificationId);
+        delegate.hide();
       }
     }
   }

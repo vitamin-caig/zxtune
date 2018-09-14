@@ -38,4 +38,7 @@
     <string name="no_tracks_found">No supported tracks found</string>
     <string name="track">Track</string>
     <string name="starting">Starting...</string>
+    <!-- notifications -->
+    <string name="notification_channel_name_events">Events</string>
+    <string name="notification_channel_name_services">Services</string>
 </resources>

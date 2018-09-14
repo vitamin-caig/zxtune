@@ -11,6 +11,7 @@
 package app.zxtune;
 
 import android.app.Application;
+import app.zxtune.device.ui.Notifications;
 
 public class MainApplication extends Application {
   
@@ -23,6 +24,7 @@ public class MainApplication extends Application {
     instance = this;
 
     Analytics.initialize(this);
+    Notifications.setup(this);
   }
   
   public static Application getInstance() {
