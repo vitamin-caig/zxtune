@@ -115,7 +115,7 @@ public class PlaylistView extends DragSortListView
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-      return ListItemViewHolder.createView(context, parent);
+      return ListItemViewHolder.createView(parent);
     }
     
     @Override

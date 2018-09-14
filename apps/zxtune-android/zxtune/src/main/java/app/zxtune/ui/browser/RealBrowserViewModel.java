@@ -77,7 +77,7 @@ class RealBrowserViewModel implements BrowserViewModel {
   //TODO: use explicit multiple view types
   public View getView(int position, View convertView, ViewGroup parent) {
     final View view = convertView == null
-            ? BrowserViewHolder.createView(context, parent)
+            ? BrowserViewHolder.createView(parent)
             : convertView;
     final BrowserViewHolder holder = BrowserViewHolder.fromView(view);
     final int dirsCount = dirs.size();

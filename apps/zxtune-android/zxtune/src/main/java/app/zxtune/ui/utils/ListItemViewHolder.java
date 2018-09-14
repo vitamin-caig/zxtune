@@ -54,8 +54,8 @@ public final class ListItemViewHolder {
     }
   }
   
-  public static View createView(Context context, ViewGroup parent) {
-    final View view = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
+  public static View createView(ViewGroup parent) {
+    final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, false);
     view.setTag(new ListItemViewHolder(view));
     return view;
   }

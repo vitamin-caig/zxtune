@@ -29,8 +29,8 @@ class BrowserViewHolder {
     this.delegate = delegate;
   }
 
-  static View createView(Context context, ViewGroup parent) {
-    return ListItemViewHolder.createView(context, parent);
+  static View createView(ViewGroup parent) {
+    return ListItemViewHolder.createView(parent);
   }
 
   static BrowserViewHolder fromView(View view) {
