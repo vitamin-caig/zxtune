@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.crashlytics.android.core.CrashlyticsCore;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
 
 import java.util.List;
@@ -28,7 +29,14 @@ public class Analytics {
   private static final String TAG = Analytics.class.getName();
 
   public static void initialize(Context ctx) {
-    Fabric.with(ctx, new Crashlytics(), new CrashlyticsNdk(), new Answers());
+    if (BuildConfig.BUILD_TYPE.equals("release")) {
+      Fabric.with(ctx, new Crashlytics(), new CrashlyticsNdk(), new Answers());
+    } else {
+      final Crashlytics crashlytics = new Crashlytics.Builder()
+          .core(new CrashlyticsCore.Builder().disabled(true).build())
+          .build();
+      Fabric.with(ctx, crashlytics);
+    }
   }
 
   public static void logException(Throwable e) {
