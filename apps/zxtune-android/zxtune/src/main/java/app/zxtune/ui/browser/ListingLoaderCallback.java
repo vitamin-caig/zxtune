@@ -35,7 +35,7 @@ class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Li
   
   static LoaderManager.LoaderCallbacks<Object> create(BrowserController ctrl, @Nullable VfsDir dir) {
     final ListingLoaderCallback cb = new ListingLoaderCallback(dir, ctrl);
-    ctrl.listing.setModel(null);
+    ctrl.setModel(null);
     ctrl.listingStarted();
     return cb;
   }
@@ -72,7 +72,7 @@ class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Li
     if (control != null) {
       if (result instanceof BrowserViewModel) {
         control.loadingFinished();
-        control.listing.setModel((BrowserViewModel) result);
+        control.setModel((BrowserViewModel) result);
         ListViewTools.useStoredViewPosition(control.listing);
       } else {
         control.loadingFailed((Exception) result);

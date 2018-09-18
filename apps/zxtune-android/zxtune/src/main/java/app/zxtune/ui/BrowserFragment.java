@@ -42,7 +42,6 @@ import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.ui.browser.BreadCrumbsView;
 import app.zxtune.ui.browser.BrowserController;
-import app.zxtune.ui.browser.BrowserView;
 import app.zxtune.ui.utils.ListViewTools;
 
 public class BrowserFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -54,7 +53,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   private BrowserController controller;
   private View sources;
   private SearchView search;
-  private BrowserView listing;
+  private ListView listing;
   private PlaybackService service;
 
   public static BrowserFragment createInstance() {
@@ -103,8 +102,8 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     controller.resetViews();
   }
   
-  private BrowserView setupListing(View view) {
-    final BrowserView listing = (BrowserView) view.findViewById(R.id.browser_content);
+  private ListView setupListing(View view) {
+    final ListView listing = (ListView) view.findViewById(R.id.browser_content);
     listing.setOnItemClickListener(new OnItemClickListener());
     listing.setEmptyView(view.findViewById(R.id.browser_stub));
     listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);

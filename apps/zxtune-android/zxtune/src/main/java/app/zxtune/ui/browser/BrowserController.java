@@ -15,10 +15,12 @@ import android.app.LoaderManager;
 import android.content.Loader;
 import android.support.annotation.Nullable;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import java.io.IOException;
 
+import android.widget.TextView;
 import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
@@ -39,17 +41,18 @@ public class BrowserController {
   private final BrowserState state;
   BreadCrumbsView position;
   ProgressBar progress;
-  BrowserView listing;
+  ListView listing;
 
   public BrowserController(Fragment fragment) {
     this.loaderManager = fragment.getLoaderManager();
     this.state = new BrowserState(Preferences.getDefaultSharedPreferences(fragment.getActivity()));
   }
   
-  public final void setViews(BreadCrumbsView position, ProgressBar progress, BrowserView listing) {
+  public final void setViews(BreadCrumbsView position, ProgressBar progress, ListView listing) {
     this.position = position;
     this.progress = progress;
     this.listing = listing;
+    listing.setAdapter(new BrowserViewAdapter());
   }
   
   public final void resetViews() {
@@ -81,10 +84,24 @@ public class BrowserController {
       Analytics.sendSearchEvent(currentDir);
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to search");
-      listing.showError(e);
+      showError(e);
     }
   }
-  
+
+  final void setModel(@Nullable BrowserViewModel model) {
+    ((BrowserViewAdapter) listing.getAdapter()).setModel(model);
+  }
+
+  private void showError(Exception e) {
+    final Throwable cause = e.getCause();
+    final String msg = cause != null ? cause.getMessage() : e.getMessage();
+    getEmptyView().setText(msg);
+  }
+
+  private TextView getEmptyView() {
+    return (TextView) listing.getEmptyView();
+  }
+
   public final boolean isInSearch() {
     final Loader<?> loader = loaderManager.getLoader(LOADER_ID); 
     return loader instanceof SearchingLoader;
@@ -94,7 +111,7 @@ public class BrowserController {
     try {
       browseDir(Vfs.getRoot());
     } catch (IOException e) {
-      listing.showError(e);
+      showError(e);
     }
   }
 
@@ -121,7 +138,7 @@ public class BrowserController {
       }
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to move up");
-      listing.showError(e);
+      showError(e);
     }
   }
   
@@ -161,7 +178,7 @@ public class BrowserController {
       setDirectory(getCurrentDir());
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to load current dir");
-      listing.showError(e);
+      showError(e);
     }
   }
 
@@ -197,17 +214,17 @@ public class BrowserController {
   
   final void listingStarted() {
     showProgress();
-    listing.setEmptyViewText(R.string.browser_loading);
+    getEmptyView().setText(R.string.browser_loading);
   }
   
   final void searchingStarted() {
     showProgress();
-    listing.setEmptyViewText(R.string.browser_searching);
+    getEmptyView().setText(R.string.browser_searching);
   }
 
   final void loadingFinished() {
     hideProgress();
-    listing.setEmptyViewText(R.string.browser_empty);
+    getEmptyView().setText(R.string.browser_empty);
   }
   
   final void archiveLoadingFinished(Runnable playCmd) {
@@ -219,7 +236,7 @@ public class BrowserController {
   final void loadingFailed(Exception e) {
     hideProgress();
     Log.w(TAG, e, "Failed to load dir");
-    listing.showError(e);
+    showError(e);
   }
 
   final void showProgress() {

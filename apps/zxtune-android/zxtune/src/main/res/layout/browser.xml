@@ -38,7 +38,7 @@
         android:visibility="invisible"
         style="?android:attr/progressBarStyleHorizontal"
     />
-    <app.zxtune.ui.browser.BrowserView
+    <ListView
         android:id="@+id/browser_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

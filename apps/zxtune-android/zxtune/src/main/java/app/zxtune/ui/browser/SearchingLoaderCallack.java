@@ -39,7 +39,7 @@ class SearchingLoaderCallback implements LoaderManager.LoaderCallbacks<Void>, Se
   
   static LoaderManager.LoaderCallbacks<Void> create(BrowserController ctrl, VfsDir dir, String query) {
     final SearchingLoaderCallback cb = new SearchingLoaderCallback(dir, query, ctrl);
-    ctrl.listing.setModel(cb.model);
+    ctrl.setModel(cb.model);
     ctrl.searchingStarted();
     return cb;
   }
@@ -77,7 +77,7 @@ class SearchingLoaderCallback implements LoaderManager.LoaderCallbacks<Void>, Se
   private synchronized void setControl(@Nullable BrowserController control) {
     if (control != null) {
       this.control = control;
-      control.listing.setModel(this.model);
+      control.setModel(this.model);
     } else {
       this.control = null;
       this.handler.removeCallbacksAndMessages(null);

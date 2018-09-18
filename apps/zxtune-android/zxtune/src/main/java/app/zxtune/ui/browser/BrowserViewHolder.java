@@ -2,7 +2,7 @@
  * 
  * @file
  *
- * @brief BrowserView items holder
+ * @brief Browser view items holder
  *
  * @author vitamin.caig@gmail.com
  * 
