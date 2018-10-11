@@ -262,14 +262,14 @@ void* _vfmMap(struct VFile* vf, size_t size, int flags) {
 	if (size > vfm->size) {
 		return 0;
 	}
-
-	return vfm->mem;
+	void* result = anonymousMemoryMap(size);
+	memcpy(result, vfm->mem, size);
+	return result;
 }
 
 void _vfmUnmap(struct VFile* vf, void* memory, size_t size) {
 	UNUSED(vf);
-	UNUSED(memory);
-	UNUSED(size);
+	mappedMemoryFree(memory, size);
 }
 
 void _vfmTruncate(struct VFile* vf, size_t size) {
