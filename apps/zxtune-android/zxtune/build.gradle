@@ -16,13 +16,13 @@ repositories {
 }
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 27
     buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "app.zxtune"
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 27
         //supported languages
         resConfigs "en", "de", "ru", "es", "cs"
         //supported densities for vector drawables rasterization
@@ -31,7 +31,7 @@ android {
 }
 
 dependencies {
-    implementation "com.android.support:appcompat-v7:23.4.0"
+    implementation "com.android.support:appcompat-v7:27.1.1"
     implementation "com.android.support:support-annotations:27.1.1"
     implementation('com.crashlytics.sdk.android:crashlytics:2.8.0@aar') {
         transitive = true
