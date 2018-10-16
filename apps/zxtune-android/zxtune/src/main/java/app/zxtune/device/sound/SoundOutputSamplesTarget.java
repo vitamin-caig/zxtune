@@ -77,14 +77,14 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
       if (written > 0) {
         pos += written;
         toWrite -= written;
-      } else if (written < 0) {
-        throw new Exception("Failed to write samples: " + written);
       } else {
         final int state = target.getPlayState();
         if (state == AudioTrack.PLAYSTATE_PAUSED) {
           target.play();//resume
         } else if (state == AudioTrack.PLAYSTATE_STOPPED) {
           break;//drain
+        } else if (written < 0) {
+          throw new Exception("Failed to write samples: " + written);
         }
       }
     }
