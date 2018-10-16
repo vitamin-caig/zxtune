@@ -19,6 +19,11 @@ public class Cdn {
     return getRoot().path("download/amp/ids/" + id).build();
   }
 
+  public static Uri modland(String id) {
+    // really url-encoded paths
+    return getRoot().encodedPath("download/modland" + id).build();
+  }
+
   private static Uri.Builder getRoot() {
     return new Uri.Builder().scheme("https").authority("storage.zxtune.ru");
   }

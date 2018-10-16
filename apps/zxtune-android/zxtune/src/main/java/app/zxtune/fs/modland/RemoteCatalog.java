@@ -18,7 +18,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.zxtune.Log;
+import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 /**
  * Use pure http response parsing via regex in despite that page structure seems to be xml well formed.
@@ -36,20 +38,20 @@ class RemoteCatalog extends Catalog {
   private static final String GROUPS_QUERY = API + "&md=b_%s&st=%s";
   private static final String GROUP_TRACKS_QUERY = API + "&md=%s&id=%d";
 
-  private static final String STORAGE_MIRROR = "http://ftp.amigascne.org/mirrors/ftp.modland.com";
-
   private static final Pattern PAGINATOR =
           Pattern.compile("<caption>Browsing (.+?) - (\\d+) results? - showing page (\\d+) of (\\d+).</caption>");
   private static final Pattern TRACKS =
           Pattern.compile("file=(pub/modules/.+?).>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
 
   private final HttpProvider http;
+  private final MultisourceHttpProvider multiHttp;
   private final Grouping authors;
   private final Grouping collections;
   private final Grouping formats;
 
   RemoteCatalog(HttpProvider http) {
     this.http = http;
+    this.multiHttp = new MultisourceHttpProvider(http);
     this.authors = new Authors();
     this.collections = new Collections();
     this.formats = new Formats();
@@ -241,13 +243,20 @@ class RemoteCatalog extends Catalog {
   @Override
   @NonNull
   public ByteBuffer getTrackContent(String id) throws IOException {
-    Log.d(TAG, "getTrackContent(id=%s)", id);
-    return http.getContent(Uri.parse(STORAGE_MIRROR + id));
+    Log.d(TAG, "getTrackContent(%s)", id);
+    return multiHttp.getContent(getContentUris(id));
   }
 
   final void getTrackContent(String id, OutputStream stream) throws IOException {
-    Log.d(TAG, "getTrackContent(id=%s)", id);
-    http.getContent(Uri.parse(STORAGE_MIRROR + id), stream);
+    Log.d(TAG, "getTrackContent(%s)", id);
+    multiHttp.getContent(getContentUris(id), stream);
+  }
+
+  private static Uri[] getContentUris(String id) {
+    return new Uri[]{
+        Cdn.modland(id),
+        Uri.parse("http://ftp.amigascne.org/mirrors/ftp.modland.com" + id)
+    };
   }
 
   interface PagesVisitor {
