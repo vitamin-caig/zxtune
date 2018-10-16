@@ -3,6 +3,7 @@ package app.zxtune.fs.asma;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import app.zxtune.fs.api.Cdn;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,11 +26,7 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   public Uri[] getRemoteUris() {
     final String suffix = isFile() ? "" : "/";
     return new Uri[]{
-        new Uri.Builder()
-            .scheme("https")
-            .authority("storage.zxtune.ru")
-            .path("browse/asma/" + getLocalId() + suffix)
-            .build()
+        Cdn.asma(getLocalId() + suffix)
     };
   }
 
