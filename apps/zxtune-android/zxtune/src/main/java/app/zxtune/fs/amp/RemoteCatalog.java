@@ -18,7 +18,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.zxtune.Log;
+import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 /**
  * Authors:
@@ -58,7 +60,6 @@ class RemoteCatalog extends Catalog {
   private static final String BY_GROUP_URI_FORMAT = SITE + "newresult.php?request=groupid&search=%s";
   //private final static String AUTHOR_URI_FORMAT = SITE + "detail.php?view=%d";
   private static final String AUTHOR_TRACKS_URI_FORMAT = SITE + "detail.php?detail=modules&view=%d";
-  private static final String TRACK_URI_FORMAT = SITE + "downmod.php?index=%d";
   private static final String FIND_TRACK_URI_FORMAT = SITE + "newresult.php?request=module&search=%s";
 
   private static final Pattern PAGINATOR =
@@ -93,9 +94,11 @@ class RemoteCatalog extends Catalog {
                   TRACK_SIZE, Pattern.DOTALL);
 
   private final HttpProvider http;
+  private final MultisourceHttpProvider multiHttp;
 
   RemoteCatalog(HttpProvider http) {
     this.http = http;
+    this.multiHttp = new MultisourceHttpProvider(http);
   }
 
   private static String decodeHtml(String txt) {
@@ -203,14 +206,23 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(%d)", id);
-    final String uri = String.format(Locale.US, TRACK_URI_FORMAT, id);
-    return http.getContent(Uri.parse(uri));
+    return multiHttp.getContent(getContentUris(id));
   }
 
   final void getTrackContent(int id, OutputStream stream) throws IOException {
     Log.d(TAG, "getTrackContent(%d)", id);
-    final String uri = String.format(Locale.US, TRACK_URI_FORMAT, id);
-    http.getContent(Uri.parse(uri), stream);
+    multiHttp.getContent(getContentUris(id), stream);
+  }
+
+  private static Uri[] getContentUris(int id) {
+    return new Uri[]{
+      Cdn.amp(id),
+      getMainUriBuilder().appendPath("downmod.php").appendQueryParameter("index", Integer.toString(id)).build()
+    };
+  }
+
+  private static Uri.Builder getMainUriBuilder() {
+    return new Uri.Builder().scheme("http").authority("amp.dascene.net");
   }
 
   interface PagesVisitor {

@@ -13,7 +13,10 @@ public class Cdn {
 
   public static Uri joshw(String catalogue, String path) {
     return getRoot().path("browse/joshw/" + catalogue + "/" + path).build();
+  }
 
+  public static Uri amp(int id) {
+    return getRoot().path("download/amp/ids/" + id).build();
   }
 
   private static Uri.Builder getRoot() {
