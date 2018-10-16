@@ -83,8 +83,7 @@ public final class AsyncPlayer implements Player {
 
   @Override
   public void stopPlayback() {
-    if (!state.compareAndSet(STOPPED, STOPPED)) {
-      doStop();
+    if (doStop()) {
       try {
         thread.join();
       } catch (InterruptedException e) {
@@ -97,13 +96,16 @@ public final class AsyncPlayer implements Player {
     }
   }
 
-  private void doStop() {
-    if (state.compareAndSet(PAUSED, STOPPED)) {
-      synchronized (state) {
+  private boolean doStop() {
+    synchronized (state) {
+      if (state.compareAndSet(STOPPED, STOPPED)) {
+        return false;
+      } else if (state.compareAndSet(PAUSED, STOPPED)) {
         state.notify();
+      } else {
+        state.set(STOPPED);
       }
-    } else {
-      state.set(STOPPED);
+      return true;
     }
   }
 
