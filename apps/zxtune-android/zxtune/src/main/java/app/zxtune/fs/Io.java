@@ -38,7 +38,11 @@ public class Io {
           System.runFinalization();
         }
       }
-      return readDirectArray(channel);
+      try {
+        return readDirectArray(channel);
+      } catch (OutOfMemoryError e) {
+        throw new IOException(e);
+      }
     }
 
     private static ByteBuffer readMemoryMapped(FileChannel channel) throws IOException {
