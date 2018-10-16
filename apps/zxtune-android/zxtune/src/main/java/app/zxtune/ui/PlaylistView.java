@@ -10,13 +10,13 @@
 
 package app.zxtune.ui;
 
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -86,10 +86,6 @@ public class PlaylistView extends DragSortListView
   private class PlaylistCursorAdapter extends DragSortCursorAdapter {
 
     private DropListener dropListener;
-
-    PlaylistCursorAdapter(Context context, @Nullable Cursor cursor, boolean autoRequery) {
-      super(context, cursor, autoRequery);
-    }
 
     PlaylistCursorAdapter(Context context, @Nullable Cursor cursor, int flags) {
       super(context, cursor, flags);

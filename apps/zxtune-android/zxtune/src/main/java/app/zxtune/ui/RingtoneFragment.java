@@ -11,13 +11,14 @@
 package app.zxtune.ui;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -34,7 +35,7 @@ public class RingtoneFragment extends DialogFragment {
   private static final String TAG = RingtoneFragment.class.getName();
 
   @Nullable
-  static DialogFragment createInstance(Activity activity, Item item) {
+  static DialogFragment createInstance(FragmentActivity activity, Item item) {
     if (!Permission.requestSystemSettings(activity)) {
       return null;
     }

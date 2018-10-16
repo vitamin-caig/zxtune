@@ -10,18 +10,17 @@
 
 package app.zxtune.ui.utils;
 
-import android.app.Activity;
-
+import android.support.v4.app.FragmentActivity;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 
 public final class UiThreadCallbackAdapter implements Callback {
   
-  private final Activity activity;
+  private final FragmentActivity activity;
   private final Callback delegate;
   
-  public UiThreadCallbackAdapter(Activity activity, Callback delegate) {
+  public UiThreadCallbackAdapter(FragmentActivity activity, Callback delegate) {
     this.activity = activity;
     this.delegate = delegate;
   }

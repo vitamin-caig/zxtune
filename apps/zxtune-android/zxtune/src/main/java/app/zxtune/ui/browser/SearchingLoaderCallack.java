@@ -10,11 +10,11 @@
 
 package app.zxtune.ui.browser;
 
-import android.app.LoaderManager;
-import android.content.Loader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.widget.BaseAdapter;
 
 import app.zxtune.MainApplication;

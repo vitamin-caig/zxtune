@@ -11,11 +11,6 @@
 package app.zxtune;
 
 import android.Manifest;
-import android.annotation.TargetApi;
-import android.app.DialogFragment;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -23,6 +18,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -30,13 +29,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
-
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.ui.AboutFragment;
-import app.zxtune.ui.BrowserFragment;
-import app.zxtune.ui.NowPlayingFragment;
-import app.zxtune.ui.PlaylistFragment;
-import app.zxtune.ui.ViewPagerAdapter;
+import app.zxtune.ui.*;
 
 public class MainActivity extends AppCompatActivity implements PlaybackServiceConnection.Callback {
   
@@ -118,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
     this.service = service;
     final int[] ids = {R.id.now_playing, R.id.playlist_view, R.id.browser_view};
     for (int id : ids) {
-      final Fragment f = getFragmentManager().findFragmentById(id);
+      final Fragment f = getSupportFragmentManager().findFragmentById(id);
       if (f instanceof PlaybackServiceConnection.Callback) {
         ((PlaybackServiceConnection.Callback) f).onServiceConnected(service);
       }
@@ -142,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
   }
   
   private void fillPages() { 
-    final FragmentManager manager = getFragmentManager();
+    final FragmentManager manager = getSupportFragmentManager();
     final FragmentTransaction transaction = manager.beginTransaction();
     if (null == manager.findFragmentById(R.id.now_playing)) {
       transaction.replace(R.id.now_playing, NowPlayingFragment.createInstance());
@@ -210,14 +204,14 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
   
   private void showAbout() {
     final DialogFragment fragment = AboutFragment.createInstance();
-    fragment.show(getFragmentManager(), "about");
+    fragment.show(getSupportFragmentManager(), "about");
     Analytics.sendUIEvent("About");
   }
   
   private void quit() {
     if (service != null) {
       service.getPlaybackControl().stop();
-      PlaybackServiceConnection.shutdown(getFragmentManager());
+      PlaybackServiceConnection.shutdown(getSupportFragmentManager());
     }
     finish();
   }
