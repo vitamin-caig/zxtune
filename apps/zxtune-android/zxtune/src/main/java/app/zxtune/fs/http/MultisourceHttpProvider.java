@@ -28,13 +28,18 @@ public final class MultisourceHttpProvider {
     for (int idx = 0; ; ++idx) {
       final Uri uri = uris[idx];
       final String host = uri.getHost();
-      if (idx != uris.length - 1 && isDisabled(host, now)) {
+      final boolean isLast = idx == uris.length;
+      if (!isLast && isDisabled(host, now)) {
         continue;
       }
       try {
         return delegate.getContent(uri);
       } catch (IOException ex) {
-        disable(host, now);
+        if (isLast) {
+          throw ex;
+        } else {
+          disable(host, now);
+        }
       }
     }
   }
