@@ -29,7 +29,7 @@ namespace Sound
   {
   public:
     GainCore()
-      : Level()
+      : Level(1)
     {
     }
 
@@ -38,11 +38,12 @@ namespace Sound
       return Sample(Clamp((Level * in.Left()).Round()), Clamp((Level * in.Right()).Round()));
     }
 
-    void SetGain(Gain::Type in)
+    bool SetGain(Gain::Type in)
     {
       Level = std::min(in, MAX_LEVEL);
+      return Level != Gain::Type(1);
     }
-    
+
   private:
     static Sample::Type Clamp(Gain::Type::ValueType in)
     {
@@ -65,11 +66,9 @@ namespace Sound
 
     void ApplyData(Chunk in) override
     {
-      static const Gain::Type IDENTITY(1);
       const auto gain = Gain->Get();
-      if (gain != IDENTITY)
+      if (Core.SetGain(gain))
       {
-        Core.SetGain(Gain->Get());
         for (auto& val : in)
         {
           val = Core.Apply(val);
