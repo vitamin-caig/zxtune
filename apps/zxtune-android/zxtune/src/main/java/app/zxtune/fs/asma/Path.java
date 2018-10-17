@@ -24,9 +24,14 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
 
   @Override
   public Uri[] getRemoteUris() {
-    final String suffix = isFile() ? "" : "/";
+    final String path = elements.isEmpty() ? "" : (getLocalId() + (isFile() ? "" : "/"));
     return new Uri[]{
-        Cdn.asma(getLocalId() + suffix)
+        Cdn.asma(path),
+        new Uri.Builder()
+            .scheme("http")
+            .authority("asma.atari.org")
+            .path("asma/" + path)
+            .build()
     };
   }
 
