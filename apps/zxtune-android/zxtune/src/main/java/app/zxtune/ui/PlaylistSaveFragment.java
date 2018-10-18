@@ -31,6 +31,8 @@ import app.zxtune.R;
 import app.zxtune.playlist.PlaylistQuery;
 import app.zxtune.playlist.XspfStorage;
 
+import java.lang.ref.WeakReference;
+
 public class PlaylistSaveFragment extends DialogFragment {
 
   private static final String TAG = PlaylistSaveFragment.class.getName();
@@ -141,12 +143,12 @@ public class PlaylistSaveFragment extends DialogFragment {
   
   private static class SavePlaylistOperation extends AsyncTask<String, Void, Exception> {
     
-    private final Context context;
+    private final WeakReference<Context> contextRef;
     private final XspfStorage storage;
     @Nullable private final long[] ids;
     
     SavePlaylistOperation(Context context, XspfStorage storage, @Nullable long[] ids) {
-      this.context = context;
+      this.contextRef = new WeakReference<>(context);
       this.storage = storage;
       this.ids = ids;
     }
@@ -154,9 +156,10 @@ public class PlaylistSaveFragment extends DialogFragment {
     @Override
     @Nullable
     protected Exception doInBackground(String... name) {
+      final Context context = contextRef.get();
       try {
-        final Cursor cursor = context.getContentResolver().query(PlaylistQuery.ALL, null, 
-          PlaylistQuery.selectionFor(ids), null, null);
+        final Cursor cursor = context != null ? context.getContentResolver().query(PlaylistQuery.ALL, null,
+          PlaylistQuery.selectionFor(ids), null, null) : null;
         if (cursor == null) {
           return new Exception("Failed to query playlist");
         }
@@ -173,7 +176,11 @@ public class PlaylistSaveFragment extends DialogFragment {
     
     @Override
     protected void onPostExecute(Exception error) {
-      if (error != null) {
+      final Context context = contextRef.get();
+      if (context == null) {
+        Log.w(TAG, new IllegalStateException(), "Expired context");
+      }
+      else if (error != null) {
         final String msg = context.getString(R.string.save_failed, error.getMessage());
         Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
         Log.w(TAG, error, "Failed to save");

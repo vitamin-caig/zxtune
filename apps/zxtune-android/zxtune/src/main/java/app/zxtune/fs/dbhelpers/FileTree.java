@@ -62,18 +62,20 @@ final public class FileTree {
       this.insertStatement = db.compileStatement("INSERT OR REPLACE INTO dirs VALUES(?, ?);");
     }
 
-    final void add(String id, byte[] entries) throws IOException {
+    final void add(String id, byte[] entries) {
       insertStatement.bindString(1, id);
       insertStatement.bindBlob(2, entries);
       insertStatement.executeInsert();
     }
 
-    final byte[] get(String id) throws IOException {
+    final byte[] get(String id) {
       final String[] columns = {"entries"};
       final String[] selections = {id};
       final Cursor cursor = db.query("dirs", columns, "_id = ?", selections, null, null, null);
-      if (cursor != null && cursor.moveToFirst()) {
-        return cursor.getBlob(0);
+      if (cursor != null) {
+        final byte[] res = cursor.moveToFirst() ? cursor.getBlob(0) : null;
+        cursor.close();
+        return res;
       } else {
         return null;
       }
