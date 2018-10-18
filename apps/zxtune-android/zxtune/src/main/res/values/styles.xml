@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <style name="Theme.Dark" parent="Theme.AppCompat">
-    <item name="android:dialogTheme">@style/CustomDialog</item>
+    <item name="dialogTheme">@style/CustomDialog</item>
   </style>
   <style name="text_main" parent="android:style/TextAppearance.Medium">
     <item name="android:singleLine">true</item>
@@ -30,6 +30,6 @@
   <!-- http://stackoverflow.com/a/32711916/5758378 -->
   <!-- defaults to true on api >= 23 -->
   <style name="CustomDialog" parent="@style/Theme.AppCompat.Dialog">
-    <item name="android:windowNoTitle">false</item>
+    <item name="windowNoTitle">false</item>
   </style>
 </resources>

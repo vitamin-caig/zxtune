@@ -10,32 +10,32 @@
 
 package app.zxtune.ui;
 
-import android.app.DialogFragment;
-import android.app.LoaderManager;
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.Locale;
-
 import app.zxtune.BuildConfig;
 import app.zxtune.PluginsProvider;
 import app.zxtune.R;
+
+import java.util.ArrayList;
+import java.util.Locale;
 
 public class AboutFragment extends DialogFragment {
 
@@ -44,13 +44,24 @@ public class AboutFragment extends DialogFragment {
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    final View res = inflater.inflate(R.layout.about, container, false);
-    getDialog().setTitle(getApplicationInfo());
-    ((TextView) res.findViewById(R.id.about_system)).setText(getSystemInfo());
-    final ViewPager pager = (ViewPager) res.findViewById(R.id.about_pager);
+  public Dialog onCreateDialog(Bundle savedInstanceState) {
+    final Context ctx = getActivity();
+
+    final View view = ((Activity) ctx).getLayoutInflater().inflate(R.layout.about, null, false);
+    ((TextView) view.findViewById(R.id.about_system)).setText(getSystemInfo());
+    final ViewPager pager = view.findViewById(R.id.about_pager);
     pager.setAdapter(new ViewPagerAdapter(pager));
-    final ExpandableListView plugins = (ExpandableListView) res.findViewById(R.id.about_plugins);
+    final ExpandableListView plugins = view.findViewById(R.id.about_plugins);
+    fillPlugins(plugins);
+
+    final AlertDialog result = new AlertDialog.Builder(ctx)
+        .setTitle(getApplicationInfo())
+        .setView(view)
+        .create();
+    return result;
+  }
+
+  private void fillPlugins(final ExpandableListView plugins) {
     getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
 
       @Override
@@ -93,7 +104,6 @@ public class AboutFragment extends DialogFragment {
       public void onLoaderReset(Loader<Cursor> arg0) {
       }
     });
-    return res;
   }
 
   private static int getPluginTypeString(int type) {

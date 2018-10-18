@@ -10,27 +10,22 @@
 
 package app.zxtune.ui.browser;
 
-import android.app.Fragment;
-import android.app.LoaderManager;
-import android.content.Loader;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-
-import java.io.IOException;
-
 import android.widget.TextView;
 import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.R;
-import app.zxtune.fs.Vfs;
-import app.zxtune.fs.VfsArchive;
-import app.zxtune.fs.VfsDir;
-import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.VfsObject;
+import app.zxtune.fs.*;
 import app.zxtune.ui.utils.ListViewTools;
+
+import java.io.IOException;
 
 public class BrowserController {
   

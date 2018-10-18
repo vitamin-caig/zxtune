@@ -11,29 +11,31 @@
 package app.zxtune.ui;
 
 import android.app.Activity;
-import android.app.DialogFragment;
+import android.app.Dialog;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.view.LayoutInflater;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.Permission;
 import app.zxtune.R;
 import app.zxtune.RingtoneService;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Item;
 
+import java.util.concurrent.TimeUnit;
+
 public class RingtoneFragment extends DialogFragment {
   
   private static final String TAG = RingtoneFragment.class.getName();
 
   @Nullable
-  static DialogFragment createInstance(Activity activity, Item item) {
+  static DialogFragment createInstance(FragmentActivity activity, Item item) {
     if (!Permission.requestSystemSettings(activity)) {
       return null;
     }
@@ -43,18 +45,23 @@ public class RingtoneFragment extends DialogFragment {
     result.setArguments(args);
     return result;
   }
-  
+
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    getDialog().setTitle(R.string.ringtone_create_title);
-    
-    final View result = inflater.inflate(R.layout.ringtone, container, false);
-    
-    final ViewGroup buttons = (ViewGroup) result.findViewById(R.id.ringtone_durations);
+  public Dialog onCreateDialog(Bundle savedInstanceState) {
+    final Context ctx = getActivity();
+
+    final View view = ((Activity) ctx).getLayoutInflater().inflate(R.layout.ringtone, null, false);
+
+    final ViewGroup buttons = (ViewGroup) view.findViewById(R.id.ringtone_durations);
     fillDurations(buttons);
+
+    final AlertDialog result = new AlertDialog.Builder(ctx)
+        .setTitle(R.string.ringtone_create_title)
+        .setView(view)
+        .create();
     return result;
   }
-  
+
   private void fillDurations(ViewGroup container) {
 
     final Uri uri = getArguments().getParcelable("url");

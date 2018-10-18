@@ -11,8 +11,6 @@
 package app.zxtune;
 
 import android.app.IntentService;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -34,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.core.Player;
 import app.zxtune.core.Properties;
+import app.zxtune.device.ui.Notifications;
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.sound.*;
@@ -80,16 +79,6 @@ public class RingtoneService extends IntentService {
     });
   }
 
-  private void showNotification(String moduleTitle) {
-    final Notification.Builder builder = new Notification.Builder(this);
-    builder.setOngoing(false);
-    builder.setSmallIcon(R.drawable.ic_stat_notify_ringtone);
-    builder.setContentTitle(getString(R.string.ringtone_changed));
-    builder.setContentText(moduleTitle);
-    final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    manager.notify(RingtoneService.class.hashCode(), builder.getNotification());
-  }
-  
   @Override
   protected void onHandleIntent(Intent intent) {
     if (ACTION_MAKERINGTONE.equals(intent.getAction())) {
@@ -107,7 +96,7 @@ public class RingtoneService extends IntentService {
         final File target = getTargetLocation(item, howMuch); 
         convert(item, howMuch, target);
         final String title = setAsRingtone(item, howMuch, target);
-        showNotification(title);
+        Notifications.sendEvent(this, R.drawable.ic_stat_notify_ringtone, R.string.ringtone_changed, title);
         Analytics.sendSocialEvent("Ringtone", "app.zxtune", item);
       } finally {
         item.release();
@@ -151,7 +140,7 @@ public class RingtoneService extends IntentService {
         notifyAll();
       }
     }
-  }; 
+  }
   
   private void convert(PlayableItem item, TimeStamp limit, File location)  throws Exception {
     makeToast(getString(R.string.ringtone_create_started), Toast.LENGTH_SHORT);
@@ -237,7 +226,7 @@ public class RingtoneService extends IntentService {
     private final TimeStamp limit;
     private int restSamples;
     
-    public TimeLimitedSamplesSource(Player player, TimeStamp limit) throws Exception {
+    TimeLimitedSamplesSource(Player player, TimeStamp limit) throws Exception {
       this.player = player;
       this.limit = limit;
       player.setPosition(0);

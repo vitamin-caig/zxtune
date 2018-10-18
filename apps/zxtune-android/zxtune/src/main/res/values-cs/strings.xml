@@ -40,4 +40,7 @@
     <string name="no_tracks_found">Nenalezeny žádné podporované skladby</string>
     <string name="track">Skladba</string>
     <string name="starting">Spouští se...</string>
+    <!-- notifications -->
+    <string name="notification_channel_name_events">Události</string>
+    <string name="notification_channel_name_services">Služby</string>
 </resources>

@@ -10,51 +10,32 @@
 
 package app.zxtune.ui;
 
-import android.app.DialogFragment;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.Toast;
-
-import java.io.IOException;
-
-import app.zxtune.Analytics;
-import app.zxtune.Log;
-import app.zxtune.PlaybackServiceConnection;
-import app.zxtune.R;
-import app.zxtune.Releaseable;
-import app.zxtune.Util;
+import app.zxtune.*;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.cache.CacheFactory;
-import app.zxtune.playback.Callback;
-import app.zxtune.playback.CallbackSubscription;
-import app.zxtune.playback.Item;
-import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.stubs.ItemStub;
-import app.zxtune.playback.stubs.PlaybackControlStub;
-import app.zxtune.playback.stubs.PlaybackServiceStub;
-import app.zxtune.playback.stubs.SeekControlStub;
-import app.zxtune.playback.stubs.VisualizerStub;
+import app.zxtune.playback.*;
+import app.zxtune.playback.stubs.*;
 import app.zxtune.ui.controllers.VisualizerController;
 import app.zxtune.ui.utils.UiThreadCallbackAdapter;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
+
+import java.io.IOException;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
@@ -317,7 +298,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         case R.id.action_make_ringtone:
           final DialogFragment fragment = RingtoneFragment.createInstance(getActivity(), data.getItem());
           if (fragment != null) {
-            fragment.show(getActivity().getFragmentManager(), "ringtone");
+            fragment.show(getActivity().getSupportFragmentManager(), "ringtone");
           }
           break;
         default:

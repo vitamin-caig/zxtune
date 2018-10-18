@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  style="@style/block"
+              xmlns:app="http://schemas.android.com/apk/res-auto" style="@style/block"
   android:orientation="horizontal"
   android:paddingLeft="@dimen/spacing_full"
   android:paddingRight="@dimen/spacing_full"
@@ -34,10 +34,10 @@
     />
   <!-- TODO: merge seek view and controls view -->
   <ImageView
-    android:id="@+id/controls_track_mode"
-    android:src="@drawable/ic_track_regular"
-    style="@style/Button"
-    android:layout_weight="0"
-    android:layout_marginLeft="@dimen/spacing_full"
-    android:scaleType="center"/>
+          android:id="@+id/controls_track_mode"
+          app:srcCompat="@drawable/ic_track_regular"
+          style="@style/Button"
+          android:layout_weight="0"
+          android:layout_marginLeft="@dimen/spacing_full"
+          android:scaleType="center"/>
 </LinearLayout>
