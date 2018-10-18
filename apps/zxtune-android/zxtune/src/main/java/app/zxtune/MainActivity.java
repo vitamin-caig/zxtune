@@ -27,7 +27,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.Toast;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.ui.*;
@@ -50,7 +49,6 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
     setContentView(R.layout.main_activity);
 
     fillPages();
@@ -155,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
   }
   
   private void setupViewPager() {
-    pager = (ViewPager) findViewById(R.id.view_pager);
+    pager = findViewById(R.id.view_pager);
     if (null != pager) {
       final ViewPagerAdapter adapter = new ViewPagerAdapter(pager); 
       pager.setAdapter(adapter);
