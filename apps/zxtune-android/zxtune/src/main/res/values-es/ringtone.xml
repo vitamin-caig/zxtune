@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="ringtone_create_title">Crea tono</string>
-    <string name="ringtone_create_started">Hacer tono de...</string>
+    <string name="ringtone_create_started">Hacer tono de…</string>
     <string name="ringtone_changed">Nueva tono se ha fijado!</string>
     <string name="ringtone_creating_failed">No se pudo crear el tono: %s</string>
 </resources>

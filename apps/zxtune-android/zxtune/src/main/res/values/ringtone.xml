@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="ringtone_create_title">Set as ringtone</string>
-    <string name="ringtone_create_started">Making ringtone...</string>
+    <string name="ringtone_create_started">Making ringtone…</string>
     <string name="ringtone_changed">New ringtone has been set!</string>
     <string name="ringtone_creating_failed">Failed to create ringtone: %s</string>
 </resources>

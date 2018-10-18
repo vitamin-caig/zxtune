@@ -2,7 +2,7 @@
 <resources>
   <string name="browser">Navegador</string>
   <string name="browser_empty">No hay archivos</string>
-  <string name="browser_loading">Cargando...</string>
-  <string name="browser_searching">Búsqueda...</string>
+  <string name="browser_loading">Cargando…</string>
+  <string name="browser_searching">Búsqueda…</string>
   <string name="browser_search_hint">Búsqueda</string>
 </resources>
