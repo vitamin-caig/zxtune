@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4220 from 18.10.2018
+
+[*] zxtune-android: fixed crash at startup on some devices
+[*] zxtune-android: fixed screen widget coloring
+[*] zxtune-android: fixed track sending functionality on Android 9+
+
 --- Rev4210 from 18.10.2018
 
 [*] Fixed crash in some .gsf tracks playback
