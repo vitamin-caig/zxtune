@@ -11,6 +11,7 @@
 package app.zxtune.ui;
 
 import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -47,10 +48,10 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   }
 
   @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
+  public void onAttach(Context ctx) {
+    super.onAttach(ctx);
     
-    state = new PlaylistState(Preferences.getDefaultSharedPreferences(activity));
+    state = new PlaylistState(Preferences.getDefaultSharedPreferences(ctx));
   }
   
   @Override

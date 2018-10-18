@@ -11,6 +11,7 @@
 package app.zxtune.ui;
 
 import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -53,8 +54,8 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
 
   @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
+  public void onAttach(Context ctx) {
+    super.onAttach(ctx);
 
     this.controller = new BrowserController(this);
   }

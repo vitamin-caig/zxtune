@@ -51,9 +51,9 @@ public class PlaylistSaveFragment extends DialogFragment {
   }
   
   @Override
-  public void onAttach(Activity act) {
-    super.onAttach(act);
-    storage = new XspfStorage(act);
+  public void onAttach(Context ctx) {
+    super.onAttach(ctx);
+    storage = new XspfStorage(ctx);
   }
   
   @Override

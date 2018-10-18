@@ -72,10 +72,12 @@ public class PlaybackServiceConnection extends Fragment {
   }
 
   @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
+  public void onAttach(Context ctx) {
+    super.onAttach(ctx);
 
-    setCallback((Callback) activity);
+    if (ctx instanceof Callback) {
+      setCallback((Callback) ctx);
+    }
   }
   
   @Override
