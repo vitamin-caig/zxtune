@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4210 from 18.10.2018
+
+[*] Fixed crash in some .gsf tracks playback
+[+] zxtune-android: added fallback mirrors for asma, amp and modland catalogues
+[*] zxtune-android: fixed some reported and found crashes
+
 --- Rev4190 from 10.09.2018
 
 [*] Fixed ET1 tracks playback
