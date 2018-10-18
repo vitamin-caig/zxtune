@@ -5,9 +5,11 @@
   </style>
   <style name="text_main" parent="android:style/TextAppearance.Medium">
     <item name="android:singleLine">true</item>
+    <item name="android:textColor">@android:color/white</item>
   </style>
   <style name="text_aux" parent="android:style/TextAppearance.Small">
     <item name="android:singleLine">true</item>
+    <item name="android:textColor">@android:color/white</item>
   </style>
   <style name="block">
     <item name="android:layout_width">match_parent</item>
