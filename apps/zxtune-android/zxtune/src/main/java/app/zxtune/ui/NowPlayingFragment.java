@@ -18,6 +18,7 @@ import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.*;
@@ -35,6 +36,7 @@ import app.zxtune.ui.controllers.VisualizerController;
 import app.zxtune.ui.utils.UiThreadCallbackAdapter;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
 
+import java.io.File;
 import java.io.IOException;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -350,9 +352,14 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       final Intent result = makeIntent("application/octet");
       result.putExtra(Intent.EXTRA_SUBJECT, getTitle());
       result.putExtra(Intent.EXTRA_TEXT, getSendText());
-      result.putExtra(Intent.EXTRA_STREAM, localFile);
+      result.putExtra(Intent.EXTRA_STREAM, makeApkUri(localFile));
       result.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
       return result;
+    }
+
+    private Uri makeApkUri(Uri local) {
+      final File file = new File(local.getPath());
+      return FileProvider.getUriForFile(context, "app.zxtune.files", file);
     }
     
     final Intent makeShareIntent() throws Exception {
