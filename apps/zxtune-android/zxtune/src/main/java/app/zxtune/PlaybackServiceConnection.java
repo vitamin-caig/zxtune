@@ -60,7 +60,7 @@ public class PlaybackServiceConnection extends Fragment {
   
   @Override
   public void onActivityCreated(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
+    super.onActivityCreated(savedInstanceState);
     
     setRetainInstance(true);
 
