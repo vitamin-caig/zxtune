@@ -83,6 +83,18 @@ namespace Binary
       Cursor += size;
       return res;
     }
+    
+    const uint8_t* PeekRawData(std::size_t size)
+    {
+      if (Cursor + size <= Finish)
+      {
+        return Cursor;
+      }
+      else
+      {
+        return nullptr;
+      }
+    }
 
     //! @brief Read as much data as possible
     std::size_t Read(void* buf, std::size_t len)
