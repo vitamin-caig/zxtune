@@ -123,4 +123,21 @@ namespace Strings
     }
     return true;
   }
+  
+  inline StringView CutUtf8BOM(StringView str)
+  {
+    if (str.size() >= 3 && str[0] == 0xef && str[1] == 0xbb && str[2] == 0xbf)
+    {
+      return str.substr(3);
+    }
+    else
+    {
+      return str;
+    }
+  }
+  
+  inline bool IsUtf16(StringView str)
+  {
+    return str.size() > 2 && str.size() % 2 == 0 && ((str[0] == 0xff && str[1] == 0xfe) || (str[0] == 0xfe && str[1] == 0xff));
+  }
 }
