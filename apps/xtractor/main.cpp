@@ -285,6 +285,10 @@ namespace Formats
       scanner.AddDecoder(CreateMultiTrackContainerDecoder());
       scanner.AddDecoder(CreateAYEMULDecoder());
       scanner.AddDecoder(CreateAbyssHighestExperienceDecoder());
+      scanner.AddDecoder(CreateKSSDecoder());
+      scanner.AddDecoder(CreateHivelyTrackerDecoder());
+      scanner.AddDecoder(CreateRasterMusicTrackerDecoder());
+      scanner.AddDecoder(CreateMP3Decoder());
     }
   }
 }
