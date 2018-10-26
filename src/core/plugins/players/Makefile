@@ -1,6 +1,6 @@
 library_name := core_plugins_players
 path_step := ../../../..
-source_dirs := . asap ay dac gme multi saa sid tfm xmp xsf
+source_dirs := . asap ay dac gme multi music saa sid tfm xmp xsf
 
 po_files := core_players
 
