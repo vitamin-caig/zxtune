@@ -388,6 +388,18 @@ namespace Chiptune
           return 576;
         }
       }
+      
+      bool IsFreeFormat() const
+      {
+        return 0 == GetBitrate();
+      }
+      
+      bool Matches(const FrameHeader& rh) const
+      {
+        return ((Data[1] ^ rh.Data[1]) & 0xFE) == 0 &&
+               ((Data[2] ^ rh.Data[2]) & 0x0C) == 0 &&
+               (IsFreeFormat() == rh.IsFreeFormat());
+      }
 
       std::size_t GetFrameDataSize() const
       {
@@ -481,34 +493,45 @@ namespace Chiptune
         const auto frame = safe_ptr_cast<const FrameHeader*>(Stream.PeekRawData(sizeof(FrameHeader)));
         if (frame && frame->IsValid())
         {
-          const auto size = frame->GetFrameDataSize();
-          const auto restSize = Stream.GetRestSize();
-          if (size != 0)
+          if (frame->IsFreeFormat())
           {
+            while (const auto restSize = Stream.GetRestSize())
+            {
+              if (const auto nextFrame = SkipToNextFrame())
+              {
+                if (frame->Matches(*nextFrame))
+                {
+                  break;
+                }
+              }
+              else
+              {
+                Stream.Skip(restSize);
+                break;
+              }
+            }
+            return frame;
+          }
+          else
+          {
+            const auto size = frame->GetFrameDataSize();
+            const auto restSize = Stream.GetRestSize();
             if (restSize >= size)
             {
               Stream.Skip(size);
               return frame;
             }
           }
-          else
-          {
-            if (!SkipToNextFrame())
-            {
-              Stream.Skip(restSize);
-            }
-            return frame;
-          }
         }
         return nullptr;
       }
       
-      bool SkipToNextFrame()
+      const FrameHeader* SkipToNextFrame()
       {
         const auto restSize = Stream.GetRestSize();
         if (restSize < sizeof(FrameHeader))
         {
-          return false;
+          return nullptr;
         }
         const auto data = Stream.PeekRawData(restSize);
         const auto end = data + restSize - sizeof(FrameHeader);
@@ -522,14 +545,14 @@ namespace Chiptune
           else if (safe_ptr_cast<const FrameHeader*>(match)->IsValid())
           {
             Stream.Skip(match - data);
-            return true;
+            return safe_ptr_cast<const FrameHeader*>(match);
           }
           else
           {
             offset = match - data + 1;
           }
         }
-        return false;
+        return nullptr;
       }
     private:
       Binary::InputStream Stream;
