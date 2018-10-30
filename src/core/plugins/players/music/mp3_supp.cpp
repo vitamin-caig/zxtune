@@ -41,14 +41,78 @@ namespace Mp3
 {
   const Debug::Stream Dbg("Core::Mp3Supp");
   
+  struct Accumulator
+  {
+    uint64_t Total = 0;
+    uint_t Count = 0;
+    uint_t Min = 0;
+    uint_t Max = 0;
+
+    void Add(uint_t val)
+    {
+      Total += val;
+      if (Count++)
+      {
+        Min = std::min(Min, val);
+        Max = std::max(Max, val);
+      }
+      else
+      {
+        Min = Max = val;
+      }
+    }
+    
+    const uint_t* SingleValue() const
+    {
+      return Min == Max ? &Min : nullptr;
+    }
+    
+    uint_t Avg() const
+    {
+      return static_cast<uint_t>((Total + (Count / 2)) / Count);
+    }
+  };
+  
   struct Model
   {
     using RWPtr = std::shared_ptr<Model>;
     using Ptr = std::shared_ptr<const Model>;
     
-    Formats::Chiptune::Mp3::Frame::SoundProperties Properties;
+    Accumulator Frequency;
+    Accumulator Samples;
     std::vector<Formats::Chiptune::Mp3::Frame::DataLocation> Frames;
     Binary::Data::Ptr Content;
+  };
+  
+  struct FrameSound
+  {
+    uint_t Frequency = 0;
+    Sound::Chunk Data;
+
+    FrameSound()
+      : Data(MINIMP3_MAX_SAMPLES_PER_FRAME / 2)
+    {
+    }
+    
+    Sound::Sample::Type* GetTarget()
+    {
+       return safe_ptr_cast<Sound::Sample::Type*>(Data.data());
+    }
+    
+    void Finalize(uint_t resultSamples, const mp3dec_frame_info_t& info)
+    {
+      if (1 == info.channels)
+      {
+        const auto pcm = GetTarget();
+        for (std::size_t idx = resultSamples; idx != 0; --idx)
+        {
+          const auto mono = pcm[idx - 1];
+          Data[idx - 1] = Sound::Sample(mono, mono);
+        }
+      }
+      Data.resize(resultSamples);
+      Frequency = info.hz;
+    }
   };
   
   class Mp3Tune
@@ -57,49 +121,114 @@ namespace Mp3
     explicit Mp3Tune(Model::Ptr data)
       : Data(std::move(data))
     {
-      ::mp3dec_init(&Decoder);
-    }
-    
-    uint_t GetSoundFrequency() const
-    {
-      return Data->Properties.Samplerate;
-    }
-    
-    Sound::Chunk RenderFrame(uint_t idx)
-    {
+      Reset();
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
-      const auto& frame = Data->Frames.at(idx);
-      const auto mono = Data->Properties.Mono;
-      const auto samples = Data->Properties.SamplesCount;
-      Sound::Chunk output(samples);
-      mp3dec_frame_info_t info;
-      const auto pcmStereo = safe_ptr_cast<Sound::Sample::Type*>(output.data());
-      const auto pcm = mono ? pcmStereo + samples : pcmStereo;
-      const auto resultSamples = ::mp3dec_decode_frame(&Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + frame.Offset, frame.Size, pcm, &info);
-      if (int(frame.Size) != info.frame_bytes)
-      {
-        throw MakeFormattedError(THIS_LINE, "Frame size mismatch %1% -> %2%", frame.Size, info.frame_bytes);
-      }
-      else if (int(samples) != resultSamples)
-      {
-        throw MakeFormattedError(THIS_LINE, "Samples count mismatch %1% -> %2%", samples, resultSamples);
-      }
-      else if (2 - mono != info.channels)
-      {
-        throw MakeFormattedError(THIS_LINE, "Channels mismatch %1% -> %2%", 2 - mono, info.channels);
-      }
-      if (mono)
-      {
-        std::transform(pcm, pcm + samples, output.begin(), [](Sound::Sample::Type val) {return Sound::Sample(val, val);});
-      }
-      return output;
     }
     
+    FrameSound RenderFrame(uint_t idx)
+    {
+      const uint_t RENDER_FRAMES_LOOKAHEAD = 4;
+      const auto& frame = GetMergedFrame(idx, RENDER_FRAMES_LOOKAHEAD);
+      FrameSound result;
+      mp3dec_frame_info_t info;
+      const auto resultSamples = ::mp3dec_decode_frame(&Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + frame.Offset, frame.Size, result.GetTarget(), &info);
+      if (!resultSamples)
+      {
+        Dbg("No samples for frame @0x%1$08x..0x%2$08x", frame.Offset, frame.Offset + frame.Size - 1);
+      }
+      result.Finalize(resultSamples, info);
+      return result;
+    }
+    
+    void Reset()
+    {
+      ::mp3dec_init(&Decoder);
+    }
+    
+    void Seek(uint_t idx)
+    {
+      Reset();
+      const uint_t SEEK_FRAMES_LOOKAHEAD = 8;
+      auto frame = idx <= SEEK_FRAMES_LOOKAHEAD ? GetMergedFrame(0, idx) : GetMergedFrame(idx - SEEK_FRAMES_LOOKAHEAD, SEEK_FRAMES_LOOKAHEAD);
+      while (frame.Size)
+      {
+        mp3dec_frame_info_t info;
+        ::mp3dec_decode_frame(&Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + frame.Offset, frame.Size, nullptr, &info);
+        if (info.frame_bytes)
+        {
+          frame.Offset += info.frame_bytes;
+          frame.Size -= info.frame_bytes;
+        }
+        else
+        {
+          Dbg("Failed to decode frame @0x%1$08x..0x%2$08x", frame.Offset, frame.Offset + frame.Size - 1);
+        }
+      }
+    }
+  private:
+    Formats::Chiptune::Mp3::Frame::DataLocation GetMergedFrame(uint_t start, uint_t size) const
+    {
+      auto result = Data->Frames.at(start);
+      const auto end = start + size;
+      const auto limit = end < Data->Frames.size() ? Data->Frames[end].Offset : Data->Content->Size();
+      result.Size = limit - result.Offset;
+      return result;
+    }
   private:
     const Model::Ptr Data;
     mp3dec_t Decoder;
+  };
+  
+  class MultiFreqTargetsDispatcher
+  {
+  public:
+    explicit MultiFreqTargetsDispatcher(Sound::Receiver::Ptr target)
+      : Target(target)
+      , TargetFreq()
+    {
+    }
+    
+    void SetTargetFreq(uint_t freq)
+    {
+      if (TargetFreq != freq)
+      {
+        Resamplers.clear();
+      }
+      TargetFreq = freq;
+    }
+    
+    void Put(FrameSound frame)
+    {
+      if (!frame.Data.empty())
+      {
+        GetTarget(frame.Frequency).ApplyData(std::move(frame.Data));
+      }
+    }
+    
+  private:
+    Sound::Receiver& GetTarget(uint_t freq)
+    {
+      if (freq == TargetFreq)
+      {
+        return *Target;
+      }
+      for (const auto& resampled : Resamplers)
+      {
+        if (freq == resampled.first)
+        {
+          return *resampled.second;
+        }
+      }
+      const auto res = Sound::CreateResampler(freq, TargetFreq, Target);
+      Resamplers.emplace_back(freq, res);
+      return *res;
+    }
+  private:
+    const Sound::Receiver::Ptr Target;
+    uint_t TargetFreq;
+    std::vector<std::pair<uint_t, Sound::Receiver::Ptr> > Resamplers;
   };
   
   class Renderer : public Module::Renderer
@@ -133,9 +262,9 @@ namespace Mp3
       {
         ApplyParameters();
 
-        auto buf = Tune.RenderFrame(State->Frame());
-        Analyzer->AddSoundData(buf);
-        Resampler->ApplyData(std::move(buf));
+        auto frame = Tune.RenderFrame(State->Frame());
+        Analyzer->AddSoundData(frame.Data);
+        Target.Put(std::move(frame));
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -147,12 +276,14 @@ namespace Mp3
 
     void Reset() override
     {
+      Tune.Reset();
       SoundParams.Reset();
       Iterator->Reset();
     }
 
     void SetPosition(uint_t frame) override
     {
+      Tune.Seek(frame);
       Module::SeekIterator(*Iterator, frame);
     }
   private:
@@ -161,7 +292,7 @@ namespace Mp3
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
-        Resampler = Sound::CreateResampler(Tune.GetSoundFrequency(), SoundParams->SoundFreq(), Target);
+        Target.SetTargetFreq(SoundParams->SoundFreq());
       }
     }
   private:
@@ -170,8 +301,7 @@ namespace Mp3
     const TrackState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
-    const Sound::Receiver::Ptr Target;
-    Sound::Receiver::Ptr Resampler;
+    MultiFreqTargetsDispatcher Target;
     bool Looped;
   };
   
@@ -222,21 +352,9 @@ namespace Mp3
 
     void AddFrame(const Formats::Chiptune::Mp3::Frame& frame) override
     {
-      if (Data->Frames.empty())
-      {
-        Data->Properties = frame.Properties;
-        Properties.SetFramesParameters(frame.Properties.SamplesCount, frame.Properties.Samplerate);
-      }
-      //TODO: enable when variable frame duration will be possible
-      if (Data->Properties.SamplesCount == frame.Properties.SamplesCount
-       && Data->Properties.Samplerate == frame.Properties.Samplerate)
-      {
-        Data->Frames.push_back(frame.Location);
-      }
-      else
-      {
-        throw std::runtime_error("Variable frame parameters detected");
-      }
+      Data->Frames.push_back(frame.Location);
+      Data->Frequency.Add(frame.Properties.Samplerate);
+      Data->Samples.Add(frame.Properties.SamplesCount);
     }
     
     void SetContent(const Binary::Data& data)
@@ -253,8 +371,33 @@ namespace Mp3
       }
       else
       {
+        const auto freq = GetFrequency();
+        if (const auto frameSamples = Data->Samples.SingleValue())
+        {
+          Properties.SetFramesParameters(*frameSamples, freq);
+        }
+        else
+        {
+          const auto avg = Data->Samples.Avg();
+          Dbg("Use average frame samples %1%", avg);
+          Properties.SetFramesParameters(avg, freq);
+        }
         Data->Frames.shrink_to_fit();
         return Data;
+      }
+    }
+  private:
+    uint_t GetFrequency() const
+    {
+      if (const auto singleFreq = Data->Frequency.SingleValue())
+      {
+        return *singleFreq;
+      }
+      else
+      {
+        const auto avg = Data->Frequency.Avg();
+        Dbg("Use average frequency %1%", avg);
+        return avg;
       }
     }
   private:
