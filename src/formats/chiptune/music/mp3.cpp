@@ -169,16 +169,11 @@ namespace Chiptune
       
       static_assert(sizeof(EnhancedTag) == 227, "Invalid layout");
 
-      String MakeString(const TagString& str)
-      {
-        return MakeString(StringView(str));
-      }
-      
-      String MakeString(const EnhancedTagString& part1, const TagString& part2)
+      String MakeCompositeString(const EnhancedTagString& part1, const TagString& part2)
       {
         std::array<char, 90> buf;
         std::copy(part2.begin(), part2.end(), std::copy(part1.begin(), part1.end(), buf.begin()));
-        return MakeString(StringView(buf));
+        return MakeString(buf);
       }
       
       //https://en.wikipedia.org/wiki/ID3#ID3v1_and_ID3v1.1
@@ -196,8 +191,8 @@ namespace Chiptune
           }
           if (enhancedTag)
           {
-            target.SetTitle(MakeString(enhancedTag->Title, tag->Title));
-            target.SetAuthor(MakeString(enhancedTag->Artist, tag->Artist));
+            target.SetTitle(MakeCompositeString(enhancedTag->Title, tag->Title));
+            target.SetAuthor(MakeCompositeString(enhancedTag->Artist, tag->Artist));
           }
           else
           {
@@ -250,7 +245,7 @@ namespace Chiptune
       
       bool Parse(Binary::InputStream& stream, MetaBuilder& target)
       {
-        static const size_t SIGNATURE_SIZE = 3;
+        static const std::size_t SIGNATURE_SIZE = 3;
         static const uint8_t V1_SIGNATURE[] = {'T', 'A', 'G'};
         static const uint8_t V2_SIGNATURE[] = {'I', 'D', '3'};
         if (stream.GetRestSize() < SIGNATURE_SIZE)
@@ -272,6 +267,88 @@ namespace Chiptune
         }
       }
     } //namespace Id3
+    
+    //http://wiki.hydrogenaud.io/index.php?title=APEv2_specification
+    namespace ApeTag
+    {
+      uint32_t ReadLE32(const uint8_t* data)
+      {
+        return (uint_t(data[3]) << 24) | (uint_t(data[2]) << 16) | (uint_t(data[1]) << 8) | data[0];
+      }
+
+      String MakeString(StringView str)
+      {
+        //do not trim before- it may break some encodings
+        auto decoded = Strings::ToAutoUtf8(str);
+        std::replace_if(decoded.begin(), decoded.end(), [](Char c) {return c < ' ';}, ' ');
+        auto trimmed = Strings::TrimSpaces(decoded);
+        return decoded.size() == trimmed.size() ? decoded : trimmed.to_string();
+      }
+      
+      void ParseKey(StringView key, StringView value, MetaBuilder& target)
+      {
+        if (key == "Artist")
+        {
+          target.SetAuthor(MakeString(value));
+        }
+        else if (key == "Title")
+        {
+          target.SetTitle(MakeString(value));
+        }
+        else if (key == "Comment")
+        {
+          //TODO: SetComment
+          target.SetStrings({MakeString(value)});
+        }
+      }
+      
+      void ParseV2(uint_t count, Binary::DataInputStream& stream, MetaBuilder& target)
+      {
+        try
+        {
+          for (uint_t idx = 0; idx < count; ++idx)
+          {
+            const auto dataSize = ReadLE32(stream.ReadRawData(4));
+            /*const auto flags = */ReadLE32(stream.ReadRawData(4));
+            const auto key = stream.ReadCString(stream.GetRestSize() - dataSize);
+            const auto data = stream.ReadRawData(dataSize);
+            ParseKey(key, StringView(safe_ptr_cast<const char*>(data), dataSize), target);
+          }
+        }
+        catch (const std::exception&)
+        {
+        }
+      }
+      
+      bool Parse(Binary::InputStream& stream, MetaBuilder& target)
+      {
+        static const std::size_t HEADER_SIZE = 32;
+        static const uint8_t SIGNATURE[] = {'A', 'P', 'E', 'T', 'A', 'G', 'E', 'X'};
+        const auto hdr = stream.PeekRawData(HEADER_SIZE);
+        if (!hdr || 0 != std::memcmp(hdr, SIGNATURE, sizeof(SIGNATURE)))
+        {
+          return false;
+        }
+        const auto version = ReadLE32(hdr + 8);
+        const auto restSize = ReadLE32(hdr + 12);
+        const auto itemsCount = ReadLE32(hdr + 16);
+        //const auto globalFlags = ReadLE32(hdr + 20);
+        if (const auto subData = stream.PeekRawData(HEADER_SIZE + restSize))
+        {
+          stream.Skip(HEADER_SIZE + restSize);
+          if (version == 2000)
+          {
+            Binary::DataInputStream subStream(subData + HEADER_SIZE, restSize);
+            ParseV2(itemsCount, subStream, target);
+          }
+          return true;
+        }
+        else
+        {
+          return false;
+        }
+      }
+    } //namespace ApeTag
     
     class StubBuilder : public Builder
     {
@@ -469,7 +546,7 @@ namespace Chiptune
             out.Properties.Mono = inFrame->GetIsMono();
             target.AddFrame(out);
           }
-          else if (Id3::Parse(Stream, target.GetMetaBuilder()))
+          else if (Id3::Parse(Stream, target.GetMetaBuilder()) || ApeTag::Parse(Stream, target.GetMetaBuilder()))
           {
             continue;
           }
