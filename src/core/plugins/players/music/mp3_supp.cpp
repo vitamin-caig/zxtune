@@ -94,6 +94,14 @@ namespace Mp3
     {
     }
     
+    FrameSound(const FrameSound&) = delete;
+    FrameSound& operator = (const FrameSound&) = delete;
+    FrameSound(FrameSound&& rh)// = default
+      : Frequency(rh.Frequency)
+      , Data(std::move(rh.Data))
+    {
+    }
+    
     Sound::Sample::Type* GetTarget()
     {
        return safe_ptr_cast<Sound::Sample::Type*>(Data.data());
@@ -133,7 +141,7 @@ namespace Mp3
       const auto& frame = GetMergedFrame(idx, RENDER_FRAMES_LOOKAHEAD);
       FrameSound result;
       mp3dec_frame_info_t info;
-      const auto resultSamples = ::mp3dec_decode_frame(&Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + frame.Offset, frame.Size, result.GetTarget(), &info);
+      const auto resultSamples = ::mp3dec_decode_frame(&Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + frame.Offset, int(frame.Size), result.GetTarget(), &info);
       if (!resultSamples)
       {
         Dbg("No samples for frame @0x%1$08x..0x%2$08x", frame.Offset, frame.Offset + frame.Size - 1);
@@ -155,7 +163,7 @@ namespace Mp3
       while (frame.Size)
       {
         mp3dec_frame_info_t info;
-        ::mp3dec_decode_frame(&Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + frame.Offset, frame.Size, nullptr, &info);
+        ::mp3dec_decode_frame(&Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + frame.Offset, int(frame.Size), nullptr, &info);
         if (info.frame_bytes)
         {
           frame.Offset += info.frame_bytes;
@@ -310,7 +318,7 @@ namespace Mp3
   public:
     Holder(Model::Ptr data, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
-      , Info(CreateStreamInfo(Data->Frames.size()))
+      , Info(CreateStreamInfo(static_cast<uint_t>(Data->Frames.size())))
       , Properties(std::move(props))
     {
     }
