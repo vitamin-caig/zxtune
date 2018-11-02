@@ -322,3 +322,7 @@ __cpp> "}//namespace Text\n"
 #MP3
 < MP3_DECODER_DESCRIPTION
 > "MPEG Audio Layer"
+
+#OGG
+< OGGVORBIS_DECODER_DESCRIPTION
+> "OGG Vorbis"
