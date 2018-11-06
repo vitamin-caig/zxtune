@@ -2,6 +2,8 @@ package app.zxtune.fs.http;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
+
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 
 import java.io.IOException;
@@ -27,18 +29,17 @@ public final class MultisourceHttpProvider {
     final long now = System.currentTimeMillis();
     for (int idx = 0; ; ++idx) {
       final Uri uri = uris[idx];
-      final String host = uri.getHost();
-      final boolean isLast = idx == uris.length;
-      if (!isLast && isDisabled(host, now)) {
+      final boolean isLast = idx == uris.length - 1;
+      if (!isLast && isDisabled(uri, now)) {
         continue;
       }
       try {
         return delegate.getContent(uri);
       } catch (IOException ex) {
-        if (isLast) {
+        if (isLast || !delegate.hasConnection()) {
           throw ex;
         } else {
-          disable(host, now);
+          disable(uri, now);
         }
       }
     }
@@ -48,25 +49,32 @@ public final class MultisourceHttpProvider {
     final long now = System.currentTimeMillis();
     for (int idx = 0; ; ++idx) {
       final Uri uri = uris[idx];
-      final String host = uri.getHost();
-      if (idx != uris.length - 1 && isDisabled(host, now)) {
+      final boolean isLast = idx == uris.length - 1;
+      if (!isLast && isDisabled(uri, now)) {
         continue;
       }
       try {
         delegate.getContent(uri, target);
         return;
       } catch (IOException ex) {
-        disable(host, now);
+        if (isLast || !delegate.hasConnection()) {
+          throw ex;
+        } else {
+          disable(uri, now);
+        }
       }
     }
   }
 
-  private boolean isDisabled(String host, long now) {
+  private boolean isDisabled(Uri uri, long now) {
+    final String host = uri.getHost();
     return hostDisabledTill.containsKey(host) && hostDisabledTill.get(host) > now;
   }
 
-  private void disable(String host, long now) {
+  private void disable(Uri uri, long now) {
+    final String host = uri.getHost();
     Log.d(TAG, "Temporarily disable requests to %s", host);
+    Analytics.sendHostUnavailableEvent(host);
     hostDisabledTill.put(host, now + QUARANTINE_PERIOD_MS);
   }
 }

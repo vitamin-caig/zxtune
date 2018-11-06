@@ -211,6 +211,11 @@ public class Analytics {
     send(event);
   }
 
+  public static void sendHostUnavailableEvent(String host) {
+    final CustomEvent event = new CustomEvent("Investigation");
+    event.putCustomAttribute("UnavailableHost", host);
+  }
+
   public static void setFile(Uri uri, String subpath, int size) {
     //obfuscate user-sensitive data (paths)
     final String location = "file".equals(uri.getScheme())
