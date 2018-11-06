@@ -16,6 +16,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.view.KeyEvent;
 
 public class MediaEventsHandler extends BroadcastReceiver {
@@ -31,7 +32,7 @@ public class MediaEventsHandler extends BroadcastReceiver {
     Log.d(TAG, "onReceive(intent=%s)", intent);
     final String action = getAction(intent);
     if (action != null) {
-      context.startService(MainService.createIntent(context, action));
+      ContextCompat.startForegroundService(context, MainService.createIntent(context, action));
     }
   }
 
