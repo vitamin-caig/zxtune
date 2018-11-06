@@ -14,6 +14,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
@@ -49,11 +50,14 @@ public class MainService extends Service {
 
   public static PendingIntent createPendingIntent(Context ctx, String action) {
     final Intent intent = createIntent(ctx, action);
-    return PendingIntent.getService(ctx, 0, intent, 0);
+    return Build.VERSION.SDK_INT >= 26
+            ? PendingIntent.getForegroundService(ctx, 0, intent, 0)
+            : PendingIntent.getService(ctx, 0, intent, 0);
   }
 
   @Override
   public void onCreate() {
+    super.onCreate();
     Log.d(TAG, "Creating");
 
     service = new PlaybackServiceLocal(getApplicationContext());
@@ -62,9 +66,10 @@ public class MainService extends Service {
     setupCallbacks(getApplicationContext());
     setupServiceSessions();
   }
-  
+
   @Override
   public void onDestroy() {
+    super.onDestroy();
     Log.d(TAG, "Destroying");
     settingsChangedHandler.release();
     settingsChangedHandler = null;
@@ -110,7 +115,7 @@ public class MainService extends Service {
     }
     return START_NOT_STICKY;
   }
-  
+
   @Override
   public IBinder onBind(Intent intent) {
     Log.d(TAG, "onBind called");
