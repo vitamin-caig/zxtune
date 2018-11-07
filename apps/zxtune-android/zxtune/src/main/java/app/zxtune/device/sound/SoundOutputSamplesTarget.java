@@ -51,27 +51,27 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
   }
   
   @Override
-  public int getSampleRate() {
+  public synchronized int getSampleRate() {
     return target.getSampleRate();
   }
   
   @Override
-  public int getPreferableBufferSize() {
+  public synchronized int getPreferableBufferSize() {
     return bufferSize / Sample.BYTES;
   }
   
   @Override
-  public void start() {
+  public synchronized void start() {
     target.play();
   }
 
   @Override
-  public void pause() {
+  public synchronized void pause() {
     target.pause();
   }
 
   @Override
-  public void writeSamples(@NonNull short[] buffer) throws Exception {
+  public synchronized void writeSamples(@NonNull short[] buffer) throws Exception {
     for (int pos = 0, toWrite = buffer.length; toWrite != 0;) {
       final int written = target.write(buffer, pos, toWrite);
       if (written > 0) {
@@ -91,12 +91,12 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
   }
 
   @Override
-  public void stop() {
+  public synchronized void stop() {
     target.stop();
   }
 
   @Override
-  public void release() {
+  public synchronized void release() {
     target.release();
     target = null;
   }
