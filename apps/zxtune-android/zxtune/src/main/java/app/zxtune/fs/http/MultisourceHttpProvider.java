@@ -2,6 +2,7 @@ package app.zxtune.fs.http;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import app.zxtune.Analytics;
 import app.zxtune.Log;
@@ -22,6 +23,12 @@ public final class MultisourceHttpProvider {
 
   public MultisourceHttpProvider(HttpProvider delegate) {
     this.delegate = delegate;
+  }
+
+  @NonNull
+  public final HttpObject getObject(Uri[] uris) throws IOException {
+    //check out only primary
+    return delegate.getObject(uris[0]);
   }
 
   @NonNull

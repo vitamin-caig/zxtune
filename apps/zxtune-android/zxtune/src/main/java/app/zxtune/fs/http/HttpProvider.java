@@ -13,6 +13,9 @@ public interface HttpProvider {
     boolean hasConnection();
 
     @NonNull
+    HttpObject getObject(Uri uri) throws IOException;
+
+    @NonNull
     InputStream getInputStream(Uri uri) throws IOException;
 
     @NonNull
