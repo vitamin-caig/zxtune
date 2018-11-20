@@ -76,6 +76,14 @@
     <string name="vfs_joshw_ssf_description" translatable="false">http://ssf.joshw.info</string>
     <string name="vfs_joshw_dsf_name" translatable="false">Dreamcast</string>
     <string name="vfs_joshw_dsf_description" translatable="false">http://dsf.joshw.info</string>
+    <string name="vfs_joshw_fmtowns_name" translatable="false">FM Towns</string>
+    <string name="vfs_joshw_fmtowns_description" translatable="false">http://fmtowns.joshw.info</string>
+    <string name="vfs_joshw_ncd_name" translatable="false">NeoGeo CD</string>
+    <string name="vfs_joshw_ncd_description" translatable="false">http://ncd.joshw.info</string>
+    <string name="vfs_joshw_pc_name" translatable="false">PC</string>
+    <string name="vfs_joshw_pc_description" translatable="false">http://pc.joshw.info</string>
+    <string name="vfs_joshw_mobile_name" translatable="false">Mobile platforms</string>
+    <string name="vfs_joshw_mobile_description" translatable="false">http://mobile.joshw.info</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_root_name" translatable="false">Amiga Music Preservation</string>
     <string name="vfs_amp_root_description" translatable="false">http://amp.dascene.net</string>
