@@ -680,36 +680,38 @@ namespace ZXTune
     template<class T>
     Analysis::Result::Ptr DetectIn(LookaheadPluginsStorage<T>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      const bool firstScan = 0 == Offset;
+      const bool initialScan = 0 == Offset;
       const std::size_t maxSize = input->GetData()->Size();
       for (typename T::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
-        Time::Timer timer;
+        const Time::Timer detectTimer;
         const typename T::Ptr plugin = iter->Get();
         const Analysis::Result::Ptr result = plugin->Detect(Params, input, callback);
         const String id = plugin->GetDescription()->Id();
         if (const std::size_t usedSize = result->GetMatchedDataSize())
         {
-          Statistic::Self().AddAimed(*plugin, timer);
+          Statistic::Self().AddAimed(*plugin, detectTimer);
           Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
           return result;
         }
+        else if (initialScan)
+        {
+          const std::size_t initialLookahead = 1;
+          container.SetPluginLookahead(*plugin, id, initialLookahead);
+        }
         else
         {
-          if (!firstScan)
-          {
-            Statistic::Self().AddMissed(*plugin, timer);
-            timer = Time::Timer();
-          }
+          Statistic::Self().AddMissed(*plugin, detectTimer);
+          const Time::Timer scanTimer;
           const std::size_t lookahead = result->GetLookaheadOffset();
           container.SetPluginLookahead(*plugin, id, lookahead);
           if (lookahead == maxSize)
           {
-            Statistic::Self().AddAimed(*plugin, timer);
+            Statistic::Self().AddAimed(*plugin, scanTimer);
           }
           else
           {
-            Statistic::Self().AddScanned(*plugin, timer);
+            Statistic::Self().AddScanned(*plugin, scanTimer);
           }
         }
       }
