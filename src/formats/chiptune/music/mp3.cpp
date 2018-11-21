@@ -399,18 +399,30 @@ namespace Chiptune
         };
       };
       
+      struct Channels
+      {
+        enum
+        {
+          STEREO = 0,
+          JOINT_STEREO = 1,
+          DUAL = 2,
+          MONO = 3
+        };
+      };
+      
       bool IsValid() const
       {
         return CheckSync()
             && GetLayer() != Layer::RESERVED
             && GetBitrate() != Bitrate::INVALID
             && GetFrequency() != 3
+            && GetChannels() != Channels::DUAL
         ;
       }
       
       bool GetIsMono() const
       {
-        return (Data[3] & 0xc0) == 0xc0;
+        return GetChannels() == Channels::MONO;
       }
       
       uint_t GetBitrateKbps() const
@@ -518,9 +530,17 @@ namespace Chiptune
       {
         return (Data[2] & 0x0c) >> 2;
       }
+      
+      uint_t GetChannels() const
+      {
+        return (Data[3] & 0xc0) >> 6;
+      }
     };
     
     static_assert(sizeof(FrameHeader) == 4, "Invalid layout");
+    static const std::size_t MIN_FREEFORMAT_FRAME_SIZE = 16;
+    static const std::size_t MAX_FREEFORMAT_FRAME_SIZE = 2304;
+    static const uint_t MAX_SYNC_LOSTS_COUNT = 3;
     
     class Format
     {
@@ -533,10 +553,12 @@ namespace Chiptune
       Container::Ptr Parse(Builder& target)
       {
         Id3::Parse(Stream, target.GetMetaBuilder());
-        for (;;)
+
+        uint_t syncLostsCount = 0;
+        for (auto freeFormatFrameSize = Synchronize(); Stream.GetRestSize() != 0;)
         {
           const auto offset = Stream.GetPosition();
-          if (const auto inFrame = FindFrame())
+          if (const auto inFrame = ReadFrame(freeFormatFrameSize))
           {
             Frame out;
             out.Location.Offset = offset;
@@ -550,9 +572,17 @@ namespace Chiptune
           {
             continue;
           }
-          else if (!SkipToNextFrame())
+          else
           {
-            break;
+            freeFormatFrameSize = Synchronize();
+            if (Stream.GetPosition() == offset)
+            {
+              break;
+            }
+            if (++syncLostsCount > MAX_SYNC_LOSTS_COUNT)
+            {
+              return Container::Ptr();
+            }
           }
         }
         if (const auto subData = Stream.GetReadData())
@@ -565,28 +595,64 @@ namespace Chiptune
         }
       }
     private:
-      const FrameHeader* FindFrame()
+      //@return free format frame size
+      std::size_t Synchronize()
+      {
+        const std::size_t FREEFORMAT_SYNC_FRAMES_COUNT = 10;
+        while (const auto firstFrame = SkipToNextFrame(0))
+        {
+          if (!firstFrame->IsFreeFormat())
+          {
+            break;
+          }
+          const auto startOffset = Stream.GetPosition();
+          std::size_t frameSize = 0;
+          while (const auto nextFrame = SkipToNextFrame(sizeof(*firstFrame)))
+          {
+            if (nextFrame->Matches(*firstFrame))
+            {
+              frameSize = Stream.GetPosition() - startOffset;
+              break;
+            }
+          }
+          for (std::size_t validFrames = 2; frameSize > MIN_FREEFORMAT_FRAME_SIZE && frameSize < MAX_FREEFORMAT_FRAME_SIZE; ++validFrames)
+          {
+            const auto nextFrame = SkipToNextFrame(frameSize);
+            if (!nextFrame || validFrames >= FREEFORMAT_SYNC_FRAMES_COUNT)
+            {
+              Stream.Seek(startOffset);
+              return frameSize;
+            }
+            else if (!nextFrame->Matches(*firstFrame) || 0 != (Stream.GetPosition() - startOffset) % frameSize)
+            {
+              break;
+            }
+          }
+          Stream.Seek(startOffset + 1);
+        }
+        return 0;
+      }
+    
+      const FrameHeader* ReadFrame(std::size_t freeFormatSize)
       {
         const auto frame = safe_ptr_cast<const FrameHeader*>(Stream.PeekRawData(sizeof(FrameHeader)));
         if (frame && frame->IsValid())
         {
           if (frame->IsFreeFormat())
           {
-            while (const auto restSize = Stream.GetRestSize())
+            const auto restSize = Stream.GetRestSize();
+            if (!freeFormatSize || restSize < freeFormatSize)
             {
-              if (const auto nextFrame = SkipToNextFrame())
+              return nullptr;
+            }
+            else if (const auto nextFrameStart = Stream.PeekRawData(freeFormatSize + freeFormatSize))
+            {
+              if (!safe_ptr_cast<const FrameHeader*>(nextFrameStart)->Matches(*frame))
               {
-                if (frame->Matches(*nextFrame))
-                {
-                  break;
-                }
-              }
-              else
-              {
-                Stream.Skip(restSize);
-                break;
+                return nullptr;
               }
             }
+            Stream.Skip(freeFormatSize);
             return frame;
           }
           else
@@ -603,16 +669,16 @@ namespace Chiptune
         return nullptr;
       }
       
-      const FrameHeader* SkipToNextFrame()
+      const FrameHeader* SkipToNextFrame(std::size_t startOffset)
       {
         const auto restSize = Stream.GetRestSize();
-        if (restSize < sizeof(FrameHeader))
+        if (restSize < startOffset + sizeof(FrameHeader))
         {
           return nullptr;
         }
         const auto data = Stream.PeekRawData(restSize);
         const auto end = data + restSize - sizeof(FrameHeader);
-        for (std::size_t offset = 1; ; )
+        for (std::size_t offset = startOffset; ; )
         {
           const auto match = std::find(data + offset, end, 0xff);
           if (match == end)
