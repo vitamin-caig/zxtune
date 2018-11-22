@@ -58,16 +58,17 @@ final class HttpUrlConnectionProvider implements HttpProvider {
   @NonNull
   @Override
   public HttpObject getObject(Uri uri) throws IOException {
-    return new SimpleHttpObject(connect(uri));
+    return new SimpleHttpObject(uri);
   }
 
-  private static class SimpleHttpObject implements HttpObject {
+  private class SimpleHttpObject implements HttpObject {
 
     private final Long contentLength;
     private final TimeStamp lastModified;
     private final Uri uri;
 
-    SimpleHttpObject(HttpURLConnection connection) throws IOException {
+    SimpleHttpObject(Uri uri) throws IOException {
+      final HttpURLConnection connection = connect(uri);
       connection.addRequestProperty("Accept-Encoding", "identity");
       connection.setRequestMethod("HEAD");
       connection.setDoInput(false);
@@ -77,8 +78,8 @@ final class HttpUrlConnectionProvider implements HttpProvider {
       if (code != HttpURLConnection.HTTP_OK) {
         throw new IOException(connection.getResponseMessage());
       }
-      this.contentLength = getContentLength(connection);
-      this.lastModified = getLastModified(connection);
+      this.contentLength = HttpUrlConnectionProvider.getContentLength(connection);
+      this.lastModified = HttpUrlConnectionProvider.getLastModified(connection);
       //may be different from original uri
       this.uri = Uri.parse(connection.getURL().toString());
 
@@ -103,15 +104,22 @@ final class HttpUrlConnectionProvider implements HttpProvider {
       return lastModified;
     }
 
-    private static Long getContentLength(HttpURLConnection connection) {
-      final long size = Build.VERSION.SDK_INT >= 24 ? connection.getContentLengthLong() : connection.getContentLength();
-      return size >= 0 ? Long.valueOf(size) : null;
+    @NonNull
+    @Override
+    public InputStream getInput() throws IOException {
+      final HttpURLConnection connection = connect(uri);
+      return new HttpInputStream(connection);
     }
+  }
 
-    private static TimeStamp getLastModified(HttpURLConnection connection) {
-      final long stamp = connection.getLastModified();
-      return stamp > 0 ? TimeStamp.createFrom(stamp, TimeUnit.MILLISECONDS) : null;
-    }
+  private static Long getContentLength(HttpURLConnection connection) {
+    final long size = Build.VERSION.SDK_INT >= 24 ? connection.getContentLengthLong() : connection.getContentLength();
+    return size >= 0 ? Long.valueOf(size) : null;
+  }
+
+  private static TimeStamp getLastModified(HttpURLConnection connection) {
+    final long stamp = connection.getLastModified();
+    return stamp > 0 ? TimeStamp.createFrom(stamp, TimeUnit.MILLISECONDS) : null;
   }
 
   @NonNull

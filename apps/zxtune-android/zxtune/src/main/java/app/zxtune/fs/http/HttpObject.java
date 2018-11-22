@@ -4,6 +4,9 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import app.zxtune.TimeStamp;
 
 public interface HttpObject {
@@ -16,4 +19,7 @@ public interface HttpObject {
 
     @Nullable
     TimeStamp getLastModified();
+
+    @NonNull
+    InputStream getInput() throws IOException;
 }

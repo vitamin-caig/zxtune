@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 public class ProviderTest {
@@ -22,6 +23,23 @@ public class ProviderTest {
         provider = HttpProviderFactory.createProvider(ctx);
     }
 
+    private static void testStream(InputStream stream, int size, byte[] head, byte[] tail) throws IOException {
+        try {
+            final byte[] realHead = new byte[head.length];
+            assertEquals(head.length, stream.read(realHead));
+            assertArrayEquals(head, realHead);
+            for (int toSkip = size - head.length - tail.length; toSkip != 0; ) {
+                toSkip -= stream.skip(toSkip);
+            }
+            final byte[] realTail = new byte[tail.length];
+            assertEquals(tail.length, stream.read(realTail));
+            assertArrayEquals(tail, realTail);
+            assertEquals(-1, stream.read());
+        } finally {
+            stream.close();
+        }
+    }
+
     @Test
     public void testObjectStatic() throws IOException {
         final Uri uri = Uri.parse("http://nsf.joshw.info/n/North%20%26%20South%20(1990-09-21)(Kemco).7z");
@@ -31,6 +49,7 @@ public class ProviderTest {
         //$ date -u -d 'Sun, 14 Jul 2013 17:32:52 GMT' +%s
         //1373823172
         assertEquals(1373823172, obj.getLastModified().convertTo(TimeUnit.SECONDS));
+        testStream(obj.getInput(), 10855, new byte[] {0x37, 0x7a, (byte) 0xbc, (byte) 0xaf, 0x27, 0x1c, 0x00, 0x03}, new byte[] {0x30, 0x2e, 0x39, 0x62, 0x65, 0x74, 0x61});
     }
 
     @Test
@@ -41,6 +60,8 @@ public class ProviderTest {
         //$ date -u -d 'Sat, 17 Nov 2018 23:04:27 GMT' +%s
         //1542495867
         assertEquals(1542495867, obj.getLastModified().convertTo(TimeUnit.SECONDS));
+        testStream(obj.getInput(), 182985, new byte[] {0x1f, (byte) 0x8b, 0x08, 0x08, 0x7b, (byte) 0x9e, (byte) 0xf0, 0x5b},
+                new byte[] {0x03, (byte) 0xa7, (byte) 0x9f, 0x12, (byte) 0x99, 0x24, (byte) 0xb3, 0x04, 0x00});
     }
 
     @Test
@@ -50,6 +71,7 @@ public class ProviderTest {
         assertEquals(uri, obj.getUri());
         assertNull(obj.getContentLength());
         assertNull(obj.getLastModified());
+        testStream(obj.getInput(), 0x3a, new byte[] {0x7b, 0x22, 0x69, 0x70, 0x22, 0x3a, 0x22}, new byte[] {0x22, 0x7d, 0x0a});
     }
 
     @Test
