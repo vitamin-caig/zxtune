@@ -928,9 +928,10 @@ namespace Strings
     Strings::Utf8Builder builder;
     builder.Reserve(str.size());
     bool needSwap = false;
-    for (auto it = str.begin(); it != str.end(); ++it)
+    for (auto it = str.begin(); it != str.end();)
     {
-      uint32_t sym = needSwap ? swapBytes(*it) : (*it);
+      const uint32_t sym = needSwap ? swapBytes(*it) : (*it);
+      ++it;
       if (sym == swapBytes(BOM))
       {
         needSwap = true;
@@ -940,13 +941,15 @@ namespace Strings
       {
         continue;
       }
-      else if (sym >= 0xd800 && sym <= 0xdfff)
+      else if (sym >= 0xd800 && sym <= 0xdfff && it != str.end())
       {
         //surrogate pairs
-        sym = (sym - 0xd800) << 10;
-        if (++it != str.end() && *it >= 0xdc00 && *it <= 0xdfff)
+        const uint32_t addon = needSwap ? swapBytes(*it) : (*it);
+        if (addon >= 0xdc00 && addon <= 0xdfff)
         {
-          sym |= *it - 0xdc00;
+          ++it;
+          builder.Add(((sym - 0xd800) << 10) + (addon - 0xdc00) + 0x10000);
+          continue;
         }
       }
       builder.Add(sym);
