@@ -151,6 +151,12 @@
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minidsf"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ssf"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minissf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mp1"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP1"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mp2"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP2"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mp3"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP3"/>
       </intent-filter>
     </activity>
     <activity android:name=".PreferencesActivity" android:label="@string/prefs">

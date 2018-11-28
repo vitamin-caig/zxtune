@@ -43,6 +43,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://gitlab.kode54.net/kode54/vio2sf&quot;&gt;vio2sf&lt;/a&gt; library by &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://gitlab.kode54.net/kode54/Highly_Theoretical&quot;&gt;Highly Threoretical&lt;/a&gt; library by &lt;b&gt;Neill Corlett&lt;/b&gt; and &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://sourceforge.net/projects/asap&quot;&gt;ASAP&lt;/a&gt; library by &lt;b&gt;Piotr Fusik&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/lieff/minimp3&quot;&gt;minimp3&lt;/a&gt; library by &lt;b&gt;lieff&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
@@ -80,6 +81,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://gitlab.kode54.net/kode54/vio2sf&quot;&gt;vio2sf&lt;/a&gt; от &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://gitlab.kode54.net/kode54/Highly_Theoretical&quot;&gt;Highly Threoretical&lt;/a&gt; от &lt;b&gt;Neill Corlett&lt;/b&gt; и &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;http://sourceforge.net/projects/asap&quot;&gt;ASAP&lt;/a&gt; от &lt;b&gt;Piotr Fusik&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/lieff/minimp3&quot;&gt;minimp3&lt;/a&gt; от &lt;b&gt;lieff&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Посвящается &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;

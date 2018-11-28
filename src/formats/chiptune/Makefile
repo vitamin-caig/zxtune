@@ -1,6 +1,6 @@
 library_name := formats_chiptune
 path_step := ../../..
-source_dirs := . aym digital emulation fm multidevice multitrack saa
+source_dirs := . aym digital emulation fm multidevice multitrack music saa
 
 text_files := ../text/chiptune
 

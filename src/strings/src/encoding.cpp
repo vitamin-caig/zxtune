@@ -11,6 +11,7 @@
 //local includes
 #include "utf8.h"
 //common includes
+#include <byteorder.h>
 #include <iterator.h>
 #include <types.h>
 //library includes
@@ -907,7 +908,13 @@ namespace Strings
     }
     else if (IsUtf8(str))
     {
-      return str.to_string();
+      return CutUtf8BOM(str).to_string();
+    }
+    else if (IsUtf16(str))
+    {
+      const auto begin = safe_ptr_cast<const uint16_t*>(str.begin());
+      const auto end = safe_ptr_cast<const uint16_t*>(str.end());
+      return Utf16ToUtf8({begin, end});
     }
     else
     {
@@ -917,18 +924,32 @@ namespace Strings
 
   std::string Utf16ToUtf8(basic_string_view<uint16_t> str)
   {
+    static const uint16_t BOM = 0xfeff;
     Strings::Utf8Builder builder;
     builder.Reserve(str.size());
-    for (auto it = str.begin(); it != str.end(); ++it)
+    bool needSwap = false;
+    for (auto it = str.begin(); it != str.end();)
     {
-      uint32_t sym = *it;
-      if (sym >= 0xd800 && sym <= 0xdfff)
+      const uint32_t sym = needSwap ? swapBytes(*it) : (*it);
+      ++it;
+      if (sym == swapBytes(BOM))
+      {
+        needSwap = true;
+        continue;
+      }
+      else if (sym == BOM)
+      {
+        continue;
+      }
+      else if (sym >= 0xd800 && sym <= 0xdfff && it != str.end())
       {
         //surrogate pairs
-        sym = (sym - 0xd800) << 10;
-        if (++it != str.end() && *it >= 0xdc00 && *it <= 0xdfff)
+        const uint32_t addon = needSwap ? swapBytes(*it) : (*it);
+        if (addon >= 0xdc00 && addon <= 0xdfff)
         {
-          sym |= *it - 0xdc00;
+          ++it;
+          builder.Add(((sym - 0xd800) << 10) + (addon - 0xdc00) + 0x10000);
+          continue;
         }
       }
       builder.Add(sym);

@@ -101,6 +101,13 @@ namespace Module
   
   void PropertiesHelper::SetFramesFrequency(uint_t freq)
   {
+    static_assert(Parameters::ZXTune::Sound::FRAMEDURATION_PRECISION == Time::Microseconds::PER_SECOND, "Invalid frameduration traits");
     Delegate.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
+  }
+
+  void PropertiesHelper::SetFramesParameters(uint_t samplesCount, uint_t sampleRate)
+  {
+    const auto period = Parameters::ZXTune::Sound::FRAMEDURATION_PRECISION * samplesCount / sampleRate;
+    Delegate.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, period);
   }
 }

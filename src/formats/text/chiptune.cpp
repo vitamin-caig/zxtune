@@ -99,6 +99,9 @@ extern const Char KSSX_DECODER_DESCRIPTION[] = {
 extern const Char KSS_DECODER_DESCRIPTION[] = {
   'K','S','S',' ','M','u','s','i','c',' ','F','o','r','m','a','t',0
 };
+extern const Char MP3_DECODER_DESCRIPTION[] = {
+  'M','P','E','G',' ','A','u','d','i','o',' ','L','a','y','e','r',0
+};
 extern const Char MULTITRACK_CONTAINER_DECODER_DESCRIPTION[] = {
   'M','u','l','t','i','t','r','a','c','k',' ','C','o','n','t','a','i','n','e','r',0
 };

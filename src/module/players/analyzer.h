@@ -16,7 +16,7 @@
 
 namespace Sound
 {
-  class Chunk;
+  struct Chunk;
 }
 
 namespace Module
