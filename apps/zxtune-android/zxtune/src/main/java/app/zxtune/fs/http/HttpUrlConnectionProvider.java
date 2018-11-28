@@ -43,7 +43,6 @@ final class HttpUrlConnectionProvider implements HttpProvider {
 
   private final Policy policy;
   private final String userAgent;
-  private ByteBuffer htmlBuffer;
 
   HttpUrlConnectionProvider(Policy policy, String userAgent) {
     this.policy = policy;
@@ -171,19 +170,6 @@ final class HttpUrlConnectionProvider implements HttpProvider {
           break;
         }
       }
-    } finally {
-      connection.disconnect();
-    }
-  }
-
-  @NonNull
-  @Override
-  public synchronized String getHtml(Uri uri) throws IOException {
-    final HttpURLConnection connection = connect(uri);
-    try {
-      final InputStream stream = connection.getInputStream();
-      htmlBuffer = getContent(stream, htmlBuffer);
-      return new String(htmlBuffer.array(), 0, htmlBuffer.limit(), "UTF-8");
     } finally {
       connection.disconnect();
     }

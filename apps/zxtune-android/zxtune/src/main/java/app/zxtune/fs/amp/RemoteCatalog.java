@@ -21,6 +21,7 @@ import app.zxtune.Log;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.io.Io;
 
 /**
  * Authors:
@@ -108,7 +109,7 @@ class RemoteCatalog extends Catalog {
   @Override
   public void queryGroups(GroupsVisitor visitor) throws IOException {
     Log.d(TAG, "queryGroups()");
-    final String content = http.getHtml(Uri.parse(GROUPS_URI));
+    final String content = Io.readHtml(http.getInputStream(Uri.parse(GROUPS_URI)));
     final Matcher matcher = GROUPS.matcher(content);
     while (matcher.find()) {
       final String id = matcher.group(1);
@@ -162,7 +163,7 @@ class RemoteCatalog extends Catalog {
   public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
     Log.d(TAG, "queryTracks(author=%d)", author.id);
     final String uri = String.format(Locale.US, AUTHOR_TRACKS_URI_FORMAT, author.id);
-    final String content = http.getHtml(Uri.parse(uri));
+    final String content = Io.readHtml(http.getInputStream(Uri.parse(uri)));
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
       final Integer id = Integer.valueOf(matcher.group(1));
@@ -232,7 +233,7 @@ class RemoteCatalog extends Catalog {
   private void loadPages(String query, PagesVisitor visitor) throws IOException {
     for (int offset = 0; ; ) {
       final String uri = query + String.format(Locale.US, "&position=%d", offset);
-      final String chars = http.getHtml(Uri.parse(uri));
+      final String chars = Io.readHtml(http.getInputStream(Uri.parse(uri)));
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
         Log.d(TAG, "Load page: %s", uri);

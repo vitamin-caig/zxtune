@@ -22,7 +22,4 @@ public interface HttpProvider {
     ByteBuffer getContent(Uri uri) throws IOException;
 
     void getContent(Uri uri, OutputStream output) throws IOException;
-
-    @NonNull
-    String getHtml(Uri uri) throws IOException;
 }

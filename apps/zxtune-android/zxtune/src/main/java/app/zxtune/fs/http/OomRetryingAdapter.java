@@ -82,21 +82,4 @@ final class OomRetryingAdapter implements HttpProvider {
       }
     }
   }
-
-  @NonNull
-  @Override
-  public String getHtml(Uri uri) throws IOException {
-    for (int retry = 1; ; ++retry) {
-      try {
-        return delegate.getHtml(uri);
-      } catch (OutOfMemoryError err) {
-        if (retry == 1) {
-          Log.d(TAG, "Retry getHtml call for OOM");
-          System.gc();
-        } else {
-          throw new IOException(err);
-        }
-      }
-    }
-  }
 }

@@ -1,13 +1,10 @@
 package app.zxtune.io;
 
+import android.icu.util.Output;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -184,5 +181,11 @@ public class Io {
         }
       }
     }
+  }
+
+  @NonNull
+  public static String readHtml(@NonNull InputStream in) throws IOException {
+    final ByteBuffer buf = readFrom(in);
+    return new String(buf.array(), 0, buf.limit(), "UTF-8");
   }
 }

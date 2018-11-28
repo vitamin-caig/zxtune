@@ -21,6 +21,7 @@ import app.zxtune.Log;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.io.Io;
 
 /**
  * Use pure http response parsing via regex in despite that page structure seems to be xml well formed.
@@ -266,7 +267,7 @@ class RemoteCatalog extends Catalog {
   private void loadPages(String query, PagesVisitor visitor) throws IOException {
     for (int pg = 1; ; ++pg) {
       final String uri = query + String.format(Locale.US, "&pg=%d", pg);
-      final String chars = http.getHtml(Uri.parse(uri));
+      final String chars = Io.readHtml(http.getInputStream(Uri.parse(uri)));
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
         Log.d(TAG, "Load page: %s", matcher.group());
