@@ -1,4 +1,4 @@
-package app.zxtune.fs;
+package app.zxtune.io;
 
 import static org.junit.Assert.*;
 

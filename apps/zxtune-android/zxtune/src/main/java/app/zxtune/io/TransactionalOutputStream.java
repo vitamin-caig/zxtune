@@ -1,4 +1,4 @@
-package app.zxtune.fs.cache;
+package app.zxtune.io;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -7,7 +7,7 @@ import java.io.OutputStream;
 
 import app.zxtune.Log;
 
-class TransactionalOutputStream extends OutputStream {
+public class TransactionalOutputStream extends OutputStream {
   private static final String TAG = TransactionalOutputStream.class.getName();
 
   private final File target;
@@ -15,7 +15,7 @@ class TransactionalOutputStream extends OutputStream {
   private OutputStream delegate;
   private boolean confirmed = false;
 
-  TransactionalOutputStream(File target) throws IOException {
+  public TransactionalOutputStream(File target) throws IOException {
     Log.d(TAG, "Write cached file %s", target.getAbsolutePath());
     this.target = target;
     this.temporary = new File(target.getPath() + "~" + Integer.toString(hashCode()));

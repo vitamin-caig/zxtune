@@ -1,4 +1,4 @@
-package app.zxtune.fs;
+package app.zxtune.io;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;

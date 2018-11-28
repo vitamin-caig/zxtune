@@ -27,6 +27,7 @@ import java.util.Scanner;
 
 import app.zxtune.Log;
 import app.zxtune.R;
+import app.zxtune.io.Io;
 
 final class VfsRootLocal extends StubObject implements VfsRoot {
 

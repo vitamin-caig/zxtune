@@ -9,7 +9,8 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
-import app.zxtune.fs.Io;
+import app.zxtune.io.Io;
+import app.zxtune.io.TransactionalOutputStream;
 
 final class PersistentCacheDir implements CacheDir {
   private static final String TAG = PersistentCacheDir.class.getName();
