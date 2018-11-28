@@ -115,6 +115,9 @@ extern const Char NSFE_DECODER_DESCRIPTION[] = {
 extern const Char NSF_DECODER_DESCRIPTION[] = {
   'N','E','S',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
 };
+extern const Char OGGVORBIS_DECODER_DESCRIPTION[] = {
+  'O','G','G',' ','V','o','r','b','i','s',0
+};
 extern const Char PLAYSTATION2SOUNDFORMAT_DECODER_DESCRIPTION[] = {
   'P','l','a','y','s','t','a','t','i','o','n','2',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
 };

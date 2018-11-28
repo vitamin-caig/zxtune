@@ -59,6 +59,7 @@ namespace ZXTune
   void RegisterSDSFSupport(PlayerPluginsRegistrator& registrator);
   void RegisterASAPPlugins(PlayerPluginsRegistrator& registrator);
   void RegisterMP3Plugin(PlayerPluginsRegistrator& registrator);
+  void RegisterOGGPlugin(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
@@ -107,5 +108,6 @@ namespace ZXTune
     RegisterSDSFSupport(registrator);
     RegisterASAPPlugins(registrator);
     RegisterMP3Plugin(registrator);
+    RegisterOGGPlugin(registrator);
   }
 }
