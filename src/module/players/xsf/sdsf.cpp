@@ -362,8 +362,8 @@ namespace SDSF
       ModuleDataBuilder builder;
       Require(!!file.PackedProgramSection);
       Require(!file.ReservedSection);
-      //clone
-      builder.AddSection(Binary::CreateContainer(file.PackedProgramSection->Start(), file.PackedProgramSection->Size()));
+      //smart clone
+      builder.AddSection(Binary::CreateContainer(file.PackedProgramSection));
       if (file.Meta)
       {
         builder.AddMeta(*file.Meta);

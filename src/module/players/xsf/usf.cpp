@@ -358,7 +358,8 @@ namespace USF
       ModuleDataBuilder builder;
       Require(!file.PackedProgramSection);
       Require(!!file.ReservedSection);
-      builder.AddSection(Binary::CreateContainer(file.ReservedSection->Start(), file.ReservedSection->Size()));
+      //smart clone
+      builder.AddSection(Binary::CreateContainer(file.ReservedSection));
       if (file.Meta)
       {
         builder.AddMeta(*file.Meta);

@@ -59,7 +59,7 @@ namespace Module
       {
         if (data)
         {
-          data = Binary::CreateContainer(data->Start(), data->Size());
+          data = Binary::CreateContainer(data);
         }
       }
     };

@@ -331,8 +331,8 @@ namespace Wav
     
     void SetSamplesData(Binary::Container::Ptr data) override
     {
-      //copy
-      Data->SamplesData = Binary::CreateContainer(data.Start(), data.Size());
+      //smart copy
+      Data->SamplesData = Binary::CreateContainer(std::move(data));
     }
     
     void SetSamplesCountHint(uint_t /*count*/) override

@@ -430,11 +430,11 @@ namespace TwoSF
       ModuleDataBuilder builder;
       if (file.PackedProgramSection)
       {
-        builder.AddProgramSection(Binary::CreateContainer(file.PackedProgramSection->Start(), file.PackedProgramSection->Size()));
+        builder.AddProgramSection(Binary::CreateContainer(file.PackedProgramSection));
       }
       if (file.ReservedSection)
       {
-        builder.AddReservedSection(Binary::CreateContainer(file.ReservedSection->Start(), file.ReservedSection->Size()));
+        builder.AddReservedSection(Binary::CreateContainer(file.ReservedSection));
       }
       if (file.Meta)
       {

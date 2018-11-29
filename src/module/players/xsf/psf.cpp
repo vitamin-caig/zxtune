@@ -499,7 +499,8 @@ namespace PSF
       }
       if (file.ReservedSection)
       {
-        const auto clonedSection = Binary::CreateContainer(file.ReservedSection->Start(), file.ReservedSection->Size());
+        //smart clone
+        const auto clonedSection = Binary::CreateContainer(file.ReservedSection);
         builder.AddVfs(*clonedSection);
       }
       if (file.Meta)

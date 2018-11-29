@@ -244,10 +244,10 @@ namespace Ogg
       Data->SamplesPerFrame = Data->TotalSamples / Data->FramesCount;
     }
     
-    void SetContent(const Binary::Data& data)
+    void SetContent(Binary::Data::Ptr data)
     {
-      //copy
-      Data->Content = Binary::CreateContainer(data.Start(), data.Size());
+      //smart copy
+      Data->Content = Binary::CreateContainer(std::move(data));
     }
     
     Model::Ptr GetResult()
@@ -281,7 +281,7 @@ namespace Ogg
           if (const auto data = dataBuilder.GetResult())
           {
             props.SetSource(*container);
-            dataBuilder.SetContent(*container);
+            dataBuilder.SetContent(container);
             dataBuilder.SetFrameDuration(Sound::GetFrameDuration(params));
             return MakePtr<Holder>(data, properties);
           }

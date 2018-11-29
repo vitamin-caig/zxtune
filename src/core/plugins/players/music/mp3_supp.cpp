@@ -369,10 +369,10 @@ namespace Mp3
       Data->Duration += Time::Microseconds(frame.Properties.SamplesCount * Time::Microseconds::PER_SECOND / frame.Properties.Samplerate);
     }
     
-    void SetContent(const Binary::Data& data)
+    void SetContent(Binary::Data::Ptr data)
     {
-      //copy
-      Data->Content = Binary::CreateContainer(data.Start(), data.Size());
+      //smart copy
+      Data->Content = Binary::CreateContainer(std::move(data));
     }
     
     Model::Ptr GetResult()
@@ -432,7 +432,7 @@ namespace Mp3
           if (const auto data = dataBuilder.GetResult())
           {
             props.SetSource(*container);
-            dataBuilder.SetContent(*container);
+            dataBuilder.SetContent(container);
             return MakePtr<Holder>(data, properties);
           }
         }
