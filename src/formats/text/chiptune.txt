@@ -326,3 +326,7 @@ __cpp> "}//namespace Text\n"
 #OGG
 < OGGVORBIS_DECODER_DESCRIPTION
 > "OGG Vorbis"
+
+#WAV
+< WAV_DECODER_DESCRIPTION
+> "Waveform Audio File Format"
