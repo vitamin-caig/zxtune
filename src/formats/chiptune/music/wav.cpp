@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/data_builder.h>
 #include <binary/input_stream.h>
 #include <binary/format_factories.h>
 #include <strings/encoding.h>
@@ -39,6 +40,12 @@ namespace Chiptune
       static const Id FACT = {{'f', 'a', 'c', 't'}};
       static const Id DATA = {{'d', 'a', 't', 'a'}};
       static const Id LIST = {{'L', 'I', 'S', 'T'}};
+    }
+    
+    namespace Headers
+    {
+      static const std::array<uint8_t, 4> WAVE = {{'W', 'A', 'V', 'E'}};
+      static const uint8_t INFO[] = {'I', 'N', 'F', 'O'};
     }
     
     class ChunksVisitor
@@ -131,9 +138,8 @@ namespace Chiptune
     private:
       void ParseRiff(const Binary::Container& data)
       {
-        static const uint8_t WAVE[] = {'W', 'A', 'V', 'E'};
         Binary::InputStream stream(data);
-        Require(0 == std::memcmp(stream.ReadRawData(sizeof(WAVE)), WAVE, sizeof(WAVE)));
+        Require(0 == std::memcmp(stream.ReadRawData(sizeof(Headers::WAVE)), Headers::WAVE.data(), sizeof(Headers::WAVE)));
         ParseChunks(*stream.ReadRestData(), *this);
       }
       
@@ -165,13 +171,12 @@ namespace Chiptune
       
       void ParseList(const Binary::Container& data)
       {
-        static const uint8_t INFO[] = {'I', 'N', 'F', 'O'};
-        if (data.Size() > sizeof(INFO) && 0 == std::memcmp(data.Start(), INFO, sizeof(INFO)))
+        if (data.Size() > sizeof(Headers::INFO) && 0 == std::memcmp(data.Start(), Headers::INFO, sizeof(Headers::INFO)))
         {
           MetaParser meta(Target.GetMetaBuilder());
           try
           {
-            ParseChunks(*data.GetSubcontainer(sizeof(INFO), data.Size() - sizeof(INFO)), meta);
+            ParseChunks(*data.GetSubcontainer(sizeof(Headers::INFO), data.Size() - sizeof(Headers::INFO)), meta);
           }
           catch (const std::exception&)
           {
@@ -254,6 +259,62 @@ namespace Chiptune
     {
       static StubBuilder stub;
       return stub;
+    }
+    
+    class SimpleDumpBuilder : public DumpBuilder
+    {
+    public:
+      SimpleDumpBuilder()
+        : Storage(60)
+      {
+        Storage.Add(Chunks::RIFF);
+        Storage.Add<uint32_t>(0);
+        Storage.Add(Headers::WAVE);
+        Storage.Add(Chunks::FMT);
+        Storage.Add(fromLE<uint32_t>(16));
+      }
+      
+      MetaBuilder& GetMetaBuilder() override
+      {
+        return GetStubMetaBuilder();
+      }
+      
+      void SetProperties(uint_t format, uint_t frequency, uint_t channels, uint_t bits, uint_t blockSize) override
+      {
+        Storage.Add(fromLE<uint16_t>(format));
+        Storage.Add(fromLE<uint16_t>(channels));
+        Storage.Add(fromLE<uint32_t>(frequency));
+        Storage.Add(fromLE<uint32_t>(frequency * blockSize));
+        Storage.Add(fromLE<uint16_t>(blockSize));
+        Storage.Add(fromLE<uint16_t>(bits));
+      }
+      
+      void SetSamplesData(Binary::Container::Ptr data) override
+      {
+        Storage.Add(Chunks::DATA);
+        Storage.Add(fromLE<uint32_t>(data->Size()));
+        Storage.Add(data->Start(), data->Size());
+      }
+
+      void SetSamplesCountHint(uint_t count) override
+      {
+        Storage.Add(Chunks::FACT);
+        Storage.Add(fromLE<uint32_t>(4));
+        Storage.Add(fromLE<uint32_t>(count));
+      }
+      
+      Binary::Container::Ptr GetDump()
+      {
+        Storage.Get<uint32_t>(4) = fromLE(Storage.Size() - 8);
+        return Storage.CaptureResult();
+      }
+    private:
+      Binary::DataBuilder Storage;
+    };
+
+    DumpBuilder::Ptr CreateDumpBuilder()
+    {
+      return MakePtr<SimpleDumpBuilder>();
     }
     
     const std::string FORMAT =
