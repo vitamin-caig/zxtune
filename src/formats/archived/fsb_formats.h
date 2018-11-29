@@ -32,6 +32,7 @@ namespace Archived
     };
 
     FormatBuilder::Ptr CreateMpegBuilder();
+    FormatBuilder::Ptr CreatePcmBuilder();
   }
 }
 }
