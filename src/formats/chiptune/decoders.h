@@ -68,5 +68,6 @@ namespace Formats
     Decoder::Ptr CreateRasterMusicTrackerDecoder();
     Decoder::Ptr CreateMP3Decoder();
     Decoder::Ptr CreateOGGDecoder();
+    Decoder::Ptr CreateWAVDecoder();
   }
 }

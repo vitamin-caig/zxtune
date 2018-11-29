@@ -238,6 +238,9 @@ extern const Char VORTEX_EDITOR[] = {
 extern const Char VTX_DECODER_DESCRIPTION[] = {
   'V','T','X',' ','(','V','o','r','t','e','x',' ','P','r','o','j','e','c','t',')',0
 };
+extern const Char WAV_DECODER_DESCRIPTION[] = {
+  'W','a','v','e','f','o','r','m',' ','A','u','d','i','o',' ','F','i','l','e',' ','F','o','r','m','a','t',0
+};
 extern const Char YM_DECODER_DESCRIPTION[] = {
   'Y','M',' ','(','S','T','-','S','o','u','n','d',' ','P','r','o','j','e','c','t',')',0
 };

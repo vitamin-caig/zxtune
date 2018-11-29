@@ -290,6 +290,7 @@ namespace Formats
       scanner.AddDecoder(CreateRasterMusicTrackerDecoder());
       scanner.AddDecoder(CreateMP3Decoder());
       scanner.AddDecoder(CreateOGGDecoder());
+      scanner.AddDecoder(CreateWAVDecoder());
     }
   }
 }
