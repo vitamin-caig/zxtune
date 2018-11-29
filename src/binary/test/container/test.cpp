@@ -56,6 +56,8 @@ namespace
     std::cout << "Test for truncated nested GetSubcontainer" << std::endl;
     const auto truncSubSubdata = subData->GetSubcontainer(3, 6);
     TestContainer(*truncSubSubdata, 5, DATA + 4);
+    const auto copy = Binary::CreateContainer(data);
+    Test("opticopy", data->Start() == copy->Start());
   }
   
   void TestNonCopyContainer()
@@ -72,6 +74,15 @@ namespace
     }
     Test("destruction", true);
 
+    std::cout << "Test for CreateNonCopyContainer+CreateContainer" << std::endl;
+    {
+      const uint8_t DATA[] = {0, 1, 2, 3, 4};
+      const auto data = Binary::CreateNonCopyContainer(DATA, sizeof(DATA));
+      const auto copy = Binary::CreateContainer(data);
+      Test("copy of non-copying", copy->Start() != data->Start());
+    }
+    Test("destruction", true);
+    
     std::cout << "Test for CreateNonCopyContainer invalid case" << std::endl;
     #ifndef __MINGW32__
     try

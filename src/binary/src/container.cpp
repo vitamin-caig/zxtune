@@ -160,8 +160,12 @@ namespace Binary
 
   Container::Ptr CreateContainer(Data::Ptr data)
   {
-    //cover downcasting
-    if (Container::Ptr asContainer = std::dynamic_pointer_cast<const Container>(data))
+    //cover downcasting and special cases
+    if (dynamic_cast<const NonCopyContainer*>(data.get()))
+    {
+      return CreateContainer(data->Start(), data->Size());
+    }
+    else if (Container::Ptr asContainer = std::dynamic_pointer_cast<const Container>(data))
     {
       return asContainer;
     }
