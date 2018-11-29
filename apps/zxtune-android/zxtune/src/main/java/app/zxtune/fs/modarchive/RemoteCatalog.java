@@ -21,12 +21,13 @@ import android.support.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
 
+import app.zxtune.fs.http.HttpObject;
+import app.zxtune.io.Io;
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -176,13 +177,13 @@ class RemoteCatalog extends Catalog {
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = ApiUriBuilder.forDownload(id).build();
-    return http.getContent(Uri.parse(query));
+    return Io.readFrom(http.getInputStream(Uri.parse(query)));
   }
 
-  final void getTrackContent(int id, OutputStream stream) throws IOException {
-    Log.d(TAG, "getTrackContent(id=%d)", id);
+  final HttpObject getTrackObject(int id) throws IOException {
+    Log.d(TAG, "getTrackObject(id=%d)", id);
     final String query = ApiUriBuilder.forDownload(id).build();
-    http.getContent(Uri.parse(query), stream);
+    return http.getObject(Uri.parse(query));
   }
 
   private static RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {

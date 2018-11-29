@@ -1,6 +1,7 @@
 package app.zxtune.fs.cache;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.File;
@@ -19,6 +20,30 @@ final class PersistentCacheDir implements CacheDir {
 
   PersistentCacheDir(File dir) {
     this.dir = dir;
+  }
+
+  @NonNull
+  @Override
+  public File findOrCreate(String... ids) throws IOException {
+    File result = null;
+    for (String id : ids) {
+      final File file = getSub(id);
+      if (file.isFile()) {
+        return file;
+      } else if (result == null && !file.isDirectory() && createParentDirFor(file)) {
+        result = file;
+      }
+    }
+    if (result != null) {
+      return result;
+    } else {
+      throw new IOException("Failed to create cache");
+    }
+  }
+
+  private static boolean createParentDirFor(@NonNull File file) {
+    final File parent = file.getParentFile();
+    return parent.isDirectory() || (parent.mkdirs() && parent.isDirectory());
   }
 
   @Nullable
@@ -53,8 +78,8 @@ final class PersistentCacheDir implements CacheDir {
     final File file = getSub(id);
     Log.d(TAG, "Write cached file %s", file.getAbsolutePath());
     try {
-      if (file.getParentFile().mkdirs()) {
-        Log.d(TAG, "Created cache dir");
+      if (!createParentDirFor(file)) {
+        throw new IOException("Failed to create parent directory");
       }
       Io.writeTo(file, data);
       return Uri.fromFile(file);

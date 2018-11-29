@@ -2,14 +2,11 @@ package app.zxtune.fs.http;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
 import app.zxtune.Analytics;
 import app.zxtune.Log;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
+import java.io.InputStream;
 import java.util.HashMap;
 
 public final class MultisourceHttpProvider {
@@ -27,12 +24,6 @@ public final class MultisourceHttpProvider {
 
   @NonNull
   public final HttpObject getObject(Uri[] uris) throws IOException {
-    //check out only primary
-    return delegate.getObject(uris[0]);
-  }
-
-  @NonNull
-  public final ByteBuffer getContent(Uri[] uris) throws IOException {
     final long now = System.currentTimeMillis();
     for (int idx = 0; ; ++idx) {
       final Uri uri = uris[idx];
@@ -41,7 +32,7 @@ public final class MultisourceHttpProvider {
         continue;
       }
       try {
-        return delegate.getContent(uri);
+        return delegate.getObject(uri);
       } catch (IOException ex) {
         if (isLast || !delegate.hasConnection()) {
           throw ex;
@@ -52,7 +43,8 @@ public final class MultisourceHttpProvider {
     }
   }
 
-  public final void getContent(Uri[] uris, OutputStream target) throws IOException {
+  @NonNull
+  public final InputStream getInputStream(Uri[] uris) throws IOException {
     final long now = System.currentTimeMillis();
     for (int idx = 0; ; ++idx) {
       final Uri uri = uris[idx];
@@ -61,8 +53,7 @@ public final class MultisourceHttpProvider {
         continue;
       }
       try {
-        delegate.getContent(uri, target);
-        return;
+        return delegate.getInputStream(uri);
       } catch (IOException ex) {
         if (isLast || !delegate.hasConnection()) {
           throw ex;

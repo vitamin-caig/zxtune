@@ -2,15 +2,16 @@ package app.zxtune.fs.httpdir;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import app.zxtune.fs.http.HttpObject;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.io.Io;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
@@ -25,11 +26,11 @@ final class RemoteCatalog extends Catalog {
   @NonNull
   @Override
   public ByteBuffer getFileContent(Path path) throws IOException {
-    return http.getContent(path.getRemoteUris());
+    return Io.readFrom(http.getInputStream(path.getRemoteUris()));
   }
 
-  final void getFileContent(Path path, OutputStream target) throws IOException {
-    http.getContent(path.getRemoteUris(), target);
+  final HttpObject getFileObject(Path path) throws IOException {
+    return http.getObject(path.getRemoteUris());
   }
 
   @Override

@@ -3,6 +3,7 @@ package app.zxtune.fs.cache;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -13,6 +14,30 @@ final class CompositeCacheDir implements CacheDir {
 
   CompositeCacheDir(CacheDir... delegates) {
     this.delegates = delegates;
+  }
+
+  @Override
+  public File findOrCreate(String... ids) throws IOException {
+    File result = null;
+    IOException error = null;
+    for (CacheDir delegate : delegates) {
+      try {
+        final File res = delegate.findOrCreate(ids);
+        if (res.isFile()) {
+          return res;
+        } else if (result == null) {
+          result = res;
+        }
+      } catch (IOException e) {
+        if (error == null) {
+          error = e;
+        }
+      }
+    }
+    if (result != null) {
+      return result;
+    }
+    throw error;
   }
 
   @Nullable

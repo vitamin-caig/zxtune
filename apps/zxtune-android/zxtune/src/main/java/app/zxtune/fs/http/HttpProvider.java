@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 public interface HttpProvider {
@@ -17,9 +16,4 @@ public interface HttpProvider {
 
     @NonNull
     InputStream getInputStream(Uri uri) throws IOException;
-
-    @NonNull
-    ByteBuffer getContent(Uri uri) throws IOException;
-
-    void getContent(Uri uri, OutputStream output) throws IOException;
 }

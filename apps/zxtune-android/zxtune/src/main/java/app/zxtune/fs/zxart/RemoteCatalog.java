@@ -15,19 +15,18 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
-
+import app.zxtune.Log;
+import app.zxtune.Util;
+import app.zxtune.fs.http.HttpObject;
+import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.io.Io;
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
-
-import app.zxtune.Log;
-import app.zxtune.Util;
-import app.zxtune.fs.http.HttpProvider;
 
 final class RemoteCatalog extends Catalog {
 
@@ -118,13 +117,13 @@ final class RemoteCatalog extends Catalog {
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return http.getContent(Uri.parse(query));
+    return Io.readFrom(http.getInputStream(Uri.parse(query)));
   }
 
-  final void getTrackContent(int id, OutputStream stream) throws IOException {
-    Log.d(TAG, "getTrackContent(id=%d)", id);
+  final HttpObject getTrackObject(int id) throws IOException {
+    Log.d(TAG, "getTrackObject(id=%d)", id);
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    http.getContent(Uri.parse(query), stream);
+    return http.getObject(Uri.parse(query));
   }
 
   private void performQuery(InputStream httpStream, RootElement root)

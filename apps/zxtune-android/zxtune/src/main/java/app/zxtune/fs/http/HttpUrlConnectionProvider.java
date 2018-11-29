@@ -10,17 +10,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import app.zxtune.TimeStamp;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
-
-import app.zxtune.Log;
-import app.zxtune.TimeStamp;
 
 final class HttpUrlConnectionProvider implements HttpProvider {
 
@@ -138,79 +134,5 @@ final class HttpUrlConnectionProvider implements HttpProvider {
       policy.checkConnectionError();
       throw e;
     }
-  }
-
-  @NonNull
-  @Override
-  public final ByteBuffer getContent(Uri uri) throws IOException {
-    final HttpURLConnection connection = connect(uri);
-    try {
-      final InputStream stream = connection.getInputStream();
-      final int size = connection.getContentLength();
-      Log.d(TAG, "Fetch %d bytes via %s", size, uri);
-      policy.checkSizeLimit(size);
-      return getContent(stream, size > 0 ? ByteBuffer.wrap(new byte[size]) : null);
-    } finally {
-      connection.disconnect();
-    }
-  }
-
-  @Override
-  public void getContent(Uri uri, OutputStream output) throws IOException {
-    final HttpURLConnection connection = connect(uri);
-    try {
-      final byte[] buf = new byte[65536];
-      final InputStream stream = connection.getInputStream();
-      Log.d(TAG, "Fetch %d bytes stream via %s", connection.getContentLength(), uri);
-      for (;;) {
-        final int portion = readPartialContent(stream, buf, 0);
-        if (portion != 0) {
-          output.write(buf, 0, portion);
-        } else {
-          break;
-        }
-      }
-    } finally {
-      connection.disconnect();
-    }
-  }
-
-  //! result buffer is not direct so required wrapping
-  @NonNull
-  private ByteBuffer getContent(InputStream stream, @Nullable ByteBuffer cache) throws IOException {
-    byte[] buffer = cache != null ? cache.array() : new byte[1024 * 1024];
-    int size = 0;
-    for (; ; ) {
-      size = readPartialContent(stream, buffer, size);
-      if (size == buffer.length) {
-        policy.checkSizeLimit(size);
-        buffer = reallocate(buffer);
-      } else {
-        break;
-      }
-    }
-    if (0 == size) {
-      throw new IOException("Empty file specified");
-    }
-    Log.d(TAG, "Got %d bytes", size);
-    return ByteBuffer.wrap(buffer, 0, size);
-  }
-
-  private static int readPartialContent(InputStream stream, byte[] buffer, int offset) throws IOException {
-    final int len = buffer.length;
-    while (offset < len) {
-      final int chunk = stream.read(buffer, offset, len - offset);
-      if (chunk < 0) {
-        break;
-      }
-      offset += chunk;
-    }
-    return offset;
-  }
-
-  private static byte[] reallocate(byte[] buf) {
-    final byte[] result = new byte[Math.min(buf.length * 2, MAX_REMOTE_FILE_SIZE + 1)];
-    System.arraycopy(buf, 0, result, 0, buf.length);
-    return result;
   }
 }

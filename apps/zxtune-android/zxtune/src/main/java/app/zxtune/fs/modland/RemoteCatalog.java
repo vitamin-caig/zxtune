@@ -9,19 +9,18 @@ package app.zxtune.fs.modland;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.Html;
+import app.zxtune.Log;
+import app.zxtune.fs.api.Cdn;
+import app.zxtune.fs.http.HttpObject;
+import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.io.Io;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import app.zxtune.Log;
-import app.zxtune.fs.api.Cdn;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.fs.http.MultisourceHttpProvider;
-import app.zxtune.io.Io;
 
 /**
  * Use pure http response parsing via regex in despite that page structure seems to be xml well formed.
@@ -245,12 +244,12 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(String id) throws IOException {
     Log.d(TAG, "getTrackContent(%s)", id);
-    return multiHttp.getContent(getContentUris(id));
+    return Io.readFrom(multiHttp.getInputStream(getContentUris(id)));
   }
 
-  final void getTrackContent(String id, OutputStream stream) throws IOException {
+  final HttpObject getTrackObject(String id) throws IOException {
     Log.d(TAG, "getTrackContent(%s)", id);
-    multiHttp.getContent(getContentUris(id), stream);
+    return multiHttp.getObject(getContentUris(id));
   }
 
   private static Uri[] getContentUris(String id) {

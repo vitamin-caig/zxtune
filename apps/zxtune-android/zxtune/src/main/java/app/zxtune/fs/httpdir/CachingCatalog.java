@@ -2,22 +2,16 @@ package app.zxtune.fs.httpdir;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import app.zxtune.TimeStamp;
+import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.dbhelpers.*;
+import app.zxtune.fs.http.HttpObject;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
-
-import app.zxtune.Log;
-import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.dbhelpers.CommandExecutor;
-import app.zxtune.fs.dbhelpers.FetchCommand;
-import app.zxtune.fs.dbhelpers.FileTree;
-import app.zxtune.fs.dbhelpers.QueryCommand;
-import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
 
 final class CachingCatalog extends Catalog {
 
@@ -40,36 +34,17 @@ final class CachingCatalog extends Catalog {
   @NonNull
   @Override
   public ByteBuffer getFileContent(final Path path) throws IOException {
-    final String localPath = path.getLocalId();
-    return executor.executeFetchCommand("file", new FetchCommand<ByteBuffer>() {
-      @Override
-      public ByteBuffer fetchFromCache() {
-        return cache.findFile(localPath);
-      }
-
-      @Override
+    return executor.executeDownloadCommand(new DownloadCommand() {
       @NonNull
-      public ByteBuffer updateCache() throws IOException {
-        try {
-          fillCache();
-          final ByteBuffer data = cache.findFile(localPath);
-          if (data != null) {
-            return data;
-          }
-        } catch (IOException e) {
-          Log.w(tag, e, "getFileContent");
-        }
-        return remote.getFileContent(path);
+      @Override
+      public File getCache() throws IOException {
+        return cache.findOrCreate(path.getLocalId());
       }
 
-      private void fillCache() throws IOException {
-        final OutputStream stream = cache.createFile(localPath);
-        try {
-          remote.getFileContent(path, stream);
-          stream.flush();
-        } finally {
-          stream.close();
-        }
+      @NonNull
+      @Override
+      public HttpObject getRemote() throws IOException {
+        return remote.getFileObject(path);
       }
     });
   }

@@ -3,11 +3,17 @@ package app.zxtune.fs.cache;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 final class StubCacheDir implements CacheDir {
+
+  @Override
+  public File findOrCreate(String... ids) throws IOException {
+    throw new IOException("No cache available");
+  }
 
   @Nullable
   @Override

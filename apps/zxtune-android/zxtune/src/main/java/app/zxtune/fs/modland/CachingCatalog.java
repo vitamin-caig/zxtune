@@ -7,21 +7,16 @@
 package app.zxtune.fs.modland;
 
 import android.support.annotation.NonNull;
+import app.zxtune.TimeStamp;
+import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.dbhelpers.*;
+import app.zxtune.fs.http.HttpObject;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-
-import app.zxtune.Log;
-import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.dbhelpers.CommandExecutor;
-import app.zxtune.fs.dbhelpers.FetchCommand;
-import app.zxtune.fs.dbhelpers.QueryCommand;
-import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
 
 final class CachingCatalog extends Catalog {
 
@@ -193,35 +188,17 @@ final class CachingCatalog extends Catalog {
   @Override
   @NonNull
   public ByteBuffer getTrackContent(final String id) throws IOException {
-    return executor.executeFetchCommand("file", new FetchCommand<ByteBuffer>() {
-      @Override
-      public ByteBuffer fetchFromCache() {
-        return cache.findFile(id);
-      }
-
-      @Override
+    return executor.executeDownloadCommand(new DownloadCommand() {
       @NonNull
-      public ByteBuffer updateCache() throws IOException {
-        try {
-          fillCache();
-          final ByteBuffer data = cache.findFile(id);
-          if (data != null) {
-            return data;
-          }
-        } catch (IOException e) {
-          Log.w(TAG, e, "getTrackContent");
-        }
-        return remote.getTrackContent(id);
+      @Override
+      public File getCache() throws IOException {
+        return cache.findOrCreate(id);
       }
 
-      private void fillCache() throws IOException {
-        final OutputStream stream = cache.createFile(id);
-        try {
-          remote.getTrackContent(id, stream);
-          stream.flush();
-        } finally {
-          stream.close();
-        }
+      @NonNull
+      @Override
+      public HttpObject getRemote() throws IOException {
+        return remote.getTrackObject(id);
       }
     });
   }
