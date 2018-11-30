@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <limits>
 #include <type_traits>
 
 namespace Binary
@@ -116,6 +117,10 @@ namespace Binary
       }
     }
     
+    static bool IsInstance(const Data& rh)
+    {
+      return dynamic_cast<const NonCopyContainer*>(&rh) || dynamic_cast<const SharedContainer<VoidPtr>*>(&rh);
+    }
   private:
     const VoidPtr Buffer;
     const std::size_t Length;
@@ -157,25 +162,38 @@ namespace Binary
     const std::size_t size = buffer ? buffer->size() : 0;
     return CreateContainer(std::move(buffer), 0, size);
   }
+  
+  /*
+    Cover special cases for noncopyable containers
+    
+    TODO: get rid of Container inheritance, rework to aggregation
+  */
+  Container::Ptr CreateDetachedContainer(Data::Ptr data)
+  {
+    if (data)
+    {
+      if (NonCopyContainer::IsInstance(*data))
+      {
+        return CreateContainer(data->Start(), data->Size());
+      }
+      else if (const auto size = data->Size())
+      {
+        return MakePtr<SharedContainer<Data::Ptr> >(std::move(data), 0, size);
+      }
+    }
+    return Container::Ptr();
+  }
 
   Container::Ptr CreateContainer(Data::Ptr data)
   {
     //cover downcasting and special cases
-    if (dynamic_cast<const NonCopyContainer*>(data.get()))
+    if (auto asContainer = std::dynamic_pointer_cast<const Container>(data))
     {
-      return CreateContainer(data->Start(), data->Size());
-    }
-    else if (Container::Ptr asContainer = std::dynamic_pointer_cast<const Container>(data))
-    {
-      return asContainer;
-    }
-    else if (const auto size = data ? data->Size() : 0)
-    {
-      return MakePtr<SharedContainer<Data::Ptr> >(std::move(data), 0, size);
+      return CreateDetachedContainer(asContainer->GetSubcontainer(0, std::numeric_limits<std::size_t>::max()));
     }
     else
     {
-      return Container::Ptr();
+      return CreateDetachedContainer(std::move(data));
     }
   }
 

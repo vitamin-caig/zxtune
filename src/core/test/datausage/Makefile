@@ -15,10 +15,10 @@ libraries.common = analysis \
                    tools
 
 #3rdparty
-libraries.3rdparty = gme he hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar xmp z80ex zlib
+libraries.3rdparty = asap gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar vio2sf xmp z80ex zlib
 
 libraries.boost += filesystem system
 
-windows_libraries := advapi32
+windows_libraries := advapi32 oldnames
 
 include $(path_step)/makefile.mak
