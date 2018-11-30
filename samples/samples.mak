@@ -66,6 +66,7 @@ samples_spc700_dir := SPC700
 
 samples_multi := \
 	gym/TheLionKing.gym \
+	kss/MSX_Fan.kss \
 	mtc/CyberMotion.mtc \
 	vgm/EarthwormJim.vgm
    

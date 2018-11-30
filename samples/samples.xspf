@@ -101,7 +101,7 @@
   </track>
   <!-- HuC6270 -->
   <track>
-    <location>Samples/HuC6270/raiden.hes</location>
+    <location>Samples/HuC6270/raiden.hes?#1</location>
   </track>
   <!-- LR35902 -->
   <track>
@@ -120,6 +120,9 @@
   </track>
   <track>
     <location>Samples/Multi/EarthwormJim.vgm</location>
+  </track>
+  <track>
+    <location>Samples/Multi/MSX_Fan.kss</location>
   </track>
   <!-- RP2A0X -->
   <track>
