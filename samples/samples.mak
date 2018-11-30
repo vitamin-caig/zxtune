@@ -41,6 +41,11 @@ samples_dac_amiga := \
   
 samples_dac_amiga_dir := DAC/Amiga
 
+samples_dac_sega := \
+  dsf/m20.dsf
+
+samples_dac_sega_dir := DAC/Sega
+
 samples_mos6581 := \
         sid/Love_Is_a_Shield.sid
 
@@ -99,7 +104,9 @@ define install_samples_cmd
 	echo Installed $(1) samples
 endef
 
-install_samples: install_samples_ay38910 install_samples_dac_zx install_samples_dac_amiga install_samples_mos6581 install_samples_saa1099 install_samples_ym2203 install_samples_spc700 \
+install_samples_dac: install_samples_dac_zx install_samples_dac_amiga install_samples_dac_sega
+
+install_samples: install_samples_ay38910 install_samples_dac install_samples_mos6581 install_samples_saa1099 install_samples_ym2203 install_samples_spc700 \
   install_samples_multi install_samples_rp2a0x install_samples_lr35902 install_samples_co12294 install_samples_huc6270
 
 install_samples_ay38910:
@@ -110,6 +117,9 @@ install_samples_dac_zx:
 
 install_samples_dac_amiga:
 	$(call install_samples_cmd,dac_amiga)
+
+install_samples_dac_sega:
+	$(call install_samples_cmd,dac_sega)
 
 install_samples_mos6581:
 	$(call install_samples_cmd,mos6581)

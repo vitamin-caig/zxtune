@@ -99,6 +99,10 @@
   <track>
     <location>Samples/DAC/Amiga/Stormlord.ahx</location>
   </track>
+  <!-- DAC/Sega -->
+  <track>
+    <location>Samples/DAC/Sega/m20.dsf</location>
+  </track>
   <!-- HuC6270 -->
   <track>
     <location>Samples/HuC6270/raiden.hes?#1</location>
