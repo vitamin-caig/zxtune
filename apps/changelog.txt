@@ -5,6 +5,19 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4280 from 03.12.2018
+
+[+] Added support of MPEG Audio Layer format (MP1/MP2/MP3)
+[+] Added support of Ogg Vorbis audio (OGG)
+[+] Added support of Waveform Audio (WAV, only PCM-encoded formats)
+[+] Added support of FMOD sound banks (FSB)
+[*] zxtune-qt: fixed pause before scanning of long files with explicit format
+[*] zxtune-android: optimized memory usage
+[+] zxtune-android: added FM Towns, Mobile plaforms, NeoGeo CD and PC archives to joshw.info catalogue
+[*] zxtune-android: cached files will be updated if changed on remote side
+[*] zxtune-android: fixed and improved external storages enumeration on modern devices
+[*] zxtune-android: fixed some reported and found crashes
+
 --- Rev4220 from 18.10.2018
 
 [*] zxtune-android: fixed crash at startup on some devices
