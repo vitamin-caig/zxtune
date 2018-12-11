@@ -25,7 +25,11 @@ namespace Formats
       enum Format : uint_t
       {
         PCM = 1,
-        IEEE_FLOAT = 3
+        ADPCM = 2,
+        IEEE_FLOAT = 3,
+        ALAW = 6,
+        MULAW = 7,
+        IMA_ADPCM = 17 //same as DVI_ADPCM
       };
       
       class Builder

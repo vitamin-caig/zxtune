@@ -322,7 +322,7 @@ namespace Chiptune
       "????"
       "'W'A'V'E"
       "'f'm't' "
-      "10|12|28 000000" //chunk size
+      "10|12-ff 000000" //chunk size up to 255 bytes
       "??"              //format code pcm/float
       "01|02 00"        //mono/stereo
       "?? 00-01 00"     //up to 96kHz
