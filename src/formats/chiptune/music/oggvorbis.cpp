@@ -342,7 +342,7 @@ namespace Chiptune
       "'O'g'g'S" //signature
       "00"       //version
       "00"       //flags
-      "00{8}"    //position
+      "????00{4}"//first page may contain also audio data
       "?{4}"     //serial
       "01000000" //page
       "?{4}"     //crc
