@@ -192,6 +192,8 @@ namespace Wav
         return CreatePcmModel(WavProperties);
       case Formats::Chiptune::Wav::Format::IEEE_FLOAT:
         return CreateFloatPcmModel(WavProperties);
+      case Formats::Chiptune::Wav::Format::ADPCM:
+        return CreateAdpcmModel(WavProperties);
       default:
         return Model::Ptr();
       }

@@ -43,5 +43,6 @@ namespace Wav
   
   Model::Ptr CreatePcmModel(const Properties& props);
   Model::Ptr CreateFloatPcmModel(const Properties& props);
+  Model::Ptr CreateAdpcmModel(const Properties& props);
 }
 }
