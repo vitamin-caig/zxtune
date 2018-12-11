@@ -9,6 +9,7 @@
 **/
 
 //local includes
+#include "wav_supp.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
@@ -37,172 +38,6 @@ namespace Wav
 {
   const Debug::Stream Dbg("Core::WavSupp");
 
-  static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
-  static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
-  static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound sample channels count");
-  
-  template<class Type>
-  struct SampleTraits;
-  
-  template<>
-  struct SampleTraits<uint8_t>
-  {
-    static Sound::Sample::Type ConvertChannel(uint8_t v)
-    {
-      return Sound::Sample::MAX * v / 255;
-    }
-  };
-  
-  template<>
-  struct SampleTraits<int16_t>
-  {
-    static Sound::Sample::Type ConvertChannel(int16_t v)
-    {
-      return v;
-    }
-  };
-
-  using Sample24 = std::array<uint8_t, 3>;
-  
-  template<>
-  struct SampleTraits<Sample24>
-  {
-    static_assert(sizeof(Sample24) == 3, "Wrong layout");
-    
-    static Sound::Sample::Type ConvertChannel(Sample24 v)
-    {
-      return static_cast<int16_t>(256 * v[2] + v[1]);
-    }
-  };
-
-  template<>
-  struct SampleTraits<int32_t>
-  {
-    static Sound::Sample::Type ConvertChannel(int32_t v)
-    {
-      return v / 65536;
-    }
-  };
-  
-  template<>
-  struct SampleTraits<float>
-  {
-    static_assert(sizeof(float) == 4, "Wrong layout");
-
-    static Sound::Sample::Type ConvertChannel(float v)
-    {
-      return v * 32767;
-    }
-  };
-  
-  template<class Type, uint_t Channels>
-  struct MultichannelSampleTraits
-  {
-    using UnderlyingType = std::array<Type, Channels>;
-    static_assert(sizeof(UnderlyingType) == Channels * sizeof(Type), "Wrong layout");
-    
-    static Sound::Sample ConvertSample(UnderlyingType data)
-    {
-      if (Channels == 2)
-      {
-        return Sound::Sample(SampleTraits<Type>::ConvertChannel(data[0]), SampleTraits<Type>::ConvertChannel(data[1]));
-      }
-      else
-      {
-        const auto val = SampleTraits<Type>::ConvertChannel(data[0]);
-        return Sound::Sample(val, val);
-      }
-    }
-  };
-
-  template<class Type, uint_t Channels>
-  Sound::Chunk ConvertChunk(const void* data, uint_t offset, std::size_t count)
-  {
-    using Traits = MultichannelSampleTraits<Type, Channels>;
-    const auto typedData = static_cast<const typename Traits::UnderlyingType*>(data) + offset;
-    Sound::Chunk result(count);
-    std::transform(typedData, typedData + count, &result.front(), &Traits::ConvertSample);
-    return result;
-  }
-  
-  using ConvertFunction = Sound::Chunk(*)(const void* data, uint_t offset, std::size_t count);
-
-  ConvertFunction FindConvertFunction(uint_t channels, uint_t bits)
-  {
-    switch (channels * 256 + bits)
-    {
-    case 0x108:
-      return &ConvertChunk<uint8_t, 1>;
-    case 0x208:
-      return &ConvertChunk<uint8_t, 2>;
-    case 0x110:
-      return &ConvertChunk<int16_t, 1>;
-    case 0x210:
-      return &ConvertChunk<int16_t, 2>;
-    case 0x118:
-      return &ConvertChunk<Sample24, 1>;
-    case 0x218:
-      return &ConvertChunk<Sample24, 2>;
-    case 0x120:
-      return &ConvertChunk<int32_t, 1>;
-    case 0x220:
-      return &ConvertChunk<int32_t, 2>;
-    default:
-      return nullptr;
-    }
-  }
-  
-  ConvertFunction FindConvertFunction(uint_t channels, uint_t bits, uint_t blocksize)
-  {
-    if (channels * bits / 8 == blocksize)
-    {
-      return FindConvertFunction(channels, bits);
-    }
-    else if (bits >= 8 && (channels == 1 || 0 == (blocksize % channels)))
-    {
-      return FindConvertFunction(channels, (bits + 7) & ~7);
-    }
-    else
-    {
-      return nullptr;
-    }
-  }
-  
-  ConvertFunction FindConvertFunction(uint_t formatCode, uint_t channels, uint_t bits, uint_t blocksize)
-  {
-    using namespace Formats::Chiptune::Wav;
-    if (formatCode == Format::PCM)
-    {
-      return FindConvertFunction(channels, bits, blocksize);
-    }
-    else if (formatCode == Format::IEEE_FLOAT)
-    {
-      return channels == 1 ? &ConvertChunk<float, 1> : &ConvertChunk<float, 2>;
-    }
-    else
-    {
-      return nullptr;
-    }
-  }
-  
-  struct Model
-  {
-    using RWPtr = std::shared_ptr<Model>;
-    using Ptr = std::shared_ptr<const Model>;
-    
-    uint_t Frequency = 0;
-    uint_t SampleSize = 0;
-    uint_t FramesCount = 0;
-    uint_t SamplesPerFrame = 0;
-    Binary::Data::Ptr SamplesData;
-    ConvertFunction Convert;
-    
-    Sound::Chunk RenderFrame(uint_t frame) const
-    {
-      return Convert(SamplesData->Start(), frame * SamplesPerFrame, SamplesPerFrame);
-    }
-  };
-  
   class Renderer : public Module::Renderer
   {
   public:
@@ -262,7 +97,7 @@ namespace Wav
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
-        Resampler = Sound::CreateResampler(Tune->Frequency, SoundParams->SoundFreq(), Target);
+        Resampler = Sound::CreateResampler(Tune->GetFrequency(), SoundParams->SoundFreq(), Target);
       }
     }
   private:
@@ -281,7 +116,7 @@ namespace Wav
   public:
     Holder(Model::Ptr data, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
-      , Info(CreateStreamInfo(Data->FramesCount))
+      , Info(CreateStreamInfo(Data->GetFramesCount()))
       , Properties(std::move(props))
     {
     }
@@ -310,8 +145,7 @@ namespace Wav
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-      : Data(MakeRWPtr<Model>())
-      , Properties(props)
+      : Properties(props)
       , Meta(props)
     {
     }
@@ -323,48 +157,50 @@ namespace Wav
 
     void SetProperties(uint_t formatCode, uint_t frequency, uint_t channels, uint_t bits, uint_t blockSize) override
     {
-      Data->Frequency = frequency;
-      Data->SampleSize = blockSize;
-      Data->Convert = FindConvertFunction(formatCode, channels, bits, blockSize);
-      Require(Data->Convert);
+      FormatCode = formatCode;
+      WavProperties.Frequency = frequency;
+      WavProperties.Channels = channels;
+      WavProperties.Bits = bits;
+      WavProperties.BlockSize = blockSize;
     }
     
     void SetSamplesData(Binary::Container::Ptr data) override
     {
       //smart copy
-      Data->SamplesData = Binary::CreateContainer(std::move(data));
+      WavProperties.Data = Binary::CreateContainer(std::move(data));
     }
     
-    void SetSamplesCountHint(uint_t /*count*/) override
+    void SetSamplesCountHint(uint_t count) override
     {
+      WavProperties.SamplesCountHint = count;
     }
 
     void SetFrameDuration(Time::Microseconds frameDuration)
     {
-      if (Data->SamplesData)
-      {
-        const auto totalSamples = Data->SamplesData->Size() / Data->SampleSize;
-        const auto totalDuration = Time::Microseconds(totalSamples * frameDuration.PER_SECOND / Data->Frequency);
-        Data->FramesCount = static_cast<uint_t>(totalDuration.Get() / frameDuration.Get());
-        Data->SamplesPerFrame = totalSamples / Data->FramesCount;
-      }
+      WavProperties.FrameDuration = frameDuration;
     }
     
     Model::Ptr GetResult()
     {
-      if (Data->FramesCount)
+      if (!WavProperties.Data)
       {
-        return Data;
+        return Model::Ptr();
       }
-      else
+      switch (FormatCode)
       {
+      case Formats::Chiptune::Wav::Format::PCM:
+        return CreatePcmModel(WavProperties);
+      case Formats::Chiptune::Wav::Format::IEEE_FLOAT:
+        return CreateFloatPcmModel(WavProperties);
+      default:
         return Model::Ptr();
       }
     }
   private:
-    const Model::RWPtr Data;
     PropertiesHelper& Properties;
     MetaProperties Meta;
+    uint_t FormatCode = ~0;
+    Wav::Properties WavProperties;
   };
   
   class Factory : public Module::Factory
