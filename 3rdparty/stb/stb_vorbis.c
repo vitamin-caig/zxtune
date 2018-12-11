@@ -3563,6 +3563,10 @@ static int is_whole_packet_present(stb_vorbis *f, int end_page)
 }
 #endif // !STB_VORBIS_NO_PUSHDATA_API
 
+#ifndef STB_VORBIS_NO_PULLDATA_API
+static uint32 vorbis_find_page(stb_vorbis *, uint32 *, uint32 *);
+#endif
+
 static int start_decoder(vorb *f)
 {
    uint8 header[6], x,y;
@@ -4113,8 +4117,12 @@ static int start_decoder(vorb *f)
          return error(f, VORBIS_outofmem);
    }
 
+#ifndef STB_VORBIS_NO_PULLDATA_API
+   if (!vorbis_find_page(f, NULL, NULL)) {
+      return FALSE;
+   }
+#endif
    f->first_audio_page_offset = stb_vorbis_get_file_offset(f);
-
    return TRUE;
 }
 
@@ -4995,7 +5003,7 @@ stb_vorbis * stb_vorbis_open_memory(const unsigned char *data, int len, int *err
       f = vorbis_alloc(&p);
       if (f) {
          *f = p;
-         vorbis_pump_first_frame(f);
+         stb_vorbis_seek_start(f);
          if (error) *error = VORBIS__no_error;
          return f;
       }
