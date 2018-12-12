@@ -222,6 +222,7 @@ namespace Wav
           if (const auto data = dataBuilder.GetResult())
           {
             props.SetSource(*container);
+            props.SetFramesParameters(data->GetSamplesPerFrame(), data->GetFrequency());
             return MakePtr<Holder>(data, properties);
           }
         }

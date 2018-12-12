@@ -26,7 +26,7 @@ namespace Wav
   static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
   static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound sample channels count");
 
-  using ConvertFunc = Sound::Chunk(*)(const uint8_t*, std::size_t);
+  using ConvertFunc = void(*)(const uint8_t*, std::size_t, Sound::ChunkBuilder&);
 
   Sound::Sample MakeSample(int16_t val)
   {
@@ -73,10 +73,14 @@ namespace Wav
       int_t S2;
     };
     
-    Sound::Chunk ConvertMono(const uint8_t* data, std::size_t blockSize)
+    uint_t GetSamplesPerBlock(uint_t channels, std::size_t blockSize)
     {
-      Sound::ChunkBuilder builder;
-      builder.Reserve((blockSize - 7) * 2 + 2);
+      //return (blockSize - 7 * channels) * 2 / channels + 2;
+      return blockSize * 2 / channels - 14 + 2;
+    } 
+    
+    void ConvertMono(const uint8_t* data, std::size_t blockSize, Sound::ChunkBuilder& builder)
+    {
       Require(*data < 7);
       Decoder dec(data[0]);
       dec.Delta = ReadS16(data + 1);
@@ -89,13 +93,10 @@ namespace Wav
         builder.Add(MakeSample(dec.Decode(*data >> 4)));
         builder.Add(MakeSample(dec.Decode(*data & 15)));
       }
-      return builder.CaptureResult();
     }
     
-    Sound::Chunk ConvertStereo(const uint8_t* data, std::size_t blockSize)
+    void ConvertStereo(const uint8_t* data, std::size_t blockSize, Sound::ChunkBuilder& builder)
     {
-      Sound::ChunkBuilder builder;
-      builder.Reserve((blockSize - 14) + 2);
       Require(data[0] < 7 && data[1] < 7);
       Decoder left(data[0]);
       Decoder right(data[1]);
@@ -111,7 +112,6 @@ namespace Wav
       {
         builder.Add(Sound::Sample(left.Decode(*data >> 4), right.Decode(*data & 15)));
       }
-      return builder.CaptureResult();
     }
 
     ConvertFunc GetConvertFunc(uint_t channels)
@@ -179,11 +179,15 @@ namespace Wav
         return Predictor;
       }
     };
-  
-    Sound::Chunk ConvertMono(const uint8_t* data, std::size_t blockSize)
+    
+    uint_t GetSamplesPerBlock(uint_t channels, std::size_t blockSize)
     {
-      Sound::ChunkBuilder builder;
-      builder.Reserve((blockSize - 4) * 2 + 1);
+      //return (blockSize - 4 * channels) * 2 / channels + 1;
+      return blockSize * 2 / channels - 8 + 1;
+    } 
+  
+    void ConvertMono(const uint8_t* data, std::size_t blockSize, Sound::ChunkBuilder& builder)
+    {
       Require(data[2] < STEPS.size());
       Decoder dec;
       dec.Predictor = ReadS16(data);
@@ -194,13 +198,10 @@ namespace Wav
         builder.Add(MakeSample(dec.Decode(*data & 15)));
         builder.Add(MakeSample(dec.Decode(*data >> 4)));
       }
-      return builder.CaptureResult();
     }
 
-    Sound::Chunk ConvertStereo(const uint8_t* data, std::size_t blockSize)
+    void ConvertStereo(const uint8_t* data, std::size_t blockSize, Sound::ChunkBuilder& builder)
     {
-      Sound::ChunkBuilder builder;
-      builder.Reserve((blockSize - 8) + 1);
       Require(data[2] < STEPS.size() && data[6] < STEPS.size());
       Decoder left, right;
       left.Predictor = ReadS16(data);
@@ -217,7 +218,6 @@ namespace Wav
         }
         data += 4;
       }
-      return builder.CaptureResult();
     }
     
     ConvertFunc GetConvertFunc(uint_t channels)
@@ -240,11 +240,12 @@ namespace Wav
   class AdpcmModel : public Model
   {
   public:
-    AdpcmModel(ConvertFunc convert, const Properties& props)
+    AdpcmModel(ConvertFunc convert, uint_t samplesPerBlock, const Properties& props)
       : Convert(convert)
       , Data(props.Data)
       , Frequency(props.Frequency)
       , BlockSize(props.BlockSize)
+      , SamplesPerBlock(samplesPerBlock)
       , TotalBlocks(Data->Size() / BlockSize)
     {
     }
@@ -259,10 +260,18 @@ namespace Wav
       return TotalBlocks;
     }
     
+    uint_t GetSamplesPerFrame() const override
+    {
+      return SamplesPerBlock;
+    }
+    
     Sound::Chunk RenderFrame(uint_t idx) const override
     {
       const auto start = static_cast<const uint8_t*>(Data->Start()) + BlockSize * idx;
-      return Convert(start, BlockSize);
+      Sound::ChunkBuilder builder;
+      builder.Reserve(SamplesPerBlock);
+      Convert(start, BlockSize, builder);
+      return builder.CaptureResult();
     }
     
   private:
@@ -270,6 +279,7 @@ namespace Wav
     const Binary::Data::Ptr Data;
     const uint_t Frequency;
     const std::size_t BlockSize;
+    const uint_t SamplesPerBlock;
     const uint_t TotalBlocks;
   };
   
@@ -279,7 +289,7 @@ namespace Wav
     Require(props.BlockSize > 32);//TODO
     const auto func = Adpcm::GetConvertFunc(props.Channels);
     Require(func);
-    return MakePtr<AdpcmModel>(func, props);
+    return MakePtr<AdpcmModel>(func, Adpcm::GetSamplesPerBlock(props.Channels, props.BlockSize), props);
   }
 
   Model::Ptr CreateImaAdpcmModel(const Properties& props)
@@ -288,7 +298,7 @@ namespace Wav
     Require(props.BlockSize > 32);//TODO
     const auto func = ImaAdpcm::GetConvertFunc(props.Channels);
     Require(func);
-    return MakePtr<AdpcmModel>(func, props);
+    return MakePtr<AdpcmModel>(func, ImaAdpcm::GetSamplesPerBlock(props.Channels, props.BlockSize), props);
   }
 }
 }

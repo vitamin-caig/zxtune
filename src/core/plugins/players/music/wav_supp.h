@@ -38,6 +38,7 @@ namespace Wav
     
     virtual uint_t GetFrequency() const = 0;
     virtual uint_t GetFramesCount() const = 0;
+    virtual uint_t GetSamplesPerFrame() const = 0;
     virtual Sound::Chunk RenderFrame(uint_t idx) const = 0;
   };
   

@@ -176,6 +176,11 @@ namespace Wav
       return TotalFrames;
     }
     
+    uint_t GetSamplesPerFrame() const override
+    {
+      return SamplesPerFrame;
+    }
+    
     Sound::Chunk RenderFrame(uint_t idx) const override
     {
       const auto start = static_cast<const uint8_t*>(Data->Start()) + BytesPerFrame * idx;
