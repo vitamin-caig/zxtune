@@ -15,17 +15,31 @@
 //library includes
 #include <math/numeric.h>
 #include <sound/chunk_builder.h>
+//std includes
+#include <array>
 
 namespace Module
 {
 namespace Wav
 {
+  static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
+  static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
+  static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound sample channels count");
+
+  using ConvertFunc = Sound::Chunk(*)(const uint8_t*, std::size_t);
+
+  Sound::Sample MakeSample(int16_t val)
+  {
+    return Sound::Sample(val, val);
+  }
+  
+  int_t ReadS16(const uint8_t* data)
+  {
+    return static_cast<int16_t>(data[0] + 256 * data[1]);
+  }
+    
   namespace Adpcm
   {
-    static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
-    static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
-    static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound sample channels count");
-    
     static const int_t ADAPTATION[] = {230, 230, 230, 230, 307, 409, 512, 614, 768, 614, 512, 409, 307, 230, 230, 230};
     static const int_t COEFF1[] = {256, 512, 0, 192, 240, 460, 392};
     static const int_t COEFF2[] = {0, -256, 0, 64, 0, -208, -232};
@@ -58,18 +72,6 @@ namespace Wav
       int_t S1;
       int_t S2;
     };
-    
-    Sound::Sample MakeSample(int16_t val)
-    {
-      return Sound::Sample(val, val);
-    }
-    
-    int_t ReadS16(const uint8_t* data)
-    {
-      return static_cast<int16_t>(data[0] + 256 * data[1]);
-    }
-    
-    using ConvertFunc = Sound::Chunk(*)(const uint8_t*, std::size_t);
     
     Sound::Chunk ConvertMono(const uint8_t* data, std::size_t blockSize)
     {
@@ -111,28 +113,134 @@ namespace Wav
       }
       return builder.CaptureResult();
     }
+
+    ConvertFunc GetConvertFunc(uint_t channels)
+    {
+      if (channels == 1)
+      {
+        return &ConvertMono;
+      }
+      else if (channels == 2)
+      {
+        return &ConvertStereo;
+      }
+      else
+      {
+        return nullptr;
+      }
+    }
   }
   
-  Adpcm::ConvertFunc GetConvertFunc(uint_t channels)
+  //https://wiki.multimedia.cx/index.php/IMA_ADPCM
+  //https://wiki.multimedia.cx/index.php/Microsoft_IMA_ADPCM
+  namespace ImaAdpcm
   {
-    if (channels == 1)
+    static const std::array<int_t, 16> INDICES = {{-1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8}};
+    static const std::array<uint_t, 89> STEPS = 
+    {{
+      7,     8,     9,     10,    11,    12,    13,    14,    16,    17, 
+      19,    21,    23,    25,    28,    31,    34,    37,    41,    45, 
+      50,    55,    60,    66,    73,    80,    88,    97,    107,   118, 
+      130,   143,   157,   173,   190,   209,   230,   253,   279,   307,
+      337,   371,   408,   449,   494,   544,   598,   658,   724,   796,
+      876,   963,   1060,  1166,  1282,  1411,  1552,  1707,  1878,  2066, 
+      2272,  2499,  2749,  3024,  3327,  3660,  4026,  4428,  4871,  5358,
+      5894,  6484,  7132,  7845,  8630,  9493,  10442, 11487, 12635, 13899, 
+      15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767 
+    }};
+    
+    struct Decoder
     {
-      return &Adpcm::ConvertMono;
+      int_t Predictor;
+      int_t Index;
+      
+      int_t Decode(uint_t nibble)
+      {
+        const auto step = STEPS[Index];
+        int_t diff = step >> 3;
+        if (nibble & 1)
+        {
+          diff += step >> 2;
+        }
+        if (nibble & 2)
+        {
+          diff += step >> 1;
+        }
+        if (nibble & 4)
+        {
+          diff += step;
+        }
+        if (nibble & 8)
+        {
+          diff = -diff;
+        }
+        Predictor = Math::Clamp(Predictor + diff, -32768, 32767);
+        Index = Math::Clamp<int_t>(Index + INDICES[nibble], 0, STEPS.size() - 1);
+        return Predictor;
+      }
+    };
+  
+    Sound::Chunk ConvertMono(const uint8_t* data, std::size_t blockSize)
+    {
+      Sound::ChunkBuilder builder;
+      builder.Reserve((blockSize - 4) * 2 + 1);
+      Require(data[2] < STEPS.size());
+      Decoder dec;
+      dec.Predictor = ReadS16(data);
+      dec.Index = data[2];
+      builder.Add(MakeSample(dec.Predictor));
+      for (data += 4, blockSize -= 4; blockSize != 0; ++data, --blockSize)
+      {
+        builder.Add(MakeSample(dec.Decode(*data & 15)));
+        builder.Add(MakeSample(dec.Decode(*data >> 4)));
+      }
+      return builder.CaptureResult();
     }
-    else if (channels == 2)
+
+    Sound::Chunk ConvertStereo(const uint8_t* data, std::size_t blockSize)
     {
-      return &Adpcm::ConvertStereo;
+      Sound::ChunkBuilder builder;
+      builder.Reserve((blockSize - 8) + 1);
+      Require(data[2] < STEPS.size() && data[6] < STEPS.size());
+      Decoder left, right;
+      left.Predictor = ReadS16(data);
+      left.Index = data[2];
+      right.Predictor = ReadS16(data + 4);
+      right.Index = data[6];
+      builder.Add(Sound::Sample(left.Predictor, right.Predictor));
+      for (data += 8, blockSize -= 8; blockSize >= 8; blockSize -= 8)
+      {
+        for (uint_t byte = 0; byte < 4; ++byte, ++data)
+        {
+          builder.Add(Sound::Sample(left.Decode(data[0] & 15), right.Decode(data[4] & 15)));
+          builder.Add(Sound::Sample(left.Decode(data[0] >> 4), right.Decode(data[4] >> 4)));
+        }
+        data += 4;
+      }
+      return builder.CaptureResult();
     }
-    else
+    
+    ConvertFunc GetConvertFunc(uint_t channels)
     {
-      return nullptr;
+      if (channels == 1)
+      {
+        return &ConvertMono;
+      }
+      else if (channels == 2)
+      {
+        return &ConvertStereo;
+      }
+      else
+      {
+        return nullptr;
+      }
     }
   }
-
+  
   class AdpcmModel : public Model
   {
   public:
-    AdpcmModel(Adpcm::ConvertFunc convert, const Properties& props)
+    AdpcmModel(ConvertFunc convert, const Properties& props)
       : Convert(convert)
       , Data(props.Data)
       , Frequency(props.Frequency)
@@ -158,7 +266,7 @@ namespace Wav
     }
     
   private:
-    const Adpcm::ConvertFunc Convert;
+    const ConvertFunc Convert;
     const Binary::Data::Ptr Data;
     const uint_t Frequency;
     const std::size_t BlockSize;
@@ -169,7 +277,16 @@ namespace Wav
   {
     Require(props.Bits == 4);
     Require(props.BlockSize > 32);//TODO
-    const auto func = GetConvertFunc(props.Channels);
+    const auto func = Adpcm::GetConvertFunc(props.Channels);
+    Require(func);
+    return MakePtr<AdpcmModel>(func, props);
+  }
+
+  Model::Ptr CreateImaAdpcmModel(const Properties& props)
+  {
+    Require(props.Bits == 4);
+    Require(props.BlockSize > 32);//TODO
+    const auto func = ImaAdpcm::GetConvertFunc(props.Channels);
     Require(func);
     return MakePtr<AdpcmModel>(func, props);
   }
