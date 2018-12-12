@@ -134,6 +134,18 @@ public class DefaultComparatorTest {
     assertSorted(DATA);
   }
 
+  @Test
+  public void testCase() {
+    final String[] DATA = {
+        "cap",
+        "Capital.2016",
+        "capital.2015",
+        "Datum"
+    };
+
+    assertSorted(DATA);
+  }
+
   private static void assertSorted(String[] data) {
     final int len = data.length;
     for (int i = 0; i < len; ++i) {

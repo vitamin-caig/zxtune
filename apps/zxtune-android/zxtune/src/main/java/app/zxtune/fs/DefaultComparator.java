@@ -41,7 +41,13 @@ public class DefaultComparator implements Comparator<VfsObject> {
       final char rhSym = rh.charAt(pos);
 
       if (isDigit(lhSym) && isDigit(rhSym)) {
-        return compareNumericPrefix(lh.substring(pos), lhSize - pos, rh.substring(pos), rhSize - pos);
+        if (compareResult != 0) {
+          return compareResult;
+        } else if (caseSensitiveCompareResult != 0) {
+          return caseSensitiveCompareResult;
+        } else {
+          return compareNumericPrefix(lh.substring(pos), lhSize - pos, rh.substring(pos), rhSize - pos);
+        }
       } else if (lhSym != rhSym && compareResult == 0) {
         compareResult = compare(Character.toUpperCase(lhSym), Character.toUpperCase(rhSym));
         if (compareResult == 0 && caseSensitiveCompareResult == 0) {
