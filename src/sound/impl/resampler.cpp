@@ -52,6 +52,10 @@ namespace Sound
     
     void ApplyData(Chunk data) override
     {
+      if (data.empty())
+      {
+        return;
+      }
       ChunkBuilder builder;
       builder.Reserve(1 + (FixedStep(data.size()) / Step).Round());
       Chunk::const_iterator it = data.begin(), lim = data.end();
@@ -104,6 +108,10 @@ namespace Sound
 
     void ApplyData(Chunk data) override
     {
+      if (data.empty())
+      {
+        return;
+      }
       ChunkBuilder builder;
       builder.Reserve(1 + (Step * data.size()).Round());
       Chunk::const_iterator it = data.begin(), lim = data.end();
