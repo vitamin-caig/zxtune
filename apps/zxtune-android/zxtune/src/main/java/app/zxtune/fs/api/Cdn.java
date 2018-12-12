@@ -24,6 +24,10 @@ public class Cdn {
     return getRoot().encodedPath("download/modland" + id).build();
   }
 
+  public static Uri modarchive(int id) {
+    return getRoot().path("download/modarchive/ids/" + id).build();
+  }
+
   private static Uri.Builder getRoot() {
     return new Uri.Builder().scheme("https").authority("storage.zxtune.ru");
   }

@@ -21,7 +21,9 @@ import android.support.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
 
+import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.HttpObject;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
 import org.xml.sax.SAXException;
 
@@ -89,8 +91,12 @@ class RemoteCatalog extends Catalog {
       return this;
     }
 
+    final Uri buildUri() {
+      return delegate.build();
+    }
+
     final String build() {
-      return delegate.build().toString();
+      return buildUri().toString();
     }
 
     static ApiUriBuilder forQuery(String key) {
@@ -109,10 +115,12 @@ class RemoteCatalog extends Catalog {
   }
 
   private final HttpProvider http;
+  private final MultisourceHttpProvider multiHttp;
   private final String key;
 
   RemoteCatalog(Context context, HttpProvider http) {
     this.http = http;
+    this.multiHttp = new MultisourceHttpProvider(http);
     final Bundle metaData = getAppMetadata(context);
     this.key = metaData.getString("key.modarchive");
   }
@@ -176,14 +184,19 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
-    final String query = ApiUriBuilder.forDownload(id).build();
-    return Io.readFrom(http.getInputStream(Uri.parse(query)));
+    return Io.readFrom(multiHttp.getInputStream(getContentUris(id)));
   }
 
   final HttpObject getTrackObject(int id) throws IOException {
     Log.d(TAG, "getTrackObject(id=%d)", id);
-    final String query = ApiUriBuilder.forDownload(id).build();
-    return http.getObject(Uri.parse(query));
+    return multiHttp.getObject(getContentUris(id));
+  }
+
+  private static Uri[] getContentUris(int id) {
+    return new Uri[]{
+        Cdn.modarchive(id),
+        ApiUriBuilder.forDownload(id).buildUri()
+    };
   }
 
   private static RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {
