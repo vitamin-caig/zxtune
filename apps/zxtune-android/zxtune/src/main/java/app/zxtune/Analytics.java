@@ -206,12 +206,6 @@ public class Analytics {
     send(event);
   }
 
-  public static void sendTooBigFileEvent(int size) {
-    final CustomEvent event = new CustomEvent("Investigation");
-    event.putCustomAttribute("FileSizeKb", size / 1024);
-    send(event);
-  }
-
   public static void sendHostUnavailableEvent(String host) {
     final CustomEvent event = new CustomEvent("Investigation");
     event.putCustomAttribute("UnavailableHost", host);

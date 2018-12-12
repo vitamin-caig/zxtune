@@ -34,14 +34,6 @@ public final class HttpProviderFactory {
         throw new IOException(context.getString(R.string.network_inaccessible));
       }
     }
-
-    @Override
-    public void checkSizeLimit(int size) throws IOException {
-      if (size > HttpUrlConnectionProvider.MAX_REMOTE_FILE_SIZE) {
-        Analytics.sendTooBigFileEvent(size);
-        throw new IOException(context.getString(R.string.file_too_big));
-      }
-    }
   }
 
   public static HttpProvider createProvider(Context ctx) {
