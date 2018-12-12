@@ -20,14 +20,16 @@ public class Core {
 
   public static Module loadModule(VfsFile file, String subpath) throws Exception {
     final ByteBuffer content = file.getContent();
-    Analytics.setFile(file.getUri(), subpath, content.limit());
+    final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), subpath, content.limit());
+    log.action("loadModule begin");
     final Module obj = ZXTune.loadModule(content, subpath);
+    log.action("loadModule end");
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
       return obj;
     } else if (subpath.isEmpty()) {
       Log.d(TAG, "Resolve additional files for opened %s", file.getUri());
-      return new Resolver(file).resolve(obj, files);
+      return new Resolver(file, log).resolve(obj, files);
     } else {
       //was not resolved by ZXTune library core
       throw new Exception(String.format(Locale.US, "Unresolved additional files '%s'", Arrays.toString(files)));
@@ -36,9 +38,11 @@ public class Core {
 
   public static void detectModules(VfsFile file, ZXTune.ModuleDetectCallback callback) throws Exception {
     final ByteBuffer content = file.getContent();
-    Analytics.setFile(file.getUri(), "*", content.limit());
-    final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback);
+    final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), "*", content.limit());
+    final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback, log);
+    log.action("detectModules begin");
     ZXTune.detectModules(content, adapter);
+    log.action("detectModules end");
     if (0 == adapter.getDetectedModulesCount()) {
       Analytics.sendNoTracksFoundEvent(file.getUri());
     }
@@ -48,12 +52,14 @@ public class Core {
 
     private final VfsFile location;
     private final ZXTune.ModuleDetectCallback delegate;
+    private final Analytics.JniLog log;
     private Resolver resolver;
     private int modulesCount = 0;
 
-    ModuleDetectCallbackAdapter(VfsFile location, ZXTune.ModuleDetectCallback delegate) {
+    ModuleDetectCallbackAdapter(VfsFile location, ZXTune.ModuleDetectCallback delegate, Analytics.JniLog log) {
       this.location = location;
       this.delegate = delegate;
+      this.log = log;
     }
 
     final int getDetectedModulesCount() {
@@ -85,7 +91,7 @@ public class Core {
 
     private Resolver getResolver() {
       if (resolver == null) {
-        resolver = new Resolver(location);
+        resolver = new Resolver(location, log);
       }
       return resolver;
     }
@@ -94,14 +100,16 @@ public class Core {
   private static class Resolver {
 
     private VfsDir parent;
+    private final Analytics.JniLog log;
     private final HashMap<String, VfsFile> files = new HashMap<>();
     private final HashMap<String, VfsDir> dirs = new HashMap<>();
 
-    Resolver(VfsFile content) {
+    Resolver(VfsFile content, Analytics.JniLog log) {
       final VfsObject parent = content.getParent();
       if (parent instanceof VfsDir) {
         this.parent = (VfsDir) parent;
       }
+      this.log = log;
     }
 
     final Module resolve(Module module, String[] files) throws Exception {
@@ -118,8 +126,10 @@ public class Core {
 
     private void resolveIteration(Module module, String[] files) throws Exception {
       for (String name : files) {
-        Log.d(TAG, "Resolve %s", name);
-        module.resolveAdditionalFile(name, getFileContent(name));
+        final ByteBuffer content = getFileContent(name);
+        log.action("resolveAdditionalFile " + name);
+        module.resolveAdditionalFile(name, content);
+        log.action("resolveAdditionalFile end");
       }
     }
 

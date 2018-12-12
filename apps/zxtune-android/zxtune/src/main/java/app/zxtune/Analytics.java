@@ -11,6 +11,7 @@ import com.crashlytics.android.core.CrashlyticsCore;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.core.Module;
@@ -216,14 +217,19 @@ public class Analytics {
     event.putCustomAttribute("UnavailableHost", host);
   }
 
-  public static void setFile(Uri uri, String subpath, int size) {
-    //obfuscate user-sensitive data (paths)
-    final String location = "file".equals(uri.getScheme())
-            ? uri.getLastPathSegment()
-            : uri.toString();
-    Crashlytics.setString("file.location", location);
-    Crashlytics.setString("file.subpath", subpath);
-    Crashlytics.setInt("file.size", size);
+  public static class JniLog {
+    private final String prefix;
+
+    public JniLog(Uri uri, String subpath, int size) {
+      this.prefix = String.format(Locale.US, "%d: ", uri.hashCode() ^ subpath.hashCode());
+      Crashlytics.log(prefix + String.format(Locale.US, "file=%s subpath=%s size=%d",
+        "file".equals(uri.getScheme()) ? uri.getLastPathSegment() : uri.toString(),
+        subpath, size));
+    }
+
+    public final void action(String action) {
+      Crashlytics.log(prefix + action);
+    }
   }
 
   private static void send(CustomEvent event) {
