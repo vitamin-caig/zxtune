@@ -44,6 +44,10 @@ namespace Archived
           Bits = 32;
           IsFloat = true;
           break;
+        case Fmod::Format::IMAADPCM:
+          Bits = 4;
+          IsAdpcm = true;
+          break;
         default:
           Require(false);
         }
@@ -53,7 +57,8 @@ namespace Archived
       uint_t Frequency = 0;
       uint_t Channels = 0;
       uint_t Bits = 0;
-      bool IsFloat = 0;
+      bool IsFloat = false;
+      bool IsAdpcm = false;
       uint_t SamplesCount = 0;
       Binary::Container::Ptr Data;
     };
@@ -97,8 +102,8 @@ namespace Archived
       {
         using namespace Formats::Chiptune::Wav;
         const auto builder = CreateDumpBuilder();
-        const auto format = Properties.IsFloat ? Format::IEEE_FLOAT : Format::PCM;
-        const auto blockSize = (Properties.Channels * Properties.Bits + 7) / 8;
+        const auto format = Properties.IsFloat ? Format::IEEE_FLOAT : (Properties.IsAdpcm ? Format::IMA_ADPCM : Format::PCM);
+        const auto blockSize = Properties.IsAdpcm ? 36 * Properties.Channels : (Properties.Channels * Properties.Bits + 7) / 8;
         builder->SetProperties(format, Properties.Frequency, Properties.Channels, Properties.Bits, blockSize);
         if (Properties.SamplesCount)
         {

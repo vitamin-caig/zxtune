@@ -31,7 +31,7 @@ namespace Archived
     const std::string FORMAT(
       "'F'S'B'5"
       "?{20}"
-      "01|02|03|04|05|0b 000000" //pcm+mpeg
+      "01|02|03|04|05|07|0b 000000" //pcm+imaadpcm+mpeg
     );
 
     class File : public Archived::File
@@ -134,6 +134,7 @@ namespace Archived
         case Fmod::Format::PCM24:
         case Fmod::Format::PCM32:
         case Fmod::Format::PCMFLOAT:
+        case Fmod::Format::IMAADPCM:
           Delegate = CreatePcmBuilder();
           break;
         default:
