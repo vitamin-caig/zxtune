@@ -32,20 +32,24 @@ public class Io {
 
   private static ByteBuffer readFrom(FileChannel channel) throws IOException {
     if (channel.size() >= MIN_MMAPED_FILE_SIZE) {
-      try {
-        return readMemoryMapped(channel);
-      } catch (IOException e) {
-        Log.w(TAG, e, "Failed to read using MMAP. Use fallback");
-        //http://stackoverflow.com/questions/8553158/prevent-outofmemory-when-using-java-nio-mappedbytebuffer
-        System.gc();
-        System.runFinalization();
+      for (int retry = 1; ; ++retry) {
+        try {
+          return readMemoryMapped(channel);
+        } catch (IOException e) {
+          final IOException wrapped = new IOException(e);
+          if (retry == 1) {
+            Log.w(TAG, wrapped, "Failed to read using MMAP. Cleanup memory");
+            //http://stackoverflow.com/questions/8553158/prevent-outofmemory-when-using-java-nio-mappedbytebuffer
+            System.gc();
+            System.runFinalization();
+          } else {
+            Log.w(TAG, wrapped, "Failed to read using MMAP. Fallback");
+            break;
+          }
+        }
       }
     }
-    try {
-      return readDirectArray(channel);
-    } catch (OutOfMemoryError e) {
-      throw new IOException(e);
-    }
+    return readDirectArray(channel);
   }
 
   private static ByteBuffer readMemoryMapped(FileChannel channel) throws IOException {
