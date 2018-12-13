@@ -144,6 +144,7 @@ public class CommandExecutor {
   }
 
   private void download(HttpObject remote, File cache) throws IOException {
+    checkAvailableSpace(remote, cache);
     final TransactionalOutputStream output = new TransactionalOutputStream(cache);
     try {
       final InputStream input = remote.getInput();
@@ -152,6 +153,17 @@ public class CommandExecutor {
       Analytics.sendVfsRemoteEvent(id, "file");
     } finally {
       output.close();
+    }
+  }
+
+  private static void checkAvailableSpace(HttpObject remote, File cache) throws IOException {
+    final File dir = cache.getParentFile();
+    final long availSize = dir != null ? dir.getUsableSpace() : 0;
+    if (availSize != 0) {
+      final Long remoteSize = remote.getContentLength();
+      if (remoteSize != null && remoteSize > availSize) {
+        throw new IOException("No free space for cache");//TODO: localize
+      }
     }
   }
 
