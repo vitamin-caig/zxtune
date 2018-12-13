@@ -133,9 +133,9 @@ namespace Chiptune
       
       void ReadPacket(std::size_t pageOffset, uint_t samplesCount, Binary::DataInputStream& payload)
       {
-        const auto type = payload.ReadField<uint8_t>();
         if (NextPacketType != Audio)
         {
+          const auto type = FindHeaderPacket(payload);
           Require(NextPacketType == type);
           ReadHeaderPacket(type, payload);
         }
@@ -146,10 +146,21 @@ namespace Chiptune
         }
       }
       
+      static uint8_t FindHeaderPacket(Binary::DataInputStream& payload)
+      {
+        static const std::array<uint8_t, 6> SIGNATURE = {{'v', 'o', 'r', 'b', 'i', 's'}};
+        const auto avail = payload.GetRestSize();
+        Require(avail > SIGNATURE.size() + 1);
+        const auto raw = payload.PeekRawData(avail);
+        const auto end = raw + avail;
+        const auto sign = std::search(raw + 1, end, SIGNATURE.begin(), SIGNATURE.end());
+        Require(sign != end);
+        payload.Skip(sign + SIGNATURE.size() - raw);
+        return sign[-1];
+      }
+      
       void ReadHeaderPacket(uint_t type, Binary::DataInputStream& payload)
       {
-        static const uint8_t SIGNATURE[] = {'v', 'o', 'r', 'b', 'i', 's'};
-        Require(0 == std::memcmp(payload.ReadRawData(sizeof(SIGNATURE)), SIGNATURE, sizeof(SIGNATURE)));
         switch (type)
         {
         case Identification:
