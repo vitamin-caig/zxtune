@@ -193,14 +193,18 @@ public class Io {
   }
 
   public static long copy(@NonNull InputStream in, @NonNull OutputStream out) throws IOException {
-    final byte[] buffer = reallocate(null);
-    for (long total = 0; ; ) {
-      final int size = readPartialContent(in, buffer, 0);
-      out.write(buffer, 0, size);
-      total += size;
-      if (size != buffer.length) {
-        return total;
+    try {
+      final byte[] buffer = reallocate(null);
+      for (long total = 0; ; ) {
+        final int size = readPartialContent(in, buffer, 0);
+        out.write(buffer, 0, size);
+        total += size;
+        if (size != buffer.length) {
+          return total;
+        }
       }
+    } finally {
+      in.close();
     }
   }
 
