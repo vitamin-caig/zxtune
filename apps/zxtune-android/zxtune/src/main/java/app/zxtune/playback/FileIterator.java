@@ -14,6 +14,7 @@ import android.content.Context;
 import android.net.Uri;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -49,12 +50,20 @@ public class FileIterator implements Iterator {
     this.itemsQueue = new LinkedBlockingQueue<>(1);
     this.history = new ArrayList<>();
     this.historyDepth = 0;
-    start(uris);
+    final boolean hasRestFiles = uris.length > 1;
+    if (hasRestFiles) {
+      start(Arrays.copyOfRange(uris, 0, 1), false);
+    } else {
+      start(uris, true);
+    }
     if (!takeNextItem()) {
       if (lastError != null) {
         throw lastError;
       }
       throw new Exception(context.getString(R.string.no_tracks_found));
+    }
+    if (hasRestFiles) {
+      start(Arrays.copyOfRange(uris, 1, uris.length), true);
     }
   }
   
@@ -102,15 +111,17 @@ public class FileIterator implements Iterator {
     }
   }
   
-  private void start(final Uri[] uris) {
+  private void start(final Uri[] uris, final boolean additionalLimiter) {
     executor.execute(new Runnable() {
       @Override
       public void run() {
         try {
+          final int[] modules = {0};
           scanner.analyze(uris, new Scanner.Callback() {
             @Override
             public void onModule(Identifier id, Module module) {
               addItem(new FileItem(id, module));
+              ++modules[0];
             }
 
             @Override
@@ -118,7 +129,9 @@ public class FileIterator implements Iterator {
               lastError = e;
             }
           });
-          addItem(PlayableItemStub.instance());//limiter
+          if (modules[0] == 0 || additionalLimiter) {
+            addItem(PlayableItemStub.instance());
+          }
         } catch (Error e) {//use unchecked exception to process interruptions
           if (e.getCause() instanceof InterruptedException) {
             Log.d(TAG, "Interrupted");
