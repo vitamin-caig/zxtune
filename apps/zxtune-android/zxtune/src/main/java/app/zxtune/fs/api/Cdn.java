@@ -1,8 +1,12 @@
 package app.zxtune.fs.api;
 
 import android.net.Uri;
+import app.zxtune.BuildConfig;
 
 public class Cdn {
+
+  private static final Uri ROOT = Uri.parse(BuildConfig.CDN_ROOT);
+
   public static Uri asma(String path) {
     return getRoot().path("browse/asma/" + path).build();
   }
@@ -29,6 +33,6 @@ public class Cdn {
   }
 
   private static Uri.Builder getRoot() {
-    return new Uri.Builder().scheme("https").authority("storage.zxtune.ru");
+    return ROOT.buildUpon();
   }
 }

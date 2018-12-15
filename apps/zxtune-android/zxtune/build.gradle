@@ -64,8 +64,13 @@ android {
     defaultConfig {
         manifestPlaceholders = [ modarchiveKey: localProperties.getProperty("key.modarchive"),
                                  crashlyticsKey: localProperties.getProperty("key.crashlytics") ]
+
+        def cdnRoot = localProperties.getProperty('cdn.root')
+        if (cdnRoot != null) {
+            buildConfigField("String", "CDN_ROOT", "\"${cdnRoot}\"")
+        }
     }
-    
+
     buildTypes {
         release {
             minifyEnabled true
