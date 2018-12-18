@@ -5,6 +5,16 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4310 from 18.12.2018
+
+[+] Added 4-bit MS-ADPCM and IMA-ADPCM codecs support for WAV
+[*] Fixed OGG parsing
+[*] Fixed parsing of TurboSound containers with big submodules (BB#114)
+[+] zxtune-android: added fallback mirror for modarchive catalogue
+[*] zxtune-android: fixed 'General contract violation' error in browser
+[*] zxtune-android: trying to continue files downloading in case of network issues
+[*] zxtune-android: do not analyze next files in browser if chosen has no supported modules
+
 --- Rev4280 from 03.12.2018
 
 [+] Added support of MPEG Audio Layer format (MP1/MP2/MP3)
