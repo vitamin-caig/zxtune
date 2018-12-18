@@ -28,7 +28,7 @@ namespace Chiptune
   namespace TurboSound
   {
     const std::size_t MIN_SIZE = 256;
-    const std::size_t MAX_MODULE_SIZE = 16384;
+    const std::size_t MAX_MODULE_SIZE = 32767;
     const std::size_t MAX_SIZE = MAX_MODULE_SIZE * 2;
 
 #ifdef USE_PRAGMA_PACK
@@ -50,9 +50,9 @@ namespace Chiptune
 
     const std::string FOOTER_FORMAT(
       "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
-      "?%00xxxxxx"                     // uint16_t Size1;
+      "?%0xxxxxxx"                     // uint16_t Size1;
       "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
-      "?%00xxxxxx"                     // uint16_t Size2;
+      "?%0xxxxxxx"                     // uint16_t Size2;
       "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
     );
 
