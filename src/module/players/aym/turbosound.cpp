@@ -269,103 +269,6 @@ namespace TurboSound
     const AYM::DataIterator::Ptr Second;
   };
 
-  //parameters helper has no default ctor, so cannot be stored in array
-  class ParametersHelpersSet
-  {
-  public:
-    explicit ParametersHelpersSet(const TrackParametersArray& trackParams)
-      : Delegate0(trackParams[0])
-      , Delegate1(trackParams[1])
-    {
-      static_assert(std::tuple_size<TrackParametersArray>::value == 2, "Invalid layout");
-    }
-
-    const Parameters::TrackingHelper<AYM::TrackParameters>& operator[] (std::size_t idx) const
-    {
-      return idx == 0 ? Delegate0 : Delegate1;
-    }
-    
-    Parameters::TrackingHelper<AYM::TrackParameters>& operator[] (std::size_t idx)
-    {
-      return idx == 0 ? Delegate0 : Delegate1;
-    }
-  private:
-    Parameters::TrackingHelper<AYM::TrackParameters> Delegate0;
-    Parameters::TrackingHelper<AYM::TrackParameters> Delegate1;
-  };
-
-  class DoubleDataIterator : public DataIterator
-  {
-  public:
-    DoubleDataIterator(const TrackParametersArray& trackParams, TrackStateIterator::Ptr iterator, DataRenderersArray renderers)
-      : Delegate(std::move(iterator))
-      , State(Delegate->GetStateObserver())
-      , Renderers(std::move(renderers))
-      , Params(trackParams)
-    {
-    }
-
-    void Reset() override
-    {
-      Delegate->Reset();
-      for (uint_t idx = 0; idx != Devices::TurboSound::CHIPS; ++idx)
-      {
-        Params[idx].Reset();
-        Renderers[idx]->Reset();
-      }
-    }
-
-    bool IsValid() const override
-    {
-      return Delegate->IsValid();
-    }
-
-    void NextFrame(bool looped) override
-    {
-      Delegate->NextFrame(looped);
-    }
-
-    TrackState::Ptr GetStateObserver() const override
-    {
-      return State;
-    }
-
-    Devices::TurboSound::Registers GetData() const override
-    {
-      return Delegate->IsValid()
-        ? GetCurrentChunk()
-        : Devices::TurboSound::Registers();
-    }
-  private:
-    Devices::TurboSound::Registers GetCurrentChunk() const
-    {
-      const Devices::TurboSound::Registers res = {{GetCurrentChunk(0), GetCurrentChunk(1)}};
-      return res;
-    }
-
-    Devices::AYM::Registers GetCurrentChunk(uint_t idx) const
-    {
-      SynchronizeParameters(idx);
-      AYM::TrackBuilder builder(Table[idx]);
-      Renderers[idx]->SynthesizeData(*State, builder);
-      return builder.GetResult();
-    }
-
-    void SynchronizeParameters(uint_t idx) const
-    {
-      if (Params[idx].IsChanged())
-      {
-        Params[idx]->FreqTable(Table[idx]);
-      }
-    }
-  private:
-    const TrackStateIterator::Ptr Delegate;
-    const TrackModelState::Ptr State;
-    const DataRenderersArray Renderers;
-    ParametersHelpersSet Params;
-    mutable FrequencyTable Table[Devices::TurboSound::CHIPS];
-  };
-
   class Renderer : public Module::Renderer
   {
   public:
@@ -483,17 +386,27 @@ namespace TurboSound
       return Parameters::CreateMergedAccessor(Properties, mixProps);
     }
 
-    DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams) const override
+    DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const override
     {
-      const AYM::DataIterator::Ptr first = First->CreateDataIterator(trackParams[0]);
-      const AYM::DataIterator::Ptr second = Second->CreateDataIterator(trackParams[1]);
-      return MakePtr<MergedDataIterator>(first, second);
+      return MakePtr<MergedDataIterator>(
+	First->CreateDataIterator(std::move(first)),
+        Second->CreateDataIterator(std::move(second))
+      );
     }
   private:
     const Parameters::Accessor::Ptr Properties;
     const AYM::Chiptune::Ptr First;
     const AYM::Chiptune::Ptr Second;
   };
+
+  Devices::TurboSound::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+  {
+    typedef Sound::ThreeChannelsMatrixMixer MixerType;
+    const MixerType::Ptr mixer = MixerType::Create();
+    const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
+    const Devices::TurboSound::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(pollParams);
+    return Devices::TurboSound::CreateChip(chipParams, mixer, target);
+  }
 
   class Holder : public Module::Holder
   {
@@ -515,26 +428,14 @@ namespace TurboSound
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return TurboSound::CreateRenderer(*Tune, params, target);
+      auto sndParams = Sound::RenderParameters::Create(params);
+      auto iterator = Tune->CreateDataIterator(AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1));
+      auto chip = CreateChip(std::move(params), std::move(target));
+      return MakePtr<Renderer>(sndParams, iterator, std::move(chip));
     }
   private:
     const Chiptune::Ptr Tune;
   };
-
-  Devices::TurboSound::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-  {
-    typedef Sound::ThreeChannelsMatrixMixer MixerType;
-    const MixerType::Ptr mixer = MixerType::Create();
-    const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
-    const Devices::TurboSound::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(pollParams);
-    return Devices::TurboSound::CreateChip(chipParams, mixer, target);
-  }
-
-  DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams, TrackStateIterator::Ptr iterator,
-      const DataRenderersArray& renderers)
-  {
-    return MakePtr<DoubleDataIterator>(trackParams, iterator, renderers);
-  }
 
   Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device)
   {
@@ -555,20 +456,6 @@ namespace TurboSound
     {
       return MakePtr<MergedChiptune>(params, second, first);
     }
-  }
-
-  Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
-  {
-    return MakePtr<Renderer>(params, iterator, device);
-  }
-
-  Renderer::Ptr CreateRenderer(const Chiptune& chiptune, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-  {
-    const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
-    const TrackParametersArray trackParams = {{AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1)}};
-    const DataIterator::Ptr iterator = chiptune.CreateDataIterator(trackParams);
-    const Devices::TurboSound::Chip::Ptr chip = CreateChip(params, target);
-    return CreateRenderer(sndParams, iterator, chip);
   }
 
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
