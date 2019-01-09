@@ -99,13 +99,13 @@ namespace PSG
     AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       DataBuilder dataBuilder;
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
       {
-        if (const AYM::StreamModel::Ptr data = dataBuilder.GetResult())
+        if (auto data = dataBuilder.GetResult())
         {
           PropertiesHelper props(*properties);
           props.SetSource(*container);
-          return AYM::CreateStreamedChiptune(data, properties);
+          return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
         }
       }
       return AYM::Chiptune::Ptr();

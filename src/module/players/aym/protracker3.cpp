@@ -481,7 +481,7 @@ namespace ProTracker3
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
+      if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
@@ -497,7 +497,7 @@ namespace ProTracker3
         }
         else
         {
-          auto chiptune = MakePtr<Chiptune>(std::move(modData), properties);
+          auto chiptune = MakePtr<Chiptune>(std::move(modData), std::move(properties));
           return AYM::CreateHolder(std::move(chiptune));
         }
       }
@@ -509,7 +509,7 @@ namespace ProTracker3
 
   Factory::Ptr CreateFactory(Formats::Chiptune::ProTracker3::Decoder::Ptr decoder)
   {
-    return MakePtr<Factory>(decoder);
+    return MakePtr<Factory>(std::move(decoder));
   }
 }
 }

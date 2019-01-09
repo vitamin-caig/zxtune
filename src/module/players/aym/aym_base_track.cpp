@@ -156,7 +156,7 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return MakePtr<TrackDataIterator>(trackParams, iterator, renderer);
+      return MakePtr<TrackDataIterator>(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   }
 }

@@ -192,16 +192,11 @@ namespace AYEMUL
     typedef std::shared_ptr<DataChannel> Ptr;
     
     DataChannel(Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep)
-      : Ay(ay)
-      , Beeper(beep)
+      : Ay(std::move(ay))
+      , Beeper(std::move(beep))
     {
     }
 
-    static Ptr Create(Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep)
-    {
-      return MakePtr<DataChannel>(ay, beep);
-    }
-    
     void Reset()
     {
       Ay.Reset();
@@ -723,7 +718,7 @@ namespace AYEMUL
   public:
     explicit BeeperParams(Parameters::Accessor::Ptr params)
       : Params(params)
-      , SoundParams(Sound::RenderParameters::Create(params))
+      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
     {
     }
 
@@ -752,8 +747,8 @@ namespace AYEMUL
 
   Devices::Beeper::Device::Ptr CreateBeeper(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
   {
-    const Devices::Beeper::ChipParameters::Ptr beeperParams = MakePtr<BeeperParams>(params);
-    return Devices::Beeper::CreateChip(beeperParams, target);
+    auto beeperParams = MakePtr<BeeperParams>(std::move(params));
+    return Devices::Beeper::CreateChip(std::move(beeperParams), std::move(target));
   }
   
   class MergedSoundReceiver : public Sound::Receiver
@@ -827,15 +822,15 @@ namespace AYEMUL
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      const Sound::Receiver::Ptr mixer = MakePtr<MergedSoundReceiver>(target);
-      const Devices::AYM::Device::Ptr aym = AYM::CreateChip(params, mixer);
-      const Devices::Beeper::Device::Ptr beeper = CreateBeeper(params, mixer);
-      return CreateRenderer(params, aym, beeper);
+      auto mixer = MakePtr<MergedSoundReceiver>(std::move(target));
+      auto aym = AYM::CreateChip(params, mixer);
+      auto beeper = CreateBeeper(params, std::move(mixer));
+      return CreateRenderer(std::move(params), std::move(aym), std::move(beeper));
     }
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
     {
-      return CreateRenderer(params, chip, MakePtr<StubBeeper>());
+      return CreateRenderer(std::move(params), std::move(chip), MakePtr<StubBeeper>());
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
@@ -845,13 +840,13 @@ namespace AYEMUL
   private:
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep) const
     {
-      const StateIterator::Ptr iterator = CreateStreamStateIterator(Info);
-      const Devices::Z80::ChipParameters::Ptr cpuParams = MakePtr<CPUParameters>(params);
-      const DataChannel::Ptr channel = DataChannel::Create(ay, beep);
-      const PortsPlexer::Ptr cpuPorts = PortsPlexer::Create(channel);
-      const Computer::Ptr comp = MakePtr<Computer>(Data, cpuParams, cpuPorts);
-      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      return MakePtr<Renderer>(renderParams, iterator, comp, channel);
+      auto iterator = CreateStreamStateIterator(Info);
+      auto cpuParams = MakePtr<CPUParameters>(params);
+      auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
+      auto cpuPorts = PortsPlexer::Create(channel);
+      auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));
+      auto renderParams = Sound::RenderParameters::Create(std::move(params));
+      return MakePtr<Renderer>(std::move(renderParams), std::move(iterator), std::move(comp), std::move(channel));
     }
   private:
     const ModuleData::Ptr Data;
@@ -868,12 +863,12 @@ namespace AYEMUL
 
       PropertiesHelper props(*properties);
       DataBuilder builder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
+      if (const auto container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
       {
         props.SetSource(*container);
-        const ModuleData::Ptr data = builder.GetResult();
+        auto data = builder.GetResult();
         const uint_t frames = data->Frames ? data->Frames : GetDurationInFrames(params);
-        return MakePtr<Holder>(data, CreateStreamInfo(frames), properties);
+        return MakePtr<Holder>(std::move(data), CreateStreamInfo(frames), properties);
       }
       return Holder::Ptr();
     }

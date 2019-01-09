@@ -102,7 +102,7 @@ namespace AYM
   public:
     explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
       : Params(params)
-      , SoundParams(Sound::RenderParameters::Create(params))
+      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
     {
     }
 
@@ -285,17 +285,17 @@ namespace AYM
 
   Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
   {
-    return MakePtr<ChipParametersImpl>(params);
+    return MakePtr<ChipParametersImpl>(std::move(params));
   }
 
   TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
   {
-    return MakePtr<AYTrackParameters>(params);
+    return MakePtr<AYTrackParameters>(std::move(params));
   }
 
   TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params, uint_t idx)
   {
-    return MakePtr<TSTrackParameters>(params, idx);
+    return MakePtr<TSTrackParameters>(std::move(params), idx);
   }
 }
 }
