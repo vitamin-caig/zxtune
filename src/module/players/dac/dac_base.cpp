@@ -16,8 +16,6 @@
 #include <module/players/analyzer.h>
 #include <parameters/tracking_helper.h>
 #include <sound/multichannel_sample.h>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Module
 {
@@ -191,8 +189,7 @@ namespace Module
     ChannelDataBuilder TrackBuilder::GetChannel(uint_t chan)
     {
       using namespace Devices::DAC;
-      const std::vector<ChannelData>::iterator existing = std::find_if(Data.begin(), Data.end(),
-        boost::bind(&ChannelData::Channel, _1) == chan);
+      const auto existing = std::find_if(Data.begin(), Data.end(), [chan](const ChannelData& data) {return data.Channel == chan;});
       if (existing != Data.end())
       {
         return ChannelDataBuilder(*existing);
@@ -206,19 +203,18 @@ namespace Module
     void TrackBuilder::GetResult(Devices::DAC::Channels& result)
     {
       using namespace Devices::DAC;
-      const std::vector<ChannelData>::iterator last = std::remove_if(Data.begin(), Data.end(),
-        boost::bind(&ChannelData::Mask, _1) == 0u);
+      const auto last = std::remove_if(Data.begin(), Data.end(), [](const ChannelData& data) {return data.Mask == 0;});
       result.assign(Data.begin(), last);
     }
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return MakePtr<DACDataIterator>(iterator, renderer);
+      return MakePtr<DACDataIterator>(std::move(iterator), std::move(renderer));
     }
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
     {
-      return MakePtr<DACRenderer>(params, iterator, device);
+      return MakePtr<DACRenderer>(std::move(params), std::move(iterator), std::move(device));
     }
   }
 }

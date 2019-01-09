@@ -359,7 +359,7 @@ namespace AHX
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Tune, target, params);
+      return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
     }
   private:
     const HVL::Ptr Tune;
@@ -401,9 +401,9 @@ namespace AHX
           props.SetSource(*container);
           props.SetPlatform(Platforms::AMIGA);
 
-          const HVL::Ptr tune = MakePtr<HVL>(*container);
-          const Information::Ptr info = MakePtr<Information>(*container);
-          return MakePtr<Holder>(tune, info, properties);
+          auto tune = MakePtr<HVL>(*container);
+          auto info = MakePtr<Information>(*container);
+          return MakePtr<Holder>(std::move(tune), std::move(info), properties);
         }
       }
       catch (const std::exception& e)
