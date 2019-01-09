@@ -192,11 +192,11 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      const Devices::SAA::ChipParameters::Ptr chipParams = SAA::CreateChipParameters(params);
-      const Devices::SAA::Chip::Ptr chip = Devices::SAA::CreateChip(chipParams, target);
-      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      const SAA::DataIterator::Ptr iterator = Tune->CreateDataIterator();
-      return SAA::CreateRenderer(renderParams, iterator, chip);
+      auto chipParams = SAA::CreateChipParameters(params);
+      auto chip = Devices::SAA::CreateChip(std::move(chipParams), std::move(target));
+      auto renderParams = Sound::RenderParameters::Create(std::move(params));
+      auto iterator = Tune->CreateDataIterator();
+      return SAA::CreateRenderer(std::move(renderParams), std::move(iterator), std::move(chip));
     }
   private:
     const SAA::Chiptune::Ptr Tune;
@@ -255,26 +255,26 @@ namespace Module
 
     Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device)
     {
-      if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::SAA::Chip>(device))
+      if (auto src = std::dynamic_pointer_cast<Devices::SAA::Chip>(device))
       {
-        return Module::CreateAnalyzer(src);
+        return Module::CreateAnalyzer(std::move(src));
       }
       return Analyzer::Ptr();
     }
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return MakePtr<SAADataIterator>(iterator, renderer);
+      return MakePtr<SAADataIterator>(std::move(iterator), std::move(renderer));
     }
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
     {
-      return MakePtr<SAARenderer>(params, iterator, device);
+      return MakePtr<SAARenderer>(std::move(params), std::move(iterator), std::move(device));
     }
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
     {
-      return MakePtr<SAAHolder>(chiptune);
+      return MakePtr<SAAHolder>(std::move(chiptune));
     }
   }
 }

@@ -1149,9 +1149,9 @@ namespace TFMMusicMaker
     typedef std::shared_ptr<TrackStateCursor> Ptr;
 
     explicit TrackStateCursor(ModuleData::Ptr data)
-      : Data(data)
-      , Order(*data->Order)
-      , Patterns(*data->Patterns)
+      : Data(std::move(data))
+      , Order(*Data->Order)
+      , Patterns(*Data->Patterns)
       , NextLineState()
     {
       Reset();
@@ -1391,8 +1391,8 @@ namespace TFMMusicMaker
   {
   public:
     explicit TrackStateIteratorImpl(ModuleData::Ptr data)
-      : Data(data)
-      , Cursor(MakePtr<TrackStateCursor>(data))
+      : Data(std::move(data))
+      , Cursor(MakePtr<TrackStateCursor>(Data))
     {
     }
 
@@ -1523,9 +1523,9 @@ namespace TFMMusicMaker
 
     TFM::DataIterator::Ptr CreateDataIterator() const override
     {
-      const TrackStateIterator::Ptr iterator = MakePtr<TrackStateIteratorImpl>(Data);
-      const TFM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return TFM::CreateDataIterator(iterator, renderer);
+      auto iterator = MakePtr<TrackStateIteratorImpl>(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return TFM::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -1548,7 +1548,7 @@ namespace TFMMusicMaker
       if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {
@@ -1561,7 +1561,7 @@ namespace TFMMusicMaker
 
   TFM::Factory::Ptr CreateFactory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder)
   {
-    return MakePtr<Factory>(decoder);
+    return MakePtr<Factory>(std::move(decoder));
   }
 }
 }

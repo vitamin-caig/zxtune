@@ -85,8 +85,8 @@ namespace Module
 
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr /*trackParams*/) const override
       {
-        const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
-        return MakePtr<StreamDataIterator>(iter, Data);
+        auto iter = CreateStreamStateIterator(Info);
+        return MakePtr<StreamDataIterator>(std::move(iter), Data);
       }
     private:
       const StreamModel::Ptr Data;
@@ -96,7 +96,7 @@ namespace Module
 
     Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties)
     {
-      return MakePtr<StreamedChiptune>(model, properties);
+      return MakePtr<StreamedChiptune>(std::move(model), std::move(properties));
     }
   }
 }

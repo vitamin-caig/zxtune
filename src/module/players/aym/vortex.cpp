@@ -425,7 +425,7 @@ namespace Vortex
 
   AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart)
   {
-    return MakePtr<DataRenderer>(data, trackChannelStart);
+    return MakePtr<DataRenderer>(std::move(data), trackChannelStart);
   }
 }
 }

@@ -349,9 +349,9 @@ namespace GlobalTracker
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -370,7 +370,7 @@ namespace GlobalTracker
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {

@@ -43,15 +43,15 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return AYM::CreateRenderer(*this, params, target);
+      return AYM::CreateRenderer(*this, std::move(params), std::move(target));
     }
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
     {
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(trackParams);
-      const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(params);
-      return AYM::CreateRenderer(soundParams, iterator, chip);
+      auto trackParams = AYM::TrackParameters::Create(params);
+      auto iterator = Tune->CreateDataIterator(std::move(trackParams));
+      auto soundParams = Sound::RenderParameters::Create(std::move(params));
+      return AYM::CreateRenderer(std::move(soundParams), std::move(iterator), std::move(chip));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
@@ -174,14 +174,14 @@ namespace Module
   {
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
     {
-      return MakePtr<AYMHolder>(chiptune);
+      return MakePtr<AYMHolder>(std::move(chiptune));
     }
 
     Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)
     {
-      if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::StateSource>(device))
+      if (auto src = std::dynamic_pointer_cast<Devices::StateSource>(device))
       {
-        return Module::CreateAnalyzer(src);
+        return Module::CreateAnalyzer(std::move(src));
       }
       else
       {
@@ -191,22 +191,22 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
     {
-      return MakePtr<AYMRenderer>(params, iterator, device);
+      return MakePtr<AYMRenderer>(std::move(params), std::move(iterator), std::move(device));
     }
     
     Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
     {
       typedef Sound::ThreeChannelsMatrixMixer MixerType;
-      const MixerType::Ptr mixer = MixerType::Create();
-      const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(pollParams);
-      return Devices::AYM::CreateChip(chipParams, mixer, target);
+      auto mixer = MixerType::Create();
+      auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
+      auto chipParams = AYM::CreateChipParameters(std::move(pollParams));
+      return Devices::AYM::CreateChip(std::move(chipParams), std::move(mixer), std::move(target));
     }
 
     Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
     {
-      const Devices::AYM::Chip::Ptr chip = CreateChip(params, target);
-      return holder.CreateRenderer(params, chip);
+      auto chip = CreateChip(params, std::move(target));
+      return holder.CreateRenderer(std::move(params), std::move(chip));
     }
   }
 }

@@ -469,9 +469,9 @@ namespace ETracker
 
     SAA::DataIterator::Ptr CreateDataIterator() const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const SAA::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return SAA::CreateDataIterator(iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return SAA::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -490,8 +490,8 @@ namespace ETracker
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::SAM_COUPE);
-        const SAA::Chiptune::Ptr chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
-        return SAA::CreateHolder(chiptune);
+        auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
+        return SAA::CreateHolder(std::move(chiptune));
       }
       return Holder::Ptr();
     }

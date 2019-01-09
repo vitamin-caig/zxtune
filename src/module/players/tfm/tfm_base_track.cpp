@@ -216,13 +216,12 @@ namespace Module
 
     void ChannelBuilder::WriteChipRegister(uint_t idx, uint_t val)
     {
-      const Devices::TFM::Register reg(Chip, idx, val);
-      Registers.push_back(reg);
+      Registers.push_back(Devices::TFM::Register(Chip, idx, val));
     }
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return MakePtr<TrackDataIterator>(iterator, renderer);
+      return MakePtr<TrackDataIterator>(std::move(iterator), std::move(renderer));
     }
   }
 }

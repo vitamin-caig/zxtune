@@ -231,8 +231,8 @@ namespace TurboSound
   public:
     MergedDataIterator(AYM::DataIterator::Ptr first, AYM::DataIterator::Ptr second)
       : Observer(MakePtr<MergedTrackState>(first->GetStateObserver(), second->GetStateObserver()))
-      , First(first)
-      , Second(second)
+      , First(std::move(first))
+      , Second(std::move(second))
     {
     }
 
@@ -260,8 +260,7 @@ namespace TurboSound
 
     Devices::TurboSound::Registers GetData() const override
     {
-      const Devices::TurboSound::Registers res = {{First->GetData(), Second->GetData()}};
-      return res;
+      return {{First->GetData(), Second->GetData()}};
     }
   private:
     const TrackState::Ptr Observer;
@@ -382,8 +381,8 @@ namespace TurboSound
 
     Parameters::Accessor::Ptr GetProperties() const override
     {
-      const Parameters::Accessor::Ptr mixProps = MakePtr<MergedModuleProperties>(First->GetProperties(), Second->GetProperties());
-      return Parameters::CreateMergedAccessor(Properties, mixProps);
+      auto mixProps = MakePtr<MergedModuleProperties>(First->GetProperties(), Second->GetProperties());
+      return Parameters::CreateMergedAccessor(Properties, std::move(mixProps));
     }
 
     DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const override
@@ -402,10 +401,10 @@ namespace TurboSound
   Devices::TurboSound::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
   {
     typedef Sound::ThreeChannelsMatrixMixer MixerType;
-    const MixerType::Ptr mixer = MixerType::Create();
-    const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
-    const Devices::TurboSound::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(pollParams);
-    return Devices::TurboSound::CreateChip(chipParams, mixer, target);
+    auto mixer = MixerType::Create();
+    auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
+    auto chipParams = AYM::CreateChipParameters(std::move(pollParams));
+    return Devices::TurboSound::CreateChip(std::move(chipParams), std::move(mixer), std::move(target));
   }
 
   class Holder : public Module::Holder
@@ -431,7 +430,7 @@ namespace TurboSound
       auto sndParams = Sound::RenderParameters::Create(params);
       auto iterator = Tune->CreateDataIterator(AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1));
       auto chip = CreateChip(std::move(params), std::move(target));
-      return MakePtr<Renderer>(sndParams, iterator, std::move(chip));
+      return MakePtr<Renderer>(std::move(sndParams), std::move(iterator), std::move(chip));
     }
   private:
     const Chiptune::Ptr Tune;
@@ -439,28 +438,25 @@ namespace TurboSound
 
   Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device)
   {
-    if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::StateSource>(device))
+    if (auto src = std::dynamic_pointer_cast<Devices::StateSource>(device))
     {
-      return Module::CreateAnalyzer(src);
+      return Module::CreateAnalyzer(std::move(src));
     }
     return Analyzer::Ptr();
   }
 
   Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
   {
-    if (first->GetInformation()->FramesCount() >= second->GetInformation()->FramesCount())
+    if (first->GetInformation()->FramesCount() < second->GetInformation()->FramesCount())
     {
-      return MakePtr<MergedChiptune>(params, first, second);
+      std::swap(first, second);
     }
-    else
-    {
-      return MakePtr<MergedChiptune>(params, second, first);
-    }
+    return MakePtr<MergedChiptune>(std::move(params), std::move(first), std::move(second));
   }
 
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
   {
-    return MakePtr<Holder>(chiptune);
+    return MakePtr<Holder>(std::move(chiptune));
   }
 }
 }

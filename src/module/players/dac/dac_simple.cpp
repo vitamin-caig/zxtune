@@ -191,9 +191,9 @@ namespace Module
 
       DAC::DataIterator::Ptr CreateDataIterator() const override
       {
-        const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-        const DAC::DataRenderer::Ptr renderer = MakePtr<SimpleDataRenderer>(Data, Channels);
-        return DAC::CreateDataIterator(iterator, renderer);
+        auto iterator = CreateTrackStateIterator(Data);
+        auto renderer = MakePtr<SimpleDataRenderer>(Data, Channels);
+        return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
       }
 
       void GetSamples(Devices::DAC::Chip::Ptr chip) const override
@@ -212,7 +212,7 @@ namespace Module
 
     DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
     {
-      return MakePtr<SimpleChiptune>(data, properties, channels);
+      return MakePtr<SimpleChiptune>(std::move(data), std::move(properties), channels);
     }
   }
 }

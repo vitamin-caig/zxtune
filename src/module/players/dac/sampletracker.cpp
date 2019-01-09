@@ -43,11 +43,11 @@ namespace SampleTracker
     {
       DAC::PropertiesHelper props(*properties);
       DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
+      if (const auto container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
-        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), properties, CHANNELS_COUNT);
+        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties), CHANNELS_COUNT);
       }
       else
       {

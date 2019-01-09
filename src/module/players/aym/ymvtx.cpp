@@ -207,12 +207,12 @@ namespace YMVTX
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
+      if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
-        if (const AYM::StreamModel::Ptr data = dataBuilder.GetResult())
+        if (auto data = dataBuilder.GetResult())
         {
           props.SetSource(*container);
-          return AYM::CreateStreamedChiptune(data, properties);
+          return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
         }
       }
       return AYM::Chiptune::Ptr();
@@ -223,7 +223,7 @@ namespace YMVTX
 
   Factory::Ptr CreateFactory(Formats::Chiptune::YM::Decoder::Ptr decoder)
   {
-    return MakePtr<Factory>(decoder);
+    return MakePtr<Factory>(std::move(decoder));
   }
 }
 }

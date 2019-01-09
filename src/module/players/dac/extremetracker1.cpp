@@ -274,9 +274,9 @@ namespace ExtremeTracker1
 
     DAC::DataIterator::Ptr CreateDataIterator() const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return DAC::CreateDataIterator(iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
 
     void GetSamples(Devices::DAC::Chip::Ptr chip) const override
@@ -303,7 +303,7 @@ namespace ExtremeTracker1
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {
