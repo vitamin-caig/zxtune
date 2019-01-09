@@ -123,16 +123,16 @@ namespace Module
   {
     Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device)
     {
-      if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::StateSource>(device))
+      if (auto src = std::dynamic_pointer_cast<Devices::StateSource>(device))
       {
-        return Module::CreateAnalyzer(src);
+        return Module::CreateAnalyzer(std::move(src));
       }
       return Analyzer::Ptr();
     }
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
     {
-      return MakePtr<TFMRenderer>(params, iterator, device);
+      return MakePtr<TFMRenderer>(std::move(params), std::move(iterator), std::move(device));
     }
   }
 }

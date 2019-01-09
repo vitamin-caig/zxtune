@@ -140,14 +140,14 @@ namespace TFD
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
       {
-        const TFM::StreamModel::Ptr data = dataBuilder.GetResult();
+        auto data = dataBuilder.GetResult();
         if (data->Size())
         {
           props.SetSource(*container);
           props.SetPlatform(Platforms::ZX_SPECTRUM);
-          return TFM::CreateStreamedChiptune(data, properties);
+          return TFM::CreateStreamedChiptune(std::move(data), std::move(properties));
         }
       }
       return TFM::Chiptune::Ptr();
