@@ -318,7 +318,7 @@ namespace PSF
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return State;
     }
@@ -382,7 +382,7 @@ namespace PSF
   private:
     const ModuleData::Ptr Data;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
+    const Module::State::Ptr State;
     const PSXEngine::Ptr Engine;
     uint_t SamplesPerFrame;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;

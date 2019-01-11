@@ -198,7 +198,7 @@ namespace USF
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return State;
     }
@@ -264,7 +264,7 @@ namespace USF
   private:
     USFEngine Engine;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
+    const Module::State::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
     uint_t SamplesPerFrame;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;

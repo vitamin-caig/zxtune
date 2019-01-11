@@ -168,7 +168,6 @@ namespace ASAP
     Renderer(AsapTune::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
       , Iterator(std::move(iterator))
-      , State(Iterator->GetStateObserver())
       , Analyzer(Module::CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
@@ -178,9 +177,9 @@ namespace ASAP
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
-      return State;
+      return Iterator->GetStateObserver();
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
@@ -249,7 +248,6 @@ namespace ASAP
   private:
     const AsapTune::Ptr Tune;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;

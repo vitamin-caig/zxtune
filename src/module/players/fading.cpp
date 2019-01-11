@@ -91,7 +91,7 @@ namespace Module
   class FadingGainSource : public Sound::GainSource
   {
   public:
-    FadingGainSource(Parameters::Accessor::Ptr params, FadeInfo fading, TrackState::Ptr status)
+    FadingGainSource(Parameters::Accessor::Ptr params, FadeInfo fading, State::Ptr status)
       : Params(std::move(params))
       , Fading(fading)
       , Status(std::move(status))
@@ -134,13 +134,13 @@ namespace Module
   private:
     mutable Parameters::TrackingHelper<Parameters::Accessor> Params;
     const FadeInfo Fading;
-    const TrackState::Ptr Status;
+    const State::Ptr Status;
     mutable Sound::Gain::Type Maximum;
     mutable Sound::Gain::Type Current;
     mutable Parameters::IntType Looped;
   };
 
-  Sound::GainSource::Ptr CreateGainSource(Parameters::Accessor::Ptr params, Information::Ptr info, TrackState::Ptr status)
+  Sound::GainSource::Ptr CreateGainSource(Parameters::Accessor::Ptr params, Information::Ptr info, State::Ptr status)
   {
     using namespace Parameters::ZXTune::Sound;
     auto fadeIn = FADEIN_DEFAULT;

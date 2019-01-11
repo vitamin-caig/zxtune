@@ -146,7 +146,6 @@ namespace Sid
       , Engine(std::make_shared<sidplayfp>())
       , Builder("resid")
       , Iterator(std::move(iterator))
-      , State(Iterator->GetStateObserver())
       , Analysis(MakePtr<Analyzer>(Engine))
       , Target(std::move(target))
       , Params(params)
@@ -164,9 +163,9 @@ namespace Sid
       CheckSidplayError(Engine->load(Tune.get()));
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
-      return State;
+      return Iterator->GetStateObserver();
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
@@ -253,7 +252,7 @@ namespace Sid
 
     void SeekEngine(uint_t frame)
     {
-      uint_t current = State->Frame();
+      uint_t current = GetState()->Frame();
       if (frame < current)
       {
         Engine->stop();
@@ -274,7 +273,6 @@ namespace Sid
     const EnginePtr Engine;
     ReSIDBuilder Builder;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
     const Analyzer::Ptr Analysis;
     const Sound::Receiver::Ptr Target;
     const SidParameters Params;
@@ -298,16 +296,6 @@ namespace Sid
     {
     }
 
-    uint_t PositionsCount() const override
-    {
-      return 1;
-    }
-
-    uint_t LoopPosition() const override
-    {
-      return 0;
-    }
-
     uint_t FramesCount() const override
     {
       if (!Frames)
@@ -323,11 +311,6 @@ namespace Sid
     }
 
     uint_t ChannelsCount() const override
-    {
-      return 1;
-    }
-
-    uint_t Tempo() const override
     {
       return 1;
     }

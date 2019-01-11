@@ -243,7 +243,7 @@ namespace Sdl
       SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    virtual void FrameStart(const Module::State& /*state*/)
     {
     }
 

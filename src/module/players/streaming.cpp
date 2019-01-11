@@ -19,7 +19,7 @@ namespace Module
 {
   const uint_t STREAM_CHANNELS = 1;
 
-  class StreamStateCursor : public TrackState
+  class StreamStateCursor : public State
   {
   public:
     typedef std::shared_ptr<StreamStateCursor> Ptr;
@@ -32,39 +32,9 @@ namespace Module
     }
 
     //status functions
-    uint_t Position() const override
-    {
-      return 0;
-    }
-
-    uint_t Pattern() const override
-    {
-      return 0;
-    }
-
-    uint_t Line() const override
-    {
-      return 0;
-    }
-
-    uint_t Tempo() const override
-    {
-      return 1;
-    }
-
-    uint_t Quirk() const override
-    {
-      return 0;
-    }
-
     uint_t Frame() const override
     {
       return CurFrame;
-    }
-
-    uint_t Channels() const override
-    {
-      return STREAM_CHANNELS;
     }
 
     //navigation
@@ -103,29 +73,20 @@ namespace Module
       , Loop(loopFrame)
     {
     }
-    uint_t PositionsCount() const override
-    {
-      return 1;
-    }
-    uint_t LoopPosition() const override
-    {
-      return 0;
-    }
+
     uint_t FramesCount() const override
     {
       return TotalFrames;
     }
+
     uint_t LoopFrame() const override
     {
       return Loop;
     }
+
     uint_t ChannelsCount() const override
     {
       return STREAM_CHANNELS;
-    }
-    uint_t Tempo() const override
-    {
-      return 1;
     }
   private:
     const uint_t TotalFrames;
@@ -160,7 +121,7 @@ namespace Module
       }
     }
 
-    TrackState::Ptr GetStateObserver() const override
+    State::Ptr GetStateObserver() const override
     {
       return Cursor;
     }

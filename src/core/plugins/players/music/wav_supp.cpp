@@ -53,7 +53,7 @@ namespace Wav
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return State;
     }
@@ -103,7 +103,7 @@ namespace Wav
   private:
     const Model::Ptr Tune;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
+    const Module::State::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;

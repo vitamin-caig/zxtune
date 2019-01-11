@@ -741,7 +741,7 @@ namespace Alsa
       Objects.Dev->Resume();
     }
 
-    void FrameStart(const Module::TrackState& /*state*/) override
+    void FrameStart(const Module::State& /*state*/) override
     {
     }
 

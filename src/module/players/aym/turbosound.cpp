@@ -142,50 +142,97 @@ namespace TurboSound
     const Parameters::Accessor::Ptr Second;
   };
 
-  class MergedModuleInfo : public Information
+  template<class Base>
+  class MergedInformationBase : public Base
   {
   public:
-    MergedModuleInfo(Information::Ptr lh, Information::Ptr rh)
+    MergedInformationBase(typename Base::Ptr lh, typename Base::Ptr rh)
       : First(std::move(lh))
       , Second(std::move(rh))
     {
     }
-    uint_t PositionsCount() const override
-    {
-      return First->PositionsCount();
-    }
-    uint_t LoopPosition() const override
-    {
-      return First->LoopPosition();
-    }
+
     uint_t FramesCount() const override
     {
       return First->FramesCount();
     }
+
     uint_t LoopFrame() const override
     {
       return First->LoopFrame();
     }
+
     uint_t ChannelsCount() const override
     {
       return First->ChannelsCount() + Second->ChannelsCount();
     }
+  protected:
+    const typename Base::Ptr First;
+    const typename Base::Ptr Second;
+  };
+
+  using MergedInformation = MergedInformationBase<Information>;
+
+  class MergedTrackInformation : public MergedInformationBase<TrackInformation>
+  {
+  public:
+    using MergedInformationBase::MergedInformationBase;
+
+    uint_t PositionsCount() const override
+    {
+      return First->PositionsCount();
+    }
+
+    uint_t LoopPosition() const override
+    {
+      return First->LoopPosition();
+    }
+
     uint_t Tempo() const override
     {
       return std::min(First->Tempo(), Second->Tempo());
     }
-  private:
-    const Information::Ptr First;
-    const Information::Ptr Second;
   };
 
-  class MergedTrackState : public TrackState
+  Information::Ptr CreateInformation(Information::Ptr lh, Information::Ptr rh)
+  {
+    auto lhTrack = std::dynamic_pointer_cast<const TrackInformation>(lh);
+    auto rhTrack = std::dynamic_pointer_cast<const TrackInformation>(rh);
+    if (lhTrack && rhTrack)
+    {
+      return MakePtr<MergedTrackInformation>(std::move(lhTrack), std::move(rhTrack));
+    }
+    else
+    {
+      return MakePtr<MergedInformation>(std::move(lh), std::move(rh));
+    }
+  }
+
+  template<class Base>
+  class MergedStateBase : public Base
   {
   public:
-    MergedTrackState(TrackState::Ptr first, TrackState::Ptr second)
+    MergedStateBase(typename Base::Ptr first, typename Base::Ptr second)
       : First(std::move(first)), Second(std::move(second))
     {
     }
+
+    uint_t Frame() const override
+    {
+      return First->Frame();
+    }
+
+  protected:
+    const typename Base::Ptr First;
+    const typename Base::Ptr Second;
+  };
+
+  using MergedState = MergedStateBase<State>;
+
+  class MergedTrackState : public MergedStateBase<TrackState>
+  {
+  public:
+    using MergedStateBase::MergedStateBase;
 
     uint_t Position() const override
     {
@@ -212,25 +259,31 @@ namespace TurboSound
       return First->Quirk();
     }
 
-    uint_t Frame() const override
-    {
-      return First->Frame();
-    }
-
     uint_t Channels() const override
     {
       return First->Channels() + Second->Channels();
     }
-  private:
-    const TrackState::Ptr First;
-    const TrackState::Ptr Second;
   };
+
+  State::Ptr CreateState(State::Ptr lh, State::Ptr rh)
+  {
+    auto lhTrack = std::dynamic_pointer_cast<const TrackState>(lh);
+    auto rhTrack = std::dynamic_pointer_cast<const TrackState>(rh);
+    if (lhTrack && rhTrack)
+    {
+      return MakePtr<MergedTrackState>(std::move(lhTrack), std::move(rhTrack));
+    }
+    else
+    {
+      return MakePtr<MergedState>(std::move(lh), std::move(rh));
+    }
+  }
 
   class MergedDataIterator : public DataIterator
   {
   public:
     MergedDataIterator(AYM::DataIterator::Ptr first, AYM::DataIterator::Ptr second)
-      : Observer(MakePtr<MergedTrackState>(first->GetStateObserver(), second->GetStateObserver()))
+      : Observer(CreateState(first->GetStateObserver(), second->GetStateObserver()))
       , First(std::move(first))
       , Second(std::move(second))
     {
@@ -253,7 +306,7 @@ namespace TurboSound
       Second->NextFrame(true);
     }
 
-    TrackState::Ptr GetStateObserver() const override
+    State::Ptr GetStateObserver() const override
     {
       return Observer;
     }
@@ -263,7 +316,7 @@ namespace TurboSound
       return {{First->GetData(), Second->GetData()}};
     }
   private:
-    const TrackState::Ptr Observer;
+    const State::Ptr Observer;
     const AYM::DataIterator::Ptr First;
     const AYM::DataIterator::Ptr Second;
   };
@@ -285,7 +338,7 @@ namespace TurboSound
 #endif
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
       return Iterator->GetStateObserver();
     }
@@ -324,8 +377,7 @@ namespace TurboSound
 
     void SetPosition(uint_t frameNum) override
     {
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      uint_t curFrame = state->Frame();
+      uint_t curFrame = GetState()->Frame();
       if (curFrame > frameNum)
       {
         Iterator->Reset();
@@ -376,7 +428,7 @@ namespace TurboSound
 
     Information::Ptr GetInformation() const override
     {
-      return MakePtr<MergedModuleInfo>(First->GetInformation(), Second->GetInformation());
+      return CreateInformation(First->GetInformation(), Second->GetInformation());
     }
 
     Parameters::Accessor::Ptr GetProperties() const override

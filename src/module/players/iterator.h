@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <module/track_state.h>
+#include <module/state.h>
 
 namespace Module
 {
@@ -32,7 +32,7 @@ namespace Module
   public:
     typedef std::shared_ptr<StateIterator> Ptr;
 
-    virtual TrackState::Ptr GetStateObserver() const = 0;
+    virtual State::Ptr GetStateObserver() const = 0;
   };
 
   void SeekIterator(StateIterator& iter, uint_t frameNum);

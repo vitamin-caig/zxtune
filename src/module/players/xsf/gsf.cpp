@@ -242,7 +242,7 @@ namespace GSF
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return State;
     }
@@ -307,7 +307,7 @@ namespace GSF
   private:
     const GbaEngine::Ptr Engine;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
+    const Module::State::Ptr State;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     uint_t SamplesPerFrame;

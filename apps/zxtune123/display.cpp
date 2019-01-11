@@ -14,6 +14,7 @@
 //common includes
 #include <error.h>
 //library includes
+#include <module/track_state.h>
 #include <parameters/template.h>
 #include <platform/application.h>
 #include <strings/format.h>
@@ -106,7 +107,8 @@ namespace
       const Parameters::Accessor::Ptr props = module->GetModuleProperties();
       TotalFrames = info->FramesCount();
       FrameDuration = frameDuration;
-      TrackState = player->GetTrackState();
+      State = player->GetState();
+      TrackState = dynamic_cast<const Module::TrackState*>(State.get());
       if (!Silent && ShowAnalyze)
       {
         Analyzer = player->GetAnalyzer();
@@ -127,7 +129,7 @@ namespace
 
     uint_t BeginFrame(Sound::PlaybackControl::State state) override
     {
-      const uint_t curFrame = TrackState->Frame();
+      const uint_t curFrame = State->Frame();
       if (Silent || Quiet)
       {
         return curFrame;
@@ -138,18 +140,22 @@ namespace
         Silent = true;
         return curFrame;
       }
-      const int_t spectrumHeight = ScrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
+      const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
+      const int_t spectrumHeight = ScrSize.second - INFORMATION_HEIGHT - trackingHeight - PLAYING_HEIGHT - 1;
       if (spectrumHeight < 4)//minimal spectrum height
       {
         Analyzer.reset();
       }
-      else if (ScrSize.second < int_t(TRACKING_HEIGHT + PLAYING_HEIGHT))
+      else if (ScrSize.second < int_t(trackingHeight + PLAYING_HEIGHT))
       {
         Quiet = true;
       }
       else
       {
-        ShowTrackingStatus(*TrackState);
+        if (TrackState)
+        {
+          ShowTrackingStatus(*TrackState);
+        }
         ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
@@ -168,7 +174,8 @@ namespace
       std::this_thread::sleep_for(std::chrono::milliseconds(waitPeriod));
       if (!Silent && !Quiet)
       {
-        Console::Self().MoveCursorUp(Analyzer ? ScrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);
+        const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
+        Console::Self().MoveCursorUp(Analyzer ? ScrSize.second - INFORMATION_HEIGHT - 1 : trackingHeight + PLAYING_HEIGHT);
       }
     }
   private:
@@ -225,7 +232,8 @@ namespace
     Console::SizeType ScrSize;
     uint_t TotalFrames;
     Time::Microseconds FrameDuration;
-    Module::TrackState::Ptr TrackState;
+    Module::State::Ptr State;
+    const Module::TrackState* TrackState;
     Module::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;
   };

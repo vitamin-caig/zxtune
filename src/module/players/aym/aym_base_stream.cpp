@@ -46,7 +46,7 @@ namespace Module
         Delegate->NextFrame(looped);
       }
 
-      TrackState::Ptr GetStateObserver() const override
+      Module::State::Ptr GetStateObserver() const override
       {
         return State;
       }
@@ -59,7 +59,7 @@ namespace Module
       }
     private:
       const StateIterator::Ptr Delegate;
-      const TrackState::Ptr State;
+      const Module::State::Ptr State;
       const StreamModel::Ptr Data;
     };
 

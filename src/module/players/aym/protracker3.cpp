@@ -395,7 +395,7 @@ namespace ProTracker3
         Delegate->NextFrame(looped);
       }
 
-      TrackState::Ptr GetStateObserver() const override
+      Module::State::Ptr GetStateObserver() const override
       {
         return State;
       }

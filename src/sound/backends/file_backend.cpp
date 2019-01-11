@@ -21,6 +21,7 @@
 #include <io/template.h>
 #include <l10n/api.h>
 #include <module/attributes.h>
+#include <module/track_state.h>
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
@@ -79,14 +80,17 @@ namespace File
     {
     }
 
-    String Instantiate(const Module::TrackState& state) const
+    String Instantiate(const Module::State& state) const
     {
-      if (CurPosition.Update(state.Position()) ||
-          CurPattern.Update(state.Pattern()) ||
-          CurLine.Update(state.Line()))
+      if (const auto track = dynamic_cast<const Module::TrackState*>(&state))
       {
-        const StateFieldsSource source(state);
-        Result = Template->Instantiate(source);
+        if (CurPosition.Update(track->Position()) ||
+            CurPattern.Update(track->Pattern()) ||
+            CurLine.Update(track->Line()))
+        {
+          const StateFieldsSource source(*track);
+          Result = Template->Instantiate(source);
+        }
       }
       return Result;
     }
@@ -206,7 +210,7 @@ namespace File
     {
     }
 
-    Receiver::Ptr GetStream(const Module::TrackState& state) const
+    Receiver::Ptr GetStream(const Module::State& state) const
     {
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
@@ -286,7 +290,7 @@ namespace File
     {
     }
 
-    void FrameStart(const Module::TrackState& state) override
+    void FrameStart(const Module::State& state) override
     {
       if (const Receiver::Ptr newStream = Source->GetStream(state))
       {

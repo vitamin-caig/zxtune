@@ -255,7 +255,7 @@ namespace Mp3
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return State;
     }
@@ -307,7 +307,7 @@ namespace Mp3
   private:
     Mp3Tune Tune;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
+    const Module::State::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     MultiFreqTargetsDispatcher Target;

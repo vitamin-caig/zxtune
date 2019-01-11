@@ -133,7 +133,7 @@ namespace
       , Params(std::move(params))
       , Renderer(std::move(render))
       , Buffer(std::move(buffer))
-      , TrackState(Renderer->GetTrackState())
+      , State(Renderer->GetState())
       , Analyser(Renderer->GetAnalyzer())
     {
     }
@@ -150,7 +150,7 @@ namespace
     
     uint_t GetPosition() const override
     {
-      return TrackState->Frame();
+      return State->Frame();
     }
 
     uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const override
@@ -203,7 +203,7 @@ namespace
     const Parameters::Modifier::Ptr Params;
     const Module::Renderer::Ptr Renderer;
     const BufferTarget::Ptr Buffer;
-    const Module::TrackState::Ptr TrackState;
+    const Module::State::Ptr State;
     const Module::Analyzer::Ptr Analyser;
     RenderingPerformanceAccountant RenderingPerformance;
   };

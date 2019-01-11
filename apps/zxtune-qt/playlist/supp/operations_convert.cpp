@@ -52,7 +52,7 @@ namespace
       Event.Reset();
     }
 
-    void OnFrame(const Module::TrackState& state) override
+    void OnFrame(const Module::State& state) override
     {
       try
       {

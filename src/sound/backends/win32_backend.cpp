@@ -447,7 +447,7 @@ namespace Win32
       Objects.Device->Resume();
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    virtual void FrameStart(const Module::State& /*state*/)
     {
     }
 

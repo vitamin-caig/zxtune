@@ -411,7 +411,7 @@ namespace OpenAl
       Stat->Src->Play();
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    virtual void FrameStart(const Module::State& /*state*/)
     {
     }
 

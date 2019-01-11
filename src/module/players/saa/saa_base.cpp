@@ -50,7 +50,7 @@ namespace Module
       FillCurrentData();
     }
 
-    TrackState::Ptr GetStateObserver() const override
+    Module::State::Ptr GetStateObserver() const override
     {
       return State;
     }
@@ -93,7 +93,7 @@ namespace Module
 #endif
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
       return Iterator->GetStateObserver();
     }
@@ -132,8 +132,7 @@ namespace Module
 
     void SetPosition(uint_t frameNum) override
     {
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      uint_t curFrame = state->Frame();
+      uint_t curFrame = GetState()->Frame();
       if (curFrame > frameNum)
       {
         Iterator->Reset();

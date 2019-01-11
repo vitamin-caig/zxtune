@@ -187,7 +187,6 @@ namespace SPC
     Renderer(SPC::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
       , Iterator(std::move(iterator))
-      , State(Iterator->GetStateObserver())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
@@ -196,9 +195,9 @@ namespace SPC
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
-      return State;
+      return Iterator->GetStateObserver();
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
@@ -251,7 +250,7 @@ namespace SPC
 
     void SeekTune(uint_t frame)
     {
-      uint_t current = State->Frame();
+      uint_t current = GetState()->Frame();
       if (frame < current)
       {
         Tune->Reset();
@@ -265,7 +264,6 @@ namespace SPC
   private:
     const SPC::Ptr Tune;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;

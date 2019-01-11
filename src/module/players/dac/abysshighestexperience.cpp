@@ -17,6 +17,8 @@
 #include <binary/container_factories.h>
 #include <debug/log.h>
 #include <formats/chiptune/digital/abysshighestexperience.h>
+#include <module/track_information.h>
+#include <module/track_state.h>
 #include <module/players/analyzer.h>
 #include <module/players/properties_meta.h>
 #include <parameters/tracking_helper.h>
@@ -55,10 +57,10 @@ namespace AHX
     return result;
   }
   
-  class Information : public Module::Information
+  class TrackInformation : public Module::TrackInformation
   {
   public:
-    explicit Information(const Binary::Data& data)
+    explicit TrackInformation(const Binary::Data& data)
       : Hvl(LoadModule(data))
       , CachedFramesCount()
       , CachedLoopFrame()
@@ -284,7 +286,7 @@ namespace AHX
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
       return Tune->MakeTrackState();
     }
@@ -402,7 +404,7 @@ namespace AHX
           props.SetPlatform(Platforms::AMIGA);
 
           auto tune = MakePtr<HVL>(*container);
-          auto info = MakePtr<Information>(*container);
+          auto info = MakePtr<TrackInformation>(*container);
           return MakePtr<Holder>(std::move(tune), std::move(info), properties);
         }
       }

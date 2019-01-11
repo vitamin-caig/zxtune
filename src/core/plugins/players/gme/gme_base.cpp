@@ -189,7 +189,6 @@ namespace GME
     Renderer(GME::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
       , Iterator(std::move(iterator))
-      , State(Iterator->GetStateObserver())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
@@ -197,9 +196,9 @@ namespace GME
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
-      return State;
+      return Iterator->GetStateObserver();
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
@@ -265,7 +264,7 @@ namespace GME
 
     void SeekTune(uint_t frame)
     {
-      uint_t current = State->Frame();
+      uint_t current = GetState()->Frame();
       if (frame < current)
       {
         Tune->Reset();
@@ -279,7 +278,6 @@ namespace GME
   private:
     const GME::Ptr Tune;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     bool Looped;

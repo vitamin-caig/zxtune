@@ -199,7 +199,7 @@ namespace SDSF
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return State;
     }
@@ -265,7 +265,7 @@ namespace SDSF
   private:
     const ModuleData::Ptr Data;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
+    const Module::State::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
     SegaEngine Engine;
     uint_t SamplesPerFrame;

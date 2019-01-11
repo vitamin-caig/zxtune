@@ -69,7 +69,7 @@ namespace Sound
       Delegate->OnStart();
     }
 
-    void OnFrame(const Module::TrackState& state) override
+    void OnFrame(const Module::State& state) override
     {
       Worker->FrameStart(state);
       Delegate->OnFrame(state);
@@ -108,12 +108,12 @@ namespace Sound
     RendererWrapper(Module::Renderer::Ptr delegate, BackendCallback::Ptr callback)
       : Delegate(std::move(delegate))
       , Callback(std::move(callback))
-      , State(Delegate->GetTrackState())
+      , State(Delegate->GetState())
       , SeekRequest(NO_SEEK)
     {
     }
 
-    Module::TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return State;
     }
@@ -148,7 +148,7 @@ namespace Sound
     static const uint_t NO_SEEK = ~uint_t(0);
     const Module::Renderer::Ptr Delegate;
     const BackendCallback::Ptr Callback;
-    const Module::TrackState::Ptr State;
+    const Module::State::Ptr State;
     std::atomic<uint_t> SeekRequest;
   };
 
@@ -262,7 +262,7 @@ namespace Sound
     {
     }
 
-    void OnFrame(const Module::TrackState& /*state*/) override
+    void OnFrame(const Module::State& /*state*/) override
     {
     }
 
@@ -354,9 +354,9 @@ namespace Sound
     {
     }
 
-    Module::TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
-      return Renderer->GetTrackState();
+      return Renderer->GetState();
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override

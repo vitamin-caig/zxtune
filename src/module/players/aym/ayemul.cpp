@@ -555,15 +555,14 @@ namespace AYEMUL
       , Iterator(std::move(iterator))
       , Comp(std::move(comp))
       , Device(std::move(device))
-      , State(Iterator->GetStateObserver())
       , FrameDuration()
       , Looped()
     {
     }
 
-    TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
-      return State;
+      return Iterator->GetStateObserver();
     }
 
     Analyzer::Ptr GetAnalyzer() const override
@@ -596,7 +595,7 @@ namespace AYEMUL
 
     void SetPosition(uint_t frameNum) override
     {
-      uint_t curFrame = State->Frame();
+      uint_t curFrame = GetState()->Frame();
       if (frameNum < curFrame)
       {
         //rewind
@@ -630,7 +629,6 @@ namespace AYEMUL
     const StateIterator::Ptr Iterator;
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;
-    const TrackState::Ptr State;
     Devices::Z80::Stamp LastTime;
     Devices::Z80::Stamp FrameDuration;
     bool Looped;

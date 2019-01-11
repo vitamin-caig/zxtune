@@ -28,7 +28,6 @@
 namespace Module
 {
   typedef std::vector<Analyzer::Ptr> AnalyzersArray;
-  typedef std::vector<TrackState::Ptr> TrackStatesArray;
   typedef std::vector<Renderer::Ptr> RenderersArray;
   
   class MultiAnalyzer : public Module::Analyzer
@@ -75,29 +74,19 @@ namespace Module
     {
     }
     
-    uint_t PositionsCount() const override
-    {
-      return Delegate->PositionsCount();
-    }
-    uint_t LoopPosition() const override
-    {
-      return Delegate->LoopPosition();
-    }
     uint_t FramesCount() const override
     {
       return Delegate->FramesCount();
     }
+
     uint_t LoopFrame() const override
     {
       return Delegate->LoopFrame();
     }
+
     uint_t ChannelsCount() const override
     {
       return TotalChannelsCount;
-    }
-    uint_t Tempo() const override
-    {
-      return Delegate->Tempo();
     }
     
     static Ptr Create(const Multi::HoldersArray& holders)
@@ -281,60 +270,6 @@ namespace Module
     }
   };
   
-  class MultiTrackState : public TrackState
-  {
-  public:
-    explicit MultiTrackState(TrackStatesArray delegates)
-      : Delegates(std::move(delegates))
-    {
-    }
-    
-    uint_t Position() const override
-    {
-      return Delegates.front()->Position();
-    }
-    uint_t Pattern() const override
-    {
-      return Delegates.front()->Pattern();
-    }
-    uint_t Line() const override
-    {
-      return Delegates.front()->Line();
-    }
-    uint_t Tempo() const override
-    {
-      return Delegates.front()->Tempo();
-    }
-    uint_t Quirk() const override
-    {
-      return Delegates.front()->Quirk();
-    }
-    uint_t Frame() const override
-    {
-      return Delegates.front()->Frame();
-    }
-    uint_t Channels() const override
-    {
-      uint_t res = 0;
-      for (const auto& delegate : Delegates)
-      {
-        res += delegate->Channels();
-      }
-      return res;
-    }
-    
-    static Ptr Create(const RenderersArray& renderers)
-    {
-      const auto count = renderers.size();
-      Require(count > 1);
-      TrackStatesArray delegates(count);
-      std::transform(renderers.begin(), renderers.end(), delegates.begin(), std::mem_fn(&Renderer::GetTrackState));
-      return MakePtr<MultiTrackState>(std::move(delegates));
-    }
-  private:
-    const TrackStatesArray Delegates;
-  };
-  
   class MultiRenderer : public Renderer
   {
   public:
@@ -342,15 +277,14 @@ namespace Module
       : Delegates(std::move(delegates))
       , SoundParams(std::move(renderParams))
       , Target(std::move(target))
-      , State(MultiTrackState::Create(Delegates))
       , Analysis(MultiAnalyzer::Create(Delegates))
     {
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
-      return State;
+      return Delegates.front()->GetState();
     }
 
     Analyzer::Ptr GetAnalyzer() const override
@@ -415,7 +349,6 @@ namespace Module
     const RenderersArray Delegates;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const CompositeReceiver::Ptr Target;
-    const TrackState::Ptr State;
     const Analyzer::Ptr Analysis;
   };
   

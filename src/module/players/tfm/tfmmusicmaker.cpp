@@ -1442,10 +1442,10 @@ namespace TFMMusicMaker
     std::unique_ptr<const PlainTrackState> LoopState;
   };
 
-  class InformationImpl : public Information
+  class TrackInformation : public Module::TrackInformation
   {
   public:
-    InformationImpl(ModuleData::Ptr data)
+    explicit TrackInformation(ModuleData::Ptr data)
       : Data(std::move(data))
       , Frames(), LoopFrameNum()
     {
@@ -1507,7 +1507,7 @@ namespace TFMMusicMaker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-      , Info(MakePtr<InformationImpl>(Data))
+      , Info(MakePtr<TrackInformation>(Data))
     {
     }
 

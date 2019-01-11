@@ -63,7 +63,7 @@ namespace Module
         FillCurrentData();
       }
 
-      TrackState::Ptr GetStateObserver() const override
+      Module::State::Ptr GetStateObserver() const override
       {
         return State;
       }

@@ -289,10 +289,10 @@ namespace Module
     std::unique_ptr<const PlainTrackState> LoopState;
   };
 
-  class InformationImpl : public Information
+  class TrackInformationImpl : public TrackInformation
   {
   public:
-    InformationImpl(TrackModel::Ptr model, uint_t channels)
+    TrackInformationImpl(TrackModel::Ptr model, uint_t channels)
       : Model(std::move(model))
       , Channels(channels)
       , Frames(), LoopFrameNum()
@@ -350,9 +350,9 @@ namespace Module
     mutable uint_t LoopFrameNum;
   };
 
-  Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels)
+  TrackInformation::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels)
   {
-    return MakePtr<InformationImpl>(std::move(model), channels);
+    return MakePtr<TrackInformationImpl>(std::move(model), channels);
   }
 
   TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model)

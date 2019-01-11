@@ -17,7 +17,7 @@
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/builder_pattern.h>
-#include <module/information.h>
+#include <module/track_information.h>
 #include <module/track_state.h>
 //std includes
 #include <algorithm>
@@ -235,7 +235,7 @@ namespace Module
     SparsedObjectsStorage<MutablePattern::Ptr> Storage;
   };
 
-  Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels);
+  TrackInformation::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels);
 
   class TrackStateIterator : public Iterator
   {

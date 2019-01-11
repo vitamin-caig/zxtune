@@ -18,6 +18,8 @@
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/container.h>
+#include <module/track_information.h>
+#include <module/track_state.h>
 #include <module/players/properties_helper.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
@@ -114,7 +116,7 @@ namespace Xmp
 
   typedef Time::Milliseconds TimeType;
 
-  class Information : public Module::Information
+  class Information : public Module::TrackInformation
   {
   public:
     typedef std::shared_ptr<const Information> Ptr;
@@ -273,7 +275,7 @@ namespace Xmp
       Ctx->Call(&::xmp_end_player);
     }
 
-    TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return Track;
     }

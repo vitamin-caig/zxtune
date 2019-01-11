@@ -45,7 +45,7 @@ namespace
     void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item) override
     {
       Item = item;
-      TrackState = player->GetTrackState();
+      State = player->GetState();
       timePosition->setRange(0, Item->GetDuration().GetCount());
     }
 
@@ -55,7 +55,7 @@ namespace
       {
         return;
       }
-      const uint_t curFrame = TrackState->Frame();
+      const uint_t curFrame = State->Frame();
       if (timePosition->isSliderDown())
       {
         ShowTooltip();
@@ -104,7 +104,7 @@ namespace
     }
   private:
     Playlist::Item::Data::Ptr Item;
-    Module::TrackState::Ptr TrackState;
+    Module::State::Ptr State;
   };
 }
 
