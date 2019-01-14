@@ -222,6 +222,11 @@ namespace TurboSound
       return First->Frame();
     }
 
+    uint_t LoopCount() const override
+    {
+      return First->LoopCount();
+    }
+
   protected:
     const typename Base::Ptr First;
     const typename Base::Ptr Second;

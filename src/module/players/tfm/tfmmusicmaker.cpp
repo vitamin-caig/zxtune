@@ -1153,8 +1153,20 @@ namespace TFMMusicMaker
       , Order(*Data->Order)
       , Patterns(*Data->Patterns)
       , NextLineState()
+      , Loops()
     {
       Reset();
+    }
+
+    //State
+    uint_t Frame() const override
+    {
+      return Plain.Frame;
+    }
+
+    uint_t LoopCount() const override
+    {
+      return Loops;
     }
 
     //TrackState
@@ -1181,11 +1193,6 @@ namespace TFMMusicMaker
     uint_t Quirk() const override
     {
       return Plain.Quirk;
-    }
-
-    uint_t Frame() const override
-    {
-      return Plain.Frame;
     }
 
     uint_t Channels() const override
@@ -1224,6 +1231,7 @@ namespace TFMMusicMaker
       Plain.TempoInterleaveCounter = 0;
       SetPosition(0);
       NextLineState = nullptr;
+      Loops = 0;
     }
 
     void SetState(const PlainTrackState& state)
@@ -1252,6 +1260,11 @@ namespace TFMMusicMaker
     bool NextFrame()
     {
       return NextQuirk() || NextLine() || NextPosition();
+    }
+
+    void DoneLoop()
+    {
+      ++Loops;
     }
   private:
     void SetPosition(uint_t pos)
@@ -1385,6 +1398,7 @@ namespace TFMMusicMaker
     const class Line* CurLineObject;
     LoopState Loop;
     const PlainTrackState* NextLineState;
+    uint_t Loops;
   };
 
   class TrackStateIteratorImpl : public TrackStateIterator
@@ -1435,6 +1449,7 @@ namespace TFMMusicMaker
         const PlainTrackState& loop = Cursor->GetState();
         LoopState.reset(new PlainTrackState(loop));
       }
+      Cursor->DoneLoop();
     }
   private:
     const ModuleData::Ptr Data;

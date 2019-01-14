@@ -178,6 +178,16 @@ namespace Xmp
     {
     }
 
+    uint_t Frame() const override
+    {
+      return TimeType(State->time).Get() / FrameDuration.Get();
+    }
+
+    uint_t LoopCount() const override
+    {
+      return State->loop_count;
+    }
+
     uint_t Position() const override
     {
       return State->pos;
@@ -201,11 +211,6 @@ namespace Xmp
     uint_t Quirk() const override
     {
       return State->frame;//???
-    }
-
-    uint_t Frame() const override
-    {
-      return TimeType(State->time).Get() / FrameDuration.Get();
     }
 
     uint_t Channels() const override

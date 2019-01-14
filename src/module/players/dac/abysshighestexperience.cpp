@@ -131,6 +131,16 @@ namespace AHX
     {
     }
 
+    uint_t Frame() const override
+    {
+      return Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier;
+    }
+
+    uint_t LoopCount() const override
+    {
+      return Hvl->ht_SongEndReached;
+    }
+
     uint_t Position() const override
     {
       return Hvl->ht_PosNr;
@@ -154,11 +164,6 @@ namespace AHX
     uint_t Quirk() const override
     {
       return Hvl->ht_Tempo - Hvl->ht_StepWaitFrames;
-    }
-
-    uint_t Frame() const override
-    {
-      return Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier;
     }
 
     uint_t Channels() const override
