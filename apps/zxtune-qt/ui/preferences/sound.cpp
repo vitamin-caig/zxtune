@@ -75,6 +75,7 @@ namespace
       SetFrequency(freq);
       Require(connect(soundFrequencyValue, SIGNAL(currentIndexChanged(int)), SLOT(ChangeSoundFrequency(int))));
       IntegerValue::Bind(*silenceLimitValue, *Options, ZXTune::Sound::SILENCE_LIMIT, ZXTune::Sound::SILENCE_LIMIT_DEFAULT);
+      IntegerValue::Bind(*loopsCountLimitValue, *Options, ZXTune::Sound::LOOP_LIMIT, 0);
 
       Require(connect(backendsList, SIGNAL(currentRowChanged(int)), SLOT(SelectBackend(int))));
       Require(connect(moveUp, SIGNAL(released()), SLOT(MoveBackendUp())));

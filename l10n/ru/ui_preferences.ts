@@ -415,22 +415,27 @@
         <translation>Детектор тишины, с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="82"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="79"/>
+        <source>Loops count limit</source>
+        <translation>Лимит зацикливания</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="96"/>
         <source>Backends settings</source>
         <translation>Настройки подсистем</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="105"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="119"/>
         <source>Move up</source>
         <translation>Вверх</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="149"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="163"/>
         <source>Move down</source>
         <translation>Вниз</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="164"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="178"/>
         <source>Select backend to setup</source>
         <translation>Выберите подсистему для настройки</translation>
     </message>
