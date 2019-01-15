@@ -349,6 +349,7 @@ namespace PSF
       SoundParams.Reset();
       Iterator->Reset();
       Engine->Initialize(*Data);
+      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -388,7 +389,7 @@ namespace PSF
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

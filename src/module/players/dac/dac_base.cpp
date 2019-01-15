@@ -42,7 +42,7 @@ namespace Module
       return Delegate->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       Delegate->NextFrame(looped);
       FillCurrentData();
@@ -90,7 +90,7 @@ namespace Module
     {
 #ifndef NDEBUG
 //perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame(false));
+      for (; Iterator->IsValid(); Iterator->NextFrame({}));
       Iterator->Reset();
 #endif
     }
@@ -129,7 +129,7 @@ namespace Module
       Device->Reset();
       LastChunk.TimeStamp = Devices::DAC::Stamp();
       FrameDuration = Devices::DAC::Stamp();
-      Looped = false;
+      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -149,7 +149,7 @@ namespace Module
       }
       while (curFrame < frameNum && Iterator->IsValid())
       {
-        Iterator->NextFrame(true);
+        Iterator->NextFrame({});
         LastChunk.TimeStamp += FrameDuration;
         ++curFrame;
         Iterator->GetData(LastChunk.Data);
@@ -177,7 +177,7 @@ namespace Module
     const Devices::DAC::Chip::Ptr Device;
     Devices::DAC::DataChunk LastChunk;
     Devices::DAC::Stamp FrameDuration;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 }
 

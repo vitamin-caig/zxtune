@@ -310,7 +310,7 @@ namespace Xmp
           std::memcpy(builder.Allocate(samples), State->buffer, bytes);
           Target->ApplyData(builder.CaptureResult());
         }
-        return Looped || State->loop_count == 0;
+        return Looped(State->loop_count);
       }
       catch (const std::exception&)
       {
@@ -356,7 +356,7 @@ namespace Xmp
     const Analyzer::Ptr Analysis;
     const TimeType FrameDuration;
     uint_t SoundFreq;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

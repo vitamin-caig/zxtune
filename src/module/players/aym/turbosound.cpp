@@ -305,10 +305,10 @@ namespace TurboSound
       return First->IsValid() && Second->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       First->NextFrame(looped);
-      Second->NextFrame(true);
+      Second->NextFrame({true, 0});
     }
 
     State::Ptr GetStateObserver() const override
@@ -338,7 +338,7 @@ namespace TurboSound
     {
 #ifndef NDEBUG
 //perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame(false));
+      for (; Iterator->IsValid(); Iterator->NextFrame({}));
       Iterator->Reset();
 #endif
     }
@@ -377,7 +377,7 @@ namespace TurboSound
       Device->Reset();
       LastChunk.TimeStamp = Devices::TurboSound::Stamp();
       FrameDuration = Devices::TurboSound::Stamp();
-      Looped = false;
+      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -393,7 +393,7 @@ namespace TurboSound
       while (curFrame < frameNum && Iterator->IsValid())
       {
         TransferChunk();
-        Iterator->NextFrame(true);
+        Iterator->NextFrame({});
         ++curFrame;
       }
     }
@@ -418,7 +418,7 @@ namespace TurboSound
     const Devices::TurboSound::Device::Ptr Device;
     Devices::TurboSound::DataChunk LastChunk;
     Devices::TurboSound::Stamp FrameDuration;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class MergedChiptune : public Chiptune

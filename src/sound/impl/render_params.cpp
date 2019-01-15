@@ -43,10 +43,10 @@ namespace Sound
       return Time::Microseconds(FoundProperty(FRAMEDURATION, FRAMEDURATION_DEFAULT));
     }
 
-    bool Looped() const override
+    LoopParameters Looped() const override
     {
       using namespace Parameters::ZXTune::Sound;
-      return 0 != FoundProperty(LOOPED, 0);
+      return {0 != FoundProperty(LOOPED, 0), static_cast<uint_t>(FoundProperty(LOOP_LIMIT, 0))};
     }
 
     uint_t SamplesPerFrame() const override

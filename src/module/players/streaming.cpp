@@ -12,6 +12,8 @@
 #include "streaming.h"
 //common includes
 #include <make_ptr.h>
+//library includes
+#include <sound/loop.h>
 //std includes
 #include <utility>
 
@@ -121,10 +123,10 @@ namespace Module
       return Cursor->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       Cursor->NextFrame();
-      if (!Cursor->IsValid() && looped)
+      if (!Cursor->IsValid() && looped(Cursor->LoopCount()))
       {
         Cursor->ResetToLoop();
       }

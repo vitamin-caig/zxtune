@@ -12,6 +12,7 @@
 
 //library includes
 #include <parameters/accessor.h>
+#include <sound/loop.h>
 #include <time/stamp.h>
 
 namespace Sound
@@ -31,7 +32,7 @@ namespace Sound
     //! Frame duration in us
     virtual Time::Microseconds FrameDuration() const = 0;
     //! Loop mode
-    virtual bool Looped() const = 0;
+    virtual LoopParameters Looped() const = 0;
     //! Sound samples count per one frame
     virtual uint_t SamplesPerFrame() const = 0;
 

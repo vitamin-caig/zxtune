@@ -229,6 +229,7 @@ namespace SPC
       SoundParams.Reset();
       Tune->Reset();
       Iterator->Reset();
+      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -267,7 +268,7 @@ namespace SPC
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    bool Looped;
+    Sound::LoopParameters Looped;
     std::size_t SamplesPerFrame;
   };
   

@@ -1420,13 +1420,13 @@ namespace TFMMusicMaker
       return Cursor->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       if (!Cursor->IsValid())
       {
         return;
       }
-      else if (!Cursor->NextFrame() && looped)
+      else if (!Cursor->NextFrame() && looped(Cursor->LoopCount()))
       {
         MoveToLoop();
       }

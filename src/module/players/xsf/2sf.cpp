@@ -295,6 +295,7 @@ namespace TwoSF
       SoundParams.Reset();
       Iterator->Reset();
       Engine = MakePtr<DSEngine>(*Data);
+      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -334,7 +335,7 @@ namespace TwoSF
     const Sound::Receiver::Ptr Target;
     DSEngine::Ptr Engine;
     Sound::Receiver::Ptr Resampler;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

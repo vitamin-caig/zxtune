@@ -44,7 +44,7 @@ namespace Module
       return Delegate->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       Delegate->NextFrame(looped);
       FillCurrentData();
@@ -88,7 +88,7 @@ namespace Module
     {
 #ifndef NDEBUG
 //perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame(false));
+      for (; Iterator->IsValid(); Iterator->NextFrame({}));
       Iterator->Reset();
 #endif
     }
@@ -127,7 +127,7 @@ namespace Module
       Device->Reset();
       LastChunk.TimeStamp = Devices::SAA::Stamp();
       FrameDuration = Devices::SAA::Stamp();
-      Looped = false;
+      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -143,7 +143,7 @@ namespace Module
       while (curFrame < frameNum && Iterator->IsValid())
       {
         TransferChunk();
-        Iterator->NextFrame(true);
+        Iterator->NextFrame({});
         ++curFrame;
       }
     }
@@ -168,7 +168,7 @@ namespace Module
     const Devices::SAA::Device::Ptr Device;
     Devices::SAA::DataChunk LastChunk;
     Devices::SAA::Stamp FrameDuration;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class SAAHolder : public Holder

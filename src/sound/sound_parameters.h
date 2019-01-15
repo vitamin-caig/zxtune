@@ -49,6 +49,7 @@ namespace Parameters
 
       //! Parameter name
       extern const NameType LOOPED;
+      extern const NameType LOOP_LIMIT;
       //@}
 
       //@{

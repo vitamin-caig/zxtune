@@ -260,9 +260,9 @@ namespace AHX
       }
     }
     
-    bool EndReached() const
+    uint_t LoopCount() const
     {
-      return 0 != Hvl->ht_SongEndReached;
+      return Hvl->ht_SongEndReached;
     }
     
     TrackState::Ptr MakeTrackState() const
@@ -310,7 +310,7 @@ namespace AHX
         Sound::ChunkBuilder builder;
         Tune->RenderFrame(builder);
         Target->ApplyData(builder.CaptureResult());
-        return Looped || !Tune->EndReached();
+        return Looped(Tune->LoopCount());
       }
       catch (const std::exception&)
       {
@@ -341,7 +341,7 @@ namespace AHX
     const HVL::Ptr Tune;
     const Sound::Receiver::Ptr Target;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

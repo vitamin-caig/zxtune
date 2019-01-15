@@ -10,6 +10,8 @@
 
 //local includes
 #include "iterator.h"
+//library includes
+#include <sound/loop.h>
 
 namespace Module
 {
@@ -23,7 +25,7 @@ namespace Module
     }
     while (curFrame < frameNum && iter.IsValid())
     {
-      iter.NextFrame(true);
+      iter.NextFrame({});
       ++curFrame;
     }
   }

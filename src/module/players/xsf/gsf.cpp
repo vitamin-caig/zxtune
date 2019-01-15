@@ -273,6 +273,7 @@ namespace GSF
       SoundParams.Reset();
       Iterator->Reset();
       Engine->Reset();
+      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -311,7 +312,7 @@ namespace GSF
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     uint_t SamplesPerFrame;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

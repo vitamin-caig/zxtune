@@ -13,6 +13,8 @@
 //common includes
 #include <pointers.h>
 #include <make_ptr.h>
+//library includes
+#include <sound/loop.h>
 
 namespace Module
 {
@@ -267,13 +269,13 @@ namespace Module
       return Cursor->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       if (!Cursor->IsValid())
       {
         return;
       }
-      if (!Cursor->NextFrame() && looped)
+      if (!Cursor->NextFrame() && looped(Cursor->LoopCount()))
       {
         MoveToLoop();
       }
