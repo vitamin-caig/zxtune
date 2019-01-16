@@ -37,4 +37,13 @@ public class CatalogTest extends RemoteCatalogTest {
         };
         test(path, entries, Mode.CHECK_MISSED);
     }
+
+    @Test
+    public void testBigFile() throws IOException {
+        final Path path = Path.parse(Uri.parse("joshw:/pc/t"));
+        final String[] entries = {
+                "Tekken 7 (2017-06-02)(-)(Bandai Namco)[PC].7z", "3.4G"
+        };
+        test(path, entries, Mode.CHECK_MISSED);
+    }
 }

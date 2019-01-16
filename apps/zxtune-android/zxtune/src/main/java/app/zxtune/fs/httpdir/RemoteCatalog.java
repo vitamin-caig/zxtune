@@ -65,17 +65,17 @@ final class RemoteCatalog extends Catalog {
     for (Element row : list.select("file")) {
       final String name = row.text();
       final String sizeInBytes = row.attr("size");
-      visitor.acceptFile(name, formatSize(Integer.parseInt(sizeInBytes)));
+      visitor.acceptFile(name, formatSize(Long.parseLong(sizeInBytes)));
     }
     return true;
   }
 
-  private static String formatSize(int v) {
+  private static String formatSize(long v) {
     if (v < 1024) {
-      return Integer.toString(v);
+      return Long.toString(v);
     } else {
-      final int z = (31 - Integer.numberOfLeadingZeros(v)) / 10;
-      return String.format(Locale.US, "%.1f%s", (float) v / (1 << (z * 10)), " KMG".charAt(z));
+      final int z = (63 - Long.numberOfLeadingZeros(v)) / 10;
+      return String.format(Locale.US, "%.1f%s", (float) v / (1 << (z * 10)), " KMGTPE".charAt(z));
     }
   }
 
