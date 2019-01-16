@@ -42,7 +42,7 @@ public class ProviderTest {
 
     @Test
     public void testObjectStatic() throws IOException {
-        final Uri uri = Uri.parse("http://nsf.joshw.info/n/North%20%26%20South%20(1990-09-21)(Kemco).7z");
+        final Uri uri = Uri.parse("http://nsf.joshw.info/n/North%20%26%20South%20(1990-09-21)(Kemco)[NES].7z");
         final HttpObject obj = provider.getObject(uri);
         assertEquals(uri, obj.getUri());
         assertEquals(10855, obj.getContentLength().longValue());

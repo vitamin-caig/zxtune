@@ -8,6 +8,8 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import app.zxtune.test.BuildConfig;
+
 // dir/file.sid
 @RunWith(AndroidJUnit4.class)
 public class PathTest {
@@ -43,7 +45,7 @@ public class PathTest {
   private static void verifyEmpty(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 2, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/asma/", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/asma/", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://asma.atari.org/asma/", uris[1].toString());
     assertEquals("getLocalId", "", path.getLocalId());
     assertEquals("getUri", "asma:", path.getUri().toString());
@@ -56,7 +58,7 @@ public class PathTest {
   private static void verifyDir(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 2, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/asma/dir/", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/asma/dir/", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://asma.atari.org/asma/dir/", uris[1].toString());
     assertEquals("getLocalId", "dir", path.getLocalId());
     assertEquals("getUri", "asma:/dir", path.getUri().toString());
@@ -68,7 +70,7 @@ public class PathTest {
   private static void verifyFile(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 2, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/asma/dir/file.sap", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/asma/dir/file.sap", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://asma.atari.org/asma/dir/file.sap", uris[1].toString());
     assertEquals("getLocalId", "dir/file.sap", path.getLocalId());
     assertEquals("getUri", "asma:/dir/file.sap", path.getUri().toString());

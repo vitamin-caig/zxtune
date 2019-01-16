@@ -8,6 +8,8 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import app.zxtune.test.BuildConfig;
+
 // dir/file.sid
 @RunWith(AndroidJUnit4.class)
 public class PathTest {
@@ -45,7 +47,7 @@ public class PathTest {
     final Path path = Path.parse(Uri.parse("hvsc:/C64Music/DEMOS/0-9/1_45_Tune.sid"));
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 3, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/hvsc/DEMOS/0-9/1_45_Tune.sid", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/hvsc/DEMOS/0-9/1_45_Tune.sid", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://www.prg.dtu.dk/HVSC/C64Music/DEMOS/0-9/1_45_Tune.sid", uris[1].toString());
     assertEquals("getRemoteUris[2]", "http://www.c64.org/HVSC/DEMOS/0-9/1_45_Tune.sid", uris[2].toString());
     assertEquals("getLocalId", "DEMOS/0-9/1_45_Tune.sid", path.getLocalId());
@@ -58,7 +60,7 @@ public class PathTest {
   private static void verifyEmpty(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 3, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/hvsc/", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/hvsc/", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://www.prg.dtu.dk/HVSC/C64Music/", uris[1].toString());
     assertEquals("getRemoteUris[2]", "http://www.c64.org/HVSC/", uris[2].toString());
     assertEquals("getLocalId", "", path.getLocalId());
@@ -72,7 +74,7 @@ public class PathTest {
   private static void verifyDir(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 3, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/hvsc/dir/", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/hvsc/dir/", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://www.prg.dtu.dk/HVSC/C64Music/dir/", uris[1].toString());
     assertEquals("getRemoteUris[2]", "http://www.c64.org/HVSC/dir/", uris[2].toString());
     assertEquals("getLocalId", "dir", path.getLocalId());
@@ -85,7 +87,7 @@ public class PathTest {
   private static void verifyFile(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 3, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/hvsc/dir/file.sid", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/hvsc/dir/file.sid", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://www.prg.dtu.dk/HVSC/C64Music/dir/file.sid", uris[1].toString());
     assertEquals("getRemoteUris[2]", "http://www.c64.org/HVSC/dir/file.sid", uris[2].toString());
     assertEquals("getLocalId", "dir/file.sid", path.getLocalId());

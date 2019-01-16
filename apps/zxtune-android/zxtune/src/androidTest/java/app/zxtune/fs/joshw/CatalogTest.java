@@ -29,11 +29,11 @@ public class CatalogTest extends RemoteCatalogTest {
         final Path path = Path.parse(Uri.parse("joshw:/nsf/n"));
         final String[] entries = {
                 //first
-                "NARC (1990-08)(Williams)(Rare)(Acclaim).7z",   "3.3K",
+                "NARC (1990-08)(Williams)(Rare)(Acclaim)[NES].7z",   "3.3K",
                 //escaped
-                "North & South (1990-09-21)(Kemco).7z",         "10.6K",//11K for native
+                "North & South (1990-09-21)(Kemco)[NES].7z",         "10.6K",//11K for native
                 //last
-                "Nuts & Milk (1984-07-28)(Hudson).7z",          "3.0K"
+                "Nuts & Milk (1984-07-28)(Hudson)[NES].7z",          "3.0K"
         };
         test(path, entries, Mode.CHECK_MISSED);
     }

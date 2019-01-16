@@ -8,6 +8,8 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import app.zxtune.test.BuildConfig;
+
 // root/dir/file.7z
 @RunWith(AndroidJUnit4.class)
 public class PathTest {
@@ -53,7 +55,7 @@ public class PathTest {
     final Path path = Path.parse(Uri.parse("joshw:/nsf/n/North & South (1990-09-21)(Kemco).7z"));
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUri.length", 2, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/joshw/nsf/n/North%20%26%20South%20(1990-09-21)(Kemco).7z", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/joshw/nsf/n/North%20%26%20South%20(1990-09-21)(Kemco).7z", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://nsf.joshw.info/n/North%20%26%20South%20(1990-09-21)(Kemco).7z", uris[1].toString());
     assertEquals("getLocalId", "nsf/n/North & South (1990-09-21)(Kemco).7z", path.getLocalId());
     assertEquals("getUri", "joshw:/nsf/n/North%20%26%20South%20(1990-09-21)(Kemco).7z", path.getUri().toString());
@@ -75,7 +77,7 @@ public class PathTest {
   private static void verifyRoot(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUri.length", 2, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/joshw/root/", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/joshw/root/", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://root.joshw.info", uris[1].toString());
     assertEquals("getLocalId", "root/", path.getLocalId());
     assertEquals("getUri", "joshw:/root", path.getUri().toString());
@@ -88,7 +90,7 @@ public class PathTest {
   private static void verifyDir(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUri.length", 2, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/joshw/root/dir/", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/joshw/root/dir/", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://root.joshw.info/dir/", uris[1].toString());
     assertEquals("getLocalId", "root/dir", path.getLocalId());
     assertEquals("getUri", "joshw:/root/dir", path.getUri().toString());
@@ -101,7 +103,7 @@ public class PathTest {
   private static void verifyFile(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUri.length", 2, uris.length);
-    assertEquals("getRemoteUris[0]", "https://storage.zxtune.ru/browse/joshw/root/dir/file.7z", uris[0].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/joshw/root/dir/file.7z", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://root.joshw.info/dir/file.7z", uris[1].toString());
     assertEquals("getLocalId", "root/dir/file.7z", path.getLocalId());
     assertEquals("getUri", "joshw:/root/dir/file.7z", path.getUri().toString());
