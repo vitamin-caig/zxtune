@@ -39,7 +39,7 @@
     <item>15 Minuten</item>
     <item>30 Minuten</item>
   </string-array>
-  <!-- zxtune.sound.silence_limit -->
+  <!-- zxtune.sound.silencelimit -->
   <string  name="pref_zxtune_silence_limit_title">Stilleerkennung</string>
   <string-array name="pref_zxtune_silence_limit_entries">
     <item>Nein</item>
@@ -48,5 +48,15 @@
     <item>5 Sekunden</item>
     <item>10 Sekunden</item>
     <item>15 Sekunden</item>
+  </string-array>
+  <!-- zxtune.sound.looplimit -->
+  <string  name="pref_zxtune_loop_limit_title">Schleifen Grenze</string>
+  <string-array name="pref_zxtune_loop_limit_entries">
+    <item>Nein</item>
+    <item>1 Schleife</item>
+    <item>2 Schleifen</item>
+    <item>3 Schleifen</item>
+    <item>4 Schleifen</item>
+    <item>5 Schleifen</item>
   </string-array>
 </resources>

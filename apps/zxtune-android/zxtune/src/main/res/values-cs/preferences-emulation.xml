@@ -55,7 +55,7 @@
     <item>15 minut</item>
     <item>30 minut</item>
   </string-array>
-  <!-- zxtune.sound.silence_limit -->
+  <!-- zxtune.sound.silencelimit -->
   <string  name="pref_zxtune_silence_limit_title">Detekce ticha</string>
   <string-array name="pref_zxtune_silence_limit_entries">
     <item>Nic</item>
@@ -64,5 +64,15 @@
     <item>5 sekund</item>
     <item>10 sekund</item>
     <item>15 sekund</item>
+  </string-array>
+  <!-- zxtune.sound.looplimit -->
+  <string  name="pref_zxtune_loop_limit_title">Smyčky limit</string>
+  <string-array name="pref_zxtune_loop_limit_entries">
+    <item>Nic</item>
+    <item>1 smyčka</item>
+    <item>2 smyčky</item>
+    <item>3 smyčky</item>
+    <item>4 smyčky</item>
+    <item>5 smyček</item>
   </string-array>
 </resources>
