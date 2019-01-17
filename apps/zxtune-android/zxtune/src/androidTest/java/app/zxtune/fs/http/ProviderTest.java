@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 
 import org.junit.Before;
@@ -12,6 +13,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
+
+import app.zxtune.BuildConfig;
 
 public class ProviderTest {
 
@@ -23,12 +26,12 @@ public class ProviderTest {
         provider = HttpProviderFactory.createProvider(ctx);
     }
 
-    private static void testStream(InputStream stream, int size, byte[] head, byte[] tail) throws IOException {
+    private static void testStream(InputStream stream, long size, byte[] head, byte[] tail) throws IOException {
         try {
             final byte[] realHead = new byte[head.length];
             assertEquals(head.length, stream.read(realHead));
             assertArrayEquals(head, realHead);
-            for (int toSkip = size - head.length - tail.length; toSkip != 0; ) {
+            for (long toSkip = size - head.length - tail.length; toSkip != 0; ) {
                 toSkip -= stream.skip(toSkip);
             }
             final byte[] realTail = new byte[tail.length];
@@ -93,5 +96,21 @@ public class ProviderTest {
             assertNotNull("Thrown exception", e);
             assertEquals("Not Found", e.getMessage());
         }
+    }
+
+    @Test
+    public void testBigFile() throws IOException {
+        final Uri uri = Uri.parse(BuildConfig.CDN_ROOT + "/browse/joshw/pc/t/Tekken 7 (2017-06-02)(-)(Bandai Namco)[PC].7z");
+        final HttpObject obj = provider.getObject(uri);
+        assertEquals(uri, obj.getUri());
+        if (Build.VERSION.SDK_INT >= 24) {
+            assertEquals(3683414322l, obj.getContentLength().longValue());
+        } else {
+            assertNull(obj.getContentLength());
+        }
+        /*
+        testStream(obj.getInput(), 3683414322l, new byte[] {0x37, 0x7a, (byte) 0xbc, (byte) 0xaf, 0x27, 0x1c, 0x00, 0x04},
+                new byte[] {0x0a, 0x01, (byte) 0xfd, (byte) 0x94, (byte) 0xa6, 0x6e, 0x00, 0x00});
+        */
     }
 }
