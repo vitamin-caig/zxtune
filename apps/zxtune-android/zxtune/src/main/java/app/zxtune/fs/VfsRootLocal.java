@@ -142,8 +142,14 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
     } catch (IOException e) {
       Log.w(TAG, e, "Failed to get external storages");
     }
-    if (result.isEmpty() && isGoodState(Environment.getExternalStorageState())) {
-      feedGood(Environment.getExternalStorageDirectory(), "External storage", visitor);
+    if (result.isEmpty()) {
+      if (isGoodState(Environment.getExternalStorageState())) {
+        feedGood(Environment.getExternalStorageDirectory(), "External storage", visitor);
+      } else {
+        for (File root : File.listRoots()) {
+          feedGood(root, "Root filesystem", visitor);
+        }
+      }
     } else {
       for (File dir : result) {
         feedGood(dir, visitor);
