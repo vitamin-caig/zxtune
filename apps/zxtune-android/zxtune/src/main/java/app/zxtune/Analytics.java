@@ -209,6 +209,7 @@ public class Analytics {
   public static void sendHostUnavailableEvent(String host) {
     final CustomEvent event = new CustomEvent("Investigation");
     event.putCustomAttribute("UnavailableHost", host);
+    send(event);
   }
 
   public static class JniLog {
