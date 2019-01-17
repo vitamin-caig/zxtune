@@ -48,7 +48,12 @@ final class HttpUrlConnectionProvider implements HttpProvider {
   @NonNull
   @Override
   public HttpObject getObject(Uri uri) throws IOException {
-    return new SimpleHttpObject(uri);
+    try {
+      return new SimpleHttpObject(uri);
+    } catch (IOException e) {
+      policy.checkConnectionError();
+      throw e;
+    }
   }
 
   private class SimpleHttpObject implements HttpObject {
