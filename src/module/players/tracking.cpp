@@ -13,6 +13,8 @@
 //common includes
 #include <pointers.h>
 #include <make_ptr.h>
+//library includes
+#include <sound/loop.h>
 
 namespace Module
 {
@@ -63,8 +65,20 @@ namespace Module
       : Model(std::move(model))
       , Order(Model->GetOrder())
       , Patterns(Model->GetPatterns())
+      , Loops()
     {
       Reset();
+    }
+
+    //State
+    uint_t Frame() const override
+    {
+      return Plain.Frame;
+    }
+
+    uint_t LoopCount() const override
+    {
+      return Loops;
     }
 
     //TrackState
@@ -91,11 +105,6 @@ namespace Module
     uint_t Quirk() const override
     {
       return Plain.Quirk;
-    }
-
-    uint_t Frame() const override
-    {
-      return Plain.Frame;
     }
 
     uint_t Channels() const override
@@ -130,6 +139,7 @@ namespace Module
       Plain.Frame = 0;
       Plain.Tempo = Model->GetInitialTempo();
       SetPosition(0);
+      Loops = 0;
     }
 
     void SetState(const PlainTrackState& state)
@@ -162,6 +172,11 @@ namespace Module
     bool NextFrame()
     {
       return NextQuirk() || NextLine() || NextPosition();
+    }
+
+    void DoneLoop()
+    {
+      ++Loops;
     }
   private:
     void SetPosition(uint_t pos)
@@ -231,6 +246,7 @@ namespace Module
     PlainTrackState Plain;
     const class Pattern* CurPatternObject;
     const class Line* CurLineObject;
+    uint_t Loops;
   };
 
   class TrackStateIteratorImpl : public TrackStateIterator
@@ -253,13 +269,13 @@ namespace Module
       return Cursor->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       if (!Cursor->IsValid())
       {
         return;
       }
-      if (!Cursor->NextFrame() && looped)
+      if (!Cursor->NextFrame() && looped(Cursor->LoopCount()))
       {
         MoveToLoop();
       }
@@ -282,6 +298,7 @@ namespace Module
         const PlainTrackState& loop = Cursor->GetState();
         LoopState.reset(new PlainTrackState(loop));
       }
+      Cursor->DoneLoop();
     }
   private:
     const TrackModel::Ptr Model;

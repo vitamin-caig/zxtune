@@ -32,7 +32,7 @@ namespace Module
     {
 #ifndef NDEBUG
 //perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame(false));
+      for (; Iterator->IsValid(); Iterator->NextFrame({}));
       Iterator->Reset();
 #endif
     }
@@ -71,7 +71,7 @@ namespace Module
       Device->Reset();
       LastChunk.TimeStamp = Devices::TFM::Stamp();
       FrameDuration = Devices::TFM::Stamp();
-      Looped = false;
+      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -87,7 +87,7 @@ namespace Module
       while (curFrame < frameNum && Iterator->IsValid())
       {
         TransferChunk();
-        Iterator->NextFrame(true);
+        Iterator->NextFrame({});
         ++curFrame;
       }
     }
@@ -112,7 +112,7 @@ namespace Module
     const Devices::TFM::Device::Ptr Device;
     Devices::TFM::DataChunk LastChunk;
     Devices::TFM::Stamp FrameDuration;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 }
 

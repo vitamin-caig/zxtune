@@ -215,6 +215,7 @@ namespace ASAP
         SoundParams.Reset();
         Iterator->Reset();
         Tune->Reset();
+        Looped = {};
       }
       catch (const std::exception& e)
       {
@@ -252,7 +253,7 @@ namespace ASAP
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    bool Looped;
+    Sound::LoopParameters Looped;
     std::size_t SamplesPerFrame;
   };
   

@@ -233,6 +233,7 @@ namespace GME
         SoundParams.Reset();
         Iterator->Reset();
         Tune->Reset();
+        Looped = {};
       }
       catch (const std::exception& e)
       {
@@ -280,7 +281,7 @@ namespace GME
     const StateIterator::Ptr Iterator;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

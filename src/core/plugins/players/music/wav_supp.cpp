@@ -85,6 +85,7 @@ namespace Wav
     {
       SoundParams.Reset();
       Iterator->Reset();
+      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -108,7 +109,7 @@ namespace Wav
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

@@ -45,7 +45,7 @@ namespace Module
         return Delegate->IsValid();
       }
 
-      void NextFrame(bool looped) override
+      void NextFrame(const Sound::LoopParameters& looped) override
       {
         Delegate->NextFrame(looped);
       }

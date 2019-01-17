@@ -288,6 +288,7 @@ namespace Mp3
       Tune.Reset();
       SoundParams.Reset();
       Iterator->Reset();
+      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -311,7 +312,7 @@ namespace Mp3
     const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     MultiFreqTargetsDispatcher Target;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

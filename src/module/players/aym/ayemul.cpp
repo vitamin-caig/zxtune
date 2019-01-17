@@ -590,7 +590,7 @@ namespace AYEMUL
       Comp->Reset();
       Device->Reset();
       FrameDuration = LastTime = Devices::Z80::Stamp();
-      Looped = false;
+      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -609,7 +609,7 @@ namespace AYEMUL
       uint_t toSkip = 0;
       while (curFrame < frameNum && Iterator->IsValid())
       {
-        Iterator->NextFrame(true);
+        Iterator->NextFrame({});
         ++curFrame;
         ++toSkip;
       }
@@ -631,7 +631,7 @@ namespace AYEMUL
     const DataChannel::Ptr Device;
     Devices::Z80::Stamp LastTime;
     Devices::Z80::Stamp FrameDuration;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class DataBuilder : public Formats::Chiptune::AY::Builder

@@ -636,7 +636,7 @@ void hvl_process_stepfx_1( struct hvl_tune *ht, struct hvl_voice *voice, int32 F
       ht->ht_PosJump      = ht->ht_PosJump*100 + (FXParam & 0x0f) + (FXParam >> 4)*10;
       ht->ht_PatternBreak = 1;
       if( ht->ht_PosJump <= ht->ht_PosNr )
-        ht->ht_SongEndReached = 1;
+        ++ht->ht_SongEndReached;
       break;
     
     case 0xd: // Pattern break
@@ -669,7 +669,7 @@ void hvl_process_stepfx_1( struct hvl_tune *ht, struct hvl_voice *voice, int32 F
     case 0xf: // Speed
       ht->ht_Tempo = FXParam;
       if( FXParam == 0 )
-        ht->ht_SongEndReached = 1;
+        ++ht->ht_SongEndReached;
       break;
   }  
 }
@@ -1667,7 +1667,7 @@ void hvl_play_irq( struct hvl_tune *ht )
       ht->ht_NoteNr       = ht->ht_PosJumpNote;
       if( ht->ht_PosNr == ht->ht_PositionNr )
       {
-        ht->ht_SongEndReached = 1;
+        ++ht->ht_SongEndReached;
         ht->ht_PosNr          = ht->ht_Restart;
       }
       ht->ht_PosJumpNote  = 0;

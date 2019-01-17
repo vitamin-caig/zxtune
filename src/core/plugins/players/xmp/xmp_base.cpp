@@ -178,6 +178,16 @@ namespace Xmp
     {
     }
 
+    uint_t Frame() const override
+    {
+      return TimeType(State->time).Get() / FrameDuration.Get();
+    }
+
+    uint_t LoopCount() const override
+    {
+      return State->loop_count;
+    }
+
     uint_t Position() const override
     {
       return State->pos;
@@ -201,11 +211,6 @@ namespace Xmp
     uint_t Quirk() const override
     {
       return State->frame;//???
-    }
-
-    uint_t Frame() const override
-    {
-      return TimeType(State->time).Get() / FrameDuration.Get();
     }
 
     uint_t Channels() const override
@@ -305,7 +310,7 @@ namespace Xmp
           std::memcpy(builder.Allocate(samples), State->buffer, bytes);
           Target->ApplyData(builder.CaptureResult());
         }
-        return Looped || State->loop_count == 0;
+        return Looped(State->loop_count);
       }
       catch (const std::exception&)
       {
@@ -351,7 +356,7 @@ namespace Xmp
     const Analyzer::Ptr Analysis;
     const TimeType FrameDuration;
     uint_t SoundFreq;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

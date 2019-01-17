@@ -28,5 +28,8 @@ namespace Module
 
     //! Current frame in track (up to Information::FramesCount)
     virtual uint_t Frame() const = 0;
+
+    //! Count of restarts due to looping
+    virtual uint_t LoopCount() const = 0;
   };
 }

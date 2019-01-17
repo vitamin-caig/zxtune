@@ -248,6 +248,11 @@ namespace Module
         val = 1;
         return true;
       }
+      if (name == Parameters::ZXTune::Sound::LOOP_LIMIT)
+      {
+        val = 0;
+        return true;
+      }
       else
       {
         return false;
@@ -267,6 +272,7 @@ namespace Module
     void Process(class Parameters::Visitor& visitor) const override
     {
       visitor.SetValue(Parameters::ZXTune::Sound::LOOPED, 1);
+      visitor.SetValue(Parameters::ZXTune::Sound::LOOP_LIMIT, 0);
     }
   };
   

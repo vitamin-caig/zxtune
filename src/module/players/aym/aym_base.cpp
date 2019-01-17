@@ -74,7 +74,7 @@ namespace Module
     {
 #ifndef NDEBUG
 //perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame(false));
+      for (; Iterator->IsValid(); Iterator->NextFrame({}));
       Iterator->Reset();
 #endif
     }
@@ -113,7 +113,7 @@ namespace Module
       Device->Reset();
       LastChunk.TimeStamp = Devices::AYM::Stamp();
       FrameDuration = Devices::AYM::Stamp();
-      Looped = false;
+      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -129,7 +129,7 @@ namespace Module
       while (curFrame < frameNum && Iterator->IsValid())
       {
         TransferChunk();
-        Iterator->NextFrame(true);
+        Iterator->NextFrame({});
         ++curFrame;
       }
     }
@@ -154,7 +154,7 @@ namespace Module
     const Devices::AYM::Device::Ptr Device;
     Devices::AYM::DataChunk LastChunk;
     Devices::AYM::Stamp FrameDuration;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class StubAnalyzer : public Module::Analyzer

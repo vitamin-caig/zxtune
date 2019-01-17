@@ -12,6 +12,8 @@
 #include "streaming.h"
 //common includes
 #include <make_ptr.h>
+//library includes
+#include <sound/loop.h>
 //std includes
 #include <utility>
 
@@ -27,6 +29,7 @@ namespace Module
     explicit StreamStateCursor(Information::Ptr info)
       : Info(std::move(info))
       , CurFrame()
+      , Loops()
     {
       Reset();
     }
@@ -35,6 +38,11 @@ namespace Module
     uint_t Frame() const override
     {
       return CurFrame;
+    }
+
+    uint_t LoopCount() const override
+    {
+      return Loops;
     }
 
     //navigation
@@ -46,11 +54,13 @@ namespace Module
     void Reset()
     {
       CurFrame = 0;
+      Loops = 0;
     }
 
     void ResetToLoop()
     {
       CurFrame = Info->LoopFrame();
+      ++Loops;
     }
 
     void NextFrame()
@@ -63,6 +73,7 @@ namespace Module
   private:
     const Information::Ptr Info;
     uint_t CurFrame;
+    uint_t Loops;
   };
 
   class StreamInfo : public Information
@@ -112,10 +123,10 @@ namespace Module
       return Cursor->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       Cursor->NextFrame();
-      if (!Cursor->IsValid() && looped)
+      if (!Cursor->IsValid() && looped(Cursor->LoopCount()))
       {
         Cursor->ResetToLoop();
       }

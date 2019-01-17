@@ -199,6 +199,7 @@ namespace Sid
       SoundParams.Reset();
       Engine->stop();
       Iterator->Reset();
+      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -280,7 +281,7 @@ namespace Sid
     SidConfig Config;
     //cache filter flag
     bool UseFilter;
-    bool Looped;
+    Sound::LoopParameters Looped;
     std::size_t SamplesPerFrame;
   };
 
