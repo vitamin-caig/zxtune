@@ -29,10 +29,15 @@ public class TransactionalOutputStream extends OutputStream {
   public void close() throws IOException {
     delegate.close();
     delegate = null;
-    if (confirmed && temporary.renameTo(target)) {
-      return;
+    if (confirmed) {
+      if (!Io.rename(temporary, target)) {
+        final String msg = "Failed to rename " + temporary + " to " + target;
+        throw temporary.delete()
+          ? new IOException(msg)
+          : new IOException(msg, new IOException("Failed to delete temporary " + temporary));
+      }
     } else if (!temporary.delete()) {
-      throw new IOException("Failed to delete " + temporary);
+      throw new IOException("Failed to cleanup unconfirmed " + temporary);
     }
   }
 

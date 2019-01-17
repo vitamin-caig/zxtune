@@ -1,12 +1,16 @@
 package app.zxtune.io;
 
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 
 import java.io.*;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import app.zxtune.Log;
 
@@ -220,5 +224,25 @@ public class Io {
         Log.w(TAG, e, "Failed to update file timestamp");
       }
     }
+  }
+
+  public static boolean rename(File oldName, File newName) {
+    if (Build.VERSION.SDK_INT >= 26) {
+      return renameViaFiles(oldName, newName);
+    } else {
+      return oldName.renameTo(newName)
+          || (newName.exists() && newName.delete() && oldName.renameTo(newName));
+    }
+  }
+
+  @RequiresApi(26)
+  private static boolean renameViaFiles(File oldName, File newName) {
+    try {
+      Files.move(oldName.toPath(), newName.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+      return true;
+    } catch (IOException e) {
+      Log.w(TAG, e, "Failed to rename '%s' -> '%s'", oldName.getAbsolutePath(), newName.getAbsolutePath());
+    }
+    return false;
   }
 }
