@@ -5,6 +5,13 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4340 from 20.01.2019
+
+[+] Supported loops count limitation
+[*] zxtune-android: fixed errors on some joshw catalogues navigation and scanning
+[*] zxtune-android: fixed cache update on some devices
+[*] zxtune-android: show fallback root directory if there're no mountpoints for Local Storage catalogue
+
 --- Rev4310 from 18.12.2018
 
 [+] Added 4-bit MS-ADPCM and IMA-ADPCM codecs support for WAV
