@@ -37,7 +37,7 @@ public final class MultisourceHttpProvider {
         if (isLast || !delegate.hasConnection()) {
           throw ex;
         } else {
-          disable(uri, now);
+          disable(uri, now, ex);
         }
       }
     }
@@ -58,7 +58,7 @@ public final class MultisourceHttpProvider {
         if (isLast || !delegate.hasConnection()) {
           throw ex;
         } else {
-          disable(uri, now);
+          disable(uri, now, ex);
         }
       }
     }
@@ -69,9 +69,9 @@ public final class MultisourceHttpProvider {
     return hostDisabledTill.containsKey(host) && hostDisabledTill.get(host) > now;
   }
 
-  private void disable(Uri uri, long now) {
+  private void disable(Uri uri, long now, IOException e) {
     final String host = uri.getHost();
-    Log.d(TAG, "Temporarily disable requests to %s", host);
+    Log.w(TAG, e, "Temporarily disable requests to %s", host);
     Analytics.sendHostUnavailableEvent(host);
     hostDisabledTill.put(host, now + QUARANTINE_PERIOD_MS);
   }
