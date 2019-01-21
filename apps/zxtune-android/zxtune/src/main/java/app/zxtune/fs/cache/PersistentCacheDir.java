@@ -2,16 +2,13 @@ package app.zxtune.fs.cache;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
 import app.zxtune.io.Io;
-import app.zxtune.io.TransactionalOutputStream;
 
 final class PersistentCacheDir implements CacheDir {
   private static final String TAG = PersistentCacheDir.class.getName();
@@ -46,18 +43,6 @@ final class PersistentCacheDir implements CacheDir {
     return parent.isDirectory() || (parent.mkdirs() && parent.isDirectory());
   }
 
-  @Nullable
-  @Override
-  public ByteBuffer findFile(String... ids) {
-    for (String id : ids) {
-      final ByteBuffer res = findFile(id);
-      if (res != null) {
-        return res;
-      }
-    }
-    return null;
-  }
-
   private ByteBuffer findFile(String id) {
     try {
       final File file = getSub(id);
@@ -90,13 +75,6 @@ final class PersistentCacheDir implements CacheDir {
       }
     }
     return Uri.EMPTY;
-  }
-
-  @Override
-  public OutputStream createFile(String id) throws IOException {
-    final File file = getSub(id);
-    Log.d(TAG, "Create cached file stream %s", file.getAbsolutePath());
-    return new TransactionalOutputStream(file);
   }
 
   @Override

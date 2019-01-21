@@ -14,12 +14,7 @@ public interface CacheDir {
   @NonNull
   File findOrCreate(String... ids) throws IOException;
 
-  @Nullable
-  ByteBuffer findFile(String... ids);
-
   Uri createFile(String id, ByteBuffer data);
-
-  OutputStream createFile(String id) throws IOException;
 
   CacheDir createNested(String id);
 }
