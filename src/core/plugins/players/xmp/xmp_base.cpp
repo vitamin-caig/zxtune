@@ -310,7 +310,7 @@ namespace Xmp
           std::memcpy(builder.Allocate(samples), State->buffer, bytes);
           Target->ApplyData(builder.CaptureResult());
         }
-        return Looped(State->loop_count);
+        return State->loop_count == 0 || Looped(State->loop_count);
       }
       catch (const std::exception&)
       {
