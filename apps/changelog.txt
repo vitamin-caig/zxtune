@@ -5,6 +5,11 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4350 from 22.01.2019
+
+[*] Fixed some formats playback
+[*] zxtune-android: postpone cache update after first fail
+
 --- Rev4340 from 20.01.2019
 
 [+] Supported loops count limitation
