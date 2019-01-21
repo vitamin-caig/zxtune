@@ -89,6 +89,9 @@ public class CommandExecutor {
           return Io.readFrom(cache);
         } catch (IOException e) {
           Log.w(TAG, new IOException(e), "Failed to update cache");
+          if (!isEmpty) {
+            Io.touch(cache);
+          }
         }
       }
       if (cache.canRead()) {
