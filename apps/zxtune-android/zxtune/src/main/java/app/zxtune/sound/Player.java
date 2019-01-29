@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Sound player interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.sound;
@@ -19,11 +15,7 @@ public interface Player {
 
   void stopPlayback();
 
-  void pausePlayback();
-  
   boolean isStarted();
 
-  boolean isPaused();
-  
   void release();
 }

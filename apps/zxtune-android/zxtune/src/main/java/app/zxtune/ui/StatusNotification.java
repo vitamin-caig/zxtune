@@ -14,7 +14,6 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Action;
 import android.support.v4.content.res.ResourcesCompat;
@@ -38,30 +37,27 @@ public class StatusNotification extends CallbackStub {
 
   private static final String TAG = StatusNotification.class.getName();
 
-  private static final int NOTIFICATION_DELAY = 200;
+  private static final int ACTION_PREV = 0;
+  private static final int ACTION_PLAY_PAUSE = 1;
+  private static final int ACTION_NEXT = 2;
 
-  private final Handler scheduler;
-  private final Runnable delayedHide;
   private final Service service;
   private final Notifications.Controller notification;
 
   public StatusNotification(Service service, MediaSessionCompat.Token sessionToken) {
-    this.scheduler = new Handler();
-    this.delayedHide = new DelayedHideCallback();
     this.service = service;
     this.notification = Notifications.createForService(service, R.drawable.ic_stat_notify_play);
     // Little trick for Android O that requires startForeground call in 5 seconds after service start
     // But initialization may take longer...
-    showNotification();
+    startForeground();
     notification.getBuilder()
         .setContentIntent(MainActivity.createPendingIntent(service))
         .addAction(R.drawable.ic_prev, "", createServiceIntent(MainService.ACTION_PREV))
         .addAction(createPauseAction())
         .addAction(R.drawable.ic_next, "", createServiceIntent(MainService.ACTION_NEXT))
-        .addAction(R.drawable.ic_stop, "", createServiceIntent(MainService.ACTION_STOP))
         .setStyle(new MediaStyle()
-                .setShowActionsInCompactView(0/*prev*/, 1/*play/pause*/, 2/*next*/)
-                .setMediaSession(sessionToken)
+                      .setShowActionsInCompactView(ACTION_PREV, ACTION_PLAY_PAUSE, ACTION_NEXT)
+                      .setMediaSession(sessionToken)
             //Takes way too much place on 4.4.2
             //.setCancelButtonIntent(createServiceIntent(MainService.ACTION_STOP))
             //.setShowCancelButton(true)
@@ -71,7 +67,7 @@ public class StatusNotification extends CallbackStub {
   }
 
   private Action createPauseAction() {
-    return new NotificationCompat.Action(R.drawable.ic_pause, "", createServiceIntent(MainService.ACTION_PAUSE));
+    return new NotificationCompat.Action(R.drawable.ic_pause, "", createServiceIntent(MainService.ACTION_STOP));
   }
 
   private Action createPlayAction() {
@@ -106,31 +102,18 @@ public class StatusNotification extends CallbackStub {
 
   @Override
   public void onStateChanged(PlaybackControl.State state) {
-    final boolean isPlaying = state != PlaybackControl.State.STOPPED;
-    final boolean isPaused = state == PlaybackControl.State.PAUSED;
+    final boolean isPlaying = state == PlaybackControl.State.PLAYING;
+    notification.getBuilder().mActions.set(ACTION_PLAY_PAUSE, isPlaying ? createPauseAction() : createPlayAction());
     if (isPlaying) {
-      notification.getBuilder().mActions.set(1, isPaused ? createPlayAction() : createPauseAction());
-      showNotification();
-    } else {
-      hideNotification();
+      startForeground();
+    } else if (state != PlaybackControl.State.PLAYING) {
+      notification.show();
+      service.stopForeground(false);
     }
   }
 
-  private void showNotification() {
-    scheduler.removeCallbacks(delayedHide);
+  private void startForeground() {
     service.startForeground(notification.getId(), notification.show());
-  }
-
-  private void hideNotification() {
-    scheduler.postDelayed(delayedHide, NOTIFICATION_DELAY);
-  }
-
-  private class DelayedHideCallback implements Runnable {
-    @Override
-    public void run() {
-      notification.hide();
-      service.stopForeground(true);
-    }
   }
 
   private Bitmap getLocationIcon(Uri location) {

@@ -49,10 +49,6 @@ class AsyncSamplesTarget {
     target.stop();
   }
 
-  final void pause() throws Exception {
-    target.pause();
-  }
-
   @NonNull
   final short[] getBuffer() throws Exception {
     final short[] result = inputBuffer;

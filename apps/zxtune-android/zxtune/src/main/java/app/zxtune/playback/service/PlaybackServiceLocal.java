@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Local implementation of PlaybackService
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.playback.service;
@@ -82,7 +78,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   @Override
   public Item getNowPlaying() {
-    synchronized (holderGuard) {
+    synchronized(holderGuard) {
       return holder.item;
     }
   }
@@ -103,14 +99,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     private final TimeStamp position;
 
     RestoreSessionCommand(Uri uri, TimeStamp position) {
-      this.uris = new Uri[] {uri};
+      this.uris = new Uri[]{uri};
       this.position = position;
     }
 
     @Override
     public void execute() throws Exception {
       final Iterator iter = IteratorFactory.createIterator(context, uris);
-      synchronized (holderGuard) {
+      synchronized(holderGuard) {
         setNewIterator(iter);
         seek.setPosition(position);
       }
@@ -176,7 +172,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
 
   private void play(Iterator iter) throws Exception {
-    synchronized (holderGuard) {
+    synchronized(holderGuard) {
       setNewIterator(iter);
       holder.player.startPlayback();
     }
@@ -190,7 +186,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   private Iterator getNextIterator() {
-    synchronized (holderGuard) {
+    synchronized(holderGuard) {
       return holder.iterator.next() ? holder.iterator : null;
     }
   }
@@ -203,7 +199,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   private Iterator getPrevIterator() {
-    synchronized (holderGuard) {
+    synchronized(holderGuard) {
       return holder.iterator.prev() ? holder.iterator : null;
     }
   }
@@ -241,7 +237,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   @Override
   public void release() {
     shutdownExecutor();
-    synchronized (holderGuard) {
+    synchronized(holderGuard) {
       try {
         holder.player.stopPlayback();
       } finally {
@@ -351,7 +347,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       executeCommand(new Command() {
         @Override
         public void execute() {
-          synchronized (holderGuard) {
+          synchronized(holderGuard) {
             holder.player.startPlayback();
           }
         }
@@ -363,7 +359,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       executeCommand(new Command() {
         @Override
         public void execute() {
-          synchronized (holderGuard) {
+          synchronized(holderGuard) {
             holder.player.stopPlayback();
           }
         }
@@ -371,25 +367,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void pause() {
-      executeCommand(new Command() {
-        @Override
-        public void execute() {
-          synchronized (holderGuard) {
-            holder.player.pausePlayback();
-          }
-        }
-      });
-    }
-
-    @Override
     public PlaybackControl.State getState() {
-      synchronized (holderGuard) {
+      synchronized(holderGuard) {
         final Player player = holder.player;
         return player.isStarted()
-            ? (player.isPaused() ? State.PAUSED
-            : State.PLAYING)
-            : State.STOPPED;
+                   ? State.PLAYING
+                   : State.STOPPED;
       }
     }
 
@@ -441,21 +424,21 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public TimeStamp getDuration() throws Exception {
-      synchronized (holderGuard) {
+      synchronized(holderGuard) {
         return holder.seek.getDuration();
       }
     }
 
     @Override
     public TimeStamp getPosition() throws Exception {
-      synchronized (holderGuard) {
+      synchronized(holderGuard) {
         return holder.seek.getPosition();
       }
     }
 
     @Override
     public void setPosition(TimeStamp position) throws Exception {
-      synchronized (holderGuard) {
+      synchronized(holderGuard) {
         holder.seek.setPosition(position);
       }
     }
@@ -465,7 +448,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public int getSpectrum(int[] bands, int[] levels) throws Exception {
-      synchronized (holderGuard) {
+      synchronized(holderGuard) {
         return holder.visualizer.getSpectrum(bands, levels);
       }
     }

@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.sound;
@@ -16,11 +12,11 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 
 public final class WaveWriteSamplesTarget implements SamplesTarget {
-  
+
   private static final int SAMPLERATE = 44100;
   private static final int CHANNELS = 1;
   private static final int BYTES_PER_SAMPLE = 2;
-  
+
   private static final byte header[] = {
       //+0
       'R', 'I', 'F', 'F',
@@ -84,12 +80,9 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
   }
 
   @Override
-  public void pause() {}
-
-  @Override
   public void writeSamples(@NonNull short[] input) throws Exception {
     final int inSamples = input.length / SamplesSource.Channels.COUNT;
-    final int outBytes = inSamples * SamplesSource.Sample.BYTES; 
+    final int outBytes = inSamples * SamplesSource.Sample.BYTES;
     allocateBuffer(outBytes);
     convertBuffer(input, outBytes);
     file.write(buffer, 0, outBytes);
@@ -110,7 +103,7 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
   @Override
   public void release() {
   }
-  
+
   private void allocateBuffer(int size) {
     if (buffer.length < size) {
       buffer = new byte[size];
@@ -118,8 +111,7 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
   }
 
   private void convertBuffer(short[] input, int outBytes) {
-    for (int in = 0, out = 0; out < outBytes; )
-    {
+    for (int in = 0, out = 0; out < outBytes; ) {
       int sample = 0;
       for (int ch = 0; ch != SamplesSource.Channels.COUNT; ++ch) {
         sample += input[in++];
@@ -129,7 +121,7 @@ public final class WaveWriteSamplesTarget implements SamplesTarget {
       buffer[out++] = (byte) ((sample >> 8) & 0xff);
     }
   }
-  
+
   private void setHeaderLE32(int offset, int value) {
     for (int b = 0; b != 4; ++b) {
       header[offset++] = (byte) (value & 0xff);

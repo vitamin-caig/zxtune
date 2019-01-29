@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Handling media button events
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune;
@@ -43,7 +39,7 @@ public class MediaEventsHandler extends BroadcastReceiver {
       final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
       return getAction(event);
     } else if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
-      return MainService.ACTION_PAUSE;
+      return MainService.ACTION_STOP;
     } else {
       return null;
     }
@@ -64,14 +60,12 @@ public class MediaEventsHandler extends BroadcastReceiver {
       case KeyEvent.KEYCODE_MEDIA_PLAY:
         return MainService.ACTION_PLAY;
       case KeyEvent.KEYCODE_MEDIA_PAUSE:
-        return MainService.ACTION_PAUSE;
       case KeyEvent.KEYCODE_MEDIA_STOP:
         return MainService.ACTION_STOP;
       case KeyEvent.KEYCODE_HEADSETHOOK:
-        //else another player may steal sound session and control
-        return MainService.ACTION_TOGGLE_PLAY_PAUSE;
       case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-        return MainService.ACTION_TOGGLE_PLAY_PAUSE;
+        //else another player may steal sound session and control
+        return MainService.ACTION_TOGGLE_PLAY_STOP;
       case KeyEvent.KEYCODE_MEDIA_NEXT:
         return MainService.ACTION_NEXT;
       default:

@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Synchronous implementation of Player
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.sound;
@@ -21,9 +17,6 @@ public final class AsyncPlayer implements Player {
   private static final int STOPPED = 0;
   private static final int STARTING = 1;
   private static final int STARTED = 2;
-  private static final int PAUSING = 3;
-  private static final int PAUSED = 4;
-  private static final int RESUMING = 5;
 
   private final PlayerEventsListener events;
   private final AtomicInteger state;
@@ -53,10 +46,6 @@ public final class AsyncPlayer implements Player {
         }
       };
       thread.start();
-    } else if (state.compareAndSet(PAUSED, RESUMING)) {
-      synchronized (state) {
-        state.notify();
-      }
     }
   }
 
@@ -77,11 +66,6 @@ public final class AsyncPlayer implements Player {
   }
 
   @Override
-  public void pausePlayback() {
-    state.compareAndSet(STARTED, PAUSING);
-  }
-
-  @Override
   public void stopPlayback() {
     if (doStop()) {
       try {
@@ -97,11 +81,9 @@ public final class AsyncPlayer implements Player {
   }
 
   private boolean doStop() {
-    synchronized (state) {
+    synchronized(state) {
       if (state.compareAndSet(STOPPED, STOPPED)) {
         return false;
-      } else if (state.compareAndSet(PAUSED, STOPPED)) {
-        state.notify();
       } else {
         state.set(STOPPED);
       }
@@ -112,11 +94,6 @@ public final class AsyncPlayer implements Player {
   @Override
   public boolean isStarted() {
     return state.get() == STARTED;
-  }
-
-  @Override
-  public boolean isPaused() {
-    return state.get() == PAUSED;
   }
 
   @Override
@@ -131,16 +108,12 @@ public final class AsyncPlayer implements Player {
     state.set(STARTED);
     try {
       while (!state.compareAndSet(STOPPED, STOPPED)) {
-        if (state.compareAndSet(PAUSING, PAUSED)) {
-          doPause();
+        final short[] buf = target.getBuffer();
+        if (source.getSamples(buf)) {
+          target.commitBuffer();
         } else {
-          final short[] buf = target.getBuffer();
-          if (source.getSamples(buf)) {
-            target.commitBuffer();
-          } else {
-            events.onFinish();
-            break;
-          }
+          events.onFinish();
+          break;
         }
       }
     } catch (InterruptedException e) {
@@ -152,18 +125,4 @@ public final class AsyncPlayer implements Player {
       events.onStop();
     }
   }
-
-  private void doPause() throws Exception {
-    target.pause();
-    events.onPause();
-    synchronized (state) {
-      while (state.compareAndSet(PAUSED, PAUSED)) {
-        state.wait();
-      }
-    }
-    if (state.compareAndSet(RESUMING, STARTED)) {
-      events.onStart();
-    }
-  }
-
 }

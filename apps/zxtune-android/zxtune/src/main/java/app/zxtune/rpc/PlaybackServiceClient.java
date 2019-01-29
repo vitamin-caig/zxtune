@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Remote client stub of PlaybackService
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.rpc;
@@ -31,7 +27,7 @@ import app.zxtune.playback.stubs.ItemStub;
 public final class PlaybackServiceClient implements PlaybackService {
 
   private static final String TAG = PlaybackServiceClient.class.getName();
-  
+
   private final IRemotePlaybackService delegate;
   private final PlaylistControl playlist;
   private final PlaybackControl playback;
@@ -54,7 +50,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       Log.w(TAG, e, "subscribe()");
     }
   }
-  
+
   @Override
   public Item getNowPlaying() {
     try {
@@ -64,7 +60,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       return ItemStub.instance();
     }
   }
-  
+
   @Override
   public void setNowPlaying(Uri[] uris) {
     try {
@@ -73,17 +69,17 @@ public final class PlaybackServiceClient implements PlaybackService {
       Log.w(TAG, e, "setNowPlaying()");
     }
   }
-  
+
   @Override
   public PlaylistControl getPlaylistControl() {
     return playlist;
   }
-  
+
   @Override
   public PlaybackControl getPlaybackControl() {
     return playback;
   }
-  
+
   @Override
   public SeekControl getSeekControl() {
     return seek;
@@ -98,7 +94,7 @@ public final class PlaybackServiceClient implements PlaybackService {
   public void subscribe(Callback callback) {
     callbacks.add(callback);
   }
-  
+
   @Override
   public void unsubscribe(Callback callback) {
     callbacks.remove(callback);
@@ -111,7 +107,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       }
     }
   }
-  
+
   private class PlaylistControlClient implements PlaylistControl {
 
     @Override
@@ -131,7 +127,7 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.w(TAG, e, "delete()");
       }
     }
-    
+
     @Override
     public void deleteAll() {
       try {
@@ -149,7 +145,7 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.w(TAG, e, "move()");
       }
     }
-    
+
     @Override
     public void sort(SortBy field, SortOrder order) {
       try {
@@ -159,24 +155,15 @@ public final class PlaybackServiceClient implements PlaybackService {
       }
     }
   }
-  
-  private class PlaybackControlClient implements PlaybackControl  {
-    
+
+  private class PlaybackControlClient implements PlaybackControl {
+
     @Override
     public void play() {
       try {
         delegate.play();
       } catch (RemoteException e) {
         Log.w(TAG, e, "play()");
-      }
-    }
-
-    @Override
-    public void pause() {
-      try {
-        delegate.pause();
-      } catch (RemoteException e) {
-        Log.w(TAG, e, "pause()");
       }
     }
 
@@ -198,7 +185,7 @@ public final class PlaybackServiceClient implements PlaybackService {
         return State.STOPPED;
       }
     }
-    
+
     @Override
     public void next() {
       try {
@@ -207,7 +194,7 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.w(TAG, e, "next()");
       }
     }
-    
+
     @Override
     public void prev() {
       try {
@@ -216,7 +203,7 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.w(TAG, e, "prev()");
       }
     }
-    
+
     @Override
     public TrackMode getTrackMode() {
       try {
@@ -226,7 +213,7 @@ public final class PlaybackServiceClient implements PlaybackService {
         return TrackMode.REGULAR;
       }
     }
-    
+
     @Override
     public void setTrackMode(TrackMode mode) {
       try {
@@ -245,7 +232,7 @@ public final class PlaybackServiceClient implements PlaybackService {
         return SequenceMode.ORDERED;
       }
     }
-    
+
     @Override
     public void setSequenceMode(SequenceMode mode) {
       try {
@@ -255,9 +242,9 @@ public final class PlaybackServiceClient implements PlaybackService {
       }
     }
   }
-  
+
   private class SeekControlClient implements SeekControl {
-  
+
     @Override
     public TimeStamp getDuration() {
       try {
@@ -287,9 +274,9 @@ public final class PlaybackServiceClient implements PlaybackService {
       }
     }
   }
-  
+
   private class VisualizerClient implements Visualizer {
-    
+
     @Override
     public int getSpectrum(int[] bands, int[] levels) {
       try {
@@ -307,15 +294,15 @@ public final class PlaybackServiceClient implements PlaybackService {
       }
     }
   }
-  
+
   private static class CallbackServer extends IRemoteCallback.Stub {
-    
+
     private final Callback delegate;
-    
-    public CallbackServer(Callback delegate) {
+
+    CallbackServer(Callback delegate) {
       this.delegate = delegate;
     }
-    
+
     @Override
     public void onInitialState(int state, ParcelablePlaybackItem item, boolean ioStatus) {
       delegate.onInitialState(PlaybackControl.State.values()[state], item, ioStatus);
@@ -325,17 +312,17 @@ public final class PlaybackServiceClient implements PlaybackService {
     public void onStateChanged(int state) {
       delegate.onStateChanged(PlaybackControl.State.values()[state]);
     }
-    
+
     @Override
     public void onItemChanged(ParcelablePlaybackItem item) {
       delegate.onItemChanged(item);
     }
-    
+
     @Override
     public void onIOStatusChanged(boolean isActive) {
       delegate.onIOStatusChanged(isActive);
     }
-    
+
     @Override
     public void onError(String error) {
       delegate.onError(error);

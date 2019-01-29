@@ -1,17 +1,13 @@
 /**
- *
  * @file
- *
  * @brief Stub singleton implementation of Player
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.sound;
 
 public class StubPlayer implements Player {
-  
+
   @Override
   public void startPlayback() {}
 
@@ -19,15 +15,7 @@ public class StubPlayer implements Player {
   public void stopPlayback() {}
 
   @Override
-  public void pausePlayback() {}
-  
-  @Override
   public boolean isStarted() {
-    return false;
-  }
-
-  @Override
-  public boolean isPaused() {
     return false;
   }
 

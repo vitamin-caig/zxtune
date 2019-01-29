@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Player events listener interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.sound;
@@ -32,11 +28,6 @@ public interface PlayerEventsListener {
    */
   void onStop();
 
-  /**
-   * Called when playback is paused
-   */
-  void onPause();
-  
   /**
    * Called on unexpected error occurred
    * @param e Exception happened

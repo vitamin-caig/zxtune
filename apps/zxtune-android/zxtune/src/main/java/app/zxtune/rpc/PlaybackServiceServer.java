@@ -98,11 +98,6 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   }
 
   @Override
-  public void pause() {
-    playback.pause();
-  }
-
-  @Override
   public void stop() {
     playback.stop();
   }

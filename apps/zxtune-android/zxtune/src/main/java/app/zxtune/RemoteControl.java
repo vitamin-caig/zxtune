@@ -37,7 +37,7 @@ class RemoteControl implements Releaseable {
     return new RemoteControl(context, svc);
   }
 
-  public final MediaSessionCompat.Token getSessionToken() {
+  final MediaSessionCompat.Token getSessionToken() {
     return session.getSessionToken();
   }
 
@@ -65,13 +65,12 @@ class RemoteControl implements Releaseable {
     @Override
     public void onStateChanged(PlaybackControl.State state) {
       final boolean isPlaying = state == PlaybackControl.State.PLAYING;
-      final boolean isPaused = state == PlaybackControl.State.PAUSED;
-      final int stateCompat = isPlaying ? PlaybackStateCompat.STATE_PLAYING :
-                                  (isPaused ?
-                                       PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_STOPPED);
+      final int stateCompat = isPlaying
+                                  ? PlaybackStateCompat.STATE_PLAYING
+                                  : PlaybackStateCompat.STATE_STOPPED;
       builder.setState(stateCompat, -1, 1);
       session.setPlaybackState(builder.build());
-      session.setActive(isPlaying || isPaused);
+      session.setActive(isPlaying);
     }
 
     @Override
@@ -114,7 +113,7 @@ class RemoteControl implements Releaseable {
 
     @Override
     public void onPause() {
-      ctrl.pause();
+      ctrl.stop();
     }
 
     @Override

@@ -66,11 +66,6 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
   }
 
   @Override
-  public synchronized void pause() {
-    target.pause();
-  }
-
-  @Override
   public synchronized void writeSamples(@NonNull short[] buffer) throws Exception {
     for (int pos = 0, toWrite = buffer.length; toWrite != 0;) {
       final int written = target.write(buffer, pos, toWrite);
