@@ -42,6 +42,9 @@ public class StatusNotification extends CallbackStub {
     this.delayedHide = new DelayedHideCallback();
     this.service = service;
     this.notification = Notifications.createForService(service, R.drawable.ic_stat_notify_play);
+    // Little trick for Android O that requires startForeground call in 5 seconds after service start
+    // But initialization may take longer...
+    showNotification();
     notification.getBuilder()
         .setContentIntent(MainActivity.createPendingIntent(service))
         .addAction(R.drawable.ic_prev, "", createServiceIntent(MainService.ACTION_PREV))
@@ -56,6 +59,7 @@ public class StatusNotification extends CallbackStub {
             //.setShowCancelButton(true)
         )
     ;
+    service.stopForeground(true);
   }
 
   private Action createPauseAction() {
@@ -94,29 +98,27 @@ public class StatusNotification extends CallbackStub {
     final boolean isPlaying = state != PlaybackControl.State.STOPPED;
     final boolean isPaused = state == PlaybackControl.State.PAUSED;
     if (isPlaying) {
-      scheduler.removeCallbacks(delayedHide);
       notification.getBuilder().mActions.set(1, isPaused ? createPlayAction() : createPauseAction());
       showNotification();
     } else {
-      scheduler.postDelayed(delayedHide, NOTIFICATION_DELAY);
+      hideNotification();
     }
   }
 
   private void showNotification() {
-    final Intent intent = new Intent(service, MainService.class);
-    ContextCompat.startForegroundService(service, intent);
+    scheduler.removeCallbacks(delayedHide);
     service.startForeground(notification.getId(), notification.show());
   }
 
   private void hideNotification() {
-    notification.hide();
-    service.stopForeground(true);
+    scheduler.postDelayed(delayedHide, NOTIFICATION_DELAY);
   }
 
   private class DelayedHideCallback implements Runnable {
     @Override
     public void run() {
-      hideNotification();
+      notification.hide();
+      service.stopForeground(true);
     }
   }
 }
