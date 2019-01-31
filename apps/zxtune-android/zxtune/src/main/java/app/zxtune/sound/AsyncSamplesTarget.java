@@ -32,13 +32,16 @@ class AsyncSamplesTarget {
   }
 
   final void release() {
-    thread.interrupt();
-    target.release();
-    try {
-      thread.join();
-    } catch (InterruptedException e) {
-      Log.w(TAG, e, "Failed to release");
+    while (true) {
+      thread.interrupt();
+      try {
+        thread.join();
+        break;
+      } catch (InterruptedException e) {
+        Log.w(TAG, new Exception(e), "Failed to release");
+      }
     }
+    target.release();
   }
 
   final void start() throws Exception {
@@ -66,12 +69,12 @@ class AsyncSamplesTarget {
   private void consumeCycle() {
     try {
       while (true) {
-        outputBuffer = exchanger.exchange(outputBuffer);
+        outputBuffer = exchanger.exchange(outputBuffer);//interruption point
         target.writeSamples(outputBuffer);
       }
     } catch (InterruptedException e) {
     } catch (Exception e) {
-      Log.w(TAG, e, "Error in consume cycle");
+      Log.w(TAG, new Exception(e), "Error in consume cycle");
     } finally {
       inputBuffer = null;
       outputBuffer = null;

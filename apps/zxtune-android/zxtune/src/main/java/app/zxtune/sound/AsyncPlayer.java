@@ -17,6 +17,7 @@ public final class AsyncPlayer implements Player {
   private static final int STOPPED = 0;
   private static final int STARTING = 1;
   private static final int STARTED = 2;
+  private static final int STOPPING = 3;
 
   private final PlayerEventsListener events;
   private final AtomicInteger state;
@@ -60,6 +61,7 @@ public final class AsyncPlayer implements Player {
         target.stop();
       }
     } catch (Exception e) {
+      Log.w(TAG, new Exception(e), "Playback initialization failed");
       events.onError(e);
       state.set(STOPPED);
     }
@@ -67,33 +69,24 @@ public final class AsyncPlayer implements Player {
 
   @Override
   public void stopPlayback() {
-    if (doStop()) {
-      try {
-        thread.join();
-      } catch (InterruptedException e) {
-        Log.w(TAG, e, "Interrupted while stopping");
-      } finally {
-        thread = null;
+    if (state.compareAndSet(STARTED, STOPPING)) {
+      while (true) {
+        thread.interrupt();
+        try {
+          thread.join();
+          break;
+        } catch (InterruptedException e) {
+          Log.w(TAG, new Exception(e), "Interrupted while stopping");
+        }
       }
-    } else {
-      Log.d(TAG, "Already stopped");
-    }
-  }
-
-  private boolean doStop() {
-    synchronized(state) {
-      if (state.compareAndSet(STOPPED, STOPPED)) {
-        return false;
-      } else {
-        state.set(STOPPED);
-      }
-      return true;
+      thread = null;
+      state.set(STOPPED);
     }
   }
 
   @Override
   public boolean isStarted() {
-    return state.get() == STARTED;
+    return state.compareAndSet(STARTED, STARTED);
   }
 
   @Override
@@ -104,24 +97,25 @@ public final class AsyncPlayer implements Player {
   }
 
   private void transferCycle() {
-    events.onStart();
     state.set(STARTED);
+    events.onStart();
     try {
-      while (!state.compareAndSet(STOPPED, STOPPED)) {
+      while (isStarted()) {
         final short[] buf = target.getBuffer();
         if (source.getSamples(buf)) {
-          target.commitBuffer();
+          target.commitBuffer();//interruption point
         } else {
           events.onFinish();
           break;
         }
       }
     } catch (InterruptedException e) {
-      Log.d(TAG, "Interrupted transfer cycle");
+      if (isStarted()) {
+        Log.w(TAG, new Exception(e),"Interrupted transfer cycle");
+      }
     } catch (Exception e) {
       events.onError(e);
     } finally {
-      state.set(STOPPED);
       events.onStop();
     }
   }
