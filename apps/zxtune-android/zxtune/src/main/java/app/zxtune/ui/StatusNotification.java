@@ -43,6 +43,7 @@ public class StatusNotification extends CallbackStub {
 
   private final Service service;
   private final Notifications.Controller notification;
+  private PlaybackControl.State lastState;
 
   public StatusNotification(Service service, MediaSessionCompat.Token sessionToken) {
     this.service = service;
@@ -95,6 +96,9 @@ public class StatusNotification extends CallbackStub {
           .setContentText(author)
           .setContentText(author)
           .setLargeIcon(getLocationIcon(dataId.getDataLocation()));
+      if (PlaybackControl.State.PLAYING == lastState) {
+        notification.show();
+      }
     } catch (Exception e) {
       Log.w(TAG, e, "onIntemChanged()");
     }
@@ -110,6 +114,7 @@ public class StatusNotification extends CallbackStub {
       notification.show();
       service.stopForeground(false);
     }
+    lastState = state;
   }
 
   private void startForeground() {

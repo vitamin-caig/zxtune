@@ -38,9 +38,10 @@ import app.zxtune.playback.stubs.VisualizerStub;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
+import app.zxtune.sound.SamplesSource;
 import app.zxtune.sound.SamplesTarget;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
-import app.zxtune.sound.StubPlayer;
+import app.zxtune.sound.StubSamplesSource;
 
 public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
@@ -57,6 +58,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final DispatchedSeekControl seek;
   private final DispatchedVisualizer visualizer;
   private final Object holderGuard;
+  private final Player player;
   private Holder holder;
 
   private interface Command {
@@ -72,6 +74,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
     this.holderGuard = new Object();
+    final SamplesTarget target = SoundOutputSamplesTarget.create();
+    final PlayerEventsListener events = new PlaybackEvents(callbacks, playback);
+    this.player = AsyncPlayer.create(target, events);
     this.holder = Holder.instance();
     callbacks.onInitialState(PlaybackControl.State.STOPPED, holder.item, false);
   }
@@ -154,27 +159,25 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   private void setNewIterator(Iterator iter) throws Exception {
-    final PlayerEventsListener events = new PlaybackEvents(callbacks, playback);
-    setNewHolder(new Holder(iter, events));
+    setNewHolder(new Holder(iter));
   }
 
   private void setNewHolder(Holder holder) {
-    final Holder oldHolder = this.holder;
-    this.holder = Holder.instance();
-    oldHolder.player.stopPlayback();
     try {
-      this.holder = holder;
-      callbacks.onItemChanged(holder.item);
-    } finally {
-      oldHolder.release();
+      player.setSource(holder.source);
+    } catch (Exception e) {
+      Log.w(TAG, new Exception(e), "Failed to set new holder");
+      return;
     }
+    this.holder = holder;
+    callbacks.onItemChanged(holder.item);
   }
 
 
   private void play(Iterator iter) throws Exception {
     synchronized(holderGuard) {
       setNewIterator(iter);
-      holder.player.startPlayback();
+      player.startPlayback();
     }
   }
 
@@ -237,14 +240,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   @Override
   public void release() {
     shutdownExecutor();
-    synchronized(holderGuard) {
-      try {
-        holder.player.stopPlayback();
-      } finally {
-        holder.release();
-        holder = Holder.instance();
-      }
-    }
+    player.stopPlayback();
+    player.release();
   }
 
   private void shutdownExecutor() {
@@ -291,36 +288,30 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     prefs.edit().putLong(name, value).apply();
   }
 
-  private static class Holder implements Releaseable {
+  private static class Holder {
 
     public final Iterator iterator;
     public final PlayableItem item;
-    public final Player player;
+    public final SamplesSource source;
     public final SeekControl seek;
     public final Visualizer visualizer;
 
     private Holder() {
       this.iterator = IteratorStub.instance();
       this.item = PlayableItemStub.instance();
-      this.player = StubPlayer.instance();
+      this.source = StubSamplesSource.instance();
       this.seek = SeekControlStub.instance();
       this.visualizer = VisualizerStub.instance();
     }
 
-    Holder(Iterator iterator, PlayerEventsListener events) throws Exception {
+    Holder(Iterator iterator) throws Exception {
       this.iterator = iterator;
       this.item = iterator.getItem();
       final app.zxtune.core.Player lowPlayer = item.getModule().createPlayer();
       final SeekableSamplesSource source = new SeekableSamplesSource(lowPlayer, item.getDuration());
-      final SamplesTarget target = SoundOutputSamplesTarget.create();
-      this.player = AsyncPlayer.create(source, target, events);
+      this.source = source;
       this.seek = source;
       this.visualizer = new PlaybackVisualizer(lowPlayer);
-    }
-
-    @Override
-    public void release() {
-      player.release();
     }
 
     public static Holder instance() {
@@ -347,9 +338,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       executeCommand(new Command() {
         @Override
         public void execute() {
-          synchronized(holderGuard) {
-            holder.player.startPlayback();
-          }
+          player.startPlayback();
         }
       });
     }
@@ -359,21 +348,16 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       executeCommand(new Command() {
         @Override
         public void execute() {
-          synchronized(holderGuard) {
-            holder.player.stopPlayback();
-          }
+          player.stopPlayback();
         }
       });
     }
 
     @Override
     public PlaybackControl.State getState() {
-      synchronized(holderGuard) {
-        final Player player = holder.player;
-        return player.isStarted()
-                   ? State.PLAYING
-                   : State.STOPPED;
-      }
+      return player.isStarted()
+                 ? State.PLAYING
+                 : State.STOPPED;
     }
 
     @Override

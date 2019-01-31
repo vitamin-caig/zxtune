@@ -3,8 +3,11 @@ package app.zxtune.sound;
 import android.support.annotation.NonNull;
 
 import java.util.concurrent.Exchanger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import app.zxtune.Log;
+import app.zxtune.TimeStamp;
 
 class AsyncSamplesTarget {
 
@@ -29,6 +32,10 @@ class AsyncSamplesTarget {
     this.inputBuffer = new short[bufferSize];
     this.outputBuffer = new short[bufferSize];
     thread.start();
+  }
+
+  final int getSampleRate() {
+    return target.getSampleRate();
   }
 
   final void release() {
@@ -62,8 +69,13 @@ class AsyncSamplesTarget {
     }
   }
 
-  final void commitBuffer() throws Exception {
-    inputBuffer = exchanger.exchange(getBuffer());
+  final boolean commitBuffer() throws Exception {
+    try {
+      inputBuffer = exchanger.exchange(getBuffer(), 1, TimeUnit.SECONDS);
+      return true;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   private void consumeCycle() {

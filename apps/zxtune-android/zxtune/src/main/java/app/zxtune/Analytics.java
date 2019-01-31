@@ -9,7 +9,6 @@ import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlayableItem;
-import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
@@ -46,25 +45,11 @@ public class Analytics {
     private Item lastItem = null;
 
     @Override
-    public void onStateChanged(PlaybackControl.State state) {
-      final boolean isPlaying = state == PlaybackControl.State.PLAYING;
-      if (isPlaying && lastItem != null) {
-        sendPlayEvent((PlayableItem) lastItem);
-        lastItem = null;
-      }
-    }
-
-    @Override
     public void onItemChanged(Item item) {
+      if (lastItem != null) {
+        sendPlayEvent((PlayableItem) lastItem);
+      }
       lastItem = item;
-    }
-
-    @Override
-    public void onIOStatusChanged(boolean isActive) {
-    }
-
-    @Override
-    public void onError(String e) {
     }
   }
 
