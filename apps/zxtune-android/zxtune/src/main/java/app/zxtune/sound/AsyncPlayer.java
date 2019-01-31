@@ -139,7 +139,6 @@ public final class AsyncPlayer implements Player {
           if (source.getSamples(buf)) {
             target.commitBuffer();
           } else {
-            source.reset();
             events.onFinish();
             break;
           }

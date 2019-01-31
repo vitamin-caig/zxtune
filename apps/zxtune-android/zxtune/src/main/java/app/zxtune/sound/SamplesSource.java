@@ -31,16 +31,10 @@ public interface SamplesSource {
   /**
    * Acquire next sound chunk
    * @param buf result buffer of 16-bit signed interleaved stereo signal
-   * @return true if buffer filled
+   * @return true if buffer filled, else reset position to initial
    */
   boolean getSamples(@NonNull short[] buf) throws Exception;
 
-  /**
-   * Reset playback to initial position keeping sampleRate and other params intact
-   * @throws Exception
-   */
-  void reset() throws Exception;
-  
   /**
    * Release all internal resources
    */

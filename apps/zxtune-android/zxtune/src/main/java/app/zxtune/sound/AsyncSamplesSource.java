@@ -77,7 +77,6 @@ class AsyncSamplesSource {
         inputBuffer = exchanger.exchange(inputBuffer);
         if (!hasNextSamples) {
           exchanger.exchange(null);
-          source.reset();
         }
       }
     } catch (InterruptedException e) {

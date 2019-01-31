@@ -38,13 +38,12 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
       player.setPosition(frame);
       seekRequest = null;
     }
-    return player.render(buf);
-  }
-
-  @Override
-  public void reset() throws Exception {
-    player.setPosition(0);
-    seekRequest = null;
+    if (player.render(buf)) {
+      return true;
+    } else {
+      player.setPosition(0);
+      return false;
+    }
   }
 
   @Override

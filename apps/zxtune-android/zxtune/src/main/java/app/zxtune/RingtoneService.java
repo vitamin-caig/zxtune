@@ -245,13 +245,9 @@ public class RingtoneService extends IntentService {
         restSamples -= buf.length / SamplesSource.Channels.COUNT;
         return true;
       } else {
+        player.setPosition(0);
         return false;
       }
-    }
-
-    @Override
-    public void reset() throws Exception {
-      player.setPosition(0);
     }
 
     @Override
