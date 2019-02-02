@@ -77,6 +77,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.visualizer = new DispatchedVisualizer();
     this.holderGuard = new Object();
     this.holder = Holder.instance();
+    callbacks.onInitialState(PlaybackControl.State.STOPPED, holder.item, false);
   }
 
   @Override

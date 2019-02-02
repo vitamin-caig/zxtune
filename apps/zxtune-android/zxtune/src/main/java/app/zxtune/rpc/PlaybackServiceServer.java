@@ -213,7 +213,16 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     public CallbackClient(IRemoteCallback delegate) {
       this.delegate = delegate;
     }
-    
+
+    @Override
+    public void onInitialState(PlaybackControl.State state, Item item, boolean ioStatus) {
+      try {
+        delegate.onInitialState(state.ordinal(), ParcelablePlaybackItem.create(item), ioStatus);
+      } catch (Exception e) {
+        Log.w(TAG, e, "onInitialState()");
+      }
+    }
+
     @Override
     public void onStateChanged(PlaybackControl.State state) {
       try {

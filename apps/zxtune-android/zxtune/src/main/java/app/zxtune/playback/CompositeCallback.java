@@ -24,7 +24,14 @@ public final class CompositeCallback implements Callback {
     this.delegates = new LinkedList<>();
     this.lastState = PlaybackControl.State.STOPPED;
   }
-  
+
+  @Override
+  public void onInitialState(PlaybackControl.State state, Item item, boolean ioStatus) {
+    lastState = state;
+    lastItem = item;
+    lastIOStatus = ioStatus;
+  }
+
   @Override
   public void onStateChanged(PlaybackControl.State state) {
     synchronized (delegates) {
@@ -63,23 +70,23 @@ public final class CompositeCallback implements Callback {
       }
     }
   }
-  
-  public int add(Callback callback) {
-    synchronized (delegates) {
-      delegates.add(callback);
-      if (lastItem != null) {
-        callback.onItemChanged(lastItem);
-      }
-      callback.onStateChanged(lastState);
-      callback.onIOStatusChanged(lastIOStatus);
-      return delegates.size();
+
+  public boolean isEmpty() {
+    synchronized(delegates) {
+      return delegates.isEmpty();
     }
   }
 
-  public int remove(Callback callback) {
+  public void add(Callback callback) {
+    synchronized (delegates) {
+      delegates.add(callback);
+      callback.onInitialState(lastState, lastItem, lastIOStatus);
+    }
+  }
+
+  public void remove(Callback callback) {
     synchronized (delegates) {
       delegates.remove(callback);
-      return delegates.size();
     }
   }
 }

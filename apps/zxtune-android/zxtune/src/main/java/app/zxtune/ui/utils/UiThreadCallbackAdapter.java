@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Callback proxy redirecting calls in UI thread
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.ui.utils;
@@ -16,13 +12,24 @@ import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 
 public final class UiThreadCallbackAdapter implements Callback {
-  
+
   private final FragmentActivity activity;
   private final Callback delegate;
-  
+
   public UiThreadCallbackAdapter(FragmentActivity activity, Callback delegate) {
     this.activity = activity;
     this.delegate = delegate;
+  }
+
+  @Override
+  public void onInitialState(final PlaybackControl.State state, final Item item,
+                             final boolean ioStatus) {
+    activity.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        delegate.onInitialState(state, item, ioStatus);
+      }
+    });
   }
 
   @Override
@@ -44,7 +51,7 @@ public final class UiThreadCallbackAdapter implements Callback {
       }
     });
   }
-  
+
   @Override
   public void onIOStatusChanged(final boolean isActive) {
     activity.runOnUiThread(new Runnable() {
@@ -54,7 +61,7 @@ public final class UiThreadCallbackAdapter implements Callback {
       }
     });
   }
-  
+
   @Override
   public void onError(final String error) {
     activity.runOnUiThread(new Runnable() {

@@ -48,6 +48,11 @@ public final class PlaybackServiceClient implements PlaybackService {
     this.visualizer = new VisualizerClient();
     this.callbacks = new CompositeCallback();
     this.callbackDelegate = new CallbackServer(callbacks);
+    try {
+      delegate.subscribe(callbackDelegate);
+    } catch (RemoteException e) {
+      Log.w(TAG, e, "subscribe()");
+    }
   }
   
   @Override
@@ -91,19 +96,13 @@ public final class PlaybackServiceClient implements PlaybackService {
 
   @Override
   public void subscribe(Callback callback) {
-    if (1 == callbacks.add(callback)) {
-      try {
-        delegate.subscribe(callbackDelegate);
-      } catch (RemoteException e) {
-        Log.w(TAG, e, "subscribe()");
-        callbacks.remove(callback);
-      }
-    }
+    callbacks.add(callback);
   }
   
   @Override
   public void unsubscribe(Callback callback) {
-    if (0 == callbacks.remove(callback)) {
+    callbacks.remove(callback);
+    if (callbacks.isEmpty()) {
       try {
         delegate.unsubscribe(callbackDelegate);
       } catch (RemoteException e) {
@@ -317,6 +316,11 @@ public final class PlaybackServiceClient implements PlaybackService {
       this.delegate = delegate;
     }
     
+    @Override
+    public void onInitialState(int state, ParcelablePlaybackItem item, boolean ioStatus) {
+      delegate.onInitialState(PlaybackControl.State.values()[state], item, ioStatus);
+
+    }
     @Override
     public void onStateChanged(int state) {
       delegate.onStateChanged(PlaybackControl.State.values()[state]);

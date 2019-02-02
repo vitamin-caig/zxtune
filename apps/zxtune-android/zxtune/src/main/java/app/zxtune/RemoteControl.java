@@ -64,17 +64,14 @@ class RemoteControl implements Releaseable {
 
     @Override
     public void onStateChanged(PlaybackControl.State state) {
-      if (state == PlaybackControl.State.STOPPED) {
-        session.setActive(false);
-      } else {
-        if (state == PlaybackControl.State.PLAYING) {
-          builder.setState(PlaybackStateCompat.STATE_PLAYING, -1, 1);
-        } else if (state == PlaybackControl.State.PAUSED) {
-          builder.setState(PlaybackStateCompat.STATE_PAUSED, -1, 1);
-        }
-        session.setPlaybackState(builder.build());
-        session.setActive(true);
-      }
+      final boolean isPlaying = state == PlaybackControl.State.PLAYING;
+      final boolean isPaused = state == PlaybackControl.State.PAUSED;
+      final int stateCompat = isPlaying ? PlaybackStateCompat.STATE_PLAYING :
+                                  (isPaused ?
+                                       PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_STOPPED);
+      builder.setState(stateCompat, -1, 1);
+      session.setPlaybackState(builder.build());
+      session.setActive(isPlaying || isPaused);
     }
 
     @Override

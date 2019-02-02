@@ -10,25 +10,32 @@
 
 package app.zxtune.playback;
 
+import android.support.annotation.NonNull;
+
 public interface Callback {
 
   /**
-   * Called on state change (all changes before connection are lost)
+   * Called after subscription
    */
-  public void onStateChanged(PlaybackControl.State state);
+  void onInitialState(@NonNull PlaybackControl.State state, @NonNull Item item, boolean ioStatus);
+
+  /**
+   * Called on new state (may be the same)
+   */
+  void onStateChanged(@NonNull PlaybackControl.State state);
 
   /**
    * Called on active item change
    */
-  public void onItemChanged(Item item);
+  void onItemChanged(@NonNull Item item);
   
   /**
    * Called on I/O operation status change
    */
-  public void onIOStatusChanged(boolean isActive);
+  void onIOStatusChanged(boolean isActive);
   
   /**
    * Called on error happends
    */
-  public void onError(String e);
+  void onError(@NonNull String e);
 }

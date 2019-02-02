@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
+import app.zxtune.playback.stubs.CallbackStub;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
@@ -44,7 +45,7 @@ public class Analytics {
     Crashlytics.logException(e);
   }
 
-  public static class PlaybackEventsCallback implements Callback {
+  public static class PlaybackEventsCallback extends CallbackStub {
 
     private Item lastItem = null;
 

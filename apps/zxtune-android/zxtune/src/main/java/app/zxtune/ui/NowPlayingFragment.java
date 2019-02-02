@@ -21,17 +21,35 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
-import app.zxtune.*;
+import app.zxtune.Analytics;
+import app.zxtune.Log;
+import app.zxtune.PlaybackServiceConnection;
+import app.zxtune.R;
+import app.zxtune.Releaseable;
+import app.zxtune.Util;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.cache.CacheFactory;
-import app.zxtune.playback.*;
-import app.zxtune.playback.stubs.*;
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackSubscription;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.stubs.ItemStub;
+import app.zxtune.playback.stubs.PlaybackControlStub;
+import app.zxtune.playback.stubs.PlaybackServiceStub;
+import app.zxtune.playback.stubs.SeekControlStub;
+import app.zxtune.playback.stubs.VisualizerStub;
 import app.zxtune.ui.controllers.VisualizerController;
 import app.zxtune.ui.utils.UiThreadCallbackAdapter;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
@@ -225,7 +243,13 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   
   //executed in UI thread only via wrapper
   private class PlaybackEvents implements Callback {
-    
+
+    @Override
+    public void onInitialState(PlaybackControl.State state, Item item, boolean ioStatus) {
+      onStateChanged(state);
+      onItemChanged(item);
+    }
+
     @Override
     public void onStateChanged(PlaybackControl.State state) {
       final boolean isPlaying = state == PlaybackControl.State.PLAYING;
