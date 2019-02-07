@@ -141,6 +141,10 @@ namespace Ogg
         Analyzer->AddSoundData(frame);
         Resampler->ApplyData(std::move(frame));
         Iterator->NextFrame(Looped);
+        if (0 == State->Frame())
+        {
+          Tune.Seek(0);
+        }
         return Iterator->IsValid();
       }
       catch (const std::exception&)
