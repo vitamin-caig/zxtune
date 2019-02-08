@@ -26,6 +26,11 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
     player.setPosition(0);
   }
 
+  final void initialize(int samplerate, TimeStamp position) throws Exception {
+    initialize(samplerate);
+    seek(position);
+  }
+
   @Override
   public void initialize(int sampleRate) throws Exception {
     player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
@@ -34,8 +39,7 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
   @Override
   public boolean getSamples(@NonNull short[] buf) throws Exception {
     if (seekRequest != null) {
-      final int frame = (int) seekRequest.divides(frameDuration);
-      player.setPosition(frame);
+      seek(seekRequest);
       seekRequest = null;
     }
     if (player.render(buf)) {
@@ -44,6 +48,11 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
       player.setPosition(0);
       return false;
     }
+  }
+
+  private void seek(TimeStamp position) throws Exception {
+    final int frame = (int) position.divides(frameDuration);
+    player.setPosition(frame);
   }
 
   @Override

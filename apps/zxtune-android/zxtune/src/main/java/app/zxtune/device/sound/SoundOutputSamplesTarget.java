@@ -51,12 +51,12 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
   }
   
   @Override
-  public synchronized int getSampleRate() {
+  public int getSampleRate() {
     return target.getSampleRate();
   }
   
   @Override
-  public synchronized int getPreferableBufferSize() {
+  public int getPreferableBufferSize() {
     return bufferSize / Sample.BYTES;
   }
   

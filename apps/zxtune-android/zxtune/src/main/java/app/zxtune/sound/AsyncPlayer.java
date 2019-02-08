@@ -29,7 +29,7 @@ public final class AsyncPlayer implements Player {
   private AsyncSamplesTarget target;
   private Thread thread;
 
-  public static Player create(SamplesTarget target, PlayerEventsListener events) {
+  public static AsyncPlayer create(SamplesTarget target, PlayerEventsListener events) {
     return new AsyncPlayer(target, events);
   }
 
@@ -38,6 +38,10 @@ public final class AsyncPlayer implements Player {
     this.state = new AtomicInteger(UNINITIALIZED);
     this.source = new AtomicReference<>(StubSamplesSource.instance());
     this.target = new AsyncSamplesTarget(target);
+  }
+
+  public final int getSampleRate() {
+    return target.getSampleRate();
   }
 
   @Override
