@@ -177,12 +177,11 @@ public final class PlaybackServiceClient implements PlaybackService {
     }
 
     @Override
-    public State getState() {
+    public void togglePlayStop() {
       try {
-        return State.values()[delegate.getState()];
+        delegate.togglePlayStop();
       } catch (RemoteException e) {
-        Log.w(TAG, e, "isPlaying()");
-        return State.STOPPED;
+        Log.w(TAG, e, "togglePlayStop()");
       }
     }
 

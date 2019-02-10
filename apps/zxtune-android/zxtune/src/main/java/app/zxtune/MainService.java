@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-import android.support.v4.content.ContextCompat;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.device.sound.AudioFocusHandler;
 import app.zxtune.playback.service.PlaybackServiceLocal;
@@ -94,11 +93,7 @@ public class MainService extends Service {
     } else if (ACTION_STOP.equals(action)) {
       ctrl.stop();
     } else if (ACTION_TOGGLE_PLAY_STOP.equals(action)) {
-      if (ctrl.getState() == PlaybackControl.State.PLAYING) {
-        ctrl.stop();
-      } else {
-        ctrl.play();
-      }
+      ctrl.togglePlayStop();
     }
     return START_NOT_STICKY;
   }

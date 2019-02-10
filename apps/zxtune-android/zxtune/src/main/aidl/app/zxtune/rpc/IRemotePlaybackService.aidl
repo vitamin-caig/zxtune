@@ -25,7 +25,7 @@ interface IRemotePlaybackService {
   //PlaybackControl
   void play();
   void stop();
-  int getState();
+  void togglePlayStop();
   void next();
   void prev();
   int getTrackMode();

@@ -50,9 +50,9 @@ public interface PlaybackControl {
   void stop();
 
   /*
-   * @return current state
+   * Toggle play/stop state
    */
-  State getState();
+  void togglePlayStop();
 
   /*
    * Play next item in sequence

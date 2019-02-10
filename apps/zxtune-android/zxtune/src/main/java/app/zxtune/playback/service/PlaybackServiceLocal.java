@@ -354,10 +354,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public PlaybackControl.State getState() {
-      return player.isStarted()
-                 ? State.PLAYING
-                 : State.STOPPED;
+    public void togglePlayStop() {
+      if (player.isStarted()) {
+        //may be blocking
+        stop();
+      } else {
+        //non-blocking
+        player.startPlayback();
+      }
     }
 
     @Override
