@@ -49,7 +49,6 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
   @Override
   public void release() {
     Analytics.sendPerformanceEvent(player);
-    player.release();
   }
 
   @Override

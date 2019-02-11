@@ -256,13 +256,6 @@ public class FileIterator implements Iterator {
 
     @Override
     public void release() {
-      try {
-        if (module != null) {
-          module.release();
-        }
-      } finally {
-        module = null;
-      }
     }
   }
 }

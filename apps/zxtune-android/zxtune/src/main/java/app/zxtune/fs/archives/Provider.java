@@ -104,8 +104,6 @@ public final class Provider extends ContentProvider {
               }
             } catch (Exception e) {
               Log.w(TAG, e, "Skip module");
-            } finally {
-              module.release();
             }
             if (!dirEntry.isRoot()) {
               db.addDirEntry(dirEntry);

@@ -252,8 +252,6 @@ public class RingtoneService extends IntentService {
 
     @Override
     public void release() {
-      player.release();
-      player = null;
     }
   }
 }

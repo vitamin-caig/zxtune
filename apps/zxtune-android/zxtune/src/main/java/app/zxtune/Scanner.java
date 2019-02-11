@@ -165,7 +165,6 @@ public final class Scanner {
         try {
           cb.onModule(new Identifier(uri, subpath), obj);
         } catch (Exception e) {
-          obj.release();
           Log.w(TAG, e, "Failed analyzeRealFile.onModule");
           //do not rethrow error - it comes from particular module, not from callback
           //throw e;
@@ -194,12 +193,7 @@ public final class Scanner {
       Log.w(TAG, e, "Failed to analyzer archive file");
       return false;
     }
-    try {
-      cb.onModule(id, module);
-    } catch (Exception e) {
-      module.release();
-      throw e;
-    }
+    cb.onModule(id, module);
     return true;
   }
   

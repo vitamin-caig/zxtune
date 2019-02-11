@@ -232,10 +232,6 @@ public final class ZXTune {
     }
 
     @Override
-    public void release() {
-    }
-
-    @Override
     public long getProperty(String name, long defVal) throws Exception {
       return Module_GetProperty(handle, name, defVal);
     }
@@ -288,10 +284,6 @@ public final class ZXTune {
     @Override
     public int getPlaybackPerformance() throws Exception {
       return Player_GetPlaybackPerformance(handle);
-    }
-
-    @Override
-    public void release() {
     }
 
     @Override
