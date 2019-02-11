@@ -1,16 +1,15 @@
 /**
- *
  * @file
- *
  * @brief Gate to native zxtune code and related types
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune;
 
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 import app.zxtune.core.Module;
 import app.zxtune.core.Player;
@@ -42,18 +41,18 @@ public final class ZXTune {
     public String getProperty(String name, String defVal) {
       return GlobalOptions_GetProperty(name, defVal);
     }
-    
+
     public static GlobalOptions instance() {
       return Holder.INSTANCE;
     }
-    
+
     private static class Holder {
       public static final GlobalOptions INSTANCE = new GlobalOptions();
     }
   }
 
   public static final class Plugins {
-    
+
     public static final class DeviceType {
       //ZXTune::Capabilities::Module::Device::Type
       public static final int AY38910 = 1;
@@ -71,7 +70,7 @@ public final class ZXTune {
       public static final int CO12294 = 4096;
       public static final int HUC6270 = 8192;
     }
-    
+
     public static final class ContainerType {
       //ZXTune::Capabilities::Container::Type
       public static final int ARCHIVE = 0;
@@ -82,25 +81,27 @@ public final class ZXTune {
       public static final int MULTITRACK = 5;
       public static final int SCANER = 6;
     }
-    
+
     public interface Visitor {
       void onPlayerPlugin(int devices, String id, String description);
+
       void onContainerPlugin(int type, String id, String description);
     }
-    
+
     public static void enumerate(Visitor visitor) {
       Plugins_Enumerate(visitor);
     }
-    
+
     private static native void init();
-    
+
     static {
       init();
     }
   }
-  
+
   /**
    * Simple data factory
+   *
    * @param content raw content
    * @param subpath module subpath in content
    * @return New object
@@ -108,7 +109,7 @@ public final class ZXTune {
   public static Module loadModule(ByteBuffer content, String subpath) throws Exception {
     return new NativeModule(Module_Create(makeDirectBuffer(content), subpath));
   }
-  
+
   public interface ModuleDetectCallback {
     void onModule(String subpath, Module obj) throws Exception;
   }
@@ -145,12 +146,79 @@ public final class ZXTune {
     }
   }
 
+  private static class NativeGC {
+
+    private final ReferenceQueue<Object> deadRefs = new ReferenceQueue<>();
+    private final ArrayList<HandleReference> handles = new ArrayList<>(10);
+    private final Thread thread = new Thread("JNICleanup") {
+      @Override
+      public void run() {
+        cleanup();
+      }
+    };
+
+    private NativeGC() {
+      thread.setDaemon(true);
+      thread.start();
+    }
+
+    private void cleanup() {
+      while (true) {
+        try {
+          final HandleReference item = (HandleReference) deadRefs.remove();
+          handles.remove(item);
+          item.destroy();
+          item.clear();
+        } catch (InterruptedException e) {
+        }
+      }
+    }
+
+    static void register(Module owner, int handle) {
+      Holder.instance.register(owner, handle, true);
+    }
+
+    static void register(Player owner, int handle) {
+      Holder.instance.register(owner, handle, false);
+    }
+
+    private void register(Object owner, int handle, boolean isModule) {
+      final HandleReference ref = new HandleReference(deadRefs, owner, handle, isModule);
+      handles.add(ref);
+    }
+
+    private static class Holder {
+      private static final NativeGC instance = new NativeGC();
+    }
+
+    private static class HandleReference extends WeakReference<Object> {
+
+      private final int handle;
+      private final boolean isModule;
+
+      private HandleReference(ReferenceQueue<? super Object> queue, Object owner, int handle, boolean isModule) {
+        super(owner, queue);
+        this.handle = handle;
+        this.isModule = isModule;
+      }
+
+      private void destroy() {
+        if (isModule) {
+          Module_Close(handle);
+        } else {
+          Player_Close(handle);
+        }
+      }
+    }
+  }
+
   private static final class NativeModule implements Module {
-  
+
     private final int handle;
 
     NativeModule(int handle) {
       this.handle = handle;
+      NativeGC.register(this, handle);
     }
 
     @Override
@@ -165,7 +233,6 @@ public final class ZXTune {
 
     @Override
     public void release() {
-      Module_Close(handle);
     }
 
     @Override
@@ -195,6 +262,7 @@ public final class ZXTune {
 
     NativePlayer(int handle) {
       this.handle = handle;
+      NativeGC.register(this, handle);
     }
 
     @Override
@@ -224,7 +292,6 @@ public final class ZXTune {
 
     @Override
     public void release() {
-      Player_Close(handle);
     }
 
     @Override
@@ -254,31 +321,51 @@ public final class ZXTune {
 
   // working with global options
   private static native long GlobalOptions_GetProperty(String name, long defVal);
+
   private static native String GlobalOptions_GetProperty(String name, String defVal);
+
   private static native void GlobalOptions_SetProperty(String name, long value);
+
   private static native void GlobalOptions_SetProperty(String name, String value);
 
   // working with module
   private static native int Module_Create(ByteBuffer data, String subpath) throws Exception;
+
   private static native void Module_Detect(ByteBuffer data, ModuleDetectCallbackNativeAdapter cb) throws Exception;
+
   private static native int Module_GetDuration(int module) throws Exception;
+
   private static native long Module_GetProperty(int module, String name, long defVal) throws Exception;
+
   private static native String Module_GetProperty(int module, String name, String defVal) throws Exception;
+
   private static native int Module_CreatePlayer(int module) throws Exception;
+
   private static native String[] Module_GetAdditionalFiles(int module) throws Exception;
+
   private static native void Module_ResolveAdditionalFile(int module, String name, ByteBuffer data) throws Exception;
+
   private static native void Module_Close(int module);
 
   // working with player
   private static native boolean Player_Render(int player, short[] result) throws Exception;
+
   private static native int Player_Analyze(int player, int bands[], int levels[]) throws Exception;
+
   private static native int Player_GetPosition(int player) throws Exception;
+
   private static native void Player_SetPosition(int player, int pos) throws Exception;
+
   private static native int Player_GetPlaybackPerformance(int player) throws Exception;
+
   private static native long Player_GetProperty(int player, String name, long defVal) throws Exception;
+
   private static native String Player_GetProperty(int player, String name, String defVal) throws Exception;
+
   private static native void Player_SetProperty(int player, String name, long val) throws Exception;
+
   private static native void Player_SetProperty(int player, String name, String val) throws Exception;
+
   private static native void Player_Close(int player);
 
   // working with plugins
