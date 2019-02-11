@@ -23,10 +23,6 @@ public class PlayableItemStub extends ItemStub implements PlayableItem {
     throw new IllegalStateException("Should not be called");
   }
 
-  @Override
-  public void release() {
-  }
-
   public static PlayableItem instance() {
     return Holder.INSTANCE;
   }

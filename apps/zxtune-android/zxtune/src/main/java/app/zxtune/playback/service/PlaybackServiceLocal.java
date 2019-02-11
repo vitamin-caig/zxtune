@@ -330,7 +330,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void release() {
       player.release();
-      item.release();
     }
 
     public static Holder instance() {

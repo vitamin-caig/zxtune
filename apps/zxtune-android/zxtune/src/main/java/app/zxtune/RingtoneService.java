@@ -92,15 +92,11 @@ public class RingtoneService extends IntentService {
   private void createRingtone(Uri source, TimeStamp howMuch) {
     try {
       final PlayableItem item = load(source);
-      try {
-        final File target = getTargetLocation(item, howMuch); 
-        convert(item, howMuch, target);
-        final String title = setAsRingtone(item, howMuch, target);
-        Notifications.sendEvent(this, R.drawable.ic_stat_notify_ringtone, R.string.ringtone_changed, title);
-        Analytics.sendSocialEvent("Ringtone", "app.zxtune", item);
-      } finally {
-        item.release();
-      }
+      final File target = getTargetLocation(item, howMuch);
+      convert(item, howMuch, target);
+      final String title = setAsRingtone(item, howMuch, target);
+      Notifications.sendEvent(this, R.drawable.ic_stat_notify_ringtone, R.string.ringtone_changed, title);
+      Analytics.sendSocialEvent("Ringtone", "app.zxtune", item);
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to create ringtone");
       makeToast(e);

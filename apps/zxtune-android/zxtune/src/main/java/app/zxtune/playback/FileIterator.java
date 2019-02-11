@@ -101,14 +101,6 @@ public class FileIterator implements Iterator {
   @Override
   public void release() {
     stop();
-    for (;;) {
-      final PlayableItem item = itemsQueue.poll();
-      if (item != null) {
-        item.release();
-      } else {
-        break;
-      }
-    }
   }
   
   private void start(final Uri[] uris, final boolean additionalLimiter) {
@@ -202,7 +194,7 @@ public class FileIterator implements Iterator {
     private final Uri id;
     private final Identifier dataId;
 
-    public FileItem(Identifier id, Module module) {
+    FileItem(Identifier id, Module module) {
       this.module = module;
       this.id = id.getFullLocation();
       this.dataId = id;
@@ -252,10 +244,6 @@ public class FileIterator implements Iterator {
     @Override
     public Module getModule() {
       return module;
-    }
-
-    @Override
-    public void release() {
     }
   }
 }

@@ -59,7 +59,6 @@ class PlaylistIterator implements Iterator {
   
   @Override
   public void release() {
-    item.release();
   }
   
   private DatabaseIterator getNext(DatabaseIterator it) {
@@ -176,11 +175,6 @@ class PlaylistIterator implements Iterator {
     @Override
     public Module getModule() {
       return content.getModule();
-    }
-    
-    @Override
-    public void release() {
-      content.release();
     }
   }
 }
