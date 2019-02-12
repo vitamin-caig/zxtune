@@ -18,7 +18,7 @@ import java.io.IOException;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.Scanner;
+import app.zxtune.core.Scanner;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
 import app.zxtune.playlist.DatabaseIterator;
@@ -27,13 +27,11 @@ class PlaylistIterator implements Iterator {
   
   private static final String TAG = PlaylistIterator.class.getName();
   
-  private final Scanner scanner;
   private final IteratorFactory.NavigationMode navigation;
   private DatabaseIterator delegate;
   private PlayableItem item;
 
   public PlaylistIterator(Context context, Uri id) throws IOException {
-    this.scanner = new Scanner();
     this.navigation = new IteratorFactory.NavigationMode(context);
     this.delegate = new DatabaseIterator(context, id);
     if (!updateItem(delegate) && !next()) {
@@ -107,7 +105,7 @@ class PlaylistIterator implements Iterator {
     if (meta == null) {
       return;
     }
-    scanner.analyzeIdentifier(meta.getLocation(), new Scanner.Callback() {
+    Scanner.analyzeIdentifier(meta.getLocation(), new Scanner.Callback() {
       
       @Override
       public void onModule(Identifier id, Module module) {
@@ -127,7 +125,7 @@ class PlaylistIterator implements Iterator {
     private final app.zxtune.playlist.Item meta;
     private final PlayableItem content;
     
-    public PlaylistItem(app.zxtune.playlist.Item meta, PlayableItem content) {
+    PlaylistItem(app.zxtune.playlist.Item meta, PlayableItem content) {
       this.meta = meta;
       this.content = content;
     }

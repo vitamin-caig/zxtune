@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.Scanner;
+import app.zxtune.core.Scanner;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
@@ -36,7 +36,6 @@ public class FileIterator implements Iterator {
   
   private static final int MAX_VISITED = 10;
   
-  private final Scanner scanner;
   private final ExecutorService executor;
   private final LinkedBlockingQueue<PlayableItem> itemsQueue;
   private final ArrayList<Identifier> history;
@@ -45,7 +44,6 @@ public class FileIterator implements Iterator {
   private PlayableItem item;
   
   public FileIterator(Context context, Uri[] uris) throws Exception {
-    this.scanner = new Scanner();
     this.executor = Executors.newCachedThreadPool();
     this.itemsQueue = new LinkedBlockingQueue<>(1);
     this.history = new ArrayList<>();
@@ -109,7 +107,7 @@ public class FileIterator implements Iterator {
       public void run() {
         try {
           final int[] modules = {0};
-          scanner.analyze(uris, new Scanner.Callback() {
+          Scanner.analyzeUris(uris, new Scanner.Callback() {
             @Override
             public void onModule(Identifier id, Module module) {
               addItem(new FileItem(id, module));
@@ -172,7 +170,7 @@ public class FileIterator implements Iterator {
   
   private boolean loadFrom(Identifier id) {
     final PlayableItem current = item;
-    scanner.analyzeIdentifier(id, new Scanner.Callback() {
+    Scanner.analyzeIdentifier(id, new Scanner.Callback() {
       
       @Override
       public void onModule(Identifier id, Module module) {
