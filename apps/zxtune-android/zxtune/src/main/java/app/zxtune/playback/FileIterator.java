@@ -73,10 +73,6 @@ public class FileIterator implements Iterator {
     return false;
   }
 
-  @Override
-  public void release() {
-  }
-
   private Object startAsyncScanning(final Uri[] uris) {
     return AsyncScanner.scan(uris, new AsyncScanner.Callback() {
 

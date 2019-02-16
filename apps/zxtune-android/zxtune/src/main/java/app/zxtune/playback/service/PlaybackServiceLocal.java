@@ -168,10 +168,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     oldHolder.player.stopPlayback();
     try {
       this.holder = holder;
-      if (oldHolder.iterator != holder.iterator) {
-        Log.d(TAG, "Update iterator %s -> %s", oldHolder.iterator, holder.iterator);
-        oldHolder.iterator.release();
-      }
       callbacks.onItemChanged(holder.item);
     } finally {
       oldHolder.release();
@@ -249,7 +245,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       try {
         holder.player.stopPlayback();
       } finally {
-        holder.iterator.release();
         holder.release();
         holder = Holder.instance();
       }

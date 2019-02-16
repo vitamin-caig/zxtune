@@ -10,9 +10,7 @@
 
 package app.zxtune.playback;
 
-import app.zxtune.Releaseable;
-
-public interface Iterator extends Releaseable {
+public interface Iterator {
 
   /**
    *  Retrieve current position' item

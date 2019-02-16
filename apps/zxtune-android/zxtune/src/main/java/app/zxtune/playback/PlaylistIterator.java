@@ -31,7 +31,7 @@ class PlaylistIterator implements Iterator {
   private DatabaseIterator delegate;
   private PlayableItem item;
 
-  public PlaylistIterator(Context context, Uri id) throws IOException {
+  PlaylistIterator(Context context, Uri id) throws IOException {
     this.navigation = new IteratorFactory.NavigationMode(context);
     this.delegate = new DatabaseIterator(context, id);
     if (!updateItem(delegate) && !next()) {
@@ -53,10 +53,6 @@ class PlaylistIterator implements Iterator {
       }
     }
     return false;
-  }
-  
-  @Override
-  public void release() {
   }
   
   private DatabaseIterator getNext(DatabaseIterator it) {
