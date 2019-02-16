@@ -104,7 +104,7 @@ public class RingtoneService extends IntentService {
   }
 
   private PlayableItem load(Uri uri) throws Exception {
-    final FileIterator iter = new FileIterator(this, new Uri[] {uri});
+    final FileIterator iter = FileIterator.create(this, new Uri[] {uri});
     return iter.getItem();
   }
     

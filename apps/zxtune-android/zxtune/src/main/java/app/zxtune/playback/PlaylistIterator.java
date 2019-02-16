@@ -109,7 +109,7 @@ class PlaylistIterator implements Iterator {
       
       @Override
       public void onModule(Identifier id, Module module) {
-        final PlayableItem fileItem = new FileIterator.FileItem(id, module);
+        final PlayableItem fileItem = new AsyncScanner.FileItem(id, module);
         item = new PlaylistItem(meta, fileItem);
       }
       

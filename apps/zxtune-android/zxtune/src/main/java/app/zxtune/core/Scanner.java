@@ -35,7 +35,7 @@ public final class Scanner {
 
   public interface Callback {
 
-    void onModule(Identifier id, Module module);
+    void onModule(Identifier id, Module module) throws Exception;
 
     void onError(Exception e);
   }
@@ -50,12 +50,6 @@ public final class Scanner {
         return 1;
       }
     };
-  }
-
-  public static void analyzeUris(Uri[] uris, Callback cb) {
-    for (Uri uri : uris) {
-      analyzeIdentifier(new Identifier(uri), cb);
-    }
   }
 
   public static void analyzeIdentifier(Identifier id, Callback cb) {
