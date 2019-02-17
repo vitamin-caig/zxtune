@@ -12,7 +12,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import app.zxtune.core.Module;
+import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
+import app.zxtune.core.Properties;
 import app.zxtune.core.PropertiesContainer;
 
 public final class ZXTune {
@@ -206,7 +208,17 @@ public final class ZXTune {
         if (isModule) {
           Module_Close(handle);
         } else {
+          sendPlayerStatistics();
           Player_Close(handle);
+        }
+      }
+
+      private void sendPlayerStatistics() {
+        try {
+          Analytics.sendPerformanceEvent(Player_GetPlaybackPerformance(handle), Player_GetProperty(handle,
+              ModuleAttributes.TYPE, "Unknown"));
+        } catch (Exception e) {
+          Log.w(ZXTune.class.getName(), e, "Failed to send player statistics");
         }
       }
     }
@@ -279,11 +291,6 @@ public final class ZXTune {
     @Override
     public void setPosition(int pos) throws Exception {
       Player_SetPosition(handle, pos);
-    }
-
-    @Override
-    public int getPlaybackPerformance() throws Exception {
-      return Player_GetPlaybackPerformance(handle);
     }
 
     @Override

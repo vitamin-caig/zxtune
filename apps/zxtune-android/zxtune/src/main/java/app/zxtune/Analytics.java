@@ -3,28 +3,24 @@ package app.zxtune;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-
+import app.zxtune.core.Module;
+import app.zxtune.core.ModuleAttributes;
+import app.zxtune.fs.VfsArchive;
+import app.zxtune.fs.VfsDir;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.PlayableItem;
+import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.crashlytics.android.core.CrashlyticsCore;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
+import io.fabric.sdk.android.Fabric;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-
-import app.zxtune.core.Module;
-import app.zxtune.core.ModuleAttributes;
-import app.zxtune.core.Player;
-import app.zxtune.fs.VfsArchive;
-import app.zxtune.fs.VfsDir;
-import app.zxtune.playback.Callback;
-import app.zxtune.playback.Item;
-import app.zxtune.playback.PlayableItem;
-import app.zxtune.playback.PlaybackControl;
-import io.fabric.sdk.android.Fabric;
 
 public class Analytics {
 
@@ -97,11 +93,9 @@ public class Analytics {
     }
   }
 
-  public static void sendPerformanceEvent(Player player) {
+  public static void sendPerformanceEvent(int perf, String type) {
     try {
-      final int perf = player.getPlaybackPerformance();
       if (perf != 0) {
-        final String type = player.getProperty(ModuleAttributes.TYPE, "Unknown");
         final CustomEvent event = new CustomEvent("Performance");
         event.putCustomAttribute(type + " playback,%", perf);
         send(event);
