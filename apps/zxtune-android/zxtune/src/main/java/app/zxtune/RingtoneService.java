@@ -245,9 +245,5 @@ public class RingtoneService extends IntentService {
         return false;
       }
     }
-
-    @Override
-    public void release() {
-    }
   }
 }

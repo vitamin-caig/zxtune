@@ -121,7 +121,6 @@ public final class AsyncPlayer implements Player {
 
   @Override
   public void release() {
-    source.release();
     source = null;
     target.release();
     target = null;

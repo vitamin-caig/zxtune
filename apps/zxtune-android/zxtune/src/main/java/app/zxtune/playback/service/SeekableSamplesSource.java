@@ -47,10 +47,6 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
   }
 
   @Override
-  public void release() {
-  }
-
-  @Override
   public TimeStamp getDuration() {
     return totalDuration;
   }
