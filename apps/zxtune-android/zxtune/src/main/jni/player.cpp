@@ -109,15 +109,17 @@ namespace
     
     uint_t Measure(uint64_t totalSamples, uint_t sampleRate) const
     {
-      if (const uint64_t totalClocks = Clocks + Frames / 2) //compensate measuring error
+      const uint_t MIN_DURATION_SEC = 1;
+      const uint_t minSamples = sampleRate * MIN_DURATION_SEC;
+      if (totalSamples >= minSamples)
       {
-        // 100 * (totalSamples / sampleRate) / (totalClocks / CLOCKS_PER_SEC)
-        return (totalSamples * CLOCKS_PER_SEC * 100) / (totalClocks * sampleRate);
+        if (const uint64_t totalClocks = Clocks + Frames / 2) //compensate measuring error
+        {
+          // 100 * (totalSamples / sampleRate) / (totalClocks / CLOCKS_PER_SEC)
+          return (totalSamples * CLOCKS_PER_SEC * 100) / (totalClocks * sampleRate);
+        }
       }
-      else
-      {
-        return 0;
-      }
+      return 0;
     }
   private:
     std::clock_t LastStart = 0;
