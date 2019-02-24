@@ -45,11 +45,7 @@ class PlaybackControlsView {
     playPause.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        if (PlaybackControl.State.PLAYING == control.getState()) {
-          control.stop();
-        } else {
-          control.play();
-        }
+        control.togglePlayStop();
       }
     });
     final ImageButton next = (ImageButton) view.findViewById(R.id.controls_next);

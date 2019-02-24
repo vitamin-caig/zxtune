@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Stub singleton implementation of PlayerEventsListener
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.sound;
@@ -16,7 +12,7 @@ public class StubPlayerEventsListener implements PlayerEventsListener {
 
   // permit inheritance
   protected StubPlayerEventsListener() {}
-  
+
   @Override
   public void onStart() {}
 
@@ -26,9 +22,6 @@ public class StubPlayerEventsListener implements PlayerEventsListener {
   @Override
   public void onStop() {}
 
-  @Override
-  public void onPause() {}
-  
   @Override
   public void onError(@NonNull Exception e) {}
 

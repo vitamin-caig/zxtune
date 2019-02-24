@@ -3,8 +3,11 @@ package app.zxtune.sound;
 import android.support.annotation.NonNull;
 
 import java.util.concurrent.Exchanger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import app.zxtune.Log;
+import app.zxtune.TimeStamp;
 
 class AsyncSamplesTarget {
 
@@ -31,14 +34,21 @@ class AsyncSamplesTarget {
     thread.start();
   }
 
+  final int getSampleRate() {
+    return target.getSampleRate();
+  }
+
   final void release() {
-    thread.interrupt();
-    target.release();
-    try {
-      thread.join();
-    } catch (InterruptedException e) {
-      Log.w(TAG, e, "Failed to release");
+    while (true) {
+      thread.interrupt();
+      try {
+        thread.join();
+        break;
+      } catch (InterruptedException e) {
+        Log.w(TAG, new Exception(e), "Failed to release");
+      }
     }
+    target.release();
   }
 
   final void start() throws Exception {
@@ -47,10 +57,6 @@ class AsyncSamplesTarget {
 
   final void stop() throws Exception {
     target.stop();
-  }
-
-  final void pause() throws Exception {
-    target.pause();
   }
 
   @NonNull
@@ -63,19 +69,24 @@ class AsyncSamplesTarget {
     }
   }
 
-  final void commitBuffer() throws Exception {
-    inputBuffer = exchanger.exchange(getBuffer());
+  final boolean commitBuffer() throws Exception {
+    try {
+      inputBuffer = exchanger.exchange(getBuffer(), 1, TimeUnit.SECONDS);
+      return true;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   private void consumeCycle() {
     try {
       while (true) {
-        outputBuffer = exchanger.exchange(outputBuffer);
+        outputBuffer = exchanger.exchange(outputBuffer);//interruption point
         target.writeSamples(outputBuffer);
       }
     } catch (InterruptedException e) {
     } catch (Exception e) {
-      Log.w(TAG, e, "Error in consume cycle");
+      Log.w(TAG, new Exception(e), "Error in consume cycle");
     } finally {
       inputBuffer = null;
       outputBuffer = null;

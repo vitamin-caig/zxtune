@@ -143,8 +143,9 @@ public class RingtoneService extends IntentService {
     final TimeLimitedSamplesSource source = new TimeLimitedSamplesSource(item.getModule().createPlayer(), limit);
     final WaveWriteSamplesTarget target = new WaveWriteSamplesTarget(location.getAbsolutePath());
     final PlayerEventsListener events = new NotifyEventsListener();
-    final app.zxtune.sound.Player player = AsyncPlayer.create(source, target, events);
+    final app.zxtune.sound.Player player = AsyncPlayer.create(target, events);
     try {
+      player.setSource(source);
       synchronized (events) {
         player.startPlayback();
         events.wait();

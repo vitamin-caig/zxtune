@@ -34,11 +34,6 @@ class PlaybackEvents implements PlayerEventsListener {
   }
 
   @Override
-  public void onPause() {
-    callback.onStateChanged(PlaybackControl.State.PAUSED);
-  }
-
-  @Override
   public void onStop() {
     callback.onStateChanged(PlaybackControl.State.STOPPED);
   }

@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Local implementation of PlaybackService
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.playback.service;
@@ -13,38 +9,30 @@ package app.zxtune.playback.service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
 import app.zxtune.core.Properties;
-import app.zxtune.playback.Callback;
-import app.zxtune.playback.CompositeCallback;
-import app.zxtune.playback.Item;
-import app.zxtune.playback.Iterator;
-import app.zxtune.playback.IteratorFactory;
-import app.zxtune.playback.PlayableItem;
-import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.PlaylistControl;
-import app.zxtune.playback.SeekControl;
-import app.zxtune.playback.Visualizer;
+import app.zxtune.device.sound.SoundOutputSamplesTarget;
+import app.zxtune.playback.*;
 import app.zxtune.playback.stubs.IteratorStub;
 import app.zxtune.playback.stubs.PlayableItemStub;
 import app.zxtune.playback.stubs.SeekControlStub;
 import app.zxtune.playback.stubs.VisualizerStub;
 import app.zxtune.sound.AsyncPlayer;
-import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
+import app.zxtune.sound.SamplesSource;
 import app.zxtune.sound.SamplesTarget;
-import app.zxtune.device.sound.SoundOutputSamplesTarget;
-import app.zxtune.sound.StubPlayer;
+import app.zxtune.sound.StubSamplesSource;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
@@ -56,12 +44,15 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final Context context;
   private final ExecutorService executor;
   private final CompositeCallback callbacks;
+  private final NavigateCommand navigateCmd;
+  private final ActivateCommand activateCmd;
   private final PlaylistControlLocal playlist;
   private final DispatchedPlaybackControl playback;
   private final DispatchedSeekControl seek;
   private final DispatchedVisualizer visualizer;
-  private final Object holderGuard;
-  private Holder holder;
+  private final AtomicReference<Iterator> iterator;
+  private final AtomicReference<Holder> holder;
+  private final AsyncPlayer player;
 
   private interface Command {
     void execute() throws Exception;
@@ -69,22 +60,25 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   public PlaybackServiceLocal(Context context) {
     this.context = context;
-    this.executor = Executors.newSingleThreadExecutor();
+    this.executor = Executors.newCachedThreadPool();
     this.callbacks = new CompositeCallback();
+    this.navigateCmd = new NavigateCommand();
+    this.activateCmd = new ActivateCommand();
     this.playlist = new PlaylistControlLocal(context);
     this.playback = new DispatchedPlaybackControl();
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
-    this.holderGuard = new Object();
-    this.holder = Holder.instance();
-    callbacks.onInitialState(PlaybackControl.State.STOPPED, holder.item, false);
+    final SamplesTarget target = SoundOutputSamplesTarget.create();
+    final PlayerEventsListener events = new PlaybackEvents(callbacks, playback);
+    this.iterator = new AtomicReference<>(IteratorStub.instance());
+    this.holder = new AtomicReference<>(Holder.instance());
+    this.player = AsyncPlayer.create(target, events);
+    callbacks.onInitialState(PlaybackControl.State.STOPPED, holder.get().item, false);
   }
 
   @Override
   public Item getNowPlaying() {
-    synchronized (holderGuard) {
-      return holder.item;
-    }
+    return holder.get().item;
   }
 
   public final void restoreSession() {
@@ -93,7 +87,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     if (path != null) {
       final long position = prefs.getLong(PREF_LAST_PLAYED_POSITION, 0);
       Log.d(TAG, "Restore last played item '%s' at %dms", path, position);
-      executeCommand(new RestoreSessionCommand(Uri.parse(path), TimeStamp.createFrom(position, TimeUnit.MILLISECONDS)));
+      executeCommand(new RestoreSessionCommand(Uri.parse(path), TimeStamp.createFrom(position,
+          TimeUnit.MILLISECONDS)));
     }
   }
 
@@ -103,16 +98,21 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     private final TimeStamp position;
 
     RestoreSessionCommand(Uri uri, TimeStamp position) {
-      this.uris = new Uri[] {uri};
+      this.uris = new Uri[]{uri};
       this.position = position;
     }
 
     @Override
     public void execute() throws Exception {
       final Iterator iter = IteratorFactory.createIterator(context, uris);
-      synchronized (holderGuard) {
-        setNewIterator(iter);
-        seek.setPosition(position);
+      final PlayableItem newItem = iter.getItem();
+      final Holder newHolder = new Holder(newItem);
+      //TODO: improve
+      ((SeekableSamplesSource)newHolder.source).initialize(player.getSampleRate(), position);
+      if (iterator.compareAndSet(IteratorStub.instance(), iter)) {
+        setNewHolder(newHolder);
+      } else {
+        Log.d(TAG, "Drop stale session restore");
       }
     }
   }
@@ -139,73 +139,50 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   @Override
   public void setNowPlaying(Uri[] uris) {
-    executeCommand(new SetNowPlayingCommand(uris));
+    activateCmd.schedulePlay(uris);
   }
 
-  private class SetNowPlayingCommand implements Command {
+  private class ActivateCommand implements Command {
 
-    private final Uri[] uris;
+    private final AtomicReference<Uri[]> batch = new AtomicReference<>(null);
 
-    SetNowPlayingCommand(Uri[] uris) {
-      this.uris = uris;
+    final void schedulePlay(Uri[] uri) {
+      if (null == batch.getAndSet(uri)) {
+        executeCommand(this);
+      }
     }
 
     @Override
     public void execute() throws Exception {
-      final Iterator iter = IteratorFactory.createIterator(context, uris);
-      play(iter);
+      for (; ; ) {
+        final Uri[] uris = batch.get();
+        try {
+          final Iterator iter = IteratorFactory.createIterator(context, uris);
+          if (batch.compareAndSet(uris, null)) {
+            iterator.set(iter);
+            setNewItem(iter.getItem());
+            player.startPlayback();
+            break;
+          }
+        } catch (Exception e) {
+          if (batch.compareAndSet(uris, null)) {
+            throw e;
+          }
+        }
+      }
     }
   }
 
-  private void setNewIterator(Iterator iter) throws Exception {
-    final PlayerEventsListener events = new PlaybackEvents(callbacks, playback);
-    setNewHolder(new Holder(iter, events));
+  private void setNewItem(PlayableItem newItem) throws Exception {
+    final Holder newHolder = new Holder(newItem);
+    setNewHolder(newHolder);
   }
 
-  private void setNewHolder(Holder holder) {
-    final Holder oldHolder = this.holder;
-    this.holder = Holder.instance();
-    oldHolder.player.stopPlayback();
-    try {
-      this.holder = holder;
-      callbacks.onItemChanged(holder.item);
-    } finally {
-      oldHolder.release();
-    }
-  }
-
-
-  private void play(Iterator iter) throws Exception {
-    synchronized (holderGuard) {
-      setNewIterator(iter);
-      holder.player.startPlayback();
-    }
-  }
-
-  private void playNext() throws Exception {
-    final Iterator next = getNextIterator();
-    if (next != null) {
-      play(next);
-    }
-  }
-
-  private Iterator getNextIterator() {
-    synchronized (holderGuard) {
-      return holder.iterator.next() ? holder.iterator : null;
-    }
-  }
-
-  private void playPrev() throws Exception {
-    final Iterator prev = getPrevIterator();
-    if (prev != null) {
-      play(prev);
-    }
-  }
-
-  private Iterator getPrevIterator() {
-    synchronized (holderGuard) {
-      return holder.iterator.prev() ? holder.iterator : null;
-    }
+  private void setNewHolder(Holder newHolder) throws Exception {
+    navigateCmd.cancel();
+    holder.set(newHolder);
+    player.setSource(newHolder.source);
+    callbacks.onItemChanged(newHolder.item);
   }
 
   @Override
@@ -241,14 +218,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   @Override
   public void release() {
     shutdownExecutor();
-    synchronized (holderGuard) {
-      try {
-        holder.player.stopPlayback();
-      } finally {
-        holder.release();
-        holder = Holder.instance();
-      }
-    }
+    player.stopPlayback();
+    player.release();
   }
 
   private void shutdownExecutor() {
@@ -295,36 +266,27 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     prefs.edit().putLong(name, value).apply();
   }
 
-  private static class Holder implements Releaseable {
+  private static class Holder {
 
-    public final Iterator iterator;
     public final PlayableItem item;
-    public final Player player;
+    public final SamplesSource source;
     public final SeekControl seek;
     public final Visualizer visualizer;
 
     private Holder() {
-      this.iterator = IteratorStub.instance();
       this.item = PlayableItemStub.instance();
-      this.player = StubPlayer.instance();
+      this.source = StubSamplesSource.instance();
       this.seek = SeekControlStub.instance();
       this.visualizer = VisualizerStub.instance();
     }
 
-    Holder(Iterator iterator, PlayerEventsListener events) throws Exception {
-      this.iterator = iterator;
-      this.item = iterator.getItem();
+    Holder(PlayableItem item) throws Exception {
+      this.item = item;
       final app.zxtune.core.Player lowPlayer = item.getModule().createPlayer();
-      final SeekableSamplesSource source = new SeekableSamplesSource(lowPlayer, item.getDuration());
-      final SamplesTarget target = SoundOutputSamplesTarget.create();
-      this.player = AsyncPlayer.create(source, target, events);
-      this.seek = source;
+      final SeekableSamplesSource seekableSource = new SeekableSamplesSource(lowPlayer, item.getDuration());
+      this.source = seekableSource;
+      this.seek = seekableSource;
       this.visualizer = new PlaybackVisualizer(lowPlayer);
-    }
-
-    @Override
-    public void release() {
-      player.release();
     }
 
     public static Holder instance() {
@@ -335,7 +297,65 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     private static class Singleton {
       public static final Holder INSTANCE = new Holder();
     }
+  }
 
+  private class NavigateCommand implements Command {
+
+    private final AtomicInteger counter = new AtomicInteger(0);
+    private final AtomicBoolean canceled = new AtomicBoolean(false);
+
+    final void scheduleNext() {
+      if (0 == counter.getAndIncrement()) {
+        canceled.set(false);
+        executeCommand(this);
+      }
+    }
+
+    final void schedulePrev() {
+      if (0 == counter.getAndDecrement()) {
+        canceled.set(false);
+        executeCommand(this);
+      }
+    }
+
+    final void cancel() {
+      counter.set(0);
+      canceled.set(true);
+    }
+
+    @Override
+    public void execute() throws Exception {
+      final Iterator iteratorCopy = iterator.get();
+      if (performNavigation(iteratorCopy) && iterator.compareAndSet(iteratorCopy, iteratorCopy)) {
+        setNewItem(iteratorCopy.getItem());
+        player.startPlayback();
+      }
+    }
+
+    private boolean performNavigation(Iterator iter) {
+      int realDelta = 0;
+      while (!canceled.get()) {
+        if (counter.compareAndSet(realDelta, realDelta)) {
+          break;
+        }
+        final int value = counter.get();
+        if (value < realDelta) {
+          if (iter.prev()) {
+            --realDelta;
+          } else {
+            counter.compareAndSet(value, realDelta);
+          }
+        } else if (value > realDelta) {
+          if (iter.next()) {
+            ++realDelta;
+          } else {
+            counter.compareAndSet(value, realDelta);
+          }
+        }
+      }
+      counter.set(0);
+      return !canceled.get() && realDelta != 0;
+    }
   }
 
   private final class DispatchedPlaybackControl implements PlaybackControl {
@@ -348,14 +368,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void play() {
-      executeCommand(new Command() {
-        @Override
-        public void execute() {
-          synchronized (holderGuard) {
-            holder.player.startPlayback();
-          }
-        }
-      });
+      player.startPlayback();
     }
 
     @Override
@@ -363,54 +376,30 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       executeCommand(new Command() {
         @Override
         public void execute() {
-          synchronized (holderGuard) {
-            holder.player.stopPlayback();
-          }
+          player.stopPlayback();
         }
       });
     }
 
     @Override
-    public void pause() {
-      executeCommand(new Command() {
-        @Override
-        public void execute() {
-          synchronized (holderGuard) {
-            holder.player.pausePlayback();
-          }
-        }
-      });
-    }
-
-    @Override
-    public PlaybackControl.State getState() {
-      synchronized (holderGuard) {
-        final Player player = holder.player;
-        return player.isStarted()
-            ? (player.isPaused() ? State.PAUSED
-            : State.PLAYING)
-            : State.STOPPED;
+    public void togglePlayStop() {
+      if (player.isStarted()) {
+        //may be blocking
+        stop();
+      } else {
+        //non-blocking
+        player.startPlayback();
       }
     }
 
     @Override
     public void next() {
-      executeCommand(new Command() {
-        @Override
-        public void execute() throws Exception {
-          playNext();
-        }
-      });
+      navigateCmd.scheduleNext();
     }
 
     @Override
     public void prev() {
-      executeCommand(new Command() {
-        @Override
-        public void execute() throws Exception {
-          playPrev();
-        }
-      });
+      navigateCmd.schedulePrev();
     }
 
     @Override
@@ -441,23 +430,17 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public TimeStamp getDuration() throws Exception {
-      synchronized (holderGuard) {
-        return holder.seek.getDuration();
-      }
+      return holder.get().seek.getDuration();
     }
 
     @Override
     public TimeStamp getPosition() throws Exception {
-      synchronized (holderGuard) {
-        return holder.seek.getPosition();
-      }
+      return holder.get().seek.getPosition();
     }
 
     @Override
     public void setPosition(TimeStamp position) throws Exception {
-      synchronized (holderGuard) {
-        holder.seek.setPosition(position);
-      }
+      holder.get().seek.setPosition(position);
     }
   }
 
@@ -465,9 +448,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public int getSpectrum(int[] bands, int[] levels) throws Exception {
-      synchronized (holderGuard) {
-        return holder.visualizer.getSpectrum(bands, levels);
-      }
+      return holder.get().visualizer.getSpectrum(bands, levels);
     }
   }
 }

@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Samples target interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.sound;
@@ -18,7 +14,7 @@ public interface SamplesTarget {
    * @return target sample rate in Hz
    */
   int getSampleRate();
-  
+
   /**
    * @return buffer size in samples
    */
@@ -30,12 +26,6 @@ public interface SamplesTarget {
   void start() throws Exception;
 
   /**
-   * Pause target. No underrun happens if no data called.
-   * Mode is active till next writeSamples or stop call
-   */
-  void pause() throws Exception;
-
-  /**
    * @param buffer sound data in S16/stereo/interleaved format
    */
   void writeSamples(@NonNull short[] buffer) throws Exception;
@@ -44,7 +34,7 @@ public interface SamplesTarget {
    * Deinitialize target
    */
   void stop() throws Exception;
-  
+
   /**
    * Release all internal resources
    */

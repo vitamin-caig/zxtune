@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Playback controller interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.playback;
@@ -15,26 +11,25 @@ public interface PlaybackControl {
   /**
    * Current state
    */
-  public enum State {
+  enum State {
     STOPPED,
     PLAYING,
-    PAUSED
   }
 
   /**
    * Track playback mode
    */
-  public enum TrackMode {
+  enum TrackMode {
     /// Play track from start to end
     REGULAR,
     /// Loop track according to internal information
     LOOPED,
   }
-  
+
   /**
    * Tracks collection playback mode
    */
-  public enum SequenceMode {
+  enum SequenceMode {
     /// Play collection from start to end
     ORDERED,
     /// Loop collection (if possible)
@@ -46,50 +41,46 @@ public interface PlaybackControl {
   /*
    * Activate currently playing item
    */
-  public void play();
+  void play();
 
-  /*
-   * Pause currently playing item
-   */
-  public void pause();
-  
+
   /*
    * Stop currently playing item
    */
-  public void stop();
-  
+  void stop();
+
   /*
-   * @return current state
+   * Toggle play/stop state
    */
-  public State getState();
-  
+  void togglePlayStop();
+
   /*
    * Play next item in sequence
    */
-  public void next();
-  
+  void next();
+
   /*
    * Play previous item in sequence
    */
-  public void prev();
-  
+  void prev();
+
   /*
    * @return Track playback mode
    */
-  public TrackMode getTrackMode();
-  
+  TrackMode getTrackMode();
+
   /*
    * Set track playback mode
    */
-  public void setTrackMode(TrackMode mode);
-  
+  void setTrackMode(TrackMode mode);
+
   /*
    * @return Sequence playback mode
    */
-  public SequenceMode getSequenceMode();
-  
+  SequenceMode getSequenceMode();
+
   /*
    * Set sequence playback mode
    */
-  public void setSequenceMode(SequenceMode mode);
+  void setSequenceMode(SequenceMode mode);
 }

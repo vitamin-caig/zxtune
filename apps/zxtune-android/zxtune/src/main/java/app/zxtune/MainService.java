@@ -1,11 +1,7 @@
 /**
- *
-* @file
- *
+ * @file
  * @brief Background playback service
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune;
@@ -39,10 +35,8 @@ public class MainService extends Service {
   public static final String ACTION_PREV = TAG + ".prev";
   public static final String ACTION_NEXT = TAG + ".next";
   public static final String ACTION_PLAY = TAG + ".play";
-  public static final String ACTION_PAUSE = TAG + ".pause";
   public static final String ACTION_STOP = TAG + ".stop";
   public static final String ACTION_TOGGLE_PLAY_STOP = TAG + ".toggle_play_stop";
-  public static final String ACTION_TOGGLE_PLAY_PAUSE = TAG + ".toggle_play_pause";
 
   public static Intent createIntent(Context ctx, @Nullable String action) {
     return new Intent(ctx, MainService.class).setAction(action);
@@ -51,8 +45,8 @@ public class MainService extends Service {
   public static PendingIntent createPendingIntent(Context ctx, String action) {
     final Intent intent = createIntent(ctx, action);
     return Build.VERSION.SDK_INT >= 26
-            ? PendingIntent.getForegroundService(ctx, 0, intent, 0)
-            : PendingIntent.getService(ctx, 0, intent, 0);
+               ? PendingIntent.getForegroundService(ctx, 0, intent, 0)
+               : PendingIntent.getService(ctx, 0, intent, 0);
   }
 
   @Override
@@ -96,22 +90,10 @@ public class MainService extends Service {
       ctrl.next();
     } else if (ACTION_PLAY.equals(action)) {
       ctrl.play();
-    } else if (ACTION_PAUSE.equals(action)) {
-      ctrl.pause();
     } else if (ACTION_STOP.equals(action)) {
       ctrl.stop();
     } else if (ACTION_TOGGLE_PLAY_STOP.equals(action)) {
-      if (ctrl.getState() == PlaybackControl.State.PLAYING) {
-        ctrl.stop();
-      } else {
-        ctrl.play();
-      }
-    } else if (ACTION_TOGGLE_PLAY_PAUSE.equals(action)) {
-      if (ctrl.getState() == PlaybackControl.State.PLAYING) {
-        ctrl.pause();
-      } else {
-        ctrl.play();
-      }
+      ctrl.togglePlayStop();
     }
     return START_NOT_STICKY;
   }

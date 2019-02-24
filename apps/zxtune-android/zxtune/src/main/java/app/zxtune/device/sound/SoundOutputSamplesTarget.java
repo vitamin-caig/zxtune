@@ -51,23 +51,18 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
   }
   
   @Override
-  public synchronized int getSampleRate() {
+  public int getSampleRate() {
     return target.getSampleRate();
   }
   
   @Override
-  public synchronized int getPreferableBufferSize() {
+  public int getPreferableBufferSize() {
     return bufferSize / Sample.BYTES;
   }
   
   @Override
   public synchronized void start() {
     target.play();
-  }
-
-  @Override
-  public synchronized void pause() {
-    target.pause();
   }
 
   @Override
@@ -79,9 +74,7 @@ public final class SoundOutputSamplesTarget implements SamplesTarget {
         toWrite -= written;
       } else {
         final int state = target.getPlayState();
-        if (state == AudioTrack.PLAYSTATE_PAUSED) {
-          target.play();//resume
-        } else if (state == AudioTrack.PLAYSTATE_STOPPED) {
+        if (state == AudioTrack.PLAYSTATE_STOPPED) {
           break;//drain
         } else if (written < 0) {
           throw new Exception("Failed to write samples: " + written);

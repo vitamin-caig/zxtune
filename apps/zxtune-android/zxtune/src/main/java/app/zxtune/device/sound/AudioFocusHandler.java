@@ -14,7 +14,6 @@ public class AudioFocusHandler extends CallbackStub implements AudioManager.OnAu
   private enum State {
     STOPPED,
     PLAYING,
-    PAUSED,
     FOCUS_LOST,
   }
 
@@ -32,8 +31,6 @@ public class AudioFocusHandler extends CallbackStub implements AudioManager.OnAu
   public void onStateChanged(PlaybackControl.State state) {
     if (state == PlaybackControl.State.PLAYING) {
       onPlay();
-    } else if (state == PlaybackControl.State.PAUSED) {
-      onPause();
     } else if (state == PlaybackControl.State.STOPPED) {
       onStop();
     }
@@ -41,9 +38,6 @@ public class AudioFocusHandler extends CallbackStub implements AudioManager.OnAu
 
   @Override
   public void onAudioFocusChange(int focusChange) {
-    if (state == State.PAUSED) {
-      return;
-    }
     switch (focusChange) {
       case AudioManager.AUDIOFOCUS_LOSS:
         Log.d(TAG, "Focus lost");
@@ -67,16 +61,12 @@ public class AudioFocusHandler extends CallbackStub implements AudioManager.OnAu
     state = State.PLAYING;
   }
 
-  private void onPause() {
-    if (state == State.PLAYING) {
-      state = state.PAUSED;
-    }
-  }
-
   private void onStop() {
-    Log.d(TAG, "Release audio focus");
-    releaseFocus();
-    state = State.STOPPED;
+    if (state == State.PLAYING) {
+      Log.d(TAG, "Release audio focus");
+      releaseFocus();
+      state = State.STOPPED;
+    }
   }
 
 
@@ -95,7 +85,7 @@ public class AudioFocusHandler extends CallbackStub implements AudioManager.OnAu
 
   private void onFocusLost() {
     state = State.FOCUS_LOST;
-    control.pause();
+    control.stop();
   }
 
   private void onFocusRestore() {

@@ -264,6 +264,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
 
     @Override
     public void onItemChanged(Item item) {
+      seek.update();
       info.update(item);
       trackActionsMenu.itemChanged(item);
     }
