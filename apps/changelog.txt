@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4380 from 25.02.2019
+
+[*] Fixed OGG looping
+[*] zxtune-android: reduced pauses between tracks
+[*] zxtune-android: fixed some reported and found crashes and hangs
+
 --- Rev4350 from 22.01.2019
 
 [*] Fixed some formats playback
