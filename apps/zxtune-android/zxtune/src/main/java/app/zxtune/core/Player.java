@@ -1,11 +1,9 @@
 package app.zxtune.core;
 
-import app.zxtune.Releaseable;
-
 /**
  * Player interface
  */
-public interface Player extends Releaseable, PropertiesAccessor, PropertiesModifier {
+public interface Player extends PropertiesAccessor, PropertiesModifier {
 
   /**
    * @return Index of next rendered frame
@@ -13,7 +11,7 @@ public interface Player extends Releaseable, PropertiesAccessor, PropertiesModif
   int getPosition() throws Exception;
 
   /**
-   * @param bands Array of bands to store
+   * @param bands  Array of bands to store
    * @param levels Array of levels to store
    * @return Count of actually stored entries
    */
@@ -21,6 +19,7 @@ public interface Player extends Releaseable, PropertiesAccessor, PropertiesModif
 
   /**
    * Render next result.length bytes of sound data
+   *
    * @param result Buffer to put data
    * @return Is there more data to render
    */
@@ -30,9 +29,4 @@ public interface Player extends Releaseable, PropertiesAccessor, PropertiesModif
    * @param pos Index of next rendered frame
    */
   void setPosition(int pos) throws Exception;
-
-  /**
-   * @return rendering performance in percents
-   */
-  int getPlaybackPerformance() throws Exception;
 }

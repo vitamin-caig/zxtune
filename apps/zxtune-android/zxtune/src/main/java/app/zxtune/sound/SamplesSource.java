@@ -34,9 +34,4 @@ public interface SamplesSource {
    * @return true if buffer filled, else reset position to initial
    */
   boolean getSamples(@NonNull short[] buf) throws Exception;
-
-  /**
-   * Release all internal resources
-   */
-  void release();
 }

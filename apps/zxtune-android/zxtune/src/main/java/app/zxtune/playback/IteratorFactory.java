@@ -37,7 +37,7 @@ public final class IteratorFactory {
     if (isPlaylistUri(first)) {
       return new PlaylistIterator(context, first);
     } else {
-      return new FileIterator(context, uris);
+      return FileIterator.create(context, uris);
     }
   }
   

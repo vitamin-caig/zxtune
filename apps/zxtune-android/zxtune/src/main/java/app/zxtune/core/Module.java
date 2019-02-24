@@ -1,11 +1,9 @@
 package app.zxtune.core;
 
-import app.zxtune.Releaseable;
-
 /**
  * Module interface
  */
-public interface Module extends Releaseable, PropertiesAccessor, AdditionalFiles {
+public interface Module extends PropertiesAccessor, AdditionalFiles {
 
   /**
    * @return Module's duration in frames

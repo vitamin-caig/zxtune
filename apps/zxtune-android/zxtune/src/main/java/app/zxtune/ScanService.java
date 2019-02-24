@@ -129,7 +129,6 @@ public class ScanService extends IntentService {
           insertThread.enqueue(item);
         } catch (InterruptedException e) {
           Log.d(TAG, "scan interrupted");
-          item.release();
           break;
         }
       } while (insertThread.isActive() && iter.next());
@@ -155,8 +154,6 @@ public class ScanService extends IntentService {
     final void enqueue(PlayableItem item) throws InterruptedException {
       if (isActive()) {
         queue.put(item);
-      } else {
-        item.release();
       }
     }
     
@@ -201,7 +198,6 @@ public class ScanService extends IntentService {
         Log.w(getName(), e, "run()");
       } finally {
         Log.d(getName(), "stopping");
-        cleanup();
       }
     }
     
@@ -232,19 +228,9 @@ public class ScanService extends IntentService {
     }
 
     private void insertItem(PlayableItem item) throws Exception {
-      try {
-        final Item listItem = new Item(item.getDataId(), item.getModule());
-        getContentResolver().insert(PlaylistQuery.ALL, listItem.toContentValues());
-        addedItems.incrementAndGet();
-      } finally {
-        item.release();
-      }
-    }
-
-    private void cleanup() {
-      while (!queue.isEmpty()) {
-        queue.remove().release();
-      }
+      final Item listItem = new Item(item.getDataId(), item.getModule());
+      getContentResolver().insert(PlaylistQuery.ALL, listItem.toContentValues());
+      addedItems.incrementAndGet();
     }
   }
 
