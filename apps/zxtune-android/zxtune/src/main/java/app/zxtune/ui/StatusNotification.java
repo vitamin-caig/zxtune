@@ -8,20 +8,28 @@ package app.zxtune.ui;
 
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Handler;
-import android.support.v4.app.NotificationCompat.Action;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat.Action;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.media.app.NotificationCompat.MediaStyle;
-
+import android.support.v4.media.session.MediaSessionCompat;
+import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.Util;
 import app.zxtune.device.ui.Notifications;
+import app.zxtune.fs.Vfs;
+import app.zxtune.fs.VfsExtensions;
+import app.zxtune.fs.VfsObject;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
@@ -77,7 +85,8 @@ public class StatusNotification extends CallbackStub {
   @Override
   public void onItemChanged(Item item) {
     try {
-      final String filename = item.getDataId().getDisplayFilename();
+      final Identifier dataId = item.getDataId();
+      final String filename = dataId.getDisplayFilename();
       String title = item.getTitle();
       final String author = item.getAuthor();
       final String ticker = Util.formatTrackTitle(title, author, filename);
@@ -87,7 +96,9 @@ public class StatusNotification extends CallbackStub {
       notification.getBuilder()
 //        .setTicker(ticker)
           .setContentTitle(title)
-          .setContentText(author);
+          .setContentText(author)
+          .setContentText(author)
+          .setLargeIcon(getLocationIcon(dataId.getDataLocation()));
     } catch (Exception e) {
       Log.w(TAG, e, "onIntemChanged()");
     }
@@ -119,6 +130,35 @@ public class StatusNotification extends CallbackStub {
     public void run() {
       notification.hide();
       service.stopForeground(true);
+    }
+  }
+
+  private Bitmap getLocationIcon(Uri location) {
+    try {
+      final Resources resources = service.getResources();
+      final int id = getLocationIconResource(location);
+      final Drawable drawable = ResourcesCompat.getDrawableForDensity(resources, id, 480/*XXHDPI*/, null);
+      if (drawable instanceof BitmapDrawable) {
+        return ((BitmapDrawable) drawable).getBitmap();
+      } else {
+        final Bitmap result = Bitmap.createBitmap(128,128, Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(result);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return result;
+      }
+    } catch (Exception e) {
+    }
+    return null;
+  }
+
+  private int getLocationIconResource(Uri location) {
+    try {
+      final Uri rootLocation = new Uri.Builder().scheme(location.getScheme()).build();
+      final VfsObject root = Vfs.resolve(rootLocation);
+      return (Integer) root.getExtension(VfsExtensions.ICON_RESOURCE);
+    } catch (Exception e) {
+      return R.drawable.ic_launcher;
     }
   }
 }
