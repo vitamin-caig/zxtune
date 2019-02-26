@@ -13,6 +13,7 @@
 #include <binary/container_factories.h>
 #include <core/module_open.h>
 #include <io/api.h>
+#include <module/track_information.h>
 #include <iostream>
 #include <parameters/container.h>
 #include <parameters/template.h>
@@ -29,11 +30,14 @@ namespace
 
   void ShowModuleInfo(const Module::Information& info)
   {
-    std::cout <<
-      "Positions: " << info.PositionsCount() << " (" << info.LoopPosition() << ')' << std::endl <<
-      "Frames: " << info.FramesCount() << " (" << info.LoopFrame() << ')' << std::endl <<
-      "Channels: " << info.ChannelsCount() << std::endl <<
-      "Initial tempo: " << info.Tempo() << std::endl;
+    if (const auto trackInfo = dynamic_cast<const Module::TrackInformation*>(&info))
+    {
+      std::cout <<
+        "Positions: " << trackInfo->PositionsCount() << " (" << trackInfo->LoopPosition() << ')' << std::endl <<
+        "Initial tempo: " << trackInfo->Tempo() << std::endl;
+    }
+    std::cout << "Frames: " << info.FramesCount() << " (" << info.LoopFrame() << ')' << std::endl <<
+      "Channels: " << info.ChannelsCount() << std::endl;
   }
   
   class PrintValuesVisitor : public Parameters::Visitor
