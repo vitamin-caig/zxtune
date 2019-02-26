@@ -286,7 +286,7 @@ namespace ProSoundMaker
         }
         GetNewLineState(state, track);
       }
-      SynthesizeChannelsData(state, track);
+      SynthesizeChannelsData(track);
     }
   private:
     void ResetNotes()
@@ -301,17 +301,18 @@ namespace ProSoundMaker
     {
       if (const auto line = state.LineObject())
       {
+        const auto transposition = Data->Order->GetTransposition(state.Position());
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
           if (const auto src = line->GetChannel(chan))
           {
-            GetNewChannelState(*src, PlayerState[chan], track);
+            GetNewChannelState(transposition, *src, PlayerState[chan], track);
           }
         }
       }
     }
 
-    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(uint_t transposition, const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (const bool* enabled = src.GetEnabled())
       {
@@ -371,7 +372,7 @@ namespace ProSoundMaker
       }
       if (const uint_t* note = src.GetNote())
       {
-        dst.Note = *note;
+        dst.Note = *note + transposition;
         dst.VolumeDelta = dst.BaseVolumeDelta;
         dst.Smp.Position = 0;
         dst.Smp.Finished = false;
@@ -399,16 +400,16 @@ namespace ProSoundMaker
       }
     }
 
-    void SynthesizeChannelsData(const TrackState& state, AYM::TrackBuilder& track)
+    void SynthesizeChannelsData(AYM::TrackBuilder& track)
     {
       for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         AYM::ChannelBuilder channel = track.GetChannel(chan);
-        SynthesizeChannel(state, PlayerState[chan], channel, track);
+        SynthesizeChannel(PlayerState[chan], channel, track);
       }
     }
 
-    void SynthesizeChannel(const TrackState& state, ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
+    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
       const Ornament& curOrnament = *dst.Orn.Current;
       const int_t ornamentLine = (dst.Orn.Finished || dst.Envelope) ? 0 : curOrnament.GetLine(dst.Orn.Position);
@@ -416,8 +417,7 @@ namespace ProSoundMaker
       const Sample::Line& curSampleLine = curSample.GetLine(dst.Smp.Position);
 
       dst.Slide += curSampleLine.Gliss;
-      const int_t curNote = dst.Note ? int_t(*dst.Note) + Data->Order->GetTransposition(state.Position()) : 0;
-      const int_t halftones = Math::Clamp<int_t>(curNote + ornamentLine, 0, 95);
+      const int_t halftones = dst.Note ? Math::Clamp<int_t>(int_t(*dst.Note) + ornamentLine, 0, 95) : 0;
       const int_t tone = Math::Clamp<int_t>(track.GetFrequency(halftones) + dst.Slide, 0, 4095);
       channel.SetTone(tone);
       

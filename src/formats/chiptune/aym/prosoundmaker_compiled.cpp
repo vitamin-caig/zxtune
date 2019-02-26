@@ -537,7 +537,7 @@ namespace Chiptune
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
         Dbg("Samples: %1% to parse", samples.Count());
-        const std::size_t minOffset = fromLE(Source.SamplesOffset) + samples.Maximum() * sizeof(uint16_t);
+        const std::size_t minOffset = fromLE(Source.SamplesOffset) + (samples.Maximum() + 1) * sizeof(uint16_t);
         const std::size_t maxOffset = Delegate.GetSize();
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
@@ -576,7 +576,7 @@ namespace Chiptune
           builder.SetOrnament(0, Ornament());
           return;
         }
-        const std::size_t minOffset = fromLE(Source.OrnamentsOffset) + ornaments.Maximum() * sizeof(uint16_t);
+        const std::size_t minOffset = fromLE(Source.OrnamentsOffset) + (ornaments.Maximum() + 1) * sizeof(uint16_t);
         const std::size_t maxOffset = Delegate.GetSize();
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
