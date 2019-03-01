@@ -6,7 +6,6 @@
 
 package app.zxtune.ui;
 
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -18,11 +17,12 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Action;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.media.app.NotificationCompat.MediaStyle;
+import android.support.v4.media.session.MediaButtonReceiver;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
-import app.zxtune.MainActivity;
-import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.Util;
 import app.zxtune.device.ui.Notifications;
@@ -45,20 +45,25 @@ public class StatusNotification extends CallbackStub {
   private final Notifications.Controller notification;
   private PlaybackControl.State lastState;
 
-  public StatusNotification(Service service, MediaSessionCompat.Token sessionToken) {
+  public StatusNotification(Service service, MediaSessionCompat session) {
     this.service = service;
     this.notification = Notifications.createForService(service, R.drawable.ic_stat_notify_play);
     // Little trick for Android O that requires startForeground call in 5 seconds after service start
     // But initialization may take longer...
     startForeground();
+
+    final MediaControllerCompat controller = session.getController();
+
     notification.getBuilder()
-        .setContentIntent(MainActivity.createPendingIntent(service))
-        .addAction(R.drawable.ic_prev, "", createServiceIntent(MainService.ACTION_PREV))
+        .setContentIntent(controller.getSessionActivity())
+        .addAction(R.drawable.ic_prev, "", MediaButtonReceiver.buildMediaButtonPendingIntent(service,
+            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS))
         .addAction(createPauseAction())
-        .addAction(R.drawable.ic_next, "", createServiceIntent(MainService.ACTION_NEXT))
+        .addAction(R.drawable.ic_next, "", MediaButtonReceiver.buildMediaButtonPendingIntent(service,
+            PlaybackStateCompat.ACTION_SKIP_TO_NEXT))
         .setStyle(new MediaStyle()
                       .setShowActionsInCompactView(ACTION_PREV, ACTION_PLAY_PAUSE, ACTION_NEXT)
-                      .setMediaSession(sessionToken)
+                      .setMediaSession(session.getSessionToken())
             //Takes way too much place on 4.4.2
             //.setCancelButtonIntent(createServiceIntent(MainService.ACTION_STOP))
             //.setShowCancelButton(true)
@@ -68,16 +73,15 @@ public class StatusNotification extends CallbackStub {
   }
 
   private Action createPauseAction() {
-    return new NotificationCompat.Action(R.drawable.ic_pause, "", createServiceIntent(MainService.ACTION_STOP));
+    return new NotificationCompat.Action(R.drawable.ic_pause, "",
+        MediaButtonReceiver.buildMediaButtonPendingIntent(service, PlaybackStateCompat.ACTION_STOP));
   }
 
   private Action createPlayAction() {
-    return new NotificationCompat.Action(R.drawable.ic_play, "", createServiceIntent(MainService.ACTION_PLAY));
+    return new NotificationCompat.Action(R.drawable.ic_play, "",
+        MediaButtonReceiver.buildMediaButtonPendingIntent(service, PlaybackStateCompat.ACTION_PLAY));
   }
 
-  private PendingIntent createServiceIntent(String action) {
-    return MainService.createPendingIntent(service, action);
-  }
 
   @Override
   public void onItemChanged(Item item) {
@@ -129,7 +133,7 @@ public class StatusNotification extends CallbackStub {
       if (drawable instanceof BitmapDrawable) {
         return ((BitmapDrawable) drawable).getBitmap();
       } else {
-        final Bitmap result = Bitmap.createBitmap(128,128, Bitmap.Config.ARGB_8888);
+        final Bitmap result = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888);
         final Canvas canvas = new Canvas(result);
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         drawable.draw(canvas);

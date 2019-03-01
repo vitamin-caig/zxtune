@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune;
@@ -14,9 +10,10 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
+import android.support.v4.media.session.MediaButtonReceiver;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.View;
 import android.widget.RemoteViews;
-
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
@@ -27,12 +24,12 @@ public class WidgetHandler extends AppWidgetProvider {
 
   @Override
   public void onUpdate(Context context, AppWidgetManager appWidgetManager,
-      int[] appWidgetIds) {
+                       int[] appWidgetIds) {
     super.onUpdate(context, appWidgetManager, appWidgetIds);
 
     update(context, createView(context));
   }
-  
+
   private static void update(Context context, RemoteViews widgetView) {
     final AppWidgetManager mgr = AppWidgetManager.getInstance(context);
     final int[] widgets = mgr.getAppWidgetIds(new ComponentName(context, WidgetHandler.class));
@@ -45,16 +42,19 @@ public class WidgetHandler extends AppWidgetProvider {
     final RemoteViews widgetView = new RemoteViews(context.getPackageName(), R.layout.widget);
 
     widgetView.setOnClickPendingIntent(R.id.widget_openapp, MainActivity.createPendingIntent(context));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_prev, MainService.createPendingIntent(context, MainService.ACTION_PREV));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_play, MainService.createPendingIntent(context, MainService.ACTION_PLAY));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_pause, MainService.createPendingIntent(context, MainService.ACTION_STOP));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_next, MainService.createPendingIntent(context, MainService.ACTION_NEXT));
+    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_prev, MediaButtonReceiver.buildMediaButtonPendingIntent(context,
+        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
+    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_play, MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_PLAY));
+    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_pause,
+        MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP));
+    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_next,
+        MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_SKIP_TO_NEXT));
 
     widgetView.setViewVisibility(R.id.widget_ctrl_pause, View.GONE);
 
     return widgetView;
   }
-  
+
   public static class WidgetNotification extends CallbackStub {
 
     private final Context ctx;

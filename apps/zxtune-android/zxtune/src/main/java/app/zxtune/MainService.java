@@ -6,16 +6,14 @@
 
 package app.zxtune;
 
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-
-import app.zxtune.playback.PlaybackControl;
+import android.support.v4.media.session.MediaButtonReceiver;
 import app.zxtune.device.sound.AudioFocusHandler;
+import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.service.PlayingStateCallback;
 import app.zxtune.playback.stubs.CallbackStub;
@@ -32,21 +30,8 @@ public class MainService extends Service {
   private RemoteControl remoteControl;
   private Releaseable settingsChangedHandler;
 
-  public static final String ACTION_PREV = TAG + ".prev";
-  public static final String ACTION_NEXT = TAG + ".next";
-  public static final String ACTION_PLAY = TAG + ".play";
-  public static final String ACTION_STOP = TAG + ".stop";
-  public static final String ACTION_TOGGLE_PLAY_STOP = TAG + ".toggle_play_stop";
-
   public static Intent createIntent(Context ctx, @Nullable String action) {
     return new Intent(ctx, MainService.class).setAction(action);
-  }
-
-  public static PendingIntent createPendingIntent(Context ctx, String action) {
-    final Intent intent = createIntent(ctx, action);
-    return Build.VERSION.SDK_INT >= 26
-               ? PendingIntent.getForegroundService(ctx, 0, intent, 0)
-               : PendingIntent.getService(ctx, 0, intent, 0);
   }
 
   @Override
@@ -78,24 +63,8 @@ public class MainService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     Log.d(TAG, "StartCommand called");
-    if (intent == null) {
-      //service is restarted after its process gone away
-      return START_NOT_STICKY;
-    }
-    final String action = intent.getAction();
-    final PlaybackControl ctrl = service.getPlaybackControl();
-    if (ACTION_PREV.equals(action)) {
-      ctrl.prev();
-    } else if (ACTION_NEXT.equals(action)) {
-      ctrl.next();
-    } else if (ACTION_PLAY.equals(action)) {
-      ctrl.play();
-    } else if (ACTION_STOP.equals(action)) {
-      ctrl.stop();
-    } else if (ACTION_TOGGLE_PLAY_STOP.equals(action)) {
-      ctrl.togglePlayStop();
-    }
-    return START_NOT_STICKY;
+    MediaButtonReceiver.handleIntent(remoteControl.getSession(), intent);
+    return super.onStartCommand(intent, flags, startId);
   }
 
   @Override
@@ -113,7 +82,7 @@ public class MainService extends Service {
     service.subscribe(new PlayingStateCallback(ctx));
     service.subscribe(new WidgetHandler.WidgetNotification(ctx));
 
-    service.subscribe(new StatusNotification(this, remoteControl.getSessionToken()));
+    service.subscribe(new StatusNotification(this, remoteControl.getSession()));
     settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
   }
 
