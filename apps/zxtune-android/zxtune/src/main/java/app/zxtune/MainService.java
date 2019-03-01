@@ -13,7 +13,6 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.media.session.MediaButtonReceiver;
 import app.zxtune.device.media.MediaSessionControl;
-import app.zxtune.device.sound.AudioFocusHandler;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.service.PlayingStateCallback;
@@ -76,7 +75,6 @@ public class MainService extends Service {
 
   private void setupCallbacks(Context ctx) {
     //should be always paired
-    service.subscribe(new AudioFocusHandler(ctx, service.getPlaybackControl()));
     mediaSessionControl = MediaSessionControl.subscribe(ctx, service);
 
     service.subscribe(new Analytics.PlaybackEventsCallback());

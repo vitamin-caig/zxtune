@@ -32,7 +32,6 @@ class StatusCallback extends CallbackStub {
   @Override
   public void onInitialState(PlaybackControl.State state, Item item, boolean ioStatus) {
     onStateChanged(state);
-    onItemChanged(item);
   }
 
   @Override

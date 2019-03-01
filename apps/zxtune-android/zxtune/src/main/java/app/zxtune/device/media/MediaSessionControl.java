@@ -30,7 +30,7 @@ public class MediaSessionControl implements Releaseable {
     this.session = new MediaSessionCompat(ctx, TAG, mbrComponent, null);
     this.session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
     this.callback = new CallbackSubscription(svc, new StatusCallback(session));
-    this.session.setCallback(new ControlCallback(svc.getPlaybackControl()));
+    this.session.setCallback(new ControlCallback(ctx, svc.getPlaybackControl()));
     this.session.setMediaButtonReceiver(PendingIntent.getBroadcast(appCtx, 0,
         new Intent(Intent.ACTION_MEDIA_BUTTON).setComponent(mbrComponent), 0));
     this.session.setSessionActivity(PendingIntent.getActivity(appCtx, 0, new Intent(appCtx, MainActivity.class), 0));
