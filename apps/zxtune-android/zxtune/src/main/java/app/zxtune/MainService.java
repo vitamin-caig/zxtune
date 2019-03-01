@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.media.session.MediaButtonReceiver;
+import app.zxtune.device.media.MediaSessionControl;
 import app.zxtune.device.sound.AudioFocusHandler;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.service.PlaybackServiceLocal;
@@ -27,7 +28,7 @@ public class MainService extends Service {
   private PlaybackServiceLocal service;
   private IBinder binder;
 
-  private RemoteControl remoteControl;
+  private MediaSessionControl mediaSessionControl;
   private Releaseable settingsChangedHandler;
 
   public static Intent createIntent(Context ctx, @Nullable String action) {
@@ -52,8 +53,8 @@ public class MainService extends Service {
     Log.d(TAG, "Destroying");
     settingsChangedHandler.release();
     settingsChangedHandler = null;
-    remoteControl.release();
-    remoteControl = null;
+    mediaSessionControl.release();
+    mediaSessionControl = null;
     binder = null;
     service.release();
     service = null;
@@ -63,7 +64,7 @@ public class MainService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     Log.d(TAG, "StartCommand called");
-    MediaButtonReceiver.handleIntent(remoteControl.getSession(), intent);
+    MediaButtonReceiver.handleIntent(mediaSessionControl.getSession(), intent);
     return super.onStartCommand(intent, flags, startId);
   }
 
@@ -76,13 +77,13 @@ public class MainService extends Service {
   private void setupCallbacks(Context ctx) {
     //should be always paired
     service.subscribe(new AudioFocusHandler(ctx, service.getPlaybackControl()));
-    remoteControl = RemoteControl.subscribe(ctx, service);
+    mediaSessionControl = MediaSessionControl.subscribe(ctx, service);
 
     service.subscribe(new Analytics.PlaybackEventsCallback());
     service.subscribe(new PlayingStateCallback(ctx));
     service.subscribe(new WidgetHandler.WidgetNotification(ctx));
 
-    service.subscribe(new StatusNotification(this, remoteControl.getSession()));
+    service.subscribe(new StatusNotification(this, mediaSessionControl.getSession()));
     settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
   }
 
