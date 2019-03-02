@@ -1,10 +1,22 @@
 package app.zxtune.device.media;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
+import app.zxtune.MainApplication;
+import app.zxtune.R;
+import app.zxtune.fs.Vfs;
+import app.zxtune.fs.VfsExtensions;
+import app.zxtune.fs.VfsObject;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
@@ -64,9 +76,39 @@ class StatusCallback extends CallbackStub {
       }
       builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION,
           item.getDuration().convertTo(TimeUnit.MILLISECONDS));
+      builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, getLocationIcon(dataId.getDataLocation()));
       session.setMetadata(builder.build());
     } catch (Exception e) {
       Log.w(TAG, e, "onItemChanged()");
+    }
+  }
+
+  private Bitmap getLocationIcon(Uri location) {
+    try {
+      final Resources resources = MainApplication.getInstance().getResources();
+      final int id = getLocationIconResource(location);
+      final Drawable drawable = ResourcesCompat.getDrawableForDensity(resources, id, 480/*XXHDPI*/, null);
+      if (drawable instanceof BitmapDrawable) {
+        return ((BitmapDrawable) drawable).getBitmap();
+      } else {
+        final Bitmap result = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(result);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return result;
+      }
+    } catch (Exception e) {
+    }
+    return null;
+  }
+
+  private int getLocationIconResource(Uri location) {
+    try {
+      final Uri rootLocation = new Uri.Builder().scheme(location.getScheme()).build();
+      final VfsObject root = Vfs.resolve(rootLocation);
+      return (Integer) root.getExtension(VfsExtensions.ICON_RESOURCE);
+    } catch (Exception e) {
+      return R.drawable.ic_launcher;
     }
   }
 }

@@ -76,12 +76,12 @@ public class MainService extends Service {
   private void setupCallbacks(Context ctx) {
     //should be always paired
     mediaSessionControl = MediaSessionControl.subscribe(ctx, service);
+    StatusNotification.connect(this, mediaSessionControl.getSession());
 
     service.subscribe(new Analytics.PlaybackEventsCallback());
     service.subscribe(new PlayingStateCallback(ctx));
     service.subscribe(new WidgetHandler.WidgetNotification(ctx));
 
-    service.subscribe(new StatusNotification(this, mediaSessionControl.getSession()));
     settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
   }
 
