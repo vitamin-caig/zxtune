@@ -18,7 +18,7 @@ import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.service.PlayingStateCallback;
 import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.rpc.PlaybackServiceServer;
-import app.zxtune.ui.StatusNotification;
+import app.zxtune.device.ui.StatusNotification;
 
 public class MainService extends Service {
 

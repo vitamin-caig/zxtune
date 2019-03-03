@@ -4,7 +4,7 @@
  * @author vitamin.caig@gmail.com
  */
 
-package app.zxtune.ui;
+package app.zxtune.device.ui;
 
 import android.app.Service;
 import android.support.v4.app.NotificationCompat;
@@ -17,7 +17,6 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import app.zxtune.R;
-import app.zxtune.device.ui.Notifications;
 
 public class StatusNotification extends MediaControllerCompat.Callback {
 
