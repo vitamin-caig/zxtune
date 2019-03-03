@@ -4,7 +4,7 @@
  * @author vitamin.caig@gmail.com
  */
 
-package app.zxtune;
+package app.zxtune.device.ui;
 
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -18,6 +18,8 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.View;
 import android.widget.RemoteViews;
+import app.zxtune.MainActivity;
+import app.zxtune.R;
 
 public class WidgetHandler extends AppWidgetProvider {
 
