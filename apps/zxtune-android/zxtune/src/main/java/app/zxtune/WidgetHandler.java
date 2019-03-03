@@ -10,17 +10,21 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.View;
 import android.widget.RemoteViews;
-import app.zxtune.playback.Item;
-import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.stubs.CallbackStub;
 
 public class WidgetHandler extends AppWidgetProvider {
 
-  private static final String TAG = WidgetHandler.class.getName();
+  public static void connect(Context ctx, MediaSessionCompat session) {
+    final MediaControllerCompat controller = session.getController();
+    controller.registerCallback(new WidgetNotification(ctx));
+  }
 
   @Override
   public void onUpdate(Context context, AppWidgetManager appWidgetManager,
@@ -40,8 +44,7 @@ public class WidgetHandler extends AppWidgetProvider {
 
   private static RemoteViews createView(Context context) {
     final RemoteViews widgetView = new RemoteViews(context.getPackageName(), R.layout.widget);
-
-    widgetView.setOnClickPendingIntent(R.id.widget_openapp, MainActivity.createPendingIntent(context));
+    widgetView.setOnClickPendingIntent(R.id.widget_art, MainActivity.createPendingIntent(context));
     widgetView.setOnClickPendingIntent(R.id.widget_ctrl_prev, MediaButtonReceiver.buildMediaButtonPendingIntent(context,
         PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
     widgetView.setOnClickPendingIntent(R.id.widget_ctrl_play, MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_PLAY));
@@ -55,36 +58,36 @@ public class WidgetHandler extends AppWidgetProvider {
     return widgetView;
   }
 
-  public static class WidgetNotification extends CallbackStub {
+  private static class WidgetNotification extends MediaControllerCompat.Callback {
 
     private final Context ctx;
     private final RemoteViews views;
 
-    public WidgetNotification(Context ctx) {
+    WidgetNotification(Context ctx) {
       this.ctx = ctx;
       this.views = createView(ctx);
     }
 
     @Override
-    public void onStateChanged(PlaybackControl.State state) {
-      final boolean playing = state == PlaybackControl.State.PLAYING;
-      views.setViewVisibility(R.id.widget_ctrl_play, playing ? View.GONE : View.VISIBLE);
-      views.setViewVisibility(R.id.widget_ctrl_pause, playing ? View.VISIBLE : View.GONE);
+    public void onPlaybackStateChanged(PlaybackStateCompat state) {
+      if (state == null) {
+        return;
+      }
+      final boolean isPlaying = state.getState() == PlaybackStateCompat.STATE_PLAYING;
+      views.setViewVisibility(R.id.widget_ctrl_play, isPlaying ? View.GONE : View.VISIBLE);
+      views.setViewVisibility(R.id.widget_ctrl_pause, isPlaying ? View.VISIBLE : View.GONE);
 
       updateView();
     }
 
     @Override
-    public void onItemChanged(Item item) {
+    public void onMetadataChanged(MediaMetadataCompat metadata) {
+      final MediaDescriptionCompat description = metadata.getDescription();
+      views.setTextViewText(R.id.widget_title, description.getTitle());
+      views.setTextViewText(R.id.widget_subtitle, description.getSubtitle());
+      views.setImageViewBitmap(R.id.widget_art, description.getIconBitmap());
 
-      try {
-        final String info = Util.formatTrackTitle(item.getAuthor(), item.getTitle(), item.getDataId().getDisplayFilename());
-        views.setTextViewText(R.id.widget_text, info);
-
-        updateView();
-      } catch (Exception e) {
-        Log.w(TAG, e, "update()");
-      }
+      updateView();
     }
 
     private void updateView() {

@@ -80,7 +80,8 @@ public class MainService extends Service {
 
     service.subscribe(new Analytics.PlaybackEventsCallback());
     service.subscribe(new PlayingStateCallback(ctx));
-    service.subscribe(new WidgetHandler.WidgetNotification(ctx));
+
+    WidgetHandler.connect(ctx, mediaSessionControl.getSession());
 
     settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
   }

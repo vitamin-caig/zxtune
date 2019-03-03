@@ -64,15 +64,14 @@ class StatusCallback extends CallbackStub {
       final MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
       final String author = item.getAuthor();
       final String title = item.getTitle();
-      final boolean noAuthor = author.length() == 0;
-      final boolean noTitle = title.length() == 0;
-      if (noAuthor && noTitle) {
-        final String filename = dataId.getDisplayFilename();
-        builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, filename);
-      } else {
+      if (author.length() != 0) {
         builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, author);
         builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, author);
+      }
+      if (title.length() != 0) {
         builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
+      } else {
+        builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, dataId.getDisplayFilename());
       }
       builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION,
           item.getDuration().convertTo(TimeUnit.MILLISECONDS));
