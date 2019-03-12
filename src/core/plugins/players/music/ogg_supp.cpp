@@ -245,7 +245,7 @@ namespace Ogg
     void SetFrameDuration(Time::Microseconds frameDuration)
     {
       const auto totalDuration = Time::Microseconds(Data->TotalSamples * frameDuration.PER_SECOND / Data->Frequency);
-      Data->FramesCount = static_cast<uint_t>(totalDuration.Get() / frameDuration.Get());
+      Data->FramesCount = std::max<uint_t>(1, static_cast<uint_t>(totalDuration.Get() / frameDuration.Get()));
       Data->SamplesPerFrame = Data->TotalSamples / Data->FramesCount;
     }
     
