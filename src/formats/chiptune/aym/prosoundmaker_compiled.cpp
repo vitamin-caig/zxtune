@@ -40,8 +40,8 @@ namespace Chiptune
 
     using namespace ProSoundMaker;
 
-    const std::size_t MIN_SIZE = 256;
-    const std::size_t MAX_SIZE = 0x3600;
+    const std::size_t MIN_SIZE = 0x80;
+    const std::size_t MAX_SIZE = 0x4000;
     const std::size_t MAX_POSITIONS_COUNT = 100;
     const std::size_t MIN_PATTERN_SIZE = 1;
     const std::size_t MAX_PATTERN_SIZE = 64;
