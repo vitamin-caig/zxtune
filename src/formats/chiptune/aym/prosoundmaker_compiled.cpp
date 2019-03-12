@@ -248,9 +248,9 @@ namespace Chiptune
       void SetOrnament(uint_t /*ornament*/) override {}
       void SetVolume(uint_t /*volume*/) override {}
       void DisableOrnament() override {}
-      void SetEnvelopeType(uint_t /*type*/) override {}
-      void SetEnvelopeTone(uint_t /*tone*/) override {}
-      void SetEnvelopeNote(uint_t /*note*/) override {}
+      void SetEnvelopeReinit(bool /*enabled*/) override {}
+      void SetEnvelopeTone(uint_t type, uint_t /*tone*/) override {}
+      void SetEnvelopeNote(uint_t type, uint_t /*note*/) override {}
     };
 
     class StatisticCollectingBuilder : public Builder
@@ -347,19 +347,19 @@ namespace Chiptune
         return Delegate.DisableOrnament();
       }
 
-      void SetEnvelopeType(uint_t type) override
+      void SetEnvelopeReinit(bool enabled) override
       {
-        return Delegate.SetEnvelopeType(type);
+        return Delegate.SetEnvelopeReinit(enabled);
       }
 
-      void SetEnvelopeTone(uint_t tone) override
+      void SetEnvelopeTone(uint_t type, uint_t tone) override
       {
-        return Delegate.SetEnvelopeTone(tone);
+        return Delegate.SetEnvelopeTone(type, tone);
       }
 
-      void SetEnvelopeNote(uint_t delta) override
+      void SetEnvelopeNote(uint_t type, uint_t note) override
       {
-        return Delegate.SetEnvelopeNote(delta);
+        return Delegate.SetEnvelopeNote(type, note);
       }
 
       const Indices& GetUsedPatterns() const
@@ -845,21 +845,19 @@ namespace Chiptune
           }
           else if (cmd <= 0xb0)
           {
-            builder.SetOrnament(0x21);
             //0..f
             const uint_t packedEnvelope = cmd - 0xa1;
             const uint_t envelopeType = 8 + ((packedEnvelope & 3) << 1);
             const uint_t envelopeNote = 3 * (packedEnvelope & 12);
-            builder.SetEnvelopeType(envelopeType);
-            builder.SetEnvelopeNote(envelopeNote);
+            builder.SetEnvelopeNote(envelopeType, envelopeNote);
           }
           else if (cmd <= 0xb7)
           {
             //8...e
-            builder.SetEnvelopeType(cmd - 0xA9);
+            const uint_t envelopeType = cmd - 0xA9;
             const uint_t packedTone = PeekByte(state.Offset++);
-            const uint_t tone = packedTone >= 0xf1 ? 256 * (packedTone & 15) : packedTone;
-            builder.SetEnvelopeTone(tone);
+            const uint_t envelopeTone = packedTone >= 0xf1 ? 256 * (packedTone & 15) : packedTone;
+            builder.SetEnvelopeTone(envelopeType, envelopeTone);
           }
           else if (cmd <= 0xf8)
           {
@@ -871,8 +869,7 @@ namespace Chiptune
           }
           else if (cmd <= 0xfb)
           {
-            //0x20/0x21
-            builder.SetOrnament(cmd - 0xda);
+            builder.SetEnvelopeReinit(cmd == 0xfb);
           }
           else
           {

@@ -14,6 +14,7 @@
 #include "aym_base_track.h"
 #include "aym_properties_helper.h"
 //common includes
+#include <contract.h>
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/aym/prosoundmaker.h>
@@ -38,6 +39,8 @@ namespace ProSoundMaker
     ENVELOPE,
     //disable ornament
     NOORNAMENT,
+    //envelope reinit on every note,true/false
+    ENVELOPE_REINIT
   };
 
   using Formats::Chiptune::ProSoundMaker::Sample;
@@ -152,43 +155,23 @@ namespace ProSoundMaker
       Patterns.GetChannel().AddCommand(NOORNAMENT);
     }
 
-    void SetEnvelopeType(uint_t type) override
+    void SetEnvelopeReinit(bool enabled) override
     {
-      MutableCell& channel = Patterns.GetChannel();
-      if (Command* cmd = channel.FindCommand(ENVELOPE))
-      {
-        cmd->Param1 = int_t(type);
-      }
-      else
-      {
-        channel.AddCommand(ENVELOPE, int_t(type), -1, -1);
-      }
+      Patterns.GetChannel().AddCommand(ENVELOPE_REINIT, enabled);
     }
 
-    void SetEnvelopeTone(uint_t tone) override
+    void SetEnvelopeTone(uint_t type, uint_t tone) override
     {
       MutableCell& channel = Patterns.GetChannel();
-      if (Command* cmd = channel.FindCommand(ENVELOPE))
-      {
-        cmd->Param2 = int_t(tone);
-      }
-      else
-      {
-        channel.AddCommand(ENVELOPE, -1, int_t(tone), -1);
-      }
+      Require(!channel.FindCommand(ENVELOPE));
+      channel.AddCommand(ENVELOPE, int_t(type), int_t(tone), -1);
     }
 
-    void SetEnvelopeNote(uint_t note) override
+    void SetEnvelopeNote(uint_t type, uint_t note) override
     {
       MutableCell& channel = Patterns.GetChannel();
-      if (Command* cmd = channel.FindCommand(ENVELOPE))
-      {
-        cmd->Param3 = int_t(note);
-      }
-      else
-      {
-        channel.AddCommand(ENVELOPE, -1, -1, int_t(note));
-      }
+      Require(!channel.FindCommand(ENVELOPE));
+      channel.AddCommand(ENVELOPE, int_t(type), -1, int_t(note));
     }
 
     ModuleData::Ptr CaptureResult()
@@ -225,29 +208,66 @@ namespace ProSoundMaker
       : Current(nullptr)
       , Position(0)
       , Finished()
-      , Disabled()
+      , KeepFinished()
     {
     }
 
     const Ornament* Current;
     uint_t Position;
     bool Finished;
-    bool Disabled;
+    bool KeepFinished;
+  };
+
+  struct EnvelopeState
+  {
+    EnvelopeState()
+      : Reinit(false)
+      , Type()
+    {
+    }
+
+    bool Reinit;
+    uint_t Type;
+    boost::optional<uint_t> Note;
+    boost::optional<uint_t> Tone;
+
+    bool Enabled() const
+    {
+      return Note || Tone;
+    }
+
+    void Disable()
+    {
+      Note.reset();
+      Tone.reset();
+    }
+
+    void SetNote(uint_t note)
+    {
+      Note = note;
+      Tone.reset();
+      Reinit = true;
+    }
+
+    void SetTone(uint_t tone)
+    {
+      Note.reset();
+      Tone = tone;
+    }
   };
 
   struct ChannelState
   {
     ChannelState()
-      : Enabled(false), Envelope(false)
+      : Enabled(false)
       , Note()
       , VolumeDelta(), BaseVolumeDelta()
       , Slide()
     {
     }
     bool Enabled;
-    bool Envelope;
-    boost::optional<uint_t> EnvelopeNote;
-    boost::optional<uint_t> Note;
+    EnvelopeState Envelope;
+    uint_t Note;
     SampleState Smp;
     OrnamentState Orn;
     uint_t VolumeDelta;
@@ -279,34 +299,27 @@ namespace ProSoundMaker
     {
       if (0 == state.Quirk())
       {
-        //start pattern
-        if (0 == state.Line())
-        {
-          ResetNotes();
-        }
         GetNewLineState(state, track);
       }
       SynthesizeChannelsData(track);
     }
   private:
-    void ResetNotes()
-    {
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
-      {
-        PlayerState[chan].Note.reset();
-      }
-    }
-
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
       if (const auto line = state.LineObject())
       {
         const auto transposition = Data->Order->GetTransposition(state.Position());
+        const auto newPattern = 0 == state.Line();
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
           if (const auto src = line->GetChannel(chan))
           {
-            GetNewChannelState(transposition, *src, PlayerState[chan], track);
+            auto& dst = PlayerState[chan];
+            if (newPattern)
+            {
+              dst.Envelope.Reinit = false;
+            }
+            GetNewChannelState(transposition, *src, dst, track);
           }
         }
       }
@@ -314,6 +327,7 @@ namespace ProSoundMaker
 
     void GetNewChannelState(uint_t transposition, const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
+      static const Ornament STUB;
       if (const bool* enabled = src.GetEnabled())
       {
         dst.Enabled = *enabled;
@@ -324,19 +338,11 @@ namespace ProSoundMaker
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        if (*ornament != 0x20 &&
-            *ornament != 0x21)
-        {
-          dst.Orn.Current = &Data->Ornaments.Get(*ornament);
-          dst.Orn.Position = 0;
-          dst.Orn.Finished = dst.Orn.Disabled = false;
-          dst.Envelope = false;
-        }
-        else
-        {
-          static const Ornament STUB_ORNAMENT;
-          dst.Orn.Current = &STUB_ORNAMENT;
-        }
+        dst.Orn.Current = &Data->Ornaments.Get(*ornament);
+        dst.Orn.Position = 0;
+        dst.Orn.Finished = dst.Orn.KeepFinished = false;
+        dst.Envelope.Disable();
+        dst.Envelope.Reinit = false;
       }
       if (const uint_t* volume = src.GetVolume())
       {
@@ -347,24 +353,26 @@ namespace ProSoundMaker
         switch (it->Type)
         {
         case ENVELOPE:
-          if (it->Param1 != -1)
-          {
-            track.SetEnvelopeType(it->Param1);
-          }
+          dst.Envelope.Type = it->Param1;
           if (it->Param2 != -1)
           {
+            track.SetEnvelopeType(it->Param1);
             track.SetEnvelopeTone(it->Param2);
-            dst.EnvelopeNote.reset();
+            dst.Envelope.SetTone(it->Param2);
           }
           else if (it->Param3 != -1)
           {
-            dst.EnvelopeNote = it->Param3;
+            dst.Envelope.SetNote(it->Param3);
           }
-          dst.Envelope = true;
           break;
         case NOORNAMENT:
-          dst.Envelope = false;
-          dst.Orn.Finished = dst.Orn.Disabled = true;
+          dst.Orn.Finished = dst.Orn.KeepFinished = true;
+          dst.Orn.Position = 0;
+          dst.Envelope.Disable();
+          break;
+        case ENVELOPE_REINIT:
+          dst.Envelope.Reinit = it->Param1 != 0;
+          dst.Orn.Current = &STUB;
           break;
         default:
           assert(!"Invalid command");
@@ -379,23 +387,28 @@ namespace ProSoundMaker
         dst.Slide = 0;
         dst.Smp.LoopsCount = 1;
         dst.Orn.Position = 0;
-        if (!dst.Orn.Disabled)
+        dst.Orn.Finished = dst.Orn.KeepFinished;
+        if (dst.Envelope.Reinit && dst.Envelope.Enabled())
         {
-          dst.Orn.Finished = false;
-        }
-        if (dst.Envelope && dst.EnvelopeNote)
-        {
-          uint_t envNote = *dst.Note + *dst.EnvelopeNote;
-          if (envNote >= 0x60)
+          track.SetEnvelopeType(dst.Envelope.Type);
+          if (dst.Envelope.Note)
           {
-            envNote -= 0x60;
+            uint_t envNote = dst.Note + *dst.Envelope.Note;
+            if (envNote >= 0x60)
+            {
+              envNote -= 0x60;
+            }
+            else if (envNote >= 0x30)
+            {
+              envNote -= 0x30;
+            }
+            const uint_t envFreq = track.GetFrequency((envNote & 0x7f) + 0x30);
+            track.SetEnvelopeTone(envFreq & 0xff);
           }
-          else if (envNote >= 0x30)
+          else
           {
-            envNote -= 0x30;
+            track.SetEnvelopeTone(*dst.Envelope.Tone);
           }
-          const uint_t envFreq = track.GetFrequency((envNote & 0x7f) + 0x30);
-          track.SetEnvelopeTone(envFreq & 0xff);
         }
       }
     }
@@ -411,18 +424,19 @@ namespace ProSoundMaker
 
     void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
+      const bool hasEnvelope = dst.Envelope.Enabled();
       const Ornament& curOrnament = *dst.Orn.Current;
-      const int_t ornamentLine = (dst.Orn.Finished || dst.Envelope) ? 0 : curOrnament.GetLine(dst.Orn.Position);
+      const int_t ornamentLine = (hasEnvelope || dst.Orn.Finished) ? 0 : curOrnament.GetLine(dst.Orn.Position);
       const Sample& curSample = *dst.Smp.Current;
       const Sample::Line& curSampleLine = curSample.GetLine(dst.Smp.Position);
 
       dst.Slide += curSampleLine.Gliss;
-      const int_t halftones = dst.Note ? Math::Clamp<int_t>(int_t(*dst.Note) + ornamentLine, 0, 95) : 0;
+      const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + ornamentLine, 0, 95);
       const int_t tone = Math::Clamp<int_t>(track.GetFrequency(halftones) + dst.Slide, 0, 4095);
       channel.SetTone(tone);
       
       //emulate level construction due to possibility of envelope bit reset
-      int_t level = int_t(curSampleLine.Level) + (dst.Envelope ? 16 : 0) + dst.VolumeDelta - 15;
+      int_t level = int_t(curSampleLine.Level | (hasEnvelope ? 16 : 0)) + dst.VolumeDelta - 15;
       if (!dst.Enabled || level < 0)
       {
         level = 0;
