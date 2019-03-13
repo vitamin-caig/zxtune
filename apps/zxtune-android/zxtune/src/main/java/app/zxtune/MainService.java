@@ -6,12 +6,16 @@
 
 package app.zxtune;
 
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
+import android.text.TextUtils;
 import app.zxtune.device.media.MediaSessionControl;
 import app.zxtune.device.ui.WidgetHandler;
 import app.zxtune.playback.PlaybackControl;
@@ -21,7 +25,9 @@ import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.rpc.PlaybackServiceServer;
 import app.zxtune.device.ui.StatusNotification;
 
-public class MainService extends Service {
+import java.util.List;
+
+public class MainService extends MediaBrowserServiceCompat {
 
   private static final String TAG = MainService.class.getName();
 
@@ -63,21 +69,44 @@ public class MainService extends Service {
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
-    Log.d(TAG, "StartCommand called");
+    Log.d(TAG, "onStartCommand(%s)", intent);
     MediaButtonReceiver.handleIntent(mediaSessionControl.getSession(), intent);
     return super.onStartCommand(intent, flags, startId);
   }
 
   @Override
   public IBinder onBind(Intent intent) {
-    Log.d(TAG, "onBind called");
-    return binder;
+    Log.d(TAG, "onBind(%s)", intent.getAction());
+    if (SERVICE_INTERFACE.equals(intent.getAction())) {
+      return super.onBind(intent);
+    } else {
+      return binder;
+    }
+  }
+
+  @Nullable
+  @Override
+  public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
+    Log.d(TAG, "onGetRoot(%s)", clientPackageName);
+    if(TextUtils.equals(clientPackageName, getPackageName())) {
+      return new BrowserRoot(getString(R.string.app_name), null);
+    }
+
+    return null;
+  }
+
+  //Not important for general audio service, required for class
+  @Override
+  public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+    Log.d(TAG, "onLoadChildren(%s)", parentId);
+    result.sendResult(null);
   }
 
   private void setupCallbacks(Context ctx) {
     //should be always paired
     mediaSessionControl = MediaSessionControl.subscribe(ctx, service);
     StatusNotification.connect(this, mediaSessionControl.getSession());
+    setSessionToken(mediaSessionControl.getSession().getSessionToken());
 
     service.subscribe(new Analytics.PlaybackEventsCallback());
     service.subscribe(new PlayingStateCallback(ctx));

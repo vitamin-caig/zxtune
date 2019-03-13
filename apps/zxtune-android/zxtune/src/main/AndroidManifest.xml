@@ -167,7 +167,7 @@
         <category android:name="android.intent.category.PREFERENCE"/>
       </intent-filter>
     </activity>
-    <service android:name=".MainService" android:process=":service" android:exported="false">
+    <service android:name=".MainService" android:process=":service">
       <intent-filter>
         <action android:name="android.media.browse.MediaBrowserService" />
         <action android:name="android.intent.action.MEDIA_BUTTON"/>
