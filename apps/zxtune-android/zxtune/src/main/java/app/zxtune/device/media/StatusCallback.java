@@ -14,6 +14,7 @@ import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
 import app.zxtune.R;
+import app.zxtune.core.ModuleAttributes;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsObject;
@@ -62,23 +63,30 @@ class StatusCallback extends CallbackStub {
     try {
       final Identifier dataId = item.getDataId();
       final MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
-      final String author = item.getAuthor();
       final String title = item.getTitle();
-      if (author.length() != 0) {
-        builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, author);
-        builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, author);
-      }
       if (title.length() != 0) {
-        builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
+        putString(builder, MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title);
       } else {
-        builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, dataId.getDisplayFilename());
+        builder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, dataId.getDisplayFilename());
       }
+      putString(builder, MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, item.getAuthor());
+      putString(builder, MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, item.getComment());
+      putString(builder, ModuleAttributes.PROGRAM, item.getProgram());
+      putString(builder, ModuleAttributes.STRINGS, item.getStrings());
       builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION,
           item.getDuration().convertTo(TimeUnit.MILLISECONDS));
       builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, getLocationIcon(dataId.getDataLocation()));
+      builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, dataId.toString());
+      builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, item.getId().toString());
       session.setMetadata(builder.build());
     } catch (Exception e) {
       Log.w(TAG, e, "onItemChanged()");
+    }
+  }
+
+  private static void putString(MediaMetadataCompat.Builder builder, String key, String value) {
+    if (value != null && !value.isEmpty()) {
+      builder.putString(key, value);
     }
   }
 

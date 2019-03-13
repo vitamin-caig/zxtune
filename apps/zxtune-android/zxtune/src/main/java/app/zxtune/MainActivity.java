@@ -28,6 +28,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import app.zxtune.models.MediaSessionConnection;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.ui.*;
 
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
   private int browserPageIndex;
   private BrowserFragment browser;
   private Uri openRequest;
+  private MediaSessionConnection sessionConnection;
 
   public static PendingIntent createPendingIntent(Context ctx) {
     final Intent intent = new Intent(ctx, MainActivity.class);
@@ -59,8 +61,22 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
       Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
     }
     Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+    sessionConnection = new MediaSessionConnection(this);
   }
-  
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    sessionConnection.connect();
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    sessionConnection.disconnect();
+  }
+
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
@@ -97,14 +113,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
       super.onBackPressed();
     }
   }
-  
-  @Override
-  public void onDestroy() {
-    browser = null;
-    pager = null;
-    super.onDestroy();
-  }
-  
+
   @Override
   public void onServiceConnected(PlaybackService service) {
     this.service = service;
@@ -119,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
       processOpenRequest();
     }
   }
-  
+
   private void getOpenRequestFromIntent() {
     final Intent intent = getIntent();
     if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {

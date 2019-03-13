@@ -143,7 +143,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     super.onViewCreated(view, savedInstanceState);
     seek = new SeekControlView(view);
     visualizer.setView((SpectrumAnalyzerView) view.findViewById(R.id.visualizer));
-    info = new InformationView(view);
+    info = new InformationView(getActivity(), view);
     ctrls = new PlaybackControlsView(view);
     bindViewsToConnectedService();
   }
@@ -265,7 +265,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     @Override
     public void onItemChanged(Item item) {
       seek.update();
-      info.update(item);
       trackActionsMenu.itemChanged(item);
     }
     
