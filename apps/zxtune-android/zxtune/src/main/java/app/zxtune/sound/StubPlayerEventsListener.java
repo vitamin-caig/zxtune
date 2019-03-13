@@ -17,6 +17,9 @@ public class StubPlayerEventsListener implements PlayerEventsListener {
   public void onStart() {}
 
   @Override
+  public void onSeeking() {}
+
+  @Override
   public void onFinish() {}
 
   @Override

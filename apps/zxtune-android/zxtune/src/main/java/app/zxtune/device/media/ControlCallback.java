@@ -72,6 +72,7 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
     ctrl.next();
   }
 
+  @Override
   public void onSeekTo(long ms) {
     try {
       seek.setPosition(TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS));

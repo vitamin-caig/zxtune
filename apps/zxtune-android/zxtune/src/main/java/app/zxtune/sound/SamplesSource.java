@@ -11,6 +11,7 @@
 package app.zxtune.sound;
 
 import android.support.annotation.NonNull;
+import app.zxtune.TimeStamp;
 
 public interface SamplesSource {
 
@@ -34,4 +35,18 @@ public interface SamplesSource {
    * @return true if buffer filled, else reset position to initial
    */
   boolean getSamples(@NonNull short[] buf) throws Exception;
+
+  /**
+   * Synchronously changes playback position
+   * @param pos
+   * @throws Exception
+   */
+  void setPosition(TimeStamp pos) throws Exception;
+
+  /**
+   * Get current playback position
+   * @return pos
+   * @throws Exception
+   */
+  TimeStamp getPosition() throws Exception;
 }

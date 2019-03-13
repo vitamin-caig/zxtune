@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import android.support.annotation.NonNull;
 import app.zxtune.Log;
+import app.zxtune.TimeStamp;
 
 public final class AsyncPlayer implements Player {
 
@@ -26,6 +27,7 @@ public final class AsyncPlayer implements Player {
   private final PlayerEventsListener events;
   private final AtomicInteger state;
   private final AtomicReference<SamplesSource> source;
+  private final AtomicReference<TimeStamp> seekRequest;
   private AsyncSamplesTarget target;
   private Thread thread;
 
@@ -37,6 +39,7 @@ public final class AsyncPlayer implements Player {
     this.events = events;
     this.state = new AtomicInteger(UNINITIALIZED);
     this.source = new AtomicReference<>(StubSamplesSource.instance());
+    this.seekRequest = new AtomicReference<>(null);
     this.target = new AsyncSamplesTarget(target);
   }
 
@@ -110,6 +113,18 @@ public final class AsyncPlayer implements Player {
     return state.compareAndSet(STARTED, STARTED);
   }
 
+  public void setPosition(TimeStamp pos) {
+    seekRequest.set(pos);
+  }
+
+  public TimeStamp getPosition() throws Exception {
+    TimeStamp res = seekRequest.get();
+    if (res == null) {
+      res = source.get().getPosition();
+    }
+    return res;
+  }
+
   @Override
   public void release() {
     source.set(null);
@@ -122,6 +137,7 @@ public final class AsyncPlayer implements Player {
     events.onStart();
     try {
       while (isStarted()) {
+        maybeSeek();
         final short[] buf = target.getBuffer();
         if (getSamples(buf)) {
           if (!commitSamples()) {
@@ -144,6 +160,18 @@ public final class AsyncPlayer implements Player {
     } finally {
       state.set(STOPPED);
       events.onStop();
+    }
+  }
+
+  private void maybeSeek() throws Exception {
+    TimeStamp req = seekRequest.getAndSet(null);
+    if (req != null) {
+      events.onSeeking();
+      while (req != null && isStarted()) {
+        source.get().setPosition(req);
+        req = seekRequest.getAndSet(null);
+      }
+      events.onStart();
     }
   }
 

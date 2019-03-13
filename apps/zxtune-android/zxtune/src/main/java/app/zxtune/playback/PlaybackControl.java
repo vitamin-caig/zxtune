@@ -14,6 +14,7 @@ public interface PlaybackControl {
   enum State {
     STOPPED,
     PLAYING,
+    SEEKING,
   }
 
   /**

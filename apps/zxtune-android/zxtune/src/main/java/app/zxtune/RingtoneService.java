@@ -246,5 +246,13 @@ public class RingtoneService extends IntentService {
         return false;
       }
     }
+
+    @Override
+    public void setPosition(TimeStamp pos) {}
+
+    @Override
+    public TimeStamp getPosition() {
+      return TimeStamp.EMPTY;
+    }
   }
 }

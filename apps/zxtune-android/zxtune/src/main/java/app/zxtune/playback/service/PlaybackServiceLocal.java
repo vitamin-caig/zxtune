@@ -19,7 +19,6 @@ import app.zxtune.device.sound.SoundOutputSamplesTarget;
 import app.zxtune.playback.*;
 import app.zxtune.playback.stubs.IteratorStub;
 import app.zxtune.playback.stubs.PlayableItemStub;
-import app.zxtune.playback.stubs.SeekControlStub;
 import app.zxtune.playback.stubs.VisualizerStub;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.PlayerEventsListener;
@@ -110,8 +109,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       final Iterator iter = IteratorFactory.createIterator(context, uri);
       final PlayableItem newItem = iter.getItem();
       final Holder newHolder = new Holder(newItem);
-      //TODO: improve
-      ((SeekableSamplesSource)newHolder.source).initialize(player.getSampleRate(), position);
+      newHolder.source.initialize(player.getSampleRate());
+      newHolder.source.setPosition(position);
       if (iterator.compareAndSet(IteratorStub.instance(), iter)) {
         setNewHolder(newHolder);
       } else {
@@ -270,22 +269,18 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     public final PlayableItem item;
     public final SamplesSource source;
-    public final SeekControl seek;
     public final Visualizer visualizer;
 
     private Holder() {
       this.item = PlayableItemStub.instance();
       this.source = StubSamplesSource.instance();
-      this.seek = SeekControlStub.instance();
       this.visualizer = VisualizerStub.instance();
     }
 
     Holder(PlayableItem item) throws Exception {
       this.item = item;
       final app.zxtune.core.Player lowPlayer = item.getModule().createPlayer();
-      final SeekableSamplesSource seekableSource = new SeekableSamplesSource(lowPlayer, item.getDuration());
-      this.source = seekableSource;
-      this.seek = seekableSource;
+      this.source = new SeekableSamplesSource(lowPlayer);
       this.visualizer = new PlaybackVisualizer(lowPlayer);
     }
 
@@ -430,19 +425,17 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public TimeStamp getDuration() throws Exception {
-      return holder.get().seek.getDuration();
+      return holder.get().item.getDuration();
     }
 
     @Override
     public TimeStamp getPosition() throws Exception {
-      return holder.get().seek.getPosition();
+      return player.getPosition();
     }
 
     @Override
-    public void setPosition(TimeStamp position) throws Exception {
-      //TODO: fix for long defferred seek ops
-      callbacks.onStateChanged(getState(), position);
-      holder.get().seek.setPosition(position);
+    public void setPosition(TimeStamp position) {
+      player.setPosition(position);
     }
   }
 
