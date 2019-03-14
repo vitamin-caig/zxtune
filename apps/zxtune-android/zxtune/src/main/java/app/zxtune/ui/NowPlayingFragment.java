@@ -306,7 +306,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
           setupMenu();
           return false;
         case R.id.action_add:
-          final Uri location = data.getItem().getDataId().getFullLocation();
+          final Uri location = data.getFullLocation();
           getService().getPlaylistControl().add(new Uri[] {location});
           break;
         case R.id.action_send:
@@ -318,7 +318,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
           pickAndSend(toShare, item.getTitle(), REQUEST_SHARE);
           break;
         case R.id.action_make_ringtone:
-          final DialogFragment fragment = RingtoneFragment.createInstance(getActivity(), data.getItem());
+          final DialogFragment fragment = RingtoneFragment.createInstance(getActivity(), data.getFullLocation());
           if (fragment != null) {
             fragment.show(getActivity().getSupportFragmentManager(), "ringtone");
           }
@@ -368,8 +368,8 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       }
     }
     
-    final Item getItem() {
-      return item;
+    final Uri getFullLocation() {
+      return item.getDataId().getFullLocation();
     }
     
     final Intent makeSendIntent() throws Exception {
