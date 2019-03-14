@@ -91,7 +91,7 @@ public final class AsyncPlayer implements Player {
 
   @Override
   public void stopPlayback() {
-    if (state.compareAndSet(STARTED, STOPPING)) {
+    if (stopping()) {
       while (true) {
         try {
           thread.join();
@@ -102,6 +102,18 @@ public final class AsyncPlayer implements Player {
         thread.interrupt();
       }
       thread = null;
+    }
+  }
+
+  private boolean stopping() {
+    if (state.compareAndSet(FINISHING, STOPPING)) {
+      //finish
+      synchronized(state) {
+        state.notify();
+      }
+      return true;
+    } else {
+      return state.compareAndSet(STARTED, STOPPING);
     }
   }
 
