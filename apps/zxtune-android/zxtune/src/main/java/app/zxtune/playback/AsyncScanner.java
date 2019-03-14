@@ -1,6 +1,8 @@
 package app.zxtune.playback;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.telecom.Call;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
@@ -22,16 +24,13 @@ public final class AsyncScanner {
   public interface Callback {
     enum Reply {
       RETRY,
-      STOP,
       CONTINUE,
-      SKIP,
     }
 
-    Reply onUriProcessing(Uri uri);
+    @Nullable
+    Uri getNextUri();
 
-    Reply onItem(PlayableItem item);
-
-    void onFinish();
+    Reply onItem(@NonNull PlayableItem item);
 
     void onError(Exception e);
   }
@@ -43,17 +42,17 @@ public final class AsyncScanner {
   }
 
   //! @return handle to scan session
-  static Object scan(Uri[] uris, Callback cb) {
-    Holder.INSTANCE.post(uris, new WeakReference<>(cb));
+  static Object scan(Callback cb) {
+    Holder.INSTANCE.post(new WeakReference<>(cb));
     return cb;//use object itself
   }
 
-  private void post(final Uri[] uris, final WeakReference<Callback> ref) {
+  private void post(final WeakReference<Callback> ref) {
     executor.execute(new Runnable() {
       @Override
       public void run() {
-        Log.d(TAG, "Worker(%h): started with %d uris", this, uris.length);
-        if (scan(uris, ref)) {
+        Log.d(TAG, "Worker(%h): started", this);
+        if (scan(ref)) {
           Log.d(TAG, "Worker(%h): finished", this);
         } else {
           Log.d(TAG, "Worker(%h): dead", this);
@@ -62,27 +61,23 @@ public final class AsyncScanner {
     });
   }
 
-  private static boolean scan(Uri[] uris, final WeakReference<Callback> ref) {
+  private static boolean scan(final WeakReference<Callback> ref) {
     try {
-      for (Uri uri : uris) {
-        if (!scan(uri, ref)) {
+      for (;;) {
+        final Uri uri = ref.get().getNextUri();
+        if (uri != null) {
+          scan(uri, ref);
+        } else {
           break;
         }
       }
-      ref.get().onFinish();
       return true;
     } catch (NullPointerException e) {
       return false;
     }
   }
 
-  private static boolean scan(Uri uri, final WeakReference<Callback> ref) {
-    switch (ref.get().onUriProcessing(uri)) {
-      case SKIP:
-        return true;
-      case STOP:
-        return false;
-    }
+  private static void scan(Uri uri, final WeakReference<Callback> ref) {
     Scanner.analyzeIdentifier(new Identifier(uri), new Scanner.Callback() {
       @Override
       public void onModule(Identifier id, Module module) throws Exception {
@@ -101,7 +96,6 @@ public final class AsyncScanner {
         ref.get().onError(e);
       }
     });
-    return true;
   }
 
   static class FileItem implements PlayableItem {

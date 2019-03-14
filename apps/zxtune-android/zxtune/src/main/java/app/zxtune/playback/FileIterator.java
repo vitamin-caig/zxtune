@@ -74,17 +74,21 @@ public class FileIterator implements Iterator {
   }
 
   private Object startAsyncScanning(final Uri[] uris) {
-    return AsyncScanner.scan(uris, new AsyncScanner.Callback() {
+    return AsyncScanner.scan(new AsyncScanner.Callback() {
 
       private final int[] counter = {0, 0};
 
       @Override
-      public Reply onUriProcessing(Uri uri) {
+      public Uri getNextUri() {
         final int uriIdx = counter[0]++;
         final int itemsCount = counter[1];
-        return itemsCount == 0 && uriIdx > 0
-                   ? Reply.STOP
-                   : Reply.CONTINUE;
+        if ((itemsCount == 0 && uriIdx > 0) ||
+                uriIdx == uris.length) {
+          finish();
+          return null;
+        } else {
+          return uris[uriIdx];
+        }
       }
 
       @Override
@@ -97,8 +101,7 @@ public class FileIterator implements Iterator {
         }
       }
 
-      @Override
-      public void onFinish() {
+      private void finish() {
         try {
           itemsQueue.put(PlayableItemStub.instance());
         } catch (InterruptedException e) {
