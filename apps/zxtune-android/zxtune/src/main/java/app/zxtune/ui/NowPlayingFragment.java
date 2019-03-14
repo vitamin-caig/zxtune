@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Now playing fragment component
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.ui;
@@ -14,11 +10,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.FileProvider;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -33,19 +31,12 @@ import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
-import app.zxtune.Util;
-import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsExtensions;
-import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.VfsObject;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.cache.CacheFactory;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.stubs.ItemStub;
 import app.zxtune.playback.stubs.PlaybackControlStub;
 import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.playback.stubs.SeekControlStub;
@@ -54,15 +45,12 @@ import app.zxtune.ui.controllers.VisualizerController;
 import app.zxtune.ui.utils.UiThreadCallbackAdapter;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
 
-import java.io.File;
-import java.io.IOException;
-
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
   private static final String TAG = NowPlayingFragment.class.getName();
   private static final int REQUEST_SHARE = 1;
   private static final int REQUEST_SEND = 2;
-  private static final String EXTRA_ITEM = TAG + ".EXTRA_LOCATION";
+  private static final String EXTRA_ITEM_LOCATION = TAG + ".EXTRA_LOCATION";
 
   private PlaybackService service;
   private Callback callback;
@@ -76,7 +64,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   public static Fragment createInstance() {
     return new NowPlayingFragment();
   }
-  
+
   public NowPlayingFragment() {
     this.service = PlaybackServiceStub.instance();
   }
@@ -84,18 +72,18 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    
+
     setHasOptionsMenu(true);
   }
-  
+
   @Override
   public synchronized void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.track, menu);
-    
+
     trackActionsMenu = new TrackActionsMenu(menu);
-    
+
     // onOptionsMenuClosed is not called, see multiple bugreports e.g.
     // https://code.google.com/p/android/issues/detail?id=2410
     // https://code.google.com/p/android/issues/detail?id=2746
@@ -113,16 +101,16 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     bindViewsToConnectedService();
   }
-  
+
   /*
-   * Assume that menu is shown quite rarely. So keep current track state while menu is visible 
+   * Assume that menu is shown quite rarely. So keep current track state while menu is visible
    */
-  
+
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     try {
       return trackActionsMenu.selectItem(item)
-              || super.onOptionsItemSelected(item);
+                 || super.onOptionsItemSelected(item);
     } catch (Exception e) {//use the most common type
       Log.w(TAG, e, "onOptionsItemSelected");
       final Throwable cause = e.getCause();
@@ -131,7 +119,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     return true;
   }
-  
+
   @Override
   @Nullable
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -156,7 +144,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       startActivityForResult(picker, code);
     } catch (SecurityException e) {
       //workaround for Huawei requirement for huawei.android.permission.HW_SIGNATURE_OR_SYSTEM
-      data.removeExtra(EXTRA_ITEM);
+      data.removeExtra(EXTRA_ITEM_LOCATION);
       final Intent chooser = Intent.createChooser(data, title);
       startActivity(chooser);
     }
@@ -169,26 +157,26 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     if (data != null && (isShare || isSend)) {
       final String method = isShare ? "Share" : "Send";
       final String appName = data.getComponent().getPackageName();
-      final Item item = data.getParcelableExtra(EXTRA_ITEM);
-      Analytics.sendSocialEvent(method, appName, item);
+      final Uri location = data.getParcelableExtra(EXTRA_ITEM_LOCATION);
+      Analytics.sendSocialEvent(method, appName, location);
 
-      data.removeExtra(EXTRA_ITEM);
+      data.removeExtra(EXTRA_ITEM_LOCATION);
       startActivity(data);
     }
   }
-  
+
   @Override
   public synchronized void onStart() {
     super.onStart();
     bindViewsToConnectedService();
   }
-  
+
   @Override
   public synchronized void onStop() {
     super.onStop();
     unbindFromService();
   }
-  
+
   @Override
   public void onDestroyView() {
     visualizer.shutdown();
@@ -202,11 +190,11 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     Log.d(TAG, "Service connected");
     bindViewsToConnectedService();
   }
-  
+
   private synchronized PlaybackService getService() {
     return this.service;
   }
-  
+
   // relative order of onViewCreated/onCreateOptionsMenu/onServiceConnected is not specified
   private void bindViewsToConnectedService() {
     assert service != null;
@@ -222,7 +210,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       callbackConnection = new CallbackSubscription(service, new UiThreadCallbackAdapter(getActivity(), callback));
     }
   }
-  
+
   private void unbindFromService() {
     try {
       if (callbackConnection != null) {
@@ -240,7 +228,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     seek.setControl(SeekControlStub.instance());
     ctrls.setControls(PlaybackControlStub.instance());
   }
-  
+
   //executed in UI thread only via wrapper
   private class PlaybackEvents implements Callback {
 
@@ -265,38 +253,34 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     @Override
     public void onItemChanged(Item item) {
       seek.update();
-      trackActionsMenu.itemChanged(item);
     }
-    
+
     @Override
     public void onIOStatusChanged(boolean isActive) {
     }
-    
+
     @Override
     public void onError(final String error) {
-      final AppCompatActivity activity = (AppCompatActivity)getActivity();
+      final AppCompatActivity activity = (AppCompatActivity) getActivity();
       //Seems like may be called before activity attach
       if (activity != null) {
         Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
       }
     }
   }
-  
+
   private class TrackActionsMenu {
-    
-    private final MenuItem subMenu;
+
     private final MenuItem add;
     private final MenuItem share;
     private TrackActionsData data;
-    
+
     TrackActionsMenu(Menu menu) {
-      this.subMenu = menu.findItem(R.id.action_track);
       this.add = menu.findItem(R.id.action_add);
       this.share = menu.findItem(R.id.action_share);
-      subMenu.setEnabled(false);
     }
-    
-    final boolean selectItem(MenuItem item) throws Exception {
+
+    final boolean selectItem(MenuItem item) {
       if (item == null) {
         return false;
       }
@@ -306,12 +290,14 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
           return false;
         case R.id.action_add:
           final Uri location = data.getFullLocation();
-          getService().getPlaylistControl().add(new Uri[] {location});
+          getService().getPlaylistControl().add(new Uri[]{location});
           break;
+          /* TODO: rework
         case R.id.action_send:
           final Intent toSend = data.makeSendIntent();
           pickAndSend(toSend, item.getTitle(), REQUEST_SEND);
           break;
+          */
         case R.id.action_share:
           final Intent toShare = data.makeShareIntent();
           pickAndSend(toShare, item.getTitle(), REQUEST_SHARE);
@@ -329,125 +315,71 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
 
     private void setupMenu() {
-      final Item nowPlaying = getService().getNowPlaying();
-      data = new TrackActionsData(getActivity(), nowPlaying);
-      add.setEnabled(!data.isFromPlaylist());
-      share.setEnabled(data.hasRemotePage());
+      final MediaControllerCompat ctrl = MediaControllerCompat.getMediaController(getActivity());
+      final MediaMetadataCompat metadata = ctrl != null ? ctrl.getMetadata() : null;
+      if (ctrl != null) {
+        data = new TrackActionsData(getActivity(), metadata);
+        add.setEnabled(!data.isFromPlaylist());
+        share.setEnabled(data.hasRemotePage());
+      } else {
+        data = null;
+        add.setEnabled(false);
+        share.setEnabled(false);
+      }
     }
-    
+
     final void close() {
       data = null;
     }
-    
-    final void itemChanged(Item item) {
-      subMenu.setEnabled(item != null && item != ItemStub.instance());
-    }
   }
-  
+
   private static class TrackActionsData {
-    
+
     private final Context context;
-    private final Item item;
-    
-    TrackActionsData(Context context, Item item) {
+    private final MediaMetadataCompat metadata;
+    private final MediaDescriptionCompat description;
+
+    TrackActionsData(Context context, @NonNull MediaMetadataCompat metadata) {
       this.context = context;
-      this.item = item;
-    }
-    
-    final boolean isFromPlaylist() {
-      return 0 != item.getId().compareTo(item.getDataId().getFullLocation());
-    }
-    
-    final boolean hasRemotePage() {
-      try {
-        return null != getRemotePage();
-      } catch (IOException e) {
-        Log.w(TAG, e, "Failed to get remote page");
-        return false;
-      }
-    }
-    
-    final Uri getFullLocation() {
-      return item.getDataId().getFullLocation();
-    }
-    
-    final Intent makeSendIntent() throws Exception {
-      final Uri localFile = getLocalPath();
-      final Intent result = makeIntent("application/octet");
-      result.putExtra(Intent.EXTRA_SUBJECT, getTitle());
-      result.putExtra(Intent.EXTRA_TEXT, getSendText());
-      result.putExtra(Intent.EXTRA_STREAM, makeApkUri(localFile));
-      result.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-      return result;
+      this.metadata = metadata;
+      this.description = metadata.getDescription();
     }
 
-    private Uri makeApkUri(Uri local) {
-      final File file = new File(local.getPath());
-      return FileProvider.getUriForFile(context, "app.zxtune.files", file);
+    final boolean isFromPlaylist() {
+      return !description.getMediaUri().toString().equals(description.getMediaId());
     }
-    
-    final Intent makeShareIntent() throws Exception {
+
+    final boolean hasRemotePage() {
+      return null != getRemotePage();
+    }
+
+    final Uri getFullLocation() {
+      return description.getMediaUri();
+    }
+
+    final Intent makeShareIntent() {
       //text/html is not recognized by twitter/facebook
       final Intent result = makeIntent("text/plain");
-      result.putExtra(Intent.EXTRA_SUBJECT, getTitle());
+      result.putExtra(Intent.EXTRA_SUBJECT, description.getTitle());
       result.putExtra(Intent.EXTRA_TEXT, getShareText());
       return result;
     }
-    
+
     private Intent makeIntent(String mime) {
       final Intent result = new Intent(Intent.ACTION_SEND);
       result.setType(mime);
       result.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-      result.putExtra(EXTRA_ITEM, (Parcelable) item);
+      result.putExtra(EXTRA_ITEM_LOCATION, description.getMediaUri());
       return result;
     }
-    
-    private String getTitle() throws Exception {
-      return Util.formatTrackTitle(item.getTitle(), item.getAuthor(), item.getDataId().getDisplayFilename());
-    }
-    
-    private String getSendText() throws IOException {
-      final String remotePage = getRemotePage();
-      return context.getString(R.string.send_text, remotePage != null ? remotePage : "");
-    }
-    
-    private String getShareText() throws IOException {
+
+    private String getShareText() {
       return context.getString(R.string.share_text, getRemotePage());
-    }
-    
-    private Uri getLocalPath() throws IOException {
-      final Uri uri = item.getDataId().getDataLocation();
-      if (uri.getScheme().equals("file")) {
-        return uri;
-      }
-      final VfsFile file = openFile(uri);
-      return createLocalPath(file);
     }
 
     @Nullable
-    private String getRemotePage() throws IOException {
-      final VfsFile file = openFile(item.getDataId().getDataLocation());
-      if (file != null) {
-        return (String) file.getExtension(VfsExtensions.SHARE_URL);
-      } else {
-        return null;
-      }
-    }
-    
-    private static VfsFile openFile(Uri uri) throws IOException {
-      final VfsObject obj = Vfs.resolve(uri);
-      if (obj instanceof VfsFile) {
-        return (VfsFile) obj;
-      } else {
-        throw new IOException("Failed to open " + uri);
-      }
-    }
-    
-    private Uri createLocalPath(VfsFile file) throws IOException {
-      //TODO: rework
-      final CacheDir cache = CacheFactory.createMinimal(context).createNested("sent");
-      final String filename = file.getUri().getLastPathSegment();
-      return cache.createFile(filename, file.getContent());
+    private String getRemotePage() {
+      return metadata.getString(VfsExtensions.SHARE_URL);
     }
   }
 }

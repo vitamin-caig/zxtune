@@ -78,6 +78,7 @@ class StatusCallback extends CallbackStub {
       builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, getLocationIcon(dataId.getDataLocation()));
       builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, dataId.toString());
       builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, item.getId().toString());
+      builder.putString(VfsExtensions.SHARE_URL, getShareUrl(dataId.getDataLocation()));
       session.setMetadata(builder.build());
     } catch (Exception e) {
       Log.w(TAG, e, "onItemChanged()");
@@ -116,6 +117,15 @@ class StatusCallback extends CallbackStub {
       return (Integer) root.getExtension(VfsExtensions.ICON_RESOURCE);
     } catch (Exception e) {
       return R.drawable.ic_launcher;
+    }
+  }
+
+  private static String getShareUrl(Uri location) {
+    try {
+      final VfsObject obj = Vfs.resolve(location);
+      return (String) obj.getExtension(VfsExtensions.SHARE_URL);
+    } catch (Exception e) {
+      return null;
     }
   }
 }
