@@ -2,10 +2,16 @@ package app.zxtune.device.media;
 
 import android.content.Context;
 import android.media.AudioManager;
+import android.os.Bundle;
 import android.support.v4.media.session.MediaSessionCompat;
 import app.zxtune.Log;
+import app.zxtune.MainService;
+import app.zxtune.ScanService;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
+import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.service.PlaybackServiceLocal;
+import app.zxtune.playback.stubs.PlayableItemStub;
 
 //! Handle focus only for explicit start/stop calls
 // TODO: handle implicit start/stop calls
@@ -13,12 +19,16 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
 
   private static final String TAG = ControlCallback.class.getName();
 
+  private final Context ctx;
   private final AudioManager manager;
+  private final PlaybackServiceLocal svc;
   private final PlaybackControl ctrl;
 
-  ControlCallback(Context ctx, PlaybackControl ctrl) {
+  ControlCallback(Context ctx, PlaybackServiceLocal svc) {
+    this.ctx = ctx;
     this.manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-    this.ctrl = ctrl;
+    this.svc = svc;
+    this.ctrl = svc.getPlaybackControl();
   }
 
   @Override
@@ -51,6 +61,21 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
     ctrl.next();
   }
 
+  @Override
+  public void onCustomAction(String action, Bundle extra) {
+    if (MainService.CUSTOM_ACTION_ADD_CURRENT.equals(action)) {
+      addCurrent();
+    }
+  }
+
+  private void addCurrent() {
+    final Item current = svc.getNowPlaying();
+    if (current != PlayableItemStub.instance()) {
+      ScanService.add(ctx, current);
+    }
+  }
+
+  //onAudioFocusChangeListener
   @Override
   public void onAudioFocusChange(int focusChange) {
     switch (focusChange) {

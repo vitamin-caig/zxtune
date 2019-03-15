@@ -17,19 +17,21 @@ import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.text.TextUtils;
 import app.zxtune.device.media.MediaSessionControl;
+import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.service.PlayingStateCallback;
 import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.rpc.PlaybackServiceServer;
-import app.zxtune.device.ui.StatusNotification;
 
 import java.util.List;
 
 public class MainService extends MediaBrowserServiceCompat {
 
   private static final String TAG = MainService.class.getName();
+
+  public static final String CUSTOM_ACTION_ADD_CURRENT = TAG + ".CUSTOM_ACTION_ADD_CURRENT";
 
   private PlaybackServiceLocal service;
   private IBinder binder;
@@ -88,7 +90,7 @@ public class MainService extends MediaBrowserServiceCompat {
   @Override
   public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
     Log.d(TAG, "onGetRoot(%s)", clientPackageName);
-    if(TextUtils.equals(clientPackageName, getPackageName())) {
+    if (TextUtils.equals(clientPackageName, getPackageName())) {
       return new BrowserRoot(getString(R.string.app_name), null);
     }
 

@@ -28,6 +28,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import app.zxtune.Analytics;
 import app.zxtune.Log;
+import app.zxtune.MainService;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
@@ -191,10 +192,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     bindViewsToConnectedService();
   }
 
-  private synchronized PlaybackService getService() {
-    return this.service;
-  }
-
   // relative order of onViewCreated/onCreateOptionsMenu/onServiceConnected is not specified
   private void bindViewsToConnectedService() {
     assert service != null;
@@ -289,8 +286,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
           setupMenu();
           return false;
         case R.id.action_add:
-          final Uri location = data.getFullLocation();
-          getService().getPlaylistControl().add(new Uri[]{location});
+          addCurrent();
           break;
           /* TODO: rework
         case R.id.action_send:
@@ -325,6 +321,13 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         data = null;
         add.setEnabled(false);
         share.setEnabled(false);
+      }
+    }
+
+    private void addCurrent() {
+      final MediaControllerCompat ctrl = MediaControllerCompat.getMediaController(getActivity());
+      if (ctrl != null) {
+        ctrl.getTransportControls().sendCustomAction(MainService.CUSTOM_ACTION_ADD_CURRENT, null);
       }
     }
 

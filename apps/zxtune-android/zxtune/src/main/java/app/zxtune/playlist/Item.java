@@ -40,6 +40,14 @@ public class Item {
     //TODO
     this.duration = TimeStamp.createFrom(module.getDuration() * 20, TimeUnit.MILLISECONDS);
   }
+
+  public Item(app.zxtune.playback.Item item) throws Exception {
+    this.id = -1;
+    this.location = item.getDataId();
+    this.title = item.getTitle();
+    this.author = item.getAuthor();
+    this.duration = item.getDuration();
+  }
   
   public Item() {
     this.id = -1;

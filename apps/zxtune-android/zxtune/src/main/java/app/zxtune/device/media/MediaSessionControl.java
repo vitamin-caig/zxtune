@@ -15,7 +15,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import app.zxtune.MainActivity;
 import app.zxtune.Releaseable;
 import app.zxtune.playback.CallbackSubscription;
-import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.service.PlaybackServiceLocal;
 
 public class MediaSessionControl implements Releaseable {
 
@@ -24,19 +24,19 @@ public class MediaSessionControl implements Releaseable {
   private final MediaSessionCompat session;
   private final Releaseable callback;
 
-  private MediaSessionControl(Context ctx, PlaybackService svc) {
+  private MediaSessionControl(Context ctx, PlaybackServiceLocal svc) {
     final Context appCtx = ctx.getApplicationContext();
     final ComponentName mbrComponent = new ComponentName(appCtx, MediaButtonReceiver.class);
     this.session = new MediaSessionCompat(ctx, TAG, mbrComponent, null);
     this.session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
     this.callback = new CallbackSubscription(svc, new StatusCallback(session));
-    this.session.setCallback(new ControlCallback(ctx, svc.getPlaybackControl()));
+    this.session.setCallback(new ControlCallback(ctx, svc));
     this.session.setMediaButtonReceiver(PendingIntent.getBroadcast(appCtx, 0,
         new Intent(Intent.ACTION_MEDIA_BUTTON).setComponent(mbrComponent), 0));
     this.session.setSessionActivity(PendingIntent.getActivity(appCtx, 0, new Intent(appCtx, MainActivity.class), 0));
   }
 
-  public static MediaSessionControl subscribe(Context context, PlaybackService svc) {
+  public static MediaSessionControl subscribe(Context context, PlaybackServiceLocal svc) {
     return new MediaSessionControl(context, svc);
   }
 

@@ -30,7 +30,7 @@ public class ScanService extends IntentService {
 
   private static final String TAG = ScanService.class.getName();
 
-  public static final String ACTION_START = TAG + ".add";
+  public static final String ACTION_START = TAG + ".start";
   public static final String ACTION_CANCEL = TAG + ".cancel";
   public static final String EXTRA_PATHS = "paths";
 
@@ -39,6 +39,17 @@ public class ScanService extends IntentService {
   private final InsertItemsThread insertThread;
   private final AtomicInteger addedItems;
   private Exception error;
+
+  //TODO: remove C&P
+  public static void add(Context ctx, app.zxtune.playback.Item source) {
+    try {
+      final Item item = new app.zxtune.playlist.Item(source);
+      ctx.getContentResolver().insert(PlaylistQuery.ALL, item.toContentValues());
+      ctx.getContentResolver().notifyChange(PlaylistQuery.ALL, null);
+    } catch (Exception error) {
+      Log.w(TAG, error, "Failed to add item to playlist");
+    }
+  }
 
   /**
    * InsertThread is executed for onCreate..onDestroy interval 
