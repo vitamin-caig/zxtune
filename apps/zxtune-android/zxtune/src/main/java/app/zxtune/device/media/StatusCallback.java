@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -14,14 +15,17 @@ import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
 import app.zxtune.R;
+import app.zxtune.TimeStamp;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.stubs.CallbackStub;
 
+import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 
 //! Events gate from local service to mediasession
@@ -43,17 +47,23 @@ class StatusCallback extends CallbackStub {
   }
 
   @Override
-  public void onInitialState(PlaybackControl.State state, Item item) {
-    onStateChanged(state);
+  public void onInitialState(PlaybackControl.State state) {
+    sendState(state, TimeStamp.EMPTY);
   }
 
   @Override
-  public void onStateChanged(PlaybackControl.State state) {
+  public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
+    sendState(state, pos);
+  }
+
+  private void sendState(PlaybackControl.State state, TimeStamp pos) {
     final boolean isPlaying = state == PlaybackControl.State.PLAYING;
     final int stateCompat = isPlaying
                                 ? PlaybackStateCompat.STATE_PLAYING
                                 : PlaybackStateCompat.STATE_STOPPED;
-    builder.setState(stateCompat, -1, 1);
+    final long position = pos.convertTo(TimeUnit.MILLISECONDS);
+    final float speed = isPlaying ? 1 : 0;
+    builder.setState(stateCompat, position, speed, SystemClock.elapsedRealtime());
     session.setPlaybackState(builder.build());
     session.setActive(isPlaying);
   }

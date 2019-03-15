@@ -7,11 +7,15 @@ import android.support.v4.media.session.MediaSessionCompat;
 import app.zxtune.Log;
 import app.zxtune.MainService;
 import app.zxtune.ScanService;
+import app.zxtune.TimeStamp;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.stubs.PlayableItemStub;
+import app.zxtune.playback.SeekControl;
+
+import java.util.concurrent.TimeUnit;
 
 //! Handle focus only for explicit start/stop calls
 // TODO: handle implicit start/stop calls
@@ -23,12 +27,14 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
   private final AudioManager manager;
   private final PlaybackServiceLocal svc;
   private final PlaybackControl ctrl;
+  private final SeekControl seek;
 
   ControlCallback(Context ctx, PlaybackServiceLocal svc) {
     this.ctx = ctx;
     this.manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
     this.svc = svc;
     this.ctrl = svc.getPlaybackControl();
+    this.seek = svc.getSeekControl();
   }
 
   @Override
@@ -59,6 +65,14 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
   @Override
   public void onSkipToNext() {
     ctrl.next();
+  }
+
+  public void onSeekTo(long ms) {
+    try {
+      seek.setPosition(TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS));
+    } catch (Exception e) {
+      Log.w(TAG, e, "Failed to seek");
+    }
   }
 
   @Override

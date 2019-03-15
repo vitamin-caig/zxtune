@@ -47,8 +47,8 @@ public final class MediaSessionModel extends AndroidViewModel {
   }
 
   @Nullable
-  public final MediaControllerCompat getController() {
-    return ctrl;
+  public final MediaControllerCompat.TransportControls getTransportControls() {
+    return ctrl != null ? ctrl.getTransportControls() : null;
   }
 
   private class ControllerCallback extends MediaControllerCompat.Callback {

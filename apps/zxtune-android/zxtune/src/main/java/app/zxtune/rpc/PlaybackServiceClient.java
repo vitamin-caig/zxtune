@@ -290,13 +290,13 @@ public final class PlaybackServiceClient implements PlaybackService {
     }
 
     @Override
-    public void onInitialState(int state, ParcelablePlaybackItem item) {
-      delegate.onInitialState(PlaybackControl.State.values()[state], item);
+    public void onInitialState(int state) {
+      delegate.onInitialState(PlaybackControl.State.values()[state]);
     }
 
     @Override
-    public void onStateChanged(int state) {
-      delegate.onStateChanged(PlaybackControl.State.values()[state]);
+    public void onStateChanged(int state, long pos) {
+      delegate.onStateChanged(PlaybackControl.State.values()[state], TimeStamp.createFrom(pos, TimeUnit.MILLISECONDS));
     }
 
     @Override

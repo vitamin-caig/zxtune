@@ -11,8 +11,8 @@ import app.zxtune.rpc.ParcelablePlaybackItem;
 
 oneway interface IRemoteCallback {
 
-  void onInitialState(in int state, in ParcelablePlaybackItem item);
-  void onStateChanged(in int state);
+  void onInitialState(in int state);
+  void onStateChanged(in int state, in long pos);
   void onItemChanged(in ParcelablePlaybackItem item);
   void onError(in String error);
 }

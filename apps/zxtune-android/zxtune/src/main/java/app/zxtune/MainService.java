@@ -122,7 +122,7 @@ public class MainService extends MediaBrowserServiceCompat {
     service.restoreSession();
     service.subscribe(new CallbackStub() {
       @Override
-      public void onStateChanged(PlaybackControl.State state) {
+      public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
         if (state == PlaybackControl.State.STOPPED) {
           service.storeSession();
         }

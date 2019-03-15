@@ -21,6 +21,7 @@ import app.zxtune.playback.PlaylistControl.SortBy;
 import app.zxtune.playback.PlaylistControl.SortOrder;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
+import app.zxtune.playback.stubs.CallbackStub;
 
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -183,7 +184,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     }
   }
 
-  private final class CallbackClient implements Callback {
+  private final class CallbackClient extends CallbackStub {
 
     private final String TAG = CallbackClient.class.getName();
     private final IRemoteCallback delegate;
@@ -193,18 +194,18 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     }
 
     @Override
-    public void onInitialState(PlaybackControl.State state, Item item) {
+    public void onInitialState(PlaybackControl.State state) {
       try {
-        delegate.onInitialState(state.ordinal(), ParcelablePlaybackItem.create(item));
+        delegate.onInitialState(state.ordinal());
       } catch (Exception e) {
         Log.w(TAG, e, "onInitialState()");
       }
     }
 
     @Override
-    public void onStateChanged(PlaybackControl.State state) {
+    public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
       try {
-        delegate.onStateChanged(state.ordinal());
+        delegate.onStateChanged(state.ordinal(), pos.convertTo(TimeUnit.MILLISECONDS));
       } catch (RemoteException e) {
         Log.w(TAG, e, "onStatusChanged()");
       }

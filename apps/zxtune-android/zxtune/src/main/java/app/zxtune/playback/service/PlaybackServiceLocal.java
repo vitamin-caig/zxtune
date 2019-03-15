@@ -69,15 +69,19 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
     final SamplesTarget target = SoundOutputSamplesTarget.create();
-    final PlayerEventsListener events = new PlaybackEvents(callbacks, playback);
+    final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
     this.iterator = new AtomicReference<>(IteratorStub.instance());
     this.holder = new AtomicReference<>(Holder.instance());
     this.player = AsyncPlayer.create(target, events);
-    callbacks.onInitialState(PlaybackControl.State.STOPPED, holder.get().item);
+    callbacks.onInitialState(PlaybackControl.State.STOPPED);
   }
 
   public final Item getNowPlaying() {
     return holder.get().item;
+  }
+
+  private PlaybackControl.State getState() {
+    return player.isStarted() ? PlaybackControl.State.PLAYING : PlaybackControl.State.STOPPED;
   }
 
   public final void restoreSession() {
@@ -182,6 +186,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     holder.set(newHolder);
     player.setSource(newHolder.source);
     callbacks.onItemChanged(newHolder.item);
+    callbacks.onStateChanged(getState(), TimeStamp.EMPTY);
   }
 
   @Override
@@ -436,6 +441,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void setPosition(TimeStamp position) throws Exception {
+      //TODO: fix for long defferred seek ops
+      callbacks.onStateChanged(getState(), position);
       holder.get().seek.setPosition(position);
     }
   }

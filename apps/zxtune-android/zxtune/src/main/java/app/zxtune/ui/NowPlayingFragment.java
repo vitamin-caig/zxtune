@@ -32,15 +32,16 @@ import app.zxtune.MainService;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
+import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.stubs.PlaybackControlStub;
 import app.zxtune.playback.stubs.PlaybackServiceStub;
-import app.zxtune.playback.stubs.SeekControlStub;
 import app.zxtune.playback.stubs.VisualizerStub;
 import app.zxtune.ui.controllers.VisualizerController;
 import app.zxtune.ui.utils.UiThreadCallbackAdapter;
@@ -130,7 +131,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   @Override
   public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    seek = new SeekControlView(view);
+    seek = new SeekControlView(getActivity(), view);
     visualizer.setView((SpectrumAnalyzerView) view.findViewById(R.id.visualizer));
     info = new InformationView(getActivity(), view);
     ctrls = new PlaybackControlsView(view);
@@ -181,7 +182,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   @Override
   public void onDestroyView() {
     visualizer.shutdown();
-    seek.setEnabled(false);
+    seek.stop();
     super.onDestroyView();
   }
 
@@ -201,7 +202,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     if (serviceConnected && viewsCreated && menuCreated) {
       Log.d(TAG, "Subscribe to service events");
       visualizer.setSource(service.getVisualizer());
-      seek.setControl(service.getSeekControl());
       ctrls.setControls(service.getPlaybackControl());
       callback = new PlaybackEvents();
       callbackConnection = new CallbackSubscription(service, new UiThreadCallbackAdapter(getActivity(), callback));
@@ -218,38 +218,30 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       callbackConnection = null;
       //TODO: rework synchronization scheme
       if (callback != null) {
-        callback.onStateChanged(PlaybackControl.State.STOPPED);
+        callback.onStateChanged(PlaybackControl.State.STOPPED, TimeStamp.EMPTY);
       }
     }
     visualizer.setSource(VisualizerStub.instance());
-    seek.setControl(SeekControlStub.instance());
     ctrls.setControls(PlaybackControlStub.instance());
   }
 
   //executed in UI thread only via wrapper
-  private class PlaybackEvents implements Callback {
+  private class PlaybackEvents extends CallbackStub {
 
     @Override
-    public void onInitialState(PlaybackControl.State state, Item item) {
-      onStateChanged(state);
-      onItemChanged(item);
+    public void onInitialState(PlaybackControl.State state) {
+      onStateChanged(state, TimeStamp.EMPTY);
     }
 
     @Override
-    public void onStateChanged(PlaybackControl.State state) {
+    public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
       final boolean isPlaying = state == PlaybackControl.State.PLAYING;
       if (isPlaying) {
         visualizer.startUpdates();
       } else {
         visualizer.stopUpdates();
       }
-      seek.setEnabled(isPlaying);
       ctrls.updateStatus(isPlaying);
-    }
-
-    @Override
-    public void onItemChanged(Item item) {
-      seek.update();
     }
 
     @Override

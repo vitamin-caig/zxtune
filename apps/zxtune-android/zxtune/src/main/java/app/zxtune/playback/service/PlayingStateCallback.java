@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 
+import app.zxtune.TimeStamp;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.stubs.CallbackStub;
@@ -25,7 +26,7 @@ public class PlayingStateCallback extends CallbackStub {
     }
 
     @Override
-    public void onStateChanged(PlaybackControl.State state) {
+    public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
         final boolean isPlaying = state != PlaybackControl.State.STOPPED;
         if (this.isPlaying != isPlaying) {
             this.isPlaying = isPlaying;

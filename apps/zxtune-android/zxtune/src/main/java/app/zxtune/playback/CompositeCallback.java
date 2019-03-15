@@ -10,6 +10,9 @@
 
 package app.zxtune.playback;
 
+import app.zxtune.TimeStamp;
+
+import java.sql.Time;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,7 +20,6 @@ public final class CompositeCallback implements Callback {
   
   private final List<Callback> delegates;
   private PlaybackControl.State lastState;
-  private Item lastItem;
 
   public CompositeCallback() {
     this.delegates = new LinkedList<>();
@@ -25,17 +27,16 @@ public final class CompositeCallback implements Callback {
   }
 
   @Override
-  public void onInitialState(PlaybackControl.State state, Item item) {
+  public void onInitialState(PlaybackControl.State state) {
     lastState = state;
-    lastItem = item;
   }
 
   @Override
-  public void onStateChanged(PlaybackControl.State state) {
+  public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
     synchronized (delegates) {
       lastState = state;
       for (Callback cb : delegates) {
-        cb.onStateChanged(state);
+        cb.onStateChanged(state, pos);
       }
     }
   }
@@ -43,7 +44,6 @@ public final class CompositeCallback implements Callback {
   @Override
   public void onItemChanged(Item item) {
     synchronized (delegates) {
-      lastItem = item;
       for (Callback cb : delegates) {
         cb.onItemChanged(item);
       }
@@ -68,7 +68,7 @@ public final class CompositeCallback implements Callback {
   public void add(Callback callback) {
     synchronized (delegates) {
       delegates.add(callback);
-      callback.onInitialState(lastState, lastItem);
+      callback.onInitialState(lastState);
     }
   }
 

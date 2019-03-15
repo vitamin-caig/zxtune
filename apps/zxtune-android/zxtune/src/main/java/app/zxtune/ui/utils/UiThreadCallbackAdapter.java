@@ -7,11 +7,13 @@
 package app.zxtune.ui.utils;
 
 import android.support.v4.app.FragmentActivity;
+import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.stubs.CallbackStub;
 
-public final class UiThreadCallbackAdapter implements Callback {
+public final class UiThreadCallbackAdapter extends CallbackStub {
 
   private final FragmentActivity activity;
   private final Callback delegate;
@@ -22,21 +24,21 @@ public final class UiThreadCallbackAdapter implements Callback {
   }
 
   @Override
-  public void onInitialState(final PlaybackControl.State state, final Item item) {
+  public void onInitialState(final PlaybackControl.State state) {
     activity.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        delegate.onInitialState(state, item);
+        delegate.onInitialState(state);
       }
     });
   }
 
   @Override
-  public void onStateChanged(final PlaybackControl.State state) {
+  public void onStateChanged(final PlaybackControl.State state, final TimeStamp pos) {
     activity.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        delegate.onStateChanged(state);
+        delegate.onStateChanged(state, pos);
       }
     });
   }
