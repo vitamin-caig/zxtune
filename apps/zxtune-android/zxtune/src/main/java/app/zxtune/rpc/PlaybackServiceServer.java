@@ -193,9 +193,9 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     }
 
     @Override
-    public void onInitialState(PlaybackControl.State state, Item item, boolean ioStatus) {
+    public void onInitialState(PlaybackControl.State state, Item item) {
       try {
-        delegate.onInitialState(state.ordinal(), ParcelablePlaybackItem.create(item), ioStatus);
+        delegate.onInitialState(state.ordinal(), ParcelablePlaybackItem.create(item));
       } catch (Exception e) {
         Log.w(TAG, e, "onInitialState()");
       }
@@ -216,15 +216,6 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
         delegate.onItemChanged(ParcelablePlaybackItem.create(item));
       } catch (Exception e) {
         Log.w(TAG, e, "onItemChanged()");
-      }
-    }
-
-    @Override
-    public void onIOStatusChanged(boolean isActive) {
-      try {
-        delegate.onIOStatusChanged(isActive);
-      } catch (RemoteException e) {
-        Log.w(TAG, e, "onIOStatusChanged()");
       }
     }
 

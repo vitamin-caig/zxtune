@@ -230,7 +230,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   private class PlaybackEvents implements Callback {
 
     @Override
-    public void onInitialState(PlaybackControl.State state, Item item, boolean ioStatus) {
+    public void onInitialState(PlaybackControl.State state, Item item) {
       onStateChanged(state);
       onItemChanged(item);
     }
@@ -250,10 +250,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     @Override
     public void onItemChanged(Item item) {
       seek.update();
-    }
-
-    @Override
-    public void onIOStatusChanged(boolean isActive) {
     }
 
     @Override

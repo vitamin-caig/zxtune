@@ -17,7 +17,7 @@ public interface Callback {
   /**
    * Called after subscription
    */
-  void onInitialState(@NonNull PlaybackControl.State state, @NonNull Item item, boolean ioStatus);
+  void onInitialState(@NonNull PlaybackControl.State state, @NonNull Item item);
 
   /**
    * Called on new state (may be the same)
@@ -28,12 +28,7 @@ public interface Callback {
    * Called on active item change
    */
   void onItemChanged(@NonNull Item item);
-  
-  /**
-   * Called on I/O operation status change
-   */
-  void onIOStatusChanged(boolean isActive);
-  
+
   /**
    * Called on error happends
    */

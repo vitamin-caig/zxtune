@@ -290,9 +290,8 @@ public final class PlaybackServiceClient implements PlaybackService {
     }
 
     @Override
-    public void onInitialState(int state, ParcelablePlaybackItem item, boolean ioStatus) {
-      delegate.onInitialState(PlaybackControl.State.values()[state], item, ioStatus);
-
+    public void onInitialState(int state, ParcelablePlaybackItem item) {
+      delegate.onInitialState(PlaybackControl.State.values()[state], item);
     }
 
     @Override
@@ -303,11 +302,6 @@ public final class PlaybackServiceClient implements PlaybackService {
     @Override
     public void onItemChanged(ParcelablePlaybackItem item) {
       delegate.onItemChanged(item);
-    }
-
-    @Override
-    public void onIOStatusChanged(boolean isActive) {
-      delegate.onIOStatusChanged(isActive);
     }
 
     @Override

@@ -18,18 +18,16 @@ public final class CompositeCallback implements Callback {
   private final List<Callback> delegates;
   private PlaybackControl.State lastState;
   private Item lastItem;
-  private boolean lastIOStatus;
-  
+
   public CompositeCallback() {
     this.delegates = new LinkedList<>();
     this.lastState = PlaybackControl.State.STOPPED;
   }
 
   @Override
-  public void onInitialState(PlaybackControl.State state, Item item, boolean ioStatus) {
+  public void onInitialState(PlaybackControl.State state, Item item) {
     lastState = state;
     lastItem = item;
-    lastIOStatus = ioStatus;
   }
 
   @Override
@@ -53,16 +51,6 @@ public final class CompositeCallback implements Callback {
   }
 
   @Override
-  public void onIOStatusChanged(boolean isActive) {
-    synchronized (delegates) {
-      lastIOStatus = isActive;
-      for (Callback cb : delegates) {
-        cb.onIOStatusChanged(isActive);
-      }
-    }
-  }
-  
-  @Override
   public void onError(String e) {
     synchronized (delegates) {
       for (Callback cb : delegates) {
@@ -80,7 +68,7 @@ public final class CompositeCallback implements Callback {
   public void add(Callback callback) {
     synchronized (delegates) {
       delegates.add(callback);
-      callback.onInitialState(lastState, lastItem, lastIOStatus);
+      callback.onInitialState(lastState, lastItem);
     }
   }
 

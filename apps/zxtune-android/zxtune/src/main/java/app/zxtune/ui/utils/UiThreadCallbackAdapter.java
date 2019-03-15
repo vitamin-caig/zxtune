@@ -22,12 +22,11 @@ public final class UiThreadCallbackAdapter implements Callback {
   }
 
   @Override
-  public void onInitialState(final PlaybackControl.State state, final Item item,
-                             final boolean ioStatus) {
+  public void onInitialState(final PlaybackControl.State state, final Item item) {
     activity.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        delegate.onInitialState(state, item, ioStatus);
+        delegate.onInitialState(state, item);
       }
     });
   }
@@ -48,16 +47,6 @@ public final class UiThreadCallbackAdapter implements Callback {
       @Override
       public void run() {
         delegate.onItemChanged(item);
-      }
-    });
-  }
-
-  @Override
-  public void onIOStatusChanged(final boolean isActive) {
-    activity.runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        delegate.onIOStatusChanged(isActive);
       }
     });
   }

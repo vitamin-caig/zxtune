@@ -73,7 +73,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.iterator = new AtomicReference<>(IteratorStub.instance());
     this.holder = new AtomicReference<>(Holder.instance());
     this.player = AsyncPlayer.create(target, events);
-    callbacks.onInitialState(PlaybackControl.State.STOPPED, holder.get().item, false);
+    callbacks.onInitialState(PlaybackControl.State.STOPPED, holder.get().item);
   }
 
   public final Item getNowPlaying() {
@@ -246,15 +246,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       @Override
       public void run() {
         try {
-          callbacks.onIOStatusChanged(true);
           cmd.execute();
         } catch (Exception e) {//IOException|InterruptedException
           Log.w(TAG, e, cmd.getClass().getName());
           final Throwable cause = e.getCause();
           final String msg = cause != null ? cause.getMessage() : e.getMessage();
           callbacks.onError(msg);
-        } finally {
-          callbacks.onIOStatusChanged(false);
         }
       }
     });

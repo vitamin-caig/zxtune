@@ -13,16 +13,13 @@ import app.zxtune.playback.PlaybackControl;
 public abstract class CallbackStub implements Callback {
 
   @Override
-  public void onInitialState(PlaybackControl.State state, Item item, boolean ioStatus) {}
+  public void onInitialState(PlaybackControl.State state, Item item) {}
 
   @Override
   public void onStateChanged(PlaybackControl.State state) {}
 
   @Override
   public void onItemChanged(Item item) {}
-
-  @Override
-  public void onIOStatusChanged(boolean isActive) {}
 
   @Override
   public void onError(String e) {}
