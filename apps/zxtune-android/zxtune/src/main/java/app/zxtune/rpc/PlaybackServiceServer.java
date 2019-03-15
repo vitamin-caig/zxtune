@@ -1,22 +1,13 @@
 /**
- *
  * @file
- *
  * @brief Remote service stub for PlaybackService
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.rpc;
 
 import android.net.Uri;
 import android.os.RemoteException;
-import android.support.annotation.Nullable;
-
-import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
@@ -30,6 +21,9 @@ import app.zxtune.playback.PlaylistControl.SortBy;
 import app.zxtune.playback.PlaylistControl.SortOrder;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
+
+import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
 
@@ -51,42 +45,31 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     this.callbacks = new HashMap<>();
   }
 
-  @Nullable
-  @Override
-  public ParcelablePlaybackItem getNowPlaying() {
-    try {
-      return ParcelablePlaybackItem.create(delegate.getNowPlaying());
-    } catch (Exception e) {
-      Log.w(TAG, e, "getNowPlaying()");
-    }
-    return null;
-  }
-  
   @Override
   public void setNowPlaying(Uri[] uris) {
     delegate.setNowPlaying(uris);
   }
-  
+
   @Override
   public void add(Uri[] uris) {
     playlist.add(uris);
   }
-  
+
   @Override
   public void delete(long[] ids) {
     playlist.delete(ids);
   }
-  
+
   @Override
   public void deleteAll() {
     playlist.deleteAll();
   }
-  
+
   @Override
   public void move(long id, int delta) {
     playlist.move(id, delta);
   }
-  
+
   @Override
   public void sort(String field, String order) {
     playlist.sort(SortBy.valueOf(field), SortOrder.valueOf(order));
@@ -101,42 +84,42 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   public void stop() {
     playback.stop();
   }
-  
+
   @Override
   public void togglePlayStop() {
     playback.togglePlayStop();
   }
-    
+
   @Override
   public void next() {
     playback.next();
   }
-  
+
   @Override
   public void prev() {
     playback.prev();
   }
-  
+
   @Override
   public int getTrackMode() {
     return playback.getTrackMode().ordinal();
   }
-  
+
   @Override
   public void setTrackMode(int mode) {
     playback.setTrackMode(TrackMode.values()[mode]);
   }
-  
+
   @Override
   public int getSequenceMode() {
     return playback.getSequenceMode().ordinal();
   }
-  
+
   @Override
   public void setSequenceMode(int mode) {
     playback.setSequenceMode(SequenceMode.values()[mode]);
   }
-  
+
   @Override
   public long getDuration() {
     try {
@@ -146,7 +129,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     }
     return 0;
   }
-  
+
   @Override
   public long getPosition() {
     try {
@@ -156,7 +139,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     }
     return 0;
   }
-  
+
   @Override
   public void setPosition(long ms) {
     try {
@@ -165,7 +148,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
       Log.w(TAG, e, "setPosition()");
     }
   }
-  
+
   @Override
   public int[] getSpectrum() {
     final int MAX_BANDS = 96;
@@ -183,14 +166,14 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     }
     return new int[1];
   }
-  
+
   @Override
   public void subscribe(IRemoteCallback callback) {
     final Callback client = new CallbackClient(callback);
     callbacks.put(callback, client);
     delegate.subscribe(client);
   }
-  
+
   @Override
   public void unsubscribe(IRemoteCallback callback) {
     final Callback client = callbacks.get(callback);
@@ -199,12 +182,12 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
       callbacks.remove(callback);
     }
   }
-  
+
   private final class CallbackClient implements Callback {
-    
+
     private final String TAG = CallbackClient.class.getName();
     private final IRemoteCallback delegate;
-    
+
     public CallbackClient(IRemoteCallback delegate) {
       this.delegate = delegate;
     }
@@ -226,7 +209,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
         Log.w(TAG, e, "onStatusChanged()");
       }
     }
-    
+
     @Override
     public void onItemChanged(Item item) {
       try {
@@ -235,7 +218,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
         Log.w(TAG, e, "onItemChanged()");
       }
     }
-    
+
     @Override
     public void onIOStatusChanged(boolean isActive) {
       try {
@@ -244,7 +227,7 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
         Log.w(TAG, e, "onIOStatusChanged()");
       }
     }
-    
+
     @Override
     public void onError(String error) {
       try {

@@ -26,11 +26,6 @@ public class PlaybackServiceStub implements PlaybackService {
   }
 
   @Override
-  public Item getNowPlaying() {
-    return ItemStub.instance();
-  }
-
-  @Override
   public void setNowPlaying(Uri[] uris) {
   }
 

@@ -9,20 +9,17 @@ package app.zxtune.rpc;
 import android.net.Uri;
 import android.os.DeadObjectException;
 import android.os.RemoteException;
-
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CompositeCallback;
-import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
-import app.zxtune.playback.stubs.ItemStub;
+
+import java.util.concurrent.TimeUnit;
 
 public final class PlaybackServiceClient implements PlaybackService {
 
@@ -48,16 +45,6 @@ public final class PlaybackServiceClient implements PlaybackService {
       delegate.subscribe(callbackDelegate);
     } catch (RemoteException e) {
       Log.w(TAG, e, "subscribe()");
-    }
-  }
-
-  @Override
-  public Item getNowPlaying() {
-    try {
-      return delegate.getNowPlaying();
-    } catch (RemoteException e) {
-      Log.w(TAG, e, "getNowPlaying()");
-      return ItemStub.instance();
     }
   }
 
@@ -307,6 +294,7 @@ public final class PlaybackServiceClient implements PlaybackService {
       delegate.onInitialState(PlaybackControl.State.values()[state], item, ioStatus);
 
     }
+
     @Override
     public void onStateChanged(int state) {
       delegate.onStateChanged(PlaybackControl.State.values()[state]);

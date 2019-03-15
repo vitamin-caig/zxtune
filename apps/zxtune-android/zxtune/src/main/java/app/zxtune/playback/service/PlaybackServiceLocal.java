@@ -76,8 +76,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     callbacks.onInitialState(PlaybackControl.State.STOPPED, holder.get().item, false);
   }
 
-  @Override
-  public Item getNowPlaying() {
+  public final Item getNowPlaying() {
     return holder.get().item;
   }
 

@@ -14,18 +14,16 @@ import android.net.Uri;
 
 public interface PlaybackService {
 
-  public Item getNowPlaying();
+  void setNowPlaying(Uri[] uris);
   
-  public void setNowPlaying(Uri[] uris);
+  PlaylistControl getPlaylistControl();
   
-  public PlaylistControl getPlaylistControl();
+  PlaybackControl getPlaybackControl();
   
-  public PlaybackControl getPlaybackControl();
+  SeekControl getSeekControl();
   
-  public SeekControl getSeekControl();
+  Visualizer getVisualizer();
   
-  public Visualizer getVisualizer();
-  
-  public void subscribe(Callback cb);
-  public void unsubscribe(Callback cb);
+  void subscribe(Callback cb);
+  void unsubscribe(Callback cb);
 }
