@@ -1022,9 +1022,9 @@ namespace Chiptune
       //0x9d + 2 * MAX_POSITIONS_COUNT(0x64) = 0x165
       "? 00-01"   //uint16_t SamplesOffset;
       //0x165 + MAX_SAMPLES_COUNT(0xf) * (2 + 2 + 3 * MAX_SAMPLE_SIZE(0x22)) = 0x79b
-      "? 00-02"   //uint16_t OrnamentsOffset;
+      "? 00-04"   //uint16_t OrnamentsOffset;
       //0x79b + MAX_ORNAMENTS_COUNT(0x20) * (2 + 2 + MAX_ORNAMENT_SIZE(0x22)) = 0xc1b
-      "? 00-03"   //uint16_t PatternsOffset;
+      "? 00-05"   //uint16_t PatternsOffset;
     );
 
     class Decoder : public Formats::Chiptune::Decoder
