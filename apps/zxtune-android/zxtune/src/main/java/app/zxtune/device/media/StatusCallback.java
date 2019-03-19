@@ -15,17 +15,18 @@ import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
 import app.zxtune.R;
+import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsObject;
+import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.SeekControl;
+import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.stubs.CallbackStub;
 
-import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 
 //! Events gate from local service to mediasession
@@ -36,7 +37,16 @@ class StatusCallback extends CallbackStub {
   private final MediaSessionCompat session;
   private final PlaybackStateCompat.Builder builder;
 
-  StatusCallback(MediaSessionCompat session) {
+  static Releaseable subscribe(PlaybackService svc, MediaSessionCompat session) {
+    final StatusCallback cb = new StatusCallback(session);
+    final PlaybackControl ctrl = svc.getPlaybackControl();
+    //TODO: rework repeat/shuffle model
+    session.setShuffleMode(ctrl.getSequenceMode().ordinal());
+    session.setRepeatMode(ctrl.getTrackMode().ordinal());
+    return new CallbackSubscription(svc, cb);
+  }
+
+  private StatusCallback(MediaSessionCompat session) {
     this.session = session;
     this.builder = new PlaybackStateCompat.Builder();
     this.builder.setActions(

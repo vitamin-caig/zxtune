@@ -134,7 +134,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     seek = new SeekControlView(getActivity(), view);
     visualizer.setView((SpectrumAnalyzerView) view.findViewById(R.id.visualizer));
     info = new InformationView(getActivity(), view);
-    ctrls = new PlaybackControlsView(view);
+    ctrls = new PlaybackControlsView(getActivity(), view);
     bindViewsToConnectedService();
   }
 
@@ -202,7 +202,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     if (serviceConnected && viewsCreated && menuCreated) {
       Log.d(TAG, "Subscribe to service events");
       visualizer.setSource(service.getVisualizer());
-      ctrls.setControls(service.getPlaybackControl());
       callback = new PlaybackEvents();
       callbackConnection = new CallbackSubscription(service, new UiThreadCallbackAdapter(getActivity(), callback));
     }
@@ -222,7 +221,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       }
     }
     visualizer.setSource(VisualizerStub.instance());
-    ctrls.setControls(PlaybackControlStub.instance());
   }
 
   //executed in UI thread only via wrapper
@@ -241,7 +239,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       } else {
         visualizer.stopUpdates();
       }
-      ctrls.updateStatus(isPlaying);
     }
 
     @Override

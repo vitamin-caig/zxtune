@@ -28,13 +28,15 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
   private final PlaybackServiceLocal svc;
   private final PlaybackControl ctrl;
   private final SeekControl seek;
+  private final MediaSessionCompat session;
 
-  ControlCallback(Context ctx, PlaybackServiceLocal svc) {
+  ControlCallback(Context ctx, PlaybackServiceLocal svc, MediaSessionCompat session) {
     this.ctx = ctx;
     this.manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
     this.svc = svc;
     this.ctrl = svc.getPlaybackControl();
     this.seek = svc.getSeekControl();
+    this.session = session;
   }
 
   @Override
@@ -87,6 +89,18 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
     if (current != PlayableItemStub.instance()) {
       ScanService.add(ctx, current);
     }
+  }
+
+  @Override
+  public void onSetShuffleMode(int mode) {
+    ctrl.setSequenceMode(PlaybackControl.SequenceMode.values()[mode]);
+    session.setShuffleMode(mode);
+  }
+
+  @Override
+  public void onSetRepeatMode(int mode) {
+    ctrl.setTrackMode(PlaybackControl.TrackMode.values()[mode]);
+    session.setRepeatMode(mode);
   }
 
   //onAudioFocusChangeListener
