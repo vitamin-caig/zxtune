@@ -6,6 +6,7 @@
 
 package app.zxtune.ui;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -31,20 +32,11 @@ import app.zxtune.Log;
 import app.zxtune.MainService;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
-import app.zxtune.Releaseable;
-import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsExtensions;
-import app.zxtune.playback.Callback;
-import app.zxtune.playback.CallbackSubscription;
-import app.zxtune.playback.Item;
-import app.zxtune.playback.PlaybackControl;
+import app.zxtune.models.MediaSessionModel;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.stubs.CallbackStub;
-import app.zxtune.playback.stubs.PlaybackControlStub;
 import app.zxtune.playback.stubs.PlaybackServiceStub;
-import app.zxtune.playback.stubs.VisualizerStub;
 import app.zxtune.ui.controllers.VisualizerController;
-import app.zxtune.ui.utils.UiThreadCallbackAdapter;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -54,10 +46,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   private static final int REQUEST_SEND = 2;
   private static final String EXTRA_ITEM_LOCATION = TAG + ".EXTRA_LOCATION";
 
-  private PlaybackService service;
-  private Callback callback;
-  private Releaseable callbackConnection;
-  private final VisualizerController visualizer = new VisualizerController();
+  private VisualizerController visualizer;
   private SeekControlView seek;
   private InformationView info;
   private PlaybackControlsView ctrls;
@@ -65,10 +54,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
 
   public static Fragment createInstance() {
     return new NowPlayingFragment();
-  }
-
-  public NowPlayingFragment() {
-    this.service = PlaybackServiceStub.instance();
   }
 
   @Override
@@ -101,7 +86,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         }
       });
     }
-    bindViewsToConnectedService();
   }
 
   /*
@@ -132,10 +116,10 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     seek = new SeekControlView(getActivity(), view);
-    visualizer.setView((SpectrumAnalyzerView) view.findViewById(R.id.visualizer));
+    visualizer =
+        new VisualizerController(getActivity(), (SpectrumAnalyzerView) view.findViewById(R.id.visualizer));
     info = new InformationView(getActivity(), view);
     ctrls = new PlaybackControlsView(getActivity(), view);
-    bindViewsToConnectedService();
   }
 
   private void pickAndSend(Intent data, CharSequence title, int code) {
@@ -168,12 +152,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
 
   @Override
-  public synchronized void onStart() {
-    super.onStart();
-    bindViewsToConnectedService();
-  }
-
-  @Override
   public synchronized void onStop() {
     super.onStop();
     unbindFromService();
@@ -187,68 +165,14 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
 
   @Override
-  public synchronized void onServiceConnected(PlaybackService service) {
-    this.service = service;
-    Log.d(TAG, "Service connected");
-    bindViewsToConnectedService();
-  }
-
-  // relative order of onViewCreated/onCreateOptionsMenu/onServiceConnected is not specified
-  private void bindViewsToConnectedService() {
-    assert service != null;
-    final boolean serviceConnected = service != PlaybackServiceStub.instance();
-    final boolean viewsCreated = visualizer != null;
-    final boolean menuCreated = trackActionsMenu != null;
-    if (serviceConnected && viewsCreated && menuCreated) {
-      Log.d(TAG, "Subscribe to service events");
-      visualizer.setSource(service.getVisualizer());
-      callback = new PlaybackEvents();
-      callbackConnection = new CallbackSubscription(service, new UiThreadCallbackAdapter(getActivity(), callback));
-    }
+  public void onServiceConnected(PlaybackService service) {
+    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+    model.setVisualizer(service.getVisualizer());
   }
 
   private void unbindFromService() {
-    try {
-      if (callbackConnection != null) {
-        Log.d(TAG, "Unsubscribe from service events");
-        callbackConnection.release();
-      }
-    } finally {
-      callbackConnection = null;
-      //TODO: rework synchronization scheme
-      if (callback != null) {
-        callback.onStateChanged(PlaybackControl.State.STOPPED, TimeStamp.EMPTY);
-      }
-    }
-    visualizer.setSource(VisualizerStub.instance());
-  }
-
-  //executed in UI thread only via wrapper
-  private class PlaybackEvents extends CallbackStub {
-
-    @Override
-    public void onInitialState(PlaybackControl.State state) {
-      onStateChanged(state, TimeStamp.EMPTY);
-    }
-
-    @Override
-    public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
-      final boolean isPlaying = state == PlaybackControl.State.PLAYING;
-      if (isPlaying) {
-        visualizer.startUpdates();
-      } else {
-        visualizer.stopUpdates();
-      }
-    }
-
-    @Override
-    public void onError(final String error) {
-      final AppCompatActivity activity = (AppCompatActivity) getActivity();
-      //Seems like may be called before activity attach
-      if (activity != null) {
-        Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
-      }
-    }
+    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+    model.setVisualizer(null);
   }
 
   private class TrackActionsMenu {

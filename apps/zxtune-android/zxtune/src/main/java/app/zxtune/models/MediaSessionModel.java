@@ -9,22 +9,26 @@ import android.support.annotation.Nullable;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import app.zxtune.playback.Visualizer;
 
 public final class MediaSessionModel extends AndroidViewModel {
 
   private final MutableLiveData<PlaybackStateCompat> playbackState;
   private final MutableLiveData<MediaMetadataCompat> mediaMetadata;
   private MediaControllerCompat ctrl;
+  private final MutableLiveData<Visualizer> visualizer;
 
   public MediaSessionModel(@NonNull Application app) {
     super(app);
     this.playbackState = new MutableLiveData<>();
     this.mediaMetadata = new MutableLiveData<>();
+    this.visualizer = new MutableLiveData<>();
 
     setControl(null);
+    setVisualizer(null);
   }
 
-  public final void setControl(@Nullable MediaControllerCompat ctrl) {
+  final void setControl(@Nullable MediaControllerCompat ctrl) {
     this.ctrl = ctrl;
     if (ctrl != null) {
       playbackState.setValue(ctrl.getPlaybackState());
@@ -34,6 +38,10 @@ public final class MediaSessionModel extends AndroidViewModel {
       playbackState.setValue(null);
       mediaMetadata.setValue(null);
     }
+  }
+
+  public final void setVisualizer(@Nullable Visualizer visualizer) {
+    this.visualizer.setValue(visualizer);
   }
 
   @NonNull
@@ -49,6 +57,11 @@ public final class MediaSessionModel extends AndroidViewModel {
   @Nullable
   public final MediaControllerCompat.TransportControls getTransportControls() {
     return ctrl != null ? ctrl.getTransportControls() : null;
+  }
+
+  @NonNull
+  public final LiveData<Visualizer> getVisualizer() {
+    return visualizer;
   }
 
   private class ControllerCallback extends MediaControllerCompat.Callback {
