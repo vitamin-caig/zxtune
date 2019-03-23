@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Database (metadata) item
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.playlist;
@@ -13,13 +9,12 @@ package app.zxtune.playlist;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
-
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
+
+import java.util.concurrent.TimeUnit;
 
 public class Item {
 
@@ -46,10 +41,18 @@ public class Item {
     this.duration = TimeStamp.createFrom(module.getDuration() * 20, TimeUnit.MILLISECONDS);
   }
   
+  public Item() {
+    this.id = -1;
+    this.location = Identifier.EMPTY;
+    this.title = "";
+    this.author = "";
+    this.duration = TimeStamp.EMPTY;
+  }
+
   public final Uri getUri() {
     return PlaylistQuery.uriFor(id);
   }
-  
+
   public final Identifier getLocation() {
     return location;
   }

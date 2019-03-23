@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Scanning service
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune;
@@ -20,11 +16,9 @@ import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.widget.Toast;
+import app.zxtune.core.Module;
+import app.zxtune.core.Scanner;
 import app.zxtune.device.ui.Notifications;
-import app.zxtune.playback.Iterator;
-import app.zxtune.playback.IteratorFactory;
-import app.zxtune.playback.PlayableItem;
-import app.zxtune.playback.stubs.PlayableItemStub;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.PlaylistQuery;
 
@@ -45,7 +39,7 @@ public class ScanService extends IntentService {
   private final InsertItemsThread insertThread;
   private final AtomicInteger addedItems;
   private Exception error;
-  
+
   /**
    * InsertThread is executed for onCreate..onDestroy interval 
    */
@@ -87,11 +81,11 @@ public class ScanService extends IntentService {
       makeToast(R.string.scanning_stopped, Toast.LENGTH_SHORT);
     }
   }
-  
+
   private void makeToast(int textRes, int duration) {
     makeToast(getString(textRes), duration);
   }
-  
+
   private void makeToast(final String text, final int duration) {
     handler.post(new Runnable() {
       @Override
@@ -117,32 +111,40 @@ public class ScanService extends IntentService {
   }
 
   private void scan(Uri[] uris) {
+    error = null;
     for (Uri uri : uris) {
+      if (!insertThread.isActive()) {
+        break;
+      }
       Log.d(TAG, "scan on %s", uri);
-    }
-    try {
-      error = null;
-      final Iterator iter = IteratorFactory.createIterator(this, uris);
-      do {
-        final PlayableItem item = iter.getItem();
-        try {
+      Scanner.analyzeIdentifier(new Identifier(uri), new Scanner.Callback() {
+        @Override
+        public void onModule(Identifier id, Module module) throws Exception {
+          final Item item = new Item(id, module);
           insertThread.enqueue(item);
-        } catch (InterruptedException e) {
-          Log.d(TAG, "scan interrupted");
-          break;
         }
-      } while (insertThread.isActive() && iter.next());
-    } catch (Exception e) {
-      error = e;
-      Log.w(TAG, e, "Scan failed");
-      insertThread.cancel();
+
+        @Override
+        public void onError(Exception e) {
+          error = e;
+        }
+      });
+      if (error != null) {
+        insertThread.cancel();
+        if (error instanceof InterruptedException) {
+          error = null;
+        }
+        break;
+      }
     }
   }
 
   private class InsertItemsThread extends Thread {
 
     private static final int MAX_QUEUE_SIZE = 100;
-    private final ArrayBlockingQueue<PlayableItem> queue;
+    private final Item STUB = new Item();
+
+    private final ArrayBlockingQueue<Item> queue;
     private final AtomicBoolean active;
 
     InsertItemsThread() {
@@ -151,39 +153,39 @@ public class ScanService extends IntentService {
       this.active = new AtomicBoolean();
     }
 
-    final void enqueue(PlayableItem item) throws InterruptedException {
+    final void enqueue(Item item) throws InterruptedException {
       if (isActive()) {
         queue.put(item);
       }
     }
-    
+
     @Override
     public void start() {
       active.set(true);
       super.start();
     }
-    
+
     final boolean isActive() {
       return active.get();
     }
-    
+
     final void cancel() {
       Log.d(getName(), "cancel()");
       active.set(false);
       interrupt();
     }
-    
+
     final void flush() {
       try {
         Log.d(getName(), "waitForFinish()");
-        enqueue(PlayableItemStub.instance());
+        enqueue(STUB);
         active.set(false);
         join();
       } catch (InterruptedException e) {
         Log.w(getName(), e, "Failed to wait for finish");
       }
     }
-    
+
     @Override
     public void run() {
       try {
@@ -200,7 +202,7 @@ public class ScanService extends IntentService {
         Log.d(getName(), "stopping");
       }
     }
-    
+
     private void performTransfer() throws Exception {
       tracking.start();
       try {
@@ -211,25 +213,24 @@ public class ScanService extends IntentService {
     }
 
     private void transferItems() throws Exception {
-      for (;;) {
+      for (; ; ) {
         if (!transferSingleItem()) {
           break;
         }
       }
     }
-    
+
     private boolean transferSingleItem() throws Exception {
-      final PlayableItem item = queue.take();
-      if (item == PlayableItemStub.instance()) {
+      final Item item = queue.take();
+      if (item == STUB) {
         return false;
       }
       insertItem(item);
       return true;
     }
 
-    private void insertItem(PlayableItem item) throws Exception {
-      final Item listItem = new Item(item.getDataId(), item.getModule());
-      getContentResolver().insert(PlaylistQuery.ALL, listItem.toContentValues());
+    private void insertItem(Item item) {
+      getContentResolver().insert(PlaylistQuery.ALL, item.toContentValues());
       addedItems.incrementAndGet();
     }
   }
@@ -241,7 +242,7 @@ public class ScanService extends IntentService {
 
     private WakeLock wakeLock;
     private StatusNotification notification;
-    
+
     final void start() {
       notification = new StatusNotification();
       handler.postDelayed(this, NOTIFICATION_DELAY);
@@ -263,7 +264,7 @@ public class ScanService extends IntentService {
       notifyResolver();
       notification.show();
     }
-    
+
     private WakeLock getWakelock() {
       if (wakeLock == null) {
         final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
