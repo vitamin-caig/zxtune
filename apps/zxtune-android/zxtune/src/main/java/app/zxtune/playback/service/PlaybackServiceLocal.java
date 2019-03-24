@@ -140,8 +140,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
 
-  @Override
-  public void setNowPlaying(Uri uri) {
+  public final void setNowPlaying(Uri uri) {
     activateCmd.schedulePlay(uri);
   }
 

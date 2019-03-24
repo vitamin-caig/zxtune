@@ -2,6 +2,7 @@ package app.zxtune.device.media;
 
 import android.content.Context;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.session.MediaSessionCompat;
 import app.zxtune.Log;
@@ -101,6 +102,11 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
   public void onSetRepeatMode(int mode) {
     ctrl.setTrackMode(PlaybackControl.TrackMode.values()[mode]);
     session.setRepeatMode(mode);
+  }
+
+  @Override
+  public void onPlayFromUri(Uri uri, Bundle extras) {
+    svc.setNowPlaying(uri);
   }
 
   //onAudioFocusChangeListener

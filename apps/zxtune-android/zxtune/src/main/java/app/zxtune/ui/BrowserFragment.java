@@ -10,12 +10,12 @@
 
 package app.zxtune.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v7.widget.SearchView;
 import android.util.SparseBooleanArray;
 import android.view.*;
@@ -238,7 +238,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
           final Uri toPlay = getUriFrom(position);
           @Override
           public void run() {
-            getService().setNowPlaying(toPlay);
+            final MediaControllerCompat ctrl = MediaControllerCompat.getMediaController(getActivity());
+            if (ctrl != null) {
+              ctrl.getTransportControls().playFromUri(toPlay, null);
+            }
           }
         };
         if (controller.isInSearch()) {

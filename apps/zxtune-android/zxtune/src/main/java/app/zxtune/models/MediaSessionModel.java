@@ -15,13 +15,14 @@ public final class MediaSessionModel extends AndroidViewModel {
 
   private final MutableLiveData<PlaybackStateCompat> playbackState;
   private final MutableLiveData<MediaMetadataCompat> mediaMetadata;
-  private MediaControllerCompat ctrl;
+  private final MutableLiveData<MediaControllerCompat> mediaController;
   private final MutableLiveData<Visualizer> visualizer;
 
   public MediaSessionModel(@NonNull Application app) {
     super(app);
     this.playbackState = new MutableLiveData<>();
     this.mediaMetadata = new MutableLiveData<>();
+    this.mediaController = new MutableLiveData<>();
     this.visualizer = new MutableLiveData<>();
 
     setControl(null);
@@ -29,7 +30,7 @@ public final class MediaSessionModel extends AndroidViewModel {
   }
 
   final void setControl(@Nullable MediaControllerCompat ctrl) {
-    this.ctrl = ctrl;
+    this.mediaController.setValue(ctrl);
     if (ctrl != null) {
       playbackState.setValue(ctrl.getPlaybackState());
       mediaMetadata.setValue(ctrl.getMetadata());
@@ -54,9 +55,9 @@ public final class MediaSessionModel extends AndroidViewModel {
     return mediaMetadata;
   }
 
-  @Nullable
-  public final MediaControllerCompat.TransportControls getTransportControls() {
-    return ctrl != null ? ctrl.getTransportControls() : null;
+  @NonNull
+  public final LiveData<MediaControllerCompat> getMediaController() {
+    return mediaController;
   }
 
   @NonNull

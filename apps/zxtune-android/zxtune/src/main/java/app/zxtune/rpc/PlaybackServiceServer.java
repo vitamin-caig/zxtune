@@ -47,11 +47,6 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   }
 
   @Override
-  public void setNowPlaying(Uri uri) {
-    delegate.setNowPlaying(uri);
-  }
-
-  @Override
   public void add(Uri[] uris) {
     playlist.add(uris);
   }

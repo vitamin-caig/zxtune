@@ -12,8 +12,6 @@ import app.zxtune.rpc.IRemoteCallback;
 
 interface IRemotePlaybackService {
 
-  void setNowPlaying(in Uri uri);
-
   //PlaylistService
   void add(in Uri[] uris);
   void delete(in long[] ids);

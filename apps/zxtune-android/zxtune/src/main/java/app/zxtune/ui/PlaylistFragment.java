@@ -10,12 +10,13 @@
 
 package app.zxtune.ui;
 
-import android.app.Activity;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.view.*;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -25,6 +26,7 @@ import app.zxtune.Log;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.Preferences;
 import app.zxtune.R;
+import app.zxtune.models.MediaSessionModel;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.stubs.PlaybackServiceStub;
@@ -227,7 +229,11 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
       final Uri toPlay = PlaylistQuery.uriFor(id);
-      service.setNowPlaying(toPlay);
+      final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+      final MediaControllerCompat ctrl = model.getMediaController().getValue();
+      if (ctrl != null) {
+        ctrl.getTransportControls().playFromUri(toPlay, null);
+      }
     }
   }
   
