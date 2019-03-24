@@ -22,6 +22,7 @@ import android.view.*;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.*;
 import app.zxtune.Log;
+import app.zxtune.MainService;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
@@ -283,7 +284,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       } else {
         switch (item.getItemId()) {
           case R.id.action_add:
-            getService().getPlaylistControl().add(getSelectedItemsUris());
+            addSelectedToPlaylist();
             break;
           default:
             return false;
@@ -301,6 +302,17 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     @Override
     public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
       mode.setTitle(getActionModeTitle());
+    }
+
+    private void addSelectedToPlaylist() {
+      //TODO: rework for PlaylistControl usage as a local iface
+      final MediaControllerCompat ctrl = MediaControllerCompat.getMediaController(getActivity());
+      if (ctrl != null) {
+        final Uri[] items = getSelectedItemsUris();
+        final Bundle params = new Bundle();
+        params.putParcelableArray("uris", items);
+        ctrl.getTransportControls().sendCustomAction(MainService.CUSTOM_ACTION_ADD, params);
+      }
     }
     
     private Uri[] getSelectedItemsUris() {

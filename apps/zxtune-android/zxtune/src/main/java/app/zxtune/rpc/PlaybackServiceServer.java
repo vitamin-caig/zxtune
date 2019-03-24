@@ -6,7 +6,6 @@
 
 package app.zxtune.rpc;
 
-import android.net.Uri;
 import android.os.RemoteException;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -44,11 +43,6 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
     this.seek = delegate.getSeekControl();
     this.visualizer = delegate.getVisualizer();
     this.callbacks = new HashMap<>();
-  }
-
-  @Override
-  public void add(Uri[] uris) {
-    playlist.add(uris);
   }
 
   @Override

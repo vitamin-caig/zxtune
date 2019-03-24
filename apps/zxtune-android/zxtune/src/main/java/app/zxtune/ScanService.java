@@ -46,9 +46,18 @@ public class ScanService extends IntentService {
       final Item item = new app.zxtune.playlist.Item(source);
       ctx.getContentResolver().insert(PlaylistQuery.ALL, item.toContentValues());
       ctx.getContentResolver().notifyChange(PlaylistQuery.ALL, null);
+      Analytics.sendPlaylistEvent("Add", 1);
     } catch (Exception error) {
       Log.w(TAG, error, "Failed to add item to playlist");
     }
+  }
+
+  public static void add(Context context, Uri[] uris) {
+    final Intent intent = new Intent(context, ScanService.class);
+    intent.setAction(ScanService.ACTION_START);
+    intent.putExtra(ScanService.EXTRA_PATHS, uris);
+    context.startService(intent);
+    Analytics.sendPlaylistEvent("Add", uris.length);
   }
 
   /**

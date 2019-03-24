@@ -32,6 +32,7 @@ public class MainService extends MediaBrowserServiceCompat {
   private static final String TAG = MainService.class.getName();
 
   public static final String CUSTOM_ACTION_ADD_CURRENT = TAG + ".CUSTOM_ACTION_ADD_CURRENT";
+  public static final String CUSTOM_ACTION_ADD = TAG + ".CUSTOM_ACTION_ADD";
 
   private PlaybackServiceLocal service;
   private IBinder binder;

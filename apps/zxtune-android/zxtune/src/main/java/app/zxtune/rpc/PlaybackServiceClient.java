@@ -6,7 +6,6 @@
 
 package app.zxtune.rpc;
 
-import android.net.Uri;
 import android.os.DeadObjectException;
 import android.os.RemoteException;
 import app.zxtune.Log;
@@ -87,15 +86,6 @@ public final class PlaybackServiceClient implements PlaybackService {
   }
 
   private class PlaylistControlClient implements PlaylistControl {
-
-    @Override
-    public void add(Uri[] uris) {
-      try {
-        delegate.add(uris);
-      } catch (RemoteException e) {
-        Log.w(TAG, e, "add()");
-      }
-    }
 
     @Override
     public void delete(long[] ids) {

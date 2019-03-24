@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.media.session.MediaSessionCompat;
 import app.zxtune.Log;
 import app.zxtune.MainService;
@@ -16,6 +17,7 @@ import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.stubs.PlayableItemStub;
 import app.zxtune.playback.SeekControl;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 //! Handle focus only for explicit start/stop calls
@@ -82,6 +84,8 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
   public void onCustomAction(String action, Bundle extra) {
     if (MainService.CUSTOM_ACTION_ADD_CURRENT.equals(action)) {
       addCurrent();
+    } else if (MainService.CUSTOM_ACTION_ADD.equals(action)) {
+      add(extra.getParcelableArray("uris"));
     }
   }
 
@@ -90,6 +94,14 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
     if (current != PlayableItemStub.instance()) {
       ScanService.add(ctx, current);
     }
+  }
+
+  private void add(Parcelable[] params) {
+    final Uri[] uris = new Uri[params.length];
+    for (int idx = 0, lim = params.length; idx < lim; ++idx) {
+      uris[idx] = (Uri) params[idx];
+    }
+    ScanService.add(ctx, uris);
   }
 
   @Override
