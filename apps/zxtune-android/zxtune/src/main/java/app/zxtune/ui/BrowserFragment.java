@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Vfs browser fragment component
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.ui;
@@ -13,45 +9,49 @@ package app.zxtune.ui;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v7.widget.SearchView;
 import android.util.SparseBooleanArray;
-import android.view.*;
+import android.view.ActionMode;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.*;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import app.zxtune.Log;
 import app.zxtune.MainService;
-import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
-import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.ui.browser.BreadCrumbsView;
 import app.zxtune.ui.browser.BrowserController;
 import app.zxtune.ui.utils.ListViewTools;
 
-public class BrowserFragment extends Fragment implements PlaybackServiceConnection.Callback {
+public class BrowserFragment extends Fragment {
 
   private static final String TAG = BrowserFragment.class.getName();
   private static final String SEARCH_QUERY_KEY = "search_query";
   private static final String SEARCH_FOCUSED_KEY = "search_focused";
-  
+
   private BrowserController controller;
   private View sources;
   private SearchView search;
   private ListView listing;
-  private PlaybackService service;
 
   public static BrowserFragment createInstance() {
     return new BrowserFragment();
-  }
-  
-  public BrowserFragment() {
-    this.service = PlaybackServiceStub.instance();
   }
 
   @Override
@@ -63,37 +63,37 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
 
   @Override
   @Nullable
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.browser, container, false) : null;
   }
 
   @Override
-  public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
+  public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    
+
     sources = view.findViewById(R.id.browser_sources);
     search = setupSearchView(view);
     setupRootsView(view);
     final BreadCrumbsView position = setupPositionView(view);
-    final ProgressBar progress = (ProgressBar) view.findViewById(R.id.browser_loading);
+    final ProgressBar progress = view.findViewById(R.id.browser_loading);
     listing = setupListing(view);
-    
+
     controller.setViews(position, progress, listing);
-    
+
     controller.loadState();
   }
 
   @Override
-  public synchronized void onDestroyView() {
+  public void onDestroyView() {
     super.onDestroyView();
-    
+
     Log.d(TAG, "Saving persistent state");
     controller.storeCurrentViewPosition();
     controller.resetViews();
   }
-  
+
   private ListView setupListing(View view) {
-    final ListView listing = (ListView) view.findViewById(R.id.browser_content);
+    final ListView listing = view.findViewById(R.id.browser_content);
     listing.setOnItemClickListener(new OnItemClickListener());
     listing.setEmptyView(view.findViewById(R.id.browser_stub));
     listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
@@ -102,7 +102,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
 
   private BreadCrumbsView setupPositionView(View view) {
-    final BreadCrumbsView position  = (BreadCrumbsView) view.findViewById(R.id.browser_breadcrumb);
+    final BreadCrumbsView position = view.findViewById(R.id.browser_breadcrumb);
     position.setDirSelectionListener(new BreadCrumbsView.DirSelectionListener() {
       @Override
       public void onDirSelection(VfsDir dir) {
@@ -123,7 +123,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
 
   private SearchView setupSearchView(View view) {
-    final SearchView search = (SearchView) view.findViewById(R.id.browser_search);
+    final SearchView search = view.findViewById(R.id.browser_search);
 
     search.setOnSearchClickListener(new SearchView.OnClickListener() {
       @Override
@@ -140,7 +140,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
         search.clearFocus();
         return true;
       }
-      
+
       @Override
       public boolean onQueryTextChange(String query) {
         return false;
@@ -174,37 +174,37 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     });
     return search;
   }
-  
+
   @Override
-  public void onSaveInstanceState(Bundle state) {
-      super.onSaveInstanceState(state);
-      if (!search.isIconified()) {
-        final String query = search.getQuery().toString();
-        state.putString(SEARCH_QUERY_KEY, query);
-        state.putBoolean(SEARCH_FOCUSED_KEY, search.hasFocus());
-      }
+  public void onSaveInstanceState(@NonNull Bundle state) {
+    super.onSaveInstanceState(state);
+    if (!search.isIconified()) {
+      final String query = search.getQuery().toString();
+      state.putString(SEARCH_QUERY_KEY, query);
+      state.putBoolean(SEARCH_FOCUSED_KEY, search.hasFocus());
+    }
   }
 
   @Override
   public void onViewStateRestored(Bundle state) {
-      super.onViewStateRestored(state);
-      if (state == null || !state.containsKey(SEARCH_QUERY_KEY)) {
-        return;
-      }
-      final String query = state.getString(SEARCH_QUERY_KEY);
-      final boolean isFocused = state.getBoolean(SEARCH_FOCUSED_KEY);
-      search.post(new Runnable() {
-        @Override
-        public void run() {
-          search.setIconified(false);
-          search.setQuery(query, false);
-          if (!isFocused) {
-            search.clearFocus();
-          }
+    super.onViewStateRestored(state);
+    if (state == null || !state.containsKey(SEARCH_QUERY_KEY)) {
+      return;
+    }
+    final String query = state.getString(SEARCH_QUERY_KEY);
+    final boolean isFocused = state.getBoolean(SEARCH_FOCUSED_KEY);
+    search.post(new Runnable() {
+      @Override
+      public void run() {
+        search.setIconified(false);
+        search.setQuery(query, false);
+        if (!isFocused) {
+          search.clearFocus();
         }
-      });
-  }  
-  
+      }
+    });
+  }
+
   public final void moveUp() {
     if (!search.isIconified()) {
       search.setIconified(true);
@@ -213,15 +213,6 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
   }
 
-  @Override
-  public synchronized void onServiceConnected(PlaybackService service) {
-    this.service = service;
-  }
-  
-  private synchronized PlaybackService getService() {
-    return this.service;
-  }
-  
   private String getActionModeTitle() {
     final int count = listing.getCheckedItemCount();
     return getResources().getQuantityString(R.plurals.items, count, count);
@@ -237,6 +228,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       } else if (obj instanceof VfsFile) {
         final Runnable playCmd = new Runnable() {
           final Uri toPlay = getUriFrom(position);
+
           @Override
           public void run() {
             final MediaControllerCompat ctrl = MediaControllerCompat.getMediaController(getActivity());
@@ -252,7 +244,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
         }
       }
     }
-    
+
     private Uri getUriFrom(int position) {
       final ListAdapter adapter = listing.getAdapter();
       final VfsObject obj = (VfsObject) adapter.getItem(position);
@@ -314,7 +306,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
         ctrl.getTransportControls().sendCustomAction(MainService.CUSTOM_ACTION_ADD, params);
       }
     }
-    
+
     private Uri[] getSelectedItemsUris() {
       final Uri[] result = new Uri[listing.getCheckedItemCount()];
       final SparseBooleanArray selected = listing.getCheckedItemPositions();
@@ -329,7 +321,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       return result;
     }
   }
-  
+
   private static void setEnabledRecursive(View view, boolean enabled) {
     if (view instanceof ViewGroup) {
       final ViewGroup group = (ViewGroup) view;
