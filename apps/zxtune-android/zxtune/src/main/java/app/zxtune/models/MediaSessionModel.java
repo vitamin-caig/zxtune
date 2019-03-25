@@ -4,12 +4,16 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import app.zxtune.playback.Visualizer;
+import app.zxtune.rpc.ParcelableBinder;
+import app.zxtune.rpc.VisualizerProxy;
 
 public final class MediaSessionModel extends AndroidViewModel {
 
@@ -26,7 +30,6 @@ public final class MediaSessionModel extends AndroidViewModel {
     this.visualizer = new MutableLiveData<>();
 
     setControl(null);
-    setVisualizer(null);
   }
 
   final void setControl(@Nullable MediaControllerCompat ctrl) {
@@ -34,15 +37,20 @@ public final class MediaSessionModel extends AndroidViewModel {
     if (ctrl != null) {
       playbackState.setValue(ctrl.getPlaybackState());
       mediaMetadata.setValue(ctrl.getMetadata());
+      visualizer.setValue(extractVisualizer(ctrl.getExtras()));
       ctrl.registerCallback(new ControllerCallback());
     } else {
       playbackState.setValue(null);
       mediaMetadata.setValue(null);
+      visualizer.setValue(null);
     }
   }
 
-  public final void setVisualizer(@Nullable Visualizer visualizer) {
-    this.visualizer.setValue(visualizer);
+  private static Visualizer extractVisualizer(Bundle extras) {
+    //required for proper deserialization
+    extras.setClassLoader(ParcelableBinder.class.getClassLoader());
+    final IBinder binder = ParcelableBinder.deserialize(extras.getParcelable(Visualizer.class.getName()));
+    return VisualizerProxy.getClient(binder);
   }
 
   @NonNull

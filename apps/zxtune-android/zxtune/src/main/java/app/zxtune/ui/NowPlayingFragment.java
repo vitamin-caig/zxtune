@@ -6,7 +6,6 @@
 
 package app.zxtune.ui;
 
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -30,16 +29,12 @@ import android.widget.Toast;
 import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.MainService;
-import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.fs.VfsExtensions;
-import app.zxtune.models.MediaSessionModel;
-import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.stubs.PlaybackServiceStub;
 import app.zxtune.ui.controllers.VisualizerController;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
 
-public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
+public class NowPlayingFragment extends Fragment {
 
   private static final String TAG = NowPlayingFragment.class.getName();
   private static final int REQUEST_SHARE = 1;
@@ -64,7 +59,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
 
   @Override
-  public synchronized void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.track, menu);
@@ -113,7 +108,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
 
   @Override
-  public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
+  public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     seek = new SeekControlView(getActivity(), view);
     visualizer =
@@ -152,27 +147,10 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
 
   @Override
-  public synchronized void onStop() {
-    super.onStop();
-    unbindFromService();
-  }
-
-  @Override
   public void onDestroyView() {
     visualizer.shutdown();
     seek.stop();
     super.onDestroyView();
-  }
-
-  @Override
-  public void onServiceConnected(PlaybackService service) {
-    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
-    model.setVisualizer(service.getVisualizer());
-  }
-
-  private void unbindFromService() {
-    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
-    model.setVisualizer(null);
   }
 
   private class TrackActionsMenu {
