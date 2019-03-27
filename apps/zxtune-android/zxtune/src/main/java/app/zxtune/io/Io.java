@@ -40,14 +40,13 @@ public class Io {
         try {
           return readMemoryMapped(channel);
         } catch (IOException e) {
-          final IOException wrapped = new IOException(e);
           if (retry == 1) {
-            Log.w(TAG, wrapped, "Failed to read using MMAP. Cleanup memory");
+            Log.w(TAG, e, "Failed to read using MMAP. Cleanup memory");
             //http://stackoverflow.com/questions/8553158/prevent-outofmemory-when-using-java-nio-mappedbytebuffer
             System.gc();
             System.runFinalization();
           } else {
-            Log.w(TAG, wrapped, "Failed to read using MMAP. Fallback");
+            Log.w(TAG, e, "Failed to read using MMAP. Fallback");
             break;
           }
         }

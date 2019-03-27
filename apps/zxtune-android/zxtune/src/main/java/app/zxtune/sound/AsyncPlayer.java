@@ -83,7 +83,7 @@ public final class AsyncPlayer implements Player {
         target.stop();
       }
     } catch (Exception e) {
-      Log.w(TAG, new Exception(e), "Playback initialization failed");
+      Log.w(TAG, e, "Playback initialization failed");
       events.onError(e);
       state.set(STOPPED);
     }
@@ -97,7 +97,7 @@ public final class AsyncPlayer implements Player {
           thread.join();
           break;
         } catch (InterruptedException e) {
-          Log.w(TAG, new Exception(e), "Interrupted while stopping");
+          Log.w(TAG, e, "Interrupted while stopping");
         }
         thread.interrupt();
       }
@@ -149,7 +149,7 @@ public final class AsyncPlayer implements Player {
       }
     } catch (InterruptedException e) {
       if (isStarted()) {
-        Log.w(TAG, new Exception(e),"Interrupted transfer cycle");
+        Log.w(TAG, e,"Interrupted transfer cycle");
       }
     } catch (Exception e) {
       events.onError(e);

@@ -1,7 +1,6 @@
 package app.zxtune.playback;
 
 import android.net.Uri;
-import android.telecom.Call;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -102,7 +101,7 @@ public final class AsyncScanner {
         if (cb != null) {
           cb.onError(e);
         } else {
-          Log.w(TAG, new Exception(e), "Abandoned error");
+          Log.w(TAG, e, "Abandoned error");
         }
       }
     });

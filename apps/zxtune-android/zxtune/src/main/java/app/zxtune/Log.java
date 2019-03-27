@@ -12,6 +12,7 @@ package app.zxtune;
 
 import android.os.DeadObjectException;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 public final class Log {
@@ -36,7 +37,7 @@ public final class Log {
       android.util.Log.w(tag, msg, e);
     }
     if (needLogException(e)) {
-      Analytics.logException(e);
+      Analytics.logException(new PrettyException(msg, e));
     }
   }
 
@@ -52,5 +53,20 @@ public final class Log {
       deadObjectExceptionLogged = true;
     }
     return true;
+  }
+
+  private static class PrettyException extends Exception {
+
+    PrettyException(String msg, Throwable cause) {
+      super(msg, cause, true, true);
+      final StackTraceElement[] stack = getStackTrace();
+      final String self = Log.class.getName();
+      for (int idx = 0, lim = stack.length; idx < lim; ++idx) {
+        if (!stack[idx].getClassName().equals(self)) {
+          setStackTrace(Arrays.copyOfRange(stack, idx, lim));
+          break;
+        }
+      }
+    }
   }
 }

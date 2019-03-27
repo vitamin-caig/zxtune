@@ -45,7 +45,7 @@ class AsyncSamplesTarget {
         thread.join();
         break;
       } catch (InterruptedException e) {
-        Log.w(TAG, new Exception(e), "Failed to release");
+        Log.w(TAG, e, "Failed to release");
       }
     }
     target.release();
@@ -86,7 +86,7 @@ class AsyncSamplesTarget {
       }
     } catch (InterruptedException e) {
     } catch (Exception e) {
-      Log.w(TAG, new Exception(e), "Error in consume cycle");
+      Log.w(TAG, e, "Error in consume cycle");
     } finally {
       inputBuffer = null;
       outputBuffer = null;

@@ -102,7 +102,7 @@ public class FileIterator implements Iterator {
         try {
           itemsQueue.put(PlayableItemStub.instance());
         } catch (InterruptedException e) {
-          Log.w(TAG, new Exception(e), "Interrupted Callback.onFinish");
+          Log.w(TAG, e, "Interrupted Callback.onFinish");
         }
       }
 
@@ -123,7 +123,7 @@ public class FileIterator implements Iterator {
       //put limiter back
       itemsQueue.put(newItem);
     } catch (InterruptedException e) {
-      Log.w(TAG, new Exception(e), "Interrupted takeNextItem");
+      Log.w(TAG, e, "Interrupted takeNextItem");
     }
     return false;
   }

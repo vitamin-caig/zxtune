@@ -88,7 +88,7 @@ public class CommandExecutor {
           }
           return Io.readFrom(cache);
         } catch (IOException e) {
-          Log.w(TAG, new IOException(e), "Failed to update cache");
+          Log.w(TAG, e, "Failed to update cache");
           if (!isEmpty) {
             Io.touch(cache);
           }
@@ -100,7 +100,7 @@ public class CommandExecutor {
         return result;
       }
     } catch (IOException e) {
-      Log.w(TAG, new IOException(e), "Failed to load from cache");
+      Log.w(TAG, e, "Failed to load from cache");
     }
     if (remote == null) {
       remote = cmd.getRemote();
