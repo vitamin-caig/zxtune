@@ -98,7 +98,12 @@ public final class AsyncScanner {
 
       @Override
       public void onError(Exception e) {
-        ref.get().onError(e);
+        final Callback cb = ref.get();
+        if (cb != null) {
+          cb.onError(e);
+        } else {
+          Log.w(TAG, new Exception(e), "Abandoned error");
+        }
       }
     });
     return true;

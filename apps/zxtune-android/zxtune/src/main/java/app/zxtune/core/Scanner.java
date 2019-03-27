@@ -164,14 +164,8 @@ public final class Scanner {
     Core.detectModules(file, new ZXTune.ModuleDetectCallback() {
 
       @Override
-      public void onModule(String subpath, Module obj) {
-        try {
-          cb.onModule(new Identifier(uri, subpath), obj);
-        } catch (Exception e) {
-          Log.w(TAG, e, "Failed analyzeRealFile.onModule");
-          //do not rethrow error - it comes from particular module, not from callback
-          //throw e;
-        }
+      public void onModule(String subpath, Module obj) throws Exception {
+        cb.onModule(new Identifier(uri, subpath), obj);
       }
     });
   }

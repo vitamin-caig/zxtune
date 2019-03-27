@@ -32,7 +32,7 @@ public class Core {
       return new Resolver(file, log).resolve(obj, files);
     } else {
       //was not resolved by ZXTune library core
-      throw new Exception(String.format(Locale.US, "Unresolved additional files '%s'", Arrays.toString(files)));
+      throw new ResolvingException(String.format(Locale.US, "Unresolved additional files '%s'", Arrays.toString(files)));
     }
   }
 
@@ -80,7 +80,7 @@ public class Core {
           //was not resolved by core
           Log.d(TAG, "Unresolved additional files '%s'", Arrays.toString(files));
         }
-      } catch (IOException e) {
+      } catch (IOException|ResolvingException e) {
         Log.w(TAG, e, "Skip module at %s in %s", subpath, location.getUri());
       }
     }
@@ -112,24 +112,28 @@ public class Core {
       this.log = log;
     }
 
-    final Module resolve(Module module, String[] files) throws Exception {
+    final Module resolve(Module module, String[] files) throws ResolvingException {
       while (files != null && 0 != files.length) {
-        resolveIteration(module, files);
-        final String[] newFiles = module.getAdditionalFiles();
+        final String[] newFiles = resolveIteration(module, files);
         if (Arrays.equals(files, newFiles)) {
-          throw new Exception("Nothing resolved");
+          throw new ResolvingException("Nothing resolved");
         }
         files = newFiles;
       }
       return module;
     }
 
-    private void resolveIteration(Module module, String[] files) throws Exception {
-      for (String name : files) {
-        final ByteBuffer content = getFileContent(name);
-        log.action("resolveAdditionalFile " + name);
-        module.resolveAdditionalFile(name, content);
-        log.action("resolveAdditionalFile end");
+    private String[] resolveIteration(Module module, String[] files) throws ResolvingException {
+      try {
+        for (String name : files) {
+          final ByteBuffer content = getFileContent(name);
+          log.action("resolveAdditionalFile " + name);
+          module.resolveAdditionalFile(name, content);
+          log.action("resolveAdditionalFile end");
+        }
+        return module.getAdditionalFiles();
+      } catch (Exception e) {
+        throw new ResolvingException("Failed to resolve additional files", e);
       }
     }
 
@@ -204,5 +208,17 @@ public class Core {
         }
       });
     }
+  }
+}
+
+class ResolvingException extends Exception {
+  private static final long serialVersionUID = 1L;
+
+  ResolvingException(String msg) {
+    super(msg);
+  }
+
+  ResolvingException(String msg, Throwable e) {
+    super(msg, e);
   }
 }
