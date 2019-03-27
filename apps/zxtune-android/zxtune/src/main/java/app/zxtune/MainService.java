@@ -9,7 +9,6 @@ package app.zxtune;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
@@ -23,7 +22,6 @@ import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.service.PlayingStateCallback;
 import app.zxtune.playback.stubs.CallbackStub;
-import app.zxtune.rpc.PlaybackServiceServer;
 
 import java.util.List;
 
@@ -35,7 +33,6 @@ public class MainService extends MediaBrowserServiceCompat {
   public static final String CUSTOM_ACTION_ADD = TAG + ".CUSTOM_ACTION_ADD";
 
   private PlaybackServiceLocal service;
-  private IBinder binder;
 
   private MediaSessionControl mediaSessionControl;
   private Releaseable settingsChangedHandler;
@@ -50,7 +47,6 @@ public class MainService extends MediaBrowserServiceCompat {
     Log.d(TAG, "Creating");
 
     service = new PlaybackServiceLocal(getApplicationContext());
-    binder = new PlaybackServiceServer(service);
 
     setupCallbacks(getApplicationContext());
     setupServiceSessions();
@@ -64,7 +60,6 @@ public class MainService extends MediaBrowserServiceCompat {
     settingsChangedHandler = null;
     mediaSessionControl.release();
     mediaSessionControl = null;
-    binder = null;
     service.release();
     service = null;
     stopSelf();
@@ -75,16 +70,6 @@ public class MainService extends MediaBrowserServiceCompat {
     Log.d(TAG, "onStartCommand(%s)", intent);
     MediaButtonReceiver.handleIntent(mediaSessionControl.getSession(), intent);
     return super.onStartCommand(intent, flags, startId);
-  }
-
-  @Override
-  public IBinder onBind(Intent intent) {
-    Log.d(TAG, "onBind(%s)", intent.getAction());
-    if (SERVICE_INTERFACE.equals(intent.getAction())) {
-      return super.onBind(intent);
-    } else {
-      return binder;
-    }
   }
 
   @Nullable

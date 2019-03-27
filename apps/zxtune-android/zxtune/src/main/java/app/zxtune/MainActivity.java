@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Main application activity
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune;
@@ -23,7 +19,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -35,13 +30,15 @@ import android.view.View;
 import android.widget.Toast;
 import app.zxtune.models.MediaSessionConnection;
 import app.zxtune.models.MediaSessionModel;
-import app.zxtune.playback.PlaybackService;
-import app.zxtune.ui.*;
+import app.zxtune.ui.AboutFragment;
+import app.zxtune.ui.BrowserFragment;
+import app.zxtune.ui.NowPlayingFragment;
+import app.zxtune.ui.PlaylistFragment;
+import app.zxtune.ui.ViewPagerAdapter;
 
-public class MainActivity extends AppCompatActivity implements PlaybackServiceConnection.Callback {
-  
+public class MainActivity extends AppCompatActivity {
+
   private static final int NO_PAGE = -1;
-  private PlaybackService service;
   private ViewPager pager;
   private int browserPageIndex;
   private BrowserFragment browser;
@@ -89,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
     getMenuInflater().inflate(R.menu.main, menu);
     return true;
   }
-  
+
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
@@ -110,25 +107,13 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
     }
     return true;
   }
-  
+
   @Override
   public void onBackPressed() {
     if (pager != null && pager.getCurrentItem() == browserPageIndex) {
       browser.moveUp();
     } else {
       super.onBackPressed();
-    }
-  }
-
-  @Override
-  public void onServiceConnected(PlaybackService service) {
-    this.service = service;
-    final int[] ids = {R.id.now_playing, R.id.playlist_view, R.id.browser_view};
-    for (int id : ids) {
-      final Fragment f = getSupportFragmentManager().findFragmentById(id);
-      if (f instanceof PlaybackServiceConnection.Callback) {
-        ((PlaybackServiceConnection.Callback) f).onServiceConnected(service);
-      }
     }
   }
 
@@ -141,18 +126,18 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
         final LiveData<MediaControllerCompat> ctrl = model.getMediaController();
         ctrl.observe(this,
             new Observer<MediaControllerCompat>() {
-          @Override
-          public void onChanged(@Nullable MediaControllerCompat mediaControllerCompat) {
-            if (mediaControllerCompat != null) {
-              mediaControllerCompat.getTransportControls().playFromUri(uri, null);
-              ctrl.removeObserver(this);
-            }
-          }
-        });
+              @Override
+              public void onChanged(@Nullable MediaControllerCompat mediaControllerCompat) {
+                if (mediaControllerCompat != null) {
+                  mediaControllerCompat.getTransportControls().playFromUri(uri, null);
+                  ctrl.removeObserver(this);
+                }
+              }
+            });
       }
     }
   }
-  
+
   private void fillPages() {
     final FragmentManager manager = getSupportFragmentManager();
     final FragmentTransaction transaction = manager.beginTransaction();
@@ -167,15 +152,14 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
     if (null == manager.findFragmentById(R.id.playlist_view)) {
       transaction.replace(R.id.playlist_view, PlaylistFragment.createInstance());
     }
-    PlaybackServiceConnection.register(manager, transaction);
     transaction.commit();
     setupViewPager();
   }
-  
+
   private void setupViewPager() {
     pager = findViewById(R.id.view_pager);
     if (null != pager) {
-      final ViewPagerAdapter adapter = new ViewPagerAdapter(pager); 
+      final ViewPagerAdapter adapter = new ViewPagerAdapter(pager);
       pager.setAdapter(adapter);
       browserPageIndex = adapter.getCount() - 1;
       while (browserPageIndex >= 0 && !hasBrowserView(adapter.instantiateItem(pager, browserPageIndex))) {
@@ -185,17 +169,17 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
       browserPageIndex = NO_PAGE;
     }
   }
-  
+
   private static boolean hasBrowserView(Object view) {
     return ((View) view).findViewById(R.id.browser_view) != null;
   }
-  
+
   private void showPreferences() {
     final Intent intent = new Intent(this, PreferencesActivity.class);
     startActivity(intent);
     Analytics.sendUIEvent("Preferences");
   }
-  
+
   private void rateApplication() {
     final Intent intent = new Intent(Intent.ACTION_VIEW);
     intent.setData(Uri.parse("market://details?id=" + getPackageName()));
@@ -210,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
       }
     }
   }
-  
+
   private boolean safeStartActivity(Intent intent) {
     try {
       startActivity(intent);
@@ -219,18 +203,16 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
       return false;
     }
   }
-  
+
   private void showAbout() {
     final DialogFragment fragment = AboutFragment.createInstance();
     fragment.show(getSupportFragmentManager(), "about");
     Analytics.sendUIEvent("About");
   }
-  
+
   private void quit() {
-    if (service != null) {
-      service.getPlaybackControl().stop();
-      PlaybackServiceConnection.shutdown(getSupportFragmentManager());
-    }
+    final Intent intent = MainService.createIntent(this, null);
+    stopService(intent);
     finish();
   }
 }
