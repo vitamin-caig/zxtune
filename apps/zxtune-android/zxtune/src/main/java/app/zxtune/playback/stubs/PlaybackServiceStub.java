@@ -26,7 +26,7 @@ public class PlaybackServiceStub implements PlaybackService {
   }
 
   @Override
-  public void setNowPlaying(Uri[] uris) {
+  public void setNowPlaying(Uri uri) {
   }
 
   @Override

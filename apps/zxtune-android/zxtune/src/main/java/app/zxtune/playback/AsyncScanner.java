@@ -3,7 +3,6 @@ package app.zxtune.playback;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.telecom.Call;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -11,6 +10,7 @@ import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Properties;
 import app.zxtune.core.Scanner;
+import app.zxtune.fs.VfsFile;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
@@ -28,7 +28,7 @@ public final class AsyncScanner {
     }
 
     @Nullable
-    Uri getNextUri();
+    VfsFile getNextFile();
 
     Reply onItem(@NonNull PlayableItem item);
 
@@ -64,9 +64,9 @@ public final class AsyncScanner {
   private static boolean scan(final WeakReference<Callback> ref) {
     try {
       for (;;) {
-        final Uri uri = ref.get().getNextUri();
-        if (uri != null) {
-          scan(uri, ref);
+        final VfsFile file = ref.get().getNextFile();
+        if (file != null) {
+          scan(file, ref);
         } else {
           break;
         }
@@ -77,8 +77,8 @@ public final class AsyncScanner {
     }
   }
 
-  private static void scan(Uri uri, final WeakReference<Callback> ref) {
-    Scanner.analyzeIdentifier(new Identifier(uri), new Scanner.Callback() {
+  private static void scan(VfsFile file, final WeakReference<Callback> ref) {
+    Scanner.analyzeFile(file, new Scanner.Callback() {
       @Override
       public void onModule(Identifier id, Module module) throws Exception {
         final FileItem item = new FileItem(id, module);

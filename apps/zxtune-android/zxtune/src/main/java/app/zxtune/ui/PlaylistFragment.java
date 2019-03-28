@@ -226,7 +226,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-      final Uri[] toPlay = {PlaylistQuery.uriFor(id)};
+      final Uri toPlay = PlaylistQuery.uriFor(id);
       service.setNowPlaying(toPlay);
     }
   }

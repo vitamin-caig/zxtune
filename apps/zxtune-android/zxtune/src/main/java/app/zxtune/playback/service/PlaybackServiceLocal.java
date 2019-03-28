@@ -97,17 +97,17 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   private class RestoreSessionCommand implements Command {
 
-    private final Uri[] uris;
+    private final Uri uri;
     private final TimeStamp position;
 
     RestoreSessionCommand(Uri uri, TimeStamp position) {
-      this.uris = new Uri[]{uri};
+      this.uri = uri;
       this.position = position;
     }
 
     @Override
     public void execute() throws Exception {
-      final Iterator iter = IteratorFactory.createIterator(context, uris);
+      final Iterator iter = IteratorFactory.createIterator(context, uri);
       final PlayableItem newItem = iter.getItem();
       final Holder newHolder = new Holder(newItem);
       //TODO: improve
@@ -141,15 +141,15 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   @Override
-  public void setNowPlaying(Uri[] uris) {
-    activateCmd.schedulePlay(uris);
+  public void setNowPlaying(Uri uri) {
+    activateCmd.schedulePlay(uri);
   }
 
   private class ActivateCommand implements Command {
 
-    private final AtomicReference<Uri[]> batch = new AtomicReference<>(null);
+    private final AtomicReference<Uri> batch = new AtomicReference<>(null);
 
-    final void schedulePlay(Uri[] uri) {
+    final void schedulePlay(Uri uri) {
       if (null == batch.getAndSet(uri)) {
         executeCommand(this);
       }
@@ -158,17 +158,17 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void execute() throws Exception {
       for (; ; ) {
-        final Uri[] uris = batch.get();
+        final Uri uri = batch.get();
         try {
-          final Iterator iter = IteratorFactory.createIterator(context, uris);
-          if (batch.compareAndSet(uris, null)) {
+          final Iterator iter = IteratorFactory.createIterator(context, uri);
+          if (batch.compareAndSet(uri, null)) {
             iterator.set(iter);
             setNewItem(iter.getItem());
             player.startPlayback();
             break;
           }
         } catch (Exception e) {
-          if (batch.compareAndSet(uris, null)) {
+          if (batch.compareAndSet(uri, null)) {
             throw e;
           }
         }

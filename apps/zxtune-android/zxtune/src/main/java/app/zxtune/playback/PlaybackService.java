@@ -14,7 +14,7 @@ import android.net.Uri;
 
 public interface PlaybackService {
 
-  void setNowPlaying(Uri[] uris);
+  void setNowPlaying(Uri uri);
   
   PlaylistControl getPlaylistControl();
   

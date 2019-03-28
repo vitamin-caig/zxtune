@@ -7,6 +7,7 @@
 package app.zxtune.core;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.util.LruCache;
 import app.zxtune.Core;
 import app.zxtune.Identifier;
@@ -52,17 +53,21 @@ public final class Scanner {
     };
   }
 
-  public static void analyzeIdentifier(Identifier id, Callback cb) {
-    Holder.INSTANCE.analyze(id, cb);
-  }
-
-  private void analyze(Identifier id, Callback cb) {
+  public static void analyzeIdentifier(@NonNull Identifier id, @NonNull Callback cb) {
     try {
       if (id.getSubpath().isEmpty()) {
-        analyzeRealObject(id.getDataLocation(), cb);
+        Holder.INSTANCE.analyzeRealObject(id.getDataLocation(), cb);
       } else {
-        analyzeArchiveObject(id, cb);
+        Holder.INSTANCE.analyzeArchiveObject(id, cb);
       }
+    } catch (Exception e) {
+      cb.onError(e);
+    }
+  }
+
+  public static void analyzeFile(@NonNull VfsFile file, @NonNull Callback cb) {
+    try {
+      Holder.INSTANCE.analyzeFileObject(file, cb);
     } catch (Exception e) {
       cb.onError(e);
     }
@@ -75,13 +80,13 @@ public final class Scanner {
 
   private void analyzeObject(VfsObject obj, Callback cb) throws Exception {
     if (obj instanceof VfsDir) {
-      analyzeDir((VfsDir) obj, cb);
+      analyzeDirObject((VfsDir) obj, cb);
     } else if (obj instanceof VfsFile) {
-      analyzeFile((VfsFile) obj, cb);
+      analyzeFileObject((VfsFile) obj, cb);
     }
   }
 
-  private void analyzeDir(VfsDir directory, Callback cb) throws Exception {
+  private void analyzeDirObject(VfsDir directory, Callback cb) throws Exception {
     //analyze depth first
     final ArrayList<VfsDir> dirs = new ArrayList<>();
     final ArrayList<VfsFile> files = new ArrayList<>();
@@ -110,14 +115,14 @@ public final class Scanner {
     Collections.sort(files, comparator);
 
     for (VfsDir dir : dirs) {
-      analyzeDir(dir, cb);
+      analyzeDirObject(dir, cb);
     }
     for (VfsFile file : files) {
-      analyzeFile(file, cb);
+      analyzeFileObject(file, cb);
     }
   }
 
-  private void analyzeFile(VfsFile file, Callback cb) throws Exception {
+  private void analyzeFileObject(VfsFile file, Callback cb) throws Exception {
     //may be called from recursion, so additionally check for archived objects
     final Identifier id = new Identifier(file.getUri());
     if (!id.getSubpath().isEmpty()) {
@@ -129,6 +134,9 @@ public final class Scanner {
 
   private boolean analyzePlaylistFile(VfsFile file, Callback cb) {
     final String filename = file.getUri().getLastPathSegment();
+    if (filename == null) {
+      return false;
+    }
     try {
       if (filename.endsWith(".ayl")) {
         analyzePlaylist(file.getUri(), AylIterator.create(file.getContent()), cb);
@@ -151,7 +159,7 @@ public final class Scanner {
         continue;//windows paths are not supported
       }
       final Identifier id = Identifier.parse(dir.resolve(location).toString());
-      analyze(id, cb);
+      analyzeIdentifier(id, cb);
     }
   }
 
@@ -181,7 +189,7 @@ public final class Scanner {
       final Uri uri = id.getFullLocation();
       final VfsObject obj = VfsArchive.resolve(uri);
       if (obj instanceof VfsDir) {
-        analyzeDir((VfsDir) obj, cb);
+        analyzeDirObject((VfsDir) obj, cb);
       }
       //expired archive file
     }

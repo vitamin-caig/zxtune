@@ -137,8 +137,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackServiceCo
   }
   
   private void processOpenRequest() {
-    final Uri[] path = {openRequest};
-    service.setNowPlaying(path);
+    service.setNowPlaying(openRequest);
     openRequest = null;
   }
   
