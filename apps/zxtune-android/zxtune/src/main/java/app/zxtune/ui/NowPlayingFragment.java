@@ -42,9 +42,7 @@ public class NowPlayingFragment extends Fragment {
   private static final String EXTRA_ITEM_LOCATION = TAG + ".EXTRA_LOCATION";
 
   private VisualizerController visualizer;
-  private SeekControlView seek;
   private InformationView info;
-  private PlaybackControlsView ctrls;
   private TrackActionsMenu trackActionsMenu;
 
   public static Fragment createInstance() {
@@ -110,11 +108,9 @@ public class NowPlayingFragment extends Fragment {
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    seek = new SeekControlView(getActivity(), view);
     visualizer =
         new VisualizerController(getActivity(), (SpectrumAnalyzerView) view.findViewById(R.id.visualizer));
     info = new InformationView(getActivity(), view);
-    ctrls = new PlaybackControlsView(getActivity(), view);
   }
 
   private void pickAndSend(Intent data, CharSequence title, int code) {
@@ -149,7 +145,6 @@ public class NowPlayingFragment extends Fragment {
   @Override
   public void onDestroyView() {
     visualizer.shutdown();
-    seek.stop();
     super.onDestroyView();
   }
 
