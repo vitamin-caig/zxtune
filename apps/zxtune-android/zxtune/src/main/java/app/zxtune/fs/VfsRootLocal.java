@@ -207,7 +207,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
   }
 
   private void feedGood(File dir, Visitor visitor) {
-    if (dir != null && dir.canRead()) {
+    if (dir != null) {
       visitor.onDir(buildDir(dir));
     }
   }
