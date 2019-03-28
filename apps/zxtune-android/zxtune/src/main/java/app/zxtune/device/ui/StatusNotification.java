@@ -9,6 +9,7 @@ package app.zxtune.device.ui;
 import android.app.Service;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Action;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.app.NotificationCompat.MediaStyle;
@@ -16,6 +17,7 @@ import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import app.zxtune.MainService;
 import app.zxtune.R;
 
 public class StatusNotification extends MediaControllerCompat.Callback {
@@ -36,10 +38,6 @@ public class StatusNotification extends MediaControllerCompat.Callback {
   private StatusNotification(Service service, MediaSessionCompat session) {
     this.service = service;
     this.notification = Notifications.createForService(service, R.drawable.ic_stat_notify_play);
-    // Little trick for Android O that requires startForeground call in 5 seconds after service start
-    // But initialization may take longer...
-    startForeground();
-
     notification.getBuilder()
         .setContentIntent(session.getController().getSessionActivity())
         .addAction(R.drawable.ic_prev, "", MediaButtonReceiver.buildMediaButtonPendingIntent(service,
@@ -55,7 +53,6 @@ public class StatusNotification extends MediaControllerCompat.Callback {
             //.setShowCancelButton(true)
         )
     ;
-    service.stopForeground(true);
   }
 
   private Action createPauseAction() {
@@ -69,6 +66,7 @@ public class StatusNotification extends MediaControllerCompat.Callback {
   }
 
   private void startForeground() {
+    ContextCompat.startForegroundService(service, MainService.createIntent(service, null));
     service.startForeground(notification.getId(), notification.show());
   }
 

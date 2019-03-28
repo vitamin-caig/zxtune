@@ -62,6 +62,12 @@ public class MainService extends MediaBrowserServiceCompat {
     mediaSessionControl = null;
     service.release();
     service = null;
+  }
+
+  @Override
+  public void onTaskRemoved(Intent rootIntent) {
+    super.onTaskRemoved(rootIntent);
+    service.getPlaybackControl().stop();
     stopSelf();
   }
 
