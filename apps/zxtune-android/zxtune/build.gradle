@@ -44,6 +44,8 @@ dependencies {
         transitive = true
     }
     implementation "org.jsoup:jsoup:1.11.3"
+
+    compile "com.github.anrwatchdog:anrwatchdog:1.4.0"
 }
 
 apply from: "${treeRoot}/make/android/android.gradle"
