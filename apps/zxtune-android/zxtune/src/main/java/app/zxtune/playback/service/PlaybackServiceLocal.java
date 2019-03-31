@@ -74,6 +74,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.holder = new AtomicReference<>(Holder.instance());
     this.player = AsyncPlayer.create(target, events);
     callbacks.onInitialState(PlaybackControl.State.STOPPED, holder.get().item, false);
+    restoreSession();
   }
 
   @Override
@@ -81,7 +82,24 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     return holder.get().item;
   }
 
-  public final void restoreSession() {
+  private void storeSession() {
+    try {
+      final Uri nowPlaying = getNowPlaying().getId();
+      if (!Uri.EMPTY.equals(nowPlaying)) {
+        final String path = nowPlaying.toString();
+        final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
+        Log.d(TAG, "Save last played item '%s' at %dms", path, position);
+        final SharedPreferences.Editor editor = Preferences.getDefaultSharedPreferences(context).edit();
+        editor.putString(PREF_LAST_PLAYED_PATH, path);
+        editor.putLong(PREF_LAST_PLAYED_POSITION, position);
+        editor.apply();
+      }
+    } catch (Exception e) {
+      Log.w(TAG, e, "Failed to store session");
+    }
+  }
+
+  private void restoreSession() {
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
     final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
     if (path != null) {
@@ -113,26 +131,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         setNewHolder(newHolder);
       } else {
         Log.d(TAG, "Drop stale session restore");
-      }
-    }
-  }
-
-  public final void storeSession() {
-    executeCommand(new StoreSessionCommand());
-  }
-
-  private class StoreSessionCommand implements Command {
-    @Override
-    public void execute() throws Exception {
-      final Uri nowPlaying = getNowPlaying().getId();
-      if (!Uri.EMPTY.equals(nowPlaying)) {
-        final String path = nowPlaying.toString();
-        final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
-        Log.d(TAG, "Save last played item '%s' at %dms", path, position);
-        final SharedPreferences.Editor editor = Preferences.getDefaultSharedPreferences(context).edit();
-        editor.putString(PREF_LAST_PLAYED_PATH, path);
-        editor.putLong(PREF_LAST_PLAYED_POSITION, position);
-        editor.apply();
       }
     }
   }
@@ -377,6 +375,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         @Override
         public void execute() {
           player.stopPlayback();
+          storeSession();
         }
       });
     }

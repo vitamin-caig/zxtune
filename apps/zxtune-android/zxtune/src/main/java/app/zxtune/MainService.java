@@ -58,7 +58,6 @@ public class MainService extends Service {
     binder = new PlaybackServiceServer(service);
 
     setupCallbacks(getApplicationContext());
-    setupServiceSessions();
   }
 
   @Override
@@ -115,17 +114,5 @@ public class MainService extends Service {
 
     service.subscribe(new StatusNotification(this, remoteControl.getSessionToken()));
     settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
-  }
-
-  private void setupServiceSessions() {
-    service.restoreSession();
-    service.subscribe(new CallbackStub() {
-      @Override
-      public void onStateChanged(PlaybackControl.State state) {
-        if (state == PlaybackControl.State.STOPPED) {
-          service.storeSession();
-        }
-      }
-    });
   }
 }
