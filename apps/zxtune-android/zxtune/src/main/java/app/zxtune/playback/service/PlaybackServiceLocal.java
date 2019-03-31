@@ -377,17 +377,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void togglePlayStop() {
-      if (player.isStarted()) {
-        //may be blocking
-        stop();
-      } else {
-        //non-blocking
-        player.startPlayback();
-      }
-    }
-
-    @Override
     public void next() {
       navigateCmd.scheduleNext();
     }

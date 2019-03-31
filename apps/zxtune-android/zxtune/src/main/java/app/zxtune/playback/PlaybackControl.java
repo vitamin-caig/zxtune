@@ -51,11 +51,6 @@ public interface PlaybackControl {
   void stop();
 
   /*
-   * Toggle play/stop state
-   */
-  void togglePlayStop();
-
-  /*
    * Play next item in sequence
    */
   void next();
