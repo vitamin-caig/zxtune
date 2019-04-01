@@ -5,6 +5,16 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4440 from 02.04.2019
+
+[*] Fixed ProSoundMaker (PSM) playback and detection
+[*] Fixed crashes in OGG and MP3 playback
+[*] zxtune-android: fixed local storages enumeration
+[*] zxtune-android: improved session storing/restoring
+[-] zxtune-android: temporarily removed tracks' sending functionality
+[*] zxtune-android: fixed ringtone creating
+[*] zxtune-android: fixed found and reporting crashes and hangups
+
 --- Rev4380 from 25.02.2019
 
 [*] Fixed OGG looping
