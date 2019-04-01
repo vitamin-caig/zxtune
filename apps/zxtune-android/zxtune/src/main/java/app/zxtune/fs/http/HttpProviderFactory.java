@@ -5,6 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import app.zxtune.Analytics;
 import app.zxtune.BuildConfig;
@@ -38,7 +39,8 @@ public final class HttpProviderFactory {
 
   public static HttpProvider createProvider(Context ctx) {
     final PolicyImpl policy = new PolicyImpl(ctx);
-    final String userAgent = String.format("%s/%d (%s; %s; %s)", BuildConfig.APPLICATION_ID, BuildConfig.VERSION_CODE,
+    final String userAgent = String.format(Locale.US, "%s/%d (%s; %s; %s)", BuildConfig.APPLICATION_ID,
+        BuildConfig.VERSION_CODE,
         BuildConfig.BUILD_TYPE, BuildConfig.VERSION_NAME, BuildConfig.FLAVOR);
     return new HttpUrlConnectionProvider(policy, userAgent);
   }
