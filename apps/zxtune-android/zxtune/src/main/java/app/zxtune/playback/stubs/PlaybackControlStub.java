@@ -19,9 +19,6 @@ public class PlaybackControlStub implements PlaybackControl {
   public void stop() {}
 
   @Override
-  public void togglePlayStop() {}
-
-  @Override
   public void prev() {
   }
 

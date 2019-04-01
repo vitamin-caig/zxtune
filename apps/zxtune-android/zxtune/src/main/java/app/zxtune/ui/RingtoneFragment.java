@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.ui;
@@ -26,21 +22,18 @@ import app.zxtune.Permission;
 import app.zxtune.R;
 import app.zxtune.RingtoneService;
 import app.zxtune.TimeStamp;
-import app.zxtune.playback.Item;
 
 import java.util.concurrent.TimeUnit;
 
 public class RingtoneFragment extends DialogFragment {
-  
-  private static final String TAG = RingtoneFragment.class.getName();
 
   @Nullable
-  static DialogFragment createInstance(FragmentActivity activity, Item item) {
+  static DialogFragment createInstance(FragmentActivity activity, Uri location) {
     if (!Permission.requestSystemSettings(activity)) {
       return null;
     }
     final Bundle args = new Bundle();
-    args.putParcelable("url", item.getDataId().getFullLocation());
+    args.putParcelable("url", location);
     final DialogFragment result = new RingtoneFragment();
     result.setArguments(args);
     return result;
@@ -52,13 +45,13 @@ public class RingtoneFragment extends DialogFragment {
 
     final View view = ((Activity) ctx).getLayoutInflater().inflate(R.layout.ringtone, null, false);
 
-    final ViewGroup buttons = (ViewGroup) view.findViewById(R.id.ringtone_durations);
+    final ViewGroup buttons = view.findViewById(R.id.ringtone_durations);
     fillDurations(buttons);
 
     final AlertDialog result = new AlertDialog.Builder(ctx)
-        .setTitle(R.string.ringtone_create_title)
-        .setView(view)
-        .create();
+                                   .setTitle(R.string.ringtone_create_title)
+                                   .setView(view)
+                                   .create();
     return result;
   }
 

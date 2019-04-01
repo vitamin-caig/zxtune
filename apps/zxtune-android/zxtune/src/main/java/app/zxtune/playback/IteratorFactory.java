@@ -28,16 +28,15 @@ public final class IteratorFactory {
   /**
    * 
    * @param context Operational context
-   * @param uris List of objects identifiers. In case of multiple, used as files/folders identifiers 
+   * @param uri Start point of playback
    * @return new iterator
    * @throws IOException
    */
-  public static Iterator createIterator(Context context, Uri[] uris) throws Exception {
-    final Uri first = uris[0];
-    if (isPlaylistUri(first)) {
-      return new PlaylistIterator(context, first);
+  public static Iterator createIterator(Context context, Uri uri) throws Exception {
+    if (isPlaylistUri(uri)) {
+      return new PlaylistIterator(context, uri);
     } else {
-      return FileIterator.create(context, uris);
+      return FileIterator.create(context, uri);
     }
   }
   

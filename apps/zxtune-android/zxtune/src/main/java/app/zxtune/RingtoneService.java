@@ -96,7 +96,7 @@ public class RingtoneService extends IntentService {
       convert(item, howMuch, target);
       final String title = setAsRingtone(item, howMuch, target);
       Notifications.sendEvent(this, R.drawable.ic_stat_notify_ringtone, R.string.ringtone_changed, title);
-      Analytics.sendSocialEvent("Ringtone", "app.zxtune", item);
+      Analytics.sendSocialEvent("Ringtone", "app.zxtune", source);
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to create ringtone");
       makeToast(e);
@@ -104,7 +104,7 @@ public class RingtoneService extends IntentService {
   }
 
   private PlayableItem load(Uri uri) throws Exception {
-    final FileIterator iter = FileIterator.create(this, new Uri[] {uri});
+    final FileIterator iter = FileIterator.create(this, uri);
     return iter.getItem();
   }
     
@@ -245,6 +245,14 @@ public class RingtoneService extends IntentService {
         player.setPosition(0);
         return false;
       }
+    }
+
+    @Override
+    public void setPosition(TimeStamp pos) {}
+
+    @Override
+    public TimeStamp getPosition() {
+      return TimeStamp.EMPTY;
     }
   }
 }

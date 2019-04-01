@@ -14,6 +14,7 @@ public interface PlaybackControl {
   enum State {
     STOPPED,
     PLAYING,
+    SEEKING,
   }
 
   /**
@@ -48,11 +49,6 @@ public interface PlaybackControl {
    * Stop currently playing item
    */
   void stop();
-
-  /*
-   * Toggle play/stop state
-   */
-  void togglePlayStop();
 
   /*
    * Play next item in sequence

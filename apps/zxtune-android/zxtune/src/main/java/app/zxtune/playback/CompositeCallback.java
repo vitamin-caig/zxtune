@@ -10,6 +10,9 @@
 
 package app.zxtune.playback;
 
+import app.zxtune.TimeStamp;
+
+import java.sql.Time;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,27 +20,23 @@ public final class CompositeCallback implements Callback {
   
   private final List<Callback> delegates;
   private PlaybackControl.State lastState;
-  private Item lastItem;
-  private boolean lastIOStatus;
-  
+
   public CompositeCallback() {
     this.delegates = new LinkedList<>();
     this.lastState = PlaybackControl.State.STOPPED;
   }
 
   @Override
-  public void onInitialState(PlaybackControl.State state, Item item, boolean ioStatus) {
+  public void onInitialState(PlaybackControl.State state) {
     lastState = state;
-    lastItem = item;
-    lastIOStatus = ioStatus;
   }
 
   @Override
-  public void onStateChanged(PlaybackControl.State state) {
+  public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
     synchronized (delegates) {
       lastState = state;
       for (Callback cb : delegates) {
-        cb.onStateChanged(state);
+        cb.onStateChanged(state, pos);
       }
     }
   }
@@ -45,23 +44,12 @@ public final class CompositeCallback implements Callback {
   @Override
   public void onItemChanged(Item item) {
     synchronized (delegates) {
-      lastItem = item;
       for (Callback cb : delegates) {
         cb.onItemChanged(item);
       }
     }
   }
 
-  @Override
-  public void onIOStatusChanged(boolean isActive) {
-    synchronized (delegates) {
-      lastIOStatus = isActive;
-      for (Callback cb : delegates) {
-        cb.onIOStatusChanged(isActive);
-      }
-    }
-  }
-  
   @Override
   public void onError(String e) {
     synchronized (delegates) {
@@ -80,7 +68,7 @@ public final class CompositeCallback implements Callback {
   public void add(Callback callback) {
     synchronized (delegates) {
       delegates.add(callback);
-      callback.onInitialState(lastState, lastItem, lastIOStatus);
+      callback.onInitialState(lastState);
     }
   }
 

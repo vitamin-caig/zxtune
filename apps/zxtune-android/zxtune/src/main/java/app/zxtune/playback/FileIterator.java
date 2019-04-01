@@ -8,11 +8,20 @@ package app.zxtune.playback;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import app.zxtune.Log;
 import app.zxtune.R;
+import app.zxtune.fs.DefaultComparator;
+import app.zxtune.fs.VfsArchive;
+import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsExtensions;
+import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsObject;
 import app.zxtune.playback.stubs.PlayableItemStub;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class FileIterator implements Iterator {
@@ -23,18 +32,20 @@ public class FileIterator implements Iterator {
 
   private final LinkedBlockingQueue<PlayableItem> itemsQueue;
   private final ArrayList<PlayableItem> history;
+  @SuppressWarnings({"FieldCanBeLocal", "unused"})
   private final Object scanHandle;
   private int historyDepth;
   private Exception lastError;
 
-  public static FileIterator create(Context ctx, Uri[] uris) throws Exception {
-    return new FileIterator(ctx, uris);
+  public static FileIterator create(Context ctx, Uri uri) throws Exception {
+    final java.util.Iterator<VfsFile> filesIterator = creatDirFilesIterator(uri);
+    return new FileIterator(ctx, filesIterator);
   }
 
-  private FileIterator(Context context, Uri[] uris) throws Exception {
+  private FileIterator(Context context, @NonNull java.util.Iterator<VfsFile> files) throws Exception {
     this.itemsQueue = new LinkedBlockingQueue<>(2);
     this.history = new ArrayList<>(MAX_VISITED + 1);
-    this.scanHandle = startAsyncScanning(uris);
+    this.scanHandle = startAsyncScanning(files);
     this.historyDepth = 0;
     if (!takeNextItem()) {
       if (lastError != null) {
@@ -73,22 +84,25 @@ public class FileIterator implements Iterator {
     return false;
   }
 
-  private Object startAsyncScanning(final Uri[] uris) {
-    return AsyncScanner.scan(uris, new AsyncScanner.Callback() {
+  private Object startAsyncScanning(final java.util.Iterator<VfsFile> files) {
+    return AsyncScanner.scan(new AsyncScanner.Callback() {
 
       private final int[] counter = {0, 0};
 
       @Override
-      public Reply onUriProcessing(Uri uri) {
-        final int uriIdx = counter[0]++;
+      public VfsFile getNextFile() {
+        final int doneFiles = counter[0]++;
         final int itemsCount = counter[1];
-        return itemsCount == 0 && uriIdx > 0
-                   ? Reply.STOP
-                   : Reply.CONTINUE;
+        if ((itemsCount == 0 && doneFiles > 0) || !files.hasNext()) {
+          finish();
+          return null;
+        } else {
+          return files.next();
+        }
       }
 
       @Override
-      public Reply onItem(PlayableItem item) {
+      public Reply onItem(@NonNull PlayableItem item) {
         if (itemsQueue.offer(item)) {
           ++counter[1];
           return Reply.CONTINUE;
@@ -97,8 +111,7 @@ public class FileIterator implements Iterator {
         }
       }
 
-      @Override
-      public void onFinish() {
+      private void finish() {
         try {
           itemsQueue.put(PlayableItemStub.instance());
         } catch (InterruptedException e) {
@@ -126,5 +139,48 @@ public class FileIterator implements Iterator {
       Log.w(TAG, e, "Interrupted takeNextItem");
     }
     return false;
+  }
+
+  @NonNull
+  private static java.util.Iterator<VfsFile> creatDirFilesIterator(Uri start) throws Exception {
+    final ArrayList<VfsFile> result = new ArrayList<>();
+    final VfsFile file = (VfsFile) VfsArchive.resolve(start);
+    final VfsDir parent = (VfsDir) file.getParent();
+    if (parent == null) {
+      result.add(file);
+      return result.listIterator();
+    }
+    parent.enumerate(new VfsDir.Visitor() {
+      @Override
+      public void onItemsCount(int count) {
+        result.ensureCapacity(count);
+      }
+
+      @Override
+      public void onDir(VfsDir dir) {
+      }
+
+      @Override
+      public void onFile(VfsFile file) {
+        result.add(file);
+      }
+    });
+    final Object extension = parent.getExtension(VfsExtensions.COMPARATOR);
+    final Comparator<VfsObject> comparator = extension instanceof Comparator<?>
+                                                 ? (Comparator<VfsObject>) extension
+                                                 : DefaultComparator.instance();
+    Collections.sort(result, comparator);
+    // Resolved file may be incomparable with dir content due to lack of some properties
+    // E.g. track from zxart/Top doesn't have rating info
+    // So use plain linear search by uri
+    final Uri normalizedUri = file.getUri();
+    for (int idx = 0, lim = result.size(); idx < lim; ++idx) {
+      final VfsFile cur = result.get(idx);
+      final Uri curUri = cur.getUri();
+      if (normalizedUri.equals(curUri)) {
+        return result.listIterator(idx);
+      }
+    }
+    return result.listIterator();
   }
 }

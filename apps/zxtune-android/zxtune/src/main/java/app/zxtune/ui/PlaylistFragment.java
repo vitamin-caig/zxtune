@@ -1,68 +1,79 @@
 /**
- *
  * @file
- *
  * @brief Playlist fragment component
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.ui;
 
-import android.app.Activity;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.view.*;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.view.ActionMode;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.SubMenu;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import app.zxtune.Log;
-import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.Preferences;
 import app.zxtune.R;
-import app.zxtune.playback.PlaybackService;
+import app.zxtune.models.MediaSessionModel;
 import app.zxtune.playback.PlaylistControl;
-import app.zxtune.playback.stubs.PlaybackServiceStub;
+import app.zxtune.playback.stubs.PlaylistControlStub;
 import app.zxtune.playlist.PlaylistQuery;
 import app.zxtune.ui.utils.ListViewTools;
 
-public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
+public class PlaylistFragment extends Fragment {
 
   private static final String TAG = PlaylistFragment.class.getName();
-  private PlaybackService service;
+  private PlaylistControl ctrl;
   private PlaylistState state;
   private PlaylistView listing;
 
   public static Fragment createInstance() {
     return new PlaylistFragment();
   }
-  
-  public PlaylistFragment() {
-    this.service = PlaybackServiceStub.instance();
-    setHasOptionsMenu(true);
-  }
 
   @Override
   public void onAttach(Context ctx) {
     super.onAttach(ctx);
-    
+
     state = new PlaylistState(Preferences.getDefaultSharedPreferences(ctx));
+    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+    model.getPlaylist().observe(this, new Observer<PlaylistControl>() {
+      @Override
+      public void onChanged(@Nullable PlaylistControl playlistControl) {
+        if (playlistControl != null) {
+          ctrl = playlistControl;
+        } else {
+          ctrl = PlaylistControlStub.instance();
+        }
+      }
+    });
   }
-  
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    
+
     setHasOptionsMenu(true);
   }
-  
+
   @Override
-  public void onCreateOptionsMenu (Menu menu, MenuInflater inflater) {
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.playlist, menu);
@@ -77,7 +88,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
           item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-              getService().getPlaylistControl().sort(by, order);
+              ctrl.sort(by, order);
               return true;
             }
           });
@@ -88,7 +99,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       }
     }
   }
-  
+
   private static int getMenuTitle(PlaylistControl.SortBy by) throws Exception {
     if (PlaylistControl.SortBy.title.equals(by)) {
       return R.string.information_title;
@@ -100,7 +111,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       throw new Exception("Invalid sort order");
     }
   }
-  
+
   private static int getMenuIcon(PlaylistControl.SortOrder order) throws Exception {
     if (PlaylistControl.SortOrder.asc.equals(order)) {
       return android.R.drawable.arrow_up_float;
@@ -110,12 +121,12 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       throw new Exception("Invalid sor order");
     }
   }
-  
+
   @Override
-  public boolean onOptionsItemSelected (MenuItem item) {
+  public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.action_clear:
-        getService().getPlaylistControl().deleteAll();
+        ctrl.deleteAll();
         break;
       case R.id.action_save:
         savePlaylist(null);
@@ -128,26 +139,26 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
     return true;
   }
-  
+
   private void savePlaylist(@Nullable long[] ids) {
     PlaylistSaveFragment.createInstance(ids).show(getFragmentManager(), "save");
   }
-  
+
   private void showStatistics(@Nullable long[] ids) {
     PlaylistStatisticsFragment.createInstance(ids).show(getFragmentManager(), "statistics");
   }
-  
+
   @Override
   @Nullable
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.playlist, container, false) : null;
   }
-  
+
   @Override
-  public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
+  public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    listing = (PlaylistView) view.findViewById(R.id.playlist_content);
+    listing = view.findViewById(R.id.playlist_content);
     listing.setOnItemClickListener(new OnItemClickListener());
     listing.setEmptyView(view.findViewById(R.id.playlist_stub));
     listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
@@ -162,7 +173,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       @Override
       public void remove(int which) {
         final long[] id = {listing.getItemIdAtPosition(which)};
-        getService().getPlaylistControl().delete(id);
+        ctrl.delete(id);
       }
     });
     listing.setDropListener(new PlaylistView.DropListener() {
@@ -171,71 +182,54 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         if (from != to) {
           //TODO: perform in separate thread
           final long id = listing.getItemIdAtPosition(from);
-          getService().getPlaylistControl().move(id, to - from);
+          ctrl.move(id, to - from);
         }
       }
     });
   }
-  
+
   @Override
-  public synchronized void onStart() {
+  public void onStart() {
     super.onStart();
-    
-    bindViewToConnectedService();
+
+    loadListing();
   }
-  
+
   @Override
-  public synchronized void onStop() {
+  public void onStop() {
     super.onStop();
-    
+
     Log.d(TAG, "Saving persistent state");
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
   }
-  
-  @Override
-  public synchronized void onServiceConnected(PlaybackService service) {
-    this.service = service;
-    
-    bindViewToConnectedService();
-  }
-  
-  private synchronized PlaybackService getService() {
-    return this.service;
-  }
-  
-  private void bindViewToConnectedService() {
-    assert service != null;
-    final boolean serviceConnected = service != PlaybackServiceStub.instance();
-    final boolean viewCreated = listing != null;
-    if (serviceConnected && viewCreated) {
-      //do not display anything before service started to prevent empty clicks
-      loadListing();
-    }
-  }
-  
+
   private void loadListing() {
     listing.load(getLoaderManager());
     setEmptyText(R.string.playlist_empty);
   }
-  
+
   private void setEmptyText(int res) {
     ((TextView) listing.getEmptyView()).setText(res);
   }
-  
+
   private class OnItemClickListener implements PlaylistView.OnItemClickListener {
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-      final Uri[] toPlay = {PlaylistQuery.uriFor(id)};
-      service.setNowPlaying(toPlay);
+      final Uri toPlay = PlaylistQuery.uriFor(id);
+      final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+      final MediaControllerCompat ctrl = model.getMediaController().getValue();
+      if (ctrl != null) {
+        ctrl.getTransportControls().playFromUri(toPlay, null);
+      }
     }
   }
-  
+
   private String getActionModeTitle() {
     final int count = listing.getCheckedItemCount();
     return getResources().getQuantityString(R.plurals.tracks, count, count);
   }
-  
+
   private class MultiChoiceModeListener implements ListView.MultiChoiceModeListener {
 
     @Override
@@ -259,7 +253,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       } else {
         switch (item.getItemId()) {
           case R.id.action_delete:
-            service.getPlaylistControl().delete(listing.getCheckedItemIds());
+            ctrl.delete(listing.getCheckedItemIds());
             break;
           case R.id.action_save:
             savePlaylist(listing.getCheckedItemIds());

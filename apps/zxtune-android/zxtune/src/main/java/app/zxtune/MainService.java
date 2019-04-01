@@ -6,47 +6,37 @@
 
 package app.zxtune;
 
-import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.os.IBinder;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
-import app.zxtune.playback.PlaybackControl;
-import app.zxtune.device.sound.AudioFocusHandler;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaBrowserServiceCompat;
+import android.support.v4.media.session.MediaButtonReceiver;
+import android.text.TextUtils;
+import app.zxtune.device.media.MediaSessionControl;
+import app.zxtune.device.ui.StatusNotification;
+import app.zxtune.device.ui.WidgetHandler;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.service.PlayingStateCallback;
-import app.zxtune.playback.stubs.CallbackStub;
-import app.zxtune.rpc.PlaybackServiceServer;
-import app.zxtune.ui.StatusNotification;
 
-public class MainService extends Service {
+import java.util.List;
+
+public class MainService extends MediaBrowserServiceCompat {
 
   private static final String TAG = MainService.class.getName();
 
+  public static final String CUSTOM_ACTION_ADD_CURRENT = TAG + ".CUSTOM_ACTION_ADD_CURRENT";
+  public static final String CUSTOM_ACTION_ADD = TAG + ".CUSTOM_ACTION_ADD";
+
   private PlaybackServiceLocal service;
-  private IBinder binder;
 
-  private RemoteControl remoteControl;
+  private MediaSessionControl mediaSessionControl;
   private Releaseable settingsChangedHandler;
-
-  public static final String ACTION_PREV = TAG + ".prev";
-  public static final String ACTION_NEXT = TAG + ".next";
-  public static final String ACTION_PLAY = TAG + ".play";
-  public static final String ACTION_STOP = TAG + ".stop";
-  public static final String ACTION_TOGGLE_PLAY_STOP = TAG + ".toggle_play_stop";
 
   public static Intent createIntent(Context ctx, @Nullable String action) {
     return new Intent(ctx, MainService.class).setAction(action);
-  }
-
-  public static PendingIntent createPendingIntent(Context ctx, String action) {
-    final Intent intent = createIntent(ctx, action);
-    return Build.VERSION.SDK_INT >= 26
-               ? PendingIntent.getForegroundService(ctx, 0, intent, 0)
-               : PendingIntent.getService(ctx, 0, intent, 0);
   }
 
   @Override
@@ -55,7 +45,6 @@ public class MainService extends Service {
     Log.d(TAG, "Creating");
 
     service = new PlaybackServiceLocal(getApplicationContext());
-    binder = new PlaybackServiceServer(service);
 
     setupCallbacks(getApplicationContext());
   }
@@ -66,53 +55,55 @@ public class MainService extends Service {
     Log.d(TAG, "Destroying");
     settingsChangedHandler.release();
     settingsChangedHandler = null;
-    remoteControl.release();
-    remoteControl = null;
-    binder = null;
+    mediaSessionControl.release();
+    mediaSessionControl = null;
     service.release();
     service = null;
+  }
+
+  @Override
+  public void onTaskRemoved(Intent rootIntent) {
+    super.onTaskRemoved(rootIntent);
+    service.getPlaybackControl().stop();
     stopSelf();
   }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
-    Log.d(TAG, "StartCommand called");
-    if (intent == null) {
-      //service is restarted after its process gone away
-      return START_NOT_STICKY;
-    }
-    final String action = intent.getAction();
-    final PlaybackControl ctrl = service.getPlaybackControl();
-    if (ACTION_PREV.equals(action)) {
-      ctrl.prev();
-    } else if (ACTION_NEXT.equals(action)) {
-      ctrl.next();
-    } else if (ACTION_PLAY.equals(action)) {
-      ctrl.play();
-    } else if (ACTION_STOP.equals(action)) {
-      ctrl.stop();
-    } else if (ACTION_TOGGLE_PLAY_STOP.equals(action)) {
-      ctrl.togglePlayStop();
-    }
-    return START_NOT_STICKY;
+    Log.d(TAG, "onStartCommand(%s)", intent);
+    MediaButtonReceiver.handleIntent(mediaSessionControl.getSession(), intent);
+    return super.onStartCommand(intent, flags, startId);
   }
 
+  @Nullable
   @Override
-  public IBinder onBind(Intent intent) {
-    Log.d(TAG, "onBind called");
-    return binder;
+  public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
+    Log.d(TAG, "onGetRoot(%s)", clientPackageName);
+    if (TextUtils.equals(clientPackageName, getPackageName())) {
+      return new BrowserRoot(getString(R.string.app_name), null);
+    }
+
+    return null;
+  }
+
+  //Not important for general audio service, required for class
+  @Override
+  public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+    Log.d(TAG, "onLoadChildren(%s)", parentId);
+    result.sendResult(null);
   }
 
   private void setupCallbacks(Context ctx) {
     //should be always paired
-    service.subscribe(new AudioFocusHandler(ctx, service.getPlaybackControl()));
-    remoteControl = RemoteControl.subscribe(ctx, service);
+    mediaSessionControl = MediaSessionControl.subscribe(ctx, service);
+    StatusNotification.connect(this, mediaSessionControl.getSession());
+    setSessionToken(mediaSessionControl.getSession().getSessionToken());
 
     service.subscribe(new Analytics.PlaybackEventsCallback());
     service.subscribe(new PlayingStateCallback(ctx));
-    service.subscribe(new WidgetHandler.WidgetNotification(ctx));
 
-    service.subscribe(new StatusNotification(this, remoteControl.getSessionToken()));
+    WidgetHandler.connect(ctx, mediaSessionControl.getSession());
+
     settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
   }
 }

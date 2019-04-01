@@ -26,15 +26,6 @@ public class PlaybackServiceStub implements PlaybackService {
   }
 
   @Override
-  public Item getNowPlaying() {
-    return ItemStub.instance();
-  }
-
-  @Override
-  public void setNowPlaying(Uri[] uris) {
-  }
-
-  @Override
   public PlaylistControl getPlaylistControl() {
     return PlaylistControlStub.instance();
   }

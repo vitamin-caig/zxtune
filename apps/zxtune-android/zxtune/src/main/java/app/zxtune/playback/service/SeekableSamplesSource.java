@@ -1,34 +1,23 @@
 package app.zxtune.playback.service;
 
 import android.support.annotation.NonNull;
-
-import java.util.concurrent.TimeUnit;
-
-import app.zxtune.Analytics;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Player;
 import app.zxtune.core.Properties;
-import app.zxtune.playback.SeekControl;
 import app.zxtune.sound.SamplesSource;
 
-class SeekableSamplesSource implements SamplesSource, SeekControl {
+import java.util.concurrent.TimeUnit;
+
+class SeekableSamplesSource implements SamplesSource {
 
   private Player player;
-  private final TimeStamp totalDuration;
   private final TimeStamp frameDuration;
-  private volatile TimeStamp seekRequest;
 
-  SeekableSamplesSource(Player player, TimeStamp totalDuration) throws Exception {
+  SeekableSamplesSource(Player player) throws Exception {
     this.player = player;
-    this.totalDuration = totalDuration;
     final long frameDurationUs = player.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
     this.frameDuration = TimeStamp.createFrom(frameDurationUs, TimeUnit.MICROSECONDS);
     player.setPosition(0);
-  }
-
-  final void initialize(int samplerate, TimeStamp position) throws Exception {
-    initialize(samplerate);
-    seek(position);
   }
 
   @Override
@@ -38,10 +27,6 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
 
   @Override
   public boolean getSamples(@NonNull short[] buf) throws Exception {
-    if (seekRequest != null) {
-      seek(seekRequest);
-      seekRequest = null;
-    }
     if (player.render(buf)) {
       return true;
     } else {
@@ -50,28 +35,17 @@ class SeekableSamplesSource implements SamplesSource, SeekControl {
     }
   }
 
-  private void seek(TimeStamp position) throws Exception {
-    final int frame = (int) position.divides(frameDuration);
-    player.setPosition(frame);
-  }
-
-  @Override
-  public TimeStamp getDuration() {
-    return totalDuration;
-  }
-
   @Override
   public TimeStamp getPosition() throws Exception {
-    TimeStamp res = seekRequest;
-    if (res == null) {
-      final int frame = player.getPosition();
-      res = frameDuration.multiplies(frame);
-    }
-    return res;
+    return frameDuration.multiplies(player.getPosition());
   }
 
   @Override
-  public void setPosition(TimeStamp pos) {
-    seekRequest = pos;
+  public void setPosition(TimeStamp pos) throws Exception {
+    player.setPosition(toFrame(pos));
+  }
+
+  private int toFrame(TimeStamp pos) {
+    return (int) pos.divides(frameDuration);
   }
 }

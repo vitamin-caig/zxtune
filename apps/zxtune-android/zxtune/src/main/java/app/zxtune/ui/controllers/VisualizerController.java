@@ -1,6 +1,15 @@
 package app.zxtune.ui.controllers;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Handler;
+import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.media.session.PlaybackStateCompat;
+import app.zxtune.models.MediaSessionModel;
+import app.zxtune.playback.Visualizer;
+import app.zxtune.playback.stubs.VisualizerStub;
+import app.zxtune.ui.views.SpectrumAnalyzerView;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executors;
@@ -9,103 +18,116 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import app.zxtune.playback.Visualizer;
-import app.zxtune.playback.stubs.VisualizerStub;
-import app.zxtune.ui.views.SpectrumAnalyzerView;
-
 public class VisualizerController {
 
-    private static final long PERIOD = 100;
+  private static final long PERIOD = 100;
 
-    private final ScheduledExecutorService executorService;
-    private final Handler handler;
-    private final UpdateUiTask task;
-    private Visualizer source;
-    private WeakReference<SpectrumAnalyzerView> viewRef;
-    private ScheduledFuture<?> future;
+  private final ScheduledExecutorService executorService;
+  private final Handler handler;
+  private final UpdateUiTask task;
+  private Visualizer source;
+  private WeakReference<SpectrumAnalyzerView> viewRef;
+  private ScheduledFuture<?> future;
 
-    public VisualizerController() {
-        this.executorService = Executors.newSingleThreadScheduledExecutor();
-        this.handler = new Handler();
-        this.task = new UpdateUiTask();
-        this.source = VisualizerStub.instance();
-        this.viewRef = new WeakReference<>(null);
-    }
+  public VisualizerController(FragmentActivity activity, SpectrumAnalyzerView view) {
+    this.executorService = Executors.newSingleThreadScheduledExecutor();
+    this.handler = new Handler();
+    this.task = new UpdateUiTask();
+    this.source = VisualizerStub.instance();
+    this.viewRef = new WeakReference<>(view);
 
-    public final void setSource(Visualizer source) {
-        this.source = source;
-    }
-
-    public final void setView(SpectrumAnalyzerView view) {
-        this.viewRef = new WeakReference<>(view);
-    }
-
-    public final void startUpdates() {
-        stopUpdates();
-        if (!executorService.isShutdown()) {
-            future = executorService.scheduleAtFixedRate(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                task.execute(source);
-                            } catch (Exception e) {
-                                stopUpdates();
-                            }
-                        }
-                    },
-                    PERIOD, PERIOD, TimeUnit.MILLISECONDS
-            );
+    final MediaSessionModel model = ViewModelProviders.of(activity).get(MediaSessionModel.class);
+    model.getVisualizer().observe(activity, new Observer<Visualizer>() {
+      @Override
+      public void onChanged(@Nullable Visualizer visualizer) {
+        source = visualizer != null ? visualizer : VisualizerStub.instance();
+        if (visualizer == null) {
+          stopUpdates();
         }
-    }
-
-    public final void stopUpdates() {
-        if (future != null) {
-            future.cancel(false);
-            future = null;
-            task.reset();
+      }
+    });
+    model.getState().observe(activity, new Observer<PlaybackStateCompat>() {
+      @Override
+      public void onChanged(@Nullable PlaybackStateCompat state) {
+        final boolean isCurrentlyPlaying = future != null;
+        final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
+        if (isCurrentlyPlaying != isPlaying) {
+          if (isPlaying) {
+            startUpdates();
+          } else {
+            stopUpdates();
+          }
         }
-    }
+      }
+    });
+  }
 
-    public final void shutdown() {
-        stopUpdates();
-        executorService.shutdown();
-    }
-
-    private class UpdateUiTask implements Runnable {
-
-        private final int[] bands;
-        private final int[] levels;
-        private int channels;
-        private AtomicBoolean scheduled;
-
-        UpdateUiTask() {
-            this.bands = new int[SpectrumAnalyzerView.MAX_BANDS];
-            this.levels = new int[SpectrumAnalyzerView.MAX_BANDS];
-            this.scheduled = new AtomicBoolean();
-        }
-
-        final void execute(Visualizer src) throws Exception {
-            this.channels = src.getSpectrum(bands, levels);
-            if (scheduled.compareAndSet(false, true)) {
-                handler.post(this);
+  private void startUpdates() {
+    stopUpdates();
+    if (!executorService.isShutdown()) {
+      future = executorService.scheduleAtFixedRate(
+          new Runnable() {
+            @Override
+            public void run() {
+              try {
+                task.execute(source);
+              } catch (Exception e) {
+                stopUpdates();
+              }
             }
-        }
-
-        final void reset() {
-            channels = 0;
-        }
-
-        @Override
-        public void run() {
-            scheduled.set(false);
-            final SpectrumAnalyzerView view = viewRef.get();
-            if (view != null && view.update(channels, bands, levels)) {
-                channels = 0;
-                if (scheduled.compareAndSet(false, true)) {
-                    handler.postDelayed(this, PERIOD);
-                }
-            }
-        }
+          },
+          PERIOD, PERIOD, TimeUnit.MILLISECONDS
+      );
     }
+  }
+
+  private void stopUpdates() {
+    if (future != null) {
+      future.cancel(false);
+      future = null;
+      task.reset();
+    }
+  }
+
+  public final void shutdown() {
+    stopUpdates();
+    executorService.shutdown();
+  }
+
+  private class UpdateUiTask implements Runnable {
+
+    private final int[] bands;
+    private final int[] levels;
+    private int channels;
+    private AtomicBoolean scheduled;
+
+    UpdateUiTask() {
+      this.bands = new int[SpectrumAnalyzerView.MAX_BANDS];
+      this.levels = new int[SpectrumAnalyzerView.MAX_BANDS];
+      this.scheduled = new AtomicBoolean();
+    }
+
+    final void execute(Visualizer src) throws Exception {
+      this.channels = src.getSpectrum(bands, levels);
+      if (scheduled.compareAndSet(false, true)) {
+        handler.post(this);
+      }
+    }
+
+    final void reset() {
+      channels = 0;
+    }
+
+    @Override
+    public void run() {
+      scheduled.set(false);
+      final SpectrumAnalyzerView view = viewRef.get();
+      if (view != null && view.update(channels, bands, levels)) {
+        channels = 0;
+        if (scheduled.compareAndSet(false, true)) {
+          handler.postDelayed(this, PERIOD);
+        }
+      }
+    }
+  }
 }

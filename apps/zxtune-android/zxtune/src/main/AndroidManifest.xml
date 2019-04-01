@@ -167,23 +167,30 @@
         <category android:name="android.intent.category.PREFERENCE"/>
       </intent-filter>
     </activity>
-    <service android:name=".MainService" android:process=":service"/>
+    <service android:name=".MainService" android:process=":service">
+      <intent-filter>
+        <action android:name="android.media.browse.MediaBrowserService" />
+        <action android:name="android.intent.action.MEDIA_BUTTON"/>
+        <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
+      </intent-filter>
+    </service>
     <service android:name=".ScanService" android:process=":service"/>
     <service android:name=".RingtoneService" android:process=":service"/>
     <provider android:name="app.zxtune.playlist.Provider" android:authorities="app.zxtune.playlist" android:exported="false"/>
     <provider android:name="app.zxtune.PluginsProvider" android:authorities="app.zxtune.plugins" android:process=":service" android:exported="false"/>
     <provider android:name="app.zxtune.fs.archives.Provider" android:authorities="app.zxtune.archive" android:process=":service" android:exported="false"/>
-    <receiver android:name=".MediaEventsHandler">
-      <intent-filter>
-        <action android:name="android.intent.action.MEDIA_BUTTON"/>
-        <action android:name="android.media.AUDIO_BECOMING_NOISY" />
-      </intent-filter>
-    </receiver>
-    <receiver android:name=".WidgetHandler">
+    <receiver android:name=".device.ui.WidgetHandler">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
       </intent-filter>
       <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_metadata"/>
+    </receiver>
+    <!-- support library -->
+    <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
+      <intent-filter>
+        <action android:name="android.intent.action.MEDIA_BUTTON"/>
+        <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
+      </intent-filter>
     </receiver>
     <provider
             android:name="android.support.v4.content.FileProvider"

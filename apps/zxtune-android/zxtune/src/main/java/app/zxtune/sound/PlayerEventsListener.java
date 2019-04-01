@@ -19,6 +19,11 @@ public interface PlayerEventsListener {
   void onStart();
 
   /**
+   * Called when seek is started
+   */
+  void onSeeking();
+
+  /**
    * Called when played stream come to an end
    */
   void onFinish();

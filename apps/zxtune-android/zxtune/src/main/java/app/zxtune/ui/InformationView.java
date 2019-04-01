@@ -1,37 +1,34 @@
 /**
- *
  * @file
- *
  * @brief Information view logic
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.ui;
 
-import android.content.res.Resources;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.text.Html;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
-
-import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.playback.Item;
-import app.zxtune.playback.stubs.ItemStub;
+import app.zxtune.core.ModuleAttributes;
+import app.zxtune.models.MediaSessionModel;
 
 class InformationView {
-
-  private static final String TAG = InformationView.class.getName();
 
   private static final String FORMAT = "<b><big>%1$s:</big></b><br>&nbsp;%2$s";
   private static final String RAW_FORMAT = "<br><tt>%1$s</tt>";
   private static final String LINEBREAK = "<br>";
 
-  //private final ScrollView frame;
   private final TextView content;
   private final String titleField;
   private final String authorField;
@@ -39,57 +36,69 @@ class InformationView {
   private final String commentField;
   private final String locationField;
 
-  InformationView(View layout) {
-    //this.frame = (ScrollView) layout.findViewById(R.id.information_frame);
-    this.content = (TextView) layout.findViewById(R.id.information_content);
-    final Resources res = layout.getResources();
-    this.titleField = res.getString(R.string.information_title);
-    this.authorField = res.getString(R.string.information_author);
-    this.programField = res.getString(R.string.information_program);
-    this.commentField = res.getString(R.string.information_comment);
-    this.locationField = res.getString(R.string.information_location);
+  InformationView(FragmentActivity activity, View layout) {
+    this.content = layout.findViewById(R.id.information_content);
+    this.titleField = activity.getString(R.string.information_title);
+    this.authorField = activity.getString(R.string.information_author);
+    this.programField = activity.getString(R.string.information_program);
+    this.commentField = activity.getString(R.string.information_comment);
+    this.locationField = activity.getString(R.string.information_location);
     this.content.setMovementMethod(ScrollingMovementMethod.getInstance());
-    update(ItemStub.instance());
+    final MediaSessionModel model = ViewModelProviders.of(activity).get(MediaSessionModel.class);
+    model.getMetadata().observe(activity, new Observer<MediaMetadataCompat>() {
+      @Override
+      public void onChanged(@Nullable MediaMetadataCompat mediaMetadataCompat) {
+        if (mediaMetadataCompat != null) {
+          update(mediaMetadataCompat);
+          content.setEnabled(true);
+        } else {
+          content.setEnabled(false);
+        }
+      }
+    });
   }
 
-  final void update(Item item) {
-    try {
-      final StringBuilder builder = new StringBuilder();
-      addNonEmptyField(builder, locationField, Uri.decode(item.getDataId().toString()));
-      addNonEmptyField(builder, titleField, item.getTitle());
-      addNonEmptyField(builder, authorField, item.getAuthor());
-      addNonEmptyField(builder, programField, item.getProgram());
-      addNonEmptyField(builder, commentField, item.getComment());
-      addNonEmptyRawField(builder, item.getStrings());
-      final CharSequence styledVal = Html.fromHtml(builder.toString());
-      content.setText(styledVal);
-      content.scrollTo(0, 0);
-    } catch (Exception e) {
-      Log.w(TAG, e, "update()");
-    }
+  private void update(@NonNull MediaMetadataCompat metadata) {
+    final MediaDescriptionCompat description = metadata.getDescription();
+    final StringBuilder builder = new StringBuilder();
+    addNonEmptyField(builder, locationField, description.getMediaUri());
+    addNonEmptyField(builder, titleField, description.getTitle());
+    addNonEmptyField(builder, authorField, description.getSubtitle());
+    addNonEmptyField(builder, programField, metadata.getString(ModuleAttributes.PROGRAM));
+    addNonEmptyField(builder, commentField, description.getDescription());
+    addNonEmptyRawField(builder, metadata.getString(ModuleAttributes.STRINGS));
+    final CharSequence styledVal = Html.fromHtml(builder.toString());
+    content.setText(styledVal);
+    content.scrollTo(0, 0);
   }
-  
-  private void addNonEmptyField(StringBuilder builder, String fieldName, String fieldValue) {
-    if (0 != fieldValue.length()) {
+
+  private void addNonEmptyField(StringBuilder builder, String fieldName, @Nullable CharSequence fieldValue) {
+    if (!TextUtils.isEmpty(fieldValue)) {
       addField(builder, fieldName, fieldValue);
     }
   }
-  
-  private void addField(StringBuilder builder, String fieldName, String fieldValue) {
+
+  private void addNonEmptyField(StringBuilder builder, String fieldName, @Nullable Uri fieldValue) {
+    if (fieldValue != null) {
+      addNonEmptyField(builder, fieldName, Uri.decode(fieldValue.toString()));
+    }
+  }
+
+  private void addField(StringBuilder builder, String fieldName, @NonNull CharSequence fieldValue) {
     if (0 != builder.length()) {
       builder.append(LINEBREAK);
     }
-    final String escapedValue = TextUtils.htmlEncode(fieldValue);
+    final String escapedValue = TextUtils.htmlEncode(fieldValue.toString());
     builder.append(String.format(FORMAT, fieldName, escapedValue));
   }
-  
-  private void addNonEmptyRawField(StringBuilder builder, String fieldValue) {
-    if (0 != fieldValue.length()) {
+
+  private void addNonEmptyRawField(StringBuilder builder, @Nullable String fieldValue) {
+    if (!TextUtils.isEmpty(fieldValue)) {
       addRawField(builder, fieldValue);
     }
   }
-  
-  private void addRawField(StringBuilder builder, String fieldValue) {
+
+  private void addRawField(StringBuilder builder, @NonNull String fieldValue) {
     if (0 != builder.length()) {
       builder.append(LINEBREAK);
     }

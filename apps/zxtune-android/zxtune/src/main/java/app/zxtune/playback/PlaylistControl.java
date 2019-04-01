@@ -10,32 +10,28 @@
 
 package app.zxtune.playback;
 
-import android.net.Uri;
-
 /**
  * Playlist-related control functionality interface
  */
 public interface PlaylistControl {
 
-  public void add(Uri[] uris);
+  void delete(long[] ids);
   
-  public void delete(long[] ids);
+  void deleteAll();
   
-  public void deleteAll();
-  
-  public void move(long id, int delta);
+  void move(long id, int delta);
   
   //should be name-compatible with Database
-  public static enum SortBy {
+  enum SortBy {
     title,
     author,
     duration
-  };
-  
-  public static enum SortOrder {
+  }
+
+  enum SortOrder {
     asc,
     desc
   }
   
-  public void sort(SortBy by, SortOrder order);
+  void sort(SortBy by, SortOrder order);
 }

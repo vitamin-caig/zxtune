@@ -13,6 +13,14 @@
     android:paddingBottom="@dimen/spacing_half"
   />
   <include layout="@layout/information"/>
-  <include layout="@layout/position"/>
-  <include layout="@layout/controls"/>
+  <fragment android:name="app.zxtune.ui.SeekControlFragment"
+            android:id="@+id/seek_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+  />
+  <fragment android:name="app.zxtune.ui.PlaybackControlsFragment"
+            android:id="@+id/playback_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+  />
 </LinearLayout>
