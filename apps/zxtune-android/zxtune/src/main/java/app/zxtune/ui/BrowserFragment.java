@@ -38,6 +38,7 @@ import app.zxtune.fs.VfsObject;
 import app.zxtune.ui.browser.BreadCrumbsView;
 import app.zxtune.ui.browser.BrowserController;
 import app.zxtune.ui.utils.ListViewTools;
+import app.zxtune.ui.utils.UiUtils;
 
 public class BrowserFragment extends Fragment {
 
@@ -256,7 +257,7 @@ public class BrowserFragment extends Fragment {
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-      setEnabledRecursive(sources, false);
+      UiUtils.setViewEnabled(sources, false);
       final MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.selection, menu);
       inflater.inflate(R.menu.browser, menu);
@@ -288,7 +289,7 @@ public class BrowserFragment extends Fragment {
 
     @Override
     public void onDestroyActionMode(ActionMode mode) {
-      setEnabledRecursive(sources, true);
+      UiUtils.setViewEnabled(sources, true);
     }
 
     @Override
@@ -319,17 +320,6 @@ public class BrowserFragment extends Fragment {
         }
       }
       return result;
-    }
-  }
-
-  private static void setEnabledRecursive(View view, boolean enabled) {
-    if (view instanceof ViewGroup) {
-      final ViewGroup group = (ViewGroup) view;
-      for (int idx = 0, lim = group.getChildCount(); idx != lim; ++idx) {
-        setEnabledRecursive(group.getChildAt(idx), enabled);
-      }
-    } else {
-      view.setEnabled(enabled);
     }
   }
 }

@@ -28,6 +28,7 @@ import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.playback.PlaybackControl;
+import app.zxtune.ui.utils.UiUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -61,13 +62,12 @@ public class SeekControlFragment extends Fragment {
       public void onChanged(@Nullable MediaControllerCompat controller) {
         if (controller != null) {
           ctrl = controller.getTransportControls();
-          getView().setEnabled(true);
           trackModeValue = controller.getRepeatMode();
           updateTrackModeStatus();
         } else {
           ctrl = null;
-          getView().setEnabled(false);
         }
+        UiUtils.setViewEnabled(getView(), controller != null);
       }
     });
     model.getMetadata().observe(this, new Observer<MediaMetadataCompat>() {

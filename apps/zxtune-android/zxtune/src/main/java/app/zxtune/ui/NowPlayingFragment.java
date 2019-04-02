@@ -6,6 +6,8 @@
 
 package app.zxtune.ui;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -31,6 +33,7 @@ import app.zxtune.Log;
 import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.fs.VfsExtensions;
+import app.zxtune.models.MediaSessionModel;
 import app.zxtune.ui.controllers.VisualizerController;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
 
@@ -54,6 +57,16 @@ public class NowPlayingFragment extends Fragment {
     super.onCreate(savedInstanceState);
 
     setHasOptionsMenu(true);
+
+    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+    model.getMetadata().observe(this, new Observer<MediaMetadataCompat>() {
+      @Override
+      public void onChanged(@Nullable MediaMetadataCompat metadata) {
+        if (trackActionsMenu != null) {
+          trackActionsMenu.setupMenu(metadata);
+        }
+      }
+    });
   }
 
   @Override
@@ -150,23 +163,23 @@ public class NowPlayingFragment extends Fragment {
 
   private class TrackActionsMenu {
 
+    private final MenuItem trackMenu;
     private final MenuItem add;
     private final MenuItem share;
     private TrackActionsData data;
 
     TrackActionsMenu(Menu menu) {
+      this.trackMenu = menu.findItem(R.id.action_track);
       this.add = menu.findItem(R.id.action_add);
       this.share = menu.findItem(R.id.action_share);
+      trackMenu.setEnabled(false);
     }
 
     final boolean selectItem(MenuItem item) {
-      if (item == null) {
+      if (item == null || data == null) {
         return false;
       }
       switch (item.getItemId()) {
-        case R.id.action_track:
-          setupMenu();
-          return false;
         case R.id.action_add:
           addCurrent();
           break;
@@ -192,18 +205,15 @@ public class NowPlayingFragment extends Fragment {
       return true;
     }
 
-    private void setupMenu() {
-      final MediaControllerCompat ctrl = MediaControllerCompat.getMediaController(getActivity());
-      final MediaMetadataCompat metadata = ctrl != null ? ctrl.getMetadata() : null;
-      if (ctrl != null) {
+    final void setupMenu(@Nullable MediaMetadataCompat metadata) {
+      if (metadata != null) {
         data = new TrackActionsData(getActivity(), metadata);
         add.setEnabled(!data.isFromPlaylist());
         share.setEnabled(data.hasRemotePage());
       } else {
         data = null;
-        add.setEnabled(false);
-        share.setEnabled(false);
       }
+      trackMenu.setEnabled(metadata != null);
     }
 
     private void addCurrent() {

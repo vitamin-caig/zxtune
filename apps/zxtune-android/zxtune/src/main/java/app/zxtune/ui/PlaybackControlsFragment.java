@@ -21,6 +21,7 @@ import android.widget.ImageButton;
 import app.zxtune.R;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.playback.PlaybackControl.SequenceMode;
+import app.zxtune.ui.utils.UiUtils;
 
 public class PlaybackControlsFragment extends Fragment {
 
@@ -41,13 +42,12 @@ public class PlaybackControlsFragment extends Fragment {
       public void onChanged(@Nullable MediaControllerCompat controller) {
         if (controller != null) {
           ctrl = controller.getTransportControls();
-          getView().setEnabled(true);
           sequenceModeValue = controller.getShuffleMode();
           updateSequenceModeStatus();
         } else {
           ctrl = null;
-          getView().setEnabled(false);
         }
+        UiUtils.setViewEnabled(getView(), controller != null);
       }
     });
     model.getState().observe(this, new Observer<PlaybackStateCompat>() {
