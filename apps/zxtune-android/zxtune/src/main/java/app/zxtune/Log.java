@@ -10,6 +10,8 @@
 
 package app.zxtune;
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.DeadObjectException;
 
 import java.util.Arrays;
@@ -37,7 +39,11 @@ public final class Log {
       android.util.Log.w(tag, msg, e);
     }
     if (needLogException(e)) {
-      Analytics.logException(new PrettyException(msg, e));
+      if (Build.VERSION.SDK_INT >= 24) {
+        Analytics.logException(new PrettyException(msg, e));
+      } else {
+        Analytics.logException(new Exception(msg, e));
+      }
     }
   }
 
