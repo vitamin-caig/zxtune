@@ -4,6 +4,7 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -52,16 +53,23 @@ public final class MediaSessionModel extends AndroidViewModel {
   }
 
   private void extractInterfaces(Bundle extras) {
-    //required for proper deserialization
-    extras.setClassLoader(ParcelableBinder.class.getClassLoader());
-    {
-      final IBinder binder = ParcelableBinder.deserialize(extras.getParcelable(PlaylistControl.class.getName()));
-      playlist.setValue(PlaylistProxy.getClient(binder));
+    if (Build.VERSION.SDK_INT >= 18) {
+      setPlaylist(extras.getBinder(PlaylistControl.class.getName()));
+      setVisualizer(extras.getBinder(Visualizer.class.getName()));
+    } else {
+      //required for proper deserialization
+      extras.setClassLoader(ParcelableBinder.class.getClassLoader());
+      setPlaylist(ParcelableBinder.deserialize(extras.getParcelable(PlaylistControl.class.getName())));
+      setVisualizer(ParcelableBinder.deserialize(extras.getParcelable(Visualizer.class.getName())));
     }
-    {
-      final IBinder binder = ParcelableBinder.deserialize(extras.getParcelable(Visualizer.class.getName()));
-      visualizer.setValue(VisualizerProxy.getClient(binder));
-    }
+  }
+
+  private void setPlaylist(IBinder playlist) {
+    this.playlist.setValue(PlaylistProxy.getClient(playlist));
+  }
+
+  private void setVisualizer(IBinder visualizer) {
+    this.visualizer.setValue(VisualizerProxy.getClient(visualizer));
   }
 
   @NonNull

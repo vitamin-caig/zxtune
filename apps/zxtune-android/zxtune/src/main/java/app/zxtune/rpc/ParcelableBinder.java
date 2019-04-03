@@ -3,7 +3,6 @@ package app.zxtune.rpc;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
-import app.zxtune.Log;
 
 // TODO: remove when minSdk >= 18, use Bundle.putBinder/getBinder
 public class ParcelableBinder implements Parcelable {
