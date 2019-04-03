@@ -115,7 +115,7 @@ class StatusCallback extends CallbackStub {
     try {
       final Resources resources = MainApplication.getInstance().getResources();
       final int id = getLocationIconResource(location);
-      final Drawable drawable = ResourcesCompat.getDrawableForDensity(resources, id, 480/*XXHDPI*/, null);
+      final Drawable drawable = ResourcesCompat.getDrawableForDensity(resources, id, 360/*XXHDPI*/, null);
       if (drawable instanceof BitmapDrawable) {
         return ((BitmapDrawable) drawable).getBitmap();
       } else {
