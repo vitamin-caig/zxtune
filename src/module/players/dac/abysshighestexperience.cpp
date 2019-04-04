@@ -310,7 +310,8 @@ namespace AHX
         Sound::ChunkBuilder builder;
         Tune->RenderFrame(builder);
         Target->ApplyData(builder.CaptureResult());
-        return Looped(Tune->LoopCount());
+        const auto loops = Tune->LoopCount();
+        return loops == 0 || Looped(loops);
       }
       catch (const std::exception&)
       {
