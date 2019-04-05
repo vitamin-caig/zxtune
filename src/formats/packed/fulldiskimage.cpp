@@ -19,6 +19,7 @@
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
+#include <cassert>
 #include <cstring>
 #include <numeric>
 //text includes

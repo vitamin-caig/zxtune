@@ -12,6 +12,8 @@
 
 //common includes
 #include <byteorder.h>
+//std includes
+#include <cstddef>
 
 namespace Formats
 {

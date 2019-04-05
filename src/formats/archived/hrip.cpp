@@ -19,6 +19,8 @@
 #include <formats/packed/decoders.h>
 //std includes
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
 #include <cstring>
 //text include
 #include <formats/text/archived.h>
