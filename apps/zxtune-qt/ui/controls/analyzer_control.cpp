@@ -139,8 +139,8 @@ namespace
 
     void paintEvent(QPaintEvent*) override
     {
-      const QBrush& mask = Palette.toolTipText();
-      const QBrush& brush = Palette.toolTipBase();
+      const QBrush& mask = Palette.shadow();
+      const QBrush& brush = Palette.button();
       QPainter painter(this);
       const int curWidth = width();
       const int curHeight = height();
