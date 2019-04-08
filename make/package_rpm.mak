@@ -6,7 +6,7 @@ pkg_file = $(pkg_dir)/$(pkg_name)-$(pkg_version)-1.$(if $(distro),$(distro).,)$(
 package_rpm:
 	$(info Creating $(pkg_file))
 	-$(call rmfiles_cmd,$(pkg_file))
-	$(MAKE) $(pkg_file) > $(pkg_log) 2>&1
+	$(MAKE) $(pkg_file)
 
 $(pkg_file): $(pkg_rpm)/rpm.spec $(pkg_rpm)/BUILD/files.list
 	@$(call showtime_cmd)

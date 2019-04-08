@@ -17,7 +17,7 @@ pkg_file = $(pkg_dir)/$(pkg_name)_$(pkg_version)_$(arch_deb)$(distro).deb
 package_deb:
 	$(info Creating $(pkg_file))
 	-$(call rmfiles_cmd,$(pkg_file))
-	$(MAKE) $(pkg_file) > $(pkg_log) 2>&1
+	$(MAKE) $(pkg_file)
 
 $(pkg_file): $(pkg_debian)/changelog $(pkg_debian)/compat $(pkg_debian)/control $(pkg_debian)/docs $(pkg_debian)/rules $(pkg_debian)/copyright
 	@$(call showtime_cmd)

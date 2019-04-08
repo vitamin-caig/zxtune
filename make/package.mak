@@ -7,7 +7,6 @@ pkg_name ?= $(binary_name)
 packaging ?= any
 pkg_tagged_name := $(pkg_name)_$(packaging)$(if $(distro),_$(distro),)
 pkg_dir := $(path_step)/Builds/$(pkg_version)/$(platform)$(if $(arch),/$(arch),)
-pkg_log := $(pkg_dir)/packaging_$(pkg_tagged_name).log
 pkg_build_log := $(pkg_dir)/$(pkg_tagged_name).log
 pkg_debug := $(pkg_dir)/$(pkg_tagged_name)_debug.$(pkg_suffix)
 
@@ -15,8 +14,8 @@ pkg_debug_root = $(pkg_dir)/debug
 
 package: | $(pkg_dir)
 	$(info Building package $(pkg_name))
-	@$(MAKE) $(pkg_debug) > $(pkg_log) 2>&1
-	@$(MAKE) package_$(packaging) >> $(pkg_log) 2>&1
+	@$(MAKE) $(pkg_debug)
+	@$(MAKE) package_$(packaging)
 
 $(pkg_debug): | $(pkg_debug_root)
 	@$(call showtime_cmd)

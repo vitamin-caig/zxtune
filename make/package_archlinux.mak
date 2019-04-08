@@ -6,8 +6,8 @@ pkg_file = $(pkg_dir)/$(pkg_name)-$(pkg_version)-1-$(arch).pkg.tar.xz
 
 package_archlinux:
 	$(info Creating package $(pkg_file))
-	-$(call rmfiles_cmd,$(pkg_file) $(pkg_log))
-	$(MAKE) $(pkg_file) > $(pkg_log) 2>&1
+	-$(call rmfiles_cmd,$(pkg_file))
+	$(MAKE) $(pkg_file)
 
 $(pkg_file): $(pkg_archlinux)/PKGBUILD $(pkg_archlinux)/makepkg.conf
 	@$(call showtime_cmd)
