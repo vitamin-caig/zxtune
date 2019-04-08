@@ -18,11 +18,7 @@ do
   Arch=${Traits[1]}
   Packaging=${Traits[2]}
   Distro=${Traits[3]}
-  no_debuginfo=
-  if [ "${LastPlatform}" = ${Platform} -a "${LastArch}" = "${Arch}" -a "${LastDistro}" = "${Distro}" ]; then
-    no_debuginfo=1
-  fi
-  no_debuginfo=${no_debuginfo} ./build.sh ${mode} "${build_targets}" || exit 1
+  ./build.sh ${mode} "${build_targets}" || exit 1
   LastPlatform=${Platform}
   LastArch=${Arch}
   LastDistro=${Distro}

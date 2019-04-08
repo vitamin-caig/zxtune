@@ -15,7 +15,7 @@ pkg_debug_root = $(pkg_dir)/debug
 
 package: | $(pkg_dir)
 	$(info Building package $(pkg_name))
-	@$(MAKE) $(if $(no_debuginfo),$(pkg_build_log),$(pkg_debug)) > $(pkg_log) 2>&1
+	@$(MAKE) $(pkg_debug) > $(pkg_log) 2>&1
 	@$(MAKE) package_$(packaging) >> $(pkg_log) 2>&1
 
 $(pkg_debug): | $(pkg_debug_root)
