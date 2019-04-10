@@ -1,0 +1,25 @@
+FROM debian:stretch-slim
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates wget xz-utils git make zip \
+      libstdc++6:i386 libc6:i386 && \
+    rm -rf /var/lib/apt/lists/*
+ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+#root at https://drive.google.com/open?id=0BzfWZ2kQHJsGSFpjZjRtcmZvUHc
+WORKDIR ${prebuilt}
+#make separate step due to errorneous source
+RUN wget 'https://www.dropbox.com/sh/lbz51we91wn20cy/AAD3-OawN7cxK6cCVthZKMVua/boost-1.58.0-linux-armhf.tar.xz?dl=0' -O - | tar -xJ
+RUN wget 'https://www.dropbox.com/sh/lbz51we91wn20cy/AACQx5eYAprpOUKhcGZqriHna/boost-1.58.0.tar.xz?dl=0' -O - | tar -xJ
+RUN wget 'https://www.dropbox.com/sh/lbz51we91wn20cy/AABWCwh0GEuZ6-ot83e6XMoca/qt-4.8.6-linux-armhf.tar.xz?dl=0' -O - | tar -xJ
+RUN wget 'https://www.dropbox.com/sh/lbz51we91wn20cy/AACPOj8ZjcR_XH9gt-TeTey8a/root-linux-armhf-20180129.tar.xz?dl=0' -O - | tar -xJ
+RUN mkdir -p ${toolchains} && cd ${toolchains} && \
+    git clone https://github.com/raspberrypi/tools.git && \
+    mv tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64 armhf-linux && \
+    rm -Rf tools
+WORKDIR /build/zxtune
+RUN git init && \
+    git remote add --tags origin https://vitamin-caig@bitbucket.org/zxtune/zxtune.git && \
+    echo "platform=linux\narch=armhf\npackaging?=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}" > variables.mak
+COPY entrypoint.sh .
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["package", "-C", "apps/bundle"]

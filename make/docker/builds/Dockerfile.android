@@ -1,0 +1,59 @@
+FROM debian:stretch-slim
+ENV toolchains=/build/toolchains androidsdk=/build/android-sdk prebuilt=/build/prebuilt
+
+#mkdir is fix for openjdk on stretch-slim
+RUN mkdir -p /usr/share/man/man1 && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+            ca-certificates wget unzip python make git python bzip2 \
+            openjdk-8-jre-headless openjdk-8-jdk-headless libncurses5 && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /build
+
+#NDK toolchains
+#r16b is the last version with gcc (4.9)
+ENV ndk_version=r16b
+RUN wget -q https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux-x86_64.zip && \
+    unzip -q *.zip && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch x86   --install-dir ${toolchains}/i686-linux-android && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm   --install-dir ${toolchains}/arm-linux-androideabi && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm64 --install-dir ${toolchains}/aarch64-linux-android && \
+    rm -Rf android-ndk-* && \
+    find ${toolchains} -name '*clang*' -o -name '*llvm*' -print0 | xargs -0 rm -Rf
+
+#Boost headers
+ENV boost=1.65.1 boost_=1_65_1
+RUN wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_${boost_}.zip && \
+    unzip -q *.zip && \
+    mkdir -p ${prebuilt}/boost-${boost}/include && \
+    mv boost_*/boost ${prebuilt}/boost-${boost}/include/ && \
+    rm -Rf boost_*
+
+#Android SDK
+ENV build_tools=27.0.3 platform=27
+RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
+    wget -q https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
+    unzip -q *.zip && \
+    rm *.zip && \
+    (yes | tools/bin/sdkmanager --install "build-tools;${build_tools}" "platform-tools" "platforms;android-${platform}")
+
+#Gradle
+ENV gradle=4.1
+RUN wget -q https://services.gradle.org/distributions/gradle-${gradle}-bin.zip && \
+    unzip -q *.zip && \
+    echo "buildscript{\nrepositories{\njcenter()\ngoogle()\n}\ndependencies{\nclasspath 'com.android.tools.build:gradle:3.0.1'\n}\n}\nallprojects{\nrepositories\n{\njcenter()\ngoogle()\n}\n}" > build.gradle && \
+    gradle*/bin/gradle tasks && \
+    rm -Rf gradle* build.gradle
+
+#Sources
+RUN mkdir -p /build/zxtune && cd /build/zxtune && \
+    git init && \
+    git remote add --tags origin https://vitamin-caig@bitbucket.org/zxtune/zxtune.git && \
+    echo "toolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}" > variables.mak && \
+    mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}" > apps/zxtune-android/local.properties && \
+    echo "org.gradle.jvmargs=-Xmx2048M" > apps/zxtune-android/gradle.properties
+
+WORKDIR /build/zxtune/apps/zxtune-android
+COPY entrypoint.sh .
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["publicBuild"]
