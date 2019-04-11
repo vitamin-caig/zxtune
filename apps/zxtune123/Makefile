@@ -26,8 +26,8 @@ libraries.common = analysis async \
 libraries.3rdparty = asap gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar vio2sf xmp z80ex zlib
 
 #platform
-windows_libraries = advapi32 ole32 oldnames shell32 user32
-mingw_libraries = ole32
+libraries.windows = advapi32 ole32 oldnames shell32 user32
+libraries.mingw = ole32
 libraries.boost = filesystem program_options system
 
 manual_format := txt

@@ -10,7 +10,7 @@ RUN apt-get update && \
 WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://vitamin-caig@bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=x86_64\npackaging?=deb\ndistro?=stretch\nqt.includes=/usr/include/qt4\nlinux_libraries=icuuc icudata" > variables.mak
+    echo "platform=linux\narch=x86_64\npackaging?=deb\ndistro?=stretch\nqt.includes=/usr/include/qt4\nlibraries.linux+=icuuc icudata" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["package", "-C", "apps/bundle"]

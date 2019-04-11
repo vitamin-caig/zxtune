@@ -8,7 +8,7 @@ libraries.3rdparty = z80ex
 
 depends := apps/benchmark/core
 
-android_libraries := log
+libraries.android += log
 
 include $(path_step)/makefile.mak
 

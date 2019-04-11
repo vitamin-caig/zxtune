@@ -6,4 +6,4 @@ makeobj_name = $(1).o
 host=linux
 compiler=gcc
 
-$(platform)_libraries += c m
+libraries.android += c m

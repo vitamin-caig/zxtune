@@ -17,6 +17,6 @@ libraries.common = analysis \
 
 libraries.3rdparty = gme he hvl lazyusf2 lhasa mgba sidplayfp snesspc vio2sf xmp z80ex zlib
 
-windows_libraries := oldnames
+libraries.windows += oldnames
 
 include $(path_step)/makefile.mak

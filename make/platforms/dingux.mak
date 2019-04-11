@@ -7,10 +7,10 @@ host=linux
 compiler=gcc
 
 #defines without spaces
-dingux_libraries += stdc++ gcc c m dl pthread
+libraries.dingux += stdc++ gcc c m dl pthread
 
 #support only static multithread release libraries
-dingux_libraries += $(foreach lib,$(libraries.boost),boost_$(lib))
+libraries.dingux += $(foreach lib,$(libraries.boost),boost_$(lib))
 
 #support static release libraries
-dingux_libraries += $(foreach lib,$(libraries.qt),Qt$(lib))
+libraries.dingux += $(foreach lib,$(libraries.qt),Qt$(lib))

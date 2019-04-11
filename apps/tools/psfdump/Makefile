@@ -6,6 +6,6 @@ libraries.common = binary binary_compression binary_format debug formats_chiptun
 
 libraries.3rdparty = zlib
 
-windows_libraries := advapi32
+libraries.windows += advapi32
 
 include $(path_step)/makefile.mak

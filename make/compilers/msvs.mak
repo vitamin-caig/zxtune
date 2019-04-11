@@ -32,14 +32,14 @@ endif
 DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch)) _SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS
 INCLUDES = $(include_dirs) $($(platform)_include_dirs)
 INCLUDE_FILES = $(include_files) $($(platform)_include_files)
-windows_libraries += kernel32
+libraries.windows += kernel32
 
 ifdef static_runtime
 CXX_MODE_FLAGS += /MT$(mode.suffix)
-windows_libraries += $(addsuffix $(mode.suffix), libcmt libcpmt)
+libraries.windows += $(addsuffix $(mode.suffix), libcmt libcpmt)
 else
 CXX_MODE_FLAGS += /MD$(mode.suffix)
-windows_libraries += $(addsuffix $(mode.suffix), msvcrt msvcprt)
+libraries.windows += $(addsuffix $(mode.suffix), msvcrt msvcprt)
 endif
 
 #setup flags
@@ -65,8 +65,8 @@ build_lib_cmd = $(AR) $(ARFLAGS) /OUT:$2 $1
 link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) $(RESOURCES) \
         /LIBPATH:$(libraries.dir) $(addsuffix .lib,$(libraries)) \
         $(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\
-        $(addprefix /LIBPATH:,$($(platform)_libraries_dirs))\
-        $(addsuffix .lib,$(sort $($(platform)_libraries)))\
+        $(addprefix /LIBPATH:,$(libraries.dirs.$(platform)))\
+        $(addsuffix .lib,$(sort $(libraries.$(platform))))\
         /MANIFEST:EMBED\
 	/PDB:$@.pdb
 

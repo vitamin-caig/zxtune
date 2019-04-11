@@ -24,22 +24,22 @@ include_dirs += $(qt.includes)
 else
 qt.dir = $(prebuilt.dir)/qt-$(qt.version)-$(platform)-$(arch)
 include_dirs += $(qt.dir)/include
-$(platform)_libraries_dirs += $(qt.dir)/lib
+libraries.dirs.$(platform) += $(qt.dir)/lib
 qt.bin = $(qt.dir)/bin/
 endif
 
 ifneq (,$(findstring Core,$(libraries.qt)))
-windows_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
-mingw_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32
+libraries.windows += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
+libraries.mingw += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32
 darwin.ld.flags += -framework AppKit -framework Security
 endif
 ifneq (,$(findstring Gui,$(libraries.qt)))
-windows_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
-mingw_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
+libraries.windows += gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
+libraries.mingw += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
 darwin.ld.flags += -framework Carbon -framework SystemConfiguration
 ifneq ($($(platform).$(arch).qt.version),)
-linux_libraries += freetype Xext Xrender Xrandr Xfixes X11 fontconfig
-dingux_libraries += png
+libraries.linux += freetype Xext Xrender Xrandr Xfixes X11 fontconfig
+libraries.dingux += png
 endif
 endif
 

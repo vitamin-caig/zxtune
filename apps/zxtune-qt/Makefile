@@ -52,8 +52,8 @@ libraries.common += l10n debug
 libraries += ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_update
 depends += $(addprefix apps/zxtune-qt/,ui/desktop playlist/ui/desktop ui/conversion ui/preferences update)
 libraries.boost += locale
-mingw_libraries += iconv
-darwin_libraries += iconv
+libraries.mingw += iconv
+libraries.darwin += iconv
 embedded_files = $(qm_translation_data) $(mo_translation_data)
 endif
 

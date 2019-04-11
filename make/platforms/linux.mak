@@ -6,22 +6,22 @@ makeobj_name = $(1).o
 host=linux
 compiler?=gcc
 
-$(platform)_libraries += dl rt pthread stdc++
+libraries.linux += dl rt pthread stdc++
 
 ifneq ($($(platform).$(arch).crossroot),)
-$(platform)_libraries_dirs += $($(platform).$(arch).crossroot)/usr/lib
+libraries.dirs.linux += $($(platform).$(arch).crossroot)/usr/lib
 $(platform)_include_dirs += $($(platform).$(arch).crossroot)/usr/include
 $(platform).ld.flags += -Wl,--unresolved-symbols=ignore-in-shared-libs
 endif
 
 ifdef use_qt
-$(platform)_libraries_dirs += $($(platform).$(arch).qt.libs)
+libraries.dirs.linux += $($(platform).$(arch).qt.libs)
 $(platform)_include_dirs += $($(platform).$(arch).qt.includes)
-$(platform)_libraries += $($(platform).$(arch).qt.libraries)
+libraries.linux += $($(platform).$(arch).qt.libraries)
 endif
 
 #multithread release libraries
-$(platform)_libraries += $(foreach lib,$(libraries.boost),boost_$(lib)$($(platform).$(arch).boost.libs.model))
+libraries.linux += $(foreach lib,$(libraries.boost),boost_$(lib)$($(platform).$(arch).boost.libs.model))
 
 #release libraries
-$(platform)_libraries += $(foreach lib,$(libraries.qt),Qt$(lib))
+libraries.linux += $(foreach lib,$(libraries.qt),Qt$(lib))
