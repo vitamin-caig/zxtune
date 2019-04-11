@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v7.widget.SearchView;
 import android.util.SparseBooleanArray;
@@ -219,6 +220,14 @@ public class BrowserFragment extends Fragment {
     return getResources().getQuantityString(R.plurals.items, count, count);
   }
 
+  @Nullable
+  private MediaControllerCompat getController() {
+    final FragmentActivity activity = getActivity();
+    return activity != null
+               ? MediaControllerCompat.getMediaController(activity)
+               : null;
+  }
+
   class OnItemClickListener implements AdapterView.OnItemClickListener {
 
     @Override
@@ -232,7 +241,7 @@ public class BrowserFragment extends Fragment {
 
           @Override
           public void run() {
-            final MediaControllerCompat ctrl = MediaControllerCompat.getMediaController(getActivity());
+            final MediaControllerCompat ctrl = getController();
             if (ctrl != null) {
               ctrl.getTransportControls().playFromUri(toPlay, null);
             }
@@ -299,7 +308,7 @@ public class BrowserFragment extends Fragment {
 
     private void addSelectedToPlaylist() {
       //TODO: rework for PlaylistControl usage as a local iface
-      final MediaControllerCompat ctrl = MediaControllerCompat.getMediaController(getActivity());
+      final MediaControllerCompat ctrl = getController();
       if (ctrl != null) {
         final Uri[] items = getSelectedItemsUris();
         final Bundle params = new Bundle();
