@@ -2,7 +2,7 @@ library_name := sidplayfp
 path_step := ../..
 include defines.mak
 
-include_dirs += $(path_step)/3rdparty/sidplayfp/sidplayfp
+includes.dirs += $(path_step)/3rdparty/sidplayfp/sidplayfp
 
 source_dirs = sidplayfp \
               sidplayfp/c64 \
@@ -19,7 +19,7 @@ source_dirs += builders/resid-builder \
 #disable for digital tunes playback (e.g. hvsc/MUSICIANS/L/LMan/Vortex.sid)
 #defines += FAST_AND_ROUGH
 
-include_files = defines.h
+includes.files += defines.h
 
 include $(path_step)/makefile.mak
 

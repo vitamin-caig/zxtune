@@ -7,7 +7,7 @@ embedded := 1
 endif
 
 source_dirs = . supp
-include_dirs = .
+includes.dirs += .
 
 source_files.windows = res/zxtune-qt.rc
 source_files.mingw = $(source_files.windows)

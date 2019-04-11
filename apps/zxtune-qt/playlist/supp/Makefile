@@ -5,6 +5,6 @@ source_dirs := .
 
 moc_files := container controller operations model scanner
 
-include_dirs = ../..
+includes.dirs += ../..
 
 include $(path_step)/makefile.mak

@@ -45,15 +45,15 @@ LD_MODE_FLAGS += --coverage
 endif
 
 DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch))
-INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
-INCLUDE_FILES = $(include_files) $($(platform)_include_files)
+INCLUDES_DIRS = $(sort $(includes.dirs) $(includes.dirs.$(platform)))
+INCLUDES_FILES = $(includes.files) $(includes.files.$(platform))
 
 #setup flags
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
 	$(addprefix -D,$(DEFINES)) \
 	-funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -pipe \
-	$(addprefix -I,$(INCLUDES)) $(addprefix -include ,$(INCLUDE_FILES))
+	$(addprefix -I,$(INCLUDES_DIRS)) $(addprefix -include ,$(INCLUDES_FILES))
 
 CXXFLAGS = $(CCFLAGS) -std=c++11 -fvisibility=hidden -fvisibility-inlines-hidden
 

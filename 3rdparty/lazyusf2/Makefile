@@ -16,7 +16,7 @@ source_files += ai/ai_controller \
                 $(addprefix usf/, usf resampler) \
                 vi/vi_controller
 
-include_dirs := .
+includes.dirs += .
 defines.windows += WIN32
 
 ifdef lazyusf2.debug

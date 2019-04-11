@@ -2,7 +2,7 @@ library_name := gme
 path_step := ../..
 include $(path_step)/make/default.mak
 
-include_dirs = .
+includes.dirs += .
 #common
 source_files = $(addprefix gme/,\
                  blargg_common.cpp blargg_errors.cpp \

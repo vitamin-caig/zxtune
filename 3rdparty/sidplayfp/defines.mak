@@ -1,1 +1,1 @@
-include_dirs += $(path_step)/3rdparty/sidplayfp
+includes.dirs += $(path_step)/3rdparty/sidplayfp

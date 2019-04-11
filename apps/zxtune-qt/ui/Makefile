@@ -25,6 +25,6 @@ moc_files += tools/parameters_helpers
 
 ts_files := ui_common
 
-include_dirs = ..
+includes.dirs += ..
 
 include $(path_step)/makefile.mak

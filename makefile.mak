@@ -45,7 +45,7 @@ mode_pathname = $(mode)$(if $(profile),_profile,)
 submode_pathname = $(if $(pic),_pic,)$(if $(static_runtime),_static,)
 
 #set directories
-include_dirs += $(path_step)/include $(path_step)/src $(path_step)
+includes.dirs += $(path_step)/include $(path_step)/src $(path_step)
 objs_dir = $(path_step)/obj/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
 libraries.dir = $(path_step)/lib/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
 bins_dir = $(path_step)/bin/$(platform_pathname)/$(mode_pathname)

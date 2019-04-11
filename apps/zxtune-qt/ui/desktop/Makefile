@@ -5,6 +5,6 @@ ui_files := mainwindow
 
 ts_files := ui_desktop
 
-include_dirs = ../..
+includes.dirs = ../..
 
 include $(path_step)/makefile.mak

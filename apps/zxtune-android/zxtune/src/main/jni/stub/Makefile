@@ -3,6 +3,6 @@ path_step := ../../../../../../..
 
 source_dirs := ..
 
-include_dirs += .
+includes.dirs += .
 
 include $(path_step)/makefile.mak

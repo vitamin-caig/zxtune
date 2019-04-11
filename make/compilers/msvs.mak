@@ -30,8 +30,8 @@ endif
 
 #specific
 DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch)) _SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS
-INCLUDES = $(include_dirs) $($(platform)_include_dirs)
-INCLUDE_FILES = $(include_files) $($(platform)_include_files)
+INCLUDES_DIRS = $(includes.dirs) $(includes.dirs.$(platform))
+INCLUDES_FILES = $(includes.files) $(includes.files.$(platform))
 libraries.windows += kernel32
 
 ifdef static_runtime
@@ -48,7 +48,7 @@ CXXFLAGS = /nologo /c $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $(
 	$(addprefix /D, $(DEFINES)) \
 	/J /Zc:wchar_t,forScope /Z7 /Zl /EHsc \
 	/GA /GF /Gy /Y- /GR \
-	$(addprefix /I, $(INCLUDES)) $(addprefix /FI , $(INCLUDE_FILES))
+	$(addprefix /I, $(INCLUDES_DIRS)) $(addprefix /FI , $(INCLUDES_FILES))
 
 ARFLAGS = /NOLOGO /NODEFAULTLIB
 

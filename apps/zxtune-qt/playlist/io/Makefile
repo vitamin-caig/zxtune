@@ -11,6 +11,6 @@ source_dirs := .
 
 text_files := tags/xspf tags/ayl
 
-include_dirs = ../..
+includes.dirs += ../..
 
 include $(path_step)/makefile.mak

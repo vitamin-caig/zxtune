@@ -13,7 +13,7 @@ defines += Z80EX_OPSTEP_FAST_AND_ROUGH\
  Z80EX_VERSION_MAJOR=${VERSION_MAJOR} Z80EX_VERSION_MINOR=${VERSION_MINOR}\
  Z80EX_RELEASE_TYPE=${RELEASE_TYPE}
 
-include_dirs = . include
+includes.dirs = . include
 source_files := z80ex.c
 
 include $(path_step)/makefile.mak

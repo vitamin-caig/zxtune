@@ -6,7 +6,7 @@ include $(path_step)/make/default.mak
 
 defines += LIBOGG_EXPORTS
 
-include_dirs = include
+includes.dirs += include
 source_files_cc := src/bitwise src/framing
 libraries.3rdparty := zlib
 

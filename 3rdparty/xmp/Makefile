@@ -2,7 +2,7 @@ library_name := xmp
 path_step := ../..
 include $(path_step)/make/default.mak
 
-include_dirs := include src
+includes.dirs += include src
 
 source_files += $(addprefix src/,\
  virtual format misc period player read_event \
@@ -51,7 +51,7 @@ ifneq ($(findstring $(platform),windows mingw),)
 source_files += $(addprefix src/win32/,\
  ptpopen debug usleep)
 
-include_dirs += src/win32
+includes.dirs += src/win32
 endif
 
 source_files := $(addsuffix .c,$(source_files))

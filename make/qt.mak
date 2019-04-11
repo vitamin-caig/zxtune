@@ -9,7 +9,7 @@ generated_dir = $(objects_dir)/.qt
 generated_headers += $(addprefix $(generated_dir)/,$(notdir $(ui_files:=$(suffix.ui.h))))
 generated_sources += $(addprefix $(generated_dir)/,$(notdir $(ui_files:=$(suffix.moc.cpp)) $(moc_files:=$(suffix.moc.cpp)) $(qrc_files:=$(suffix.qrc.cpp))))
 
-include_dirs += $(generated_dir)
+includes.dirs += $(generated_dir)
 
 ifdef release
 defines += QT_NO_DEBUG
@@ -20,10 +20,10 @@ qt.version = $($(platform).$(arch).qt.version)
 endif
 
 ifeq ($(qt.version),)
-include_dirs += $(qt.includes)
+includes.dirs += $(qt.includes)
 else
 qt.dir = $(prebuilt.dir)/qt-$(qt.version)-$(platform)-$(arch)
-include_dirs += $(qt.dir)/include
+includes.dirs += $(qt.dir)/include
 libraries.dirs.$(platform) += $(qt.dir)/lib
 qt.bin = $(qt.dir)/bin/
 endif
