@@ -72,5 +72,7 @@ link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
         $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $(libraries.$(platform)))) $(LINKER_END_GROUP)\
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
 
+postlink_cmd = $(tools.strip) $@ && touch $@.pdb
+
 #include generated dependensies
 include $(wildcard $(objects_dir)/*.d)

@@ -19,6 +19,3 @@ libraries.darwin += $(foreach lib,$(libraries.boost),boost_$(lib)$($(platform).$
 libraries.darwin += $(foreach lib,$(libraries.qt),Qt$(lib))
 
 darwin.ld.flags += $(foreach file,$(embedded_files),-sectcreate __TEXT __emb_$(basename $(notdir $(file))) $(file))
-
-#make stub pdb file to keep packaging working
-postlink_cmd = touch $(target).pdb
