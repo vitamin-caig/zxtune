@@ -29,7 +29,7 @@ namespace Analysis
     Strings::Array parts;
     boost::algorithm::split(parts, str, boost::algorithm::is_any_of(delimiter), boost::algorithm::token_compress_on);
     const Strings::Array::iterator newEnd = std::remove_if(parts.begin(), parts.end(),
-      std::mem_fun_ref(&String::empty));
+        [](const String& element) {return element.empty();});
     parts.erase(newEnd, parts.end());
     return parts;
   }
