@@ -5,13 +5,11 @@ RUN dpkg --add-architecture i386 && \
       libstdc++6:i386 libc6:i386 && \
     rm -rf /var/lib/apt/lists/*
 ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
-#root at https://drive.google.com/open?id=0BzfWZ2kQHJsGSFpjZjRtcmZvUHc
 WORKDIR ${prebuilt}
-#make separate step due to errorneous source
-RUN wget 'https://www.dropbox.com/sh/lbz51we91wn20cy/AAD3-OawN7cxK6cCVthZKMVua/boost-1.58.0-linux-armhf.tar.xz?dl=0' -O - | tar -xJ
-RUN wget 'https://www.dropbox.com/sh/lbz51we91wn20cy/AACQx5eYAprpOUKhcGZqriHna/boost-1.58.0.tar.xz?dl=0' -O - | tar -xJ
-RUN wget 'https://www.dropbox.com/sh/lbz51we91wn20cy/AABWCwh0GEuZ6-ot83e6XMoca/qt-4.8.6-linux-armhf.tar.xz?dl=0' -O - | tar -xJ
-RUN wget 'https://www.dropbox.com/sh/lbz51we91wn20cy/AACPOj8ZjcR_XH9gt-TeTey8a/root-linux-armhf-20180129.tar.xz?dl=0' -O - | tar -xJ
+RUN (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AABMv2v-OFeNNchzVMmUTK9za/20180201/prebuilt/boost/boost-1.65.1.tar.xz?dl=0' -O - | tar -xJ) && \
+    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AACTxUrHh_IP964vPdMrZmnQa/20180201/prebuilt/boost/boost-1.65.1-linux-armhf.tar.xz?dl=0' -O - | tar -xJ) && \
+    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AADu4kOHXJ0gO1G2yCSiHf5Fa/20180201/prebuilt/qt/qt-4.8.6-linux-armhf.tar.xz?dl=0' -O - | tar -xJ) && \
+    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AABTDgCVKNXhUqJFW0Z8wIiwa/20180201/prebuilt/env/root-linux-armhf-20180129.tar.xz?dl=0' -O - | tar -xJ)
 RUN mkdir -p ${toolchains} && cd ${toolchains} && \
     git clone https://github.com/raspberrypi/tools.git && \
     mv tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64 armhf-linux && \
