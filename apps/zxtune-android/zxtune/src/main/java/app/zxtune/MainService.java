@@ -51,7 +51,6 @@ public class MainService extends MediaBrowserServiceCompat {
 
   @Override
   public void onDestroy() {
-    super.onDestroy();
     Log.d(TAG, "Destroying");
     settingsChangedHandler.release();
     settingsChangedHandler = null;
@@ -59,6 +58,7 @@ public class MainService extends MediaBrowserServiceCompat {
     mediaSessionControl = null;
     service.release();
     service = null;
+    super.onDestroy();
   }
 
   @Override

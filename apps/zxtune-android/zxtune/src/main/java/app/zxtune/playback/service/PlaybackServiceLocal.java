@@ -106,34 +106,30 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
     if (path != null) {
       final long position = prefs.getLong(PREF_LAST_PLAYED_POSITION, 0);
-      Log.d(TAG, "Restore last played item '%s' at %dms", path, position);
-      executeCommand(new RestoreSessionCommand(Uri.parse(path), TimeStamp.createFrom(position,
-          TimeUnit.MILLISECONDS)));
+      new Thread("RestoreSessionThread") {
+        @Override
+        public void run() {
+          try {
+            Log.d(TAG, "Restore last played item '%s' at %dms", path, position);
+            restoreSession(Uri.parse(path), TimeStamp.createFrom(position, TimeUnit.MILLISECONDS));
+          } catch (Exception e) {
+            Log.w(TAG, e, "Failed to restore session");
+          }
+        }
+      }.start();
     }
   }
 
-  private class RestoreSessionCommand implements Command {
-
-    private final Uri uri;
-    private final TimeStamp position;
-
-    RestoreSessionCommand(Uri uri, TimeStamp position) {
-      this.uri = uri;
-      this.position = position;
-    }
-
-    @Override
-    public void execute() throws Exception {
-      final Iterator iter = IteratorFactory.createIterator(context, uri);
-      final PlayableItem newItem = iter.getItem();
-      final Holder newHolder = new Holder(newItem);
-      newHolder.source.initialize(player.getSampleRate());
-      newHolder.source.setPosition(position);
-      if (iterator.compareAndSet(IteratorStub.instance(), iter)) {
-        setNewHolder(newHolder);
-      } else {
-        Log.d(TAG, "Drop stale session restore");
-      }
+  private void restoreSession(Uri uri, TimeStamp position) throws Exception {
+    final Iterator iter = IteratorFactory.createIterator(context, uri);
+    final PlayableItem newItem = iter.getItem();
+    final Holder newHolder = new Holder(newItem);
+    newHolder.source.initialize(player.getSampleRate());
+    newHolder.source.setPosition(position);
+    if (iterator.compareAndSet(IteratorStub.instance(), iter)) {
+      setNewHolder(newHolder);
+    } else {
+      Log.d(TAG, "Drop stale session restore");
     }
   }
 
