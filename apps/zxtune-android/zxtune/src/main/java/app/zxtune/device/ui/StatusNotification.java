@@ -53,6 +53,11 @@ public class StatusNotification extends MediaControllerCompat.Callback {
             //.setShowCancelButton(true)
         )
     ;
+    // Hack for Android O requirement to call Service.startForeground after Context.startForegroundService.
+    // Service.startForeground may be called from android.support.v4.media.session.MediaButtonReceiver, but
+    // no playback may happens.
+    startForeground();
+    service.stopForeground(true);
   }
 
   private Action createPauseAction() {
