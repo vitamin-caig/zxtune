@@ -217,9 +217,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   @Override
   public void release() {
+    stopSync();
     shutdownExecutor();
-    player.stopPlayback();
     player.release();
+  }
+
+  private void stopSync() {
+    player.stopPlayback();
+    storeSession();
   }
 
   private void shutdownExecutor() {
@@ -369,8 +374,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       executeCommand(new Command() {
         @Override
         public void execute() {
-          player.stopPlayback();
-          storeSession();
+          stopSync();
         }
       });
     }
