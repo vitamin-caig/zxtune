@@ -57,16 +57,6 @@ public class NowPlayingFragment extends Fragment {
     super.onCreate(savedInstanceState);
 
     setHasOptionsMenu(true);
-
-    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
-    model.getMetadata().observe(this, new Observer<MediaMetadataCompat>() {
-      @Override
-      public void onChanged(@Nullable MediaMetadataCompat metadata) {
-        if (trackActionsMenu != null) {
-          trackActionsMenu.setupMenu(metadata);
-        }
-      }
-    });
   }
 
   @Override
@@ -76,22 +66,13 @@ public class NowPlayingFragment extends Fragment {
     inflater.inflate(R.menu.track, menu);
 
     trackActionsMenu = new TrackActionsMenu(menu);
-
-    // onOptionsMenuClosed is not called, see multiple bugreports e.g.
-    // https://code.google.com/p/android/issues/detail?id=2410
-    // https://code.google.com/p/android/issues/detail?id=2746
-    // https://code.google.com/p/android/issues/detail?id=176377
-    final ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-    if (bar != null) {
-      bar.addOnMenuVisibilityListener(new ActionBar.OnMenuVisibilityListener() {
-        @Override
-        public void onMenuVisibilityChanged(boolean isVisible) {
-          if (!isVisible) {
-            trackActionsMenu.close();
-          }
-        }
-      });
-    }
+    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+    model.getMetadata().observe(this, new Observer<MediaMetadataCompat>() {
+      @Override
+      public void onChanged(@Nullable MediaMetadataCompat metadata) {
+        trackActionsMenu.setupMenu(metadata);
+      }
+    });
   }
 
   /*
@@ -172,7 +153,7 @@ public class NowPlayingFragment extends Fragment {
       this.trackMenu = menu.findItem(R.id.action_track);
       this.add = menu.findItem(R.id.action_add);
       this.share = menu.findItem(R.id.action_share);
-      trackMenu.setEnabled(false);
+      setData(null);
     }
 
     final boolean selectItem(MenuItem item) {
@@ -207,13 +188,19 @@ public class NowPlayingFragment extends Fragment {
 
     final void setupMenu(@Nullable MediaMetadataCompat metadata) {
       if (metadata != null) {
-        data = new TrackActionsData(getActivity(), metadata);
+        setData(new TrackActionsData(getActivity(), metadata));
+      } else {
+        setData(null);
+      }
+    }
+
+    private void setData(TrackActionsData data) {
+      this.data = data;
+      trackMenu.setEnabled(data != null);
+      if (data != null) {
         add.setEnabled(!data.isFromPlaylist());
         share.setEnabled(data.hasRemotePage());
-      } else {
-        data = null;
       }
-      trackMenu.setEnabled(metadata != null);
     }
 
     private void addCurrent() {
@@ -221,10 +208,6 @@ public class NowPlayingFragment extends Fragment {
       if (ctrl != null) {
         ctrl.getTransportControls().sendCustomAction(MainService.CUSTOM_ACTION_ADD_CURRENT, null);
       }
-    }
-
-    final void close() {
-      data = null;
     }
   }
 
