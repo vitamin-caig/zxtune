@@ -47,7 +47,7 @@ submode_pathname = $(if $(pic),_pic,)$(if $(static_runtime),_static,)
 #set directories
 include_dirs += $(path_step)/include $(path_step)/src $(path_step)
 objs_dir = $(path_step)/obj/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
-libs_dir = $(path_step)/lib/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
+libraries.dir = $(path_step)/lib/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
 bins_dir = $(path_step)/bin/$(platform_pathname)/$(mode_pathname)
 
 #set environment
@@ -64,7 +64,7 @@ include $(path_step)/make/features.mak
 
 #tune output according to type
 ifdef library_name
-output_dir = $(libs_dir)
+output_dir = $(libraries.dir)
 objects_dir = $(objs_dir)/$(library_name)
 target = $(output_dir)/$(call makelib_name,$(library_name))
 else ifdef binary_name
@@ -138,7 +138,7 @@ else
 include $(path_step)/libraries.mak
 
 #binary and dynamic libraries with dependencies
-LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
+LIBS = $(foreach lib,$(libraries),$(libraries.dir)/$(call makelib_name,$(lib)))
 
 $(target): $(OBJECTS) $(LIBS) $(embedded_files) | $(output_dir) $(TRANSLATIONS)
 	$(link_cmd)

@@ -66,8 +66,7 @@ build_obj_cmd = $(build_obj_cmd_nodeps) -MMD
 build_obj_cmd_cc = $(tools.cc) $(CCFLAGS) -std=c99 -c $1 -o $2 -MMD
 build_lib_cmd = $(tools.ar) $(ARFLAGS) $2 $1
 link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
-	$(if $(libraries),-L$(libs_dir)\
-          $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP),)\
+        -L$(libraries.dir) $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP) \
         $(addprefix -L,$($(platform)_libraries_dirs))\
         $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $($(platform)_libraries))) $(LINKER_END_GROUP)\
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)

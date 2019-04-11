@@ -63,10 +63,10 @@ build_obj_cmd_cc = $(build_obj_cmd)
 build_lib_cmd = $(AR) $(ARFLAGS) /OUT:$2 $1
 #ignore some warnings for Qt
 link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) $(RESOURCES) \
-	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),)\
-	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\
-	$(addprefix /LIBPATH:,$($(platform)_libraries_dirs))\
-	$(addsuffix .lib,$(sort $($(platform)_libraries)))\
+        /LIBPATH:$(libraries.dir) $(addsuffix .lib,$(libraries)) \
+        $(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\
+        $(addprefix /LIBPATH:,$($(platform)_libraries_dirs))\
+        $(addsuffix .lib,$(sort $($(platform)_libraries)))\
         /MANIFEST:EMBED\
 	/PDB:$@.pdb
 
