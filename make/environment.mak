@@ -63,7 +63,7 @@ linux.i686.cxx.flags = -march=i686 -m32 -mmmx
 linux.i686.ld.flags = -m32
 
 #linux.x86_64
-linux.x86_64.boost.version = 1.58.0
+linux.x86_64.boost.version = 1.65.1
 linux.x86_64.boost.libs.model = -mt
 linux.x86_64.qt.version = 4.8.6
 linux.x86_64.cxx.flags = -m64 -mmmx

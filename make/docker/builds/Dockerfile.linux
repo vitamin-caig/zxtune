@@ -1,0 +1,19 @@
+FROM debian:stretch-slim
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates wget xz-utils git make zip \
+      g++ gcc \
+      libpulse-dev libclalsadrv-dev \
+      libxfixes-dev libxrandr-dev libfontconfig-dev && \
+    rm -rf /var/lib/apt/lists/*
+ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+WORKDIR ${prebuilt}
+RUN (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AABMv2v-OFeNNchzVMmUTK9za/20180201/prebuilt/boost/boost-1.65.1.tar.xz?dl=0' -O - | tar -xJ) && \
+    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AAAYEhv4gBUhZ2jAQ-HEmEiOa/20180201/prebuilt/boost/boost-1.65.1-linux-x86_64.tar.xz?dl=0' -O - | tar -xJ) && \
+    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AACIhfaB-7SYVYUeiyjDq-Osa/20180201/prebuilt/qt/qt-4.8.6-linux-x86_64.tar.xz?dl=0' -O - | tar -xJ)
+WORKDIR /build/zxtune
+RUN git init && \
+    git remote add --tags origin https://vitamin-caig@bitbucket.org/zxtune/zxtune.git && \
+    echo "platform=linux\narch=x86_64\npackaging=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}" > variables.mak
+COPY entrypoint.sh .
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["package", "-C", "apps/bundle"]
