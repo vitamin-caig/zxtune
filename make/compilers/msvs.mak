@@ -29,7 +29,7 @@ LD_MODE_FLAGS += /DLL
 endif
 
 #specific
-DEFINITIONS = $(defines) $($(platform)_definitions) _SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS
+DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch)) _SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS
 INCLUDES = $(include_dirs) $($(platform)_include_dirs)
 INCLUDE_FILES = $(include_files) $($(platform)_include_files)
 windows_libraries += kernel32
@@ -45,7 +45,7 @@ endif
 #setup flags
 CXXFLAGS = /nologo /c $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
 	/W3 \
-	$(addprefix /D, $(DEFINITIONS)) \
+	$(addprefix /D, $(DEFINES)) \
 	/J /Zc:wchar_t,forScope /Z7 /Zl /EHsc \
 	/GA /GF /Gy /Y- /GR \
 	$(addprefix /I, $(INCLUDES)) $(addprefix /FI , $(INCLUDE_FILES))

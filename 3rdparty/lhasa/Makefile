@@ -25,7 +25,7 @@ source_files := $(addprefix lib/,\
 
 #this files are included directly:	bit_stream_reader lh_new_decoder tree_decode
 
-windows_definitions += vsnprintf=_vsnprintf
+defines.windows += vsnprintf=_vsnprintf
 
 source_files := $(addsuffix .c,$(source_files))
 

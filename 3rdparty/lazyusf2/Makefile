@@ -17,10 +17,10 @@ source_files += ai/ai_controller \
                 vi/vi_controller
 
 include_dirs := .
-windows_definitions += WIN32
+defines.windows += WIN32
 
 ifdef lazyusf2.debug
-$(platform)_definitions += DEBUG_INFO
+defines += DEBUG_INFO
 source_files += debugger/dbg_decoder
 endif
 

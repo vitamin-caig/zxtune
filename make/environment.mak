@@ -16,31 +16,31 @@ android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector -fo
 android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now
 #assume that all the platforms are little-endian
 #this required to use boost which doesn't know anything about __armel__ or __mipsel__
-android.definitions = ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N LITTLE_ENDIAN
+defines.android += ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N LITTLE_ENDIAN
 # x86
 android.x86.toolchain = $(toolchains.root)/i686-linux-android
 android.x86.execprefix = $(android.x86.toolchain)/bin/i686-linux-android-
 android.x86.boost.version = $(android.boost.version)
-android.x86.definitions = __ANDROID_API__=14
+defines.android.x86 += __ANDROID_API__=14
 android.x86.ld.flags = -Wl,--icf=safe
 # armeabi
 android.armeabi.toolchain = $(toolchains.root)/arm-linux-androideabi
 android.armeabi.execprefix = $(android.armeabi.toolchain)/bin/arm-linux-androideabi-
 android.armeabi.boost.version = $(android.boost.version)
-android.armeabi.definitions = __ANDROID_API__=14
+defines.android.armeabi += __ANDROID_API__=14
 android.armeabi.cxx.flags = -march=armv5te -mtune=xscale -msoft-float -mthumb -finline-limit=64
 # armeabi-v7a
 android.armeabi-v7a.toolchain = $(android.armeabi.toolchain)
 android.armeabi-v7a.execprefix = $(android.armeabi.execprefix)
 android.armeabi-v7a.boost.version = $(android.boost.version)
-android.armeabi-v7a.definitions = __ANDROID_API__=14
+defines.android.armeabi-v7a += __ANDROID_API__=14
 android.armeabi-v7a.cxx.flags = -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -mthumb -finline-limit=64
 android.armeabi-v7a.ld.flags = -march=armv7-a -Wl,--fix-cortex-a8
 # arm64-v8a
 android.arm64-v8a.toolchain = $(toolchains.root)/aarch64-linux-android
 android.arm64-v8a.execprefix = $(android.arm64-v8a.toolchain)/bin/aarch64-linux-android-
 android.arm64-v8a.boost.version = $(android.boost.version)
-android.arm64-v8a.definitions = __ANDROID_API__=21
+defines.android.arm64-v8a += __ANDROID_API__=21
 # mips
 android.mips.toolchain = $(toolchains.root)/mipsel-linux-android
 android.mips.execprefix = $(android.mips.toolchain)/bin/mipsel-linux-android-
@@ -53,7 +53,7 @@ dingux.mipsel.execprefix = $(dingux.mipsel.toolchain)/usr/bin/mipsel-linux-
 dingux.mipsel.boost.version = 1.49.0
 dingux.mipsel.qt.version = 4.7.1
 dingux.mipsel.cxx.flags = -mips32
-dingux.mipsel.definitions = 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)' 'BOOST_FILESYSTEM_VERSION=2' NO_DEBUG_LOGS NO_L10N
+defines.dingux.mipsel += 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)' 'BOOST_FILESYSTEM_VERSION=2' NO_DEBUG_LOGS NO_L10N
 
 #linux.i686
 linux.i686.boost.version = 1.58.0
@@ -83,7 +83,7 @@ mingw.toolchain = $(toolchains.root)/MinGW
 mingw.execprefix = $(mingw.toolchain)/bin/
 mingw.cxx.flags = -mthreads -mwin32 -mno-ms-bitfields -mmmx -msse -msse2
 mingw.ld.flags = -mthreads -static -Wl,--allow-multiple-definition
-mingw.definitions = 'BOOST_FILESYSTEM_VERSION=3'
+defines.mingw += BOOST_FILESYSTEM_VERSION=3
 # x86
 mingw.x86.execprefix = $(mingw.execprefix)
 mingw.x86.boost.version = 1.55.0

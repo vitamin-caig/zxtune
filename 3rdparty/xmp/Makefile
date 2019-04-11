@@ -57,6 +57,6 @@ endif
 source_files := $(addsuffix .c,$(source_files))
 
 defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS DECRUNCH_MAX=0 NO_PROWIZARD NO_EXTERNALFILES PATH_MAX=1024
-windows_definitions += inline=__inline _USE_MATH_DEFINES WIN32 _WINDOWS
+defines.windows += inline=__inline _USE_MATH_DEFINES WIN32 _WINDOWS
 
 include $(path_step)/makefile.mak

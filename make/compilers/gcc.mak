@@ -44,13 +44,13 @@ CXX_MODE_FLAGS += --coverage
 LD_MODE_FLAGS += --coverage
 endif
 
-DEFINITIONS = $(defines) $($(platform)_definitions)
+DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch))
 INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 INCLUDE_FILES = $(include_files) $($(platform)_include_files)
 
 #setup flags
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
-	$(addprefix -D,$(DEFINITIONS) $($(platform).definitions) $($(platform).$(arch).definitions)) \
+	$(addprefix -D,$(DEFINES)) \
 	-funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -pipe \
 	$(addprefix -I,$(INCLUDES)) $(addprefix -include ,$(INCLUDE_FILES))

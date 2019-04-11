@@ -62,7 +62,7 @@ theme_resources = res/theme_$(gui_theme)
 #qt-based resources
 qrc_files := $(theme_resources)/theme
 
-$(platform)_definitions += GUI_THEME=$(gui_theme)
+defines += GUI_THEME=$(gui_theme)
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak

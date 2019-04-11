@@ -4,7 +4,7 @@ dynamic_name := ogg
 path_step := ../..
 include $(path_step)/make/default.mak 
 
-$(platform)_definitions += LIBOGG_EXPORTS
+defines += LIBOGG_EXPORTS
 
 include_dirs = include
 source_files_cc := src/bitwise src/framing

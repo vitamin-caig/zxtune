@@ -58,10 +58,10 @@ $(generated_dir)/%$(suffix.ui.h): %$(suffix.ui) | $(generated_dir)
 	$(tools.uic) $< -o $@
 
 $(generated_dir)/%$(suffix.moc.cpp): %.h | $(generated_dir)
-	$(tools.moc) -nw $(addprefix -D,$(DEFINITIONS)) $< -o $@
+	$(tools.moc) -nw $(addprefix -D,$(DEFINES)) $< -o $@
 
 $(generated_dir)/%$(suffix.moc.cpp): %$(suffix.ui.h) | $(generated_dir)
-	$(tools.moc) -nw $(addprefix -D,$(DEFINITIONS)) $< -o $@
+	$(tools.moc) -nw $(addprefix -D,$(DEFINES)) $< -o $@
 
 $(generated_dir)/%$(suffix.qrc.cpp): %$(suffix.qrc) | $(generated_dir)
 	$(tools.rcc) -name $(basename $(notdir $<)) -o $@ $<

@@ -7,7 +7,7 @@ include $(path_step)/make/default.mak
 #SHELL_EXT - disables encryption and some output
 #NOVOLUME - disables volues support
 #GUI - disables some console i/o
-$(platform)_definitions += SILENT RAR_NOCRYPT GUI SHELL_EXT NOVOLUME
+defines += SILENT RAR_NOCRYPT GUI SHELL_EXT NOVOLUME
 
 #core files
 source_files = getbits unpack rarvm crc smallfn
