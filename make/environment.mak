@@ -73,7 +73,7 @@ linux.x86_64.ld.flags = -m64
 linux.armhf.toolchain = $(toolchains.root)/armhf-linux
 linux.armhf.execprefix = $(linux.armhf.toolchain)/bin/arm-linux-gnueabihf-
 linux.armhf.crossroot = $(prebuilt.dir)/root-linux-armhf
-linux.armhf.boost.version = 1.65.1
+linux.armhf.boost.version = 1.58.0
 linux.armhf.qt.version = 4.8.6
 linux.armhf.qt.libs = $(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf
 linux.armhf.cxx.flags = -march=armv6 -mfpu=vfp -mfloat-abi=hard -Wa,--no-warn
