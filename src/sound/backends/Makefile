@@ -20,7 +20,7 @@ endef
 
 define declare_thirdparty_backend
 ifdef support_$(1)
-$$(platform)_include_dirs += $$(path_step)/3rdparty
+includes.dirs.$$(platform) += $$(path_step)/3rdparty
 generated_headers += gates/$(1)_api.h
 generated_sources += gates/$(1)_api_dynamic.cpp
 source_files += $(1)_backend.cpp
