@@ -1,6 +1,6 @@
 binary_name := zxtune-qt
-path_step := ../..
-include $(path_step)/make/default.mak
+dirs.root := ../..
+include $(dirs.root)/make/default.mak
 
 source_dirs = . supp
 includes.dirs += .
@@ -55,8 +55,8 @@ qrc_files := $(theme_resources)/theme
 
 defines += GUI_THEME=$(gui_theme)
 
-include $(path_step)/makefile.mak
-include $(path_step)/make/package.mak
+include $(dirs.root)/makefile.mak
+include $(dirs.root)/make/package.mak
 
 install_linux: install_linux_binary
 	install -m644 -D ../changelog.txt $(DESTDIR)/usr/share/zxtune/changelog.txt
@@ -78,7 +78,7 @@ make_bundle:
 	mkdir -p $(macos_bundle)/Contents/MacOS
 	install -s $(target) $(macos_bundle)/Contents/MacOS/$(binary_name)
 	sed 's/@VERSION@/$(root.version.index).0.0/' dist/macos/Info.plist > $(macos_bundle)/Contents/Info.plist
-	$(path_step)/make/tools/mkicns.sh $(theme_resources)/zxtune1024.png $(macos_bundle)/Contents/Resources/zxtune
+	$(dirs.root)/make/tools/mkicns.sh $(theme_resources)/zxtune1024.png $(macos_bundle)/Contents/Resources/zxtune
 
-include $(path_step)/samples/samples.mak
-include $(path_step)/3rdparty/install.mak
+include $(dirs.root)/samples/samples.mak
+include $(dirs.root)/3rdparty/install.mak

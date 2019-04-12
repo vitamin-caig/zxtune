@@ -1,7 +1,7 @@
 binary_name := binary_test_format
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
 libraries.common = binary binary_format
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

@@ -1,5 +1,5 @@
 library_name := ui_preferences
-path_step := ../../../..
+dirs.root := ../../../..
 
 source_dirs := .
 
@@ -11,4 +11,4 @@ ts_files := ui_preferences
 
 includes.dirs += ../..
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

@@ -1,12 +1,12 @@
 library_name := sound_backends
-path_step := ../../..
+dirs.root := ../../..
 source_files = backend_impl.cpp file_backend.cpp service.cpp volume_control.cpp
 
 text_files := text/backends
 po_files := sound_backends
 
-include $(path_step)/make/default.mak
-include $(path_step)/make/features.mak
+include $(dirs.root)/make/default.mak
+include $(dirs.root)/make/features.mak
 
 define declare_native_backend
 ifdef support_$(1)
@@ -20,7 +20,7 @@ endef
 
 define declare_thirdparty_backend
 ifdef support_$(1)
-includes.dirs.$$(platform) += $$(path_step)/3rdparty
+includes.dirs.$$(platform) += $$(dirs.root)/3rdparty
 generated_headers += gates/$(1)_api.h
 generated_sources += gates/$(1)_api_dynamic.cpp
 source_files += $(1)_backend.cpp
@@ -59,5 +59,5 @@ endif
 
 source_files += null_backend.cpp wav_backend.cpp
 
-include $(path_step)/makefile.mak
-include $(path_step)/make/shgate.mak
+include $(dirs.root)/makefile.mak
+include $(dirs.root)/make/shgate.mak

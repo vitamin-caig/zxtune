@@ -1,11 +1,11 @@
 binary_name := scan_format
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
 libraries.common = binary binary_format debug io l10n_stub parameters platform strings tools 
 
 libraries.boost = filesystem system
 
-windows_libraries = advapi32
+libraries.windows = advapi32
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

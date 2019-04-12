@@ -1,8 +1,8 @@
 library_name := sidplayfp
-path_step := ../..
+dirs.root := ../..
 include defines.mak
 
-includes.dirs += $(path_step)/3rdparty/sidplayfp/sidplayfp
+includes.dirs += $(dirs.root)/3rdparty/sidplayfp/sidplayfp
 
 source_dirs = sidplayfp \
               sidplayfp/c64 \
@@ -21,7 +21,7 @@ source_dirs += builders/resid-builder \
 
 includes.files += defines.h
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak
 
 #-fdata-sections makes static class members be located in .data sections, not in .bss
 mingw.cxx.flags += -fno-data-sections

@@ -1,5 +1,5 @@
 library_name := he
-path_step := ../..
+dirs.root := ../..
 
 source_files += $(addprefix Core/,\
   bios \
@@ -16,4 +16,4 @@ defines += EMU_COMPILE EMU_LITTLE_ENDIAN
 
 source_files := $(addsuffix .c,$(source_files))
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

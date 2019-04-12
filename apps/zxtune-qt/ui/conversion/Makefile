@@ -1,5 +1,5 @@
 library_name := ui_conversion
-path_step := ../../../..
+dirs.root := ../../../..
 
 source_dirs := .
 
@@ -10,4 +10,4 @@ ts_files := ui_conversion
 
 includes.dirs += ../..
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

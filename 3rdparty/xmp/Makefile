@@ -1,6 +1,6 @@
 library_name := xmp
-path_step := ../..
-include $(path_step)/make/default.mak
+dirs.root := ../..
+include $(dirs.root)/make/default.mak
 
 includes.dirs += include src
 
@@ -59,4 +59,4 @@ source_files := $(addsuffix .c,$(source_files))
 defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS DECRUNCH_MAX=0 NO_PROWIZARD NO_EXTERNALFILES PATH_MAX=1024
 defines.windows += inline=__inline _USE_MATH_DEFINES WIN32 _WINDOWS
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

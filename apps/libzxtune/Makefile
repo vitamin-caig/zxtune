@@ -1,5 +1,5 @@
 dynamic_name := zxtune
-path_step := ../..
+dirs.root := ../..
 source_dirs := src
 
 static_runtime=1
@@ -19,4 +19,4 @@ libraries.3rdparty = gme he hvl lazyusf2 lhasa mgba sidplayfp snesspc vio2sf xmp
 
 libraries.windows += oldnames
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

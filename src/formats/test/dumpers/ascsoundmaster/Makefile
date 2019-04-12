@@ -1,9 +1,9 @@
 binary_name := formats_test_asc
-path_step := ../../../../..
+dirs.root := ../../../../..
 source_dirs := .
 
 libraries.common = tools formats_chiptune binary binary_format debug strings
 
-windows_libraries := advapi32
+libraries.windows := advapi32
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

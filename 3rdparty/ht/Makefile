@@ -1,5 +1,5 @@
 library_name := ht
-path_step := ../..
+dirs.root := ../..
 
 source_files += $(addprefix Core/,\
   arm \
@@ -15,4 +15,4 @@ defines += EMU_COMPILE EMU_LITTLE_ENDIAN LSB_FIRST C68K_NO_JUMP_TABLE NO_DYNAREC
 
 source_files := $(addsuffix .c,$(source_files))
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

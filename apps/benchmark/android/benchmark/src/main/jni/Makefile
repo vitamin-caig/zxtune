@@ -1,5 +1,5 @@
 dynamic_name := benchmark
-path_step := ../../../../../../..
+dirs.root := ../../../../../../..
 source_dirs := .
 
 libraries = benchmark 
@@ -10,7 +10,7 @@ depends := apps/benchmark/core
 
 libraries.android += log
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak
 
 install_$(platform):
 	$(call copyfile_cmd,$(target),$(DESTDIR))

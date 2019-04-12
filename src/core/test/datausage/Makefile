@@ -1,5 +1,5 @@
 binary_name := core_test_datausage
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
 libraries.common = analysis \
@@ -19,6 +19,6 @@ libraries.3rdparty = asap gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp sness
 
 libraries.boost += filesystem system
 
-windows_libraries := advapi32 oldnames
+libraries.windows := advapi32 oldnames
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

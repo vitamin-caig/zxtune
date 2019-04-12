@@ -1,6 +1,6 @@
 l10n_languages := ru
 
-l10n_dir = $(path_step)/l10n
+l10n_dir = $(dirs.root)/l10n
 
 ifeq ($(host),windows)
 fix_path_cmd = $(subst /,\,$(1))

@@ -1,5 +1,5 @@
 binary_name := module_info
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
 libraries.common = analysis \
@@ -21,4 +21,4 @@ libraries.boost += filesystem system
 
 windows_libraries := advapi32
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

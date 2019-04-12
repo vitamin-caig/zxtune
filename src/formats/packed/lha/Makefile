@@ -1,8 +1,8 @@
 #stub library for lha functionality without formats_packed linking
 library_name := formats_packed_lha
-path_step := ../../../..
+dirs.root := ../../../..
 source_files := ../lha_file.cpp ../container.cpp
 
-include $(path_step)/make/default.mak
+include $(dirs.root)/make/default.mak
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

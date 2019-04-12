@@ -1,5 +1,5 @@
 dynamic_name := zxtune
-path_step := ../../../../../..
+dirs.root := ../../../../../..
 
 source_dirs := .
 
@@ -15,7 +15,7 @@ libraries.common = analysis \
 
 libraries.3rdparty = asap gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar vio2sf xmp z80ex zlib
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak
 
 zxtune.h: ../java/app/zxtune/ZXTune.java
 	javah -classpath ../java -o $@ app.zxtune.ZXTune

@@ -1,6 +1,6 @@
 library_name := z80ex
-path_step := ../..
-include $(path_step)/make/default.mak
+dirs.root := ../..
+include $(dirs.root)/make/default.mak
 
 API_REVISION=1
 VERSION_MAJOR=1
@@ -16,4 +16,4 @@ defines += Z80EX_OPSTEP_FAST_AND_ROUGH\
 includes.dirs = . include
 source_files := z80ex.c
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

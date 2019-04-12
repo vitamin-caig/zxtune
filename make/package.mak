@@ -1,12 +1,12 @@
 #package generating
-include $(path_step)/make/version.mak
+include $(dirs.root)/make/version.mak
 
 pkg_version := $(root.version)$(if $(debug),_dbg,)
 
 pkg_name ?= $(binary_name)
 packaging ?= any
 pkg_tagged_name := $(pkg_name)_$(packaging)$(if $(distro),_$(distro),)
-pkg_dir := $(path_step)/Builds/$(pkg_version)/$(platform)$(if $(arch),/$(arch),)
+pkg_dir := $(dirs.root)/Builds/$(pkg_version)/$(platform)$(if $(arch),/$(arch),)
 pkg_debug := $(pkg_dir)/$(pkg_tagged_name)_debug.$(pkg_suffix)
 
 pkg_debug_root = $(pkg_dir)/debug
@@ -36,4 +36,4 @@ endif
 $(pkg_dir) $(pkg_debug_root):
 	$(call makedir_cmd,$@)
 
-include $(path_step)/make/package_$(packaging).mak
+include $(dirs.root)/make/package_$(packaging).mak

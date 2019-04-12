@@ -1,7 +1,7 @@
 binary_name := platform_version_test
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
 libraries.common := platform_version
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

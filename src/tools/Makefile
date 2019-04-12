@@ -1,7 +1,7 @@
 library_name := tools
-path_step := ../..
+dirs.root := ../..
 source_dirs := src
 
 text_files := text/tools
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

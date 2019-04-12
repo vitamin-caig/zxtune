@@ -1,5 +1,5 @@
 library_name := binary_compression
-path_step := ../../..
+dirs.root := ../../..
 source_dirs := src
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

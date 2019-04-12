@@ -1,9 +1,9 @@
 library_name := formats_archived_multitrack
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs = .
 
-include $(path_step)/make/default.mak
+include $(dirs.root)/make/default.mak
 
 text_files := ../../text/archived
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

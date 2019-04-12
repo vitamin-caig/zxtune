@@ -1,10 +1,10 @@
 library_name := module_players
-path_step := ../../..
+dirs.root := ../../..
 source_dirs := . aym dac saa tfm xsf
 
 po_files := module_players
 
-include $(path_step)/3rdparty/mgba/defines.mak
+include $(dirs.root)/3rdparty/mgba/defines.mak
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak
 

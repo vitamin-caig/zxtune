@@ -11,9 +11,9 @@ export tools.cc := clang-6.0
 export tools.ld := clang++-6.0
 
 source_dirs := .
-path_step := ../../..
+dirs.root := ../../..
 
 libraries.common := binary binary_format binary_compression debug formats_packed formats_chiptune strings tools
 libraries.3rdparty := lhasa zlib
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

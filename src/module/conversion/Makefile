@@ -1,7 +1,7 @@
 library_name := module_conversion
-path_step := ../../..
+dirs.root := ../../..
 source_dirs := .
 
 po_files := module_conversion
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

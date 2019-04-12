@@ -1,5 +1,5 @@
 library_name := core_plugins_archives_lite
-path_step := ../../../../..
+dirs.root := ../../../../..
 source_dirs := . ..
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

@@ -1,5 +1,5 @@
 library_name := ui_desktop
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 ui_files := mainwindow 
 
@@ -7,4 +7,4 @@ ts_files := ui_desktop
 
 includes.dirs = ../..
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

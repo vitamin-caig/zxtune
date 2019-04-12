@@ -1,7 +1,7 @@
 library_name := formats_chiptune
-path_step := ../../..
+dirs.root := ../../..
 source_dirs := . aym digital emulation fm multidevice multitrack music saa
 
 text_files := ../text/chiptune
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

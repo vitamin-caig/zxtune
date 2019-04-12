@@ -1,5 +1,5 @@
 library_name := ui_common
-path_step := ../../..
+dirs.root := ../../..
 
 source_dirs := .
 
@@ -27,4 +27,4 @@ ts_files := ui_common
 
 includes.dirs += ..
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

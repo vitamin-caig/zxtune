@@ -1,13 +1,13 @@
 library_name := io
-path_step := ../..
+dirs.root := ../..
 source_dirs := impl
 source_files = providers/enumerator.cpp
 
 text_files := text/io
 po_files := io
 
-include $(path_step)/make/default.mak
-include $(path_step)/make/features.mak
+include $(dirs.root)/make/default.mak
+include $(dirs.root)/make/features.mak
 
 #curl
 ifdef support_curl
@@ -20,5 +20,5 @@ endif
 
 source_files += providers/file_provider.cpp
 
-include $(path_step)/makefile.mak
-include $(path_step)/make/shgate.mak
+include $(dirs.root)/makefile.mak
+include $(dirs.root)/make/shgate.mak

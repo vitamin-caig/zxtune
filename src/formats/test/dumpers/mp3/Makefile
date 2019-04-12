@@ -1,9 +1,9 @@
 binary_name := formats_test_mp3
-path_step := ../../../../..
+dirs.root := ../../../../..
 source_dirs := .
 
 libraries.common = binary binary_format debug formats_chiptune strings tools
 
-windows_libraries := advapi32
+libraries.windows := advapi32
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

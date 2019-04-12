@@ -1,12 +1,12 @@
 binary_name := l10n_test_boost_locale
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
-include $(path_step)/make/default.mak
+include $(dirs.root)/make/default.mak
 
 libraries.common = debug l10n tools
 
 libraries.boost := locale
-mingw_libraries := iconv
+libraries.mingw := iconv
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

@@ -1,8 +1,8 @@
 library_name := platform
-path_step := ../..
+dirs.root := ../..
 source_dirs := src
 
-include $(path_step)/make/default.mak
+include $(dirs.root)/make/default.mak
 
 ifneq ($(findstring $(platform),windows mingw),)
 source_dirs += src/windows
@@ -15,4 +15,4 @@ endif
 po_source_dirs = src src/windows src/linux
 po_files := platform
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

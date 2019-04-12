@@ -1,5 +1,5 @@
 #apply optional local settings
--include $(path_step)/variables.mak
+-include $(dirs.root)/variables.mak
 
 ifndef platform
 $(error Required to define 'platform=windows/mingw/linux/etc')

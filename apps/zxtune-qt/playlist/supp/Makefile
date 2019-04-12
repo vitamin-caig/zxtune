@@ -1,5 +1,5 @@
 library_name := playlist_supp
-path_step := ../../../..
+dirs.root := ../../../..
 
 source_dirs := .
 
@@ -7,4 +7,4 @@ moc_files := container controller operations model scanner
 
 includes.dirs += ../..
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

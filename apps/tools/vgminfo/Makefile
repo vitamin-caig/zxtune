@@ -1,5 +1,5 @@
 binary_name := vgminfo
-path_step := ../../..
+dirs.root := ../../..
 source_files := main.cpp
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

@@ -85,7 +85,7 @@ analyze:
 	@echo "Analyzing $(target)" > coverage.log
 	@for i in $(SOURCES);do gcov -lp -o $(objects_dir) $$i >> coverage.log; done
 	@echo `pwd`
-	@perl $(path_step)/make/compilers/gcc_coverage.pl
+	@perl $(dirs.root)/make/compilers/gcc_coverage.pl
 
 analyze_deps: $(depends)
 
@@ -102,9 +102,9 @@ $(target).nm.out: $(target)
 $(target).objdump.out: $(target)
 	$(tools.objdump) -h $^.pdb > $@
 
-tools_dir = $(abspath $(path_step)/make/tools)
+tools_dir = $(abspath $(dirs.root)/make/tools)
 bloat_dir = $(tools_dir)/bloat
-call_bloat_cmd = $(tools.python) $(bloat_dir)/bloat.py --nm-output $(target).nm.out --objdump-output $(target).objdump.out --strip-prefix $(abspath $(path_step))/
+call_bloat_cmd = $(tools.python) $(bloat_dir)/bloat.py --nm-output $(target).nm.out --objdump-output $(target).objdump.out --strip-prefix $(abspath $(dirs.root))/
 
 topsymbols: $(target).nm.out $(target).objdump.out
 	$(call_bloat_cmd) dump > $(target).topsymbols

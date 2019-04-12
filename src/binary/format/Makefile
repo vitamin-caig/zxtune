@@ -1,5 +1,5 @@
 library_name := binary_format
-path_step := ../../..
+dirs.root := ../../..
 source_dirs := .
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

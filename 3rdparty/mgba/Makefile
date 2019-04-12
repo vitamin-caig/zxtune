@@ -1,5 +1,5 @@
 library_name := mgba
-path_step := ../..
+dirs.root := ../..
 include defines.mak
 
 source_files += $(addprefix arm/,arm decoder-arm decoder-thumb isa-arm isa-thumb) \
@@ -17,4 +17,4 @@ source_files := $(addprefix src/,$(addsuffix .c,$(source_files)))
 
 includes.files += 3rdparty/mgba/defines.h
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

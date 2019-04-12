@@ -1,6 +1,6 @@
 library_name := gme
-path_step := ../..
-include $(path_step)/make/default.mak
+dirs.root := ../..
+include $(dirs.root)/make/default.mak
 
 includes.dirs += .
 #common
@@ -57,4 +57,4 @@ source_files += $(addprefix gme/,Kss_Emu.cpp Kss_Core.cpp Kss_Cpu.cpp Kss_Scc_Ap
                   Z80_Cpu.cpp Opl_Apu.cpp fmopl.cpp \
                  )
  
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

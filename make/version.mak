@@ -1,4 +1,4 @@
--include $(path_step)/version.mak
+-include $(dirs.root)/version.mak
 
 ifndef root.version
 #for git

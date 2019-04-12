@@ -1,12 +1,12 @@
 library_name := core_plugins_players
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := . asap ay dac gme multi music saa sid tfm xmp xsf
 
 po_files := core_players
 
-include $(path_step)/3rdparty/sidplayfp/defines.mak
+include $(dirs.root)/3rdparty/sidplayfp/defines.mak
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak
 
 ifdef tools.python
 sid/songlengths_db.inc: sid/Songlengths.txt sid/mksonglength.py

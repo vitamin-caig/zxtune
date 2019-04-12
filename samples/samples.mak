@@ -1,4 +1,4 @@
-samples_path := $(path_step)/samples/chiptunes
+samples_path := $(dirs.root)/samples/chiptunes
 
 samples_ay38910 := \
 	as0/Samba.as0 \
@@ -149,4 +149,4 @@ install_samples_huc6270:
 	$(call install_samples_cmd,huc6270)
 
 install_samples_playlist: 
-	$(call copyfile_cmd,$(path_step)/samples/samples.xspf,$(DESTDIR))
+	$(call copyfile_cmd,$(dirs.root)/samples/samples.xspf,$(DESTDIR))

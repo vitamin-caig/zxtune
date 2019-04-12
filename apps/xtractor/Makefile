@@ -1,5 +1,5 @@
 binary_name := xtractor
-path_step := ../..
+dirs.root := ../..
 source_dirs := .
 
 source_files.windows := xtractor.rc
@@ -21,8 +21,8 @@ libraries.3rdparty = lhasa lzma unrar zlib
 libraries.boost = filesystem program_options system
 libraries.windows += advapi32 oldnames shell32
 
-include $(path_step)/makefile.mak
-include $(path_step)/make/package.mak
+include $(dirs.root)/makefile.mak
+include $(dirs.root)/make/package.mak
 
 install_linux: install_linux_binary
 
@@ -34,4 +34,4 @@ install_windows: install_mingw install_runtime
 install_mingw:
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 
-include $(path_step)/3rdparty/install.mak
+include $(dirs.root)/3rdparty/install.mak

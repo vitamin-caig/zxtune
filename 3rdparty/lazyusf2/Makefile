@@ -1,5 +1,5 @@
 library_name := lazyusf2
-path_step := ../..
+dirs.root := ../..
 
 source_files += ai/ai_controller \
                 api/callbacks \
@@ -26,4 +26,4 @@ endif
 
 source_files := $(addsuffix .c,$(source_files))
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak
