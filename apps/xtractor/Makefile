@@ -34,9 +34,4 @@ install_windows: install_mingw install_runtime
 install_mingw:
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 
-dingux_dir = local/apps/$(binary_name)
-
-install_dingux:
-	install -D $(target) $(DESTDIR)/$(dingux_dir)/$(notdir $(target))
-
 include $(path_step)/3rdparty/install.mak

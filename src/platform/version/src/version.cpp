@@ -52,11 +52,7 @@ namespace Platform
       const String os = FromStdString(Details::OS);
       const String toolset = FromStdString(Details::TOOLSET);
       //some business-logic
-      if (os == "linux" && GetBuildArchitecture() == "mipsel")
-      {
-        return FromStdString("dingux");
-      }
-      else if (os == "windows" && toolset == "mingw")
+      if (os == "windows" && toolset == "mingw")
       {
         return toolset;
       }

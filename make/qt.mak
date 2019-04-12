@@ -39,7 +39,6 @@ libraries.mingw += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi
 darwin.ld.flags += -framework Carbon -framework SystemConfiguration
 ifneq ($($(platform).$(arch).qt.version),)
 libraries.linux += freetype Xext Xrender Xrandr Xfixes X11 fontconfig
-libraries.dingux += png
 endif
 endif
 

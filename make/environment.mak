@@ -47,14 +47,6 @@ android.mips.execprefix = $(android.mips.toolchain)/bin/mipsel-linux-android-
 android.mips.boost.version = $(android.boost.version)
 android.mips.cxx.flags = -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers
 
-#dingux
-dingux.mipsel.toolchain = $(toolchains.root)/mipsel-linux-uclibc
-dingux.mipsel.execprefix = $(dingux.mipsel.toolchain)/usr/bin/mipsel-linux-
-dingux.mipsel.boost.version = 1.49.0
-dingux.mipsel.qt.version = 4.7.1
-dingux.mipsel.cxx.flags = -mips32
-defines.dingux.mipsel += 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)' 'BOOST_FILESYSTEM_VERSION=2' NO_DEBUG_LOGS NO_L10N
-
 #linux.i686
 linux.i686.boost.version = 1.58.0
 linux.i686.boost.libs.model = -mt
