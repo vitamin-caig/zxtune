@@ -37,19 +37,22 @@ public class BrowserController {
   BreadCrumbsView position;
   ProgressBar progress;
   ListView listing;
+  VfsDir currentDir = null;
 
   public BrowserController(Fragment fragment) {
     this.loaderManager = fragment.getLoaderManager();
     this.state = new BrowserState(Preferences.getDefaultSharedPreferences(fragment.getActivity()));
   }
-  
+
+  // onViewCreated
   public final void setViews(BreadCrumbsView position, ProgressBar progress, ListView listing) {
     this.position = position;
     this.progress = progress;
     this.listing = listing;
     listing.setAdapter(new BrowserViewAdapter());
   }
-  
+
+  // onDestroyView
   public final void resetViews() {
     final Loader<?> loader = loaderManager.getLoader(LOADER_ID);
     if (loader instanceof SearchingLoader) {
@@ -60,13 +63,15 @@ public class BrowserController {
       ArchiveLoaderCallback.detachLoader((ArchiveLoader) loader);
     }
   }
-  
+
+  // onViewCreated
   public final void loadState() {
     if (!reloadCurrentState()) {
       loadCurrentDir();
     }
   }
-  
+
+  // on search query submit
   public final void search(String query) {
     try {
       final VfsDir currentDir = getCurrentDir();
@@ -102,6 +107,7 @@ public class BrowserController {
     return loader instanceof SearchingLoader;
   }
 
+  // on click on root
   public final void browseRoot() {
     try {
       browseDir(Vfs.getRoot());
@@ -110,6 +116,7 @@ public class BrowserController {
     }
   }
 
+  // on click
   public final void browseDir(VfsDir dir) {
     if (dir != null) {
       setCurrentDir(dir);
@@ -124,32 +131,21 @@ public class BrowserController {
   }
   
   public final void moveToParent() {
-    try {
-      final VfsDir root = Vfs.getRoot();
-      final VfsDir curDir = getCurrentDir();
-      if (curDir != root) {
-        final VfsDir parent = curDir != null ? (VfsDir) curDir.getParent() : null;
-        setCurrentDir(parent != null ? parent : root);
-      }
-    } catch (Exception e) {
-      Log.w(TAG, e, "Failed to move up");
-      showError(e);
+    final VfsDir parent = currentDir != null ? (VfsDir) currentDir.getParent() : null;
+    if (parent != null) {
+      setCurrentDir(parent);
+    } else {
+      browseRoot();
     }
   }
-  
+
+  // onDestroyView
   public final void storeCurrentViewPosition() {
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
   }
 
   public final void browseArchive(VfsFile file, Runnable playCmd) {
-    final VfsObject resolved = VfsArchive.browseCached(file);
-    if (resolved == null) {
-      loadArchive(file, playCmd);
-    } else if (resolved instanceof VfsDir) {
-      browseDir((VfsDir) resolved);
-    } else if (resolved instanceof VfsFile) {
-      playCmd.run();
-    }
+    loadArchive(file, playCmd);
   }
 
   private boolean reloadCurrentState() {
@@ -167,7 +163,8 @@ public class BrowserController {
     }
     return true;
   }
-  
+
+  // on cancel search
   public final void loadCurrentDir() {
     try {
       setDirectory(getCurrentDir());
@@ -179,6 +176,9 @@ public class BrowserController {
 
   @Nullable
   private VfsDir getCurrentDir() throws IOException {
+    if (currentDir != null) {
+      return currentDir;
+    }
     final VfsObject obj = VfsArchive.resolve(state.getCurrentPath());
     if (obj instanceof VfsDir) {
       return (VfsDir) obj;
@@ -186,8 +186,9 @@ public class BrowserController {
       return null;
     }
   }
-  
+
   private void setDirectory(@Nullable VfsDir dir) {
+    currentDir = dir;
     position.setDir(dir);
     loadListing(dir, state.getCurrentViewPosition());
   }

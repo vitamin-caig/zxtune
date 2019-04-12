@@ -16,7 +16,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.AsyncTaskLoader;
 import app.zxtune.Log;
 import app.zxtune.fs.VfsArchive;
+import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsObject;
 
 class ArchiveLoader extends AsyncTaskLoader<Object> {
   
@@ -41,7 +43,12 @@ class ArchiveLoader extends AsyncTaskLoader<Object> {
   @Override
   @Nullable
   public Object loadInBackground() {
-    Log.d(TAG, "Try to browse file as archive");
-    return VfsArchive.browse(file);
+    final VfsObject resolved = VfsArchive.browseCached(file);
+    if (resolved == null) {
+      Log.d(TAG, "Try to browse file as archive");
+      return VfsArchive.browse(file);
+    } else {
+      return resolved;
+    }
   }
 }
