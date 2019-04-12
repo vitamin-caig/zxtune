@@ -115,11 +115,11 @@ class StatusCallback extends CallbackStub {
     try {
       final Resources resources = MainApplication.getInstance().getResources();
       final int id = getLocationIconResource(location);
-      final Drawable drawable = ResourcesCompat.getDrawableForDensity(resources, id, 360/*XXHDPI*/, null);
+      final Drawable drawable = ResourcesCompat.getDrawableForDensity(resources, id, 320/*XHDPI*/, null);
       if (drawable instanceof BitmapDrawable) {
         return ((BitmapDrawable) drawable).getBitmap();
       } else {
-        final Bitmap result = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888);
+        final Bitmap result = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
         final Canvas canvas = new Canvas(result);
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         drawable.draw(canvas);
