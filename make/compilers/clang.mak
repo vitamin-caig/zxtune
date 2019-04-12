@@ -70,7 +70,7 @@ link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
         -L$(libraries.dir) $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP) \
         $(addprefix -L,$(libraries.dirs.$(platform)))\
         $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $(libraries.$(platform)))) $(LINKER_END_GROUP)\
-	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
+	$(if $(libraries.dynamic),-L$(output_dir) $(addprefix -l,$(libraries.dynamic)),)
 
 postlink_cmd = $(tools.strip) $@ && touch $@.pdb
 

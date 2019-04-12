@@ -64,7 +64,8 @@ build_lib_cmd = $(AR) $(ARFLAGS) /OUT:$2 $1
 #ignore some warnings for Qt
 link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) $(RESOURCES) \
         /LIBPATH:$(libraries.dir) $(addsuffix .lib,$(libraries)) \
-        $(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\
+        $(if $(libraries.dynamic),/LIBPATH:$(output_dir) \
+          $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(libraries.dynamic))) $(addsuffix .lib,$(libraries.dynamic)),)\
         $(addprefix /LIBPATH:,$(libraries.dirs.$(platform)))\
         $(addsuffix .lib,$(sort $(libraries.$(platform))))\
         /MANIFEST:EMBED\
