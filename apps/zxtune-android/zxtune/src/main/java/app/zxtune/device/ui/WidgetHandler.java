@@ -16,7 +16,7 @@ import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.view.View;
+import android.text.TextUtils;
 import android.widget.RemoteViews;
 import app.zxtune.MainActivity;
 import app.zxtune.R;
@@ -46,16 +46,13 @@ public class WidgetHandler extends AppWidgetProvider {
 
   private static RemoteViews createView(Context context) {
     final RemoteViews widgetView = new RemoteViews(context.getPackageName(), R.layout.widget);
-    widgetView.setOnClickPendingIntent(R.id.widget_art, MainActivity.createPendingIntent(context));
+    widgetView.setOnClickPendingIntent(R.id.widget, MainActivity.createPendingIntent(context));
     widgetView.setOnClickPendingIntent(R.id.widget_ctrl_prev, MediaButtonReceiver.buildMediaButtonPendingIntent(context,
         PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_play, MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_PLAY));
-    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_pause,
-        MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP));
+    widgetView.setOnClickPendingIntent(R.id.widget_ctrl_play_pause,
+        MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_PLAY_PAUSE));
     widgetView.setOnClickPendingIntent(R.id.widget_ctrl_next,
         MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_SKIP_TO_NEXT));
-
-    widgetView.setViewVisibility(R.id.widget_ctrl_pause, View.GONE);
 
     return widgetView;
   }
@@ -76,9 +73,7 @@ public class WidgetHandler extends AppWidgetProvider {
         return;
       }
       final boolean isPlaying = state.getState() == PlaybackStateCompat.STATE_PLAYING;
-      views.setViewVisibility(R.id.widget_ctrl_play, isPlaying ? View.GONE : View.VISIBLE);
-      views.setViewVisibility(R.id.widget_ctrl_pause, isPlaying ? View.VISIBLE : View.GONE);
-
+      views.setImageViewResource(R.id.widget_ctrl_play_pause, isPlaying ? R.drawable.ic_pause : R.drawable.ic_play);
       updateView();
     }
 
@@ -86,8 +81,6 @@ public class WidgetHandler extends AppWidgetProvider {
     public void onMetadataChanged(MediaMetadataCompat metadata) {
       final MediaDescriptionCompat description = metadata.getDescription();
       views.setTextViewText(R.id.widget_title, description.getTitle());
-      views.setTextViewText(R.id.widget_subtitle, description.getSubtitle());
-      views.setImageViewBitmap(R.id.widget_art, description.getIconBitmap());
 
       updateView();
     }

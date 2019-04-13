@@ -18,7 +18,7 @@
   <style name="Button" parent="android:style/Widget.DeviceDefault.Button.Borderless">
     <item name="android:layout_height">match_parent</item>
     <item name="android:layout_width">wrap_content</item>
-    <item name="android:minWidth">?attr/actionBarSize</item>
+    <item name="android:minWidth">32dp</item>
   </style>
   <style name="Button.Breadcrumbs">
     <item name="android:drawableRight">@drawable/breadcrumbs_delimiter</item>
