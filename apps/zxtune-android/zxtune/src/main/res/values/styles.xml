@@ -23,6 +23,7 @@
   <style name="Button.Breadcrumbs">
     <item name="android:drawableRight">@drawable/breadcrumbs_delimiter</item>
     <item name="android:drawablePadding">1dp</item>
+    <item name="android:padding">1dp</item>
   </style>
   <!-- buttons already has spacing_half margins -->
   <style name="block_buttons" parent="block">
