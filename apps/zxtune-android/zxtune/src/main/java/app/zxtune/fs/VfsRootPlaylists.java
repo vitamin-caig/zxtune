@@ -92,7 +92,12 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
 
     @Override
     public ByteBuffer getContent() throws IOException {
-      throw new IOException("Should not be called");
+      final VfsObject obj = Vfs.resolve(uri);
+      if (obj instanceof VfsFile) {
+        return ((VfsFile) obj).getContent();
+      } else {
+        throw new IOException("Not a file " + uri);
+      }
     }
   }
 }

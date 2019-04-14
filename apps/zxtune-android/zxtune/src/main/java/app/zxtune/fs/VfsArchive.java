@@ -53,6 +53,10 @@ public final class VfsArchive {
 
   @Nullable
   private VfsObject browseCachedFile(VfsFile file) {
+    final VfsDir asPlaylist = VfsPlaylistDir.resolveAsPlaylist(file);
+    if (asPlaylist != null) {
+      return asPlaylist;
+    }
     final Uri uri = file.getUri();
     final Integer modulesInArchive = getModulesInArchive(uri);
     if (modulesInArchive == null) {
@@ -95,6 +99,10 @@ public final class VfsArchive {
   }
 
   private VfsObject browseFile(VfsFile file) {
+    final VfsDir asPlaylist = VfsPlaylistDir.resolveAsPlaylist(file);
+    if (asPlaylist != null) {
+      return asPlaylist;
+    }
     final Uri uri = file.getUri();
     final Uri newUri = resolver.insert(Query.archiveUriFor(uri), new ContentValues());
     if (newUri == null) {

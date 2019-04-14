@@ -52,7 +52,7 @@ public final class AylIterator {
     */
   }
   
-  private static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
+  public static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
     final InputStream stream = XspfIterator.newInputStream(buf);
     final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
     /*final Properties props = */new Properties(reader.readLine());
