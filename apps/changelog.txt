@@ -5,6 +5,14 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4500 from 15.04.2019
+
+[*] Fixed AHX/HVL playback without looping
+[+] zxtune-android: playlist files are shown as folders on click
+[*] zxtune-android: fixed Track menu
+[*] zxtune-android: reworked widget
+[*] zxtune-android: fixed found and reported crashes and hangups
+
 --- Rev4440 from 02.04.2019
 
 [*] Fixed ProSoundMaker (PSM) playback and detection
@@ -13,7 +21,7 @@ Annotation:
 [*] zxtune-android: improved session storing/restoring
 [-] zxtune-android: temporarily removed tracks' sending functionality
 [*] zxtune-android: fixed ringtone creating
-[*] zxtune-android: fixed found and reporting crashes and hangups
+[*] zxtune-android: fixed found and reported crashes and hangups
 
 --- Rev4380 from 25.02.2019
 
