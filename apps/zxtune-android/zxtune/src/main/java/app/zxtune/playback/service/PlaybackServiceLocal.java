@@ -13,8 +13,8 @@ import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
-import app.zxtune.ZXTune;
 import app.zxtune.core.Properties;
+import app.zxtune.core.jni.GlobalOptions;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
 import app.zxtune.playback.*;
 import app.zxtune.playback.stubs.IteratorStub;
@@ -387,14 +387,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public TrackMode getTrackMode() {
-      final long val = ZXTune.GlobalOptions.instance().getProperty(Properties.Sound.LOOPED, 0);
+      final long val = GlobalOptions.instance().getProperty(Properties.Sound.LOOPED, 0);
       return val != 0 ? TrackMode.LOOPED : TrackMode.REGULAR;
     }
 
     @Override
     public void setTrackMode(TrackMode mode) {
       final long val = mode == TrackMode.LOOPED ? 1 : 0;
-      ZXTune.GlobalOptions.instance().setProperty(Properties.Sound.LOOPED, val);
+      GlobalOptions.instance().setProperty(Properties.Sound.LOOPED, val);
       saveProperty(Properties.Sound.LOOPED, val);
     }
 

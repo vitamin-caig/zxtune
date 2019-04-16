@@ -14,43 +14,8 @@ import java.util.ArrayList;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
-import app.zxtune.core.PropertiesContainer;
 
 public final class ZXTune {
-
-  public static class GlobalOptions implements PropertiesContainer {
-
-    private GlobalOptions() {
-    }
-
-    @Override
-    public void setProperty(String name, long value) {
-      GlobalOptions_SetProperty(name, value);
-    }
-
-    @Override
-    public void setProperty(String name, String value) {
-      GlobalOptions_SetProperty(name, value);
-    }
-
-    @Override
-    public long getProperty(String name, long defVal) {
-      return GlobalOptions_GetProperty(name, defVal);
-    }
-
-    @Override
-    public String getProperty(String name, String defVal) {
-      return GlobalOptions_GetProperty(name, defVal);
-    }
-
-    public static GlobalOptions instance() {
-      return Holder.INSTANCE;
-    }
-
-    private static class Holder {
-      public static final GlobalOptions INSTANCE = new GlobalOptions();
-    }
-  }
 
   /**
    * Simple data factory
@@ -266,17 +231,12 @@ public final class ZXTune {
   }
 
   static {
-    System.loadLibrary("zxtune");
+    init();
   }
 
-  // working with global options
-  private static native long GlobalOptions_GetProperty(String name, long defVal);
-
-  private static native String GlobalOptions_GetProperty(String name, String defVal);
-
-  private static native void GlobalOptions_SetProperty(String name, long value);
-
-  private static native void GlobalOptions_SetProperty(String name, String value);
+  public static final void init() {
+    System.loadLibrary("zxtune");
+  }
 
   // working with module
   private static native int Module_Create(ByteBuffer data, String subpath) throws Exception;
