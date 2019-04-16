@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
-import app.zxtune.core.Properties;
 import app.zxtune.core.PropertiesContainer;
 
 public final class ZXTune {
@@ -50,54 +49,6 @@ public final class ZXTune {
 
     private static class Holder {
       public static final GlobalOptions INSTANCE = new GlobalOptions();
-    }
-  }
-
-  public static final class Plugins {
-
-    public static final class DeviceType {
-      //ZXTune::Capabilities::Module::Device::Type
-      public static final int AY38910 = 1;
-      public static final int TURBOSOUND = 2;
-      public static final int BEEPER = 4;
-      public static final int YM2203 = 8;
-      public static final int TURBOFM = 16;
-      public static final int DAC = 32;
-      public static final int SAA1099 = 64;
-      public static final int MOS6581 = 128;
-      public static final int SPC700 = 256;
-      public static final int MULTIDEVICE = 512;
-      public static final int RP2A0X = 1024;
-      public static final int LR35902 = 2048;
-      public static final int CO12294 = 4096;
-      public static final int HUC6270 = 8192;
-    }
-
-    public static final class ContainerType {
-      //ZXTune::Capabilities::Container::Type
-      public static final int ARCHIVE = 0;
-      public static final int COMPRESSOR = 1;
-      public static final int SNAPSHOT = 2;
-      public static final int DISKIMAGE = 3;
-      public static final int DECOMPILER = 4;
-      public static final int MULTITRACK = 5;
-      public static final int SCANER = 6;
-    }
-
-    public interface Visitor {
-      void onPlayerPlugin(int devices, String id, String description);
-
-      void onContainerPlugin(int type, String id, String description);
-    }
-
-    public static void enumerate(Visitor visitor) {
-      Plugins_Enumerate(visitor);
-    }
-
-    private static native void init();
-
-    static {
-      init();
     }
   }
 
@@ -366,7 +317,4 @@ public final class ZXTune {
   private static native void Player_SetProperty(int player, String name, String val) throws Exception;
 
   private static native void Player_Close(int player);
-
-  // working with plugins
-  private static native void Plugins_Enumerate(Plugins.Visitor visitor);
 }

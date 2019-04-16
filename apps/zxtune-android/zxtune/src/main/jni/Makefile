@@ -20,6 +20,9 @@ include $(dirs.root)/makefile.mak
 zxtune.h: ../java/app/zxtune/ZXTune.java
 	javah -classpath ../java -o $@ app.zxtune.ZXTune
 
+jni_plugin.h: ../java/app/zxtune/core/jni/Plugins.java
+	javah -classpath ../java -o $@ app.zxtune.core.jni.Plugins
+
 install_$(platform):
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 
