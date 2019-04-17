@@ -15,6 +15,8 @@
 //library includes
 #include <module/holder.h>
 #include <parameters/container.h>
+//platform includes
+#include <jni.h>
 
 namespace Player
 {
@@ -38,5 +40,8 @@ namespace Player
 
   typedef ObjectsStorage<Control::Ptr> Storage;
 
-  Storage::HandleType Create(Module::Holder::Ptr module);
+  jobject Create(JNIEnv* env, Module::Holder::Ptr module);
+
+  void InitJni(JNIEnv*);
+  void CleanupJni(JNIEnv*);
 }

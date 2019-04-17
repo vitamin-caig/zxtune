@@ -10,6 +10,7 @@
 
 //local includes
 #include "module.h"
+#include "player.h"
 //platform includes
 #include <jni.h>
 
@@ -23,6 +24,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/)
   }
 
   Module::InitJni(env);
+  Player::InitJni(env);
 
   return JNI_VERSION;
 }
@@ -32,5 +34,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
   JNIEnv* env;
   vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION);
 
+  Player::CleanupJni(env);
   Module::CleanupJni(env);
 }

@@ -12,10 +12,10 @@
 #include "debug.h"
 #include "exception.h"
 #include "global_options.h"
+#include "jni_player.h"
 #include "module.h"
 #include "player.h"
 #include "properties.h"
-#include "zxtune.h"
 //common includes
 #include "contract.h"
 #include <make_ptr.h>
@@ -30,6 +30,47 @@
 
 namespace
 {
+  class NativePlayerJni
+  {
+  public:
+    static void Init(JNIEnv* env)
+    {
+      const auto tmpClass = env->FindClass("app/zxtune/core/jni/JniPlayer");
+      Class = static_cast<jclass>(env->NewGlobalRef(tmpClass));
+      Require(Class);
+      Constructor = env->GetMethodID(Class, "<init>", "(I)V");
+      Require(Constructor);
+      Handle = env->GetFieldID(Class, "handle", "I");
+      Require(Handle);
+    }
+
+    static void Cleanup(JNIEnv* env)
+    {
+      env->DeleteGlobalRef(Class);
+      Class = nullptr;
+      Handle = 0;
+    }
+
+    static Player::Storage::HandleType GetHandle(JNIEnv* env, jobject self)
+    {
+      return env->GetIntField(self, Handle);
+    }
+
+    static jobject Create(JNIEnv* env, Player::Storage::HandleType handle)
+    {
+      return env->NewObject(Class, Constructor, handle);
+    }
+
+  private:
+    static jclass Class;
+    static jmethodID Constructor;
+    static jfieldID Handle;
+  };
+
+  jclass NativePlayerJni::Class;
+  jmethodID NativePlayerJni::Constructor;
+  jfieldID NativePlayerJni::Handle;
+
   static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
   static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
   static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
@@ -266,15 +307,26 @@ namespace
 
 namespace Player
 {
-  Player::Storage::HandleType Create(Module::Holder::Ptr module)
+  jobject Create(JNIEnv* env, Module::Holder::Ptr module)
   {
     auto ctrl = CreateControl(module);
     Dbg("Player::Create(module=%p)=%p", module.get(), ctrl.get());
-    return Player::Storage::Instance().Add(std::move(ctrl));
+    const auto handle = Player::Storage::Instance().Add(std::move(ctrl));
+    return NativePlayerJni::Create(env, handle);
+  }
+
+  void InitJni(JNIEnv* env)
+  {
+    NativePlayerJni::Init(env);
+  }
+
+  void CleanupJni(JNIEnv* env)
+  {
+    NativePlayerJni::Cleanup(env);
   }
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Close
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_close
   (JNIEnv* /*env*/, jclass /*self*/, jint handle)
 {
   if (Player::Storage::Instance().Fetch(handle))
@@ -283,11 +335,12 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Close
   }
 }
 
-JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jshortArray buffer)
+JNIEXPORT jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render
+  (JNIEnv* env, jobject self, jshortArray buffer)
 {
   return Jni::Call(env, [=] ()
   {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     typedef AutoArray<jshortArray, int16_t> ArrayType;
     ArrayType buf(env, buffer);
@@ -296,11 +349,12 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jintArray bands, jintArray levels)
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze
+  (JNIEnv* env, jobject self, jintArray bands, jintArray levels)
 {
   return Jni::Call(env, [=] ()
   {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     typedef AutoArray<jintArray, uint32_t> ArrayType;
     ArrayType rawBands(env, bands);
@@ -316,25 +370,27 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPosition
-  (JNIEnv* env, jclass /*self*/, jint playerHandle)
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPosition
+  (JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=] ()
   {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     return Player::Storage::Instance().Get(playerHandle)->GetPosition();
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetPosition
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jint position)
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPosition
+  (JNIEnv* env, jobject self, jint position)
 {
   return Jni::Call(env, [=] ()
   {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     Player::Storage::Instance().Get(playerHandle)->Seek(position);
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPlaybackPerformance
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPlaybackPerformance
   (JNIEnv* env, jclass /*self*/, jint playerHandle)
 {
   return Jni::Call(env, [=] ()
@@ -343,11 +399,12 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPlaybackPerformance
   });
 }
 
-JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_String_2J
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jlong defVal)
+JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_lang_String_2J
+  (JNIEnv* env, jobject self, jstring propName, jlong defVal)
 {
   return Jni::Call(env, [=] ()
   {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     const auto& props= player->GetProperties();
     const Jni::PropertiesReadHelper helper(env, *props);
@@ -355,11 +412,12 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_
   });
 }
 
-JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_String_2Ljava_lang_String_2
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jstring defVal)
+JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_lang_String_2Ljava_lang_String_2
+  (JNIEnv* env, jobject self, jstring propName, jstring defVal)
 {
   return Jni::Call(env, [=] ()
   {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     const auto& props = player->GetProperties();
     const Jni::PropertiesReadHelper helper(env, *props);
@@ -367,11 +425,12 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lan
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2J
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jlong value)
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang_String_2J
+  (JNIEnv* env, jobject self, jstring propName, jlong value)
 {
   return Jni::Call(env, [=] ()
   {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     const auto& params = player->GetParameters();
     Jni::PropertiesWriteHelper helper(env, *params);
@@ -379,11 +438,12 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_S
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2Ljava_lang_String_2
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jstring value)
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang_String_2Ljava_lang_String_2
+  (JNIEnv* env, jobject self, jstring propName, jstring value)
 {
   return Jni::Call(env, [=] ()
   {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     const auto& params = player->GetParameters();
     Jni::PropertiesWriteHelper helper(env, *params);

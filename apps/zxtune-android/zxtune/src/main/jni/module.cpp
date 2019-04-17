@@ -46,7 +46,7 @@ namespace
       Handle = 0;
     }
 
-    static int GetHandle(JNIEnv* env, jobject self)
+    static Module::Storage::HandleType GetHandle(JNIEnv* env, jobject self)
     {
       return env->GetIntField(self, Handle);
     }
@@ -147,7 +147,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_NativeModule_close
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_close
   (JNIEnv* /*env*/, jclass /*self*/, jint handle)
 {
   if (Module::Storage::Instance().Fetch(handle))
@@ -166,7 +166,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Detect
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_NativeModule_getDuration
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDuration
   (JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=] ()
@@ -176,7 +176,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_NativeModule_getDuration
   });
 }
 
-JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_NativeModule_getProperty__Ljava_lang_String_2J
+JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2J
   (JNIEnv* env, jobject self, jstring propName, jlong defVal)
 {
   return Jni::Call(env, [=] ()
@@ -189,7 +189,7 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_NativeModule_getProperty__Ljava
   });
 }
 
-JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_NativeModule_getProperty__Ljava_lang_String_2Ljava_lang_String_2
+JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2Ljava_lang_String_2
   (JNIEnv* env, jobject self, jstring propName, jstring defVal)
 {
   return Jni::Call(env, [=] ()
@@ -202,18 +202,18 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_NativeModule_getProperty__Lja
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_NativeModule_createPlayerInternal
+JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_createPlayer
   (JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=] ()
   {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
     const auto& module = Module::Storage::Instance().Get(moduleHandle);
-    return Player::Create(module);
+    return Player::Create(env, module);
   });
 }
 
-JNIEXPORT jobjectArray JNICALL Java_app_zxtune_core_jni_NativeModule_getAdditionalFiles
+JNIEXPORT jobjectArray JNICALL Java_app_zxtune_core_jni_JniModule_getAdditionalFiles
   (JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=] ()
@@ -237,7 +237,7 @@ JNIEXPORT jobjectArray JNICALL Java_app_zxtune_core_jni_NativeModule_getAddition
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_NativeModule_resolveAdditionalFileInternal
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFileInternal
   (JNIEnv* env, jobject self, jstring fileName, jobject data)
 {
   return Jni::Call(env, [=] ()

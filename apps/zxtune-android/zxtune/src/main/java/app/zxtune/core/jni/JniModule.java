@@ -3,7 +3,6 @@ package app.zxtune.core.jni;
 import app.zxtune.ZXTune;
 import app.zxtune.core.Module;
 import app.zxtune.core.Player;
-import app.zxtune.jni.core.JniGC;
 
 import java.nio.ByteBuffer;
 
@@ -23,11 +22,7 @@ public final class JniModule implements Module {
   public native int getDuration() throws Exception;
 
   @Override
-  public Player createPlayer() throws Exception {
-    return new ZXTune.NativePlayer(createPlayerInternal());
-  }
-
-  private native int createPlayerInternal() throws Exception;
+  public native Player createPlayer() throws Exception;
 
   @Override
   public native long getProperty(String name, long defVal) throws Exception;

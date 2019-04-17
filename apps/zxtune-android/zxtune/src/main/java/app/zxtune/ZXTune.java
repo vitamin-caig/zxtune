@@ -7,8 +7,6 @@
 package app.zxtune;
 
 import app.zxtune.core.Module;
-import app.zxtune.core.Player;
-import app.zxtune.core.jni.JniGC;
 import app.zxtune.core.jni.JniModule;
 
 import java.nio.ByteBuffer;
@@ -62,56 +60,6 @@ public final class ZXTune {
     }
   }
 
-  public static final class NativePlayer implements Player {
-
-    private final int handle;
-
-    public NativePlayer(int handle) {
-      this.handle = handle;
-      JniGC.register(this, handle);
-    }
-
-    @Override
-    public boolean render(short[] result) throws Exception {
-      return Player_Render(handle, result);
-    }
-
-    @Override
-    public int analyze(int bands[], int levels[]) throws Exception {
-      return Player_Analyze(handle, bands, levels);
-    }
-
-    @Override
-    public int getPosition() throws Exception {
-      return Player_GetPosition(handle);
-    }
-
-    @Override
-    public void setPosition(int pos) throws Exception {
-      Player_SetPosition(handle, pos);
-    }
-
-    @Override
-    public long getProperty(String name, long defVal) throws Exception {
-      return Player_GetProperty(handle, name, defVal);
-    }
-
-    @Override
-    public String getProperty(String name, String defVal) throws Exception {
-      return Player_GetProperty(handle, name, defVal);
-    }
-
-    @Override
-    public void setProperty(String name, long val) throws Exception {
-      Player_SetProperty(handle, name, val);
-    }
-
-    @Override
-    public void setProperty(String name, String val) throws Exception {
-      Player_SetProperty(handle, name, val);
-    }
-  }
-
   static {
     init();
   }
@@ -124,25 +72,4 @@ public final class ZXTune {
   private static native int Module_Create(ByteBuffer data, String subpath) throws Exception;
 
   private static native void Module_Detect(ByteBuffer data, ModuleDetectCallbackNativeAdapter cb) throws Exception;
-
-  // working with player
-  private static native boolean Player_Render(int player, short[] result) throws Exception;
-
-  private static native int Player_Analyze(int player, int bands[], int levels[]) throws Exception;
-
-  private static native int Player_GetPosition(int player) throws Exception;
-
-  private static native void Player_SetPosition(int player, int pos) throws Exception;
-
-  public static native int Player_GetPlaybackPerformance(int player) throws Exception;
-
-  private static native long Player_GetProperty(int player, String name, long defVal) throws Exception;
-
-  public static native String Player_GetProperty(int player, String name, String defVal) throws Exception;
-
-  private static native void Player_SetProperty(int player, String name, long val) throws Exception;
-
-  private static native void Player_SetProperty(int player, String name, String val) throws Exception;
-
-  public static native void Player_Close(int player);
 }

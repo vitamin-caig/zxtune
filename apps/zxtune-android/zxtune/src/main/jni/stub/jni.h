@@ -28,6 +28,7 @@ struct JavaVM
 
 struct JNIEnv
 {
+  jobject NewObject(jclass, jmethodID, ...) const;
   jobject NewGlobalRef(jobject) const;
   void DeleteGlobalRef(jobject) const;
   void DeleteLocalRef(jobject) const;

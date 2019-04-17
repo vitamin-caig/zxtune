@@ -1,18 +1,17 @@
 package app.zxtune.core.jni;
 
+import android.support.annotation.Nullable;
 import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.ZXTune;
 import app.zxtune.core.Module;
-import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-//TODO: make package-private
-public class JniGC {
+class JniGC {
 
   private final ReferenceQueue<Object> deadRefs = new ReferenceQueue<>();
   private final ArrayList<HandleReference> handles = new ArrayList<>(10);
@@ -40,16 +39,16 @@ public class JniGC {
     }
   }
 
-  public static void register(Module owner, int handle) {
-    Holder.instance.register(owner, handle, true);
+  static void register(Module owner, int handle) {
+    Holder.instance.registerInternal(owner, handle, null);
   }
 
-  public static void register(Player owner, int handle) {
-    Holder.instance.register(owner, handle, false);
+  static void register(Player owner, int handle, String type) {
+    Holder.instance.registerInternal(owner, handle, type);
   }
 
-  private void register(Object owner, int handle, boolean isModule) {
-    final HandleReference ref = new HandleReference(deadRefs, owner, handle, isModule);
+  private void registerInternal(Object owner, int handle, String type) {
+    final HandleReference ref = new HandleReference(deadRefs, owner, handle, type);
     handles.add(ref);
   }
 
@@ -60,28 +59,27 @@ public class JniGC {
   private static class HandleReference extends WeakReference<Object> {
 
     private final int handle;
-    private final boolean isModule;
+    private final String playerType;
 
-    private HandleReference(ReferenceQueue<? super Object> queue, Object owner, int handle, boolean isModule) {
+    private HandleReference(ReferenceQueue<? super Object> queue, Object owner, int handle, @Nullable String playerType) {
       super(owner, queue);
       this.handle = handle;
-      this.isModule = isModule;
+      this.playerType = playerType;
     }
 
     private void destroy() {
-      if (isModule) {
-        JniModule.close(handle);
-      } else {
+      if (playerType != null) {
         sendPlayerStatistics();
-        ZXTune.Player_Close(handle);
+        JniPlayer.close(handle);
+      } else {
+        JniModule.close(handle);
       }
     }
 
     private void sendPlayerStatistics() {
       try {
-        Analytics.sendPerformanceEvent(ZXTune.Player_GetPlaybackPerformance(handle), ZXTune.Player_GetProperty(handle,
-            ModuleAttributes.TYPE, "Unknown"));
-      } catch (Exception e) {
+        Analytics.sendPerformanceEvent(JniPlayer.getPlaybackPerformance(handle), playerType);
+      } catch (Throwable e) {
         Log.w(ZXTune.class.getName(), e, "Failed to send player statistics");
       }
     }

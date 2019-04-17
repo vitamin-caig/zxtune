@@ -26,8 +26,11 @@ jni_plugin.h: ../java/app/zxtune/core/jni/Plugins.java
 jni_global_options.h: ../java/app/zxtune/core/jni/GlobalOptions.java
 	javah -classpath ../java -o $@ app.zxtune.core.jni.GlobalOptions
 
-jni_module.h: ../java/app/zxtune/core/jni/NativeModule.java
+jni_module.h: ../java/app/zxtune/core/jni/JniModule.java
 	javah -classpath ../java -o $@ app.zxtune.core.jni.JniModule
+
+jni_player.h: ../java/app/zxtune/core/jni/JniPlayer.java
+	javah -classpath ../java -o $@ app.zxtune.core.jni.JniPlayer
 
 install_$(platform):
 	$(call copyfile_cmd,$(target),$(DESTDIR))
