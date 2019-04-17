@@ -70,7 +70,7 @@ public class JniGC {
 
     private void destroy() {
       if (isModule) {
-        ZXTune.Module_Close(handle);
+        JniModule.close(handle);
       } else {
         sendPlayerStatistics();
         ZXTune.Player_Close(handle);
