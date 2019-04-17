@@ -22,6 +22,20 @@
 
 namespace Module
 {
+  class StubAnalyzer : public Analyzer
+  {
+  public:
+    SpectrumState GetState() const override
+    {
+      return SpectrumState();
+    }
+  };
+
+  Analyzer::Ptr CreateStubAnalyzer()
+  {
+    return MakePtr<StubAnalyzer>();
+  }
+
   class DevicesAnalyzer : public Analyzer
   {
   public:
@@ -30,18 +44,9 @@ namespace Module
     {
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
-      const auto& in = Delegate->GetState();
-      std::vector<ChannelState> out(in.size());
-      std::transform(in.begin(), in.end(), out.begin(), &ConvertState);
-      //required by compiler
-      return std::move(out);
-    }
-  private:
-    static ChannelState ConvertState(const Devices::ChannelState& in)
-    {
-      return {in.Band, in.Level.Raw()};
+      return Delegate->GetState();
     }
   private:
     const Devices::StateSource::Ptr Delegate;
@@ -76,23 +81,10 @@ namespace Module
       }
     }
     
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
-      static const uint_t BANDS = 96;
-      std::vector<ChannelState> result;
-      result.reserve(BANDS);
-      const auto& levels = FFT<BANDS>();
-      ChannelState res;
-      for (res.Band = 0; res.Band < BANDS; ++res.Band)
-      {
-        if (const auto rawLevel = levels[res.Band])
-        {
-          res.Level = std::min<uint_t>(100, rawLevel);
-          result.push_back(res);
-        }
-      }
       Active = true;
-      return result;
+      return FFT();
     }
   private:
     using Complex = std::complex<float>;
@@ -171,8 +163,7 @@ namespace Module
       std::array<float, WindowSize> Window;
     };
   
-    template<std::size_t Points>
-    std::array<uint_t, Points> FFT() const
+    SpectrumState FFT() const
     {
       auto cplx = Lookup::ToComplex(Input, Cursor);
       uint_t exchanges = 1;
@@ -192,10 +183,12 @@ namespace Module
         }
       }
       
-      std::array<uint_t, Points> result;
-      for (std::size_t i = 0; i < result.size(); ++i)
+      SpectrumState result;
+      for (std::size_t i = 0; i < result.Data.size(); ++i)
       {
-        result[i] = std::abs(cplx[i + 1]) / (256 * 32);
+        const uint_t LIMIT = LevelType::PRECISION;
+        const uint_t raw = std::abs(cplx[i + 1]) / (256 * 32);
+        result.Data[i] = LevelType(std::min(raw, LIMIT), LIMIT);
       }
       return result;
     }

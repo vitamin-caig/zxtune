@@ -123,18 +123,17 @@ namespace GME
       }
     }
     
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
       std::vector<voice_status_t> voices(Emu->voice_count());
       const int actual = Emu->voices_status(&voices[0], voices.size());
-      std::vector<ChannelState> result(actual);
+      SpectrumState result;
       for (int chan = 0; chan < actual; ++chan)
       {
         const voice_status_t& in = voices[chan];
         Devices::Details::AnalysisMap& analysis = GetAnalysisFor(in.frequency);
-        ChannelState& state = result[chan];
-        state.Level = in.level * 100 / voice_max_level;
-        state.Band = analysis.GetBandByPeriod(in.divider);
+        const auto band = analysis.GetBandByPeriod(in.divider);
+        result.Set(band, LevelType(in.level, int(voice_max_level)));
       }
       //required by compiler
       return std::move(result);

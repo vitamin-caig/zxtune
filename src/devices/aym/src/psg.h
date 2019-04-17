@@ -13,6 +13,8 @@
 //local includes
 #include "device.h"
 #include "volume_table.h"
+//library includes
+#include <devices/details/analysis_map.h>
 
 namespace Devices
 {
@@ -119,7 +121,7 @@ namespace AYM
       return Table.Get(Device.GetLevels());
     }
 
-    void GetState(MultiChannelState& state) const
+    void GetState(const Details::AnalysisMap& analyzer, DeviceState& state) const
     {
       const uint_t TONE_VOICES = 3;
       const LevelType COMMON_LEVEL_DELTA(1, TONE_VOICES);
@@ -148,20 +150,20 @@ namespace AYM
         if (hasTone)
         {
           const uint_t MAX_VOL = Registers::MASK_VOL;
-          const LevelType level(volReg & Registers::MASK_VOL, MAX_VOL);
-          const uint_t band = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] +
+          const uint_t period = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] +
             Regs[Registers::TONEA_L + chan * 2]);
-          state.push_back(ChannelState(band, level));
+          const LevelType level(volReg & Registers::MASK_VOL, MAX_VOL);
+          state.Set(analyzer.GetBandByPeriod(period), level);
         }
       }
       if (noiseLevel != EMPTY_LEVEL)
       {
-        state.push_back(ChannelState(GetToneN(), noiseLevel));
+        state.Set(analyzer.GetBandByPeriod(GetToneN()), noiseLevel);
       }
       if (periodicEnv && envLevel != EMPTY_LEVEL)
       {
         //periodic envelopes has 32 steps, so multiply period to 32
-        state.push_back(ChannelState(32 * GetToneE(), envLevel));
+        state.Set(analyzer.GetBandByPeriod(32 * GetToneE()), envLevel);
       }  
     }
   private:

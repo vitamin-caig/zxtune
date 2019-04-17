@@ -21,6 +21,7 @@ namespace Sound
 
 namespace Module
 {
+  Analyzer::Ptr CreateStubAnalyzer();
   Analyzer::Ptr CreateAnalyzer(Devices::StateSource::Ptr state);
   
   class SoundAnalyzer : public Analyzer

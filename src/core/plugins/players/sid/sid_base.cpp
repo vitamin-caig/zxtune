@@ -76,16 +76,15 @@ namespace Sid
       Analysis.SetClockAndDivisor(rate, 16777216);
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
       unsigned freqs[6], levels[6];
-      const unsigned count = Engine->getState(freqs, levels);
-      std::vector<ChannelState> result(count);
+      const auto count = Engine->getState(freqs, levels);
+      SpectrumState result;
       for (uint_t chan = 0; chan != count; ++chan)
       {
-        ChannelState& res = result[chan];
-        res.Band = Analysis.GetBandByScaledFrequency(freqs[chan]);
-        res.Level = levels[chan] * 100 / 15;
+        const auto band = Analysis.GetBandByScaledFrequency(freqs[chan]);
+        result.Set(band, LevelType(levels[chan], 15));
       }
       //required for compiler...
       return std::move(result);

@@ -35,20 +35,17 @@ namespace Module
   public:
     explicit MultiAnalyzer(AnalyzersArray delegates)
       : Delegates(std::move(delegates))
-      , MaxBands(4 * Delegates.size())//approx
     {
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
-      std::vector<ChannelState> result;
-      result.reserve(MaxBands);
+      SpectrumState result;
       for (const auto& delegate : Delegates)
       {
         const auto& portion = delegate->GetState();
-        std::copy(portion.begin(), portion.end(), std::back_inserter(result));
+        std::transform(portion.Data.begin(), portion.Data.end(), result.Data.begin(), result.Data.begin(), &SpectrumState::AccumulateLevel);
       }
-      MaxBands = std::max(MaxBands, result.size());
       return result;
     }
     
@@ -62,7 +59,6 @@ namespace Module
     }
   private:
     const AnalyzersArray Delegates;
-    mutable std::size_t MaxBands;
   };
  
   class MultiInformation : public Information

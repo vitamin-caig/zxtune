@@ -207,18 +207,12 @@ namespace
       StdOut << std::flush;
     }
 
-    void UpdateAnalyzer(const std::vector<Module::Analyzer::ChannelState>& inState, int_t fallspeed)
+    void UpdateAnalyzer(const Module::Analyzer::SpectrumState& inState, int_t fallspeed)
     {
-      std::transform(AnalyzerData.begin(), AnalyzerData.end(), AnalyzerData.begin(),
-        std::bind2nd(std::minus<int_t>(), fallspeed));
-      for (const auto& state : inState)
+      for (uint_t band = 0, lim = std::min(AnalyzerData.size(), inState.Data.size()); band < lim; ++band)
       {
-        if (state.Band < AnalyzerData.size())
-        {
-          AnalyzerData[state.Band] = state.Level;
-        }
+        AnalyzerData[band] = std::max(AnalyzerData[band] - fallspeed, int_t(inState.Data[band].Raw()));
       }
-      std::replace_if(AnalyzerData.begin(), AnalyzerData.end(), std::bind2nd(std::less<int_t>(), 0), 0);
     }
 
   private:

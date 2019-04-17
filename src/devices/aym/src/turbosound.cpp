@@ -63,10 +63,10 @@ namespace TurboSound
       return Sound::Sample::FastAdd(s0, s1);
     }
 
-    void GetState(MultiChannelState& state) const
+    void GetState(const Details::AnalysisMap& analyzer, DeviceState& state) const
     {
-      Chip0.GetState(state);
-      Chip1.GetState(state);
+      Chip0.GetState(analyzer, state);
+      Chip1.GetState(analyzer, state);
     }
   private:
     AYM::PSG Chip0;

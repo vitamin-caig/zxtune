@@ -159,10 +159,14 @@ namespace
     {
       const auto& result = Analyser->GetState();
       uint_t doneEntries = 0;
-      for (auto it = result.begin(), lim = result.end(); it != lim && doneEntries != maxEntries; ++it, ++doneEntries)
+      for (uint_t band = 0; band < result.Data.size() && doneEntries != maxEntries; ++band)
       {
-        bands[doneEntries] = it->Band;
-        levels[doneEntries] = it->Level;
+        if (const auto level = result.Data[band].Raw())
+        {
+          bands[doneEntries] = band;
+          levels[doneEntries] = level;
+          ++doneEntries;
+        }
       }
       return doneEntries;
     }

@@ -233,12 +233,11 @@ namespace PSF
       }
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
       //http://problemkaputt.de/psx-spx.htm#soundprocessingunitspu
       const uint_t SPU_VOICES_COUNT = 24;
-      std::vector<ChannelState> result;
-      result.reserve(SPU_VOICES_COUNT * Spus.size());
+      SpectrumState result;
       const auto iop = ::psx_get_iop_state(Emu.get());
       const auto spu = ::iop_get_spu_state(iop);
       for (const auto& trait : Spus)
@@ -251,11 +250,9 @@ namespace PSF
             const auto envVol = static_cast<int16_t>(::spu_lh(spu, voiceBase + trait.VolReg));
             if (envVol > 327)
             {
-              ChannelState state;
               //0x1000 is for 44100Hz, assume it's C-8
-              state.Band = pitch * 96 / 0x1000;
-              state.Level = uint_t(envVol) * 100 / 32768;
-              result.push_back(state);
+              const uint_t band = pitch * 96 / 0x1000;
+              result.Set(band, LevelType(envVol, 32768));
             }
           }
         }

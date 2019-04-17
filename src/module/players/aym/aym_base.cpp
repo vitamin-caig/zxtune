@@ -156,15 +156,6 @@ namespace Module
     Devices::AYM::Stamp FrameDuration;
     Sound::LoopParameters Looped;
   };
-
-  class StubAnalyzer : public Module::Analyzer
-  {
-  public:
-    std::vector<Module::Analyzer::ChannelState> GetState() const override
-    {
-      return {};
-    }
-  };
 }
 
 namespace Module
@@ -184,7 +175,7 @@ namespace Module
       }
       else
       {
-        return MakePtr<StubAnalyzer>();
+        return Module::CreateStubAnalyzer();
       }
     }
 

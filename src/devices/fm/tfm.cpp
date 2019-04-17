@@ -60,10 +60,9 @@ namespace TFM
       Helper.ConvertSamples(outRaw, outRaw + count, out);
     }
 
-    MultiChannelState GetState() const
+    DeviceState GetState() const
     {
-      MultiChannelState res;
-      res.reserve(VOICES);
+      DeviceState res;
       std::array<uint_t, FM::VOICES> attenuations;
       std::array<uint_t, FM::VOICES> periods;
       ::YM2203GetState(Chips[0].get(), &attenuations[0], &periods[0]);
