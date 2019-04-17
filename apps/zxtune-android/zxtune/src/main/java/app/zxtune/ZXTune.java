@@ -6,14 +6,11 @@
 
 package app.zxtune;
 
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 
 import app.zxtune.core.Module;
-import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
+import app.zxtune.core.jni.JniGC;
 
 public final class ZXTune {
 
@@ -64,89 +61,13 @@ public final class ZXTune {
     }
   }
 
-  private static class NativeGC {
-
-    private final ReferenceQueue<Object> deadRefs = new ReferenceQueue<>();
-    private final ArrayList<HandleReference> handles = new ArrayList<>(10);
-    private final Thread thread = new Thread("JNICleanup") {
-      @Override
-      public void run() {
-        cleanup();
-      }
-    };
-
-    private NativeGC() {
-      thread.setDaemon(true);
-      thread.start();
-    }
-
-    private void cleanup() {
-      while (true) {
-        try {
-          final HandleReference item = (HandleReference) deadRefs.remove();
-          handles.remove(item);
-          item.destroy();
-          item.clear();
-        } catch (InterruptedException e) {
-        }
-      }
-    }
-
-    static void register(Module owner, int handle) {
-      Holder.instance.register(owner, handle, true);
-    }
-
-    static void register(Player owner, int handle) {
-      Holder.instance.register(owner, handle, false);
-    }
-
-    private void register(Object owner, int handle, boolean isModule) {
-      final HandleReference ref = new HandleReference(deadRefs, owner, handle, isModule);
-      handles.add(ref);
-    }
-
-    private static class Holder {
-      private static final NativeGC instance = new NativeGC();
-    }
-
-    private static class HandleReference extends WeakReference<Object> {
-
-      private final int handle;
-      private final boolean isModule;
-
-      private HandleReference(ReferenceQueue<? super Object> queue, Object owner, int handle, boolean isModule) {
-        super(owner, queue);
-        this.handle = handle;
-        this.isModule = isModule;
-      }
-
-      private void destroy() {
-        if (isModule) {
-          Module_Close(handle);
-        } else {
-          sendPlayerStatistics();
-          Player_Close(handle);
-        }
-      }
-
-      private void sendPlayerStatistics() {
-        try {
-          Analytics.sendPerformanceEvent(Player_GetPlaybackPerformance(handle), Player_GetProperty(handle,
-              ModuleAttributes.TYPE, "Unknown"));
-        } catch (Exception e) {
-          Log.w(ZXTune.class.getName(), e, "Failed to send player statistics");
-        }
-      }
-    }
-  }
-
   private static final class NativeModule implements Module {
 
     private final int handle;
 
     NativeModule(int handle) {
       this.handle = handle;
-      NativeGC.register(this, handle);
+      JniGC.register(this, handle);
     }
 
     @Override
@@ -186,7 +107,7 @@ public final class ZXTune {
 
     NativePlayer(int handle) {
       this.handle = handle;
-      NativeGC.register(this, handle);
+      JniGC.register(this, handle);
     }
 
     @Override
@@ -255,7 +176,7 @@ public final class ZXTune {
 
   private static native void Module_ResolveAdditionalFile(int module, String name, ByteBuffer data) throws Exception;
 
-  private static native void Module_Close(int module);
+  public static native void Module_Close(int module);
 
   // working with player
   private static native boolean Player_Render(int player, short[] result) throws Exception;
@@ -266,15 +187,15 @@ public final class ZXTune {
 
   private static native void Player_SetPosition(int player, int pos) throws Exception;
 
-  private static native int Player_GetPlaybackPerformance(int player) throws Exception;
+  public  static native int Player_GetPlaybackPerformance(int player) throws Exception;
 
   private static native long Player_GetProperty(int player, String name, long defVal) throws Exception;
 
-  private static native String Player_GetProperty(int player, String name, String defVal) throws Exception;
+  public static native String Player_GetProperty(int player, String name, String defVal) throws Exception;
 
   private static native void Player_SetProperty(int player, String name, long val) throws Exception;
 
   private static native void Player_SetProperty(int player, String name, String val) throws Exception;
 
-  private static native void Player_Close(int player);
+  public static native void Player_Close(int player);
 }
