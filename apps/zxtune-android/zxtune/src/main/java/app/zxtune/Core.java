@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import app.zxtune.core.Module;
+import app.zxtune.core.ModuleDetectCallback;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
@@ -36,7 +37,7 @@ public class Core {
     }
   }
 
-  public static void detectModules(VfsFile file, ZXTune.ModuleDetectCallback callback) throws Exception {
+  public static void detectModules(VfsFile file, ModuleDetectCallback callback) throws Exception {
     final ByteBuffer content = file.getContent();
     final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), "*", content.limit());
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback, log);
@@ -48,15 +49,15 @@ public class Core {
     }
   }
 
-  private static class ModuleDetectCallbackAdapter implements ZXTune.ModuleDetectCallback {
+  private static class ModuleDetectCallbackAdapter implements ModuleDetectCallback {
 
     private final VfsFile location;
-    private final ZXTune.ModuleDetectCallback delegate;
+    private final ModuleDetectCallback delegate;
     private final Analytics.JniLog log;
     private Resolver resolver;
     private int modulesCount = 0;
 
-    ModuleDetectCallbackAdapter(VfsFile location, ZXTune.ModuleDetectCallback delegate, Analytics.JniLog log) {
+    ModuleDetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate, Analytics.JniLog log) {
       this.location = location;
       this.delegate = delegate;
       this.log = log;

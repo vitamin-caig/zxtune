@@ -7,6 +7,7 @@
 package app.zxtune;
 
 import app.zxtune.core.Module;
+import app.zxtune.core.ModuleDetectCallback;
 import app.zxtune.core.jni.JniModule;
 
 import java.nio.ByteBuffer;
@@ -22,10 +23,6 @@ public final class ZXTune {
    */
   public static Module loadModule(ByteBuffer content, String subpath) throws Exception {
     return new JniModule(Module_Create(makeDirectBuffer(content), subpath));
-  }
-
-  public interface ModuleDetectCallback {
-    void onModule(String subpath, Module obj) throws Exception;
   }
 
   static class ModuleDetectCallbackNativeAdapter {

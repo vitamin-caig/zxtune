@@ -24,9 +24,9 @@ import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.Util;
-import app.zxtune.ZXTune;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
+import app.zxtune.core.ModuleDetectCallback;
 import app.zxtune.core.Properties;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
@@ -79,7 +79,7 @@ public final class Provider extends ContentProvider {
       final AtomicInteger modulesCount = new AtomicInteger(0);
       final AtomicInteger logPeriod = new AtomicInteger(10);
       try {
-        Core.detectModules(file, new ZXTune.ModuleDetectCallback() {
+        Core.detectModules(file, new ModuleDetectCallback() {
           @Override
           public void onModule(String subpath, Module module) {
             final Identifier moduleId = new Identifier(path, subpath);

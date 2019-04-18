@@ -12,7 +12,6 @@ import android.util.LruCache;
 import app.zxtune.Core;
 import app.zxtune.Identifier;
 import app.zxtune.Log;
-import app.zxtune.ZXTune;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsArchive;
@@ -169,7 +168,7 @@ public final class Scanner {
 
   private static void analyzeRealFile(VfsFile file, final Callback cb) throws Exception {
     final Uri uri = file.getUri();
-    Core.detectModules(file, new ZXTune.ModuleDetectCallback() {
+    Core.detectModules(file, new ModuleDetectCallback() {
 
       @Override
       public void onModule(String subpath, Module obj) throws Exception {
