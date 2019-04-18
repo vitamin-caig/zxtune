@@ -11,6 +11,7 @@ import java.util.Locale;
 
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleDetectCallback;
+import app.zxtune.core.jni.JniModule;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
@@ -23,7 +24,7 @@ public class Core {
     final ByteBuffer content = file.getContent();
     final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), subpath, content.limit());
     log.action("loadModule begin");
-    final Module obj = ZXTune.loadModule(makeDirectBuffer(content), subpath);
+    final Module obj = JniModule.load(makeDirectBuffer(content), subpath);
     log.action("loadModule end");
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
@@ -42,7 +43,7 @@ public class Core {
     final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), "*", content.limit());
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback, log);
     log.action("detectModules begin");
-    ZXTune.detectModules(makeDirectBuffer(content), adapter);
+    JniModule.detect(makeDirectBuffer(content), adapter);
     log.action("detectModules end");
     if (0 == adapter.getDetectedModulesCount()) {
       Analytics.sendNoTracksFoundEvent(file.getUri());

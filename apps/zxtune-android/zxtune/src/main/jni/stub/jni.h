@@ -37,7 +37,6 @@ struct JNIEnv
   jfieldID GetFieldID(jclass, const char*, const char*);
   jclass FindClass(const char*) const;
   jclass GetObjectClass(jobject) const;
-  void CallNonvirtualVoidMethod(jobject, jclass, jmethodID, ...) const;
   void CallVoidMethod(jobject, jmethodID, ...) const;
   jint GetIntField(jobject, jfieldID) const;
 

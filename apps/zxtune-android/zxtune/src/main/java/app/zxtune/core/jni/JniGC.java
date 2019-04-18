@@ -3,7 +3,6 @@ package app.zxtune.core.jni;
 import android.support.annotation.Nullable;
 import app.zxtune.Analytics;
 import app.zxtune.Log;
-import app.zxtune.ZXTune;
 import app.zxtune.core.Module;
 import app.zxtune.core.Player;
 
@@ -80,7 +79,7 @@ class JniGC {
       try {
         Analytics.sendPerformanceEvent(JniPlayer.getPlaybackPerformance(handle), playerType);
       } catch (Throwable e) {
-        Log.w(ZXTune.class.getName(), e, "Failed to send player statistics");
+        Log.w("app.zxtune.ZXTune", e, "Failed to send player statistics");
       }
     }
   }

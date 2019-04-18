@@ -48,6 +48,7 @@ namespace
     {
       env->DeleteGlobalRef(Class);
       Class = nullptr;
+      Constructor = 0;
       Handle = 0;
     }
 

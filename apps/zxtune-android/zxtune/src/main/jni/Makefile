@@ -17,9 +17,6 @@ libraries.3rdparty = asap gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp sness
 
 include $(dirs.root)/makefile.mak
 
-zxtune.h: ../java/app/zxtune/ZXTune.java
-	javah -classpath ../java -o $@ app.zxtune.ZXTune
-
 jni_plugin.h: ../java/app/zxtune/core/jni/Plugins.java
 	javah -classpath ../java -o $@ app.zxtune.core.jni.Plugins
 

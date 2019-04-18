@@ -1,12 +1,11 @@
 package app.zxtune.core.jni;
 
-import app.zxtune.ZXTune;
 import app.zxtune.core.PropertiesContainer;
 
 public class GlobalOptions implements PropertiesContainer {
 
   private GlobalOptions() {
-    ZXTune.init();
+    System.loadLibrary("zxtune");
   }
 
   @Override

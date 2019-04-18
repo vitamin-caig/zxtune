@@ -16,7 +16,6 @@
 #include "module.h"
 #include "player.h"
 #include "properties.h"
-#include "zxtune.h"
 //common includes
 #include <contract.h>
 //library includes
@@ -35,6 +34,8 @@ namespace
       const auto tmpClass = env->FindClass("app/zxtune/core/jni/JniModule");
       Class = static_cast<jclass>(env->NewGlobalRef(tmpClass));
       Require(Class);
+      Constructor = env->GetMethodID(Class, "<init>", "(I)V");
+      Require(Constructor);
       Handle = env->GetFieldID(Class, "handle", "I");
       Require(Handle);
     }
@@ -43,6 +44,7 @@ namespace
     {
       env->DeleteGlobalRef(Class);
       Class = nullptr;
+      Constructor = 0;
       Handle = 0;
     }
 
@@ -51,22 +53,36 @@ namespace
       return env->GetIntField(self, Handle);
     }
 
+    static jobject Create(JNIEnv* env, Module::Storage::HandleType handle)
+    {
+      return env->NewObject(Class, Constructor, handle);
+    }
+
   private:
     static jclass Class;
+    static jmethodID Constructor;
     static jfieldID Handle;
   };
 
   jclass NativeModuleJni::Class;
+  jmethodID NativeModuleJni::Constructor;
   jfieldID NativeModuleJni::Handle;
+}
 
-  Module::Storage::HandleType CreateModule(Binary::Container::Ptr data, const String& subpath)
+namespace
+{
+  Module::Holder::Ptr CreateModule(Binary::Container::Ptr data, const String& subpath)
   {
     const Parameters::Accessor::Ptr options = Parameters::GlobalOptions();
-    auto module = subpath.empty()
+    return subpath.empty()
       ? Module::Open(*options, *data)
       : Module::Open(*options, data, subpath);
-    Dbg("Module::Create(data=%p, subpath=%s)=%p", data.get(), subpath, module.get());
-    return Module::Storage::Instance().Add(std::move(module));
+  }
+
+  jobject CreateJniObject(JNIEnv* env, Module::Holder::Ptr module)
+  {
+    const auto handle = Module::Storage::Instance().Add(std::move(module));
+    return NativeModuleJni::Create(env, handle);
   }
 
   class DetectCallback : public Module::DetectCallback
@@ -83,10 +99,9 @@ namespace
     void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/,
       Module::Holder::Ptr holder) const override
     {
-      const jmethodID methodId = GetMethodId();
       const Jni::TempJString subpath(Env, location->GetPath()->AsString());
-      const int handle = Module::Storage::Instance().Add(std::move(holder));
-      Env->CallNonvirtualVoidMethod(Delegate, CallbackClass, methodId, subpath.Get(), handle);
+      const auto object = CreateJniObject(Env, std::move(holder));
+      Env->CallVoidMethod(Delegate, GetMethodId(), subpath.Get(), object);
       Jni::ThrowIfError(Env);
     }
 
@@ -100,7 +115,7 @@ namespace
       if (!OnModuleMethod)
       {
         CallbackClass = Env->GetObjectClass(Delegate);
-        OnModuleMethod = Env->GetMethodID(CallbackClass, "onModule", "(Ljava/lang/String;I)V");
+        OnModuleMethod = Env->GetMethodID(CallbackClass, "onModule", "(Ljava/lang/String;Lapp/zxtune/core/Module;)V");
       }
       return OnModuleMethod;
     }
@@ -110,11 +125,6 @@ namespace
     mutable jclass CallbackClass;
     mutable jmethodID OnModuleMethod;
   };
-
-  void DetectModules(Binary::Container::Ptr data, Module::DetectCallback& cb)
-  {
-    Module::Detect(*Parameters::GlobalOptions(), std::move(data), cb);
-  }
 
   Binary::Container::Ptr CreateContainer(JNIEnv* env, jobject buffer)
   {
@@ -138,14 +148,26 @@ namespace Module
   }
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
+JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_load
   (JNIEnv* env, jclass /*self*/, jobject buffer, jstring subpath)
 {
   return Jni::Call(env, [=] ()
   {
-    return CreateModule(CreateContainer(env, buffer), Jni::MakeString(env, subpath));
+    auto module = CreateModule(CreateContainer(env, buffer), Jni::MakeString(env, subpath));
+    return CreateJniObject(env, std::move(module));
   });
 }
+
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_detect
+  (JNIEnv* env, jclass /*self*/, jobject buffer, jobject cb)
+{
+  return Jni::Call(env, [=] ()
+  {
+    DetectCallback callbackAdapter(env, cb);
+    Module::Detect(*Parameters::GlobalOptions(), CreateContainer(env, buffer), callbackAdapter);
+  });
+}
+
 
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_close
   (JNIEnv* /*env*/, jclass /*self*/, jint handle)
@@ -154,16 +176,6 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_close
   {
     Dbg("Module::Close(handle=%1%)", handle);
   }
-}
-
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Detect
-  (JNIEnv* env, jclass /*self*/, jobject buffer, jobject cb)
-{
-  return Jni::Call(env, [=] ()
-  {
-    DetectCallback callbackAdapter(env, cb);
-    DetectModules(CreateContainer(env, buffer), callbackAdapter);
-  });
 }
 
 JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDuration

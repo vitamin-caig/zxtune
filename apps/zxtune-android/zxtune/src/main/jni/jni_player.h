@@ -17,7 +17,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_close
 
 /*
  * Class:     app_zxtune_core_jni_JniPlayer
- * Method:    GetPlaybackPerformance
+ * Method:    getPlaybackPerformance
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPlaybackPerformance
