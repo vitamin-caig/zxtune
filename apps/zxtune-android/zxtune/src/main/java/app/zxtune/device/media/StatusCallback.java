@@ -11,7 +11,7 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
 import app.zxtune.R;

@@ -9,7 +9,6 @@ package app.zxtune.core;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.LruCache;
-import app.zxtune.Identifier;
 import app.zxtune.Log;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.Vfs;

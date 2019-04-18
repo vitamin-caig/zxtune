@@ -16,6 +16,7 @@ import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.widget.Toast;
+import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.Scanner;
 import app.zxtune.device.ui.Notifications;

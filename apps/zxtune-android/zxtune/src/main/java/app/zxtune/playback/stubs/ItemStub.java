@@ -12,7 +12,7 @@ package app.zxtune.playback.stubs;
 
 import android.net.Uri;
 
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Item;
 

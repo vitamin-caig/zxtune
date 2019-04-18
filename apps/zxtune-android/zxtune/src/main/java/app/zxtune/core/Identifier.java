@@ -8,7 +8,7 @@
  *
  */
 
-package app.zxtune;
+package app.zxtune.core;
 
 import android.net.Uri;
 import android.text.TextUtils;

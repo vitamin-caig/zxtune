@@ -3,7 +3,7 @@ package app.zxtune.playback;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;

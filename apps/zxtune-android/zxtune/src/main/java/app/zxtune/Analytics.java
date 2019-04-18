@@ -3,6 +3,7 @@ package app.zxtune;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.fs.VfsArchive;

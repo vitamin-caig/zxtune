@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import app.zxtune.core.Core;
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.Util;

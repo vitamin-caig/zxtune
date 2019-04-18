@@ -9,7 +9,7 @@ package app.zxtune.playlist;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;

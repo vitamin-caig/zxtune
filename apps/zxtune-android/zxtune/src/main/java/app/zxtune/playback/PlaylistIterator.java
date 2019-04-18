@@ -15,7 +15,7 @@ import android.net.Uri;
 
 import java.io.IOException;
 
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.core.Scanner;

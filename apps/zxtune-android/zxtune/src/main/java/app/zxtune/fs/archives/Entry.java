@@ -12,7 +12,7 @@ import android.support.annotation.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.TimeStamp;
 
 //POJO presentation of entries table
