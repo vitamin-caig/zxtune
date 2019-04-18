@@ -57,10 +57,10 @@ JNIEXPORT jobjectArray JNICALL Java_app_zxtune_core_jni_JniModule_getAdditionalF
 
 /*
  * Class:     app_zxtune_core_jni_JniModule
- * Method:    resolveAdditionalFileInternal
+ * Method:    resolveAdditionalFile
  * Signature: (Ljava/lang/String;Ljava/nio/ByteBuffer;)V
  */
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFileInternal
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFile
   (JNIEnv *, jobject, jstring, jobject);
 
 #ifdef __cplusplus

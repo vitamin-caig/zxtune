@@ -22,7 +22,7 @@ public final class ZXTune {
    * @return New object
    */
   public static Module loadModule(ByteBuffer content, String subpath) throws Exception {
-    return new JniModule(Module_Create(makeDirectBuffer(content), subpath));
+    return new JniModule(Module_Create(content, subpath));
   }
 
   static class ModuleDetectCallbackNativeAdapter {
@@ -39,22 +39,7 @@ public final class ZXTune {
   }
 
   public static void detectModules(ByteBuffer content, ModuleDetectCallback cb) throws Exception {
-    Module_Detect(makeDirectBuffer(content), new ModuleDetectCallbackNativeAdapter(cb));
-  }
-
-  public static ByteBuffer makeDirectBuffer(ByteBuffer content) throws Exception {
-    if (content.position() != 0) {
-      throw new Exception("Input data should have zero position");
-    }
-    if (content.isDirect()) {
-      return content;
-    } else {
-      final ByteBuffer direct = ByteBuffer.allocateDirect(content.limit());
-      direct.put(content);
-      direct.position(0);
-      content.position(0);
-      return direct;
-    }
+    Module_Detect(content, new ModuleDetectCallbackNativeAdapter(cb));
   }
 
   static {

@@ -23,7 +23,7 @@ public class Core {
     final ByteBuffer content = file.getContent();
     final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), subpath, content.limit());
     log.action("loadModule begin");
-    final Module obj = ZXTune.loadModule(content, subpath);
+    final Module obj = ZXTune.loadModule(makeDirectBuffer(content), subpath);
     log.action("loadModule end");
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
@@ -42,10 +42,25 @@ public class Core {
     final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), "*", content.limit());
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback, log);
     log.action("detectModules begin");
-    ZXTune.detectModules(content, adapter);
+    ZXTune.detectModules(makeDirectBuffer(content), adapter);
     log.action("detectModules end");
     if (0 == adapter.getDetectedModulesCount()) {
       Analytics.sendNoTracksFoundEvent(file.getUri());
+    }
+  }
+
+  private static ByteBuffer makeDirectBuffer(ByteBuffer content) throws Exception {
+    if (content.position() != 0) {
+      throw new Exception("Input data should have zero position");
+    }
+    if (content.isDirect()) {
+      return content;
+    } else {
+      final ByteBuffer direct = ByteBuffer.allocateDirect(content.limit());
+      direct.put(content);
+      direct.position(0);
+      content.position(0);
+      return direct;
     }
   }
 
@@ -129,7 +144,7 @@ public class Core {
         for (String name : files) {
           final ByteBuffer content = getFileContent(name);
           log.action("resolveAdditionalFile " + name);
-          module.resolveAdditionalFile(name, content);
+          module.resolveAdditionalFile(name, makeDirectBuffer(content));
           log.action("resolveAdditionalFile end");
         }
         return module.getAdditionalFiles();

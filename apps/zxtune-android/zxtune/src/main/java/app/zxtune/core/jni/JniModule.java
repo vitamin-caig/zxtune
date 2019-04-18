@@ -1,6 +1,5 @@
 package app.zxtune.core.jni;
 
-import app.zxtune.ZXTune;
 import app.zxtune.core.Module;
 import app.zxtune.core.Player;
 
@@ -34,9 +33,5 @@ public final class JniModule implements Module {
   public native String[] getAdditionalFiles() throws Exception;
 
   @Override
-  public void resolveAdditionalFile(String name, ByteBuffer data) throws Exception {
-    resolveAdditionalFileInternal(name, ZXTune.makeDirectBuffer(data));
-  }
-
-  private native void resolveAdditionalFileInternal(String name, ByteBuffer data) throws Exception;
+  public native void resolveAdditionalFile(String name, ByteBuffer data) throws Exception;
 }

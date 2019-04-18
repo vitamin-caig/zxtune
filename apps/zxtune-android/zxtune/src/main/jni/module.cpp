@@ -237,7 +237,7 @@ JNIEXPORT jobjectArray JNICALL Java_app_zxtune_core_jni_JniModule_getAdditionalF
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFileInternal
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFile
   (JNIEnv* env, jobject self, jstring fileName, jobject data)
 {
   return Jni::Call(env, [=] ()
