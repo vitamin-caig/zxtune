@@ -1,4 +1,4 @@
-package app.zxtune;
+package app.zxtune.core;
 
 import android.net.Uri;
 import android.support.annotation.Nullable;
@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 
-import app.zxtune.core.Module;
-import app.zxtune.core.ModuleDetectCallback;
+import app.zxtune.Analytics;
+import app.zxtune.Log;
 import app.zxtune.core.jni.JniModule;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
@@ -228,14 +228,3 @@ public class Core {
   }
 }
 
-class ResolvingException extends Exception {
-  private static final long serialVersionUID = 1L;
-
-  ResolvingException(String msg) {
-    super(msg);
-  }
-
-  ResolvingException(String msg, Throwable e) {
-    super(msg, e);
-  }
-}
