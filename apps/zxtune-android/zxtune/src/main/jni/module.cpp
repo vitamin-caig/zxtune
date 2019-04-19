@@ -75,10 +75,17 @@ namespace
 {
   Module::Holder::Ptr CreateModule(Binary::Container::Ptr data, const String& subpath)
   {
-    const auto& options = Parameters::GlobalOptions();
-    return subpath.empty()
-      ? Module::Open(options, *data)
-      : Module::Open(options, data, subpath);
+    try
+    {
+      const auto& options = Parameters::GlobalOptions();
+      return subpath.empty()
+        ? Module::Open(options, *data)
+        : Module::Open(options, data, subpath);
+    }
+    catch (const Error& e)
+    {
+      throw Jni::ResolvingException(e.GetText());
+    }
   }
 
   jobject CreateJniObject(JNIEnv* env, Module::Holder::Ptr module)

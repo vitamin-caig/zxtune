@@ -42,9 +42,9 @@ namespace Jni
     {
       return Message;
     }
-  private:
+  protected:
     const char* const Type;
-    const char* const Message;
+    const char* Message;
   };
   
   class NullPointerException : public Exception
@@ -73,6 +73,19 @@ namespace Jni
     }
   }
 
+  class ResolvingException : public Exception
+  {
+  public:
+    explicit ResolvingException(String msg)
+      : Exception("app/zxtune/core/ResolvingException")
+      , MessageStorage(std::move(msg))
+    {
+      Message = MessageStorage.c_str();
+    }
+  private:
+    const String MessageStorage;
+  };
+
   inline void Throw(JNIEnv* env, const char* clsName, const char* msg)
   {
     const auto cls = env->FindClass(clsName);
@@ -81,7 +94,7 @@ namespace Jni
   
   inline void Throw(JNIEnv* env, const char* msg)
   {
-    Throw(env, "java/lang/Exception", msg);
+    Throw(env, "app/zxtune/core/jni/JniRuntimeException", msg);
   }
   
   inline void Throw(JNIEnv* env, const Error& err)
