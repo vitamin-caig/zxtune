@@ -1,5 +1,7 @@
 package app.zxtune.core;
 
+import android.support.annotation.NonNull;
+
 /**
  * Module interface
  */
@@ -15,5 +17,6 @@ public interface Module extends PropertiesAccessor, AdditionalFiles {
    *
    * @throws Exception in case of error
    */
+  @NonNull
   Player createPlayer() throws Exception;
 }

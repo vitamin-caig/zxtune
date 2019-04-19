@@ -15,7 +15,7 @@ public final class Properties {
    */
   public static final class Sound {
 
-    public static final String PREFIX = Properties.PREFIX + "sound.";
+    static final String PREFIX = Properties.PREFIX + "sound.";
 
     /**
      * Sound frequency in Hz
@@ -37,16 +37,16 @@ public final class Properties {
   /**
    * Core properties 'namespace'
    */
-  public static final class Core {
+  static final class Core {
 
-    public static final String PREFIX = Properties.PREFIX + "core.";
+    static final String PREFIX = Properties.PREFIX + "core.";
 
     /**
      * AY/YM properties 'namespace'
      */
-    public static final class Aym {
+    static final class Aym {
 
-      public static final String PREFIX = Core.PREFIX + "aym.";
+      static final String PREFIX = Core.PREFIX + "aym.";
 
       public static final String INTERPOLATION = PREFIX + "interpolation";
     }

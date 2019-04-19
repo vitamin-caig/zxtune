@@ -13,6 +13,7 @@ import java.util.ArrayList;
 class JniGC {
 
   private final ReferenceQueue<Object> deadRefs = new ReferenceQueue<>();
+  @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
   private final ArrayList<HandleReference> handles = new ArrayList<>(10);
   private final Thread thread = new Thread("JNICleanup") {
     @Override

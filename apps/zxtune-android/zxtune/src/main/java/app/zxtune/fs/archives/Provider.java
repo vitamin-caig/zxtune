@@ -81,7 +81,7 @@ public final class Provider extends ContentProvider {
       try {
         Core.detectModules(file, new ModuleDetectCallback() {
           @Override
-          public void onModule(String subpath, Module module) {
+          public void onModule(@NonNull String subpath, @NonNull Module module) {
             final Identifier moduleId = new Identifier(path, subpath);
             final DirEntry dirEntry = DirEntry.create(moduleId);
 

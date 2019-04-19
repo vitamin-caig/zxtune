@@ -1,5 +1,7 @@
 package app.zxtune.core.jni;
 
+import android.support.annotation.NonNull;
+
 public final class Plugins {
 
   public static final class DeviceType {
@@ -31,13 +33,14 @@ public final class Plugins {
     public static final int SCANER = 6;
   }
 
+  @SuppressWarnings({"unused"})
   public interface Visitor {
-    void onPlayerPlugin(int devices, String id, String description);
+    void onPlayerPlugin(int devices, @NonNull String id, @NonNull String description);
 
-    void onContainerPlugin(int type, String id, String description);
+    void onContainerPlugin(int type, @NonNull String id, @NonNull String description);
   }
 
-  public static native void enumerate(Visitor visitor);
+  public static native void enumerate(@NonNull Visitor visitor);
 
   private static native void init();
 

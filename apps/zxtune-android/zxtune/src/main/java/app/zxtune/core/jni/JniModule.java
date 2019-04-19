@@ -1,5 +1,6 @@
 package app.zxtune.core.jni;
 
+import android.support.annotation.NonNull;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleDetectCallback;
 import app.zxtune.core.Player;
@@ -20,27 +21,30 @@ public final class JniModule implements Module {
     JniGC.register(this, handle);
   }
 
-  public static native JniModule load(ByteBuffer data, String subpath) throws Exception;
+  @NonNull
+  public static native JniModule load(@NonNull ByteBuffer data, @NonNull String subpath) throws Exception;
 
-  public static native void detect(ByteBuffer data, ModuleDetectCallback callback) throws Exception;
+  public static native void detect(@NonNull ByteBuffer data, @NonNull ModuleDetectCallback callback) throws Exception;
 
   public static native void close(int handle);
 
   @Override
   public native int getDuration() throws Exception;
 
+  @NonNull
   @Override
   public native Player createPlayer() throws Exception;
 
   @Override
-  public native long getProperty(String name, long defVal) throws Exception;
+  public native long getProperty(@NonNull String name, long defVal) throws Exception;
 
+  @NonNull
   @Override
-  public native String getProperty(String name, String defVal) throws Exception;
+  public native String getProperty(@NonNull String name, @NonNull String defVal) throws Exception;
 
   @Override
   public native String[] getAdditionalFiles() throws Exception;
 
   @Override
-  public native void resolveAdditionalFile(String name, ByteBuffer data) throws Exception;
+  public native void resolveAdditionalFile(@NonNull String name, @NonNull ByteBuffer data) throws Exception;
 }

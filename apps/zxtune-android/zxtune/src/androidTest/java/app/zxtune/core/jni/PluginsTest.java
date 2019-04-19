@@ -2,6 +2,7 @@ package app.zxtune.core.jni;
 
 import static org.junit.Assert.*;
 
+import android.support.annotation.NonNull;
 import org.junit.*;
 
 import java.util.HashSet;
@@ -18,14 +19,14 @@ public class PluginsTest {
     final HashSet<String> containers = new HashSet<>();
     Plugins.enumerate(new Plugins.Visitor() {
       @Override
-      public void onPlayerPlugin(int devices, String id, String description) {
+      public void onPlayerPlugin(int devices, @NonNull String id, @NonNull String description) {
         flags[0] |= devices;
         ++counts[0];
         players.add(id);
       }
 
       @Override
-      public void onContainerPlugin(int type, String id, String description) {
+      public void onContainerPlugin(int type, @NonNull String id, @NonNull String description) {
         flags[1] |= 1 << type;
         ++counts[1];
         containers.add(id);

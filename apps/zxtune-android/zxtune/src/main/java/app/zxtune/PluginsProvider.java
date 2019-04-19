@@ -48,7 +48,7 @@ public final class PluginsProvider extends ContentProvider {
     
     private final int nameId;
     
-    private Types(int id) {
+    Types(int id) {
       this.nameId = id;
     }
     
@@ -92,7 +92,7 @@ public final class PluginsProvider extends ContentProvider {
     final MatrixCursor res = new MatrixCursor(columns);
     Plugins.enumerate(new Plugins.Visitor() {
       @Override
-      public void onPlayerPlugin(int devices, String id, String description) {
+      public void onPlayerPlugin(int devices, @NonNull String id, @NonNull String description) {
         final int type = getPlayerPluginType(devices).ordinal();
         final String descr = String.format("[%s] %s", id, description);
         final Object[] values = {type, descr};
@@ -100,7 +100,7 @@ public final class PluginsProvider extends ContentProvider {
       }
 
       @Override
-      public void onContainerPlugin(int containerType, String id, String description) {
+      public void onContainerPlugin(int containerType, @NonNull String id, @NonNull String description) {
         final int type = getContainerPluginType(containerType).ordinal();
         final Object[] values = {type, description};
         res.addRow(values);

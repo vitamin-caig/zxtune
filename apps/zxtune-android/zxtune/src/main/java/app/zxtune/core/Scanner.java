@@ -1,9 +1,3 @@
-/**
- * @file
- * @brief
- * @author vitamin.caig@gmail.com
- */
-
 package app.zxtune.core;
 
 import android.net.Uri;
@@ -169,7 +163,7 @@ public final class Scanner {
     Core.detectModules(file, new ModuleDetectCallback() {
 
       @Override
-      public void onModule(String subpath, Module obj) throws Exception {
+      public void onModule(@NonNull String subpath, @NonNull Module obj) throws Exception {
         cb.onModule(new Identifier(uri, subpath), obj);
       }
     });
@@ -214,6 +208,6 @@ public final class Scanner {
   }
 
   private static class Holder {
-    public static final Scanner INSTANCE = new Scanner();
+    static final Scanner INSTANCE = new Scanner();
   }
 }
