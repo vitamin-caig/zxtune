@@ -84,7 +84,8 @@ namespace
     Test("destruction", true);
     
     std::cout << "Test for CreateNonCopyContainer invalid case" << std::endl;
-    #if !defined(__MINGW32__) && !defined(__clang__)
+    // Looks like throw from dtors supported only on msvs
+    #ifdef _MSC_VER
     try
     {
       Binary::Container::Ptr holder;
