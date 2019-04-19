@@ -173,7 +173,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     setNewHolder(newHolder);
   }
 
-  private void setNewHolder(Holder newHolder) throws Exception {
+  private void setNewHolder(Holder newHolder) {
     navigateCmd.cancel();
     holder.set(newHolder);
     player.setSource(newHolder.source);

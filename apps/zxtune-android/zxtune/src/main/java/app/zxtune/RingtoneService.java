@@ -231,7 +231,7 @@ public class RingtoneService extends IntentService {
     }
     
     @Override
-    public void initialize(int sampleRate) throws Exception {
+    public void initialize(int sampleRate) {
       player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
       restSamples = (int) (limit.convertTo(TimeUnit.SECONDS) * sampleRate);
     }

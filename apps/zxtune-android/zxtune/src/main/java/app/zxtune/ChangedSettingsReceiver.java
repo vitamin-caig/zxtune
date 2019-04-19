@@ -62,7 +62,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     }
   }
 
-  private static void setProperty(String name, String value, PropertiesModifier target) throws Exception {
+  private static void setProperty(String name, String value, PropertiesModifier target) {
     try {
       target.setProperty(name, Long.parseLong(value));
     } catch (NumberFormatException e) {
@@ -70,7 +70,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     }
   }
 
-  private static void setProperty(String name, long value, PropertiesModifier target) throws Exception {
+  private static void setProperty(String name, long value, PropertiesModifier target) {
     target.setProperty(name, value);
   }
 }

@@ -13,7 +13,7 @@ public interface PropertiesModifier {
    * @param name Name of the property
    * @param value Value of the property
    */
-  void setProperty(@NonNull String name, long value) throws Exception;
+  void setProperty(@NonNull String name, long value);
 
   /**
    * Setting string property
@@ -21,5 +21,5 @@ public interface PropertiesModifier {
    * @param name Name of the property
    * @param value Value of the property
    */
-  void setProperty(@NonNull String name, @NonNull String value) throws Exception;
+  void setProperty(@NonNull String name, @NonNull String value);
 }

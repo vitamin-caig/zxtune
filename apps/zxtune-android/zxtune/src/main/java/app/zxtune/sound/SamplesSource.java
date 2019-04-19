@@ -27,7 +27,7 @@ public interface SamplesSource {
    * Initialize stream for input
    * @param sampleRate required sample rate in Hz (e.g. 44100)
    */
-  void initialize(int sampleRate) throws Exception;
+  void initialize(int sampleRate);
   
   /**
    * Acquire next sound chunk

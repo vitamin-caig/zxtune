@@ -37,8 +37,8 @@ public final class JniPlayer implements Player {
   public native String getProperty(@NonNull String name, @NonNull String defVal);
 
   @Override
-  public native void setProperty(@NonNull String name, long val) throws Exception;
+  public native void setProperty(@NonNull String name, long val);
 
   @Override
-  public native void setProperty(@NonNull String name, @NonNull String val) throws Exception;
+  public native void setProperty(@NonNull String name, @NonNull String val);
 }

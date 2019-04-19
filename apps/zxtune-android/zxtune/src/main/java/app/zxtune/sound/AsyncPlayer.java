@@ -48,7 +48,7 @@ public final class AsyncPlayer implements Player {
   }
 
   @Override
-  public void setSource(@NonNull SamplesSource src) throws Exception {
+  public void setSource(@NonNull SamplesSource src) {
     src.initialize(target.getSampleRate());
     synchronized(state) {
       source.set(src);

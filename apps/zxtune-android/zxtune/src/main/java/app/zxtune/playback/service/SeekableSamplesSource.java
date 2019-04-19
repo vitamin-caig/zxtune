@@ -21,7 +21,7 @@ class SeekableSamplesSource implements SamplesSource {
   }
 
   @Override
-  public void initialize(int sampleRate) throws Exception {
+  public void initialize(int sampleRate) {
     player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
   }
 

@@ -13,7 +13,7 @@ import android.support.annotation.NonNull;
  */
 public interface Player {
 
-  void setSource(@NonNull SamplesSource src) throws Exception;
+  void setSource(@NonNull SamplesSource src);
 
   void startPlayback();
 
