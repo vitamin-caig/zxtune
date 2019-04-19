@@ -56,6 +56,23 @@ namespace Jni
     }
   };
 
+  class IllegalArgumentException : public Exception
+  {
+  public:
+    explicit IllegalArgumentException(const char* msg)
+      : Exception("java/lang/IllegalArgumentException", msg)
+    {
+    }
+  };
+
+  inline void CheckArgument(bool condition, const char* msg = "")
+  {
+    if (!condition)
+    {
+      throw IllegalArgumentException(msg);
+    }
+  }
+
   inline void Throw(JNIEnv* env, const char* clsName, const char* msg)
   {
     const auto cls = env->FindClass(clsName);
@@ -122,6 +139,10 @@ namespace Jni
       return f();
     }
     catch (jthrowable e)
+    {
+      Throw(env, e);
+    }
+    catch (const Exception& e)
     {
       Throw(env, e);
     }

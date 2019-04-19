@@ -26,8 +26,8 @@ namespace Player
     typedef std::unique_ptr<Control> Ptr;
     virtual ~Control() = default;
 
-    virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-    virtual Parameters::Modifier::Ptr GetParameters() const = 0;
+    virtual const Parameters::Accessor& GetProperties() const = 0;
+    virtual Parameters::Modifier& GetParameters() const = 0;
 
     virtual uint_t GetPosition() const = 0;
     virtual uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const = 0;

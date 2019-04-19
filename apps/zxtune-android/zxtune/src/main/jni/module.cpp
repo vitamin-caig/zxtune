@@ -55,7 +55,9 @@ namespace
 
     static jobject Create(JNIEnv* env, Module::Storage::HandleType handle)
     {
-      return env->NewObject(Class, Constructor, handle);
+      const auto res = env->NewObject(Class, Constructor, handle);
+      Jni::ThrowIfError(env);
+      return res;
     }
 
   private:
@@ -73,10 +75,10 @@ namespace
 {
   Module::Holder::Ptr CreateModule(Binary::Container::Ptr data, const String& subpath)
   {
-    const Parameters::Accessor::Ptr options = Parameters::GlobalOptions();
+    const auto& options = Parameters::GlobalOptions();
     return subpath.empty()
-      ? Module::Open(*options, *data)
-      : Module::Open(*options, data, subpath);
+      ? Module::Open(options, *data)
+      : Module::Open(options, data, subpath);
   }
 
   jobject CreateJniObject(JNIEnv* env, Module::Holder::Ptr module)
@@ -130,7 +132,7 @@ namespace
   {
     const auto addr = env->GetDirectBufferAddress(buffer);
     const auto capacity = env->GetDirectBufferCapacity(buffer);
-    Require(capacity && addr);
+    Jni::CheckArgument(capacity && addr, "Empty buffer");
     return Binary::CreateNonCopyContainer(addr, capacity);
   }
 }
@@ -164,7 +166,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_detect
   return Jni::Call(env, [=] ()
   {
     DetectCallback callbackAdapter(env, cb);
-    Module::Detect(*Parameters::GlobalOptions(), CreateContainer(env, buffer), callbackAdapter);
+    Module::Detect(Parameters::GlobalOptions(), CreateContainer(env, buffer), callbackAdapter);
   });
 }
 

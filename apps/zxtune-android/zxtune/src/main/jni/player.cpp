@@ -19,6 +19,7 @@
 //common includes
 #include "contract.h"
 #include <make_ptr.h>
+#include <pointers.h>
 //library includes
 #include <parameters/merged_accessor.h>
 #include <sound/mixer_factory.h>
@@ -182,14 +183,14 @@ namespace
     {
     }
     
-    Parameters::Accessor::Ptr GetProperties() const override
+    const Parameters::Accessor& GetProperties() const override
     {
-      return Props;
+      return *Props;
     }
     
-    Parameters::Modifier::Ptr GetParameters() const override
+    Parameters::Modifier& GetParameters() const override
     {
-      return Params;
+      return *Params;
     }
     
     uint_t GetPosition() const override
@@ -254,7 +255,7 @@ namespace
 
   Player::Control::Ptr CreateControl(Module::Holder::Ptr module)
   {
-    auto globalParameters = Parameters::GlobalOptions();
+    auto globalParameters = MakeSingletonPointer(Parameters::GlobalOptions());
     auto localParameters = Parameters::Container::Create();
     auto internalProperties = module->GetModuleProperties();
     auto properties = Parameters::CreateMergedAccessor(localParameters, std::move(internalProperties), std::move(globalParameters));
@@ -345,7 +346,7 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     typedef AutoArray<jshortArray, int16_t> ArrayType;
     ArrayType buf(env, buffer);
-    Require(buf);
+    Jni::CheckArgument(buf, "Empty render buffer");
     return player->Render(buf.Size(), buf.Data());
   });
 }
@@ -408,7 +409,7 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_la
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     const auto& props= player->GetProperties();
-    const Jni::PropertiesReadHelper helper(env, *props);
+    const Jni::PropertiesReadHelper helper(env, props);
     return helper.Get(propName, defVal);
   });
 }
@@ -421,7 +422,7 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
     const auto& props = player->GetProperties();
-    const Jni::PropertiesReadHelper helper(env, *props);
+    const Jni::PropertiesReadHelper helper(env, props);
     return helper.Get(propName, defVal);
   });
 }
@@ -433,8 +434,8 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lan
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
-    const auto& params = player->GetParameters();
-    Jni::PropertiesWriteHelper helper(env, *params);
+    auto& params = player->GetParameters();
+    Jni::PropertiesWriteHelper helper(env, params);
     helper.Set(propName, value);
   });
 }
@@ -446,8 +447,8 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lan
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto& player = Player::Storage::Instance().Get(playerHandle);
-    const auto& params = player->GetParameters();
-    Jni::PropertiesWriteHelper helper(env, *params);
+    auto& params = player->GetParameters();
+    Jni::PropertiesWriteHelper helper(env, params);
     helper.Set(propName, value);
   });
 }
