@@ -55,7 +55,7 @@ int main(int argc, const char* argv[])
 {
   try
   {
-    std::locale::global(std::locale(""));
+    std::locale::global(std::locale("C"));
     std::unique_ptr<Platform::Application> app(Platform::Application::Create());
     return app->Run(ParseArgv(argc, argv));
   }
