@@ -6,7 +6,8 @@ include $(dirs.root)/make/default.mak
 
 libraries.common = debug l10n tools
 
-libraries.boost := locale
-libraries.mingw := iconv
+libraries.boost += locale
+libraries.mingw += iconv
+libraries.darwin += iconv
 
 include $(dirs.root)/makefile.mak
