@@ -1,6 +1,6 @@
 package app.zxtune.core;
 
-class ResolvingException extends Exception {
+public class ResolvingException extends Exception {
   private static final long serialVersionUID = 1L;
 
   ResolvingException(String msg) {

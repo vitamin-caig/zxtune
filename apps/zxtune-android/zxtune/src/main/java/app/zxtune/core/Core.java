@@ -21,7 +21,7 @@ public class Core {
   private static final String TAG = Core.class.getName();
 
   @NonNull
-  public static Module loadModule(@NonNull VfsFile file, @NonNull String subpath) throws Exception {
+  public static Module loadModule(@NonNull VfsFile file, @NonNull String subpath) throws IOException, ResolvingException {
     final ByteBuffer content = file.getContent();
     final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), subpath, content.limit());
     log.action("loadModule begin");
@@ -52,9 +52,9 @@ public class Core {
   }
 
   @NonNull
-  private static ByteBuffer makeDirectBuffer(@NonNull ByteBuffer content) throws Exception {
+  private static ByteBuffer makeDirectBuffer(@NonNull ByteBuffer content) {
     if (content.position() != 0) {
-      throw new Exception("Input data should have zero position");
+      throw new IllegalArgumentException("Input data should have zero position");
     }
     if (content.isDirect()) {
       return content;

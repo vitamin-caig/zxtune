@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleDetectCallback;
 import app.zxtune.core.Player;
+import app.zxtune.core.ResolvingException;
 
 import java.nio.ByteBuffer;
 
@@ -23,7 +24,7 @@ public final class JniModule implements Module {
 
   @SuppressWarnings("RedundantThrows")
   @NonNull
-  public static native JniModule load(@NonNull ByteBuffer data, @NonNull String subpath) throws Exception;
+  public static native JniModule load(@NonNull ByteBuffer data, @NonNull String subpath) throws ResolvingException;
 
   @SuppressWarnings("RedundantThrows")
   public static native void detect(@NonNull ByteBuffer data, @NonNull ModuleDetectCallback callback) throws Exception;
