@@ -223,7 +223,7 @@ public class RingtoneService extends IntentService {
     private final TimeStamp limit;
     private int restSamples;
     
-    TimeLimitedSamplesSource(Player player, TimeStamp limit) throws Exception {
+    TimeLimitedSamplesSource(Player player, TimeStamp limit) {
       this.player = player;
       this.limit = limit;
       player.setPosition(0);
@@ -237,7 +237,7 @@ public class RingtoneService extends IntentService {
     }
 
     @Override
-    public boolean getSamples(@NonNull short[] buf) throws Exception {
+    public boolean getSamples(@NonNull short[] buf) {
       if (restSamples > 0 && player.render(buf)) {
         restSamples -= buf.length / SamplesSource.Channels.COUNT;
         return true;

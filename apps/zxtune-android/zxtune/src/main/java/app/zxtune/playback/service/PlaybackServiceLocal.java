@@ -168,7 +168,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
 
-  private void setNewItem(PlayableItem newItem) throws Exception {
+  private void setNewItem(PlayableItem newItem) {
     final Holder newHolder = new Holder(newItem);
     setNewHolder(newHolder);
   }
@@ -276,7 +276,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.visualizer = VisualizerStub.instance();
     }
 
-    Holder(PlayableItem item) throws Exception {
+    Holder(PlayableItem item) {
       this.item = item;
       final app.zxtune.core.Player lowPlayer = item.getModule().createPlayer();
       this.source = new SeekableSamplesSource(lowPlayer);
@@ -318,7 +318,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void execute() throws Exception {
+    public void execute() {
       final Iterator iteratorCopy = iterator.get();
       if (performNavigation(iteratorCopy) && iterator.compareAndSet(iteratorCopy, iteratorCopy)) {
         setNewItem(iteratorCopy.getItem());
@@ -417,7 +417,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public TimeStamp getPosition() throws Exception {
+    public TimeStamp getPosition() {
       return player.getPosition();
     }
 

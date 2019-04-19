@@ -15,19 +15,19 @@ public final class JniPlayer implements Player {
   }
 
   public static native void close(int handle);
-  public static native int getPlaybackPerformance(int player) throws Exception;
+  public static native int getPlaybackPerformance(int player);
 
   @Override
-  public native boolean render(@NonNull short[] result) throws Exception;
+  public native boolean render(@NonNull short[] result);
 
   @Override
-  public native int analyze(@NonNull int bands[], @NonNull int levels[]) throws Exception;
+  public native int analyze(@NonNull int bands[], @NonNull int levels[]);
 
   @Override
-  public native int getPosition() throws Exception;
+  public native int getPosition();
 
   @Override
-  public native void setPosition(int pos) throws Exception;
+  public native void setPosition(int pos);
 
   @Override
   public native long getProperty(@NonNull String name, long defVal);

@@ -16,7 +16,7 @@ public interface SeekControl {
   
   TimeStamp getDuration();
 
-  TimeStamp getPosition() throws Exception;
+  TimeStamp getPosition();
 
-  void setPosition(TimeStamp position) throws Exception;
+  void setPosition(TimeStamp position);
 }

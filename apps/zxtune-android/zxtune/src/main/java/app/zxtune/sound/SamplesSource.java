@@ -34,19 +34,19 @@ public interface SamplesSource {
    * @param buf result buffer of 16-bit signed interleaved stereo signal
    * @return true if buffer filled, else reset position to initial
    */
-  boolean getSamples(@NonNull short[] buf) throws Exception;
+  boolean getSamples(@NonNull short[] buf);
 
   /**
    * Synchronously changes playback position
    * @param pos
    * @throws Exception
    */
-  void setPosition(TimeStamp pos) throws Exception;
+  void setPosition(TimeStamp pos);
 
   /**
    * Get current playback position
    * @return pos
    * @throws Exception
    */
-  TimeStamp getPosition() throws Exception;
+  TimeStamp getPosition();
 }
