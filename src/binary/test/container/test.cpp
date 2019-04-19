@@ -84,7 +84,7 @@ namespace
     Test("destruction", true);
     
     std::cout << "Test for CreateNonCopyContainer invalid case" << std::endl;
-    #ifndef __MINGW32__
+    #if !defined(__MINGW32__) && !defined(__clang__)
     try
     {
       Binary::Container::Ptr holder;
