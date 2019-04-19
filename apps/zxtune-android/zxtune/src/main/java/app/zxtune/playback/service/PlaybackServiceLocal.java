@@ -412,7 +412,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final class DispatchedSeekControl implements SeekControl {
 
     @Override
-    public TimeStamp getDuration() throws Exception {
+    public TimeStamp getDuration() {
       return holder.get().item.getDuration();
     }
 

@@ -10,7 +10,7 @@ public interface Module extends PropertiesAccessor, AdditionalFiles {
   /**
    * @return Module's duration in frames
    */
-  int getDuration() throws Exception;
+  int getDuration();
 
   /**
    * Creates new player object
@@ -18,5 +18,5 @@ public interface Module extends PropertiesAccessor, AdditionalFiles {
    * @throws Exception in case of error
    */
   @NonNull
-  Player createPlayer() throws Exception;
+  Player createPlayer();
 }

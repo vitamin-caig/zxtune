@@ -152,7 +152,7 @@ public final class AsyncScanner {
     }
 
     @Override
-    public TimeStamp getDuration() throws Exception {
+    public TimeStamp getDuration() {
       final long frameDuration = module.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
       return TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
     }

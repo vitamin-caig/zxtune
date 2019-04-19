@@ -14,9 +14,9 @@ import app.zxtune.TimeStamp;
 
 public interface SeekControl {
   
-  public TimeStamp getDuration() throws Exception;
+  TimeStamp getDuration();
 
-  public TimeStamp getPosition() throws Exception;
+  TimeStamp getPosition() throws Exception;
 
-  public void setPosition(TimeStamp position) throws Exception;
+  void setPosition(TimeStamp position) throws Exception;
 }

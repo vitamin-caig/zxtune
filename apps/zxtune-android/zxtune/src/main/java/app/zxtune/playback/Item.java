@@ -51,5 +51,5 @@ public interface Item {
   /**
    * @return Item's duration
    */
-  TimeStamp getDuration() throws Exception;
+  TimeStamp getDuration();
 }

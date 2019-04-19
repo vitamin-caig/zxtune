@@ -31,11 +31,11 @@ public final class JniModule implements Module {
   public static native void close(int handle);
 
   @Override
-  public native int getDuration() throws Exception;
+  public native int getDuration();
 
   @NonNull
   @Override
-  public native Player createPlayer() throws Exception;
+  public native Player createPlayer();
 
   @Override
   public native long getProperty(@NonNull String name, long defVal);
