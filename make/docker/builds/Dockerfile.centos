@@ -7,7 +7,7 @@ RUN yum update -y && \
     rm -Rf /var/cache/yum
 WORKDIR /build/zxtune
 RUN git init && \
-    git remote add --tags origin https://vitamin-caig@bitbucket.org/zxtune/zxtune.git && \
+    git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo -e "platform=linux\narch=x86_64\npackaging=rpm\ndistro=centos7\ntools.moc=moc-qt4\ntools.uic=uic-qt4" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]

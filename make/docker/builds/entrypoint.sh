@@ -16,4 +16,5 @@ fi
 
 echo "Pull ${branch:-master}"
 git pull origin ${branch:-master}
-make -j$(grep -c processor /proc/cpuinfo) $*
+cores=$(grep -c processor /proc/cpuinfo)
+make -j${jobs:-${cores}} $*

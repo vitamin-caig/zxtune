@@ -17,7 +17,7 @@ RUN mkdir -p ${toolchains} && cd ${toolchains} && \
     rm -Rf tools
 WORKDIR /build/zxtune
 RUN git init && \
-    git remote add --tags origin https://vitamin-caig@bitbucket.org/zxtune/zxtune.git && \
+    git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=linux\narch=armhf\npackaging?=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]

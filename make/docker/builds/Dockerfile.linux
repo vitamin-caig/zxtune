@@ -12,7 +12,7 @@ RUN (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AABMv2v-OFeNNchzVMmUTK9
     (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AACIhfaB-7SYVYUeiyjDq-Osa/20180201/prebuilt/qt/qt-4.8.6-linux-x86_64.tar.xz?dl=0' -O - | tar -xJ)
 WORKDIR /build/zxtune
 RUN git init && \
-    git remote add --tags origin https://vitamin-caig@bitbucket.org/zxtune/zxtune.git && \
+    git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=linux\narch=x86_64\npackaging=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
