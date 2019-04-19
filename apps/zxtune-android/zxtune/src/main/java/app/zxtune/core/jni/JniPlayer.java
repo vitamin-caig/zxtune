@@ -9,7 +9,7 @@ public final class JniPlayer implements Player {
   @SuppressWarnings({"FieldCanBeLocal", "unused"})
   private final int handle;
 
-  JniPlayer(int handle) throws Exception {
+  JniPlayer(int handle) {
     this.handle = handle;
     JniGC.register(this, handle, getProperty(ModuleAttributes.TYPE, "Unknown"));
   }
@@ -30,11 +30,11 @@ public final class JniPlayer implements Player {
   public native void setPosition(int pos) throws Exception;
 
   @Override
-  public native long getProperty(@NonNull String name, long defVal) throws Exception;
+  public native long getProperty(@NonNull String name, long defVal);
 
   @NonNull
   @Override
-  public native String getProperty(@NonNull String name, @NonNull String defVal) throws Exception;
+  public native String getProperty(@NonNull String name, @NonNull String defVal);
 
   @Override
   public native void setProperty(@NonNull String name, long val) throws Exception;

@@ -21,9 +21,11 @@ public final class JniModule implements Module {
     JniGC.register(this, handle);
   }
 
+  @SuppressWarnings("RedundantThrows")
   @NonNull
   public static native JniModule load(@NonNull ByteBuffer data, @NonNull String subpath) throws Exception;
 
+  @SuppressWarnings("RedundantThrows")
   public static native void detect(@NonNull ByteBuffer data, @NonNull ModuleDetectCallback callback) throws Exception;
 
   public static native void close(int handle);
@@ -36,11 +38,11 @@ public final class JniModule implements Module {
   public native Player createPlayer() throws Exception;
 
   @Override
-  public native long getProperty(@NonNull String name, long defVal) throws Exception;
+  public native long getProperty(@NonNull String name, long defVal);
 
   @NonNull
   @Override
-  public native String getProperty(@NonNull String name, @NonNull String defVal) throws Exception;
+  public native String getProperty(@NonNull String name, @NonNull String defVal);
 
   @Override
   public native String[] getAdditionalFiles() throws Exception;

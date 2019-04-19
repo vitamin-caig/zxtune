@@ -127,27 +127,27 @@ public final class AsyncScanner {
     }
 
     @Override
-    public String getTitle() throws Exception {
+    public String getTitle() {
       return module.getProperty(ModuleAttributes.TITLE, EMPTY_STRING);
     }
 
     @Override
-    public String getAuthor() throws Exception {
+    public String getAuthor() {
       return module.getProperty(ModuleAttributes.AUTHOR, EMPTY_STRING);
     }
 
     @Override
-    public String getProgram() throws Exception {
+    public String getProgram() {
       return module.getProperty(ModuleAttributes.PROGRAM, EMPTY_STRING);
     }
 
     @Override
-    public String getComment() throws Exception {
+    public String getComment() {
       return module.getProperty(ModuleAttributes.COMMENT, EMPTY_STRING);
     }
 
     @Override
-    public String getStrings() throws Exception {
+    public String getStrings() {
       return module.getProperty(ModuleAttributes.STRINGS, EMPTY_STRING);
     }
 

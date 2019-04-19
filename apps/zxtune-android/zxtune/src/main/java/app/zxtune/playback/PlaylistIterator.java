@@ -147,17 +147,17 @@ class PlaylistIterator implements Iterator {
     }
     
     @Override
-    public String getProgram() throws Exception {
+    public String getProgram() {
       return content.getProgram();
     }
 
     @Override
-    public String getComment() throws Exception {
+    public String getComment() {
       return content.getComment();
     }
     
     @Override
-    public String getStrings() throws Exception {
+    public String getStrings() {
       return content.getStrings();
     }
     

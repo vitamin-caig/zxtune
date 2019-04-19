@@ -14,7 +14,7 @@ public interface PropertiesAccessor {
    * @param defVal Default value
    * @return Property value or defVal if not found
    */
-  long getProperty(@NonNull String name, long defVal) throws Exception;
+  long getProperty(@NonNull String name, long defVal);
 
   /**
    * Getting string property
@@ -24,5 +24,5 @@ public interface PropertiesAccessor {
    * @return Property value or defVal if not found
    */
   @NonNull
-  String getProperty(@NonNull String name, @NonNull String defVal) throws Exception;
+  String getProperty(@NonNull String name, @NonNull String defVal);
 }

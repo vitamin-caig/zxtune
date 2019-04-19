@@ -26,27 +26,27 @@ public interface Item {
   /**
    * @return Item's title (possibly empty)
    */
-  String getTitle() throws Exception;
+  String getTitle();
 
   /**
    * @return Item's author (possibly empty)
    */
-  String getAuthor() throws Exception;
+  String getAuthor();
 
   /**
    * @return Item's program information (possibly empty)
    */
-  String getProgram() throws Exception;
+  String getProgram();
 
   /**
    * @return Item's comment (possibly empty)
    */
-  String getComment() throws Exception;
+  String getComment();
 
   /**
    * @return Item's internal strings (possibly empty)
    */
-  String getStrings() throws Exception;
+  String getStrings();
 
   /**
    * @return Item's duration
