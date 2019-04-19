@@ -14,11 +14,11 @@ public interface AdditionalFiles {
    * else list of required filenames relative to current one
    */
   @Nullable
-  String[] getAdditionalFiles() throws Exception;
+  String[] getAdditionalFiles();
 
   /**
    * @param name additional file name as returned by ListAdditionalFiles
    * @param data additional file content
    */
-  void resolveAdditionalFile(@NonNull String name, @NonNull ByteBuffer data) throws Exception;
+  void resolveAdditionalFile(@NonNull String name, @NonNull ByteBuffer data);
 }

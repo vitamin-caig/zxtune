@@ -45,8 +45,8 @@ public final class JniModule implements Module {
   public native String getProperty(@NonNull String name, @NonNull String defVal);
 
   @Override
-  public native String[] getAdditionalFiles() throws Exception;
+  public native String[] getAdditionalFiles();
 
   @Override
-  public native void resolveAdditionalFile(@NonNull String name, @NonNull ByteBuffer data) throws Exception;
+  public native void resolveAdditionalFile(@NonNull String name, @NonNull ByteBuffer data);
 }
