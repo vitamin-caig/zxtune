@@ -16,6 +16,8 @@ import android.support.annotation.Nullable;
 import java.util.Comparator;
 
 import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.os.CancellationSignal;
+import android.support.v4.os.OperationCanceledException;
 import app.zxtune.Log;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
@@ -29,8 +31,8 @@ import app.zxtune.fs.VfsObject;
 class ListingLoader extends AsyncTaskLoader<Object> {
 
   public interface Callback {
-    public void onProgressInit(int total);
-    public void onProgressUpdate(int current);
+    void onProgressInit(int total);
+    void onProgressUpdate(int current);
   }
   
   private static final String TAG = ListingLoader.class.getName();

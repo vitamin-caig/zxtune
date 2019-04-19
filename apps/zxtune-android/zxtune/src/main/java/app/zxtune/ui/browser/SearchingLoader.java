@@ -16,6 +16,8 @@ import android.net.Uri;
 import java.io.IOException;
 
 import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.os.CancellationSignal;
+import android.support.v4.os.OperationCanceledException;
 import app.zxtune.Log;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
@@ -25,7 +27,7 @@ import app.zxtune.fs.VfsIterator;
 class SearchingLoader extends AsyncTaskLoader<Void> {
   
   public interface Callback {
-    public void onFileFound(VfsFile file);
+    void onFileFound(VfsFile file);
   }
 
   private static final String TAG = SearchingLoader.class.getName();
