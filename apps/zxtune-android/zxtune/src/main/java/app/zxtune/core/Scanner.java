@@ -27,7 +27,7 @@ public final class Scanner {
 
   public interface Callback {
 
-    void onModule(Identifier id, Module module) throws Exception;
+    void onModule(Identifier id, Module module);
 
     void onError(Exception e);
   }
@@ -163,7 +163,7 @@ public final class Scanner {
     Core.detectModules(file, new ModuleDetectCallback() {
 
       @Override
-      public void onModule(@NonNull String subpath, @NonNull Module obj) throws Exception {
+      public void onModule(@NonNull String subpath, @NonNull Module obj){
         cb.onModule(new Identifier(uri, subpath), obj);
       }
     });

@@ -80,14 +80,14 @@ public final class AsyncScanner {
   private static void scan(VfsFile file, final WeakReference<Callback> ref) {
     Scanner.analyzeFile(file, new Scanner.Callback() {
       @Override
-      public void onModule(Identifier id, Module module) throws Exception {
+      public void onModule(Identifier id, Module module) {
         final FileItem item = new FileItem(id, module);
         try {
           while (Callback.Reply.RETRY == ref.get().onItem(item)) {
             Thread.sleep(500);
           }
         } catch (InterruptedException e) {
-          throw new Exception("Interrupted", e);
+          Log.w(TAG, e, "Interrupted");
         }
       }
 

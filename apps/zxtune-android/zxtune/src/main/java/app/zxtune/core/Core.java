@@ -39,7 +39,7 @@ public class Core {
     }
   }
 
-  public static void detectModules(@NonNull VfsFile file, @NonNull ModuleDetectCallback callback) throws Exception {
+  public static void detectModules(@NonNull VfsFile file, @NonNull ModuleDetectCallback callback) throws IOException {
     final ByteBuffer content = file.getContent();
     final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), "*", content.limit());
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback, log);
@@ -86,7 +86,7 @@ public class Core {
     }
 
     @Override
-    public void onModule(@NonNull String subpath, @NonNull Module obj) throws Exception {
+    public void onModule(@NonNull String subpath, @NonNull Module obj) {
       ++modulesCount;
       try {
         final String[] files = obj.getAdditionalFiles();
@@ -99,13 +99,13 @@ public class Core {
           //was not resolved by core
           Log.d(TAG, "Unresolved additional files '%s'", Arrays.toString(files));
         }
-      } catch (IOException | ResolvingException e) {
+      } catch (ResolvingException e) {
         Log.w(TAG, e, "Skip module at %s in %s", subpath, location.getUri());
       }
     }
 
     @NonNull
-    private Module resolve(@NonNull Module obj, String[] files) throws Exception {
+    private Module resolve(@NonNull Module obj, String[] files) throws ResolvingException {
       return getResolver().resolve(obj, files);
     }
 
@@ -125,7 +125,7 @@ public class Core {
     private final HashMap<String, VfsFile> files = new HashMap<>();
     private final HashMap<String, VfsDir> dirs = new HashMap<>();
 
-    Resolver(VfsFile content, Analytics.JniLog log) {
+    Resolver(@NonNull VfsFile content, @NonNull Analytics.JniLog log) {
       final VfsObject parent = content.getParent();
       if (parent instanceof VfsDir) {
         this.parent = (VfsDir) parent;
@@ -208,7 +208,7 @@ public class Core {
       preloadDir(dir, path + "/");
     }
 
-    private void preloadDir(VfsDir dir, final String relPath) throws IOException {
+    private void preloadDir(@NonNull VfsDir dir, @NonNull final String relPath) throws IOException {
       Log.d(TAG, "Preload content of %s as '%s'", dir.getUri(), relPath);
       dir.enumerate(new VfsDir.Visitor() {
 

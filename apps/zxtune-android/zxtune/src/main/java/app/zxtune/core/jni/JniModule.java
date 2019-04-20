@@ -26,8 +26,7 @@ public final class JniModule implements Module {
   @NonNull
   public static native JniModule load(@NonNull ByteBuffer data, @NonNull String subpath) throws ResolvingException;
 
-  @SuppressWarnings("RedundantThrows")
-  public static native void detect(@NonNull ByteBuffer data, @NonNull ModuleDetectCallback callback) throws Exception;
+  public static native void detect(@NonNull ByteBuffer data, @NonNull ModuleDetectCallback callback);
 
   public static native void close(int handle);
 
