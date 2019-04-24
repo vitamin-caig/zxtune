@@ -39,9 +39,12 @@ namespace
       int fakeArgc = 1;
       char* fakeArgv[] = {""};
       QApplication qapp(fakeArgc, fakeArgv);
-      qapp.setOrganizationName(QLatin1String(Text::PROJECT_NAME));
-      qapp.setOrganizationDomain(QLatin1String(Text::PROGRAM_SITE));
+      //storageLocation(DataLocation) is ${profile}/[${organizationName}/][${applicationName}/]
+      //applicationName cannot be empty since qt4.8.7 (binary name is used instead)
+      //So, do not set  organization name and override application name
+      qapp.setApplicationName(QLatin1String(Text::PROJECT_NAME));
       qapp.setApplicationVersion(ToQString(Platform::Version::GetProgramVersionString()));
+      qapp.setOrganizationDomain(QLatin1String(Text::PROGRAM_SITE));
       const Parameters::Container::Ptr params = GlobalOptions::Instance().Get();
       const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(params, std::move(argv));
       if (mode->StartMaster()) {
