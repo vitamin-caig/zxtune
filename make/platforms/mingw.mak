@@ -10,7 +10,7 @@ else
 makeres_cmd += -F pe$(if $(pic),i,)-i386
 endif
 
-host=windows
+host ?= windows
 compiler=gcc
 
 ifdef release
