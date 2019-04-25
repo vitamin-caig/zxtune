@@ -11,7 +11,7 @@
 #define _Z80_TYPEDEFS_H_INCLUDED
 
 /* using boost byteorder defines */
-#include <boost/predef/other/endian.h>
+#include <boost/detail/endian.hpp>
 
 struct _z80_cpu_context;
 typedef struct _z80_cpu_context Z80EX_CONTEXT;
@@ -21,7 +21,7 @@ typedef struct _z80_cpu_context Z80EX_CONTEXT;
 
 /* Union allowing a register pair to be accessed as bytes or as a word */
 typedef union {
-#ifdef BOOST_ENDIAN_BIG_BYTE
+#ifdef BOOST_BIG_ENDIAN
   struct { Z80EX_BYTE h,l; } b;
 #else
   struct { Z80EX_BYTE l,h; } b;

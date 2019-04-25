@@ -13,7 +13,7 @@
 //common includes
 #include <types.h>
 //boost includes
-#include <boost/predef/other/endian.h>
+#include <boost/detail/endian.hpp>
 
 template<std::size_t size>
 struct ByteSwap;
@@ -61,7 +61,7 @@ inline T swapBytes(T a)
   return static_cast<T>(Swapper::Swap(static_cast<typename Swapper::Type>(a)));
 }
 
-#ifdef BOOST_ENDIAN_LITTLE_BYTE
+#ifdef BOOST_LITTLE_ENDIAN
 //! @brief Checking if current platform is Little-Endian
 inline bool isLE()
 {
@@ -82,7 +82,7 @@ inline T fromBE(T a)
   return swapBytes(a);
 }
 
-#elif defined(BOOST_ENDIAN_BIG_BYTE)
+#elif defined(BOOST_BIG_ENDIAN)
 inline bool isLE()
 {
   return false;
