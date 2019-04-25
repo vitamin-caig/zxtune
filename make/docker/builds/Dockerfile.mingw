@@ -51,3 +51,6 @@ RUN mkdir zxtune && sudo chmod o+w zxtune && cd zxtune && \
       "host=linux\nembed_file_cmd=cat \$(embedded_files) >> \$@\nmakepkg_cmd=(cd \$(1) && zip -9rD \$(CURDIR)/\$(2) .)\npkg_suffix=zip" > variables.mak
 
 WORKDIR /build/zxtune
+COPY entrypoint.sh .
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["package", "-C", "apps/bundle"]
