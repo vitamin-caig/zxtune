@@ -1,8 +1,8 @@
 12a13,15
 > /* using boost byteorder defines */
-> #include <boost/detail/endian.hpp>
+> #include <boost/predef/other/endian.h>
 > 
 21c24
 < #ifdef WORDS_BIG_ENDIAN
 ---
-> #ifdef BOOST_BIG_ENDIAN
+> #ifdef BOOST_ENDIAN_BIG_BYTE
