@@ -20,7 +20,6 @@
 #include <async/sized_queue.h>
 //std includes
 #include <algorithm>
-#include <functional>
 #include <list>
 
 namespace Async
@@ -96,7 +95,8 @@ namespace Async
 
     void CheckWorkersAvailable()
     {
-      if (Activities.end() == std::find_if(Activities.begin(), Activities.end(), std::mem_fn(&Activity::IsExecuted)))
+      if (std::none_of(Activities.begin(), Activities.end(),
+          [](const Activity::Ptr& activity) {return activity->IsExecuted();}))
       {
         const auto& errors = WaitAll();
         throw errors.empty()

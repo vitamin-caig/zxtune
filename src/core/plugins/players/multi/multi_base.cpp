@@ -21,9 +21,6 @@
 #include <sound/sound_parameters.h>
 //std includes
 #include <algorithm>
-#include <functional>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Module
 {
@@ -57,7 +54,8 @@ namespace Module
       const auto count = renderers.size();
       Require(count > 1);
       AnalyzersArray delegates(count);
-      std::transform(renderers.begin(), renderers.end(), delegates.begin(), std::mem_fn(&Renderer::GetAnalyzer));
+      std::transform(renderers.begin(), renderers.end(), delegates.begin(),
+          [](const Renderer::Ptr& renderer) {return renderer->GetAnalyzer();});
       return MakePtr<MultiAnalyzer>(std::move(delegates));
     }
   private:
@@ -207,7 +205,8 @@ namespace Module
       Sound::Chunk Convert(uint_t sources) const
       {
         Sound::Chunk result(Buffer.size());
-        std::transform(Buffer.begin(), Buffer.end(), result.begin(), std::bind2nd(std::mem_fun_ref(&WideSample::Convert), sources));
+        std::transform(Buffer.begin(), Buffer.end(), result.begin(),
+           [sources](WideSample in) {return in.Convert(sources);});
         //required by compiler
         return std::move(result);
       }
@@ -316,12 +315,18 @@ namespace Module
     void Reset() override
     {
       SoundParams.Reset();
-      std::for_each(Delegates.begin(), Delegates.end(), std::mem_fn(&Renderer::Reset));
+      for (const auto& renderer : Delegates)
+      {
+        renderer->Reset();
+      }
     }
 
     void SetPosition(uint_t frame) override
     {
-      std::for_each(Delegates.begin(), Delegates.end(), boost::bind(&Renderer::SetPosition, _1, frame));
+      for (const auto& renderer : Delegates)
+      {
+        renderer->SetPosition(frame);
+      }
     }
     
     static Ptr Create(Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders, Sound::Receiver::Ptr target)

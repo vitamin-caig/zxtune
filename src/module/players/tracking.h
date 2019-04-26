@@ -22,7 +22,6 @@
 //std includes
 #include <algorithm>
 #include <array>
-#include <functional>
 
 namespace Module
 {
@@ -115,7 +114,8 @@ namespace Module
 
     uint_t CountActiveChannels() const override
     {
-      return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(), std::mem_fn(&Cell::HasData)));
+      return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(),
+          [](const MutableCell& cell) {return cell.HasData();}));
     }
 
     uint_t GetTempo() const override
