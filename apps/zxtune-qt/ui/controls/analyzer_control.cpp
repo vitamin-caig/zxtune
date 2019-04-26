@@ -113,7 +113,10 @@ namespace
     {
       if (isVisible())
       {
-        std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Fall), LEVELS_FALLBACK));
+        for (auto& level : Levels)
+        {
+          level.Fall(LEVELS_FALLBACK);
+        }
         State = std::move(Analyzer->GetState());
         std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
         repaint();

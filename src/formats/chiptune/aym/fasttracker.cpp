@@ -760,7 +760,10 @@ namespace Chiptune
 
         void SkipLines(uint_t toSkip)
         {
-          std::for_each(Channels.begin(), Channels.end(), std::bind2nd(std::mem_fun_ref(&ChannelState::Skip), toSkip));
+          for (auto& chan : Channels)
+          {
+            chan.Skip(toSkip);
+          }
         }
       };
 

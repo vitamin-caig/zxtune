@@ -46,8 +46,7 @@ namespace Sound
 
     void SetMatrix(const typename Base::Matrix& data) override
     {
-      const auto it = std::find_if(data.begin(), data.end(), std::not1(std::mem_fun_ref(&Gain::IsNormalized)));
-      if (it != data.end())
+      if (std::any_of(data.begin(), data.end(), [](Gain gain) {return !gain.IsNormalized();}))
       {
         throw Error(THIS_LINE, translate("Failed to set mixer matrix: gain is out of range."));
       }

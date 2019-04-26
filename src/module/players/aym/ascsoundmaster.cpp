@@ -333,7 +333,10 @@ namespace ASCSoundMaster
     {
       if (0 == state.Line())
       {
-        std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ChannelState::ResetBaseNoise));
+        for (auto& state : PlayerState)
+        {
+          state.ResetBaseNoise();
+        }
       }
       if (const auto line = state.LineObject())
       {

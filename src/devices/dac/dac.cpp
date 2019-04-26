@@ -21,7 +21,6 @@
 //std includes
 #include <array>
 #include <cmath>
-#include <functional>
 
 namespace Devices
 {
@@ -493,9 +492,12 @@ namespace DAC
 
     void DropData(uint_t samples)
     {
-      for (uint_t count = samples; count != 0; --count)
+      for (auto state = State, lim = State + Channels; state != lim; ++state)
       {
-        std::for_each(State, State + Channels, std::mem_fun_ref(&ChannelState::Next));
+        for (uint_t count = 0; count != samples; ++count)
+        {
+          state->Next();
+        }
       }
     }
   private:
