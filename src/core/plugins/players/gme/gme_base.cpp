@@ -136,8 +136,7 @@ namespace GME
         state.Level = in.level * 100 / voice_max_level;
         state.Band = analysis.GetBandByPeriod(in.divider);
       }
-      //required by compiler
-      return std::move(result);
+      return result;
     }
   private:
     inline static void CheckError(::blargg_err_t err)

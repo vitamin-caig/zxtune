@@ -207,8 +207,7 @@ namespace Module
         Sound::Chunk result(Buffer.size());
         std::transform(Buffer.begin(), Buffer.end(), result.begin(),
            [sources](WideSample in) {return in.Convert(sources);});
-        //required by compiler
-        return std::move(result);
+        return result;
       }
     private:
       std::size_t GetDataSize(const Sound::Chunk& data) const

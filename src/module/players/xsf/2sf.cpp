@@ -119,7 +119,7 @@ namespace TwoSF
 
       Sound::Chunk res(samples);
       ::state_render(&State, safe_ptr_cast<s16*>(res.data()), samples);
-      return std::move(res);
+      return res;
     }
     
     void Skip(uint_t samples)

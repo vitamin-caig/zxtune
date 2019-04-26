@@ -87,8 +87,7 @@ namespace Sid
         res.Band = Analysis.GetBandByScaledFrequency(freqs[chan]);
         res.Level = levels[chan] * 100 / 15;
       }
-      //required for compiler...
-      return std::move(result);
+      return result;
     }
   private:
     const EnginePtr Engine;
