@@ -14,13 +14,15 @@ class JniGC {
 
   private final ReferenceQueue<Object> deadRefs = new ReferenceQueue<>();
   @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-  private final ArrayList<HandleReference> handles = new ArrayList<>(10);
+  private final ArrayList<HandleReference> handles = new ArrayList<>(1000);
   private final Thread thread = new Thread("JNICleanup") {
     @Override
     public void run() {
       cleanup();
     }
   };
+  private int registeredObjects = 0;
+  private int destroyedObjects = 0;
 
   private JniGC() {
     thread.setDaemon(true);
@@ -34,6 +36,7 @@ class JniGC {
         handles.remove(item);
         item.destroy();
         item.clear();
+        ++destroyedObjects;
       } catch (InterruptedException e) {
       }
     }
@@ -50,6 +53,7 @@ class JniGC {
   private void registerInternal(Object owner, int handle, String type) {
     final HandleReference ref = new HandleReference(deadRefs, owner, handle, type);
     handles.add(ref);
+    ++registeredObjects;
   }
 
   private static class Holder {
