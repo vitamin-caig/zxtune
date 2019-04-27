@@ -33,10 +33,10 @@ public class FileIterator implements Iterator {
 
   private final LinkedBlockingQueue<PlayableItem> itemsQueue;
   private final ArrayList<PlayableItem> history;
+  private final Exception[] lastError;
   @SuppressWarnings({"FieldCanBeLocal", "unused"})
   private final Object scanHandle;
   private int historyDepth;
-  private Exception lastError;
 
   public static FileIterator create(Context ctx, Uri uri) throws Exception {
     final java.util.Iterator<VfsFile> filesIterator = creatDirFilesIterator(uri);
@@ -46,11 +46,12 @@ public class FileIterator implements Iterator {
   private FileIterator(Context context, @NonNull java.util.Iterator<VfsFile> files) throws Exception {
     this.itemsQueue = new LinkedBlockingQueue<>(2);
     this.history = new ArrayList<>(MAX_VISITED + 1);
+    this.lastError = new Exception[1];
     this.scanHandle = startAsyncScanning(files);
     this.historyDepth = 0;
     if (!takeNextItem()) {
-      if (lastError != null) {
-        throw lastError;
+      if (lastError[0] != null) {
+        throw lastError[0];
       }
       throw new Exception(context.getString(R.string.no_tracks_found));
     }
@@ -86,9 +87,22 @@ public class FileIterator implements Iterator {
   }
 
   private Object startAsyncScanning(final java.util.Iterator<VfsFile> files) {
-    return AsyncScanner.scan(new AsyncScanner.Callback() {
+    return AsyncScanner.scan(new ScannerCallback(files, itemsQueue, lastError));
+  }
+
+  private static class ScannerCallback implements AsyncScanner.Callback {
 
       private final int[] counter = {0, 0};
+      private final java.util.Iterator<VfsFile> files;
+      private final LinkedBlockingQueue<PlayableItem> itemsQueue;
+      private final Exception[] lastError;
+
+      ScannerCallback(java.util.Iterator<VfsFile> files, LinkedBlockingQueue<PlayableItem> itemsQueue,
+                      Exception[] lastError) {
+        this.files = files;
+        this.itemsQueue = itemsQueue;
+        this.lastError = lastError;
+      }
 
       @Override
       public VfsFile getNextFile() {
@@ -122,10 +136,9 @@ public class FileIterator implements Iterator {
 
       @Override
       public void onError(Identifier id, Exception e) {
-        lastError = e;
+        lastError[0] = e;
       }
-    });
-  }
+    }
 
   private boolean takeNextItem() {
     try {
