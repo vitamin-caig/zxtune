@@ -3,6 +3,7 @@ package app.zxtune.playback;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.os.OperationCanceledException;
 import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -32,7 +33,7 @@ public final class AsyncScanner {
 
     Reply onItem(@NonNull PlayableItem item);
 
-    void onError(Exception e);
+    void onError(Identifier id, Exception e);
   }
 
   private final ExecutorService executor;
@@ -72,7 +73,8 @@ public final class AsyncScanner {
         }
       }
       return true;
-    } catch (NullPointerException e) {
+    } catch (Exception e) {
+      Log.w(TAG, e, "Stopped scanning");
       return false;
     }
   }
@@ -92,12 +94,14 @@ public final class AsyncScanner {
       }
 
       @Override
-      public void onError(Exception e) {
+      public void onError(Identifier id, Exception e) {
         final Callback cb = ref.get();
         if (cb != null) {
-          cb.onError(e);
+          cb.onError(id, e);
         } else {
-          Log.w(TAG, e, "Abandoned error");
+          final RuntimeException ex = new OperationCanceledException("Abandoned error");
+          ex.initCause(e);
+          throw ex;
         }
       }
     });

@@ -128,12 +128,16 @@ public class ScanService extends IntentService {
     System.arraycopy(paths, 0, uris, 0, uris.length);
 
     tracking.start();
-    scan(uris);
-    tracking.stop();
+    try {
+      scan(uris);
+    } catch (Exception e) {
+      error = e;
+    } finally {
+      tracking.stop();
+    }
   }
 
   private void scan(Uri[] uris) {
-    error = null;
     final ContentResolver resolver = getContentResolver();
     for (Uri uri : uris) {
       Log.d(TAG, "scan on %s", uri);
@@ -144,17 +148,19 @@ public class ScanService extends IntentService {
           final Item item = new Item(id, module);
           resolver.insert(PlaylistQuery.ALL, item.toContentValues());
           addedItems.incrementAndGet();
+          error = null;
         }
 
         @Override
-        public void onError(Exception e) {
-          error = e;
+        public void onError(Identifier id, Exception e) {
+          Log.w(TAG, e, "Error while processing " + id);
+          if (e instanceof OperationCanceledException) {
+            throw (OperationCanceledException) e;
+          } else {
+            error = e;
+          }
         }
       });
-      if (error instanceof OperationCanceledException) {
-        error = null;
-        break;
-      }
     }
   }
 

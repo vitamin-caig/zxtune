@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import app.zxtune.Log;
 import app.zxtune.R;
+import app.zxtune.core.Identifier;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
@@ -120,7 +121,7 @@ public class FileIterator implements Iterator {
       }
 
       @Override
-      public void onError(Exception e) {
+      public void onError(Identifier id, Exception e) {
         lastError = e;
       }
     });

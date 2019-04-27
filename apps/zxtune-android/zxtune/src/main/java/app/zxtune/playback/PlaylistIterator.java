@@ -110,8 +110,8 @@ class PlaylistIterator implements Iterator {
       }
       
       @Override
-      public void onError(Exception e) {
-        Log.w(TAG, e, "Ignore error");
+      public void onError(Identifier id, Exception e) {
+        Log.w(TAG, e, "Ignore error for " + id);
       }
     });
   }
