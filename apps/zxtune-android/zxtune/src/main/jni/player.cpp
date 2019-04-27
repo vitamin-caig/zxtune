@@ -155,19 +155,12 @@ namespace
       return State->Frame();
     }
 
-    uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const override
+    uint_t Analyze(uint_t maxEntries, uint8_t* levels) const override
     {
       const auto& result = Analyser->GetState();
-      uint_t doneEntries = 0;
-      for (uint_t band = 0; band < result.Data.size() && doneEntries != maxEntries; ++band)
-      {
-        if (const auto level = result.Data[band].Raw())
-        {
-          bands[doneEntries] = band;
-          levels[doneEntries] = level;
-          ++doneEntries;
-        }
-      }
+      const uint_t doneEntries = std::min<uint_t>(maxEntries, result.Data.size());
+      std::transform(result.Data.begin(), result.Data.begin() + doneEntries, levels,
+          [](Module::Analyzer::LevelType level) {return level.Raw();});
       return doneEntries;
     }
 
@@ -301,17 +294,16 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
 }
 
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jintArray bands, jintArray levels)
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jbyteArray levels)
 {
   return Jni::Call(env, [=] ()
   {
     const auto& player = Player::Storage::Instance().Get(playerHandle);
-    typedef AutoArray<jintArray, uint32_t> ArrayType;
-    ArrayType rawBands(env, bands);
+    typedef AutoArray<jbyteArray, uint8_t> ArrayType;
     ArrayType rawLevels(env, levels);
-    if (rawBands && rawLevels)
+    if (rawLevels)
     {
-      return player->Analyze(std::min(rawBands.Size(), rawLevels.Size()), rawBands.Data(), rawLevels.Data());
+      return player->Analyze(rawLevels.Size(), rawLevels.Data());
     }
     else
     {

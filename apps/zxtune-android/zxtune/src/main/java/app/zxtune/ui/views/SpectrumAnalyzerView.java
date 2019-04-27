@@ -44,8 +44,8 @@ public class SpectrumAnalyzerView extends View {
     init();
   }
 
-  public final boolean update(int channels, int[] bands, int[] levels) {
-    return visualizer.update(channels, bands, levels);
+  public final boolean update(int channels, byte[] levels) {
+    return visualizer.update(channels, levels);
   }
   
   @Override
@@ -113,8 +113,8 @@ public class SpectrumAnalyzerView extends View {
       upperChange = bars - 1;
     }
 
-    final boolean update(int channels, int[] bars, int[] levels) {
-      updateValues(channels, bars, levels);
+    final boolean update(int channels, byte[] levels) {
+      updateValues(channels, levels);
       if (lowerChange != upperChange) {
         final int updateLeft = visibleRect.left + barWidth * lowerChange;
         final int updateRight = visibleRect.left + barWidth * upperChange;
@@ -139,12 +139,11 @@ public class SpectrumAnalyzerView extends View {
       }
     }
 
-    private void updateValues(int channels, int[] bands, int[] levels) {
+    private void updateValues(int channels, byte[] levels) {
       fallBars();
       final int height = visibleRect.height();
-      for (int idx = 0; idx != channels; ++idx) {
-        final int band = bands[idx];
-        final int level = levels[idx];
+      for (int band = 0; band != channels; ++band) {
+        final byte level = levels[band];
         if (level != 0 && band < values.length) {
           final int newLvl = level * height / MAX_LEVEL;
           if (newLvl > values[band]) {

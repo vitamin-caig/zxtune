@@ -96,19 +96,17 @@ public class VisualizerController {
 
   private class UpdateUiTask implements Runnable {
 
-    private final int[] bands;
-    private final int[] levels;
+    private final byte[] levels;
     private int channels;
     private AtomicBoolean scheduled;
 
     UpdateUiTask() {
-      this.bands = new int[SpectrumAnalyzerView.MAX_BANDS];
-      this.levels = new int[SpectrumAnalyzerView.MAX_BANDS];
+      this.levels = new byte[SpectrumAnalyzerView.MAX_BANDS];
       this.scheduled = new AtomicBoolean();
     }
 
     final void execute(Visualizer src) throws Exception {
-      this.channels = src.getSpectrum(bands, levels);
+      this.channels = src.getSpectrum(levels);
       if (scheduled.compareAndSet(false, true)) {
         handler.post(this);
       }
@@ -122,7 +120,7 @@ public class VisualizerController {
     public void run() {
       scheduled.set(false);
       final SpectrumAnalyzerView view = viewRef.get();
-      if (view != null && view.update(channels, bands, levels)) {
+      if (view != null && view.update(channels, levels)) {
         channels = 0;
         if (scheduled.compareAndSet(false, true)) {
           handler.postDelayed(this, PERIOD);

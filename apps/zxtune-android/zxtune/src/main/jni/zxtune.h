@@ -122,10 +122,10 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
 /*
  * Class:     app_zxtune_ZXTune
  * Method:    Player_Analyze
- * Signature: (I[I[I)I
+ * Signature: (I[B)I
  */
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
-  (JNIEnv *, jclass, jint, jintArray, jintArray);
+  (JNIEnv *, jclass, jint, jbyteArray);
 
 /*
  * Class:     app_zxtune_ZXTune
@@ -334,6 +334,39 @@ extern "C" {
 
 #ifndef _Included_app_zxtune_ZXTune_ModuleDetectCallbackNativeAdapter
 #define _Included_app_zxtune_ZXTune_ModuleDetectCallbackNativeAdapter
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_NativeGC */
+
+#ifndef _Included_app_zxtune_ZXTune_NativeGC
+#define _Included_app_zxtune_ZXTune_NativeGC
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_NativeGC_Holder */
+
+#ifndef _Included_app_zxtune_ZXTune_NativeGC_Holder
+#define _Included_app_zxtune_ZXTune_NativeGC_Holder
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_NativeGC_HandleReference */
+
+#ifndef _Included_app_zxtune_ZXTune_NativeGC_HandleReference
+#define _Included_app_zxtune_ZXTune_NativeGC_HandleReference
 #ifdef __cplusplus
 extern "C" {
 #endif

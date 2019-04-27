@@ -279,8 +279,8 @@ public final class ZXTune {
     }
 
     @Override
-    public int analyze(int bands[], int levels[]) throws Exception {
-      return Player_Analyze(handle, bands, levels);
+    public int analyze(byte levels[]) throws Exception {
+      return Player_Analyze(handle, levels);
     }
 
     @Override
@@ -349,7 +349,7 @@ public final class ZXTune {
   // working with player
   private static native boolean Player_Render(int player, short[] result) throws Exception;
 
-  private static native int Player_Analyze(int player, int bands[], int levels[]) throws Exception;
+  private static native int Player_Analyze(int player, byte levels[]) throws Exception;
 
   private static native int Player_GetPosition(int player) throws Exception;
 

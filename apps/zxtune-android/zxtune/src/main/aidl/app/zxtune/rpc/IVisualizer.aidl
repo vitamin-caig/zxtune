@@ -8,5 +8,5 @@
 package app.zxtune.rpc;
 
 interface IVisualizer {
-  int[] getSpectrum();
+  int getSpectrum(out byte[] levels);
 }

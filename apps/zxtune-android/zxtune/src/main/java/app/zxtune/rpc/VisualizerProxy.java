@@ -27,14 +27,9 @@ public final class VisualizerProxy {
     }
 
     @Override
-    public int getSpectrum(int[] bands, int[] levels) {
+    public int getSpectrum(byte[] levels) {
       try {
-        final int[] packed = delegate.getSpectrum();
-        for (int i = 0; i != packed.length; ++i) {
-          bands[i] = packed[i] & 0xff;
-          levels[i] = packed[i] >> 8;
-        }
-        return packed.length;
+        return delegate.getSpectrum(levels);
       } catch (DeadObjectException e) {
         throw new IllegalStateException(e);
       } catch (RemoteException e) {
@@ -46,9 +41,6 @@ public final class VisualizerProxy {
 
   private static class ServerStub extends IVisualizer.Stub {
 
-    private static final int MAX_BANDS = 96;
-    private final int[] bands = new int[MAX_BANDS];
-    private final int[] levels = new int[MAX_BANDS];
     private final Visualizer delegate;
 
     ServerStub(Visualizer delegate) {
@@ -56,18 +48,13 @@ public final class VisualizerProxy {
     }
 
     @Override
-    public int[] getSpectrum() {
+    public int getSpectrum(byte[] levels) {
       try {
-        final int chans = delegate.getSpectrum(bands, levels);
-        final int[] res = new int[chans];
-        for (int idx = 0; idx != chans; ++idx) {
-          res[idx] = (levels[idx] << 8) | bands[idx];
-        }
-        return res;
+        return delegate.getSpectrum(levels);
       } catch (Exception e) {
         Log.w(TAG, e, "getSpectrum()");
       }
-      return new int[1];
+      return 0;
     }
 
   }
