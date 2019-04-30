@@ -127,6 +127,47 @@ namespace
     uint_t Frames = 0;
   };
 
+  class AnalyzerWithHistory
+  {
+  public:
+    explicit AnalyzerWithHistory(Module::Analyzer::Ptr delegate)
+      : Delegate(std::move(delegate))
+    {
+    }
+
+    void FrameDone()
+    {
+      const auto nextPos = (WritePos + 1) % History.size();
+      if (nextPos != ReadPos)
+      {
+        History[WritePos].Data = Delegate->GetState().Data;
+        WritePos = nextPos;
+      }
+    }
+
+    uint_t Analyze(uint_t maxEntries, uint8_t* levels)
+    {
+      if (ReadPos != WritePos)
+      {
+        const auto& out = History[ReadPos];
+        const auto doneEntries = std::min<uint_t>(maxEntries, out.Data.size());
+        std::transform(out.Data.begin(), out.Data.begin() + doneEntries, levels,
+          [](Module::Analyzer::LevelType level) {return level.Raw();});
+        ReadPos = (ReadPos + 1) % History.size();
+        return doneEntries;
+      }
+      else
+      {
+        return 0;
+      }
+    }
+  private:
+    const Module::Analyzer::Ptr Delegate;
+    std::array<Module::Analyzer::SpectrumState, 8> History;
+    uint_t WritePos = 0;
+    uint_t ReadPos = 0;
+  };
+
   class PlayerControl : public Player::Control
   {
   public:
@@ -157,11 +198,7 @@ namespace
 
     uint_t Analyze(uint_t maxEntries, uint8_t* levels) const override
     {
-      const auto& result = Analyser->GetState();
-      const uint_t doneEntries = std::min<uint_t>(maxEntries, result.Data.size());
-      std::transform(result.Data.begin(), result.Data.begin() + doneEntries, levels,
-          [](Module::Analyzer::LevelType level) {return level.Raw();});
-      return doneEntries;
+      return Analyser.Analyze(maxEntries, levels);
     }
 
     bool Render(uint_t samples, int16_t* buffer) override
@@ -181,6 +218,7 @@ namespace
         RenderingPerformance.StartAccounting();
         hasMoreFrames = Renderer->RenderFrame();
         RenderingPerformance.StopAccounting();
+        Analyser.FrameDone();
       }
       std::fill_n(buffer, samples, 0);
       return samples == 0;
@@ -203,7 +241,7 @@ namespace
     const Module::Renderer::Ptr Renderer;
     const BufferTarget::Ptr Buffer;
     const Module::State::Ptr State;
-    const Module::Analyzer::Ptr Analyser;
+    mutable AnalyzerWithHistory Analyser;
     RenderingPerformanceAccountant RenderingPerformance;
   };
 
