@@ -68,22 +68,26 @@ namespace Module
     
     void AddSoundData(const Sound::Chunk& data) override
     {
-      if (Active)
+      const uint_t MAX_PRODUCED_DELTA = 10;
+      if (Produced < MAX_PRODUCED_DELTA)
       {
         for (const auto& smp : data)
         {
           static_assert(Sound::Sample::MID == 0, "Incompatible sample type");
           const auto level = (smp.Left() + smp.Right()) / 2;
           Input[Cursor] = level;
-          ++Cursor;
-          Cursor %= WindowSize;
+          if (++Cursor == WindowSize)
+          {
+            Cursor = 0;
+            ++Produced;
+          }
         }
       }
     }
     
     SpectrumState GetState() const override
     {
-      Active = true;
+      Produced = 0;
       return FFT();
     }
   private:
@@ -193,7 +197,7 @@ namespace Module
       return result;
     }
   private:
-    mutable bool Active = false;
+    mutable uint_t Produced = 0;
     std::array<int_t, WindowSize> Input;
     std::size_t Cursor = 0;
   };
