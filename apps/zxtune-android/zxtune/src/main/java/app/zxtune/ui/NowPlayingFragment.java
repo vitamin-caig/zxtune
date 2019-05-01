@@ -34,7 +34,6 @@ import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.models.MediaSessionModel;
-import app.zxtune.ui.controllers.VisualizerController;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
 
 public class NowPlayingFragment extends Fragment {
@@ -44,7 +43,6 @@ public class NowPlayingFragment extends Fragment {
   private static final int REQUEST_SEND = 2;
   private static final String EXTRA_ITEM_LOCATION = TAG + ".EXTRA_LOCATION";
 
-  private VisualizerController visualizer;
   private InformationView info;
   private TrackActionsMenu trackActionsMenu;
 
@@ -102,8 +100,6 @@ public class NowPlayingFragment extends Fragment {
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    visualizer =
-        new VisualizerController(getActivity(), (SpectrumAnalyzerView) view.findViewById(R.id.visualizer));
     info = new InformationView(getActivity(), view);
   }
 
@@ -134,12 +130,6 @@ public class NowPlayingFragment extends Fragment {
       data.removeExtra(EXTRA_ITEM_LOCATION);
       startActivity(data);
     }
-  }
-
-  @Override
-  public void onDestroyView() {
-    visualizer.shutdown();
-    super.onDestroyView();
   }
 
   private class TrackActionsMenu {
