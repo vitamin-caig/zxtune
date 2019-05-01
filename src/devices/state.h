@@ -14,41 +14,30 @@
 #include <math/fixedpoint.h>
 //std includes
 #include <memory>
-#include <vector>
+#include <array>
 
 namespace Devices
 {
-  //Level in percents
-  typedef Math::FixedPoint<uint_t, 100> LevelType;
+  using LevelType = Math::FixedPoint<uint8_t, 100>;
 
-  //Single channel state
-  struct ChannelState
+  struct DeviceState : std::array<LevelType, 96>
   {
-    ChannelState()
-      : Band(), Level()
+    void Set(uint_t band, LevelType level)
     {
+      if (band < size())
+      {
+        auto& val = (*this)[band];
+        val = std::max(val, level);
+      }
     }
-
-    ChannelState(uint_t band, LevelType level)
-      : Band(band)
-      , Level(level)
-    {
-    }
-
-    //Currently played tone band (up to 96)
-    uint_t Band;
-    //Currently played tone level percentage
-    LevelType Level;
   };
-
-  typedef std::vector<ChannelState> MultiChannelState;
 
   class StateSource
   {
   public:
-    typedef std::shared_ptr<const StateSource> Ptr;
+    using Ptr = std::shared_ptr<const StateSource>;
     virtual ~StateSource() = default;
 
-    virtual MultiChannelState GetState() const = 0;
+    virtual DeviceState GetState() const = 0;
   };
 }

@@ -231,23 +231,20 @@ namespace Xmp
     {
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
       //difference between libxmp and regular spectrum formats is 2 octaves
       const int C2OFFSET = 24;
-      std::vector<ChannelState> result;
-      result.reserve(Channels);
-      ChannelState chan;
+      SpectrumState result;
       for (uint_t idx = 0; idx != Channels; ++idx)
       {
         const xmp_frame_info::xmp_channel_info& info = State->channel_info[idx];
         if (info.note != uint8_t(-1) && info.volume != 0)
         {
           //TODO: use period as precise playback speed
-          chan.Band = std::max<int>(0, info.note - C2OFFSET);
+          const auto band = std::max<int>(0, info.note - C2OFFSET);
           //TODO: also take into account sample's RMS
-          chan.Level = info.volume;
-          result.push_back(chan);
+          result.Set(band, LevelType(info.volume, 100));
         }
       }
       return result;

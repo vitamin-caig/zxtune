@@ -15,7 +15,7 @@ import app.zxtune.playback.Visualizer;
 public class VisualizerStub implements Visualizer {
 
   @Override
-  public int getSpectrum(int[] bands, int[] levels) {
+  public int getSpectrum(byte[] levels) {
     return 0;
   }
 

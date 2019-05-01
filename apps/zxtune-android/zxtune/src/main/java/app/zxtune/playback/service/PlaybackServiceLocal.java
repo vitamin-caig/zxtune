@@ -430,8 +430,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final class DispatchedVisualizer implements Visualizer {
 
     @Override
-    public int getSpectrum(int[] bands, int[] levels) throws Exception {
-      return holder.get().visualizer.getSpectrum(bands, levels);
+    public int getSpectrum(byte[] levels) throws Exception {
+      return holder.get().visualizer.getSpectrum(levels);
     }
   }
 }

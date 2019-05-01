@@ -355,12 +355,11 @@ namespace DAC
       }
     }
 
-    Devices::ChannelState Analyze(uint_t maxRms) const
+    void Analyze(uint_t maxRms, DeviceState& out) const
     {
       assert(Enabled);
       const uint_t rms = Source->GetRms();
-      const LevelType level = Level * rms / maxRms;
-      return Devices::ChannelState(Note + NoteSlide, level);
+      out.Set(Note + NoteSlide, Level * rms / maxRms);
     }
   private:
     Sound::Sample::Type Amplify(Sound::Sample::Type val) const
@@ -547,15 +546,14 @@ namespace DAC
       UpdateChannelState(src);
     }
 
-    MultiChannelState GetState() const override
+    DeviceState GetState() const override
     {
-      MultiChannelState res;
-      res.reserve(State.size());
+      DeviceState res;
       for (const auto& chan : State)
       {
         if (chan.Enabled)
         {
-          res.push_back(chan.Analyze(Samples.GetMaxRms()));
+          chan.Analyze(Samples.GetMaxRms(), res);
         }
       }
       return res;

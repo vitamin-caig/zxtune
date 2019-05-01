@@ -11,11 +11,10 @@ public interface Player extends PropertiesAccessor, PropertiesModifier {
   int getPosition() throws Exception;
 
   /**
-   * @param bands  Array of bands to store
    * @param levels Array of levels to store
    * @return Count of actually stored entries
    */
-  int analyze(int bands[], int levels[]) throws Exception;
+  int analyze(byte levels[]) throws Exception;
 
   /**
    * Render next result.length bytes of sound data

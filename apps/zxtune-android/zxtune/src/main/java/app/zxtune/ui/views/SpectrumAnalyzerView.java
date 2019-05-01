@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Visualizer view component
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.ui.views;
@@ -13,59 +9,65 @@ package app.zxtune.ui.views;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.os.SystemClock;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.view.View;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import app.zxtune.Log;
+import app.zxtune.playback.Visualizer;
+import app.zxtune.playback.stubs.VisualizerStub;
 
-public class SpectrumAnalyzerView extends View {
+public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.Callback {
 
   public static final int MAX_BANDS = 96;
   public static final int MAX_LEVEL = 100;
   private static final int MIN_BAR_WIDTH = 3;
   private static final int BAR_PADDING = 1;
-  private static final int FALL_SPEED = 10;
+  private static final int FALL_SPEED = 4;
 
-  private Rect visibleRect;
-  
   private SpectrumVisualizer visualizer;
-  
-  public SpectrumAnalyzerView(Context context, AttributeSet attrs, int defStyle) {
-    super(context, attrs, defStyle);
-    init();
-  }
-  
-  public SpectrumAnalyzerView(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    init();
-  }
-  
+  private Rect visibleRect;
+  private Visualizer source = VisualizerStub.instance();
+  private RenderThread thread;
+
   public SpectrumAnalyzerView(Context context) {
     super(context);
     init();
   }
 
-  public final boolean update(int channels, int[] bands, int[] levels) {
-    return visualizer.update(channels, bands, levels);
+  public SpectrumAnalyzerView(Context context, AttributeSet attrs) {
+    super(context, attrs);
+    init();
   }
-  
-  @Override
-  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-    fillVisibleRect(w, h);
+
+  public SpectrumAnalyzerView(Context context, AttributeSet attrs, int defStyleAttr) {
+    super(context, attrs, defStyleAttr);
+    init();
   }
-  
-  @Override
-  protected void onDraw(Canvas canvas) {
-    super.onDraw(canvas);
-    visualizer.draw(canvas);
-  }
-  
+
   private void init() {
-    visibleRect = new Rect();
+    setZOrderOnTop(true);
+    getHolder().setFormat(PixelFormat.TRANSLUCENT);
     visualizer = new SpectrumVisualizer();
-    setWillNotDraw(false);
+    visibleRect = new Rect();
+    getHolder().addCallback(this);
   }
-  
-  private void fillVisibleRect(int w, int h) {
+
+  public final void setSource(@Nullable Visualizer source) {
+    this.source = source != null ? source : VisualizerStub.instance();
+  }
+
+  public final void setIsUpdating(boolean updating) {
+    if (thread != null) {
+      thread.setIsActive(updating);
+    }
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
     final int padLeft = getPaddingLeft();
     final int padRight = getPaddingRight();
     final int padTop = getPaddingTop();
@@ -82,16 +84,108 @@ public class SpectrumAnalyzerView extends View {
     }
     visualizer.sizeChanged();
   }
-  
+
+  @Override
+  public void surfaceCreated(SurfaceHolder holder) {
+    thread = new RenderThread(holder);
+  }
+
+  @Override
+  public void surfaceDestroyed(SurfaceHolder holder) {
+    thread.finish();
+  }
+
+  private class RenderThread extends Thread {
+
+    private SurfaceHolder holder;
+    private boolean isActive;
+    private long scheduledFrameTime;
+
+    RenderThread(SurfaceHolder holder) {
+      super("Visualizer");
+      this.holder = holder;
+      start();
+    }
+
+    final void finish() {
+      synchronized(this) {
+        holder = null;
+        notify();
+      }
+    }
+
+    final void setIsActive(boolean isActive) {
+      synchronized(this) {
+        this.isActive = isActive;
+        notify();
+      }
+    }
+
+    @Override
+    public void run() {
+      try {
+        final byte[] levels = new byte[MAX_BANDS];
+        while (synchronizedDraw()) {
+          if (isActive) {
+            final int channels = source.getSpectrum(levels);
+            if (channels != 0) {
+              visualizer.update(channels, levels);
+            } else {
+              visualizer.update();
+            }
+          } else if (!visualizer.update()) {
+            synchronized(this) {
+              this.wait();
+            }
+          }
+        }
+      } catch (Exception e) {
+        Log.w("Visualizer", e, "Failed to draw");
+      }
+    }
+
+    private void sync() {
+      final long MILLIS_PER_FRAME = 40;
+      final long now = SystemClock.elapsedRealtime();
+      if (now <= scheduledFrameTime) {
+        SystemClock.sleep(scheduledFrameTime - now);
+      } else {
+        //resync or maximal possible framerate
+        scheduledFrameTime = now;
+        Log.d("Visualizer", "resync!!!");
+      }
+      scheduledFrameTime += MILLIS_PER_FRAME;
+    }
+
+    private boolean synchronizedDraw() {
+      sync();
+      return draw();
+    }
+
+    private synchronized boolean draw() {
+      if (holder == null) {
+        return false;
+      }
+      Canvas canvas = null;
+      try {
+        canvas = holder.lockCanvas();
+        canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+        visualizer.draw(canvas);
+      } finally {
+        if (canvas != null) {
+          holder.unlockCanvasAndPost(canvas);
+        }
+      }
+      return true;
+    }
+  }
+
   private final class SpectrumVisualizer {
-    
+
     private final Rect barRect;
     private final Paint paint;
     private int barWidth;
     private int[] values;
-    private boolean[] changes;
-    private int lowerChange;
-    private int upperChange;
 
     SpectrumVisualizer() {
       this.barRect = new Rect();
@@ -99,78 +193,46 @@ public class SpectrumAnalyzerView extends View {
       this.paint.setColor(getResources().getColor(android.R.color.primary_text_dark));
       this.barWidth = MIN_BAR_WIDTH;
       this.values = new int[1];
-      this.changes = new boolean[1];
     }
-    
+
     final void sizeChanged() {
       barRect.bottom = visibleRect.bottom;
       final int width = visibleRect.width();
       barWidth = Math.max(width / MAX_BANDS, MIN_BAR_WIDTH);
       final int bars = Math.max(width / barWidth, 1);
       values = new int[bars];
-      changes = new boolean[bars];
-      lowerChange = 0;
-      upperChange = bars - 1;
-    }
-
-    final boolean update(int channels, int[] bars, int[] levels) {
-      updateValues(channels, bars, levels);
-      if (lowerChange != upperChange) {
-        final int updateLeft = visibleRect.left + barWidth * lowerChange;
-        final int updateRight = visibleRect.left + barWidth * upperChange;
-        invalidate(updateLeft, visibleRect.top, updateRight, visibleRect.bottom);
-        return true;
-      } else {
-        return false;
-      }
     }
 
     final void draw(Canvas canvas) {
-      barRect.left = visibleRect.left + barWidth * lowerChange;
+      barRect.left = visibleRect.left;
       barRect.right = barRect.left + barWidth - BAR_PADDING;
       final int height = visibleRect.height();
-      for (int band = lowerChange; band < upperChange; ++band) {
-        if (changes[band]) {
-          barRect.top = visibleRect.top + height - values[band];
+      for (int level : values) {
+        if (level != 0) {
+          barRect.top = visibleRect.top + height - level * height / MAX_LEVEL;
           canvas.drawRect(barRect, paint);
-          changes[band] = false;
         }
         barRect.offset(barWidth, 0);
       }
     }
 
-    private void updateValues(int channels, int[] bands, int[] levels) {
-      fallBars();
-      final int height = visibleRect.height();
-      for (int idx = 0; idx != channels; ++idx) {
-        final int band = bands[idx];
-        final int level = levels[idx];
-        if (level != 0 && band < values.length) {
-          final int newLvl = level * height / MAX_LEVEL;
-          if (newLvl > values[band]) {
-            values[band] = newLvl;
-            changes[band] = true;
-          }
-        }
-      }
-      lowerChange = 0;
-      while (lowerChange != changes.length && !changes[lowerChange]) {
-        ++lowerChange;
-      }
-      upperChange = changes.length;
-      while (upperChange > lowerChange && !changes[upperChange - 1]) {
-        --upperChange;
+    final void update(int channels, byte[] levels) {
+      for (int band = 0, lim = Math.min(channels, values.length); band < lim; ++band) {
+        values[band] = Math.max(values[band] - FALL_SPEED, levels[band]);
       }
     }
 
-    private void fallBars() {
-      final int fall = visibleRect.height() * FALL_SPEED / MAX_LEVEL;
-      for (int i = 0; i != values.length; ++i) {
-        if (values[i] != 0) {
-          values[i] = Math.max(0, values[i] - fall);
-          changes[i] = true;
+    final boolean update() {
+      boolean result = false;
+      for (int band = 0; band < values.length; ++band) {
+        if (values[band] >= FALL_SPEED) {
+          values[band] = values[band] - FALL_SPEED;
+          result = true;
+        } else {
+          values[band] = 0;
         }
       }
+      return result;
     }
   }
 }

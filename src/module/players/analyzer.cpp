@@ -22,6 +22,20 @@
 
 namespace Module
 {
+  class StubAnalyzer : public Analyzer
+  {
+  public:
+    SpectrumState GetState() const override
+    {
+      return SpectrumState();
+    }
+  };
+
+  Analyzer::Ptr CreateStubAnalyzer()
+  {
+    return MakePtr<StubAnalyzer>();
+  }
+
   class DevicesAnalyzer : public Analyzer
   {
   public:
@@ -30,17 +44,9 @@ namespace Module
     {
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
-      const auto& in = Delegate->GetState();
-      std::vector<ChannelState> out(in.size());
-      std::transform(in.begin(), in.end(), out.begin(), &ConvertState);
-      return out;
-    }
-  private:
-    static ChannelState ConvertState(const Devices::ChannelState& in)
-    {
-      return {in.Band, in.Level.Raw()};
+      return Delegate->GetState();
     }
   private:
     const Devices::StateSource::Ptr Delegate;
@@ -62,36 +68,27 @@ namespace Module
     
     void AddSoundData(const Sound::Chunk& data) override
     {
-      if (Active)
+      const uint_t MAX_PRODUCED_DELTA = 10;
+      if (Produced < MAX_PRODUCED_DELTA)
       {
         for (const auto& smp : data)
         {
           static_assert(Sound::Sample::MID == 0, "Incompatible sample type");
           const auto level = (smp.Left() + smp.Right()) / 2;
           Input[Cursor] = level;
-          ++Cursor;
-          Cursor %= WindowSize;
+          if (++Cursor == WindowSize)
+          {
+            Cursor = 0;
+            ++Produced;
+          }
         }
       }
     }
     
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
-      static const uint_t BANDS = 96;
-      std::vector<ChannelState> result;
-      result.reserve(BANDS);
-      const auto& levels = FFT<BANDS>();
-      ChannelState res;
-      for (res.Band = 0; res.Band < BANDS; ++res.Band)
-      {
-        if (const auto rawLevel = levels[res.Band])
-        {
-          res.Level = std::min<uint_t>(100, rawLevel);
-          result.push_back(res);
-        }
-      }
-      Active = true;
-      return result;
+      Produced = 0;
+      return FFT();
     }
   private:
     using Complex = std::complex<float>;
@@ -170,8 +167,7 @@ namespace Module
       std::array<float, WindowSize> Window;
     };
   
-    template<std::size_t Points>
-    std::array<uint_t, Points> FFT() const
+    SpectrumState FFT() const
     {
       auto cplx = Lookup::ToComplex(Input, Cursor);
       uint_t exchanges = 1;
@@ -191,15 +187,17 @@ namespace Module
         }
       }
       
-      std::array<uint_t, Points> result;
-      for (std::size_t i = 0; i < result.size(); ++i)
+      SpectrumState result;
+      for (std::size_t i = 0; i < result.Data.size(); ++i)
       {
-        result[i] = std::abs(cplx[i + 1]) / (256 * 32);
+        const uint_t LIMIT = LevelType::PRECISION;
+        const uint_t raw = std::abs(cplx[i + 1]) / (256 * 32);
+        result.Data[i] = LevelType(std::min(raw, LIMIT), LIMIT);
       }
       return result;
     }
   private:
-    mutable bool Active = false;
+    mutable uint_t Produced = 0;
     std::array<int_t, WindowSize> Input;
     std::size_t Cursor = 0;
   };

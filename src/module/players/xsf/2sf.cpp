@@ -127,23 +127,20 @@ namespace TwoSF
       ::state_render(&State, nullptr, samples);
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
       static const AnalysisMap ANALYSIS;
-      std::vector<ChannelState> result;
-      result.reserve(16);
+      SpectrumState result;
       for (const auto& in : State.SPU_core->channels)
       {
         if (in.status == CHANSTAT_STOPPED)
         {
           continue;
         }
-        ChannelState out;
-        out.Level = ::spumuldiv7(100, in.vol) >> in.datashift;
-        if (out.Level)
+        if (const auto level = ::spumuldiv7(100, in.vol) >> in.datashift)
         {
-          out.Band = ANALYSIS.GetBand(in.timer);
-          result.push_back(out);
+          const auto band = ANALYSIS.GetBand(in.timer);
+          result.Set(band, LevelType(level, 100));
         }
       }
       return result;

@@ -72,14 +72,6 @@ namespace
 
   typedef std::array<BandLevel, MAX_BANDS> Analyzed;
 
-  inline void StoreValue(const Module::Analyzer::ChannelState& chan, Analyzed& result)
-  {
-    if (chan.Band < MAX_BANDS)
-    {
-      result[chan.Band].Set(chan.Level);
-    }
-  }
-  
   class AnalyzerControlImpl : public AnalyzerControl
   {
   public:
@@ -117,8 +109,11 @@ namespace
         {
           level.Fall(LEVELS_FALLBACK);
         }
-        State = std::move(Analyzer->GetState());
-        std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
+        const auto& state = Analyzer->GetState();
+        for (uint_t idx = 0, lim = std::min(state.Data.size(), Levels.size()); idx < lim; ++idx)
+        {
+          Levels[idx].Set(state.Data[idx].Raw());
+        }
         repaint();
       }
     }
@@ -182,7 +177,6 @@ namespace
     QTimer Timer;
     const QPalette Palette;
     Module::Analyzer::Ptr Analyzer;
-    std::vector<Module::Analyzer::ChannelState> State;
     Analyzed Levels;
   };
 }

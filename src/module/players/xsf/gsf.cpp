@@ -179,7 +179,7 @@ namespace GSF
     struct mCore* Core = nullptr;
   };
   
-  class GbaEngine : public Module::Analyzer
+  class GbaEngine
   {
   public:
     using Ptr = std::shared_ptr<GbaEngine>;
@@ -217,11 +217,6 @@ namespace GSF
         Core.RunFrame();
       }
     }
-
-    std::vector<ChannelState> GetState() const override
-    {
-      return std::vector<ChannelState>();
-    }
   private:
     GbaCore Core;
     AVStream Stream;
@@ -234,6 +229,7 @@ namespace GSF
       : Engine(MakePtr<GbaEngine>(data))
       , Iterator(Module::CreateStreamStateIterator(info))
       , State(Iterator->GetStateObserver())
+      , Analyzer(CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(params))
       , Target(Module::CreateFadingReceiver(std::move(params), std::move(info), State, std::move(target)))
       , SamplesPerFrame()
@@ -249,7 +245,7 @@ namespace GSF
 
     Module::Analyzer::Ptr GetAnalyzer() const override
     {
-      return Engine;
+      return Analyzer;
     }
 
     bool RenderFrame() override
@@ -257,8 +253,9 @@ namespace GSF
       try
       {
         ApplyParameters();
-
-        Target->ApplyData(Engine->Render(SamplesPerFrame));
+        auto data = Engine->Render(SamplesPerFrame);
+        Analyzer->AddSoundData(data);
+        Target->ApplyData(std::move(data));
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
       }
@@ -309,6 +306,7 @@ namespace GSF
     const GbaEngine::Ptr Engine;
     const StateIterator::Ptr Iterator;
     const Module::State::Ptr State;
+    const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     uint_t SamplesPerFrame;

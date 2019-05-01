@@ -94,16 +94,16 @@ namespace FM
         std::transform(inBegin, inEnd, out, &ConvertToSample);
       }
 
-      void ConvertState(const uint_t* attenuations, const uint_t* periods, MultiChannelState& res) const
+      void ConvertState(const uint_t* attenuations, const uint_t* periods, DeviceState& res) const
       {
         for (uint_t idx = 0; idx != VOICES; ++idx)
         {
           const uint_t MAX_ATTENUATION = 1024;
           if (attenuations[idx] < MAX_ATTENUATION)
           {
-            const LevelType level(MAX_ATTENUATION - attenuations[idx], MAX_ATTENUATION);
             const uint_t band = Analyser.GetBandByPeriod(periods[idx]);
-            res.push_back(ChannelState(band, level));
+            const LevelType level(MAX_ATTENUATION - attenuations[idx], MAX_ATTENUATION);
+            res.Set(band, level);
           }
         }
       }
@@ -149,7 +149,7 @@ namespace FM
         SynchronizeParameters();
       }
 
-      MultiChannelState GetState() const override
+      DeviceState GetState() const override
       {
         return Adapter.GetState();
       }

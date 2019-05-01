@@ -92,12 +92,12 @@ namespace SPC
     }
     
     //http://wiki.superfamicom.org/snes/show/SPC700+Reference
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
       const DspProperties dsp(Spc);
       const uint_t noise = dsp.GetNoiseChannels();
       const uint_t active = dsp.GetToneChannels() | noise;
-      std::vector<ChannelState> result;
+      SpectrumState result;
       const uint_t noisePitch = noise != 0
         ? dsp.GetNoisePitch()
         : 0;
@@ -113,12 +113,10 @@ namespace SPC
         const uint_t pitch = isNoise
           ? noisePitch 
           : dsp.GetPitch(chan);
-        ChannelState state;
-        state.Level = levelInt * 100 / 127;
-        state.Band = Analysis.GetBandByScaledFrequency(pitch);
-        result.push_back(state);
+        const auto band = Analysis.GetBandByScaledFrequency(pitch);
+        result.Set(band, LevelType(levelInt, 127));
       }
-      return result;
+      return std::move(result);
     }
   private:
     inline static void CheckError(::blargg_err_t err)

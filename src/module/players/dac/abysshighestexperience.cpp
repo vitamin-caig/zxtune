@@ -187,19 +187,15 @@ namespace AHX
     {
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
-      std::vector<ChannelState> result;
-      result.reserve(Hvl->ht_Channels);
+      SpectrumState result;
       for (uint_t idx = 0, lim = Hvl->ht_Channels; idx != lim; ++idx)
       {
         const hvl_voice& voice = Hvl->ht_Voices[idx];
         if (const int_t volume = voice.vc_VoiceVolume)
         {
-          ChannelState state;
-          state.Band = voice.vc_TrackPeriod;
-          state.Level = volume >= 64 ? 100 : volume * 100 / 64;
-          result.push_back(state);
+          result.Set(voice.vc_TrackPeriod, LevelType(volume, 64));
         }
       }
       return result;

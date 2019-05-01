@@ -12,6 +12,8 @@
 
 //common includes
 #include <types.h>
+//library includes
+#include <math/fixedpoint.h>
 //std includes
 #include <memory>
 
@@ -26,12 +28,40 @@ namespace Module
 
     virtual ~Analyzer() = default;
 
-    struct ChannelState
+    using LevelType = Math::FixedPoint<uint8_t, 100>;
+
+    struct SpectrumState
     {
-      uint_t Band;
-      uint_t Level;
+      SpectrumState() {};
+      SpectrumState(const SpectrumState&) = delete;
+      SpectrumState& operator = (const SpectrumState&) = delete;
+      SpectrumState(SpectrumState&& rh)// = default;
+          : Data(std::move(rh.Data))
+      {
+      }
+
+      template<class T>
+      SpectrumState(T&& rh)
+        : Data(std::move(rh))
+      {
+      }
+
+      void Set(uint_t band, LevelType val)
+      {
+        if (band < Data.size())
+        {
+          Data[band] = AccumulateLevel(Data[band], val);
+        }
+      }
+
+      static LevelType AccumulateLevel(LevelType lh, LevelType rh)
+      {
+        return std::min(lh + rh, LevelType(1));
+      }
+
+      std::array<LevelType, 96> Data;
     };
 
-    virtual std::vector<ChannelState> GetState() const = 0;
+    virtual SpectrumState GetState() const = 0;
   };
 }
