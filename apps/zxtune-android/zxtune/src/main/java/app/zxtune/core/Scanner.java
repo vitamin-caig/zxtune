@@ -1,18 +1,8 @@
-/**
- * @file
- * @brief
- * @author vitamin.caig@gmail.com
- */
-
 package app.zxtune.core;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.LruCache;
-import app.zxtune.Core;
-import app.zxtune.Identifier;
-import app.zxtune.Log;
-import app.zxtune.ZXTune;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsArchive;
@@ -32,13 +22,11 @@ import java.util.Comparator;
 
 public final class Scanner {
 
-  private static final String TAG = Scanner.class.getName();
-
   public interface Callback {
 
-    void onModule(Identifier id, Module module) throws Exception;
+    void onModule(Identifier id, Module module);
 
-    void onError(Exception e);
+    void onError(Identifier id, Exception e);
   }
 
   private static final int CACHE_ENTRIES = 30;
@@ -56,29 +44,21 @@ public final class Scanner {
   public static void analyzeIdentifier(@NonNull Identifier id, @NonNull Callback cb) {
     try {
       if (id.getSubpath().isEmpty()) {
-        Holder.INSTANCE.analyzeRealObject(id.getDataLocation(), cb);
+        Holder.INSTANCE.analyzeRealObject(id, cb);
       } else {
         Holder.INSTANCE.analyzeArchiveObject(id, cb);
       }
     } catch (Exception e) {
-      cb.onError(e);
+      cb.onError(id, e);
     }
   }
 
   public static void analyzeFile(@NonNull VfsFile file, @NonNull Callback cb) {
-    try {
-      Holder.INSTANCE.analyzeFileObject(file, cb);
-    } catch (Exception e) {
-      cb.onError(e);
-    }
+    Holder.INSTANCE.analyzeFileObject(file, cb);
   }
 
-  private void analyzeRealObject(Uri uri, Callback cb) throws Exception {
-    final VfsObject obj = Vfs.resolve(uri);
-    analyzeObject(obj, cb);
-  }
-
-  private void analyzeObject(VfsObject obj, Callback cb) throws Exception {
+  private void analyzeRealObject(@NonNull Identifier id, Callback cb) throws Exception {
+    final VfsObject obj = Vfs.resolve(id.getDataLocation());
     if (obj instanceof VfsDir) {
       analyzeDirObject((VfsDir) obj, cb);
     } else if (obj instanceof VfsFile) {
@@ -86,27 +66,32 @@ public final class Scanner {
     }
   }
 
-  private void analyzeDirObject(VfsDir directory, Callback cb) throws Exception {
+  private void analyzeDirObject(VfsDir directory, Callback cb) {
     //analyze depth first
     final ArrayList<VfsDir> dirs = new ArrayList<>();
     final ArrayList<VfsFile> files = new ArrayList<>();
-    directory.enumerate(new VfsDir.Visitor() {
+    try {
+      directory.enumerate(new VfsDir.Visitor() {
 
-      @Override
-      public void onItemsCount(int count) {
-        files.ensureCapacity(count);
-      }
+        @Override
+        public void onItemsCount(int count) {
+          files.ensureCapacity(count);
+        }
 
-      @Override
-      public void onFile(VfsFile file) {
-        files.add(file);
-      }
+        @Override
+        public void onFile(VfsFile file) {
+          files.add(file);
+        }
 
-      @Override
-      public void onDir(VfsDir dir) {
-        dirs.add(dir);
-      }
-    });
+        @Override
+        public void onDir(VfsDir dir) {
+          dirs.add(dir);
+        }
+      });
+    } catch (Exception e) {
+      cb.onError(new Identifier(directory.getUri()), e);
+      return;
+    }
     final Object extension = directory.getExtension(VfsExtensions.COMPARATOR);
     final Comparator<VfsObject> comparator = extension instanceof Comparator<?>
                                                  ? (Comparator<VfsObject>) extension
@@ -122,33 +107,33 @@ public final class Scanner {
     }
   }
 
-  private void analyzeFileObject(VfsFile file, Callback cb) throws Exception {
-    //may be called from recursion, so additionally check for archived objects
+  private void analyzeFileObject(VfsFile file, Callback cb) {
     final Identifier id = new Identifier(file.getUri());
-    if (!id.getSubpath().isEmpty()) {
-      analyzeArchiveObject(id, cb);
-    } else if (!analyzePlaylistFile(file, cb)) {
-      analyzeRealFile(file, cb);
+    try {
+      //may be called from recursion, so additionally check for archived objects
+      if (!id.getSubpath().isEmpty()) {
+        analyzeArchiveObject(id, cb);
+      } else if (!analyzePlaylistFile(file, cb)) {
+        analyzeRealFile(file, cb);
+      }
+    } catch (Exception e) {
+      cb.onError(id, e);
     }
   }
 
-  private boolean analyzePlaylistFile(VfsFile file, Callback cb) {
+  private boolean analyzePlaylistFile(VfsFile file, Callback cb) throws IOException {
     final String filename = file.getUri().getLastPathSegment();
     if (filename == null) {
       return false;
+    } else if (filename.endsWith(".ayl")) {
+      analyzePlaylist(file.getUri(), AylIterator.create(file.getContent()), cb);
+      return true;
+    } else if (filename.endsWith(".xspf")) {
+      analyzePlaylist(file.getUri(), XspfIterator.create(file.getContent()), cb);
+      return true;
+    } else {
+      return false;
     }
-    try {
-      if (filename.endsWith(".ayl")) {
-        analyzePlaylist(file.getUri(), AylIterator.create(file.getContent()), cb);
-        return true;
-      } else if (filename.endsWith(".xspf")) {
-        analyzePlaylist(file.getUri(), XspfIterator.create(file.getContent()), cb);
-        return true;
-      }
-    } catch (Exception e) {
-      cb.onError(e);
-    }
-    return false;
   }
 
   private void analyzePlaylist(Uri fileUri, ReferencesIterator iter, Callback cb) {
@@ -169,37 +154,30 @@ public final class Scanner {
 
   private static void analyzeRealFile(VfsFile file, final Callback cb) throws Exception {
     final Uri uri = file.getUri();
-    Core.detectModules(file, new ZXTune.ModuleDetectCallback() {
+    Core.detectModules(file, new ModuleDetectCallback() {
 
       @Override
-      public void onModule(String subpath, Module obj) throws Exception {
+      public void onModule(@NonNull String subpath, @NonNull Module obj) {
         cb.onModule(new Identifier(uri, subpath), obj);
       }
     });
   }
 
   private void analyzeArchiveObject(Identifier id, Callback cb) throws Exception {
-    if (!analyzeArchiveFile(id, cb)) {
+    try {
+      final VfsFile archive = openArchive(id.getDataLocation());
+      final Module module = Core.loadModule(archive, id.getSubpath());
+      cb.onModule(id, module);
+    } catch (ResolvingException e) {
       final Uri uri = id.getFullLocation();
       final VfsObject obj = VfsArchive.resolve(uri);
       if (obj instanceof VfsDir) {
         analyzeDirObject((VfsDir) obj, cb);
+      } else {
+        // Archived folder with expired cache
+        throw e;
       }
-      //expired archive file
     }
-  }
-
-  private boolean analyzeArchiveFile(Identifier id, Callback cb) throws Exception {
-    final VfsFile archive = openArchive(id.getDataLocation());
-    final Module module;
-    try {
-      module = Core.loadModule(archive, id.getSubpath());
-    } catch (Exception e) {
-      Log.w(TAG, e, "Failed to analyzer archive file");
-      return false;
-    }
-    cb.onModule(id, module);
-    return true;
   }
 
   private VfsFile openArchive(Uri uri) throws IOException {
@@ -217,6 +195,6 @@ public final class Scanner {
   }
 
   private static class Holder {
-    public static final Scanner INSTANCE = new Scanner();
+    static final Scanner INSTANCE = new Scanner();
   }
 }

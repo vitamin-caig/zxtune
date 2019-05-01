@@ -1,7 +1,15 @@
-package app.zxtune;
+package app.zxtune.core;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import app.zxtune.Analytics;
+import app.zxtune.Log;
+import app.zxtune.core.jni.JniModule;
+import app.zxtune.fs.Vfs;
+import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsObject;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,20 +17,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 
-import app.zxtune.core.Module;
-import app.zxtune.fs.Vfs;
-import app.zxtune.fs.VfsDir;
-import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.VfsObject;
-
 public class Core {
   private static final String TAG = Core.class.getName();
 
-  public static Module loadModule(VfsFile file, String subpath) throws Exception {
+  @NonNull
+  public static Module loadModule(@NonNull VfsFile file, @NonNull String subpath) throws IOException, ResolvingException {
     final ByteBuffer content = file.getContent();
     final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), subpath, content.limit());
     log.action("loadModule begin");
-    final Module obj = ZXTune.loadModule(content, subpath);
+    final Module obj = JniModule.load(makeDirectBuffer(content), subpath);
     log.action("loadModule end");
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
@@ -36,27 +39,43 @@ public class Core {
     }
   }
 
-  public static void detectModules(VfsFile file, ZXTune.ModuleDetectCallback callback) throws Exception {
+  public static void detectModules(@NonNull VfsFile file, @NonNull ModuleDetectCallback callback) throws IOException {
     final ByteBuffer content = file.getContent();
     final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), "*", content.limit());
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback, log);
     log.action("detectModules begin");
-    ZXTune.detectModules(content, adapter);
+    JniModule.detect(makeDirectBuffer(content), adapter);
     log.action("detectModules end");
     if (0 == adapter.getDetectedModulesCount()) {
       Analytics.sendNoTracksFoundEvent(file.getUri());
     }
   }
 
-  private static class ModuleDetectCallbackAdapter implements ZXTune.ModuleDetectCallback {
+  @NonNull
+  private static ByteBuffer makeDirectBuffer(@NonNull ByteBuffer content) {
+    if (content.position() != 0) {
+      throw new IllegalArgumentException("Input data should have zero position");
+    }
+    if (content.isDirect()) {
+      return content;
+    } else {
+      final ByteBuffer direct = ByteBuffer.allocateDirect(content.limit());
+      direct.put(content);
+      direct.position(0);
+      content.position(0);
+      return direct;
+    }
+  }
+
+  private static class ModuleDetectCallbackAdapter implements ModuleDetectCallback {
 
     private final VfsFile location;
-    private final ZXTune.ModuleDetectCallback delegate;
+    private final ModuleDetectCallback delegate;
     private final Analytics.JniLog log;
     private Resolver resolver;
     private int modulesCount = 0;
 
-    ModuleDetectCallbackAdapter(VfsFile location, ZXTune.ModuleDetectCallback delegate, Analytics.JniLog log) {
+    ModuleDetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate, Analytics.JniLog log) {
       this.location = location;
       this.delegate = delegate;
       this.log = log;
@@ -67,7 +86,7 @@ public class Core {
     }
 
     @Override
-    public void onModule(String subpath, Module obj) throws Exception {
+    public void onModule(@NonNull String subpath, @NonNull Module obj) {
       ++modulesCount;
       try {
         final String[] files = obj.getAdditionalFiles();
@@ -80,12 +99,13 @@ public class Core {
           //was not resolved by core
           Log.d(TAG, "Unresolved additional files '%s'", Arrays.toString(files));
         }
-      } catch (IOException|ResolvingException e) {
+      } catch (ResolvingException e) {
         Log.w(TAG, e, "Skip module at %s in %s", subpath, location.getUri());
       }
     }
 
-    private Module resolve(Module obj, String[] files) throws Exception {
+    @NonNull
+    private Module resolve(@NonNull Module obj, String[] files) throws ResolvingException {
       return getResolver().resolve(obj, files);
     }
 
@@ -99,12 +119,13 @@ public class Core {
 
   private static class Resolver {
 
+    @Nullable
     private VfsDir parent;
     private final Analytics.JniLog log;
     private final HashMap<String, VfsFile> files = new HashMap<>();
     private final HashMap<String, VfsDir> dirs = new HashMap<>();
 
-    Resolver(VfsFile content, Analytics.JniLog log) {
+    Resolver(@NonNull VfsFile content, @NonNull Analytics.JniLog log) {
       final VfsObject parent = content.getParent();
       if (parent instanceof VfsDir) {
         this.parent = (VfsDir) parent;
@@ -112,7 +133,8 @@ public class Core {
       this.log = log;
     }
 
-    final Module resolve(Module module, String[] files) throws ResolvingException {
+    @NonNull
+    final Module resolve(@NonNull Module module, @Nullable String[] files) throws ResolvingException {
       while (files != null && 0 != files.length) {
         final String[] newFiles = resolveIteration(module, files);
         if (Arrays.equals(files, newFiles)) {
@@ -123,12 +145,13 @@ public class Core {
       return module;
     }
 
-    private String[] resolveIteration(Module module, String[] files) throws ResolvingException {
+    @Nullable
+    private String[] resolveIteration(@NonNull Module module, @NonNull String[] files) throws ResolvingException {
       try {
         for (String name : files) {
           final ByteBuffer content = getFileContent(name);
           log.action("resolveAdditionalFile " + name);
-          module.resolveAdditionalFile(name, content);
+          module.resolveAdditionalFile(name, makeDirectBuffer(content));
           log.action("resolveAdditionalFile end");
         }
         return module.getAdditionalFiles();
@@ -137,7 +160,7 @@ public class Core {
       }
     }
 
-    private ByteBuffer getFileContent(String name) throws IOException {
+    private ByteBuffer getFileContent(@NonNull String name) throws IOException {
       final VfsFile file = findFile(name);
       if (file == null) {
         throw new IOException(String.format(Locale.US, "Failed to find additional file '%s'", name));
@@ -146,7 +169,7 @@ public class Core {
     }
 
     @Nullable
-    private VfsFile findFile(String name) throws IOException {
+    private VfsFile findFile(@NonNull String name) throws IOException {
       if (parent != null) {
         final Uri fileUri = parent.getUri().buildUpon().appendPath(name).build();
         Log.d(TAG, "Try to find '%s' as '%s'", name, fileUri);
@@ -161,7 +184,7 @@ public class Core {
     }
 
     @Nullable
-    private VfsFile findPreloadedFile(String name) throws IOException {
+    private VfsFile findPreloadedFile(@NonNull String name) throws IOException {
       if (!files.containsKey(name)) {
         final int lastSeparator = name.lastIndexOf('/');
         if (lastSeparator != -1) {
@@ -171,7 +194,7 @@ public class Core {
       return files.get(name);
     }
 
-    private void preloadDir(String path) throws IOException {
+    private void preloadDir(@NonNull String path) throws IOException {
       if (!dirs.containsKey(path)) {
         final int lastSeparator = path.lastIndexOf('/');
         if (lastSeparator != -1) {
@@ -185,7 +208,7 @@ public class Core {
       preloadDir(dir, path + "/");
     }
 
-    private void preloadDir(VfsDir dir, final String relPath) throws IOException {
+    private void preloadDir(@NonNull VfsDir dir, @NonNull final String relPath) throws IOException {
       Log.d(TAG, "Preload content of %s as '%s'", dir.getUri(), relPath);
       dir.enumerate(new VfsDir.Visitor() {
 
@@ -194,14 +217,14 @@ public class Core {
         }
 
         @Override
-        public void onDir(VfsDir dir) {
+        public void onDir(@NonNull VfsDir dir) {
           final String name = relPath + dir.getName();
           dirs.put(name, dir);
           Log.d(TAG, "Add dir %s (%s)", name, dir.getUri());
         }
 
         @Override
-        public void onFile(VfsFile file) {
+        public void onFile(@NonNull VfsFile file) {
           final String name = relPath + file.getName();
           files.put(name, file);
           Log.d(TAG, "Add file %s (%s)", name, file.getUri());
@@ -211,14 +234,3 @@ public class Core {
   }
 }
 
-class ResolvingException extends Exception {
-  private static final long serialVersionUID = 1L;
-
-  ResolvingException(String msg) {
-    super(msg);
-  }
-
-  ResolvingException(String msg, Throwable e) {
-    super(msg, e);
-  }
-}

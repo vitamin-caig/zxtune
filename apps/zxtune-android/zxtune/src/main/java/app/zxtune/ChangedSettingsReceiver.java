@@ -10,6 +10,7 @@ import java.util.Map;
 
 import app.zxtune.core.Properties;
 import app.zxtune.core.PropertiesModifier;
+import app.zxtune.core.jni.GlobalOptions;
 
 class ChangedSettingsReceiver extends BroadcastReceiver {
 
@@ -23,7 +24,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
       final String key = entry.getKey();
       if (key.startsWith(Properties.PREFIX)) {
-        setProperty(key, entry.getValue(), ZXTune.GlobalOptions.instance());
+        setProperty(key, entry.getValue(), GlobalOptions.instance());
       }
     }
     return new BroadcastReceiverConnection(ctx,
@@ -38,7 +39,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     if (key.startsWith(Properties.PREFIX)) {
       final Object value = intent.getExtras().get(PreferencesActivity.EXTRA_PREFERENCE_VALUE);
       if (value != null) {
-        setProperty(key, value, ZXTune.GlobalOptions.instance());
+        setProperty(key, value, GlobalOptions.instance());
       }
     }
   }
@@ -61,7 +62,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     }
   }
 
-  private static void setProperty(String name, String value, PropertiesModifier target) throws Exception {
+  private static void setProperty(String name, String value, PropertiesModifier target) {
     try {
       target.setProperty(name, Long.parseLong(value));
     } catch (NumberFormatException e) {
@@ -69,7 +70,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     }
   }
 
-  private static void setProperty(String name, long value, PropertiesModifier target) throws Exception {
+  private static void setProperty(String name, long value, PropertiesModifier target) {
     target.setProperty(name, value);
   }
 }

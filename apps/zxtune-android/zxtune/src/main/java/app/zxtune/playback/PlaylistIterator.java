@@ -15,7 +15,7 @@ import android.net.Uri;
 
 import java.io.IOException;
 
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.core.Scanner;
@@ -110,8 +110,8 @@ class PlaylistIterator implements Iterator {
       }
       
       @Override
-      public void onError(Exception e) {
-        Log.w(TAG, e, "Ignore error");
+      public void onError(Identifier id, Exception e) {
+        Log.w(TAG, e, "Ignore error for " + id);
       }
     });
   }
@@ -147,17 +147,17 @@ class PlaylistIterator implements Iterator {
     }
     
     @Override
-    public String getProgram() throws Exception {
+    public String getProgram() {
       return content.getProgram();
     }
 
     @Override
-    public String getComment() throws Exception {
+    public String getComment() {
       return content.getComment();
     }
     
     @Override
-    public String getStrings() throws Exception {
+    public String getStrings() {
       return content.getStrings();
     }
     

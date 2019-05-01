@@ -3,7 +3,7 @@ package app.zxtune.fs;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator.Entry;

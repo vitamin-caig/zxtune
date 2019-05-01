@@ -13,7 +13,7 @@ class SeekableSamplesSource implements SamplesSource {
   private Player player;
   private final TimeStamp frameDuration;
 
-  SeekableSamplesSource(Player player) throws Exception {
+  SeekableSamplesSource(Player player) {
     this.player = player;
     final long frameDurationUs = player.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
     this.frameDuration = TimeStamp.createFrom(frameDurationUs, TimeUnit.MICROSECONDS);
@@ -21,12 +21,12 @@ class SeekableSamplesSource implements SamplesSource {
   }
 
   @Override
-  public void initialize(int sampleRate) throws Exception {
+  public void initialize(int sampleRate) {
     player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
   }
 
   @Override
-  public boolean getSamples(@NonNull short[] buf) throws Exception {
+  public boolean getSamples(@NonNull short[] buf) {
     if (player.render(buf)) {
       return true;
     } else {
@@ -36,12 +36,12 @@ class SeekableSamplesSource implements SamplesSource {
   }
 
   @Override
-  public TimeStamp getPosition() throws Exception {
+  public TimeStamp getPosition() {
     return frameDuration.multiplies(player.getPosition());
   }
 
   @Override
-  public void setPosition(TimeStamp pos) throws Exception {
+  public void setPosition(TimeStamp pos) {
     player.setPosition(toFrame(pos));
   }
 

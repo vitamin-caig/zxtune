@@ -15,6 +15,8 @@
 //library includes
 #include <module/holder.h>
 #include <parameters/container.h>
+//platform includes
+#include <jni.h>
 
 namespace Player
 {
@@ -24,8 +26,8 @@ namespace Player
     typedef std::unique_ptr<Control> Ptr;
     virtual ~Control() = default;
 
-    virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-    virtual Parameters::Modifier::Ptr GetParameters() const = 0;
+    virtual const Parameters::Accessor& GetProperties() const = 0;
+    virtual Parameters::Modifier& GetParameters() const = 0;
 
     virtual uint_t GetPosition() const = 0;
     virtual uint_t Analyze(uint_t maxEntries, uint8_t* levels) const = 0;
@@ -38,5 +40,8 @@ namespace Player
 
   typedef ObjectsStorage<Control::Ptr> Storage;
 
-  Storage::HandleType Create(Module::Holder::Ptr module);
+  jobject Create(JNIEnv* env, Module::Holder::Ptr module);
+
+  void InitJni(JNIEnv*);
+  void CleanupJni(JNIEnv*);
 }

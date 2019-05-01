@@ -8,6 +8,7 @@ package app.zxtune;
 
 import android.app.IntentService;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -15,15 +16,16 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.support.v4.os.CancellationSignal;
+import android.support.v4.os.OperationCanceledException;
 import android.widget.Toast;
+import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.Scanner;
 import app.zxtune.device.ui.Notifications;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.PlaylistQuery;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScanService extends IntentService {
@@ -36,8 +38,8 @@ public class ScanService extends IntentService {
 
   private final Handler handler;
   private final NotifyTask tracking;
-  private final InsertItemsThread insertThread;
   private final AtomicInteger addedItems;
+  private CancellationSignal signal;
   private Exception error;
 
   //TODO: remove C&P
@@ -61,15 +63,15 @@ public class ScanService extends IntentService {
   }
 
   /**
-   * InsertThread is executed for onCreate..onDestroy interval 
+   * InsertThread is executed for onCreate..onDestroy interval
    */
 
   public ScanService() {
     super(ScanService.class.getName());
     this.handler = new Handler();
     this.tracking = new NotifyTask();
-    this.insertThread = new InsertItemsThread();
     this.addedItems = new AtomicInteger();
+    this.signal = new CancellationSignal();
     setIntentRedelivery(false);
   }
 
@@ -77,13 +79,12 @@ public class ScanService extends IntentService {
   public void onCreate() {
     super.onCreate();
     makeToast(R.string.scanning_started, Toast.LENGTH_SHORT);
-    insertThread.start();
   }
 
   @Override
   public void onStart(Intent intent, int startId) {
     if (ACTION_CANCEL.equals(intent.getAction())) {
-      insertThread.cancel();
+      signal.cancel();
       stopSelf();
     } else {
       super.onStart(intent, startId);
@@ -93,7 +94,6 @@ public class ScanService extends IntentService {
   @Override
   public void onDestroy() {
     super.onDestroy();
-    insertThread.flush();
     if (error != null) {
       final String msg = getString(R.string.scanning_failed, error.getMessage());
       makeToast(msg, Toast.LENGTH_LONG);
@@ -127,137 +127,45 @@ public class ScanService extends IntentService {
     final Uri[] uris = new Uri[paths.length];
     System.arraycopy(paths, 0, uris, 0, uris.length);
 
-    scan(uris);
+    tracking.start();
+    try {
+      scan(uris);
+    } catch (Exception e) {
+      error = e;
+    } finally {
+      tracking.stop();
+    }
   }
 
   private void scan(Uri[] uris) {
-    error = null;
+    final ContentResolver resolver = getContentResolver();
     for (Uri uri : uris) {
-      if (!insertThread.isActive()) {
-        break;
-      }
       Log.d(TAG, "scan on %s", uri);
       Scanner.analyzeIdentifier(new Identifier(uri), new Scanner.Callback() {
         @Override
-        public void onModule(Identifier id, Module module) throws Exception {
+        public void onModule(Identifier id, Module module) {
+          signal.throwIfCanceled();
           final Item item = new Item(id, module);
-          insertThread.enqueue(item);
+          resolver.insert(PlaylistQuery.ALL, item.toContentValues());
+          addedItems.incrementAndGet();
+          error = null;
         }
 
         @Override
-        public void onError(Exception e) {
-          error = e;
+        public void onError(Identifier id, Exception e) {
+          Log.w(TAG, e, "Error while processing " + id);
+          if (e instanceof OperationCanceledException) {
+            throw (OperationCanceledException) e;
+          } else {
+            error = e;
+          }
         }
       });
-      if (error != null) {
-        insertThread.cancel();
-        if (error instanceof InterruptedException) {
-          error = null;
-        }
-        break;
-      }
-    }
-  }
-
-  private class InsertItemsThread extends Thread {
-
-    private static final int MAX_QUEUE_SIZE = 100;
-    private final Item STUB = new Item();
-
-    private final ArrayBlockingQueue<Item> queue;
-    private final AtomicBoolean active;
-
-    InsertItemsThread() {
-      super(TAG + ".InsertItemsThread");
-      this.queue = new ArrayBlockingQueue<>(MAX_QUEUE_SIZE);
-      this.active = new AtomicBoolean();
-    }
-
-    final void enqueue(Item item) throws InterruptedException {
-      if (isActive()) {
-        queue.put(item);
-      }
-    }
-
-    @Override
-    public void start() {
-      active.set(true);
-      super.start();
-    }
-
-    final boolean isActive() {
-      return active.get();
-    }
-
-    final void cancel() {
-      Log.d(getName(), "cancel()");
-      active.set(false);
-      interrupt();
-    }
-
-    final void flush() {
-      try {
-        Log.d(getName(), "waitForFinish()");
-        enqueue(STUB);
-        active.set(false);
-        join();
-      } catch (InterruptedException e) {
-        Log.w(getName(), e, "Failed to wait for finish");
-      }
-    }
-
-    @Override
-    public void run() {
-      try {
-        Log.d(getName(), "started");
-        if (transferSingleItem()) {
-          //start tracking only after first arrive
-          performTransfer();
-        }
-      } catch (InterruptedException e) {
-        Log.d(getName(), "interrupted");
-      } catch (Exception e) {
-        Log.w(getName(), e, "run()");
-      } finally {
-        Log.d(getName(), "stopping");
-      }
-    }
-
-    private void performTransfer() throws Exception {
-      tracking.start();
-      try {
-        transferItems();
-      } finally {
-        tracking.stop();
-      }
-    }
-
-    private void transferItems() throws Exception {
-      for (; ; ) {
-        if (!transferSingleItem()) {
-          break;
-        }
-      }
-    }
-
-    private boolean transferSingleItem() throws Exception {
-      final Item item = queue.take();
-      if (item == STUB) {
-        return false;
-      }
-      insertItem(item);
-      return true;
-    }
-
-    private void insertItem(Item item) {
-      getContentResolver().insert(PlaylistQuery.ALL, item.toContentValues());
-      addedItems.incrementAndGet();
     }
   }
 
   private class NotifyTask implements Runnable {
 
-    private static final int NOTIFICATION_DELAY = 100;
     private static final int NOTIFICATION_PERIOD = 2000;
 
     private WakeLock wakeLock;
@@ -265,7 +173,7 @@ public class ScanService extends IntentService {
 
     final void start() {
       notification = new StatusNotification();
-      handler.postDelayed(this, NOTIFICATION_DELAY);
+      handler.postDelayed(this, NOTIFICATION_PERIOD);
       getWakelock().acquire();
     }
 

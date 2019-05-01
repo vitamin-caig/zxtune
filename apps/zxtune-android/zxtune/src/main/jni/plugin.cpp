@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "zxtune.h"
+#include "jni_plugin.h"
 #include "properties.h"
 //library includes
 #include <core/plugin.h>
@@ -27,7 +27,7 @@ namespace
 
     void Init(JNIEnv* env)
     {
-      const jclass classType = env->FindClass("app/zxtune/ZXTune$Plugins$Visitor");
+      const jclass classType = env->FindClass("app/zxtune/core/jni/Plugins$Visitor");
       OnPlayerPluginMethod = env->GetMethodID(classType,
         "onPlayerPlugin", "(ILjava/lang/String;Ljava/lang/String;)V");
       OnContainerPluginMethod = env->GetMethodID(classType,
@@ -68,17 +68,17 @@ namespace
   };
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_00024Plugins_init
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_Plugins_init
   (JNIEnv* env, jclass /*self*/)
 {
   VISITOR.Init(env);
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Plugins_1Enumerate
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_Plugins_enumerate
   (JNIEnv* env, jclass /*self*/, jobject visitor)
 {
   const VisitorAdapter adapter(env, visitor);
-  for (ZXTune::Plugin::Iterator::Ptr iter = ZXTune::EnumeratePlugins(); iter->IsValid(); iter->Next())
+  for (const auto iter = ZXTune::EnumeratePlugins(); iter->IsValid(); iter->Next())
   {
     const ZXTune::Plugin::Ptr plug = iter->Get();
     const uint_t caps = plug->Capabilities();

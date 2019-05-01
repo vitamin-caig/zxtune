@@ -1,5 +1,7 @@
 package app.zxtune.core;
 
+import android.support.annotation.NonNull;
+
 /**
  * Properties accessor interface
  */
@@ -12,7 +14,7 @@ public interface PropertiesAccessor {
    * @param defVal Default value
    * @return Property value or defVal if not found
    */
-  long getProperty(String name, long defVal) throws Exception;
+  long getProperty(@NonNull String name, long defVal);
 
   /**
    * Getting string property
@@ -21,5 +23,6 @@ public interface PropertiesAccessor {
    * @param defVal Default value
    * @return Property value or defVal if not found
    */
-  String getProperty(String name, String defVal) throws Exception;
+  @NonNull
+  String getProperty(@NonNull String name, @NonNull String defVal);
 }

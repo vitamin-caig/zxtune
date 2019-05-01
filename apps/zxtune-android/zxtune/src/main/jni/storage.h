@@ -10,6 +10,8 @@
 
 #pragma once
 
+//local includes
+#include "exception.h"
 //common includes
 #include <pointers.h>
 //std includes
@@ -29,31 +31,19 @@ public:
 
   HandleType Add(PtrType obj)
   {
-    if (obj)
-    {
-      const std::lock_guard<std::mutex> guard(Lock);
-      const HandleType handle = GetNextHandle();
-      Storage.insert(typename StorageType::value_type(handle, std::move(obj)));
-      return handle;
-    }
-    else
-    {
-      throw std::runtime_error("Invalid object");
-    }
+    Jni::CheckArgument(!!obj, "Invalid object");
+    const std::lock_guard<std::mutex> guard(Lock);
+    const HandleType handle = GetNextHandle();
+    Storage.insert(typename StorageType::value_type(handle, std::move(obj)));
+    return handle;
   }
 
   const PtrType& Get(HandleType handle) const
   {
     const std::lock_guard<std::mutex> guard(Lock);
     const auto it = Storage.find(handle);
-    if (it != Storage.end())
-    {
-      return it->second;
-    }
-    else
-    {
-      throw std::runtime_error("Invalid handle");
-    }
+    Jni::CheckArgument(it != Storage.end(), "Invalid handle");
+    return it->second;
   }
 
   PtrType Fetch(HandleType handle)

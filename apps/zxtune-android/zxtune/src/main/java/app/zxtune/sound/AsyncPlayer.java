@@ -48,7 +48,7 @@ public final class AsyncPlayer implements Player {
   }
 
   @Override
-  public void setSource(@NonNull SamplesSource src) throws Exception {
+  public void setSource(@NonNull SamplesSource src) {
     src.initialize(target.getSampleRate());
     synchronized(state) {
       source.set(src);
@@ -129,7 +129,7 @@ public final class AsyncPlayer implements Player {
     seekRequest.set(pos);
   }
 
-  public TimeStamp getPosition() throws Exception {
+  public TimeStamp getPosition() {
     TimeStamp res = seekRequest.get();
     if (res == null) {
       res = source.get().getPosition();
@@ -175,7 +175,7 @@ public final class AsyncPlayer implements Player {
     }
   }
 
-  private void maybeSeek() throws Exception {
+  private void maybeSeek() {
     TimeStamp req = seekRequest.getAndSet(null);
     if (req != null) {
       events.onSeeking();
@@ -187,7 +187,7 @@ public final class AsyncPlayer implements Player {
     }
   }
 
-  private boolean getSamples(short[] buf) throws Exception {
+  private boolean getSamples(short[] buf) {
     return source.get().getSamples(buf);
   }
 

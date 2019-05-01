@@ -13,8 +13,8 @@ import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
-import app.zxtune.ZXTune;
 import app.zxtune.core.Properties;
+import app.zxtune.core.jni.GlobalOptions;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
 import app.zxtune.playback.*;
 import app.zxtune.playback.stubs.IteratorStub;
@@ -168,12 +168,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
 
-  private void setNewItem(PlayableItem newItem) throws Exception {
+  private void setNewItem(PlayableItem newItem) {
     final Holder newHolder = new Holder(newItem);
     setNewHolder(newHolder);
   }
 
-  private void setNewHolder(Holder newHolder) throws Exception {
+  private void setNewHolder(Holder newHolder) {
     navigateCmd.cancel();
     holder.set(newHolder);
     player.setSource(newHolder.source);
@@ -276,7 +276,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.visualizer = VisualizerStub.instance();
     }
 
-    Holder(PlayableItem item) throws Exception {
+    Holder(PlayableItem item) {
       this.item = item;
       final app.zxtune.core.Player lowPlayer = item.getModule().createPlayer();
       this.source = new SeekableSamplesSource(lowPlayer);
@@ -318,7 +318,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void execute() throws Exception {
+    public void execute() {
       final Iterator iteratorCopy = iterator.get();
       if (performNavigation(iteratorCopy) && iterator.compareAndSet(iteratorCopy, iteratorCopy)) {
         setNewItem(iteratorCopy.getItem());
@@ -387,14 +387,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public TrackMode getTrackMode() {
-      final long val = ZXTune.GlobalOptions.instance().getProperty(Properties.Sound.LOOPED, 0);
+      final long val = GlobalOptions.instance().getProperty(Properties.Sound.LOOPED, 0);
       return val != 0 ? TrackMode.LOOPED : TrackMode.REGULAR;
     }
 
     @Override
     public void setTrackMode(TrackMode mode) {
       final long val = mode == TrackMode.LOOPED ? 1 : 0;
-      ZXTune.GlobalOptions.instance().setProperty(Properties.Sound.LOOPED, val);
+      GlobalOptions.instance().setProperty(Properties.Sound.LOOPED, val);
       saveProperty(Properties.Sound.LOOPED, val);
     }
 
@@ -412,12 +412,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final class DispatchedSeekControl implements SeekControl {
 
     @Override
-    public TimeStamp getDuration() throws Exception {
+    public TimeStamp getDuration() {
       return holder.get().item.getDuration();
     }
 
     @Override
-    public TimeStamp getPosition() throws Exception {
+    public TimeStamp getPosition() {
       return player.getPosition();
     }
 

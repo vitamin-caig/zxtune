@@ -3,7 +3,8 @@ package app.zxtune.playback;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import app.zxtune.Identifier;
+import android.support.v4.os.OperationCanceledException;
+import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
@@ -32,7 +33,7 @@ public final class AsyncScanner {
 
     Reply onItem(@NonNull PlayableItem item);
 
-    void onError(Exception e);
+    void onError(Identifier id, Exception e);
   }
 
   private final ExecutorService executor;
@@ -72,7 +73,8 @@ public final class AsyncScanner {
         }
       }
       return true;
-    } catch (NullPointerException e) {
+    } catch (Exception e) {
+      Log.w(TAG, e, "Stopped scanning");
       return false;
     }
   }
@@ -80,24 +82,26 @@ public final class AsyncScanner {
   private static void scan(VfsFile file, final WeakReference<Callback> ref) {
     Scanner.analyzeFile(file, new Scanner.Callback() {
       @Override
-      public void onModule(Identifier id, Module module) throws Exception {
+      public void onModule(Identifier id, Module module) {
         final FileItem item = new FileItem(id, module);
         try {
           while (Callback.Reply.RETRY == ref.get().onItem(item)) {
             Thread.sleep(500);
           }
         } catch (InterruptedException e) {
-          throw new Exception("Interrupted", e);
+          Log.w(TAG, e, "Interrupted");
         }
       }
 
       @Override
-      public void onError(Exception e) {
+      public void onError(Identifier id, Exception e) {
         final Callback cb = ref.get();
         if (cb != null) {
-          cb.onError(e);
+          cb.onError(id, e);
         } else {
-          Log.w(TAG, e, "Abandoned error");
+          final RuntimeException ex = new OperationCanceledException("Abandoned error");
+          ex.initCause(e);
+          throw ex;
         }
       }
     });
@@ -127,32 +131,32 @@ public final class AsyncScanner {
     }
 
     @Override
-    public String getTitle() throws Exception {
+    public String getTitle() {
       return module.getProperty(ModuleAttributes.TITLE, EMPTY_STRING);
     }
 
     @Override
-    public String getAuthor() throws Exception {
+    public String getAuthor() {
       return module.getProperty(ModuleAttributes.AUTHOR, EMPTY_STRING);
     }
 
     @Override
-    public String getProgram() throws Exception {
+    public String getProgram() {
       return module.getProperty(ModuleAttributes.PROGRAM, EMPTY_STRING);
     }
 
     @Override
-    public String getComment() throws Exception {
+    public String getComment() {
       return module.getProperty(ModuleAttributes.COMMENT, EMPTY_STRING);
     }
 
     @Override
-    public String getStrings() throws Exception {
+    public String getStrings() {
       return module.getProperty(ModuleAttributes.STRINGS, EMPTY_STRING);
     }
 
     @Override
-    public TimeStamp getDuration() throws Exception {
+    public TimeStamp getDuration() {
       final long frameDuration = module.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
       return TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
     }

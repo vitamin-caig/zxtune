@@ -1,5 +1,8 @@
 package app.zxtune.core;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -10,11 +13,12 @@ public interface AdditionalFiles {
    * @return null if no additional files required, empty array if all the files are resolved,
    * else list of required filenames relative to current one
    */
-  String[] getAdditionalFiles() throws Exception;
+  @Nullable
+  String[] getAdditionalFiles();
 
   /**
    * @param name additional file name as returned by ListAdditionalFiles
    * @param data additional file content
    */
-  void resolveAdditionalFile(String name, ByteBuffer data) throws Exception;
+  void resolveAdditionalFile(@NonNull String name, @NonNull ByteBuffer data);
 }

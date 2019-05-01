@@ -108,7 +108,7 @@ public class RingtoneService extends IntentService {
     return iter.getItem();
   }
     
-  private File getTargetLocation(PlayableItem item, TimeStamp duration) throws Exception {
+  private File getTargetLocation(PlayableItem item, TimeStamp duration) {
     final File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RINGTONES);
     if (dir.mkdirs()) {
       Log.d(TAG, "Created ringtones directory");
@@ -119,7 +119,7 @@ public class RingtoneService extends IntentService {
     return new File(dir, filename);
   }
   
-  private static long getModuleId(PlayableItem item) throws Exception {
+  private static long getModuleId(PlayableItem item) {
     return item.getModule().getProperty("CRC"/*ZXTune.Module.Attributes.CRC*/, item.getDataId().hashCode());
   }
   
@@ -156,7 +156,7 @@ public class RingtoneService extends IntentService {
     }
   }
   
-  private String setAsRingtone(PlayableItem item, TimeStamp limit, File path) throws Exception {
+  private String setAsRingtone(PlayableItem item, TimeStamp limit, File path) {
     final ContentValues values = createRingtoneData(item, limit, path);
 
     final Uri ringtoneUri = createOrUpdateRingtone(values);
@@ -166,7 +166,7 @@ public class RingtoneService extends IntentService {
     return values.getAsString(MediaStore.MediaColumns.TITLE);
   }
   
-  private static ContentValues createRingtoneData(PlayableItem item, TimeStamp limit, File path) throws Exception {
+  private static ContentValues createRingtoneData(PlayableItem item, TimeStamp limit, File path) {
     final ContentValues values = new ContentValues();
     values.put(MediaStore.MediaColumns.DATA, path.getAbsolutePath());
     values.put(MediaStore.MediaColumns.MIME_TYPE, "audio/wav");
@@ -223,7 +223,7 @@ public class RingtoneService extends IntentService {
     private final TimeStamp limit;
     private int restSamples;
     
-    TimeLimitedSamplesSource(Player player, TimeStamp limit) throws Exception {
+    TimeLimitedSamplesSource(Player player, TimeStamp limit) {
       this.player = player;
       this.limit = limit;
       player.setPosition(0);
@@ -231,13 +231,13 @@ public class RingtoneService extends IntentService {
     }
     
     @Override
-    public void initialize(int sampleRate) throws Exception {
+    public void initialize(int sampleRate) {
       player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
       restSamples = (int) (limit.convertTo(TimeUnit.SECONDS) * sampleRate);
     }
 
     @Override
-    public boolean getSamples(@NonNull short[] buf) throws Exception {
+    public boolean getSamples(@NonNull short[] buf) {
       if (restSamples > 0 && player.render(buf)) {
         restSamples -= buf.length / SamplesSource.Channels.COUNT;
         return true;

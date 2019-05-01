@@ -13,18 +13,32 @@ using jshortArray = void*;
 using jintArray = void*;
 using jboolean = bool;
 using jmethodID = int;
+using jfieldID = int;
 using jthrowable = void*;
 using jsize = std::size_t;
 
+#define JNI_VERSION_1_6 0x00010006
+#define JNI_OK          0
+#define JNI_ERR         -1
+
+struct JavaVM
+{
+  jint GetEnv(void**, jint) const;
+};
+
 struct JNIEnv
 {
+  jobject NewObject(jclass, jmethodID, ...) const;
+  jobject NewGlobalRef(jobject) const;
+  void DeleteGlobalRef(jobject) const;
   void DeleteLocalRef(jobject) const;
 
   jmethodID GetMethodID(jclass, const char*, const char*);
+  jfieldID GetFieldID(jclass, const char*, const char*);
   jclass FindClass(const char*) const;
   jclass GetObjectClass(jobject) const;
-  void CallNonvirtualVoidMethod(jobject, jclass, jmethodID, ...) const;
   void CallVoidMethod(jobject, jmethodID, ...) const;
+  jint GetIntField(jobject, jfieldID) const;
 
   void ThrowNew(jclass, const char*) const;
   void Throw(jthrowable) const;

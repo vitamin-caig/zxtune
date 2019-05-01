@@ -8,7 +8,7 @@ package app.zxtune.fs.archives;
 
 import android.text.TextUtils;
 
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 
 public class DirEntry {
 
