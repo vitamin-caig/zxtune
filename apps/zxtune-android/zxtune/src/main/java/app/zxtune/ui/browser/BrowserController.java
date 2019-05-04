@@ -179,6 +179,7 @@ public class BrowserController {
     if (currentDir != null) {
       return currentDir;
     }
+    //TODO: use resolveForced after move out of UI
     final VfsObject obj = VfsArchive.resolve(state.getCurrentPath());
     if (obj instanceof VfsDir) {
       return (VfsDir) obj;

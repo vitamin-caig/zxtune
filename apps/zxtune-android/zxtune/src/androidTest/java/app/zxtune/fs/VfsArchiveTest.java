@@ -7,6 +7,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import app.zxtune.io.Io;
 import app.zxtune.io.TransactionalOutputStream;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +43,17 @@ public class VfsArchiveTest {
     tmpDir = new File(System.getProperty("java.io.tmpdir", "."), String.format("VfsArchiveTest/%d",
         System.currentTimeMillis()));
 
+  }
+
+  @After
+  public void tearDown() {
+    final File[] files = tmpDir.listFiles();
+    if (files != null) {
+      for (File f : files) {
+        f.delete();
+      }
+    }
+    tmpDir.delete();
   }
 
   private static void unreachable() {
@@ -307,6 +319,95 @@ public class VfsArchiveTest {
 
       final VfsDir parentDirParentDir = (VfsDir) parentDir.getParent();
       assertFalse(VfsArchive.checkIfArchive(parentDirParentDir));
+    }
+  }
+
+  @Test
+  public void testForceResolve() throws IOException {
+    {
+      final Uri uri = getFile(app.zxtune.test.R.raw.gzipped, "gzipped");
+      final VfsFile file = (VfsFile) VfsArchive.resolve(uri);
+
+      final Uri normalizedUri = file.getUri();
+      final Uri subUri = normalizedUri.buildUpon().fragment("+unGZIP").build();
+      {
+        final VfsFile resolvedFile = (VfsFile) VfsArchive.resolveForced(subUri);
+        assertNotNull(resolvedFile);
+        assertEquals(subUri, resolvedFile.getUri());
+        assertEquals("+unGZIP", resolvedFile.getName());
+        assertEquals("sll3", resolvedFile.getDescription());
+        assertEquals("2:40", resolvedFile.getSize());
+
+        // no parent dir really, so just file itself
+        final VfsFile resolvedFileParent = (VfsFile) resolvedFile.getParent();
+        assertNotNull(resolvedFileParent);
+        assertEquals(normalizedUri, resolvedFileParent.getUri());
+      }
+    }
+    {
+      final Uri uri = getFile(app.zxtune.test.R.raw.multitrack, "multitrack");
+      final VfsFile file = (VfsFile) VfsArchive.resolve(uri);
+      assertNotNull(file);
+
+      final Uri normalizedUri = file.getUri();
+      final Uri subUri = normalizedUri.buildUpon().fragment("#2").build();
+      {
+        final VfsFile resolvedFile = (VfsFile) VfsArchive.resolveForced(subUri);
+        assertNotNull(resolvedFile);
+        assertEquals(subUri, resolvedFile.getUri());
+        assertEquals("#2", resolvedFile.getName());
+        assertEquals("RoboCop 3 - Jeroen Tel", resolvedFile.getDescription());
+        assertEquals("0:09", resolvedFile.getSize());
+
+        // archive dir overrides file
+        final VfsDir parentDir = (VfsDir) resolvedFile.getParent();
+        assertNotNull(parentDir);
+        assertEquals(normalizedUri, parentDir.getUri());
+        assertTrue(VfsArchive.checkIfArchive(parentDir));
+
+        final VfsDir parentDirParentDir = (VfsDir) parentDir.getParent();
+        assertFalse(VfsArchive.checkIfArchive(parentDirParentDir));
+      }
+    }
+    {
+      final Uri uri = getFile(app.zxtune.test.R.raw.archive, "archive");
+      final VfsFile file = (VfsFile) VfsArchive.resolve(uri);
+      assertNotNull(file);
+
+      final Uri normalizedUri = file.getUri();
+      final Uri subFileUri = normalizedUri.buildUpon().fragment("auricom.pt3").build();
+      {
+        final VfsFile resolvedFile = (VfsFile) VfsArchive.resolveForced(subFileUri);
+        assertNotNull(resolvedFile);
+        assertEquals(subFileUri, resolvedFile.getUri());
+        assertEquals("auricom.pt3", resolvedFile.getName());
+        assertEquals("auricom - sclsmnn^mc ft frolic&fo(?). 2015", resolvedFile.getDescription());
+        assertEquals("1:13", resolvedFile.getSize());
+
+        // archive dir overrides file
+        final VfsDir parentDir = (VfsDir) resolvedFile.getParent();
+        assertNotNull(parentDir);
+        assertEquals(normalizedUri, parentDir.getUri());
+        assertTrue(VfsArchive.checkIfArchive(parentDir));
+
+        final VfsDir parentDirParentDir = (VfsDir) parentDir.getParent();
+        assertFalse(VfsArchive.checkIfArchive(parentDirParentDir));
+      }
+    }
+    {
+      final Uri uri = getFile(app.zxtune.test.R.raw.archive, "archive2");
+      final VfsFile file = (VfsFile) VfsArchive.resolve(uri);
+      assertNotNull(file);
+
+      final Uri normalizedUri = file.getUri();
+      final Uri subDirUri = normalizedUri.buildUpon().fragment("coop-Jeffie").build();
+      {
+        final VfsDir resolvedDir = (VfsDir) VfsArchive.resolveForced(subDirUri);
+        assertNotNull(resolvedDir);
+        assertEquals(subDirUri, resolvedDir.getUri());
+        assertEquals("coop-Jeffie", resolvedDir.getName());
+        assertEquals("", resolvedDir.getDescription());
+      }
     }
   }
 

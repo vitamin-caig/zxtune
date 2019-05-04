@@ -158,13 +158,15 @@ public class FileIterator implements Iterator {
   @NonNull
   private static java.util.Iterator<VfsFile> creatDirFilesIterator(Uri start) throws Exception {
     final ArrayList<VfsFile> result = new ArrayList<>();
-    final VfsFile file = (VfsFile) VfsArchive.resolve(start);
-    final VfsDir parent = (VfsDir) file.getParent();
+    final VfsFile file = (VfsFile) VfsArchive.resolveForced(start);
+    final VfsObject parent = file.getParent();
     if (parent == null) {
       result.add(file);
       return result.listIterator();
     }
-    parent.enumerate(new VfsDir.Visitor() {
+    final VfsFile parentFile = parent instanceof VfsFile ? (VfsFile) parent : null;
+    final VfsDir parentDir = parent instanceof VfsDir ? (VfsDir) parent : (VfsDir) parentFile.getParent();
+    parentDir.enumerate(new VfsDir.Visitor() {
       @Override
       public void onItemsCount(int count) {
         result.ensureCapacity(count);
@@ -179,7 +181,7 @@ public class FileIterator implements Iterator {
         result.add(file);
       }
     });
-    final Object extension = parent.getExtension(VfsExtensions.COMPARATOR);
+    final Object extension = parentDir.getExtension(VfsExtensions.COMPARATOR);
     final Comparator<VfsObject> comparator = extension instanceof Comparator<?>
                                                  ? (Comparator<VfsObject>) extension
                                                  : DefaultComparator.instance();
@@ -188,10 +190,11 @@ public class FileIterator implements Iterator {
     // E.g. track from zxart/Top doesn't have rating info
     // So use plain linear search by uri
     final Uri normalizedUri = file.getUri();
+    final Uri parentFileUri = parentFile != null ? parentFile.getUri() : null;
     for (int idx = 0, lim = result.size(); idx < lim; ++idx) {
       final VfsFile cur = result.get(idx);
       final Uri curUri = cur.getUri();
-      if (normalizedUri.equals(curUri)) {
+      if (normalizedUri.equals(curUri) || curUri.equals(parentFileUri)) {
         return result.listIterator(idx);
       }
     }

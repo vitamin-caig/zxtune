@@ -114,33 +114,40 @@ public final class VfsArchive {
 
   @Nullable
   public static VfsObject resolve(@NonNull Uri uri) throws IOException {
-    return Holder.INSTANCE.resolveUri(uri);
+    return Holder.INSTANCE.resolveUri(uri, false);
   }
 
   @Nullable
-  private VfsObject resolveUri(@NonNull Uri uri) throws IOException {
+  public static VfsObject resolveForced(@NonNull Uri uri) throws IOException {
+    return Holder.INSTANCE.resolveUri(uri, true);
+  }
+
+  @Nullable
+  private VfsObject resolveUri(@NonNull Uri uri, boolean forceAnalyze) throws IOException {
     final Identifier id = new Identifier(uri);
     final String subpath = id.getSubpath();
     if (TextUtils.isEmpty(subpath)) {
-      return resolveFileUri(uri);
+      return resolveFileUri(uri, forceAnalyze);
     } else {
-      return resolveArchiveUri(uri);
+      return resolveArchiveUri(uri, forceAnalyze);
     }
   }
 
   @Nullable
-  private VfsObject resolveFileUri(Uri uri) throws IOException {
+  private VfsObject resolveFileUri(Uri uri, boolean forceAnalyze) throws IOException {
     final VfsObject obj = Vfs.resolve(uri);
     if (obj instanceof VfsFile) {
       final VfsObject cached = browseCachedFile((VfsFile) obj);
       if (cached != null) {
         return cached;
+      } else if (forceAnalyze) {
+        return browseFile((VfsFile) obj);
       }
     }
     return obj;
   }
 
-  private VfsObject resolveArchiveUri(@NonNull Uri uri) throws IOException {
+  private VfsObject resolveArchiveUri(@NonNull Uri uri, boolean forceAnalyze) throws IOException {
     final Cursor cursor = resolver.query(Query.infoUriFor(uri), null, null, null, null);
     if (cursor == null) {
       throw new IOException("Failed to query archive info");
@@ -156,6 +163,14 @@ public final class VfsArchive {
       }
     } finally {
       cursor.close();
+    }
+    if (forceAnalyze) {
+      final VfsObject real = Vfs.resolve(uri.buildUpon().fragment("").build());
+      if (real instanceof VfsFile) {
+        if (browseFile((VfsFile) real) != null) {
+          return resolveArchiveUri(uri, false);
+        }
+      }
     }
     throw new IOException("No archive found");
   }
@@ -224,7 +239,7 @@ public final class VfsArchive {
     public VfsObject getParent() {
       try {
         if (parent == null) {
-          parent = resolveUri(entry.parent.getFullLocation());
+          parent = resolveUri(entry.parent.getFullLocation(), false);
         }
       } catch (IOException e) {
         Log.w(TAG, e, "Failed to resolve");

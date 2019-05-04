@@ -170,7 +170,7 @@ public final class Scanner {
       cb.onModule(id, module);
     } catch (ResolvingException e) {
       final Uri uri = id.getFullLocation();
-      final VfsObject obj = VfsArchive.resolve(uri);
+      final VfsObject obj = VfsArchive.resolveForced(uri);
       if (obj instanceof VfsDir) {
         analyzeDirObject((VfsDir) obj, cb);
       } else {
