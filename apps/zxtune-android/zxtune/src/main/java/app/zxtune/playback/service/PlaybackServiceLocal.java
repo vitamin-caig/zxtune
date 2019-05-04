@@ -29,6 +29,7 @@ import app.zxtune.sound.StubSamplesSource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -225,12 +226,16 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   private void shutdownExecutor() {
     try {
-      do {
+      for (int triesLeft = 2; triesLeft != 0; --triesLeft) {
         executor.shutdownNow();
         Log.d(TAG, "Waiting for executor shutdown...");
-      } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
-      Log.d(TAG, "Executor shut down");
-    } catch (InterruptedException e) {
+        if (executor.awaitTermination(1, TimeUnit.SECONDS)) {
+          Log.d(TAG, "Executor shut down");
+          return;
+        }
+      }
+      throw new TimeoutException("No tries left");
+    } catch (Exception e) {
       Log.w(TAG, e, "Failed to shutdown executor");
     }
   }
