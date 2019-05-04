@@ -6,11 +6,14 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.widget.Toast;
 import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
@@ -25,17 +28,18 @@ import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.stubs.CallbackStub;
+import app.zxtune.playback.Callback;
 
 import java.util.concurrent.TimeUnit;
 
 //! Events gate from local service to mediasession
-class StatusCallback extends CallbackStub {
+class StatusCallback implements Callback {
 
   private static final String TAG = StatusCallback.class.getName();
 
   private final MediaSessionCompat session;
   private final PlaybackStateCompat.Builder builder;
+  private final Handler handler = new Handler();
 
   static Releaseable subscribe(PlaybackService svc, MediaSessionCompat session) {
     final StatusCallback cb = new StatusCallback(session);
@@ -103,6 +107,16 @@ class StatusCallback extends CallbackStub {
     } catch (Exception e) {
       Log.w(TAG, e, "onItemChanged()");
     }
+  }
+
+  @Override
+  public void onError(@NonNull final String e) {
+    handler.post(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(MainApplication.getInstance(), e, Toast.LENGTH_SHORT).show();
+      }
+    });
   }
 
   private static void putString(MediaMetadataCompat.Builder builder, String key, String value) {
