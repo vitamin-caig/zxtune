@@ -1,0 +1,43 @@
+FROM debian:stretch-slim
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ca-certificates wget git make zip \
+      xz-utils clang patch
+ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+
+WORKDIR ${toolchains}
+#based on https://github.com/multiarch/crossbuild
+#Problems with wget -q https://github.com/phracker/MacOSX-SDKs
+#-sdk10.7 has no crt1.10.6.o which is on 10.10
+#-sdk10.10 has no libc++ which is on 10.7
+ENV OSX_VERSION_MIN=10.6 triplet=x86_64-apple-darwin14
+RUN mkdir ${triplet} && \
+    git clone https://github.com/tpoechtrager/osxcross && \
+    ln -sT ${toolchains}/${triplet} osxcross/target && \
+    wget -q https://www.dropbox.com/s/yfbesd249w10lpc/MacOSX10.10.sdk.tar.xz -P osxcross/tarballs && \
+    (cd osxcross && (yes "" | JOBS=$(grep -c processor /proc/cpuinfo) ./build.sh) && \
+    mv tools target/ ) && \
+    rm -Rf osxcross
+
+RUN apt-get install -y --no-install-recommends icnsutils graphicsmagick-imagemagick-compat genisoimage cmake zlib1g-dev libbz2-dev && \
+    git clone https://github.com/mozilla/libdmg-hfsplus.git && \
+    (cd libdmg-hfsplus && cmake -DCMAKE_INSTALL_PREFIX=/usr/local . && make && make install) && \
+    rm -Rf libdmg-hfsplus
+
+WORKDIR ${prebuilt}
+#root https://www.dropbox.com/sh/j879ottiu1tecsx/AAD4mXm8R1eTaslWKdGv3SiGa?dl=0
+RUN apt-get install -y --no-install-recommends bzip2 libqt4-dev-bin && \
+    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AACNdfP79XBvfu7h5yKYMs9ga/20180201/prebuilt/boost/boost-1.60.0.tar.bz2?dl=0' -O - | tar -xj) && \
+    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AAC1sRRRQGG6ug1dB8agKDTEa/20180201/prebuilt/boost/boost-1.60.0-darwin-x86_64.tar.bz2?dl=0' -O - | tar -xj) && \
+    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AAB-3KaCZzsS-_fxwr_-6cvGa/20180201/prebuilt/qt/qt-4.8.6-darwin-x86_64.tar.bz2?dl=0' -O - | tar -xj)
+
+WORKDIR /build/zxtune
+RUN git init && \
+    git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
+    echo "platform=darwin\narch=x86_64\npackaging=dmg\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\n" \
+         "darwin.x86_64.execprefix=${toolchains}/${triplet}/bin/${triplet}-\n" \
+         "tools.uic=uic\ntools.moc=moc\ntools.rcc=rcc" > variables.mak
+
+COPY entrypoint.sh .
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["package", "-C", "apps/zxtune-qt"]

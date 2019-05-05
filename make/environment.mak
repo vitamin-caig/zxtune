@@ -102,7 +102,7 @@ windows.x86_64.qt.version ?= 4.8.5
 #darwin
 # x86_64
 darwin.x86_64.boost.version ?= 1.60.0
-darwin.x86_64.boost.libs.model = -mt
+darwin.x86_64.boost.libs.model ?= -mt
 darwin.x86_64.qt.version ?= 4.8.6
 #darwin.x86_64.cxx.flags = -m64 -mmmx
 #darwin.x86_64.ld.flags = -m64
