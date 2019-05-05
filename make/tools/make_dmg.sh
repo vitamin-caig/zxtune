@@ -146,6 +146,17 @@ if [ ! "${TMP_DIR}" ]; then
 	TMP_DIR=${DMG_PATH}.tmp
 fi
 
+if [ "${OSTYPE}" == "linux-gnu" ]
+then
+  mkdir -p ${TMP_DIR}
+  cp -a ${APP_BUNDLE_PATH} ${TMP_DIR}
+  genisoimage -V ${VOL_NAME} -D -r -apple -no-pad -file-mode 0777 -o ${DMG_PATH_TMP} ${TMP_DIR}
+  dmg dmg ${DMG_PATH_TMP} ${ARG_DMG_PATH}
+  rm -Rf ${TMP_DIR}*
+  exit 0
+fi
+
+
 echo -n "*** Copying ${APP_BUNDLE_NAME} to the temporary dir... "
 mkdir "$TMP_DIR"
 cp -R "${APP_BUNDLE_PATH}" ${TMP_DIR}/

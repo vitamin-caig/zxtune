@@ -76,7 +76,7 @@ macos_bundle = $(bins_dir)/$(binary_name).app
 
 make_bundle:
 	mkdir -p $(macos_bundle)/Contents/MacOS
-	install -s $(target) $(macos_bundle)/Contents/MacOS/$(binary_name)
+	install $(target) $(macos_bundle)/Contents/MacOS/$(binary_name)
 	sed 's/@VERSION@/$(root.version.index).0.0/' dist/macos/Info.plist > $(macos_bundle)/Contents/Info.plist
 	$(dirs.root)/make/tools/mkicns.sh $(theme_resources)/zxtune1024.png $(macos_bundle)/Contents/Resources/zxtune
 
