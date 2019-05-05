@@ -5,6 +5,15 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4560 from 06.05.2019
+
+[*] zxtune-qt: fixed MacOS X build
+[+] zxtune-android: initial Chinese translation
+[*] zxtune-android: increase update frequency and decrease CPU consuming for visualizer
+[*] zxtune-android: improved errors processing in case of big folders scanning
+[*] zxtune-android: fixed session restoring in case of archived tracks playback
+[*] zxtune-android: fixed found and reported crashes and hangups
+
 --- Rev4500 from 15.04.2019
 
 [*] Fixed AHX/HVL playback without looping
