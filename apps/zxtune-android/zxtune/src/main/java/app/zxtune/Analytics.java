@@ -188,6 +188,12 @@ public class Analytics {
     send(event);
   }
 
+  public static void sendJniLoadEvent(long time) {
+    final CustomEvent event = new CustomEvent("Investigation");
+    event.putCustomAttribute("JniLoadTime,ms", time);
+    send(event);
+  }
+
   public static class JniLog {
     private final String prefix;
 
