@@ -7,8 +7,6 @@ import org.junit.*;
 
 import java.util.HashSet;
 
-// TODO: Not working due to lack of JNI support in instrumentation tests
-@Ignore
 public class PluginsTest {
 
   @Test
@@ -33,7 +31,9 @@ public class PluginsTest {
       }
     });
 
-    assertTrue(flags[0] == 16383);
-    assertTrue(flags[1] == 0b11011);
+    assertEquals(0b0011_1111_1111_0111, flags[0]);
+    assertEquals(0b0011_0001, flags[1]);
+    assertEquals(103, counts[0]);
+    assertEquals(23, counts[1]);
   }
 }

@@ -4,8 +4,6 @@ import static org.junit.Assert.*;
 
 import org.junit.*;
 
-// TODO: Not working due to lack of JNI support in instrumentation tests
-@Ignore
 public class GlobalOptionsTest {
 
   @Test
