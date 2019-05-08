@@ -11,13 +11,13 @@ import java.nio.ByteBuffer;
 public final class JniModule implements Module {
 
   static {
-    System.loadLibrary("zxtune");
+    JniLibrary.load();
   }
 
   @SuppressWarnings({"FieldCanBeLocal", "unused"})
   private final int handle;
 
-  public JniModule(int handle) {
+  JniModule(int handle) {
     this.handle = handle;
     JniGC.register(this, handle);
   }
@@ -28,7 +28,7 @@ public final class JniModule implements Module {
 
   public static native void detect(@NonNull ByteBuffer data, @NonNull ModuleDetectCallback callback);
 
-  public static native void close(int handle);
+  static native void close(int handle);
 
   @Override
   public native int getDuration();

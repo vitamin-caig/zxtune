@@ -14,8 +14,8 @@ public final class JniPlayer implements Player {
     JniGC.register(this, handle, getProperty(ModuleAttributes.TYPE, "Unknown"));
   }
 
-  public static native void close(int handle);
-  public static native int getPlaybackPerformance(int player);
+  static native void close(int handle);
+  static native int getPlaybackPerformance(int player);
 
   @Override
   public native boolean render(@NonNull short[] result);

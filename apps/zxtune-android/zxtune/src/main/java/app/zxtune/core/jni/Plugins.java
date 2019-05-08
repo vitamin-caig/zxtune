@@ -45,6 +45,7 @@ public final class Plugins {
   private static native void init();
 
   static {
+    JniLibrary.load();
     init();
   }
 }

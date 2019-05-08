@@ -10,7 +10,7 @@ extern "C" {
 /*
  * Class:     app_zxtune_core_jni_JniModule
  * Method:    load
- * Signature: (Ljava/nio/ByteBuffer;Ljava/lang/String;)Lapp/zxtune/core/Module;
+ * Signature: (Ljava/nio/ByteBuffer;Ljava/lang/String;)Lapp/zxtune/core/jni/JniModule;
  */
 JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_load
   (JNIEnv *, jclass, jobject, jstring);

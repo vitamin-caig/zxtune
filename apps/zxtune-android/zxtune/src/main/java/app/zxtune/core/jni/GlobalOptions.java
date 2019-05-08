@@ -6,7 +6,7 @@ import app.zxtune.core.PropertiesContainer;
 public class GlobalOptions implements PropertiesContainer {
 
   private GlobalOptions() {
-    System.loadLibrary("zxtune");
+    JniLibrary.load();
   }
 
   @Override
