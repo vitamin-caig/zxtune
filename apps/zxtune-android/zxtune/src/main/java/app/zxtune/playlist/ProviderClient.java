@@ -2,6 +2,7 @@ package app.zxtune.playlist;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import androidx.annotation.Nullable;
@@ -22,6 +23,10 @@ public final class ProviderClient {
   public enum SortOrder {
     asc,
     desc
+  }
+
+  public interface ChangesObserver {
+    void onChange();
   }
 
   private final ContentResolver resolver;
@@ -45,15 +50,22 @@ public final class ProviderClient {
     resolver.insert(PlaylistQuery.ALL, item.toContentValues());
   }
 
-  //TODO: remove
-  public final void updatePlaybackStatus(long id, boolean isPlaying) {
-    final Uri uri = PlaylistQuery.uriFor(id);
-    resolver.update(uri, new ItemState(isPlaying).toContentValues(), null, null);
-    resolver.notifyChange(uri, null);
-  }
-
   public final void notifyChanges() {
     resolver.notifyChange(PlaylistQuery.ALL, null);
+  }
+
+  public final void registerObserver(final ChangesObserver observer) {
+    resolver.registerContentObserver(PlaylistQuery.ALL, true, new ContentObserver(null) {
+      @Override
+      public boolean deliverSelfNotifications() {
+        return false;
+      }
+
+      @Override
+      public void onChange(boolean selfChange) {
+        observer.onChange();
+      }
+    });
   }
 
   @Nullable
@@ -88,11 +100,6 @@ public final class ProviderClient {
     notifyChanges();
     Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_SORT,
         100 * by.ordinal() + order.ordinal());
-  }
-
-  //TODO: remove
-  public static Loader<Cursor> createLoader(Context ctx) {
-    return new CursorLoader(ctx, PlaylistQuery.ALL, null, null, null, null);
   }
 
   //TODO: remove

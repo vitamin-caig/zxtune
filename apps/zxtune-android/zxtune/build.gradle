@@ -28,6 +28,14 @@ android {
         //supported densities for vector drawables rasterization
         vectorDrawables.generatedDensities  "mdpi", "hdpi", "xhdpi", "xxhdpi"
     }
+
+    dataBinding {
+        enabled true
+    }
+
+    dexOptions {
+        preDexLibraries false
+    }
 }
 
 dependencies {
@@ -35,6 +43,8 @@ dependencies {
     implementation 'androidx.media:media:1.0.0'
     implementation 'androidx.annotation:annotation:1.0.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.recyclerview:recyclerview-selection:1.0.0'
     implementation('com.crashlytics.sdk.android:crashlytics:2.10.1@aar') {
         transitive = true
     }

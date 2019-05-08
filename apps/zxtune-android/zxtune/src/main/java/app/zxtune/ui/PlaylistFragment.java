@@ -6,16 +6,13 @@
 
 package app.zxtune.ui;
 
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
-import android.view.ActionMode;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,23 +20,40 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.selection.Selection;
+import androidx.recyclerview.selection.SelectionPredicates;
+import androidx.recyclerview.selection.SelectionTracker;
+import androidx.recyclerview.selection.StorageStrategy;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import app.zxtune.Log;
-import app.zxtune.Preferences;
 import app.zxtune.R;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.playlist.ProviderClient;
-import app.zxtune.ui.utils.ListViewTools;
+import app.zxtune.ui.playlist.PlaylistEntry;
+import app.zxtune.ui.playlist.PlaylistViewAdapter;
+import app.zxtune.ui.playlist.PlaylistViewModel;
 
 public class PlaylistFragment extends Fragment {
 
   private static final String TAG = PlaylistFragment.class.getName();
   private ProviderClient ctrl;
-  private PlaylistState state;
-  private PlaylistView listing;
+  private RecyclerView listing;
+  private ItemTouchHelper touchHelper;
+  private View stub;
+  private SelectionTracker<Long> selectionTracker;
 
   public static Fragment createInstance() {
     return new PlaylistFragment();
@@ -50,7 +64,6 @@ public class PlaylistFragment extends Fragment {
     super.onAttach(ctx);
 
     ctrl = new ProviderClient(ctx);
-    state = new PlaylistState(Preferences.getDefaultSharedPreferences(ctx));
   }
 
   @Override
@@ -112,28 +125,7 @@ public class PlaylistFragment extends Fragment {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-      case R.id.action_clear:
-        ctrl.deleteAll();
-        break;
-      case R.id.action_save:
-        savePlaylist(null);
-        break;
-      case R.id.action_statistics:
-        showStatistics(null);
-        break;
-      default:
-        return super.onOptionsItemSelected(item);
-    }
-    return true;
-  }
-
-  private void savePlaylist(@Nullable long[] ids) {
-    PlaylistSaveFragment.createInstance(ids).show(getFragmentManager(), "save");
-  }
-
-  private void showStatistics(@Nullable long[] ids) {
-    PlaylistStatisticsFragment.createInstance(ids).show(getFragmentManager(), "statistics");
+    return processMenu(item.getItemId()) || super.onOptionsItemSelected(item);
   }
 
   @Override
@@ -147,63 +139,74 @@ public class PlaylistFragment extends Fragment {
     super.onViewCreated(view, savedInstanceState);
 
     listing = view.findViewById(R.id.playlist_content);
-    listing.setOnItemClickListener(new OnItemClickListener());
-    listing.setEmptyView(view.findViewById(R.id.playlist_stub));
-    listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
-    listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
-    setEmptyText(R.string.starting);
+    listing.setHasFixedSize(true);
 
-    if (savedInstanceState == null) {
-      Log.d(TAG, "Loading persistent state");
-      ListViewTools.storeViewPosition(listing, state.getCurrentViewPosition());
+    final PlaylistViewAdapter adapter = new PlaylistViewAdapter(new AdapterClient());
+    listing.setAdapter(adapter);
+
+    selectionTracker = new SelectionTracker.Builder<>("playlist_selection",
+        listing,
+        new PlaylistViewAdapter.KeyProvider(adapter),
+        new PlaylistViewAdapter.DetailsLookup(listing),
+        StorageStrategy.createLongStorage())
+                           .withSelectionPredicate(SelectionPredicates.<Long>createSelectAnything())
+                           .build();
+    if (savedInstanceState != null) {
+      selectionTracker.onRestoreInstanceState(savedInstanceState);
     }
-    listing.setRemoveListener(new PlaylistView.RemoveListener() {
+
+    adapter.setSelection(selectionTracker.getSelection());
+
+    SelectionUtils.install((AppCompatActivity) getActivity(), selectionTracker,
+        new SelectionClient());
+
+    touchHelper = new ItemTouchHelper(new TouchHelperCallback());
+    touchHelper.attachToRecyclerView(listing);
+
+    stub = view.findViewById(R.id.playlist_stub);
+
+    final PlaylistViewModel playlistModel = PlaylistViewModel.of(this);
+    playlistModel.getItems().observe(this, new Observer<List<PlaylistEntry>>() {
       @Override
-      public void remove(int which) {
-        final long[] id = {listing.getItemIdAtPosition(which)};
-        ctrl.delete(id);
+      public void onChanged(@NonNull List<PlaylistEntry> entries) {
+        adapter.submitList(entries);
+        if (entries.isEmpty()) {
+          listing.setVisibility(View.GONE);
+          stub.setVisibility(View.VISIBLE);
+        } else {
+          listing.setVisibility(View.VISIBLE);
+          stub.setVisibility(View.GONE);
+        }
       }
     });
-    listing.setDropListener(new PlaylistView.DropListener() {
+    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+    model.getState().observe(this, new Observer<PlaybackStateCompat>() {
       @Override
-      public void drop(int from, int to) {
-        if (from != to) {
-          //TODO: perform in separate thread
-          final long id = listing.getItemIdAtPosition(from);
-          ctrl.move(id, to - from);
+      public void onChanged(@Nullable PlaybackStateCompat state) {
+        final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
+        adapter.setIsPlaying(isPlaying);
+      }
+    });
+    model.getMetadata().observe(this, new Observer<MediaMetadataCompat>() {
+      @Override
+      public void onChanged(@Nullable MediaMetadataCompat metadata) {
+        if (metadata != null) {
+          final Uri uri = Uri.parse(metadata.getDescription().getMediaId());
+          adapter.setNowPlaying(ProviderClient.findId(uri));
         }
       }
     });
   }
 
   @Override
-  public void onStart() {
-    super.onStart();
-
-    loadListing();
+  public void onSaveInstanceState(@NonNull Bundle outState) {
+    selectionTracker.onSaveInstanceState(outState);
   }
 
-  @Override
-  public void onStop() {
-    super.onStop();
-
-    Log.d(TAG, "Saving persistent state");
-    state.setCurrentViewPosition(listing.getFirstVisiblePosition());
-  }
-
-  private void loadListing() {
-    listing.load(getLoaderManager());
-    setEmptyText(R.string.playlist_empty);
-  }
-
-  private void setEmptyText(int res) {
-    ((TextView) listing.getEmptyView()).setText(res);
-  }
-
-  private class OnItemClickListener implements PlaylistView.OnItemClickListener {
-
+  // Client for adapter
+  class AdapterClient implements PlaylistViewAdapter.Client {
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+    public void onClick(long id) {
       final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
       final MediaControllerCompat ctrl = model.getMediaController().getValue();
       if (ctrl != null) {
@@ -211,59 +214,148 @@ public class PlaylistFragment extends Fragment {
         ctrl.getTransportControls().playFromUri(toPlay, null);
       }
     }
-  }
-
-  private String getActionModeTitle() {
-    final int count = listing.getCheckedItemCount();
-    return getResources().getQuantityString(R.plurals.tracks, count, count);
-  }
-
-  private class MultiChoiceModeListener implements ListView.MultiChoiceModeListener {
 
     @Override
-    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-      final MenuInflater inflater = mode.getMenuInflater();
-      inflater.inflate(R.menu.selection, menu);
-      inflater.inflate(R.menu.playlist_items, menu);
-      mode.setTitle(getActionModeTitle());
-      return true;
+    public void onDrag(@NonNull RecyclerView.ViewHolder holder) {
+      if (!selectionTracker.hasSelection()) {
+        touchHelper.startDrag(holder);
+      }
+    }
+  }
+
+  // Client for selection
+  class SelectionClient implements SelectionUtils.Client {
+    @NonNull
+    @Override
+    public String getTitle(int count) {
+      return getResources().getQuantityString(R.plurals.tracks,
+          count, count);
+    }
+
+    @NonNull
+    @Override
+    public List<Long> getAllItems() {
+      final RecyclerView.Adapter adapter = listing.getAdapter();
+      if (adapter == null) {
+        return new ArrayList<>(0);
+      }
+      final int size = adapter.getItemCount();
+      final ArrayList<Long> res = new ArrayList<>(size);
+      for (int i = 0; i < size; ++i) {
+        res.add(adapter.getItemId(i));
+      }
+      return res;
     }
 
     @Override
-    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+    public void fillMenu(MenuInflater inflater, Menu menu) {
+      inflater.inflate(R.menu.playlist_items, menu);
+    }
+
+    @Override
+    public boolean processMenu(int itemId) {
+      return PlaylistFragment.this.processMenu(itemId);
+    }
+  }
+
+  private boolean processMenu(int itemId) {
+    switch (itemId) {
+      case R.id.action_clear:
+        ctrl.deleteAll();
+        break;
+      case R.id.action_delete:
+        ctrl.delete(getSelection());
+        break;
+      case R.id.action_save:
+        savePlaylist(getSelection());
+        break;
+      case R.id.action_statistics:
+        showStatistics(getSelection());
+        break;
+      default:
+        return false;
+    }
+    return true;
+  }
+
+  private long[] getSelection() {
+    final Selection<Long> selection = selectionTracker.getSelection();
+    if (selection == null || selection.size() == 0) {
+      return null;
+    }
+    final long[] result = new long[selection.size()];
+    final Iterator<Long> iter = selection.iterator();
+    for (int idx = 0; idx < result.length; ++idx) {
+      result[idx] = iter.next();
+    }
+    return result;
+  }
+
+  private void savePlaylist(@Nullable long[] ids) {
+    PlaylistSaveFragment.createInstance(ids).show(getFragmentManager(), "save");
+  }
+
+  private void showStatistics(@Nullable long[] ids) {
+    PlaylistStatisticsFragment.createInstance(ids).show(getFragmentManager(), "statistics");
+  }
+
+  private class TouchHelperCallback extends ItemTouchHelper.SimpleCallback {
+
+    long draggedItem = -1;
+    int dragDelta = 0;
+
+    TouchHelperCallback() {
+      super(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0);
+    }
+
+    @Override
+    public boolean isLongPressDragEnabled() {
       return false;
     }
 
     @Override
-    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-      if (ListViewTools.processActionItemClick(listing, item.getItemId())) {
-        return true;
-      } else {
-        switch (item.getItemId()) {
-          case R.id.action_delete:
-            ctrl.delete(listing.getCheckedItemIds());
-            break;
-          case R.id.action_save:
-            savePlaylist(listing.getCheckedItemIds());
-            break;
-          case R.id.action_statistics:
-            showStatistics(listing.getCheckedItemIds());
-            break;
-          default:
-            return false;
-        }
-        mode.finish();
-        return true;
+    public boolean isItemViewSwipeEnabled() {
+      return false;
+    }
+
+    @Override
+    public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+      if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
+        viewHolder.itemView.setBackgroundColor(Color.BLACK);
       }
+      super.onSelectedChanged(viewHolder, actionState);
     }
 
     @Override
-    public void onDestroyActionMode(ActionMode mode) {
+    public void clearView(@NonNull RecyclerView view, @NonNull RecyclerView.ViewHolder viewHolder) {
+      super.clearView(view, viewHolder);
+      viewHolder.itemView.setBackgroundColor(Color.TRANSPARENT);
+
+      if (draggedItem != -1 && dragDelta != 0) {
+        ctrl.move(draggedItem, dragDelta);
+      }
+      draggedItem = -1;
+      dragDelta = 0;
     }
 
     @Override
-    public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
-      mode.setTitle(getActionModeTitle());
+    public boolean onMove(@NonNull RecyclerView recyclerView, RecyclerView.ViewHolder source,
+                          RecyclerView.ViewHolder target) {
+      final int srcPos = source.getAdapterPosition();
+      final int tgtPos = target.getAdapterPosition();
+      if (draggedItem == -1) {
+        draggedItem = source.getItemId();
+      }
+      dragDelta += tgtPos - srcPos;
+      final PlaylistViewAdapter adapter = ((PlaylistViewAdapter) recyclerView.getAdapter());
+      if (adapter != null) {
+        adapter.onItemMove(srcPos, tgtPos);
+      }
+      return true;
+    }
+
+    @Override
+    public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
     }
   }
 }

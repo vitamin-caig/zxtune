@@ -121,7 +121,7 @@ public class Database {
 
     public static final class Playlist {
       public enum Fields {
-        _id, pos, location, author, title, duration, properties, state
+        _id, pos, location, author, title, duration, properties
       }
 
       static final String NAME = "playlist";

@@ -25,7 +25,7 @@ import app.zxtune.playlist.Database.Tables;
  * content://app.zxtune.playlist/items/$id - single item with specific id
  */
 
-public class PlaylistQuery {
+class PlaylistQuery {
 
   private static final class Type {
 
