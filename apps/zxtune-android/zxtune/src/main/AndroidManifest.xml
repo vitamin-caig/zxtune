@@ -187,7 +187,6 @@
     <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
       <intent-filter>
         <action android:name="android.intent.action.MEDIA_BUTTON"/>
-        <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
       </intent-filter>
     </receiver>
     <provider
