@@ -19,11 +19,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -37,6 +39,25 @@ import app.zxtune.ui.PlaylistFragment;
 import app.zxtune.ui.ViewPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {
+
+  public interface PagerTabListener {
+    void onTabVisibilityChanged(boolean isVisible);
+  }
+
+  private static class StubPagerTabListener implements PagerTabListener {
+    @Override
+    public void onTabVisibilityChanged(boolean isVisible) {}
+
+    public static PagerTabListener instance() {
+      return Holder.INSTANCE;
+    }
+
+    //onDemand holder idiom
+    private static class Holder {
+      public static final PagerTabListener INSTANCE = new StubPagerTabListener();
+    }
+
+  }
 
   private static final int NO_PAGE = -1;
   private ViewPager pager;
@@ -157,21 +178,55 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void setupViewPager() {
+    browserPageIndex = NO_PAGE;
     pager = findViewById(R.id.view_pager);
     if (null != pager) {
       final ViewPagerAdapter adapter = new ViewPagerAdapter(pager);
       pager.setAdapter(adapter);
       browserPageIndex = adapter.getCount() - 1;
-      while (browserPageIndex >= 0 && !hasBrowserView(adapter.instantiateItem(pager, browserPageIndex))) {
+      while (browserPageIndex >= 0 && ((View) adapter.instantiateItem(pager, browserPageIndex)).getId() != R.id.browser_view) {
         --browserPageIndex;
       }
-    } else {
-      browserPageIndex = NO_PAGE;
-    }
-  }
+      pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
-  private static boolean hasBrowserView(Object view) {
-    return ((View) view).findViewById(R.id.browser_view) != null;
+        private SparseArray<PagerTabListener> listeners = new SparseArray<>();
+        private int prevPos = pager.getCurrentItem();
+
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+        }
+
+        @Override
+        public void onPageSelected(int newPos) {
+          getListener(prevPos).onTabVisibilityChanged(false);
+          getListener(newPos).onTabVisibilityChanged(true);
+          prevPos = newPos;
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+        }
+
+        private PagerTabListener getListener(int idx) {
+          PagerTabListener result = listeners.get(idx);
+          if (result == null) {
+            result = createListener(idx);
+            listeners.put(idx, result);
+          }
+          return result;
+        }
+
+        private PagerTabListener createListener(int idx) {
+          final int id = ((View) adapter.instantiateItem(pager, idx)).getId();
+          final Fragment frag = getSupportFragmentManager().findFragmentById(id);
+          if (frag instanceof PagerTabListener) {
+            return (PagerTabListener) frag;
+          } else {
+            return StubPagerTabListener.instance();
+          }
+        }
+      });
+    }
   }
 
   private void showPreferences() {

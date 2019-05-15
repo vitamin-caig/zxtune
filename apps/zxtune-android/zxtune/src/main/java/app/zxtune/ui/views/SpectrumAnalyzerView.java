@@ -31,6 +31,7 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
   private SpectrumVisualizer visualizer;
   private Rect visibleRect;
   private Visualizer source = VisualizerStub.instance();
+  private boolean isUpdating;
   private RenderThread thread;
 
   public SpectrumAnalyzerView(Context context) {
@@ -61,8 +62,11 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
   }
 
   public final void setIsUpdating(boolean updating) {
-    if (thread != null) {
-      thread.setIsActive(updating);
+    if (isUpdating != updating) {
+      isUpdating = updating;
+      if (thread != null) {
+        thread.updateState();
+      }
     }
   }
 
@@ -87,60 +91,72 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
 
   @Override
   public void surfaceCreated(SurfaceHolder holder) {
-    thread = new RenderThread(holder);
+    thread.setHolder(holder);
   }
 
   @Override
   public void surfaceDestroyed(SurfaceHolder holder) {
-    thread.finish();
+    thread.setHolder(null);
+  }
+
+  @Override
+  public void onAttachedToWindow() {
+    super.onAttachedToWindow();
+    thread = new RenderThread();
+  }
+
+  @Override
+  public void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    thread.interrupt();
+    thread = null;
   }
 
   private class RenderThread extends Thread {
 
     private SurfaceHolder holder;
-    private boolean isActive;
     private long scheduledFrameTime;
 
-    RenderThread(SurfaceHolder holder) {
+    RenderThread() {
       super("Visualizer");
-      this.holder = holder;
       start();
     }
 
-    final void finish() {
-      synchronized(this) {
-        holder = null;
+    synchronized final void setHolder(SurfaceHolder holder) {
+      if (this.holder != holder) {
+        this.holder = holder;
         notify();
       }
     }
 
-    final void setIsActive(boolean isActive) {
-      synchronized(this) {
-        this.isActive = isActive;
-        notify();
-      }
+    synchronized final void updateState() {
+      notify();
     }
 
     @Override
     public void run() {
       try {
         final byte[] levels = new byte[MAX_BANDS];
-        while (synchronizedDraw()) {
-          if (isActive) {
+        for (; ; ) {
+          if (isUpdating) {
             final int channels = source.getSpectrum(levels);
             if (channels != 0) {
               visualizer.update(channels, levels);
             } else {
               visualizer.update();
             }
+            sync();
+            draw();
           } else if (!visualizer.update()) {
             synchronized(this) {
               this.wait();
             }
           }
         }
+      } catch (InterruptedException e) {
+        // do nothing
       } catch (Exception e) {
-        Log.w("Visualizer", e, "Failed to draw");
+        Log.w(getName(), e, "Failed!");
       }
     }
 
@@ -157,26 +173,19 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
       scheduledFrameTime += MILLIS_PER_FRAME;
     }
 
-    private boolean synchronizedDraw() {
-      sync();
-      return draw();
-    }
-
-    private synchronized boolean draw() {
-      if (holder == null) {
-        return false;
+    private synchronized void draw() throws InterruptedException {
+      while (holder == null) {
+        wait();
       }
-      Canvas canvas = null;
-      try {
-        canvas = holder.lockCanvas();
-        canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
-        visualizer.draw(canvas);
-      } finally {
-        if (canvas != null) {
+      final Canvas canvas = holder.lockCanvas();
+      if (canvas != null) {
+        try {
+          canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+          visualizer.draw(canvas);
+        } finally {
           holder.unlockCanvasAndPost(canvas);
         }
       }
-      return true;
     }
   }
 

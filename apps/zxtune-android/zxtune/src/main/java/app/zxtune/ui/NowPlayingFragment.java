@@ -19,8 +19,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,13 +28,13 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import app.zxtune.Analytics;
 import app.zxtune.Log;
+import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.models.MediaSessionModel;
-import app.zxtune.ui.views.SpectrumAnalyzerView;
 
-public class NowPlayingFragment extends Fragment {
+public class NowPlayingFragment extends Fragment implements MainActivity.PagerTabListener {
 
   private static final String TAG = NowPlayingFragment.class.getName();
   private static final int REQUEST_SHARE = 1;
@@ -130,6 +128,11 @@ public class NowPlayingFragment extends Fragment {
       data.removeExtra(EXTRA_ITEM_LOCATION);
       startActivity(data);
     }
+  }
+
+  @Override
+  public void onTabVisibilityChanged(boolean isVisible) {
+    getView().findViewById(R.id.spectrum).setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
   }
 
   private class TrackActionsMenu {

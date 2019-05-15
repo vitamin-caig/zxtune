@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,5 +48,15 @@ public class VisualizerFragment extends Fragment {
     super.onViewCreated(view, savedInstanceState);
 
     this.view = view.findViewById(R.id.spectrum);
+  }
+
+  @Override
+  public void setUserVisibleHint(boolean isVisible) {
+    super.setUserVisibleHint(isVisible);
+  }
+
+  @Override
+  public void onHiddenChanged(boolean isHidden) {
+    super.onHiddenChanged(isHidden);
   }
 }
