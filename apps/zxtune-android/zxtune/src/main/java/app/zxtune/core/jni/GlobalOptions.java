@@ -5,8 +5,11 @@ import app.zxtune.core.PropertiesContainer;
 
 public class GlobalOptions implements PropertiesContainer {
 
-  private GlobalOptions() {
+  static {
     JniLibrary.load();
+  }
+
+  private GlobalOptions() {
   }
 
   @Override
