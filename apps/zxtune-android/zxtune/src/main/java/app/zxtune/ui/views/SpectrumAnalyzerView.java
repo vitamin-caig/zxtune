@@ -145,9 +145,10 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
             } else {
               visualizer.update();
             }
-            sync();
-            draw();
-          } else if (!visualizer.update()) {
+            synchronizedDraw();
+          } else if (visualizer.update()) {
+            synchronizedDraw();
+          } else {
             synchronized(this) {
               this.wait();
             }
@@ -158,6 +159,11 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
       } catch (Exception e) {
         Log.w(getName(), e, "Failed!");
       }
+    }
+
+    private void synchronizedDraw() throws InterruptedException {
+      sync();
+      draw();
     }
 
     private void sync() {
