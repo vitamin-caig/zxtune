@@ -2,15 +2,15 @@
 <resources>
     <!-- menu-related -->
     <string name="prefs">首选项</string>
-    <string name="review">率</string>
-    <string name="quit">不干了</string>
+    <string name="review">评价应用</string>
+    <string name="quit">退出</string>
     <!-- action-related -->
-    <string name="play">玩</string>
+    <string name="play">播放</string>
     <string name="add">添加</string>
     <string name="delete">删除</string>
     <string name="clear">清除</string>
     <string name="save">保存</string>
-    <string name="overwrite">复盖</string>
+    <string name="overwrite">覆盖</string>
     <string name="send">发送</string>
     <string name="share">分享</string>
     <string name="sort">排序</string>
@@ -26,17 +26,17 @@
     <string name="scanning_title">扫描</string>
     <string name="scanning_text">点击取消</string>
     <!-- other -->
-    <string name="main">主</string>
+    <string name="main">主页</string>
     <plurals name="items">
       <item quantity="other">%d 项</item>
     </plurals>
     <plurals name="tracks">
-      <item quantity="other">%d 轨道</item>
+      <item quantity="other">%d 音轨</item>
     </plurals>
-    <string name="no_tracks_found">没有找到支持的轨道</string>
-    <string name="track">轨道</string>
-    <string name="starting">开始…</string>
+    <string name="no_tracks_found">没有找到支持的音轨</string>
+    <string name="track">音轨</string>
+    <string name="starting">正在开始…</string>
     <!-- notifications -->
-    <string name="notification_channel_name_events">活动</string>
+    <string name="notification_channel_name_events">事件</string>
     <string name="notification_channel_name_services">服务</string>
 </resources>
