@@ -23,6 +23,7 @@ public final class AsyncPlayer implements Player {
   private static final int STARTED = 2;
   private static final int STOPPING = 3;
   private static final int FINISHING = 4;
+  private static final int RELEASED = 5;
 
   private final PlayerEventsListener events;
   private final AtomicInteger state;
@@ -142,6 +143,7 @@ public final class AsyncPlayer implements Player {
     source.set(null);
     target.release();
     target = null;
+    state.set(RELEASED);
   }
 
   private void transferCycle() {
