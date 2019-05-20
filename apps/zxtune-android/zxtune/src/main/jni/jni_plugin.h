@@ -15,14 +15,6 @@ extern "C" {
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_Plugins_enumerate
   (JNIEnv *, jclass, jobject);
 
-/*
- * Class:     app_zxtune_core_jni_Plugins
- * Method:    init
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_Plugins_init
-  (JNIEnv *, jclass);
-
 #ifdef __cplusplus
 }
 #endif
