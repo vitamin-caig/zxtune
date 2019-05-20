@@ -17,6 +17,7 @@ import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import app.zxtune.Log;
 import app.zxtune.MainService;
 import app.zxtune.R;
 
@@ -29,6 +30,7 @@ public class StatusNotification extends MediaControllerCompat.Callback {
   private final Service service;
   private final Notifications.Controller notification;
   private boolean isPlaying = false;
+  private boolean wasForeground = false;
 
   public static void connect(Service service, MediaSessionCompat session) {
     final MediaControllerCompat controller = session.getController();
@@ -84,7 +86,8 @@ public class StatusNotification extends MediaControllerCompat.Callback {
     notification.getBuilder().mActions.set(ACTION_PLAY_PAUSE, isPlaying ? createPauseAction() : createPlayAction());
     if (isPlaying) {
       startForeground();
-    } else {
+      wasForeground = true;
+    } else if (wasForeground) {
       notification.show();
       service.stopForeground(false);
     }
