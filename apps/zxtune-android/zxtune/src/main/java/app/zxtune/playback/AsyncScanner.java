@@ -1,6 +1,7 @@
 package app.zxtune.playback;
 
 import android.net.Uri;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.os.OperationCanceledException;
@@ -17,6 +18,7 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class AsyncScanner {
 
@@ -37,6 +39,7 @@ public final class AsyncScanner {
   }
 
   private final ExecutorService executor;
+  private AtomicInteger scansDone = new AtomicInteger(0);
 
   private AsyncScanner() {
     this.executor = Executors.newCachedThreadPool();
@@ -44,16 +47,60 @@ public final class AsyncScanner {
 
   //! @return handle to scan session
   static Object scan(Callback cb) {
-    Holder.INSTANCE.post(new WeakReference<>(cb));
+    Holder.INSTANCE.post(cb);
     return cb;//use object itself
   }
 
-  private void post(final WeakReference<Callback> ref) {
+  private class CallbackWrapper {
+
+    private final WeakReference<Callback> delegate;
+    private final int id;
+
+    CallbackWrapper(Callback cb) {
+      this.delegate = new WeakReference<>(cb);
+      this.id = scansDone.getAndIncrement();
+    }
+
+    @Nullable
+    final VfsFile getNextFile() {
+      return delegate.get().getNextFile();
+    }
+
+    final void onItem(@NonNull PlayableItem item) {
+      while (Callback.Reply.RETRY == delegate.get().onItem(item)) {
+        waitOrStop();
+      }
+    }
+
+    private void waitOrStop() {
+      final int MAX_SESSIONS_ALIVE = 5;
+      if (scansDone.get() - id > MAX_SESSIONS_ALIVE) {
+        delegate.clear();
+        Log.d(TAG, "Force callback reset");
+      } else {
+        SystemClock.sleep(500);
+      }
+    }
+
+    final void onError(Identifier id, Exception e) {
+      final Callback cb = delegate.get();
+      if (cb != null) {
+        cb.onError(id, e);
+      } else {
+        final RuntimeException ex = new OperationCanceledException("Abandoned error");
+        ex.initCause(e);
+        throw ex;
+      }
+    }
+  }
+
+  private void post(Callback callback) {
+    final CallbackWrapper cb = new CallbackWrapper(callback);
     executor.execute(new Runnable() {
       @Override
       public void run() {
         Log.d(TAG, "Worker(%h): started", this);
-        if (scan(ref)) {
+        if (scan(cb)) {
           Log.d(TAG, "Worker(%h): finished", this);
         } else {
           Log.d(TAG, "Worker(%h): dead", this);
@@ -62,12 +109,12 @@ public final class AsyncScanner {
     });
   }
 
-  private static boolean scan(final WeakReference<Callback> ref) {
+  private static boolean scan(CallbackWrapper cb) {
     try {
       for (;;) {
-        final VfsFile file = ref.get().getNextFile();
+        final VfsFile file = cb.getNextFile();
         if (file != null) {
-          scan(file, ref);
+          scan(file, cb);
         } else {
           break;
         }
@@ -79,30 +126,17 @@ public final class AsyncScanner {
     }
   }
 
-  private static void scan(VfsFile file, final WeakReference<Callback> ref) {
+  private static void scan(VfsFile file, final CallbackWrapper cb) {
     Scanner.analyzeFile(file, new Scanner.Callback() {
       @Override
       public void onModule(Identifier id, Module module) {
         final FileItem item = new FileItem(id, module);
-        try {
-          while (Callback.Reply.RETRY == ref.get().onItem(item)) {
-            Thread.sleep(500);
-          }
-        } catch (InterruptedException e) {
-          Log.w(TAG, e, "Interrupted");
-        }
+        cb.onItem(item);
       }
 
       @Override
       public void onError(Identifier id, Exception e) {
-        final Callback cb = ref.get();
-        if (cb != null) {
-          cb.onError(id, e);
-        } else {
-          final RuntimeException ex = new OperationCanceledException("Abandoned error");
-          ex.initCause(e);
-          throw ex;
-        }
+        cb.onError(id, e);
       }
     });
   }
