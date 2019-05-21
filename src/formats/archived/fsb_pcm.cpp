@@ -66,7 +66,7 @@ namespace Archived
     class LazyWavFile : public Binary::Container
     {
     public:
-      explicit LazyWavFile(SampleProperties&& props)
+      explicit LazyWavFile(SampleProperties&& props) noexcept
         : Properties(std::move(props))
       {
       }

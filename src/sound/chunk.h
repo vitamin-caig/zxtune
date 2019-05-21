@@ -33,12 +33,12 @@ namespace Sound
     
     Chunk(const Chunk&) = delete;
     Chunk& operator = (const Chunk&) = delete;
-    Chunk(Chunk&& rh)// = default
+    Chunk(Chunk&& rh) noexcept// = default
       : std::vector<Sample>(std::move(rh))
     {
     }
     
-    Chunk& operator = (Chunk&& rh)// = default
+    Chunk& operator = (Chunk&& rh) noexcept// = default
     {
       std::vector<Sample>::operator = (std::move(rh));
       return *this;

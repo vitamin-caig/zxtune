@@ -261,7 +261,7 @@ namespace Module
     PatternsBuilder(const PatternsBuilder&) = delete;
     PatternsBuilder& operator = (const PatternsBuilder&) = delete;
     
-    PatternsBuilder(PatternsBuilder&& rh)// = default
+    PatternsBuilder(PatternsBuilder&& rh) noexcept// = default
       : Patterns(std::move(rh.Patterns))
       , CurPattern(rh.CurPattern)
       , CurLine(rh.CurLine)

@@ -384,7 +384,7 @@ namespace SQTracker
     {
     }
   public:
-    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh)// = default
+    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh) noexcept// = default
       : PatternsBuilder(std::move(rh))
     {
     }

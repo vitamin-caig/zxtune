@@ -97,7 +97,7 @@ namespace Mp3
     
     FrameSound(const FrameSound&) = delete;
     FrameSound& operator = (const FrameSound&) = delete;
-    FrameSound(FrameSound&& rh)// = default
+    FrameSound(FrameSound&& rh) noexcept// = default
       : Frequency(rh.Frequency)
       , Data(std::move(rh.Data))
     {

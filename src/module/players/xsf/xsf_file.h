@@ -25,13 +25,13 @@ namespace Module
     {
       File() = default;
       File(const File&) = delete;
-      File(File&& rh)//= default
+      File(File&& rh) noexcept//= default
       {
         *this = std::move(rh);
       }
       File& operator = (const File&) = delete;
       
-      File& operator = (File&& rh)//= default
+      File& operator = (File&& rh) noexcept//= default
       {
         Version = rh.Version;
         ReservedSection = std::move(rh.ReservedSection);

@@ -27,8 +27,8 @@ namespace Module
     class FilePath
     {
     private:
-      explicit FilePath(Strings::Array&& rh)
-        : Components(rh)
+      explicit FilePath(Strings::Array&& rh) noexcept
+        : Components(std::move(rh))
       {
       }
     public:

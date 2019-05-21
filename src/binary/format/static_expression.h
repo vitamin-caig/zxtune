@@ -125,7 +125,7 @@ namespace Binary
       StaticPattern(const StaticPattern&) = delete;
       StaticPattern& operator = (const StaticPattern&) = delete;
       
-      StaticPattern(StaticPattern&& rh)// = default;
+      StaticPattern(StaticPattern&& rh) noexcept// = default;
         : Data(std::move(rh.Data))
       {
       }

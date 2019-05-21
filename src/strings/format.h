@@ -22,7 +22,7 @@ namespace Strings
   namespace Details
   {
     template<class F>
-    F DoFormat(F&& fmt)
+    F DoFormat(F&& fmt) noexcept
     {
       return fmt;
     }

@@ -561,7 +561,7 @@ namespace ProTracker3
         {
         }
         
-        Entry(Entry&& rh)// = default
+        Entry(Entry&& rh) noexcept// = default
           : Name(std::move(rh.Name))
           , Value(std::move(rh.Value))
         {
@@ -605,7 +605,7 @@ namespace ProTracker3
       OrnamentObject(const OrnamentObject&) = delete;
       OrnamentObject& operator = (const OrnamentObject&) = delete;
       
-      OrnamentObject(OrnamentObject&& rh)// = default
+      OrnamentObject(OrnamentObject&& rh) noexcept// = default
         : Ornament(std::move(rh))
         , Index(rh.Index)
       {
@@ -664,7 +664,7 @@ namespace ProTracker3
       SampleObject(const SampleObject&) = delete;
       SampleObject& operator = (const SampleObject&) = delete;
       
-      SampleObject(SampleObject&& rh)// = default
+      SampleObject(SampleObject&& rh) noexcept// = default
         : Sample(std::move(rh))
         , Index(rh.Index)
       {

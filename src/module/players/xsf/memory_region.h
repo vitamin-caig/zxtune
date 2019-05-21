@@ -19,13 +19,13 @@ namespace Module
   {
     MemoryRegion() = default;
     MemoryRegion(const MemoryRegion&) = delete;
-    MemoryRegion(MemoryRegion&& rh)//= default
+    MemoryRegion(MemoryRegion&& rh) noexcept//= default
     {
       *this = std::move(rh);
     }
     MemoryRegion& operator = (const MemoryRegion&) = delete;
     
-    MemoryRegion& operator = (MemoryRegion&& rh)//= default
+    MemoryRegion& operator = (MemoryRegion&& rh) noexcept//= default
     {
       Start = rh.Start;
       Data = std::move(rh.Data);

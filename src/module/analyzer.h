@@ -35,13 +35,13 @@ namespace Module
       SpectrumState() {};
       SpectrumState(const SpectrumState&) = delete;
       SpectrumState& operator = (const SpectrumState&) = delete;
-      SpectrumState(SpectrumState&& rh)// = default;
+      SpectrumState(SpectrumState&& rh) noexcept// = default;
           : Data(std::move(rh.Data))
       {
       }
 
       template<class T>
-      SpectrumState(T&& rh)
+      SpectrumState(T&& rh) noexcept
         : Data(std::move(rh))
       {
       }
