@@ -54,14 +54,19 @@ void TLB_refill_exception(usf_state_t * state, unsigned int address, int w)
      }
    else
      {
-    if (state->r4300emu != CORE_PURE_INTERPRETER)
+#ifdef DEBUG_INFO
+      if (state->r4300emu == CORE_PURE_INTERPRETER)
+      {
+        state->g_cp0_regs[CP0_EPC_REG] = state->PC->addr;
+      }
+      else
+#endif
       {
          if (w!=2)
            state->g_cp0_regs[CP0_EPC_REG] = state->PC->addr;
          else
            state->g_cp0_regs[CP0_EPC_REG] = address;
       }
-    else state->g_cp0_regs[CP0_EPC_REG] = state->PC->addr;
          
     state->g_cp0_regs[CP0_CAUSE_REG] &= ~0x80000000;
     state->g_cp0_regs[CP0_STATUS_REG] |= 0x2; //EXL=1

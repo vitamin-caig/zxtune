@@ -293,8 +293,9 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
         state->tlb_e[i].end_odd = GETDATA(curr, unsigned int);
         state->tlb_e[i].phys_odd = GETDATA(curr, unsigned int);
     }
-
+#ifdef DEBUG_INFO
     if(state->r4300emu != CORE_PURE_INTERPRETER)
+#endif
     {
         for (i = 0; i < 0x100000; i++)
             state->invalid_code[i] = 1;
@@ -568,8 +569,9 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     //init_flashram(&state->g_pi.flashram);
 
     open_rom_header(state, savestateData, sizeof(m64p_rom_header));
-    
+#ifdef DEBUG_INFO    
     if(state->r4300emu != CORE_PURE_INTERPRETER)
+#endif
     {
         for (i = 0; i < 0x100000; i++)
             state->invalid_code[i] = 1;

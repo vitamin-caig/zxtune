@@ -110,8 +110,20 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
 
         return;
     }
+#ifdef DEBUG_INFO
+    if (state->r4300emu == CORE_PURE_INTERPRETER)
+    {
+        for (i=0; i<(int)longueur; i++)
+        {
+            unsigned long rom_address = (((pi->regs[PI_CART_ADDR_REG]-0x10000000)&0x3FFFFFF)+i);
+            unsigned long ram_address = (pi->regs[PI_DRAM_ADDR_REG]+i);
 
-    if (state->r4300emu != CORE_PURE_INTERPRETER)
+            ((unsigned char*)pi->rdram->dram)[ram_address^S8]=
+                pi->cart_rom.rom[rom_address^S8];
+        }
+    }
+    else
+#endif
     {
         for (i=0; i<(int)longueur; i++)
         {
@@ -125,17 +137,6 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
 
             invalidate_code(state, rdram_address1);
             invalidate_code(state, rdram_address2);
-        }
-    }
-    else
-    {
-        for (i=0; i<(int)longueur; i++)
-        {
-            unsigned long rom_address = (((pi->regs[PI_CART_ADDR_REG]-0x10000000)&0x3FFFFFF)+i);
-            unsigned long ram_address = (pi->regs[PI_DRAM_ADDR_REG]+i);
-
-            ((unsigned char*)pi->rdram->dram)[ram_address^S8]=
-                pi->cart_rom.rom[rom_address^S8];
         }
     }
 

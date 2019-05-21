@@ -470,7 +470,9 @@ static void nmi_int_handler(usf_state_t * state)
     // set ErrorEPC with the last instruction address
     state->g_cp0_regs[CP0_ERROREPC_REG] = state->PC->addr;
     // reset the r4300 internal state
+#ifdef DEBUG_INFO
     if (state->r4300emu != CORE_PURE_INTERPRETER)
+#endif
     {
         // clear all the compiled instruction blocks and re-initialize
         free_blocks(state);

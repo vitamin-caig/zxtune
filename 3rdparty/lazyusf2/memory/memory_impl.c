@@ -106,7 +106,9 @@ static unsigned int Hash(const void* blob, unsigned len)
 
 void osal_fastcall invalidate_code(usf_state_t* state, uint32_t address)
 {
+#ifdef DEBUG_INFO
     if (state->r4300emu != CORE_PURE_INTERPRETER)
+#endif
     {
        invalidate_block(state, address);
     }
@@ -117,10 +119,12 @@ void osal_fastcall invalidate_code(usf_state_t* state, uint32_t address)
 void map_code_region(usf_state_t* state, uint32_t vstart, uint32_t vend)
 {
     uint32_t addr;
+#ifdef DEBUG_INFO
     if (state->r4300emu == CORE_PURE_INTERPRETER)
     {
         return;
     }
+#endif
     for (addr = vstart; addr < vend; addr += TLB_PAGE_SIZE)
     {
         const uint32_t page = addr / TLB_PAGE_SIZE;
@@ -141,10 +145,12 @@ void map_code_region(usf_state_t* state, uint32_t vstart, uint32_t vend)
 void unmap_code_region(usf_state_t* state, uint32_t vstart, uint32_t vend)
 {
     uint32_t addr;
+#ifdef DEBUG_INFO
     if (state->r4300emu == CORE_PURE_INTERPRETER)
     {
         return;
     }
+#endif
     for (addr = vstart; addr < vend; addr += TLB_PAGE_SIZE)
     {
         const uint32_t page = addr / TLB_PAGE_SIZE;

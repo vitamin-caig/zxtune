@@ -6,7 +6,7 @@ source_files += ai/ai_controller \
                 $(addprefix main/, main rom savestates util) \
                 memory/memory_impl \
                 $(addprefix pi/, cart_rom pi_controller) \
-                $(addprefix r4300/, cached_interp cp0 cp1 exception interupt mi_controller pure_interp r4300 r4300_core recomp reset tlb) \
+                $(addprefix r4300/, cached_interp cp0 cp1 exception interupt mi_controller r4300 r4300_core recomp reset tlb) \
                 rdp/rdp_core \
                 $(addprefix ri/, rdram rdram_detection_hack ri_controller) \
                 rsp/rsp_core \
@@ -21,7 +21,7 @@ defines.windows += WIN32
 
 ifdef lazyusf2.debug
 defines += DEBUG_INFO
-source_files += debugger/dbg_decoder
+source_files += debugger/dbg_decoder r4300/pure_interp
 endif
 
 source_files := $(addsuffix .c,$(source_files))

@@ -60,9 +60,12 @@
 
 void generic_jump_to(usf_state_t * state, unsigned int address)
 {
+#ifdef DEBUG_INFO
    if (state->r4300emu == CORE_PURE_INTERPRETER)
       state->PC->addr = address;
-   else {
+   else
+#endif
+   {
       jump_to(state, address);
    }
 }
@@ -204,7 +207,8 @@ void r4300_begin(usf_state_t * state)
     
     state->next_interupt = 624999;
     init_interupt(state);
-    
+
+#ifdef DEBUG_INFO
     if (state->r4300emu == CORE_PURE_INTERPRETER)
     {
         DebugMessage(state, M64MSG_INFO, "Starting R4300 emulator: Pure Interpreter");
@@ -212,6 +216,7 @@ void r4300_begin(usf_state_t * state)
         state->PC = (precomp_instr*) calloc(sizeof(precomp_instr), 1);
     }
     else /* if (r4300emu == CORE_INTERPRETER) */
+#endif
     {
         DebugMessage(state, M64MSG_INFO, "Starting R4300 emulator: Cached Interpreter");
         state->r4300emu = CORE_INTERPRETER;
@@ -221,11 +226,13 @@ void r4300_begin(usf_state_t * state)
 
 void r4300_execute(usf_state_t * state)
 {
+#ifdef DEBUG_INFO
     if (state->r4300emu == CORE_PURE_INTERPRETER)
     {
         pure_interpreter(state);
     }
     else /* if (r4300emu == CORE_INTERPRETER) */
+#endif
     {
         /* Prevent segfault on failed jump_to */
         if (!state->actual->block)
@@ -238,6 +245,7 @@ void r4300_execute(usf_state_t * state)
 
 void r4300_end(usf_state_t * state)
 {
+#ifdef DEBUG_INFO
     if (state->r4300emu == CORE_PURE_INTERPRETER)
     {
         if (state->PC)
@@ -247,6 +255,7 @@ void r4300_end(usf_state_t * state)
         }
     }
     else /* if (r4300emu == CORE_INTERPRETER) */
+#endif
     {
         free_blocks(state);
     }
