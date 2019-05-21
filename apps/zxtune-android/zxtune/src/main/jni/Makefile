@@ -15,6 +15,8 @@ libraries.common = analysis \
 
 libraries.3rdparty = asap gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar vio2sf xmp z80ex zlib
 
+ld_flags += -Wl,--version-script=libzxtune.version
+
 include $(dirs.root)/makefile.mak
 
 jni_plugin.h: ../java/app/zxtune/core/jni/Plugins.java

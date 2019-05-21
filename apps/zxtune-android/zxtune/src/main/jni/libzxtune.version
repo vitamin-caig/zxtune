@@ -1,0 +1,4 @@
+VERS_0.1 {
+  global: Java_*; JNI_*;
+  local: *;
+};
