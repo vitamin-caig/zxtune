@@ -44,6 +44,8 @@ public class MainService extends MediaBrowserServiceCompat {
     super.onCreate();
     Log.d(TAG, "Creating");
 
+    //Should be first call in order to initialize JNI and avoid deadlocks in Runtime
+    settingsChangedHandler = ChangedSettingsReceiver.subscribe(getApplicationContext());
     service = new PlaybackServiceLocal(getApplicationContext());
 
     setupCallbacks(getApplicationContext());
@@ -52,12 +54,12 @@ public class MainService extends MediaBrowserServiceCompat {
   @Override
   public void onDestroy() {
     Log.d(TAG, "Destroying");
-    settingsChangedHandler.release();
-    settingsChangedHandler = null;
     mediaSessionControl.release();
     mediaSessionControl = null;
     service.release();
     service = null;
+    settingsChangedHandler.release();
+    settingsChangedHandler = null;
     super.onDestroy();
   }
 
@@ -104,7 +106,5 @@ public class MainService extends MediaBrowserServiceCompat {
     service.subscribe(new PlayingStateCallback(ctx));
 
     WidgetHandler.connect(ctx, mediaSessionControl.getSession());
-
-    settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
   }
 }

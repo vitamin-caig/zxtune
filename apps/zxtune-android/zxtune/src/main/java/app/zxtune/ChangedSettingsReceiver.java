@@ -21,10 +21,11 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
 
   static Releaseable subscribe(Context ctx) {
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(ctx);
+    final PropertiesModifier options = GlobalOptions.instance();
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
       final String key = entry.getKey();
       if (key.startsWith(Properties.PREFIX)) {
-        setProperty(key, entry.getValue(), GlobalOptions.instance());
+        setProperty(key, entry.getValue(), options);
       }
     }
     return new BroadcastReceiverConnection(ctx,
