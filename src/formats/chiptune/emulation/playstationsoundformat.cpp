@@ -51,20 +51,20 @@ typedef struct _EXE_HEADER_ {
 
 Explanation
 
-•ExeType = { 'SCE EXE' || 'PS-X EXE' }; 
-•text - Offset of the text segment 
-•data - Offset of the data segment 
-•pc0 - Program Counter. 
-•gp0 - Address of the Global Pointer 
-•t_addr - The address where the text segment is loaded 
-•t_size - The size of the text segment 
-•d_addr - The address where the text segment is loaded 
-•d_size - The size of the data segment 
-•b_addr - The address of the BSS segment 
-•b_size - The size of the BSS segment 
-•s_addr - The address of the stack 
-•s_size - The size of the stack. 
-•SavedXX -The Exec system call saves some registers to these fields before jumping to the program 
+ExeType = { 'SCE EXE' || 'PS-X EXE' }; 
+text - Offset of the text segment 
+data - Offset of the data segment 
+pc0 - Program Counter. 
+gp0 - Address of the Global Pointer 
+t_addr - The address where the text segment is loaded 
+t_size - The size of the text segment 
+d_addr - The address where the text segment is loaded 
+d_size - The size of the data segment 
+b_addr - The address of the BSS segment 
+b_size - The size of the BSS segment 
+s_addr - The address of the stack 
+s_size - The size of the stack. 
+SavedXX -The Exec system call saves some registers to these fields before jumping to the program 
 
 si17911@ci.uminho.pt
 

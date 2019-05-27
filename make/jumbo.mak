@@ -6,7 +6,7 @@ jumbo.inputs = $(filter-out $(jumbo.excludes),$(jumbo.candidates))
 jumbo.ignored = $(filter $(jumbo.excludes),$(jumbo.candidates))
 
 $(jumbo.source): $(jumbo.inputs) | $(objects_dir)
-	$(tools.python) $(dirs.root)/make/tools/combine_sources.py $(foreach src,$^,$(CURDIR)/$(src)) > $@
+	$(tools.python) $(dirs.root)/make/tools/combine_sources.py $(foreach src,$^,$(CURDIR)/$(src)) > $@ || $(call rmfiles_cmd,$@)
 
 source_files = $(jumbo.source) $(jumbo.ignored)
 else
