@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "psg.h"
-#include "soundchip.h"
+#include "devices/aym/src/psg.h"
+#include "devices/aym/src/soundchip.h"
 //common includes
 #include <make_ptr.h>
 //std includes

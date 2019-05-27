@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "dump_builder.h"
+#include "devices/aym/dumper/dump_builder.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
