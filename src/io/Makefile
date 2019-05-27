@@ -20,5 +20,7 @@ endif
 
 source_files += providers/file_provider.cpp
 
+jumbo.name := $(library_name)
+
 include $(dirs.root)/makefile.mak
 include $(dirs.root)/make/shgate.mak

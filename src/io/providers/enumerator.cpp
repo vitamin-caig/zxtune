@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "enumerator.h"
-#include "providers_list.h"
+#include "io/providers/enumerator.h"
+#include "io/providers/providers_list.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -25,14 +25,11 @@
 
 #define FILE_TAG 03113EE3
 
-namespace
+namespace IO
 {
   const Debug::Stream Dbg("IO::Enumerator");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
-}
 
-namespace IO
-{
   typedef std::vector<DataProvider::Ptr> ProvidersList;
 
   //implementation of IO providers enumerator
@@ -221,3 +218,5 @@ namespace IO
     return MakePtr<UnavailableProvider>(id, description, status);
   }
 }
+
+#undef FILE_TAG

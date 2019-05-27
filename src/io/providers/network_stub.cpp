@@ -8,7 +8,7 @@
 *
 **/
 
-#include "enumerator.h"
+#include "io/providers/enumerator.h"
 //common includes
 #include <l10n/api.h>
 //text includes
