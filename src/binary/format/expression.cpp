@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "expression.h"
-#include "grammar.h"
-#include "syntax.h"
+#include "binary/format/expression.h"
+#include "binary/format/grammar.h"
+#include "binary/format/syntax.h"
 //common includes
 #include <contract.h>
 #include <iterator.h>

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "details.h"
+#include "binary/format/details.h"
 //common includes
 #include <contract.h>
 #include <types.h>

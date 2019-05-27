@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "grammar.h"
+#include "binary/format/grammar.h"
 //common includes
 #include <pointers.h>
 #include <make_ptr.h>

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "static_expression.h"
+#include "binary/format/static_expression.h"
 //common includes
 #include <make_ptr.h>
 //library includes
