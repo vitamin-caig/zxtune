@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "psg.h"
+#include "formats/chiptune/aym/psg.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <make_ptr.h>

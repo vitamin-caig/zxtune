@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "container.h"
-#include "zip_supp.h"
+#include "formats/packed/container.h"
+#include "formats/packed/zip_supp.h"
 //common includes
 #include <error.h>
 #include <make_ptr.h>

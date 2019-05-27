@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/chiptune/container.h"
 //common includes
 #include <crc.h>
 #include <make_ptr.h>

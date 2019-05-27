@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "container.h"
-#include "lha_supp.h"
-#include "pack_utils.h"
+#include "formats/packed/container.h"
+#include "formats/packed/lha_supp.h"
+#include "formats/packed/pack_utils.h"
 //common includes
 #include <make_ptr.h>
 //library includes

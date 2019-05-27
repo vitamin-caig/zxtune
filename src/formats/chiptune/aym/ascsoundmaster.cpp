@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "ascsoundmaster.h"
+#include "formats/chiptune/aym/ascsoundmaster.h"
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
 //common includes

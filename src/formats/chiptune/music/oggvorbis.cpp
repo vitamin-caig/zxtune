@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "oggvorbis.h"
+#include "formats/chiptune/music/oggvorbis.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

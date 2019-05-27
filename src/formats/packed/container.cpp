@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/packed/container.h"
 //common includes
 #include <make_ptr.h>
 //library includes

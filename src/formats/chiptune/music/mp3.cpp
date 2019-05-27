@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "mp3.h"
+#include "formats/chiptune/music/mp3.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <make_ptr.h>

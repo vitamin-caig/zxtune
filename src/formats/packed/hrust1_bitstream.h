@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "pack_utils.h"
+#include "formats/packed/pack_utils.h"
 
 //Hrust1-compatible bitstream:
 // -16 bit mask MSB->LSB order

@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "trdos_catalogue.h"
-#include "trdos_utils.h"
+#include "formats/archived/trdos_catalogue.h"
+#include "formats/archived/trdos_utils.h"
 //common includes
 #include <byteorder.h>
 #include <pointers.h>

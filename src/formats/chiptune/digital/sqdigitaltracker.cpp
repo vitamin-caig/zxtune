@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "sqdigitaltracker.h"
+#include "formats/chiptune/digital/sqdigitaltracker.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

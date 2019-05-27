@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "prodigitracker.h"
+#include "formats/chiptune/digital/prodigitracker.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

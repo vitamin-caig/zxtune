@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "digitalmusicmaker.h"
+#include "formats/chiptune/digital/digitalmusicmaker.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

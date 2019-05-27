@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "turbosound.h"
+#include "formats/chiptune/aym/turbosound.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

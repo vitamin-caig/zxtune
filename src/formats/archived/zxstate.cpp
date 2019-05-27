@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "zxstate_supp.h"
+#include "formats/archived/zxstate_supp.h"
 //common includes
 #include <contract.h>
 #include <error.h>

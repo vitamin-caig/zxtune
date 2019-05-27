@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "wav.h"
+#include "formats/chiptune/music/wav.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

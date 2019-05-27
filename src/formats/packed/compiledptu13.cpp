@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/packed/container.h"
 #include "formats/chiptune/metainfo.h"
 #include "formats/chiptune/aym/protracker3_detail.h"
 //common includes

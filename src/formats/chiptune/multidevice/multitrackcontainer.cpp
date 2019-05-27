@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "multitrackcontainer.h"
+#include "formats/chiptune/multidevice/multitrackcontainer.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>

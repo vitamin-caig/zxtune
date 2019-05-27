@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "playstationsoundformat.h"
+#include "formats/chiptune/emulation/playstationsoundformat.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>

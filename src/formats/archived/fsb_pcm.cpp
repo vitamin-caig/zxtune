@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "fsb_formats.h"
+#include "formats/archived/fsb_formats.h"
 //library includes
 #include <formats/chiptune/music/wav.h>
 //common includes

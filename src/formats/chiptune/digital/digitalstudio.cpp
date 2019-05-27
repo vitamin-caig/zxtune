@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "digitalstudio.h"
-#include "digital_detail.h"
+#include "formats/chiptune/digital/digitalstudio.h"
+#include "formats/chiptune/digital/digital_detail.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

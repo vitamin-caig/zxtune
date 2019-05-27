@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "portablesoundformat.h"
+#include "formats/chiptune/emulation/portablesoundformat.h"
 //common includes
 #include <byteorder.h>
 #include <crc.h>

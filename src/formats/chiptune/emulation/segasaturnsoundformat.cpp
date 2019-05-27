@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "segasaturnsoundformat.h"
+#include "formats/chiptune/emulation/segasaturnsoundformat.h"
 //common includes
 #include <make_ptr.h>
 //library includes

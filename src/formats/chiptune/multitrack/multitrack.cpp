@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "multitrack.h"
+#include "formats/chiptune/multitrack/multitrack.h"
 //common includes
 #include <crc.h>
 #include <make_ptr.h>
