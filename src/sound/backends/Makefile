@@ -59,5 +59,7 @@ endif
 
 source_files += null_backend.cpp wav_backend.cpp
 
+jumbo.name := $(library_name)
+
 include $(dirs.root)/makefile.mak
 include $(dirs.root)/make/shgate.mak

@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "file_backend.h"
-#include "storage.h"
-#include "gates/flac_api.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/gates/flac_api.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -27,20 +27,17 @@
 //boost includes
 #include <boost/bind.hpp>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 6575CD3F
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Flac");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Flac
 {
+  const Debug::Stream Dbg("Sound::Backend::Flac");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+
   const String ID = Text::FLAC_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
 
@@ -314,3 +311,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

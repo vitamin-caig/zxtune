@@ -9,11 +9,11 @@
 **/
 
 //local includes
-#include "backend_impl.h"
-#include "dsound.h"
-#include "storage.h"
-#include "volume_control.h"
-#include "gates/dsound_api.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/dsound.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/volume_control.h"
+#include "sound/backends/gates/dsound_api.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -30,20 +30,17 @@
 //boost includes
 #include <boost/range/size.hpp>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG BCBCECCC
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::DirectSound");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace DirectSound
 {
+  const Debug::Stream Dbg("Sound::Backend::DirectSound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+
   const String ID = Text::DSOUND_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("DirectSound support backend.");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
@@ -648,3 +645,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

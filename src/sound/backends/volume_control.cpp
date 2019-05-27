@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "volume_control.h"
+#include "sound/backends/volume_control.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -19,10 +19,9 @@
 
 namespace Sound
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-
   class VolumeControlDelegate : public VolumeControl
   {
+    static const L10n::TranslateFunctor translate;
   public:
     explicit VolumeControlDelegate(VolumeControl::Ptr delegate)
       : Delegate(delegate)
@@ -49,6 +48,9 @@ namespace Sound
   private:
     const std::weak_ptr<VolumeControl> Delegate;
   };
+
+  //TODO: extract single translate functor
+  const L10n::TranslateFunctor VolumeControlDelegate::translate = L10n::TranslateFunctor("sound_backends");
 }
 
 namespace Sound
@@ -58,3 +60,5 @@ namespace Sound
     return MakePtr<VolumeControlDelegate>(delegate);
   }
 }
+
+#undef FILE_TAG

@@ -9,11 +9,11 @@
 **/
 
 //local includes
-#include "openal.h"
-#include "backend_impl.h"
-#include "storage.h"
-#include "volume_control.h"
-#include "gates/openal_api.h"
+#include "sound/backends/openal.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/volume_control.h"
+#include "sound/backends/gates/openal_api.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -29,20 +29,17 @@
 #include <functional>
 #include <thread>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 07CDA82B
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::OpenAL");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace OpenAl
 {
+  const Debug::Stream Dbg("Sound::Backend::OpenAL");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+
   const String ID = Text::OPENAL_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("OpenAL backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
@@ -493,3 +490,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

@@ -9,11 +9,11 @@
 **/
 
 //local includes
-#include "alsa.h"
-#include "backend_impl.h"
-#include "storage.h"
-#include "volume_control.h"
-#include "gates/alsa_api.h"
+#include "sound/backends/alsa.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/volume_control.h"
+#include "sound/backends/gates/alsa_api.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -32,20 +32,17 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 8B5627E4
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Alsa");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Alsa
 {
+  const Debug::Stream Dbg("Sound::Backend::Alsa");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+
   const String ID = Text::ALSA_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("ALSA sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
@@ -1090,3 +1087,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

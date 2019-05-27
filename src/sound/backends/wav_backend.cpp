@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "file_backend.h"
-#include "storage.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/storage.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -26,19 +26,16 @@
 #include <algorithm>
 #include <cstring>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG EF5CB4C6
-
-namespace
-{
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Wav
 {
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+
   const String ID = Text::WAV_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("WAV support backend");
 
@@ -292,3 +289,5 @@ namespace Sound
     storage.Register(Wav::ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
   }
 }
+
+#undef FILE_TAG

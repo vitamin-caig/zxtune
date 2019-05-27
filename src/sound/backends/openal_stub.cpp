@@ -9,13 +9,13 @@
 **/
 
 //local includes
-#include "openal.h"
-#include "storage.h"
+#include "sound/backends/openal.h"
+#include "sound/backends/storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 namespace Sound
 {

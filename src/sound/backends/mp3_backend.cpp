@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "file_backend.h"
-#include "storage.h"
-#include "gates/mp3_api.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/gates/mp3_api.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -28,20 +28,17 @@
 //boost includes
 #include <boost/bind.hpp>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 3B251603
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Mp3");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Mp3
 {
+  const Debug::Stream Dbg("Sound::Backend::Mp3");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+
   const String ID = Text::MP3_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("MP3 support backend");
 
@@ -379,3 +376,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

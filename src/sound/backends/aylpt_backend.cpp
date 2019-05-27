@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "backend_impl.h"
-#include "storage.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/storage.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -30,20 +30,17 @@
 #include <cstring>
 #include <thread>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG F1936398
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Aylpt");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace AyLpt
 {
+  const Debug::Stream Dbg("Sound::Backend::Aylpt");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+
   const String ID = Text::AYLPT_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("Real AY via LPT backend");
   const uint_t CAPABILITIES = CAP_TYPE_HARDWARE;
@@ -288,3 +285,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

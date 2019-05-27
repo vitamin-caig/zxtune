@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "file_backend.h"
+#include "sound/backends/file_backend.h"
 //common includes
 #include <make_ptr.h>
 #include <progress_callback.h>
@@ -26,20 +26,17 @@
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG B4CB6B0C
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::FileBase");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace File
 {
+  const Debug::Stream Dbg("Sound::Backend::FileBase");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+
   class StateFieldsSource : public Strings::SkipFieldsSource
   {
   public:
@@ -332,3 +329,4 @@ namespace Sound
   }
 }
 
+#undef FILE_TAG

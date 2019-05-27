@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "backends_list.h"
-#include "backend_impl.h"
-#include "storage.h"
+#include "sound/backends/backends_list.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/storage.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -28,14 +28,11 @@
 
 #define FILE_TAG A6428476
 
-namespace
+namespace Sound
 {
   const Debug::Stream Dbg("Sound::Backend");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
-namespace Sound
-{
   class StaticBackendInformation : public BackendInformation
   {
   public:
@@ -223,3 +220,5 @@ namespace Sound
     return result;
   }
 }
+
+#undef FILE_TAG
