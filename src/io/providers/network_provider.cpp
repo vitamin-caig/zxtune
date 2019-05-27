@@ -9,6 +9,7 @@
 **/
 
 //local includes
+#include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 #include "io/providers/gates/curl_api.h"
 //common includes
@@ -20,7 +21,6 @@
 #include <binary/container_factories.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
-#include <l10n/api.h>
 #include <parameters/accessor.h>
 //std includes
 #include <cstring>
@@ -34,7 +34,6 @@ namespace IO
 namespace Network
 {
   const Debug::Stream Dbg("IO::Provider::Network");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
 
   class ProviderParameters
   {

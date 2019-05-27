@@ -9,6 +9,7 @@
 **/
 
 //local includes
+#include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 #include "io/providers/providers_list.h"
 //common includes
@@ -17,7 +18,6 @@
 //library includes
 #include <debug/log.h>
 #include <io/api.h>
-#include <l10n/api.h>
 //std includes
 #include <algorithm>
 #include <list>
@@ -28,7 +28,6 @@
 namespace IO
 {
   const Debug::Stream Dbg("IO::Enumerator");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
 
   typedef std::vector<DataProvider::Ptr> ProvidersList;
 

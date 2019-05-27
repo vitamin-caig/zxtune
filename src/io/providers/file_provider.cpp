@@ -9,9 +9,10 @@
 **/
 
 //local includes
+#include "io/impl/boost_filesystem_path.h"
+#include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 #include "io/providers/file_provider.h"
-#include "io/impl/boost_filesystem_path.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>
@@ -20,7 +21,6 @@
 #include <binary/container_factories.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
-#include <l10n/api.h>
 #include <parameters/accessor.h>
 #include <strings/encoding.h>
 #include <strings/format.h>
@@ -88,7 +88,6 @@ namespace IO
 namespace File
 {
   const Debug::Stream Dbg("IO::Provider::File");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
 
   class ProviderParameters : public FileCreatingParameters
   {
