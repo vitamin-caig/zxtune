@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "analyzer.h"
+#include "module/players/analyzer.h"
 //common includes
 #include <make_ptr.h>
 //library includes

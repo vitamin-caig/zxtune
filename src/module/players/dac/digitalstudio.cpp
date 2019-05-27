@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "digitalstudio.h"
-#include "dac_simple.h"
+#include "module/players/dac/digitalstudio.h"
+#include "module/players/dac/dac_simple.h"
 //common includes
 #include <make_ptr.h>
 //library includes

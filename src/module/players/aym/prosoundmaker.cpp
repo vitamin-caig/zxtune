@@ -9,10 +9,10 @@
 **/
 
 //local includes
-#include "prosoundmaker.h"
-#include "aym_base.h"
-#include "aym_base_track.h"
-#include "aym_properties_helper.h"
+#include "module/players/aym/prosoundmaker.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_properties_helper.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

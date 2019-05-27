@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "vortex.h"
+#include "module/players/aym/vortex.h"
 //common includes
 #include <make_ptr.h>
 //library includes

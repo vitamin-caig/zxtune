@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "xsf_metainformation.h"
+#include "module/players/xsf/xsf_metainformation.h"
 //library includes
 #include <module/players/properties_helper.h>
 #include <parameters/modifier.h>

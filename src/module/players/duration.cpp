@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "duration.h"
+#include "module/players/duration.h"
 //library includes
 #include <core/plugins_parameters.h>
 #include <parameters/accessor.h>

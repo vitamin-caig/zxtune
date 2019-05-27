@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfm_parameters.h"
+#include "module/players/tfm/tfm_parameters.h"
 //common includes
 #include <make_ptr.h>
 //library includes

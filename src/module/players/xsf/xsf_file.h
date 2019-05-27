@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "xsf_metainformation.h"
+#include "module/players/xsf/xsf_metainformation.h"
 //library includes
 #include <binary/container.h>
 #include <binary/container_factories.h>

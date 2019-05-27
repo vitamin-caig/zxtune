@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "etracker.h"
-#include "saa_base.h"
+#include "module/players/saa/etracker.h"
+#include "module/players/saa/saa_base.h"
 //common includes
 #include <make_ptr.h>
 //library includes

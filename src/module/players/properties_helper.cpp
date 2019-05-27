@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "properties_helper.h"
+#include "module/players/properties_helper.h"
 //library includes
 #include <module/attributes.h>
 #include <sound/sound_parameters.h>

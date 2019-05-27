@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "aym_parameters.h"
+#include "module/players/aym/aym_parameters.h"
 //library includes
 #include <devices/aym.h>
 #include <module/information.h>

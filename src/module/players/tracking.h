@@ -11,8 +11,8 @@
 #pragma once
 
 //local includes
-#include "iterator.h"
-#include "track_model.h"
+#include "module/players/iterator.h"
+#include "module/players/track_model.h"
 //common includes
 #include <make_ptr.h>
 //library includes

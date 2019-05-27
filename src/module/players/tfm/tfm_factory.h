@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "tfm_chiptune.h"
+#include "module/players/tfm/tfm_chiptune.h"
 //library includes
 #include <binary/container.h>
 #include <parameters/container.h>

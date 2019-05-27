@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "iterator.h"
+#include "module/players/iterator.h"
 //library includes
 #include <sound/loop.h>
 

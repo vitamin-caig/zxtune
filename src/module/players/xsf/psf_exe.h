@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "memory_region.h"
+#include "module/players/xsf/memory_region.h"
 //std includes
 #include <memory>
 

@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "ayemul.h"
-#include "aym_base.h"
-#include "aym_properties_helper.h"
+#include "module/players/aym/ayemul.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_properties_helper.h"
 //common includes
 #include <make_ptr.h>
 //library includes

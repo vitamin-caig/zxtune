@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "xsf.h"
-#include "xsf_factory.h"
+#include "module/players/xsf/xsf.h"
+#include "module/players/xsf/xsf_factory.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>
@@ -197,3 +197,5 @@ namespace XSF
   }
 }
 }
+
+#undef FILE_TAG

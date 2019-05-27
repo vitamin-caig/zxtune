@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "ayc.h"
-#include "aym_base.h"
-#include "aym_base_stream.h"
+#include "module/players/aym/ayc.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_base_stream.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

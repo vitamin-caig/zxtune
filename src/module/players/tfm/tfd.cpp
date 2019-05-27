@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "tfd.h"
-#include "tfm_base_stream.h"
+#include "module/players/tfm/tfd.h"
+#include "module/players/tfm/tfm_base_stream.h"
 //common includes
 #include <make_ptr.h>
 #include <module/players/properties_helper.h>

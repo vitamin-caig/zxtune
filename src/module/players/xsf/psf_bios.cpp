@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "psf_bios.h"
+#include "module/players/xsf/psf_bios.h"
 //library includes
 #include <binary/data_adapter.h>
 
@@ -21,7 +21,7 @@ namespace Module
     {
       static const uint32_t RAW[] =
       {
-#include "scph10000_he.inc"
+#include "module/players/xsf/scph10000_he.inc"
       };
       static const Binary::DataAdapter ADAPTED(RAW, sizeof(RAW));
       return ADAPTED;
