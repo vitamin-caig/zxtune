@@ -8,5 +8,7 @@ text_files := text/text
 
 defines += BUILD_VERSION=$(root.version)
 
+jumbo.name := $(library_name)
+
 include $(dirs.root)/makefile.mak
 include $(dirs.root)/make/version.mak

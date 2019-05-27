@@ -12,7 +12,7 @@
 #include <platform/version/api.h>
 #include <platform/version/fields.h>
 //text includes
-#include "../text/text.h"
+#include <platform/version/text/text.h>
 
 namespace Platform
 {
