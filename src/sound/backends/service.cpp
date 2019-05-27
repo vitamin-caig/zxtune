@@ -11,13 +11,13 @@
 //local includes
 #include "sound/backends/backends_list.h"
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <parameters/merged_accessor.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -31,7 +31,6 @@
 namespace Sound
 {
   const Debug::Stream Dbg("Sound::Backend");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   class StaticBackendInformation : public BackendInformation
   {

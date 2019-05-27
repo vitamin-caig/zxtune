@@ -10,6 +10,7 @@
 
 //local includes
 #include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
 //common includes
 #include <make_ptr.h>
 #include <progress_callback.h>
@@ -19,7 +20,6 @@
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <io/template.h>
-#include <l10n/api.h>
 #include <module/attributes.h>
 #include <module/track_state.h>
 #include <parameters/convert.h>
@@ -35,7 +35,6 @@ namespace Sound
 namespace File
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   class StateFieldsSource : public Strings::SkipFieldsSource
   {

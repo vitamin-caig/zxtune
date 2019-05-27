@@ -10,6 +10,7 @@
 
 //local includes
 #include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/gates/flac_api.h"
 //common includes
@@ -18,7 +19,6 @@
 //library includes
 #include <binary/data_adapter.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
@@ -36,7 +36,6 @@ namespace Sound
 namespace Flac
 {
   const Debug::Stream Dbg("Sound::Backend::Flac");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   const String ID = Text::FLAC_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("FLAC support backend.");

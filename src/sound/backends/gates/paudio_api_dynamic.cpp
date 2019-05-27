@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "paudio_api.h"
+#include "sound/backends/gates/paudio_api.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -49,7 +49,6 @@ namespace Sound
       }
     };
 
-    const Debug::Stream Dbg("Sound::Backend::PulseAudio");
 
     class DynamicApi : public Api
     {
@@ -57,16 +56,16 @@ namespace Sound
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
         : Lib(lib)
       {
-        Dbg("Library loaded");
+        Debug::Log("Sound::Backend::PulseAudio", "Library loaded");
       }
 
       ~DynamicApi() override
       {
-        Dbg("Library unloaded");
+        Debug::Log("Sound::Backend::PulseAudio", "Library unloaded");
       }
 
       
-      const char* pa_get_library_version() override
+      const char* pa_get_library_version(void) override
       {
         static const char NAME[] = "pa_get_library_version";
         typedef const char* ( *FunctionType)();

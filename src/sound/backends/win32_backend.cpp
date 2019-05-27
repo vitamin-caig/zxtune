@@ -11,6 +11,7 @@
 //local includes
 #include "sound/backends/win32.h"
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/volume_control.h"
 #include "sound/backends/gates/win32_api.h"
@@ -20,7 +21,6 @@
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -40,7 +40,6 @@ namespace Sound
 namespace Win32
 {
   const Debug::Stream Dbg("Sound::Backend::Win32");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   const String ID = Text::WIN32_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("Win32 sound system backend");

@@ -10,6 +10,7 @@
 
 //local includes
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/gates/paudio_api.h"
 //common includes
@@ -18,7 +19,6 @@
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <module/attributes.h>
 #include <platform/version/api.h>
 #include <sound/backend_attrs.h>
@@ -36,7 +36,6 @@ namespace Sound
 namespace PulseAudio
 {
   const Debug::Stream Dbg("Sound::Backend::PulseAudio");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   const String ID = Text::PAUDIO_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("PulseAudio support backend");

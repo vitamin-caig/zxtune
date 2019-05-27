@@ -10,6 +10,7 @@
 
 //local includes
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -17,7 +18,6 @@
 //library includes
 #include <async/worker.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <sound/render_params.h>
 #include <sound/silence.h>
 #include <sound/sound_parameters.h>
@@ -31,7 +31,6 @@ namespace Sound
 namespace BackendBase
 {
   const Debug::Stream Dbg("Sound::Backend::Base");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   class BufferRenderer : public Receiver
   {

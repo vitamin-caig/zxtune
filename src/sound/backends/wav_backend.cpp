@@ -10,6 +10,7 @@
 
 //local includes
 #include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 //common includes
 #include <byteorder.h>
@@ -18,7 +19,6 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/data_adapter.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/render_params.h>
@@ -34,8 +34,6 @@ namespace Sound
 {
 namespace Wav
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-
   const String ID = Text::WAV_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("WAV support backend");
 

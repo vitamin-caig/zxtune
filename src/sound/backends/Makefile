@@ -1,6 +1,6 @@
 library_name := sound_backends
 dirs.root := ../../..
-source_files = backend_impl.cpp file_backend.cpp service.cpp volume_control.cpp
+source_files = backend_impl.cpp file_backend.cpp l10n.cpp service.cpp volume_control.cpp
 
 text_files := text/backends
 po_files := sound_backends
@@ -60,6 +60,8 @@ endif
 source_files += null_backend.cpp wav_backend.cpp
 
 jumbo.name := $(library_name)
+jumbo.for_generated = 1
+jumbo.excludes := text/backends.cpp
 
 include $(dirs.root)/makefile.mak
 include $(dirs.root)/make/shgate.mak

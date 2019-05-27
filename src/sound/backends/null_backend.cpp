@@ -10,11 +10,11 @@
 
 //local includes
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 //common includes
 #include <make_ptr.h>
 //library includes
-#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
 #include <sound/backends/text/backends.h>
@@ -25,8 +25,6 @@ namespace Sound
 {
 namespace Null
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-
   const String ID = Text::NULL_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("Null output backend");
 

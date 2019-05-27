@@ -10,6 +10,7 @@
 
 //local includes
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 //common includes
 #include <byteorder.h>
@@ -20,7 +21,6 @@
 #include <module/conversion/types.h>
 #include <debug/log.h>
 #include <devices/aym.h>
-#include <l10n/api.h>
 #include <platform/shared_library.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -39,7 +39,6 @@ namespace Sound
 namespace AyLpt
 {
   const Debug::Stream Dbg("Sound::Backend::Aylpt");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   const String ID = Text::AYLPT_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("Real AY via LPT backend");

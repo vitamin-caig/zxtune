@@ -10,6 +10,7 @@
 
 //local includes
 #include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/gates/mp3_api.h"
 //common includes
@@ -18,7 +19,6 @@
 //library includes
 #include <binary/data_adapter.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -37,7 +37,6 @@ namespace Sound
 namespace Mp3
 {
   const Debug::Stream Dbg("Sound::Backend::Mp3");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   const String ID = Text::MP3_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("MP3 support backend");
