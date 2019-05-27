@@ -9,7 +9,6 @@
 **/
 
 //common includes
-#include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <async/coroutine.h>
