@@ -243,9 +243,12 @@ namespace Zdata
 
 namespace ZXTune
 {
+namespace Zdata
+{
   const Char ID[] = {'Z', 'D', 'A', 'T', 'A', 0};
   const Char* const INFO = Text::ZDATA_PLUGIN_INFO;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
+}
 }
 
 namespace ZXTune
@@ -257,21 +260,23 @@ namespace ZXTune
     const Zdata::Header hdr = Zdata::Compress(input, builder);
     hdr.ToRaw(builder.Get<Zdata::RawHeader>(0));
     const Binary::Container::Ptr data = Zdata::Convert(builder.Get(0), builder.Size());
-    return CreateLocation(data, ID, Strings::PrefixedIndex(Text::ZDATA_PLUGIN_PREFIX, hdr.Crc).ToString());
+    return CreateLocation(data, Zdata::ID, Strings::PrefixedIndex(Text::ZDATA_PLUGIN_PREFIX, hdr.Crc).ToString());
   }
 }
 
 namespace ZXTune
 {
-  class ZdataPlugin : public ArchivePlugin
+namespace Zdata
+{
+  class Plugin : public ArchivePlugin
   {
   public:
-    ZdataPlugin()
+    Plugin()
       : Description(CreatePluginDescription(ID, INFO, CAPS))
     {
     }
 
-    Plugin::Ptr GetDescription() const override
+    ZXTune::Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
@@ -301,12 +306,13 @@ namespace ZXTune
       return DataLocation::Ptr();
     }
   private:
-    const Plugin::Ptr Description;
+    const ZXTune::Plugin::Ptr Description;
   };
+}
 
   void RegisterZdataContainer(ArchivePluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin = MakePtr<ZdataPlugin>();
+    const ArchivePlugin::Ptr plugin = MakePtr<Zdata::Plugin>();
     registrator.RegisterPlugin(plugin);
   }
 }

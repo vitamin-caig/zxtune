@@ -9,20 +9,20 @@
 **/
 
 //local includes
-#include "packed.h"
-#include "plugins.h"
+#include "core/plugins/archives/packed.h"
+#include "core/plugins/archives/plugins.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed/decoders.h>
 
 namespace ZXTune
 {
-  typedef Formats::Packed::Decoder::Ptr (*CreateDecoderFunc)();
+  typedef Formats::Packed::Decoder::Ptr (*CreatePackedDecoderFunc)();
 
   struct ArchivePluginDescription
   {
     const char* const Id;
-    const CreateDecoderFunc Create;
+    const CreatePackedDecoderFunc Create;
     const uint_t Caps;
   };
 
