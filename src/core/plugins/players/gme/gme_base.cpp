@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "kss_supp.h"
-#include "vgm_supp.h"
+#include "core/plugins/players/gme/kss_supp.h"
+#include "core/plugins/players/gme/vgm_supp.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
@@ -642,3 +642,5 @@ namespace ZXTune
     RegisterSingletrackGMEPlugins(registrator);
   }
 }
+
+#undef FILE_TAG

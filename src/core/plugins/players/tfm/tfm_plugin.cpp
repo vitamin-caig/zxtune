@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfm_plugin.h"
+#include "core/plugins/players/tfm/tfm_plugin.h"
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <make_ptr.h>

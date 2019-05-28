@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "kss_supp.h"
+#include "core/plugins/players/gme/kss_supp.h"
 //text includes
 #include <module/text/platforms.h>
 

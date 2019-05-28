@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "multi_base.h"
+#include "core/plugins/players/multi/multi_base.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "vgm_supp.h"
+#include "core/plugins/players/gme/vgm_supp.h"
 //common includes
 #include <byteorder.h>
 //library includes

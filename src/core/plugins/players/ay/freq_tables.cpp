@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "freq_tables_internal.h"
+#include "core/plugins/players/ay/freq_tables_internal.h"
 //common includes
 #include <error_tools.h>
 //library includes
@@ -284,3 +284,5 @@ namespace Module
     }
   }
 }
+
+#undef FILE_TAG

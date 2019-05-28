@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "songlengths.h"
+#include "core/plugins/players/sid/songlengths.h"
 //common includes
 #include <contract.h>
 #include <crc.h>
@@ -34,7 +34,7 @@ namespace Sid
   
   const SongEntry SONGS[] =
   {
-#include "songlengths_db.inc"
+#include "core/plugins/players/sid/songlengths_db.inc"
   };
 
   TimeType GetSongLength(const char* md5digest, uint_t idx)

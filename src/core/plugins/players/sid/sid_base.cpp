@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "roms.h"
-#include "songlengths.h"
+#include "core/plugins/players/sid/roms.h"
+#include "core/plugins/players/sid/songlengths.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
