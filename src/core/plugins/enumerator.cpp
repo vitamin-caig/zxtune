@@ -9,12 +9,13 @@
 **/
 
 //local includes
-#include "archive_plugins_enumerator.h"
-#include "player_plugins_enumerator.h"
-#include "registrator.h"
-#include "archives/plugins_list.h"
-#include "players/plugins_list.h"
+#include "core/plugins/archive_plugins_enumerator.h"
+#include "core/plugins/player_plugins_enumerator.h"
+#include "core/plugins/registrator.h"
+#include "core/plugins/archives/plugins_list.h"
+#include "core/plugins/players/plugins_list.h"
 #include "core/src/callback.h"
+#include "core/src/l10n.h"
 //common includes
 #include <error_tools.h>
 #include <pointers.h>
@@ -24,7 +25,6 @@
 #include <core/module_detect.h>
 #include <core/module_open.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <module/attributes.h>
 #include <time/timer.h>
 //std includes
@@ -37,8 +37,8 @@
 
 namespace ZXTune
 {
-  const Debug::Stream Dbg("Core::Enumerator");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  const Debug::Stream EnumeratorDbg("Core::Enumerator");
+  using Module::translate;
 
   template<class PluginType>
   class PluginsContainer : public PluginsRegistrator<PluginType>
@@ -49,7 +49,7 @@ namespace ZXTune
     {
       const Plugin::Ptr description = plugin->GetDescription();
       Plugins.push_back(plugin);
-      Dbg("Registered %1%", description->Id());
+      EnumeratorDbg("Registered %1%", description->Id());
     }
 
     typename PluginType::Iterator::Ptr Enumerate() const override
@@ -67,7 +67,7 @@ namespace ZXTune
     {
       const Time::Timer timer;
       RegisterArchivePlugins(*this);
-      Dbg("Registered %1% archive plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
+      EnumeratorDbg("Registered %1% archive plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
     }
   };
 
@@ -78,7 +78,7 @@ namespace ZXTune
     {
       const Time::Timer timer;
       RegisterPlayerPlugins(*this);
-      Dbg("Registered %1% player plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
+      EnumeratorDbg("Registered %1% player plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
     }
   };
 
@@ -191,3 +191,5 @@ namespace ZXTune
     return MakePtr<SimplePluginDescription>(id, info, capabilities);
   }
 }
+
+#undef FILE_TAG

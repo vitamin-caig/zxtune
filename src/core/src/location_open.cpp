@@ -9,14 +9,14 @@
 **/
 
 //local includes
-#include "location.h"
 #include "core/plugins/archive_plugins_enumerator.h"
+#include "core/src/l10n.h"
+#include "core/src/location.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 //text includes
 #include <src/core/text/core.h>
 
@@ -25,7 +25,7 @@
 namespace ZXTune
 {
   const Debug::Stream Dbg("Core");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  using Module::translate;
 
   Analysis::Path::Ptr CreateEmptyPath()
   {
@@ -139,3 +139,5 @@ namespace ZXTune
     return MakePtr<GeneratedLocation>(data, plugin, path);
   }
 }
+
+#undef FILE_TAG
