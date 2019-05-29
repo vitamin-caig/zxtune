@@ -1,6 +1,6 @@
 FROM archlinux/base:latest
 ARG cores=12
-RUN yes | pacman -Syu sudo awk fakeroot file make git zip \
+RUN yes | pacman -Syu sudo awk fakeroot file make git zip python \
       binutils gcc diffutils patch wget cmake pkg-config which && \
     pacman-key --init && pacman-key --populate archlinux && \
     useradd -m -s /bin/bash -U -G wheel -d /build build && \
@@ -46,7 +46,7 @@ RUN (wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/qt-everywhere-opens
 RUN mkdir zxtune && sudo chmod o+w zxtune && cd zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo -e "platform=mingw\narch=x86_64\nprebuilt.dir=${prebuilt}\nmingw.execprefix=x86_64-w64-mingw32-\n" \
+    echo -e "platform=mingw\narch=x86_64\nprebuilt.dir=${prebuilt}\ntools.python=python3\nmingw.execprefix=x86_64-w64-mingw32-\n" \
       "mingw.boost.version=${boost}\nmingw.boost.libs.model=\nmingw.qt.version=${qt}\n" \
       "host=linux\nembed_file_cmd=cat \$(embedded_files) >> \$@\nmakepkg_cmd=(cd \$(1) && zip -9rD \$(CURDIR)/\$(2) .)\npkg_suffix=zip" > variables.mak
 

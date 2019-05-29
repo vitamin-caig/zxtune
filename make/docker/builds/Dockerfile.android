@@ -5,7 +5,7 @@ ENV toolchains=/build/toolchains androidsdk=/build/android-sdk prebuilt=/build/p
 RUN mkdir -p /usr/share/man/man1 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-            ca-certificates wget unzip python make git python bzip2 \
+            ca-certificates wget unzip python make git python python3-minimal bzip2 \
             openjdk-8-jre-headless openjdk-8-jdk-headless libncurses5 && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /build
@@ -49,7 +49,7 @@ RUN wget -q https://services.gradle.org/distributions/gradle-${gradle}-bin.zip &
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "toolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}" > variables.mak && \
+    echo "toolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\ntools.python=python3" > variables.mak && \
     mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}" > apps/zxtune-android/local.properties && \
     echo "org.gradle.jvmargs=-Xmx2048M" > apps/zxtune-android/gradle.properties
 
