@@ -1,11 +1,12 @@
 package app.zxtune.core;
 
 import android.support.annotation.NonNull;
+import app.zxtune.Releaseable;
 
 /**
  * Module interface
  */
-public interface Module extends PropertiesAccessor, AdditionalFiles {
+public interface Module extends PropertiesAccessor, AdditionalFiles, Releaseable {
 
   /**
    * @return Module's duration in frames

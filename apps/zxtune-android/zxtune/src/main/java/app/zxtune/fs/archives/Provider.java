@@ -92,6 +92,7 @@ public final class Provider extends ContentProvider {
               final long frameDuration = module.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
               final TimeStamp duration = TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
               final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
+              module.release();
 
               db.addTrack(track);
               final int doneTracks = modulesCount.incrementAndGet();

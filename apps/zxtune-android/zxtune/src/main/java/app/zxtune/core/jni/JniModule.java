@@ -28,6 +28,11 @@ public final class JniModule implements Module {
 
   public static native void detect(@NonNull ByteBuffer data, @NonNull ModuleDetectCallback callback);
 
+  @Override
+  public final void release() {
+    close(handle);
+  }
+
   static native void close(int handle);
 
   @Override
