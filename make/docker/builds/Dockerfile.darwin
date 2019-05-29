@@ -34,7 +34,7 @@ RUN apt-get install -y --no-install-recommends bzip2 libqt4-dev-bin && \
 WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=darwin\narch=x86_64\npackaging=dmg\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\ntools.python=python3" \
+    echo "platform=darwin\narch=x86_64\npackaging=dmg\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\ntools.python=python3\n" \
          "darwin.x86_64.execprefix=${toolchains}/${triplet}/bin/${triplet}-\n" \
          "tools.uic=uic\ntools.moc=moc\ntools.rcc=rcc" > variables.mak
 
