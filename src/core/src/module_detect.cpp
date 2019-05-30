@@ -9,18 +9,18 @@
 **/
 
 //local includes
-#include "callback.h"
 #include "core/additional_files_resolve.h"
 #include "core/plugin_attrs.h"
 #include "core/plugins/archive_plugins_enumerator.h"
 #include "core/plugins/player_plugins_enumerator.h"
+#include "core/src/callback.h"
+#include "core/src/l10n.h"
 //common includes
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <module/players/aym/aym_base.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/container.h>
@@ -34,8 +34,7 @@
 
 namespace Module
 {
-  const Debug::Stream Dbg("Core::Detection");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  const Debug::Stream DetectDbg("Core::Detection");
 
   const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
 
@@ -79,7 +78,7 @@ namespace Module
       const Analysis::Result::Ptr result = plugin->Detect(params, location, callback);
       if (std::size_t usedSize = result->GetMatchedDataSize())
       {
-        Dbg("Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize, location->GetPath()->AsString());
+        DetectDbg("Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize, location->GetPath()->AsString());
         return usedSize;
       }
     }
@@ -102,7 +101,7 @@ namespace Module
         const auto path = location->GetPath();
         if (const auto dir = path->GetParent())
         {
-          Dbg("Archived multifile %1% at '%2%'", decoder->Id(), path->AsString());
+          DetectDbg("Archived multifile %1% at '%2%'", decoder->Id(), path->AsString());
           try
           {
             const ArchivedFilesSource source(dir, Source);
@@ -110,7 +109,7 @@ namespace Module
           }
           catch (const Error& e)
           {
-            Dbg(e.ToString().c_str());
+            DetectDbg(e.ToString().c_str());
             return;
           }
         }
@@ -135,7 +134,7 @@ namespace Module
       Binary::Container::Ptr Get(const String& name) const override
       {
         const auto subpath = Dir->Append(name)->AsString();
-        Dbg("Resolve '%1%' as '%2%'", name, subpath);
+        DetectDbg("Resolve '%1%' as '%2%'", name, subpath);
         return Delegate.Get(subpath);
       }
     private:
@@ -160,7 +159,7 @@ namespace Module
         }
         else
         {
-          Dbg("Use cached");
+          DetectDbg("Use cached");
         }
         return cached;
       }
@@ -323,3 +322,5 @@ namespace Module
     return MakePtr<MixedPropertiesHolder>(delegate, props);
   }
 }
+
+#undef FILE_TAG

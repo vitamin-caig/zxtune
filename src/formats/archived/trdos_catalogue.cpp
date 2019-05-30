@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "trdos_catalogue.h"
+#include "formats/archived/trdos_catalogue.h"
 //common includes
 #include <make_ptr.h>
 //library includes

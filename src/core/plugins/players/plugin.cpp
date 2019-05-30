@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "plugin.h"
+#include "core/plugins/players/plugin.h"
 #include "core/src/callback.h"
 #include <core/plugins/plugins_types.h>
 //common includes

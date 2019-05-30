@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "digitalmusicmaker.h"
-#include "dac_properties_helper.h"
-#include "dac_simple.h"
+#include "module/players/dac/digitalmusicmaker.h"
+#include "module/players/dac/dac_properties_helper.h"
+#include "module/players/dac/dac_simple.h"
 //common includes
 #include <make_ptr.h>
 //library includes

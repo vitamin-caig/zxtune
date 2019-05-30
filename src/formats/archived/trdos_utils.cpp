@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "trdos_utils.h"
+#include "formats/archived/trdos_utils.h"
 //common includes
 #include <locale_helpers.h>
 //library includes

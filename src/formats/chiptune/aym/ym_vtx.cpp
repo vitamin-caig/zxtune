@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "ym.h"
+#include "formats/chiptune/aym/ym.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

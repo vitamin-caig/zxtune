@@ -9,10 +9,10 @@
 **/
 
 //local includes
-#include "2sf.h"
-#include "memory_region.h"
-#include "xsf.h"
-#include "xsf_factory.h"
+#include "module/players/xsf/2sf.h"
+#include "module/players/xsf/memory_region.h"
+#include "module/players/xsf/xsf.h"
+#include "module/players/xsf/xsf_factory.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

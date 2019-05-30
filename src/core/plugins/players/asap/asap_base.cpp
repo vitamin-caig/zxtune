@@ -462,3 +462,5 @@ namespace ZXTune
     }
   }
 }
+
+#undef FILE_TAG

@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "details.h"
-#include "static_expression.h"
+#include "binary/format/details.h"
+#include "binary/format/static_expression.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

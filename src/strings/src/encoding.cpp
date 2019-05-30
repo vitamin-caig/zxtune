@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "utf8.h"
+#include "strings/src/utf8.h"
 //common includes
 #include <byteorder.h>
 #include <iterator.h>
@@ -848,7 +848,7 @@ namespace Strings
 
     static uint32_t GetUnicode(uint_t s1, uint_t s2)
     {
-#include "sjis2unicode.inc"
+#include "strings/src/sjis2unicode.inc"
       const auto lo = s2 - MIN_LO;
       if (s1 >= 0xe0)
       {

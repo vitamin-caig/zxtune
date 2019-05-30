@@ -11,8 +11,8 @@
 #pragma once
 
 //local includes
-#include "dac_base.h"
-#include "dac_properties_helper.h"
+#include "module/players/dac/dac_base.h"
+#include "module/players/dac/dac_properties_helper.h"
 //library includes
 #include <formats/chiptune/digital/digital.h>
 

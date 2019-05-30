@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "abysshighestexperience.h"
+#include "formats/chiptune/digital/abysshighestexperience.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

@@ -10,7 +10,7 @@
 **/
 
 //local includes
-#include "decoders.h"
+#include "formats/archived/decoders.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>

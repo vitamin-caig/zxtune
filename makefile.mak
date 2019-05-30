@@ -109,6 +109,10 @@ include $(dirs.root)/make/boost.mak
 #process l10n files
 include $(dirs.root)/make/l10n.mak
 
+ifdef jumbo.name
+include $(dirs.root)/make/jumbo.mak
+endif
+
 #calculate object files from sources
 OBJECTS = $(foreach src,$(notdir $(source_files) $(generated_sources)), $(objects_dir)/$(call makeobj_name,$(src)))
 OBJECTS.CPP = $(filter $(foreach ext,$(suffix.cpp.all),%$(call makeobj_name,$(ext))),$(OBJECTS))

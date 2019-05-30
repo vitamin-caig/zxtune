@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "soundtracker.h"
-#include "aym_properties_helper.h"
-#include "aym_base_track.h"
+#include "module/players/aym/soundtracker.h"
+#include "module/players/aym/aym_properties_helper.h"
+#include "module/players/aym/aym_base_track.h"
 //common includes
 #include <make_ptr.h>
 #include <module/players/properties_meta.h>

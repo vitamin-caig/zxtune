@@ -1,7 +1,7 @@
 FROM debian:stretch-slim
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates wget xz-utils git make zip \
-      g++ gcc \
+      g++ gcc python3-minimal \
       libpulse-dev libclalsadrv-dev \
       libxfixes-dev libxrandr-dev libfontconfig-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -13,7 +13,7 @@ RUN (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AABMv2v-OFeNNchzVMmUTK9
 WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=x86_64\npackaging=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}" > variables.mak
+    echo "platform=linux\narch=x86_64\npackaging=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\ntools.python=python3" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["package", "-C", "apps/bundle"]

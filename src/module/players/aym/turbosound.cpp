@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "turbosound.h"
+#include "module/players/aym/turbosound.h"
 //common includes
 #include <error.h>
 #include <iterator.h>

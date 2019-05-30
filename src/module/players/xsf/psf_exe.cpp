@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "psf_exe.h"
+#include "module/players/xsf/psf_exe.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

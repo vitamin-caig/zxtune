@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "fading.h"
+#include "module/players/fading.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "gsf_rom.h"
+#include "module/players/xsf/gsf_rom.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

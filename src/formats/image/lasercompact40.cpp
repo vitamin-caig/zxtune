@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/image/container.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

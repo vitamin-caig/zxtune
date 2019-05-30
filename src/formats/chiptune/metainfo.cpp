@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "metainfo.h"
+#include "formats/chiptune/metainfo.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>

@@ -21,8 +21,8 @@ namespace Module
   {
     inline uint_t GetSupportedFormatConvertors()
     {
-      using namespace ZXTune::Capabilities::Module::Conversion;
-      return PSG | ZX50 | AYDUMP | FYM;
+      using namespace ZXTune::Capabilities::Module;
+      return Conversion::PSG | Conversion::ZX50 | Conversion::AYDUMP | Conversion::FYM;
     }
   }
 

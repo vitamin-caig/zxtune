@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "sampletracker.h"
-#include "dac_simple.h"
+#include "module/players/dac/sampletracker.h"
+#include "module/players/dac/dac_simple.h"
 //common includes
 #include <make_ptr.h>
 //library includes

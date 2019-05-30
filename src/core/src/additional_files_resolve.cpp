@@ -8,11 +8,12 @@
 *
 **/
 
+//local includes
+#include "core/src/l10n.h"
 //common includes
 #include <error_tools.h>
 //library includes
 #include <core/additional_files_resolve.h>
-#include <l10n/api.h>
 //boost includes
 #include <boost/algorithm/string/join.hpp>
 
@@ -20,8 +21,6 @@
 
 namespace Module
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-
   void ResolveAdditionalFiles(const AdditionalFilesSource& source, const Module::AdditionalFiles& files)
   {
     try
@@ -47,3 +46,5 @@ namespace Module
     }
   }
 }
+
+#undef FILE_TAG

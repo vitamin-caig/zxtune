@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "aym_base_track.h"
+#include "module/players/aym/aym_base_track.h"
 //library includes
 #include <devices/turbosound.h>
 #include <module/holder.h>

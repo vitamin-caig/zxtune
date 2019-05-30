@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "soundtrackerpro_detail.h"
+#include "formats/chiptune/aym/soundtrackerpro_detail.h"
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
 //common includes

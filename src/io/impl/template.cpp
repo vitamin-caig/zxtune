@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "boost_filesystem_path.h"
+#include "io/impl/boost_filesystem_path.h"
 //common includes
 #include <make_ptr.h>
 //library includes

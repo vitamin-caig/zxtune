@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "multitrack.h"
+#include "formats/archived/multitrack/multitrack.h"
 //library includes
 #include <formats/multitrack/decoders.h>
 //text includes

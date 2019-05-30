@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "digital_detail.h"
-#include "sampletracker.h"
+#include "formats/chiptune/digital/digital_detail.h"
+#include "formats/chiptune/digital/sampletracker.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "event.h"
+#include "async/src/event.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -36,7 +36,7 @@ namespace Async
   {
   }
 
-  enum JobState
+  enum class JobState
   {
     STOPPED,
     STOPPING,
@@ -83,27 +83,27 @@ namespace Async
   private:
     void Finalize()
     {
-      State.Set(STOPPED);
+      State.Set(JobState::STOPPED);
       Routine->Finalize();
     }
 
     void Yield() override
     {
-      switch (State.WaitForAny(STOPPING, PAUSING, STARTED))
+      switch (State.WaitForAny(JobState::STOPPING, JobState::PAUSING, JobState::STARTED))
       {
-      case PAUSING:
+      case JobState::PAUSING:
         {
           Routine->Suspend();
-          State.Set(PAUSED);
-          const JobState nextState = State.WaitForAny(STOPPING, STARTING);
+          State.Set(JobState::PAUSED);
+          const JobState nextState = State.WaitForAny(JobState::STOPPING, JobState::STARTING);
           Routine->Resume();
-          if (STARTING == nextState)
+          if (JobState::STARTING == nextState)
           {
-            State.Set(STARTED);
+            State.Set(JobState::STARTED);
             break;
           }
         }
-      case STOPPING:
+      case JobState::STOPPING:
         throw StoppingEvent();
       default:
         break;
@@ -143,7 +143,7 @@ namespace Async
       }
       const Operation::Ptr jobOper = MakePtr<CoroutineOperation>(Routine, State);
       Act = Activity::Create(jobOper);
-      State.Set(STARTED);
+      State.Set(JobState::STARTED);
     }
     
     void Pause() override
@@ -179,15 +179,15 @@ namespace Async
     bool IsPaused() const override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
-      return Act && Act->IsExecuted() && State.Check(PAUSED);
+      return Act && Act->IsExecuted() && State.Check(JobState::PAUSED);
     }
   private:
     void StartExecutingAction()
     {
-      if (State.Check(PAUSED))
+      if (State.Check(JobState::PAUSED))
       {
-        State.Set(STARTING);
-        if (STOPPED == State.WaitForAny(STOPPED, STARTED))
+        State.Set(JobState::STARTING);
+        if (JobState::STOPPED == State.WaitForAny(JobState::STOPPED, JobState::STARTED))
         {
           return FinishAction();
         }
@@ -200,10 +200,10 @@ namespace Async
 
     void PauseExecutingAction()
     {
-      if (!State.Check(PAUSED))
+      if (!State.Check(JobState::PAUSED))
       {
-        State.Set(PAUSING);
-        if (STOPPED == State.WaitForAny(STOPPED, PAUSED))
+        State.Set(JobState::PAUSING);
+        if (JobState::STOPPED == State.WaitForAny(JobState::STOPPED, JobState::PAUSED))
         {
           return FinishAction();
         }
@@ -216,7 +216,7 @@ namespace Async
     
     void FinishAction()
     {
-      State.Set(STOPPING);
+      State.Set(JobState::STOPPING);
       try
       {
         Activity::Ptr act;

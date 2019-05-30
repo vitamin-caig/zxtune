@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "streaming.h"
+#include "module/players/streaming.h"
 //common includes
 #include <make_ptr.h>
 //library includes

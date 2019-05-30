@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "lexic_analysis.h"
+#include "binary/format/lexic_analysis.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "dac_parameters.h"
+#include "module/players/dac/dac_parameters.h"
 //common includes
 #include <make_ptr.h>
 //library includes

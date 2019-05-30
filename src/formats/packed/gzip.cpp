@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/packed/container.h"
 //common includes
 #include <byteorder.h>
 #include <error.h>

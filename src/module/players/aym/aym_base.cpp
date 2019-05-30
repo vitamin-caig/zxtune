@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "aym_base.h"
+#include "module/players/aym/aym_base.h"
 //common includes
 #include <make_ptr.h>
 //library includes

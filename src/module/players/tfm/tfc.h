@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "tfm_factory.h"
+#include "module/players/tfm/tfm_factory.h"
 
 namespace Module
 {

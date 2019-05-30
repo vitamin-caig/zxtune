@@ -9,8 +9,9 @@
 **/
 
 //local includes
-#include "enumerator.h"
-#include "gates/curl_api.h"
+#include "io/impl/l10n.h"
+#include "io/providers/enumerator.h"
+#include "io/providers/gates/curl_api.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>
@@ -20,7 +21,6 @@
 #include <binary/container_factories.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
-#include <l10n/api.h>
 #include <parameters/accessor.h>
 //std includes
 #include <cstring>
@@ -29,18 +29,16 @@
 
 #define FILE_TAG 18F46494
 
-namespace
-{
-  const Debug::Stream Dbg("IO::Provider::Network");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
-}
-
 namespace IO
 {
-  class NetworkProviderParameters
+namespace Network
+{
+  const Debug::Stream Dbg("IO::Provider::Network");
+
+  class ProviderParameters
   {
   public:
-    explicit NetworkProviderParameters(const Parameters::Accessor& accessor)
+    explicit ProviderParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
@@ -126,7 +124,7 @@ namespace IO
       Object.SetOption(CURLOPT_URL, url.c_str(), THIS_LINE);
     }
 
-    void SetOptions(const NetworkProviderParameters& params)
+    void SetOptions(const ProviderParameters& params)
     {
       const String useragent = params.GetHttpUseragent();
       if (!useragent.empty())
@@ -293,10 +291,10 @@ namespace IO
   const String ID = Text::IO_NETWORK_PROVIDER_ID;
   const char* const DESCRIPTION = L10n::translate("Network files access via different schemes support");
 
-  class NetworkDataProvider : public DataProvider
+  class DataProvider : public IO::DataProvider
   {
   public:
-    explicit NetworkDataProvider(Curl::Api::Ptr api)
+    explicit DataProvider(Curl::Api::Ptr api)
       : Api(std::move(api))
       , SupportedSchemes(ALL_SCHEMES, std::end(ALL_SCHEMES))
     {
@@ -351,7 +349,7 @@ namespace IO
     {
       try
       {
-        const NetworkProviderParameters options(params);
+        const ProviderParameters options(params);
         RemoteResource resource(Api);
         resource.SetSource(path);
         resource.SetOptions(options);
@@ -373,12 +371,13 @@ namespace IO
     const Strings::Set SupportedSchemes;
   };
 }
+}
 
 namespace IO
 {
   DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api)
   {
-    return MakePtr<NetworkDataProvider>(api);
+    return MakePtr<Network::DataProvider>(api);
   }
 
   void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
@@ -386,12 +385,14 @@ namespace IO
     try
     {
       const Curl::Api::Ptr api = Curl::LoadDynamicApi();
-      Dbg("Detected CURL library %1%", api->curl_version());
+      Network::Dbg("Detected CURL library %1%", api->curl_version());
       enumerator.RegisterProvider(CreateNetworkDataProvider(api));
     }
     catch (const Error& e)
     {
-      enumerator.RegisterProvider(CreateUnavailableProviderStub(ID, DESCRIPTION, e));
+      enumerator.RegisterProvider(CreateUnavailableProviderStub(Network::ID, Network::DESCRIPTION, e));
     }
   }
 }
+
+#undef FILE_TAG

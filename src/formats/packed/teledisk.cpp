@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "container.h"
-#include "image_utils.h"
-#include "pack_utils.h"
+#include "formats/packed/container.h"
+#include "formats/packed/image_utils.h"
+#include "formats/packed/pack_utils.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>

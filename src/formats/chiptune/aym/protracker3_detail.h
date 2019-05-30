@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "protracker3.h"
+#include "formats/chiptune/aym/protracker3.h"
 //common includes
 #include <indices.h>
 //library includes

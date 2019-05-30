@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "fsb_formats.h"
+#include "formats/archived/fsb_formats.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

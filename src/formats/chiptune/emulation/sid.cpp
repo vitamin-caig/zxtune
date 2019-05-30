@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "sid.h"
+#include "formats/chiptune/emulation/sid.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>

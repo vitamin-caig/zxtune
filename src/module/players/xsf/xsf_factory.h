@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "xsf_file.h"
+#include "module/players/xsf/xsf_file.h"
 //library includes
 #include <module/players/factory.h>
 //std includes

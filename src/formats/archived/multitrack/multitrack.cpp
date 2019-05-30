@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "multitrack.h"
+#include "formats/archived/multitrack/multitrack.h"
 //common includes
 #include <make_ptr.h>
 //library includes

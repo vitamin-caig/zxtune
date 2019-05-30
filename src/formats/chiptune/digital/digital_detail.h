@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "digital.h"
+#include "formats/chiptune/digital/digital.h"
 //common includes
 #include <indices.h>
 

@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "soundtrackerpro.h"
+#include "formats/chiptune/aym/soundtrackerpro.h"
 //common includes
 #include <indices.h>
 //std includes

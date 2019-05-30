@@ -9,10 +9,10 @@
 **/
 
 //local includes
-#include "ascsoundmaster.h"
-#include "aym_base.h"
-#include "aym_base_track.h"
-#include "aym_properties_helper.h"
+#include "module/players/aym/ascsoundmaster.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_properties_helper.h"
 //common includes
 #include <make_ptr.h>
 //library includes

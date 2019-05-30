@@ -15,6 +15,8 @@
 
 namespace Debug
 {
+  inline void Log(const char* /*module*/, const char* /*msg*/) {}
+
   class Stream
   {
   public:

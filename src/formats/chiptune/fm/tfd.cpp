@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfd.h"
+#include "formats/chiptune/fm/tfd.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <make_ptr.h>

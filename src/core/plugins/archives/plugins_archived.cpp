@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "archived.h"
-#include "plugins.h"
+#include "core/plugins/archives/archived.h"
+#include "core/plugins/archives/plugins.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/archived/decoders.h>
@@ -18,12 +18,12 @@
 
 namespace ZXTune
 {
-  typedef Formats::Archived::Decoder::Ptr (*CreateDecoderFunc)();
+  typedef Formats::Archived::Decoder::Ptr (*CreateArchivedDecoderFunc)();
 
   struct ContainerPluginDescription
   {
     const char* const Id;
-    const CreateDecoderFunc Create;
+    const CreateArchivedDecoderFunc Create;
     const uint_t Caps;
   };
 

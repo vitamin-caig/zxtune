@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "dreamcastsoundformat.h"
+#include "formats/chiptune/emulation/dreamcastsoundformat.h"
 //common includes
 #include <make_ptr.h>
 //library includes

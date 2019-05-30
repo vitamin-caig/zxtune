@@ -11,8 +11,8 @@
 #pragma once
 
 //local includes
-#include "xsf_file.h"
-#include "xsf_metainformation.h"
+#include "module/players/xsf/xsf_file.h"
+#include "module/players/xsf/xsf_metainformation.h"
 //library includes
 #include <formats/chiptune.h>
 

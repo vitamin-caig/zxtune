@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfmmusicmaker.h"
+#include "formats/chiptune/fm/tfmmusicmaker.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <crc.h>

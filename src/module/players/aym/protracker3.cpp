@@ -9,12 +9,12 @@
 **/
 
 //local includes
-#include "protracker3.h"
-#include "aym_base.h"
-#include "aym_base_track.h"
-#include "aym_properties_helper.h"
-#include "turbosound.h"
-#include "vortex.h"
+#include "module/players/aym/protracker3.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_properties_helper.h"
+#include "module/players/aym/turbosound.h"
+#include "module/players/aym/vortex.h"
 //common includes
 #include <pointers.h>
 //library includes

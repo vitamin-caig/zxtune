@@ -1,7 +1,7 @@
 FROM debian:stretch-slim
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates wget xz-utils git make zip \
+    apt-get install -y --no-install-recommends ca-certificates wget xz-utils git make zip python3-minimal \
       libstdc++6:i386 libc6:i386 && \
     rm -rf /var/lib/apt/lists/*
 ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
@@ -18,7 +18,7 @@ RUN mkdir -p ${toolchains} && cd ${toolchains} && \
 WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=armhf\npackaging?=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}" > variables.mak
+    echo "platform=linux\narch=armhf\npackaging?=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\ntools.python=python3" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["package", "-C", "apps/bundle"]

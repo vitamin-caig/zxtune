@@ -21,12 +21,12 @@
 class Indices
 {
 public:
-  Indices(uint_t min, uint_t max)
-    : Min(min)
-    , Max(max)
-    , Values(1 + (max - min) / BITS_PER_MASK)
-    , MinValue(Max)
-    , MaxValue(Min)
+  Indices(uint_t minimal, uint_t maximal)
+    : Minimal(minimal)
+    , Maximal(maximal)
+    , Values(1 + (maximal - minimal) / BITS_PER_MASK)
+    , MinValue(Maximal)
+    , MaxValue(Minimal)
     , Size(0)
   {
   }
@@ -40,15 +40,15 @@ public:
 
   void Clear()
   {
-    MinValue = Max;
-    MaxValue = Min;
+    MinValue = Maximal;
+    MaxValue = Minimal;
     Size = 0;
     std::fill(Values.begin(), Values.end(), 0);
   }
 
   void Insert(uint_t val)
   {
-    Require(val >= Min && val <= Max);
+    Require(val >= Minimal && val <= Maximal);
     const Position pos = GetPosition(val);
     uint_t& msk = Values[pos.Offset];
     if (0 == (msk & pos.Mask))
@@ -68,7 +68,7 @@ public:
 
   bool Contain(uint_t val) const
   {
-    if (val < Min || val > Max)
+    if (val < Minimal || val > Maximal)
     {
       return false;
     }
@@ -119,7 +119,7 @@ public:
 
     uint_t operator * () const
     {
-      return Idx + Container.Min;
+      return Idx + Container.Minimal;
     }
 
     void operator ++ ()
@@ -130,7 +130,7 @@ public:
   private:
     bool IsValid() const
     {
-      return Idx <= Container.MaxValue - Container.Min;
+      return Idx <= Container.MaxValue - Container.Minimal;
     }
 
     bool HasValue() const
@@ -181,13 +181,13 @@ private:
 
   Position GetPosition(uint_t val) const
   {
-    const uint_t off = val - Min;
+    const uint_t off = val - Minimal;
     return Position(off / BITS_PER_MASK, uint_t(1) << (off % BITS_PER_MASK));
   }
 private:
   static const uint_t BITS_PER_MASK = 8 * sizeof(uint_t);
-  const uint_t Min;
-  const uint_t Max;
+  const uint_t Minimal;
+  const uint_t Maximal;
   std::vector<uint_t> Values;
   uint_t MinValue;
   uint_t MaxValue;

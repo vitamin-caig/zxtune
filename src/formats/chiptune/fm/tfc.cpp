@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfc.h"
+#include "formats/chiptune/fm/tfc.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

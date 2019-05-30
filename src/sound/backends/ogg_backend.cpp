@@ -9,18 +9,18 @@
 **/
 
 //local includes
-#include "file_backend.h"
-#include "storage.h"
-#include "gates/ogg_api.h"
-#include "gates/vorbis_api.h"
-#include "gates/vorbisenc_api.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/gates/ogg_api.h"
+#include "sound/backends/gates/vorbis_api.h"
+#include "sound/backends/gates/vorbisenc_api.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -28,20 +28,16 @@
 //std includes
 #include <algorithm>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG B01A305D
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Ogg");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Ogg
 {
+  const Debug::Stream Dbg("Sound::Backend::Ogg");
+
   const String ID = Text::OGG_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("OGG support backend");
 
@@ -453,3 +449,4 @@ namespace Sound
   }
 }
 
+#undef FILE_TAG

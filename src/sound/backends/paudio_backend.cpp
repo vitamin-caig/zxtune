@@ -9,16 +9,16 @@
 **/
 
 //local includes
-#include "backend_impl.h"
-#include "storage.h"
-#include "gates/paudio_api.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/gates/paudio_api.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <module/attributes.h>
 #include <platform/version/api.h>
 #include <sound/backend_attrs.h>
@@ -27,20 +27,16 @@
 //boost includes
 #include <boost/bind.hpp>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 181AC911
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::PulseAudio");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace PulseAudio
 {
+  const Debug::Stream Dbg("Sound::Backend::PulseAudio");
+
   const String ID = Text::PAUDIO_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("PulseAudio support backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
@@ -196,3 +192,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

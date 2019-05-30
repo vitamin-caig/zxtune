@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "tfmmusicmaker.h"
-#include "tfm_base.h"
-#include "tfm_base_track.h"
+#include "module/players/tfm/tfmmusicmaker.h"
+#include "module/players/tfm/tfm_base.h"
+#include "module/players/tfm/tfm_base_track.h"
 //common includes
 #include <make_ptr.h>
 //library includes

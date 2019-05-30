@@ -20,5 +20,9 @@ endif
 
 source_files += providers/file_provider.cpp
 
+jumbo.name := $(library_name)
+jumbo.for_generated = 1
+jumbo.excludes := text/io.cpp
+
 include $(dirs.root)/makefile.mak
 include $(dirs.root)/make/shgate.mak

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "prosoundmaker.h"
+#include "formats/chiptune/aym/prosoundmaker.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

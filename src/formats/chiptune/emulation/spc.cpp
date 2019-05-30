@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "spc.h"
+#include "formats/chiptune/emulation/spc.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

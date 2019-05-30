@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "ultra64soundformat.h"
+#include "formats/chiptune/emulation/ultra64soundformat.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>

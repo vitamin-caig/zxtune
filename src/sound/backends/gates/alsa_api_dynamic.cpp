@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "alsa_api.h"
+#include "sound/backends/gates/alsa_api.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -48,7 +48,6 @@ namespace Sound
       }
     };
 
-    const Debug::Stream Dbg("Sound::Backend::Alsa");
 
     class DynamicApi : public Api
     {
@@ -56,16 +55,16 @@ namespace Sound
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
         : Lib(lib)
       {
-        Dbg("Library loaded");
+        Debug::Log("Sound::Backend::Alsa", "Library loaded");
       }
 
       ~DynamicApi() override
       {
-        Dbg("Library unloaded");
+        Debug::Log("Sound::Backend::Alsa", "Library unloaded");
       }
 
       
-      const char * snd_asoundlib_version () override
+      const char * snd_asoundlib_version (void) override
       {
         static const char NAME[] = "snd_asoundlib_version";
         typedef const char * ( *FunctionType)();
@@ -81,7 +80,7 @@ namespace Sound
         return func(errnum);
       }
       
-      int snd_config_update_free_global () override
+      int snd_config_update_free_global (void) override
       {
         static const char NAME[] = "snd_config_update_free_global";
         typedef int ( *FunctionType)();

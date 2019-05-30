@@ -9,8 +9,9 @@
 **/
 
 //local includes
-#include "archived.h"
+#include "core/plugins/archives/archived.h"
 #include <core/src/callback.h>
+#include <core/plugins/archives/l10n.h>
 #include <core/plugins/archive_plugins_enumerator.h>
 #include <core/plugins/archive_plugins_registrator.h>
 #include <core/plugins/player_plugins_enumerator.h>
@@ -25,7 +26,6 @@
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <strings/prefixed_index.h>
 #include <time/duration.h>
 #include <time/timer.h>
@@ -43,8 +43,6 @@
 
 namespace ZXTune
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core_archives");
-
   template<std::size_t Fields>
   class StatisticBuilder
   {
@@ -278,6 +276,8 @@ namespace ZXTune
 
 namespace ZXTune
 {
+namespace Raw
+{
   const Debug::Stream Dbg("Core::RawScaner");
 
   const Char ID[] = {'R', 'A', 'W', 0};
@@ -287,10 +287,10 @@ namespace ZXTune
   const std::size_t SCAN_STEP = 1;
   const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
 
-  class RawPluginParameters
+  class PluginParameters
   {
   public:
-    explicit RawPluginParameters(const Parameters::Accessor& accessor)
+    explicit PluginParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
@@ -317,10 +317,10 @@ namespace ZXTune
     const Parameters::Accessor& Accessor;
   };
 
-  class RawProgressCallback : public Log::ProgressCallback
+  class ProgressCallback : public Log::ProgressCallback
   {
   public:
-    RawProgressCallback(const Module::DetectCallback& callback, uint_t limit, const String& path)
+    ProgressCallback(const Module::DetectCallback& callback, uint_t limit, const String& path)
       : Delegate(CreateProgressCallback(callback, limit))
       , Text(ProgressMessage(ID, path))
     {
@@ -724,14 +724,11 @@ namespace ZXTune
     LookaheadPluginsStorage<ArchivePlugin> Archives;
     std::size_t Offset;
   };
-}
 
-namespace ZXTune
-{
-  class RawScaner : public ArchivePlugin
+  class Scaner : public ArchivePlugin
   {
   public:
-    RawScaner()
+    Scaner()
       : Description(CreatePluginDescription(ID, INFO, CAPS))
     {
     }
@@ -757,12 +754,12 @@ namespace ZXTune
         return Analysis::CreateUnmatchedResult(size);
       }
 
-      const RawPluginParameters scanParams(params);
+      const PluginParameters scanParams(params);
       const std::size_t minRawSize = scanParams.GetMinimalSize();
 
       const String currentPath = input->GetPath()->AsString();
       Dbg("Detecting modules in raw data at '%1%'", currentPath);
-      const Log::ProgressCallback::Ptr progress = MakePtr<RawProgressCallback>(callback, static_cast<uint_t>(size), currentPath);
+      const Log::ProgressCallback::Ptr progress = MakePtr<ProgressCallback>(callback, static_cast<uint_t>(size), currentPath);
       const Module::DetectCallback& noProgressCallback = Module::CustomProgressDetectCallbackAdapter(callback);
 
       const ArchivePlugin::Iterator::Ptr availableArchives = ArchivePluginsEnumerator::Create()->Enumerate();
@@ -807,12 +804,13 @@ namespace ZXTune
     const Plugin::Ptr Description;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterRawContainer(ArchivePluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin = MakePtr<RawScaner>();
+    const ArchivePlugin::Ptr plugin = MakePtr<Raw::Scaner>();
     registrator.RegisterPlugin(plugin);
   }
 }

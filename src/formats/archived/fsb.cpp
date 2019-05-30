@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "decoders.h"
-#include "fsb_formats.h"
+#include "formats/archived/decoders.h"
+#include "formats/archived/fsb_formats.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

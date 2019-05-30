@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "container.h"
-#include "image_utils.h"
+#include "formats/packed/container.h"
+#include "formats/packed/image_utils.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>

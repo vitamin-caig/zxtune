@@ -9,9 +9,10 @@
 **/
 
 //local includes
-#include "enumerator.h"
-#include "file_provider.h"
-#include <io/impl/boost_filesystem_path.h>
+#include "io/impl/boost_filesystem_path.h"
+#include "io/impl/l10n.h"
+#include "io/providers/enumerator.h"
+#include "io/providers/file_provider.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>
@@ -20,7 +21,6 @@
 #include <binary/container_factories.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
-#include <l10n/api.h>
 #include <parameters/accessor.h>
 #include <strings/encoding.h>
 #include <strings/format.h>
@@ -83,18 +83,16 @@ namespace
   }
 }
 
-namespace
-{
-  const Debug::Stream Dbg("IO::Provider::File");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
-}
-
 namespace IO
 {
-  class FileProviderParameters : public FileCreatingParameters
+namespace File
+{
+  const Debug::Stream Dbg("IO::Provider::File");
+
+  class ProviderParameters : public FileCreatingParameters
   {
   public:
-    explicit FileProviderParameters(const Parameters::Accessor& accessor)
+    explicit ProviderParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
@@ -296,7 +294,7 @@ namespace IO
     }
   }
 
-  Binary::Data::Ptr OpenFileData(const String& path, std::size_t mmapThreshold)
+  Binary::Data::Ptr OpenData(const String& path, std::size_t mmapThreshold)
   {
     const boost::filesystem::path fileName = Details::FromString(path);
     const boost::uintmax_t size = FileSize(fileName, THIS_LINE);
@@ -407,7 +405,7 @@ namespace IO
     return result;
   }
 
-  Binary::SeekableOutputStream::Ptr CreateFileStream(const String& fileName, const FileCreatingParameters& params)
+  Binary::SeekableOutputStream::Ptr CreateStream(const String& fileName, const FileCreatingParameters& params)
   {
     try
     {
@@ -454,7 +452,7 @@ namespace IO
   }
 
   ///////////////////////////////////////
-  class FileDataProvider : public DataProvider
+  class DataProvider : public IO::DataProvider
   {
   public:
     String Id() const override
@@ -498,16 +496,17 @@ namespace IO
 
     Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/) const override
     {
-      const FileProviderParameters parameters(params);
+      const ProviderParameters parameters(params);
       return Binary::CreateContainer(OpenLocalFile(path, parameters.MemoryMappingThreshold()));
     }
 
     Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params, Log::ProgressCallback&) const override
     {
-      const FileProviderParameters parameters(params);
+      const ProviderParameters parameters(params);
       return CreateLocalFile(path, parameters);
     }
   };
+}
 }
 
 namespace IO
@@ -516,7 +515,7 @@ namespace IO
   {
     try
     {
-      return OpenFileData(path, mmapThreshold);
+      return File::OpenData(path, mmapThreshold);
     }
     catch (const Error& e)
     {
@@ -528,7 +527,7 @@ namespace IO
   {
     try
     {
-      return CreateFileStream(path, params);
+      return File::CreateStream(path, params);
     }
     catch (const Error& e)
     {
@@ -538,7 +537,7 @@ namespace IO
 
   DataProvider::Ptr CreateFileDataProvider()
   {
-    return MakePtr<FileDataProvider>();
+    return MakePtr<File::DataProvider>();
   }
 
   void RegisterFileProvider(ProvidersEnumerator& enumerator)
@@ -546,3 +545,5 @@ namespace IO
     enumerator.RegisterProvider(CreateFileDataProvider());
   }
 }
+
+#undef FILE_TAG

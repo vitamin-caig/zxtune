@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "aym_plugin.h"
-#include "aym_conversion.h"
+#include "core/plugins/players/ay/aym_plugin.h"
+#include "core/plugins/players/ay/aym_conversion.h"
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <make_ptr.h>

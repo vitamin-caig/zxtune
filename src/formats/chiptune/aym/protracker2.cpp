@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "protracker2.h"
+#include "formats/chiptune/aym/protracker2.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

@@ -21,7 +21,7 @@ namespace Async
   {
   public:
     explicit Event(Type val)
-      : Value(1 << val)
+      : Value(ToMask(val))
     {
     }
 
@@ -34,20 +34,20 @@ namespace Async
     {
       {
         const std::lock_guard<std::mutex> lock(Mutex);
-        Value = 1 << val;
+        Value = ToMask(val);
       }
       Condition.notify_all();
     }
 
     void Wait(Type val)
     {
-      WaitInternal(1 << val);
+      WaitInternal(ToMask(val));
     }
 
     Type WaitForAny(Type val1, Type val2)
     {
-      const unsigned mask1 = 1 << val1;
-      const unsigned mask2 = 1 << val2;
+      const unsigned mask1 = ToMask(val1);
+      const unsigned mask2 = ToMask(val2);
       const unsigned res = WaitInternal(mask1 | mask2);
       return (res & mask1)
         ? val1
@@ -56,9 +56,9 @@ namespace Async
 
     Type WaitForAny(Type val1, Type val2, Type val3)
     {
-      const unsigned mask1 = 1 << val1;
-      const unsigned mask2 = 1 << val2;
-      const unsigned mask3 = 1 << val3;
+      const unsigned mask1 = ToMask(val1);
+      const unsigned mask2 = ToMask(val2);
+      const unsigned mask3 = ToMask(val3);
       const unsigned res = WaitInternal(mask1 | mask2 | mask3);
       return (res & mask1)
         ? val1
@@ -76,9 +76,14 @@ namespace Async
     bool Check(Type val) const
     {
       const std::lock_guard<std::mutex> lock(Mutex);
-      return IsSignalled(1 << val);
+      return IsSignalled(ToMask(val));
     }
   private:
+    static unsigned ToMask(Type val)
+    {
+      return 1u << static_cast<unsigned>(val);
+    }
+
     unsigned WaitInternal(unsigned mask)
     {
       std::unique_lock<std::mutex> lock(Mutex);

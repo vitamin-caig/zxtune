@@ -9,12 +9,12 @@
 **/
 
 //local includes
-#include "psf.h"
-#include "psf_bios.h"
-#include "psf_exe.h"
-#include "psf_vfs.h"
-#include "xsf.h"
-#include "xsf_factory.h"
+#include "module/players/xsf/psf.h"
+#include "module/players/xsf/psf_bios.h"
+#include "module/players/xsf/psf_exe.h"
+#include "module/players/xsf/psf_vfs.h"
+#include "module/players/xsf/xsf.h"
+#include "module/players/xsf/xsf_factory.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>

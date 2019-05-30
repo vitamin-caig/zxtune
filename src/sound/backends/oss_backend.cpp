@@ -9,15 +9,15 @@
 **/
 
 //local includes
-#include "backend_impl.h"
-#include "storage.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
@@ -35,20 +35,16 @@
 #include <cstring>
 #include <mutex>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 69200152
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Oss");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Oss
 {
+  const Debug::Stream Dbg("Sound::Backend::Oss");
+
   const String ID = Text::OSS_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("OSS sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
@@ -407,3 +403,5 @@ namespace Sound
     storage.Register(Oss::ID, Oss::DESCRIPTION, Oss::CAPABILITIES, factory);
   }
 }
+
+#undef FILE_TAG

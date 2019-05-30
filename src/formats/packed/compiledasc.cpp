@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/packed/container.h"
 #include "formats/chiptune/aym/ascsoundmaster.h"
 //common includes
 #include <byteorder.h>

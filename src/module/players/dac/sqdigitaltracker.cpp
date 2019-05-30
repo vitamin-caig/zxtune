@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "sqdigitaltracker.h"
-#include "dac_properties_helper.h"
-#include "dac_simple.h"
+#include "module/players/dac/sqdigitaltracker.h"
+#include "module/players/dac/dac_properties_helper.h"
+#include "module/players/dac/dac_simple.h"
 //library includes
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/sqdigitaltracker.h>

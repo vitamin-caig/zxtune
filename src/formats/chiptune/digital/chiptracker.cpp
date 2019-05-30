@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "chiptracker.h"
+#include "formats/chiptune/digital/chiptracker.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>

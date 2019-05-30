@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "gameboyadvancesoundformat.h"
+#include "formats/chiptune/emulation/gameboyadvancesoundformat.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>

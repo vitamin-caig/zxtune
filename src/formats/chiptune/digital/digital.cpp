@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "digital.h"
+#include "formats/chiptune/digital/digital.h"
 
 namespace Formats
 {

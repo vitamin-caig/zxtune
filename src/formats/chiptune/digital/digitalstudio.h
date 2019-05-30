@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "digital.h"
+#include "formats/chiptune/digital/digital.h"
 //library includes
 #include <formats/chiptune.h>
 

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "nintendodssoundformat.h"
+#include "formats/chiptune/emulation/nintendodssoundformat.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "fmod.h"
+#include "formats/archived/fmod.h"
 //common includes
 #include <byteorder.h>
 //library includes

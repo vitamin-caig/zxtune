@@ -9,8 +9,9 @@
 **/
 
 //local includes
-#include "file_backend.h"
-#include "storage.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -18,7 +19,6 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/data_adapter.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/render_params.h>
@@ -26,14 +26,9 @@
 #include <algorithm>
 #include <cstring>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG EF5CB4C6
-
-namespace
-{
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
@@ -292,3 +287,5 @@ namespace Sound
     storage.Register(Wav::ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
   }
 }
+
+#undef FILE_TAG

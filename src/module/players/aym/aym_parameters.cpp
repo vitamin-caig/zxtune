@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "aym_parameters.h"
+#include "module/players/aym/aym_parameters.h"
 #include "core/plugins/players/ay/freq_tables_internal.h"
 //common includes
 #include <contract.h>
@@ -299,3 +299,5 @@ namespace AYM
   }
 }
 }
+
+#undef FILE_TAG

@@ -461,3 +461,5 @@ namespace ZXTune
     registrator.RegisterPlugin(plugin);
   }
 }
+
+#undef FILE_TAG

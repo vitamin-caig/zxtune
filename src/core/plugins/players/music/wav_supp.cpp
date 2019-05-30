@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "wav_supp.h"
+#include "core/plugins/players/music/wav_supp.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
@@ -251,3 +251,5 @@ namespace ZXTune
     registrator.RegisterPlugin(plugin);
   }
 }
+
+#undef FILE_TAG
