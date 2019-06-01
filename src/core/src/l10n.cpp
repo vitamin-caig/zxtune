@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "io/impl/l10n.h"
+#include "core/src/l10n.h"
 
 namespace Module
 {

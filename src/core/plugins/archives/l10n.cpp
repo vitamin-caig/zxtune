@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "io/impl/l10n.h"
+#include "core/plugins/archives/l10n.h"
 
 namespace ZXTune
 {
