@@ -304,7 +304,7 @@ namespace Sound
     {
       const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
       const SDL_version* const vers = api->SDL_Linked_Version();
-      Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
+      Sdl::Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
       const BackendWorkerFactory::Ptr factory = MakePtr<Sdl::BackendWorkerFactory>(api);
       storage.Register(Sdl::ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, factory);
     }

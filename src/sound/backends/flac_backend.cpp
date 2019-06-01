@@ -300,7 +300,7 @@ namespace Sound
     try
     {
       const Flac::Api::Ptr api = Flac::LoadDynamicApi();
-      Dbg("Detected Flac library");
+      Flac::Dbg("Detected Flac library");
       const BackendWorkerFactory::Ptr factory = MakePtr<Flac::BackendWorkerFactory>(api);
       storage.Register(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, factory);
     }

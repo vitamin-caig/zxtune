@@ -182,7 +182,7 @@ namespace Sound
     {
       const PulseAudio::Api::Ptr api = PulseAudio::LoadDynamicApi();
       const char* const version = api->pa_get_library_version();
-      Dbg("Detected PulseAudio v%1%", version);
+      PulseAudio::Dbg("Detected PulseAudio v%1%", version);
       const BackendWorkerFactory::Ptr factory = MakePtr<PulseAudio::BackendWorkerFactory>(api);
       storage.Register(PulseAudio::ID, PulseAudio::DESCRIPTION, PulseAudio::CAPABILITIES, factory);
     }

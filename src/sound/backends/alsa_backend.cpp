@@ -1046,7 +1046,7 @@ namespace Sound
     try
     {
       const Alsa::Api::Ptr api = Alsa::LoadDynamicApi();
-      Dbg("Detected Alsa %1%", api->snd_asoundlib_version());
+      Alsa::Dbg("Detected Alsa %1%", api->snd_asoundlib_version());
       if (Alsa::DeviceInfoIterator(api).IsValid())
       {
         const BackendWorkerFactory::Ptr factory = MakePtr<Alsa::BackendWorkerFactory>(api);
@@ -1080,7 +1080,7 @@ namespace Sound
       }
       catch (const Error& e)
       {
-        Dbg("%1%", e.ToString());
+        Alsa::Dbg("%1%", e.ToString());
         return Device::Iterator::CreateStub();
       }
     }

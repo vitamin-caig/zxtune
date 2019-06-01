@@ -454,7 +454,7 @@ namespace Sound
       const char* const version = api->alGetString(AL_VERSION);
       const char* const vendor = api->alGetString(AL_VENDOR);
       const char* const renderer = api->alGetString(AL_RENDERER);
-      Dbg("Detected OpenAL v%1% by '%2%' (renderer '%3%')", version, vendor, renderer);//usually empty strings...
+      OpenAl::Dbg("Detected OpenAL v%1% by '%2%' (renderer '%3%')", version, vendor, renderer);//usually empty strings...
       const BackendWorkerFactory::Ptr factory = MakePtr<OpenAl::BackendWorkerFactory>(api);
       storage.Register(OpenAl::ID, OpenAl::DESCRIPTION, OpenAl::CAPABILITIES, factory);
     }

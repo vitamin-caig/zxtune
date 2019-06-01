@@ -365,7 +365,7 @@ namespace Sound
     try
     {
       const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
-      Dbg("Detected LAME library %1%", api->get_lame_version());
+      Mp3::Dbg("Detected LAME library %1%", api->get_lame_version());
       const BackendWorkerFactory::Ptr factory = MakePtr<Mp3::BackendWorkerFactory>(api);
       storage.Register(Mp3::ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, factory);
     }

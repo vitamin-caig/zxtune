@@ -438,7 +438,7 @@ namespace Sound
       const Ogg::Api::Ptr oggApi = Ogg::LoadDynamicApi();
       const Vorbis::Api::Ptr vorbisApi = Vorbis::LoadDynamicApi();
       const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
-      Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
+      Ogg::Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
       const BackendWorkerFactory::Ptr factory = MakePtr<Ogg::BackendWorkerFactory>(oggApi, vorbisApi, vorbisEncApi);
       storage.Register(Ogg::ID, Ogg::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
