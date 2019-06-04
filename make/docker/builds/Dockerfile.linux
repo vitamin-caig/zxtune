@@ -1,19 +1,41 @@
 FROM debian:stretch-slim
+ARG cores=12
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates wget xz-utils git make zip \
+    apt-get install -y --no-install-recommends ca-certificates wget xz-utils bzip2 git make zip \
       g++ gcc python3-minimal \
-      libpulse-dev libclalsadrv-dev \
+      libpulse-dev libclalsadrv-dev zlib1g-dev \
       libxfixes-dev libxrandr-dev libfontconfig-dev && \
     rm -rf /var/lib/apt/lists/*
 ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
-WORKDIR ${prebuilt}
-RUN (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AABMv2v-OFeNNchzVMmUTK9za/20180201/prebuilt/boost/boost-1.65.1.tar.xz?dl=0' -O - | tar -xJ) && \
-    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AAAYEhv4gBUhZ2jAQ-HEmEiOa/20180201/prebuilt/boost/boost-1.65.1-linux-x86_64.tar.xz?dl=0' -O - | tar -xJ) && \
-    (wget -q 'https://www.dropbox.com/sh/j879ottiu1tecsx/AACIhfaB-7SYVYUeiyjDq-Osa/20180201/prebuilt/qt/qt-4.8.6-linux-x86_64.tar.xz?dl=0' -O - | tar -xJ)
+WORKDIR /build
+
+ENV boost=1.70.0
+RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
+    cd boost_* && ./bootstrap.sh && \
+    ./bjam toolset=gcc link=static threading=multi target-os=linux variant=release --layout=system \
+      --with-filesystem --with-locale --with-program_options --with-system -j${cores} \
+      --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-linux-x86_64/lib install && \
+    cd .. && rm -Rf boost_*
+
+ENV qt=4.8.7
+RUN (wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/qt-everywhere-opensource-src-${qt}.tar.gz -O - | tar -xz) && \
+    cd qt-everywhere* && \
+    ./configure -v -platform linux-g++-64 -prefix ${prebuilt}/qt-${qt}-linux-x86_64 \
+      -release -opensource -static -fast -confirm-license \
+      -no-accessibility -no-opengl -no-openvg -no-sql-sqlite -no-qt3support -no-xmlpatterns -no-multimedia -no-audio-backend -no-phonon -no-phonon-backend \
+      -no-svg -no-webkit -no-javascript-jit -no-script -no-scripttools -no-declarative -no-declarative-debug \
+      -qt-libpng -fontconfig -xrender -xrandr -xfixes -xshape -no-sm -no-nas-sound -no-neon \
+      -no-gif -no-libtiff -no-libmng -no-libjpeg -no-openssl -no-nis -no-cups -no-pch -no-qdbus -no-dbus -no-gtkstyle -no-glib \
+      -nomake demos -nomake examples -nomake docs -nomake translations -nomake assistant -nomake qdoc3 -nomake qtracereplay -nomake linguist \
+      -nomake qt3to4 -nomake qcollectiongenerator -nomake pixeltool && \
+    make -j${cores} install && \
+    cd .. && rm -Rf qt-everywhere*
+
 WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=x86_64\npackaging=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\ntools.python=python3" > variables.mak
+    echo "platform=linux\narch=x86_64\npackaging=any\nprebuilt.dir=${prebuilt}\ntools.python=python3\nsystem.zlib=1\n"\
+         "linux.x86_64.qt.version=${qt}\nlinux.x86_64.boost.version=${boost}\nlinux.x86_64.boost.libs.model=\n" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["package", "-C", "apps/bundle"]
