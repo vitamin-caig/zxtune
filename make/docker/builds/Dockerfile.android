@@ -49,7 +49,7 @@ RUN wget -q https://services.gradle.org/distributions/gradle-${gradle}-bin.zip &
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "toolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\ntools.python=python3" > variables.mak && \
+    echo "toolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\nboost.version=${boost}\ntools.python=python3" > variables.mak && \
     mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}" > apps/zxtune-android/local.properties && \
     echo "org.gradle.jvmargs=-Xmx2048M" > apps/zxtune-android/gradle.properties
 

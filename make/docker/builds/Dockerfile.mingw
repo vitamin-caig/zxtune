@@ -47,7 +47,7 @@ RUN mkdir zxtune && sudo chmod o+w zxtune && cd zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo -e "platform=mingw\narch=x86_64\nprebuilt.dir=${prebuilt}\ntools.python=python3\nmingw.execprefix=x86_64-w64-mingw32-\n" \
-      "mingw.boost.version=${boost}\nmingw.qt.version=${qt}\n" \
+      "boost.version=${boost}\nmingw.qt.version=${qt}\n" \
       "host=linux\nembed_file_cmd=cat \$(embedded_files) >> \$@\nmakepkg_cmd=(cd \$(1) && zip -9rD \$(CURDIR)/\$(2) .)\npkg_suffix=zip" > variables.mak
 
 WORKDIR /build/zxtune

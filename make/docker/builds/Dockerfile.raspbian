@@ -69,7 +69,7 @@ WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=linux\narch=armhf\npackaging?=any\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\ntools.python=python3\n"\
-         "linux.armhf.qt.version=${qt}\nlinux.armhf.boost.version=${boost}\n"\
+         "linux.armhf.qt.version=${qt}\nboost.version=${boost}\n"\
          "system.zlib=1\nlibraries.dirs.linux+=\$(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf\nlibraries.linux+=expat\n" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]

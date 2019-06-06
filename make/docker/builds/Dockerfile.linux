@@ -35,7 +35,7 @@ WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=linux\narch=x86_64\npackaging=any\nprebuilt.dir=${prebuilt}\ntools.python=python3\nsystem.zlib=1\n"\
-         "linux.x86_64.qt.version=${qt}\nlinux.x86_64.boost.version=${boost}\n" > variables.mak
+         "linux.x86_64.qt.version=${qt}\nboost.version=${boost}\n" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["package", "-C", "apps/bundle"]
