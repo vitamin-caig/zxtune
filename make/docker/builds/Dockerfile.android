@@ -1,5 +1,4 @@
 FROM debian:stretch-slim
-ENV toolchains.root=/build/toolchains androidsdk=/build/android-sdk prebuilt.dir=/build/prebuilt
 
 #mkdir is fix for openjdk on stretch-slim
 RUN mkdir -p /usr/share/man/man1 && \
@@ -10,22 +9,24 @@ RUN mkdir -p /usr/share/man/man1 && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /build
 
+ENV toolchains=/build/toolchains androidsdk=/build/android-sdk prebuilt=/build/prebuilt
+
 #NDK toolchains
 #r16b is the last version with gcc (4.9)
 ENV ndk_version=r16b
 RUN wget -q https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux-x86_64.zip && \
     unzip -q *.zip && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch x86   --install-dir ${toolchains.root}/i686-linux-android && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm   --install-dir ${toolchains.root}/arm-linux-androideabi && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm64 --install-dir ${toolchains.root}/aarch64-linux-android && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch x86   --install-dir ${toolchains}/i686-linux-android && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm   --install-dir ${toolchains}/arm-linux-androideabi && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm64 --install-dir ${toolchains}/aarch64-linux-android && \
     rm -Rf android-ndk-* && \
-    find ${toolchains.root} -name '*clang*' -o -name '*llvm*' -print0 | xargs -0 rm -Rf
+    find ${toolchains} -name '*clang*' -o -name '*llvm*' -print0 | xargs -0 rm -Rf
 
 #Boost headers
-ENV boost.version=1.70.0
-RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost.version}/source/boost_\${boost.version//./_}.tar.bz2 -O - | tar -xj" && \
-    mkdir -p ${prebuilt.dir}/boost-${boost.version}/include && \
-    mv boost_*/boost ${prebuilt.dir}/boost-${boost.version}/include/ && \
+ENV boost=1.70.0
+RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
+    mkdir -p ${prebuilt}/boost-${boost}/include && \
+    mv boost_*/boost ${prebuilt}/boost-${boost}/include/ && \
     rm -Rf boost_*
 
 #Android SDK
@@ -48,7 +49,8 @@ RUN wget -q https://services.gradle.org/distributions/gradle-${gradle}-bin.zip &
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "tools.python=python3" > variables.mak && \
+    echo "toolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\nboost.version=${boost}\n"\
+         "tools.python=python3\n" > variables.mak && \
     mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}" > apps/zxtune-android/local.properties && \
     echo "org.gradle.jvmargs=-Xmx2048M" > apps/zxtune-android/gradle.properties
 

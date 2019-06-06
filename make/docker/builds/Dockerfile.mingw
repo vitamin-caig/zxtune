@@ -19,22 +19,22 @@ RUN gpg --recv 93BDB53CD4EBC740 13FCEF89DD9E3C4F A328C3A2C3C45C06 && \
     done && \
     rm -Rf sources
 
-ENV prebuilt.dir=/build/prebuilt execprefix=x86_64-w64-mingw32-
+ENV prebuilt=/build/prebuilt execprefix=x86_64-w64-mingw32-
 
-ENV boost.version=1.70.0
-RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost.version}/source/boost_\${boost.version//./_}.tar.bz2 -O - | tar -xj" && \
+ENV boost=1.70.0
+RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
     cd boost_* && ./bootstrap.sh && \
     echo 'using gcc : windows : ${execprefix}g++ ;' > tools/build/src/user-config.jam && \
     ./bjam toolset=gcc-windows link=static threading=multi target-os=windows variant=release --layout=system \
       address-model=64 cxxflags=-mno-ms-bitfields cxxflags=-mmmx cxxflags=-msse cxxflags=-msse2 cxxflags=-ffunction-sections cxxflags=-fdata-sections \
       --with-filesystem --with-locale --with-program_options --with-system -j${cores} \
-      --includedir=${prebuilt.dir}/boost-${boost.version}/include --libdir=${prebuilt.dir}/boost-${boost.version}-mingw-x86_64/lib install && \
+      --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-mingw-x86_64/lib install && \
     cd .. && rm -Rf boost_*
 
-ENV qt.version=4.8.7
-RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt.version%.*}/${qt.version}/qt-everywhere-opensource-src-${qt.version}.tar.gz -O - | tar -xz" && \
+ENV qt=4.8.7
+RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/qt-everywhere-opensource-src-${qt}.tar.gz -O - | tar -xz" && \
     cd qt-everywhere* && \
-    ./configure -xplatform win32-g++ -device-option CROSS_COMPILE=${execprefix} -prefix ${prebuilt.dir}/qt-${qt.version}-mingw-x86_64 \
+    ./configure -xplatform win32-g++ -device-option CROSS_COMPILE=${execprefix} -prefix ${prebuilt}/qt-${qt}-mingw-x86_64 \
       -release -opensource -static -fast -confirm-license \
       -no-accessibility -no-sql-sqlite -no-qt3support -no-xmlpatterns -no-multimedia -no-audio-backend -no-phonon -no-phonon-backend \
       -no-svg -no-webkit -no-javascript-jit -no-script -no-scripttools -no-declarative -no-declarative-debug \
@@ -48,7 +48,8 @@ RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt.version%.*}/${qt.vers
 RUN mkdir zxtune && sudo chmod o+w zxtune && cd zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo -e "platform=mingw\narch=x86_64\ntools.python=python3\nmingw.execprefix=${execprefix}\n" \
+    echo -e "platform=mingw\narch=x86_64\ntools.python=python3\nmingw.execprefix=${execprefix}\n"\
+      "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n"\
       "host=linux\nembed_file_cmd=cat \$(embedded_files) >> \$@\nmakepkg_cmd=(cd \$(1) && zip -9rD \$(CURDIR)/\$(2) .)\npkg_suffix=zip" > variables.mak
 
 WORKDIR /build/zxtune
