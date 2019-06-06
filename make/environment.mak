@@ -39,12 +39,10 @@ android.mips.execprefix = $(android.mips.toolchain)/bin/mipsel-linux-android-
 android.mips.cxx.flags = -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers
 
 #linux.i686
-linux.i686.qt.version ?= 4.8.6
 linux.i686.cxx.flags = -march=i686 -m32 -mmmx
 linux.i686.ld.flags = -m32
 
 #linux.x86_64
-linux.x86_64.qt.version ?= 4.8.6
 linux.x86_64.cxx.flags = -m64 -mmmx
 linux.x86_64.ld.flags = -m64
 
@@ -52,7 +50,6 @@ linux.x86_64.ld.flags = -m64
 linux.armhf.toolchain = $(toolchains.root)/armhf-linux
 linux.armhf.execprefix = $(linux.armhf.toolchain)/bin/arm-linux-gnueabihf-
 linux.armhf.crossroot = $(prebuilt.dir)/root-linux-armhf
-linux.armhf.qt.version ?= 4.8.6
 linux.armhf.qt.libs = $(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf
 linux.armhf.cxx.flags = -march=armv6 -mfpu=vfp -mfloat-abi=hard -Wa,--no-warn
 
@@ -61,27 +58,21 @@ mingw.toolchain = $(toolchains.root)/MinGW
 mingw.execprefix ?= $(mingw.toolchain)/bin/
 mingw.cxx.flags = -mthreads -mwin32 -mno-ms-bitfields -mmmx -msse -msse2
 mingw.ld.flags = -mthreads -static -Wl,--allow-multiple-definition
-mingw.qt.version ?= 4.8.5
 # x86
 mingw.x86.execprefix = $(mingw.execprefix)
-mingw.x86.qt.version = $(mingw.qt.version)
 mingw.x86.cxx.flags = -m32
 mingw.x86.ld.flags = -m32
 # x86_64
 mingw.x86_64.execprefix = $(mingw.execprefix)
-mingw.x86_64.qt.version = $(mingw.qt.version)
 mingw.x86_64.cxx.flags = -m64
 mingw.x86_64.ld.flags = -m64
 
 #windows
 # x86
 windows.x86.cxx.flags = /arch:IA32
-windows.x86.qt.version ?= 4.8.5
 # x86_64
-windows.x86_64.qt.version ?= 4.8.5
 
 #darwin
 # x86_64
-darwin.x86_64.qt.version ?= 4.8.6
 #darwin.x86_64.cxx.flags = -m64 -mmmx
 #darwin.x86_64.ld.flags = -m64

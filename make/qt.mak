@@ -15,9 +15,7 @@ ifdef release
 defines += QT_NO_DEBUG
 endif
 
-ifndef distro
-qt.version = $($(platform).$(arch).qt.version)
-endif
+qt.version.merged = $(firstword $($(platform).$(arch).qt.version) $($(platform).qt.version) $(qt.version))
 
 ifeq ($(qt.version),)
 includes.dirs += $(qt.includes)
