@@ -17,10 +17,10 @@ endif
 
 qt.version.merged = $(firstword $($(platform).$(arch).qt.version) $($(platform).qt.version) $(qt.version))
 
-ifeq ($(qt.version),)
+ifeq ($(qt.version.merged),)
 includes.dirs += $(qt.includes)
 else
-qt.dir = $(prebuilt.dir)/qt-$(qt.version)-$(platform)-$(arch)
+qt.dir = $(prebuilt.dir)/qt-$(qt.version.merged)-$(platform)-$(arch)
 includes.dirs += $(qt.dir)/include
 libraries.dirs.$(platform) += $(qt.dir)/lib
 qt.bin = $(qt.dir)/bin/
@@ -37,7 +37,7 @@ ifneq (,$(findstring Gui,$(libraries.qt)))
 libraries.windows += Qtmain gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
 libraries.mingw += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
 darwin.ld.flags += -framework Carbon -framework SystemConfiguration
-ifneq ($($(platform).$(arch).qt.version),)
+ifneq ($(qt.version.merged),)
 libraries.linux += freetype Xext Xrender Xrandr Xfixes X11 fontconfig
 endif
 endif
