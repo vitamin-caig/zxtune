@@ -52,11 +52,11 @@ darwin.ld.flags += -stdlib=libc++
 #setup flags
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
 	$(addprefix -D,$(DEFINES)) \
-	-funsigned-char -fno-strict-aliasing \
+	-funsigned-char -fno-strict-aliasing -fvisibility=hidden \
 	-W -Wall -Wextra -pipe \
 	$(addprefix -I,$(INCLUDES_DIRS)) $(addprefix -include ,$(INCLUDES_FILES))
 
-CXXFLAGS = $(CCFLAGS) -std=c++11 -fvisibility=hidden -fvisibility-inlines-hidden
+CXXFLAGS = $(CCFLAGS) -std=c++11 -fvisibility-inlines-hidden
 
 ARFLAGS := crus
 LDFLAGS = $(LD_MODE_FLAGS) $($(platform).ld.flags) $($(platform).$(arch).ld.flags) $(ld_flags)
