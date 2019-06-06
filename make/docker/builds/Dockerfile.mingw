@@ -24,7 +24,7 @@ ENV prebuilt=/build/prebuilt execprefix=x86_64-w64-mingw32-
 ENV boost=1.70.0
 RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
     cd boost_* && ./bootstrap.sh && \
-    echo 'using gcc : windows : ${execprefix}g++ ;' > tools/build/src/user-config.jam && \
+    echo "using gcc : windows : ${execprefix}g++ ;" > tools/build/src/user-config.jam && \
     ./bjam toolset=gcc-windows link=static threading=multi target-os=windows variant=release --layout=system \
       address-model=64 cxxflags=-mno-ms-bitfields cxxflags=-mmmx cxxflags=-msse cxxflags=-msse2 cxxflags=-ffunction-sections cxxflags=-fdata-sections \
       --with-filesystem --with-locale --with-program_options --with-system -j${cores} \
