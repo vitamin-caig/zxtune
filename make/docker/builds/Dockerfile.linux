@@ -6,21 +6,21 @@ RUN apt-get update && \
       libpulse-dev libclalsadrv-dev zlib1g-dev \
       libxfixes-dev libxrandr-dev libfontconfig-dev && \
     rm -rf /var/lib/apt/lists/*
-ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+ENV prebuilt.dir=/build/prebuilt
 WORKDIR /build
 
-ENV boost=1.70.0
-RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
+ENV boost.version=1.70.0
+RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost.version}/source/boost_\${boost.version//./_}.tar.bz2 -O - | tar -xj" && \
     cd boost_* && ./bootstrap.sh && \
     ./bjam toolset=gcc link=static threading=multi target-os=linux variant=release --layout=system \
       --with-filesystem --with-locale --with-program_options --with-system -j${cores} \
-      --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-linux-x86_64/lib install && \
+      --includedir=${prebuilt.dir}/boost-${boost.version}/include --libdir=${prebuilt.dir}/boost-${boost.version}-linux-x86_64/lib install && \
     cd .. && rm -Rf boost_*
 
-ENV qt=4.8.7
-RUN (wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/qt-everywhere-opensource-src-${qt}.tar.gz -O - | tar -xz) && \
+ENV qt.version=4.8.7
+RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt.version%.*}/${qt.version}/qt-everywhere-opensource-src-${qt.version}.tar.gz -O - | tar -xz" && \
     cd qt-everywhere* && \
-    ./configure -v -platform linux-g++-64 -prefix ${prebuilt}/qt-${qt}-linux-x86_64 \
+    ./configure -v -platform linux-g++-64 -prefix ${prebuilt.dir}/qt-${qt.version}-linux-x86_64 \
       -release -opensource -static -fast -confirm-license \
       -no-accessibility -no-opengl -no-openvg -no-sql-sqlite -no-qt3support -no-xmlpatterns -no-multimedia -no-audio-backend -no-phonon -no-phonon-backend \
       -no-svg -no-webkit -no-javascript-jit -no-script -no-scripttools -no-declarative -no-declarative-debug \
@@ -34,8 +34,7 @@ RUN (wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/qt-everywhere-opens
 WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=x86_64\npackaging=any\nprebuilt.dir=${prebuilt}\ntools.python=python3\nsystem.zlib=1\n"\
-         "qt.version=${qt}\nboost.version=${boost}\n" > variables.mak
+    echo "platform=linux\narch=x86_64\npackaging=any\ntools.python=python3\nsystem.zlib=1\n" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["package", "-C", "apps/bundle"]
