@@ -1,7 +1,5 @@
 ifndef distro
 boost.version = $($(platform).$(arch).boost.version)
-else
-$(platform).$(arch).boost.libs.model =
 endif
 
 ifneq ($(boost.version),)
@@ -12,3 +10,4 @@ includes.dirs += $(boost.includes)
 libraries.dirs.$(platform) += $(boost.libs)
 
 defines += HAVE_BOOST
+libraries += $(foreach lib,$(libraries.boost),boost_$(lib))

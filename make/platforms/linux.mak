@@ -20,8 +20,5 @@ includes.dirs.linux += $($(platform).$(arch).qt.includes)
 libraries.linux += $($(platform).$(arch).qt.libraries)
 endif
 
-#multithread release libraries
-libraries.linux += $(foreach lib,$(libraries.boost),boost_$(lib)$($(platform).$(arch).boost.libs.model))
-
 #release libraries
 libraries.linux += $(foreach lib,$(libraries.qt),Qt$(lib))

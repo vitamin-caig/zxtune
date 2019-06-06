@@ -46,14 +46,12 @@ android.mips.cxx.flags = -fno-inline-functions-called-once -fgcse-after-reload -
 
 #linux.i686
 linux.i686.boost.version ?= 1.58.0
-linux.i686.boost.libs.model ?= -mt
 linux.i686.qt.version ?= 4.8.6
 linux.i686.cxx.flags = -march=i686 -m32 -mmmx
 linux.i686.ld.flags = -m32
 
 #linux.x86_64
 linux.x86_64.boost.version ?= 1.65.1
-linux.x86_64.boost.libs.model ?= -mt
 linux.x86_64.qt.version ?= 4.8.6
 linux.x86_64.cxx.flags = -m64 -mmmx
 linux.x86_64.ld.flags = -m64
@@ -73,19 +71,16 @@ mingw.execprefix ?= $(mingw.toolchain)/bin/
 mingw.cxx.flags = -mthreads -mwin32 -mno-ms-bitfields -mmmx -msse -msse2
 mingw.ld.flags = -mthreads -static -Wl,--allow-multiple-definition
 mingw.boost.version ?= 1.55.0
-mingw.boost.libs.model ?= -mt
 mingw.qt.version ?= 4.8.5
 # x86
 mingw.x86.execprefix = $(mingw.execprefix)
 mingw.x86.boost.version = $(mingw.boost.version)
-mingw.x86.boost.libs.model = $(mingw.boost.libs.model)
 mingw.x86.qt.version = $(mingw.qt.version)
 mingw.x86.cxx.flags = -m32
 mingw.x86.ld.flags = -m32
 # x86_64
 mingw.x86_64.execprefix = $(mingw.execprefix)
 mingw.x86_64.boost.version = $(mingw.boost.version)
-mingw.x86_64.boost.libs.model = $(mingw.boost.libs.model)
 mingw.x86_64.qt.version = $(mingw.qt.version)
 mingw.x86_64.cxx.flags = -m64
 mingw.x86_64.ld.flags = -m64
@@ -102,7 +97,6 @@ windows.x86_64.qt.version ?= 4.8.5
 #darwin
 # x86_64
 darwin.x86_64.boost.version ?= 1.60.0
-darwin.x86_64.boost.libs.model ?= -mt
 darwin.x86_64.qt.version ?= 4.8.6
 #darwin.x86_64.cxx.flags = -m64 -mmmx
 #darwin.x86_64.ld.flags = -m64

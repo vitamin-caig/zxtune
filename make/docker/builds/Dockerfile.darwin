@@ -47,7 +47,7 @@ WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=darwin\narch=x86_64\npackaging=dmg\ntoolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\ntools.python=python3\n" \
-         "darwin.x86_64.execprefix=${execprefix}\ndarwin.x86_64.boost.version=${boost}\ndarwin.x86_64.boost.libs.model=\n" \
+         "darwin.x86_64.execprefix=${execprefix}\ndarwin.x86_64.boost.version=${boost}\n" \
          "tools.uic=uic\ntools.moc=moc\ntools.rcc=rcc" > variables.mak
 
 COPY entrypoint.sh .

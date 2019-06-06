@@ -12,9 +12,6 @@ host=macos
 LINKER_BEGIN_GROUP=
 LINKER_END_GROUP=
 
-#multithread release libraries
-libraries.darwin += $(foreach lib,$(libraries.boost),boost_$(lib)$($(platform).$(arch).boost.libs.model))
-
 #release libraries
 libraries.darwin += $(foreach lib,$(libraries.qt),Qt$(lib))
 
