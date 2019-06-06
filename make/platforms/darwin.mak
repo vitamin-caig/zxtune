@@ -12,7 +12,4 @@ host=macos
 LINKER_BEGIN_GROUP=
 LINKER_END_GROUP=
 
-#release libraries
-libraries.darwin += $(foreach lib,$(libraries.qt),Qt$(lib))
-
 darwin.ld.flags += $(foreach file,$(embedded_files),-sectcreate __TEXT __emb_$(basename $(notdir $(file))) $(file))

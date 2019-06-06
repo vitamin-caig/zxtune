@@ -18,6 +18,3 @@ $(platform).ld.flags += -Wl,-subsystem,$(if $(have_gui),windows,console)
 else
 $(platform).ld.flags += -Wl,-subsystem,console
 endif
-
-libraries.mingw += $(foreach lib,$(libraries.qt),Qt$(lib)$(if $(release),,d))
-

@@ -19,6 +19,3 @@ libraries.dirs.linux += $($(platform).$(arch).qt.libs)
 includes.dirs.linux += $($(platform).$(arch).qt.includes)
 libraries.linux += $($(platform).$(arch).qt.libraries)
 endif
-
-#release libraries
-libraries.linux += $(foreach lib,$(libraries.qt),Qt$(lib))
