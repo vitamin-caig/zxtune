@@ -39,7 +39,7 @@ final class RemoteCatalog extends Catalog {
     parseDir(data, visitor);
   }
 
-  private void parseDir(ByteBuffer data, DirVisitor visitor) throws IOException {
+  void parseDir(ByteBuffer data, DirVisitor visitor) throws IOException {
     final Document doc = Jsoup.parse(new ByteArrayInputStream(data.array()), null, "");
     if (parseXmlIndex(doc, visitor) || parseTableMarkup(doc, visitor) || parsePreMarkup(doc, visitor)) {
       return;
