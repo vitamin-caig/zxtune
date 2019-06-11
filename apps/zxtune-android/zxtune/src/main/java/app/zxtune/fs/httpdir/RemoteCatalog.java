@@ -60,12 +60,14 @@ final class RemoteCatalog extends Catalog {
     }
     for (Element row : list.select("directory")) {
       final String name = row.text();
-      visitor.acceptDir(name);
+      final String dateTime = row.attr("mtime");
+      visitor.acceptDir(name, dateTime);
     }
     for (Element row : list.select("file")) {
       final String name = row.text();
+      final String dateTime = row.attr("mtime");
       final String sizeInBytes = row.attr("size");
-      visitor.acceptFile(name, formatSize(Long.parseLong(sizeInBytes)));
+      visitor.acceptFile(name, dateTime, formatSize(Long.parseLong(sizeInBytes)));
     }
     return true;
   }
@@ -111,11 +113,14 @@ final class RemoteCatalog extends Catalog {
       if (nameVal == null) {
         continue;
       }
+      final Element datetime = row.selectFirst("td:has(a) ~ td:matches(^ *([0-9]{4}-[01][0-9]-[0-3][0-9] " +
+                                                   "[0-5][0-9]:[0-5][0-9]) *$)");
+      final String description = datetime != null ? datetime.text().trim() : "";
       final Element size = row.selectFirst("td:has(a) ~ td:matches(^ *([0-9.]+[KM]?) *$)");
       if (size != null) {
-        visitor.acceptFile(nameVal, size.text().trim());
+        visitor.acceptFile(nameVal, description, size.text().trim());
       } else {
-        visitor.acceptDir(trimTrailingSlash(nameVal));
+        visitor.acceptDir(trimTrailingSlash(nameVal), description);
       }
     }
     return result;
@@ -139,11 +144,12 @@ final class RemoteCatalog extends Catalog {
       }
       final String dateTimeSize = name.nextSibling().toString().trim();
       final int lastSpace = dateTimeSize.lastIndexOf(" ");
-      final String sizeVal = dateTimeSize.substring(lastSpace + 1);
+      final String dateTimeVal = dateTimeSize.substring(0, lastSpace).trim();
+      final String sizeVal = dateTimeSize.substring(lastSpace + 1).trim();
       if (DIR_SIZE.equals(sizeVal)) {
-        visitor.acceptDir(trimTrailingSlash(nameVal));
+        visitor.acceptDir(trimTrailingSlash(nameVal), dateTimeVal);
       } else {
-        visitor.acceptFile(nameVal, sizeVal);
+        visitor.acceptFile(nameVal, dateTimeVal, sizeVal);
       }
     }
     return result;

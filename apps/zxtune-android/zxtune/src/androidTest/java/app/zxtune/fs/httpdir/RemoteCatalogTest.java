@@ -42,9 +42,9 @@ public class RemoteCatalogTest {
                             "<file mtime=\"2018-06-27T06:24:42Z\" size=\"1578655\">hoot_2018-06-26.7z</file>\n" +
                             "</list>";
     final String entries[] = {
-        "!MDScene_Arcade_VGM", "",
-        "x1", "",
-        "hoot_2018-06-26.7z", "1.5M"
+        "!MDScene_Arcade_VGM", "@2016-09-13T22:05:29Z",
+        "x1", "@2018-06-27T07:25:08Z",
+        "hoot_2018-06-26.7z", "1.5M@2018-06-27T06:24:42Z"
     };
     test(data, entries, Mode.CHECK_ALL);
   }
@@ -68,8 +68,8 @@ public class RemoteCatalogTest {
                             "</table>\n" +
                             "</body></html>\n";
     final String entries[] = {
-        "scene_cpc", "",
-        "AT.ay", "7.1K",
+        "scene_cpc", "@2018-02-22 00:31",
+        "AT.ay", "7.1K@2018-04-25 03:13",
     };
     test(data, entries, Mode.CHECK_ALL);
   }
@@ -89,9 +89,9 @@ public class RemoteCatalogTest {
                             "<hr></pre>\n" +
                             "</body></html>\n";
     final String entries[] = {
-        "!MDScene_Arcade_VGM", "",
-        "x1", "",
-        "hoot_2018-06-26.7z", "1.5M"
+        "!MDScene_Arcade_VGM", "@2016-09-13 18:05",
+        "x1", "@2018-06-27 03:25",
+        "hoot_2018-06-26.7z", "1.5M@2018-06-27 02:24"
     };
     test(data, entries, Mode.CHECK_ALL);
   }
@@ -125,21 +125,27 @@ public class RemoteCatalogTest {
     }
 
     @Override
-    public void acceptDir(String name) {
-      test(name, "");
+    public void acceptDir(String name, String descr) {
+      acceptFile(name, descr, "");
     }
 
     @Override
-    public void acceptFile(String name, String size) {
-      test(name, size);
+    public void acceptFile(String name, String descr, String size) {
+      test(name, size, descr);
     }
 
-    private void test(String name, String size) {
-      final String expectedSize = etalon.remove(name);
-      if (expectedSize != null) {
-        assertEquals("Invalid size", expectedSize, size);
+    private void test(String name, String size, String descr) {
+      final String expected = etalon.remove(name);
+      if (expected != null) {
+        final String[] expectedSizeAndDescr = expected.split("@");
+        if (expectedSizeAndDescr.length == 2) {
+          assertEquals("Invalid size", expectedSizeAndDescr[0], size);
+          assertEquals("Invalid description", expectedSizeAndDescr[1], descr);
+        } else {
+          assertEquals("Invalid size", expected, size);
+        }
       } else if (mode == Mode.CHECK_ALL || mode == Mode.CHECK_EXISTING) {
-        assertNotNull(String.format("Unexpected entry '%s' %s", name, size), expectedSize);
+        assertNotNull(String.format("Unexpected entry '%s' %s", name, size), expected);
       }
     }
 

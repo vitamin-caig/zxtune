@@ -40,7 +40,7 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
 
   @Override
   public void enumerate(Visitor visitor) throws IOException {
-    makeDir(rootPath).enumerate(visitor);
+    makeDir(rootPath, "").enumerate(visitor);
   }
 
   @Nullable
@@ -50,28 +50,30 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
     } else if (path.isEmpty()) {
       return this;
     } else if (path.isFile()) {
-      return makeFile(path, "");
+      return makeFile(path, "", "");
     } else {
-      return makeDir(path);
+      return makeDir(path, "");
     }
   }
 
   @Nullable
-  protected VfsDir makeDir(Path path) {
-    return new HttpDir(path);
+  protected VfsDir makeDir(Path path, String descr) {
+    return new HttpDir(path, descr);
   }
 
   @Nullable
-  protected VfsFile makeFile(Path path, String size) {
-    return new HttpFile(path, size);
+  protected VfsFile makeFile(Path path, String descr, String size) {
+    return new HttpFile(path, descr, size);
   }
 
   private abstract class HttpObject extends StubObject {
 
     protected final Path path;
+    private final String descr;
 
-    HttpObject(Path path) {
+    HttpObject(Path path, String descr) {
       this.path = path;
+      this.descr = descr;
     }
 
     @Override
@@ -85,40 +87,45 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
     }
 
     @Override
+    public String getDescription() {
+      return descr;
+    }
+
+    @Override
     public VfsObject getParent() {
       return resolve(path.getParent());
     }
   }
 
-  public class HttpDir extends HttpObject implements VfsDir {
+  protected class HttpDir extends HttpObject implements VfsDir {
 
-    public HttpDir(Path path) {
-      super(path);
+    public HttpDir(Path path, String descr) {
+      super(path, descr);
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.parseDir(path, new Catalog.DirVisitor() {
         @Override
-        public void acceptDir(String name) {
-          visitor.onDir(makeDir(path.getChild(name)));
+        public void acceptDir(String name, String descr) {
+          visitor.onDir(makeDir(path.getChild(name), descr));
         }
 
         @Override
-        public void acceptFile(String name, String size) {
-          visitor.onFile(makeFile(path.getChild(name), size));
+        public void acceptFile(String name, String descr, String size) {
+          visitor.onFile(makeFile(path.getChild(name), descr, size));
         }
       });
     }
   }
 
-  public class HttpFile extends HttpObject implements VfsFile {
+  protected class HttpFile extends HttpObject implements VfsFile {
 
     private final String size;
     private ByteBuffer content;
 
-    public HttpFile(Path path, String size) {
-      super(path);
+    public HttpFile(Path path, String descr, String size) {
+      super(path, descr);
       this.size = size;
     }
 

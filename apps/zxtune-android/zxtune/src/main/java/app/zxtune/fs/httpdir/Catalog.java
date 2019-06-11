@@ -18,9 +18,9 @@ import app.zxtune.fs.http.HttpProvider;
 public abstract class Catalog {
 
   public interface DirVisitor {
-    void acceptDir(String name);
+    void acceptDir(String name, String description);
 
-    void acceptFile(String name, String size);
+    void acceptFile(String name, String description, String size);
   }
 
   /**

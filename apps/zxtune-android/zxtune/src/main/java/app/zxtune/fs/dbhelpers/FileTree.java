@@ -11,17 +11,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
+import android.os.Parcel;
 import android.support.annotation.Nullable;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -39,13 +37,17 @@ import app.zxtune.fs.dbhelpers.Utils;
  * standard timestamps
  *
  * entries - serialized HashMap<String, String>
+ *
+ * Version 2
+ *
+ * Changed serialization format of blob
  */
 
 final public class FileTree {
 
   private static final String TAG = FileTree.class.getName();
 
-  private static final int VERSION = 1;
+  private static final int VERSION = 2;
 
   static final class Table {
     enum Fields {
@@ -100,39 +102,73 @@ final public class FileTree {
     return timestamps.getLifetime(path, ttl);
   }
 
-  public final void add(String path, HashMap<String, String> obj) throws IOException {
+  public static class Entry {
+    public String name;
+    public String descr;
+    public String size;
+
+    Entry(DataInput in) throws IOException {
+      this.name = in.readUTF();
+      this.descr = in.readUTF();
+      this.size = in.readUTF();
+    }
+
+    final void save(DataOutput out) throws IOException {
+      out.writeUTF(name);
+      out.writeUTF(descr);
+      out.writeUTF(size);
+    }
+
+    public Entry(String name, String descr, String size) {
+      this.name = name;
+      this.descr = descr;
+      this.size = size != null ? size : "";
+    }
+
+    final public boolean isDir() {
+      return size.isEmpty();
+    }
+  }
+
+  public final void add(String path, List<Entry> obj) throws IOException {
     entries.add(path, serialize(obj));
   }
 
-  public final HashMap<String, String> find(String path) {
+  public final List<Entry> find(String path) {
     try {
       final byte[] data = entries.get(path);
       return data != null
-              ? (HashMap<String, String>) deserialize(data)
+              ? deserialize(data)
               : null;
     } catch (IOException e) {
       return null;
     }
   }
 
-  private static byte[] serialize(Serializable obj) throws IOException {
+  private static byte[] serialize(List<Entry> obj) throws IOException {
     final ByteArrayOutputStream stream = new ByteArrayOutputStream(1024);
-    final ObjectOutputStream out = new ObjectOutputStream(stream);
+    final DataOutputStream out = new DataOutputStream(stream);
     try {
-      out.writeObject(obj);
+      out.writeInt(obj.size());
+      for (Entry e : obj) {
+        e.save(out);
+      }
     } finally {
       out.close();
     }
     return stream.toByteArray();
   }
 
-  private static Object deserialize(byte[] data) throws IOException {
+  private static List<Entry> deserialize(byte[] data) throws IOException {
     final ByteArrayInputStream stream = new ByteArrayInputStream(data);
-    final ObjectInputStream in = new ObjectInputStream(stream);
+    final DataInputStream in = new DataInputStream(stream);
     try {
-      return in.readObject();
-    } catch (ClassNotFoundException e) {
-      throw new IOException(e);
+      int count = in.readInt();
+      final ArrayList<Entry> result = new ArrayList<>(count);
+      while (count-- != 0) {
+        result.add(new Entry(in));
+      }
+      return result;
     } finally {
       in.close();
     }
