@@ -231,6 +231,9 @@
     <!-- asma -->
     <string name="vfs_asma_root_name" translatable="false">Atari SAP Music Archive</string>
     <string name="vfs_asma_root_description" translatable="false">http://asma.atari.org</string>
+    <!-- aminet -->
+    <string name="vfs_aminet_root_name" translatable="false">Aminet music modules</string>
+    <string name="vfs_aminet_root_description" translatable="false">http://aminet.net</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>

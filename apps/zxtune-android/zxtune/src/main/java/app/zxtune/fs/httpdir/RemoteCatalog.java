@@ -15,11 +15,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
-final class RemoteCatalog extends Catalog {
+public class RemoteCatalog extends Catalog {
 
   private final MultisourceHttpProvider http;
 
-  RemoteCatalog(HttpProvider http) {
+  public RemoteCatalog(HttpProvider http) {
     this.http = new MultisourceHttpProvider(http);
   }
 
@@ -29,7 +29,7 @@ final class RemoteCatalog extends Catalog {
     return Io.readFrom(http.getInputStream(path.getRemoteUris()));
   }
 
-  final HttpObject getFileObject(Path path) throws IOException {
+  HttpObject getFileObject(Path path) throws IOException {
     return http.getObject(path.getRemoteUris());
   }
 

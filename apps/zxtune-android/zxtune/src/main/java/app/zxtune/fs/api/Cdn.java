@@ -32,6 +32,10 @@ public class Cdn {
     return getRoot().path("download/modarchive/ids/" + id).build();
   }
 
+  public static Uri aminet(String path) {
+    return getRoot().path("download/aminet/mods/" + path).build();
+  }
+
   private static Uri.Builder getRoot() {
     return ROOT.buildUpon();
   }
