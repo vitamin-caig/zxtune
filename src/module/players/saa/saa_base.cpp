@@ -105,19 +105,26 @@ namespace Module
 
     bool RenderFrame() override
     {
-      if (Iterator->IsValid())
+      try
       {
-        SynchronizeParameters();
-        if (LastChunk.TimeStamp == Devices::SAA::Stamp())
+        if (Iterator->IsValid())
         {
-          //first chunk
+          SynchronizeParameters();
+          if (LastChunk.TimeStamp == Devices::SAA::Stamp())
+          {
+            //first chunk
+            TransferChunk();
+          }
+          Iterator->NextFrame(Looped);
+          LastChunk.TimeStamp += FrameDuration;
           TransferChunk();
         }
-        Iterator->NextFrame(Looped);
-        LastChunk.TimeStamp += FrameDuration;
-        TransferChunk();
+        return Iterator->IsValid();
       }
-      return Iterator->IsValid();
+      catch (const std::exception&)
+      {
+        return false;
+      }
     }
 
     void Reset() override

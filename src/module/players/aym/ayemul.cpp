@@ -572,15 +572,22 @@ namespace AYEMUL
 
     bool RenderFrame() override
     {
-      if (Iterator->IsValid())
+      try
       {
-        SynchronizeParameters();
-        LastTime += FrameDuration;
-        Comp->NextFrame(LastTime);
-        Device->RenderFrame(LastTime);
-        Iterator->NextFrame(Looped);
+        if (Iterator->IsValid())
+        {
+          SynchronizeParameters();
+          LastTime += FrameDuration;
+          Comp->NextFrame(LastTime);
+          Device->RenderFrame(LastTime);
+          Iterator->NextFrame(Looped);
+        }
+        return Iterator->IsValid();
       }
-      return Iterator->IsValid();
+      catch (const std::exception&)
+      {
+        return false;
+      }
     }
 
     void Reset() override
