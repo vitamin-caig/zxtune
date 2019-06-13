@@ -2,7 +2,7 @@
 <resources>
   <string name="playlist">播放列表</string>
   <string name="playlist_empty">播放列表为空</string>
-  <string name="saved">保存</string>
+  <string name="saved">已保存</string>
   <string name="save_failed">无法保存: %s</string>
   <string name="statistics">统计数字</string>
   <string name="statistics_tracks">总计</string>

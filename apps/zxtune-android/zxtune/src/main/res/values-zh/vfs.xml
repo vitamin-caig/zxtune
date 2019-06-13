@@ -4,15 +4,15 @@
     <string name="vfs_local_root_name">本地文件系统</string>
     <string name="vfs_local_root_description">内部和外部存储的内容</string>
     <!-- zxtunes.com -->
-    <string name="vfs_zxtunes_root_name">ZXTUNES音乐收藏</string>
+    <string name="vfs_zxtunes_root_name">ZXTUNES 音乐收藏</string>
     <string name="vfs_zxtunes_authors_name">作者</string>
-    <string name="vfs_zxtunes_authors_description">ZX Spectrum音乐家目录</string>
+    <string name="vfs_zxtunes_authors_description">ZX Spectrum 艺术家目录</string>
     <!-- Playlists -->
     <string name="vfs_playlists_root_name">播放列表</string>
     <string name="vfs_playlists_root_description">保存的播放列表存储</string>
     <!-- ftp.modland.com -->
-    <string name="vfs_modland_root_name">Modland-最大模块存档</string>
-    <string name="vfs_modland_root_description">通过 http://www.exotica.org.uk</string>
+    <string name="vfs_modland_root_name">Modland - 最大的模块存档</string>
+    <string name="vfs_modland_root_description">来自 http://www.exotica.org.uk</string>
     <string name="vfs_modland_authors_name">作者</string>
     <string name="vfs_modland_authors_description">按作者浏览</string>
     <string name="vfs_modland_collections_name">收藏</string>
@@ -20,32 +20,32 @@
     <string name="vfs_modland_formats_name">格式</string>
     <string name="vfs_modland_formats_description">按格式浏览</string>
     <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
-    <string name="vfs_hvsc_root_description">通过 http://www.prg.dtu.dk</string>
+    <string name="vfs_hvsc_root_description">来自 http://www.prg.dtu.dk</string>
     <!-- zxart.ee -->
-    <string name="vfs_zxart_root_name">ZX-Art-现代ZX Spectrum音乐</string>
+    <string name="vfs_zxart_root_name">ZX-Art - 现代 ZX Spectrum 音乐</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
     <string name="vfs_zxart_authors_name">作者</string>
     <string name="vfs_zxart_authors_description">按作者浏览</string>
-    <string name="vfs_zxart_parties_name">缔约方</string>
-    <string name="vfs_zxart_parties_description">按党浏览</string>
+    <string name="vfs_zxart_parties_name">团队</string>
+    <string name="vfs_zxart_parties_description">按团队浏览</string>
     <string name="vfs_zxart_toptracks_name">顶部轨道</string>
-    <string name="vfs_zxart_toptracks_description">100最投票曲目</string>
+    <string name="vfs_zxart_toptracks_description">100 最赞曲目</string>
     <string name="vfs_zxart_unknown_year_name">未知年份</string>
-    <string name="vfs_zxart_compo_unknown">未知的竞争</string>
+    <string name="vfs_zxart_compo_unknown">未知的竞赛</string>
     <string name="vfs_zxart_compo_standard">共同音乐比赛</string>
     <string name="vfs_zxart_compo_ay">AY音乐比赛</string>
-    <string name="vfs_zxart_compo_beeper">Beeper音乐比赛</string>
-    <string name="vfs_zxart_compo_copyay">复制AY竞争</string>
-    <string name="vfs_zxart_compo_nocopyay">非复制AY竞争</string>
+    <string name="vfs_zxart_compo_beeper">Beeper音乐竞赛</string>
+    <string name="vfs_zxart_compo_copyay">复制AY竞赛</string>
+    <string name="vfs_zxart_compo_nocopyay">非复制AY竞赛</string>
     <string name="vfs_zxart_compo_realtime">实时竞赛</string>
     <string name="vfs_zxart_compo_realtimeay">实时AY比赛</string>
     <string name="vfs_zxart_compo_realtimebeeper">实时蜂鸣器比赛</string>
     <string name="vfs_zxart_compo_out">在竞争中脱颖而出</string>
     <string name="vfs_zxart_compo_wild">一切竞争</string>
     <string name="vfs_zxart_compo_experimental">实验音乐比赛</string>
-    <string name="vfs_zxart_compo_oldschool">老学校音乐比赛</string>
+    <string name="vfs_zxart_compo_oldschool">老牌音乐比赛</string>
     <string name="vfs_zxart_compo_mainstream">主流音乐比赛</string>
-    <string name="vfs_zxart_compo_progressive">进步音乐比赛</string>
+    <string name="vfs_zxart_compo_progressive">渐进音乐比赛</string>
     <string name="vfs_zxart_compo_related">音乐从本次活动的作品</string>
     <!-- joshw.info -->
     <string name="vfs_joshw_root_description">各种档案</string>
@@ -188,7 +188,7 @@
     <string name="vfs_modarchive_genres_name">类型</string>
     <string name="vfs_modarchive_genres_description">按流派浏览</string>
     <!-- errors -->
-    <string name="network_inaccessible">网络不可访问</string>
+    <string name="network_inaccessible">无法访问网络</string>
     <string name="failed_resolve">无法解析 %s</string>
     <string name="file_too_big">文件太大了</string>
 </resources>

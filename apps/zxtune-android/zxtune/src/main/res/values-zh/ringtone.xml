@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="ringtone_create_title">设置为铃声</string>
-    <string name="ringtone_create_started">制作铃声…</string>
+    <string name="ringtone_create_started">正在生成铃声…</string>
     <string name="ringtone_changed">新铃声已设置！</string>
     <string name="ringtone_creating_failed">无法创建铃声: %s</string>
 </resources>

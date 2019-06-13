@@ -4,12 +4,12 @@
   <string name="pref_sound_title">声音</string>
   
   <!-- common -->
-  <string name="pref_zxtune_sound_mixer_x_0_x_title">频道 A</string>
-  <string name="pref_zxtune_sound_mixer_x_1_x_title">频道 B</string>
-  <string name="pref_zxtune_sound_mixer_x_2_x_title">频道 C</string>
-  <string name="pref_zxtune_sound_mixer_x_3_x_title">频道 D</string>
+  <string name="pref_zxtune_sound_mixer_x_0_x_title">通道 A</string>
+  <string name="pref_zxtune_sound_mixer_x_1_x_title">通道 B</string>
+  <string name="pref_zxtune_sound_mixer_x_2_x_title">通道 C</string>
+  <string name="pref_zxtune_sound_mixer_x_3_x_title">通道 D</string>
   <string name="pref_zxtune_sound_mixer_x_x_0_title">左</string>
-  <string name="pref_zxtune_sound_mixer_x_x_1_title">对</string>
+  <string name="pref_zxtune_sound_mixer_x_x_1_title">右</string>
   <string name="pref_zxtune_sound_mixer_3_x_x_title">3通道混频器</string>
   <string name="pref_zxtune_sound_mixer_4_x_x_title">4通道混频器</string>
 </resources>

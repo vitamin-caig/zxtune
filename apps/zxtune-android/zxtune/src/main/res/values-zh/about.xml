@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="about">关于我们</string>
-  <string name="about_credits">学分</string>
+  <string name="about_credits">致谢</string>
   <string name="about_plugins">插件</string>
   <!-- about-related -->
   <string name="about_author">
     想法，代码: <b>Vitamin/CAIG</b>\n
     设计: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
-    二手来源:\n
+    使用的代码:\n
     \tAYEmul由<b>S.Bulba</b>\n
     \tAYFly由<b>Ander</b>\n
     \tPusher由<b>Himik/ZxZ</b>\n
@@ -35,13 +35,13 @@
     \tminimp3由<b>lieff</b>\n
     \tstb-vorbis由<b>Sean Barrett</b>\n
     \n
-    致力于<b>Lizzi</b>
+    献给<b>Lizzi</b>
   </string>
   <!-- players -->
-  <string name="plugin_player_dac">数字格式</string>
+  <string name="plugin_player_dac">基于采样的格式</string>
   <string name="plugin_player_multidevice">多设备</string>
   <!-- containers -->
-  <string name="plugin_multitrack">多轨</string>
-  <string name="plugin_archive">弓箭手</string>
-  <string name="plugin_decompiler">反编译</string>
+  <string name="plugin_multitrack">多轨容器</string>
+  <string name="plugin_archive">解压工具</string>
+  <string name="plugin_decompiler">反编译器</string>
 </resources>

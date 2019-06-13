@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="send_text">从ZXTune发送 %s</string>
-    <string name="share_text">从#ZXTune共享 %s</string>
+    <string name="send_text">从 ZXTune 发送 %s</string>
+    <string name="share_text">从 #ZXTune 共享 %s</string>
 </resources>
