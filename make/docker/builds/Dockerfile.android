@@ -31,7 +31,7 @@ RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boo
     rm -Rf boost_*
 
 #Android SDK
-ENV build_tools=27.0.3 platform=27
+ENV build_tools=28.0.3 platform=28
 RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
     wget -q https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
     unzip -q *.zip && \

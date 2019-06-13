@@ -6,8 +6,10 @@
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <supports-screens android:largeScreens="true" android:xlargeScreens="true"/>
-  <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:allowBackup="true" android:theme="@style/Theme.Dark">
+  <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@drawable/ic_launcher"
+               android:allowBackup="true" android:theme="@style/Theme.Dark" android:usesCleartextTraffic="true">
     <meta-data android:name="key.modarchive" android:value="${modarchiveKey}"/>
     <meta-data android:name="io.fabric.ApiKey" android:value="${crashlyticsKey}" />
     <activity android:name=".MainActivity" android:label="@string/app_name">

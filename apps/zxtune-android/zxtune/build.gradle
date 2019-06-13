@@ -16,13 +16,13 @@ repositories {
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "app.zxtune"
         minSdkVersion 14
-        targetSdkVersion 27
+        targetSdkVersion 28
         //supported languages
         resConfigs "en", "de", "ru", "es", "cs", "zh"
         //supported densities for vector drawables rasterization
@@ -31,9 +31,9 @@ android {
 }
 
 dependencies {
-    implementation "com.android.support:appcompat-v7:27.1.1"
-    implementation "com.android.support:support-media-compat:27.1.1"
-    implementation "com.android.support:support-annotations:27.1.1"
+    implementation "com.android.support:appcompat-v7:28.0.0"
+    implementation "com.android.support:support-media-compat:28.0.0"
+    implementation "com.android.support:support-annotations:28.0.0"
     implementation('com.crashlytics.sdk.android:crashlytics:2.8.0@aar') {
         transitive = true
     }
@@ -44,7 +44,7 @@ dependencies {
         transitive = true
     }
     implementation "org.jsoup:jsoup:1.11.3"
-    compile "com.github.anrwatchdog:anrwatchdog:1.4.0"
+    implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
     implementation "android.arch.lifecycle:extensions:1.1.1"
 }
 
