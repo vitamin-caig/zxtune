@@ -21,7 +21,7 @@ namespace Sound
     {
       Require(Counter < Limit);
       const auto silent = LastSample;
-      if (std::all_of(in.begin(), in.end(), [&silent](Sound::Sample in) {return in == silent;}))
+      if (in.empty() || std::all_of(in.begin(), in.end(), [silent](Sound::Sample in) {return in == silent;}))
       {
         Counter += in.size();
       }
