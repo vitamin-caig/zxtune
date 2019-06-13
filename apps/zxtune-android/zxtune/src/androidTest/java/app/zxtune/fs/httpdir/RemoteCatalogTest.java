@@ -112,12 +112,12 @@ public class RemoteCatalogTest {
     visitor.check();
   }
 
-  private static class CheckingVisitor implements Catalog.DirVisitor {
+  public static class CheckingVisitor implements Catalog.DirVisitor {
 
     private final HashMap<String, String> etalon = new HashMap<>();
     private final Mode mode;
 
-    CheckingVisitor(String[] entries, Mode mode) {
+    public CheckingVisitor(String[] entries, Mode mode) {
       for (int idx = 0; idx < entries.length; idx += 2) {
         this.etalon.put(entries[idx], entries[idx + 1]);
       }
@@ -149,7 +149,7 @@ public class RemoteCatalogTest {
       }
     }
 
-    final void check() {
+    public final void check() {
       if (mode == Mode.CHECK_ALL || mode == Mode.CHECK_MISSED) {
         for (Map.Entry<String, String> nameAndSize : etalon.entrySet()) {
           fail(String.format("Missed entry '%s' %s", nameAndSize.getKey(), nameAndSize.getValue()));
