@@ -16,11 +16,12 @@ ENV toolchains=/build/toolchains androidsdk=/build/android-sdk prebuilt=/build/p
 ENV ndk_version=r16b
 RUN wget -q https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux-x86_64.zip && \
     unzip -q *.zip && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch x86   --install-dir ${toolchains}/i686-linux-android && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm   --install-dir ${toolchains}/arm-linux-androideabi && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm64 --install-dir ${toolchains}/aarch64-linux-android && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch x86    --install-dir ${toolchains}/i686-linux-android && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch x86_64 --install-dir ${toolchains}/x86_64-linux-android && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm    --install-dir ${toolchains}/arm-linux-androideabi && \
+    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm64  --install-dir ${toolchains}/aarch64-linux-android && \
     rm -Rf android-ndk-* && \
-    find ${toolchains} -name '*clang*' -o -name '*llvm*' -print0 | xargs -0 rm -Rf
+    find ${toolchains} \( -name '*clang*' -o -name '*llvm*' \) -print0 | xargs -0 rm -Rf
 
 #Boost headers
 ENV boost=1.70.0

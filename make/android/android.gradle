@@ -62,4 +62,14 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
+    sourceSets {
+        develop {
+            java.srcDirs = ['src/develop/java', 'src/main/java', 'src/debug/java']
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
 }

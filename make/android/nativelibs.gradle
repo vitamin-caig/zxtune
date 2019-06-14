@@ -53,8 +53,8 @@ android {
         x86_64 {
             dimension "abi"
             versionCode 5
-            versionName "x86-64"
-            ndkConfig.abiFilters "x86-64"
+            versionName "x86_64"
+            ndkConfig.abiFilters "x86_64"
         }
 
         mips {

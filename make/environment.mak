@@ -17,7 +17,11 @@ defines.android += ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N L
 android.x86.toolchain = $(toolchains.root)/i686-linux-android
 android.x86.execprefix = $(android.x86.toolchain)/bin/i686-linux-android-
 defines.android.x86 += __ANDROID_API__=14
-android.x86.ld.flags = -Wl,--icf=safe
+# x86_64
+android.x86_64.toolchain = $(toolchains.root)/x86_64-linux-android
+android.x86_64.execprefix = $(android.x86_64.toolchain)/bin/x86_64-linux-android-
+defines.android.x86_64 += __ANDROID_API__=21
+android.x86_64.cxx.flags = -m64
 # armeabi
 android.armeabi.toolchain = $(toolchains.root)/arm-linux-androideabi
 android.armeabi.execprefix = $(android.armeabi.toolchain)/bin/arm-linux-androideabi-
