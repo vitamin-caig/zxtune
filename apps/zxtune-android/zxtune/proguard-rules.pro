@@ -10,4 +10,9 @@
 -keep public class * extends java.lang.Exception
 -keepattributes SourceFile, LineNumberTable, *Annotation*
 
--dontobfuscate
+# Both of these options should be enabled/disabled due to optimization issues
+#-dontobfuscate
+#-optimizations !code/allocation/variable
+
+-assumenosideeffects class app.zxtune.Log { public static void d(...); }
+

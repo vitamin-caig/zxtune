@@ -171,12 +171,23 @@ android {
 
     applicationVariants.all { variant ->
         def suffix = variant.name.capitalize()
-        task("publishApk${suffix}", type: Copy) {
+        def baseName = "${project.name}_${variant.mergedFlavor.versionName}"
+        def publishApk = task("publishApk${suffix}", type: Copy) {
             def apks = variant.outputs
             assert apks.size() == 1
             from apks.first().outputFile
             into publicBuildsDir
-            rename ".*", "${project.name}_${variant.mergedFlavor.versionName}.apk"
+            rename ".*", "${baseName}.apk"
+        }
+
+        if (variant.getBuildType().isMinifyEnabled()) {
+            publishApk.doLast {
+                copy {
+                    from variant.mappingFile
+                    into publicBuildsDir
+                    rename ".*", "${baseName}-mapping.txt"
+                }
+            }
         }
     
         if (variant.buildType.name == "release") {
