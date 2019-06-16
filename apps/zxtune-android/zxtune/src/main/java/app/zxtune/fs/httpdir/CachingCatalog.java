@@ -10,7 +10,8 @@ import app.zxtune.fs.http.HttpObject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 final class CachingCatalog extends Catalog {
@@ -65,16 +66,16 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public void updateCache() throws IOException {
-        final HashMap<String, String> entries = new HashMap<>();
+        final ArrayList<FileTree.Entry> entries = new ArrayList<>(100);
         remote.parseDir(path, new DirVisitor() {
           @Override
-          public void acceptDir(String name) {
-            entries.put(name, null);
+          public void acceptDir(String name, String desc) {
+            entries.add(new FileTree.Entry(name, desc, null));
           }
 
           @Override
-          public void acceptFile(String name, String size) {
-            entries.put(name, size);
+          public void acceptFile(String name, String descr, String size) {
+            entries.add(new FileTree.Entry(name, descr, size));
           }
         });
         db.add(dirName, entries);
@@ -82,15 +83,13 @@ final class CachingCatalog extends Catalog {
 
       @Override
       public boolean queryFromCache() {
-        final HashMap<String, String> entries = db.find(dirName);
+        final List<FileTree.Entry> entries = db.find(dirName);
         if (entries != null) {
-          for (HashMap.Entry<String, String> ent : entries.entrySet()) {
-            final String name = ent.getKey();
-            final String size = ent.getValue();
-            if (size == null) {
-              visitor.acceptDir(name);
+          for (FileTree.Entry e : entries) {
+            if (e.isDir()) {
+              visitor.acceptDir(e.name, e.descr);
             } else {
-              visitor.acceptFile(name, size);
+              visitor.acceptFile(e.name, e.descr, e.size);
             }
           }
           return true;

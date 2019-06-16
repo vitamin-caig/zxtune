@@ -77,17 +77,17 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
 
   @Override
   @Nullable
-  public VfsObject resolve(Uri uri) throws IOException {
+  public VfsObject resolve(Uri uri) {
     return resolve(Path.parse(uri));
   }
 
   @Override
   @Nullable
-  public VfsDir makeDir(app.zxtune.fs.httpdir.Path path) {
+  public VfsDir makeDir(app.zxtune.fs.httpdir.Path path, String descr) {
     final Path ownPath = (Path) path;
     return ownPath.isCatalogue()
             ? resolveCatalogue(ownPath.getCatalogue())
-            : super.makeDir(path);
+            : super.makeDir(path, descr);
   }
 
   @Nullable
@@ -101,8 +101,8 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
   }
 
   @Override
-  public VfsFile makeFile(app.zxtune.fs.httpdir.Path path, String size) {
-    return new MusicFile(path, size);
+  public VfsFile makeFile(app.zxtune.fs.httpdir.Path path, String descr, String size) {
+    return new MusicFile(path, descr, size);
   }
 
   private class AudiobaseDir extends HttpDir {
@@ -112,7 +112,7 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
     private final int description;
 
     AudiobaseDir(String id, int nameRes, int descRes) {
-      super(rootPath.getChild(id));
+      super(rootPath.getChild(id), "");
       this.id = id;
       this.name = nameRes;
       this.description = descRes;
@@ -144,9 +144,8 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
     private String name;
     private String description;
 
-    MusicFile(app.zxtune.fs.httpdir.Path path, String size) {
-      super(path, size);
-      loadMetainfo();
+    MusicFile(app.zxtune.fs.httpdir.Path path, String descr, String size) {
+      super(path, "", size);
     }
 
     @Override

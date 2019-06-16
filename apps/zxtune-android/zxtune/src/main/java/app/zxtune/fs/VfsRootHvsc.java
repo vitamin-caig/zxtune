@@ -51,15 +51,15 @@ final class VfsRootHvsc extends HttpRootBase implements VfsRoot {
   }
 
   @Override
-  public void enumerate(Visitor visitor) throws IOException {
+  public void enumerate(Visitor visitor) {
     for (String dir : SUBDIRS) {
-      visitor.onDir(new HttpDir(rootPath.getChild(dir)));
+      visitor.onDir(makeDir(rootPath.getChild(dir), ""));
     }
   }
 
   @Override
   @Nullable
-  public VfsObject resolve(Uri uri) throws IOException {
+  public VfsObject resolve(Uri uri) {
     return resolve(Path.parse(uri));
   }
 }
