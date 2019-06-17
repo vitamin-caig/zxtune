@@ -32,7 +32,7 @@
 #define STB_VORBIS_NO_STDIO
 #define STB_VORBIS_NO_PUSHDATA_API
 #define STB_VORBIS_MAX_CHANNELS 2
-#ifdef BOOST_ENDIAN_BIG_BYTE
+#if BOOST_ENDIAN_BIG_BYTE
 #define STB_VORBIS_BIG_ENDIAN
 #endif
 #include <3rdparty/stb/stb_vorbis.c>

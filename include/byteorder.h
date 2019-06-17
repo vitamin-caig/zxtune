@@ -61,7 +61,7 @@ inline T swapBytes(T a)
   return static_cast<T>(Swapper::Swap(static_cast<typename Swapper::Type>(a)));
 }
 
-#ifdef BOOST_ENDIAN_LITTLE_BYTE
+#if BOOST_ENDIAN_LITTLE_BYTE
 //! @brief Checking if current platform is Little-Endian
 inline bool isLE()
 {
@@ -82,7 +82,7 @@ inline T fromBE(T a)
   return swapBytes(a);
 }
 
-#elif defined(BOOST_ENDIAN_BIG_BYTE)
+#elif BOOST_ENDIAN_BIG_BYTE
 inline bool isLE()
 {
   return false;
