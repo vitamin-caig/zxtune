@@ -5,6 +5,13 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4660 from 17.06.2019
+
+[+] zxtune-android: added aminet.net online catalogue
+[*] zxtune-android: updated Chinese translation
+[*] zxtune-android: reduced binaries and packages size
+[*] zxtune-android: fixed found and reported crashes and hangups
+
 --- Rev4560 from 06.05.2019
 
 [*] zxtune-qt: fixed MacOS X build
