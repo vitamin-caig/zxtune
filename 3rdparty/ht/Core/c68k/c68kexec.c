@@ -284,7 +284,8 @@ s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
 #endif
 
 #ifdef C68K_NO_JUMP_TABLE
-SwitchTable:
+SwitchCycle:
+    for (;;) {
     switch(Opcode)
     {
 #endif
@@ -305,6 +306,7 @@ SwitchTable:
     #include "c68k_opE.inc"
     #include "c68k_opF.inc"
 #ifdef C68K_NO_JUMP_TABLE
+    }
     }
 #endif
 

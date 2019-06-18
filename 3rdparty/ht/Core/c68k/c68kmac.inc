@@ -46,26 +46,28 @@ extern void TRACE(int,c68k_struc*,int,int);
 #else
 # define TRACE(a,b,c,d) /*nothing*/
 #endif
-#ifndef C68K_NO_JUMP_TABLE
-#define NEXT                    \
+
+#define PREFETCH                \
     PRE_IO                      \
     Opcode = FETCH_WORD;        \
     PC += 2;                    \
-    TRACE(PC, CPU, Opcode, CCnt); \
+    TRACE(PC, CPU, Opcode, CCnt);
+
+#ifndef C68K_NO_JUMP_TABLE
+#define NEXT                    \
+    PREFETCH                    \
     goto *JumpTable[Opcode];
 #else
 #define NEXT                    \
-    PRE_IO                      \
-    Opcode = FETCH_WORD;        \
-    PC += 2;                    \
-    TRACE(PC, CPU, Opcode, CCnt); \
-    goto SwitchTable;
+    PREFETCH                    \
+    goto SwitchCycle;
 #endif
 
 #define RET(A)                  \
     CCnt -= (A);                \
     if (CCnt <= 0) goto C68k_Exec_End; \
-    NEXT
+    PREFETCH                    \
+    break;
 
 #define SET_PC(A)               \
     CPU->BasePC = CPU->Fetch[((A) >> C68K_FETCH_SFT) & C68K_FETCH_MASK];    \
