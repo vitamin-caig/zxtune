@@ -11,18 +11,6 @@ WORKDIR /build
 
 ENV toolchains=/build/toolchains androidsdk=/build/android-sdk prebuilt=/build/prebuilt
 
-#NDK toolchains
-#r16b is the last version with gcc (4.9)
-ENV ndk_version=r16b
-RUN wget -q https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux-x86_64.zip && \
-    unzip -q *.zip && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch x86    --install-dir ${toolchains}/i686-linux-android && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch x86_64 --install-dir ${toolchains}/x86_64-linux-android && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm    --install-dir ${toolchains}/arm-linux-androideabi && \
-    android-ndk-${ndk_version}/build/tools/make_standalone_toolchain.py --arch arm64  --install-dir ${toolchains}/aarch64-linux-android && \
-    rm -Rf android-ndk-* && \
-    find ${toolchains} \( -name '*clang*' -o -name '*llvm*' \) -print0 | xargs -0 rm -Rf
-
 #Boost headers
 ENV boost=1.70.0
 RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
@@ -45,6 +33,21 @@ RUN wget -q https://services.gradle.org/distributions/gradle-${gradle}-bin.zip &
     echo "buildscript{\nrepositories{\njcenter()\ngoogle()\n}\ndependencies{\nclasspath 'com.android.tools.build:gradle:3.0.1'\n}\n}\nallprojects{\nrepositories\n{\njcenter()\ngoogle()\n}\n}" > build.gradle && \
     gradle*/bin/gradle tasks && \
     rm -Rf gradle* build.gradle
+
+WORKDIR ${toolchains}
+#NDK toolchains
+ENV ndk_version=r20
+RUN wget -q https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux-x86_64.zip && \
+    unzip -q *.zip && \
+    mv android-ndk*/toolchains/llvm/prebuilt/linux-x86_64 . && \
+    rm -Rf android-ndk-*
+
+# TODO: remove after full clang support
+COPY make_ndk_wrapper.sh .
+RUN ./make_ndk_wrapper.sh arm-linux-androideabi armv7a-linux-androideabi16 && \
+    ./make_ndk_wrapper.sh aarch64-linux-android aarch64-linux-android21 && \
+    ./make_ndk_wrapper.sh i686-linux-android i686-linux-android16 && \
+    ./make_ndk_wrapper.sh x86_64-linux-android x86_64-linux-android21
 
 #Sources
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
