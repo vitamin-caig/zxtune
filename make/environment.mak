@@ -16,13 +16,14 @@ defines.android += ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N L
 # x86
 android.x86.toolchain = $(toolchains.root)/i686-linux-android
 android.x86.execprefix = $(android.x86.toolchain)/bin/i686-linux-android-
+android.x86.cxx.flags = -m32
 # x86_64
 android.x86_64.toolchain = $(toolchains.root)/x86_64-linux-android
 android.x86_64.execprefix = $(android.x86_64.toolchain)/bin/x86_64-linux-android-
 android.x86_64.cxx.flags = -m64
 # armeabi-v7a
-android.armeabi-v7a.toolchain = $(android.armeabi.toolchain)
-android.armeabi-v7a.execprefix = $(android.armeabi.execprefix)
+android.armeabi-v7a.toolchain = $(toolchains.root)/arm-linux-androideabi
+android.armeabi-v7a.execprefix = $(android.armeabi-v7a.toolchain)/bin/arm-linux-androideabi-
 android.armeabi-v7a.cxx.flags = -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -mthumb
 android.armeabi-v7a.ld.flags = -march=armv7-a -Wl,--fix-cortex-a8
 # arm64-v8a
