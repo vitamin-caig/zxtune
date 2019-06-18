@@ -389,20 +389,25 @@ namespace USF
     By convention a file that includes a _lib tag is named with a .miniusf extension
     and a file that is included via a _lib tag is name with a .usflib extension.
     */
-    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static const uint_t MAX_LEVEL = 10;
+
+    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
-      if (!data.Dependencies.empty())
+      if (!data.Dependencies.empty() && level < MAX_LEVEL)
       {
-        MergeSections(additionalFiles.at(data.Dependencies.front()), additionalFiles, dst);
+        MergeSections(additionalFiles.at(data.Dependencies.front()), additionalFiles, dst, level + 1);
       }
       dst.AddSection(data.ReservedSection);
     }
     
-    void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst) const
+    void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1) const
     {
-      for (const auto& dep : data.Dependencies)
+      if (level < MAX_LEVEL)
       {
-        MergeMeta(additionalFiles.at(dep), additionalFiles, dst);
+        for (const auto& dep : data.Dependencies)
+        {
+          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
+        }
       }
       if (data.Meta)
       {

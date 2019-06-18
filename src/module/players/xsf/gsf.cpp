@@ -424,29 +424,34 @@ namespace GSF
     now supported.
 
     */
-    static void MergeRom(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static const uint_t MAX_LEVEL = 10;
+
+    static void MergeRom(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
       auto it = data.Dependencies.begin();
       const auto lim = data.Dependencies.end();
-      if (it != lim)
+      if (it != lim && level < MAX_LEVEL)
       {
-        MergeRom(additionalFiles.at(*it), additionalFiles, dst);
+        MergeRom(additionalFiles.at(*it), additionalFiles, dst, level + 1);
       }
       dst.AddRom(data.PackedProgramSection);
-      if (it != lim)
+      if (it != lim && level < MAX_LEVEL)
       {
         for (++it; it != lim; ++it)
         {
-          MergeRom(additionalFiles.at(*it), additionalFiles, dst);
+          MergeRom(additionalFiles.at(*it), additionalFiles, dst, level + 1);
         }
       }
     }
     
-    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
-      for (const auto& dep : data.Dependencies)
+      if (level < MAX_LEVEL)
       {
-        MergeMeta(additionalFiles.at(dep), additionalFiles, dst);
+        for (const auto& dep : data.Dependencies)
+        {
+          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
+        }
       }
       if (data.Meta)
       {

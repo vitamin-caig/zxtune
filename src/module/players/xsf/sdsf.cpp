@@ -394,29 +394,34 @@ namespace SDSF
       - Start at N=2. Stop at the first tag name that doesn't exist.
     - (done)    
     */
-    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static const uint_t MAX_LEVEL = 10;
+
+    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
       auto it = data.Dependencies.begin();
       const auto lim = data.Dependencies.end();
-      if (it != lim)
+      if (it != lim && level < MAX_LEVEL)
       {
-        MergeSections(additionalFiles.at(*it), additionalFiles, dst);
+        MergeSections(additionalFiles.at(*it), additionalFiles, dst, level + 1);
       }
       dst.AddSection(data.PackedProgramSection);
-      if (it != lim)
+      if (it != lim && level < MAX_LEVEL)
       {
         for (++it; it != lim; ++it)
         {
-          MergeSections(additionalFiles.at(*it), additionalFiles, dst);
+          MergeSections(additionalFiles.at(*it), additionalFiles, dst, level + 1);
         }
       }
     }
 
-    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
-      for (const auto& dep : data.Dependencies)
+      if (level < MAX_LEVEL)
       {
-        MergeMeta(additionalFiles.at(dep), additionalFiles, dst);
+        for (const auto& dep : data.Dependencies)
+        {
+          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
+        }
       }
       if (data.Meta)
       {

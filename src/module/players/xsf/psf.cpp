@@ -537,20 +537,22 @@ namespace PSF
       - Start at N=2. Stop at the first tag name that doesn't exist.
     - (done)    
     */
-    static void MergeExe(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static const uint_t MAX_LEVEL = 10;
+
+    static void MergeExe(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
       auto it = data.Dependencies.begin();
       const auto lim = data.Dependencies.end();
-      if (it != lim)
+      if (it != lim && level < MAX_LEVEL)
       {
-        MergeExe(additionalFiles.at(*it), additionalFiles, dst);
+        MergeExe(additionalFiles.at(*it), additionalFiles, dst, level + 1);
       }
       dst.AddExe(data.PackedProgramSection);
-      if (it != lim)
+      if (it != lim && level < MAX_LEVEL)
       {
         for (++it; it != lim; ++it)
         {
-          MergeExe(additionalFiles.at(*it), additionalFiles, dst);
+          MergeExe(additionalFiles.at(*it), additionalFiles, dst, level + 1);
         }
       }
     }
@@ -566,20 +568,26 @@ namespace PSF
 
     If there are conflicting or redundant filenames, they should be overwritten in memory in the order in which the filesystem data was parsed. Later takes priority.
     */
-    static void MergeVfs(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static void MergeVfs(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
-      for (const auto& dep : data.Dependencies)
+      if (level < MAX_LEVEL)
       {
-        MergeVfs(additionalFiles.at(dep), additionalFiles, dst);
+        for (const auto& dep : data.Dependencies)
+        {
+          MergeVfs(additionalFiles.at(dep), additionalFiles, dst, level + 1);
+        }
       }
       dst.AddVfs(*data.ReservedSection);
     }
     
-    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
-      for (const auto& dep : data.Dependencies)
+      if (level < MAX_LEVEL)
       {
-        MergeMeta(additionalFiles.at(dep), additionalFiles, dst);
+        for (const auto& dep : data.Dependencies)
+        {
+          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
+        }
       }
       if (data.Meta)
       {

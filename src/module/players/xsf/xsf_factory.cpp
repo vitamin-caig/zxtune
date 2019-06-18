@@ -88,8 +88,14 @@ namespace XSF
       for (const auto& dep : file.Dependencies)
       {
         Require(!dep.empty());
-        Require(Files.emplace(dep, File()).second);
-        Dbg("Found unresolved dependency '%1%'", dep);
+        if (Files.emplace(dep, File()).second)
+        {
+          Dbg("Found unresolved dependency '%1%'", dep);
+        }
+        else
+        {
+          Dbg("Reuse already resolved dependency '%1%'", dep);
+        }
       }
     }
     

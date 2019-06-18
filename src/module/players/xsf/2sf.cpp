@@ -449,11 +449,13 @@ namespace TwoSF
       return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
   private:
-    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static const uint_t MAX_LEVEL = 10;
+
+    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
-      if (!data.Dependencies.empty())
+      if (!data.Dependencies.empty() && level < MAX_LEVEL)
       {
-        MergeSections(additionalFiles.at(data.Dependencies.front()), additionalFiles, dst);
+        MergeSections(additionalFiles.at(data.Dependencies.front()), additionalFiles, dst, level + 1);
       }
       if (data.PackedProgramSection)
       {
@@ -465,11 +467,14 @@ namespace TwoSF
       }
     }
     
-    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst)
+    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
     {
-      for (const auto& dep : data.Dependencies)
+      if (level < MAX_LEVEL)
       {
-        MergeMeta(additionalFiles.at(dep), additionalFiles, dst);
+        for (const auto& dep : data.Dependencies)
+        {
+          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
+        }
       }
       if (data.Meta)
       {
