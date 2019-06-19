@@ -39,7 +39,7 @@ namespace Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ChipTracker");
 
-    const std::size_t MAX_MODULE_SIZE = 65536;
+    //const std::size_t MAX_MODULE_SIZE = 65536;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t MAX_PATTERNS_COUNT = 31;
     const uint_t CHANNELS_COUNT = 4;

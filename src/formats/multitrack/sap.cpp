@@ -33,7 +33,7 @@ namespace Multitrack
 {
   namespace SAP
   {
-    const std::size_t MAX_SIZE = 1048576;
+    //const std::size_t MAX_SIZE = 1048576;
     
     const std::string FORMAT =
       "'S'A'P"

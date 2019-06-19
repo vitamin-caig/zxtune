@@ -249,8 +249,8 @@ namespace Chiptune
       void SetVolume(uint_t /*volume*/) override {}
       void DisableOrnament() override {}
       void SetEnvelopeReinit(bool /*enabled*/) override {}
-      void SetEnvelopeTone(uint_t type, uint_t /*tone*/) override {}
-      void SetEnvelopeNote(uint_t type, uint_t /*note*/) override {}
+      void SetEnvelopeTone(uint_t /*type*/, uint_t /*tone*/) override {}
+      void SetEnvelopeNote(uint_t /*type*/, uint_t /*note*/) override {}
     };
 
     class StatisticCollectingBuilder : public Builder

@@ -38,7 +38,7 @@ namespace Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SampleTracker");
 
-    const std::size_t MAX_MODULE_SIZE = 0x87a0;
+    //const std::size_t MAX_MODULE_SIZE = 0x87a0;
     const std::size_t MAX_POSITIONS_COUNT = 0x40;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t PATTERNS_COUNT = 16;

@@ -412,7 +412,7 @@ namespace ProTracker3
 
       void Dump(std::ostream& str) const
       {
-        for (auto idx = 0; idx != Parent::size(); ++idx)
+        for (uint_t idx = 0; idx != Parent::size(); ++idx)
         {
           if (idx != 0)
           {

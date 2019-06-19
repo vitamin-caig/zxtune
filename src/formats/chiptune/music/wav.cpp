@@ -303,7 +303,7 @@ namespace Chiptune
         Storage.Add(fromLE<uint32_t>(count));
       }
       
-      Binary::Container::Ptr GetDump()
+      Binary::Container::Ptr GetDump() override
       {
         Storage.Get<uint32_t>(4) = fromLE(Storage.Size() - 8);
         return Storage.CaptureResult();

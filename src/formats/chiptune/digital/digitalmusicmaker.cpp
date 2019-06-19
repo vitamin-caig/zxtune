@@ -38,8 +38,8 @@ namespace Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::DigitalMusicMaker");
 
-    const std::size_t MAX_POSITIONS_COUNT = 0x32;
-    const std::size_t MAX_PATTERN_SIZE = 64;
+    //const std::size_t MAX_POSITIONS_COUNT = 0x32;
+    //const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t PATTERNS_COUNT = 24;
     const std::size_t CHANNELS_COUNT = 3;
     const std::size_t SAMPLES_COUNT = 16;//15 really

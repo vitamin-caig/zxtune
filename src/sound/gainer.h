@@ -20,6 +20,8 @@ namespace Sound
   {
   public:
     typedef std::shared_ptr<const GainSource> Ptr;
+
+    virtual ~GainSource() = default;
     
     virtual Gain::Type Get() const = 0;
   };

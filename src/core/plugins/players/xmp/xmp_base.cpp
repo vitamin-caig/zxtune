@@ -450,11 +450,11 @@ namespace Xmp
   void ParseStrings(const xmp_module& mod, PropertiesHelper& props)
   {
     Strings::Array strings;
-    for (uint_t idx = 0; idx < mod.smp; ++idx)
+    for (int idx = 0; idx < mod.smp; ++idx)
     {
       strings.push_back(DecodeString(mod.xxs[idx].name));
     }
-    for (uint_t idx = 0; idx < mod.ins; ++idx)
+    for (int idx = 0; idx < mod.ins; ++idx)
     {
       strings.push_back(DecodeString(mod.xxi[idx].name));
     }

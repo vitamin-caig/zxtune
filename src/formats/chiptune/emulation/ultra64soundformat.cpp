@@ -28,7 +28,6 @@ namespace Chiptune
     typedef std::array<uint8_t, 4> SignatureType;
     const SignatureType EMPTY_SIGNATURE = {{0, 0, 0, 0}};
     const SignatureType SR64_SIGNATURE = {{'S', 'R', '6', '4'}};
-    const SignatureType SAVESTATE_SIGNATURE = {{0xc8, 0xa6, 0xd8, 0x23}};
     
     class SectionFormat
     {

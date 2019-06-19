@@ -116,7 +116,7 @@ namespace SPC
         const auto band = Analysis.GetBandByScaledFrequency(pitch);
         result.Set(band, LevelType(levelInt, 127));
       }
-      return std::move(result);
+      return result;
     }
   private:
     inline static void CheckError(::blargg_err_t err)

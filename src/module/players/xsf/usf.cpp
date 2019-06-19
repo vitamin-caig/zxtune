@@ -368,7 +368,7 @@ namespace USF
       return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
     
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const std::map<String, XSF::File>& additionalFiles, Parameters::Container::Ptr properties) const
+    Holder::Ptr CreateMultifileModule(const XSF::File& file, const std::map<String, XSF::File>& additionalFiles, Parameters::Container::Ptr properties) const override
     {
       ModuleDataBuilder builder;
       MergeSections(file, additionalFiles, builder);

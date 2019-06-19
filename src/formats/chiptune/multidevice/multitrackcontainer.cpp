@@ -36,7 +36,6 @@ namespace IFF
     const Type AUTHOR = {{'A', 'U', 'T', 'H'}};
     const Type NAME = {{'N', 'A', 'M', 'E'}};
     const Type ANNOTATION = {{'A', 'N', 'N', 'O'}};
-    const Type VERSION = {{'F', 'V', 'E', 'R'}};
     
     //Custom
     const Type MTC1 = {{'M', 'T', 'C', '1'}};

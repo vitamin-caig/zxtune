@@ -221,7 +221,6 @@ namespace Ogg
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Data(MakeRWPtr<Model>())
-      , Properties(props)
       , Meta(props)
     {
     }
@@ -237,7 +236,7 @@ namespace Ogg
       Data->Frequency = frequency;
     }
     
-    void AddFrame(std::size_t /*offset*/, uint_t samples)
+    void AddFrame(std::size_t /*offset*/, uint_t samples) override
     {
       Data->TotalSamples += samples;
     }
@@ -268,7 +267,6 @@ namespace Ogg
     }
   private:
     const Model::RWPtr Data;
-    PropertiesHelper& Properties;
     MetaProperties Meta;
   };
   

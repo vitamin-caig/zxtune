@@ -38,7 +38,7 @@ namespace Chiptune
 
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x3600;
-    const std::size_t MAX_POSITIONS_COUNT = 120;
+    //const std::size_t MAX_POSITIONS_COUNT = 120;
     const std::size_t MIN_PATTERN_SIZE = 11;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t MAX_PATTERNS_COUNT = 99;

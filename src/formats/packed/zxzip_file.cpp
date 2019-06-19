@@ -36,7 +36,7 @@ namespace Packed
   namespace ZXZip
   {
     const std::size_t MIN_SIZE = 0x16 + 32;
-    const std::size_t MAX_DECODED_SIZE = 0xff00;
+    //const std::size_t MAX_DECODED_SIZE = 0xff00;
     //checkers
     const std::string HEADER_PATTERN =
       //Filename

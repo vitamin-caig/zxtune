@@ -71,7 +71,7 @@ namespace Multitrack
     static_assert(sizeof(InfoChunk) == 8, "Invalid layout");
     static_assert(sizeof(InfoChunkFull) == 10, "Invalid layout");
     
-    const std::size_t MAX_SIZE = 1048576;
+    //const std::size_t MAX_SIZE = 1048576;
 
     const std::string FORMAT =
       "'N'S'F'E"

@@ -51,9 +51,9 @@ namespace Chiptune
     const std::size_t MAX_ORNAMENTS_COUNT = 32;
     const std::size_t MAX_ORNAMENT_SIZE = 32;
     const std::size_t MIN_PATTERN_SIZE = 1;//???
-    const std::size_t MAX_PATTERN_SIZE = 64;//???
+    //const std::size_t MAX_PATTERN_SIZE = 64;//???
     const std::size_t MAX_PATTERNS_COUNT = 32;
-    const std::size_t MAX_POSITIONS_COUNT = 100;
+    //const std::size_t MAX_POSITIONS_COUNT = 100;
 
     /*
       Typical module structure

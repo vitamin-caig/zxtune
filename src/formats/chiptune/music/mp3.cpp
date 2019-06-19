@@ -358,7 +358,7 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
 
-      void AddFrame(const Frame& /*frame*/)
+      void AddFrame(const Frame& /*frame*/) override
       {
       }
     };
