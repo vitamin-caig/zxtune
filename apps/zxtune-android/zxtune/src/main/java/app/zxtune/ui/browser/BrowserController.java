@@ -18,7 +18,7 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import app.zxtune.Analytics;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.R;

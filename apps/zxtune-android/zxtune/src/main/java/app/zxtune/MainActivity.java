@@ -30,6 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.models.MediaSessionConnection;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.ui.AboutFragment;

@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.analytics.Analytics;
 import app.zxtune.core.Player;
 import app.zxtune.core.Properties;
 import app.zxtune.device.ui.Notifications;

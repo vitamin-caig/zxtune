@@ -26,7 +26,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-import app.zxtune.Analytics;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.MainActivity;
 import app.zxtune.MainService;

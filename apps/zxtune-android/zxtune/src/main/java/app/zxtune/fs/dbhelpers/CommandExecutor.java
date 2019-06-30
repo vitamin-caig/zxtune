@@ -3,12 +3,10 @@ package app.zxtune.fs.dbhelpers;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.Analytics;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.http.HttpObject;

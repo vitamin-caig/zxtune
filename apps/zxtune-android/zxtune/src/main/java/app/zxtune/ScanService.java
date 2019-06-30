@@ -19,6 +19,7 @@ import android.os.PowerManager.WakeLock;
 import android.support.v4.os.CancellationSignal;
 import android.support.v4.os.OperationCanceledException;
 import android.widget.Toast;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.Scanner;

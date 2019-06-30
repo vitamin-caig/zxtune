@@ -9,7 +9,6 @@
  */
 package app.zxtune.ui;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,7 +24,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import app.zxtune.Analytics;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.playlist.PlaylistQuery;

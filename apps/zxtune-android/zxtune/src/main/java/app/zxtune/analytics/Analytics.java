@@ -1,8 +1,11 @@
-package app.zxtune;
+package app.zxtune.analytics;
 
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import app.zxtune.BuildConfig;
+import app.zxtune.Log;
+import app.zxtune.TimeStamp;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;

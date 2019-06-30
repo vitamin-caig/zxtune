@@ -9,7 +9,7 @@ package app.zxtune.playback.service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import app.zxtune.Analytics;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;

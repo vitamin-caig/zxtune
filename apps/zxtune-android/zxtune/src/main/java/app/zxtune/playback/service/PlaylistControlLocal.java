@@ -10,7 +10,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.Nullable;
 import android.util.SparseIntArray;
-import app.zxtune.Analytics;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playlist.Database;
 import app.zxtune.playlist.PlaylistQuery;
