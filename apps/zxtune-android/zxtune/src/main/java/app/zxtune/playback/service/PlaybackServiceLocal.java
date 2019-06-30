@@ -9,6 +9,7 @@ package app.zxtune.playback.service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
@@ -176,7 +177,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   private void setNewHolder(Holder newHolder) {
     navigateCmd.cancel();
-    holder.set(newHolder);
+    holder.getAndSet(newHolder).sendAnalytics();
     player.setSource(newHolder.source);
     callbacks.onItemChanged(newHolder.item);
     callbacks.onStateChanged(getState(), TimeStamp.EMPTY);
@@ -217,6 +218,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     stopSync();
     shutdownExecutor();
     player.release();
+    holder.get().sendAnalytics();
   }
 
   private void stopSync() {
@@ -286,6 +288,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       final app.zxtune.core.Player lowPlayer = item.getModule().createPlayer();
       this.source = new SeekableSamplesSource(lowPlayer);
       this.visualizer = new PlaybackVisualizer(lowPlayer);
+    }
+
+    final void sendAnalytics() {
+      if (this != instance()) {
+        Analytics.sendPlayEvent(item);
+      }
     }
 
     public static Holder instance() {

@@ -8,9 +8,7 @@ import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
-import app.zxtune.playback.Item;
 import app.zxtune.playback.PlayableItem;
-import app.zxtune.playback.stubs.CallbackStub;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
@@ -41,20 +39,7 @@ public class Analytics {
     Crashlytics.logException(e);
   }
 
-  public static class PlaybackEventsCallback extends CallbackStub {
-
-    private Item lastItem = null;
-
-    @Override
-    public void onItemChanged(Item item) {
-      if (lastItem != null) {
-        sendPlayEvent((PlayableItem) lastItem);
-      }
-      lastItem = item;
-    }
-  }
-
-  private static void sendPlayEvent(PlayableItem item) {
+  public static void sendPlayEvent(PlayableItem item) {
     try {
       final Identifier id = item.getDataId();
       final Uri location = id.getFullLocation();

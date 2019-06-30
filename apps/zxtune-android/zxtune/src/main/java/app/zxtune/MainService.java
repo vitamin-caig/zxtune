@@ -102,7 +102,6 @@ public class MainService extends MediaBrowserServiceCompat {
     StatusNotification.connect(this, mediaSessionControl.getSession());
     setSessionToken(mediaSessionControl.getSession().getSessionToken());
 
-    service.subscribe(new Analytics.PlaybackEventsCallback());
     service.subscribe(new PlayingStateCallback(ctx));
 
     WidgetHandler.connect(ctx, mediaSessionControl.getSession());
