@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
+import app.zxtune.core.Player;
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.playback.PlayableItem;
@@ -39,7 +40,7 @@ public class Analytics {
     Crashlytics.logException(e);
   }
 
-  public static void sendPlayEvent(PlayableItem item) {
+  public static void sendPlayEvent(PlayableItem item, Player player) {
     try {
       final Identifier id = item.getDataId();
       final Uri location = id.getFullLocation();
@@ -59,20 +60,18 @@ public class Analytics {
               .putCustomAttribute("Library", fromBrowser ? "Browser" : "Playlist")
       ;
       send(event);
+
+      sendPerformanceEvent(player.getPerformance(), type);
     } catch (Exception e) {
       Log.w(TAG, e, "sendPlayEvent");
     }
   }
 
-  public static void sendPerformanceEvent(int perf, String type) {
-    try {
-      if (perf != 0) {
-        final CustomEvent event = new CustomEvent("Performance");
-        event.putCustomAttribute(type + " playback,%", perf);
-        send(event);
-      }
-    } catch (Exception e) {
-      Log.w(TAG, e, "sendPerformanceEvent");
+  private static void sendPerformanceEvent(int perf, String type) {
+    if (perf != 0) {
+      final CustomEvent event = new CustomEvent("Performance");
+      event.putCustomAttribute(type + " playback,%", perf);
+      send(event);
     }
   }
 

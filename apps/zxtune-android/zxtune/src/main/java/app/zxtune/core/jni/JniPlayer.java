@@ -11,11 +11,10 @@ public final class JniPlayer implements Player {
 
   JniPlayer(int handle) {
     this.handle = handle;
-    JniGC.register(this, handle, getProperty(ModuleAttributes.TYPE, "Unknown"));
+    JniGC.register(this, handle);
   }
 
   static native void close(int handle);
-  static native int getPlaybackPerformance(int player);
 
   @Override
   public native boolean render(@NonNull short[] result);
@@ -28,6 +27,9 @@ public final class JniPlayer implements Player {
 
   @Override
   public native void setPosition(int pos);
+
+  @Override
+  public native int getPerformance();
 
   @Override
   public native long getProperty(@NonNull String name, long defVal);

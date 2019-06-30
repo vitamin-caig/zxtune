@@ -17,14 +17,6 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_close
 
 /*
  * Class:     app_zxtune_core_jni_JniPlayer
- * Method:    getPlaybackPerformance
- * Signature: (I)I
- */
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPlaybackPerformance
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     app_zxtune_core_jni_JniPlayer
  * Method:    render
  * Signature: ([S)Z
  */
@@ -54,6 +46,14 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPosition
  */
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPosition
   (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     app_zxtune_core_jni_JniPlayer
+ * Method:    getPerformance
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPerformance
+  (JNIEnv *, jobject);
 
 /*
  * Class:     app_zxtune_core_jni_JniPlayer

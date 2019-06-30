@@ -274,25 +274,27 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private static class Holder {
 
     public final PlayableItem item;
+    private final app.zxtune.core.Player player;
     public final SamplesSource source;
     public final Visualizer visualizer;
 
     private Holder() {
       this.item = PlayableItemStub.instance();
+      this.player = null;
       this.source = StubSamplesSource.instance();
       this.visualizer = VisualizerStub.instance();
     }
 
     Holder(PlayableItem item) {
       this.item = item;
-      final app.zxtune.core.Player lowPlayer = item.getModule().createPlayer();
-      this.source = new SeekableSamplesSource(lowPlayer);
-      this.visualizer = new PlaybackVisualizer(lowPlayer);
+      this.player = item.getModule().createPlayer();
+      this.source = new SeekableSamplesSource(player);
+      this.visualizer = new PlaybackVisualizer(player);
     }
 
     final void sendAnalytics() {
       if (this != instance()) {
-        Analytics.sendPlayEvent(item);
+        Analytics.sendPlayEvent(item, player);
       }
     }
 

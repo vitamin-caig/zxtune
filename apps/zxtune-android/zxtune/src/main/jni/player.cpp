@@ -426,11 +426,12 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPosition
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPlaybackPerformance
-  (JNIEnv* env, jclass /*self*/, jint playerHandle)
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPerformance
+  (JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=] ()
   {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     return Player::Storage::Instance().Get(playerHandle)->GetPlaybackPerformance();
   });
 }

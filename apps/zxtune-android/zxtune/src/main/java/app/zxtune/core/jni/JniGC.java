@@ -1,9 +1,5 @@
 package app.zxtune.core.jni;
 
-import android.support.annotation.Nullable;
-import app.zxtune.Analytics;
-import app.zxtune.Log;
-import app.zxtune.core.Module;
 import app.zxtune.core.Player;
 
 import java.lang.ref.ReferenceQueue;
@@ -42,16 +38,12 @@ class JniGC {
     }
   }
 
-  static void register(Module owner, int handle) {
-    Holder.instance.registerInternal(owner, handle, null);
+  static void register(Object owner, int handle) {
+    Holder.instance.registerInternal(owner, handle);
   }
 
-  static void register(Player owner, int handle, String type) {
-    Holder.instance.registerInternal(owner, handle, type);
-  }
-
-  private void registerInternal(Object owner, int handle, String type) {
-    final HandleReference ref = new HandleReference(deadRefs, owner, handle, type);
+  private void registerInternal(Object owner, int handle) {
+    final HandleReference ref = new HandleReference(deadRefs, owner, handle);
     handles.add(ref);
     ++registeredObjects;
   }
@@ -63,28 +55,19 @@ class JniGC {
   private static class HandleReference extends WeakReference<Object> {
 
     private final int handle;
-    private final String playerType;
+    private final boolean isPlayer;
 
-    private HandleReference(ReferenceQueue<? super Object> queue, Object owner, int handle, @Nullable String playerType) {
+    private HandleReference(ReferenceQueue<? super Object> queue, Object owner, int handle) {
       super(owner, queue);
       this.handle = handle;
-      this.playerType = playerType;
+      this.isPlayer = owner instanceof Player;
     }
 
     private void destroy() {
-      if (playerType != null) {
-        sendPlayerStatistics();
+      if (isPlayer) {
         JniPlayer.close(handle);
       } else {
         JniModule.close(handle);
-      }
-    }
-
-    private void sendPlayerStatistics() {
-      try {
-        Analytics.sendPerformanceEvent(JniPlayer.getPlaybackPerformance(handle), playerType);
-      } catch (Throwable e) {
-        Log.w("app.zxtune.ZXTune", e, "Failed to send player statistics");
       }
     }
   }
