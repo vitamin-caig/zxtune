@@ -172,18 +172,6 @@ public class Analytics {
     send(event);
   }
 
-  public static void sendJniLoadEvent(long time) {
-    final CustomEvent event = new CustomEvent("Investigation");
-    event.putCustomAttribute("JniLoadTime,ms", time);
-    send(event);
-  }
-
-  public static void sendServiceStartEvent(@Nullable String action) {
-    final CustomEvent event = new CustomEvent("Investigation");
-    event.putCustomAttribute("MainService/StartAction", "" + action);
-    send(event);
-  }
-
   public static class JniLog {
     private final String prefix;
 
