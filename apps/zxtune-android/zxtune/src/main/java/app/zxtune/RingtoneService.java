@@ -97,7 +97,7 @@ public class RingtoneService extends IntentService {
       convert(item, howMuch, target);
       final String title = setAsRingtone(item, howMuch, target);
       Notifications.sendEvent(this, R.drawable.ic_stat_notify_ringtone, R.string.ringtone_changed, title);
-      Analytics.sendSocialEvent("Ringtone", "app.zxtune", source);
+      Analytics.sendSocialEvent(source,"app.zxtune", Analytics.SOCIAL_ACTION_RINGTONE);
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to create ringtone");
       makeToast(e);

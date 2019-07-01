@@ -185,7 +185,7 @@ public class PlaylistSaveFragment extends DialogFragment {
         Log.w(TAG, error, "Failed to save");
       } else {
         Toast.makeText(context, R.string.saved, Toast.LENGTH_SHORT).show();
-        Analytics.sendPlaylistEvent("Save", ids != null ? "selection" : "all");
+        Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_SAVE, ids != null ? ids.length : 0);
       }
     }
   }

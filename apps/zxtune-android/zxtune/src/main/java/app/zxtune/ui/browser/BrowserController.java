@@ -81,7 +81,7 @@ public class BrowserController {
       loaderManager.destroyLoader(LOADER_ID);
       final LoaderManager.LoaderCallbacks<?> cb = SearchingLoaderCallback.create(this, currentDir, query);
       loaderManager.initLoader(LOADER_ID, null, cb).forceLoad();
-      Analytics.sendSearchEvent(currentDir);
+      Analytics.sendBrowserEvent(currentDir.getUri(), Analytics.BROWSER_ACTION_SEARCH);
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to search");
       showError(e);
@@ -120,7 +120,7 @@ public class BrowserController {
   public final void browseDir(VfsDir dir) {
     if (dir != null) {
       setCurrentDir(dir);
-      Analytics.sendBrowseEvent(dir);
+      Analytics.sendBrowserEvent(dir.getUri(), Analytics.BROWSER_ACTION_BROWSE);
     }
   }
 

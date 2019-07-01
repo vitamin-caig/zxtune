@@ -120,10 +120,10 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
     final boolean isShare = requestCode == REQUEST_SHARE;
     final boolean isSend = requestCode == REQUEST_SEND;
     if (data != null && (isShare || isSend)) {
-      final String method = isShare ? "Share" : "Send";
+      final int method = isShare ? Analytics.SOCIAL_ACTION_SHARE : Analytics.SOCIAL_ACTION_SEND;
       final String appName = data.getComponent().getPackageName();
       final Uri location = data.getParcelableExtra(EXTRA_ITEM_LOCATION);
-      Analytics.sendSocialEvent(method, appName, location);
+      Analytics.sendSocialEvent(location, appName, method);
 
       data.removeExtra(EXTRA_ITEM_LOCATION);
       startActivity(data);

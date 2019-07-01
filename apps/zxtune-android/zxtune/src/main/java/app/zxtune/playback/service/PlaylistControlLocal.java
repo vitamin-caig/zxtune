@@ -28,17 +28,18 @@ class PlaylistControlLocal implements PlaylistControl {
   @Override
   public void delete(long[] ids) {
     deleteItems(PlaylistQuery.selectionFor(ids));
+    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_DELETE, ids.length);
   }
 
   @Override
   public void deleteAll() {
     deleteItems(null);
+    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_DELETE, 0);
   }
 
   private void deleteItems(@Nullable String selection) {
     db.deletePlaylistItems(selection, null);
     notifyPlaylist();
-    Analytics.sendPlaylistEvent("Delete", selection != null ? "selection" : "global");
   }
 
   private void notifyPlaylist() {
@@ -83,7 +84,7 @@ class PlaylistControlLocal implements PlaylistControl {
     final SparseIntArray positions = getNewPositions(id, delta);
     db.updatePlaylistItemsOrder(positions);
     notifyPlaylist();
-    Analytics.sendPlaylistEvent("Move", null);
+    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_MOVE, 1);
   }
 
   private SparseIntArray getNewPositions(long id, int delta) {
@@ -117,6 +118,7 @@ class PlaylistControlLocal implements PlaylistControl {
     final String orderString = order == SortOrder.desc ? "DESC" : "ASC";
     db.sortPlaylistItems(field, orderString);
     notifyPlaylist();
-    Analytics.sendPlaylistEvent("Sort", by.name() + "/" + order.name());
+    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_SORT,
+        100 * by.ordinal() + order.ordinal());
   }
 }
