@@ -236,19 +236,34 @@ public class Analytics {
     }
   }
 
-  public static void sendVfsRemoteEvent(String id, String scope) {
-    sendVfsEvent(id, scope, "remote");
-  }
+  @Retention(SOURCE)
+  @IntDef({VFS_ACTION_REMOTE_FETCH, VFS_ACTION_REMOTE_FALLBACK, VFS_ACTION_CACHED_FETCH, VFS_ACTION_CACHED_FALLBACK})
+  @interface VfsAction {}
 
-  public static void sendVfsCacheEvent(String id, String scope) {
-    sendVfsEvent(id, scope, "cache");
-  }
+  public static final int VFS_ACTION_REMOTE_FETCH = 0;
+  public static final int VFS_ACTION_REMOTE_FALLBACK = 1;
+  public static final int VFS_ACTION_CACHED_FETCH = 2;
+  public static final int VFS_ACTION_CACHED_FALLBACK = 3;
 
-  private static void sendVfsEvent(String id, String scope, String type) {
+  public static void sendVfsEvent(String id, String scope, @VfsAction int action) {
     final CustomEvent event = new CustomEvent("Vfs");
+    final String type = serializeVfsAction(action);
     event.putCustomAttribute(id, type);
     event.putCustomAttribute(id + "/" + scope, type);
     send(event);
+  }
+
+  private static String serializeVfsAction(@VfsAction int action) {
+    switch (action) {
+      case VFS_ACTION_REMOTE_FETCH:
+      case VFS_ACTION_REMOTE_FALLBACK:
+        return "remote";
+      case VFS_ACTION_CACHED_FETCH:
+      case VFS_ACTION_CACHED_FALLBACK:
+        return "cache";
+      default:
+        return "";
+    }
   }
 
   public static void sendNoTracksFoundEvent(Uri uri) {
@@ -259,7 +274,7 @@ public class Analytics {
     Analytics.sendNoTracksFoundEvent(source, type);
   }
 
-  public static void sendNoTracksFoundEvent(String source, String type) {
+  private static void sendNoTracksFoundEvent(String source, String type) {
     final CustomEvent event = new CustomEvent("Investigation");
     event.putCustomAttribute("NoTracksType", type);
     event.putCustomAttribute("NoTracksTypeDetailed", source + "/" + type);

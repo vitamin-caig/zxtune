@@ -34,7 +34,7 @@ final class CachingCatalog extends Catalog {
   private final CacheDir cache;
   private final CommandExecutor executor;
 
-  public CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
+  CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
     this.remote = remote;
     this.db = db;
     this.cache = cache.createNested("www.zxtunes.com");
@@ -43,7 +43,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery("authors", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "authors";
+      }
+
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorsLifetime(AUTHORS_TTL);
@@ -73,7 +79,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthorTracks(final Author author, final TracksVisitor visitor) throws IOException {
-    executor.executeQuery("tracks", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "tracks";
+      }
+
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorTracksLifetime(author, TRACKS_TTL);

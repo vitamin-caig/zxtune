@@ -53,7 +53,13 @@ final class CachingCatalog extends Catalog {
   @Override
   public void parseDir(final Path path, final DirVisitor visitor) throws IOException {
     final String dirName = path.getLocalId();
-    executor.executeQuery("dir", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "dir";
+      }
+
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getDirLifetime(dirName, DIR_TTL);
