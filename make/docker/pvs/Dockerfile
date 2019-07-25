@@ -23,7 +23,7 @@ RUN pvs-studio-analyzer credentials ${pvs_name} ${pvs_code}
 WORKDIR /build/zxtune
 RUN git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=x86_64\npackaging?=deb\ndistro?=stretch\nqt.includes=/usr/include/qt4\nlibraries.linux+=icuuc icudata\ntools.python=python3" >
+    echo "platform=linux\narch=x86_64\npackaging?=deb\ndistro?=stretch\nqt.includes=/usr/include/qt4\nlibraries.linux+=icuuc icudata\ntools.python=python3" > variables.mak
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["-C", "apps/bundle"]
