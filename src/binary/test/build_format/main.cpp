@@ -313,7 +313,7 @@ namespace
     const std::size_t size = stream.tellg();
     stream.seekg(0);
     Dump tmp(size);
-    stream.read(safe_ptr_cast<char*>(&tmp[0]), tmp.size());
+    stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     return tmp;
   }
 }
@@ -358,7 +358,7 @@ int main(int argc, char* argv[])
       {
         const std::string filename = argv[idx];
         const Dump& data = Read(filename);
-        const Binary::DataAdapter adapter(&data[0], data.size());
+        const Binary::DataAdapter adapter(data.data(), data.size());
         if (!check->Match(adapter))
         {
           throw std::runtime_error(Strings::Format("Not matched for %1%", filename));

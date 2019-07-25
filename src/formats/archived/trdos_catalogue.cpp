@@ -337,7 +337,7 @@ namespace TRDos
         return Subfiles.front()->GetData();
       }
       std::unique_ptr<Dump> res(new Dump(GetSize()));
-      uint8_t* dst = &res->front();
+      auto* dst = res->data();
       for (const auto& file : Subfiles)
       {
         const Binary::Container::Ptr data = file->GetData();

@@ -29,7 +29,7 @@ namespace Sound
     void Reserve(std::size_t maxSize)
     {
       Content.resize(maxSize);
-      Pos = &Content.front();
+      Pos = Content.data();
     }
 
     void Add(Sample smp)
@@ -48,7 +48,7 @@ namespace Sound
 
     Chunk CaptureResult()
     {
-      Content.resize(Pos - &Content.front());
+      Content.resize(Pos - Content.data());
       return std::move(Content);
     }
   private:

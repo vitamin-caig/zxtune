@@ -137,8 +137,8 @@ namespace Chiptune
     {
       Require(GetHeader(data));
       std::unique_ptr<Dump> content(new Dump(data.Size()));
-      std::memcpy(&content->front(), data.Start(), content->size());
-      RawHeader& hdr = *safe_ptr_cast<RawHeader*>(&content->front());
+      std::memcpy(content->data(), data.Start(), content->size());
+      RawHeader& hdr = *safe_ptr_cast<RawHeader*>(content->data());
       hdr.StartSong = fromBE<uint16_t>(idx);
       return Binary::CreateContainer(std::move(content));
     }

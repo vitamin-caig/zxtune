@@ -172,7 +172,7 @@ namespace Packed
         try
         {
           std::unique_ptr<Dump> result(new Dump(outSize));
-          Stream.SetUnpackToMemory(&result->front(), outSize);
+          Stream.SetUnpackToMemory(result->data(), outSize);
           Decoder.SetDestSize(outSize);
           Decoder.DoUnpack(method, isSolid);
           if (crc != Stream.GetUnpackedCrc())

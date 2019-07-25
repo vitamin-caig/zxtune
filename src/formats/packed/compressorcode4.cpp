@@ -501,7 +501,7 @@ namespace Packed
       {
         if (container.FastCheck() && DecodeHuffman(container.GetAvailableData() - DataOffset))
         {
-          Delegate.reset(new RawDataDecoder(&UnhuffmanData[0], UnhuffmanData.size(), fromLE(Header.ChunksCount)));
+          Delegate.reset(new RawDataDecoder(UnhuffmanData.data(), UnhuffmanData.size(), fromLE(Header.ChunksCount)));
         }
       }
 

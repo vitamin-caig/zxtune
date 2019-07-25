@@ -103,7 +103,7 @@ namespace Wav
       using Traits = MultichannelSampleTraits<Type, Channels>;
       const auto typedData = static_cast<const typename Traits::UnderlyingType*>(data);
       Sound::Chunk result(countHint);
-      std::transform(typedData, typedData + countHint, &result.front(), &Traits::ConvertSample);
+      std::transform(typedData, typedData + countHint, result.data(), &Traits::ConvertSample);
       return result;
     }
     

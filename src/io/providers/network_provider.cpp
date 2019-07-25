@@ -189,7 +189,7 @@ namespace Network
       const std::size_t toSave = size * nmemb;
       const std::size_t prevSize = result->size();
       result->resize(prevSize + toSave);
-      std::memcpy(&result->front() + prevSize, ptr, toSave);
+      std::memcpy(result->data() + prevSize, ptr, toSave);
       return toSave;
     }
 

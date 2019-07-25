@@ -54,7 +54,7 @@ namespace
     const std::size_t size = stream.tellg();
     stream.seekg(0);
     Dump tmp(size);
-    stream.read(safe_ptr_cast<char*>(&tmp[0]), tmp.size());
+    stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     return tmp;
   }
 
@@ -74,7 +74,7 @@ namespace
       const Binary::Container::Ptr data = Resource::Load(name);
       const Dump& ref = Etalons[name];
       TestEq("Test file is expected size", ref.size(), data->Size());
-      Test("Test file is expected content", 0 == std::memcmp(&ref[0], data->Start(), ref.size()));
+      Test("Test file is expected content", 0 == std::memcmp(ref.data(), data->Start(), ref.size()));
       Etalons.erase(name);
     }
 

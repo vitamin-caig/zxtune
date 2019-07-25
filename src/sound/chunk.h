@@ -49,27 +49,27 @@ namespace Sound
 
     iterator begin()
     {
-      return &front();
+      return data();
     }
 
     const_iterator begin() const
     {
-      return &front();
+      return data();
     }
 
     iterator end()
     {
-      return &back() + 1;
+      return data() + size();
     }
 
     const_iterator end() const
     {
-      return &back() + 1;
+      return data() + size();
     }
 
     void ToS16(void* target) const
     {
-      std::memcpy(target, &front(), size() * sizeof(front()));
+      std::memcpy(target, data(), size() * sizeof(front()));
     }
 
     void ToS16() {}

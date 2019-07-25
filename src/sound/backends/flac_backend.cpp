@@ -145,7 +145,7 @@ namespace Flac
       if (const std::size_t samples = data.size())
       {
         Buffer.resize(samples);
-        std::transform(data.begin(), data.end(), &Buffer.front(), &ConvertSample);
+        std::transform(data.begin(), data.end(), Buffer.data(), &ConvertSample);
         CheckFlacCall(FlacApi->FLAC__stream_encoder_process_interleaved(Encoder.get(), &Buffer[0].first, samples), THIS_LINE);
       }
     }

@@ -191,7 +191,7 @@ namespace Archived
         const size_t nameLen = SzArEx_GetFileNameUtf16(&Db, idx, nullptr);
         Require(nameLen > 0);
         std::vector<UInt16> buf(nameLen);
-        UInt16* const data = &buf[0];
+        UInt16* const data = buf.data();
         SzArEx_GetFileNameUtf16(&Db, idx, data);
         return Strings::Utf16ToUtf8(basic_string_view<uint16_t>(data, nameLen - 1));
       }

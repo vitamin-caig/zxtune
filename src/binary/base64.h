@@ -31,8 +31,8 @@ namespace Binary
     inline std::string Encode(const Dump& input)
     {
       std::vector<char> result(CalculateConvertedSize(input.size()));
-      const uint8_t* const in = &input[0];
-      char* const out = &result[0];
+      const uint8_t* const in = input.data();
+      char* const out = result.data();
       char* const outEnd = Encode(in, in + input.size(), out, out + result.size());
       return std::string(out, outEnd);
     }

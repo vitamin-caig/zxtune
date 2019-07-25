@@ -112,7 +112,7 @@ namespace Packed
 
       std::unique_ptr<Dump> result(new Dump(sizeof(ResultData)));
       const Header& src = *safe_ptr_cast<const Header*>(rawData);
-      ResultData& dst = *safe_ptr_cast<ResultData*>(&result->front());
+      ResultData& dst = *safe_ptr_cast<ResultData*>(result->data());
       const uint_t curPage = src.Port7FFD & 7;
       dst[PAGE_NUM_TO_INDEX[5]] = src.Page5;
       dst[PAGE_NUM_TO_INDEX[2]] = src.Page2;

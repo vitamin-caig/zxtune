@@ -24,7 +24,7 @@ namespace Binary
 {
   inline const void* GetPointer(const Dump* val, std::size_t offset)
   {
-    return &val->front() + offset;
+    return val->data() + offset;
   }
 
   inline const void* GetPointer(const Binary::Data* val, std::size_t offset)

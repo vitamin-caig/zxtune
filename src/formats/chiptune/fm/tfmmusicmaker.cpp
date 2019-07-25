@@ -753,7 +753,7 @@ namespace Chiptune
       template<class T>
       const T* GetResult() const
       {
-        return safe_ptr_cast<const T*>(&Decoded[0]);
+        return safe_ptr_cast<const T*>(Decoded.data());
       }
 
       std::size_t GetUsedSize() const

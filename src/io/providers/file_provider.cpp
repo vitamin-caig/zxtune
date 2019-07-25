@@ -235,7 +235,7 @@ namespace File
   Binary::Data::Ptr ReadFileToMemory(std::ifstream& stream, std::size_t size)
   {
     std::unique_ptr<Dump> res(new Dump(size));
-    const std::streampos read = stream.read(safe_ptr_cast<char*>(&res->front()), size).tellg();
+    const std::streampos read = stream.read(safe_ptr_cast<char*>(res->data()), size).tellg();
     if (static_cast<std::size_t>(read) != size)
     {
       throw MakeFormattedError(THIS_LINE, translate("Failed to read %1% bytes. Actually got %2% bytes."), size, read);

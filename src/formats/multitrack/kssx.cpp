@@ -132,8 +132,8 @@ namespace Multitrack
       {
         Require(Hdr != &STUB_EXTRA_HEADER);
         std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
-        std::memcpy(&content->front(), Delegate->Start(), content->size());
-        ExtraHeader* const hdr = safe_ptr_cast<ExtraHeader*>(&content->front() + sizeof(RawHeader));
+        std::memcpy(content->data(), Delegate->Start(), content->size());
+        ExtraHeader* const hdr = safe_ptr_cast<ExtraHeader*>(content->data() + sizeof(RawHeader));
         Require(idx <= hdr->LastTrack);
         hdr->FirstTrack = idx;
         return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));

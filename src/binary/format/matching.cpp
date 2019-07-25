@@ -81,7 +81,7 @@ namespace Binary
       {
         return false;
       }
-      const uint8_t* const patternStart = &Pattern.front();
+      const uint8_t* const patternStart = Pattern.data();
       const uint8_t* const patternEnd = patternStart + Pattern.size();
       const uint8_t* const typedDataStart = static_cast<const uint8_t*>(data.Start()) + Offset;
       return std::equal(patternStart, patternEnd, typedDataStart);

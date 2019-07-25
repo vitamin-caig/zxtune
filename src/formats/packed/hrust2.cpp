@@ -412,7 +412,7 @@ namespace Packed
           {
             //just copy
             Result->resize(size);
-            std::memcpy(&(*Result)[0], &Header.Stream, size);
+            std::memcpy(Result->data(), &Header.Stream, size);
             return true;
           }
           RawDataDecoder decoder(Header.Stream, fromLE(Header.PackedSize));
@@ -485,11 +485,11 @@ namespace Packed
             boost::bind(std::plus<std::size_t>(), _1,
               boost::bind(&Binary::Container::Size, _2)));
           std::unique_ptr<Dump> result(new Dump(totalSize));
-          std::size_t offset = 0;
+          auto* target = result->data();
           for (const auto& block : Blocks)
           {
-            std::memcpy(&result->at(offset), block->Start(), block->Size());
-            offset += block->Size();
+            std::memcpy(target, block->Start(), block->Size());
+            target += block->Size();
           }
           return Binary::CreateContainer(std::move(result));
         }

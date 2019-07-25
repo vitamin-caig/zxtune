@@ -70,7 +70,7 @@ namespace Binary
 
     void* Get(std::size_t offset) const
     {
-      return &Content->front() + offset;
+      return Content->data() + offset;
     }
 
     template<class T>

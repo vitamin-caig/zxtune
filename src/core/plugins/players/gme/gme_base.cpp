@@ -126,7 +126,7 @@ namespace GME
     SpectrumState GetState() const override
     {
       std::vector<voice_status_t> voices(Emu->voice_count());
-      const int actual = Emu->voices_status(&voices[0], voices.size());
+      const int actual = Emu->voices_status(voices.data(), voices.size());
       SpectrumState result;
       for (int chan = 0; chan < actual; ++chan)
       {
@@ -150,7 +150,7 @@ namespace GME
     {
       auto emu = CreateEmu();
       CheckError(emu->set_sample_rate(soundFreq));
-      CheckError(emu->load_mem(&Data.front(), Data.size()));
+      CheckError(emu->load_mem(Data.data(), Data.size()));
       Emu.swap(emu);
       SoundFreq = soundFreq;
     }

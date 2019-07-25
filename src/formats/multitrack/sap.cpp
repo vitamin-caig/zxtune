@@ -118,7 +118,7 @@ namespace Multitrack
         uint32_t crc = startTrack;
         for (const auto& blk : Blocks)
         {
-          crc = Crc32(&blk.second.front(), blk.second.size(), crc);
+          crc = Crc32(blk.second.data(), blk.second.size(), crc);
         }
         return crc;
       }
