@@ -197,8 +197,8 @@ namespace Chiptune
       const std::size_t size1 = lh.Size();
       const std::size_t size2 = rh.Size();
       std::unique_ptr<Dump> res(new Dump(size1 + size2));
-      std::memcpy(&res->front(), lh.Start(), size1);
-      std::memcpy(&res->front() + size1, rh.Start(), size2);
+      std::memcpy(res->data(), lh.Start(), size1);
+      std::memcpy(res->data() + size1, rh.Start(), size2);
       return Binary::CreateContainer(std::move(res));
     }
 

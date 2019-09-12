@@ -282,7 +282,7 @@ namespace Packed
     {
       const std::size_t LOOKUP = 1;
       const auto src = stream.ReadRawData(LOOKUP);
-      const auto used = DecodeBlock(src, srcSize, &dst[0], dst.size());
+      const auto used = DecodeBlock(src, srcSize, dst.data(), dst.size());
       stream.Skip(used - LOOKUP);
     }
 
@@ -524,9 +524,9 @@ namespace Packed
         {
           Require(pageSize <= stream.GetRestSize());
           DecodeBlock(stream, pageSize, curPage);
-          pageSource = &curPage.front();
+          pageSource = curPage.data();
         }
-        std::memcpy(&res->front() + pageNumber * ZX_PAGE_SIZE, pageSource, ZX_PAGE_SIZE);
+        std::memcpy(res->data() + pageNumber * ZX_PAGE_SIZE, pageSource, ZX_PAGE_SIZE);
       }
       return CreateContainer(std::move(res), stream.GetPosition());
     }

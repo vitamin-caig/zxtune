@@ -103,7 +103,7 @@ namespace Packed
         {
           Dump result(53);
           const uint8_t* const src = Information;
-          uint8_t* const dst = &result[0];
+          uint8_t* const dst = result.data();
           std::memcpy(dst, src, 24);
           std::memcpy(dst + 24, src + 26, 4);
           std::memcpy(dst + 27, src + 31, 25);

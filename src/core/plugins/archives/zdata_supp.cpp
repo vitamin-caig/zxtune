@@ -198,11 +198,11 @@ namespace Zdata
       const Header hdr = Header::Decode(layout.GetHeader());
       Dbg("Found container id=%1%", hdr.Crc);
       Dump decoded(hdr.Packed);
-      Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), &decoded[0], &decoded[0] + hdr.Packed);
+      Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), decoded.data(), decoded.data() + hdr.Packed);
       std::unique_ptr<Dump> unpacked(new Dump(hdr.Original));
       Dbg("Unpack %1% => %2%", hdr.Packed, hdr.Original);
       Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded.data(), decoded.size(), unpacked->data(), unpacked->size()));
-      Require(hdr.Crc == Crc32(&unpacked->front(), unpacked->size()));
+      Require(hdr.Crc == Crc32(unpacked->data(), unpacked->size()));
       return Binary::CreateContainer(std::move(unpacked));
     }
     catch (const std::exception&)
@@ -234,7 +234,7 @@ namespace Zdata
     const std::size_t outSize = Binary::Base64::CalculateConvertedSize(inputSize);
     std::unique_ptr<Dump> result(new Dump(outSize));
     const uint8_t* const in = static_cast<const uint8_t*>(input);
-    char* const out = safe_ptr_cast<char*>(&result->front());
+    char* const out = safe_ptr_cast<char*>(result->data());
     Binary::Base64::Encode(in, in + inputSize, out, out + outSize);
     return Binary::CreateContainer(std::move(result));
   }

@@ -445,7 +445,7 @@ namespace DAC
 
       const uint_t* Get() const
       {
-        return &Table[0];
+        return Table.data();
       }
     private:
       std::array<uint_t, FastSample::Position::PRECISION> Table;
@@ -515,7 +515,7 @@ namespace DAC
       , Mixer(std::move(mixer))
       , Target(std::move(target))
       , Clock()
-      , Renderers(*Mixer, &State[0])
+      , Renderers(*Mixer, State.data())
     {
       FixedChannelsChip::Reset();
     }

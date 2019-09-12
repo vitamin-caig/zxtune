@@ -47,7 +47,7 @@ namespace Test
     const std::size_t size = sizeStr.empty() ? fileSize - offset : boost::lexical_cast<std::size_t>(sizeStr);
     stream.seekg(offset);
     Dump tmp(size);
-    stream.read(safe_ptr_cast<char*>(&tmp[0]), tmp.size());
+    stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     if (!stream)
     {
       throw std::runtime_error("Failed to read from file");

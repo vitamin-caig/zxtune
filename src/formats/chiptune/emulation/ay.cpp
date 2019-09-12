@@ -394,7 +394,7 @@ namespace Chiptune
           const std::size_t prevSize = size();
           Require(prevSize + srcSize <= capacity());
           resize(prevSize + srcSize);
-          void* const dst = &front() + prevSize;
+          void* const dst = data() + prevSize;
           std::memcpy(dst, src, srcSize);
           return dst;
         }
@@ -496,7 +496,7 @@ namespace Chiptune
           EMUL::ModuleBlock* const dst = blockPtrs.front();
           dst->Address = fromBE<uint16_t>(it->first);
           dst->Size = fromBE<uint16_t>(static_cast<uint16_t>(it->second.size()));
-          SetPointer(&dst->Offset, result->Add(&it->second[0], it->second.size()));
+          SetPointer(&dst->Offset, result->Add(it->second.data(), it->second.size()));
           Dbg("Stored block %1% bytes at %2% stored at %3%", fromBE(dst->Size), fromBE(dst->Address), fromBE(dst->Offset));
         }
         return Binary::CreateContainer(std::unique_ptr<Dump>(std::move(result)));

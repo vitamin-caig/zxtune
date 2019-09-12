@@ -140,13 +140,13 @@ namespace Wav
       if (empty())
       {
         resize(sizeof(ListHeader));
-        ListHeader* const hdr = safe_ptr_cast<ListHeader*>(&front());
+        ListHeader* const hdr = safe_ptr_cast<ListHeader*>(data());
         std::memcpy(hdr->Id, LIST, sizeof(LIST));
         std::memcpy(hdr->Type, INFO, sizeof(INFO));
         hdr->Size = 0;
         return hdr;
       }
-      return safe_ptr_cast<ListHeader*>(&front());
+      return safe_ptr_cast<ListHeader*>(data());
     }
 
     InfoElement* AddElement(std::size_t contentSize)
@@ -217,7 +217,7 @@ namespace Wav
         data.ToU8();
       }
       const std::size_t sizeInBytes = data.size() * sizeof(data.front());
-      Stream->ApplyData(Binary::DataAdapter(&data.front(), sizeInBytes));
+      Stream->ApplyData(Binary::DataAdapter(data.data(), sizeInBytes));
       DoneBytes += static_cast<uint32_t>(sizeInBytes);
     }
 
@@ -225,7 +225,7 @@ namespace Wav
     {
       if (!Meta.empty())
       {
-        Stream->ApplyData(Binary::DataAdapter(&Meta.front(), Meta.size()));
+        Stream->ApplyData(Binary::DataAdapter(Meta.data(), Meta.size()));
       }
       Stream->Flush();
       // write header

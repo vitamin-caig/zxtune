@@ -58,7 +58,7 @@ namespace
     std::vector<char> filename(1024);
     for (;;)
     {
-      const int len = ::readlink(selfPath.c_str(), &filename[0], filename.size() - 1);
+      const int len = ::readlink(selfPath.c_str(), filename.data(), filename.size() - 1);
       if (len == -1)
       {
         Dbg("Failed to readlink '%1%' (errno %2%)", selfPath, errno);
@@ -74,7 +74,7 @@ namespace
         break;
       }
     }
-    const std::string result(&filename[0]);
+    const std::string result(filename.data());
     Dbg("Executable name: %1%", result);
     return result;
   }

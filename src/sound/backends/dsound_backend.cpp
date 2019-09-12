@@ -98,7 +98,7 @@ namespace DirectSound
     std::vector<OLECHAR> strGuid(str.begin(), str.end());
     strGuid.push_back(0);
     std::unique_ptr<GUID> res(new GUID);
-    CheckWin32Error(::CLSIDFromString(&strGuid[0], res.get()), THIS_LINE);
+    CheckWin32Error(::CLSIDFromString(strGuid.data(), res.get()), THIS_LINE);
     return res;
   }
 
@@ -184,7 +184,7 @@ namespace DirectSound
     void Add(const Chunk& buffer)
     {
       std::size_t inputSize = buffer.size() * sizeof(buffer.front());
-      const uint8_t* inputStart = safe_ptr_cast<const uint8_t*>(&buffer[0]);
+      const uint8_t* inputStart = safe_ptr_cast<const uint8_t*>(buffer.data());
 
       while (inputSize)
       {

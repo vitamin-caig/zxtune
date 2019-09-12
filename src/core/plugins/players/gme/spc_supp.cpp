@@ -70,7 +70,7 @@ namespace SPC
     void Reset()
     {
       Spc.reset();
-      CheckError(Spc.load_spc(&Data.front(), Data.size()));
+      CheckError(Spc.load_spc(Data.data(), Data.size()));
       Spc.clear_echo();
       Spc.disable_surround(true);
       Filter.clear();

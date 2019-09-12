@@ -138,7 +138,7 @@ namespace
     const std::size_t size = static_cast<std::size_t>(file.tellg());
     file.seekg(0);
     std::unique_ptr<Dump> tmp(new Dump(size));
-    file.read(safe_ptr_cast<char*>(&tmp->front()), size);
+    file.read(safe_ptr_cast<char*>(tmp->data()), size);
     return Binary::CreateContainer(std::move(tmp));
   }
 

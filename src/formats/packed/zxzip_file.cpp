@@ -173,7 +173,7 @@ namespace Packed
         const uint_t packedSize = fromLE(Header.PackedSize);
         const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
         std::unique_ptr<Dump> res(new Dump(packedSize));
-        std::memcpy(&(*res)[0], sourceData, packedSize);
+        std::memcpy(res->data(), sourceData, packedSize);
         return res;
       }
     private:
@@ -625,7 +625,7 @@ namespace Packed
           {
             break;
           }
-          const uint32_t realCRC = Crc32(&result->front(), result->size());
+          const uint32_t realCRC = Crc32(result->data(), result->size());
           //ZXZip CRC32 calculation does not invert result
           if (realCRC != ~fromLE(Header.SourceCRC))
           {

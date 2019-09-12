@@ -28,7 +28,7 @@ namespace
 
     const Formats::Packed::Decoder::Ptr packed = Formats::Packed::CreateRarDecoder();
     std::map<std::string, Dump> tests;
-    const uint8_t* const data = &rar[0];
+    const uint8_t* const data = rar.data();
     tests["-m0"] = Dump(data + 0x14, data + 0x403a);
     tests["-m1"] = Dump(data + 0x403a, data + 0x6095);
     tests["-m2"] = Dump(data + 0x6095, data + 0x80ef);
@@ -61,7 +61,7 @@ namespace
 
     const Formats::Packed::Decoder::Ptr packed = Formats::Packed::CreateRarDecoder();
     std::map<std::string, Dump> tests;
-    const uint8_t* const data = &rar[0];
+    const uint8_t* const data = rar.data();
     tests["-p5"] = Dump(data + 0x14, data + 0x2033);
     tests["-p5solid"] = Dump(data + 0x2033, data + 0x2091);
     Test::TestPacked(*packed, etalon, tests, false);

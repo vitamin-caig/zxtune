@@ -31,7 +31,7 @@ namespace
     const std::size_t size = stream.tellg();
     stream.seekg(0);
     Dump tmp(size);
-    stream.read(safe_ptr_cast<char*>(&tmp[0]), tmp.size());
+    stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     return tmp;
   }
 

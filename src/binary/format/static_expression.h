@@ -147,12 +147,12 @@ namespace Binary
     private:
       const StaticPredicate* Begin() const
       {
-        return &Data.front();
+        return Data.data();
       }
 
       const StaticPredicate* End() const
       {
-        return &Data.back() + 1;
+        return Begin() + Data.size();
       }
 
       std::size_t FindMaxSuffixMatchSize(std::size_t offset) const;

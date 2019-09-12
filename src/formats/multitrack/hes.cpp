@@ -130,8 +130,8 @@ namespace Multitrack
       Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
         std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
-        std::memcpy(&content->front(), Delegate->Start(), content->size());
-        RawHeader* const hdr = safe_ptr_cast<RawHeader*>(&content->front());
+        std::memcpy(content->data(), Delegate->Start(), content->size());
+        RawHeader* const hdr = safe_ptr_cast<RawHeader*>(content->data());
         Require(idx < TOTAL_TRACKS_COUNT);
         hdr->StartSong = idx;
         return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));

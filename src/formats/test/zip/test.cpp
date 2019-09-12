@@ -32,7 +32,7 @@ namespace
 
     const Formats::Packed::Decoder::Ptr packed = Formats::Packed::CreateZipDecoder();
     std::map<std::string, Dump> tests;
-    const uint8_t* const data = &zip[0];
+    const uint8_t* const data = zip.data();
     tests["-p0"] = Dump(data, data + 0x4035);
     tests["-p1"] = Dump(data + 0x4035, data + 0x6160);
     tests["-p2"] = Dump(data + 0x6160, data + 0x826e);

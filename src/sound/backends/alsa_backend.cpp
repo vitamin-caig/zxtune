@@ -261,7 +261,7 @@ namespace Alsa
 
     void Write(const Chunk& buffer)
     {
-      const Sample* data = &buffer[0];
+      const Sample* data = buffer.data();
       std::size_t size = buffer.size();
       while (size)
       {

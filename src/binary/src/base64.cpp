@@ -204,7 +204,7 @@ namespace Binary
       const std::size_t outSize = BIN_GROUP_SIZE * (inSize / TXT_GROUP_SIZE) - (padPos == inSize - 1) - 2 * (padPos == inSize - 2);
       const char* in = input.c_str();
       Dump result(outSize);
-      uint8_t* out = &result[0];
+      uint8_t* out = result.data();
       Decode(in, in + inSize, out, out + outSize);
       return result;
     }

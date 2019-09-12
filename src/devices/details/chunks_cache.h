@@ -28,12 +28,12 @@ namespace Devices
 
       const ChunkType* GetBegin() const
       {
-        return &Buffer.front();
+        return Buffer.data();
       }
       
       const ChunkType* GetEnd() const
       {
-        return &Buffer.back() + 1;
+        return GetBegin() + Buffer.size();
       }
 
       void Reset()

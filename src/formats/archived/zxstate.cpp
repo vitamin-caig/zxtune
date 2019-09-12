@@ -541,12 +541,12 @@ namespace Archived
           Require(unpacked != 0);
           Dbg("Decompressing '%1%' (%2% blocks, %3% butes result)", Name, Blocks.size(), unpacked);
           std::unique_ptr<Dump> result(new Dump(unpacked));
-          std::size_t target = 0;
+          auto* target = result->data();
           for (const auto& block : Blocks)
           {
             const Binary::Container::Ptr data = ExtractData(block);
             Require(data && data->Size() == block.UncompressedSize);
-            std::memcpy(&result->at(target), data->Start(), block.UncompressedSize);
+            std::memcpy(target, data->Start(), block.UncompressedSize);
             target += block.UncompressedSize;
           }
           return Binary::CreateContainer(std::move(result));

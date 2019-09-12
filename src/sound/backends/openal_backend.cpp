@@ -142,7 +142,7 @@ namespace OpenAl
     
     void Fill(ALuint id, const Chunk& data, uint_t freq)
     {
-      OalApi.alBufferData(id, Format, &data[0], data.size() * sizeof(data.front()), freq);
+      OalApi.alBufferData(id, Format, data.data(), data.size() * sizeof(data.front()), freq);
       CheckError(THIS_LINE);
     }
   private:

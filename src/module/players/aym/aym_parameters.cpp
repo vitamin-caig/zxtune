@@ -226,7 +226,7 @@ namespace AYM
             throw MakeFormattedError(THIS_LINE,
               translate("Invalid frequency table size (%1%)."), newData.size());
           }
-          std::memcpy(&table.front(), &newData.front(), newData.size());
+          std::memcpy(table.data(), newData.data(), newData.size());
         }
       }
     }

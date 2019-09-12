@@ -60,7 +60,7 @@ namespace Sid
 
   inline const uint8_t* GetData(const Parameters::DataType& dump, const uint8_t* defVal)
   {
-    return dump.empty() ? defVal : &dump.front();
+    return dump.empty() ? defVal : dump.data();
   }
 
   /*

@@ -74,7 +74,7 @@ namespace Sdl
   public:
     explicit BuffersQueue(uint_t size)
       : Buffers(size)
-      , FillIter(&Buffers.front(), &Buffers.back() + 1)
+      , FillIter(Buffers.data(), Buffers.data() + Buffers.size())
       , PlayIter(FillIter)
     {
     }
@@ -104,7 +104,7 @@ namespace Sdl
         }
         const uint_t inBuffer = PlayIter->Data.size() * sizeof(PlayIter->Data.front());
         const uint_t toCopy = std::min<uint_t>(len, PlayIter->BytesToPlay);
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(&PlayIter->Data.front());
+        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(PlayIter->Data.data());
         std::memcpy(stream, src + (inBuffer - PlayIter->BytesToPlay), toCopy);
         PlayIter->BytesToPlay -= toCopy;
         stream += toCopy;
@@ -122,7 +122,7 @@ namespace Sdl
     {
       Dbg("Change buffers count %1% -> %2%", Buffers.size(), size);
       Buffers.resize(size);
-      FillIter = CycledIterator<Buffer*>(&Buffers.front(), &Buffers.back() + 1);
+      FillIter = CycledIterator<Buffer*>(Buffers.data(), Buffers.data() + Buffers.size());
       PlayIter = FillIter;
     }
 

@@ -167,7 +167,7 @@ namespace Win32
       if (MMSYSERR_NOERROR != res)
       {
         std::vector<char> buffer(1024);
-        if (MMSYSERR_NOERROR == WinApi->waveOutGetErrorTextA(res, &buffer[0], static_cast<UINT>(buffer.size())))
+        if (MMSYSERR_NOERROR == WinApi->waveOutGetErrorTextA(res, buffer.data(), static_cast<UINT>(buffer.size())))
         {
           throw MakeFormattedError(loc, translate("Error in Win32 backend: %1%."),
             String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
@@ -254,7 +254,7 @@ namespace Win32
     {
       Reset();
       Buffer.resize(samples);
-      Header.lpData = ::LPSTR(&Buffer[0]);
+      Header.lpData = ::LPSTR(Buffer.data());
       Header.dwBufferLength = ::DWORD(Buffer.size()) * sizeof(Buffer.front());
       Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
       Device->PrepareHeader(Header);
@@ -348,7 +348,7 @@ namespace Win32
     {
       std::array<uint16_t, Sample::CHANNELS> buffer;
       static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
-      Device->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
+      Device->GetVolume(safe_ptr_cast<LPDWORD>(buffer.data()));
       const Gain::Type l(int_t(buffer[0]), MAX_WIN32_VOLUME);
       const Gain::Type r(int_t(buffer[1]), MAX_WIN32_VOLUME);
       return Gain(l, r);
@@ -366,7 +366,7 @@ namespace Win32
         static_cast<uint16_t>((volume.Right() * MAX_WIN32_VOLUME).Round())
       }};
       static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
-      Device->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));
+      Device->SetVolume(*safe_ptr_cast<LPDWORD>(buffer.data()));
     }
   private:
     const WaveOutDevice::Ptr Device;

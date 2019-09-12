@@ -99,11 +99,11 @@ namespace Mp3
       static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
       data.ToS16();
       while (const int res = LameApi->lame_encode_buffer_interleaved(Context.get(),
-        safe_ptr_cast<short int*>(&data.front()), data.size(), &Encoded[0], Encoded.size()))
+        safe_ptr_cast<short int*>(data.data()), data.size(), Encoded.data(), Encoded.size()))
       {
         if (res > 0) //encoded
         {
-          Stream->ApplyData(Binary::DataAdapter(&Encoded[0], res));
+          Stream->ApplyData(Binary::DataAdapter(Encoded.data(), res));
           break;
         }
         else if (-1 == res)//buffer too small
@@ -119,11 +119,11 @@ namespace Mp3
 
     void Flush() override
     {
-      while (const int res = LameApi->lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
+      while (const int res = LameApi->lame_encode_flush(Context.get(), Encoded.data(), Encoded.size()))
       {
         if (res > 0)
         {
-          Stream->ApplyData(Binary::DataAdapter(&Encoded[0], res));
+          Stream->ApplyData(Binary::DataAdapter(Encoded.data(), res));
           break;
         }
         else if (-1 == res)//buffer too small
