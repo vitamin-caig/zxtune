@@ -10,6 +10,7 @@
 
 //local includes
 #include "formats/chiptune/music/oggvorbis.h"
+#include "formats/chiptune/music/tags_vorbis.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
@@ -168,7 +169,7 @@ namespace Chiptune
           NextPacketType = Comment;
           break;
         case Comment:
-          ReadComment(payload);
+          ParseComment(payload, Target.GetMetaBuilder());
           NextPacketType = Setup;
           break;
         case Setup:
@@ -199,83 +200,6 @@ namespace Chiptune
         Require(framing & 1);
         Target.SetChannels(channels);
         Target.SetFrequency(frequency);
-      }
-      
-      void ReadComment(Binary::DataInputStream& payload)
-      {
-        try
-        {
-          /*const auto vendor = */ReadString(payload);
-          if (auto items = fromLE(payload.ReadField<uint32_t>()))
-          {
-            while (items--)
-            {
-              ParseCommentField(ReadString(payload));
-            }
-          }
-          Require(1 == payload.ReadField<uint8_t>());
-        }
-        catch (const std::exception&)
-        {
-        }
-      }
-      
-      void ParseCommentField(StringView field)
-      {
-        const auto eqPos = field.find('=');
-        Require(eqPos != StringView::npos);
-        const auto name = field.substr(0, eqPos);
-        const auto value = field.substr(eqPos + 1);
-        auto& meta = Target.GetMetaBuilder();
-        Strings::Array strings;
-        if (CompareTag(name, "TITLE"))
-        {
-          meta.SetTitle(Decode(value));
-        }
-        else if (CompareTag(name, "ARTIST") || CompareTag(name, "PERFORMER"))
-        {
-          meta.SetAuthor(Decode(value));
-        }
-        else if (CompareTag(name, "COPYRIGHT") || CompareTag(name, "DESCRIPTION"))
-        {
-          strings.emplace_back(Decode(value));
-        }
-        //TODO: meta.SetComment
-        if (!strings.empty())
-        {
-          meta.SetStrings(strings);
-        }
-      }
-      
-      static bool CompareTag(StringView str, StringView tag)
-      {
-        if (str.size() != tag.size())
-        {
-          return false;
-        }
-        for (std::size_t idx = 0, lim = str.size(); idx != lim; ++idx)
-        {
-          if (std::toupper(str[idx]) != tag[idx])
-          {
-            return false;
-          }
-        }
-        return true;
-      }
-      
-      static StringView ReadString(Binary::DataInputStream& payload)
-      {
-        const auto size = fromLE(payload.ReadField<uint32_t>());
-        const auto utf8 = safe_ptr_cast<const char*>(payload.ReadRawData(size));
-        return StringView(utf8, size);
-      }
-      
-      static String Decode(StringView str)
-      {
-        //do not trim before- it may break some encodings
-        auto decoded = Strings::ToAutoUtf8(str);
-        auto trimmed = Strings::TrimSpaces(decoded);
-        return decoded.size() == trimmed.size() ? decoded : trimmed.to_string();
       }
       
       void Skip(Binary::DataInputStream& payload)
