@@ -69,5 +69,6 @@ namespace Formats
     Decoder::Ptr CreateMP3Decoder();
     Decoder::Ptr CreateOGGDecoder();
     Decoder::Ptr CreateWAVDecoder();
+    Decoder::Ptr CreateFLACDecoder();
   }
 }
