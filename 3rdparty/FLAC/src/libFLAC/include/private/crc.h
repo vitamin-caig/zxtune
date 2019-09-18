@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2018  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,56 +30,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+#ifndef FLAC__PRIVATE__CRC_H
+#define FLAC__PRIVATE__CRC_H
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "FLAC/ordinals.h"
 
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
- */
+/* 8 bit CRC generator, MSB shifted first
+** polynomial = x^8 + x^2 + x^1 + x^0
+** init = 0
+*/
+FLAC__uint8 FLAC__crc8(const FLAC__byte *data, uint32_t len);
 
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
+/* 16 bit CRC generator, MSB shifted first
+** polynomial = x^16 + x^15 + x^2 + x^0
+** init = 0
+*/
+extern FLAC__uint16 const FLAC__crc16_table[8][256];
 
-#else
-
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
-
-#include <stdint.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
-
+#define FLAC__CRC16_UPDATE(data, crc) ((((crc)<<8) & 0xffff) ^ FLAC__crc16_table[0][((crc)>>8) ^ (data)])
+/* this alternate may be faster on some systems/compilers */
+#if 0
+#define FLAC__CRC16_UPDATE(data, crc) ((((crc)<<8) ^ FLAC__crc16_table[0][((crc)>>8) ^ (data)]) & 0xffff)
 #endif
 
-typedef int FLAC__bool;
-
-typedef FLAC__uint8 FLAC__byte;
-
-
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
-#endif
+FLAC__uint16 FLAC__crc16(const FLAC__byte *data, uint32_t len);
+FLAC__uint16 FLAC__crc16_update_words32(const FLAC__uint32 *words, uint32_t len, FLAC__uint16 crc);
+FLAC__uint16 FLAC__crc16_update_words64(const FLAC__uint64 *words, uint32_t len, FLAC__uint16 crc);
 
 #endif

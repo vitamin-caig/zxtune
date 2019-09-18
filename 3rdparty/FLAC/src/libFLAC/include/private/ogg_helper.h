@@ -1,5 +1,5 @@
-/* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
+/* libFLAC - Free Lossless Audio Codec
+ * Copyright (C) 2004-2009  Josh Coalson
  * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,56 +30,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+#ifndef FLAC__PRIVATE__OGG_HELPER_H
+#define FLAC__PRIVATE__OGG_HELPER_H
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#include <ogg/ogg.h>
+#include "FLAC/stream_encoder.h" /* for FLAC__StreamEncoder */
 
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
- */
-
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
-
-#else
-
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
-
-#include <stdint.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
-
-#endif
-
-typedef int FLAC__bool;
-
-typedef FLAC__uint8 FLAC__byte;
-
-
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
-#endif
+void simple_ogg_page__init(ogg_page *page);
+void simple_ogg_page__clear(ogg_page *page);
+FLAC__bool simple_ogg_page__get_at(FLAC__StreamEncoder *encoder, FLAC__uint64 position, ogg_page *page, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderReadCallback read_callback, void *client_data);
+FLAC__bool simple_ogg_page__set_at(FLAC__StreamEncoder *encoder, FLAC__uint64 position, ogg_page *page, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderWriteCallback write_callback, void *client_data);
 
 #endif

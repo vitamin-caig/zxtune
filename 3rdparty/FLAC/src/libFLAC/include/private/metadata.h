@@ -1,5 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
+ * Copyright (C) 2002-2009  Josh Coalson
  * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,56 +30,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+#ifndef FLAC__PRIVATE__METADATA_H
+#define FLAC__PRIVATE__METADATA_H
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "FLAC/metadata.h"
 
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
+/* WATCHOUT: all malloc()ed data in the block is free()ed; this may not
+ * be a consistent state (e.g. PICTURE) or equivalent to the initial
+ * state after FLAC__metadata_object_new()
  */
+void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object);
 
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
-
-#else
-
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
-
-#include <stdint.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
-
-#endif
-
-typedef int FLAC__bool;
-
-typedef FLAC__uint8 FLAC__byte;
-
-
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
-#endif
+void FLAC__metadata_object_cuesheet_track_delete_data(FLAC__StreamMetadata_CueSheet_Track *object);
 
 #endif

@@ -30,56 +30,36 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+#ifndef FLAC__PROTECTED__STREAM_DECODER_H
+#define FLAC__PROTECTED__STREAM_DECODER_H
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "FLAC/stream_decoder.h"
+#if FLAC__HAS_OGG
+#include "private/ogg_decoder_aspect.h"
+#endif
 
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
+typedef struct FLAC__StreamDecoderProtected {
+	FLAC__StreamDecoderState state;
+	FLAC__StreamDecoderInitStatus initstate;
+	uint32_t channels;
+	FLAC__ChannelAssignment channel_assignment;
+	uint32_t bits_per_sample;
+	uint32_t sample_rate; /* in Hz */
+	uint32_t blocksize; /* in samples (per channel) */
+	FLAC__bool md5_checking; /* if true, generate MD5 signature of decoded data and compare against signature in the STREAMINFO metadata block */
+#if FLAC__HAS_OGG
+	FLAC__OggDecoderAspect ogg_decoder_aspect;
+#endif
+} FLAC__StreamDecoderProtected;
+
+/*
+ * return the number of input bytes consumed
  */
+uint32_t FLAC__stream_decoder_get_input_bytes_unconsumed(const FLAC__StreamDecoder *decoder);
 
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
-
-#else
-
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
-
-#include <stdint.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
-
-#endif
-
-typedef int FLAC__bool;
-
-typedef FLAC__uint8 FLAC__byte;
-
-
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
-#endif
+/*
+ * return client_data from decoder
+ */
+FLAC_API void *get_client_data_from_decoder(FLAC__StreamDecoder *decoder);
 
 #endif

@@ -1,5 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
+ * Copyright (C) 2001-2009  Josh Coalson
  * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,56 +30,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+#ifndef FLAC__PRIVATE__MEMORY_H
+#define FLAC__PRIVATE__MEMORY_H
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
+#include <stdlib.h> /* for size_t */
+
+#include "private/float.h"
+#include "FLAC/ordinals.h" /* for FLAC__bool */
+
+/* Returns the unaligned address returned by malloc.
+ * Use free() on this address to deallocate.
  */
-
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
-
-#else
-
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
-
-#include <stdint.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
-
+void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address);
+FLAC__bool FLAC__memory_alloc_aligned_int32_array(size_t elements, FLAC__int32 **unaligned_pointer, FLAC__int32 **aligned_pointer);
+FLAC__bool FLAC__memory_alloc_aligned_uint32_array(size_t elements, FLAC__uint32 **unaligned_pointer, FLAC__uint32 **aligned_pointer);
+FLAC__bool FLAC__memory_alloc_aligned_uint64_array(size_t elements, FLAC__uint64 **unaligned_pointer, FLAC__uint64 **aligned_pointer);
+FLAC__bool FLAC__memory_alloc_aligned_unsigned_array(size_t elements, uint32_t **unaligned_pointer, uint32_t **aligned_pointer);
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+FLAC__bool FLAC__memory_alloc_aligned_real_array(size_t elements, FLAC__real **unaligned_pointer, FLAC__real **aligned_pointer);
 #endif
-
-typedef int FLAC__bool;
-
-typedef FLAC__uint8 FLAC__byte;
-
-
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
-#endif
+void *safe_malloc_mul_2op_p(size_t size1, size_t size2);
 
 #endif

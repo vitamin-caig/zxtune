@@ -30,56 +30,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+#ifndef FLAC__PRIVATE__STREAM_ENCODER_FRAMING_H
+#define FLAC__PRIVATE__STREAM_ENCODER_FRAMING_H
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "FLAC/format.h"
+#include "bitwriter.h"
 
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
- */
-
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
-
-#else
-
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
-
-#include <stdint.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
-
-#endif
-
-typedef int FLAC__bool;
-
-typedef FLAC__uint8 FLAC__byte;
-
-
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
-#endif
+FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitWriter *bw);
+FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWriter *bw);
+FLAC__bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw);
+FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, uint32_t residual_samples, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw);
+FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, uint32_t residual_samples, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw);
+FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, uint32_t samples, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw);
 
 #endif

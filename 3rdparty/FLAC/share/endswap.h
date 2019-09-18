@@ -1,6 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2012-2016  Xiph.org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,56 +29,56 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+/* It is assumed that this header will be included after "config.h". */
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#if HAVE_BSWAP32			/* GCC and Clang */
 
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
- */
+/* GCC prior to 4.8 didn't provide bswap16 on x86_64 */
+#if ! HAVE_BSWAP16
+static inline unsigned short __builtin_bswap16(unsigned short a)
+{
+	return (a<<8)|(a>>8);
+}
+#endif
 
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
+#define	ENDSWAP_16(x)		(__builtin_bswap16 (x))
+#define	ENDSWAP_32(x)		(__builtin_bswap32 (x))
+#define	ENDSWAP_64(x)		(__builtin_bswap64 (x))
+
+#elif defined _MSC_VER		/* Windows */
+
+#include <stdlib.h>
+
+#define	ENDSWAP_16(x)		(_byteswap_ushort (x))
+#define	ENDSWAP_32(x)		(_byteswap_ulong (x))
+#define	ENDSWAP_64(x)		(_byteswap_uint64 (x))
+
+#elif defined HAVE_BYTESWAP_H		/* Linux */
+
+#include <byteswap.h>
+
+#define	ENDSWAP_16(x)		(bswap_16 (x))
+#define	ENDSWAP_32(x)		(bswap_32 (x))
+#define	ENDSWAP_64(x)		(bswap_64 (x))
 
 #else
 
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
-
-#include <stdint.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
+#define	ENDSWAP_16(x)		((((x) >> 8) & 0xFF) | (((x) & 0xFF) << 8))
+#define	ENDSWAP_32(x)		((((x) >> 24) & 0xFF) | (((x) >> 8) & 0xFF00) | (((x) & 0xFF00) << 8) | (((x) & 0xFF) << 24))
+#define	ENDSWAP_64(x)		((ENDSWAP_32(((x) >> 32) & 0xFFFFFFFF)) | (ENDSWAP_32((x) & 0xFFFFFFFF) << 32))
 
 #endif
 
-typedef int FLAC__bool;
 
-typedef FLAC__uint8 FLAC__byte;
+/* Host to little-endian byte swapping (for MD5 calculation) */
+#if CPU_IS_BIG_ENDIAN
 
+#define H2LE_16(x)		ENDSWAP_16 (x)
+#define H2LE_32(x)		ENDSWAP_32 (x)
 
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
-#endif
+#else
+
+#define H2LE_16(x)		(x)
+#define H2LE_32(x)		(x)
 
 #endif

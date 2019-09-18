@@ -1,6 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2012-2016  Xiph.org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,56 +29,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+#ifndef FLAC__PRIVATE__MACROS_H
+#define FLAC__PRIVATE__MACROS_H
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#if defined(__GNUC__) && (__GNUC__ > 4 || ( __GNUC__ == 4 && __GNUC_MINOR__ >= 3))
 
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
- */
+#define flac_max(a,b) \
+	({ __typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a > _b ? _a : _b; })
 
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
+#define MIN_PASTE(A,B) A##B
+#define MIN_IMPL(A,B,L) ({ \
+	__typeof__(A) MIN_PASTE(__a,L) = (A); \
+	__typeof__(B) MIN_PASTE(__b,L) = (B); \
+	MIN_PASTE(__a,L) < MIN_PASTE(__b,L) ? MIN_PASTE(__a,L) : MIN_PASTE(__b,L); \
+	})
 
-#else
+#define flac_min(A,B) MIN_IMPL(A,B,__COUNTER__)
 
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
+/* Whatever other unix that has sys/param.h */
+#elif defined(HAVE_SYS_PARAM_H)
+#include <sys/param.h>
+#define flac_max(a,b) MAX(a,b)
+#define flac_min(a,b) MIN(a,b)
 
-#include <stdint.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
-
+/* Windows VS has them in stdlib.h.. XXX:Untested */
+#elif defined(_MSC_VER)
+#include <stdlib.h>
+#define flac_max(a,b) __max(a,b)
+#define flac_min(a,b) __min(a,b)
 #endif
 
-typedef int FLAC__bool;
-
-typedef FLAC__uint8 FLAC__byte;
-
-
-#ifdef true
-#undef true
+#ifndef flac_min
+#define flac_min(x,y)	((x) <= (y) ? (x) : (y))
 #endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
+
+#ifndef flac_max
+#define flac_max(x,y)	((x) >= (y) ? (x) : (y))
 #endif
 
 #endif

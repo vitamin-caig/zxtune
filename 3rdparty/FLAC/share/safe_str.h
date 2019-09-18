@@ -1,6 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2013-2016  Xiph.org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,56 +29,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
-
-#if defined(_MSC_VER) && _MSC_VER < 1600
-
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
+/* Safe string handling functions to replace things like strcpy, strncpy,
+ * strcat, strncat etc.
+ * All of these functions guarantee a correctly NUL terminated string but
+ * the string may be truncated if the destination buffer was too short.
  */
 
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
+#ifndef FLAC__SHARE_SAFE_STR_H
+#define FLAC__SHARE_SAFE_STR_H
 
-#else
+static inline char *
+safe_strncat(char *dest, const char *src, size_t dest_size)
+{
+	char * ret;
 
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
+	if (dest_size < 1)
+		return dest;
 
-#include <stdint.h>
+	ret = strncat(dest, src, dest_size - strlen (dest));
+	dest [dest_size - 1] = 0;
 
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
+	return ret;
+}
 
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
+static inline char *
+safe_strncpy(char *dest, const char *src, size_t dest_size)
+{
+	char * ret;
 
-#endif
+	if (dest_size < 1)
+		return dest;
 
-typedef int FLAC__bool;
+	ret = strncpy(dest, src, dest_size);
+	dest [dest_size - 1] = 0;
 
-typedef FLAC__uint8 FLAC__byte;
+	return ret;
+}
 
-
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
-#endif
-
-#endif
+#endif /* FLAC__SHARE_SAFE_STR_H */

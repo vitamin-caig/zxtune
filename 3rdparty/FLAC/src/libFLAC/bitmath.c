@@ -1,5 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
+ * Copyright (C) 2001-2009  Josh Coalson
  * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,56 +30,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__ORDINALS_H
-#define FLAC__ORDINALS_H
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "private/bitmath.h"
 
-/* Microsoft Visual Studio earlier than the 2010 version did not provide
- * the 1999 ISO C Standard header file <stdint.h>.
+/* An example of what FLAC__bitmath_silog2() computes:
+ *
+ * silog2(-10) = 5
+ * silog2(- 9) = 5
+ * silog2(- 8) = 4
+ * silog2(- 7) = 4
+ * silog2(- 6) = 4
+ * silog2(- 5) = 4
+ * silog2(- 4) = 3
+ * silog2(- 3) = 3
+ * silog2(- 2) = 2
+ * silog2(- 1) = 2
+ * silog2(  0) = 0
+ * silog2(  1) = 2
+ * silog2(  2) = 3
+ * silog2(  3) = 3
+ * silog2(  4) = 4
+ * silog2(  5) = 4
+ * silog2(  6) = 4
+ * silog2(  7) = 4
+ * silog2(  8) = 5
+ * silog2(  9) = 5
+ * silog2( 10) = 5
  */
+uint32_t FLAC__bitmath_silog2(FLAC__int64 v)
+{
+	if(v == 0)
+		return 0;
 
-typedef signed __int8 FLAC__int8;
-typedef signed __int16 FLAC__int16;
-typedef signed __int32 FLAC__int32;
-typedef signed __int64 FLAC__int64;
-typedef unsigned __int8 FLAC__uint8;
-typedef unsigned __int16 FLAC__uint16;
-typedef unsigned __int32 FLAC__uint32;
-typedef unsigned __int64 FLAC__uint64;
+	if(v == -1)
+		return 2;
 
-#else
-
-/* For MSVC 2010 and everything else which provides <stdint.h>. */
-
-#include <stdint.h>
-
-typedef int8_t FLAC__int8;
-typedef uint8_t FLAC__uint8;
-
-typedef int16_t FLAC__int16;
-typedef int32_t FLAC__int32;
-typedef int64_t FLAC__int64;
-typedef uint16_t FLAC__uint16;
-typedef uint32_t FLAC__uint32;
-typedef uint64_t FLAC__uint64;
-
-#endif
-
-typedef int FLAC__bool;
-
-typedef FLAC__uint8 FLAC__byte;
-
-
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
-#endif
-
-#endif
+	v = (v < 0) ? (-(v+1)) : v;
+	return FLAC__bitmath_ilog2_wide(v)+2;
+}
