@@ -71,6 +71,10 @@ android {
         if (cdnRoot != null) {
             buildConfigField("String", "CDN_ROOT", "\"${cdnRoot}\"")
         }
+        def apiRoot = localProperties.getProperty('api.root')
+        if (apiRoot != null) {
+            buildConfigField("String", "API_ROOT", "\"${apiRoot}\"")
+        }
     }
 
     buildTypes {

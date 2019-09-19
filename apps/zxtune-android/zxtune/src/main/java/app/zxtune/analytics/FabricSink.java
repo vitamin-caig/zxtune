@@ -143,9 +143,12 @@ final class FabricSink implements Sink {
 
   @Override
   public void sendUiEvent(int action) {
-    final CustomEvent event = new CustomEvent("UI");
-    event.putCustomAttribute("Action", serializeUiAction(action));
-    send(event);
+    final String actionStr = serializeUiAction(action);
+    if (!actionStr.isEmpty()) {
+      final CustomEvent event = new CustomEvent("UI");
+      event.putCustomAttribute("Action", actionStr);
+      send(event);
+    }
   }
 
   private static String serializeUiAction(@Analytics.UiAction int action) {
@@ -156,6 +159,8 @@ final class FabricSink implements Sink {
         return "Rate";
       case Analytics.UI_ACTION_ABOUT:
         return "About";
+      case Analytics.UI_ACTION_QUIT:
+        return "Quit";
       default:
         return "";
     }

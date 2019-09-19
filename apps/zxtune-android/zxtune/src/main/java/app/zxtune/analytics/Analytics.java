@@ -3,11 +3,12 @@ package app.zxtune.analytics;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.IntDef;
-import app.zxtune.core.Player;
-import app.zxtune.playback.PlayableItem;
 
 import java.lang.annotation.Retention;
 import java.util.Locale;
+
+import app.zxtune.core.Player;
+import app.zxtune.playback.PlayableItem;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
@@ -17,9 +18,9 @@ public class Analytics {
 
   public static void initialize(Context ctx) {
     if (FabricSink.isEnabled()) {
-      sinks = new Sink[]{new FabricSink(ctx)};
+      sinks = new Sink[]{new FabricSink(ctx), new InternalSink(ctx)};
     } else {
-      sinks = new Sink[]{};
+      sinks = new Sink[]{new InternalSink(ctx)};
     }
   }
 
