@@ -12,6 +12,8 @@ import android.support.annotation.NonNull;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.core.Identifier;
+import app.zxtune.core.Module;
+import app.zxtune.core.Scanner;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
@@ -25,15 +27,56 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.LinkedBlockingQueue;
 
+// TODO: support cleanup of iterator itself
 public class FileIterator implements Iterator {
 
   private static final String TAG = FileIterator.class.getName();
 
-  private static final int MAX_VISITED = 10;
+  private static final long MAX_USED_MEMORY = 128 << 20;
+
+  private static class OnDemandUpdateItem {
+
+    private final Identifier location;
+    private PlayableItem cached;
+    private final long dataSize;
+
+    OnDemandUpdateItem(PlayableItem delegate) {
+      this.location = delegate.getDataId();
+      this.cached = delegate;
+      this.dataSize = delegate.getModule().getProperty("Size", 0);
+    }
+
+    final long getUsedMemory() {
+      return cached != null ? dataSize : 0;
+    }
+
+    final PlayableItem capture() {
+      final PlayableItem result = cached;
+      cached = null;
+      return result;
+    }
+
+    final void preload() {
+      if (cached == null) {
+        Scanner.analyzeIdentifier(location, new Scanner.Callback() {
+          @Override
+          public void onModule(Identifier id, Module module) {
+            cached = new AsyncScanner.FileItem(id, module);
+          }
+
+          @Override
+          public void onError(Identifier id, Exception e) {
+            Log.w(TAG, e, "Failed to reopen" + id);
+          }
+        });
+      }
+    }
+  }
 
   private final LinkedBlockingQueue<PlayableItem> itemsQueue;
-  private final ArrayList<PlayableItem> history;
+  private final ArrayList<OnDemandUpdateItem> history;
   private final Exception[] lastError;
+  private long totalUsedMemory;
   @SuppressWarnings({"FieldCanBeLocal", "unused"})
   private final Object scanHandle;
   private int historyDepth;
@@ -44,9 +87,10 @@ public class FileIterator implements Iterator {
   }
 
   private FileIterator(Context context, @NonNull java.util.Iterator<VfsFile> files) throws Exception {
-    this.itemsQueue = new LinkedBlockingQueue<>(2);
-    this.history = new ArrayList<>(MAX_VISITED + 1);
+    this.itemsQueue = new LinkedBlockingQueue<>(1);
+    this.history = new ArrayList<>(100);
     this.lastError = new Exception[1];
+    this.totalUsedMemory = 0;
     this.scanHandle = startAsyncScanning(files);
     this.historyDepth = 0;
     if (!takeNextItem()) {
@@ -59,7 +103,10 @@ public class FileIterator implements Iterator {
 
   @Override
   public PlayableItem getItem() {
-    return history.get(historyDepth);
+    final OnDemandUpdateItem wrapper = history.get(historyDepth);
+    totalUsedMemory -= wrapper.getUsedMemory();
+    wrapper.preload();
+    return wrapper.capture();
   }
 
   @Override
@@ -68,13 +115,7 @@ public class FileIterator implements Iterator {
       --historyDepth;
       return true;
     }
-    if (takeNextItem()) {
-      while (history.size() > MAX_VISITED) {
-        history.remove(MAX_VISITED);
-      }
-      return true;
-    }
-    return false;
+    return takeNextItem();
   }
 
   @Override
@@ -144,7 +185,7 @@ public class FileIterator implements Iterator {
     try {
       final PlayableItem newItem = itemsQueue.take();
       if (newItem != PlayableItemStub.instance()) {
-        history.add(0, newItem);
+        addItem(newItem);
         return true;
       }
       //put limiter back
@@ -153,6 +194,20 @@ public class FileIterator implements Iterator {
       Log.w(TAG, e, "Interrupted takeNextItem");
     }
     return false;
+  }
+
+  private void addItem(PlayableItem item) {
+    final OnDemandUpdateItem wrapper = new OnDemandUpdateItem(item);
+    totalUsedMemory += wrapper.getUsedMemory();
+    history.add(0, wrapper);
+    for (int index = history.size() - 1; totalUsedMemory > MAX_USED_MEMORY && index != 0; --index) {
+      final OnDemandUpdateItem toCleanup = history.get(index);
+      final long used = toCleanup.getUsedMemory();
+      if (used != 0) {
+        totalUsedMemory -= used;
+        toCleanup.capture().getModule().release();
+      }
+    }
   }
 
   @NonNull
