@@ -13,6 +13,7 @@ import app.zxtune.Analytics;
 import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
+import app.zxtune.ReleaseableStub;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Properties;
 import app.zxtune.core.jni.GlobalOptions;
@@ -177,8 +178,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   private void setNewHolder(Holder newHolder) {
     navigateCmd.cancel();
-    holder.getAndSet(newHolder).sendAnalytics();
     player.setSource(newHolder.source);
+    holder.getAndSet(newHolder).release();
     callbacks.onItemChanged(newHolder.item);
     callbacks.onStateChanged(getState(), TimeStamp.EMPTY);
   }
@@ -292,7 +293,13 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.visualizer = new PlaybackVisualizer(player);
     }
 
-    final void sendAnalytics() {
+    final void release() {
+      sendAnalytics();
+      player.release();
+      item.getModule().release();
+    }
+
+    private void sendAnalytics() {
       if (this != instance()) {
         Analytics.sendPlayEvent(item, player);
       }

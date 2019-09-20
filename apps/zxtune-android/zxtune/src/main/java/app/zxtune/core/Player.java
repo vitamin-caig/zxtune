@@ -2,10 +2,12 @@ package app.zxtune.core;
 
 import android.support.annotation.NonNull;
 
+import app.zxtune.Releaseable;
+
 /**
  * Player interface
  */
-public interface Player extends PropertiesAccessor, PropertiesModifier {
+public interface Player extends PropertiesAccessor, PropertiesModifier, Releaseable {
 
   /**
    * @return Index of next rendered frame

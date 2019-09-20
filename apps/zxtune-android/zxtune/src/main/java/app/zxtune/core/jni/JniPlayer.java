@@ -14,6 +14,11 @@ public final class JniPlayer implements Player {
     JniGC.register(this, handle);
   }
 
+  @Override
+  public final void release() {
+    close(handle);
+  }
+
   static native void close(int handle);
 
   @Override
