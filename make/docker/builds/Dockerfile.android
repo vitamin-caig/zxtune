@@ -26,28 +26,26 @@ RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
     rm *.zip && \
     (yes | tools/bin/sdkmanager --install "build-tools;${build_tools}" "platform-tools" "platforms;android-${platform}")
 
-#Gradle
-ENV gradle=4.1
-RUN wget -q https://services.gradle.org/distributions/gradle-${gradle}-bin.zip && \
-    unzip -q *.zip && \
-    echo "buildscript{\nrepositories{\njcenter()\ngoogle()\n}\ndependencies{\nclasspath 'com.android.tools.build:gradle:3.0.1'\n}\n}\nallprojects{\nrepositories\n{\njcenter()\ngoogle()\n}\n}" > build.gradle && \
-    gradle*/bin/gradle tasks && \
-    rm -Rf gradle* build.gradle
-
-WORKDIR ${toolchains}
 #NDK toolchains
 ENV ndk_version=r20
-RUN wget -q https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux-x86_64.zip && \
+RUN mkdir -p ${toolchains} && cd ${toolchains} && \
+    wget -q https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux-x86_64.zip && \
     unzip -q *.zip && \
     mv android-ndk*/toolchains/llvm/prebuilt/linux-x86_64 . && \
     rm -Rf android-ndk-*
 
 # TODO: remove after full clang support
-COPY make_ndk_wrapper.sh .
-RUN ./make_ndk_wrapper.sh arm-linux-androideabi armv7a-linux-androideabi16 && \
+COPY make_ndk_wrapper.sh ${toolchains}
+RUN cd ${toolchains} && \
+    ./make_ndk_wrapper.sh arm-linux-androideabi armv7a-linux-androideabi16 && \
     ./make_ndk_wrapper.sh aarch64-linux-android aarch64-linux-android21 && \
     ./make_ndk_wrapper.sh i686-linux-android i686-linux-android16 && \
     ./make_ndk_wrapper.sh x86_64-linux-android x86_64-linux-android21
+
+#Precache gradle and dependencies
+COPY android_env android_env/
+RUN cd android_env && ./gradlew resolveDependencies && \
+    rm -Rf .gradle build
 
 #Sources
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \

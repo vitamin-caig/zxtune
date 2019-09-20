@@ -2,3 +2,4 @@
 !entrypoint.sh
 !mingw-w64
 !make_ndk_wrapper.sh
+!android_env
