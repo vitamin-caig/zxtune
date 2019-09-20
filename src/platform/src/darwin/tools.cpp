@@ -45,7 +45,8 @@ namespace
     std::string result(100, '\0');
     for (uint32_t size = result.size(); ; )
     {
-      if (::_NSGetExecutablePath(result.data(), &size) == 0)
+      // No non-const std::string::data before C++17
+      if (::_NSGetExecutablePath(&result[0], &size) == 0)
       {
         result.resize(size);
         break;
