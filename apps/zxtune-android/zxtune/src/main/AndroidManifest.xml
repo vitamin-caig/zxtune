@@ -161,6 +161,8 @@
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP3"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ogg"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.OGG"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.flac"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.FLAC"/>
       </intent-filter>
     </activity>
     <activity android:name=".PreferencesActivity" android:label="@string/prefs">

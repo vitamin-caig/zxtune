@@ -65,6 +65,9 @@ extern const Char EXTREMETRACKER1_DECODER_DESCRIPTION[] = {
 extern const Char FASTTRACKER_DECODER_DESCRIPTION[] = {
   'F','a','s','t',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
+extern const Char FLAC_DECODER_DESCRIPTION[] = {
+  'F','r','e','e',' ','L','o','s','s','l','e','s','s',' ','A','u','d','i','o',' ','C','o','d','e','c',0
+};
 extern const Char GAMEBOYADVANCESOUNDFORMAT_DECODER_DESCRIPTION[] = {
   'G','a','m','e','B','o','y',' ','A','d','v','a','n','c','e',' ','S','o','u','n','d',' ','F','o','r','m','a',
   't',0

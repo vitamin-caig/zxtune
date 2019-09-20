@@ -330,3 +330,7 @@ __cpp> "}//namespace Text\n"
 #WAV
 < WAV_DECODER_DESCRIPTION
 > "Waveform Audio File Format"
+
+#FLAC
+< FLAC_DECODER_DESCRIPTION
+> "Free Lossless Audio Codec"

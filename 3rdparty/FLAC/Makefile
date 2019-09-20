@@ -1,16 +1,25 @@
-#put file to src\libFLAC of https://git.xiph.org/flac.git
-
+ifdef build_dll
 dynamic_name := FLAC
-dirs.root := ../../../../..
+libraries.windows := oldnames
+static_runtime = 1
+defines += FLAC_API_EXPORTS
+else
+library_name := FLAC
+defines += FLAC__NO_DLL
+endif
+
+dirs.root := ../..
 include $(dirs.root)/make/default.mak 
 
-defines += FLAC__NO_ASM FLAC_API_EXPORTS VERSION=\"1.3.0\"
+defines += FLAC__NO_ASM PACKAGE_VERSION=\"1.3.3\" FLAC__HAS_OGG=0 HAVE_LROUND
+defines.mingw = HAVE_FSEEKO
+defines.linux = HAVE_FSEEKO HAVE_STDINT_H
 
-includes.dirs = include ../../include
-source_files_cc := bitmath bitreader bitwriter cpu crc fixed float format lpc md5 memory metadata_iterators metadata_object stream_decoder stream_encoder stream_encoder_framing \
- window ../share/win_utf8_io/win_utf8_io
-libraries.windows := oldnames
+includes.dirs = src/libFLAC/include . ..
+sources = bitmath bitreader bitwriter cpu crc fixed float format lpc md5 memory metadata_iterators metadata_object stream_decoder stream_encoder stream_encoder_framing \
+ window
 
-static_runtime = 1
+source_files = $(addprefix src/libFLAC/,$(addsuffix .c,$(sources)))
+source_files.mingw = src/share/win_utf8_io/win_utf8_io.c src/libFLAC/windows_unicode_filenames.c
 
 include $(dirs.root)/makefile.mak

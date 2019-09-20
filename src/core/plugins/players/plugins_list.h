@@ -61,6 +61,7 @@ namespace ZXTune
   void RegisterMP3Plugin(PlayerPluginsRegistrator& registrator);
   void RegisterOGGPlugin(PlayerPluginsRegistrator& registrator);
   void RegisterWAVPlugin(PlayerPluginsRegistrator& registrator);
+  void RegisterFLACPlugin(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
@@ -111,5 +112,6 @@ namespace ZXTune
     RegisterMP3Plugin(registrator);
     RegisterOGGPlugin(registrator);
     RegisterWAVPlugin(registrator);
+    RegisterFLACPlugin(registrator);
   }
 }
