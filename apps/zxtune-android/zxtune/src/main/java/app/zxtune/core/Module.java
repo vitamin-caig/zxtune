@@ -9,9 +9,9 @@ import app.zxtune.Releaseable;
 public interface Module extends PropertiesAccessor, AdditionalFiles, Releaseable {
 
   /**
-   * @return Module's duration in frames
+   * @return Module's duration in milliseconds
    */
-  int getDuration();
+  long getDurationInMs();
 
   /**
    * Creates new player object

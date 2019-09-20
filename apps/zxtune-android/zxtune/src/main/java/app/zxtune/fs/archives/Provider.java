@@ -89,8 +89,8 @@ public final class Provider extends ContentProvider {
               final String author = module.getProperty(ModuleAttributes.AUTHOR, "");
               final String title = module.getProperty(ModuleAttributes.TITLE, "");
               final String description = Util.formatTrackTitle(title, author, "");
-              final long frameDuration = module.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
-              final TimeStamp duration = TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
+              final TimeStamp duration = TimeStamp.createFrom(module.getDurationInMs(),
+                  TimeUnit.MILLISECONDS);
               final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
               module.release();
 
@@ -117,7 +117,7 @@ public final class Provider extends ContentProvider {
         addDirEntries(dirEntries);
         transaction.succeed();
       } finally {
-          transaction.finish();
+        transaction.finish();
       }
       return Query.archiveUriFor(path);
     } catch (Exception e) {

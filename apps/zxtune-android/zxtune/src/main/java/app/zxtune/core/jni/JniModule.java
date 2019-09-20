@@ -1,9 +1,11 @@
 package app.zxtune.core.jni;
 
 import android.support.annotation.NonNull;
+
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleDetectCallback;
 import app.zxtune.core.Player;
+import app.zxtune.core.Properties;
 import app.zxtune.core.ResolvingException;
 
 import java.nio.ByteBuffer;
@@ -36,7 +38,13 @@ public final class JniModule implements Module {
   static native void close(int handle);
 
   @Override
-  public native int getDuration();
+  public long getDurationInMs() {
+    final long frameDuration = getProperty(Properties.Sound.FRAMEDURATION,
+        Properties.Sound.FRAMEDURATION_DEFAULT) / 1000;
+    return frameDuration * getDuration();
+  }
+
+  private native int getDuration();
 
   @NonNull
   @Override

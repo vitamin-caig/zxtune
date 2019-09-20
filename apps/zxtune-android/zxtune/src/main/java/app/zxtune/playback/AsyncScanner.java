@@ -5,6 +5,7 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.os.OperationCanceledException;
+
 import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -111,7 +112,7 @@ public final class AsyncScanner {
 
   private static boolean scan(CallbackWrapper cb) {
     try {
-      for (;;) {
+      for (; ; ) {
         final VfsFile file = cb.getNextFile();
         if (file != null) {
           scan(file, cb);
@@ -191,8 +192,7 @@ public final class AsyncScanner {
 
     @Override
     public TimeStamp getDuration() {
-      final long frameDuration = module.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
-      return TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
+      return TimeStamp.createFrom(module.getDurationInMs(), TimeUnit.MILLISECONDS);
     }
 
     @Override

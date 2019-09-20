@@ -9,10 +9,12 @@ package app.zxtune.playlist;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+
 import app.zxtune.core.Identifier;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
+import app.zxtune.core.Properties;
 
 import java.util.concurrent.TimeUnit;
 
@@ -37,8 +39,7 @@ public class Item {
     this.location = location;
     this.title = module.getProperty(ModuleAttributes.TITLE, "");
     this.author = module.getProperty(ModuleAttributes.AUTHOR, "");
-    //TODO
-    this.duration = TimeStamp.createFrom(module.getDuration() * 20, TimeUnit.MILLISECONDS);
+    this.duration = TimeStamp.createFrom(module.getDurationInMs(), TimeUnit.MILLISECONDS);
   }
 
   public Item(app.zxtune.playback.Item item) {
@@ -48,7 +49,7 @@ public class Item {
     this.author = item.getAuthor();
     this.duration = item.getDuration();
   }
-  
+
   public Item() {
     this.id = -1;
     this.location = Identifier.EMPTY;
