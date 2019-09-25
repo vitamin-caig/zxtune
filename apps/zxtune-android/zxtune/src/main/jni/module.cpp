@@ -9,6 +9,7 @@
 **/
 
 //local includes
+#include "binary.h"
 #include "debug.h"
 #include "exception.h"
 #include "global_options.h"
@@ -19,7 +20,6 @@
 //common includes
 #include <contract.h>
 //library includes
-#include <binary/container_factories.h>
 #include <core/module_open.h>
 #include <core/module_detect.h>
 #include <module/additional_files.h>
@@ -134,14 +134,6 @@ namespace
     mutable jclass CallbackClass;
     mutable jmethodID OnModuleMethod;
   };
-
-  Binary::Container::Ptr CreateContainer(JNIEnv* env, jobject buffer)
-  {
-    const auto addr = env->GetDirectBufferAddress(buffer);
-    const auto capacity = env->GetDirectBufferCapacity(buffer);
-    Jni::CheckArgument(capacity && addr, "Empty buffer");
-    return Binary::CreateNonCopyContainer(addr, capacity);
-  }
 }
 
 namespace Module
@@ -162,7 +154,7 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_load
 {
   return Jni::Call(env, [=] ()
   {
-    auto module = CreateModule(CreateContainer(env, buffer), Jni::MakeString(env, subpath));
+    auto module = CreateModule(Binary::CreateByteBufferContainer(env, buffer), Jni::MakeString(env, subpath));
     return CreateJniObject(env, std::move(module));
   });
 }
@@ -173,7 +165,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_detect
   return Jni::Call(env, [=] ()
   {
     DetectCallback callbackAdapter(env, cb);
-    Module::Detect(Parameters::GlobalOptions(), CreateContainer(env, buffer), callbackAdapter);
+    Module::Detect(Parameters::GlobalOptions(), Binary::CreateByteBufferContainer(env, buffer), callbackAdapter);
   });
 }
 
@@ -266,6 +258,6 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFile
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
     const auto& module = Module::Storage::Instance().Get(moduleHandle);
     auto& files = const_cast<Module::AdditionalFiles&>(dynamic_cast<const Module::AdditionalFiles&>(*module));
-    files.Resolve(Jni::MakeString(env, fileName), CreateContainer(env, data));
+    files.Resolve(Jni::MakeString(env, fileName), Binary::CreateByteBufferContainer(env, data));
   });
 }
