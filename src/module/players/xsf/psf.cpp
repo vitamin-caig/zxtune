@@ -19,7 +19,6 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/attributes.h>
@@ -497,9 +496,7 @@ namespace PSF
       }
       if (file.ReservedSection)
       {
-        //smart clone
-        const auto clonedSection = Binary::CreateContainer(file.ReservedSection);
-        builder.AddVfs(*clonedSection);
+        builder.AddVfs(*file.ReservedSection);
       }
       if (file.Meta)
       {

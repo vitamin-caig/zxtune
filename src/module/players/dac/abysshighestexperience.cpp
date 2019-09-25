@@ -14,7 +14,6 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <debug/log.h>
 #include <formats/chiptune/digital/abysshighestexperience.h>
 #include <module/track_information.h>

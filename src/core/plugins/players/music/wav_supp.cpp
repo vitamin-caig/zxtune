@@ -17,7 +17,6 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
@@ -167,8 +166,7 @@ namespace Wav
     
     void SetSamplesData(Binary::Container::Ptr data) override
     {
-      //smart copy
-      WavProperties.Data = Binary::CreateContainer(std::move(data));
+      WavProperties.Data = std::move(data);
     }
     
     void SetSamplesCountHint(uint_t count) override

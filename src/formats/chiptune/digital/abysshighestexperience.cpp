@@ -15,7 +15,6 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <strings/encoding.h>

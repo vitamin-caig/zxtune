@@ -21,7 +21,6 @@
 #include <pointers.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <core/module_detect.h>
 #include <core/module_open.h>
 #include <debug/log.h>

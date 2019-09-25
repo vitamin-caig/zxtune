@@ -16,7 +16,6 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
@@ -250,8 +249,7 @@ namespace Ogg
     
     void SetContent(Binary::Data::Ptr data)
     {
-      //smart copy
-      Data->Content = Binary::CreateContainer(std::move(data));
+      Data->Content = std::move(data);
     }
     
     Model::Ptr GetResult()

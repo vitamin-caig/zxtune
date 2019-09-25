@@ -17,7 +17,6 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/attributes.h>
@@ -363,8 +362,7 @@ namespace SDSF
       ModuleDataBuilder builder;
       Require(!!file.PackedProgramSection);
       Require(!file.ReservedSection);
-      //smart clone
-      builder.AddSection(Binary::CreateContainer(file.PackedProgramSection));
+      builder.AddSection(file.PackedProgramSection);
       if (file.Meta)
       {
         builder.AddMeta(*file.Meta);

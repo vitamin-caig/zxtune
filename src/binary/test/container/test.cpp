@@ -59,51 +59,6 @@ namespace
     const auto copy = Binary::CreateContainer(data);
     Test("opticopy", data->Start() == copy->Start());
   }
-  
-  void TestNonCopyContainer()
-  {
-    std::cout << "Test for CreateNonCopyContainer" << std::endl;
-    {
-      const uint8_t DATA[] = {0, 1, 2, 3, 4};
-      const auto data = Binary::CreateNonCopyContainer(DATA, sizeof(DATA));
-      Test("non-copying", data->Start() == DATA);
-      TestContainer(*data, sizeof(DATA), DATA);
-      std::cout << "Test for GetSubcontainer" << std::endl;
-      const auto holder = data->GetSubcontainer(1, 2);
-      TestContainer(*holder, 2, DATA + 1);
-    }
-    Test("destruction", true);
-
-    std::cout << "Test for CreateNonCopyContainer+CreateContainer" << std::endl;
-    {
-      const uint8_t DATA[] = {0, 1, 2, 3, 4};
-      const auto data = Binary::CreateNonCopyContainer(DATA, sizeof(DATA));
-      const auto copy = Binary::CreateContainer(data);
-      Test("copy of non-copying", copy->Start() != data->Start());
-    }
-    Test("destruction", true);
-    
-    std::cout << "Test for CreateNonCopyContainer invalid case" << std::endl;
-    // Looks like throw from dtors supported only on msvs
-    #ifdef _MSC_VER
-    try
-    {
-      Binary::Container::Ptr holder;
-      {
-        const uint8_t DATA[] = {0, 1, 2, 3, 4};
-        const auto subdata = Binary::CreateNonCopyContainer(DATA, sizeof(DATA));
-        holder = subdata->GetSubcontainer(1, 2);
-      }
-      Test("destruction", false);
-    }
-    catch (const std::exception&)
-    {
-      Test("destruction", true);
-    }
-    #else
-    std::cout << " disabled" << std::endl;
-    #endif
-  }
 }
 
 int main()
@@ -111,7 +66,6 @@ int main()
   try
   {
     TestContainer();
-    TestNonCopyContainer();
   }
   catch (...)
   {

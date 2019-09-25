@@ -14,7 +14,6 @@
 #include "module/players/xsf/xsf_metainformation.h"
 //library includes
 #include <binary/container.h>
-#include <binary/container_factories.h>
 #include <strings/array.h>
 
 namespace Module
@@ -41,27 +40,12 @@ namespace Module
         return *this;
       }
       
-      void CloneData()
-      {
-        Clone(ReservedSection);
-        Clone(PackedProgramSection);
-      }
-      
       uint_t Version = 0;
       Binary::Container::Ptr ReservedSection;
       Binary::Container::Ptr PackedProgramSection;
       MetaInformation::Ptr Meta;
       
       Strings::Array Dependencies;
-      
-    private:
-      static void Clone(Binary::Container::Ptr& data)
-      {
-        if (data)
-        {
-          data = Binary::CreateContainer(data);
-        }
-      }
     };
   }
 }

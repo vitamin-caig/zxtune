@@ -17,7 +17,6 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
@@ -359,8 +358,7 @@ namespace USF
       ModuleDataBuilder builder;
       Require(!file.PackedProgramSection);
       Require(!!file.ReservedSection);
-      //smart clone
-      builder.AddSection(Binary::CreateContainer(file.ReservedSection));
+      builder.AddSection(file.ReservedSection);
       if (file.Meta)
       {
         builder.AddMeta(*file.Meta);

@@ -16,7 +16,6 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/input_stream.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
@@ -462,8 +461,7 @@ namespace Flac
 
     void SetContent(Binary::Data::Ptr data)
     {
-      //smart copy
-      Data->Content = Binary::CreateContainer(std::move(data));
+      Data->Content = std::move(data);
     }
 
     void AddFrame(std::size_t /*offset*/) override

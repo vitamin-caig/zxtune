@@ -17,7 +17,6 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
@@ -428,11 +427,11 @@ namespace TwoSF
       ModuleDataBuilder builder;
       if (file.PackedProgramSection)
       {
-        builder.AddProgramSection(Binary::CreateContainer(file.PackedProgramSection));
+        builder.AddProgramSection(file.PackedProgramSection);
       }
       if (file.ReservedSection)
       {
-        builder.AddReservedSection(Binary::CreateContainer(file.ReservedSection));
+        builder.AddReservedSection(file.ReservedSection);
       }
       if (file.Meta)
       {

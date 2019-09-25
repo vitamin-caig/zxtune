@@ -39,7 +39,6 @@ namespace XSF
       , Head(std::move(head))
     {
       LoadDependenciesFrom(Head);
-      Head.CloneData();
     }
     
     Module::Information::Ptr GetModuleInformation() const override
@@ -78,7 +77,6 @@ namespace XSF
       if (Parse(name, *data, file))
       {
         LoadDependenciesFrom(file);
-        file.CloneData();
       }
     }
   private:
