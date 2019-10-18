@@ -103,9 +103,6 @@ void Hes_Core::set_tempo( double t )
 
 blargg_err_t Hes_Core::start_track( int track )
 {
-	//since there're no total tracks information, treat hes files as singletrack and force track index to proper value
-	track = header_.first_track;
-
 	memset( ram, 0, sizeof ram ); // some HES music relies on zero fill
 	memset( sgx, 0, sizeof sgx );
 	

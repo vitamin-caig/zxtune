@@ -14,7 +14,6 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
-#include "gme.h"
 
 bool const cgb_02 = false; // enables bug in early CGB units that causes problems in some games
 bool const cgb_05 = false; // enables CGB-05 zombie behavior
@@ -409,23 +408,6 @@ void Gb_Square::run( blip_time_t time, blip_time_t end_time )
 	delay = time - end_time;
 }
 
-int Gb_Square::status( voice_status_t* stat ) const
-{
-	if ( enabled && volume )
-	{
-		const int duty_phases = 8;
-		const int period = this->period() * duty_phases;
-		if ( period != 0 )
-		{
-			stat->divider = period;
-			stat->level = voice_max_level * volume / 15;
-			return 1;
-		}
-	}
-	return 0;
-}
-
-
 #if !GB_APU_FAST
 // Quickly runs LFSR for a large number of clocks. For use when noise is generating
 // no sound.
@@ -615,20 +597,6 @@ void Gb_Noise::run( blip_time_t time, blip_time_t end_time )
 	#endif
 }
 
-int Gb_Noise::status( voice_status_t* stat ) const
-{
-	if ( enabled && volume )
-	{
-		//TODO: remove C&P
-		static unsigned char const table [8] = { 1, 2, 4, 6, 8, 10, 12, 14 };
-		const int period1 = table [regs [3] & 7] * clk_mul;
-		stat->divider = period2( period1 * 8 );
-		stat->level = voice_max_level * volume / 15;
-		return 1;
-	}
-	return 0;
-}
-
 void Gb_Wave::run( blip_time_t time, blip_time_t end_time )
 {
 	// Calc volume
@@ -741,33 +709,4 @@ void Gb_Wave::run( blip_time_t time, blip_time_t end_time )
 		this->phase = ph ^ swap_banks; // undo swapped banks
 	}
 	delay = time - end_time;
-}
-
-int Gb_Wave::status( voice_status_t* stat ) const
-{
-	if ( enabled )
-	{
-	#if GB_APU_NO_AGB
-		int const wave_mask = 0x1F;
-		static byte const vols [4] = { 0, 4, 2, 1 };
-		int const volume_idx = regs [2] >> 5 & 3;
-		int const volume_val = vols [volume_idx];
-	#else
-		int const size20_mask = 0x20;
-		int const flags = regs [0] & agb_mask;
-		int const wave_mask = (flags & size20_mask) | 0x1F;
-		static byte const volumes [8] = { 0, 4, 2, 1, 3, 3, 3, 3 };
-		int const volume_idx = regs [2] >> 5 & (agb_mask | 3); // 2 bits on DMG/CGB, 3 on AGB
-		int const volume_val = volumes [volume_idx];
-	#endif
-		//take full wave period
-		const int period = this->period() * (wave_mask + 1);
-		if ( period != 0 && volume_val != 0 )
-		{
-			stat->divider = period;
-			stat->level = voice_max_level * volume_val / 4;
-			return 1;
-		}
-	}
-	return 0;
 }

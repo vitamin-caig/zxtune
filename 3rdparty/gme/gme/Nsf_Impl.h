@@ -63,7 +63,6 @@ public:
 
 	// Sound chip
 	Nes_Apu* nes_apu()                  { return &apu; }
-	const Nes_Apu* nes_apu() const      { return &apu; }
 	
 	// Starts track, where 0 is the first
 	virtual blargg_err_t start_track( int );

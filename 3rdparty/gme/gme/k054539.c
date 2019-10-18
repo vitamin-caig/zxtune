@@ -269,7 +269,7 @@ else
 					cur_pfrac += delta;
 					while(cur_pfrac & ~0xffff) {
 						cur_pfrac += fdelta;
-						cur_pos = (cur_pos + pdelta) & rom_mask;
+						cur_pos += pdelta;
 
 						cur_pval = cur_val;
 						cur_val = (INT16)(rom[cur_pos] << 8);
@@ -297,13 +297,13 @@ else
 					cur_pfrac += delta;
 					while(cur_pfrac & ~0xffff) {
 						cur_pfrac += fdelta;
-						cur_pos = (cur_pos + pdelta) & rom_mask & ~1u;
+						cur_pos += pdelta;
 
 						cur_pval = cur_val;
 						cur_val = (INT16)(rom[cur_pos] | rom[cur_pos+1]<<8);
 						if(cur_val == (INT16)0x8000) {
 							if(base2[1] & 1) {
-								cur_pos = (base1[0x08] | (base1[0x09] << 8) | (base1[0x0a] << 16)) & rom_mask & ~1u;
+								cur_pos = (base1[0x08] | (base1[0x09] << 8) | (base1[0x0a] << 16)) & rom_mask;
 								cur_val = (INT16)(rom[cur_pos] | rom[cur_pos+1]<<8);
 								if(cur_val != (INT16)0x8000)
 									continue;
@@ -330,7 +330,7 @@ else
 					cur_pfrac += delta;
 					while(cur_pfrac & ~0xffff) {
 						cur_pfrac += fdelta;
-						cur_pos = (cur_pos + pdelta) & ((rom_mask << 1) + 1);
+						cur_pos += pdelta;
 
 						cur_pval = cur_val;
 						cur_val = rom[cur_pos>>1];

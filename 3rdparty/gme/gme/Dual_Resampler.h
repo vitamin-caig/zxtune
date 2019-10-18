@@ -30,15 +30,7 @@ public:
 
 // Implementation
 public:
-	Dual_Resampler()
-		: sample_buf_size( 0 )
-		, oversamples_per_frame( 0 )
-		, buf_pos( 0 )
-		, buffered( 0 )
-		, resampler_size( 0 )
-		, gain_( 0 )
-	{
-	}
+	Dual_Resampler();
 	~Dual_Resampler();
 
 private:

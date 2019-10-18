@@ -14,7 +14,6 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
-#include "gme.h"
 
 int const amp_range = 15;
 
@@ -77,30 +76,6 @@ void Nes_Apu::set_output( Blip_Buffer* buffer )
 {
 	for ( int i = 0; i < osc_count; ++i )
 		set_output( i, buffer );
-}
-
-int Nes_Apu::osc_status( voice_status_t* buf, int buf_size ) const
-{
-	//http://nesdev.com/2A03%20technical%20reference.txt
-	int voices = 0;
-	if ( voices < buf_size )
-	{
-		voices += square1.status( buf + voices );
-	}
-	if ( voices < buf_size )
-	{
-		voices += square2.status( buf + voices );
-	}
-	if ( voices < buf_size )
-	{
-		voices += noise.status( buf + voices );
-	}
-	if ( voices < buf_size )
-	{
-		voices += triangle.status( buf + voices );
-	}
-	//no dmc
-	return voices;
 }
 
 void Nes_Apu::set_tempo( double t )

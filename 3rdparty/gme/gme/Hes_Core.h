@@ -46,7 +46,6 @@ public:
 	
 	// Sound chip
 	Hes_Apu& apu()                      { return apu_; }
-	const Hes_Apu& apu() const          { return apu_; }
 
 	Hes_Apu_Adpcm& adpcm()              { return adpcm_; }
 	

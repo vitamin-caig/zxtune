@@ -52,7 +52,6 @@ protected:
 	virtual blargg_err_t start_track_( int );
 	virtual blargg_err_t play_( int count, sample_t [] );
 	virtual void mute_voices_( int );
-	virtual int voices_status_( voice_status_t* buf, int buf_size ) const;
 	virtual void set_tempo_( double );
 
 private:

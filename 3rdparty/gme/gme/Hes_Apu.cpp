@@ -14,7 +14,6 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
-#include "gme.h"
 
 bool const center_waves = true; // reduces asymmetry and clamping when starting notes
 
@@ -168,7 +167,7 @@ void Hes_Apu::run_osc( Blip_Synth_Fast& syn, Osc& o, blip_time_t end_time )
 	blip_time_t time = o.last_time + o.delay;
 	if ( time < end_time )
 	{
-		int phase = (o.phase + 1) & (Osc::wave_size - 1); // pre-advance for optimal inner loop
+		int phase = (o.phase + 1) & 0x1F; // pre-advance for optimal inner loop
         int period = o.period * 2;
 		
         if ( period >= 14 && out0 && !((o.control & 0x40) | noise) )
@@ -176,7 +175,7 @@ void Hes_Apu::run_osc( Blip_Synth_Fast& syn, Osc& o, blip_time_t end_time )
 			do
 			{
 				int new_dac = o.wave [phase];
-				phase = (phase + 1) & (Osc::wave_size - 1);
+				phase = (phase + 1) & 0x1F;
 				int delta = new_dac - dac;
 				if ( delta )
 				{
@@ -209,7 +208,7 @@ void Hes_Apu::run_osc( Blip_Synth_Fast& syn, Osc& o, blip_time_t end_time )
 		// if channel is muted in player, but still has non-zero volume.
 		// City Hunter breaks when this check is removed.
 		if ( !(o.control & 0x40) && (vol0 | vol1) )
-			o.phase = (phase - 1) & (Osc::wave_size - 1); // undo pre-advance
+			o.phase = (phase - 1) & 0x1F; // undo pre-advance
 	}
 	o.delay = time - end_time;
 	check( o.delay >= 0 );
@@ -330,7 +329,7 @@ void Hes_Apu::write_data( blip_time_t time, int addr, int data )
 			if ( !(osc.control & 0x40) )
 			{
 				osc.wave [osc.phase] = data;
-				osc.phase = (osc.phase + 1) & (Osc::wave_size - 1);
+				osc.phase = (osc.phase + 1) & 0x1F;
 			}
 			else if ( osc.control & 0x80 )
 			{
@@ -359,43 +358,4 @@ void Hes_Apu::end_frame( blip_time_t end_time )
 		osc->last_time -= end_time;
 		check( osc->last_time >= 0 );
 	}
-}
-
-int Hes_Apu::osc_status( voice_status_t* buf, int buf_size ) const
-{
-	//http://www.interlog.com/~daves/pce_info/pcesound.txt
-	int voices = 0;
-	for ( int idx = 0; idx < osc_count && voices < buf_size; ++idx )
-	{
-		const Osc& osc = oscs [idx];
-		const int control = osc.control;
-		if (  control & 0x80 )
-		{
-			voice_status_t& voice = buf[voices];
-			if ( osc.noise & 0x80 )
-			{
-				//noise
-				voice.divider = (32 - (osc.noise & 0x1F)) * 64;
-			}
-			else if ( !(control & 0x40) )
-			{
-				//wave
-				voice.divider = osc.period * 2 * Osc::wave_size;
-			}
-			else
-			{
-				//dac
-				voice.divider = 0;
-			}
-			const int volume = 2 * ((osc.control & 0x1F) - 0x1E * 2)
-				+ (osc.balance >> 3 & 0x1E) + (balance >> 3 & 0x1E)
-				+ (osc.balance << 1 & 0x1E) + (balance << 1 & 0x1E);
-			if ( voice.divider != 0 && volume > 0 )
-			{
-				voice.level = volume * voice_max_level / 0x3E;
-				++voices;
-			}
-		}
-	}
-	return voices;
 }

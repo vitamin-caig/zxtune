@@ -14,7 +14,6 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
-#include "gme.h"
 
 int const noise_osc = 3;
 
@@ -67,47 +66,6 @@ void Sms_Apu::set_output( Blip_Buffer* c, Blip_Buffer* l, Blip_Buffer* r )
 {
 	for ( int i = osc_count; --i >= 0; )
 		set_output( i, c, l, r );
-}
-
-int Sms_Apu::osc_status( voice_status_t* buf, int buf_size ) const
-{
-	int voices = 0;
-	for ( int idx = 0; idx < osc_count && voices < buf_size; ++idx )
-	{
-		const bool noise = idx == noise_osc;
-		const Osc& osc = oscs [idx];
-		const Blip_Buffer* const out = osc.output;
-		if (!out)
-		{
-			continue;
-		}
-
-		static unsigned char const volumes [16] = {
-			64, 50, 40, 32, 25, 20, 16, 13, 10, 8, 6, 5, 4, 3, 2, 0
-		};
-
-		const int vol = volumes [osc.volume];
-		int period = osc.period;
-		if ( noise )
-		{
-			period = 0x20 << (period & 3);
-			if ( period == 0x100 )
-				period = oscs [2].period * 2;
-		}
-		period *= 0x10;
-		if ( !period )
-			period = 0x10;
-
-		if ( vol != 0 && period != 0 )
-		{
-			voice_status_t& voice = buf[voices];
-			voice.frequency = out->clock_rate();
-			voice.level = vol * voice_max_level / 64;
-			voice.divider = noise ? period : period * 2;//phase
-			++voices;
-		}
-	}
-	return voices;
 }
 
 static inline unsigned fibonacci_to_galois_lfsr( unsigned fibonacci, int width )

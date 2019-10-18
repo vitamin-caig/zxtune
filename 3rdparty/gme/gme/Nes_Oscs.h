@@ -8,7 +8,6 @@
 #include "Blip_Buffer.h"
 
 class Nes_Apu;
-struct voice_status_t;
 
 struct Nes_Osc
 {
@@ -70,7 +69,6 @@ struct Nes_Square : Nes_Envelope
 		sweep_delay = 0;
 		Nes_Envelope::reset();
 	}
-	int status( voice_status_t* stat ) const;
 	nes_time_t maintain_phase( nes_time_t time, nes_time_t end_time,
 			nes_time_t timer_period );
 };
@@ -91,7 +89,6 @@ struct Nes_Triangle : Nes_Osc
 		phase = 1;
 		Nes_Osc::reset();
 	}
-	int status( voice_status_t* stat ) const;
 	nes_time_t maintain_phase( nes_time_t time, nes_time_t end_time,
 			nes_time_t timer_period );
 };
@@ -107,7 +104,6 @@ struct Nes_Noise : Nes_Envelope
 		noise = 1 << 14;
 		Nes_Envelope::reset();
 	}
-	int status( voice_status_t* stat ) const;
 };
 
 // Nes_Dmc

@@ -25,9 +25,6 @@ public:
 	// emulation accuracy).
 	void set_output( Blip_Buffer* );
 	
-	// returns count of elements filled in buf (up to buf_size)
-	int osc_status( voice_status_t* buf, int buf_size ) const;
-
 	// All time values are the number of CPU clock cycles relative to the
 	// beginning of the current time frame. Before resetting the CPU clock
 	// count, call end_frame( last_cpu_time ).
