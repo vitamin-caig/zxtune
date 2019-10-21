@@ -46,7 +46,7 @@ endif
 CXXFLAGS = /nologo /c $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
 	/W3 \
 	$(addprefix /D, $(DEFINES)) \
-	/J /Zc:wchar_t,forScope /Z7 /Zl /EHsc \
+	/J /Zc:wchar_t,forScope,auto,rvalueCast /Z7 /Zl /EHsc \
 	/GA /GF /Gy /Y- /GR \
 	$(addprefix /I, $(INCLUDES_DIRS)) $(addprefix /FI , $(INCLUDES_FILES))
 

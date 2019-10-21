@@ -21,5 +21,6 @@ sources = bitmath bitreader bitwriter cpu crc fixed float format lpc md5 memory 
 
 source_files = $(addprefix src/libFLAC/,$(addsuffix .c,$(sources)))
 source_files.mingw = src/share/win_utf8_io/win_utf8_io.c src/libFLAC/windows_unicode_filenames.c
+source_files.windows = $(source_files.mingw)
 
 include $(dirs.root)/makefile.mak

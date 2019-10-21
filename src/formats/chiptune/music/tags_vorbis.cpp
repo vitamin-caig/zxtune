@@ -17,6 +17,7 @@
 #include <strings/trim.h>
 //std includes
 #include <array>
+#include <cctype>
 
 namespace Formats
 {

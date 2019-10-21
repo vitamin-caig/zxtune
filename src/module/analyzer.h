@@ -40,8 +40,9 @@ namespace Module
       {
       }
 
-      template<class T>
-      SpectrumState(T&& rh) noexcept
+      using DataType = std::array<LevelType, 96>;
+
+      SpectrumState(DataType&& rh) noexcept
         : Data(std::move(rh))
       {
       }
@@ -59,7 +60,7 @@ namespace Module
         return std::min(lh + rh, LevelType(1));
       }
 
-      std::array<LevelType, 96> Data;
+      DataType Data;
     };
 
     virtual SpectrumState GetState() const = 0;
