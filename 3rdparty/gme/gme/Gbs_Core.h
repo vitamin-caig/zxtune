@@ -40,7 +40,6 @@ public:
 	
 	// Sound chip
 	Gb_Apu& apu()                       { return apu_; }
-	const Gb_Apu& apu() const           { return apu_; }
 
 	// ROM data
 	Rom_Data const& rom_() const         { return rom; }

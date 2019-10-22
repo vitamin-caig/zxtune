@@ -55,7 +55,8 @@ const char* gme_identify_header( void const* header )
 	switch ( get_be32( header ) )
 	{
 		case BLARGG_4CHAR('Z','X','A','Y'):  return "AY";
-		case BLARGG_4CHAR('G','B','S',0x01): return "GBS";
+		case BLARGG_4CHAR('G','B','S',0x01):
+		case BLARGG_4CHAR('G','B','S',0x02): return "GBS";
 		case BLARGG_4CHAR('G','Y','M','X'):  return "GYM";
 		case BLARGG_4CHAR('H','E','S','M'):  return "HES";
 		case BLARGG_4CHAR('K','S','C','C'):
@@ -355,7 +356,6 @@ void      gme_ignore_silence ( Music_Emu* gme, gme_bool disable )       { gme->i
 void      gme_set_tempo      ( Music_Emu* gme, double t )               { gme->set_tempo( t ); }
 void      gme_mute_voice     ( Music_Emu* gme, int index, gme_bool mute ){ gme->mute_voice( index, mute != 0 ); }
 void      gme_mute_voices    ( Music_Emu* gme, int mask )               { gme->mute_voices( mask ); }
-int       gme_voices_status  ( Music_Emu const* gme, voice_status_t* buf, int buf_size ) { return gme->voices_status( buf, buf_size ); }
 void      gme_set_equalizer  ( Music_Emu* gme, gme_equalizer_t const* eq ) { gme->set_equalizer( *eq ); }
 void      gme_equalizer      ( Music_Emu const* gme, gme_equalizer_t* o )  { *o = gme->equalizer(); }
 const char* gme_voice_name   ( Music_Emu const* gme, int i )            { return gme->voice_name( i ); }

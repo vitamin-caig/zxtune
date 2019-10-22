@@ -12,9 +12,7 @@ public:
 	
 	// Sound chips and common state
 	Sap_Apu& apu()                              { return apu_; }
-	const Sap_Apu& apu() const                  { return apu_; }
 	Sap_Apu& apu2()                             { return apu2_; }
-	const Sap_Apu& apu2() const                 { return apu2_; }
 	Sap_Apu_Impl& apu_impl()                    { return apu_impl_; }
 	
 	// Adjusts music tempo, where 1.0 is normal. Can be changed while playing.

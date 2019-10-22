@@ -7,8 +7,6 @@
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
 
-struct voice_status_t;
-
 class Hes_Apu {
 public:
 // Basics
@@ -43,8 +41,6 @@ public:
 	enum { io_addr = 0x0800 };
 	enum { io_size = 10 };
 	
-	int osc_status( voice_status_t* buf, int buf_size ) const;
-
 // Implementation
 public:
 	Hes_Apu();
@@ -54,8 +50,7 @@ private:
 	enum { amp_range = 0x8000 };
 	struct Osc
 	{
-		enum { wave_size = 32 };
-		byte wave [wave_size];
+		byte wave [32];
 		int  delay;
 		int  period;
 		int  phase;

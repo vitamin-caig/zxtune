@@ -89,10 +89,6 @@ public:
 	// 0 unmutes them all, 0x01 mutes just the first voice, etc.
 	void mute_voices( int mask );
 
-	// Get some runtime information about active voices
-	// returns count of elements filled in buf (up to buf_size)
-	int voices_status( voice_status_t* buf, int buf_size ) const;
-
 // Sound customization
 	
 	// Adjusts song tempo, where 1.0 = normal, 0.5 = half speed, 2.0 = double speed.
@@ -160,10 +156,6 @@ protected:
 	// Mute voices based on mask
 	virtual void mute_voices_( int mask )                       BLARGG_PURE( ; )
 	
-	// Get some runtime information about active voices
-	// returns count of elements filled in buf (up to buf_size)
-	virtual int voices_status_( voice_status_t*, int ) const { return 0; }
-
 	// Set tempo to t, which is constrained to the range 0.02 to 4.0.
 	virtual void set_tempo_( double t )                         BLARGG_PURE( ; )
 	

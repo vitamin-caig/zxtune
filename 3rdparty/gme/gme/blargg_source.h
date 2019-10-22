@@ -59,12 +59,12 @@ static inline void dprintf( const char * fmt, ... )
 #ifdef NDEBUG
 static inline void blargg_dprintf_( const char [], ... ) { }
 #undef  dprintf
-#define dprintf blargg_dprintf_
+#define dprintf (1) ? (void) 0 : blargg_dprintf_
 #else
 #include <stdarg.h>
 #include <stdio.h>
 #undef  dprintf
-#define dprintf blargg_dprintf_
+#define dprintf (1) ? (void) 0 : blargg_dprintf_
 #ifndef _WIN32
 #include <stdio.h>
 static inline void blargg_dprintf_( const char * fmt, ... )

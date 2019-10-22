@@ -107,11 +107,6 @@ void Music_Emu::mute_voices( int mask )
 	mute_voices_( mask );
 }
 
-int Music_Emu::voices_status( voice_status_t* buf, int buf_size ) const
-{
-	return voices_status_( buf, buf_size );
-}
-
 const char* Music_Emu::voice_name( int i ) const
 {
 	if ( (unsigned) i < (unsigned) voice_count_ )
@@ -225,7 +220,7 @@ void Music_Emu::set_fade( int start_msec, int length_msec )
     fade_set = true;
     this->length_msec = start_msec;
     this->fade_msec = length_msec;
-	track_filter.set_fade( msec_to_samples( start_msec ),
+	track_filter.set_fade( start_msec < 0 ? Track_Filter::indefinite_count : msec_to_samples( start_msec ),
 			length_msec * sample_rate() / (1000 / stereo) );
 }
 

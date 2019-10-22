@@ -12,8 +12,6 @@ struct Ym2612_Impl;
 typedef void Ym2612_Impl;
 #endif
 
-struct voice_status_t;
-
 class Ym2612_Emu  {
 	Ym2612_Impl* impl;
 public:
@@ -41,8 +39,6 @@ public:
 	typedef short sample_t;
 	enum { out_chan_count = 2 }; // stereo
 	void run( int pair_count, sample_t* out );
-
-	int osc_status( voice_status_t* buf, int buf_size ) const;
 };
 
 #endif

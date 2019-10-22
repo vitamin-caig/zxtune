@@ -138,20 +138,6 @@ void Gbs_Emu::set_voice( int i, Blip_Buffer* c, Blip_Buffer* l, Blip_Buffer* r )
 	core_.apu().set_output( i, c, l, r );
 }
 
-int Gbs_Emu::voices_status_( voice_status_t* buf, int buf_size ) const
-{
-	voice_status_t* out = buf;
-	voice_status_t* const end = buf + buf_size;
-	out += core_.apu().osc_status( out, end - out );
-	
-	const int freq = clock_rate();
-	for (voice_status_t* fix = buf; fix != out; ++fix)
-	{
-		fix->frequency = freq;
-	}
-	return out - buf;
-}
-
 void Gbs_Emu::set_tempo_( double t )
 {
 	core_.set_tempo( t );

@@ -328,28 +328,6 @@ void Kss_Emu::set_voice( int i, Blip_Buffer* center, Blip_Buffer* left, Blip_Buf
 	}
 }
 
-int Kss_Emu::voices_status_( voice_status_t* buf, int buf_size ) const
-{
-  int voices = 0;
-  if ( core.sms.psg )
-  {
-		voices += core.sms.psg->osc_status( buf + voices, buf_size - voices );
-    if ( core.sms.fm && voices < buf_size )
-      voices += core.sms.fm->osc_status( buf + voices, buf_size - voices );
-	}
-  else if ( core.msx.psg )
-  {
-    voices += core.msx.psg->osc_status( buf + voices, buf_size - voices );
-    if ( core.msx.scc && voices < buf_size )
-      voices += core.msx.scc->osc_status( buf + voices, buf_size - voices);
-    if ( core.msx.music && voices < buf_size )
-      voices += core.msx.music->osc_status( buf + voices, buf_size - voices);
-    if ( core.msx.audio && voices < buf_size )
-      voices += core.msx.audio->osc_status( buf + voices, buf_size - voices);
-	}
-	return voices;
-}
-
 void Kss_Emu::set_tempo_( double t )
 {
 	int period = (header().device_flags & 0x40 ? ::clock_rate / 50 : ::clock_rate / 60);
@@ -407,8 +385,8 @@ void Kss_Emu::Core::cpu_write_( addr_t addr, int data )
 void Kss_Emu::Core::cpu_write( addr_t addr, int data )
 {
 	*cpu.write( addr ) = data;
-  if ( (addr & scc_enabled) == 0x8000 )
-    cpu_write_( addr, data );
+	if ( (addr & scc_enabled) == 0x8000 )
+		cpu_write_( addr, data );
 }
 
 void Kss_Emu::Core::cpu_out( time_t time, addr_t addr, int data )

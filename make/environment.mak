@@ -7,6 +7,9 @@ endif
 endif
 endif
 
+#generic defines
+defines += HAVE_STDINT_H
+
 #android
 android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector-strong -fomit-frame-pointer -Wa,--noexecstack
 android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -static-libstdc++
