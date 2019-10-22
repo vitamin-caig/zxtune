@@ -5,5 +5,4 @@ includes.dirs += $(prebuilt.dir)/boost-$(boost.version.merged)/include
 libraries.dirs.$(platform) += $(prebuilt.dir)/boost-$(boost.version.merged)-$(platform)-$(arch)/lib
 endif
 
-defines += HAVE_BOOST
 libraries += $(foreach lib,$(libraries.boost),boost_$(lib))
