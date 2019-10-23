@@ -63,12 +63,16 @@ public class Analytics {
   }
 
   @Retention(SOURCE)
-  @IntDef({UI_ACTION_PREFERENCES, UI_ACTION_RATE, UI_ACTION_ABOUT})
+  @IntDef({UI_ACTION_OPEN, UI_ACTION_CLOSE, UI_ACTION_PREFERENCES, UI_ACTION_RATE, UI_ACTION_ABOUT,
+      UI_ACTION_QUIT})
   @interface UiAction {}
 
-  public static final int UI_ACTION_PREFERENCES = 0;
-  public static final int UI_ACTION_RATE = 1;
-  public static final int UI_ACTION_ABOUT = 2;
+  public static final int UI_ACTION_OPEN = 0;
+  public static final int UI_ACTION_CLOSE = 1;
+  public static final int UI_ACTION_PREFERENCES = 2;
+  public static final int UI_ACTION_RATE = 3;
+  public static final int UI_ACTION_ABOUT = 4;
+  public static final int UI_ACTION_QUIT = 5;
 
   public static void sendUiEvent(@UiAction int action) {
     for (Sink s : sinks) {

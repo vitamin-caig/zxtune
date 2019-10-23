@@ -88,6 +88,14 @@ public class MainActivity extends AppCompatActivity {
     if (savedInstanceState == null) {
       subscribeForPendingOpenRequest();
     }
+    Analytics.sendUiEvent(Analytics.UI_ACTION_OPEN);
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+
+    Analytics.sendUiEvent(Analytics.UI_ACTION_CLOSE);
   }
 
   @Override
@@ -267,6 +275,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void quit() {
+    Analytics.sendUiEvent(Analytics.UI_ACTION_QUIT);
     final Intent intent = MainService.createIntent(this, null);
     stopService(intent);
     finish();
