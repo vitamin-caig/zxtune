@@ -306,6 +306,9 @@ SwitchCycle:
     #include "c68k_opE.inc"
     #include "c68k_opF.inc"
 #ifdef C68K_NO_JUMP_TABLE
+    default:
+      Opcode = 0x4AFC; //illegal
+      break;
     }
     }
 #endif
