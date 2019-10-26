@@ -5,6 +5,14 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4720 from 26.10.2019
+
+[+] Added support of Free Lossless Audio Codec format (FLAC)
+[*] Fixed YM2608 overload distortion in VGM format playback
+[*] zxtune-qt: fixed crash on SID playback
+[*] zxtune-android: optimized memory usage
+[*] zxtune-android: fixed hangup after many played tracks
+
 --- Rev4660 from 17.06.2019
 
 [+] zxtune-android: added aminet.net online catalogue
