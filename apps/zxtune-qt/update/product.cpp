@@ -185,6 +185,7 @@ namespace Product
     case Release::MINGW:
       result.push_back(GetUpdateType(Release::MINGW, architecture, Update::ZIP));
       result.push_back(GetUpdateType(Release::WINDOWS, architecture, Update::ZIP));
+      break;
     case Release::WINDOWS:
       result.push_back(GetUpdateType(Release::WINDOWS, architecture, Update::ZIP));
       result.push_back(GetUpdateType(Release::MINGW, architecture, Update::ZIP));
