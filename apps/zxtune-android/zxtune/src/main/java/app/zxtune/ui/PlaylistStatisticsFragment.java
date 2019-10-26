@@ -21,7 +21,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.widget.ArrayAdapter;
-import app.zxtune.Analytics;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.R;
 import app.zxtune.playlist.PlaylistQuery;
 import app.zxtune.playlist.Statistics;
@@ -35,7 +35,7 @@ public class PlaylistStatisticsFragment extends DialogFragment {
     final Bundle args = new Bundle();
     args.putLongArray(IDS_KEY, ids);
     res.setArguments(args);
-    Analytics.sendPlaylistEvent("Statistics", ids != null ? "selection" : "global");
+    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_STATISTICS, ids != null ? ids.length : 0);
     return res;
   }
 

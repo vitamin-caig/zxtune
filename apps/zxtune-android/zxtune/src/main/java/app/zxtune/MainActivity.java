@@ -30,6 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.models.MediaSessionConnection;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.ui.AboutFragment;
@@ -87,6 +88,14 @@ public class MainActivity extends AppCompatActivity {
     if (savedInstanceState == null) {
       subscribeForPendingOpenRequest();
     }
+    Analytics.sendUiEvent(Analytics.UI_ACTION_OPEN);
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+
+    Analytics.sendUiEvent(Analytics.UI_ACTION_CLOSE);
   }
 
   @Override
@@ -232,18 +241,18 @@ public class MainActivity extends AppCompatActivity {
   private void showPreferences() {
     final Intent intent = new Intent(this, PreferencesActivity.class);
     startActivity(intent);
-    Analytics.sendUIEvent("Preferences");
+    Analytics.sendUiEvent(Analytics.UI_ACTION_PREFERENCES);
   }
 
   private void rateApplication() {
     final Intent intent = new Intent(Intent.ACTION_VIEW);
     intent.setData(Uri.parse("market://details?id=" + getPackageName()));
     if (safeStartActivity(intent)) {
-      Analytics.sendUIEvent("Rate");
+      Analytics.sendUiEvent(Analytics.UI_ACTION_RATE);
     } else {
       intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName()));
       if (safeStartActivity(intent)) {
-        Analytics.sendUIEvent("Rate");
+        Analytics.sendUiEvent(Analytics.UI_ACTION_RATE);
       } else {
         Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
       }
@@ -262,10 +271,11 @@ public class MainActivity extends AppCompatActivity {
   private void showAbout() {
     final DialogFragment fragment = AboutFragment.createInstance();
     fragment.show(getSupportFragmentManager(), "about");
-    Analytics.sendUIEvent("About");
+    Analytics.sendUiEvent(Analytics.UI_ACTION_ABOUT);
   }
 
   private void quit() {
+    Analytics.sendUiEvent(Analytics.UI_ACTION_QUIT);
     final Intent intent = MainService.createIntent(this, null);
     stopService(intent);
     finish();

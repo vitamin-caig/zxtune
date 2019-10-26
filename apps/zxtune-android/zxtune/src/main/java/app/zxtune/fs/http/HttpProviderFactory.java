@@ -7,7 +7,6 @@ import android.net.NetworkInfo;
 import java.io.IOException;
 import java.util.Locale;
 
-import app.zxtune.Analytics;
 import app.zxtune.BuildConfig;
 import app.zxtune.R;
 

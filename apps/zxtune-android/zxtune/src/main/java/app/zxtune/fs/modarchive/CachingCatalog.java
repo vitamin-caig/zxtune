@@ -20,7 +20,7 @@ import app.zxtune.fs.http.HttpObject;
 
 final class CachingCatalog extends Catalog {
 
-  private static final String TAG = CachingCatalog.class.getName();
+  //private static final String TAG = CachingCatalog.class.getName();
 
   private final TimeStamp AUTHORS_TTL = days(2);
   private final TimeStamp GENRES_TTL = days(30);
@@ -35,7 +35,7 @@ final class CachingCatalog extends Catalog {
   private CacheDir cache;
   private final CommandExecutor executor;
 
-  public CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
+  CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
     this.remote = remote;
     this.db = db;
     this.cache = cache.createNested("modarchive.org");
@@ -44,7 +44,12 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery("authors", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "authors";
+      }
 
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -75,7 +80,12 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryGenres(final GenresVisitor visitor) throws IOException {
-    executor.executeQuery("genres", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "genres";
+      }
 
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -106,7 +116,12 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryTracks(final Author author, final TracksVisitor visitor) throws IOException {
-    executor.executeQuery("tracks", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "tracks";
+      }
 
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -138,7 +153,12 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryTracks(final Genre genre, final TracksVisitor visitor) throws IOException {
-    executor.executeQuery("tracks", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "tracks";
+      }
 
       @Override
       public Timestamps.Lifetime getLifetime() {

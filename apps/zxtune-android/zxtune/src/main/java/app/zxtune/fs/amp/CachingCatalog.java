@@ -44,7 +44,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryGroups(final GroupsVisitor visitor) throws IOException {
-    executor.executeQuery("groups", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "groups";
+      }
+
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getGroupsLifetime(GROUPS_TTL);
@@ -74,7 +80,12 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final String handleFilter, final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery("authors", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "authors";
+      }
 
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -105,7 +116,12 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final Country country, final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery("authors", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "authors";
+      }
 
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -137,7 +153,12 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final Group group, final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery("authors", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "authors";
+      }
 
       @Override
       public Timestamps.Lifetime getLifetime() {
@@ -169,7 +190,12 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryTracks(final Author author, final TracksVisitor visitor) throws IOException {
-    executor.executeQuery("tracks", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "tracks";
+      }
 
       @Override
       public Timestamps.Lifetime getLifetime() {

@@ -7,6 +7,7 @@
 package app.zxtune;
 
 import android.app.Application;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.device.ui.Notifications;
 import com.github.anrwatchdog.ANRError;
 import com.github.anrwatchdog.ANRWatchDog;

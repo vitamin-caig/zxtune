@@ -19,6 +19,7 @@ import android.os.PowerManager.WakeLock;
 import android.support.v4.os.CancellationSignal;
 import android.support.v4.os.OperationCanceledException;
 import android.widget.Toast;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.Scanner;
@@ -48,7 +49,7 @@ public class ScanService extends IntentService {
       final Item item = new app.zxtune.playlist.Item(source);
       ctx.getContentResolver().insert(PlaylistQuery.ALL, item.toContentValues());
       ctx.getContentResolver().notifyChange(PlaylistQuery.ALL, null);
-      Analytics.sendPlaylistEvent("Add", 1);
+      Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_ADD, 1);
     } catch (Exception error) {
       Log.w(TAG, error, "Failed to add item to playlist");
     }
@@ -59,7 +60,7 @@ public class ScanService extends IntentService {
     intent.setAction(ScanService.ACTION_START);
     intent.putExtra(ScanService.EXTRA_PATHS, uris);
     context.startService(intent);
-    Analytics.sendPlaylistEvent("Add", uris.length);
+    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_ADD, uris.length);
   }
 
   /**

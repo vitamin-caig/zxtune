@@ -72,7 +72,6 @@ public class MainService extends MediaBrowserServiceCompat {
 
   @Override
   public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
-    Analytics.sendServiceStartEvent(intent != null ? intent.getAction() : null);
     Log.d(TAG, "onStartCommand(%s)", intent);
     MediaButtonReceiver.handleIntent(mediaSessionControl.getSession(), intent);
     return super.onStartCommand(intent, flags, startId);

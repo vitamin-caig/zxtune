@@ -43,7 +43,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery("authors", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "authors";
+      }
+
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorsLifetime(AUTHORS_TTL);
@@ -74,7 +80,13 @@ final class CachingCatalog extends Catalog {
   @Override
   public void queryAuthorTracks(final Author author, final TracksVisitor visitor)
           throws IOException {
-    executor.executeQuery("tracks", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "tracks";
+      }
+
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getAuthorTracksLifetime(author, TRACKS_TTL);
@@ -105,7 +117,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryParties(final PartiesVisitor visitor) throws IOException {
-    executor.executeQuery("parties", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "parties";
+      }
+
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getPartiesLifetime(PARTIES_TTL);
@@ -136,7 +154,13 @@ final class CachingCatalog extends Catalog {
   @Override
   public void queryPartyTracks(final Party party, final TracksVisitor visitor)
           throws IOException {
-    executor.executeQuery("tracks", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "tracks";
+      }
+
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getPartyTracksLifetime(party, TRACKS_TTL);
@@ -167,7 +191,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryTopTracks(final int limit, final TracksVisitor visitor) throws IOException {
-    executor.executeQuery("tracks", new QueryCommand() {
+    executor.executeQuery(new QueryCommand() {
+
+      @Override
+      public String getScope() {
+        return "tracks";
+      }
+
       @Override
       public Timestamps.Lifetime getLifetime() {
         return db.getTopLifetime(TRACKS_TTL);

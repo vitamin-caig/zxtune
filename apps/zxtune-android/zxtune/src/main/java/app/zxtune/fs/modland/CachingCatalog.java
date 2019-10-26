@@ -74,7 +74,13 @@ final class CachingCatalog extends Catalog {
 
     @Override
     public void queryGroups(final String filter, final GroupsVisitor visitor) throws IOException {
-      executor.executeQuery(category, new QueryCommand() {
+      executor.executeQuery(new QueryCommand() {
+
+        @Override
+        public String getScope() {
+          return category;
+        }
+
         @Override
         public Timestamps.Lifetime getLifetime() {
           return db.getGroupsLifetime(category, filter, GROUPS_TTL);
@@ -103,10 +109,17 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
+    @NonNull
     public Group getGroup(final int id) throws IOException {
       // It's impossible to fill all the cache, so query/update for specified group
       final String categoryElement = category.substring(0, category.length() - 1);
-      return executor.executeFetchCommand(categoryElement, new FetchCommand<Group>() {
+      return executor.executeFetchCommand(new FetchCommand<Group>() {
+
+        @Override
+        public String getScope() {
+          return categoryElement;
+        }
+
         @Override
         public Group fetchFromCache() {
           return db.queryGroup(category, id);
@@ -123,7 +136,13 @@ final class CachingCatalog extends Catalog {
 
     @Override
     public void queryTracks(final int id, final TracksVisitor visitor) throws IOException {
-      executor.executeQuery("tracks", new QueryCommand() {
+      executor.executeQuery(new QueryCommand() {
+
+        @Override
+        public String getScope() {
+          return "tracks";
+        }
+
         @Override
         public Timestamps.Lifetime getLifetime() {
           return db.getGroupTracksLifetime(category, id, GROUP_TRACKS_TTL);
@@ -154,10 +173,16 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
+    @NonNull
     public Track getTrack(final int id, final String filename) throws IOException {
       // Just query all the category tracks and store found one
       final Track[] resultRef = {null};
-      return executor.executeFetchCommand("track", new FetchCommand<Track>() {
+      return executor.executeFetchCommand(new FetchCommand<Track>() {
+        @Override
+        public String getScope() {
+          return "track";
+        }
+
         @Override
         public Track fetchFromCache() {
           return db.findTrack(category, id, filename);
