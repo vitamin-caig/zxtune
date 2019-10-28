@@ -378,11 +378,17 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render
   return Jni::Call(env, [=] ()
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    const auto& player = Player::Storage::Instance().Get(playerHandle);
     typedef AutoArray<jshortArray, int16_t> ArrayType;
     ArrayType buf(env, buffer);
     Jni::CheckArgument(buf, "Empty render buffer");
-    return player->Render(buf.Size(), buf.Data());
+    if (const auto player = Player::Storage::Instance().Find(playerHandle))
+    {
+      return player->Render(buf.Size(), buf.Data());
+    }
+    else
+    {
+      return false;
+    }
   });
 }
 
@@ -391,11 +397,12 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze
 {
   return Jni::Call(env, [=] ()
   {
+    // Should be before AutoArray calls - else causes 'using JNI after critical get' error
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    const auto& player = Player::Storage::Instance().Get(playerHandle);
+    const auto player = Player::Storage::Instance().Find(playerHandle);
     typedef AutoArray<jbyteArray, uint8_t> ArrayType;
     ArrayType rawLevels(env, levels);
-    if (rawLevels)
+    if (rawLevels && player)
     {
       return player->Analyze(rawLevels.Size(), rawLevels.Data());
     }
@@ -412,7 +419,14 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPosition
   return Jni::Call(env, [=] ()
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    return Player::Storage::Instance().Get(playerHandle)->GetPosition();
+    if (const auto player = Player::Storage::Instance().Find(playerHandle))
+    {
+      return player->GetPosition();
+    }
+    else
+    {
+      return uint_t(0);
+    }
   });
 }
 
@@ -422,7 +436,10 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPosition
   return Jni::Call(env, [=] ()
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    Player::Storage::Instance().Get(playerHandle)->Seek(position);
+    if (const auto player = Player::Storage::Instance().Find(playerHandle))
+    {
+      player->Seek(position);
+    }
   });
 }
 
@@ -432,7 +449,14 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPerformance
   return Jni::Call(env, [=] ()
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    return Player::Storage::Instance().Get(playerHandle)->GetPlaybackPerformance();
+    if (const auto player = Player::Storage::Instance().Find(playerHandle))
+    {
+      return player->GetPlaybackPerformance();
+    }
+    else
+    {
+      return uint_t(0);
+    }
   });
 }
 
@@ -442,10 +466,16 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_la
   return Jni::Call(env, [=] ()
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    const auto& player = Player::Storage::Instance().Get(playerHandle);
-    const auto& props= player->GetProperties();
-    const Jni::PropertiesReadHelper helper(env, props);
-    return helper.Get(propName, defVal);
+    if (const auto player = Player::Storage::Instance().Find(playerHandle))
+    {
+      const auto& props= player->GetProperties();
+      const Jni::PropertiesReadHelper helper(env, props);
+      return helper.Get(propName, defVal);
+    }
+    else
+    {
+      return defVal;
+    }
   });
 }
 
@@ -455,10 +485,16 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_
   return Jni::Call(env, [=] ()
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    const auto& player = Player::Storage::Instance().Get(playerHandle);
-    const auto& props = player->GetProperties();
-    const Jni::PropertiesReadHelper helper(env, props);
-    return helper.Get(propName, defVal);
+    if (const auto player = Player::Storage::Instance().Find(playerHandle))
+    {
+      const auto& props= player->GetProperties();
+      const Jni::PropertiesReadHelper helper(env, props);
+      return helper.Get(propName, defVal);
+    }
+    else
+    {
+      return defVal;
+    }
   });
 }
 
@@ -468,10 +504,12 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lan
   return Jni::Call(env, [=] ()
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    const auto& player = Player::Storage::Instance().Get(playerHandle);
-    auto& params = player->GetParameters();
-    Jni::PropertiesWriteHelper helper(env, params);
-    helper.Set(propName, value);
+    if (const auto player = Player::Storage::Instance().Get(playerHandle))
+    {
+      auto& params = player->GetParameters();
+      Jni::PropertiesWriteHelper helper(env, params);
+      helper.Set(propName, value);
+    }
   });
 }
 
@@ -481,9 +519,11 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lan
   return Jni::Call(env, [=] ()
   {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    const auto& player = Player::Storage::Instance().Get(playerHandle);
-    auto& params = player->GetParameters();
-    Jni::PropertiesWriteHelper helper(env, params);
-    helper.Set(propName, value);
+    if (const auto player = Player::Storage::Instance().Get(playerHandle))
+    {
+      auto& params = player->GetParameters();
+      Jni::PropertiesWriteHelper helper(env, params);
+      helper.Set(propName, value);
+    }
   });
 }

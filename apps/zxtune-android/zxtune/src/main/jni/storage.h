@@ -38,12 +38,21 @@ public:
     return handle;
   }
 
-  const PtrType& Get(HandleType handle) const
+  PtrType Get(HandleType handle) const
   {
     const std::lock_guard<std::mutex> guard(Lock);
     const auto it = Storage.find(handle);
     Jni::CheckArgument(it != Storage.end(), "Invalid handle");
     return it->second;
+  }
+
+  PtrType Find(HandleType handle) const
+  {
+    const std::lock_guard<std::mutex> guard(Lock);
+    const auto it = Storage.find(handle);
+    return it != Storage.end()
+        ? it->second
+        : PtrType();
   }
 
   PtrType Fetch(HandleType handle)

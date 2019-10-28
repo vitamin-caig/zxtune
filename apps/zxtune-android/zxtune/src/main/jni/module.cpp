@@ -195,7 +195,7 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_la
   return Jni::Call(env, [=] ()
   {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
-    const auto& module = Module::Storage::Instance().Get(moduleHandle);
+    const auto module = Module::Storage::Instance().Get(moduleHandle);
     const auto& params = module->GetModuleProperties();
     const Jni::PropertiesReadHelper props(env, *params);
     return props.Get(propName, defVal);
@@ -208,7 +208,7 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_
   return Jni::Call(env, [=] ()
   {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
-    const auto& module = Module::Storage::Instance().Get(moduleHandle);
+    const auto module = Module::Storage::Instance().Get(moduleHandle);
     const auto& params = module->GetModuleProperties();
     const Jni::PropertiesReadHelper props(env, *params);
     return props.Get(propName, defVal);
@@ -221,7 +221,7 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_createPlayer
   return Jni::Call(env, [=] ()
   {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
-    const auto& module = Module::Storage::Instance().Get(moduleHandle);
+    const auto module = Module::Storage::Instance().Get(moduleHandle);
     return Player::Create(env, module);
   });
 }
@@ -232,7 +232,7 @@ JNIEXPORT jobjectArray JNICALL Java_app_zxtune_core_jni_JniModule_getAdditionalF
   return Jni::Call(env, [=] ()
   {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
-    const auto& module = Module::Storage::Instance().Get(moduleHandle);
+    const auto module = Module::Storage::Instance().Get(moduleHandle);
     if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
     {
       const auto& filenames = files->Enumerate();
@@ -256,7 +256,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFile
   return Jni::Call(env, [=] ()
   {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
-    const auto& module = Module::Storage::Instance().Get(moduleHandle);
+    const auto module = Module::Storage::Instance().Get(moduleHandle);
     auto& files = const_cast<Module::AdditionalFiles&>(dynamic_cast<const Module::AdditionalFiles&>(*module));
     files.Resolve(Jni::MakeString(env, fileName), Binary::CreateByteBufferContainer(env, data));
   });

@@ -23,7 +23,7 @@ namespace Player
   class Control
   {
   public:
-    typedef std::unique_ptr<Control> Ptr;
+    typedef std::shared_ptr<Control> Ptr;
     virtual ~Control() = default;
 
     virtual const Parameters::Accessor& GetProperties() const = 0;
