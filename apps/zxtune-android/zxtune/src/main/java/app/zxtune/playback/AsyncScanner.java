@@ -121,6 +121,9 @@ public final class AsyncScanner {
         }
       }
       return true;
+    } catch (OperationCanceledException c) {
+      // Do not log anything here
+      return false;
     } catch (Exception e) {
       Log.w(TAG, e, "Stopped scanning");
       return false;
