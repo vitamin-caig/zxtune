@@ -53,6 +53,7 @@ public final class AsyncPlayer implements Player {
     src.initialize(target.getSampleRate());
     synchronized(state) {
       source.set(src);
+      seekRequest.set(null);
       state.compareAndSet(UNINITIALIZED, STOPPED);
       state.notify();
     }
@@ -151,9 +152,10 @@ public final class AsyncPlayer implements Player {
     events.onStart();
     try {
       while (isStarted()) {
-        maybeSeek();
+        final SamplesSource src = source.get();
+        maybeSeek(src);
         final short[] buf = target.getBuffer();
-        if (getSamples(buf)) {
+        if (src.getSamples(buf)) {
           if (!commitSamples()) {
             break;
           }
@@ -177,20 +179,16 @@ public final class AsyncPlayer implements Player {
     }
   }
 
-  private void maybeSeek() {
+  private void maybeSeek(SamplesSource src) {
     TimeStamp req = seekRequest.getAndSet(null);
     if (req != null) {
       events.onSeeking();
       while (req != null && isStarted()) {
-        source.get().setPosition(req);
+        src.setPosition(req);
         req = seekRequest.getAndSet(null);
       }
       events.onStart();
     }
-  }
-
-  private boolean getSamples(short[] buf) {
-    return source.get().getSamples(buf);
   }
 
   private boolean commitSamples() throws Exception {
