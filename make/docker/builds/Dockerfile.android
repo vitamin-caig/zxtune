@@ -54,7 +54,7 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     echo "toolchains.root=${toolchains}\nprebuilt.dir=${prebuilt}\nboost.version=${boost}\n"\
          "tools.python=python3\n" > variables.mak && \
     mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}" > apps/zxtune-android/local.properties && \
-    echo "org.gradle.jvmargs=-Xmx2048M" > apps/zxtune-android/gradle.properties
+    echo "org.gradle.jvmargs=-Xmx4g" > apps/zxtune-android/gradle.properties
 
 WORKDIR /build/zxtune/apps/zxtune-android
 COPY entrypoint.sh .
