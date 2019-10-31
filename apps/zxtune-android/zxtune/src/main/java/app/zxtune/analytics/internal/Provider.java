@@ -4,14 +4,19 @@ import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.LocaleList;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.DisplayMetrics;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import app.zxtune.Log;
@@ -49,6 +54,7 @@ public final class Provider extends ContentProvider {
     thread.setDaemon(true);
     thread.start();
     sendSystemInfoEvent();
+    sendSystemConfigurationEvent(ctx.getResources());
     return true;
   }
 
@@ -75,6 +81,24 @@ public final class Provider extends ContentProvider {
     doPush(builder.getResult());
   }
 
+  private void sendSystemConfigurationEvent(Resources res) {
+    final UrlsBuilder builder = new UrlsBuilder("system/config");
+    final Configuration cfg = res.getConfiguration();
+    final DisplayMetrics metrics = res.getDisplayMetrics();
+    builder.addParam("layout", cfg.screenLayout);
+    if (Build.VERSION.SDK_INT >= 24) {
+      final LocaleList locales = cfg.getLocales();
+      builder.addParam("locale", locales.get(0).toString());
+      for (int idx = 1, lim = locales.size(); idx < lim; ++idx) {
+        builder.addParam("locale" + (idx + 1), locales.get(idx).toString());
+      }
+    } else {
+      builder.addParam("locale", cfg.locale.toString());
+    }
+    builder.addParam("density", metrics.densityDpi);
+
+    doPush(builder.getResult());
+  }
 
   @Nullable
   @Override
@@ -117,7 +141,7 @@ public final class Provider extends ContentProvider {
   }
 
   private static void doSending(LinkedBlockingQueue<String> queue, UrlsSink output) throws InterruptedException, IOException {
-    for (;;) {
+    for (; ; ) {
       final String url = queue.take();
       output.push(url);
     }
