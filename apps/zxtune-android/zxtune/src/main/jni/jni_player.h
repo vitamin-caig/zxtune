@@ -57,6 +57,14 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPerformance
 
 /*
  * Class:     app_zxtune_core_jni_JniPlayer
+ * Method:    getProgress
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getProgress
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     app_zxtune_core_jni_JniPlayer
  * Method:    getProperty
  * Signature: (Ljava/lang/String;J)J
  */

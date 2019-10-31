@@ -37,4 +37,9 @@ public interface Player extends PropertiesAccessor, PropertiesModifier, Releasea
    * @return Rendering performance in percents
    */
   int getPerformance();
+
+  /**
+   * @return Playback progress in percents (may be >100!!!)
+   */
+  int getProgress();
 }

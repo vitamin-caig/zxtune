@@ -164,6 +164,11 @@ namespace
       }
       return 0;
     }
+
+    uint_t GetFramesDone() const
+    {
+      return Frames;
+    }
   private:
     std::clock_t LastStart = 0;
     std::clock_t Clocks = 0;
@@ -214,8 +219,9 @@ namespace
   class PlayerControl : public Player::Control
   {
   public:
-    PlayerControl(Parameters::Accessor::Ptr props, Parameters::Modifier::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
-      : Props(std::move(props))
+    PlayerControl(uint_t totalFrames, Parameters::Accessor::Ptr props, Parameters::Modifier::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
+      : TotalFrames(totalFrames)
+      , Props(std::move(props))
       , Params(std::move(params))
       , Renderer(std::move(render))
       , Buffer(std::move(buffer))
@@ -278,7 +284,13 @@ namespace
       Props->FindValue(Parameters::ZXTune::Sound::FREQUENCY, sampleRate);
       return RenderingPerformance.Measure(Buffer->GetTotalSamplesDone(), sampleRate);
     }
+
+    uint_t GetPlaybackProgress() const override
+    {
+      return static_cast<uint_t>(100ull * RenderingPerformance.GetFramesDone() / TotalFrames);
+    }
   private:
+    const uint_t TotalFrames;
     const Parameters::Accessor::Ptr Props;
     const Parameters::Modifier::Ptr Params;
     const Module::Renderer::Ptr Renderer;
@@ -290,6 +302,7 @@ namespace
 
   Player::Control::Ptr CreateControl(Module::Holder::Ptr module)
   {
+    const auto frames = module->GetModuleInformation()->FramesCount();
     auto globalParameters = MakeSingletonPointer(Parameters::GlobalOptions());
     auto localParameters = Parameters::Container::Create();
     auto internalProperties = module->GetModuleProperties();
@@ -297,7 +310,7 @@ namespace
     auto buffer = MakePtr<BufferTarget>();
     auto pipeline = Sound::CreateSilenceDetector(properties, buffer);
     auto renderer = module->CreateRenderer(properties, std::move(pipeline));
-    return MakePtr<PlayerControl>(std::move(properties), std::move(localParameters), std::move(renderer), std::move(buffer));
+    return MakePtr<PlayerControl>(frames, std::move(properties), std::move(localParameters), std::move(renderer), std::move(buffer));
   }
 
   template<class StorageType, class ResultType>
@@ -452,6 +465,23 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPerformance
     if (const auto player = Player::Storage::Instance().Find(playerHandle))
     {
       return player->GetPlaybackPerformance();
+    }
+    else
+    {
+      return uint_t(0);
+    }
+  });
+}
+
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getProgress
+  (JNIEnv* env, jobject self)
+{
+  return Jni::Call(env, [=] ()
+  {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
+    if (const auto player = Player::Storage::Instance().Find(playerHandle))
+    {
+      return player->GetPlaybackProgress();
     }
     else
     {

@@ -37,6 +37,9 @@ public final class JniPlayer implements Player {
   public native int getPerformance();
 
   @Override
+  public native int getProgress();
+
+  @Override
   public native long getProperty(@NonNull String name, long defVal);
 
   @NonNull

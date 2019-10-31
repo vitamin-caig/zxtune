@@ -36,6 +36,7 @@ namespace Player
     virtual void Seek(uint_t frame) = 0;
     
     virtual uint_t GetPlaybackPerformance() const = 0;
+    virtual uint_t GetPlaybackProgress() const = 0;
   };
 
   typedef ObjectsStorage<Control::Ptr> Storage;

@@ -53,6 +53,7 @@ final class InternalSink implements Sink {
     builder.addParam("fixedcrc", mod.getProperty("FixedCRC", DEFAULT_LONG_VALUE));
     builder.addParam("size", mod.getProperty("Size", DEFAULT_LONG_VALUE));
     builder.addParam("perf", player.getPerformance());
+    builder.addParam("progress", player.getProgress());
 
     send(builder);
   }
