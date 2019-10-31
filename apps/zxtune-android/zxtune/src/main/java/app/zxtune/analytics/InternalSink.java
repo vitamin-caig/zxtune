@@ -197,7 +197,7 @@ final class InternalSink implements Sink {
   private void send(UrlsBuilder builder) {
     try {
       delegate.push(builder.getResult());
-    } catch (IOException e) {
+    } catch (Exception e) {
       Log.w(TAG, e, "Failed to send event");
     }
   }
