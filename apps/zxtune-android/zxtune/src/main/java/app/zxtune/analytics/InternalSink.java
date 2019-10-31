@@ -187,6 +187,12 @@ final class InternalSink implements Sink {
   public void sendNoTracksFoundEvent(Uri uri) {
     final UrlsBuilder builder = new UrlsBuilder("track/notfound");
     builder.addUri(uri);
+    if ("file".equals(uri.getScheme())) {
+      final String filename = uri.getLastPathSegment();
+      final int extPos = filename.lastIndexOf('.');
+      final String type = extPos != -1 ? filename.substring(extPos + 1) : "none";
+      builder.addParam("type", type);
+    }
 
     send(builder);
   }
