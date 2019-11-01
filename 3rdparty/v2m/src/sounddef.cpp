@@ -296,34 +296,6 @@ bool sdSavePatch(file &out)
 }
 #endif
 
-/*
-bool sdImportV2MPatches(file &in, const char *prefix)
-{
-    fileM mem;
-    mem.open(in);
-    int len = mem.size();
-    uint8_t *ptr = (uint8_t*)mem.detach();
-
-    const uint8_t *v2mpatches[128];
-    uint8_t *newmem;
-    uint32_t np = GetV2MPatchData(ptr, len, &newmem, v2mpatches);
-
-    for (uint32_t i = 0; i < np; i++)
-    {
-        int p = (v2curpatch + i) % 128;
-        memcpy(soundmem + 128*4 + v2soundsize*p, v2mpatches[i], v2soundsize);
-
-        char buf[256];
-        sprintf(buf, "%s %03d", prefix, i);
-        buf[31] = 0;
-        strcpy(patchnames[p], buf);
-    }
-
-    return np ? 1 : 0;
-}
-*/
-
-
 void sdCopyPatch()
 {
     memcpy(v2clipboard, soundmem + 128*4 + v2curpatch*v2soundsize, v2soundsize);

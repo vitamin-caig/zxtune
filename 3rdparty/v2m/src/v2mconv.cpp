@@ -17,7 +17,7 @@ extern const char * const v2mconv_errors[] =
 };
 
 // nicht drüber nachdenken.
-static struct _ssbase
+struct _ssbase
 {
     const uint8_t   *patchmap;
     const uint8_t   *globals;
@@ -50,12 +50,12 @@ static struct _ssbase
 
     const uint8_t *speechdata;
     int spsize;
+};
 
-} base;
-
-static void readfile(const unsigned char *inptr, const int inlen)
+static _ssbase readfile(const unsigned char *inptr, const int inlen)
 {
     const uint8_t *d = inptr;
+    _ssbase base;
     memset(&base, 0, sizeof(base));
 
     base.timediv  = (*((uint32_t*)(d)));
@@ -94,12 +94,12 @@ static void readfile(const unsigned char *inptr, const int inlen)
     }
     base.midisize = d - inptr;
     base.globsize = *((uint32_t*)d);
-    if (base.globsize < 0 || base.globsize > 131072) return;
+    if (base.globsize < 0 || base.globsize > 131072) return base;
     d += 4;
     base.globals = d;
     d += base.globsize;
     base.patchsize = *((uint32_t*)d);
-    if (base.patchsize < 0 || base.patchsize > 1048576) return;
+    if (base.patchsize < 0 || base.patchsize > 1048576) return base;
     d += 4;
     base.patchmap = d;
     d += base.patchsize;
@@ -109,10 +109,14 @@ static void readfile(const unsigned char *inptr, const int inlen)
         base.spsize = *((uint32_t*)d);
         d += 4;
         base.speechdata = d;
+        if (base.spsize > inlen - (d - inptr))
+        {
+          base.spsize = inlen - (d - inptr);
+        }
         d += base.spsize;
 
         // small sanity check
-        if (base.spsize < 0 || base.spsize > 8192 || (d - inptr) > inlen)
+        if (base.spsize < 0 || base.spsize > 8192)
         {
             base.spsize = 0;
             base.speechdata = 0;
@@ -125,15 +129,15 @@ static void readfile(const unsigned char *inptr, const int inlen)
 
     printf2("after read: est %d, is %d\n", inlen, d - inptr);
     printf2("midisize: %d, globs: %d, patches: %d\n", base.midisize, base.globsize, base.patchsize);
+    return base;
 }
 
-int patchesused[128];
-
 // gives version deltas
-int CheckV2MVersion(const unsigned char *inptr, const int inlen)
+int CheckV2MVersion(const unsigned char *inptr, const int inlen, _ssbase& base)
 {
     int i;
-    readfile(inptr,inlen);
+    int patchesused[128];
+    base = readfile(inptr,inlen);
 
     if (!base.patchsize)
         return -1;
@@ -196,7 +200,7 @@ int CheckV2MVersion(const unsigned char *inptr, const int inlen)
         return -1;
 
     // offset table to ptaches
-    int *poffsets = (int *)base.patchmap;
+    uint32_t *poffsets = (uint32_t*)base.patchmap;
 
     int matches = 0, best = -1;
     // for each version check...
@@ -257,7 +261,8 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
 {
     int i, p;
     // check version
-    int vdelta = CheckV2MVersion(inptr, inlen);
+    _ssbase base;
+    int vdelta = CheckV2MVersion(inptr, inlen, base);
     if (!vdelta) // if same, simply clone
     {
         *outptr = new uint8_t[inlen + 4];
@@ -275,7 +280,7 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
     vdelta = v2version - vdelta;
 
     // fake base.maxp
-    int maxp2 = ((int*)base.patchmap)[0]/4;
+    int maxp2 = ((uint32_t*)base.patchmap)[0]/4;
     if (maxp2 != base.maxp)
     {
         printf2("warning: patch count inconsistency: we:%d, they:%d\n", base.maxp, maxp2);
@@ -298,8 +303,8 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
 
     // new globals length...
     newptr += base.midisize;
-    *(int *)newptr = v2ngparms;
-    printf2("glob size: old %d, new %d\n", base.globsize, *(int *)newptr);
+    *(uint32_t*)newptr = v2ngparms;
+    printf2("glob size: old %d, new %d\n", base.globsize, *(uint32_t*)newptr);
     newptr += 4;
 
     // copy/remap globals
@@ -313,14 +318,14 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
     newptr += v2ngparms;
 
     // new patch data length
-    *(int *)newptr = base.patchsize + base.maxp*pdiff;
-    printf2("patch size: old %d, new %d\n", base.patchsize, *(int *)newptr);
+    *(uint32_t*)newptr = base.patchsize + base.maxp*pdiff;
+    printf2("patch size: old %d, new %d\n", base.patchsize, *(uint32_t*)newptr);
     newptr += 4;
 
     base.newpatchmap = newptr;
 
-    int *poffsets = (int *)base.patchmap;
-    int *noffsets = (int *)newptr;
+    uint32_t *poffsets = (uint32_t *)base.patchmap;
+    uint32_t *noffsets = (uint32_t *)newptr;
     //const int ros = v2vsizes[vdelta] - 255*3 - 1;
 
     //uint8_t *nptr2 = newptr;
@@ -384,21 +389,4 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
     newptr += base.spsize;
 
     printf2("est size: %d, real size: %d\n", newsize, newptr - *outptr);
-}
-
-unsigned long GetV2MPatchData(const unsigned char *inptr, const int inlen,
-    unsigned char **outptr, const unsigned char **patchmap)
-{
-    int outlen;
-    ConvertV2M(inptr, inlen, outptr, &outlen);
-
-    const uint8_t *pm = base.newpatchmap;
-    if (!pm) pm = base.patchmap;
-
-    int *poffsets = (int*)pm;
-    for (int i = 0; i < base.maxp; i++)
-    {
-        patchmap[i] = pm + poffsets[i];
-    }
-    return base.maxp;
 }

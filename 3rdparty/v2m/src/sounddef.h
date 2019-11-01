@@ -331,7 +331,6 @@ extern void sdClose();
 //extern bool sdSaveBank(file &out);
 //extern bool sdSavePatch(file &out);
 //extern bool sdLoad(file &in);
-//extern bool sdImportV2MPatches(file &in, const char *prefix);
 extern void sdCopyPatch();
 extern void sdPastePatch();
 extern void sdInitPatch();
