@@ -70,5 +70,6 @@ namespace Formats
     Decoder::Ptr CreateOGGDecoder();
     Decoder::Ptr CreateWAVDecoder();
     Decoder::Ptr CreateFLACDecoder();
+    Decoder::Ptr CreateV2MDecoder();
   }
 }

@@ -334,3 +334,7 @@ __cpp> "}//namespace Text\n"
 #FLAC
 < FLAC_DECODER_DESCRIPTION
 > "Free Lossless Audio Codec"
+
+#V2M
+< V2M_DECODER_DESCRIPTION
+> "Farbrausch V2 Synthesizer System"
