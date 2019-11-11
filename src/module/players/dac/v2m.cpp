@@ -87,7 +87,8 @@ namespace V2M
 
     void Reset()
     {
-      Seek({});
+      Player.Play(0);
+      Require(Player.IsPlaying());
     }
 
     Sound::Chunk RenderFrame(Time::Milliseconds duration)
@@ -98,10 +99,9 @@ namespace V2M
       return result;
     }
 
-    void Seek(Time::Milliseconds pos)
+    void SkipFrame(Time::Milliseconds duration)
     {
-      Player.Play(pos.Get());
-      Require(Player.IsPlaying());
+      RenderImpl(duration);
     }
   private:
     uint_t RenderImpl(Time::Milliseconds duration)
@@ -169,7 +169,7 @@ namespace V2M
         Iterator->NextFrame(Looped);
         if (0 == State->Frame())
         {
-          Engine.Seek({});
+          Engine.Reset();
         }
         return Iterator->IsValid();
       }
@@ -187,8 +187,20 @@ namespace V2M
 
     void SetPosition(uint_t frame) override
     {
-      Engine.Seek(decltype(FRAME_DURATION)(FRAME_DURATION.Get() * frame));
-      Module::SeekIterator(*Iterator, frame);
+      auto current = State->Frame();
+      auto& iter = *Iterator;
+      if (frame <= current)
+      {
+        iter.Reset();
+        Engine.Reset();
+        current = 0;
+      }
+      while (current < frame && iter.IsValid())
+      {
+        Engine.SkipFrame(FRAME_DURATION);
+        iter.NextFrame({});
+        ++current;
+      }
     }
   private:
     void ApplyParameters()
