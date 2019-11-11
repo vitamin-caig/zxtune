@@ -271,15 +271,15 @@ struct syWRonan : syVRonan
 
     void SetFrame(const Phoneme &p1s, const Phoneme &p2s, const float x, syVRonan &dest)
     {
-        static Phoneme p1,p2;
+        Phoneme p1,p2;
 
-        static const float * const p1f[] = { &p1.fnf, &p1.f1f, &p1.f2f, &p1.f3f, &f4    , &f5     , &f6};
-        static const float * const p1b[] = { &bn    , &p1.f1b, &p1.f2b, &p1.f3b, &b4    , &b5     , &b6};
-        static const float * const p1a[] = { &p1.a_n, &p1.a_1, &p1.a_2, &p1.a_3, &p1.a_4, &p1.a_56, &p1.a_56};
+        const float * const p1f[] = { &p1.fnf, &p1.f1f, &p1.f2f, &p1.f3f, &f4    , &f5     , &f6};
+        const float * const p1b[] = { &bn    , &p1.f1b, &p1.f2b, &p1.f3b, &b4    , &b5     , &b6};
+        const float * const p1a[] = { &p1.a_n, &p1.a_1, &p1.a_2, &p1.a_3, &p1.a_4, &p1.a_56, &p1.a_56};
 
-        static const float * const p2f[] = { &p2.fnf, &p2.f1f, &p2.f2f, &p2.f3f, &f4    , &f5     , &f6};
-        static const float * const p2b[] = { &bn    , &p2.f1b, &p2.f2b, &p2.f3b, &b4    , &b5     , &b6};
-        static const float * const p2a[] = { &p2.a_n, &p2.a_1, &p2.a_2, &p2.a_3, &p2.a_4, &p2.a_56, &p2.a_56};
+        const float * const p2f[] = { &p2.fnf, &p2.f1f, &p2.f2f, &p2.f3f, &f4    , &f5     , &f6};
+        const float * const p2b[] = { &bn    , &p2.f1b, &p2.f2b, &p2.f3b, &b4    , &b5     , &b6};
+        const float * const p2a[] = { &p2.a_n, &p2.a_1, &p2.a_2, &p2.a_3, &p2.a_4, &p2.a_56, &p2.a_56};
 
         p1 = p1s;
         p2 = p2s;
@@ -488,7 +488,7 @@ extern "C" void ronanCBSetCtl(syWRonan *wsptr, uint32_t ctl, uint32_t val)
 
 extern "C" void ronanCBProcess(syWRonan *wsptr, float *buf, uint32_t len)
 {
-    static syVRonan deltaframe;
+    syVRonan deltaframe;
 
     // prepare interpolation
     {
