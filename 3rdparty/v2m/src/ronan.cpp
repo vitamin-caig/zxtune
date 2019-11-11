@@ -476,6 +476,8 @@ extern "C" void ronanCBSetCtl(syWRonan *wsptr, uint32_t ctl, uint32_t val)
                 wsptr->ptr = wsptr->baseptr = wsptr->texts[val];
             else
                 wsptr->ptr = wsptr->baseptr = nix;
+            wsptr->wait4on = wsptr->wait4off = false;
+            ronanCBTick(wsptr);
         } else
             wsptr->framerate = val - 63;
         break;
