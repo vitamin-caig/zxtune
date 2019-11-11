@@ -135,10 +135,11 @@ void sdInit()
 
 void sdClose()
 {
-    delete soundmem;
-    delete v2vsizes;
-    delete v2topics2;
-    delete v2gtopics2;
+    delete[] soundmem;
+    delete[] v2vsizes;
+    delete[] v2gsizes;
+    delete[] v2topics2;
+    delete[] v2gtopics2;
 }
 
 #if FILE_IO
