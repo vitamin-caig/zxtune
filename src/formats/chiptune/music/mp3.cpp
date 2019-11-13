@@ -72,7 +72,9 @@ namespace Chiptune
           {
             const auto dataSize = ReadLE32(stream.ReadRawData(4));
             /*const auto flags = */ReadLE32(stream.ReadRawData(4));
-            const auto key = stream.ReadCString(stream.GetRestSize() - dataSize);
+            const auto avail = stream.GetRestSize();
+            Require(avail >= dataSize);
+            const auto key = stream.ReadCString(avail - dataSize);
             const auto data = stream.ReadRawData(dataSize);
             ParseKey(key, StringView(safe_ptr_cast<const char*>(data), dataSize), target);
           }

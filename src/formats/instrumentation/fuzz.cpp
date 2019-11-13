@@ -26,7 +26,7 @@ namespace
     
     void TestChiptune(const Binary::Container& rawData) const
     {
-      //Test(*ChiptuneDecoders[29], rawData);return;
+      Test(*ChiptuneDecoders[51], rawData);return;
       for (const auto& decoder : ChiptuneDecoders)
       {
         Test(*decoder, rawData);
@@ -81,6 +81,7 @@ namespace
     void FillChiptune()
     {
       using namespace Formats::Chiptune;
+      //+0
       ChiptuneDecoders.push_back(CreatePSGDecoder());
       ChiptuneDecoders.push_back(CreateDigitalStudioDecoder());
       ChiptuneDecoders.push_back(CreateSoundTrackerDecoder());
@@ -91,6 +92,7 @@ namespace
       ChiptuneDecoders.push_back(CreateASCSoundMaster1xDecoder());
       ChiptuneDecoders.push_back(CreateProTracker2Decoder());
       ChiptuneDecoders.push_back(CreateProTracker3Decoder());
+      //+10
       ChiptuneDecoders.push_back(CreateVortexTracker2Decoder());
       ChiptuneDecoders.push_back(CreateProSoundMakerCompiledDecoder());
       ChiptuneDecoders.push_back(CreateGlobalTrackerDecoder());
@@ -101,6 +103,7 @@ namespace
       ChiptuneDecoders.push_back(CreateTFDDecoder());
       ChiptuneDecoders.push_back(CreateTFCDecoder());
       ChiptuneDecoders.push_back(CreateChipTrackerDecoder());
+      //+20
       ChiptuneDecoders.push_back(CreateSampleTrackerDecoder());
       ChiptuneDecoders.push_back(CreateProDigiTrackerDecoder());
       ChiptuneDecoders.push_back(CreateSQTrackerDecoder());
@@ -111,6 +114,7 @@ namespace
       ChiptuneDecoders.push_back(CreateTFMMusicMaker05Decoder());
       ChiptuneDecoders.push_back(CreateTFMMusicMaker13Decoder());
       ChiptuneDecoders.push_back(CreateDigitalMusicMakerDecoder());
+      //+30
       ChiptuneDecoders.push_back(CreateTurboSoundDecoder());
       ChiptuneDecoders.push_back(CreateExtremeTracker1Decoder());
       ChiptuneDecoders.push_back(CreateAYCDecoder());
@@ -121,12 +125,22 @@ namespace
       ChiptuneDecoders.push_back(CreateGYMDecoder());
       ChiptuneDecoders.push_back(CreateAbyssHighestExperienceDecoder());
       ChiptuneDecoders.push_back(CreateKSSDecoder());
+      //+40
       ChiptuneDecoders.push_back(CreateHivelyTrackerDecoder());
       ChiptuneDecoders.push_back(CreatePSFDecoder());
       ChiptuneDecoders.push_back(CreatePSF2Decoder());
       ChiptuneDecoders.push_back(CreateUSFDecoder());
       ChiptuneDecoders.push_back(CreateGSFDecoder());
       ChiptuneDecoders.push_back(Create2SFDecoder());
+      ChiptuneDecoders.push_back(CreateSSFDecoder());
+      ChiptuneDecoders.push_back(CreateDSFDecoder());
+      ChiptuneDecoders.push_back(CreateRasterMusicTrackerDecoder());
+      ChiptuneDecoders.push_back(CreateMP3Decoder());
+      //+50
+      ChiptuneDecoders.push_back(CreateOGGDecoder());
+      ChiptuneDecoders.push_back(CreateWAVDecoder());
+      ChiptuneDecoders.push_back(CreateFLACDecoder());
+      ChiptuneDecoders.push_back(CreateV2MDecoder());
     }
 
     static void Test(const Formats::Packed::Decoder& decoder, const Binary::Container& rawData)
@@ -159,7 +173,7 @@ namespace
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   if (size != 0)
   {
-    const Binary::Container::Ptr container = Binary::CreateNonCopyContainer(data, size);
+    const Binary::Container::Ptr container = Binary::CreateContainer(data, size);
     DecodersSet::Instance().TestChiptune(*container);
   }
   return 0;

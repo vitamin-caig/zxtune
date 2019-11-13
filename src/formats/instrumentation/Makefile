@@ -1,6 +1,4 @@
 binary_name := formats_fuzz
-export distro := any
-export boost.version := 1.58.0
 export compiler := clang
 export cxx_flags := -fsanitize=fuzzer,address,undefined,integer, -fsanitize-coverage=trace-pc,trace-cmp,trace-div,trace-gep -fno-sanitize=alignment
 export ld_flags := -fsanitize=fuzzer,address,undefined,integer
@@ -9,6 +7,7 @@ export arch := fuzz_asan_ubsan
 export tools.cxx := clang++-6.0
 export tools.cc := clang-6.0
 export tools.ld := clang++-6.0
+export tools.strip = true
 
 source_dirs := .
 dirs.root := ../../..
