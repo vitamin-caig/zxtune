@@ -301,7 +301,7 @@ namespace Packed
       Require(restSize > sizeof(FOOTER));
       std::unique_ptr<Dump> res(new Dump(TARGET_SIZE));
       DecodeBlock(stream, restSize - sizeof(FOOTER), *res);
-      const uint32_t footer = fromLE(stream.ReadField<uint32_t>());
+      const auto footer = stream.ReadLE<uint32_t>();
       Require(footer == FOOTER);
       return CreateContainer(std::move(res), stream.GetPosition());
     }

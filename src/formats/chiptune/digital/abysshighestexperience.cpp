@@ -134,14 +134,14 @@ namespace Chiptune
       
       explicit Header(Binary::InputStream& stream)
         : Id(stream.ReadField<IdentifierType>())
-        , Version(stream.ReadField<uint8_t>())
-        , NamesOffset(fromBE(stream.ReadField<uint16_t>()))
-        , PositionsCount(fromBE(stream.ReadField<uint16_t>()) & 0xfff)
-        , ChannelsCount(4 + (fromBE(stream.ReadField<uint16_t>()) >> 10))
-        , TrackSize(stream.ReadField<uint8_t>())
-        , TracksCount(stream.ReadField<uint8_t>())
-        , SamplesCount(stream.ReadField<uint8_t>())
-        , SubsongsCount(stream.ReadField<uint8_t>())
+        , Version(stream.ReadByte())
+        , NamesOffset(stream.ReadBE<uint16_t>())
+        , PositionsCount(stream.ReadBE<uint16_t>() & 0xfff)
+        , ChannelsCount(4 + (stream.ReadBE<uint16_t>() >> 10))
+        , TrackSize(stream.ReadByte())
+        , TracksCount(stream.ReadByte())
+        , SamplesCount(stream.ReadByte())
+        , SubsongsCount(stream.ReadByte())
       {
       }
       

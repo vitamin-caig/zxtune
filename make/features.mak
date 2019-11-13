@@ -9,9 +9,9 @@ support_flac = 1
 support_curl = 1
 else ifneq ($(findstring $(platform),linux),)
 support_oss = 1
-support_alsa = 1
+#support_alsa = 1
 #support_sdl = 1
-support_pulseaudio = 1
+#support_pulseaudio = 1
 support_mp3 = 1
 support_ogg = 1
 support_flac = 1

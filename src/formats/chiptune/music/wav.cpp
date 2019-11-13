@@ -58,11 +58,6 @@ namespace Chiptune
       virtual void OnTruncatedChunk(const Chunks::Id& id, std::size_t declaredSize, Binary::Container::Ptr data) = 0;
     };
     
-    uint32_t ReadLE32(const uint8_t* data)
-    {
-      return (uint_t(data[3]) << 24) | (uint_t(data[2]) << 16) | (uint_t(data[1]) << 8) | data[0];
-    }
-    
     Binary::Container::Ptr ParseChunks(const Binary::Container& data, ChunksVisitor& visitor)
     {
       Binary::InputStream stream(data);
@@ -71,7 +66,7 @@ namespace Chiptune
       while (const auto hdr = stream.PeekRawData(HEADER_SIZE))
       {
         std::memcpy(&id, hdr, sizeof(id));
-        const auto size = ReadLE32(hdr + sizeof(id));
+        const auto size = ReadLE<uint32_t>(hdr + sizeof(id));
         stream.Skip(HEADER_SIZE);
         if (size == 0)
         {
@@ -146,19 +141,19 @@ namespace Chiptune
       void ParseFormatChunk(const Binary::Container& data)
       {
         Binary::InputStream stream(data);
-        auto formatTag = fromLE(stream.ReadField<uint16_t>());
-        const auto channels = fromLE(stream.ReadField<uint16_t>());
-        const auto frequency = fromLE(stream.ReadField<uint32_t>());
-        /*const auto dataRate = */fromLE(stream.ReadField<uint32_t>());
-        const auto blockSize = fromLE(stream.ReadField<uint16_t>());
-        const auto bits = fromLE(stream.ReadField<uint16_t>());
+        auto formatTag = stream.ReadLE<uint16_t>();
+        const auto channels = stream.ReadLE<uint16_t>();
+        const auto frequency = stream.ReadLE<uint32_t>();
+        /*const auto dataRate = */stream.ReadLE<uint32_t>();
+        const auto blockSize = stream.ReadLE<uint16_t>();
+        const auto bits = stream.ReadLE<uint16_t>();
         if (formatTag == 0xfffe)
         {
-          const auto extensionSize = fromLE(stream.ReadField<uint16_t>());
+          const auto extensionSize = stream.ReadLE<uint16_t>();
           Require(extensionSize == stream.GetRestSize());
           Require(extensionSize == 22);
           stream.Skip(6);
-          formatTag = fromLE(stream.ReadField<uint16_t>());
+          formatTag = stream.ReadLE<uint16_t>();
         }
         Target.SetProperties(formatTag, frequency, channels, bits, blockSize);
       }
@@ -166,7 +161,7 @@ namespace Chiptune
       void ParseSamplesCountHint(const Binary::Container& data)
       {
         Require(data.Size() == 4);
-        Target.SetSamplesCountHint(ReadLE32(static_cast<const uint8_t*>(data.Start())));
+        Target.SetSamplesCountHint(ReadLE<uint32_t>(static_cast<const uint8_t*>(data.Start())));
       }
       
       void ParseList(const Binary::Container& data)

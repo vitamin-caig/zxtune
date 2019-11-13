@@ -495,12 +495,12 @@ namespace Module
       
       uint8_t ReadByte()
       {
-        return Input.ReadField<uint8_t>();
+        return Input.ReadByte();
       }
       
       uint32_t ReadDword()
       {
-        return fromLE(Input.ReadField<uint32_t>());
+        return Input.ReadLE<uint32_t>();
       }
       
       basic_string_view<uint16_t> ReadUtf16()

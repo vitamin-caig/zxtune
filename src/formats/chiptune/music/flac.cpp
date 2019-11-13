@@ -95,8 +95,8 @@ namespace Chiptune
 
       static void ParseStreamInfo(Binary::DataInputStream& input, Builder& target)
       {
-        const auto minBlockSize = fromBE(input.ReadField<uint16_t>());
-        const auto maxBlockSize = fromBE(input.ReadField<uint16_t>());
+        const auto minBlockSize = input.ReadBE<uint16_t>();
+        const auto maxBlockSize = input.ReadBE<uint16_t>();
         target.SetBlockSize(minBlockSize, maxBlockSize);
         const auto minFrameSize = fromBE24(input.ReadRawData(3));
         const auto maxFrameSize = fromBE24(input.ReadRawData(3));

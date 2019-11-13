@@ -32,8 +32,8 @@ namespace Chiptune
     void ParseRom(const Binary::Container& data, Builder& target)
     {
       Binary::InputStream stream(data);
-      const auto offset = fromLE(stream.ReadField<uint32_t>());
-      const auto size = fromLE(stream.ReadField<uint32_t>());
+      const auto offset = stream.ReadLE<uint32_t>();
+      const auto size = stream.ReadLE<uint32_t>();
       target.SetChunk(offset, *stream.ReadData(size));
       Require(0 == stream.GetRestSize());
     }
@@ -44,8 +44,8 @@ namespace Chiptune
       while (stream.GetRestSize() >= sizeof(SignatureType) + sizeof(uint32_t) + sizeof(uint32_t))
       {
         const auto signature = stream.ReadField<SignatureType>();
-        const auto packedSize = fromLE(stream.ReadField<uint32_t>());
-        const auto unpackedCrc = fromLE(stream.ReadField<uint32_t>());
+        const auto packedSize = stream.ReadLE<uint32_t>();
+        /*const auto unpackedCrc = */stream.ReadLE<uint32_t>();
         if (signature == SAVESTATE_SIGNATURE)
         {
           auto packedData = stream.ReadData(packedSize);

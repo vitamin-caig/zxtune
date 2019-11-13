@@ -131,7 +131,7 @@ namespace Chiptune
         std::size_t totalFrames = 0;
         for (;;)
         {
-          const uint8_t val = stream.ReadField<uint8_t>();
+          const auto val = stream.ReadByte();
           if (val == FINISH)
           {
             break;
@@ -144,7 +144,7 @@ namespace Chiptune
             break;
           case SKIP_FRAMES:
             {
-              const uint_t frames = 3 + stream.ReadField<uint8_t>();
+              const uint_t frames = 3 + stream.ReadByte();
               totalFrames += frames;
               target.BeginFrames(frames);
             }
@@ -159,7 +159,7 @@ namespace Chiptune
             target.SetLoop();
             break;
           default:
-            target.SetRegister(val, stream.ReadField<uint8_t>());
+            target.SetRegister(val, stream.ReadByte());
             break;
           }
         }

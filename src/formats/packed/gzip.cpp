@@ -141,7 +141,7 @@ namespace Packed
         Require(header.Check());
         if (header.HasExtraData())
         {
-          const std::size_t extraSize = fromLE(input.ReadField<uint16_t>());
+          const auto extraSize = input.ReadLE<uint16_t>();
           input.Skip(extraSize);
         }
         if (header.HasFilename())
@@ -154,7 +154,7 @@ namespace Packed
         }
         if (header.HasCrc16())
         {
-          input.ReadField<uint16_t>();
+          input.Skip(sizeof(uint16_t));
         }
         Binary::DataBuilder output;
         Binary::Compression::Zlib::DecompressRaw(input, output);

@@ -66,10 +66,10 @@ namespace Chiptune
             return Container::Ptr();
           }
           Stream.Skip(sizeof(SIGNATURE));
-          Require(VERSION == Stream.ReadField<uint8_t>());
-          /*const auto flags = */Stream.ReadField<uint8_t>();
-          const auto nextPosition = fromLE(Stream.ReadField<uint64_t>());
-          if (const auto stream = fromLE(Stream.ReadField<uint32_t>()))
+          Require(VERSION == Stream.ReadByte());
+          /*const auto flags = */Stream.ReadByte();
+          const auto nextPosition = Stream.ReadLE<uint64_t>();
+          if (const auto stream = Stream.ReadLE<uint32_t>())
           {
             if (!streamId)
             {
@@ -81,9 +81,9 @@ namespace Chiptune
               Require(streamId == stream);
             }
           }
-          Require(nextPageNumber++ == fromLE(Stream.ReadField<uint32_t>()));
-          /*const auto crc = */fromLE(Stream.ReadField<uint32_t>());
-          const auto segmentsCount = Stream.ReadField<uint8_t>();
+          Require(nextPageNumber++ == Stream.ReadLE<uint32_t>());
+          /*const auto crc = */Stream.ReadLE<uint32_t>();
+          const auto segmentsCount = Stream.ReadByte();
           const auto segmentsSizes = Stream.ReadRawData(segmentsCount);
           const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0));
           {
@@ -183,12 +183,12 @@ namespace Chiptune
       
       void ReadIdentification(Binary::DataInputStream& payload)
       {
-        const auto version = payload.ReadField<uint32_t>();
-        const auto channels = payload.ReadField<uint8_t>();
-        const auto frequency = fromLE(payload.ReadField<uint32_t>());
+        const auto version = payload.ReadLE<uint32_t>();
+        const auto channels = payload.ReadByte();
+        const auto frequency = payload.ReadLE<uint32_t>();
         payload.Skip(4 * 3);
-        const auto blocksize = payload.ReadField<uint8_t>();
-        const auto framing = payload.ReadField<uint8_t>();
+        const auto blocksize = payload.ReadByte();
+        const auto framing = payload.ReadByte();
         const auto blockLo = blocksize & 0x0f;
         const auto blockHi = blocksize >> 4;
         Require(version == 0);

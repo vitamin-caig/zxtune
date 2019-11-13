@@ -324,7 +324,7 @@ namespace Chiptune
           ParseTransponedMatrix(src, matrixSize, lines, columns, target);
           if (Ver3b::FastCheck(data, size))
           {
-            const uint_t loop = fromBE(stream.ReadField<uint32_t>());
+            const uint_t loop = stream.ReadBE<uint32_t>();
             target.SetLoop(loop);
           }
           const auto subData = stream.GetReadData();
@@ -616,9 +616,9 @@ namespace Chiptune
         target.SetIntFreq(hdr.IntFreq);
         if (newVersion)
         {
-          target.SetYear(fromLE(stream.ReadField<uint16_t>()));
+          target.SetYear(stream.ReadLE<uint16_t>());
         }
-        const uint_t unpackedSize = fromLE(stream.ReadField<uint32_t>());
+        const uint_t unpackedSize = stream.ReadLE<uint32_t>();
         target.SetTitle(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
         target.SetAuthor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
         if (newVersion)

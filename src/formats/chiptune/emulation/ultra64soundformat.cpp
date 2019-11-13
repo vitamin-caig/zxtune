@@ -57,24 +57,24 @@ namespace Chiptune
       
       void ParseROM(Builder& target)
       {
-        while (const auto size = fromLE(Stream.ReadField<uint32_t>()))
+        while (const auto size = Stream.ReadLE<uint32_t>())
         {
-          const auto offset = fromLE(Stream.ReadField<uint32_t>());
+          const auto offset = Stream.ReadLE<uint32_t>();
           target.SetRom(offset, *Stream.ReadData(size));
         }
       }
       
       void ParseSavestate(Builder& target)
       {
-        while (const auto size = fromLE(Stream.ReadField<uint32_t>()))
+        while (const auto size = Stream.ReadLE<uint32_t>())
         {
-          const auto offset = fromLE(Stream.ReadField<uint32_t>());
+          const auto offset = Stream.ReadLE<uint32_t>();
           target.SetSaveState(offset, *Stream.ReadData(size));
         }
         /*
         const auto offset = Stream.GetPosition();
         Require(SAVESTATE_SIGNATURE == Stream.ReadField<SignatureType>());
-        const auto rdramSize = fromLE(Stream.ReadField<uint32_t>());
+        const auto rdramSize = Stream.ReadLE<uint32_t>();
         const auto romHeader = Stream.ReadData(0x40);
         Stream.Seek(offset);
         target.SetSaveState(*Stream.ReadData(0x175c + rdramSize));

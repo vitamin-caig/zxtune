@@ -72,10 +72,10 @@ namespace Chiptune
         try
         {
           Binary::InputStream stream(rawData);
-          const auto sign = stream.ReadField<uint16_t>();
+          const auto sign = stream.ReadLE<uint16_t>();
           Require(sign == 0xffff || sign == 0x0000);
-          const auto musicFirst = fromLE(stream.ReadField<uint16_t>());
-          const auto musicLast = fromLE(stream.ReadField<uint16_t>());
+          const auto musicFirst = stream.ReadLE<uint16_t>();
+          const auto musicLast = stream.ReadLE<uint16_t>();
           Require(musicFirst < musicLast);
           Require(musicFirst > 0xd800 || musicLast < 0xd000);
           const auto musicSize = musicLast + 1 - musicFirst;
@@ -83,9 +83,9 @@ namespace Chiptune
           const auto fixedSize = stream.GetPosition();
           if (stream.GetRestSize())
           {
-            const auto infoFirst = fromLE(stream.ReadField<uint16_t>());
+            const auto infoFirst = stream.ReadLE<uint16_t>();
             Require(infoFirst == musicLast + 1);
-            const auto infoLast = fromLE(stream.ReadField<uint16_t>());
+            const auto infoLast = stream.ReadLE<uint16_t>();
             const auto infoSize = infoLast + 1 - infoFirst;
             stream.Skip(infoSize);
           }

@@ -334,7 +334,7 @@ namespace GME
       Binary::DataBuilder output(data.Size());
       const std::size_t packedSizeOffset = 424;
       output.Add(input.ReadRawData(packedSizeOffset), packedSizeOffset);
-      if (const auto packedSize = fromLE(input.ReadField<uint32_t>()))
+      if (const auto packedSize = input.ReadLE<uint32_t>())
       {
         output.Add(uint32_t(0));
         Binary::Compression::Zlib::Decompress(input, output);

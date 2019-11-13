@@ -27,7 +27,7 @@ namespace Chiptune
   {
     StringView ReadString(Binary::DataInputStream& payload)
     {
-      const auto size = fromLE(payload.ReadField<uint32_t>());
+      const auto size = payload.ReadLE<uint32_t>();
       const auto utf8 = safe_ptr_cast<const char*>(payload.ReadRawData(size));
       return StringView(utf8, size);
     }
@@ -87,14 +87,14 @@ namespace Chiptune
       try
       {
         /*const auto vendor = */ReadString(payload);
-        if (auto items = fromLE(payload.ReadField<uint32_t>()))
+        if (auto items = payload.ReadLE<uint32_t>())
         {
           while (items--)
           {
             ParseCommentField(ReadString(payload), target);
           }
         }
-        Require(1 == payload.ReadField<uint8_t>());
+        Require(1 == payload.ReadByte());
       }
       catch (const std::exception&)
       {

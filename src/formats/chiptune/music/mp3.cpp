@@ -33,11 +33,6 @@ namespace Chiptune
     //http://wiki.hydrogenaud.io/index.php?title=APEv2_specification
     namespace ApeTag
     {
-      uint32_t ReadLE32(const uint8_t* data)
-      {
-        return (uint_t(data[3]) << 24) | (uint_t(data[2]) << 16) | (uint_t(data[1]) << 8) | data[0];
-      }
-
       String MakeString(StringView str)
       {
         //do not trim before- it may break some encodings
@@ -70,8 +65,8 @@ namespace Chiptune
         {
           for (uint_t idx = 0; idx < count; ++idx)
           {
-            const auto dataSize = ReadLE32(stream.ReadRawData(4));
-            /*const auto flags = */ReadLE32(stream.ReadRawData(4));
+            const auto dataSize = stream.ReadLE<uint32_t>();
+            /*const auto flags = */stream.ReadLE<uint32_t>();
             const auto avail = stream.GetRestSize();
             Require(avail >= dataSize);
             const auto key = stream.ReadCString(avail - dataSize);
@@ -93,10 +88,10 @@ namespace Chiptune
         {
           return false;
         }
-        const auto version = ReadLE32(hdr + 8);
-        const auto restSize = ReadLE32(hdr + 12);
-        const auto itemsCount = ReadLE32(hdr + 16);
-        //const auto globalFlags = ReadLE32(hdr + 20);
+        const auto version = ReadLE<uint32_t>(hdr + 8);
+        const auto restSize = ReadLE<uint32_t>(hdr + 12);
+        const auto itemsCount = ReadLE<uint32_t>(hdr + 16);
+        //const auto globalFlags = ReadLE<uint32_t>(hdr + 20);
         if (const auto subData = stream.PeekRawData(HEADER_SIZE + restSize))
         {
           stream.Skip(HEADER_SIZE + restSize);

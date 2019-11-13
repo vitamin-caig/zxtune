@@ -51,8 +51,8 @@ namespace Chiptune
         while (Stream.GetRestSize() >= HEADER_SIZE)
         {
           const auto header = Stream.ReadRawData(HEADER_SIZE);
-          const auto id = ReadBE32(header);
-          const std::size_t chunkize = ReadBE32(header + 4);
+          const auto id = ReadBE<uint32_t>(header);
+          const std::size_t chunkize = ReadBE<uint32_t>(header + 4);
           const bool compressed = header[9] & 0x80;
           const bool encrypted = header[9] & 0x40;
           const auto body = Stream.ReadRawData(chunkize);
@@ -63,11 +63,6 @@ namespace Chiptune
         }
       }
     private:
-      static uint32_t ReadBE32(const uint8_t* data)
-      {
-        return (uint_t(data[0]) << 24) | (uint_t(data[1]) << 16) | (uint_t(data[2]) << 8) | data[3];
-      }
-      
       static void ParseTag(uint32_t id, const void* data, std::size_t size, MetaBuilder& target)
       {
         // http://id3.org/id3v2.3.0#Text_information_frames

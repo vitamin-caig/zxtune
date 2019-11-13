@@ -46,9 +46,9 @@ namespace Chiptune
         const auto nameBegin = stream.ReadRawData(36);
         const auto nameEnd = std::find(nameBegin, nameBegin + 36, 0);
         Name.assign(nameBegin, nameEnd);
-        Offset = fromLE(stream.ReadField<uint32_t>());
-        Size = fromLE(stream.ReadField<uint32_t>());
-        BlockSize = fromLE(stream.ReadField<uint32_t>());
+        Offset = stream.ReadLE<uint32_t>();
+        Size = stream.ReadLE<uint32_t>();
+        BlockSize = stream.ReadLE<uint32_t>();
       }
       
       bool IsDir() const
@@ -155,7 +155,7 @@ namespace Chiptune
       void ParseDir(uint_t depth, String path, Builder& target)
       {
         Require(depth < 10);
-        const uint_t entries = fromLE(Stream.ReadField<uint32_t>());
+        const uint_t entries = Stream.ReadLE<uint32_t>();
         Dbg("%2% entries at '%1%'", path, entries);
         for (uint_t idx = 0; idx < entries; ++idx)
         {
@@ -190,7 +190,7 @@ namespace Chiptune
         std::vector<std::size_t> blocksSizes(blocksCount);
         for (auto& size : blocksSizes)
         {
-          size = fromLE(Stream.ReadField<uint32_t>());
+          size = Stream.ReadLE<uint32_t>();
         }
         FileBlocks result;
         std::size_t offset = 0;

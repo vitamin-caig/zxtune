@@ -89,16 +89,16 @@ namespace PortableSoundFormat
     {
       const auto sign = Stream.ReadRawData(sizeof(SIGNATURE));
       Require(0 == std::memcmp(sign, SIGNATURE, sizeof(SIGNATURE)));
-      const uint_t version = Stream.ReadField<uint8_t>();
+      const uint_t version = Stream.ReadByte();
       target.SetVersion(version);
       Dbg("Version %1%", version);
     }
     
     void ParseData(Builder& target)
     {
-      const auto reservedSize = fromLE(Stream.ReadField<uint32_t>());
-      const auto compressedSize = fromLE(Stream.ReadField<uint32_t>());
-      const auto compressedCrc = fromLE(Stream.ReadField<uint32_t>());
+      const auto reservedSize = Stream.ReadLE<uint32_t>();
+      const auto compressedSize = Stream.ReadLE<uint32_t>();
+      const auto compressedCrc = Stream.ReadLE<uint32_t>();
       if (auto reserved = Stream.ReadData(reservedSize))
       {
         Dbg("Reserved section %1% bytes", reservedSize);

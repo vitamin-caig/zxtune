@@ -35,9 +35,9 @@ Offset         Size    Description
     void ParseRom(const Binary::Container& data, Builder& target)
     {
       Binary::InputStream stream(data);
-      target.SetEntryPoint(fromLE(stream.ReadField<uint32_t>()));
-      const auto addr = fromLE(stream.ReadField<uint32_t>());
-      const std::size_t size = fromLE(stream.ReadField<uint32_t>());
+      target.SetEntryPoint(stream.ReadLE<uint32_t>());
+      const auto addr = stream.ReadLE<uint32_t>();
+      const std::size_t size = stream.ReadLE<uint32_t>();
       const std::size_t avail = stream.GetRestSize();
       target.SetRom(addr, *stream.ReadData(std::min(size, avail)));
     }

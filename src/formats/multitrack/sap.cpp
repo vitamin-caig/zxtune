@@ -297,14 +297,14 @@ namespace Multitrack
       {
         while (stream.GetRestSize())
         {
-          const uint_t first = fromLE(stream.ReadField<uint16_t>());
+          const uint_t first = stream.ReadLE<uint16_t>();
           if ((first & 0xff) == BINARY_SIGNATURE[0] &&
               (first >> 8) == BINARY_SIGNATURE[1])
           {
             //skip possible headers inside
             continue;
           }
-          const uint_t last = fromLE(stream.ReadField<uint16_t>());
+          const uint_t last = stream.ReadLE<uint16_t>();
           Require(first <= last);
           const std::size_t size = last + 1 - first;
           const auto data = stream.ReadRawData(size);

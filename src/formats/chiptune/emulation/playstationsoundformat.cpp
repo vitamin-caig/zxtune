@@ -107,8 +107,8 @@ namespace Chiptune
       void ParseRegisters(Builder& target)
       {
         Stream.Seek(0x10);
-        const auto pc = fromLE(Stream.ReadField<uint32_t>());
-        const auto gp = fromLE(Stream.ReadField<uint32_t>());
+        const auto pc = Stream.ReadLE<uint32_t>();
+        const auto gp = Stream.ReadLE<uint32_t>();
         Dbg("PC=0x%08x GP=0x%08x", pc, gp);
         target.SetRegisters(pc, gp);
       }
@@ -116,8 +116,8 @@ namespace Chiptune
       void ParseTextSection(Builder& target)
       {
         Stream.Seek(0x18);
-        const auto startAddress = fromLE(Stream.ReadField<uint32_t>());
-        const std::size_t size = fromLE(Stream.ReadField<uint32_t>());
+        const auto startAddress = Stream.ReadLE<uint32_t>();
+        const std::size_t size = Stream.ReadLE<uint32_t>();
         Dbg("Text section %u (%u in header) bytes at 0x%08x", Stream.GetRestSize(), size, startAddress);
         if (size)
         {
@@ -134,8 +134,8 @@ namespace Chiptune
       void ParseStackSection(Builder& target)
       {
         Stream.Seek(0x30);
-        const auto stackHead = fromLE(Stream.ReadField<uint32_t>());
-        const auto stackSize = fromLE(Stream.ReadField<uint32_t>());
+        const auto stackHead = Stream.ReadLE<uint32_t>();
+        const auto stackSize = Stream.ReadLE<uint32_t>();
         Dbg("Stack %u bytes at 0x%08x", stackSize, stackHead);
         target.SetStackRegion(stackHead, stackSize);
       }

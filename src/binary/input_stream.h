@@ -13,6 +13,7 @@
 //library includes
 #include <binary/container.h>
 //common includes
+#include <byteorder.h>
 #include <contract.h>
 #include <pointers.h>
 #include <types.h>
@@ -37,9 +38,27 @@ namespace Binary
     template<class T>
     const T& ReadField()
     {
+      static_assert(!std::is_integral<T>::value, "Use ReadByte/ReadLE/ReadBE");
       return *safe_ptr_cast<const T*>(ReadRawData(sizeof(T)));
     }
-    
+
+    uint8_t ReadByte()
+    {
+      return *ReadRawData(1);
+    }
+
+    template<class T>
+    T ReadLE()
+    {
+      return ::ReadLE<T>(ReadRawData(sizeof(T)));
+    }
+
+    template<class T>
+    T ReadBE()
+    {
+      return ::ReadBE<T>(ReadRawData(sizeof(T)));
+    }
+
     //! @brief Read ASCIIZ string with specified maximal size
     StringView ReadCString(std::size_t maxSize)
     {
