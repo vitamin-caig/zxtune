@@ -228,6 +228,10 @@ extern const Char TURBOSOUND_DECODER_DESCRIPTION[] = {
 extern const Char ULTRA64SOUNDFORMAT_DECODER_DESCRIPTION[] = {
   'U','l','t','r','a','6','4',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
 };
+extern const Char V2M_DECODER_DESCRIPTION[] = {
+  'F','a','r','b','r','a','u','s','c','h',' ','V','2',' ','S','y','n','t','h','e','s','i','z','e','r',' ','S',
+  'y','s','t','e','m',0
+};
 extern const Char VGM_DECODER_DESCRIPTION[] = {
   'V','i','d','e','o',' ','G','a','m','e',' ','M','u','s','i','c',0
 };
