@@ -5,6 +5,11 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4760 from 14.11.2019
+
+[+] Added support of Farbrausch V2 Synthesizer System (V2M)
+[*] Fixed crash on some broken MP3 files
+
 --- Rev4720 from 26.10.2019
 
 [+] Added support of Free Lossless Audio Codec format (FLAC)
