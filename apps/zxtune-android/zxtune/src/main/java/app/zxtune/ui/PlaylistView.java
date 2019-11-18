@@ -28,7 +28,7 @@ import com.mobeta.android.dslv.DragSortListView;
 import app.zxtune.R;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.ItemState;
-import app.zxtune.playlist.PlaylistQuery;
+import app.zxtune.playlist.ProviderClient;
 import app.zxtune.ui.utils.ListItemViewHolder;
 import app.zxtune.ui.utils.ListViewTools;
 
@@ -65,7 +65,7 @@ public class PlaylistView extends DragSortListView
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle params) {
     getCursorAdapter().changeCursor(null);
-    return new CursorLoader(getContext(), PlaylistQuery.ALL, null, null, null, null);
+    return ProviderClient.createLoader(getContext());
   }
 
   @Override

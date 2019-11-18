@@ -33,7 +33,7 @@ import app.zxtune.R;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.stubs.PlaylistControlStub;
-import app.zxtune.playlist.PlaylistQuery;
+import app.zxtune.playlist.ProviderClient;
 import app.zxtune.ui.utils.ListViewTools;
 
 public class PlaylistFragment extends Fragment {
@@ -216,10 +216,10 @@ public class PlaylistFragment extends Fragment {
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-      final Uri toPlay = PlaylistQuery.uriFor(id);
       final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
       final MediaControllerCompat ctrl = model.getMediaController().getValue();
       if (ctrl != null) {
+        final Uri toPlay = ProviderClient.createUri(id);
         ctrl.getTransportControls().playFromUri(toPlay, null);
       }
     }

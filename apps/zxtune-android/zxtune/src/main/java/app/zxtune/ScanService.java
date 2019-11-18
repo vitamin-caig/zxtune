@@ -8,7 +8,6 @@ package app.zxtune;
 
 import android.app.IntentService;
 import android.app.PendingIntent;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -25,7 +24,7 @@ import app.zxtune.core.Module;
 import app.zxtune.core.Scanner;
 import app.zxtune.device.ui.Notifications;
 import app.zxtune.playlist.Item;
-import app.zxtune.playlist.PlaylistQuery;
+import app.zxtune.playlist.ProviderClient;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,15 +39,16 @@ public class ScanService extends IntentService {
   private final Handler handler;
   private final NotifyTask tracking;
   private final AtomicInteger addedItems;
-  private CancellationSignal signal;
+  private final CancellationSignal signal;
+  private ProviderClient client;
   private Exception error;
 
   //TODO: remove C&P
   public static void add(Context ctx, app.zxtune.playback.Item source) {
     try {
-      final Item item = new app.zxtune.playlist.Item(source);
-      ctx.getContentResolver().insert(PlaylistQuery.ALL, item.toContentValues());
-      ctx.getContentResolver().notifyChange(PlaylistQuery.ALL, null);
+      final ProviderClient client = new ProviderClient(ctx);
+      client.addItem(new app.zxtune.playlist.Item(source));
+      client.notifyChanges();
       Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_ADD, 1);
     } catch (Exception error) {
       Log.w(TAG, error, "Failed to add item to playlist");
@@ -79,6 +79,7 @@ public class ScanService extends IntentService {
   @Override
   public void onCreate() {
     super.onCreate();
+    this.client = new ProviderClient(this);
     makeToast(R.string.scanning_started, Toast.LENGTH_SHORT);
   }
 
@@ -139,15 +140,13 @@ public class ScanService extends IntentService {
   }
 
   private void scan(Uri[] uris) {
-    final ContentResolver resolver = getContentResolver();
     for (Uri uri : uris) {
       Log.d(TAG, "scan on %s", uri);
       Scanner.analyzeIdentifier(new Identifier(uri), new Scanner.Callback() {
         @Override
         public void onModule(Identifier id, Module module) {
           signal.throwIfCanceled();
-          final Item item = new Item(id, module);
-          resolver.insert(PlaylistQuery.ALL, item.toContentValues());
+          client.addItem(new Item(id, module));
           addedItems.incrementAndGet();
           error = null;
         }
@@ -181,7 +180,7 @@ public class ScanService extends IntentService {
     final void stop() {
       getWakelock().release();
       handler.removeCallbacks(this);
-      notifyResolver();
+      client.notifyChanges();
       notification.hide();
       notification = null;
     }
@@ -190,7 +189,7 @@ public class ScanService extends IntentService {
     public void run() {
       Log.d(TAG, "Notify about changes");
       handler.postDelayed(this, NOTIFICATION_PERIOD);
-      notifyResolver();
+      client.notifyChanges();
       notification.show();
     }
 
@@ -200,10 +199,6 @@ public class ScanService extends IntentService {
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ScanService");
       }
       return wakeLock;
-    }
-
-    private void notifyResolver() {
-      getContentResolver().notifyChange(PlaylistQuery.ALL, null);
     }
 
     private class StatusNotification {
