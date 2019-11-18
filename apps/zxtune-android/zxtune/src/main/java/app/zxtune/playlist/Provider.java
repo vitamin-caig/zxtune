@@ -17,12 +17,19 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.CursorWrapper;
 import android.net.Uri;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.SparseIntArray;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Arrays;
 
 public class Provider extends ContentProvider {
+
+  private static final String METHOD_SORT = "sort";
+  private static final String METHOD_MOVE = "move";
 
   private Database db;
   private ContentResolver resolver;
@@ -72,11 +79,9 @@ public class Provider extends ContentProvider {
   @Override
   public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
     final Long id = PlaylistQuery.idOf(uri);
-    final int count = id != null 
+    return id != null
       ? db.deletePlaylistItems(PlaylistQuery.selectionFor(id), null)
       : db.deletePlaylistItems(selection, selectionArgs);
-    resolver.notifyChange(uri, null);
-    return count;
   }
   
   @Override
@@ -85,18 +90,106 @@ public class Provider extends ContentProvider {
     if (id != null) {
       final int activeRowsUpdated = activeRow.update(id, values);
       if (activeRowsUpdated != 0) {
-        resolver.notifyChange(PlaylistQuery.ALL, null);
         return activeRowsUpdated;
       } else {
-        final int result = db.updatePlaylistItems(values, PlaylistQuery.selectionFor(id), null);
-        resolver.notifyChange(uri, null);
-        return result;
+        return db.updatePlaylistItems(values, PlaylistQuery.selectionFor(id), null);
       }
     } else {
-      final int result = db.updatePlaylistItems(values, selection, selectionArgs);
-      resolver.notifyChange(PlaylistQuery.ALL, null);
-      return result;
+      return db.updatePlaylistItems(values, selection, selectionArgs);
     }
+  }
+
+  static void sort(ContentResolver resolver, String by, String order) {
+    resolver.call(PlaylistQuery.ALL, METHOD_SORT, by + " " + order, null);
+  }
+
+  static void move(ContentResolver resolver, long id, int delta) {
+    resolver.call(PlaylistQuery.ALL, METHOD_MOVE,
+        id + " " + delta, null);
+  }
+
+  @Nullable
+  @Override
+  public Bundle call(String method, String arg, Bundle extras) {
+    if (arg == null) {
+      return null;
+    }
+    final String[] args = TextUtils.split(arg, " ");
+    if (METHOD_SORT.equals(method)) {
+      sort(args[0], args[1]);
+    } else if (METHOD_MOVE.equals(method)) {
+      move(Long.parseLong(args[0]), Integer.parseInt(args[1]));
+    }
+    return null;
+  }
+
+  private void sort(String fieldName, String order) {
+    final Database.Tables.Playlist.Fields field =
+        Database.Tables.Playlist.Fields.valueOf(fieldName);
+    db.sortPlaylistItems(field, order);
+  }
+
+  /*
+   * @param id item to move
+   * @param delta position change
+   */
+
+  /*
+   * pos idx     pos idx
+   *       <-+
+   * p0  i0  |   p0  i0 -+
+   * p1  i1  |   p1  i1  |
+   * p2  i2  |   p2  i2  |
+   * p3  i3  |   p3  i3  |
+   * p4  i4  |   p4  i4  |
+   * p5  i5 -+   p5  i5  |
+   *                   <-+
+   *
+   * move(i5,-5) move(i0,5)
+   *
+   * select:
+   * i5 i4 i3 i2 i1 i0
+   * p5 p4 p3 p2 p1 p0
+   *
+   *             i0 i1 i2 i3 i4 i5
+   *             p0 p1 p2 p3 p4 p5
+   *
+   * p0  i5      p0  i1
+   * p1  i0      p1  i2
+   * p2  i1      p2  i3
+   * p3  i2      p3  i4
+   * p4  i3      p4  i5
+   * p5  i4      p5  i0
+   *
+   */
+  private void move(long id, int delta) {
+    final SparseIntArray positions = getNewPositions(id, delta);
+    db.updatePlaylistItemsOrder(positions);
+  }
+
+  private SparseIntArray getNewPositions(long id, int delta) {
+    final String[] proj = {Database.Tables.Playlist.Fields._id.name(), Database.Tables.Playlist.Fields.pos.name()};
+    final String sel = PlaylistQuery.positionSelection(delta > 0 ? ">=" : "<=", id);
+    final int count = Math.abs(delta) + 1;
+    final String ord = PlaylistQuery.limitedOrder(delta > 0 ? delta + 1 : delta - 1);
+    final Cursor cur = db.queryPlaylistItems(proj, sel, null, ord);
+    final int[] ids = new int[count];
+    final int[] pos = new int[count];
+    try {
+      int i = 0;
+      while (cur.moveToNext()) {
+        ids[(i + count - 1) % count] = cur.getInt(0);
+        pos[i] = cur.getInt(1);
+        ++i;
+      }
+    } finally {
+      cur.close();
+    }
+    final SparseIntArray res = new SparseIntArray();
+    for (int i = 0; i != count; ++i) {
+      res.append(ids[i], pos[i]);
+    }
+    return res;
   }
 
   @Override

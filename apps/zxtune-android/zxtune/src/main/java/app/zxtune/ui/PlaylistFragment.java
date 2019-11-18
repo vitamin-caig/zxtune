@@ -31,15 +31,13 @@ import app.zxtune.Log;
 import app.zxtune.Preferences;
 import app.zxtune.R;
 import app.zxtune.models.MediaSessionModel;
-import app.zxtune.playback.PlaylistControl;
-import app.zxtune.playback.stubs.PlaylistControlStub;
 import app.zxtune.playlist.ProviderClient;
 import app.zxtune.ui.utils.ListViewTools;
 
 public class PlaylistFragment extends Fragment {
 
   private static final String TAG = PlaylistFragment.class.getName();
-  private PlaylistControl ctrl;
+  private ProviderClient ctrl;
   private PlaylistState state;
   private PlaylistView listing;
 
@@ -51,18 +49,8 @@ public class PlaylistFragment extends Fragment {
   public void onAttach(Context ctx) {
     super.onAttach(ctx);
 
+    ctrl = new ProviderClient(ctx);
     state = new PlaylistState(Preferences.getDefaultSharedPreferences(ctx));
-    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
-    model.getPlaylist().observe(this, new Observer<PlaylistControl>() {
-      @Override
-      public void onChanged(@Nullable PlaylistControl playlistControl) {
-        if (playlistControl != null) {
-          ctrl = playlistControl;
-        } else {
-          ctrl = PlaylistControlStub.instance();
-        }
-      }
-    });
   }
 
   @Override
@@ -79,12 +67,12 @@ public class PlaylistFragment extends Fragment {
     inflater.inflate(R.menu.playlist, menu);
     final MenuItem sortItem = menu.findItem(R.id.action_sort);
     final SubMenu sortMenuRoot = sortItem.getSubMenu();
-    for (PlaylistControl.SortBy sortBy : PlaylistControl.SortBy.values()) {
-      for (PlaylistControl.SortOrder sortOrder : PlaylistControl.SortOrder.values()) {
+    for (ProviderClient.SortBy sortBy : ProviderClient.SortBy.values()) {
+      for (ProviderClient.SortOrder sortOrder : ProviderClient.SortOrder.values()) {
         try {
           final MenuItem item = sortMenuRoot.add(getMenuTitle(sortBy));
-          final PlaylistControl.SortBy by = sortBy;
-          final PlaylistControl.SortOrder order = sortOrder;
+          final ProviderClient.SortBy by = sortBy;
+          final ProviderClient.SortOrder order = sortOrder;
           item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -100,22 +88,22 @@ public class PlaylistFragment extends Fragment {
     }
   }
 
-  private static int getMenuTitle(PlaylistControl.SortBy by) throws Exception {
-    if (PlaylistControl.SortBy.title.equals(by)) {
+  private static int getMenuTitle(ProviderClient.SortBy by) throws Exception {
+    if (ProviderClient.SortBy.title.equals(by)) {
       return R.string.information_title;
-    } else if (PlaylistControl.SortBy.author.equals(by)) {
+    } else if (ProviderClient.SortBy.author.equals(by)) {
       return R.string.information_author;
-    } else if (PlaylistControl.SortBy.duration.equals(by)) {
+    } else if (ProviderClient.SortBy.duration.equals(by)) {
       return R.string.statistics_duration;//TODO: extract
     } else {
       throw new Exception("Invalid sort order");
     }
   }
 
-  private static int getMenuIcon(PlaylistControl.SortOrder order) throws Exception {
-    if (PlaylistControl.SortOrder.asc.equals(order)) {
+  private static int getMenuIcon(ProviderClient.SortOrder order) throws Exception {
+    if (ProviderClient.SortOrder.asc.equals(order)) {
       return android.R.drawable.arrow_up_float;
-    } else if (PlaylistControl.SortOrder.desc.equals(order)) {
+    } else if (ProviderClient.SortOrder.desc.equals(order)) {
       return android.R.drawable.arrow_down_float;
     } else {
       throw new Exception("Invalid sor order");

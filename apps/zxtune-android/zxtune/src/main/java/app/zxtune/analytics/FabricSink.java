@@ -10,11 +10,12 @@ import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
-import app.zxtune.playback.PlaylistControl;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
+
+import app.zxtune.playlist.ProviderClient;
 import io.fabric.sdk.android.Fabric;
 
 import java.util.List;
@@ -180,8 +181,8 @@ final class FabricSink implements Sink {
       //no param
     } else if (action == Analytics.PLAYLIST_ACTION_SORT) {
       //TODO: rework
-      final PlaylistControl.SortBy by = PlaylistControl.SortBy.values()[param / 100];
-      final PlaylistControl.SortOrder order = PlaylistControl.SortOrder.values()[param % 100];
+      final ProviderClient.SortBy by = ProviderClient.SortBy.values()[param / 100];
+      final ProviderClient.SortOrder order = ProviderClient.SortOrder.values()[param % 100];
       event.putCustomAttribute(act, by.name() + "/" + order.name());
     } else {
       event.putCustomAttribute(act, param != 0 ? "selection" : "global");
