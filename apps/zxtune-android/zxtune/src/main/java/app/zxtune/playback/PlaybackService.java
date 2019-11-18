@@ -12,8 +12,6 @@ package app.zxtune.playback;
 
 public interface PlaybackService {
 
-  PlaylistControl getPlaylistControl();
-  
   PlaybackControl getPlaybackControl();
   
   SeekControl getSeekControl();

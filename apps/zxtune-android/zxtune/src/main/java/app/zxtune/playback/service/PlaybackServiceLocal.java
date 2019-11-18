@@ -47,7 +47,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final CompositeCallback callbacks;
   private final NavigateCommand navigateCmd;
   private final ActivateCommand activateCmd;
-  private final PlaylistControlLocal playlist;
   private final DispatchedPlaybackControl playback;
   private final DispatchedSeekControl seek;
   private final DispatchedVisualizer visualizer;
@@ -65,7 +64,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.callbacks = new CompositeCallback();
     this.navigateCmd = new NavigateCommand();
     this.activateCmd = new ActivateCommand();
-    this.playlist = new PlaylistControlLocal(context);
     this.playback = new DispatchedPlaybackControl();
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
@@ -181,11 +179,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     holder.getAndSet(newHolder).release();
     callbacks.onItemChanged(newHolder.item);
     callbacks.onStateChanged(getState(), TimeStamp.EMPTY);
-  }
-
-  @Override
-  public PlaylistControl getPlaylistControl() {
-    return playlist;
   }
 
   @Override
