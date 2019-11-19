@@ -1,6 +1,6 @@
 package app.zxtune.fs.dbhelpers;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.fs.http.HttpObject;
 
 import java.io.File;

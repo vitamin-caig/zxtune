@@ -6,7 +6,7 @@
 
 package app.zxtune.sound;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Base interface for low-level sound player

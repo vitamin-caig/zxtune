@@ -6,7 +6,7 @@
 
 package app.zxtune.fs;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public abstract class StubObject implements VfsObject {
 

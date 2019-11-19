@@ -11,8 +11,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -27,7 +27,6 @@ import app.zxtune.Util;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.ModuleDetectCallback;
-import app.zxtune.core.Properties;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;

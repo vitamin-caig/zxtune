@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.SparseIntArray;
 import android.view.View;
 import android.view.ViewGroup;

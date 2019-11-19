@@ -1,11 +1,10 @@
 package app.zxtune.fs.http;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 
 public interface HttpProvider {
 

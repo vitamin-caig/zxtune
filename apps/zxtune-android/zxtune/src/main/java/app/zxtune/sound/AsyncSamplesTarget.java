@@ -1,13 +1,12 @@
 package app.zxtune.sound;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import app.zxtune.Log;
-import app.zxtune.TimeStamp;
 
 class AsyncSamplesTarget {
 

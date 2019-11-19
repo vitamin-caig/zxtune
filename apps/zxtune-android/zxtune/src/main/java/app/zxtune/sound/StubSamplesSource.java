@@ -1,6 +1,6 @@
 package app.zxtune.sound;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.TimeStamp;
 
 final public class StubSamplesSource implements SamplesSource {

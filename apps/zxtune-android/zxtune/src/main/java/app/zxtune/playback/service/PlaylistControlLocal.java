@@ -8,7 +8,7 @@ package app.zxtune.playback.service;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.SparseIntArray;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.playback.PlaylistControl;

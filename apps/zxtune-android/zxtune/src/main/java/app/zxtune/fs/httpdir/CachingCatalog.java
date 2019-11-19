@@ -1,7 +1,7 @@
 package app.zxtune.fs.httpdir;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.*;

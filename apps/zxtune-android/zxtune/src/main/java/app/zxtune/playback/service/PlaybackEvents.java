@@ -1,12 +1,11 @@
 package app.zxtune.playback.service;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.PlaybackControl;
-import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.sound.PlayerEventsListener;
 

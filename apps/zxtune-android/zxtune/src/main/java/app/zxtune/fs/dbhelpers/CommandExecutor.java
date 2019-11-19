@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;

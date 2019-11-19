@@ -2,7 +2,7 @@ package app.zxtune.core.jni;
 
 import static org.junit.Assert.*;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import org.junit.*;
 
 import java.util.HashSet;
