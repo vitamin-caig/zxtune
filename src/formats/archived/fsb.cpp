@@ -31,7 +31,7 @@ namespace Archived
     const std::string FORMAT(
       "'F'S'B'5"
       "?{20}"
-      "01|02|03|04|05|07|0b 000000" //pcm+imaadpcm+mpeg
+      "01-05|07|0b|0f 000000" //pcm+imaadpcm+mpeg+vorbis
     );
 
     class File : public Archived::File
@@ -136,6 +136,9 @@ namespace Archived
         case Fmod::Format::PCMFLOAT:
         case Fmod::Format::IMAADPCM:
           Delegate = CreatePcmBuilder();
+          break;
+        case Fmod::Format::VORBIS:
+          Delegate = CreateOggVorbisBuilder();
           break;
         default:
           Require(false);

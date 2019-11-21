@@ -229,13 +229,15 @@ namespace Ogg
       return Meta;
     }
 
-    void SetChannels(uint_t /*channels*/) override {}
-    void SetFrequency(uint_t frequency) override
+    void SetStreamId(uint32_t id) override {};
+    void SetProperties(uint_t /*channels*/, uint_t frequency, uint_t /*blockSizeLo*/, uint_t /*blockSizeHi*/) override
     {
       Data->Frequency = frequency;
     }
+
+    void SetSetup(const Binary::Data& /*data*/) override {}
     
-    void AddFrame(std::size_t /*offset*/, uint_t samples) override
+    void AddFrame(std::size_t /*offset*/, uint_t samples, const Binary::Data& /*data*/) override
     {
       Data->TotalSamples += samples;
     }

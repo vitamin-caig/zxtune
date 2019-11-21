@@ -46,20 +46,28 @@ namespace
     {
       return *this;
     }
-    
-    void SetChannels(uint_t channels) override
+
+    void SetStreamId(uint32_t id) override
     {
-      std::cout << "Channels: " << channels << std::endl;
+      std::cout << "StreamId: " << id << std::endl;
     }
     
-    void SetFrequency(uint_t frequency) override
+    void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) override
     {
-      std::cout << "Frequency: " << frequency << std::endl;
+      std::cout << "Channels: " << channels << std::endl
+                << "Frequency: " << frequency << std::endl
+                << "BlockSizeLo: " << blockSizeLo << std::endl
+                << "BlockSizeHi: " << blockSizeHi << std::endl;
     }
     
-    void AddFrame(std::size_t offset, uint_t samplesCount) override
+    void SetSetup(const Binary::Data& data) override
     {
-      std::cout << Strings::Format("Frame: @%1%(0x%1$08x) %2% samples\n", offset, samplesCount);
+      std::cout << "Setup: " << data.Size() << " bytes" << std::endl;
+    }
+    
+    void AddFrame(std::size_t offset, uint_t samplesCount, const Binary::Data& data) override
+    {
+      std::cout << Strings::Format("Frame: @%1%(0x%1$08x) %2% samples, %3% bytes\n", offset, samplesCount, data.Size());
     }
   };
 }

@@ -54,12 +54,13 @@ namespace
       std::cout << "  Data: " << samplesCount << " samples in ";
       if (blob)
       {
-        std::cout << blob->Size() << " bytes" << std::endl;
+        std::cout << blob->Size() << " bytes";
       }
       else
       {
-        std::cout << " absent data" << std::endl;
+        std::cout << " absent data";
       }
+      std::cout << std::endl;
     }
   private:
     static const char* FormatString(uint_t format)

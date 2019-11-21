@@ -16,8 +16,11 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/input_stream.h>
+#include <binary/data_adapter.h>
+#include <binary/data_builder.h>
 #include <binary/format_factories.h>
+#include <binary/input_stream.h>
+#include <math/bitops.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
 //std includes
@@ -32,6 +35,11 @@ namespace Chiptune
 {
   namespace Ogg
   {
+    const uint8_t SIGNATURE[] = {'O', 'g', 'g', 'S'};
+    const uint8_t VERSION = 0;
+    const uint64_t UNFINISHED_PAGE_POSITION = ~0ull;
+    const uint_t MAX_SEGMENT_SIZE = 255;
+
     //https://xiph.org/ogg/doc/framing.html
     class Format
     {
@@ -46,14 +54,13 @@ namespace Chiptune
       public:
         virtual ~Callback() = default;
         
+        virtual void OnStream(uint32_t streamId) = 0;
         virtual void OnPage(std::size_t offset, uint_t positionsCount, Binary::DataInputStream& payload) = 0;
       };
       
       Binary::Container::Ptr Parse(Callback& target)
       {
         static const std::size_t MIN_PAGE_SIZE = 27;
-        static const uint_t VERSION = 0;
-        static const uint8_t SIGNATURE[] = {'O', 'g', 'g', 'S'};
         uint32_t streamId = 0;
         uint32_t nextPageNumber = 0;
         uint64_t position = 0;
@@ -74,6 +81,7 @@ namespace Chiptune
             if (!streamId)
             {
               streamId = stream;
+              target.OnStream(streamId);
             }
             else
             {
@@ -95,18 +103,144 @@ namespace Chiptune
         return Stream.GetReadData();
       }
     private:
-      static bool IsFreshPacket(uint8_t flag)
+      Binary::InputStream Stream;
+    };
+
+    class Builder
+    {
+    public:
+      void SetStreamId(uint32_t streamId)
       {
-        return 0 == (flag & 1);
+        StreamId = streamId;
+      }
+
+      void AddData(uint64_t position, const uint8_t* data, std::size_t size)
+      {
+        static const std::size_t MAX_PAGE_DATA = 255 * MAX_SEGMENT_SIZE;
+        while (size > MAX_PAGE_DATA)
+        {
+          AddPage(UNFINISHED_PAGE_POSITION, data, MAX_PAGE_DATA);
+          data += MAX_PAGE_DATA;
+          size -= MAX_PAGE_DATA;
+        }
+        AddPage(position, data, size);
+      }
+
+      Binary::Container::Ptr CaptureResult()
+      {
+        auto& flags = Builder.Get<uint8_t>(LastPageOffset + 5);
+        flags |= LAST_PAGE;
+        CalculateCrc();
+        return Builder.CaptureResult();
       }
     private:
-      Binary::InputStream Stream;
+      enum Flags
+      {
+        CONTINUED_PACKET = 1,
+        FIRST_PAGE = 2,
+        LAST_PAGE = 4
+      };
+
+      void AddPage(uint64_t position, const uint8_t* data, std::size_t size)
+      {
+        if (!size)
+        {
+          return;
+        }
+        if (PagesDone)
+        {
+          CalculateCrc();
+        }
+        const uint8_t segmentsCount = size ? static_cast<uint8_t>(((size - 1) / MAX_SEGMENT_SIZE) + 1) : 0;
+        LastPageOffset = Builder.Size();
+        LastPageSize = 27 + segmentsCount + size;
+        Builder.Allocate(LastPageSize);
+        Builder.Resize(LastPageOffset);
+        Builder.Add(SIGNATURE, sizeof(SIGNATURE));
+        Builder.Add(VERSION);
+        //assume single stream, so first page is always first
+        const uint8_t flag = PagesDone == 0 ? FIRST_PAGE : (position == UNFINISHED_PAGE_POSITION ? CONTINUED_PACKET : 0);
+        Builder.Add(flag);
+        Builder.Add(fromLE(position));
+        Builder.Add(fromLE(StreamId));
+        Builder.Add(fromLE(PagesDone++));
+        const uint32_t EMPTY_CRC = 0;
+        Builder.Add(EMPTY_CRC);
+        Builder.Add(segmentsCount);
+        WriteSegments(size, static_cast<uint8_t*>(Builder.Allocate(segmentsCount)));
+        Builder.Add(data, size);
+      }
+
+      void WriteSegments(std::size_t size, uint8_t* data)
+      {
+        while (size != 0)
+        {
+          const auto part = std::min<uint_t>(MAX_SEGMENT_SIZE, size);
+          *data++ = static_cast<uint8_t>(part);
+          size -= part;
+        }
+      }
+
+      void CalculateCrc()
+      {
+        auto* const page = static_cast<uint8_t*>(Builder.Get(LastPageOffset));
+        auto* const rawCrc = page + 22;
+        std::memset(rawCrc, 0, sizeof(uint32_t));
+        const auto crc = fromLE(Crc32::Calculate(page, LastPageSize));
+        std::memcpy(rawCrc, &crc, sizeof(uint32_t));
+      }
+
+      class Crc32
+      {
+      public:
+        Crc32()
+        {
+          const uint32_t CRC32_POLY = 0x04c11db7;
+          for (uint_t i = 0; i < 256; ++i)
+          {
+            uint_t s = i << 24;
+            for (uint_t j = 0; j < 8; ++j)
+              s = (s << 1) ^ (s >= (1u << 31) ? CRC32_POLY : 0);
+            Table[i] = s;
+          }
+        }
+
+        static uint32_t Calculate(const uint8_t* data, std::size_t size)
+        {
+          static const Crc32 INSTANCE;
+          uint32_t crc = 0;
+          for (; size != 0; --size, ++data)
+          {
+            crc = (crc << 8) ^ INSTANCE.Table[*data ^ (crc >> 24)];
+          }
+          return crc;
+        }
+      private:
+        uint32_t Table[256];
+      };
+    private:
+      Binary::DataBuilder Builder;
+      uint32_t StreamId = 0x2054585a;
+      uint32_t PagesDone = 0;
+      std::size_t LastPageOffset = 0;
+      std::size_t LastPageSize = 0;
     };
   }
   
   //https://xiph.org/vorbis/doc/Vorbis_I_spec.html
   namespace Vorbis
   {
+    const uint32_t VERSION = 0;
+    const std::array<uint8_t, 6> SIGNATURE = {{'v', 'o', 'r', 'b', 'i', 's'}};
+
+    enum PacketType
+    {
+      Identification = 1,
+      Comment = 3,
+      Setup = 5,
+      Audio = 0 //arbitrary
+    };
+
     class Format : public Ogg::Format::Callback
     {
     public:
@@ -114,6 +248,11 @@ namespace Chiptune
         : Target(target)
         , NextPacketType(Identification)
       {
+      }
+
+      void OnStream(uint32_t streamId) override
+      {
+        Target.SetStreamId(streamId);
       }
 
       void OnPage(std::size_t offset, uint_t positionsCount, Binary::DataInputStream& payload) override
@@ -124,14 +263,6 @@ namespace Chiptune
         }
       }
     private:
-      enum PacketType
-      {
-        Identification = 1,
-        Comment = 3,
-        Setup = 5,
-        Audio = 0 //arbitrary
-      };
-      
       void ReadPacket(std::size_t pageOffset, uint_t samplesCount, Binary::DataInputStream& payload)
       {
         if (NextPacketType != Audio)
@@ -142,14 +273,12 @@ namespace Chiptune
         }
         else
         {
-          Target.AddFrame(pageOffset, samplesCount);
-          Skip(payload);
+          Target.AddFrame(pageOffset, samplesCount, ReadRest(payload));
         }
       }
       
       static uint8_t FindHeaderPacket(Binary::DataInputStream& payload)
       {
-        static const std::array<uint8_t, 6> SIGNATURE = {{'v', 'o', 'r', 'b', 'i', 's'}};
         const auto avail = payload.GetRestSize();
         Require(avail > SIGNATURE.size() + 1);
         const auto raw = payload.PeekRawData(avail);
@@ -173,7 +302,8 @@ namespace Chiptune
           NextPacketType = Setup;
           break;
         case Setup:
-          Skip(payload);
+          payload.Seek(payload.GetPosition() - SIGNATURE.size() - 1);
+          Target.SetSetup(ReadRest(payload));
           NextPacketType = Audio;
           break;
         default:
@@ -191,22 +321,21 @@ namespace Chiptune
         const auto framing = payload.ReadByte();
         const auto blockLo = blocksize & 0x0f;
         const auto blockHi = blocksize >> 4;
-        Require(version == 0);
+        Require(version == VERSION);
         Require(channels > 0);
         Require(frequency > 0);
         Require(blockLo >= 6 && blockLo <= 13);
         Require(blockHi >= 6 && blockHi <= 13);
         Require(blockLo <= blockHi);
         Require(framing & 1);
-        Target.SetChannels(channels);
-        Target.SetFrequency(frequency);
+        Target.SetProperties(channels, frequency, 1 << blockLo, 1 << blockHi);
       }
-      
-      void Skip(Binary::DataInputStream& payload)
+
+      static Binary::DataAdapter ReadRest(Binary::DataInputStream& payload)
       {
         const auto restSize = payload.GetRestSize();
         Require(restSize != 0);
-        payload.Skip(restSize);
+        return Binary::DataAdapter(payload.ReadRawData(restSize), restSize);
       }
     private:
       OggVorbis::Builder& Target;
@@ -245,9 +374,10 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
 
-      void SetChannels(uint_t /*channels*/) override {}
-      void SetFrequency(uint_t /*frequency*/) override {}
-      void AddFrame(std::size_t /*offset*/, uint_t /*samplesCount*/) override {}
+      void SetStreamId(uint32_t /*streamId*/) override {}
+      void SetProperties(uint_t /*channels*/, uint_t /*frequency*/, uint_t /*blockSizeLo*/, uint_t /*blockSizeHi*/) override {}
+      void SetSetup(const Binary::Data& /*data*/) override {}
+      void AddFrame(std::size_t /*offset*/, uint_t /*samplesCount*/, const Binary::Data& /*data*/) override {}
     };
     
     Builder& GetStubBuilder()
@@ -255,7 +385,80 @@ namespace Chiptune
       static StubBuilder stub;
       return stub;
     }
-    
+
+    class SimpleDumpBuilder : public DumpBuilder
+    {
+    public:
+      MetaBuilder& GetMetaBuilder() override
+      {
+        return GetStubMetaBuilder();
+      }
+      
+      void SetStreamId(uint32_t id) override
+      {
+        Storage.SetStreamId(id);
+      }
+
+      void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) override
+      {
+        const auto blockSizes = (Math::Log2(blockSizeHi - 1) << 4) | (Math::Log2(blockSizeLo - 1));
+        WriteIdentification(channels, frequency, blockSizes);
+        WriteComment();
+      }
+      
+      void SetSetup(const Binary::Data& data) override
+      {
+        Storage.AddData(0, static_cast<const uint8_t*>(data.Start()), data.Size());
+      }
+
+      void AddFrame(std::size_t /*offset*/, uint_t framesCount, const Binary::Data& data) override
+      {
+        TotalFrames += framesCount;
+        Storage.AddData(TotalFrames, static_cast<const uint8_t*>(data.Start()), data.Size());
+      }
+      
+      Binary::Container::Ptr GetDump() override
+      {
+        return Storage.CaptureResult();
+      }
+    private:
+      void WriteIdentification(uint8_t channels, uint32_t frequency, uint8_t blockSizes)
+      {
+        Binary::DataBuilder builder(30);
+        builder.Add(uint8_t(Vorbis::Identification));
+        builder.Add(Vorbis::SIGNATURE.data(), Vorbis::SIGNATURE.size());
+        builder.Add(Vorbis::VERSION);
+        builder.Add(channels);
+        builder.Add(fromLE(frequency));
+        builder.Allocate(3 * sizeof(uint32_t));
+        builder.Add(blockSizes);
+        builder.Add(uint8_t(1));
+        Storage.AddData(0, static_cast<const uint8_t*>(builder.Get(0)), builder.Size());
+      }
+
+      void WriteComment()
+      {
+        static const uint8_t DATA[] =
+        {
+          Vorbis::Comment,
+          'v', 'o', 'r', 'b', 'i', 's',
+          6, 0, 0, 0,
+          'z', 'x', 't', 'u', 'n', 'e',
+          0, 0, 0, 0,
+          1
+        };
+        Storage.AddData(0, DATA, sizeof(DATA));
+      }
+    private:
+      Ogg::Builder Storage;
+      uint64_t TotalFrames = 0;
+    };
+
+    DumpBuilder::Ptr CreateDumpBuilder()
+    {
+      return MakePtr<SimpleDumpBuilder>();
+    }
+
     const std::string FORMAT =
       //first page
       "'O'g'g'S" //signature

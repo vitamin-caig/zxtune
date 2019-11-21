@@ -29,13 +29,25 @@ namespace Formats
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         
-        virtual void SetChannels(uint_t channels) = 0;
-        virtual void SetFrequency(uint_t frequency) = 0;
-        virtual void AddFrame(std::size_t offset, uint_t framesCount) = 0;
+        virtual void SetStreamId(uint32_t id) = 0;
+        virtual void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) = 0;
+        // Full setup block, including header
+        virtual void SetSetup(const Binary::Data& data) = 0;
+        virtual void AddFrame(std::size_t offset, uint_t framesCount, const Binary::Data& data) = 0;
       };
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
+
+      class DumpBuilder : public Builder
+      {
+      public:
+        using Ptr = std::shared_ptr<DumpBuilder>;
+        
+        virtual Binary::Container::Ptr GetDump() = 0;
+      };
+
+      DumpBuilder::Ptr CreateDumpBuilder();
     }
 
     Decoder::Ptr CreateOGGDecoder();
