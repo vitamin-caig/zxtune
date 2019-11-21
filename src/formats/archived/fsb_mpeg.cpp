@@ -19,9 +19,11 @@ namespace Formats
 {
 namespace Archived
 {
-  namespace FSB
+namespace FSB
+{
+  namespace Mpeg
   {
-    class MpegBuilder : public FormatBuilder
+    class Builder : public FormatBuilder
     {
     public:
       void Setup(uint_t samplesCount, uint_t format) override
@@ -75,11 +77,12 @@ namespace Archived
       std::vector<String> Names;
       std::vector<Binary::Container::Ptr> Blobs;
     };
-
-    FormatBuilder::Ptr CreateMpegBuilder()
-    {
-      return MakePtr<MpegBuilder>();
-    }
   }
+
+  FormatBuilder::Ptr CreateMpegBuilder()
+  {
+    return MakePtr<Mpeg::Builder>();
+  }
+}
 }
 }

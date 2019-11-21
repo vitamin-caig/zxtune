@@ -22,7 +22,9 @@ namespace Formats
 {
 namespace Archived
 {
-  namespace FSB
+namespace FSB
+{
+  namespace Vorbis
   {
     struct SetupSection
     {
@@ -46,28 +48,13 @@ namespace Archived
 
     struct SampleProperties
     {
-      SampleProperties() = default;
-      SampleProperties(const SampleProperties&) = delete;
-      SampleProperties& operator = (const SampleProperties&) = delete;
-      SampleProperties(SampleProperties&& rh) noexcept //=default
-        : Name(std::move(rh.Name))
-        , Frequency(rh.Frequency)
-        , Channels(rh.Channels)
-        , SamplesCount(rh.SamplesCount)
-        , Setup(rh.Setup)
-        , Data(std::move(rh.Data))
-        , Lookup(std::move(rh.Lookup))
-      {
-      }
-
-      SampleProperties& operator = (SampleProperties&&) = delete;
-
       String Name;
       uint_t Frequency = 0;
       uint_t Channels = 0;
       uint_t SamplesCount = 0;
       const SetupSection* Setup = nullptr;
       Binary::Container::Ptr Data;
+
       struct LookupEntry
       {
         LookupEntry() = default;
@@ -85,10 +72,10 @@ namespace Archived
       std::vector<LookupEntry> Lookup;
     };
 
-    class LazyOggFile : public Binary::Container
+    class LazyContainer : public Binary::Container
     {
     public:
-      explicit LazyOggFile(SampleProperties&& props) noexcept
+      explicit LazyContainer(SampleProperties&& props) noexcept
         : Properties(std::move(props))
       {
       }
@@ -122,7 +109,7 @@ namespace Archived
     private:
       void Build() const
       {
-        const auto builder = Formats::Chiptune::OggVorbis::CreateDumpBuilder();
+        const auto builder = Chiptune::OggVorbis::CreateDumpBuilder();
         builder->SetStreamId(Properties.Setup->Crc32);
         builder->SetProperties(Properties.Channels, Properties.Frequency,
           Properties.Setup->BlocksizeShort, Properties.Setup->BlocksizeLong);
@@ -133,7 +120,7 @@ namespace Archived
         Delegate = builder->GetDump();
       }
 
-      void DumpFrames(Formats::Chiptune::OggVorbis::Builder& builder) const
+      void DumpFrames(Chiptune::OggVorbis::Builder& builder) const
       {
         auto lookupIt = Properties.Lookup.begin();
         SampleProperties::LookupEntry cursor, delta;
@@ -167,7 +154,7 @@ namespace Archived
       mutable Ptr Delegate;
     };
     
-    class OggVorbisBuilder : public FormatBuilder
+    class Builder : public FormatBuilder
     {
     public:
       void Setup(uint_t samplesCount, uint_t format) override
@@ -227,7 +214,7 @@ namespace Archived
           if (smp.Data)
           {
             auto name = std::move(smp.Name);
-            result.emplace(name, MakePtr<LazyOggFile>(std::move(smp)));
+            result.emplace(name, MakePtr<LazyContainer>(std::move(smp)));
           }
         }
         return result;
@@ -236,11 +223,12 @@ namespace Archived
       uint_t CurSample = 0;
       std::vector<SampleProperties> Samples;
     };
-
-    FormatBuilder::Ptr CreateOggVorbisBuilder()
-    {
-      return MakePtr<OggVorbisBuilder>();
-    }
   }
+
+  FormatBuilder::Ptr CreateOggVorbisBuilder()
+  {
+    return MakePtr<Vorbis::Builder>();
+  }
+}
 }
 }

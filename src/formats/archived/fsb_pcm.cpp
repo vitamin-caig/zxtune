@@ -20,7 +20,9 @@ namespace Formats
 {
 namespace Archived
 {
-  namespace FSB
+namespace FSB
+{
+  namespace Pcm
   {
     struct SampleProperties
     {
@@ -63,10 +65,10 @@ namespace Archived
       Binary::Container::Ptr Data;
     };
     
-    class LazyWavFile : public Binary::Container
+    class LazyContainer : public Binary::Container
     {
     public:
-      explicit LazyWavFile(SampleProperties&& props) noexcept
+      explicit LazyContainer(SampleProperties&& props) noexcept
         : Properties(std::move(props))
       {
       }
@@ -100,7 +102,7 @@ namespace Archived
     private:
       void Build() const
       {
-        using namespace Formats::Chiptune::Wav;
+        using namespace Chiptune::Wav;
         const auto builder = CreateDumpBuilder();
         const auto format = Properties.IsFloat ? Format::IEEE_FLOAT : (Properties.IsAdpcm ? Format::IMA_ADPCM : Format::PCM);
         const auto blockSize = Properties.IsAdpcm ? 36 * Properties.Channels : (Properties.Channels * Properties.Bits + 7) / 8;
@@ -117,7 +119,7 @@ namespace Archived
       mutable Ptr Delegate;
     };
     
-    class PcmBuilder : public FormatBuilder
+    class Builder : public FormatBuilder
     {
     public:
       void Setup(uint_t samplesCount, uint_t format) override
@@ -164,7 +166,7 @@ namespace Archived
           if (smp.Data)
           {
             auto name = std::move(smp.Name);
-            result.emplace(name, MakePtr<LazyWavFile>(std::move(smp)));
+            result.emplace(name, MakePtr<LazyContainer>(std::move(smp)));
           }
         }
         return result;
@@ -173,11 +175,12 @@ namespace Archived
       uint_t CurSample = 0;
       std::vector<SampleProperties> Samples;
     };
-
-    FormatBuilder::Ptr CreatePcmBuilder()
-    {
-      return MakePtr<PcmBuilder>();
-    }
   }
+
+  FormatBuilder::Ptr CreatePcmBuilder()
+  {
+    return MakePtr<Pcm::Builder>();
+  }
+}
 }
 }
