@@ -108,7 +108,7 @@ namespace Archived
           {
             const auto header = Stream.ReadLE<uint64_t>();
             auto hasNextChunk = 0 != (header & 1);
-            target.SetFrequency(DecodeSampleFrequency((header >> 1) & 15));
+            target.SetFrequency(DecodeSampleFrequency(header));
             target.SetChannels(DecodeChannelsCount(header));
             SampleLocation result;
             result.Offset = DecodeDataOffset(header);
@@ -124,9 +124,16 @@ namespace Archived
             return result;
           }
         private:
-          static uint_t DecodeSampleFrequency(uint_t id)
+          // From low to high:
+          // 1 bit flag
+          // 4 bits frequency
+          // 2 bits channels
+          // 27 bits offset in blocks
+          // 30 bits samples count
+          
+          static uint_t DecodeSampleFrequency(uint64_t raw)
           {
-            switch (id)
+            switch ((raw >> 1) & 15)
             {
             case 0:
               return 4000;
@@ -157,12 +164,25 @@ namespace Archived
           
           static uint_t DecodeChannelsCount(uint64_t raw)
           {
-            return 1 + ((raw >> 5) & 1);
+            switch ((raw >> 5) & 3)
+            {
+            case 0:
+              return 1;
+            case 1:
+              return 2;
+            case 2:
+              return 6;
+            case 3:
+              return 8;
+            default:
+              Require(false);
+              return 1;
+            }
           }
           
           static std::size_t DecodeDataOffset(uint64_t raw)
           {
-            return 32 * ((raw >> 7) & 0x1ff);
+            return 32 * ((raw >> 7) & 0x7ffffff);
           }
           
           static uint_t DecodeSamplesCount(uint64_t raw)
