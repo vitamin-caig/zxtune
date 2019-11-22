@@ -47,7 +47,7 @@ namespace Formats
         virtual Binary::Container::Ptr GetDump() = 0;
       };
 
-      DumpBuilder::Ptr CreateDumpBuilder();
+      DumpBuilder::Ptr CreateDumpBuilder(std::size_t sizeHint);
     }
 
     Decoder::Ptr CreateOGGDecoder();

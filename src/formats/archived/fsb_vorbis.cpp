@@ -109,7 +109,9 @@ namespace FSB
     private:
       void Build() const
       {
-        const auto builder = Chiptune::OggVorbis::CreateDumpBuilder();
+        const auto vorbisDataSize = Properties.Data->Size();
+        // use 12.5% overhead
+        const auto builder = Chiptune::OggVorbis::CreateDumpBuilder(vorbisDataSize + vorbisDataSize / 8);
         builder->SetStreamId(Properties.Setup->Crc32);
         builder->SetProperties(Properties.Channels, Properties.Frequency,
           Properties.Setup->BlocksizeShort, Properties.Setup->BlocksizeLong);
@@ -185,7 +187,10 @@ namespace FSB
       
       void AddMetaChunk(uint_t type, const Binary::Data& chunk) override
       {
-        Require(type == Fmod::ChunkType::VORBISDATA);
+        if (type != Fmod::ChunkType::VORBISDATA)
+        {
+          return;
+        }
         Binary::DataInputStream stream(chunk.Start(), chunk.Size());
         auto& dst = Samples[CurSample];
         dst.Setup = GetSetup(stream.ReadLE<uint32_t>());

@@ -114,6 +114,11 @@ namespace Chiptune
     class Builder
     {
     public:
+      explicit Builder(std::size_t sizeHint)
+        : Storage(sizeHint)
+      {
+      }
+
       void SetStreamId(uint32_t streamId)
       {
         StreamId = streamId;
@@ -134,10 +139,10 @@ namespace Chiptune
 
       Binary::Container::Ptr CaptureResult()
       {
-        auto& flags = Builder.Get<uint8_t>(LastPageOffset + 5);
+        auto& flags = Storage.Get<uint8_t>(LastPageOffset + 5);
         flags |= LAST_PAGE;
         CalculateCrc();
-        return Builder.CaptureResult();
+        return Storage.CaptureResult();
       }
     private:
       enum Flags
@@ -154,23 +159,23 @@ namespace Chiptune
           CalculateCrc();
         }
         const uint8_t segmentsCount = static_cast<uint8_t>(size / MAX_SEGMENT_SIZE) + 1;
-        LastPageOffset = Builder.Size();
+        LastPageOffset = Storage.Size();
         LastPageSize = 27 + segmentsCount + size;
-        Builder.Allocate(LastPageSize);
-        Builder.Resize(LastPageOffset);
-        Builder.Add(SIGNATURE, sizeof(SIGNATURE));
-        Builder.Add(VERSION);
+        Storage.Allocate(LastPageSize);
+        Storage.Resize(LastPageOffset);
+        Storage.Add(SIGNATURE, sizeof(SIGNATURE));
+        Storage.Add(VERSION);
         //assume single stream, so first page is always first
         const uint8_t flag = PagesDone == 0 ? FIRST_PAGE : (continued ? CONTINUED_PACKET : 0);
-        Builder.Add(flag);
-        Builder.Add(fromLE(position));
-        Builder.Add(fromLE(StreamId));
-        Builder.Add(fromLE(PagesDone++));
+        Storage.Add(flag);
+        Storage.Add(fromLE(position));
+        Storage.Add(fromLE(StreamId));
+        Storage.Add(fromLE(PagesDone++));
         const uint32_t EMPTY_CRC = 0;
-        Builder.Add(EMPTY_CRC);
-        Builder.Add(segmentsCount);
-        WriteSegments(size, static_cast<uint8_t*>(Builder.Allocate(segmentsCount)));
-        Builder.Add(data, size);
+        Storage.Add(EMPTY_CRC);
+        Storage.Add(segmentsCount);
+        WriteSegments(size, static_cast<uint8_t*>(Storage.Allocate(segmentsCount)));
+        Storage.Add(data, size);
       }
 
       void WriteSegments(std::size_t size, uint8_t* data)
@@ -193,7 +198,7 @@ namespace Chiptune
 
       void CalculateCrc()
       {
-        auto* const page = static_cast<uint8_t*>(Builder.Get(LastPageOffset));
+        auto* const page = static_cast<uint8_t*>(Storage.Get(LastPageOffset));
         auto* const rawCrc = page + 22;
         std::memset(rawCrc, 0, sizeof(uint32_t));
         const auto crc = fromLE(Crc32::Calculate(page, LastPageSize));
@@ -229,7 +234,7 @@ namespace Chiptune
         uint32_t Table[256];
       };
     private:
-      Binary::DataBuilder Builder;
+      Binary::DataBuilder Storage;
       uint32_t StreamId = 0x2054585a;
       uint32_t PagesDone = 0;
       std::size_t LastPageOffset = 0;
@@ -399,6 +404,11 @@ namespace Chiptune
     class SimpleDumpBuilder : public DumpBuilder
     {
     public:
+      explicit SimpleDumpBuilder(std::size_t sizeHint)
+        : Storage(sizeHint)
+      {
+      }
+
       MetaBuilder& GetMetaBuilder() override
       {
         return GetStubMetaBuilder();
@@ -464,9 +474,9 @@ namespace Chiptune
       uint64_t TotalFrames = 0;
     };
 
-    DumpBuilder::Ptr CreateDumpBuilder()
+    DumpBuilder::Ptr CreateDumpBuilder(std::size_t sizeHint)
     {
-      return MakePtr<SimpleDumpBuilder>();
+      return MakePtr<SimpleDumpBuilder>(sizeHint);
     }
 
     const std::string FORMAT =
