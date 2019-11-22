@@ -153,7 +153,7 @@ namespace Archived
     {
     public:
       explicit LookupStream(Binary::Data::Ptr data)
-        : Stream(data)
+        : Stream(std::move(data))
       {
         LookToRead_CreateVTable(this, false);
         realStream = &Stream;
@@ -169,7 +169,7 @@ namespace Archived
       typedef std::shared_ptr<const Archive> Ptr;
 
       explicit Archive(Binary::Data::Ptr data)
-        : Stream(data)
+        : Stream(std::move(data))
       {
         SzArEx_Init(&Db);
         CheckError(SzArEx_Open(&Db, &Stream.s, LzmaContext::Allocator(), LzmaContext::Allocator()));
@@ -278,14 +278,13 @@ namespace Archived
     class Container : public Archived::Container
     {
     public:
-      template<class It>
-      Container(Binary::Container::Ptr data, It begin, It end)
+      Container(Binary::Container::Ptr data, std::vector<File::Ptr> files)
         : Delegate(std::move(data))
+        , Files(std::move(files))
       {
-        for (It it = begin; it != end; ++it)
+        for (const auto& file : Files)
         {
-          const File::Ptr file = *it;
-          Files.insert(FilesMap::value_type(file->GetName(), file));
+          Lookup.insert(FilesMap::value_type(file->GetName(), file));
         }
       }
 
@@ -310,14 +309,14 @@ namespace Archived
       {
         for (const auto& file : Files)
         {
-          walker.OnFile(*file.second);
+          walker.OnFile(*file);
         }
       }
 
       File::Ptr FindFile(const String& name) const override
       {
-        const FilesMap::const_iterator it = Files.find(name);
-        return it != Files.end()
+        const auto it = Lookup.find(name);
+        return it != Lookup.end()
           ? it->second
           : File::Ptr();
       }
@@ -328,8 +327,9 @@ namespace Archived
       }
     private:
       const Binary::Container::Ptr Delegate;
+      std::vector<File::Ptr> Files;
       typedef std::map<String, File::Ptr> FilesMap;
-      FilesMap Files;
+      FilesMap Lookup;
     };
   }//namespace SevenZip
 
@@ -359,20 +359,21 @@ namespace Archived
       }
       const SevenZip::Header& hdr = *static_cast<const SevenZip::Header*>(data.Start());
       const std::size_t totalSize = sizeof(hdr) + fromLE(hdr.NextHeaderOffset) + fromLE(hdr.NextHeaderSize);
-      const Binary::Container::Ptr archiveData = data.GetSubcontainer(0, totalSize);
+      auto archiveData = data.GetSubcontainer(0, totalSize);
 
-      std::list<File::Ptr> files;
       const SevenZip::Archive::Ptr archive = MakePtr<SevenZip::Archive>(archiveData);
-      for (uint_t idx = 0, lim = archive->GetFilesCount(); idx < lim; ++idx)
+      const auto totalFiles = archive->GetFilesCount();
+      std::vector<File::Ptr> files;
+      files.reserve(totalFiles);
+      for (uint_t idx = 0; idx < totalFiles; ++idx)
       {
         if (archive->IsDir(idx) || 0 == archive->GetFileSize(idx))
         {
           continue;
         }
-        const File::Ptr file = MakePtr<SevenZip::File>(archive, idx);
-        files.push_back(file);
+        files.emplace_back(MakePtr<SevenZip::File>(archive, idx));
       }
-      return MakePtr<SevenZip::Container>(archiveData, files.begin(), files.end());
+      return MakePtr<SevenZip::Container>(std::move(archiveData), std::move(files));
     }
   private:
     const Binary::Format::Ptr Format;
