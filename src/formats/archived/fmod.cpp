@@ -162,7 +162,7 @@ namespace Archived
           
           static std::size_t DecodeDataOffset(uint64_t raw)
           {
-            return 16 * ((raw >> 6) & 0x0fffffff);
+            return 32 * ((raw >> 7) & 0x1ff);
           }
           
           static uint_t DecodeSamplesCount(uint64_t raw)
