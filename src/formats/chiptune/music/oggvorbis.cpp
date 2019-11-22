@@ -39,6 +39,7 @@ namespace Chiptune
     const uint8_t VERSION = 0;
     const uint64_t UNFINISHED_PAGE_POSITION = ~0ull;
     const uint_t MAX_SEGMENT_SIZE = 255;
+    const uint_t MAX_PAGE_SIZE = 32768;
 
     //https://xiph.org/ogg/doc/framing.html
     class Format
@@ -76,6 +77,7 @@ namespace Chiptune
           Require(VERSION == Stream.ReadByte());
           /*const auto flags = */Stream.ReadByte();
           const auto nextPosition = Stream.ReadLE<uint64_t>();
+          const auto hasNextPosition = nextPosition != UNFINISHED_PAGE_POSITION;
           if (const auto stream = Stream.ReadLE<uint32_t>())
           {
             if (!streamId)
@@ -96,9 +98,12 @@ namespace Chiptune
           const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0));
           {
             Binary::DataInputStream payload(Stream.ReadRawData(payloadSize), payloadSize);
-            target.OnPage(offset, static_cast<uint_t>(nextPosition - position), payload);
+            target.OnPage(offset, hasNextPosition ? static_cast<uint_t>(nextPosition - position) : 0, payload);
           }
-          position = nextPosition;
+          if (hasNextPosition)
+          {
+            position = nextPosition;
+          }
         }
         return Stream.GetReadData();
       }
@@ -116,14 +121,15 @@ namespace Chiptune
 
       void AddData(uint64_t position, const uint8_t* data, std::size_t size)
       {
-        static const std::size_t MAX_PAGE_DATA = 255 * MAX_SEGMENT_SIZE;
-        while (size > MAX_PAGE_DATA)
+        bool continued = false;
+        while (size > MAX_PAGE_SIZE)
         {
-          AddPage(UNFINISHED_PAGE_POSITION, data, MAX_PAGE_DATA);
-          data += MAX_PAGE_DATA;
-          size -= MAX_PAGE_DATA;
+          AddPage(UNFINISHED_PAGE_POSITION, data, MAX_PAGE_SIZE, continued);
+          data += MAX_PAGE_SIZE;
+          size -= MAX_PAGE_SIZE;
+          continued = true;
         }
-        AddPage(position, data, size);
+        AddPage(position, data, size, continued);
       }
 
       Binary::Container::Ptr CaptureResult()
@@ -141,17 +147,13 @@ namespace Chiptune
         LAST_PAGE = 4
       };
 
-      void AddPage(uint64_t position, const uint8_t* data, std::size_t size)
+      void AddPage(uint64_t position, const uint8_t* data, std::size_t size, bool continued)
       {
-        if (!size)
-        {
-          return;
-        }
         if (PagesDone)
         {
           CalculateCrc();
         }
-        const uint8_t segmentsCount = size ? static_cast<uint8_t>(((size - 1) / MAX_SEGMENT_SIZE) + 1) : 0;
+        const uint8_t segmentsCount = static_cast<uint8_t>(size / MAX_SEGMENT_SIZE) + 1;
         LastPageOffset = Builder.Size();
         LastPageSize = 27 + segmentsCount + size;
         Builder.Allocate(LastPageSize);
@@ -159,7 +161,7 @@ namespace Chiptune
         Builder.Add(SIGNATURE, sizeof(SIGNATURE));
         Builder.Add(VERSION);
         //assume single stream, so first page is always first
-        const uint8_t flag = PagesDone == 0 ? FIRST_PAGE : (position == UNFINISHED_PAGE_POSITION ? CONTINUED_PACKET : 0);
+        const uint8_t flag = PagesDone == 0 ? FIRST_PAGE : (continued ? CONTINUED_PACKET : 0);
         Builder.Add(flag);
         Builder.Add(fromLE(position));
         Builder.Add(fromLE(StreamId));
@@ -173,11 +175,19 @@ namespace Chiptune
 
       void WriteSegments(std::size_t size, uint8_t* data)
       {
-        while (size != 0)
+        for (;;)
         {
           const auto part = std::min<uint_t>(MAX_SEGMENT_SIZE, size);
           *data++ = static_cast<uint8_t>(part);
           size -= part;
+          if (!size)
+          {
+            if (part == MAX_SEGMENT_SIZE)
+            {
+              *data++ = 0;
+            }
+            break;
+          }
         }
       }
 
