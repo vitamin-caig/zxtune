@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- sound -->
+  <string name="pref_sound_title">音</string>
+  
+  <!-- common -->
+  <string name="pref_zxtune_sound_mixer_x_0_x_title">チャネル A</string>
+  <string name="pref_zxtune_sound_mixer_x_1_x_title">チャネル B</string>
+  <string name="pref_zxtune_sound_mixer_x_2_x_title">チャネル C</string>
+  <string name="pref_zxtune_sound_mixer_x_3_x_title">チャネル D</string>
+  <string name="pref_zxtune_sound_mixer_x_x_0_title">左</string>
+  <string name="pref_zxtune_sound_mixer_x_x_1_title">右</string>
+  <string name="pref_zxtune_sound_mixer_3_x_x_title">3チャンネルミキサー</string>
+  <string name="pref_zxtune_sound_mixer_4_x_x_title">4チャンネルミキサー</string>
+</resources>

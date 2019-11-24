@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ringtone_create_title">着信音として設定</string>
+    <string name="ringtone_create_started">着信音が生成されている…</string>
+    <string name="ringtone_changed">新しい着信音が設定されます！</string>
+    <string name="ringtone_creating_failed">着信音を作成できません: %s</string>
+</resources>
