@@ -5,6 +5,11 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4770 from 25.11.2019
+
+[+] Supported vorbis streams in Fmod Sound Bank containers
+[+] zxtune-android: added Nintendo Switch archive to joshw.info catalogue
+
 --- Rev4760 from 14.11.2019
 
 [+] Added support of Farbrausch V2 Synthesizer System (V2M)
