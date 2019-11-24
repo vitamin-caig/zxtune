@@ -2,16 +2,15 @@ package app.zxtune.playback;
 
 import android.net.Uri;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.os.OperationCanceledException;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.os.OperationCanceledException;
 
 import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
-import app.zxtune.core.Properties;
 import app.zxtune.core.Scanner;
 import app.zxtune.fs.VfsFile;
 

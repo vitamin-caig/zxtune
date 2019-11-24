@@ -1,7 +1,7 @@
 package app.zxtune.core.jni;
 
-import android.support.annotation.NonNull;
-import app.zxtune.core.ModuleAttributes;
+import androidx.annotation.NonNull;
+
 import app.zxtune.core.Player;
 
 public final class JniPlayer implements Player {

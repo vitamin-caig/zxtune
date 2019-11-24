@@ -13,7 +13,7 @@ package app.zxtune.device.sound;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import app.zxtune.Log;
 import app.zxtune.sound.SamplesSource.Channels;

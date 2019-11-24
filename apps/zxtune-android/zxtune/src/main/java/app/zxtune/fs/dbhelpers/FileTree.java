@@ -11,24 +11,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
-import android.os.Parcel;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.dbhelpers.DBProvider;
-import app.zxtune.fs.dbhelpers.Grouping;
-import app.zxtune.fs.dbhelpers.Objects;
-import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
-import app.zxtune.fs.dbhelpers.Utils;
 
 /**
  * Version 1

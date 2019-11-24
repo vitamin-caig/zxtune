@@ -2,7 +2,7 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import app.zxtune.R;
 import app.zxtune.fs.aminet.Path;
 import app.zxtune.fs.aminet.RemoteCatalog;

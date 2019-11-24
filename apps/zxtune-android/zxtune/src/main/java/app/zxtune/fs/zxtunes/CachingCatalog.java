@@ -6,7 +6,7 @@
 
 package app.zxtune.fs.zxtunes;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.cache.CacheDir;

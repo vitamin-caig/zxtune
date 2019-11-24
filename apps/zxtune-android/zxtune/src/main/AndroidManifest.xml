@@ -191,13 +191,13 @@
       <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_metadata"/>
     </receiver>
     <!-- support library -->
-    <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
+    <receiver android:name="androidx.media.session.MediaButtonReceiver">
       <intent-filter>
         <action android:name="android.intent.action.MEDIA_BUTTON"/>
       </intent-filter>
     </receiver>
     <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="app.zxtune.files"
             android:exported="false"
             android:grantUriPermissions="true">

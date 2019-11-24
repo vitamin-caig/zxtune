@@ -2,7 +2,7 @@ package app.zxtune.playback;
 
 import android.content.res.Resources;
 import android.net.Uri;
-import android.support.annotation.RawRes;
+import androidx.annotation.RawRes;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import app.zxtune.fs.Vfs;

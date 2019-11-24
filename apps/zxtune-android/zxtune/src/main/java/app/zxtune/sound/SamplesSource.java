@@ -10,7 +10,7 @@
 
 package app.zxtune.sound;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.TimeStamp;
 
 public interface SamplesSource {

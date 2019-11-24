@@ -9,7 +9,7 @@ package app.zxtune.fs;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.SparseIntArray;
 
 import java.io.IOException;

@@ -10,10 +10,10 @@
 
 package app.zxtune.ui.browser;
 
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.Loader;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;

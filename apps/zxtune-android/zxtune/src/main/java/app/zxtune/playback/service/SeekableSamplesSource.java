@@ -1,6 +1,6 @@
 package app.zxtune.playback.service;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Player;
 import app.zxtune.core.Properties;

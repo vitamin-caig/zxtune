@@ -1,6 +1,6 @@
 package app.zxtune.core;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Properties accessor interface

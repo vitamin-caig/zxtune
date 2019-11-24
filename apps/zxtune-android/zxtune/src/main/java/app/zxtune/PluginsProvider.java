@@ -16,7 +16,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.core.jni.Plugins;
 
 public final class PluginsProvider extends ContentProvider {

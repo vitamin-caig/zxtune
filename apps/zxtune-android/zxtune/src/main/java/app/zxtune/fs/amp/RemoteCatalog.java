@@ -7,7 +7,7 @@
 package app.zxtune.fs.amp;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.Html;
 import app.zxtune.Log;
 import app.zxtune.fs.api.Cdn;

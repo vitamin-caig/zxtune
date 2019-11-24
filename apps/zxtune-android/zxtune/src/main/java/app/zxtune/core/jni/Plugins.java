@@ -1,6 +1,6 @@
 package app.zxtune.core.jni;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public final class Plugins {
 

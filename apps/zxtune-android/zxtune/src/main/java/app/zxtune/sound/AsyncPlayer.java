@@ -9,7 +9,7 @@ package app.zxtune.sound;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 

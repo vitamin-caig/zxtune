@@ -7,7 +7,7 @@
 package app.zxtune.fs.zxart;
 
 import android.net.Uri;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import java.util.List;
 

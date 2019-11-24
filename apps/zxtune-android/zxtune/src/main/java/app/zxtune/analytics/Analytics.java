@@ -2,7 +2,7 @@ package app.zxtune.analytics;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 
 import java.lang.annotation.Retention;
 import java.util.Locale;

@@ -11,13 +11,13 @@
 package app.zxtune.ui.browser;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import java.util.Comparator;
 
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.os.CancellationSignal;
-import android.support.v4.os.OperationCanceledException;
+import androidx.loader.content.AsyncTaskLoader;
+import androidx.core.os.CancellationSignal;
+import androidx.core.os.OperationCanceledException;
 import app.zxtune.Log;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;

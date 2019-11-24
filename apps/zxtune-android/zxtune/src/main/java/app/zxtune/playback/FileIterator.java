@@ -8,7 +8,7 @@ package app.zxtune.playback;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.core.Identifier;

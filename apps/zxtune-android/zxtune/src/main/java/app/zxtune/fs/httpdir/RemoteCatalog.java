@@ -1,7 +1,7 @@
 package app.zxtune.fs.httpdir;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import app.zxtune.fs.http.HttpObject;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.MultisourceHttpProvider;

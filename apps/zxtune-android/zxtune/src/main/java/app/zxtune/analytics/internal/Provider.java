@@ -11,12 +11,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.LocaleList;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.DisplayMetrics;
 
 import java.io.IOException;
-import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import app.zxtune.Log;

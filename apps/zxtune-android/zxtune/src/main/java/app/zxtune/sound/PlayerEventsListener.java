@@ -6,7 +6,7 @@
 
 package app.zxtune.sound;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * All calls are synchronous and may be performed from background thread
