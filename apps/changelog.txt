@@ -9,6 +9,7 @@ Annotation:
 
 [+] Supported vorbis streams in Fmod Sound Bank containers
 [+] zxtune-android: added Nintendo Switch archive to joshw.info catalogue
+[+] zxtune-android: initial japanese translation
 
 --- Rev4760 from 14.11.2019
 
