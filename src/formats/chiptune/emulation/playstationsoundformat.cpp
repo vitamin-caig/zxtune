@@ -83,7 +83,7 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& data)
+      explicit Format(const Binary::DataView& data)
         : Stream(data)
       {
       }
@@ -122,7 +122,7 @@ namespace Chiptune
         if (size)
         {
           Stream.Seek(HEADER_SIZE);
-          target.SetTextSection(startAddress, *Stream.ReadRestData());
+          target.SetTextSection(startAddress, Stream.ReadRestData());
         }
         else
         {
@@ -166,10 +166,10 @@ namespace Chiptune
         Dbg("Marker: %s", marker);
       }
     private:
-      Binary::InputStream Stream;
+      Binary::DataInputStream Stream;
     };
 
-    void ParsePSXExe(const Binary::Container& data, Builder& target)
+    void ParsePSXExe(Binary::DataView data, Builder& target)
     {
       Format(data).Parse(target);
     }

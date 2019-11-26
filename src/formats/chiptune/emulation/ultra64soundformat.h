@@ -11,6 +11,7 @@
 #pragma once
 
 //library includes
+#include <binary/data_view.h>
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -30,7 +31,7 @@ namespace Formats
         virtual void SetSaveState(uint32_t offset, Binary::DataView content) = 0;
       };
 
-      void ParseSection(const Binary::Container& data, Builder& target);
+      void ParseSection(Binary::DataView data, Builder& target);
     }
 
     Decoder::Ptr CreateUSFDecoder();

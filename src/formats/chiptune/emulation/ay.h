@@ -13,6 +13,7 @@
 //common includes
 #include <types.h>
 //library includes
+#include <binary/data_view.h>
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -35,7 +36,7 @@ namespace Formats
         virtual void AddBlock(uint16_t addr, const void* data, std::size_t size) = 0;
       };
 
-      uint_t GetModulesCount(const Binary::Container& data);
+      uint_t GetModulesCount(Binary::DataView data);
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, std::size_t idx, Builder& target);
       Builder& GetStubBuilder();
 

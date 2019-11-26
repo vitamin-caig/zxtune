@@ -64,7 +64,7 @@ namespace Module
       PsxExe& Exe;
     };
     
-    void PsxExe::Parse(const Binary::Container& data, PsxExe& exe)
+    void PsxExe::Parse(Binary::DataView data, PsxExe& exe)
     {
       ExeParser parser(exe);
       Formats::Chiptune::PlaystationSoundFormat::ParsePSXExe(data, parser);

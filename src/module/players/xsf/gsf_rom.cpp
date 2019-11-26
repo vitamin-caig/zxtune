@@ -44,7 +44,7 @@ namespace Module
       GbaRom& Rom;
     };
     
-    void GbaRom::Parse(const Binary::Container& data, GbaRom& rom)
+    void GbaRom::Parse(Binary::DataView data, GbaRom& rom)
     {
       RomParser parser(rom);
       Formats::Chiptune::GameBoyAdvanceSoundFormat::ParseRom(data, parser);

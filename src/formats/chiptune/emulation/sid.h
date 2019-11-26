@@ -21,7 +21,7 @@ namespace Formats
   {
     namespace SID
     {
-      uint_t GetModulesCount(const Binary::Container& data);
+      uint_t GetModulesCount(Binary::DataView data);
 
       /*
        * Since md5 digest of sid modules depends on tracks count, it's impossible to fix it

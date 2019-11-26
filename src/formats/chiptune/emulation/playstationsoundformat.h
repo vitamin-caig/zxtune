@@ -11,6 +11,7 @@
 #pragma once
 
 //library includes
+#include <binary/data_view.h>
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -32,7 +33,7 @@ namespace Formats
         virtual void SetTextSection(uint32_t address, Binary::DataView content) = 0;
       };
 
-      void ParsePSXExe(const Binary::Container& data, Builder& target);
+      void ParsePSXExe(Binary::DataView data, Builder& target);
     }
 
     Decoder::Ptr CreatePSFDecoder();
