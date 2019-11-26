@@ -26,7 +26,7 @@ namespace Formats
       public:
         virtual ~Builder() = default;
         
-        virtual void SetChunk(uint32_t offset, const Binary::Data& content) = 0;
+        virtual void SetChunk(uint32_t offset, Binary::DataView content) = 0;
       };
 
       void ParseRom(const Binary::Container& data, Builder& target);

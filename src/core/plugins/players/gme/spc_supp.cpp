@@ -49,7 +49,7 @@ namespace SPC
   public:
     typedef std::shared_ptr<SPC> Ptr;
     
-    explicit SPC(const Binary::Data& data)
+    explicit SPC(Binary::DataView data)
       : Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
     {
       CheckError(Spc.init());

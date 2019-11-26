@@ -185,7 +185,7 @@ namespace FSB
         Samples[CurSample].Name = std::move(name);
       }
       
-      void AddMetaChunk(uint_t type, const Binary::Data& chunk) override
+      void AddMetaChunk(uint_t type, Binary::DataView chunk) override
       {
         if (type != Fmod::ChunkType::VORBISDATA)
         {

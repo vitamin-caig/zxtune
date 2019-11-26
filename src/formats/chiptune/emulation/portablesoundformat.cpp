@@ -113,7 +113,7 @@ namespace PortableSoundFormat
       }
     }
     
-    static void CheckCrc(const Binary::Data& blob, uint32_t crc)
+    static void CheckCrc(Binary::DataView blob, uint32_t crc)
     {
       Require(crc == Crc32(static_cast<const uint8_t*>(blob.Start()), blob.Size()));
     }

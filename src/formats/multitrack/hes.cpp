@@ -73,7 +73,7 @@ namespace Multitrack
     
     const uint_t TOTAL_TRACKS_COUNT = 32;
      
-    const RawHeader* GetHeader(const Binary::Data& rawData)
+    const RawHeader* GetHeader(Binary::DataView rawData)
     {
       if (rawData.Size() < MIN_SIZE)
       {

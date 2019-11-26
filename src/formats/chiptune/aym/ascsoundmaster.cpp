@@ -318,12 +318,12 @@ namespace Chiptune
       const char* const Format;
       const CreateHeaderFunc CreateHeader;
       
-      bool CheckSize(const Binary::Data& rawData) const
+      bool CheckSize(Binary::DataView rawData) const
       {
         return rawData.Size() >= MinSize;
       }
       
-      Binary::TypedContainer CreateContainer(const Binary::Data& rawData) const
+      Binary::TypedContainer CreateContainer(Binary::DataView rawData) const
       {
         return Binary::TypedContainer(rawData, std::min(rawData.Size(), MaxSize));
       }
@@ -1208,11 +1208,12 @@ namespace Chiptune
     
     bool Check(const VersionTraits& version, const Binary::Container& rawData)
     {
-      if (!version.CheckSize(rawData))
+      const Binary::DataView dataView(rawData);
+      if (!version.CheckSize(dataView))
       {
         return false;
       }
-      const Binary::TypedContainer& data = version.CreateContainer(rawData);
+      const Binary::TypedContainer& data = version.CreateContainer(dataView);
       return Check(version, data);
     }
     

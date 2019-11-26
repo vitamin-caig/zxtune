@@ -226,7 +226,7 @@ namespace TwoSF
     class ChunkBuilder : public Formats::Chiptune::NintendoDSSoundFormat::Builder
     {
     public:
-      void SetChunk(uint32_t offset, const Binary::Data& content) override
+      void SetChunk(uint32_t offset, Binary::DataView content) override
       {
         Result.Update(offset, content.Start(), content.Size());
       }

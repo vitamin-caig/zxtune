@@ -28,7 +28,7 @@ namespace Formats
        * (at least without length database renewal). This container plugin can be applied only once while search
        * and only for multitrack modules.
        */
-      Binary::Container::Ptr FixStartSong(const Binary::Data& data, uint_t idx);
+      Binary::Container::Ptr FixStartSong(Binary::DataView data, uint_t idx);
     }
 
     Decoder::Ptr CreateSIDDecoder();

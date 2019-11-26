@@ -74,7 +74,7 @@ namespace Multitrack
      
     const std::size_t MIN_SIZE = 256;
 
-    const RawHeader* GetHeader(const Binary::Data& rawData)
+    const RawHeader* GetHeader(Binary::DataView rawData)
     {
       if (rawData.Size() < MIN_SIZE)
       {

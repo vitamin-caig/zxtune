@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <binary/data.h>
+#include <binary/data_view.h>
 //common includes
 #include <types.h>
 #include <pointers.h>
@@ -24,7 +24,7 @@ namespace Binary
   class TypedContainer
   {
   public:
-    TypedContainer(const Data& delegate, std::size_t size = ~std::size_t(0))
+    TypedContainer(DataView delegate, std::size_t size = ~std::size_t(0))
       : Start(static_cast<const uint8_t*>(delegate.Start()))
       , Size(std::min(delegate.Size(), size))
     {

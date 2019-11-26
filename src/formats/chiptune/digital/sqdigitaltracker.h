@@ -34,7 +34,7 @@ namespace Formats
         //common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
-        virtual void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample) = 0;
+        virtual void SetSample(uint_t index, std::size_t loop, Binary::DataView sample) = 0;
         //patterns
         virtual void SetPositions(Positions positions) = 0;
 

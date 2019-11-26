@@ -183,7 +183,7 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*sample*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::DataView /*sample*/) override {}
       std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t /*index*/, uint_t /*period*/) override
       {
         return std::unique_ptr<ChannelBuilder>(new StubChannelBuilder());
@@ -219,7 +219,7 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, std::size_t loop, const Binary::Data& data) override
+      void SetSample(uint_t index, std::size_t loop, Binary::DataView data) override
       {
         return Delegate.SetSample(index, loop, data);
       }

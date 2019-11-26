@@ -502,7 +502,7 @@ namespace Chiptune
         target.SetArtist(tag.Artist);
       }
       
-      static void ParseSubchunks(const Binary::Data& data, Builder& target)
+      static void ParseSubchunks(Binary::DataView data, Builder& target)
       {
         try
         {

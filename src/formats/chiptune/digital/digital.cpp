@@ -27,7 +27,7 @@ namespace Chiptune
 
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSamplesFrequency(uint_t /*freq*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*content*/, bool /*is4Bit*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::DataView /*content*/, bool /*is4Bit*/) override {}
       void SetPositions(Positions /*positions*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override

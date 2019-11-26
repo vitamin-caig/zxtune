@@ -43,7 +43,7 @@ namespace AHX
     STEREO = 4
   };
   
-  HvlPtr LoadModule(const Binary::Data& data)
+  HvlPtr LoadModule(Binary::DataView data)
   {
     static bool initialized = false;
     if (!initialized)
@@ -59,7 +59,7 @@ namespace AHX
   class TrackInformation : public Module::TrackInformation
   {
   public:
-    explicit TrackInformation(const Binary::Data& data)
+    explicit TrackInformation(Binary::DataView data)
       : Hvl(LoadModule(data))
       , CachedFramesCount()
       , CachedLoopFrame()
@@ -208,7 +208,7 @@ namespace AHX
   public:
     typedef std::shared_ptr<HVL> Ptr;
     
-    explicit HVL(const Binary::Data& data)
+    explicit HVL(Binary::DataView data)
       : Hvl(LoadModule(data))
       , SamplesPerFrame()
     {

@@ -391,8 +391,8 @@ namespace Chiptune
 
       void SetStreamId(uint32_t /*streamId*/) override {}
       void SetProperties(uint_t /*channels*/, uint_t /*frequency*/, uint_t /*blockSizeLo*/, uint_t /*blockSizeHi*/) override {}
-      void SetSetup(const Binary::Data& /*data*/) override {}
-      void AddFrame(std::size_t /*offset*/, uint_t /*samplesCount*/, const Binary::Data& /*data*/) override {}
+      void SetSetup(Binary::DataView /*data*/) override {}
+      void AddFrame(std::size_t /*offset*/, uint_t /*samplesCount*/, Binary::DataView /*data*/) override {}
     };
     
     Builder& GetStubBuilder()
@@ -426,12 +426,12 @@ namespace Chiptune
         WriteComment();
       }
       
-      void SetSetup(const Binary::Data& data) override
+      void SetSetup(Binary::DataView data) override
       {
         Storage.AddData(0, static_cast<const uint8_t*>(data.Start()), data.Size());
       }
 
-      void AddFrame(std::size_t /*offset*/, uint_t framesCount, const Binary::Data& data) override
+      void AddFrame(std::size_t /*offset*/, uint_t framesCount, Binary::DataView data) override
       {
         TotalFrames += framesCount;
         Storage.AddData(TotalFrames, static_cast<const uint8_t*>(data.Start()), data.Size());

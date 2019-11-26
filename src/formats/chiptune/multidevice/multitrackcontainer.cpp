@@ -100,7 +100,7 @@ namespace IFF
   };
   
   //Store in plain string, possibly UTF-8
-  String GetString(const Binary::Data& data)
+  String GetString(Binary::DataView data)
   {
     const StringView str(static_cast<const char*>(data.Start()), data.Size());
     return Strings::ToAutoUtf8(str);

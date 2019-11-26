@@ -52,7 +52,7 @@ namespace Module
         }
       }
       
-      void SetTextSection(uint32_t address, const Binary::Data& content) override
+      void SetTextSection(uint32_t address, Binary::DataView content) override
       {
         const auto addr = address & 0x1fffff;
         const auto size = content.Size();

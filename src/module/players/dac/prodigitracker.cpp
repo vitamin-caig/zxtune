@@ -67,7 +67,7 @@ namespace ProDigiTracker
       Data->InitialTempo = tempo;
     }
 
-    void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample) override
+    void SetSample(uint_t index, std::size_t loop, Binary::DataView sample) override
     {
       Data->Samples.Add(index, Devices::DAC::CreateU8Sample(sample, loop));
     }

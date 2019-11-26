@@ -26,8 +26,8 @@ namespace Formats
       public:
         virtual ~Builder() = default;
         
-        virtual void SetRom(uint32_t offset, const Binary::Data& content) = 0;
-        virtual void SetSaveState(uint32_t offset, const Binary::Data& content) = 0;
+        virtual void SetRom(uint32_t offset, Binary::DataView content) = 0;
+        virtual void SetSaveState(uint32_t offset, Binary::DataView content) = 0;
       };
 
       void ParseSection(const Binary::Container& data, Builder& target);

@@ -123,7 +123,7 @@ namespace Image
     class DataDecoder
     {
     public:
-      explicit DataDecoder(const Binary::Data& data)
+      explicit DataDecoder(Binary::DataView data)
         : Stream(static_cast<const uint8_t*>(data.Start()), data.Size(), DEPACKER_SIZE)
       {
         IsValid = DecodeData();
