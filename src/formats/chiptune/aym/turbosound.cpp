@@ -66,7 +66,7 @@ namespace Chiptune
     class ModuleTraits
     {
     public:
-      ModuleTraits(const Binary::Data& data, std::size_t footerOffset)
+      ModuleTraits(Binary::DataView data, std::size_t footerOffset)
         : FooterOffset(footerOffset)
         , Foot(footerOffset != data.Size() ? safe_ptr_cast<const Footer*>(static_cast<const uint8_t*>(data.Start()) + footerOffset) : nullptr)
         , FirstSize(Foot ? fromLE(Foot->Size1) : 0)
@@ -127,19 +127,19 @@ namespace Chiptune
       {
       }
 
-      bool Match(const Binary::Data& data) const override
+      bool Match(Binary::DataView data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.Matched();
       }
 
-      std::size_t NextMatchOffset(const Binary::Data& data) const override
+      std::size_t NextMatchOffset(Binary::DataView data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.NextOffset();
       }
 
-      ModuleTraits GetTraits(const Binary::Data& data) const
+      ModuleTraits GetTraits(Binary::DataView data) const
       {
         return ModuleTraits(data, Delegate->NextMatchOffset(data));
       }

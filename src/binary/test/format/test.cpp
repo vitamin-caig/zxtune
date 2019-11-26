@@ -9,7 +9,6 @@
 **/
 
 #include <types.h>
-#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
 #include <binary/format/grammar.h>
 #include <binary/format/syntax.h>
@@ -195,7 +194,7 @@ namespace
     try
     {
       const Binary::Format::Ptr format = Binary::CreateFormat(notation);
-      const Binary::DataAdapter sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
+      const Binary::DataView sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
@@ -209,7 +208,7 @@ namespace
     try
     {
       const Binary::Format::Ptr format = Binary::CreateMatchOnlyFormat(notation);
-      const Binary::DataAdapter sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
+      const Binary::DataView sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
@@ -225,7 +224,7 @@ namespace
       const Binary::Format::Ptr hdr = Binary::CreateFormat(header, minSize);
       const Binary::Format::Ptr foot = Binary::CreateFormat(footer);
       const Binary::Format::Ptr format = Binary::CreateCompositeFormat(hdr, foot, minSize, maxSize);
-      const Binary::DataAdapter sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
+      const Binary::DataView sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
