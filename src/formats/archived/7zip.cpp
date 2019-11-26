@@ -13,6 +13,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
@@ -275,11 +276,11 @@ namespace Archived
       const std::size_t Size;
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       Container(Binary::Container::Ptr data, std::vector<File::Ptr> files)
-        : Delegate(std::move(data))
+        : BaseContainer(std::move(data))
         , Files(std::move(files))
       {
         for (const auto& file : Files)
@@ -288,23 +289,6 @@ namespace Archived
         }
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         for (const auto& file : Files)
@@ -326,7 +310,6 @@ namespace Archived
         return static_cast<uint_t>(Files.size());
       }
     private:
-      const Binary::Container::Ptr Delegate;
       std::vector<File::Ptr> Files;
       typedef std::map<String, File::Ptr> FilesMap;
       FilesMap Lookup;

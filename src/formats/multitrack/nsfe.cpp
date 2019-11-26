@@ -15,6 +15,7 @@
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -83,33 +84,16 @@ namespace Multitrack
      
     const std::size_t MIN_SIZE = 256;
 
-    class Container : public Formats::Multitrack::Container
+    class Container : public Binary::BaseContainer<Multitrack::Container>
     {
     public:
       Container(const InfoChunkFull* info, uint32_t fixedCrc, Binary::Container::Ptr data)
-        : Info(info)
+        : BaseContainer(std::move(data))
+        , Info(info)
         , FixedCrc(fixedCrc)
-        , Delegate(std::move(data))
       {
       }
       
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-      
-      //Formats::Multitrack::Container
       uint_t FixedChecksum() const override
       {
         return FixedCrc;
@@ -139,7 +123,6 @@ namespace Multitrack
     private:
       const InfoChunkFull* const Info;
       const uint32_t FixedCrc;
-      const Binary::Container::Ptr Delegate;
     };
 
     class Decoder : public Formats::Multitrack::Decoder

@@ -11,6 +11,7 @@
 //common includes
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -342,31 +343,15 @@ namespace Archived
       mutable File::Ptr Current;
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       Container(Binary::Container::Ptr data, uint_t filesCount)
-        : Decoder(MakePtr<ChainDecoder>(data))
-        , Delegate(data)
+        : BaseContainer(std::move(data))
+        , Decoder(MakePtr<ChainDecoder>(Delegate))
         , FilesCount(filesCount)
       {
         Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());
-      }
-
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
@@ -401,7 +386,6 @@ namespace Archived
       }
     private:
       const ChainDecoder::Ptr Decoder;
-      const Binary::Container::Ptr Delegate;
       const uint_t FilesCount;
     };
 

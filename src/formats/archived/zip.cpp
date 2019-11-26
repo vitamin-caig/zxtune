@@ -11,6 +11,7 @@
 //common includes
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/archived.h>
@@ -240,34 +241,17 @@ namespace Archived
       BlocksIterator Blocks;
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       Container(Packed::Decoder::Ptr decoder, Binary::Container::Ptr data, uint_t filesCount)
-        : Decoder(std::move(decoder))
-        , Delegate(std::move(data))
+        : BaseContainer(std::move(data))
+        , Decoder(std::move(decoder))
         , FilesCount(filesCount)
       {
         Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         FillCache();
@@ -342,7 +326,6 @@ namespace Archived
       }
     private:
       const Formats::Packed::Decoder::Ptr Decoder;
-      const Binary::Container::Ptr Delegate;
       const uint_t FilesCount;
       mutable std::unique_ptr<FileIterator> Iter;
       typedef std::map<String, File::Ptr> FilesMap;

@@ -13,6 +13,7 @@
 //common includes
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <strings/prefixed_index.h>
 //std includes
 #include <utility>
@@ -53,31 +54,14 @@ namespace Archived
       const Binary::Container::Ptr Data;
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container, Multitrack::Container>
     {
     public:
-      explicit Container(Formats::Multitrack::Container::Ptr data)
-        : Delegate(std::move(data))
+      explicit Container(Multitrack::Container::Ptr data)
+        : BaseContainer(std::move(data))
       {
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
@@ -111,8 +95,6 @@ namespace Archived
       {
         return Delegate->TracksCount();
       }
-    private:
-      const Formats::Multitrack::Container::Ptr Delegate;
     };
 
     class Decoder : public Archived::Decoder

@@ -16,6 +16,7 @@
 #include <pointers.h>
 //library includes
 #include <binary/data_builder.h>
+#include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/multitrack.h>
@@ -169,33 +170,16 @@ namespace Multitrack
       std::map<uint_t, Dump> Blocks;
     };
     
-    class Container : public Formats::Multitrack::Container
+    class Container : public Binary::BaseContainer<Multitrack::Container>
     {
     public:
       Container(DataBuilder::Ptr content, Binary::Container::Ptr delegate, uint_t startTrack)
-        : Content(std::move(content))
-        , Delegate(std::move(delegate))
+        : BaseContainer(std::move(delegate))
+        , Content(std::move(content))
         , StartTrack(startTrack)
       {
       }
       
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-      
-      //Formats::Multitrack::Container
       uint_t FixedChecksum() const override
       {
         return Content->GetFixedCrc(StartTrack);
@@ -217,7 +201,6 @@ namespace Multitrack
       }
     private:
       const DataBuilder::Ptr Content;
-      const Binary::Container::Ptr Delegate;
       const uint_t StartTrack;
     };
 

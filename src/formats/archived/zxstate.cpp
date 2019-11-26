@@ -15,6 +15,7 @@
 #include <error.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -661,32 +662,15 @@ namespace Archived
       };
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       Container(Binary::Container::Ptr archive, NamedBlocksMap blocks)
-        : Delegate(std::move(archive))
+        : BaseContainer(std::move(archive))
         , Blocks(std::move(blocks))
       {
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         for (const auto& block : Blocks)
@@ -721,7 +705,6 @@ namespace Archived
         }
       }
     private:
-      const Binary::Container::Ptr Delegate;
       const NamedBlocksMap Blocks;
     };
   }//namespace ZXState

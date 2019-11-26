@@ -15,6 +15,7 @@
 #include <pointers.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
@@ -84,32 +85,15 @@ namespace Multitrack
     
     const uint_t MAX_TRACKS_COUNT = 256;
 
-    class Container : public Formats::Multitrack::Container
+    class Container : public Binary::BaseContainer<Multitrack::Container>
     {
     public:
       Container(const ExtraHeader* hdr, Binary::Container::Ptr data)
-        : Hdr(hdr)
-        , Delegate(std::move(data))
+        : BaseContainer(std::move(data))
+        , Hdr(hdr)
       {
       }
       
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-      
-      //Formats::Multitrack::Container
       uint_t FixedChecksum() const override
       {
         const void* const data = Delegate->Start();
@@ -140,7 +124,6 @@ namespace Multitrack
       }
     private:
       const ExtraHeader* const Hdr;
-      const Binary::Container::Ptr Delegate;
     };
      
     class Decoder : public Formats::Multitrack::Decoder
