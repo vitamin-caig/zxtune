@@ -75,18 +75,18 @@ namespace Chiptune
         const auto avail = stream.GetRestSize();
         if (avail >= size)
         {
-          if (visitor.OnChunk(id, stream.ReadData(size)))
+          if (visitor.OnChunk(id, stream.ReadContainer(size)))
           {
             continue;
           }
         }
         else if (avail != 0)
         {
-          visitor.OnTruncatedChunk(id, size, stream.ReadData(avail));
+          visitor.OnTruncatedChunk(id, size, stream.ReadContainer(avail));
         }
         break;
       }
-      return stream.GetReadData();
+      return stream.GetReadContainer();
     }
     
     class Parser : public ChunksVisitor
@@ -135,7 +135,7 @@ namespace Chiptune
       {
         Binary::InputStream stream(data);
         Require(0 == std::memcmp(stream.ReadRawData(sizeof(Headers::WAVE)), Headers::WAVE.data(), sizeof(Headers::WAVE)));
-        ParseChunks(*stream.ReadRestData(), *this);
+        ParseChunks(*stream.ReadRestContainer(), *this);
       }
       
       void ParseFormatChunk(const Binary::Container& data)

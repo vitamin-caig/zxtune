@@ -243,7 +243,7 @@ namespace Multitrack
         Require(stream.ReadField<TextSignatureType>() == TEXT_SIGNATURE);
         ParseTextPart(stream, builder);
         ParseBinaryPart(stream, builder);
-        return stream.GetReadData();
+        return stream.GetReadContainer();
       }
 
       static void ParseTextPart(Binary::InputStream& stream, Builder& builder)

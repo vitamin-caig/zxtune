@@ -174,7 +174,7 @@ namespace Binary
     {
     }
     
-    Container::Ptr ReadData(std::size_t size)
+    Container::Ptr ReadContainer(std::size_t size)
     {
       Require(Cursor + size <= Finish);
       const std::size_t offset = GetPosition();
@@ -183,7 +183,7 @@ namespace Binary
     }
 
     //! @brief Read rest data in source container
-    Container::Ptr ReadRestData()
+    Container::Ptr ReadRestContainer()
     {
       Require(Cursor < Finish);
       const std::size_t offset = GetPosition();
@@ -193,7 +193,7 @@ namespace Binary
     }
 
     //! @brief Return data that is already read
-    Container::Ptr GetReadData() const
+    Container::Ptr GetReadContainer() const
     {
       return Data.GetSubcontainer(0, GetPosition());
     }

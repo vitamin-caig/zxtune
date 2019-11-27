@@ -198,7 +198,7 @@ namespace Chiptune
         {
           const auto unpackedSize = std::min(blockSize, fileSize - offset);
           Dbg(" @%1%: %2% -> %3%", offset, size, unpackedSize);
-          auto packed = Stream.ReadData(size);
+          auto packed = Stream.ReadContainer(size);
           auto unpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packed), unpackedSize);
           result.emplace(offset, std::move(unpacked));
           offset += unpackedSize;

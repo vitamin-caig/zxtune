@@ -178,7 +178,7 @@ namespace Multitrack
               fixedCrc = Binary::Crc32(Binary::DataView(data, size), fixedCrc);
             }
           }
-          return MakePtr<Container>(info, fixedCrc, input.GetReadData());
+          return MakePtr<Container>(info, fixedCrc, input.GetReadContainer());
         }
         catch (const std::exception&)
         {

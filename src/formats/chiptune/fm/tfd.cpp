@@ -165,8 +165,7 @@ namespace Chiptune
         }
         Require(totalFrames >= MIN_FRAMES);
         const std::size_t usedSize = stream.GetPosition();
-        const auto subData = stream.GetReadData();
-        return CreateCalculatingCrcContainer(subData, fixedOffset, usedSize - fixedOffset);
+        return CreateCalculatingCrcContainer(stream.GetReadContainer(), fixedOffset, usedSize - fixedOffset);
       }
       catch (const std::exception&)
       {

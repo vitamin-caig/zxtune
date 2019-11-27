@@ -456,7 +456,7 @@ namespace Chiptune
           if (hdr.ID == XID6 && Stream.GetRestSize() >= size)
           {
             const auto chunks = Stream.ReadData(size);
-            ParseSubchunks(*chunks, target);
+            ParseSubchunks(chunks, target);
           }
           else
           {
@@ -469,7 +469,7 @@ namespace Chiptune
       
       Binary::Container::Ptr GetUsedData() const
       {
-        return Stream.GetReadData();
+        return Stream.GetReadContainer();
       }
     private:
       static void ParseID666(const RawHeader::ID666Tag& tag, Builder& target)

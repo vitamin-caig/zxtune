@@ -48,7 +48,7 @@ namespace Chiptune
         /*const auto unpackedCrc = */stream.ReadLE<uint32_t>();
         if (signature == SAVESTATE_SIGNATURE)
         {
-          auto packedData = stream.ReadData(packedSize);
+          auto packedData = stream.ReadContainer(packedSize);
           const auto unpackedPart = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packedData));
           //do not check crc32
           ParseRom(*unpackedPart, target);

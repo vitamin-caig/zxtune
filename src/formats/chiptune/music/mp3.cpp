@@ -345,7 +345,7 @@ namespace Chiptune
             }
           }
         }
-        if (const auto subData = Stream.GetReadData())
+        if (const auto subData = Stream.GetReadContainer())
         {
           return CreateCalculatingCrcContainer(subData, 0, subData->Size());
         }

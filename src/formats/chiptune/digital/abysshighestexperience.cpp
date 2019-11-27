@@ -204,9 +204,8 @@ namespace Chiptune
       
       Formats::Chiptune::Container::Ptr GetContainer() const
       {
-        const Binary::Container::Ptr rawData = Stream.GetReadData();
         const auto tracksOffset = Source.GetTracksOffset();
-        return CreateCalculatingCrcContainer(rawData, tracksOffset, Source.NamesOffset - tracksOffset);
+        return CreateCalculatingCrcContainer(Stream.GetReadContainer(), tracksOffset, Source.NamesOffset - tracksOffset);
       }
     private:
       void ParseSampleNames(MetaBuilder& meta)

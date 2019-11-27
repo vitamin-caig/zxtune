@@ -82,7 +82,7 @@ namespace PortableSoundFormat
       ParseData(target);
       const auto dataEnd = Stream.GetPosition();
       ParseTags(target);
-      return CreateCalculatingCrcContainer(Stream.GetReadData(), dataStart, dataEnd - dataStart);
+      return CreateCalculatingCrcContainer(Stream.GetReadContainer(), dataStart, dataEnd - dataStart);
     }
   private:
     void ParseSignature(Builder& target)
@@ -99,14 +99,14 @@ namespace PortableSoundFormat
       const auto reservedSize = Stream.ReadLE<uint32_t>();
       const auto compressedSize = Stream.ReadLE<uint32_t>();
       const auto compressedCrc = Stream.ReadLE<uint32_t>();
-      if (auto reserved = Stream.ReadData(reservedSize))
+      if (auto reserved = Stream.ReadContainer(reservedSize))
       {
         Dbg("Reserved section %1% bytes", reservedSize);
         target.SetReservedSection(std::move(reserved));
       }
       if (compressedSize)
       {
-        auto programPacked = Stream.ReadData(compressedSize);
+        auto programPacked = Stream.ReadContainer(compressedSize);
         Require(compressedCrc == Binary::Crc32(*programPacked));
         Dbg("Program section %1% bytes", compressedSize);
         target.SetPackedProgramSection(std::move(programPacked));

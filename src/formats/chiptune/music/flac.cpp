@@ -43,7 +43,7 @@ namespace Chiptune
         Id3::Parse(Stream, target.GetMetaBuilder());
         if (ParseSignature() && ParseMetadata(target) && ParseFrames(target))
         {
-          if (const auto subData = Stream.GetReadData())
+          if (const auto subData = Stream.GetReadContainer())
           {
             return CreateCalculatingCrcContainer(subData, 0, subData->Size());
           }
@@ -75,7 +75,7 @@ namespace Chiptune
             break;
           }
           Stream.Skip(HEADER_SIZE);
-          Binary::DataInputStream payload(*Stream.ReadData(payloadSize));
+          Binary::DataInputStream payload(Stream.ReadData(payloadSize));
           if (type == 0)
           {
             ParseStreamInfo(payload, target);

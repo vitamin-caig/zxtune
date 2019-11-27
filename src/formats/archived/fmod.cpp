@@ -48,7 +48,7 @@ namespace Archived
           }
           locations.push_back({Header.SamplesDataSize, 0});
           //possibly truncated data
-          const auto samplesData = Stream.ReadData(std::min(Header.SamplesDataSize, Stream.GetRestSize()));
+          const auto samplesData = Stream.ReadContainer(std::min(Header.SamplesDataSize, Stream.GetRestSize()));
           for (uint_t idx = 0; idx < Header.SamplesCount; ++idx)
           {
             target.StartSample(idx);
@@ -56,7 +56,7 @@ namespace Archived
             const auto nextOffset = locations[idx + 1].Offset;
             target.SetData(loc.SamplesCount, samplesData->GetSubcontainer(loc.Offset, nextOffset - loc.Offset));
           }
-          return Stream.GetReadData();
+          return Stream.GetReadContainer();
         }
       private:
         struct HeaderType

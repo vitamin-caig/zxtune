@@ -327,8 +327,7 @@ namespace Chiptune
             const uint_t loop = stream.ReadBE<uint32_t>();
             target.SetLoop(loop);
           }
-          const auto subData = stream.GetReadData();
-          return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
+          return CreateCalculatingCrcContainer(stream.GetReadContainer(), dumpOffset, matrixSize);
         }
         else if (Ver5::FastCheck(data, size)
               || Ver6::FastCheck(data, size))
@@ -368,8 +367,7 @@ namespace Chiptune
           {
             ParseMatrix(src, matrixSize, lines, columns, target);
           }
-          const auto subData = stream.GetReadData();
-          return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
+          return CreateCalculatingCrcContainer(stream.GetReadContainer(), dumpOffset, matrixSize);
         }
       }
       catch (const std::exception&)
@@ -630,7 +628,7 @@ namespace Chiptune
 
         const std::size_t packedOffset = stream.GetPosition();
         Dbg("Packed data at %1%", packedOffset);
-        const Binary::Container::Ptr packed = stream.ReadRestData();
+        const Binary::Container::Ptr packed = stream.ReadRestContainer();
         if (const Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
         {
           const std::size_t doneSize = unpacked->Size();

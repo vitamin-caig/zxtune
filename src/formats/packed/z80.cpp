@@ -295,7 +295,7 @@ namespace Packed
       if (0 == (hdr.Flag1 & hdr.COMPRESSED))
       {
         Require(restSize >= TARGET_SIZE);
-        const Binary::Container::Ptr rest = stream.ReadRestData();
+        const auto rest = stream.ReadRestContainer();
         return CreateContainer(rest->GetSubcontainer(0, TARGET_SIZE), sizeof(hdr) + TARGET_SIZE);
       }
       Require(restSize > sizeof(FOOTER));

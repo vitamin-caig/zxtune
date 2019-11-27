@@ -96,7 +96,7 @@ namespace Chiptune
           const auto segmentsSizes = Stream.ReadRawData(segmentsCount);
           const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0));
           {
-            Binary::DataInputStream payload(*Stream.ReadData(payloadSize));
+            Binary::DataInputStream payload(Stream.ReadData(payloadSize));
             target.OnPage(offset, hasNextPosition ? static_cast<uint_t>(nextPosition - position) : 0, payload);
           }
           if (hasNextPosition)
@@ -104,7 +104,7 @@ namespace Chiptune
             position = nextPosition;
           }
         }
-        return Stream.GetReadData();
+        return Stream.GetReadContainer();
       }
     private:
       Binary::InputStream Stream;
