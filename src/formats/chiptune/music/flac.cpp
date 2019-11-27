@@ -69,7 +69,7 @@ namespace Chiptune
         {
           const bool isLast = hdr[0] & 128;
           const auto type = hdr[0] & 127;
-          const auto payloadSize = fromBE24(hdr + 1);
+          const auto payloadSize = Byteorder<3>::ReadBE(hdr + 1);
           if (type == 127 || Stream.GetRestSize() < HEADER_SIZE + payloadSize)
           {
             break;
@@ -97,22 +97,23 @@ namespace Chiptune
         const auto minBlockSize = input.ReadBE<uint16_t>();
         const auto maxBlockSize = input.ReadBE<uint16_t>();
         target.SetBlockSize(minBlockSize, maxBlockSize);
-        const auto minFrameSize = fromBE24(input.ReadRawData(3));
-        const auto maxFrameSize = fromBE24(input.ReadRawData(3));
+        const auto minFrameSize = fromBE24(input.ReadData(3));
+        const auto maxFrameSize = fromBE24(input.ReadData(3));
         target.SetFrameSize(minFrameSize, maxFrameSize);
-        const auto params = input.ReadRawData(8);
+        //TODO: operate with uint64_t
+        const auto params = static_cast<const uint8_t*>(input.ReadData(8).Start());
         const auto sampleRate = (uint_t(params[0]) << 12) | (uint_t(params[1]) << 4) | (params[2] >> 4);
         Require(sampleRate != 0);
         const auto channels = 1 + ((params[2] >> 1) & 7);
         const auto bitsPerSample = 1 + (((params[2] & 1) << 4) | (params[3] >> 4));
         target.SetStreamParameters(sampleRate, channels, bitsPerSample);
-        const auto totalSamples = (uint64_t(params[3] & 15) << 32) | (uint64_t(params[4]) << 24) | fromBE24(params + 5);
+        const auto totalSamples = (uint64_t(params[3] & 15) << 32) | (uint64_t(params[4]) << 24) | Byteorder<3>::ReadBE(params + 5);
         target.SetTotalSamples(totalSamples);
       }
 
-      static inline uint_t fromBE24(const uint8_t* data)
+      static inline uint_t fromBE24(Binary::DataView data)
       {
-        return (uint_t(data[0]) << 16) | (uint_t(data[1] << 8)) | data[2];
+        return Byteorder<3>::ReadBE(static_cast<const uint8_t*>(data.Start()));
       }
 
       bool ParseFrames(Builder& target)

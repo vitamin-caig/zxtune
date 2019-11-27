@@ -72,8 +72,8 @@ namespace Archived
           static HeaderType Read(Binary::DataInputStream& stream)
           {
             static const uint8_t SIGNATURE[] = {'F', 'S', 'B', '5'};
-            const auto sign = stream.ReadRawData(sizeof(SIGNATURE));
-            Require(0 == std::memcmp(sign, SIGNATURE, sizeof(SIGNATURE)));
+            const auto sign = stream.ReadData(sizeof(SIGNATURE));
+            Require(0 == std::memcmp(sign.Start(), SIGNATURE, sizeof(SIGNATURE)));
             const auto version = stream.ReadLE<uint32_t>();
             HeaderType result;
             result.SamplesCount = stream.ReadLE<uint32_t>();

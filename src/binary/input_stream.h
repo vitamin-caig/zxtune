@@ -95,15 +95,6 @@ namespace Binary
       return result;
     }
 
-    //! @brief Read raw data
-    const uint8_t* ReadRawData(std::size_t size)
-    {
-      Require(Cursor + size <= Finish);
-      const uint8_t* const res = Cursor;
-      Cursor += size;
-      return res;
-    }
-    
     const uint8_t* PeekRawData(std::size_t size)
     {
       if (Cursor + size <= Finish)
@@ -158,6 +149,15 @@ namespace Binary
     {
       return Finish - Cursor;
     }
+  private:
+    const uint8_t* ReadRawData(std::size_t size)
+    {
+      Require(Cursor + size <= Finish);
+      const uint8_t* const res = Cursor;
+      Cursor += size;
+      return res;
+    }
+    
   protected:
     const uint8_t* const Start;
     const uint8_t* const Finish;

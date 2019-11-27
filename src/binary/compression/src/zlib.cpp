@@ -95,7 +95,7 @@ namespace Binary
         {
           const auto prevOutSize = output.Size();
 
-          SetInput(input.ReadRawData(0), input.GetRestSize());
+          SetInput(input.PeekRawData(0), input.GetRestSize());
           if (outputSizeHint != 0)
           {
             SetOutput(output.Allocate(outputSizeHint), outputSizeHint);
@@ -184,11 +184,11 @@ namespace Binary
         
         void Compress(DataInputStream& input, DataBuilder& output)
         {
-          const auto inSize = input.GetRestSize();
+          const auto inData = input.ReadRestData();
           const auto prevOutSize = output.Size();
 
-          SetInput(input.ReadRawData(inSize), inSize);
-          const auto approxOutSize = ::compressBound(static_cast<uLong>(inSize));
+          SetInput(inData.Start(), inData.Size());
+          const auto approxOutSize = ::compressBound(static_cast<uLong>(inData.Size()));
           SetOutput(output.Allocate(approxOutSize), approxOutSize);
           const auto outSize = Compress();
           output.Resize(prevOutSize + outSize);

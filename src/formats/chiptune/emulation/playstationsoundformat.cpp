@@ -100,7 +100,7 @@ namespace Chiptune
       {
         static const char IDENTIFIER[8] = {'P', 'S', '-', 'X', ' ', 'E', 'X', 'E'};
         Stream.Seek(0);
-        Require(0 == std::memcmp(Stream.ReadRawData(sizeof(IDENTIFIER)), IDENTIFIER, sizeof(IDENTIFIER)));
+        Require(0 == std::memcmp(Stream.ReadData(sizeof(IDENTIFIER)).Start(), IDENTIFIER, sizeof(IDENTIFIER)));
       }
       
       void ParseRegisters(Builder& target)

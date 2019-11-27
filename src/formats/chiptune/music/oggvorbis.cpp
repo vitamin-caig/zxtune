@@ -93,9 +93,10 @@ namespace Chiptune
           Require(nextPageNumber++ == Stream.ReadLE<uint32_t>());
           /*const auto crc = */Stream.ReadLE<uint32_t>();
           const auto segmentsCount = Stream.ReadByte();
-          const auto segmentsSizes = Stream.ReadRawData(segmentsCount);
+          const auto segmentsSizes = Stream.PeekRawData(segmentsCount);
           const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0));
           {
+            Stream.Skip(segmentsCount);
             Binary::DataInputStream payload(Stream.ReadData(payloadSize));
             target.OnPage(offset, hasNextPosition ? static_cast<uint_t>(nextPosition - position) : 0, payload);
           }

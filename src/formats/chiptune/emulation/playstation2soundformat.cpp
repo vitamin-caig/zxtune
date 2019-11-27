@@ -43,9 +43,10 @@ namespace Chiptune
       
       explicit DirectoryEntry(Binary::InputStream& stream)
       {
-        const auto nameBegin = stream.ReadRawData(36);
+        const auto nameBegin = stream.PeekRawData(36);
         const auto nameEnd = std::find(nameBegin, nameBegin + 36, 0);
         Name.assign(nameBegin, nameEnd);
+        stream.Skip(36);
         Offset = stream.ReadLE<uint32_t>();
         Size = stream.ReadLE<uint32_t>();
         BlockSize = stream.ReadLE<uint32_t>();

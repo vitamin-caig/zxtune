@@ -164,18 +164,18 @@ namespace Multitrack
               Require(size == 0);
               break;
             }
-            const auto data = input.ReadRawData(size);
+            const auto data = input.ReadData(size);
             if (hdr.Id == INFO)
             {
-              fixedCrc = Binary::Crc32(Binary::DataView(data, sizeof(InfoChunk)), fixedCrc);
+              fixedCrc = Binary::Crc32(Binary::DataView(data.Start(), sizeof(InfoChunk)), fixedCrc);
               if (size >= sizeof(InfoChunkFull))
               {
-                info = safe_ptr_cast<const InfoChunkFull*>(data);
+                info = safe_ptr_cast<const InfoChunkFull*>(data.Start());
               }
             }
             else if (hdr.Id == DATA)
             {
-              fixedCrc = Binary::Crc32(Binary::DataView(data, size), fixedCrc);
+              fixedCrc = Binary::Crc32(data, fixedCrc);
             }
           }
           return MakePtr<Container>(info, fixedCrc, input.GetReadContainer());

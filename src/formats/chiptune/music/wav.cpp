@@ -134,7 +134,7 @@ namespace Chiptune
       void ParseRiff(const Binary::Container& data)
       {
         Binary::InputStream stream(data);
-        Require(0 == std::memcmp(stream.ReadRawData(sizeof(Headers::WAVE)), Headers::WAVE.data(), sizeof(Headers::WAVE)));
+        Require(0 == std::memcmp(stream.ReadData(sizeof(Headers::WAVE)).Start(), Headers::WAVE.data(), sizeof(Headers::WAVE)));
         ParseChunks(*stream.ReadRestContainer(), *this);
       }
       

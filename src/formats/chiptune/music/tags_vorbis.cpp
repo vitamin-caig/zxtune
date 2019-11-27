@@ -28,7 +28,7 @@ namespace Chiptune
     StringView ReadString(Binary::DataInputStream& payload)
     {
       const auto size = payload.ReadLE<uint32_t>();
-      const auto utf8 = safe_ptr_cast<const char*>(payload.ReadRawData(size));
+      const auto utf8 = safe_ptr_cast<const char*>(payload.ReadData(size).Start());
       return StringView(utf8, size);
     }
 

@@ -333,7 +333,7 @@ namespace GME
       Binary::DataInputStream input(data);
       Binary::DataBuilder output(data.Size());
       const std::size_t packedSizeOffset = 424;
-      output.Add(input.ReadRawData(packedSizeOffset), packedSizeOffset);
+      output.Add(input.ReadData(packedSizeOffset));
       if (const auto packedSize = input.ReadLE<uint32_t>())
       {
         output.Add(uint32_t(0));
@@ -342,8 +342,7 @@ namespace GME
       else
       {
         output.Add(packedSize);
-        const auto rest = input.GetRestSize();
-        output.Add(input.ReadRawData(rest), rest);
+        output.Add(input.ReadRestData());
       }
       Dump result;
       output.CaptureResult(result);

@@ -263,13 +263,14 @@ namespace Chiptune
       ;
     }
 
-    void ParseTransponedMatrix(const uint8_t* data, std::size_t size, std::size_t rows, std::size_t columns, Builder& target)
+    void ParseTransponedMatrix(Binary::DataView input, std::size_t rows, std::size_t columns, Builder& target)
     {
       Require(rows != 0);
+      const auto data = static_cast<const uint8_t*>(input.Start());
       for (std::size_t row = 0; row != rows; ++row)
       {
         Dump registers(columns);
-        for (std::size_t col = 0, cursor = row; col != columns && cursor < size; ++col, cursor += rows)
+        for (std::size_t col = 0, cursor = row; col != columns && cursor < input.Size(); ++col, cursor += rows)
         {
           registers[col] = data[cursor];
         }
@@ -277,10 +278,10 @@ namespace Chiptune
       }
     }
 
-    void ParseMatrix(const uint8_t* data, std::size_t size, std::size_t rows, std::size_t columns, Builder& target)
+    void ParseMatrix(Binary::DataView input, std::size_t rows, std::size_t columns, Builder& target)
     {
       Require(rows != 0);
-      const uint8_t* cursor = data, *limit = data + size;
+      const uint8_t* cursor = static_cast<const uint8_t*>(input.Start()), *limit = cursor + input.Size();
       for (std::size_t row = 0; row != rows; ++row)
       {
         const uint8_t* const nextCursor = cursor + columns;
@@ -320,8 +321,8 @@ namespace Chiptune
           const std::size_t columns = sizeof(RegistersDump);
           const std::size_t lines = dumpSize / columns;
           const std::size_t matrixSize = lines * columns;
-          const auto src = stream.ReadRawData(matrixSize);
-          ParseTransponedMatrix(src, matrixSize, lines, columns, target);
+          const auto src = stream.ReadData(matrixSize);
+          ParseTransponedMatrix(src, lines, columns, target);
           if (Ver3b::FastCheck(data, size))
           {
             const uint_t loop = stream.ReadBE<uint32_t>();
@@ -358,14 +359,14 @@ namespace Chiptune
           {
             Dbg("available only %1% lines", availLines);
           }
-          const auto src = stream.ReadRawData(matrixSize);
+          const auto src = stream.ReadData(matrixSize);
           if (header.Interleaved())
           {
-            ParseTransponedMatrix(src, matrixSize, lines, columns, target);
+            ParseTransponedMatrix(src, lines, columns, target);
           }
           else
           {
-            ParseMatrix(src, matrixSize, lines, columns, target);
+            ParseMatrix(src, lines, columns, target);
           }
           return CreateCalculatingCrcContainer(stream.GetReadContainer(), dumpOffset, matrixSize);
         }
@@ -635,7 +636,7 @@ namespace Chiptune
           const std::size_t columns = sizeof(RegistersDump);
           Require(0 == (unpackedSize % columns));
           const std::size_t lines = doneSize / columns;
-          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), doneSize, lines, columns, target);
+          ParseTransponedMatrix(*unpacked, lines, columns, target);
           const std::size_t packedSize = unpacked->PackedSize();
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
           return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);

@@ -290,8 +290,8 @@ namespace Multitrack
           const uint_t last = stream.ReadLE<uint16_t>();
           Require(first <= last);
           const std::size_t size = last + 1 - first;
-          const auto data = stream.ReadRawData(size);
-          builder.SetBlock(first, data, size);
+          const auto data = stream.ReadData(size);
+          builder.SetBlock(first, static_cast<const uint8_t*>(data.Start()), size);
         }
       }
     private:

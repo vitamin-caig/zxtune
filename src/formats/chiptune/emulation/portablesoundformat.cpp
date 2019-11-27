@@ -87,8 +87,8 @@ namespace PortableSoundFormat
   private:
     void ParseSignature(Builder& target)
     {
-      const auto sign = Stream.ReadRawData(sizeof(SIGNATURE));
-      Require(0 == std::memcmp(sign, SIGNATURE, sizeof(SIGNATURE)));
+      const auto sign = Stream.ReadData(sizeof(SIGNATURE));
+      Require(0 == std::memcmp(sign.Start(), SIGNATURE, sizeof(SIGNATURE)));
       const uint_t version = Stream.ReadByte();
       target.SetVersion(version);
       Dbg("Version %1%", version);
@@ -214,8 +214,8 @@ namespace PortableSoundFormat
         return false;
       }
       const auto currentPosition = Stream.GetPosition();
-      const auto sign = Stream.ReadRawData(sizeof(Tags::SIGNATURE));
-      if (0 == std::memcmp(sign, Tags::SIGNATURE, sizeof(Tags::SIGNATURE)))
+      const auto sign = Stream.ReadData(sizeof(Tags::SIGNATURE));
+      if (0 == std::memcmp(sign.Start(), Tags::SIGNATURE, sizeof(Tags::SIGNATURE)))
       {
         return true;
       }

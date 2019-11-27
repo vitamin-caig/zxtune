@@ -12,6 +12,7 @@
 
 //library includes
 #include <binary/container_factories.h>
+#include <binary/data_view.h>
 //std includes
 #include <cstring>
 
@@ -46,6 +47,11 @@ namespace Binary
     void Add(const void* data, std::size_t size)
     {
       std::memcpy(Allocate(size), data, size);
+    }
+
+    void Add(DataView data)
+    {
+      std::memcpy(Allocate(data.Size()), data.Start(), data.Size());
     }
 
     void* Allocate(std::size_t size)
