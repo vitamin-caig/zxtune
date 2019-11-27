@@ -222,7 +222,7 @@ namespace Zdata
     const auto inSize = input.Size();
     const std::size_t prevOutputSize = output.Size();
     {
-      Binary::DataInputStream inputStream(input.Start(), inSize);
+      Binary::DataInputStream inputStream(input);
       Binary::Compression::Zlib::Compress(inputStream, output);
     }
     const auto packedSize = output.Size() - prevOutputSize;

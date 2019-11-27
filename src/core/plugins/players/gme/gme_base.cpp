@@ -330,7 +330,7 @@ namespace GME
   {
     Dump CreateData(Binary::DataView data)
     {
-      Binary::DataInputStream input(data.Start(), data.Size());
+      Binary::DataInputStream input(data);
       Binary::DataBuilder output(data.Size());
       const std::size_t packedSizeOffset = 424;
       output.Add(input.ReadRawData(packedSizeOffset), packedSizeOffset);

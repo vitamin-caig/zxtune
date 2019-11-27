@@ -29,13 +29,8 @@ namespace Binary
   {
   public:
     explicit DataInputStream(Binary::DataView data)
-      : DataInputStream(data.Start(), data.Size())
-    {
-    }
-
-    DataInputStream(const void* data, std::size_t size)
-      : Start(static_cast<const uint8_t*>(data))
-      , Finish(Start + size)
+      : Start(static_cast<const uint8_t*>(data.Start()))
+      , Finish(Start + data.Size())
       , Cursor(Start)
     {
     }
@@ -174,7 +169,7 @@ namespace Binary
   {
   public:
     explicit InputStream(const Container& rawData)
-      : DataInputStream(rawData.Start(), rawData.Size())
+      : DataInputStream(rawData)
       , Data(rawData)
     {
     }

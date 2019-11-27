@@ -40,8 +40,8 @@ namespace Chiptune
     class V2Format
     {
     public:
-      V2Format(const void* data, std::size_t size)
-        : Stream(data, size)
+      explicit V2Format(Binary::DataView data)
+        : Stream(data)
       {
       }
       
@@ -214,13 +214,13 @@ namespace Chiptune
     {
       const auto& header = stream.ReadField<Header>();
       const uint_t tagSize = ((header.Size[0] & 0x7f) << 21) | ((header.Size[1] & 0x7f) << 14) | ((header.Size[2] & 0x7f) << 7) | (header.Size[3] & 0x7f);
-      const auto content = stream.ReadRawData(tagSize);
+      const auto content = stream.ReadData(tagSize);
       const bool hasExtendedHeader = header.Flags & 0x40;
       try
       {
         if (header.Major >= 3 && !hasExtendedHeader)
         {
-          V2Format(content, tagSize).Parse(target);
+          V2Format(content).Parse(target);
         }
       }
       catch (const std::exception&)

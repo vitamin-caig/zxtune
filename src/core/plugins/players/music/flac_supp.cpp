@@ -120,7 +120,7 @@ namespace Flac
     explicit FlacTune(Model::Ptr data)
       : Data(std::move(data))
       , Decoder( ::FLAC__stream_decoder_new(), &::FLAC__stream_decoder_delete)
-      , Stream(Data->Content->Start(), Data->Content->Size())
+      , Stream(*Data->Content)
     {
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");

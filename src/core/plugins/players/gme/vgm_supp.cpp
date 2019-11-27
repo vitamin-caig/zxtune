@@ -408,8 +408,8 @@ namespace Module
     class PlatformDetector
     {
     public:
-      explicit PlatformDetector(const Dump& data)
-        : Input(data.data(), data.size())
+      explicit PlatformDetector(Binary::DataView data)
+        : Input(data)
       {
         Input.Seek(0x8);
         const auto vers = Input.ReadRawData(4);

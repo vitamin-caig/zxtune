@@ -70,12 +70,12 @@ namespace Chiptune
           const bool isLast = hdr[0] & 128;
           const auto type = hdr[0] & 127;
           const auto payloadSize = fromBE24(hdr + 1);
-          const auto blockSize = HEADER_SIZE + payloadSize;
-          if (type == 127 || Stream.GetRestSize() < blockSize)
+          if (type == 127 || Stream.GetRestSize() < HEADER_SIZE + payloadSize)
           {
             break;
           }
-          Binary::DataInputStream payload(hdr + HEADER_SIZE, payloadSize);
+          Stream.Skip(HEADER_SIZE);
+          Binary::DataInputStream payload(*Stream.ReadData(payloadSize));
           if (type == 0)
           {
             ParseStreamInfo(payload, target);
@@ -84,7 +84,6 @@ namespace Chiptune
           {
             Vorbis::ParseComment(payload, target.GetMetaBuilder());
           }
-          Stream.Skip(blockSize);
           if (isLast)
           {
             return true;

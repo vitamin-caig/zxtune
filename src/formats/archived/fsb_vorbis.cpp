@@ -190,7 +190,7 @@ namespace FSB
         {
           return;
         }
-        Binary::DataInputStream stream(chunk.Start(), chunk.Size());
+        Binary::DataInputStream stream(chunk);
         auto& dst = Samples[CurSample];
         dst.Setup = GetSetup(stream.ReadLE<uint32_t>());
         dst.Lookup.emplace_back(0, 0);

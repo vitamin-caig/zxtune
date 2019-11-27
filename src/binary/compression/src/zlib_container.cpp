@@ -61,7 +61,7 @@ namespace Binary
         {
           if (!Unpacked)
           {
-            Binary::DataInputStream in(Packed->Start(), Packed->Size());
+            Binary::DataInputStream in(*Packed);
             Binary::DataBuilder out(UnpackedSize);
             Binary::Compression::Zlib::Decompress(in, out, UnpackedSize);
             Require(!UnpackedSize || UnpackedSize == out.Size());

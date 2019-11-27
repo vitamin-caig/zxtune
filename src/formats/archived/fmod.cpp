@@ -92,8 +92,8 @@ namespace Archived
         class Metadata
         {
         public:
-          Metadata(Binary::InputStream& stream, const HeaderType& hdr)
-            : Stream(stream.ReadRawData(hdr.SamplesHeadersSize), hdr.SamplesHeadersSize)
+          Metadata(Binary::DataInputStream& stream, const HeaderType& hdr)
+            : Stream(stream.ReadData(hdr.SamplesHeadersSize))
           {
           }
           
@@ -195,8 +195,8 @@ namespace Archived
         class Names
         {
         public:
-          Names(Binary::InputStream& stream, const HeaderType& hdr)
-            : Stream(stream.ReadRawData(hdr.SamplesNamesSize), hdr.SamplesNamesSize)
+          Names(Binary::DataInputStream& stream, const HeaderType& hdr)
+            : Stream(stream.ReadData(hdr.SamplesNamesSize))
             , HasNames(hdr.SamplesNamesSize != 0)
           {
           }
