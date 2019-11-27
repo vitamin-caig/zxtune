@@ -164,7 +164,8 @@ namespace Chiptune
       {
         return (val & 0xf0) == 0xa0;
       }
-      
+
+      //TODO: don't use Data here
       struct Description
       {
         std::size_t Loop;
@@ -267,7 +268,7 @@ namespace Chiptune
           {
             Dbg(" Stub sample");
             const uint8_t dummy = 128;
-            samples.Add(samIdx, 0, Binary::CreateContainer(&dummy, 1));
+            samples.Add(samIdx, 0, Binary::CreateContainer(Binary::DataView(&dummy, 1)));
           }
         }
       }

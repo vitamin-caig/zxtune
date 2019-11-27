@@ -1556,7 +1556,7 @@ namespace ProTracker3
           pattern.Dump(str);
         }
         const auto& res = str.str();
-        return Binary::CreateContainer(res.data(), res.size());
+        return Binary::CreateContainer(Binary::DataView(res.data(), res.size()));
       }
     private:
       struct BuildContext

@@ -38,7 +38,7 @@ namespace
     //                                  <truncsubsub>
     
     std::cout << "Test for CreateContainer" << std::endl;
-    const auto data = Binary::CreateContainer(DATA, sizeof(DATA));
+    const auto data = Binary::CreateContainer(Binary::DataView(DATA, sizeof(DATA)));
     Test("copying", data->Start() != DATA);
     TestContainer(*data, sizeof(DATA), DATA);
     std::cout << "Test for GetSubcontainer" << std::endl;

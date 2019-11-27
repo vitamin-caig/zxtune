@@ -214,7 +214,7 @@ namespace Archived
         size_t outSizeProcessed = 0;
         CheckError(SzArEx_Extract(&Db, const_cast<ILookInStream*>(&Stream.s), idx, &Cache.BlockIndex, &Cache.OutBuffer, &Cache.OutBufferSize, &offset, &outSizeProcessed, LzmaContext::Allocator(), LzmaContext::Allocator()));
         Require(outSizeProcessed == SzArEx_GetFileSize(&Db, idx));
-        return Binary::CreateContainer(Cache.OutBuffer + offset, outSizeProcessed);
+        return Binary::CreateContainer(Binary::DataView(Cache.OutBuffer + offset, outSizeProcessed));
       }
     private:
       static void CheckError(SRes err)
