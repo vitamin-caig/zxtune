@@ -13,7 +13,6 @@
 #include "formats/chiptune/container.h"
 //common includes
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>

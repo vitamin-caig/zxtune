@@ -11,12 +11,12 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
 #include <math/numeric.h>
@@ -98,7 +98,7 @@ namespace Multitrack
       
       uint_t FixedChecksum() const override
       {
-        return Crc32(static_cast<const uint8_t*>(Delegate->Start()), Delegate->Size());
+        return Binary::Crc32(*Delegate);
       }
 
       uint_t TracksCount() const override

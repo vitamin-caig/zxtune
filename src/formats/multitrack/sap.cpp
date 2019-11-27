@@ -11,12 +11,12 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
-#include <binary/data_builder.h>
 #include <binary/container_base.h>
+#include <binary/crc.h>
+#include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/multitrack.h>
@@ -118,7 +118,7 @@ namespace Multitrack
         uint32_t crc = startTrack;
         for (const auto& blk : Blocks)
         {
-          crc = Crc32(blk.second.data(), blk.second.size(), crc);
+          crc = Binary::Crc32(blk.second, crc);
         }
         return crc;
       }

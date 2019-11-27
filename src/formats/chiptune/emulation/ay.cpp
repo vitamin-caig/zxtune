@@ -14,11 +14,11 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -600,7 +600,7 @@ namespace Chiptune
           if (Binary::Container::Ptr blockData = data.GetBlob(&block.Offset, blockSize))
           {
             target.AddBlock(blockAddr, blockData->Start(), blockData->Size());
-            crc = Crc32(static_cast<const uint8_t*>(blockData->Start()), blockData->Size(), crc);
+            crc = Binary::Crc32(*blockData, crc);
             blocksSize += blockData->Size();
           }
           Require(blocksSize < MAX_SIZE);

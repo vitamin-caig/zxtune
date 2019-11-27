@@ -11,12 +11,12 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/multitrack.h>
@@ -167,7 +167,7 @@ namespace Multitrack
             const auto data = input.ReadRawData(size);
             if (hdr.Id == INFO)
             {
-              fixedCrc = Crc32(data, sizeof(InfoChunk), fixedCrc);
+              fixedCrc = Binary::Crc32(Binary::DataView(data, sizeof(InfoChunk)), fixedCrc);
               if (size >= sizeof(InfoChunkFull))
               {
                 info = safe_ptr_cast<const InfoChunkFull*>(data);
@@ -175,7 +175,7 @@ namespace Multitrack
             }
             else if (hdr.Id == DATA)
             {
-              fixedCrc = Crc32(data, size, fixedCrc);
+              fixedCrc = Binary::Crc32(Binary::DataView(data, size), fixedCrc);
             }
           }
           return MakePtr<Container>(info, fixedCrc, input.GetReadData());

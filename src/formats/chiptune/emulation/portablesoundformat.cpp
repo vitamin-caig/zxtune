@@ -12,9 +12,9 @@
 #include "formats/chiptune/emulation/portablesoundformat.h"
 //common includes
 #include <byteorder.h>
-#include <crc.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/crc.h>
 #include <binary/data_builder.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -107,15 +107,10 @@ namespace PortableSoundFormat
       if (compressedSize)
       {
         auto programPacked = Stream.ReadData(compressedSize);
-        CheckCrc(*programPacked, compressedCrc);
+        Require(compressedCrc == Binary::Crc32(*programPacked));
         Dbg("Program section %1% bytes", compressedSize);
         target.SetPackedProgramSection(std::move(programPacked));
       }
-    }
-    
-    static void CheckCrc(Binary::DataView blob, uint32_t crc)
-    {
-      Require(crc == Crc32(static_cast<const uint8_t*>(blob.Start()), blob.Size()));
     }
     
     void ParseTags(Builder& target)

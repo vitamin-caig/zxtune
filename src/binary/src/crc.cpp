@@ -9,9 +9,9 @@
 **/
 
 //common includes
-#include <crc.h>
+#include <binary/crc.h>
 
-namespace
+namespace Binary
 {
   const uint32_t CRC32_TABLE[256] = 
   {
@@ -80,15 +80,16 @@ namespace
     0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94,
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
   };
-}
  
-uint32_t Crc32(const uint8_t* buf, std::size_t len, uint32_t initial)
-{
-  uint32_t crc = initial ^ 0xFFFFFFFF;
-  for (std::size_t idx = 0; idx != len; ++idx)
+  uint32_t Crc32(DataView data, uint32_t initial)
   {
-    const uint32_t data = buf[idx];
-    crc = (crc >> 8) ^ CRC32_TABLE[(crc ^ data) & 0xFF];
+    uint32_t crc = initial ^ 0xFFFFFFFF;
+    const uint8_t* const buf = static_cast<const uint8_t*>(data.Start());
+    for (std::size_t idx = 0; idx != data.Size(); ++idx)
+    {
+      const uint32_t data = buf[idx];
+      crc = (crc >> 8) ^ CRC32_TABLE[(crc ^ data) & 0xFF];
+    }
+    return crc ^ 0xFFFFFFFF;
   }
-  return crc ^ 0xFFFFFFFF;
 }

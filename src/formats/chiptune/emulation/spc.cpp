@@ -14,7 +14,6 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes

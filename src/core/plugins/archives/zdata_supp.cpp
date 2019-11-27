@@ -15,11 +15,11 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/base64.h>
+#include <binary/crc.h>
 #include <binary/compression/zlib.h>
 #include <binary/compression/zlib_stream.h>
 #include <binary/data_builder.h>
@@ -202,7 +202,7 @@ namespace Zdata
       std::unique_ptr<Dump> unpacked(new Dump(hdr.Original));
       Dbg("Unpack %1% => %2%", hdr.Packed, hdr.Original);
       Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded.data(), decoded.size(), unpacked->data(), unpacked->size()));
-      Require(hdr.Crc == Crc32(unpacked->data(), unpacked->size()));
+      Require(hdr.Crc == Binary::Crc32(*unpacked));
       return Binary::CreateContainer(std::move(unpacked));
     }
     catch (const std::exception&)
@@ -226,7 +226,7 @@ namespace Zdata
       Binary::Compression::Zlib::Compress(inputStream, output);
     }
     const auto packedSize = output.Size() - prevOutputSize;
-    return Header(Crc32(static_cast<const uint8_t*>(input.Start()), inSize), inSize, packedSize);
+    return Header(Binary::Crc32(input), inSize, packedSize);
   }
 
   Binary::Container::Ptr Convert(const void* input, std::size_t inputSize)

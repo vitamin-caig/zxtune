@@ -12,10 +12,10 @@
 #include "formats/chiptune/fm/tfmmusicmaker.h"
 #include "formats/chiptune/container.h"
 //common includes
-#include <crc.h>
 #include <indices.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -1125,7 +1125,7 @@ namespace Chiptune
           const Binary::Container::Ptr subData = data.GetSubcontainer(0, decompressor.GetUsedSize());
           const std::size_t fixStart = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * usedPatterns.Minimum();
           const std::size_t fixEnd = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * (1 + usedPatterns.Maximum());
-          const uint_t crc = Crc32(decompressor.GetResult<uint8_t>() + fixStart, fixEnd - fixStart);
+          const uint_t crc = Binary::Crc32(Binary::DataView(decompressor.GetResult<uint8_t>() + fixStart, fixEnd - fixStart));
           return CreateKnownCrcContainer(subData, crc);
         }
         catch (const std::exception&)

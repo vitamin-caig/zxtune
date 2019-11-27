@@ -11,12 +11,12 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
 #include <math/numeric.h>
@@ -114,8 +114,8 @@ namespace Multitrack
       {
         //just skip text fields
         const uint8_t* const data = static_cast<const uint8_t*>(Delegate->Start());
-        const uint32_t part1 = Crc32(data, offsetof(RawHeader, Title));
-        const uint32_t part2 = Crc32(data + offsetof(RawHeader, NTSCSpeedUs), Delegate->Size() - offsetof(RawHeader, NTSCSpeedUs), part1);
+        const uint32_t part1 = Binary::Crc32(Binary::DataView(data, offsetof(RawHeader, Title)));
+        const uint32_t part2 = Binary::Crc32(Binary::DataView(data + offsetof(RawHeader, NTSCSpeedUs), Delegate->Size() - offsetof(RawHeader, NTSCSpeedUs)), part1);
         return part2;
       }
 

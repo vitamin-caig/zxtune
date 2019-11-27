@@ -11,10 +11,10 @@
 //local includes
 #include "formats/chiptune/multitrack/multitrack.h"
 //common includes
-#include <crc.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_base.h>
+#include <binary/crc.h>
 //std includes
 #include <utility>
 
@@ -32,7 +32,7 @@ namespace Chiptune
 
     uint_t Checksum() const override
     {
-      return Crc32(static_cast<const uint8_t*>(Delegate->Start()), Delegate->Size());
+      return Binary::Crc32(*Delegate);
     }
 
     uint_t FixedChecksum() const override

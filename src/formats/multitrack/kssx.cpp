@@ -11,12 +11,12 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <pointers.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
 //std includes
@@ -99,7 +99,7 @@ namespace Multitrack
         const void* const data = Delegate->Start();
         const RawHeader* const header = static_cast<const RawHeader*>(data);
         const std::size_t headersSize = sizeof(*header) + header->ExtraHeaderSize;
-        return Crc32(static_cast<const uint8_t*>(data) + headersSize, Delegate->Size() - headersSize);
+        return Binary::Crc32(Binary::DataView(static_cast<const uint8_t*>(data) + headersSize, Delegate->Size() - headersSize));
       }
 
       uint_t TracksCount() const override
