@@ -18,7 +18,6 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/render_params.h>
@@ -216,23 +215,23 @@ namespace Wav
       {
         data.ToU8();
       }
-      const std::size_t sizeInBytes = data.size() * sizeof(data.front());
-      Stream->ApplyData(Binary::DataAdapter(data.data(), sizeInBytes));
-      DoneBytes += static_cast<uint32_t>(sizeInBytes);
+      const Binary::DataView chunk(data);
+      Stream->ApplyData(chunk);
+      DoneBytes += static_cast<uint32_t>(chunk.Size());
     }
 
     void Flush() override
     {
       if (!Meta.empty())
       {
-        Stream->ApplyData(Binary::DataAdapter(Meta.data(), Meta.size()));
+        Stream->ApplyData(Meta);
       }
       Stream->Flush();
       // write header
       Stream->Seek(0);
       Format.Size = fromLE<uint32_t>(sizeof(Format) - offsetof(WaveFormat, Type) + DoneBytes + Meta.size());
       Format.DataSize = fromLE<uint32_t>(DoneBytes);
-      Stream->ApplyData(Binary::DataAdapter(&Format, sizeof(Format)));
+      Stream->ApplyData(Binary::DataView(&Format, sizeof(Format)));
       Stream->Seek(DoneBytes + sizeof(Format));
     }
   private:

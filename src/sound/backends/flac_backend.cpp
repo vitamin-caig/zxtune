@@ -17,7 +17,6 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <debug/log.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -160,7 +159,7 @@ namespace Flac
       size_t bytes, unsigned /*samples*/, unsigned /*current_frame*/, void* client_data)
     {
       Binary::OutputStream* const stream = static_cast<Binary::OutputStream*>(client_data);
-      stream->ApplyData(Binary::DataAdapter(buffer, bytes));
+      stream->ApplyData(Binary::DataView(buffer, bytes));
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     }
 

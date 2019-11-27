@@ -14,7 +14,6 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/input_stream.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
@@ -123,11 +122,6 @@ namespace Chiptune
         {
           Stream.Seek(HEADER_SIZE);
           target.SetTextSection(startAddress, Stream.ReadRestData());
-        }
-        else
-        {
-          static const Binary::DataAdapter EMPTY(nullptr, 0);
-          target.SetTextSection(startAddress, EMPTY);
         }
       }
       

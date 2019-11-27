@@ -17,7 +17,6 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
@@ -103,7 +102,7 @@ namespace Mp3
       {
         if (res > 0) //encoded
         {
-          Stream->ApplyData(Binary::DataAdapter(Encoded.data(), res));
+          Stream->ApplyData(Binary::DataView(Encoded.data(), res));
           break;
         }
         else if (-1 == res)//buffer too small
@@ -123,7 +122,7 @@ namespace Mp3
       {
         if (res > 0)
         {
-          Stream->ApplyData(Binary::DataAdapter(Encoded.data(), res));
+          Stream->ApplyData(Binary::DataView(Encoded.data(), res));
           break;
         }
         else if (-1 == res)//buffer too small

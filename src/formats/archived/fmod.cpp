@@ -13,7 +13,6 @@
 //common includes
 #include <byteorder.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/input_stream.h>
 #include <strings/format.h>
 
@@ -119,7 +118,7 @@ namespace Archived
               hasNextChunk = 0 != (raw & 1);
               const auto chunkSize = (raw >> 1) & 0xffffff;
               const auto chunkType = (raw >> 25) & 0x7f;
-              target.AddMetaChunk(chunkType, Binary::DataAdapter(Stream.ReadRawData(chunkSize), chunkSize));
+              target.AddMetaChunk(chunkType, Stream.ReadData(chunkSize));
             }
             return result;
           }

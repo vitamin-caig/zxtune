@@ -19,7 +19,6 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
@@ -99,8 +98,8 @@ namespace Ogg
   private:
     void WritePage(const ogg_page& page)
     {
-      File->ApplyData(Binary::DataAdapter(page.header, page.header_len));
-      File->ApplyData(Binary::DataAdapter(page.body, page.body_len));
+      File->ApplyData(Binary::DataView(page.header, page.header_len));
+      File->ApplyData(Binary::DataView(page.body, page.body_len));
     }
   private:
     const Api::Ptr OggApi;

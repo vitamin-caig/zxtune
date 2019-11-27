@@ -18,7 +18,6 @@
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <binary/typed_container.h>

@@ -18,7 +18,6 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -341,7 +340,7 @@ namespace Chiptune
           }
           Dbg(" Stub sample %1%", samIdx);
           const uint8_t dummy = 128;
-          target.SetSample(samIdx, 0, Binary::DataAdapter(&dummy, sizeof(dummy)));
+          target.SetSample(samIdx, 0, Binary::DataView(&dummy, sizeof(dummy)));
         }
       }
       

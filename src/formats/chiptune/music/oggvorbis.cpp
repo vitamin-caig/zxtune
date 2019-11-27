@@ -16,7 +16,6 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -288,7 +287,7 @@ namespace Chiptune
         }
         else
         {
-          Target.AddFrame(pageOffset, samplesCount, ReadRest(payload));
+          Target.AddFrame(pageOffset, samplesCount, payload.ReadRestData());
         }
       }
       
@@ -318,7 +317,7 @@ namespace Chiptune
           break;
         case Setup:
           payload.Seek(payload.GetPosition() - SIGNATURE.size() - 1);
-          Target.SetSetup(ReadRest(payload));
+          Target.SetSetup(payload.ReadRestData());
           NextPacketType = Audio;
           break;
         default:
@@ -344,13 +343,6 @@ namespace Chiptune
         Require(blockLo <= blockHi);
         Require(framing & 1);
         Target.SetProperties(channels, frequency, 1 << blockLo, 1 << blockHi);
-      }
-
-      static Binary::DataAdapter ReadRest(Binary::DataInputStream& payload)
-      {
-        const auto restSize = payload.GetRestSize();
-        Require(restSize != 0);
-        return Binary::DataAdapter(payload.ReadRawData(restSize), restSize);
       }
     private:
       OggVorbis::Builder& Target;

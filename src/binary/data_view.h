@@ -14,6 +14,8 @@
 #include "binary/data.h" //TODO: remove
 //common includes
 #include <contract.h>
+//std includes
+#include <vector>
 
 namespace Binary
 {
@@ -26,6 +28,12 @@ namespace Binary
     {
       Require(start != nullptr);
       Require(size != 0);
+    }
+
+    template<class T>
+    DataView(const std::vector<T>& data)
+      : DataView(data.data(), data.size() * sizeof(T))
+    {
     }
 
     //TODO: remove
