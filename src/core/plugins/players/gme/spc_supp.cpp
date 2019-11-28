@@ -312,41 +312,41 @@ namespace SPC
     {
     }
 
-    void SetTitle(const String& title) override
+    void SetTitle(String title) override
     {
       if (Title.empty())
       {
-        Properties.SetTitle(Title = title);
+        Properties.SetTitle(Title = std::move(title));
       }
     }
     
-    void SetGame(const String& game) override
+    void SetGame(String game) override
     {
       if (Program.empty())
       {
-        Properties.SetProgram(Program = game);
+        Properties.SetProgram(Program = std::move(game));
       }
     }
     
-    void SetDumper(const String& dumper) override
+    void SetDumper(String dumper) override
     {
       if (Author.empty())
       {
-        Properties.SetAuthor(Author = dumper);
+        Properties.SetAuthor(Author = std::move(dumper));
       }
     }
     
-    void SetComment(const String& comment) override
+    void SetComment(String comment) override
     {
       if (Comment.empty())
       {
-        Properties.SetComment(Comment = comment);
+        Properties.SetComment(Comment = std::move(comment));
       }
     }
     
-    void SetDumpDate(const String& date) override
+    void SetDumpDate(String date) override
     {
-      Properties.SetDate(date);
+      Properties.SetDate(std::move(date));
     }
     
     void SetIntro(Time::Milliseconds duration) override
@@ -364,20 +364,20 @@ namespace SPC
       Fade = duration;
     }
     
-    void SetArtist(const String& artist) override
+    void SetArtist(String artist) override
     {
-      Properties.SetAuthor(Author = artist);
+      Properties.SetAuthor(Author = std::move(artist));
     }
     
-    void SetRAM(const void* /*data*/, std::size_t /*size*/) override
-    {
-    }
-    
-    void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) override
+    void SetRAM(Binary::DataView /*data*/) override
     {
     }
     
-    void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) override
+    void SetDSPRegisters(Binary::DataView /*data*/) override
+    {
+    }
+    
+    void SetExtraRAM(Binary::DataView /*data*/) override
     {
     }
     

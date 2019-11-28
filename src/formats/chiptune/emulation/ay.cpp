@@ -192,13 +192,13 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      void SetTitle(const String& /*title*/) override {}
-      void SetAuthor(const String& /*author*/) override {}
-      void SetComment(const String& /*comment*/) override {}
+      void SetTitle(String /*title*/) override {}
+      void SetAuthor(String /*author*/) override {}
+      void SetComment(String /*comment*/) override {}
       void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) override {}
       void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) override {}
       void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) override {}
-      void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) override {}
+      void AddBlock(uint16_t /*addr*/, Binary::DataView /*data*/) override {}
     };
 
     const std::string HEADER_FORMAT(
@@ -295,15 +295,15 @@ namespace Chiptune
         std::array<uint8_t, 10> Data;
       };
     public:
-      void SetTitle(const String& /*title*/) override
+      void SetTitle(String /*title*/) override
       {
       }
 
-      void SetAuthor(const String& /*author*/) override
+      void SetAuthor(String /*author*/) override
       {
       }
 
-      void SetComment(const String& /*comment*/) override
+      void SetComment(String /*comment*/) override
       {
       }
 
@@ -321,20 +321,20 @@ namespace Chiptune
         if (play)
         {
           Im1Player player(init, play);
-          AddBlock(0, &player, sizeof(player));
+          AddBlock(0, Binary::DataView(&player, sizeof(player)));
         }
         else
         {
           Im2Player player(init);
-          AddBlock(0, &player, sizeof(player));
+          AddBlock(0, Binary::DataView(&player, sizeof(player)));
         }
       }
 
-      void AddBlock(uint16_t addr, const void* src, std::size_t size) override
+      void AddBlock(uint16_t addr, Binary::DataView block) override
       {
         Dump& data = AllocateData();
-        const std::size_t toCopy = std::min(size, data.size() - addr);
-        std::memcpy(&data[addr], src, toCopy);
+        const std::size_t toCopy = std::min(block.Size(), data.size() - addr);
+        std::memcpy(&data[addr], block.Start(), toCopy);
       }
 
       Binary::Container::Ptr Result() const override
@@ -416,19 +416,19 @@ namespace Chiptune
       {
       }
 
-      void SetTitle(const String& title) override
+      void SetTitle(String title) override
       {
-        Title = title;
+        Title = std::move(title);
       }
 
-      void SetAuthor(const String& author) override
+      void SetAuthor(String author) override
       {
-        Author = author;
+        Author = std::move(author);
       }
 
-      void SetComment(const String& comment) override
+      void SetComment(String comment) override
       {
-        Comment = comment;
+        Comment = std::move(comment);
       }
 
       void SetDuration(uint_t total, uint_t fadeout) override
@@ -449,10 +449,10 @@ namespace Chiptune
         PlayRoutine = play;
       }
 
-      void AddBlock(uint16_t addr, const void* data, std::size_t size) override
+      void AddBlock(uint16_t addr, Binary::DataView block) override
       {
-        const uint8_t* const fromCopy = static_cast<const uint8_t*>(data);
-        const std::size_t toCopy = std::min(size, std::size_t(0x10000 - addr));
+        const uint8_t* const fromCopy = static_cast<const uint8_t*>(block.Start());
+        const std::size_t toCopy = std::min(block.Size(), std::size_t(0x10000 - addr));
         Blocks.push_back(BlocksList::value_type(addr, Dump(fromCopy, fromCopy + toCopy)));
       }
 
@@ -597,9 +597,9 @@ namespace Chiptune
           const uint16_t blockAddr = fromBE(block.Address);
           const std::size_t blockSize = fromBE(block.Size);
           Dbg("Block %1% bytes at %2% located at %3%", blockSize, blockAddr, fromBE(block.Offset));
-          if (Binary::Container::Ptr blockData = data.GetBlob(&block.Offset, blockSize))
+          if (const auto blockData = data.GetBlob(&block.Offset, blockSize))
           {
-            target.AddBlock(blockAddr, blockData->Start(), blockData->Size());
+            target.AddBlock(blockAddr, *blockData);
             crc = Binary::Crc32(*blockData, crc);
             blocksSize += blockData->Size();
           }

@@ -324,19 +324,19 @@ namespace Chiptune
     {
     public:
       void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/) override {}
-      void SetTitle(const String& /*title*/) override {}
-      void SetGame(const String& /*game*/) override {}
-      void SetDumper(const String& /*dumper*/) override {}
-      void SetComment(const String& /*comment*/) override {}
-      void SetDumpDate(const String& /*date*/) override {}
+      void SetTitle(String /*title*/) override {}
+      void SetGame(String /*game*/) override {}
+      void SetDumper(String /*dumper*/) override {}
+      void SetComment(String /*comment*/) override {}
+      void SetDumpDate(String /*date*/) override {}
       void SetIntro(Time::Milliseconds /*duration*/) override {}
       void SetLoop(Time::Milliseconds /*duration*/) override {}
       void SetFade(Time::Milliseconds /*duration*/) override {}
-      void SetArtist(const String& /*artist*/) override {}
+      void SetArtist(String /*artist*/) override {}
       
-      void SetRAM(const void* /*data*/, std::size_t /*size*/) override {}
-      void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) override {}
-      void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) override {}
+      void SetRAM(Binary::DataView /*data*/) override {}
+      void SetDSPRegisters(Binary::DataView /*data*/) override {}
+      void SetExtraRAM(Binary::DataView /*data*/) override {}
     };
     
     //used nes_spc library doesn't support another versions
@@ -437,12 +437,12 @@ namespace Chiptune
         Require(hdr.Signature == SIGNATURE);
         ParseID666(hdr.ID666, target);
         target.SetRegisters(fromLE(hdr.Regs.PC), hdr.Regs.A, hdr.Regs.X, hdr.Regs.Y, hdr.Regs.PSW, hdr.Regs.SP);
-        target.SetRAM(hdr.RAM, sizeof(hdr.RAM));
-        target.SetDSPRegisters(hdr.DSPRegisters, sizeof(hdr.DSPRegisters));
+        target.SetRAM(Binary::DataView(hdr.RAM, sizeof(hdr.RAM)));
+        target.SetDSPRegisters(Binary::DataView(hdr.DSPRegisters, sizeof(hdr.DSPRegisters)));
         if (Stream.GetRestSize() >= sizeof(ExtraRAM))
         {
           const ExtraRAM& extra = Stream.ReadField<ExtraRAM>();
-          target.SetExtraRAM(extra.Data, sizeof(extra.Data));
+          target.SetExtraRAM(Binary::DataView(extra.Data, sizeof(extra.Data)));
         }
       }
       
@@ -474,8 +474,8 @@ namespace Chiptune
     private:
       static void ParseID666(const RawHeader::ID666Tag& tag, Builder& target)
       {
-        const Tag text(tag.TextTag);
-        const Tag bin(tag.BinTag);
+        Tag text(tag.TextTag);
+        Tag bin(tag.BinTag);
         if (text.GetScore() >= bin.GetScore())
         {
           Dbg("Parse text ID666");
@@ -488,16 +488,16 @@ namespace Chiptune
         }
       }
       
-      static void ParseID666(const Tag& tag, Builder& target)
+      static void ParseID666(Tag& tag, Builder& target)
       {
-        target.SetTitle(tag.Song);
-        target.SetGame(tag.Game);
-        target.SetDumper(tag.Dumper);
-        target.SetComment(tag.Comments);
-        target.SetDumpDate(tag.DumpDate);
+        target.SetTitle(std::move(tag.Song));
+        target.SetGame(std::move(tag.Game));
+        target.SetDumper(std::move(tag.Dumper));
+        target.SetComment(std::move(tag.Comments));
+        target.SetDumpDate(std::move(tag.DumpDate));
         target.SetIntro(tag.FadeTime);
         target.SetFade(tag.FadeDuration);
-        target.SetArtist(tag.Artist);
+        target.SetArtist(std::move(tag.Artist));
       }
       
       static void ParseSubchunks(Binary::DataView data, Builder& target)

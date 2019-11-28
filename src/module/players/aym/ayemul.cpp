@@ -651,19 +651,19 @@ namespace AYEMUL
     {
     }
 
-    void SetTitle(const String& title) override
+    void SetTitle(String title) override
     {
-      Properties.SetTitle(title);
+      Properties.SetTitle(std::move(title));
     }
 
-    void SetAuthor(const String& author) override
+    void SetAuthor(String author) override
     {
-      Properties.SetAuthor(author);
+      Properties.SetAuthor(std::move(author));
     }
 
-    void SetComment(const String& comment) override
+    void SetComment(String comment) override
     {
-      Properties.SetComment(comment);
+      Properties.SetComment(std::move(comment));
     }
 
     void SetDuration(uint_t duration, uint_t fadeout) override
@@ -690,9 +690,9 @@ namespace AYEMUL
       Delegate->SetRoutines(init, play);
     }
 
-    void AddBlock(uint16_t addr, const void* src, std::size_t size) override
+    void AddBlock(uint16_t addr, Binary::DataView block) override
     {
-      Delegate->AddBlock(addr, src, size);
+      Delegate->AddBlock(addr, block);
     }
 
     ModuleData::Ptr GetResult() const

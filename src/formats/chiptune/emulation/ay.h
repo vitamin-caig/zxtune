@@ -27,13 +27,13 @@ namespace Formats
       public:
         virtual ~Builder() = default;
 
-        virtual void SetTitle(const String& title) = 0;
-        virtual void SetAuthor(const String& author) = 0;
-        virtual void SetComment(const String& comment) = 0;
+        virtual void SetTitle(String title) = 0;
+        virtual void SetAuthor(String author) = 0;
+        virtual void SetComment(String comment) = 0;
         virtual void SetDuration(uint_t total, uint_t fadeout) = 0;
         virtual void SetRegisters(uint16_t reg, uint16_t sp) = 0;
         virtual void SetRoutines(uint16_t init, uint16_t play) = 0;
-        virtual void AddBlock(uint16_t addr, const void* data, std::size_t size) = 0;
+        virtual void AddBlock(uint16_t addr, Binary::DataView data) = 0;
       };
 
       uint_t GetModulesCount(Binary::DataView data);

@@ -228,7 +228,7 @@ namespace TwoSF
     public:
       void SetChunk(uint32_t offset, Binary::DataView content) override
       {
-        Result.Update(offset, content.Start(), content.Size());
+        Result.Update(offset, content);
       }
       
       MemoryRegion CaptureResult()

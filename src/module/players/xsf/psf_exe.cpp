@@ -58,7 +58,7 @@ namespace Module
         const auto size = content.Size();
         Require(addr >= 0x10000 && size <= 0x1f0000 && addr + size <= 0x200000);
         
-        Exe.RAM.Update(addr, content.Start(), size);
+        Exe.RAM.Update(addr, content);
       }
     private:
       PsxExe& Exe;

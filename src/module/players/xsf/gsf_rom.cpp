@@ -38,7 +38,7 @@ namespace Module
       
       void SetRom(uint32_t address, Binary::DataView content) override
       {
-        Rom.Content.Update(address & 0x1fffffff, content.Start(), content.Size());
+        Rom.Content.Update(address & 0x1fffffff, content);
       }
     private:
       GbaRom& Rom;

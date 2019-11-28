@@ -10,8 +10,8 @@
 
 #pragma once
 
-//common includes
-#include <types.h>
+//library includes
+#include <binary/data_view.h>
 
 namespace Module
 {
@@ -32,7 +32,7 @@ namespace Module
       return *this;
     }
     
-    void Update(uint_t addr, const void* data, std::size_t size);
+    void Update(uint_t addr, Binary::DataView data);
 
     uint_t Start = 0;
     Dump Data;
