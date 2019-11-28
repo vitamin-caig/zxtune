@@ -64,9 +64,9 @@ namespace Packed
         return fromLE(DataAddr) - compileAddr;
       }
 
-      Dump GetInfo() const
+      Binary::DataView GetInfo() const
       {
-        return Dump(Information, Information + 55);
+        return Binary::DataView(Information, 55);
       }
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
@@ -94,13 +94,15 @@ namespace Packed
       "23"       //inc hl 
     );
 
-    bool IsInfoEmpty(const Dump& info)
+    bool IsInfoEmpty(Binary::DataView info)
     {
       assert(info.size() == 55);
       //28 is fixed
       //27 is title
-      const Dump::const_iterator titleStart = info.begin() + 28;
-      return info.end() == std::find_if(titleStart, info.end(), std::bind2nd(std::greater<Char>(), Char(' ')));
+      const auto start = static_cast<const Char*>(info.Start());
+      const auto end = start + info.Size();
+      const auto titleStart = start + 28;
+      return end == std::find_if(titleStart, end, std::bind2nd(std::greater<Char>(), Char(' ')));
     }
   }//CompiledST3
 
@@ -142,24 +144,24 @@ namespace Packed
       const uint_t compileAddr = rawPlayer.GetCompileAddr();
       Dbg("Detected player compiled at %1% (#%1$04x) in first %2% bytes", compileAddr, playerSize);
       const std::size_t modDataSize = std::min(availSize - playerSize, MAX_MODULE_SIZE);
-      const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
-      const Dump& metainfo = rawPlayer.GetInfo();
+      const auto modData = rawData.GetSubcontainer(playerSize, modDataSize);
+      const auto metainfo = rawPlayer.GetInfo();
       Formats::Chiptune::SoundTracker::Builder& stub = Formats::Chiptune::SoundTracker::GetStubBuilder();
       if (IsInfoEmpty(metainfo))
       {
         Dbg("Player has empty metainfo");
-        if (const Binary::Container::Ptr originalModule = Formats::Chiptune::SoundTracker::Ver3::Parse(*modData, stub))
+        if (auto originalModule = Formats::Chiptune::SoundTracker::Ver3::Parse(*modData, stub))
         {
           const std::size_t originalSize = originalModule->Size();
-          return CreateContainer(originalModule, playerSize + originalSize);
+          return CreateContainer(std::move(originalModule), playerSize + originalSize);
         }
       }
-      else if (const Binary::Container::Ptr fixedModule = Formats::Chiptune::SoundTracker::Ver3::InsertMetainformation(*modData, metainfo))
+      else if (auto fixedModule = Formats::Chiptune::SoundTracker::Ver3::InsertMetainformation(*modData, metainfo))
       {
         if (Formats::Chiptune::SoundTracker::Ver3::Parse(*fixedModule, stub))
         {
-          const std::size_t originalSize = fixedModule->Size() - metainfo.size();
-          return CreateContainer(fixedModule, playerSize + originalSize);
+          const std::size_t originalSize = fixedModule->Size() - metainfo.Size();
+          return CreateContainer(std::move(fixedModule), playerSize + originalSize);
         }
         Dbg("Failed to parse fixed module");
       }

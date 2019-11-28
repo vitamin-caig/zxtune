@@ -1256,7 +1256,7 @@ namespace Chiptune
     }
     
     template<class Version>
-    Binary::Container::Ptr InsertMetaInformation(const Binary::Container& rawData, const Dump& info)
+    Binary::Container::Ptr InsertMetaInformation(const Binary::Container& rawData, Binary::DataView info)
     {
       const VersionTraits& version = Version::TRAITS;
       if (Binary::Container::Ptr parsed = Parse(version, rawData, GetStubBuilder()))
@@ -1264,7 +1264,7 @@ namespace Chiptune
         const Binary::TypedContainer& typedHelper = version.CreateContainer(*parsed);
         const typename Version::RawHeader& header = *typedHelper.GetField<typename Version::RawHeader>(0);
         const std::size_t headerSize = GetHeaderSize(header);
-        const std::size_t infoSize = info.size();
+        const std::size_t infoSize = info.Size();
         const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
         const RawId* const id = typedHelper.GetField<RawId>(headerSize);
         if (id && id->Check())
@@ -1332,7 +1332,7 @@ namespace Chiptune
         return Parse(Version0::TRAITS, data, target);
       }
     
-      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, const Dump& info)
+      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::DataView info)
       {
         return ASCSoundMaster::InsertMetaInformation<Version0>(data, info);
       }
@@ -1350,7 +1350,7 @@ namespace Chiptune
         return Parse(Version1::TRAITS, data, target);
       }
       
-      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, const Dump& info)
+      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::DataView info)
       {
         return ASCSoundMaster::InsertMetaInformation<Version1>(data, info);
       }

@@ -112,7 +112,7 @@ namespace Packed
     
     typedef PlayerTraits (*CreatePlayerFunc)(const Binary::TypedContainer&);
     typedef Formats::Chiptune::Container::Ptr (*ParseFunc)(const Binary::Container&, Formats::Chiptune::ASCSoundMaster::Builder&);
-    typedef Binary::Container::Ptr (*InsertMetaInfoFunc)(const Binary::Container&, const Dump&);
+    typedef Binary::Container::Ptr (*InsertMetaInfoFunc)(const Binary::Container&, Binary::DataView);
     
     struct VersionTraits
     {
@@ -253,24 +253,23 @@ namespace Packed
       }
       Dbg("Detected player in first %1% bytes", rawPlayer.Size);
       const std::size_t modDataSize = std::min(MAX_MODULE_SIZE, availSize - rawPlayer.Size);
-      const Binary::Container::Ptr modData = rawData.GetSubcontainer(rawPlayer.Size, modDataSize);
+      const auto modData = rawData.GetSubcontainer(rawPlayer.Size, modDataSize);
       const InfoData& rawInfo = *typedData.GetField<InfoData>(rawPlayer.InfoOffset);
-      const Dump metainfo(rawInfo.begin(), rawInfo.end());
       if (IsInfoEmpty(rawInfo))
       {
         Dbg("Player has empty metainfo");
-        if (const Binary::Container::Ptr originalModule = Version.Parse(*modData, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
+        if (auto originalModule = Version.Parse(*modData, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
         {
           const std::size_t originalSize = originalModule->Size();
-          return CreateContainer(originalModule, rawPlayer.Size + originalSize);
+          return CreateContainer(std::move(originalModule), rawPlayer.Size + originalSize);
         }
       }
-      else if (const Binary::Container::Ptr fixedModule = Version.InsertMetaInformation(*modData, metainfo))
+      else if (auto fixedModule = Version.InsertMetaInformation(*modData, rawInfo))
       {
         if (Version.Parse(*fixedModule, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
         {
-          const std::size_t originalSize = fixedModule->Size() - metainfo.size();
-          return CreateContainer(fixedModule, rawPlayer.Size + originalSize);
+          const std::size_t originalSize = fixedModule->Size() - rawInfo.size();
+          return CreateContainer(std::move(fixedModule), rawPlayer.Size + originalSize);
         }
         Dbg("Failed to parse fixed module");
       }

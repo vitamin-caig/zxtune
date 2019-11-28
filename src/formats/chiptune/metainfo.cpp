@@ -27,21 +27,21 @@ namespace Chiptune
   class Patcher : public PatchedDataBuilder
   {
   public:
-    explicit Patcher(const Binary::Container& src)
+    explicit Patcher(Binary::DataView src)
       : Source(src)
       , SizeAddon(0)
     {
     }
 
-    void InsertData(std::size_t offset, const Dump& data) override
+    void InsertData(std::size_t offset, Binary::DataView data) override
     {
       Require(Insertions.insert(BlobsMap::value_type(offset, data)).second);
-      SizeAddon += data.size();
+      SizeAddon += data.Size();
     }
 
-    void OverwriteData(std::size_t offset, const Dump& data) override
+    void OverwriteData(std::size_t offset, Binary::DataView data) override
     {
-      Require(offset + data.size() <= Source.Size());
+      Require(offset + data.Size() <= Source.Size());
       Require(Overwrites.insert(BlobsMap::value_type(offset, data)).second);
     }
 
@@ -82,7 +82,7 @@ namespace Chiptune
     {
       for (const auto& over : Overwrites)
       {
-        std::copy(over.second.begin(), over.second.end(), result.begin() + over.first);
+        std::memcpy(result.data() + over.first, over.second.Start(), over.second.Size());
       }
     }
 
@@ -106,14 +106,15 @@ namespace Chiptune
           src = nextEnd;
           oldOffset += toCopy;
         }
-        dst = std::copy(ins.second.begin(), ins.second.end(), dst);
+        std::memcpy(&*dst, ins.second.Start(), ins.second.Size());
+        dst += ins.second.Size();
       }
       std::copy(src, srcEnd, dst);
       result.swap(tmp);
     }
   private:
-    const Binary::Container& Source;
-    typedef std::map<std::size_t, Dump> BlobsMap;
+    const Binary::DataView Source;
+    typedef std::map<std::size_t, Binary::DataView> BlobsMap;
     typedef std::map<std::size_t, int_t> FixesMap;
     BlobsMap Insertions;
     BlobsMap Overwrites;
@@ -127,7 +128,7 @@ namespace Formats
 {
   namespace Chiptune
   {
-    PatchedDataBuilder::Ptr PatchedDataBuilder::Create(const Binary::Container& data)
+    PatchedDataBuilder::Ptr PatchedDataBuilder::Create(Binary::DataView data)
     {
       return MakePtr<Patcher>(data);
     }

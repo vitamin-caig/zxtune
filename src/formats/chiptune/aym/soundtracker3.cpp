@@ -814,7 +814,7 @@ namespace Chiptune
         }
       }
 
-      Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, const Dump& info)
+      Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, Binary::DataView info)
       {
         using namespace SoundTracker3;
         StatisticCollectingBuilder statistic(GetStubBuilder());
@@ -823,7 +823,7 @@ namespace Chiptune
           const Binary::TypedContainer typedHelper(CreateContainer(*parsed));
           const RawHeader& header = *typedHelper.GetField<RawHeader>(0);
           const std::size_t headerSize = sizeof(header);
-          const std::size_t infoSize = info.size();
+          const std::size_t infoSize = info.Size();
           const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
           const RawId* const id = typedHelper.GetField<RawId>(headerSize);
           if (id && id->Check())
