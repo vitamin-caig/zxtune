@@ -268,7 +268,7 @@ namespace Chiptune
           Data[0x9] = introutine & 0xff;
           Data[0xa] = introutine >> 8; //call routine
         }
-      private:
+
         std::array<uint8_t, 13> Data;
       };
 
@@ -291,7 +291,7 @@ namespace Chiptune
           Data[0x2] = init & 0xff;
           Data[0x3] = init >> 8;
         }
-      private:
+
         std::array<uint8_t, 10> Data;
       };
     public:
@@ -321,12 +321,12 @@ namespace Chiptune
         if (play)
         {
           Im1Player player(init, play);
-          AddBlock(0, Binary::DataView(&player, sizeof(player)));
+          AddBlock(0, player.Data);
         }
         else
         {
           Im2Player player(init);
-          AddBlock(0, Binary::DataView(&player, sizeof(player)));
+          AddBlock(0, player.Data);
         }
       }
 

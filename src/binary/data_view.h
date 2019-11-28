@@ -15,6 +15,7 @@
 //common includes
 #include <contract.h>
 //std includes
+#include <type_traits>
 #include <vector>
 
 namespace Binary
@@ -33,6 +34,14 @@ namespace Binary
     template<class T>
     DataView(const std::vector<T>& data)
       : DataView(data.data(), data.size() * sizeof(T))
+    {
+    }
+
+    //is_trivially_copyable is not implemented in windows mingw
+    template<typename T,
+             typename std::enable_if<std::is_pod<T>::value && !std::is_pointer<T>::value && std::is_compound<T>::value, int>::type = 0>
+    DataView(const T& data)
+      : DataView(&data, sizeof(data))
     {
     }
 

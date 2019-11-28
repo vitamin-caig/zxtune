@@ -267,8 +267,8 @@ namespace Chiptune
           else
           {
             Dbg(" Stub sample");
-            const uint8_t dummy = 128;
-            samples.Add(samIdx, 0, Binary::CreateContainer(Binary::DataView(&dummy, 1)));
+            static const uint8_t dummy[1] = {128};
+            samples.Add(samIdx, 0, Binary::CreateContainer(dummy));
           }
         }
       }

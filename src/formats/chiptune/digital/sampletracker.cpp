@@ -187,8 +187,8 @@ namespace Chiptune
           else
           {
             Dbg(" Stub sample %1%", samIdx);
-            const uint8_t dummy = 128;
-            target.SetSample(samIdx, 0, Binary::DataView(&dummy, sizeof(dummy)), false);
+            const uint8_t dummy[] = {128};
+            target.SetSample(samIdx, 0, dummy, false);
           }
         }
         if (sams.Maximum() != SAMPLES_COUNT - 1)

@@ -437,12 +437,12 @@ namespace Chiptune
         Require(hdr.Signature == SIGNATURE);
         ParseID666(hdr.ID666, target);
         target.SetRegisters(fromLE(hdr.Regs.PC), hdr.Regs.A, hdr.Regs.X, hdr.Regs.Y, hdr.Regs.PSW, hdr.Regs.SP);
-        target.SetRAM(Binary::DataView(hdr.RAM, sizeof(hdr.RAM)));
-        target.SetDSPRegisters(Binary::DataView(hdr.DSPRegisters, sizeof(hdr.DSPRegisters)));
+        target.SetRAM(hdr.RAM);
+        target.SetDSPRegisters(hdr.DSPRegisters);
         if (Stream.GetRestSize() >= sizeof(ExtraRAM))
         {
           const ExtraRAM& extra = Stream.ReadField<ExtraRAM>();
-          target.SetExtraRAM(Binary::DataView(extra.Data, sizeof(extra.Data)));
+          target.SetExtraRAM(extra.Data);
         }
       }
       

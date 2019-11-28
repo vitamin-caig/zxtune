@@ -129,12 +129,12 @@ namespace Chiptune
         bool continued = false;
         while (size > MAX_PAGE_SIZE)
         {
-          AddPage(UNFINISHED_PAGE_POSITION, data, MAX_PAGE_SIZE, continued);
+          AddPage(UNFINISHED_PAGE_POSITION, Binary::DataView(data, MAX_PAGE_SIZE), continued);
           data += MAX_PAGE_SIZE;
           size -= MAX_PAGE_SIZE;
           continued = true;
         }
-        AddPage(position, data, size, continued);
+        AddPage(position, Binary::DataView(data, size), continued);
       }
 
       Binary::Container::Ptr CaptureResult()
@@ -152,18 +152,18 @@ namespace Chiptune
         LAST_PAGE = 4
       };
 
-      void AddPage(uint64_t position, const uint8_t* data, std::size_t size, bool continued)
+      void AddPage(uint64_t position, Binary::DataView data, bool continued)
       {
         if (PagesDone)
         {
           CalculateCrc();
         }
-        const uint8_t segmentsCount = static_cast<uint8_t>(size / MAX_SEGMENT_SIZE) + 1;
+        const uint8_t segmentsCount = static_cast<uint8_t>(data.Size() / MAX_SEGMENT_SIZE) + 1;
         LastPageOffset = Storage.Size();
-        LastPageSize = 27 + segmentsCount + size;
+        LastPageSize = 27 + segmentsCount + data.Size();
         Storage.Allocate(LastPageSize);
         Storage.Resize(LastPageOffset);
-        Storage.Add(SIGNATURE, sizeof(SIGNATURE));
+        Storage.Add(SIGNATURE);
         Storage.Add(VERSION);
         //assume single stream, so first page is always first
         const uint8_t flag = PagesDone == 0 ? FIRST_PAGE : (continued ? CONTINUED_PACKET : 0);
@@ -174,8 +174,8 @@ namespace Chiptune
         const uint32_t EMPTY_CRC = 0;
         Storage.Add(EMPTY_CRC);
         Storage.Add(segmentsCount);
-        WriteSegments(size, static_cast<uint8_t*>(Storage.Allocate(segmentsCount)));
-        Storage.Add(data, size);
+        WriteSegments(data.Size(), static_cast<uint8_t*>(Storage.Allocate(segmentsCount)));
+        Storage.Add(data);
       }
 
       void WriteSegments(std::size_t size, uint8_t* data)
@@ -439,7 +439,7 @@ namespace Chiptune
       {
         Binary::DataBuilder builder(30);
         builder.Add(uint8_t(Vorbis::Identification));
-        builder.Add(Vorbis::SIGNATURE.data(), Vorbis::SIGNATURE.size());
+        builder.Add(Vorbis::SIGNATURE);
         builder.Add(Vorbis::VERSION);
         builder.Add(channels);
         builder.Add(fromLE(frequency));

@@ -38,7 +38,7 @@ namespace
     //                                  <truncsubsub>
     
     std::cout << "Test for CreateContainer" << std::endl;
-    const auto data = Binary::CreateContainer(Binary::DataView(DATA, sizeof(DATA)));
+    const auto data = Binary::CreateContainer(DATA);
     Test("copying", data->Start() != DATA);
     TestContainer(*data, sizeof(DATA), DATA);
     std::cout << "Test for GetSubcontainer" << std::endl;
@@ -59,6 +59,57 @@ namespace
     const auto copy = Binary::CreateContainer(data);
     Test("opticopy", data->Start() == copy->Start());
   }
+
+  void TestDataView()
+  {
+    std::cout << "Test for DataView" << std::endl;
+    try
+    {
+      const uint8_t data[] = {};
+      const auto view = Binary::DataView(data);
+      throw 1;
+    }
+    catch (const std::exception&)
+    {
+      Test("no data", true);
+    }
+    try
+    {
+      const auto view = Binary::DataView(nullptr, 10);
+      throw 1;
+    }
+    catch (const std::exception&)
+    {
+      Test("null data", true);
+    }
+    {
+      const uint8_t data[] = {0, 1, 2};
+      const auto view = Binary::DataView(data);
+      Test("uint8_t[] size", view.Size() == 3);
+      Test("uint8_t[] data", view.Start() == data);
+    }
+    {
+      // Should has no non-standard ctors
+      struct Mixed
+      {
+        uint8_t byte;
+        uint16_t word;
+        uint32_t dword;
+        uint64_t qword;
+        uint8_t byte2;
+      };
+      const Mixed data = {0, 1, 2, 3, 4};
+      const auto view = Binary::DataView(data);
+      Test("struct size", view.Size() == 24);
+      Test("struct data", view.Start() == &data);
+    }
+    {
+      const std::array<uint32_t, 10> data = {};
+      const auto view = Binary::DataView(data);
+      Test("std::array size", view.Size() == 40);
+      Test("std::array data", view.Start() == &data);
+    }
+  }
 }
 
 int main()
@@ -66,6 +117,7 @@ int main()
   try
   {
     TestContainer();
+    TestDataView();
   }
   catch (...)
   {

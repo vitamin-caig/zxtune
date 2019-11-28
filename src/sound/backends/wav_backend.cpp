@@ -231,7 +231,7 @@ namespace Wav
       Stream->Seek(0);
       Format.Size = fromLE<uint32_t>(sizeof(Format) - offsetof(WaveFormat, Type) + DoneBytes + Meta.size());
       Format.DataSize = fromLE<uint32_t>(DoneBytes);
-      Stream->ApplyData(Binary::DataView(&Format, sizeof(Format)));
+      Stream->ApplyData(Format);
       Stream->Seek(DoneBytes + sizeof(Format));
     }
   private:

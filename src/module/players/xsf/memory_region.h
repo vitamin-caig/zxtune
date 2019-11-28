@@ -10,6 +10,8 @@
 
 #pragma once
 
+//common includes
+#include <types.h>
 //library includes
 #include <binary/data_view.h>
 

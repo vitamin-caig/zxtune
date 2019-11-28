@@ -288,7 +288,7 @@ namespace Chiptune
       {
         Storage.Add(Chunks::DATA);
         Storage.Add(fromLE<uint32_t>(data->Size()));
-        Storage.Add(data->Start(), data->Size());
+        Storage.Add(*data);
       }
 
       void SetSamplesCountHint(uint_t count) override

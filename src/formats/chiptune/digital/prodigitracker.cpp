@@ -339,8 +339,8 @@ namespace Chiptune
             }
           }
           Dbg(" Stub sample %1%", samIdx);
-          const uint8_t dummy = 128;
-          target.SetSample(samIdx, 0, Binary::DataView(&dummy, sizeof(dummy)));
+          const uint8_t dummy[] = {128};
+          target.SetSample(samIdx, 0, dummy);
         }
       }
       
