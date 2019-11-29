@@ -9,77 +9,81 @@ def getListProperty(name, defvalue) {
 }
 
 android {
-    def code = defaultConfig.versionCode
-    def name = defaultConfig.versionName
+    flavorDimensions "packaging"
 
-    flavorDimensions "abi"
+    splits.abi {
+        reset()
+    }
 
+    // Splits config is global and cannot be per-variant
+    // so, it conflicts with another flavors due to non-empty ndk.abiFilters
     productFlavors {
+        // Single APK
         fat {
-            dimension "abi"
-            versionCode code + 0
-            versionName name + ""
-            ndkConfig.abiFilters getListProperty("flavors.fat.abifilters", "armeabi armeabi-v7a")
+            dimension "packaging"
+            ndk.abiFilters getListProperty("flavors.fat.abifilters", "")
         }
 
-        arm7 {
-            dimension "abi"
-            versionCode code + 2
-            versionName name + "+2_armeabi-v7a"
-            ndkConfig.abiFilters "armeabi-v7a"
+        // Single AAB
+        thin {
+            dimension "packaging"
+            ndk.abiFilters getListProperty("flavors.thin.abifilters", "")
         }
 
-        arm64 {
-            dimension "abi"
-            versionCode code + 3
-            versionName name + "+3_arm64-v8a"
-            ndkConfig.abiFilters "arm64-v8a"
-        }
-
-        x86 {
-            dimension "abi"
-            versionCode code + 4
-            versionName name + "+4_x86"
-            ndkConfig.abiFilters "x86"
-        }
-
-        x86_64 {
-            dimension "abi"
-            versionCode code + 5
-            versionName name + "+5_x86_64"
-            ndkConfig.abiFilters "x86_64"
+        // Several APKs
+        // Should not be combined with another flavors (configs)
+        splitted {
+            dimension "packaging"
+            ndk.abiFilters getListProperty("flavors.splitted.abifilters", "")
         }
     }
 
-    def flavorsFilter = getListProperty("flavors.abi", "fat")
     variantFilter { variant ->
         def flavor = variant.getFlavors().get(0)
-        if (!flavorsFilter.contains(flavor.name)) {
-            println "Disable flavor " + flavor.name
-            variant.setIgnore(true)
+        def abis = flavor.ndk.abiFilters
+        if (variant.name =~ /splitted/) {
+            if (!abis.isEmpty()) {
+                splits.abi.enable true
+                splits.abi.include((String[])abis.toArray())
+                abis.clear()
+            }
+            if (splits.abi.enable) {
+                return
+            }
+        }
+        if (abis.isEmpty()) {
+            setIgnore(true)
+            println 'Disable ' + variant.name
         }
     }
 }
 
 def callMake(cmdline) {
     def fullCmd = "make platform=android ${cmdline}"
+    println fullCmd
     def proc = fullCmd.execute()
     proc.consumeProcessOutput(System.out, System.out)
     assert 0 == proc.waitFor()
 }
 
+def getABIs(variant) {
+   def abis = variant.outputs*.getFilter("ABI")
+   return abis.size() && abis[0] ? abis : variant.ndkCompile.abiFilters
+}
+
 android {
     applicationVariants.all { variant ->
-        tasks.getByName("compile${variant.name.capitalize()}Ndk").enabled = false
-        def taskName = "nativeLibs${variant.name.capitalize()}"
-        task(taskName) {
+        def suffix = variant.name.capitalize()
+        tasks.getByName("compile${suffix}Ndk").enabled = false
+        def nativeLibs = task("nativeLibs${suffix}", group: "Native") {
             def libsDir = variant.ndkCompile.soFolder
+            def abis = getABIs(variant)
             //optimize incremental builds - assume existing soFolder means that all libs are ready
             outputs.dir libsDir
             doLast {
                 def cpuCount = Runtime.runtime.availableProcessors()
                 def jniDir = variant.ndkCompile.source.first().parent
-                variant.ndkCompile.abiFilters.each { arch ->
+                abis.each { arch ->
                     def baseCmd = "arch=${arch} -C ${jniDir}"
                     callMake("${baseCmd} -j ${cpuCount}")
                     def dstDir = file("${libsDir}/${arch}")
@@ -88,20 +92,17 @@ android {
                 }
             }
         }
-        tasks.getByName("package${variant.name.capitalize()}").dependsOn.add(taskName)
-    }
-}
+        tasks.getByName("package${suffix}").dependsOn.add(nativeLibs)
+        tasks.getByName("merge${suffix}JniLibFolders").dependsOn.add(nativeLibs)
 
-android {
-    applicationVariants.all { variant ->
-        def taskName = "nativeLibsDebugSymbols${variant.name.capitalize()}"
-        task(taskName) {
+        task("nativeLibsDebugSymbols${suffix}", group: "Native", dependsOn: nativeLibs) {
             def objsDir = variant.ndkCompile.objFolder
+            def abis = getABIs(variant)
             //optimize incremental builds - assume existing objFolder means that all libs are ready
             outputs.dir objsDir
             doLast {
                 def jniDir = variant.ndkCompile.source.first().parent
-                variant.ndkCompile.abiFilters.each { arch ->
+                abis.each { arch ->
                     def baseCmd = "arch=${arch} -C ${jniDir}"
                     def objDir = file("${objsDir}/${arch}")
                     objDir.mkdirs()
@@ -112,28 +113,36 @@ android {
     }
 }
 
-def getUsedArchitectures() {
-    def result = new HashSet<String>()
-    android.applicationVariants.all { variant ->
-        result.addAll(variant.ndkCompile.abiFilters)
-    }
-    return result
-}
-
+// publish
 android {
     ext.publicBuildsDir = "${treeRoot}/Builds/${defaultConfig.versionName}/android"
-    
-    task publicBuild
 
+    task publicBuild(group: "Publish") {}
+    
     applicationVariants.all { variant ->
         def suffix = variant.name.capitalize()
         def baseName = "${project.name}_${variant.mergedFlavor.versionName}"
-        def publishApk = task("publishApk${suffix}", type: Copy) {
-            def apks = variant.outputs
-            assert apks.size() == 1
-            from apks.first().outputFile
-            into publicBuildsDir
-            rename ".*", "${baseName}.apk"
+        def publishApk = task("publishApk${suffix}", group: "Publish", dependsOn: ["assemble${suffix}"] ) << {
+            variant.outputs.each { out ->
+              copy {
+                def abi = out.getFilter("ABI")
+                from out.outputFile
+                into publicBuildsDir
+                rename ".*\\.apk", "${baseName}${abi ? '_' + abi : ''}.apk"
+              }
+            }
+        }
+
+        def publishAab = task("publishAab${suffix}", group: "Publish", dependsOn: ["bundle${suffix}"]) << {
+          variant.outputs.each { out -> 
+            //TODO: find more suitable way to get bundle path
+            def bundleDir = tasks["package${suffix}Bundle"].outputs.files.singleFile
+            copy {
+             from bundleDir
+             into publicBuildsDir
+             rename ".*\\.aab", "${baseName}.aab"
+            }
+          }
         }
 
         if (variant.getBuildType().isMinifyEnabled()) {
@@ -145,29 +154,24 @@ android {
                 }
             }
         }
-    
+
         if (variant.buildType.name == "release") {
-            def taskName = "publicBuild${variant.flavorName.capitalize()}"
-            task(taskName, dependsOn: ["assemble${suffix}", "publishApk${suffix}"]) {
-            }
-            publicBuild.dependsOn.add(taskName)
+           if (variant.name =~ /thin/) {
+             publicBuild.dependsOn publishAab
+           } else {
+             publicBuild.dependsOn publishApk
+           }
         }
     }
 
-    task publishPdb {
-        def dbgArchive = "${publicBuildsDir}/${project.name}.tar.bz2"
-        outputs.file dbgArchive
-        doLast {
-            def dbgDir = "${publicBuildsDir}/debug"
-            def jniDir = sourceSets.findByName("main").jni.srcDirs.first()
-            getUsedArchitectures().each { arch ->
-                def pdbDir = file("${dbgDir}/${arch}")
-                pdbDir.mkdirs()
-                callMake("arch=${arch} -C ${jniDir} DESTDIR=${pdbDir} install_debug")
-            }
-            "tar -cjf ${dbgArchive} --remove-files ${dbgDir}".execute().waitFor()
+    task publishPdb(group: "Publish", type: Tar) {
+        compression "BZIP2"
+        archiveName "${project.name}.tar.bz2"
+        destinationDir new File("${publicBuildsDir}")
+        from ("${treeRoot}/bin") {
+            include "android_*/*/*.pdb"
         }
     }
 
-    publicBuild.dependsOn.add(publishPdb)
+    publicBuild.dependsOn publishPdb
 }
