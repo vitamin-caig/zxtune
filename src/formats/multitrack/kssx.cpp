@@ -96,10 +96,10 @@ namespace Multitrack
       
       uint_t FixedChecksum() const override
       {
-        const void* const data = Delegate->Start();
-        const RawHeader* const header = static_cast<const RawHeader*>(data);
+        const Binary::View data(*Delegate);
+        const RawHeader* const header = static_cast<const RawHeader*>(data.Start());
         const std::size_t headersSize = sizeof(*header) + header->ExtraHeaderSize;
-        return Binary::Crc32(Binary::View(static_cast<const uint8_t*>(data) + headersSize, Delegate->Size() - headersSize));
+        return Binary::Crc32(data.SubView(headersSize));
       }
 
       uint_t TracksCount() const override

@@ -737,10 +737,9 @@ namespace Chiptune
     class Decompressor
     {
     public:
-      Decompressor(const Binary::Container& data, std::size_t offset, std::size_t targetSize)
+      Decompressor(Binary::View data, std::size_t offset, std::size_t targetSize)
         : Stream(static_cast<const uint8_t*>(data.Start()), data.Size())
-        , Result(new Dump())
-        , Decoded(*Result)
+        , Decoded()
       {
         Decoded.reserve(targetSize);
         for (; offset; --offset)
@@ -754,6 +753,11 @@ namespace Chiptune
       const T* GetResult() const
       {
         return safe_ptr_cast<const T*>(Decoded.data());
+      }
+
+      Binary::View GetResult() const
+      {
+        return Decoded;
       }
 
       std::size_t GetUsedSize() const
@@ -796,8 +800,7 @@ namespace Chiptune
       }
     private:
       ByteStream Stream;
-      std::unique_ptr<Dump> Result;
-      Dump& Decoded;
+      Dump Decoded;
     };
     
     StringView Trim(StringView str)
@@ -1125,7 +1128,7 @@ namespace Chiptune
           const Binary::Container::Ptr subData = data.GetSubcontainer(0, decompressor.GetUsedSize());
           const std::size_t fixStart = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * usedPatterns.Minimum();
           const std::size_t fixEnd = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * (1 + usedPatterns.Maximum());
-          const uint_t crc = Binary::Crc32(Binary::View(decompressor.GetResult<uint8_t>() + fixStart, fixEnd - fixStart));
+          const uint_t crc = Binary::Crc32(decompressor.GetResult().SubView(fixStart, fixEnd - fixStart));
           return CreateKnownCrcContainer(subData, crc);
         }
         catch (const std::exception&)

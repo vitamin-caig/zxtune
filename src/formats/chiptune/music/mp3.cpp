@@ -71,7 +71,7 @@ namespace Chiptune
             Require(avail >= dataSize);
             const auto key = stream.ReadCString(avail - dataSize);
             const auto data = stream.ReadData(dataSize);
-            ParseKey(key, StringView(safe_ptr_cast<const char*>(data.Start()), data.Size()), target);
+            ParseKey(key, StringView(static_cast<const char*>(data.Start()), data.Size()), target);
           }
         }
         catch (const std::exception&)

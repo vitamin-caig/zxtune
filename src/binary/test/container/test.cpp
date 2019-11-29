@@ -63,30 +63,19 @@ namespace
   void TestView()
   {
     std::cout << "Test for View" << std::endl;
-    try
     {
       const uint8_t data[] = {};
       const auto view = Binary::View(data);
-      throw 1;
+      Test("empty data", !view && view.Size() == 0 && view.Start() == nullptr);
     }
-    catch (const std::exception&)
-    {
-      Test("no data", true);
-    }
-    try
     {
       const auto view = Binary::View(nullptr, 10);
-      throw 1;
-    }
-    catch (const std::exception&)
-    {
-      Test("null data", true);
+      Test("null data", !view && view.Size() == 0 && view.Start() == nullptr);
     }
     {
       const uint8_t data[] = {0, 1, 2};
       const auto view = Binary::View(data);
-      Test("uint8_t[] size", view.Size() == 3);
-      Test("uint8_t[] data", view.Start() == data);
+      Test("uint8_t[]", view && view.Size() == 3 && view.Start() == data);
     }
     {
       // Should has no non-standard ctors
@@ -100,14 +89,37 @@ namespace
       };
       const Mixed data = {0, 1, 2, 3, 4};
       const auto view = Binary::View(data);
-      Test("struct size", view.Size() == 24);
-      Test("struct data", view.Start() == &data);
+      Test("struct", view && view.Size() == 24 && view.Start() == &data);
     }
     {
       const std::array<uint32_t, 10> data = {};
       const auto view = Binary::View(data);
-      Test("std::array size", view.Size() == 40);
-      Test("std::array data", view.Start() == &data);
+      Test("std::array", view && view.Size() == 40 && view.Start() == &data);
+    }
+    std::cout << "Test for View::SubView" << std::endl;
+    {
+      const uint8_t data[] = {0, 1, 2, 3, 4, 5, 6, 7};
+      const auto view = Binary::View(data);
+      {
+        const auto sub = view.SubView(0, 4);
+        Test("begin", sub && sub.Start() == data && sub.Size() == 4);
+      }
+      {
+        const auto sub = view.SubView(0, 100);
+        Test("begin truncated", sub && sub.Start() == data && sub.Size() == 8);
+      }
+      {
+        const auto sub = view.SubView(3, 4);
+        Test("middle", sub && sub.Start() == data + 3 && sub.Size() == 4);
+      }
+      {
+        const auto sub = view.SubView(3, 100);
+        Test("middle truncated", sub && sub.Start() == data + 3 && sub.Size() == 5);
+      }
+      {
+        const auto sub = view.SubView(8);
+        Test("end", !sub && sub.Start() == nullptr && sub.Size() == 0);
+      }
     }
   }
 }

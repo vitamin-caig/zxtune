@@ -167,7 +167,7 @@ namespace Multitrack
             const auto data = input.ReadData(size);
             if (hdr.Id == INFO)
             {
-              fixedCrc = Binary::Crc32(Binary::View(data.Start(), sizeof(InfoChunk)), fixedCrc);
+              fixedCrc = Binary::Crc32(data.SubView(0, sizeof(InfoChunk)), fixedCrc);
               if (size >= sizeof(InfoChunkFull))
               {
                 info = safe_ptr_cast<const InfoChunkFull*>(data.Start());

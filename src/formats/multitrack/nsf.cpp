@@ -113,9 +113,9 @@ namespace Multitrack
       uint_t FixedChecksum() const override
       {
         //just skip text fields
-        const uint8_t* const data = static_cast<const uint8_t*>(Delegate->Start());
-        const uint32_t part1 = Binary::Crc32(Binary::View(data, offsetof(RawHeader, Title)));
-        const uint32_t part2 = Binary::Crc32(Binary::View(data + offsetof(RawHeader, NTSCSpeedUs), Delegate->Size() - offsetof(RawHeader, NTSCSpeedUs)), part1);
+        const Binary::View data(*Delegate);
+        const uint32_t part1 = Binary::Crc32(data.SubView(0, offsetof(RawHeader, Title)));
+        const uint32_t part2 = Binary::Crc32(data.SubView(offsetof(RawHeader, NTSCSpeedUs)), part1);
         return part2;
       }
 

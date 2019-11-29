@@ -10,10 +10,8 @@
 
 #pragma once
 
-//local includes
-#include "binary/data.h" //TODO: remove
 //common includes
-#include <contract.h>
+#include <types.h>
 //std includes
 #include <type_traits>
 #include <vector>
@@ -22,13 +20,16 @@ namespace Binary
 {
   class View
   {
+  private:
+    View()
+     : View(nullptr, 0)
+    {
+    }
   public:
     View(const void* start, std::size_t size)
-      : Begin(start)
-      , Length(size)
+      : Begin(size ? start : nullptr)
+      , Length(Begin ? size : 0)
     {
-      Require(start != nullptr);
-      Require(size != 0);
     }
 
     template<class T>
@@ -46,15 +47,7 @@ namespace Binary
     }
 
     //TODO: remove
-    /*explicit*/View(const Data& data)
-      : View(data.Start(), data.Size())
-    {
-    }
-
-    bool operator == (View rh) const
-    {
-      return Begin == rh.Begin && Length == rh.Length;
-    }
+    /*explicit*/View(const class Data& data);
 
     const void* Start() const
     {
@@ -64,6 +57,28 @@ namespace Binary
     std::size_t Size() const
     {
       return Length;
+    }
+
+    explicit operator bool () const
+    {
+      return Length != 0;
+    }
+
+    bool operator == (View rh) const
+    {
+      return Begin == rh.Begin && Length == rh.Length;
+    }
+
+    View SubView(std::size_t offset, std::size_t maxSize = ~0u) const
+    {
+      if (offset < Length)
+      {
+        return View(static_cast<const uint8_t*>(Begin) + offset, std::min(maxSize, Length - offset));
+      }
+      else
+      {
+        return View();
+      }
     }
   private:
     const void* const Begin;
