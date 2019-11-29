@@ -65,7 +65,7 @@ namespace Formats
 
       uint_t FixedChecksum() const override
       {
-        return Binary::Crc32(Binary::DataView(static_cast<const uint8_t*>(Delegate->Start()) + FixedOffset, FixedSize));
+        return Binary::Crc32(Binary::View(static_cast<const uint8_t*>(Delegate->Start()) + FixedOffset, FixedSize));
       }
     private:
       const std::size_t FixedOffset;

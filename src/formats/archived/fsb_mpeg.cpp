@@ -51,7 +51,7 @@ namespace FSB
         Names[CurSample] = std::move(name);
       }
       
-      void AddMetaChunk(uint_t /*type*/, Binary::DataView /*chunk*/) override
+      void AddMetaChunk(uint_t /*type*/, Binary::View /*chunk*/) override
       {
       }
       

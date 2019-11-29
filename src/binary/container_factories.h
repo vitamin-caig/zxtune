@@ -14,13 +14,13 @@
 #include <types.h>
 //library includes
 #include <binary/container.h>
-#include <binary/data_view.h>
+#include <binary/view.h>
 
 namespace Binary
 {
   //! @brief Creating data container based on raw data
   //! @invariant Source data is copied
-  Container::Ptr CreateContainer(DataView data);
+  Container::Ptr CreateContainer(View data);
   //! @brief Taking ownership of source data
   Container::Ptr CreateContainer(std::unique_ptr<Dump> data);
   //! @brief Sharing ownership of source data

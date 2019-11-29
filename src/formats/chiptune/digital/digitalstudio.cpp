@@ -192,7 +192,7 @@ namespace Chiptune
     };
 
     //TODO: extract
-    Binary::Data::Ptr CreateCompositeData(Binary::DataView lh, Binary::DataView rh)
+    Binary::Data::Ptr CreateCompositeData(Binary::View lh, Binary::View rh)
     {
       const std::size_t size1 = lh.Size();
       const std::size_t size2 = rh.Size();

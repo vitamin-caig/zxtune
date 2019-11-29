@@ -15,7 +15,7 @@
 
 namespace Module
 {
-  void MemoryRegion::Update(uint_t addr, Binary::DataView data)
+  void MemoryRegion::Update(uint_t addr, Binary::View data)
   {
     if (const auto oldSize = Data.size())
     {

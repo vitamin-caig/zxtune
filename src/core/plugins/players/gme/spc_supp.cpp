@@ -49,7 +49,7 @@ namespace SPC
   public:
     typedef std::shared_ptr<SPC> Ptr;
     
-    explicit SPC(Binary::DataView data)
+    explicit SPC(Binary::View data)
       : Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
     {
       CheckError(Spc.init());
@@ -369,15 +369,15 @@ namespace SPC
       Properties.SetAuthor(Author = std::move(artist));
     }
     
-    void SetRAM(Binary::DataView /*data*/) override
+    void SetRAM(Binary::View /*data*/) override
     {
     }
     
-    void SetDSPRegisters(Binary::DataView /*data*/) override
+    void SetDSPRegisters(Binary::View /*data*/) override
     {
     }
     
-    void SetExtraRAM(Binary::DataView /*data*/) override
+    void SetExtraRAM(Binary::View /*data*/) override
     {
     }
     

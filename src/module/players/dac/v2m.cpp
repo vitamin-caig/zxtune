@@ -62,7 +62,7 @@ namespace V2M
   public:
     static const uint_t SAMPLERATE = 44100;
 
-    static DataPtr Convert(Binary::DataView in)
+    static DataPtr Convert(Binary::View in)
     {
       static const V2mSoundDef SOUNDDEF;
       uint8_t* outData = nullptr;

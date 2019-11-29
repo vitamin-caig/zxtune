@@ -13,7 +13,7 @@
 //local includes
 #include "module/players/xsf/memory_region.h"
 // library includes
-#include <binary/data_view.h>
+#include <binary/view.h>
 //std includes
 #include <memory>
 
@@ -33,7 +33,7 @@ namespace Module
       uint32_t EntryPoint = 0;
       MemoryRegion Content;
       
-      static void Parse(Binary::DataView data, GbaRom& rom);
+      static void Parse(Binary::View data, GbaRom& rom);
     };
   }
 }

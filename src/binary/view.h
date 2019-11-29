@@ -20,10 +20,10 @@
 
 namespace Binary
 {
-  class DataView
+  class View
   {
   public:
-    DataView(const void* start, std::size_t size)
+    View(const void* start, std::size_t size)
       : Begin(start)
       , Length(size)
     {
@@ -32,26 +32,26 @@ namespace Binary
     }
 
     template<class T>
-    DataView(const std::vector<T>& data)
-      : DataView(data.data(), data.size() * sizeof(T))
+    View(const std::vector<T>& data)
+      : View(data.data(), data.size() * sizeof(T))
     {
     }
 
     //is_trivially_copyable is not implemented in windows mingw
     template<typename T,
              typename std::enable_if<std::is_pod<T>::value && !std::is_pointer<T>::value && std::is_compound<T>::value, int>::type = 0>
-    DataView(const T& data)
-      : DataView(&data, sizeof(data))
+    View(const T& data)
+      : View(&data, sizeof(data))
     {
     }
 
     //TODO: remove
-    /*explicit*/DataView(const Data& data)
-      : DataView(data.Start(), data.Size())
+    /*explicit*/View(const Data& data)
+      : View(data.Start(), data.Size())
     {
     }
 
-    bool operator == (DataView rh) const
+    bool operator == (View rh) const
     {
       return Begin == rh.Begin && Length == rh.Length;
     }

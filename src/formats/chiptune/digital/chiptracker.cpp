@@ -158,7 +158,7 @@ namespace Chiptune
       }
 
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::DataView /*content*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::View /*content*/) override {}
       void SetPositions(Positions /*positions*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
@@ -194,7 +194,7 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, std::size_t loop, Binary::DataView data) override
+      void SetSample(uint_t index, std::size_t loop, Binary::View data) override
       {
         return Delegate.SetSample(index, loop, data);
       }

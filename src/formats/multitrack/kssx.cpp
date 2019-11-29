@@ -99,7 +99,7 @@ namespace Multitrack
         const void* const data = Delegate->Start();
         const RawHeader* const header = static_cast<const RawHeader*>(data);
         const std::size_t headersSize = sizeof(*header) + header->ExtraHeaderSize;
-        return Binary::Crc32(Binary::DataView(static_cast<const uint8_t*>(data) + headersSize, Delegate->Size() - headersSize));
+        return Binary::Crc32(Binary::View(static_cast<const uint8_t*>(data) + headersSize, Delegate->Size() - headersSize));
       }
 
       uint_t TracksCount() const override

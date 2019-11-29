@@ -52,7 +52,7 @@ namespace Module
         }
       }
       
-      void SetTextSection(uint32_t address, Binary::DataView content) override
+      void SetTextSection(uint32_t address, Binary::View content) override
       {
         const auto addr = address & 0x1fffff;
         const auto size = content.Size();
@@ -64,7 +64,7 @@ namespace Module
       PsxExe& Exe;
     };
     
-    void PsxExe::Parse(Binary::DataView data, PsxExe& exe)
+    void PsxExe::Parse(Binary::View data, PsxExe& exe)
     {
       ExeParser parser(exe);
       Formats::Chiptune::PlaystationSoundFormat::ParsePSXExe(data, parser);

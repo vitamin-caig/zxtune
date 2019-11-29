@@ -36,7 +36,7 @@ namespace Module
         }
       }
       
-      void SetRom(uint32_t address, Binary::DataView content) override
+      void SetRom(uint32_t address, Binary::View content) override
       {
         Rom.Content.Update(address & 0x1fffffff, content);
       }
@@ -44,7 +44,7 @@ namespace Module
       GbaRom& Rom;
     };
     
-    void GbaRom::Parse(Binary::DataView data, GbaRom& rom)
+    void GbaRom::Parse(Binary::View data, GbaRom& rom)
     {
       RomParser parser(rom);
       Formats::Chiptune::GameBoyAdvanceSoundFormat::ParseRom(data, parser);

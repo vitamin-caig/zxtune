@@ -111,7 +111,7 @@ namespace Chiptune
         target.SetTotalSamples(totalSamples);
       }
 
-      static inline uint_t fromBE24(Binary::DataView data)
+      static inline uint_t fromBE24(Binary::View data)
       {
         return Byteorder<3>::ReadBE(static_cast<const uint8_t*>(data.Start()));
       }

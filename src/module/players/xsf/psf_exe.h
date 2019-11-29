@@ -13,7 +13,7 @@
 //local includes
 #include "module/players/xsf/memory_region.h"
 //library includes
-#include <binary/data_view.h>
+#include <binary/view.h>
 //std includes
 #include <memory>
 
@@ -35,7 +35,7 @@ namespace Module
       uint32_t SP = 0;
       MemoryRegion RAM;
       
-      static void Parse(Binary::DataView data, PsxExe& exe);
+      static void Parse(Binary::View data, PsxExe& exe);
     };
   }
 }

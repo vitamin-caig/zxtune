@@ -32,7 +32,7 @@ Offset         Size    Description
 0x0000008      4       Size of Rom.
 0x000000C      XX      The Rom data itself.
 */    
-    void ParseRom(Binary::DataView data, Builder& target)
+    void ParseRom(Binary::View data, Builder& target)
     {
       Binary::DataInputStream stream(data);
       target.SetEntryPoint(stream.ReadLE<uint32_t>());

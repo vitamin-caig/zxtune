@@ -329,7 +329,7 @@ namespace File
       }
     }
 
-    void ApplyData(Binary::DataView data) override
+    void ApplyData(Binary::View data) override
     {
       if (!Stream.write(static_cast<const char*>(data.Start()), data.Size()))
       {

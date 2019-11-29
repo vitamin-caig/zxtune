@@ -224,7 +224,7 @@ namespace
       }
     }
 
-    void ExportItem(const String& path, const Module::Holder& item, Binary::DataView content)
+    void ExportItem(const String& path, const Module::Holder& item, Binary::View content)
     {
       try
       {
@@ -239,7 +239,7 @@ namespace
       }
     }
 
-    void Save(Binary::DataView data, const String& filename) const
+    void Save(Binary::View data, const String& filename) const
     {
       const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, *Params, Log::ProgressCallback::Stub());
       stream->ApplyData(data);

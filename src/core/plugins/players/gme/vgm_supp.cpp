@@ -408,7 +408,7 @@ namespace Module
     class PlatformDetector
     {
     public:
-      explicit PlatformDetector(Binary::DataView data)
+      explicit PlatformDetector(Binary::View data)
         : Input(data)
       {
         Input.Seek(0x8);

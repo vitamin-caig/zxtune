@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <binary/data_view.h>
+#include <binary/view.h>
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -27,10 +27,10 @@ namespace Formats
       public:
         virtual ~Builder() = default;
         
-        virtual void SetChunk(uint32_t offset, Binary::DataView content) = 0;
+        virtual void SetChunk(uint32_t offset, Binary::View content) = 0;
       };
 
-      void ParseRom(Binary::DataView data, Builder& target);
+      void ParseRom(Binary::View data, Builder& target);
       void ParseState(const Binary::Container& data, Builder& target);
     }
 

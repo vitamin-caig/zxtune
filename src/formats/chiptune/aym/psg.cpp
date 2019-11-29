@@ -64,7 +64,7 @@ namespace Chiptune
       void SetRegister(uint_t /*reg*/, uint_t /*val*/) override {}
     };
 
-    bool FastCheck(Binary::DataView rawData)
+    bool FastCheck(Binary::View rawData)
     {
       if (rawData.Size() <= sizeof(Header))
       {
@@ -114,7 +114,7 @@ namespace Chiptune
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
-      const Binary::DataView dataView(rawData);
+      const Binary::View dataView(rawData);
       if (!FastCheck(dataView))
       {
         return Formats::Chiptune::Container::Ptr();

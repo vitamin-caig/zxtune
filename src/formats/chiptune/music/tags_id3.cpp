@@ -40,7 +40,7 @@ namespace Chiptune
     class V2Format
     {
     public:
-      explicit V2Format(Binary::DataView data)
+      explicit V2Format(Binary::View data)
         : Stream(data)
       {
       }
@@ -63,7 +63,7 @@ namespace Chiptune
         }
       }
     private:
-      static void ParseTag(uint32_t id, Binary::DataView data, MetaBuilder& target)
+      static void ParseTag(uint32_t id, Binary::View data, MetaBuilder& target)
       {
         // http://id3.org/id3v2.3.0#Text_information_frames
         StringView encodedString(static_cast<const char*>(data.Start()) + 1, data.Size() - 1);

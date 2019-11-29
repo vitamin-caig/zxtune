@@ -814,7 +814,7 @@ namespace Chiptune
         }
       }
 
-      Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, Binary::DataView info)
+      Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, Binary::View info)
       {
         using namespace SoundTracker3;
         StatisticCollectingBuilder statistic(GetStubBuilder());

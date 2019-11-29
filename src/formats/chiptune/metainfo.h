@@ -14,7 +14,7 @@
 #include <types.h>
 //library includes
 #include <binary/container.h>
-#include <binary/data_view.h>
+#include <binary/view.h>
 //std includes
 #include <memory>
 
@@ -28,13 +28,13 @@ namespace Formats
       typedef std::unique_ptr<PatchedDataBuilder> Ptr;
       virtual ~PatchedDataBuilder() = default;
 
-      virtual void InsertData(std::size_t offset, Binary::DataView data) = 0;
-      virtual void OverwriteData(std::size_t offset, Binary::DataView data) = 0;
+      virtual void InsertData(std::size_t offset, Binary::View data) = 0;
+      virtual void OverwriteData(std::size_t offset, Binary::View data) = 0;
       //offset in original, non-patched data
       virtual void FixLEWord(std::size_t offset, int_t delta) = 0;
       virtual Binary::Container::Ptr GetResult() const = 0;
 
-      static Ptr Create(Binary::DataView data);
+      static Ptr Create(Binary::View data);
     };
   }
 }

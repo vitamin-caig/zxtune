@@ -32,7 +32,7 @@ namespace Chiptune
     class SectionFormat
     {
     public:
-      explicit SectionFormat(const Binary::DataView& data)
+      explicit SectionFormat(const Binary::View& data)
         : Stream(data)
       {
       }
@@ -85,7 +85,7 @@ namespace Chiptune
       Binary::DataInputStream Stream;
     };
     
-    void ParseSection(Binary::DataView data, Builder& target)
+    void ParseSection(Binary::View data, Builder& target)
     {
       SectionFormat format(data);
       if (format.HasSection())

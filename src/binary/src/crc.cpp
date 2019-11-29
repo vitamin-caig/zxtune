@@ -81,7 +81,7 @@ namespace Binary
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
   };
  
-  uint32_t Crc32(DataView data, uint32_t initial)
+  uint32_t Crc32(View data, uint32_t initial)
   {
     uint32_t crc = initial ^ 0xFFFFFFFF;
     const uint8_t* const buf = static_cast<const uint8_t*>(data.Start());

@@ -15,13 +15,13 @@ namespace Module
 {
   namespace PSF
   {
-    Binary::DataView GetSCPH10000HeBios()
+    Binary::View GetSCPH10000HeBios()
     {
       static const uint32_t RAW[] =
       {
 #include "module/players/xsf/scph10000_he.inc"
       };
-      static const Binary::DataView ADAPTED(RAW, sizeof(RAW));
+      static const Binary::View ADAPTED(RAW, sizeof(RAW));
       return ADAPTED;
     }
   }

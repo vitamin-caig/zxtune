@@ -209,7 +209,7 @@ namespace Chiptune
           OnChunk(id, std::move(data));
         }
       private:
-        static String ReadString(Binary::DataView data)
+        static String ReadString(Binary::View data)
         {
           const StringView view(static_cast<const char*>(data.Start()), data.Size());
           return Strings::ToAutoUtf8(Strings::TrimSpaces(view));

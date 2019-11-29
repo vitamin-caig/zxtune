@@ -13,7 +13,7 @@
 //common includes
 #include <types.h>
 //library includes
-#include <binary/data_view.h>
+#include <binary/view.h>
 #include <formats/chiptune.h>
 #include <time/stamp.h>
 
@@ -40,9 +40,9 @@ namespace Formats
         virtual void SetFade(Time::Milliseconds duration) = 0;
         virtual void SetArtist(String artist) = 0;
         
-        virtual void SetRAM(Binary::DataView data) = 0;
-        virtual void SetDSPRegisters(Binary::DataView data) = 0;
-        virtual void SetExtraRAM(Binary::DataView data) = 0;
+        virtual void SetRAM(Binary::View data) = 0;
+        virtual void SetDSPRegisters(Binary::View data) = 0;
+        virtual void SetExtraRAM(Binary::View data) = 0;
       };
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);

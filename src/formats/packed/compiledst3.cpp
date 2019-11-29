@@ -64,9 +64,9 @@ namespace Packed
         return fromLE(DataAddr) - compileAddr;
       }
 
-      Binary::DataView GetInfo() const
+      Binary::View GetInfo() const
       {
-        return Binary::DataView(Information, 55);
+        return Binary::View(Information, 55);
       }
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
@@ -94,7 +94,7 @@ namespace Packed
       "23"       //inc hl 
     );
 
-    bool IsInfoEmpty(Binary::DataView info)
+    bool IsInfoEmpty(Binary::View info)
     {
       assert(info.size() == 55);
       //28 is fixed

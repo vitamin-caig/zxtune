@@ -464,7 +464,7 @@ namespace Archived
         else
         {
           Require(blk.Size == blk.UncompressedSize);
-          return Binary::CreateContainer(Binary::DataView(src, blk.Size));
+          return Binary::CreateContainer(Binary::View(src, blk.Size));
         }
       }
       else

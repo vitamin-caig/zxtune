@@ -14,7 +14,7 @@
 #include <types.h>
 //library includes
 #include <binary/container.h>
-#include <binary/data_view.h>
+#include <binary/view.h>
 
 namespace Formats
 {
@@ -65,7 +65,7 @@ namespace Archived
       virtual void SetChannels(uint_t channels) = 0;
       virtual void SetName(String name) = 0;
       
-      virtual void AddMetaChunk(uint_t type, Binary::DataView chunk) = 0;
+      virtual void AddMetaChunk(uint_t type, Binary::View chunk) = 0;
       virtual void SetData(uint_t samplesCount, Binary::Container::Ptr blob) = 0;
     };
     

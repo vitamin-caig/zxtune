@@ -112,7 +112,7 @@ namespace Packed
     
     typedef PlayerTraits (*CreatePlayerFunc)(const Binary::TypedContainer&);
     typedef Formats::Chiptune::Container::Ptr (*ParseFunc)(const Binary::Container&, Formats::Chiptune::ASCSoundMaster::Builder&);
-    typedef Binary::Container::Ptr (*InsertMetaInfoFunc)(const Binary::Container&, Binary::DataView);
+    typedef Binary::Container::Ptr (*InsertMetaInfoFunc)(const Binary::Container&, Binary::View);
     
     struct VersionTraits
     {

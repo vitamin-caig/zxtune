@@ -46,7 +46,7 @@ namespace Binary
       Require(MinFooterOffset <= MaxFooterOffset);
     }
 
-    bool Match(DataView data) const override
+    bool Match(View data) const override
     {
       const std::size_t size = data.Size();
       if (size < MinFooterOffset + FooterSize)
@@ -63,7 +63,7 @@ namespace Binary
       return searchSize != SearchFooter(searchStart, searchSize);
     }
 
-    std::size_t NextMatchOffset(DataView data) const override
+    std::size_t NextMatchOffset(View data) const override
     {
       const uint8_t* const start = static_cast<const uint8_t*>(data.Start());
       const std::size_t limit = data.Size();
@@ -99,12 +99,12 @@ namespace Binary
     //returns absolute offset from start covering case when match happends at start
     std::size_t SearchHeader(const uint8_t* start, std::size_t rest) const
     {
-      return Header->NextMatchOffset(DataView(start - 1, rest + 1)) - 1;
+      return Header->NextMatchOffset(View(start - 1, rest + 1)) - 1;
     }
 
     std::size_t SearchFooter(const uint8_t* start, std::size_t rest) const
     {
-      return Footer->NextMatchOffset(DataView(start - 1, rest + 1)) - 1;
+      return Footer->NextMatchOffset(View(start - 1, rest + 1)) - 1;
     }
   private:
     const Format::Ptr Header;

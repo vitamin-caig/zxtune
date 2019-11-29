@@ -44,7 +44,7 @@ namespace
       std::cout << "  Name: " << name << std::endl;
     }
     
-    void AddMetaChunk(uint_t type, Binary::DataView chunk) override
+    void AddMetaChunk(uint_t type, Binary::View chunk) override
     {
       std::cout << "  Meta chunk " << type << " (" << ChunkTypeString(type) << ") " << chunk.Size() << " bytes" << std::endl;
     }

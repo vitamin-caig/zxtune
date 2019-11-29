@@ -114,7 +114,7 @@ namespace FSB
         builder->SetStreamId(Properties.Setup->Crc32);
         builder->SetProperties(Properties.Channels, Properties.Frequency,
           Properties.Setup->BlocksizeShort, Properties.Setup->BlocksizeLong);
-        builder->SetSetup(Binary::DataView(Properties.Setup->Data, Properties.Setup->Size));
+        builder->SetSetup(Binary::View(Properties.Setup->Data, Properties.Setup->Size));
         DumpFrames(*builder);
         Properties.Data = {};
         Properties.Lookup = {};
@@ -139,7 +139,7 @@ namespace FSB
           {
             const auto totalSize = size + sizeof(uint16_t);
             const auto samples = totalSize * delta.Position / delta.Offset;
-            builder.AddFrame(0, samples, Binary::DataView(data, size));
+            builder.AddFrame(0, samples, Binary::View(data, size));
             stream.Skip(size);
             delta.Offset -= totalSize;
             delta.Position -= samples;
@@ -184,7 +184,7 @@ namespace FSB
         Samples[CurSample].Name = std::move(name);
       }
       
-      void AddMetaChunk(uint_t type, Binary::DataView chunk) override
+      void AddMetaChunk(uint_t type, Binary::View chunk) override
       {
         if (type != Fmod::ChunkType::VORBISDATA)
         {

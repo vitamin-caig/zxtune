@@ -82,7 +82,7 @@ namespace Binary
 {
   static_assert(sizeof(Dump::value_type) == 1, "Invalid size for Dump::value_type");
 
-  Container::Ptr CreateContainer(DataView data)
+  Container::Ptr CreateContainer(View data)
   {
     const auto size = data.Size();
     if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data.Start()) : nullptr)

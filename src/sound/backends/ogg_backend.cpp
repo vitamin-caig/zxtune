@@ -98,8 +98,8 @@ namespace Ogg
   private:
     void WritePage(const ogg_page& page)
     {
-      File->ApplyData(Binary::DataView(page.header, page.header_len));
-      File->ApplyData(Binary::DataView(page.body, page.body_len));
+      File->ApplyData(Binary::View(page.header, page.header_len));
+      File->ApplyData(Binary::View(page.body, page.body_len));
     }
   private:
     const Api::Ptr OggApi;

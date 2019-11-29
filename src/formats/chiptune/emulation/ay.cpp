@@ -198,7 +198,7 @@ namespace Chiptune
       void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) override {}
       void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) override {}
       void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) override {}
-      void AddBlock(uint16_t /*addr*/, Binary::DataView /*data*/) override {}
+      void AddBlock(uint16_t /*addr*/, Binary::View /*data*/) override {}
     };
 
     const std::string HEADER_FORMAT(
@@ -330,7 +330,7 @@ namespace Chiptune
         }
       }
 
-      void AddBlock(uint16_t addr, Binary::DataView block) override
+      void AddBlock(uint16_t addr, Binary::View block) override
       {
         Dump& data = AllocateData();
         const std::size_t toCopy = std::min(block.Size(), data.size() - addr);
@@ -449,7 +449,7 @@ namespace Chiptune
         PlayRoutine = play;
       }
 
-      void AddBlock(uint16_t addr, Binary::DataView block) override
+      void AddBlock(uint16_t addr, Binary::View block) override
       {
         const uint8_t* const fromCopy = static_cast<const uint8_t*>(block.Start());
         const std::size_t toCopy = std::min(block.Size(), std::size_t(0x10000 - addr));
@@ -515,7 +515,7 @@ namespace Chiptune
       BlocksList Blocks;
     };
 
-    uint_t GetModulesCount(Binary::DataView rawData)
+    uint_t GetModulesCount(Binary::View rawData)
     {
       const Binary::TypedContainer data(rawData);
       if (const Header* header = data.GetField<Header>(0))

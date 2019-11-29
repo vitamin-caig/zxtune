@@ -12,7 +12,7 @@
 
 //library includes
 #include <binary/container_factories.h>
-#include <binary/data_view.h>
+#include <binary/view.h>
 //std includes
 #include <cstring>
 #include <type_traits>
@@ -45,7 +45,7 @@ namespace Binary
       *static_cast<T*>(Allocate(sizeof(T))) = val;
     }
     
-    void Add(DataView data)
+    void Add(View data)
     {
       std::memcpy(Allocate(data.Size()), data.Start(), data.Size());
     }

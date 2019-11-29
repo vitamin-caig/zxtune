@@ -82,7 +82,7 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::DataView& data)
+      explicit Format(const Binary::View& data)
         : Stream(data)
       {
       }
@@ -163,7 +163,7 @@ namespace Chiptune
       Binary::DataInputStream Stream;
     };
 
-    void ParsePSXExe(Binary::DataView data, Builder& target)
+    void ParsePSXExe(Binary::View data, Builder& target)
     {
       Format(data).Parse(target);
     }

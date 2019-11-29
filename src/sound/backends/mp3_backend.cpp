@@ -102,7 +102,7 @@ namespace Mp3
       {
         if (res > 0) //encoded
         {
-          Stream->ApplyData(Binary::DataView(Encoded.data(), res));
+          Stream->ApplyData(Binary::View(Encoded.data(), res));
           break;
         }
         else if (-1 == res)//buffer too small
@@ -122,7 +122,7 @@ namespace Mp3
       {
         if (res > 0)
         {
-          Stream->ApplyData(Binary::DataView(Encoded.data(), res));
+          Stream->ApplyData(Binary::View(Encoded.data(), res));
           break;
         }
         else if (-1 == res)//buffer too small

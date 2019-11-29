@@ -55,7 +55,7 @@ namespace ASAP
   public:
     using Ptr = std::shared_ptr<AsapTune>;
   
-    AsapTune(const String& id, Binary::DataView data, int track)
+    AsapTune(const String& id, Binary::View data, int track)
       : Module(::ASAP_New())
       , Info()
       , Track(track)
@@ -93,7 +93,7 @@ namespace ASAP
       }
     }
     
-    void GetProperties(Binary::DataView data, PropertiesHelper& props) const
+    void GetProperties(Binary::View data, PropertiesHelper& props) const
     {
       const auto title = Strings::OptimizeAscii(::ASAPInfo_GetTitle(Info));
       const auto author = Strings::OptimizeAscii(::ASAPInfo_GetAuthor(Info));

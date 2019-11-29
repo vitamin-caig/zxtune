@@ -229,7 +229,7 @@ namespace
       params.Process(saver);
     }
 
-    void SaveData(Binary::DataView content)
+    void SaveData(Binary::View content)
     {
       Dbg(" Save content");
       Element.Text(ENDL);

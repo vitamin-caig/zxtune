@@ -263,7 +263,7 @@ namespace Chiptune
       ;
     }
 
-    void ParseTransponedMatrix(Binary::DataView input, std::size_t rows, std::size_t columns, Builder& target)
+    void ParseTransponedMatrix(Binary::View input, std::size_t rows, std::size_t columns, Builder& target)
     {
       Require(rows != 0);
       const auto data = static_cast<const uint8_t*>(input.Start());
@@ -278,7 +278,7 @@ namespace Chiptune
       }
     }
 
-    void ParseMatrix(Binary::DataView input, std::size_t rows, std::size_t columns, Builder& target)
+    void ParseMatrix(Binary::View input, std::size_t rows, std::size_t columns, Builder& target)
     {
       Require(rows != 0);
       const uint8_t* cursor = static_cast<const uint8_t*>(input.Start()), *limit = cursor + input.Size();

@@ -27,19 +27,19 @@ namespace Chiptune
   class Patcher : public PatchedDataBuilder
   {
   public:
-    explicit Patcher(Binary::DataView src)
+    explicit Patcher(Binary::View src)
       : Source(src)
       , SizeAddon(0)
     {
     }
 
-    void InsertData(std::size_t offset, Binary::DataView data) override
+    void InsertData(std::size_t offset, Binary::View data) override
     {
       Require(Insertions.insert(BlobsMap::value_type(offset, data)).second);
       SizeAddon += data.Size();
     }
 
-    void OverwriteData(std::size_t offset, Binary::DataView data) override
+    void OverwriteData(std::size_t offset, Binary::View data) override
     {
       Require(offset + data.Size() <= Source.Size());
       Require(Overwrites.insert(BlobsMap::value_type(offset, data)).second);
@@ -113,8 +113,8 @@ namespace Chiptune
       result.swap(tmp);
     }
   private:
-    const Binary::DataView Source;
-    typedef std::map<std::size_t, Binary::DataView> BlobsMap;
+    const Binary::View Source;
+    typedef std::map<std::size_t, Binary::View> BlobsMap;
     typedef std::map<std::size_t, int_t> FixesMap;
     BlobsMap Insertions;
     BlobsMap Overwrites;
@@ -128,7 +128,7 @@ namespace Formats
 {
   namespace Chiptune
   {
-    PatchedDataBuilder::Ptr PatchedDataBuilder::Create(Binary::DataView data)
+    PatchedDataBuilder::Ptr PatchedDataBuilder::Create(Binary::View data)
     {
       return MakePtr<Patcher>(data);
     }

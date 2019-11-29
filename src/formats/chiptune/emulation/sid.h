@@ -21,14 +21,14 @@ namespace Formats
   {
     namespace SID
     {
-      uint_t GetModulesCount(Binary::DataView data);
+      uint_t GetModulesCount(Binary::View data);
 
       /*
        * Since md5 digest of sid modules depends on tracks count, it's impossible to fix it
        * (at least without length database renewal). This container plugin can be applied only once while search
        * and only for multitrack modules.
        */
-      Binary::Container::Ptr FixStartSong(Binary::DataView data, uint_t idx);
+      Binary::Container::Ptr FixStartSong(Binary::View data, uint_t idx);
     }
 
     Decoder::Ptr CreateSIDDecoder();

@@ -310,7 +310,7 @@ namespace GME
   };
   
   //TODO: rework, extract GYM parsing code to Formats library
-  Dump DefaultDataCreator(Binary::DataView data)
+  Dump DefaultDataCreator(Binary::View data)
   {
     return Dump(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size());
   }
@@ -328,7 +328,7 @@ namespace GME
   
   namespace GYM
   {
-    Dump CreateData(Binary::DataView data)
+    Dump CreateData(Binary::View data)
     {
       Binary::DataInputStream input(data);
       Binary::DataBuilder output(data.Size());

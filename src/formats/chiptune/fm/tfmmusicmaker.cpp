@@ -1125,7 +1125,7 @@ namespace Chiptune
           const Binary::Container::Ptr subData = data.GetSubcontainer(0, decompressor.GetUsedSize());
           const std::size_t fixStart = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * usedPatterns.Minimum();
           const std::size_t fixEnd = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * (1 + usedPatterns.Maximum());
-          const uint_t crc = Binary::Crc32(Binary::DataView(decompressor.GetResult<uint8_t>() + fixStart, fixEnd - fixStart));
+          const uint_t crc = Binary::Crc32(Binary::View(decompressor.GetResult<uint8_t>() + fixStart, fixEnd - fixStart));
           return CreateKnownCrcContainer(subData, crc);
         }
         catch (const std::exception&)

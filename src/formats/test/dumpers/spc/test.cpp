@@ -70,17 +70,17 @@ namespace
        std::cout << "Artist: " << artist << std::endl;
      }
 
-     void SetRAM(Binary::DataView data) override
+     void SetRAM(Binary::View data) override
      {
        std::cout << "RAM,bytes: " << data.Size() << std::endl;
      }
 
-     void SetDSPRegisters(Binary::DataView data) override
+     void SetDSPRegisters(Binary::View data) override
      {
        std::cout << "DSP registers,bytes: " << data.Size() << std::endl;
      }
 
-     void SetExtraRAM(Binary::DataView data) override
+     void SetExtraRAM(Binary::View data) override
      {
        std::cout << "ExtraRAM,bytes: " << data.Size() << std::endl;
      }

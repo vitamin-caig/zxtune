@@ -162,7 +162,7 @@ namespace
     return builder.CaptureResult();
   }
   
-  void WriteOutput(Binary::DataView data)
+  void WriteOutput(Binary::View data)
   {
     if (_setmode(_fileno(stdout), _O_BINARY) == -1)
     {

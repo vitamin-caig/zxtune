@@ -164,7 +164,7 @@ namespace Packed
       "32??"     //ld (xxxx),a
     ;
 
-    bool IsInfoEmpty(Binary::DataView info)
+    bool IsInfoEmpty(Binary::View info)
     {
       assert(info.Size() == 53);
       //28 is fixed

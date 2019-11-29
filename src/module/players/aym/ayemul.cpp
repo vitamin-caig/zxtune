@@ -690,7 +690,7 @@ namespace AYEMUL
       Delegate->SetRoutines(init, play);
     }
 
-    void AddBlock(uint16_t addr, Binary::DataView block) override
+    void AddBlock(uint16_t addr, Binary::View block) override
     {
       Delegate->AddBlock(addr, block);
     }

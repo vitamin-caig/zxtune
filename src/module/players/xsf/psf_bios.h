@@ -11,12 +11,12 @@
 #pragma once
 
 //library includes
-#include <binary/data_view.h>
+#include <binary/view.h>
 
 namespace Module
 {
   namespace PSF
   {
-    Binary::DataView GetSCPH10000HeBios();
+    Binary::View GetSCPH10000HeBios();
   }
 }

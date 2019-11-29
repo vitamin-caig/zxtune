@@ -159,7 +159,7 @@ namespace Flac
       size_t bytes, unsigned /*samples*/, unsigned /*current_frame*/, void* client_data)
     {
       Binary::OutputStream* const stream = static_cast<Binary::OutputStream*>(client_data);
-      stream->ApplyData(Binary::DataView(buffer, bytes));
+      stream->ApplyData(Binary::View(buffer, bytes));
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     }
 

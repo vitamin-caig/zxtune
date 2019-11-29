@@ -12,7 +12,7 @@
 
 //library includes
 #include <binary/container.h>
-#include <binary/data_view.h>
+#include <binary/view.h>
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -28,7 +28,7 @@ namespace Binary
   class DataInputStream
   {
   public:
-    explicit DataInputStream(Binary::DataView data)
+    explicit DataInputStream(Binary::View data)
       : Start(static_cast<const uint8_t*>(data.Start()))
       , Finish(Start + data.Size())
       , Cursor(Start)
@@ -115,12 +115,12 @@ namespace Binary
       return res;
     }
 
-    DataView ReadData(std::size_t size)
+    View ReadData(std::size_t size)
     {
-      return DataView(ReadRawData(size), size);
+      return View(ReadRawData(size), size);
     }
 
-    DataView ReadRestData()
+    View ReadRestData()
     {
       Require(Cursor < Finish);
       return ReadData(GetRestSize());

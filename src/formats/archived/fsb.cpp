@@ -150,7 +150,7 @@ namespace Archived
         Delegate->SetName(std::move(name));
       }
       
-      void AddMetaChunk(uint_t type, Binary::DataView chunk) override
+      void AddMetaChunk(uint_t type, Binary::View chunk) override
       {
         Delegate->AddMetaChunk(type, chunk);
       }

@@ -215,7 +215,7 @@ namespace Wav
       {
         data.ToU8();
       }
-      const Binary::DataView chunk(data);
+      const Binary::View chunk(data);
       Stream->ApplyData(chunk);
       DoneBytes += static_cast<uint32_t>(chunk.Size());
     }

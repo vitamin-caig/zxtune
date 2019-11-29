@@ -40,7 +40,7 @@ namespace Sid
 
   TimeType GetSongLength(const char* md5digest, uint_t idx)
   {
-    const uint32_t hashCrc32 = Binary::Crc32(Binary::DataView(md5digest, 32));
+    const uint32_t hashCrc32 = Binary::Crc32(Binary::View(md5digest, 32));
     const SongEntry* const end = std::end(SONGS);
     const SongEntry* const lower = std::lower_bound(SONGS, end, hashCrc32);
     if (lower + idx < end && lower->HashCrc32 == hashCrc32)

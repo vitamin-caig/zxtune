@@ -129,7 +129,7 @@ namespace Packed
       {
       }
       
-      std::size_t Parse(Binary::DataView diskData)
+      std::size_t Parse(Binary::View diskData)
       {
         Require(diskData.Size() > sizeof(DiskSignatureType));
         const DiskSignatureType& signature = *safe_ptr_cast<const DiskSignatureType*>(diskData.Start());
@@ -147,7 +147,7 @@ namespace Packed
         }
       }
       
-      std::size_t ParseBase(Binary::DataView diskData)
+      std::size_t ParseBase(Binary::View diskData)
       {
         Binary::DataInputStream diskStream(diskData);
         const DiskInformationBlock& diskInfo = diskStream.ReadField<DiskInformationBlock>();
@@ -164,7 +164,7 @@ namespace Packed
         return diskStream.GetPosition();
       }
       
-      std::size_t ParseExtended(Binary::DataView diskData)
+      std::size_t ParseExtended(Binary::View diskData)
       {
         Binary::DataInputStream diskStream(diskData);
         const ExtendedDiskInformationBlock& diskInfo = diskStream.ReadField<ExtendedDiskInformationBlock>();
@@ -183,7 +183,7 @@ namespace Packed
         return diskStream.GetPosition();
       }
     private:
-      void ParseTrack(Binary::DataView trackData)
+      void ParseTrack(Binary::View trackData)
       {
         Binary::DataInputStream trackStream(trackData);
         const TrackInformationBlock& trackInfo = trackStream.ReadField<TrackInformationBlock>();
@@ -200,7 +200,7 @@ namespace Packed
         }
       }
       
-      void ParseExtendedTrack(Binary::DataView trackData)
+      void ParseExtendedTrack(Binary::View trackData)
       {
         Binary::DataInputStream trackStream(trackData);
         const TrackInformationBlock& trackInfo = trackStream.ReadField<TrackInformationBlock>();

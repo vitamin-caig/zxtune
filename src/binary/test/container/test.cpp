@@ -60,13 +60,13 @@ namespace
     Test("opticopy", data->Start() == copy->Start());
   }
 
-  void TestDataView()
+  void TestView()
   {
-    std::cout << "Test for DataView" << std::endl;
+    std::cout << "Test for View" << std::endl;
     try
     {
       const uint8_t data[] = {};
-      const auto view = Binary::DataView(data);
+      const auto view = Binary::View(data);
       throw 1;
     }
     catch (const std::exception&)
@@ -75,7 +75,7 @@ namespace
     }
     try
     {
-      const auto view = Binary::DataView(nullptr, 10);
+      const auto view = Binary::View(nullptr, 10);
       throw 1;
     }
     catch (const std::exception&)
@@ -84,7 +84,7 @@ namespace
     }
     {
       const uint8_t data[] = {0, 1, 2};
-      const auto view = Binary::DataView(data);
+      const auto view = Binary::View(data);
       Test("uint8_t[] size", view.Size() == 3);
       Test("uint8_t[] data", view.Start() == data);
     }
@@ -99,13 +99,13 @@ namespace
         uint8_t byte2;
       };
       const Mixed data = {0, 1, 2, 3, 4};
-      const auto view = Binary::DataView(data);
+      const auto view = Binary::View(data);
       Test("struct size", view.Size() == 24);
       Test("struct data", view.Start() == &data);
     }
     {
       const std::array<uint32_t, 10> data = {};
-      const auto view = Binary::DataView(data);
+      const auto view = Binary::View(data);
       Test("std::array size", view.Size() == 40);
       Test("std::array data", view.Start() == &data);
     }
@@ -117,7 +117,7 @@ int main()
   try
   {
     TestContainer();
-    TestDataView();
+    TestView();
   }
   catch (...)
   {

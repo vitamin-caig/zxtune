@@ -74,7 +74,7 @@ namespace Multitrack
      
     const std::size_t MIN_SIZE = 256;
 
-    const RawHeader* GetHeader(Binary::DataView rawData)
+    const RawHeader* GetHeader(Binary::View rawData)
     {
       if (rawData.Size() < MIN_SIZE)
       {
@@ -105,8 +105,8 @@ namespace Multitrack
       {
         //just skip text fields
         const uint8_t* const data = static_cast<const uint8_t*>(Delegate->Start());
-        const uint32_t part1 = Binary::Crc32(Binary::DataView(data, offsetof(RawHeader, Title)));
-        const uint32_t part2 = Binary::Crc32(Binary::DataView(data + sizeof(RawHeader), Delegate->Size() - sizeof(RawHeader)), part1);
+        const uint32_t part1 = Binary::Crc32(Binary::View(data, offsetof(RawHeader, Title)));
+        const uint32_t part2 = Binary::Crc32(Binary::View(data + sizeof(RawHeader), Delegate->Size() - sizeof(RawHeader)), part1);
         return part2;
       }
 

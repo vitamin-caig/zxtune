@@ -334,9 +334,9 @@ namespace Chiptune
       void SetFade(Time::Milliseconds /*duration*/) override {}
       void SetArtist(String /*artist*/) override {}
       
-      void SetRAM(Binary::DataView /*data*/) override {}
-      void SetDSPRegisters(Binary::DataView /*data*/) override {}
-      void SetExtraRAM(Binary::DataView /*data*/) override {}
+      void SetRAM(Binary::View /*data*/) override {}
+      void SetDSPRegisters(Binary::View /*data*/) override {}
+      void SetExtraRAM(Binary::View /*data*/) override {}
     };
     
     //used nes_spc library doesn't support another versions
@@ -500,7 +500,7 @@ namespace Chiptune
         target.SetArtist(std::move(tag.Artist));
       }
       
-      static void ParseSubchunks(Binary::DataView data, Builder& target)
+      static void ParseSubchunks(Binary::View data, Builder& target)
       {
         try
         {

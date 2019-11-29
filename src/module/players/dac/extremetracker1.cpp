@@ -75,7 +75,7 @@ namespace ExtremeTracker1
       Properties.SetSamplesFrequency(freq);
     }
 
-    void SetSample(uint_t index, std::size_t loop, Binary::DataView sample) override
+    void SetSample(uint_t index, std::size_t loop, Binary::View sample) override
     {
       Data->Samples.Add(index, Devices::DAC::CreateU8Sample(sample, loop));
     }

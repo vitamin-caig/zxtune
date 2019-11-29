@@ -89,7 +89,7 @@ namespace Image
     class Container
     {
     public:
-      explicit Container(const Binary::DataView& data)
+      explicit Container(const Binary::View& data)
         : Data(data)
       {
       }

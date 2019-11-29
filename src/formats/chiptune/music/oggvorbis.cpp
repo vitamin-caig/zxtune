@@ -129,12 +129,12 @@ namespace Chiptune
         bool continued = false;
         while (size > MAX_PAGE_SIZE)
         {
-          AddPage(UNFINISHED_PAGE_POSITION, Binary::DataView(data, MAX_PAGE_SIZE), continued);
+          AddPage(UNFINISHED_PAGE_POSITION, Binary::View(data, MAX_PAGE_SIZE), continued);
           data += MAX_PAGE_SIZE;
           size -= MAX_PAGE_SIZE;
           continued = true;
         }
-        AddPage(position, Binary::DataView(data, size), continued);
+        AddPage(position, Binary::View(data, size), continued);
       }
 
       Binary::Container::Ptr CaptureResult()
@@ -152,7 +152,7 @@ namespace Chiptune
         LAST_PAGE = 4
       };
 
-      void AddPage(uint64_t position, Binary::DataView data, bool continued)
+      void AddPage(uint64_t position, Binary::View data, bool continued)
       {
         if (PagesDone)
         {
@@ -384,8 +384,8 @@ namespace Chiptune
 
       void SetStreamId(uint32_t /*streamId*/) override {}
       void SetProperties(uint_t /*channels*/, uint_t /*frequency*/, uint_t /*blockSizeLo*/, uint_t /*blockSizeHi*/) override {}
-      void SetSetup(Binary::DataView /*data*/) override {}
-      void AddFrame(std::size_t /*offset*/, uint_t /*samplesCount*/, Binary::DataView /*data*/) override {}
+      void SetSetup(Binary::View /*data*/) override {}
+      void AddFrame(std::size_t /*offset*/, uint_t /*samplesCount*/, Binary::View /*data*/) override {}
     };
     
     Builder& GetStubBuilder()
@@ -419,12 +419,12 @@ namespace Chiptune
         WriteComment();
       }
       
-      void SetSetup(Binary::DataView data) override
+      void SetSetup(Binary::View data) override
       {
         Storage.AddData(0, static_cast<const uint8_t*>(data.Start()), data.Size());
       }
 
-      void AddFrame(std::size_t /*offset*/, uint_t framesCount, Binary::DataView data) override
+      void AddFrame(std::size_t /*offset*/, uint_t framesCount, Binary::View data) override
       {
         TotalFrames += framesCount;
         Storage.AddData(TotalFrames, static_cast<const uint8_t*>(data.Start()), data.Size());

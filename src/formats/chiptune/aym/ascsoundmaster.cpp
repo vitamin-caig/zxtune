@@ -318,12 +318,12 @@ namespace Chiptune
       const char* const Format;
       const CreateHeaderFunc CreateHeader;
       
-      bool CheckSize(Binary::DataView rawData) const
+      bool CheckSize(Binary::View rawData) const
       {
         return rawData.Size() >= MinSize;
       }
       
-      Binary::TypedContainer CreateContainer(Binary::DataView rawData) const
+      Binary::TypedContainer CreateContainer(Binary::View rawData) const
       {
         return Binary::TypedContainer(rawData, std::min(rawData.Size(), MaxSize));
       }
@@ -1208,7 +1208,7 @@ namespace Chiptune
     
     bool Check(const VersionTraits& version, const Binary::Container& rawData)
     {
-      const Binary::DataView dataView(rawData);
+      const Binary::View dataView(rawData);
       if (!version.CheckSize(dataView))
       {
         return false;
@@ -1256,7 +1256,7 @@ namespace Chiptune
     }
     
     template<class Version>
-    Binary::Container::Ptr InsertMetaInformation(const Binary::Container& rawData, Binary::DataView info)
+    Binary::Container::Ptr InsertMetaInformation(const Binary::Container& rawData, Binary::View info)
     {
       const VersionTraits& version = Version::TRAITS;
       if (Binary::Container::Ptr parsed = Parse(version, rawData, GetStubBuilder()))
@@ -1332,7 +1332,7 @@ namespace Chiptune
         return Parse(Version0::TRAITS, data, target);
       }
     
-      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::DataView info)
+      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info)
       {
         return ASCSoundMaster::InsertMetaInformation<Version0>(data, info);
       }
@@ -1350,7 +1350,7 @@ namespace Chiptune
         return Parse(Version1::TRAITS, data, target);
       }
       
-      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::DataView info)
+      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info)
       {
         return ASCSoundMaster::InsertMetaInformation<Version1>(data, info);
       }
