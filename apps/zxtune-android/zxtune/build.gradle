@@ -24,9 +24,9 @@ android {
         minSdkVersion 14
         targetSdkVersion 28
         //supported languages
-        resConfigs "en", "de", "ru", "es", "cs", "zh"
+        resConfigs "en", "de", "ru", "es", "cs", "zh", "ja"
         //supported densities for vector drawables rasterization
-        generatedDensities = ["mdpi", "hdpi", "xhdpi", "xxhdpi"]
+        vectorDrawables.generatedDensities  "mdpi", "hdpi", "xhdpi", "xxhdpi"
     }
 }
 
