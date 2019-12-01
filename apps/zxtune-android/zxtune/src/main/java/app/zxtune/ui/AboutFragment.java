@@ -112,7 +112,7 @@ public class AboutFragment extends DialogFragment {
   
   private String getApplicationInfo() {
     return String.format(Locale.US, "%s b%d (%s)", getActivity().getString(R.string.app_name),
-            BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME);
+            BuildConfig.VERSION_CODE, BuildConfig.FLAVOR);
   }
 
   private String getSystemInfo() {
