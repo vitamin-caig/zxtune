@@ -9,6 +9,12 @@ def getListProperty(name, defvalue) {
 }
 
 android {
+    defaultConfig {
+        manifestPlaceholders.extractNativeLibs = "false"
+    }
+}
+
+android {
     flavorDimensions "packaging"
 
     splits.abi {
@@ -22,6 +28,8 @@ android {
         fat {
             dimension "packaging"
             ndk.abiFilters getListProperty("flavors.fat.abifilters", "")
+            // For multiarch binaries it's better to extract .so files
+            manifestPlaceholders.extractNativeLibs = "true"
         }
 
         // Single AAB
