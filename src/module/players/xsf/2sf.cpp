@@ -201,7 +201,7 @@ namespace TwoSF
       ChunkBuilder builder;
       for (const auto& block : blocks)
       {
-        const auto unpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(block);
+        const auto unpacked = Binary::Compression::Zlib::Decompress(*block);
         Formats::Chiptune::NintendoDSSoundFormat::ParseRom(*unpacked, builder);
       }
       //possibly, emulation writes to ROM are, so copy it

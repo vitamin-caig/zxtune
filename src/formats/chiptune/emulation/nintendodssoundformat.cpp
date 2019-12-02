@@ -38,9 +38,9 @@ namespace Chiptune
       Require(0 == stream.GetRestSize());
     }
     
-    void ParseState(const Binary::Container& data, Builder& target)
+    void ParseState(Binary::View data, Builder& target)
     {
-      Binary::InputStream stream(data);
+      Binary::DataInputStream stream(data);
       while (stream.GetRestSize() >= sizeof(SignatureType) + sizeof(uint32_t) + sizeof(uint32_t))
       {
         const auto signature = stream.ReadField<SignatureType>();
@@ -48,8 +48,8 @@ namespace Chiptune
         /*const auto unpackedCrc = */stream.ReadLE<uint32_t>();
         if (signature == SAVESTATE_SIGNATURE)
         {
-          auto packedData = stream.ReadContainer(packedSize);
-          const auto unpackedPart = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packedData));
+          auto packedData = stream.ReadData(packedSize);
+          const auto unpackedPart = Binary::Compression::Zlib::Decompress(packedData);
           //do not check crc32
           ParseRom(*unpackedPart, target);
         }

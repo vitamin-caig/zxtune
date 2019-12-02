@@ -19,7 +19,7 @@
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <binary/compression/zlib.h>
+#include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <strings/format.h>
@@ -433,23 +433,18 @@ namespace Archived
     Binary::Container::Ptr DecompressData(const DataBlockDescription& blk)
     {
       Require(blk.Content && blk.IsCompressed);
-      const std::size_t targetSize = blk.UncompressedSize == UNKNOWN ? MAX_DECOMPRESS_SIZE : blk.UncompressedSize;
-      std::unique_ptr<Dump> result(new Dump(targetSize));
+      const std::size_t targetSize = blk.UncompressedSize == UNKNOWN ? 0 : blk.UncompressedSize;
       try
       {
-        //TODO: use better function
-        const auto doneSize = Binary::Compression::Zlib::Decompress(Binary::View(blk.Content, blk.Size), result->data(), targetSize);
-        Dbg("Decompressed %1% -> %2% (required %3%)", blk.Size, doneSize, blk.UncompressedSize);
-        if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == doneSize)
-        {
-          result->resize(doneSize);
-          return Binary::CreateContainer(std::move(result));
-        }
-        Dbg("Uncompressed size mismatch");
+        return Binary::Compression::Zlib::Decompress(Binary::View(blk.Content, blk.Size), targetSize);
       }
       catch (const Error& e)
       {
         Dbg("Failed to decompress: %1%", e.ToString());
+      }
+      catch (const std::exception&)
+      {
+        Dbg("Failed to decompress");
       }
       return Binary::Container::Ptr();
     }

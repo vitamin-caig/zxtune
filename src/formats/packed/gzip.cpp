@@ -158,12 +158,12 @@ namespace Packed
         }
         Binary::DataBuilder output;
         Binary::Compression::Zlib::DecompressRaw(input, output);
-        if (const Binary::Container::Ptr result = output.CaptureResult())
+        if (auto result = output.CaptureResult())
         {
           const Gzip::Footer footer = input.ReadField<Gzip::Footer>();
           Require(result->Size() == fromLE(footer.OriginalSize));
           //TODO: check CRC
-          return CreateContainer(result, input.GetPosition());
+          return CreateContainer(std::move(result), input.GetPosition());
         }
       }
       catch (const Error&)

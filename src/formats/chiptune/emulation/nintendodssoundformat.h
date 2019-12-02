@@ -31,7 +31,7 @@ namespace Formats
       };
 
       void ParseRom(Binary::View data, Builder& target);
-      void ParseState(const Binary::Container& data, Builder& target);
+      void ParseState(Binary::View data, Builder& target);
     }
 
     Decoder::Ptr Create2SFDecoder();
