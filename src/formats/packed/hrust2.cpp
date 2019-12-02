@@ -20,7 +20,7 @@
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
@@ -536,38 +536,37 @@ namespace Packed
       private:
         void DecodeData()
         {
-          const Binary::TypedContainer source(Data);
+          Binary::InputStream source(Data);
           BlocksAccumulator target;
-          std::size_t offset = 0;
           for (;;)
           {
-            if (const FormatHeader* hdr = source.GetField<FormatHeader>(offset))
+            if (const auto* hdr = source.PeekField<FormatHeader>())
             {
               if (!hdr->Check())
               {
                 break;
               }
-              const std::size_t blockEnd = offset + hdr->GetTotalSize();
-              const std::size_t packedOffset = offset + hdr->GetSize();
-              const std::size_t packedSize = blockEnd - packedOffset;
-              if (blockEnd > Data.Size() || 0 == packedSize)
+              const auto packedOffset = hdr->GetSize();
+              const auto totalSize = hdr->GetTotalSize();
+              const auto packedSize = totalSize - packedOffset;
+              if (0 == packedSize || totalSize > source.GetRestSize())
               {
                 break;
               }
-              const Binary::Container::Ptr packedData = Data.GetSubcontainer(packedOffset, packedSize);
+              source.Skip(packedOffset);
+              auto packedData = source.ReadContainer(packedSize);
               if (0 != (hdr->Flag & FormatHeader::STORED_BLOCK))
               {
-                target.AddBlock(packedData);
+                target.AddBlock(std::move(packedData));
               }
-              else if (const Binary::Container::Ptr unpackedData = DecodeBlock(*packedData))
+              else if (auto unpackedData = DecodeBlock(*packedData))
               {
-                target.AddBlock(unpackedData);
+                target.AddBlock(std::move(unpackedData));
               }
               else
               {
                 break;
               }
-              offset = blockEnd;
               if (0 != (hdr->Flag & FormatHeader::LAST_BLOCK))
               {
                 break;
@@ -581,7 +580,7 @@ namespace Packed
           Result = target.GetResult();
           if (Result)
           {
-            UsedSize = offset;
+            UsedSize = source.GetPosition();
           }
         }
       private:

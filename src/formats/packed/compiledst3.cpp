@@ -16,7 +16,6 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 //std includes
 #include <array>
@@ -128,25 +127,23 @@ namespace Packed
     {
       using namespace CompiledST3;
 
-      if (!Player->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Player->Match(data))
       {
         return Container::Ptr();
       }
-      const Binary::TypedContainer typedData(rawData);
-      const std::size_t availSize = rawData.Size();
-      const RawPlayer& rawPlayer = *typedData.GetField<RawPlayer>(0);
+      const auto& rawPlayer = *static_cast<const RawPlayer*>(data.Start());
       const std::size_t playerSize = rawPlayer.GetSize();
-      if (playerSize >= std::min(availSize, MAX_PLAYER_SIZE))
+      if (playerSize >= std::min(data.Size(), MAX_PLAYER_SIZE))
       {
         Dbg("Invalid compile addr");
         return Container::Ptr();
       }
       const uint_t compileAddr = rawPlayer.GetCompileAddr();
       Dbg("Detected player compiled at %1% (#%1$04x) in first %2% bytes", compileAddr, playerSize);
-      const std::size_t modDataSize = std::min(availSize - playerSize, MAX_MODULE_SIZE);
-      const auto modData = rawData.GetSubcontainer(playerSize, modDataSize);
+      const auto modData = rawData.GetSubcontainer(playerSize, MAX_MODULE_SIZE);
       const auto metainfo = rawPlayer.GetInfo();
-      Formats::Chiptune::SoundTracker::Builder& stub = Formats::Chiptune::SoundTracker::GetStubBuilder();
+      auto& stub = Formats::Chiptune::SoundTracker::GetStubBuilder();
       if (IsInfoEmpty(metainfo))
       {
         Dbg("Player has empty metainfo");

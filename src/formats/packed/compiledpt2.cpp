@@ -124,32 +124,29 @@ namespace Packed
     Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       using namespace CompiledPT24;
-      if (!Player->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Player->Match(data))
       {
         return Container::Ptr();
       }
-      const Binary::TypedContainer typedData(rawData);
-      const std::size_t availSize = rawData.Size();
-      const std::size_t playerSize = PLAYER_SIZE;
-      const RawPlayer& rawPlayer = *typedData.GetField<RawPlayer>(0);
+      const auto& rawPlayer = *static_cast<const RawPlayer*>(data.Start());
       const uint_t dataAddr = fromLE(rawPlayer.DataAddr);
-      if (dataAddr < playerSize)
+      if (dataAddr < PLAYER_SIZE)
       {
         Dbg("Invalid compile addr");
         return Container::Ptr();
       }
-      const RawHeader& rawHeader = *typedData.GetField<RawHeader>(playerSize);
-      const uint_t patternsCount = GetPatternsCount(rawHeader, availSize - playerSize);
+      const auto modData = data.SubView(PLAYER_SIZE, MAX_MODULE_SIZE);
+      const auto& rawHeader = *static_cast<const RawHeader*>(modData.Start());
+      const uint_t patternsCount = GetPatternsCount(rawHeader, modData.Size());
       if (!patternsCount)
       {
         Dbg("Invalid patterns count");
         return Container::Ptr();
       }
-      const uint_t compileAddr = dataAddr - playerSize;
+      const uint_t compileAddr = dataAddr - PLAYER_SIZE;
       Dbg("Detected player compiled at %1% (#%1$04x) with %2% patterns", compileAddr, patternsCount);
-      const std::size_t modDataSize = std::min(MAX_MODULE_SIZE, availSize - playerSize);
-      const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
-      const Formats::Chiptune::PatchedDataBuilder::Ptr builder = Formats::Chiptune::PatchedDataBuilder::Create(*modData);
+      const auto builder = Formats::Chiptune::PatchedDataBuilder::Create(modData);
       //fix samples/ornaments offsets
       for (uint_t idx = offsetof(RawHeader, SamplesOffsets); idx != offsetof(RawHeader, PatternsOffset); idx += 2)
       {
@@ -160,10 +157,10 @@ namespace Packed
       {
         builder->FixLEWord(idx, -int_t(dataAddr));
       }
-      const Binary::Container::Ptr fixedModule = builder->GetResult();
-      if (Formats::Chiptune::Container::Ptr fixedParsed = Decoder->Decode(*fixedModule))
+      const auto fixedModule = builder->GetResult();
+      if (auto fixedParsed = Decoder->Decode(*fixedModule))
       {
-        return CreateContainer(fixedParsed, playerSize + fixedParsed->Size());
+        return CreateContainer(std::move(fixedParsed), PLAYER_SIZE + fixedParsed->Size());
       }
       Dbg("Failed to parse fixed module");
       return Container::Ptr();
