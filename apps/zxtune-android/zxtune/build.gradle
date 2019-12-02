@@ -96,12 +96,11 @@ android {
     ext.crashlyticsNdkLibsOut = "${crashlyticsTmpDir}/release"
 
     //crashlytics tasks should be performed in the same execution due to apk rebuild
-    task publicBuildWithCrashlytics(dependsOn: publishPdb)
+    task publicBuildWithCrashlytics() {}
     
     applicationVariants.all { variant ->
         def variantName = variant.name.capitalize()
-        def taskName = "prepareDebugSymbols${variantName}"
-        task(taskName, dependsOn: ["nativeLibsDebugSymbols${variantName}"]) {
+        def prepareDebugSymbols = task("prepareDebugSymbols${variantName}", dependsOn: "nativeLibsDebugSymbols${variantName}") {
             def libsDir = variant.ndkCompile.soFolder
             def objsDir = variant.ndkCompile.objFolder
             doFirst {
@@ -122,13 +121,18 @@ android {
                 }
             }
         }
-        
-        tasks.getByName("crashlyticsGenerateSymbols${variantName}").dependsOn.add(taskName)
-        publicBuildWithCrashlytics.dependsOn.add("publicBuild${variantName}")
+        // replace assemble dependency by processManifest to avoid unneeded .apk creating
+        def assemble = tasks.getByName("assemble${variantName}")
+        def genSyms = tasks.getByName("crashlyticsGenerateSymbols${variantName}")
+        genSyms.dependsOn += [prepareDebugSymbols, "process${variantName}Manifest"]
+        genSyms.dependsOn -= assemble
+
         if (variant.buildType.name == "release") {
-            publicBuildWithCrashlytics.dependsOn.add("crashlyticsUploadSymbols${variantName}")
+            publicBuildWithCrashlytics.dependsOn += ["publicBuild${variantName}", "crashlyticsUploadSymbols${variantName}"]
         }
     }
+    publicBuildWithCrashlytics.dependsOn += 'publishPdb'
+
 }
 
 crashlytics {

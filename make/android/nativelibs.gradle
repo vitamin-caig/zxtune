@@ -27,6 +27,7 @@ android {
         // Single APK
         fat {
             dimension "packaging"
+            versionNameSuffix "-fat"
             ndk.abiFilters getListProperty("flavors.fat.abifilters", "")
             // For multiarch binaries it's better to extract .so files
             manifestPlaceholders.extractNativeLibs = "true"
@@ -35,6 +36,7 @@ android {
         // Single AAB
         thin {
             dimension "packaging"
+            versionNameSuffix "-thin"
             ndk.abiFilters getListProperty("flavors.thin.abifilters", "")
         }
 
@@ -42,6 +44,7 @@ android {
         // Should not be combined with another flavors (configs)
         splitted {
             dimension "packaging"
+            versionNameSuffix "-splitted"
             ndk.abiFilters getListProperty("flavors.splitted.abifilters", "")
         }
     }
@@ -129,7 +132,7 @@ android {
     
     applicationVariants.all { variant ->
         def suffix = variant.name.capitalize()
-        def baseName = "${project.name}_${variant.mergedFlavor.versionName}"
+        def baseName = "${project.name}_${defaultConfig.versionName}"
         def publishApk = task("publishApk${suffix}", group: "Publish", dependsOn: ["assemble${suffix}"] ) << {
             variant.outputs.each { out ->
               copy {
