@@ -153,23 +153,27 @@ android {
           }
         }
 
-        if (variant.getBuildType().isMinifyEnabled()) {
-            publishApk.doLast {
-                copy {
-                    from variant.mappingFile
-                    into publicBuildsDir
-                    rename ".*", "${baseName}-mapping.txt"
+        def publicBuildVariant = task("publicBuild${suffix}", group: "Publish") {
+            if (variant.getBuildType().isMinifyEnabled()) {
+                publishApk.doLast {
+                    copy {
+                        from variant.mappingFile
+                        into publicBuildsDir
+                        rename ".*", "${baseName}-mapping.txt"
+                    }
                 }
+            }
+
+            if (variant.buildType.name == "release") {
+               if (variant.name =~ /thin/) {
+                  dependsOn publishAab
+               } else {
+                  dependsOn publishApk
+               }
             }
         }
 
-        if (variant.buildType.name == "release") {
-           if (variant.name =~ /thin/) {
-             publicBuild.dependsOn publishAab
-           } else {
-             publicBuild.dependsOn publishApk
-           }
-        }
+        publicBuild.dependsOn publicBuildVariant
     }
 
     task publishPdb(group: "Publish", type: Tar) {

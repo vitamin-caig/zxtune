@@ -101,7 +101,7 @@ android {
     applicationVariants.all { variant ->
         def variantName = variant.name.capitalize()
         def taskName = "prepareDebugSymbols${variantName}"
-        task(taskName, dependsOn: ["nativeLibsDebugSymbols${variantName}", "assemble${variantName}"]) {
+        task(taskName, dependsOn: ["nativeLibsDebugSymbols${variantName}"]) {
             def libsDir = variant.ndkCompile.soFolder
             def objsDir = variant.ndkCompile.objFolder
             doFirst {
@@ -124,8 +124,9 @@ android {
         }
         
         tasks.getByName("crashlyticsGenerateSymbols${variantName}").dependsOn.add(taskName)
+        publicBuildWithCrashlytics.dependsOn.add("publicBuild${variantName}")
         if (variant.buildType.name == "release") {
-            publicBuildWithCrashlytics.dependsOn.addAll(["crashlyticsUploadSymbols${variantName}", "publishApk${variantName}"])
+            publicBuildWithCrashlytics.dependsOn.add("crashlyticsUploadSymbols${variantName}")
         }
     }
 }
