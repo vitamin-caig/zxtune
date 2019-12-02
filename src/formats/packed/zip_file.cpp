@@ -17,7 +17,9 @@
 #include <pointers.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/compression/zlib.h>
+#include <binary/compression/zlib_stream.h>
+#include <binary/data_builder.h>
+#include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed.h>
 //std includes
@@ -46,15 +48,15 @@ namespace Packed
     class Container
     {
     public:
-      Container(const void* data, std::size_t size)
-        : Data(static_cast<const uint8_t*>(data))
-        , Size(size)
+      explicit Container(const Binary::Container& data)
+        : Data(data)
+        , View(data)
       {
       }
 
       bool FastCheck() const
       {
-        if (Size < sizeof(LocalFileHeader))
+        if (View.Size() < sizeof(LocalFileHeader))
         {
           return false;
         }
@@ -63,10 +65,10 @@ namespace Packed
         {
           return false;
         }
-        File = CompressedFile::Create(header, Size);
+        File = CompressedFile::Create(header, View.Size());
         if (File.get() && File->GetUnpackedSize())
         {
-          return File->GetPackedSize() <= Size;
+          return File->GetPackedSize() <= View.Size();
         }
         return false;
       }
@@ -74,16 +76,21 @@ namespace Packed
       const LocalFileHeader& GetHeader() const
       {
         assert(Size >= sizeof(LocalFileHeader));
-        return *safe_ptr_cast<const LocalFileHeader*>(Data);
+        return *safe_ptr_cast<const LocalFileHeader*>(View.Start());
       }
 
       const CompressedFile& GetFile() const
       {
         return *File;
       }
+
+      Binary::Container::Ptr GetPackedData() const
+      {
+        return Data.GetSubcontainer(GetHeader().GetSize(), File->GetPackedSize());
+      }
     private:
-      const uint8_t* const Data;
-      const std::size_t Size;
+      const Binary::Container& Data;
+      const Binary::View View;
       mutable std::unique_ptr<const CompressedFile> File;
     };
     
@@ -92,108 +99,107 @@ namespace Packed
     public:
       virtual ~DataDecoder() = default;
 
-      virtual std::unique_ptr<Dump> Decompress() const = 0;
+      virtual Binary::Container::Ptr Decompress() const = 0;
     };
 
     class StoreDataDecoder : public DataDecoder
     {
     public:
-      StoreDataDecoder(const uint8_t* const start, std::size_t size, std::size_t destSize)
-        : Start(start)
-        , Size(size)
+      StoreDataDecoder(Binary::Container::Ptr data, std::size_t destSize)
+        : Data(std::move(data))
         , DestSize(destSize)
       {
       }
 
-      std::unique_ptr<Dump> Decompress() const override
+      Binary::Container::Ptr Decompress() const override
       {
-        if (Size != DestSize)
+        if (Data->Size() != DestSize)
         {
           Dbg("Stored file sizes mismatch");
-          return std::unique_ptr<Dump>();
+          return {};
         }
         else
         {
           Dbg("Restore %1% bytes", DestSize);
-          return std::unique_ptr<Dump>(new Dump(Start, Start + DestSize));
+          return Data;
         }
       }
     private:
-      const uint8_t* const Start;
-      const std::size_t Size;
+      const Binary::Container::Ptr Data;
       const std::size_t DestSize;
     };
 
     class InflatedDataDecoder : public DataDecoder
     {
     public:
-      InflatedDataDecoder(const uint8_t* const start, std::size_t size, std::size_t destSize)
-        : Start(start)
-        , Size(size)
+      InflatedDataDecoder(Binary::Container::Ptr data, std::size_t destSize)
+        : Data(std::move(data))
         , DestSize(destSize)
       {
       }
 
-      std::unique_ptr<Dump> Decompress() const override
+      Binary::Container::Ptr Decompress() const override
       {
-        Dbg("Inflate %1% -> %2%", Size, DestSize);
-        std::unique_ptr<Dump> res(new Dump(DestSize));
+        Dbg("Inflate %1% -> %2%", Data->Size(), DestSize);
         try
         {
-          //TODO: rework to use View+zlib container functions
-          const auto resultSize = Binary::Compression::Zlib::DecompressRaw(Binary::View(Start, Size), res->data(), DestSize);
-          if (resultSize == DestSize)
-          {
-            return res;
-          }
+          Binary::DataInputStream input(*Data);
+          Binary::DataBuilder output(DestSize);
+          Binary::Compression::Zlib::DecompressRaw(input, output, DestSize);
+          Require(output.Size() == DestSize);
+          return output.CaptureResult();
         }
         catch (const Error& e)
         {
           Dbg("Failed to inflate: %1%", e.ToString());
         }
-        return std::unique_ptr<Dump>();
+        catch (const std::exception&)
+        {
+          Dbg("Failed to inflate");
+        }
+        return {};
       }
     private:
-      const uint8_t* const Start;
-      const std::size_t Size;
+      const Binary::Container::Ptr Data;
       const std::size_t DestSize;
     };
 
-    std::unique_ptr<DataDecoder> CreateDecoder(const LocalFileHeader& header, const CompressedFile& file)
+    std::unique_ptr<DataDecoder> CreateDecoder(const Container& container)
     {
-      const uint8_t* const start = safe_ptr_cast<const uint8_t*>(&header) + header.GetSize();
-      const std::size_t size = file.GetPackedSize() - header.GetSize();
+      const auto& header = container.GetHeader();
+      const auto& file = container.GetFile();
+      auto input = container.GetPackedData();
       const std::size_t outSize = file.GetUnpackedSize();
       switch (fromLE(header.CompressionMethod))
       {
       case 0:
-        return std::unique_ptr<DataDecoder>(new StoreDataDecoder(start, size, outSize));
+        return std::unique_ptr<DataDecoder>(new StoreDataDecoder(std::move(input), outSize));
         break;
       case 8:
       case 9:
-        return std::unique_ptr<DataDecoder>(new InflatedDataDecoder(start, size, outSize));
+        return std::unique_ptr<DataDecoder>(new InflatedDataDecoder(std::move(input), outSize));
         break;
       }
-      return std::unique_ptr<DataDecoder>();
+      return {};
     }
    
     class DispatchedDataDecoder : public DataDecoder
     {
     public:
       explicit DispatchedDataDecoder(const Container& container)
-        : Delegate(CreateDecoder(container.GetHeader(), container.GetFile()))
-        , IsValid(container.FastCheck() && Delegate.get())
+        : Delegate(CreateDecoder(container))
+        , IsValid(Delegate.get())
       {
       }
 
-      std::unique_ptr<Dump> Decompress() const override
+      Binary::Container::Ptr Decompress() const override
       {
         if (!IsValid)
         {
-          return std::unique_ptr<Dump>();
+          return {};
         }
-        std::unique_ptr<Dump> result = Delegate->Decompress();
-        IsValid = result.get() != nullptr;
+        auto result = Delegate->Decompress();
+        IsValid = !!result;
         return result;
       }
     private:
@@ -318,7 +324,7 @@ namespace Packed
       {
         return Container::Ptr();
       }
-      const Zip::Container container(rawData.Start(), rawData.Size());
+      const Zip::Container container(rawData);
       if (!container.FastCheck())
       {
         return Container::Ptr();
