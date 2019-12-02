@@ -95,7 +95,13 @@ namespace Binary
       return result;
     }
 
-    const uint8_t* PeekRawData(std::size_t size)
+    template<class T>
+    const T* PeekField() const
+    {
+      return safe_ptr_cast<const T*>(PeekRawData(sizeof(T)));
+    }
+
+    const uint8_t* PeekRawData(std::size_t size) const
     {
       if (Cursor + size <= Finish)
       {

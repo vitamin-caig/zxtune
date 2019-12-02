@@ -12,7 +12,7 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/container_base.h>
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <formats/packed/decoders.h>
@@ -66,10 +66,8 @@ namespace Archived
     class BlocksIterator
     {
     public:
-      explicit BlocksIterator(const Binary::Container& data)
-        : Container(data)
-        , Limit(data.Size())
-        , Offset(0)
+      explicit BlocksIterator(Binary::View data)
+        : Stream(data)
       {
       }
 
@@ -79,73 +77,66 @@ namespace Archived
         {
           return true;
         }
-        if (const std::size_t size = GetBlockSize())
-        {
-          return Offset + size > Limit;
-        }
-        return true;
+        const auto curBlockSize = GetBlockSize();
+        return !curBlockSize || curBlockSize > Stream.GetRestSize();
       }
 
       template<class T>
       const T* GetBlock() const
       {
-        if (const T* rawBlock = Container.GetField<T>(Offset))
-        {
-          return fromLE(rawBlock->Signature) == T::SIGNATURE
-            ? rawBlock
-            : nullptr;
-        }
-        return nullptr;
+        const T* rawBlock = Stream.PeekField<T>();
+        return rawBlock && fromLE(rawBlock->Signature) == T::SIGNATURE
+          ? rawBlock
+          : nullptr;
       }
 
       std::unique_ptr<const Packed::Zip::CompressedFile> GetFile() const
       {
         using namespace Packed::Zip;
-        if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
+        if (const auto* header = GetBlock<LocalFileHeader>())
         {
-          return CompressedFile::Create(*header, Limit - Offset);
+          return CompressedFile::Create(*header, Stream.GetRestSize());
         }
-        return std::unique_ptr<const CompressedFile>();
+        return {};
       }
 
       std::size_t GetOffset() const
       {
-        return Offset;
+        return Stream.GetPosition();
       }
 
       void Next()
       {
-        const std::size_t size = GetBlockSize();
-        Offset += size;
+        Stream.Skip(GetBlockSize());
       }
     private:
       std::size_t GetBlockSize() const
       {
         using namespace Packed::Zip;
-        if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
+        if (const auto* header = GetBlock<LocalFileHeader>())
         {
-          const std::unique_ptr<const CompressedFile> file = CompressedFile::Create(*header, Limit - Offset);
+          const auto file = CompressedFile::Create(*header, Stream.GetRestSize());
           return file.get()
             ? file->GetPackedSize()
             : 0;
         }
-        else if (const LocalFileFooter* footer = GetBlock<LocalFileFooter>())
+        else if (const auto* footer = GetBlock<LocalFileFooter>())
         {
           return sizeof(*footer);
         }
-        else if (const ExtraDataRecord* extra = GetBlock<ExtraDataRecord>())
+        else if (const auto* extra = GetBlock<ExtraDataRecord>())
         {
           return extra->GetSize();
         }
-        else if (const CentralDirectoryFileHeader* centralHeader = GetBlock<CentralDirectoryFileHeader>())
+        else if (const auto* centralHeader = GetBlock<CentralDirectoryFileHeader>())
         {
           return centralHeader->GetSize();
         }
-        else if (const CentralDirectoryEnd* centralFooter = GetBlock<CentralDirectoryEnd>())
+        else if (const auto* centralFooter = GetBlock<CentralDirectoryEnd>())
         {
           return centralFooter->GetSize();
         }
-        else if (const DigitalSignature* signature = GetBlock<DigitalSignature>())
+        else if (const auto* signature = GetBlock<DigitalSignature>())
         {
           return signature->GetSize();
         }
@@ -156,9 +147,7 @@ namespace Archived
         }
       }
     private:
-      const Binary::TypedContainer Container;
-      const std::size_t Limit;
-      std::size_t Offset;
+      Binary::DataInputStream Stream;
     };
 
     //TODO: make BlocksIterator
