@@ -437,7 +437,8 @@ namespace Archived
       std::unique_ptr<Dump> result(new Dump(targetSize));
       try
       {
-        const auto doneSize = Binary::Compression::Zlib::Decompress(blk.Content, blk.Size, result->data(), targetSize);
+        //TODO: use better function
+        const auto doneSize = Binary::Compression::Zlib::Decompress(Binary::View(blk.Content, blk.Size), result->data(), targetSize);
         Dbg("Decompressed %1% -> %2% (required %3%)", blk.Size, doneSize, blk.UncompressedSize);
         if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == doneSize)
         {

@@ -201,7 +201,8 @@ namespace Zdata
       Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), decoded.data(), decoded.data() + hdr.Packed);
       std::unique_ptr<Dump> unpacked(new Dump(hdr.Original));
       Dbg("Unpack %1% => %2%", hdr.Packed, hdr.Original);
-      Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded.data(), decoded.size(), unpacked->data(), unpacked->size()));
+      //TODO: use another function
+      Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded, unpacked->data(), unpacked->size()));
       Require(hdr.Crc == Binary::Crc32(*unpacked));
       return Binary::CreateContainer(std::move(unpacked));
     }

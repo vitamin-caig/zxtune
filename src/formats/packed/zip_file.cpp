@@ -140,7 +140,8 @@ namespace Packed
         std::unique_ptr<Dump> res(new Dump(DestSize));
         try
         {
-          const auto resultSize = Binary::Compression::Zlib::DecompressRaw(Start, Size, res->data(), DestSize);
+          //TODO: rework to use View+zlib container functions
+          const auto resultSize = Binary::Compression::Zlib::DecompressRaw(Binary::View(Start, Size), res->data(), DestSize);
           if (resultSize == DestSize)
           {
             return res;

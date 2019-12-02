@@ -33,17 +33,17 @@ namespace Binary
         {
         }
         
-        Stream(const void* input, std::size_t inputSize, void* output, std::size_t maxOutputSize)
+        Stream(View input, void* output, std::size_t maxOutputSize)
           : Delegate()
         {
-          SetInput(input, inputSize);
+          SetInput(input);
           SetOutput(output, maxOutputSize);
         }
       protected:
-        void SetInput(const void* src, std::size_t srcSize)
+        void SetInput(View input)
         {
-          Delegate.next_in = const_cast<Bytef*>(static_cast<const Bytef*>(src));
-          Delegate.avail_in = static_cast<uInt>(srcSize);
+          Delegate.next_in = const_cast<Bytef*>(static_cast<const Bytef*>(input.Start()));
+          Delegate.avail_in = static_cast<uInt>(input.Size());
         }
         
         void SetOutput(void* dst, std::size_t dstSize)
@@ -71,8 +71,8 @@ namespace Binary
         {
         }
         
-        DecompressStream(const void* input, std::size_t inputSize, void* output, std::size_t maxOutputSize)
-          : Stream(input, inputSize, output, maxOutputSize)
+        DecompressStream(View input, void* output, std::size_t maxOutputSize)
+          : Stream(input, output, maxOutputSize)
         {
         }
 
@@ -95,7 +95,7 @@ namespace Binary
         {
           const auto prevOutSize = output.Size();
 
-          SetInput(input.PeekRawData(0), input.GetRestSize());
+          SetInput(View(input.PeekRawData(0), input.GetRestSize()));
           if (outputSizeHint != 0)
           {
             SetOutput(output.Allocate(outputSizeHint), outputSizeHint);
@@ -136,9 +136,9 @@ namespace Binary
         stream.Decompress(input, output, outputSizeHint);
       }
 
-      std::size_t DecompressRaw(const void* input, std::size_t inputSize, void* output, std::size_t maxOutputSize)
+      std::size_t DecompressRaw(View input, void* output, std::size_t maxOutputSize)
       {
-        DecompressStream stream(input, inputSize, output, maxOutputSize);
+        DecompressStream stream(input, output, maxOutputSize);
         stream.InitRaw();
         return stream.Decompress();
       }
@@ -150,9 +150,9 @@ namespace Binary
         stream.Decompress(input, output, outputSizeHint);
       }
       
-      std::size_t Decompress(const void* input, std::size_t inputSize, void* output, std::size_t maxOutputSize)
+      std::size_t Decompress(View input, void* output, std::size_t maxOutputSize)
       {
-        DecompressStream stream(input, inputSize, output, maxOutputSize);
+        DecompressStream stream(input, output, maxOutputSize);
         stream.Init();
         return stream.Decompress();
       }
@@ -187,7 +187,7 @@ namespace Binary
           const auto inData = input.ReadRestData();
           const auto prevOutSize = output.Size();
 
-          SetInput(inData.Start(), inData.Size());
+          SetInput(inData);
           const auto approxOutSize = ::compressBound(static_cast<uLong>(inData.Size()));
           SetOutput(output.Allocate(approxOutSize), approxOutSize);
           const auto outSize = Compress();
