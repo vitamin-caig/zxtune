@@ -15,7 +15,7 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <formats/image.h>
 //text includes
 #include <formats/text/image.h>
@@ -60,43 +60,21 @@ namespace Image
     const std::size_t PIXELS_SIZE = 6144;
     const std::size_t ATTRS_SIZE = 768;
 
-    class ByteStream
-    {
-    public:
-      ByteStream(const uint8_t* data, std::size_t size, std::size_t offset)
-        : Start(data)
-        , Cursor(Start + offset)
-        , End(Start + size)
-      {
-      }
-
-      uint8_t GetByte()
-      {
-        Require(Cursor != End);
-        return *Cursor++;
-      }
-
-      std::size_t GetProcessedBytes() const
-      {
-        return Cursor - Start;
-      }
-    private:
-      const uint8_t* const Start;
-      const uint8_t* Cursor;
-      const uint8_t* const End;
-    };
-
     class Container
     {
     public:
-      explicit Container(const Binary::View& data)
-        : Data(data)
+      explicit Container(Binary::View data)
+        : Data(data.SubView(DEPACKER_SIZE))
       {
       }
 
       bool FastCheck() const
       {
-        const uint_t sizeCode = *Data.GetField<uint8_t>(DEPACKER_SIZE);
+        if (!Data)
+        {
+          return false;
+        }
+        const uint_t sizeCode = *static_cast<const uint8_t*>(Data.Start());
         return sizeCode == 0
             || sizeCode == 1
             || sizeCode == 2
@@ -106,12 +84,12 @@ namespace Image
         ;
       }
 
-      ByteStream GetStream() const
+      Binary::DataInputStream GetStream() const
       {
-        return ByteStream(Data.GetField<uint8_t>(0), Data.GetSize(), DEPACKER_SIZE);
+        return Binary::DataInputStream(Data);
       }
     private:
-      const Binary::TypedContainer Data;
+      const Binary::View Data;
     };
 
     class AddrTranslator
@@ -171,7 +149,7 @@ namespace Image
 
       std::size_t GetUsedSize() const
       {
-        return Stream.GetProcessedBytes();
+        return Stream.GetPosition();
       }
     private:
       bool DecodeData()
@@ -181,12 +159,12 @@ namespace Image
           Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
           std::fill_n(&decoded[PIXELS_SIZE], ATTRS_SIZE, 7);
 
-          const AddrTranslator translate(Stream.GetByte());
+          const AddrTranslator translate(Stream.ReadByte());
 
           std::size_t target = translate.GetStart();
           for (;;)
           {
-            const uint8_t val = Stream.GetByte();
+            const uint8_t val = Stream.ReadByte();
             if (val == 0xc0)
             {
               break;
@@ -196,13 +174,13 @@ namespace Image
               uint8_t len = (val & 0x3c) >> 2;
               if (0 == len)
               {
-                len = Stream.GetByte();
+                len = Stream.ReadByte();
               }
               else if ((val & 0x02) == 0x00)
               {
                 ++len;
               }
-              const uint8_t fill = (val & 0x02) == 0x00 ? Stream.GetByte() : 0;
+              const uint8_t fill = (val & 0x02) == 0x00 ? Stream.ReadByte() : 0;
               do
               {
                 decoded.at(translate(target++)) = fill;
@@ -214,7 +192,7 @@ namespace Image
               uint8_t len = (val & 0x3e) >> 1;
               do
               {
-                decoded.at(translate(target++)) = Stream.GetByte();
+                decoded.at(translate(target++)) = Stream.ReadByte();
               }
               while (--len);
             }
@@ -225,12 +203,12 @@ namespace Image
 
               if (0 == len)
               {
-                const uint8_t next = Stream.GetByte();
+                const uint8_t next = Stream.ReadByte();
                 hi = (hi << 1) | (next & 1);
                 len = next >> 1;
               }
               ++len;
-              uint16_t source = target + (uint_t(hi << 8) | Stream.GetByte());
+              uint16_t source = target + (uint_t(hi << 8) | Stream.ReadByte());
               const int_t step = (val & 0x80) ? -1 : +1;
               do
               {
@@ -255,7 +233,7 @@ namespace Image
       }
     private:
       bool IsValid;
-      ByteStream Stream;
+      Binary::DataInputStream Stream;
       std::unique_ptr<Dump> Result;
     };
   }//namespace LaserCompact40

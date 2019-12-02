@@ -15,7 +15,7 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <formats/image.h>
 //text includes
 #include <formats/text/image.h>
@@ -54,10 +54,8 @@ namespace Image
     class BitStream
     {
     public:
-      BitStream(const uint8_t* data, std::size_t size, std::size_t offset)
-        : Start(data)
-        , Cursor(Start + offset)
-        , End(Start + size)
+      explicit BitStream(Binary::View data)
+        : Stream(data)
         , Bits()
         , Mask()
       {
@@ -65,8 +63,7 @@ namespace Image
 
       uint8_t GetByte()
       {
-        Require(Cursor != End);
-        return *Cursor++;
+        return Stream.ReadByte();
       }
 
       uint8_t GetBit()
@@ -114,12 +111,10 @@ namespace Image
 
       std::size_t GetProcessedBytes() const
       {
-        return Cursor - Start;
+        return Stream.GetPosition();
       }
     private:
-      const uint8_t* const Start;
-      const uint8_t* Cursor;
-      const uint8_t* const End;
+      Binary::DataInputStream Stream;
       uint_t Bits;
       uint_t Mask;
     };
@@ -134,31 +129,35 @@ namespace Image
 
       bool FastCheck() const
       {
-        if (const Header* hdr = Data.GetField<Header>(0))
+        if (const auto* sub = static_cast<const SubHeader*>(GetCompressedData().Start()))
         {
-          const std::size_t subOffset = sizeof(*hdr) + hdr->AdditionalSize;
-          if (const SubHeader* sub = Data.GetField<SubHeader>(subOffset))
-          {
-            return sub->SizeCode == 0
-                || sub->SizeCode == 1
-                || sub->SizeCode == 2
-                || sub->SizeCode == 8
-                || sub->SizeCode == 9
-                || sub->SizeCode == 16
-            ;
-          }
+          return sub->SizeCode == 0
+              || sub->SizeCode == 1
+              || sub->SizeCode == 2
+              || sub->SizeCode == 8
+              || sub->SizeCode == 9
+              || sub->SizeCode == 16
+          ;
         }
         return false;
       }
 
       BitStream GetStream() const
       {
-        const Header& hdr = *Data.GetField<Header>(0);
-        const std::size_t subOffset = sizeof(hdr) + hdr.AdditionalSize;
-        return BitStream(Data.GetField<uint8_t>(0), Data.GetSize(), subOffset);
+        return BitStream(GetCompressedData());
       }
     private:
-      const Binary::TypedContainer Data;
+      Binary::View GetCompressedData() const
+      {
+        const auto header = Data.SubView(0, sizeof(Header));
+        if (const auto* hdr = static_cast<const Header*>(header.Start()))
+        {
+          return Data.SubView(sizeof(*hdr) + hdr->AdditionalSize);
+        }
+        return header;
+      }
+    private:
+      const Binary::View Data;
     };
 
     class AddrTranslator
