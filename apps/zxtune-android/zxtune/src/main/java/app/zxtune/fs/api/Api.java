@@ -7,17 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Locale;
 
 import app.zxtune.BuildConfig;
 import app.zxtune.auth.Auth;
+import app.zxtune.net.Http;
 
 public class Api {
-
-  private static final String USER_AGENT = String.format(Locale.US, "%s/%d (%s; %s; %s)",
-      BuildConfig.APPLICATION_ID,
-      BuildConfig.VERSION_CODE,
-      BuildConfig.BUILD_TYPE, BuildConfig.VERSION_NAME, BuildConfig.FLAVOR);
 
   private static final String ENDPOINT = BuildConfig.API_ROOT;
   private static final String REPLY = "";
@@ -34,16 +29,14 @@ public class Api {
   }
 
   public static void postEvent(String url) throws IOException {
-    final URL fullUrl = new URL(ENDPOINT + "/events/" + url);
-    final String reply = doRequest(fullUrl, "POST");
+    final String reply = doRequest(ENDPOINT + "/events/" + url, "POST");
     if (!REPLY.equals(reply)) {
       throw new IOException("Wrong reply: " + reply);
     }
   }
 
-  private static String doRequest(URL fullUrl, String method) throws IOException {
-    final HttpURLConnection connection = (HttpURLConnection) fullUrl.openConnection();
-    connection.setRequestProperty("User-Agent", USER_AGENT);
+  private static String doRequest(String fullUrl, String method) throws IOException {
+    final HttpURLConnection connection = Http.createConnection(fullUrl);
     if (authorization != null) {
       connection.setRequestProperty("Authorization", authorization);
     }

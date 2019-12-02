@@ -11,11 +11,11 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import app.zxtune.TimeStamp;
+import app.zxtune.net.Http;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,11 +32,9 @@ final class HttpUrlConnectionProvider implements HttpProvider {
   }
 
   private final Policy policy;
-  private final String userAgent;
 
-  HttpUrlConnectionProvider(Policy policy, String userAgent) {
+  HttpUrlConnectionProvider(Policy policy) {
     this.policy = policy;
-    this.userAgent = userAgent;
   }
 
   @Override
@@ -63,7 +61,7 @@ final class HttpUrlConnectionProvider implements HttpProvider {
     private final boolean acceptRanges;
 
     SimpleHttpObject(Uri uri) throws IOException {
-      final HttpURLConnection connection = createConnection(uri);
+      final HttpURLConnection connection = Http.createConnection(uri.toString());
       connection.setRequestProperty("Accept-Encoding", "identity");
       connection.setRequestMethod("HEAD");
       connection.setDoInput(false);
@@ -140,16 +138,9 @@ final class HttpUrlConnectionProvider implements HttpProvider {
     return createStream(uri, 0);
   }
 
-  private HttpURLConnection createConnection(Uri uri) throws IOException {
-    final URL url = new URL(uri.toString());
-    final HttpURLConnection result = (HttpURLConnection) url.openConnection();
-    result.setRequestProperty("User-Agent", userAgent);
-    return result;
-  }
-
   private HttpInputStream createStream(Uri uri, long offset) throws IOException {
     try {
-      final HttpURLConnection connection = createConnection(uri);
+      final HttpURLConnection connection = Http.createConnection(uri.toString());
       if (offset != 0) {
         connection.setRequestProperty("Range", "bytes=" + offset + "-");
       }

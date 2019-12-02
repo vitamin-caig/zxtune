@@ -38,9 +38,6 @@ public final class HttpProviderFactory {
 
   public static HttpProvider createProvider(Context ctx) {
     final PolicyImpl policy = new PolicyImpl(ctx);
-    final String userAgent = String.format(Locale.US, "%s/%d (%s; %s; %s)", BuildConfig.APPLICATION_ID,
-        BuildConfig.VERSION_CODE,
-        BuildConfig.BUILD_TYPE, BuildConfig.VERSION_NAME, BuildConfig.FLAVOR);
-    return new HttpUrlConnectionProvider(policy, userAgent);
+    return new HttpUrlConnectionProvider(policy);
   }
 }
