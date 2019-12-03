@@ -87,7 +87,7 @@ namespace Archived
       {
         assert(!IsEof());
         const auto* block = Stream.PeekField<Packed::Rar::ArchiveBlockHeader>();
-        return block && !block->IsExtended() && Packed::Rar::ArchiveBlockHeader::TYPE == block->Type
+        return block && !block->Block.IsExtended() && Packed::Rar::ArchiveBlockHeader::TYPE == block->Block.Type
           ? block
           : nullptr;
       }
@@ -117,8 +117,8 @@ namespace Archived
             {
               res += fromLE(extBlock->AdditionalSize);
               //Even if big files are not supported, we should properly skip them in stream
-              if (Packed::Rar::FileBlockHeader::TYPE == extBlock->Type && 
-                  Packed::Rar::FileBlockHeader::FLAG_BIG_FILE & fromLE(extBlock->Flags))
+              if (Packed::Rar::FileBlockHeader::TYPE == extBlock->Block.Type && 
+                  Packed::Rar::FileBlockHeader::FLAG_BIG_FILE & fromLE(extBlock->Block.Flags))
               {
                 if (const auto* bigFile = Stream.PeekField<Packed::Rar::BigFileBlockHeader>())
                 {

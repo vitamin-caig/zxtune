@@ -334,15 +334,16 @@ namespace Archived
       return Format;
     }
 
-    Container::Ptr Decode(const Binary::Container& data) const override
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
+      const Binary::View data(rawData);
       if (!Format->Match(data))
       {
         return Container::Ptr();
       }
-      const SevenZip::Header& hdr = *static_cast<const SevenZip::Header*>(data.Start());
+      const auto& hdr = *data.As<SevenZip::Header>();
       const std::size_t totalSize = sizeof(hdr) + fromLE(hdr.NextHeaderOffset) + fromLE(hdr.NextHeaderSize);
-      auto archiveData = data.GetSubcontainer(0, totalSize);
+      auto archiveData = rawData.GetSubcontainer(0, totalSize);
 
       const SevenZip::Archive::Ptr archive = MakePtr<SevenZip::Archive>(archiveData);
       const auto totalFiles = archive->GetFilesCount();

@@ -69,13 +69,13 @@ namespace Chiptune
       void AddValues(const Dump& /*values*/) override {}
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View rawData)
     {
       if (rawData.Size() <= sizeof(Header))
       {
         return false;
       }
-      const Header& header = *static_cast<const Header*>(rawData.Start());
+      const auto& header = *rawData.As<Header>();
       std::size_t minDataStart = sizeof(header);
       for (uint_t reg = 0; reg != header.Buffers.size(); ++reg)
       {
@@ -236,17 +236,18 @@ namespace Chiptune
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
-      if (!FastCheck(rawData))
+      const Binary::View data(rawData);
+      if (!FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
       }
 
       try
       {
-        const std::size_t size = rawData.Size();
-        const uint8_t* const begin = static_cast<const uint8_t*>(rawData.Start());
+        const std::size_t size = data.Size();
+        const auto* begin = data.As<uint8_t>();
         const uint8_t* const end = begin + size;
-        const Header& header = *safe_ptr_cast<const Header*>(begin);
+        const auto& header = *data.As<Header>();
         const uint_t frames = fromLE(header.Duration);
         target.SetFrames(frames);
         std::size_t usedBegin = size;
@@ -262,8 +263,8 @@ namespace Chiptune
           usedBegin = std::min(usedBegin, offset);
           usedEnd = std::max<std::size_t>(usedEnd, stream.GetCursor() - begin);
         }
-        const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, usedEnd);
-        return CreateCalculatingCrcContainer(subData, usedBegin, usedEnd - usedBegin);
+        auto subData = rawData.GetSubcontainer(0, usedEnd);
+        return CreateCalculatingCrcContainer(std::move(subData), usedBegin, usedEnd - usedBegin);
       }
       catch (const std::exception&)
       {

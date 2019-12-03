@@ -18,7 +18,6 @@
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/packed/lha_supp.h>
 #include <math/numeric.h>
@@ -207,24 +206,26 @@ namespace Chiptune
 
       const std::size_t FOOTER_SIZE = 1;
 
-      bool FastCheck(const void* data, std::size_t size)
+      bool FastCheck(Binary::View data)
       {
-        if (size < sizeof(RawHeader))
+        if (const auto hdr = data.As<RawHeader>())
         {
-          return 0;
+          const std::size_t hdrLen = hdr->GetDataOffset();
+          if (hdrLen + fromLE(hdr->PackedSize) + FOOTER_SIZE > data.Size())
+          {
+            return false;
+          }
+          const std::size_t origSize = fromLE(hdr->OriginalSize);
+          return Math::InRange(origSize, Ver2::MIN_SIZE, Ver2::MAX_SIZE)
+              || Math::InRange(origSize, Ver3::MIN_SIZE, Ver3::MAX_SIZE)
+              || Math::InRange(origSize, Ver3b::MIN_SIZE, Ver3b::MAX_SIZE)
+              || Math::InRange(origSize, Ver5::MIN_SIZE, Ver5::MAX_SIZE)
+          ;
         }
-        const RawHeader& hdr = *static_cast<const RawHeader*>(data);
-        const std::size_t hdrLen = hdr.GetDataOffset();
-        if (hdrLen + fromLE(hdr.PackedSize) + FOOTER_SIZE > size)
+        else
         {
           return false;
         }
-        const std::size_t origSize = fromLE(hdr.OriginalSize);
-        return Math::InRange(origSize, Ver2::MIN_SIZE, Ver2::MAX_SIZE)
-            || Math::InRange(origSize, Ver3::MIN_SIZE, Ver3::MAX_SIZE)
-            || Math::InRange(origSize, Ver3b::MIN_SIZE, Ver3b::MAX_SIZE)
-            || Math::InRange(origSize, Ver5::MIN_SIZE, Ver5::MAX_SIZE)
-        ;
       }
     }
 #ifdef USE_PRAGMA_PACK
@@ -266,7 +267,7 @@ namespace Chiptune
     void ParseTransponedMatrix(Binary::View input, std::size_t rows, std::size_t columns, Builder& target)
     {
       Require(rows != 0);
-      const auto data = static_cast<const uint8_t*>(input.Start());
+      const auto data = input.As<uint8_t>();
       for (std::size_t row = 0; row != rows; ++row)
       {
         Dump registers(columns);
@@ -281,7 +282,7 @@ namespace Chiptune
     void ParseMatrix(Binary::View input, std::size_t rows, std::size_t columns, Builder& target)
     {
       Require(rows != 0);
-      const uint8_t* cursor = static_cast<const uint8_t*>(input.Start()), *limit = cursor + input.Size();
+      const auto* cursor = input.As<uint8_t>(), *limit = cursor + input.Size();
       for (std::size_t row = 0; row != rows; ++row)
       {
         const uint8_t* const nextCursor = cursor + columns;
@@ -386,23 +387,22 @@ namespace Chiptune
       
     Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target)
     {
-      const void* const data = rawData.Start();
-      const std::size_t size = rawData.Size();
-      if (!Compressed::FastCheck(data, size))
+      const Binary::View data(rawData);
+      if (!Compressed::FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
       }
-      const Compressed::RawHeader& hdr = *static_cast<const Compressed::RawHeader*>(data);
+      const Compressed::RawHeader& hdr = *data.As<Compressed::RawHeader>();
       const std::size_t packedOffset = hdr.GetDataOffset();
       const std::size_t packedSize = fromLE(hdr.PackedSize);
-      const Binary::Container::Ptr packed = rawData.GetSubcontainer(packedOffset, packedSize);
+      const auto packed = rawData.GetSubcontainer(packedOffset, packedSize);
       const std::size_t unpackedSize = fromLE(hdr.OriginalSize);
-      if (const Formats::Packed::Container::Ptr unpacked = Formats::Packed::Lha::DecodeRawData(*packed, FromCharArray(hdr.Method), unpackedSize))
+      if (const auto unpacked = Formats::Packed::Lha::DecodeRawData(*packed, FromCharArray(hdr.Method), unpackedSize))
       {
         if (ParseUnpacked(*unpacked, target))
         {
-          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize + Compressed::FOOTER_SIZE);
-          return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
+          auto subData = rawData.GetSubcontainer(0, packedOffset + packedSize + Compressed::FOOTER_SIZE);
+          return CreateCalculatingCrcContainer(std::move(subData), packedOffset, packedSize);
         }
       }
       return Formats::Chiptune::Container::Ptr();
@@ -531,14 +531,17 @@ namespace Chiptune
       uint8_t IntFreq;
     } PACK_POST;
 
-    PACK_PRE struct RawNewHeader : RawBasicHeader
+    // Use aggregation over inheritance to keep type POD
+    PACK_PRE struct RawNewHeader
     {
+      RawBasicHeader Basic;
       uint16_t Year;
       uint32_t UnpackedSize;
     } PACK_POST;
 
-    PACK_PRE struct RawOldHeader : RawBasicHeader
+    PACK_PRE struct RawOldHeader
     {
+      RawBasicHeader Basic;
       uint32_t UnpackedSize;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
@@ -552,15 +555,15 @@ namespace Chiptune
     template<class HeaderType>
     bool FastCheck(const HeaderType& hdr)
     {
-      if (!Math::InRange<uint_t>(hdr.LayoutMode & LAYOUT_MASK, LAYOUT_MIN, LAYOUT_MAX))
+      if (!Math::InRange<uint_t>(hdr.Basic.LayoutMode & LAYOUT_MASK, LAYOUT_MIN, LAYOUT_MAX))
       {
         return false;
       }
-      if (!Math::InRange<uint_t>(hdr.IntFreq, INTFREQ_MIN, INTFREQ_MAX))
+      if (!Math::InRange<uint_t>(hdr.Basic.IntFreq, INTFREQ_MIN, INTFREQ_MAX))
       {
         return false;
       }
-      if (!Math::InRange<uint_t>(fromLE(hdr.Clockrate), CLOCKRATE_MIN, CLOCKRATE_MAX))
+      if (!Math::InRange<uint_t>(fromLE(hdr.Basic.Clockrate), CLOCKRATE_MIN, CLOCKRATE_MAX))
       {
         return false;
       }
@@ -571,22 +574,21 @@ namespace Chiptune
       return true;
     }
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View data)
     {
-      const Binary::TypedContainer typedData(rawData);
-      if (const RawBasicHeader* basic = typedData.GetField<RawBasicHeader>(0))
+      if (const auto* basic = data.As<RawBasicHeader>())
       {
         const uint16_t type = fromLE(basic->ChipType);
         if (type == CHIP_AY || type == CHIP_YM)
         {
-          if (const RawNewHeader* hdr = typedData.GetField<RawNewHeader>(0))
+          if (const auto* hdr = data.As<RawNewHeader>())
           {
             return FastCheck(*hdr);
           }
         }
         else if (type == CHIP_AY_OLD || type == CHIP_YM_OLD)
         {
-          if (const RawOldHeader* hdr = typedData.GetField<RawOldHeader>(0))
+          if (const auto* hdr = data.As<RawOldHeader>())
           {
             return FastCheck(*hdr);
           }
@@ -597,7 +599,8 @@ namespace Chiptune
 
     Formats::Chiptune::Container::Ptr ParseVTX(const Binary::Container& rawData, Builder& target)
     {
-      if (!FastCheck(rawData))
+      const Binary::View data(rawData);
+      if (!FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
       }
@@ -629,8 +632,8 @@ namespace Chiptune
 
         const std::size_t packedOffset = stream.GetPosition();
         Dbg("Packed data at %1%", packedOffset);
-        const Binary::Container::Ptr packed = stream.ReadRestContainer();
-        if (const Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
+        const auto packed = stream.ReadRestContainer();
+        if (const auto unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
         {
           const std::size_t doneSize = unpacked->Size();
           const std::size_t columns = sizeof(RegistersDump);
@@ -638,8 +641,8 @@ namespace Chiptune
           const std::size_t lines = doneSize / columns;
           ParseTransponedMatrix(*unpacked, lines, columns, target);
           const std::size_t packedSize = unpacked->PackedSize();
-          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
-          return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
+          auto subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
+          return CreateCalculatingCrcContainer(std::move(subData), packedOffset, packedSize);
         }
         Dbg("Failed to decode ym data");
       }
@@ -678,7 +681,7 @@ namespace Chiptune
 
       bool Check(const Binary::Container& rawData) const override
       {
-        return FastCheck(rawData);
+        return FastCheck(Binary::View(rawData));
       }
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override

@@ -146,7 +146,7 @@ namespace Packed
         return Container::Ptr();
       }
       const std::size_t playerSize = CompiledPTU13::PLAYER_SIZE;
-      const auto& rawPlayer = *static_cast<const CompiledPTU13::RawPlayer*>(data.Start());
+      const auto& rawPlayer = *data.As<CompiledPTU13::RawPlayer>();
       const uint_t positionsAddr = fromLE(rawPlayer.PositionsAddr);
       if (positionsAddr < playerSize + offsetof(CompiledPTU13::RawHeader, Positions))
       {
@@ -155,7 +155,7 @@ namespace Packed
       }
       const uint_t dataAddr = positionsAddr - offsetof(CompiledPTU13::RawHeader, Positions);
       const auto modData = data.SubView(playerSize, CompiledPTU13::MAX_MODULE_SIZE);
-      const auto& rawHeader = *static_cast<const CompiledPTU13::RawHeader*>(modData.Start());
+      const auto& rawHeader = *modData.As<CompiledPTU13::RawHeader>();
       const uint_t patternsCount = CompiledPTU13::GetPatternsCount(rawHeader, modData.Size());
       if (!patternsCount)
       {

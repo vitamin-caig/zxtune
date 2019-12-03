@@ -124,7 +124,7 @@ namespace Image
     {
     public:
       explicit DataDecoder(Binary::View data)
-        : Stream(static_cast<const uint8_t*>(data.Start()), data.Size(), DEPACKER_SIZE)
+        : Stream(data.As<uint8_t>(), data.Size(), DEPACKER_SIZE)
       {
         IsValid = DecodeData();
       }

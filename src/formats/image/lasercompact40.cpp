@@ -74,7 +74,7 @@ namespace Image
         {
           return false;
         }
-        const uint_t sizeCode = *static_cast<const uint8_t*>(Data.Start());
+        const uint_t sizeCode = *Data.As<uint8_t>();
         return sizeCode == 0
             || sizeCode == 1
             || sizeCode == 2

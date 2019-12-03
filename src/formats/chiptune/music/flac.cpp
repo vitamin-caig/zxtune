@@ -101,7 +101,7 @@ namespace Chiptune
         const auto maxFrameSize = fromBE24(input.ReadData(3));
         target.SetFrameSize(minFrameSize, maxFrameSize);
         //TODO: operate with uint64_t
-        const auto params = static_cast<const uint8_t*>(input.ReadData(8).Start());
+        const auto params = input.ReadData(8).As<uint8_t>();
         const auto sampleRate = (uint_t(params[0]) << 12) | (uint_t(params[1]) << 4) | (params[2] >> 4);
         Require(sampleRate != 0);
         const auto channels = 1 + ((params[2] >> 1) & 7);
@@ -113,7 +113,7 @@ namespace Chiptune
 
       static inline uint_t fromBE24(Binary::View data)
       {
-        return Byteorder<3>::ReadBE(static_cast<const uint8_t*>(data.Start()));
+        return Byteorder<3>::ReadBE(data.As<uint8_t>());
       }
 
       bool ParseFrames(Builder& target)

@@ -50,18 +50,18 @@ namespace Packed
     const std::size_t MIN_SIZE = 0x100;
     const std::size_t MAX_SIZE = 0xff00;
 
-    bool Check(const void* rawData, std::size_t limit)
+    bool Check(Binary::View rawData)
     {
-      if (limit < sizeof(Header))
+      const auto* header = rawData.As<Header>();
+      if (!header)
       {
         return false;
       }
-      const uint8_t* const data = static_cast<const uint8_t*>(rawData);
-      const Header* const header = static_cast<const Header*>(rawData);
+      const auto* data = rawData.As<uint8_t>();
       const std::size_t dataSize = fromLE(header->Length);
       const std::size_t fullSize = fromLE(header->FullLength);
-      if (!Math::InRange(dataSize, MIN_SIZE, MAX_SIZE) ||
-          dataSize + sizeof(*header) > limit ||
+      if (!Math::InRange(rawData.Size(), MIN_SIZE, MAX_SIZE) ||
+          dataSize + sizeof(*header) > rawData.Size() ||
           fullSize != Math::Align<std::size_t>(dataSize, 256) ||
           //check for valid name
           header->Filename.end() != std::find_if(header->Filename.begin(), header->Filename.end(),
@@ -110,21 +110,20 @@ namespace Packed
 
     Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const override
     {
-      if (!Format->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Format->Match(data))
       {
         return Formats::Packed::Container::Ptr();
       }
-      const uint8_t* const data = static_cast<const uint8_t*>(rawData.Start());
-      const std::size_t availSize = rawData.Size();
-      if (!Hobeta::Check(data, availSize))
+      if (!Hobeta::Check(data))
       {
         return Formats::Packed::Container::Ptr();
       }
-      const Hobeta::Header* const header = safe_ptr_cast<const Hobeta::Header*>(data);
+      const auto* header = data.As<Hobeta::Header>();
       const std::size_t dataSize = fromLE(header->Length);
       const std::size_t fullSize = fromLE(header->FullLength);
-      const Binary::Container::Ptr subdata = rawData.GetSubcontainer(sizeof(*header), dataSize);
-      return CreateContainer(subdata, fullSize + sizeof(*header));
+      auto subdata = rawData.GetSubcontainer(sizeof(*header), dataSize);
+      return CreateContainer(std::move(subdata), fullSize + sizeof(*header));
     }
   private:
     const Binary::Format::Ptr Format;

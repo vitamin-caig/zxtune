@@ -16,7 +16,6 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <math/numeric.h>
 //text includes
 #include <formats/text/chiptune.h>
@@ -68,7 +67,7 @@ namespace Chiptune
     public:
       ModuleTraits(Binary::View data, std::size_t footerOffset)
         : FooterOffset(footerOffset)
-        , Foot(footerOffset != data.Size() ? safe_ptr_cast<const Footer*>(static_cast<const uint8_t*>(data.Start()) + footerOffset) : nullptr)
+        , Foot(data.SubView(footerOffset).As<Footer>())
         , FirstSize(Foot ? fromLE(Foot->Size1) : 0)
         , SecondSize(Foot ? fromLE(Foot->Size2) : 0)
       {

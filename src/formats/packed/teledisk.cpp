@@ -272,7 +272,7 @@ namespace Packed
       const uint8_t* GetData(std::size_t size)
       {
         Require(size != 0);
-        return static_cast<const uint8_t*>(Stream.ReadData(size).Start());
+        return Stream.ReadData(size).As<uint8_t>();
       }
 
       std::size_t GetOffset() const

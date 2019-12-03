@@ -53,7 +53,7 @@ namespace Chiptune
 
     Binary::Container::Ptr GetResult() const override
     {
-      const uint8_t* const srcData = static_cast<const uint8_t*>(Source.Start());
+      const auto* srcData = Source.As<uint8_t>();
       std::unique_ptr<Dump> result(new Dump(srcData, srcData + Source.Size()));
       ApplyFixes(*result);
       ApplyOverwrites(*result);
@@ -65,7 +65,7 @@ namespace Chiptune
     {
       for (const auto& fix : LEWordFixes)
       {
-        Fix<uint16_t>(static_cast<void*>(&result[fix.first]), fix.second);
+        Fix<uint16_t>(&result[fix.first], fix.second);
       }
     }
 
@@ -93,15 +93,15 @@ namespace Chiptune
         return;
       }
       Dump tmp(result.size() + SizeAddon);
-      Dump::const_iterator src = result.begin();
-      const Dump::const_iterator srcEnd = result.end();
+      auto src = result.begin();
+      const auto srcEnd = result.end();
       auto dst = tmp.begin();
       std::size_t oldOffset = 0;
       for (const auto& ins : Insertions)
       {
         if (const std::size_t toCopy = ins.first - oldOffset)
         {
-          const Dump::const_iterator nextEnd = src + toCopy;
+          const auto nextEnd = src + toCopy;
           dst = std::copy(src, nextEnd, dst);
           src = nextEnd;
           oldOffset += toCopy;

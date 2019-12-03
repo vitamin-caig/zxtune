@@ -73,8 +73,8 @@ namespace Packed
           {
             return 0;
           }
-          uint64_t res = fromLE(header->Size);
-          res += fromLE(header->AdditionalSize);
+          uint64_t res = fromLE(header->Extended.Block.Size);
+          res += fromLE(header->Extended.AdditionalSize);
           if (header->IsBigFile())
           {
             if (const auto* bigHeader = GetHeader<BigFileBlockHeader>())
@@ -102,17 +102,15 @@ namespace Packed
       Binary::Container::Ptr GetData() const
       {
         const auto& header = GetHeader();
-        const std::size_t offset = fromLE(header.Size);
-        const std::size_t size = fromLE(header.AdditionalSize);
+        const std::size_t offset = fromLE(header.Extended.Block.Size);
+        const std::size_t size = fromLE(header.Extended.AdditionalSize);
         return Data.GetSubcontainer(offset, size);
       }
     private:
       template<class T>
       const T* GetHeader() const
       {
-        return sizeof(T) <= Data.Size()
-             ? static_cast<const T*>(Data.Start())
-             : nullptr;
+        return Binary::View(Data).As<T>();
       }
     private:
       const Binary::Container& Data;
@@ -204,6 +202,8 @@ namespace Packed
     class DispatchedCompressedFile : public CompressedFile
     {
     public:
+      DispatchedCompressedFile() {}
+
       Binary::Container::Ptr Decompress(const Container& container) const override
       {
         const auto& header = container.GetHeader();
@@ -230,12 +230,12 @@ namespace Packed
 
     bool FileBlockHeader::IsValid() const
     {
-      return IsExtended() && Type == TYPE;
+      return Extended.Block.IsExtended() && Extended.Block.Type == TYPE;
     }
 
     bool FileBlockHeader::IsSupported() const
     {
-      const uint_t flags = fromLE(Flags);
+      const uint_t flags = fromLE(Extended.Block.Flags);
       //multivolume files are not suported
       if (0 != (flags & (FileBlockHeader::FLAG_SPLIT_BEFORE | FileBlockHeader::FLAG_SPLIT_AFTER)))
       {

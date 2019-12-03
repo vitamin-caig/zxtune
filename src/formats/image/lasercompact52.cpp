@@ -122,14 +122,14 @@ namespace Image
     class Container
     {
     public:
-      explicit Container(const Binary::View& data)
+      explicit Container(Binary::View data)
         : Data(data)
       {
       }
 
       bool FastCheck() const
       {
-        if (const auto* sub = static_cast<const SubHeader*>(GetCompressedData().Start()))
+        if (const auto* sub = GetCompressedData().As<SubHeader>())
         {
           return sub->SizeCode == 0
               || sub->SizeCode == 1
@@ -149,12 +149,11 @@ namespace Image
     private:
       Binary::View GetCompressedData() const
       {
-        const auto header = Data.SubView(0, sizeof(Header));
-        if (const auto* hdr = static_cast<const Header*>(header.Start()))
+        if (const auto* hdr = Data.As<Header>())
         {
           return Data.SubView(sizeof(*hdr) + hdr->AdditionalSize);
         }
-        return header;
+        return Binary::View(nullptr, 0);
       }
     private:
       const Binary::View Data;

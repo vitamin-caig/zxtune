@@ -112,9 +112,10 @@ namespace Multitrack
       Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
         Require(Info != nullptr);
-        const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - static_cast<const uint8_t*>(Delegate->Start());
-        std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
-        std::memcpy(content->data(), Delegate->Start(), content->size());
+        const Binary::View data(*Delegate);
+        const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - data.As<uint8_t>();
+        std::unique_ptr<Dump> content(new Dump(data.Size()));
+        std::memcpy(content->data(), data.Start(), data.Size());
         InfoChunkFull* const info = safe_ptr_cast<InfoChunkFull*>(content->data() + infoOffset);
         Require(idx < info->TracksCount);
         info->StartTrack = idx;

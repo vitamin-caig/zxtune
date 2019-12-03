@@ -19,7 +19,6 @@
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
@@ -414,9 +413,9 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& rawData)
+      explicit Format(Binary::View rawData)
         : RawData(rawData)
-        , Source(*static_cast<const Header*>(RawData.Start()))
+        , Source(*RawData.As<Header>())
         , Version(Source)
         , Ranges(RangeChecker::Create(RawData.Size()))
       {
@@ -501,9 +500,9 @@ namespace Chiptune
           if (const auto sample = GetSample(offset, size))
           {
             Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", 
-              samIdx, rawAddr, rawLoop, sample->Size(), uint_t(info.Page));
+              samIdx, rawAddr, rawLoop, sample.Size(), uint_t(info.Page));
             const std::size_t loop = rawLoop - bank.Addr;
-            target.SetSample(samIdx, loop, *sample);
+            target.SetSample(samIdx, loop, sample);
           }
           else
           {
@@ -586,14 +585,14 @@ namespace Chiptune
         Require(Ranges->AddRange(start, size));
       }
 
-      Binary::Data::Ptr GetSample(std::size_t offset, std::size_t size) const
+      Binary::View GetSample(std::size_t offset, std::size_t size) const
       {
-        const uint8_t* const start = static_cast<const uint8_t*>(RawData.Start()) + offset;
+        const uint8_t* const start = RawData.As<uint8_t>() + offset;
         const uint8_t* const end = std::find(start, start + size, 0);
-        return RawData.GetSubcontainer(offset, end - start);
+        return RawData.SubView(offset, end - start);
       }
     private:
-      const Binary::Container& RawData;
+      const Binary::View RawData;
       const Header& Source;
       const VersionTraits Version;
       const RangeChecker::Ptr Ranges;
@@ -680,9 +679,9 @@ namespace Chiptune
         const Indices& usedSamples = statistic.GetUsedSamples();
         format.ParseSamples(usedSamples, target);
 
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+        auto subData = data.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {

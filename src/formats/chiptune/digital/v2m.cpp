@@ -154,7 +154,7 @@ namespace Chiptune
             && Math::InRange<uint_t>(MaxTime, MIN_MAXTIME, MAX_MAXTIME)
             && Math::InRange<uint_t>(GdNum, MIN_GDNUM, MAX_GDNUM))
           {
-            Delays = static_cast<const uint8_t*>(stream.ReadData(10 * GdNum).Start());
+            Delays = stream.ReadData(10 * GdNum).As<uint8_t>();
             return true;
           }
           return false;

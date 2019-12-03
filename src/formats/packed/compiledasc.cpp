@@ -104,7 +104,7 @@ namespace Packed
       static PlayerTraits Create(Binary::View data)
       {
         Require(data.Size() >= sizeof(Player));
-        const auto* const pl = static_cast<const Player*>(data.Start());
+        const auto* const pl = data.As<Player>();
         return PlayerTraits(*pl);
       }
     };
@@ -208,7 +208,7 @@ namespace Packed
       //20 - author
       //4  - ignore
       //20 - title
-      const auto authorStart = static_cast<const char*>(info.Start()) + 19;
+      const auto authorStart = info.As<char>() + 19;
       const auto ignoreStart = authorStart + 20;
       const auto titleStart = ignoreStart + 4;
       const auto end = titleStart + 20;

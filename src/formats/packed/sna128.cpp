@@ -76,13 +76,14 @@ namespace Packed
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
-    bool Check(const void* rawData, std::size_t limit)
+    bool Check(Binary::View data)
     {
+      const auto limit = data.Size();
       if (limit < sizeof(Header))
       {
         return false;
       }
-      const Header& header = *static_cast<const Header*>(rawData);
+      const auto& header = *data.As<Header>();
       if (header.TRDosROM > 1)
       {
         return false;
@@ -106,12 +107,12 @@ namespace Packed
       return true;
     }
 
-    Formats::Packed::Container::Ptr Decode(const uint8_t* rawData)
+    Formats::Packed::Container::Ptr Decode(Binary::View data)
     {
       static const uint_t PAGE_NUM_TO_INDEX[] = {2, 3, 1, 4, 5, 0, 6, 7};
 
       std::unique_ptr<Dump> result(new Dump(sizeof(ResultData)));
-      const Header& src = *safe_ptr_cast<const Header*>(rawData);
+      const Header& src = *data.As<Header>();
       ResultData& dst = *safe_ptr_cast<ResultData*>(result->data());
       const uint_t curPage = src.Port7FFD & 7;
       dst[PAGE_NUM_TO_INDEX[5]] = src.Page5;
@@ -164,13 +165,12 @@ namespace Packed
 
     Container::Ptr Decode(const Binary::Container& rawData) const override
     {
-      if (!Format->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Format->Match(data))
       {
         return Container::Ptr();
       }
-      const uint8_t* const data = static_cast<const uint8_t*>(rawData.Start());
-      const std::size_t availSize = rawData.Size();
-      if (!Sna128::Check(data, availSize))
+      if (!Sna128::Check(data))
       {
         return Container::Ptr();
       }

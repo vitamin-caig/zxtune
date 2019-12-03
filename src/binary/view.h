@@ -80,6 +80,16 @@ namespace Binary
         return View();
       }
     }
+
+    template<typename T,
+             typename std::enable_if<std::is_pod<T>::value && !std::is_pointer<T>::value, int>::type = 0>
+    const T* As() const
+    {
+      return sizeof(T) <= Length
+           ? static_cast<const T*>(Begin)
+           : nullptr;
+    }
+
   private:
     const void* const Begin;
     const std::size_t Length;

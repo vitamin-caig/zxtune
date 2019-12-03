@@ -421,13 +421,13 @@ namespace Chiptune
       
       void SetSetup(Binary::View data) override
       {
-        Storage.AddData(0, static_cast<const uint8_t*>(data.Start()), data.Size());
+        Storage.AddData(0, data.As<uint8_t>(), data.Size());
       }
 
       void AddFrame(std::size_t /*offset*/, uint_t framesCount, Binary::View data) override
       {
         TotalFrames += framesCount;
-        Storage.AddData(TotalFrames, static_cast<const uint8_t*>(data.Start()), data.Size());
+        Storage.AddData(TotalFrames, data.As<uint8_t>(), data.Size());
       }
       
       Binary::Container::Ptr GetDump() override

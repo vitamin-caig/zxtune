@@ -451,7 +451,7 @@ namespace Chiptune
 
       void AddBlock(uint16_t addr, Binary::View block) override
       {
-        const uint8_t* const fromCopy = static_cast<const uint8_t*>(block.Start());
+        const auto* fromCopy = block.As<uint8_t>();
         const std::size_t toCopy = std::min(block.Size(), std::size_t(0x10000 - addr));
         Blocks.push_back(BlocksList::value_type(addr, Dump(fromCopy, fromCopy + toCopy)));
       }

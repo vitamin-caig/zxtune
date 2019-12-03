@@ -98,7 +98,7 @@ namespace Packed
       assert(info.size() == 55);
       //28 is fixed
       //27 is title
-      const auto start = static_cast<const Char*>(info.Start());
+      const auto start = info.As<Char>();
       const auto end = start + info.Size();
       const auto titleStart = start + 28;
       return end == std::find_if(titleStart, end, std::bind2nd(std::greater<Char>(), Char(' ')));
@@ -132,7 +132,7 @@ namespace Packed
       {
         return Container::Ptr();
       }
-      const auto& rawPlayer = *static_cast<const RawPlayer*>(data.Start());
+      const auto& rawPlayer = *data.As<RawPlayer>();
       const std::size_t playerSize = rawPlayer.GetSize();
       if (playerSize >= std::min(data.Size(), MAX_PLAYER_SIZE))
       {

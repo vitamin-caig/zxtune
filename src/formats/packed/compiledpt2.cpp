@@ -129,7 +129,7 @@ namespace Packed
       {
         return Container::Ptr();
       }
-      const auto& rawPlayer = *static_cast<const RawPlayer*>(data.Start());
+      const auto& rawPlayer = *data.As<RawPlayer>();
       const uint_t dataAddr = fromLE(rawPlayer.DataAddr);
       if (dataAddr < PLAYER_SIZE)
       {
@@ -137,7 +137,7 @@ namespace Packed
         return Container::Ptr();
       }
       const auto modData = data.SubView(PLAYER_SIZE, MAX_MODULE_SIZE);
-      const auto& rawHeader = *static_cast<const RawHeader*>(modData.Start());
+      const auto& rawHeader = *modData.As<RawHeader>();
       const uint_t patternsCount = GetPatternsCount(rawHeader, modData.Size());
       if (!patternsCount)
       {

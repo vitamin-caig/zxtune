@@ -79,14 +79,14 @@ namespace Archived
       return prevSize + entry.Size();
     }
 
-    bool FastCheck(const Binary::Container& data)
+    bool FastCheck(Binary::View data)
     {
       const std::size_t limit = data.Size();
       if (limit < MIN_SIZE)
       {
         return false;
       }
-      const Header* const header = static_cast<const Header*>(data.Start());
+      const auto* header = data.As<Header>();
       if (0 != std::memcmp(header->ID, SIGNATURE, sizeof(SIGNATURE)) ||
           0 == header->BlocksCount)
       {
@@ -105,7 +105,7 @@ namespace Archived
         return false;
       }
       const std::size_t checksumOffset = descriptionsSize + dataSize;
-      const uint8_t* const dump = static_cast<const uint8_t*>(data.Start());
+      const auto* dump = data.As<uint8_t>();
       const uint32_t storedChecksum = fromLE(*safe_ptr_cast<const uint32_t*>(dump + checksumOffset));
       const uint32_t checksum = std::accumulate(dump, dump + checksumOffset, uint32_t(0));
       if (storedChecksum != checksum)
@@ -117,15 +117,16 @@ namespace Archived
     }
 
     //fill descriptors array and return actual container size
-    Container::Ptr ParseArchive(const Binary::Container& data)
+    Container::Ptr ParseArchive(const Binary::Container& rawData)
     {
+      const Binary::View data(rawData);
       if (!FastCheck(data))
       {
         return Container::Ptr();
       }
-      const Header* const header = static_cast<const Header*>(data.Start());
+      const auto* header = data.As<Header>();
 
-      const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat();
+      const auto builder = TRDos::CatalogueBuilder::CreateFlat();
       std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
                       safe_ptr_cast<const uint8_t*>(header);
       for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
@@ -133,13 +134,13 @@ namespace Archived
         const Entry& entry = header->Blocks[idx];
         const std::size_t nextOffset = offset + entry.Size();
         const String entryName = TRDos::GetEntryName(entry.Name, entry.Type);
-        const TRDos::File::Ptr newOne = TRDos::File::CreateReference(entryName, offset, entry.Size());
-        builder->AddFile(newOne);
+        auto newOne = TRDos::File::CreateReference(entryName, offset, entry.Size());
+        builder->AddFile(std::move(newOne));
         offset = nextOffset;
       }
       //use checksum
       offset += sizeof(uint32_t);
-      builder->SetRawData(data.GetSubcontainer(0, offset));
+      builder->SetRawData(rawData.GetSubcontainer(0, offset));
       return builder->GetResult();
     }
   }//namespace SCL

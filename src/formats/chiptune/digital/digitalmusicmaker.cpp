@@ -19,13 +19,13 @@
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
+#include <map>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -258,9 +258,9 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& rawData)
+      explicit Format(Binary::View rawData)
         : RawData(rawData)
-        , Source(*static_cast<const Header*>(RawData.Start()))
+        , Source(*RawData.As<Header>())
         , Ranges(RangeChecker::Create(RawData.Size()))
         , FixedRanges(RangeChecker::Create(RawData.Size()))
       {
@@ -323,7 +323,7 @@ namespace Chiptune
       {
         const bool is4bitSamples = true;//TODO: detect
         const std::size_t limit = RawData.Size();
-        Binary::Container::Ptr regions[8];
+        std::map<uint_t, Binary::View> regions;
         for (std::size_t layIdx = 0, lastData = 256 * Source.HeaderSizeSectors; layIdx < Source.EndOfBanks.size(); ++layIdx)
         {
           static const uint_t BANKS[] = {0, 1, 3, 4, 6, 7};
@@ -342,7 +342,7 @@ namespace Chiptune
           {
             const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
             Require(lastData + realSize <= limit);
-            regions[bankNum] = RawData.GetSubcontainer(lastData, realSize);
+            regions.emplace(bankNum, RawData.SubView(lastData, realSize));
             Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
             AddRange(lastData, realSize);
             lastData += realSize;
@@ -350,7 +350,7 @@ namespace Chiptune
           else
           {
             Require(lastData + alignedBankSize <= limit);
-            regions[bankNum] = RawData.GetSubcontainer(lastData, alignedBankSize);
+            regions.emplace(bankNum, RawData.SubView(lastData, alignedBankSize));
             Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize, lastData);
             AddRange(lastData, alignedBankSize);
             lastData += alignedBankSize;
@@ -376,18 +376,18 @@ namespace Chiptune
           }
           Require((srcSample.Bank & 0xf8) == 0x50);
           const uint_t bankIdx = srcSample.Bank & 0x07;
-          const Binary::Container::Ptr bankData = regions[bankIdx];
-          Require(bankData != nullptr);
+          const auto& bankData = regions.at(bankIdx);
+          Require(!!bankData);
           const std::size_t offsetInBank = sampleStart - SAMPLES_ADDR;
           const std::size_t limitInBank = sampleEnd - SAMPLES_ADDR;
           const std::size_t sampleSize = limitInBank - offsetInBank;
           const uint_t multiplier = is4bitSamples ? 2 : 1;
-          Require(limitInBank <= multiplier * bankData->Size());
+          Require(limitInBank <= multiplier * bankData.Size());
           const std::size_t realSampleSize = sampleSize >= 12 ? (sampleSize - 12) : sampleSize;
-          if (const auto content = bankData->GetSubcontainer(offsetInBank / multiplier, realSampleSize / multiplier))
+          if (const auto content = bankData.SubView(offsetInBank / multiplier, realSampleSize / multiplier))
           {
             const std::size_t loop = sampleLoop - sampleStart;
-            target.SetSample(samIdx, loop, *content);
+            target.SetSample(samIdx, loop, content);
           }
         }
       }
@@ -410,7 +410,7 @@ namespace Chiptune
         Require(patStart < limit);
         const uint_t availLines = (limit - patStart) / sizeof(Pattern::Line);
         PatternBuilder& patBuilder = target.StartPattern(idx);
-        const Pattern& src = *safe_ptr_cast<const Pattern*>(static_cast<const uint8_t*>(RawData.Start()) + patStart);
+        const auto& src = *RawData.SubView(patStart).As<Pattern>();
         uint_t lineNum = 0;
         for (const uint_t lines = std::min(availLines, patternSize); lineNum < lines; ++lineNum)
         {
@@ -550,21 +550,16 @@ namespace Chiptune
         Require(Ranges->AddRange(start, size));
       }
     private:
-      const Binary::Container& RawData;
+      const Binary::View RawData;
       const Header& Source;
       const RangeChecker::Ptr Ranges;
       const RangeChecker::Ptr FixedRanges;
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View data)
     {
-      const std::size_t size(rawData.Size());
-      if (sizeof(Header) > size)
-      {
-        return false;
-      }
-      const Header& header = *static_cast<const Header*>(rawData.Start());
-      if (!(header.PatternSize == 64 || header.PatternSize == 48 || header.PatternSize == 32 || header.PatternSize == 24))
+      const auto* header = data.As<Header>();
+      if (!header || !(header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32 || header->PatternSize == 24))
       {
         return false;
       }
@@ -613,7 +608,8 @@ namespace Chiptune
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
-        if (!Format->Match(rawData))
+        const Binary::View data(rawData);
+        if (!Format->Match(data))
         {
           return Formats::Chiptune::Container::Ptr();
         }
@@ -624,8 +620,9 @@ namespace Chiptune
       const Binary::Format::Ptr Format;
     };
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
+      const Binary::View data(rawData);
       if (!FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
@@ -644,9 +641,9 @@ namespace Chiptune
         format.ParseMixins(target);
         format.ParseSamples(target);
 
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+        auto subData = rawData.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {

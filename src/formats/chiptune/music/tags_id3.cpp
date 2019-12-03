@@ -66,7 +66,7 @@ namespace Chiptune
       static void ParseTag(uint32_t id, Binary::View data, MetaBuilder& target)
       {
         // http://id3.org/id3v2.3.0#Text_information_frames
-        StringView encodedString(static_cast<const char*>(data.Start()) + 1, data.Size() - 1);
+        StringView encodedString(data.As<char>() + 1, data.Size() - 1);
         switch (id)
         {
         case 0x54495432://'TIT2'

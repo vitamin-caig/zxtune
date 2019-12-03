@@ -62,7 +62,7 @@ namespace Multitrack
       virtual ~Builder() = default;
 
       virtual void SetProperty(StringView name, StringView value) = 0;
-      virtual void SetBlock(const uint_t start, const uint8_t* data, std::size_t size) = 0;
+      virtual void SetBlock(const uint_t start, Binary::View data) = 0;
     };
     
     class DataBuilder : public Builder
@@ -98,9 +98,9 @@ namespace Multitrack
         }
       }
       
-      void SetBlock(const uint_t start, const uint8_t* data, std::size_t size) override
+      void SetBlock(const uint_t start, Binary::View data) override
       {
-        Blocks[start].assign(data, data + size);
+        Blocks.emplace(start, data);
       }
       
       uint_t GetTracksCount() const
@@ -156,18 +156,18 @@ namespace Multitrack
         for (const auto& blk : Blocks)
         {
           const uint_t addr = blk.first;
-          const std::size_t size = blk.second.size();
+          const std::size_t size = blk.second.Size();
           builder.Add(fromLE<uint16_t>(addr));
           builder.Add(fromLE<uint16_t>(addr + size - 1));
-          uint8_t* const dst = static_cast<uint8_t*>(builder.Allocate(size));
-          std::copy(blk.second.begin(), blk.second.end(), dst);
+          auto* dst = builder.Allocate(size);
+          std::memcpy(dst, blk.second.Start(), size);
         }
       }
     private:
       Strings::Array Lines;
       uint_t TracksCount;
       uint_t DefaultTrack;
-      std::map<uint_t, Dump> Blocks;
+      std::map<uint_t, Binary::View> Blocks;
     };
     
     class Container : public Binary::BaseContainer<Multitrack::Container>
@@ -228,8 +228,8 @@ namespace Multitrack
         try
         {
           const DataBuilder::RWPtr builder = MakeRWPtr<DataBuilder>();
-          const Binary::Container::Ptr data = Parse(rawData, *builder);
-          return MakePtr<Container>(builder, data, builder->GetStartTrack());
+          auto data = Parse(rawData, *builder);
+          return MakePtr<Container>(std::move(builder), std::move(data), builder->GetStartTrack());
         }
         catch (const std::exception&)
         {
@@ -246,7 +246,7 @@ namespace Multitrack
         return stream.GetReadContainer();
       }
 
-      static void ParseTextPart(Binary::InputStream& stream, Builder& builder)
+      static void ParseTextPart(Binary::DataInputStream& stream, Builder& builder)
       {
         for (;;)
         {
@@ -276,7 +276,7 @@ namespace Multitrack
         }
       }
       
-      static void ParseBinaryPart(Binary::InputStream& stream, Builder& builder)
+      static void ParseBinaryPart(Binary::DataInputStream& stream, Builder& builder)
       {
         while (stream.GetRestSize())
         {
@@ -290,8 +290,7 @@ namespace Multitrack
           const uint_t last = stream.ReadLE<uint16_t>();
           Require(first <= last);
           const std::size_t size = last + 1 - first;
-          const auto data = stream.ReadData(size);
-          builder.SetBlock(first, static_cast<const uint8_t*>(data.Start()), size);
+          builder.SetBlock(first, stream.ReadData(size));
         }
       }
     private:
