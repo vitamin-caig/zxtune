@@ -1,6 +1,9 @@
 package app.zxtune.device.media;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,12 +25,17 @@ import java.util.concurrent.TimeUnit;
 
 //! Handle focus only for explicit start/stop calls
 // TODO: handle implicit start/stop calls
-class ControlCallback extends MediaSessionCompat.Callback implements AudioManager.OnAudioFocusChangeListener {
+class ControlCallback extends MediaSessionCompat.Callback {
 
   private static final String TAG = ControlCallback.class.getName();
 
+  private static final IntentFilter noisyFilter =
+      new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+
   private final Context ctx;
   private final AudioManager manager;
+  private final AudioManager.OnAudioFocusChangeListener focusListener;
+  private final BroadcastReceiver noisyListener;
   private final PlaybackServiceLocal svc;
   private final PlaybackControl ctrl;
   private final SeekControl seek;
@@ -36,6 +44,8 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
   ControlCallback(Context ctx, PlaybackServiceLocal svc, MediaSessionCompat session) {
     this.ctx = ctx;
     this.manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+    this.focusListener = new AudioFocusChangeListener();
+    this.noisyListener = new BecomingNoisyReceiver();
     this.svc = svc;
     this.ctrl = svc.getPlaybackControl();
     this.seek = svc.getSeekControl();
@@ -44,7 +54,7 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
 
   @Override
   public void onPlay() {
-    if (gainFocus()) {
+    if (connectToAudioSystem()) {
       ctrl.play();
     } else {
       Log.d(TAG, "Failed to gain focus");
@@ -58,7 +68,7 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
 
   @Override
   public void onStop() {
-    releaseFocus();
+    disconnectFromAudioSystem();
     ctrl.stop();
   }
 
@@ -122,32 +132,46 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
     svc.setNowPlaying(uri);
   }
 
-  //onAudioFocusChangeListener
-  @Override
-  public void onAudioFocusChange(int focusChange) {
-    switch (focusChange) {
-      case AudioManager.AUDIOFOCUS_LOSS:
-        Log.d(TAG, "Focus lost");
-        onFocusLost();
-        break;
-      case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-        Log.d(TAG, "Focus lost transient");
-        onFocusLost();
-        break;
-      case AudioManager.AUDIOFOCUS_GAIN:
-        Log.d(TAG, "Focus restored");
-        onFocusRestore();
-        break;
+  private boolean connectToAudioSystem() {
+    if (gainFocus()) {
+      ctx.registerReceiver(noisyListener, noisyFilter);
+      return true;
     }
+    return false;
+  }
+
+  private void disconnectFromAudioSystem() {
+    ctx.unregisterReceiver(noisyListener);
+    releaseFocus();
   }
 
   private boolean gainFocus() {
-    return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == manager.requestAudioFocus(this,
+    return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == manager.requestAudioFocus(focusListener,
         SoundOutputSamplesTarget.STREAM, AudioManager.AUDIOFOCUS_GAIN);
   }
 
   private void releaseFocus() {
-    manager.abandonAudioFocus(this);
+    manager.abandonAudioFocus(focusListener);
+  }
+
+  private class AudioFocusChangeListener implements AudioManager.OnAudioFocusChangeListener {
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+      switch (focusChange) {
+        case AudioManager.AUDIOFOCUS_LOSS:
+          Log.d(TAG, "Focus lost");
+          onFocusLost();
+          break;
+        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+          Log.d(TAG, "Focus lost transient");
+          onFocusLost();
+          break;
+        case AudioManager.AUDIOFOCUS_GAIN:
+          Log.d(TAG, "Focus restored");
+          onFocusRestore();
+          break;
+      }
+    }
   }
 
   private void onFocusLost() {
@@ -156,5 +180,14 @@ class ControlCallback extends MediaSessionCompat.Callback implements AudioManage
 
   private void onFocusRestore() {
     ctrl.play();
+  }
+
+  private class BecomingNoisyReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context ctx, Intent intent) {
+      if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+        ctrl.stop();
+      }
+    }
   }
 }
