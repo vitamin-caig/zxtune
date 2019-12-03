@@ -14,7 +14,7 @@ import app.zxtune.net.Http;
 
 public class Api {
 
-  private static final String ENDPOINT = BuildConfig.API_ROOT;
+  private static final String ENDPOINT = BuildConfig.API_ROOT + "/";
   private static final String REPLY = "";
 
   private static String authorization;
@@ -29,7 +29,7 @@ public class Api {
   }
 
   public static void postEvent(String url) throws IOException {
-    final String reply = doRequest(ENDPOINT + "/events/" + url, "POST");
+    final String reply = doRequest(ENDPOINT + "events/" + url, "POST");
     if (!REPLY.equals(reply)) {
       throw new IOException("Wrong reply: " + reply);
     }
@@ -52,7 +52,8 @@ public class Api {
       final InputStream input = connection.getInputStream();
       try {
         final URL realUrl = connection.getURL();
-        if (!realUrl.equals(fullUrl)) {
+        // Allow redirects to the same origin
+        if (!realUrl.toString().startsWith(ENDPOINT)) {
           throw new IOException("Unexpected redirect: " + fullUrl + " -> " + realUrl);
         }
         return readReply(input);
