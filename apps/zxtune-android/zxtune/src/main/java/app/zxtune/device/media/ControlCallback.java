@@ -9,8 +9,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.media.session.MediaSessionCompat;
+
+import app.zxtune.BroadcastReceiverConnection;
 import app.zxtune.Log;
 import app.zxtune.MainService;
+import app.zxtune.Releaseable;
+import app.zxtune.ReleaseableStub;
 import app.zxtune.ScanService;
 import app.zxtune.TimeStamp;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
@@ -22,6 +26,7 @@ import app.zxtune.playback.SeekControl;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 //! Handle focus only for explicit start/stop calls
 // TODO: handle implicit start/stop calls
@@ -29,13 +34,10 @@ class ControlCallback extends MediaSessionCompat.Callback {
 
   private static final String TAG = ControlCallback.class.getName();
 
-  private static final IntentFilter noisyFilter =
-      new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-
   private final Context ctx;
   private final AudioManager manager;
   private final AudioManager.OnAudioFocusChangeListener focusListener;
-  private final BroadcastReceiver noisyListener;
+  private final AtomicReference<Releaseable> noisyConnection;
   private final PlaybackServiceLocal svc;
   private final PlaybackControl ctrl;
   private final SeekControl seek;
@@ -45,7 +47,7 @@ class ControlCallback extends MediaSessionCompat.Callback {
     this.ctx = ctx;
     this.manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
     this.focusListener = new AudioFocusChangeListener();
-    this.noisyListener = new BecomingNoisyReceiver();
+    this.noisyConnection = new AtomicReference<>(ReleaseableStub.instance());
     this.svc = svc;
     this.ctrl = svc.getPlaybackControl();
     this.seek = svc.getSeekControl();
@@ -134,14 +136,14 @@ class ControlCallback extends MediaSessionCompat.Callback {
 
   private boolean connectToAudioSystem() {
     if (gainFocus()) {
-      ctx.registerReceiver(noisyListener, noisyFilter);
+      registerNoisyReceiver();
       return true;
     }
     return false;
   }
 
   private void disconnectFromAudioSystem() {
-    ctx.unregisterReceiver(noisyListener);
+    unregisterNoisyReceiver();
     releaseFocus();
   }
 
@@ -182,12 +184,21 @@ class ControlCallback extends MediaSessionCompat.Callback {
     ctrl.play();
   }
 
-  private class BecomingNoisyReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context ctx, Intent intent) {
-      if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
-        ctrl.stop();
+  private void registerNoisyReceiver() {
+    final BroadcastReceiver receiver = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+        if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+          ctrl.stop();
+        }
       }
-    }
+    };
+    final IntentFilter filter =
+        new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+    noisyConnection.getAndSet(new BroadcastReceiverConnection(ctx, receiver, filter)).release();
+  }
+
+  private void unregisterNoisyReceiver() {
+    noisyConnection.getAndSet(ReleaseableStub.instance()).release();
   }
 }
