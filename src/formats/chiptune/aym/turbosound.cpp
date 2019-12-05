@@ -181,16 +181,16 @@ namespace Chiptune
 
         if (!traits.Matched())
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
 
         target.SetFirstSubmoduleLocation(0, traits.GetFirstModuleSize());
         target.SetSecondSubmoduleLocation(traits.GetFirstModuleSize(), traits.GetSecondModuleSize());
 
         const std::size_t usedSize = traits.GetTotalSize();
-        const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, usedSize);
+        auto subData = rawData.GetSubcontainer(0, usedSize);
         //use whole container as a fixed data
-        return CreateCalculatingCrcContainer(subData, 0, usedSize);
+        return CreateCalculatingCrcContainer(std::move(subData), 0, usedSize);
       }
     private:
       const FooterFormat::Ptr Format;

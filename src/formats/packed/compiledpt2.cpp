@@ -17,7 +17,6 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 //std includes
 #include <array>

@@ -1288,13 +1288,13 @@ namespace ProTracker3
         stat.SetOrnament(DEFAULT_ORNAMENT, Ornament());
         CheckIsSubset(stat.GetUsedOrnaments(), stat.GetAvailableOrnaments());
 
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, limit);
-        return CreateCalculatingCrcContainer(subData, 0, limit);
+        auto subData = data.GetSubcontainer(0, limit);
+        return CreateCalculatingCrcContainer(std::move(subData), 0, limit);
       }
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
@@ -1325,7 +1325,7 @@ namespace ProTracker3
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return ParseText(rawData, stub);

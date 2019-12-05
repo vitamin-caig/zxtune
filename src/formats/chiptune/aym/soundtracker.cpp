@@ -17,7 +17,6 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 //std includes
@@ -147,9 +146,9 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& data)
-        : Delegate(data)
-        , Source(*Delegate.GetField<RawHeader>(0))
+      explicit Format(Binary::View data)
+        : Data(data)
+        , Source(*Data.As<RawHeader>())
         , MaxPatterns(1 + (data.Size() - sizeof(Source)) / sizeof(RawPattern))
       {
       }
@@ -234,7 +233,7 @@ namespace Chiptune
     private:
       const RawPattern& GetPattern(uint_t index) const
       {
-        const RawPattern* const src = Delegate.GetField<RawPattern>(offsetof(RawHeader, Patterns) + index * sizeof(RawPattern));
+        const auto* src = Data.SubView(offsetof(RawHeader, Patterns) + index * sizeof(RawPattern)).As<RawPattern>();
         Require(src != nullptr);
         return *src;
       }
@@ -406,12 +405,12 @@ namespace Chiptune
         return dst;
       }
     private:
-      const Binary::TypedContainer Delegate;
+      const Binary::View Data;
       const RawHeader& Source;
       const uint_t MaxPatterns;
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View rawData)
     {
       //at least
       return rawData.Size() >= sizeof(RawHeader);
@@ -443,11 +442,12 @@ namespace Chiptune
       "20-40"
     );
 
-    Formats::Chiptune::Container::Ptr ParseUncompiled(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr ParseUncompiled(const Binary::Container& rawData, Builder& target)
     {
+      const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
 
       try
@@ -469,14 +469,14 @@ namespace Chiptune
 
         const uint_t lastPattern = std::min(usedPatterns.Maximum(), format.GetMaxPatterns() - 1);
         const std::size_t size = sizeof(RawHeader) + lastPattern * sizeof(RawPattern);
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, size);
+        auto subData = rawData.GetSubcontainer(0, size);
         const std::size_t patternsOffset = offsetof(RawHeader, Patterns);
-        return CreateCalculatingCrcContainer(subData, patternsOffset, size - patternsOffset);
+        return CreateCalculatingCrcContainer(std::move(subData), patternsOffset, size - patternsOffset);
       }
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
@@ -500,14 +500,15 @@ namespace Chiptune
 
       bool Check(const Binary::Container& rawData) const override
       {
-        return FastCheck(rawData) && Format->Match(rawData);
+        const Binary::View data(rawData);
+        return FastCheck(data) && Format->Match(data);
       }
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return ParseUncompiled(rawData, stub);

@@ -339,7 +339,7 @@ namespace Chiptune
           if (0 != header.SamplesCount)
           {
             Dbg("Digital samples are not supported");
-            return Formats::Chiptune::Container::Ptr();
+            return {};
           }
           target.SetVersion(String(header.Signature, header.Signature + sizeof(IdentifierType)));
           target.SetClockrate(fromBE(header.Clockrate));
@@ -376,7 +376,7 @@ namespace Chiptune
       {
         Dbg("Failed to parse");
       }
-      return Formats::Chiptune::Container::Ptr();
+      return {};
     }
 
     const std::string FORMAT(
@@ -390,7 +390,7 @@ namespace Chiptune
       const Binary::View data(rawData);
       if (!Compressed::FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
       const Compressed::RawHeader& hdr = *data.As<Compressed::RawHeader>();
       const std::size_t packedOffset = hdr.GetDataOffset();
@@ -405,7 +405,7 @@ namespace Chiptune
           return CreateCalculatingCrcContainer(std::move(subData), packedOffset, packedSize);
         }
       }
-      return Formats::Chiptune::Container::Ptr();
+      return {};
     }
 
     const std::string PACKED_FORMAT(
@@ -447,7 +447,7 @@ namespace Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return ParseUnpacked(rawData, stub);
@@ -488,7 +488,7 @@ namespace Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return ParsePacked(rawData, stub);
@@ -602,7 +602,7 @@ namespace Chiptune
       const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
       try
       {
@@ -650,7 +650,7 @@ namespace Chiptune
       {
         Dbg("Failed to parse");
       }
-      return Formats::Chiptune::Container::Ptr();
+      return {};
     }
 
     const std::string FORMAT(

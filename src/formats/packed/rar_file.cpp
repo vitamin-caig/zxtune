@@ -202,23 +202,27 @@ namespace Packed
     class DispatchedCompressedFile : public CompressedFile
     {
     public:
-      DispatchedCompressedFile() {}
+      DispatchedCompressedFile()
+        : Packed()
+        , Stored()
+      {
+      }
 
       Binary::Container::Ptr Decompress(const Container& container) const override
       {
         const auto& header = container.GetHeader();
         if (header.IsStored())
         {
-          return stored.Decompress(container);
+          return Stored.Decompress(container);
         }
         else
         {
-          return packed.Decompress(container);
+          return Packed.Decompress(container);
         }
       }
     private:
-      const PackedFile packed;
-      const StoredFile stored;
+      const PackedFile Packed;
+      const StoredFile Stored;
     };
 
     String FileBlockHeader::GetName() const
