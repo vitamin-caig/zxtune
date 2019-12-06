@@ -875,7 +875,7 @@ loc_0_8262:
       }
     };
 
-    Binary::View CreateContainer(Binary::View rawData)
+    Binary::View MakeContainer(Binary::View rawData)
     {
       return rawData.SubView(0, MAX_SIZE);
     }
@@ -936,7 +936,7 @@ loc_0_8262:
 
       bool Check(const Binary::Container& rawData) const override
       {
-        const auto data = CreateContainer(rawData);
+        const auto data = MakeContainer(rawData);
         return Format->Match(data) && FastCheck(data);
       }
 
@@ -955,7 +955,7 @@ loc_0_8262:
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
-      const auto data = CreateContainer(rawData);
+      const auto data = MakeContainer(rawData);
 
       if (!FastCheck(data))
       {

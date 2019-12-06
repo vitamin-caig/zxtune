@@ -630,7 +630,7 @@ namespace Chiptune
       }
     };
 
-    Binary::View CreateContainer(Binary::View rawData)
+    Binary::View MakeContainer(Binary::View rawData)
     {
       return rawData.SubView(0, MAX_SIZE);
     }
@@ -741,7 +741,7 @@ namespace Chiptune
 
       bool Check(const Binary::Container& rawData) const override
       {
-        const auto data = CreateContainer(rawData);
+        const auto data = MakeContainer(rawData);
         return Format->Match(data) && FastCheck(data);
       }
 
@@ -777,7 +777,7 @@ namespace Chiptune
       {
         using namespace SoundTracker3;
 
-        const auto data = CreateContainer(rawData);
+        const auto data = MakeContainer(rawData);
 
         if (!FastCheck(data))
         {
@@ -819,7 +819,7 @@ namespace Chiptune
         StatisticCollectingBuilder statistic(GetStubBuilder());
         if (const auto parsed = Parse(rawData, statistic))
         {
-          const auto parsedData = CreateContainer(*parsed);
+          const auto parsedData = MakeContainer(*parsed);
           const auto& header = *parsedData.As<RawHeader>();
           const std::size_t headerSize = sizeof(header);
           const std::size_t infoSize = info.Size();

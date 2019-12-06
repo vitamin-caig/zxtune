@@ -1149,7 +1149,7 @@ namespace Chiptune
       return true;
     }
 
-    Binary::View CreateContainer(Binary::View data)
+    Binary::View MakeContainer(Binary::View data)
     {
       return data.SubView(0, MAX_MODULE_SIZE);
     }
@@ -1183,7 +1183,7 @@ namespace Chiptune
 
       bool Check(const Binary::Container& rawData) const override
       {
-        const auto data = CreateContainer(rawData);
+        const auto data = MakeContainer(rawData);
         return Format->Match(data) && FastCheck(data);
       }
 
@@ -1202,7 +1202,7 @@ namespace Chiptune
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
-      const auto data = CreateContainer(rawData);
+      const auto data = MakeContainer(rawData);
 
       if (!FastCheck(data))
       {
