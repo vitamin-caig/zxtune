@@ -532,7 +532,8 @@ namespace Chiptune
         FileParser file(target);
         if (auto result = IFF::Parse(data, file))
         {
-          return CreateCalculatingCrcContainer(std::move(result), 0, result->Size());
+          const auto totalSize = result->Size();
+          return CreateCalculatingCrcContainer(std::move(result), 0, totalSize);
         }
       }
       catch (const std::exception& /*e*/)

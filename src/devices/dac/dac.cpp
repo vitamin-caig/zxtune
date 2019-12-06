@@ -55,6 +55,7 @@ namespace DAC
       , Size(1)
       , Loop(1)
     {
+      Data[0] = Data[1] = 0;
     }
 
     uint_t GetIndex() const

@@ -228,7 +228,8 @@ namespace Chiptune
         Parser parser(target);
         if (auto subData = ParseChunks(data, parser))
         {
-          return CreateCalculatingCrcContainer(std::move(subData), 0, subData->Size());
+          const auto totalSize = subData->Size();
+          return CreateCalculatingCrcContainer(std::move(subData), 0, totalSize);
         }
       }
       catch (const std::exception&)

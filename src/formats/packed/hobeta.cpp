@@ -60,7 +60,7 @@ namespace Packed
       const auto* data = rawData.As<uint8_t>();
       const std::size_t dataSize = fromLE(header->Length);
       const std::size_t fullSize = fromLE(header->FullLength);
-      if (!Math::InRange(rawData.Size(), MIN_SIZE, MAX_SIZE) ||
+      if (!Math::InRange(dataSize, MIN_SIZE, MAX_SIZE) ||
           dataSize + sizeof(*header) > rawData.Size() ||
           fullSize != Math::Align<std::size_t>(dataSize, 256) ||
           //check for valid name

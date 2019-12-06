@@ -159,7 +159,8 @@ namespace Packed
       const auto fixedModule = builder->GetResult();
       if (auto fixedParsed = Decoder->Decode(*fixedModule))
       {
-        return CreateContainer(std::move(fixedParsed), PLAYER_SIZE + fixedParsed->Size());
+        const auto totalSize = PLAYER_SIZE + fixedParsed->Size();
+        return CreateContainer(std::move(fixedParsed), totalSize);
       }
       Dbg("Failed to parse fixed module");
       return Container::Ptr();

@@ -229,7 +229,8 @@ namespace Multitrack
         {
           const DataBuilder::RWPtr builder = MakeRWPtr<DataBuilder>();
           auto data = Parse(rawData, *builder);
-          return MakePtr<Container>(std::move(builder), std::move(data), builder->GetStartTrack());
+          const auto startTrack = builder->GetStartTrack();
+          return MakePtr<Container>(std::move(builder), std::move(data), startTrack);
         }
         catch (const std::exception&)
         {

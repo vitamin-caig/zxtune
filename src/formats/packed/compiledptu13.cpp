@@ -178,7 +178,8 @@ namespace Packed
       const auto fixedModule = builder->GetResult();
       if (auto fixedParsed = ProTracker3::Parse(*fixedModule, ProTracker3::GetStubBuilder()))
       {
-        return CreateContainer(std::move(fixedParsed), playerSize + fixedParsed->Size());
+        const auto totalSize = playerSize + fixedParsed->Size();
+        return CreateContainer(std::move(fixedParsed), totalSize);
       }
       Dbg("Failed to parse fixed module");
       return Container::Ptr();
