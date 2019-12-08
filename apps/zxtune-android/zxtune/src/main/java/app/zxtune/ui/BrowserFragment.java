@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import android.support.v4.media.session.MediaControllerCompat;
-import androidx.appcompat.widget.SearchView;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -30,6 +29,8 @@ import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.SearchView;
+
 import app.zxtune.Log;
 import app.zxtune.MainService;
 import app.zxtune.R;

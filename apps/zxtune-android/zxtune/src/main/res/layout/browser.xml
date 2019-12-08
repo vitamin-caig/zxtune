@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:sabd="http://schemas.android.com/apk/res-auto" 
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,13 +10,13 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       >
-      <androidx.appcompat.widget.SearchView
+      <SearchView
         android:id="@+id/browser_search"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:imeOptions="actionSearch|flagNoExtractUi|flagForceAscii"
-        sabd:iconifiedByDefault="true"
-        sabd:queryHint="@string/browser_search_hint"
+        android:iconifiedByDefault="true"
+        android:queryHint="@string/browser_search_hint"
       />
       <Button
         android:id="@+id/browser_roots"
