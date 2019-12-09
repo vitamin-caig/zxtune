@@ -12,10 +12,9 @@ import androidx.annotation.Nullable;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import app.zxtune.playback.PlaylistControl;
+
 import app.zxtune.playback.Visualizer;
 import app.zxtune.rpc.ParcelableBinder;
-import app.zxtune.rpc.PlaylistProxy;
 import app.zxtune.rpc.VisualizerProxy;
 
 public final class MediaSessionModel extends AndroidViewModel {
@@ -23,7 +22,6 @@ public final class MediaSessionModel extends AndroidViewModel {
   private final MutableLiveData<PlaybackStateCompat> playbackState;
   private final MutableLiveData<MediaMetadataCompat> mediaMetadata;
   private final MutableLiveData<MediaControllerCompat> mediaController;
-  private final MutableLiveData<PlaylistControl> playlist;
   private final MutableLiveData<Visualizer> visualizer;
 
   public MediaSessionModel(@NonNull Application app) {
@@ -31,7 +29,6 @@ public final class MediaSessionModel extends AndroidViewModel {
     this.playbackState = new MutableLiveData<>();
     this.mediaMetadata = new MutableLiveData<>();
     this.mediaController = new MutableLiveData<>();
-    this.playlist = new MutableLiveData<>();
     this.visualizer = new MutableLiveData<>();
 
     setControl(null);
@@ -47,25 +44,18 @@ public final class MediaSessionModel extends AndroidViewModel {
     } else {
       playbackState.setValue(null);
       mediaMetadata.setValue(null);
-      playlist.setValue(null);
       visualizer.setValue(null);
     }
   }
 
   private void extractInterfaces(Bundle extras) {
     if (Build.VERSION.SDK_INT >= 18) {
-      setPlaylist(extras.getBinder(PlaylistControl.class.getName()));
       setVisualizer(extras.getBinder(Visualizer.class.getName()));
     } else {
       //required for proper deserialization
       extras.setClassLoader(ParcelableBinder.class.getClassLoader());
-      setPlaylist(ParcelableBinder.deserialize(extras.getParcelable(PlaylistControl.class.getName())));
       setVisualizer(ParcelableBinder.deserialize(extras.getParcelable(Visualizer.class.getName())));
     }
-  }
-
-  private void setPlaylist(IBinder playlist) {
-    this.playlist.setValue(PlaylistProxy.getClient(playlist));
   }
 
   private void setVisualizer(IBinder visualizer) {
@@ -85,11 +75,6 @@ public final class MediaSessionModel extends AndroidViewModel {
   @NonNull
   public final LiveData<MediaControllerCompat> getMediaController() {
     return mediaController;
-  }
-
-  @NonNull
-  public final LiveData<PlaylistControl> getPlaylist() {
-    return playlist;
   }
 
   @NonNull

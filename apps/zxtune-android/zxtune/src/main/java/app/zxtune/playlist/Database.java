@@ -19,6 +19,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import androidx.annotation.Nullable;
 import android.util.SparseIntArray;
 
+import java.util.Locale;
+
 import app.zxtune.Log;
 
 /*
@@ -77,7 +79,7 @@ public class Database {
 
   public static final class Tables {
     static final class Tracks {
-      static enum Fields {
+      enum Fields {
         // use lower cased names due to restrictions for _id column name
         _id, location, author, title, duration, properties
       }
@@ -94,19 +96,19 @@ public class Database {
     }
     
     static final class Statistics {
-      static enum Fields {
+      enum Fields {
         count, locations, duration
       }
-      
-      private static final String COLUMNS[] = {
-        "COUNT(*)",
-        "COUNT(DISTINCT(location))",
-        "SUM(duration)"
+
+      private static final String[] COLUMNS = {
+          "COUNT(*)",
+          "COUNT(DISTINCT(location))",
+          "SUM(duration)"
       };
     }
 
     static final class Positions {
-      static enum Fields {
+      enum Fields {
         pos, track_id
       }
 
@@ -118,8 +120,8 @@ public class Database {
     }
 
     public static final class Playlist {
-      public static enum Fields {
-        _id, pos, location, author, title, duration, properties, state
+      public enum Fields {
+        _id, pos, location, author, title, duration, properties
       }
 
       static final String NAME = "playlist";
@@ -152,7 +154,7 @@ public class Database {
   }
   
   // ! @return Cursor with statistics
-  public final Cursor queryStatistics(String selection) {
+  final Cursor queryStatistics(String selection) {
     Log.d(TAG, "queryStatistics(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
     return db.query(Tables.Tracks.NAME, Tables.Statistics.COLUMNS, selection, null/*selectionArgs*/, null/*groupBy*/,
@@ -160,7 +162,7 @@ public class Database {
   }
 
   // ! @return Cursor with queried values
-  public final Cursor queryPlaylistItems(String[] columns, @Nullable String selection, @Nullable String[] selectionArgs,
+  final Cursor queryPlaylistItems(String[] columns, @Nullable String selection, @Nullable String[] selectionArgs,
       String orderBy) {
     Log.d(TAG, "queryPlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -169,20 +171,20 @@ public class Database {
   }
   
   // ! @return new item id
-  public final long insertPlaylistItem(ContentValues values) {
+  final long insertPlaylistItem(ContentValues values) {
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.insert(Tables.Playlist.NAME, null, values);
   }
 
   // ! @return count of deleted items
-  public final int deletePlaylistItems(@Nullable String selection, @Nullable String[] selectionArgs) {
+  final int deletePlaylistItems(@Nullable String selection, @Nullable String[] selectionArgs) {
     Log.d(TAG, "deletePlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.delete(Tables.Playlist.NAME, selection, selectionArgs);
   }
 
   // ! @return count of updated items
-  public final int updatePlaylistItems(ContentValues values, String selection, @Nullable String[] selectionArgs) {
+  final int updatePlaylistItems(ContentValues values, String selection, @Nullable String[] selectionArgs) {
     //update tracks table directly to avoid on update trigger
     Log.d(TAG, "updatePlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -192,14 +194,14 @@ public class Database {
   /*
    * @param ids id => pos list
    */
-  public final void updatePlaylistItemsOrder(SparseIntArray positions) {
+  final void updatePlaylistItemsOrder(SparseIntArray positions) {
     //sqlite prior to 3.7.11 (api v14) does not support multiple values
     //http://stackoverflow.com/questions/2421189/version-of-sqlite-used-in-android
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     try {
       db.beginTransaction();
       for (int i = 0, lim = positions.size(); i != lim; ++i) {
-        final String queryString = String.format("REPLACE INTO %s(%s, %s) VALUES(%d, %d);",
+        final String queryString = String.format(Locale.US, "REPLACE INTO %s(%s, %s) VALUES(%d, %d);",
             Tables.Positions.NAME, Tables.Positions.Fields.track_id, Tables.Positions.Fields.pos,
             positions.keyAt(i), positions.valueAt(i));
         db.execSQL(queryString);
@@ -210,7 +212,7 @@ public class Database {
     }
   }
   
-  public final void sortPlaylistItems(Tables.Playlist.Fields field, String order) {
+  final void sortPlaylistItems(Tables.Playlist.Fields field, String order) {
     Log.d(TAG, "sortPlaylistItems(%s, %s) called", field.name(), order);
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     try {
@@ -227,7 +229,7 @@ public class Database {
   
   private static class DBHelper extends SQLiteOpenHelper {
 
-    public DBHelper(Context context) {
+    DBHelper(Context context) {
       super(context, NAME, null, VERSION);
     }
 

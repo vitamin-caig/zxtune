@@ -27,7 +27,7 @@ import android.widget.Toast;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.playlist.PlaylistQuery;
+import app.zxtune.playlist.ProviderClient;
 import app.zxtune.playlist.XspfStorage;
 
 import java.lang.ref.WeakReference;
@@ -156,9 +156,11 @@ public class PlaylistSaveFragment extends DialogFragment {
     @Nullable
     protected Exception doInBackground(String... name) {
       final Context context = contextRef.get();
+      if (context == null) {
+        return null;
+      }
       try {
-        final Cursor cursor = context != null ? context.getContentResolver().query(PlaylistQuery.ALL, null,
-          PlaylistQuery.selectionFor(ids), null, null) : null;
+        final Cursor cursor = new ProviderClient(context).query(ids);
         if (cursor == null) {
           return new Exception("Failed to query playlist");
         }

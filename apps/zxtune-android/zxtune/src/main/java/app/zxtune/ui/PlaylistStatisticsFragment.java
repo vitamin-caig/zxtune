@@ -23,7 +23,7 @@ import androidx.appcompat.app.AlertDialog;
 import android.widget.ArrayAdapter;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.R;
-import app.zxtune.playlist.PlaylistQuery;
+import app.zxtune.playlist.ProviderClient;
 import app.zxtune.playlist.Statistics;
 
 public class PlaylistStatisticsFragment extends DialogFragment {
@@ -58,8 +58,7 @@ public class PlaylistStatisticsFragment extends DialogFragment {
       public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
         final Bundle args = getArguments();
         final long[] ids = args != null ? args.getLongArray(IDS_KEY) : null;
-        return new CursorLoader(getActivity(), PlaylistQuery.STATISTICS, null,
-            PlaylistQuery.selectionFor(ids), null, null);
+        return ProviderClient.createStatisticsLoader(getActivity(), ids);
       }
       
       @Override

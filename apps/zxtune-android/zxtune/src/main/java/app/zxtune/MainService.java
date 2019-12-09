@@ -19,7 +19,6 @@ import app.zxtune.device.media.MediaSessionControl;
 import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
 import app.zxtune.playback.service.PlaybackServiceLocal;
-import app.zxtune.playback.service.PlayingStateCallback;
 
 import java.util.List;
 
@@ -100,8 +99,6 @@ public class MainService extends MediaBrowserServiceCompat {
     mediaSessionControl = MediaSessionControl.subscribe(ctx, service);
     StatusNotification.connect(this, mediaSessionControl.getSession());
     setSessionToken(mediaSessionControl.getSession().getSessionToken());
-
-    service.subscribe(new PlayingStateCallback(ctx));
 
     WidgetHandler.connect(ctx, mediaSessionControl.getSession());
   }

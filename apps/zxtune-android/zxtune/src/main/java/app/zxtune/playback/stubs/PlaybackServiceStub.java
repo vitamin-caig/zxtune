@@ -10,24 +10,15 @@
 
 package app.zxtune.playback.stubs;
 
-import android.net.Uri;
-
 import app.zxtune.playback.Callback;
-import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
 
 public class PlaybackServiceStub implements PlaybackService {
 
   private PlaybackServiceStub() {
-  }
-
-  @Override
-  public PlaylistControl getPlaylistControl() {
-    return PlaylistControlStub.instance();
   }
 
   @Override

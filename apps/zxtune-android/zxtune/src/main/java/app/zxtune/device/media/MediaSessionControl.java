@@ -16,11 +16,9 @@ import androidx.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import app.zxtune.MainActivity;
 import app.zxtune.Releaseable;
-import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.rpc.ParcelableBinder;
-import app.zxtune.rpc.PlaylistProxy;
 import app.zxtune.rpc.VisualizerProxy;
 
 public class MediaSessionControl implements Releaseable {
@@ -47,10 +45,8 @@ public class MediaSessionControl implements Releaseable {
     final Bundle extras = new Bundle();
     if (Build.VERSION.SDK_INT >= 18) {
       extras.putBinder(Visualizer.class.getName(),VisualizerProxy.getServer(svc.getVisualizer()));
-      extras.putBinder(PlaylistControl.class.getName(), PlaylistProxy.getServer(svc.getPlaylistControl()));
     } else {
       extras.putParcelable(Visualizer.class.getName(), ParcelableBinder.serialize(VisualizerProxy.getServer(svc.getVisualizer())));
-      extras.putParcelable(PlaylistControl.class.getName(), ParcelableBinder.serialize(PlaylistProxy.getServer(svc.getPlaylistControl())));
     }
     return extras;
   }

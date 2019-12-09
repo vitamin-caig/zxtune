@@ -11,9 +11,8 @@ import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
-import app.zxtune.playback.PlaylistControl;
+import app.zxtune.playlist.ProviderClient;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static app.zxtune.analytics.internal.UrlsBuilder.DEFAULT_LONG_VALUE;
@@ -131,8 +130,8 @@ final class InternalSink implements Sink {
   public void sendPlaylistEvent(@Analytics.PlaylistAction int action, int param) {
     final UrlsBuilder builder = new UrlsBuilder("ui/playlist/" + serializePlaylistAction(action));
     if (action == Analytics.PLAYLIST_ACTION_SORT) {
-      builder.addParam("by", PlaylistControl.SortBy.values()[param / 100].name());
-      builder.addParam("order", PlaylistControl.SortOrder.values()[param % 100].name());
+      builder.addParam("by", ProviderClient.SortBy.values()[param / 100].name());
+      builder.addParam("order", ProviderClient.SortOrder.values()[param % 100].name());
     } else {
       builder.addParam("count", param != 0 ? param : DEFAULT_LONG_VALUE);
     }
