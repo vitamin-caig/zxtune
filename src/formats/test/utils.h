@@ -59,12 +59,12 @@ namespace Test
   void TestPacked(const Formats::Packed::Decoder& decoder, const Dump& etalonDump, const std::map<std::string, Dump>& tests, bool checkCorrupted = true)
   {
     std::cout << "Test for packed '" << decoder.GetDescription() << "'" << std::endl;
-    const Binary::Container::Ptr etalon = Binary::CreateContainer(&etalonDump[0], etalonDump.size());
+    const Binary::Container::Ptr etalon = Binary::CreateContainer(etalonDump);
     for (const auto & test : tests)
     {
       const std::string& testname = test.first;
       const Dump& testdataDump = test.second;
-      const Binary::Container::Ptr testdata = Binary::CreateContainer(&testdataDump[0], testdataDump.size());
+      const Binary::Container::Ptr testdata = Binary::CreateContainer(testdataDump);
       std::cout << " testing " << testname << std::endl;
       const Binary::Format::Ptr format = decoder.GetFormat();
       if (!format->Match(*testdata))
@@ -183,7 +183,7 @@ namespace Test
     std::cout << " test " << test << " etalon is " << etalon << std::endl;
     Dump archive;
     OpenFile(test, archive);
-    const Binary::Container::Ptr testData = Binary::CreateContainer(&archive[0], archive.size());
+    const Binary::Container::Ptr testData = Binary::CreateContainer(archive);
 
     const Binary::Format::Ptr format = decoder.GetFormat();
     if (!format->Match(*testData))

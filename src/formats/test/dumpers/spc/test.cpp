@@ -25,27 +25,27 @@ namespace
          uint_t(pc), uint_t(a), uint_t(x), uint_t(y), uint_t(psw), uint_t(sp));
      }
 
-     void SetTitle(const String& title) override
+     void SetTitle(String title) override
      {
        std::cout << "Title: " << title << std::endl;
      }
 
-     void SetGame(const String& game) override
+     void SetGame(String game) override
      {
        std::cout << "Game: " << game << std::endl;
      }
 
-     void SetDumper(const String& dumper) override
+     void SetDumper(String dumper) override
      {
        std::cout << "Dumper: " << dumper << std::endl;
      }
 
-     void SetComment(const String& comment) override
+     void SetComment(String comment) override
      {
        std::cout << "Comment: " << comment << std::endl;
      }
 
-     void SetDumpDate(const String& date) override
+     void SetDumpDate(String date) override
      {
        std::cout << "Dump date: " << date << std::endl;
      }
@@ -65,24 +65,24 @@ namespace
        std::cout << "Fade,ms: " << duration.Get() << std::endl;
      }
 
-     void SetArtist(const String& artist) override
+     void SetArtist(String artist) override
      {
        std::cout << "Artist: " << artist << std::endl;
      }
 
-     void SetRAM(const void* data, std::size_t size) override
+     void SetRAM(Binary::View data) override
      {
-       std::cout << "RAM,bytes: " << size << std::endl;
+       std::cout << "RAM,bytes: " << data.Size() << std::endl;
      }
 
-     void SetDSPRegisters(const void* data, std::size_t size) override
+     void SetDSPRegisters(Binary::View data) override
      {
-       std::cout << "DSP registers,bytes: " << size << std::endl;
+       std::cout << "DSP registers,bytes: " << data.Size() << std::endl;
      }
 
-     void SetExtraRAM(const void* data, std::size_t size) override
+     void SetExtraRAM(Binary::View data) override
      {
-       std::cout << "ExtraRAM,bytes: " << size << std::endl;
+       std::cout << "ExtraRAM,bytes: " << data.Size() << std::endl;
      }
    };
 }

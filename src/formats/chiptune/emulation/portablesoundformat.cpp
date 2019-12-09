@@ -12,9 +12,9 @@
 #include "formats/chiptune/emulation/portablesoundformat.h"
 //common includes
 #include <byteorder.h>
-#include <crc.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/crc.h>
 #include <binary/data_builder.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -82,13 +82,13 @@ namespace PortableSoundFormat
       ParseData(target);
       const auto dataEnd = Stream.GetPosition();
       ParseTags(target);
-      return CreateCalculatingCrcContainer(Stream.GetReadData(), dataStart, dataEnd - dataStart);
+      return CreateCalculatingCrcContainer(Stream.GetReadContainer(), dataStart, dataEnd - dataStart);
     }
   private:
     void ParseSignature(Builder& target)
     {
-      const auto sign = Stream.ReadRawData(sizeof(SIGNATURE));
-      Require(0 == std::memcmp(sign, SIGNATURE, sizeof(SIGNATURE)));
+      const auto sign = Stream.ReadData(sizeof(SIGNATURE));
+      Require(0 == std::memcmp(sign.Start(), SIGNATURE, sizeof(SIGNATURE)));
       const uint_t version = Stream.ReadByte();
       target.SetVersion(version);
       Dbg("Version %1%", version);
@@ -99,23 +99,18 @@ namespace PortableSoundFormat
       const auto reservedSize = Stream.ReadLE<uint32_t>();
       const auto compressedSize = Stream.ReadLE<uint32_t>();
       const auto compressedCrc = Stream.ReadLE<uint32_t>();
-      if (auto reserved = Stream.ReadData(reservedSize))
+      if (auto reserved = Stream.ReadContainer(reservedSize))
       {
         Dbg("Reserved section %1% bytes", reservedSize);
         target.SetReservedSection(std::move(reserved));
       }
       if (compressedSize)
       {
-        auto programPacked = Stream.ReadData(compressedSize);
-        CheckCrc(*programPacked, compressedCrc);
+        auto programPacked = Stream.ReadContainer(compressedSize);
+        Require(compressedCrc == Binary::Crc32(*programPacked));
         Dbg("Program section %1% bytes", compressedSize);
         target.SetPackedProgramSection(std::move(programPacked));
       }
-    }
-    
-    static void CheckCrc(const Binary::Data& blob, uint32_t crc)
-    {
-      Require(crc == Crc32(static_cast<const uint8_t*>(blob.Start()), blob.Size()));
     }
     
     void ParseTags(Builder& target)
@@ -219,8 +214,8 @@ namespace PortableSoundFormat
         return false;
       }
       const auto currentPosition = Stream.GetPosition();
-      const auto sign = Stream.ReadRawData(sizeof(Tags::SIGNATURE));
-      if (0 == std::memcmp(sign, Tags::SIGNATURE, sizeof(Tags::SIGNATURE)))
+      const auto sign = Stream.ReadData(sizeof(Tags::SIGNATURE));
+      if (0 == std::memcmp(sign.Start(), Tags::SIGNATURE, sizeof(Tags::SIGNATURE)))
       {
         return true;
       }

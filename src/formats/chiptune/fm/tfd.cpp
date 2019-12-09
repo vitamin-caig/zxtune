@@ -62,14 +62,13 @@ namespace Chiptune
       void SetRegister(uint_t /*idx*/, uint_t /*val*/) override {}
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View rawData)
     {
       if (rawData.Size() < MIN_SIZE)
       {
         return false;
       }
-      const SignatureType& sign = *static_cast<const SignatureType*>(rawData.Start());
-      return sign == SIGNATURE;
+      return 0 == std::memcmp(rawData.Start(), SIGNATURE.data(), SIGNATURE.size());
     }
 
     const std::string FORMAT(
@@ -165,8 +164,7 @@ namespace Chiptune
         }
         Require(totalFrames >= MIN_FRAMES);
         const std::size_t usedSize = stream.GetPosition();
-        const auto subData = stream.GetReadData();
-        return CreateCalculatingCrcContainer(subData, fixedOffset, usedSize - fixedOffset);
+        return CreateCalculatingCrcContainer(stream.GetReadContainer(), fixedOffset, usedSize - fixedOffset);
       }
       catch (const std::exception&)
       {

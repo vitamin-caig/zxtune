@@ -12,6 +12,8 @@
 
 //library includes
 #include <sound/sample.h>
+//std includes
+#include <memory>
 
 namespace Devices
 {

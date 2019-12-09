@@ -32,7 +32,7 @@ namespace
     return data.CaptureResult();
   }
   
-  void WriteFile(const Binary::Data& data, const std::string& name)
+  void WriteFile(Binary::View data, const std::string& name)
   {
     std::ofstream stream(name.c_str(), std::ios::binary);
     if (!stream)

@@ -16,7 +16,6 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -94,10 +93,11 @@ namespace Chiptune
           Require(nextPageNumber++ == Stream.ReadLE<uint32_t>());
           /*const auto crc = */Stream.ReadLE<uint32_t>();
           const auto segmentsCount = Stream.ReadByte();
-          const auto segmentsSizes = Stream.ReadRawData(segmentsCount);
+          const auto segmentsSizes = Stream.PeekRawData(segmentsCount);
           const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0));
           {
-            Binary::DataInputStream payload(Stream.ReadRawData(payloadSize), payloadSize);
+            Stream.Skip(segmentsCount);
+            Binary::DataInputStream payload(Stream.ReadData(payloadSize));
             target.OnPage(offset, hasNextPosition ? static_cast<uint_t>(nextPosition - position) : 0, payload);
           }
           if (hasNextPosition)
@@ -105,7 +105,7 @@ namespace Chiptune
             position = nextPosition;
           }
         }
-        return Stream.GetReadData();
+        return Stream.GetReadContainer();
       }
     private:
       Binary::InputStream Stream;
@@ -129,12 +129,12 @@ namespace Chiptune
         bool continued = false;
         while (size > MAX_PAGE_SIZE)
         {
-          AddPage(UNFINISHED_PAGE_POSITION, data, MAX_PAGE_SIZE, continued);
+          AddPage(UNFINISHED_PAGE_POSITION, Binary::View(data, MAX_PAGE_SIZE), continued);
           data += MAX_PAGE_SIZE;
           size -= MAX_PAGE_SIZE;
           continued = true;
         }
-        AddPage(position, data, size, continued);
+        AddPage(position, Binary::View(data, size), continued);
       }
 
       Binary::Container::Ptr CaptureResult()
@@ -152,18 +152,18 @@ namespace Chiptune
         LAST_PAGE = 4
       };
 
-      void AddPage(uint64_t position, const uint8_t* data, std::size_t size, bool continued)
+      void AddPage(uint64_t position, Binary::View data, bool continued)
       {
         if (PagesDone)
         {
           CalculateCrc();
         }
-        const uint8_t segmentsCount = static_cast<uint8_t>(size / MAX_SEGMENT_SIZE) + 1;
+        const uint8_t segmentsCount = static_cast<uint8_t>(data.Size() / MAX_SEGMENT_SIZE) + 1;
         LastPageOffset = Storage.Size();
-        LastPageSize = 27 + segmentsCount + size;
+        LastPageSize = 27 + segmentsCount + data.Size();
         Storage.Allocate(LastPageSize);
         Storage.Resize(LastPageOffset);
-        Storage.Add(SIGNATURE, sizeof(SIGNATURE));
+        Storage.Add(SIGNATURE);
         Storage.Add(VERSION);
         //assume single stream, so first page is always first
         const uint8_t flag = PagesDone == 0 ? FIRST_PAGE : (continued ? CONTINUED_PACKET : 0);
@@ -174,8 +174,8 @@ namespace Chiptune
         const uint32_t EMPTY_CRC = 0;
         Storage.Add(EMPTY_CRC);
         Storage.Add(segmentsCount);
-        WriteSegments(size, static_cast<uint8_t*>(Storage.Allocate(segmentsCount)));
-        Storage.Add(data, size);
+        WriteSegments(data.Size(), static_cast<uint8_t*>(Storage.Allocate(segmentsCount)));
+        Storage.Add(data);
       }
 
       void WriteSegments(std::size_t size, uint8_t* data)
@@ -288,7 +288,7 @@ namespace Chiptune
         }
         else
         {
-          Target.AddFrame(pageOffset, samplesCount, ReadRest(payload));
+          Target.AddFrame(pageOffset, samplesCount, payload.ReadRestData());
         }
       }
       
@@ -318,7 +318,7 @@ namespace Chiptune
           break;
         case Setup:
           payload.Seek(payload.GetPosition() - SIGNATURE.size() - 1);
-          Target.SetSetup(ReadRest(payload));
+          Target.SetSetup(payload.ReadRestData());
           NextPacketType = Audio;
           break;
         default:
@@ -344,13 +344,6 @@ namespace Chiptune
         Require(blockLo <= blockHi);
         Require(framing & 1);
         Target.SetProperties(channels, frequency, 1 << blockLo, 1 << blockHi);
-      }
-
-      static Binary::DataAdapter ReadRest(Binary::DataInputStream& payload)
-      {
-        const auto restSize = payload.GetRestSize();
-        Require(restSize != 0);
-        return Binary::DataAdapter(payload.ReadRawData(restSize), restSize);
       }
     private:
       OggVorbis::Builder& Target;
@@ -391,8 +384,8 @@ namespace Chiptune
 
       void SetStreamId(uint32_t /*streamId*/) override {}
       void SetProperties(uint_t /*channels*/, uint_t /*frequency*/, uint_t /*blockSizeLo*/, uint_t /*blockSizeHi*/) override {}
-      void SetSetup(const Binary::Data& /*data*/) override {}
-      void AddFrame(std::size_t /*offset*/, uint_t /*samplesCount*/, const Binary::Data& /*data*/) override {}
+      void SetSetup(Binary::View /*data*/) override {}
+      void AddFrame(std::size_t /*offset*/, uint_t /*samplesCount*/, Binary::View /*data*/) override {}
     };
     
     Builder& GetStubBuilder()
@@ -426,15 +419,15 @@ namespace Chiptune
         WriteComment();
       }
       
-      void SetSetup(const Binary::Data& data) override
+      void SetSetup(Binary::View data) override
       {
-        Storage.AddData(0, static_cast<const uint8_t*>(data.Start()), data.Size());
+        Storage.AddData(0, data.As<uint8_t>(), data.Size());
       }
 
-      void AddFrame(std::size_t /*offset*/, uint_t framesCount, const Binary::Data& data) override
+      void AddFrame(std::size_t /*offset*/, uint_t framesCount, Binary::View data) override
       {
         TotalFrames += framesCount;
-        Storage.AddData(TotalFrames, static_cast<const uint8_t*>(data.Start()), data.Size());
+        Storage.AddData(TotalFrames, data.As<uint8_t>(), data.Size());
       }
       
       Binary::Container::Ptr GetDump() override
@@ -446,7 +439,7 @@ namespace Chiptune
       {
         Binary::DataBuilder builder(30);
         builder.Add(uint8_t(Vorbis::Identification));
-        builder.Add(Vorbis::SIGNATURE.data(), Vorbis::SIGNATURE.size());
+        builder.Add(Vorbis::SIGNATURE);
         builder.Add(Vorbis::VERSION);
         builder.Add(channels);
         builder.Add(fromLE(frequency));

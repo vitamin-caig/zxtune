@@ -13,7 +13,6 @@
 //common includes
 #include <byteorder.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/input_stream.h>
 #include <strings/format.h>
 
@@ -49,7 +48,7 @@ namespace Archived
           }
           locations.push_back({Header.SamplesDataSize, 0});
           //possibly truncated data
-          const auto samplesData = Stream.ReadData(std::min(Header.SamplesDataSize, Stream.GetRestSize()));
+          const auto samplesData = Stream.ReadContainer(std::min(Header.SamplesDataSize, Stream.GetRestSize()));
           for (uint_t idx = 0; idx < Header.SamplesCount; ++idx)
           {
             target.StartSample(idx);
@@ -57,7 +56,7 @@ namespace Archived
             const auto nextOffset = locations[idx + 1].Offset;
             target.SetData(loc.SamplesCount, samplesData->GetSubcontainer(loc.Offset, nextOffset - loc.Offset));
           }
-          return Stream.GetReadData();
+          return Stream.GetReadContainer();
         }
       private:
         struct HeaderType
@@ -73,8 +72,8 @@ namespace Archived
           static HeaderType Read(Binary::DataInputStream& stream)
           {
             static const uint8_t SIGNATURE[] = {'F', 'S', 'B', '5'};
-            const auto sign = stream.ReadRawData(sizeof(SIGNATURE));
-            Require(0 == std::memcmp(sign, SIGNATURE, sizeof(SIGNATURE)));
+            const auto sign = stream.ReadData(sizeof(SIGNATURE));
+            Require(0 == std::memcmp(sign.Start(), SIGNATURE, sizeof(SIGNATURE)));
             const auto version = stream.ReadLE<uint32_t>();
             HeaderType result;
             result.SamplesCount = stream.ReadLE<uint32_t>();
@@ -93,8 +92,8 @@ namespace Archived
         class Metadata
         {
         public:
-          Metadata(Binary::InputStream& stream, const HeaderType& hdr)
-            : Stream(stream.ReadRawData(hdr.SamplesHeadersSize), hdr.SamplesHeadersSize)
+          Metadata(Binary::DataInputStream& stream, const HeaderType& hdr)
+            : Stream(stream.ReadData(hdr.SamplesHeadersSize))
           {
           }
           
@@ -119,7 +118,7 @@ namespace Archived
               hasNextChunk = 0 != (raw & 1);
               const auto chunkSize = (raw >> 1) & 0xffffff;
               const auto chunkType = (raw >> 25) & 0x7f;
-              target.AddMetaChunk(chunkType, Binary::DataAdapter(Stream.ReadRawData(chunkSize), chunkSize));
+              target.AddMetaChunk(chunkType, Stream.ReadData(chunkSize));
             }
             return result;
           }
@@ -196,8 +195,8 @@ namespace Archived
         class Names
         {
         public:
-          Names(Binary::InputStream& stream, const HeaderType& hdr)
-            : Stream(stream.ReadRawData(hdr.SamplesNamesSize), hdr.SamplesNamesSize)
+          Names(Binary::DataInputStream& stream, const HeaderType& hdr)
+            : Stream(stream.ReadData(hdr.SamplesNamesSize))
             , HasNames(hdr.SamplesNamesSize != 0)
           {
           }

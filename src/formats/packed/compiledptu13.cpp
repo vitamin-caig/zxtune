@@ -17,7 +17,6 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 //std includes
 #include <array>
@@ -141,14 +140,13 @@ namespace Packed
       namespace ProTracker3 = Formats::Chiptune::ProTracker3;
       using namespace CompiledPTU13;
 
-      if (!Player->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Player->Match(data))
       {
         return Container::Ptr();
       }
-      const Binary::TypedContainer typedData(rawData);
-      const std::size_t availSize = rawData.Size();
       const std::size_t playerSize = CompiledPTU13::PLAYER_SIZE;
-      const CompiledPTU13::RawPlayer& rawPlayer = *typedData.GetField<CompiledPTU13::RawPlayer>(0);
+      const auto& rawPlayer = *data.As<CompiledPTU13::RawPlayer>();
       const uint_t positionsAddr = fromLE(rawPlayer.PositionsAddr);
       if (positionsAddr < playerSize + offsetof(CompiledPTU13::RawHeader, Positions))
       {
@@ -156,8 +154,9 @@ namespace Packed
         return Container::Ptr();
       }
       const uint_t dataAddr = positionsAddr - offsetof(CompiledPTU13::RawHeader, Positions);
-      const CompiledPTU13::RawHeader& rawHeader = *typedData.GetField<CompiledPTU13::RawHeader>(playerSize);
-      const uint_t patternsCount = CompiledPTU13::GetPatternsCount(rawHeader, availSize - playerSize);
+      const auto modData = data.SubView(playerSize, CompiledPTU13::MAX_MODULE_SIZE);
+      const auto& rawHeader = *modData.As<CompiledPTU13::RawHeader>();
+      const uint_t patternsCount = CompiledPTU13::GetPatternsCount(rawHeader, modData.Size());
       if (!patternsCount)
       {
         Dbg("Invalid patterns count");
@@ -165,9 +164,7 @@ namespace Packed
       }
       const uint_t compileAddr = dataAddr - playerSize;
       Dbg("Detected player compiled at %1% (#%1$04x) with %2% patterns", compileAddr, patternsCount);
-      const std::size_t modDataSize = std::min(CompiledPTU13::MAX_MODULE_SIZE, availSize - playerSize);
-      const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
-      const Formats::Chiptune::PatchedDataBuilder::Ptr builder = Formats::Chiptune::PatchedDataBuilder::Create(*modData);
+      const auto builder = Formats::Chiptune::PatchedDataBuilder::Create(modData);
       //fix patterns/samples/ornaments offsets
       for (uint_t idx = offsetof(CompiledPTU13::RawHeader, PatternsOffset); idx != offsetof(CompiledPTU13::RawHeader, Positions); idx += 2)
       {
@@ -178,10 +175,11 @@ namespace Packed
       {
         builder->FixLEWord(idx, -int_t(dataAddr));
       }
-      const Binary::Container::Ptr fixedModule = builder->GetResult();
-      if (Formats::Chiptune::Container::Ptr fixedParsed = ProTracker3::Parse(*fixedModule, ProTracker3::GetStubBuilder()))
+      const auto fixedModule = builder->GetResult();
+      if (auto fixedParsed = ProTracker3::Parse(*fixedModule, ProTracker3::GetStubBuilder()))
       {
-        return CreateContainer(fixedParsed, playerSize + fixedParsed->Size());
+        const auto totalSize = playerSize + fixedParsed->Size();
+        return CreateContainer(std::move(fixedParsed), totalSize);
       }
       Dbg("Failed to parse fixed module");
       return Container::Ptr();

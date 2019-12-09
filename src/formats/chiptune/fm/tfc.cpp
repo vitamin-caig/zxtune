@@ -17,7 +17,6 @@
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <binary/typed_container.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
 //std includes
@@ -75,15 +74,16 @@ namespace Chiptune
       void SetKeyOn() override {}
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View rawData)
     {
       const std::size_t size = rawData.Size();
       if (size < MIN_SIZE)
       {
         return false;
       }
-      const RawHeader& hdr = *static_cast<const RawHeader*>(rawData.Start());
-      return hdr.Sign == SIGNATURE && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(), boost::bind(&fromLE<uint16_t>, _1) >= size);
+      const auto& hdr = *rawData.As<RawHeader>();
+      return hdr.Sign == SIGNATURE
+        && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(), boost::bind(&fromLE<uint16_t>, _1) >= size);
     }
 
     const std::string FORMAT(
@@ -139,9 +139,9 @@ namespace Chiptune
     class Container
     {
     public:
-      explicit Container(const Binary::Container& data)
-        : Delegate(data)
-        , Min(Delegate.GetSize())
+      explicit Container(Binary::View data)
+        : Data(data)
+        , Min(Data.Size())
         , Max(0)
       {
       }
@@ -267,14 +267,14 @@ namespace Chiptune
       template<class T>
       const T& Get(std::size_t offset) const
       {
-        const T* const ptr = Delegate.GetField<T>(offset);
+        const T* const ptr = Data.SubView(offset).As<T>();
         Require(ptr != nullptr);
         Min = std::min(Min, offset);
         Max = std::max(Max, offset + sizeof(T));
         return *ptr;
       }
     private:
-      const Binary::TypedContainer Delegate;
+      const Binary::View Data;
       mutable std::size_t Min;
       mutable std::size_t Max;
     };
@@ -284,15 +284,16 @@ namespace Chiptune
       return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
     }
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
+      const Binary::View data(rawData);
       if (!FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
       }
       try
       {
-        Binary::InputStream stream(data);
+        Binary::DataInputStream stream(data);
         const RawHeader& header = stream.ReadField<RawHeader>();
         target.SetVersion(FromCharArray(header.Version));
         target.SetIntFreq(header.IntFreq);
@@ -318,8 +319,8 @@ namespace Chiptune
 
         const std::size_t usedSize = std::max(container.GetMax(), stream.GetPosition());
         const std::size_t fixedOffset = container.GetMin();
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, usedSize);
-        return CreateCalculatingCrcContainer(subData, fixedOffset, usedSize - fixedOffset);
+        auto subData = rawData.GetSubcontainer(0, usedSize);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedOffset, usedSize - fixedOffset);
       }
       catch (const std::exception&)
       {

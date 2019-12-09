@@ -15,11 +15,11 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/base64.h>
+#include <binary/crc.h>
 #include <binary/compression/zlib.h>
 #include <binary/compression/zlib_stream.h>
 #include <binary/data_builder.h>
@@ -181,7 +181,7 @@ namespace Zdata
     const uint8_t* const End;
   };
   
-  Layout FindLayout(const Binary::Data& raw, const Marker& marker)
+  Layout FindLayout(Binary::View raw, const Marker& marker)
   {
     const uint8_t* const rawStart = static_cast<const uint8_t*>(raw.Start());
     const uint8_t* const rawEnd = rawStart + raw.Size();
@@ -190,7 +190,7 @@ namespace Zdata
     return Layout(res, rawEnd);
   }
 
-  Binary::Container::Ptr Decode(const Binary::Data& raw, const Marker& marker)
+  Binary::Container::Ptr Decode(Binary::View raw, const Marker& marker)
   {
     try
     {
@@ -201,8 +201,9 @@ namespace Zdata
       Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), decoded.data(), decoded.data() + hdr.Packed);
       std::unique_ptr<Dump> unpacked(new Dump(hdr.Original));
       Dbg("Unpack %1% => %2%", hdr.Packed, hdr.Original);
-      Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded.data(), decoded.size(), unpacked->data(), unpacked->size()));
-      Require(hdr.Crc == Crc32(unpacked->data(), unpacked->size()));
+      //TODO: use another function
+      Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded, unpacked->data(), unpacked->size()));
+      Require(hdr.Crc == Binary::Crc32(*unpacked));
       return Binary::CreateContainer(std::move(unpacked));
     }
     catch (const std::exception&)
@@ -217,16 +218,16 @@ namespace Zdata
     }
   }
 
-  Header Compress(const Binary::Data& input, Binary::DataBuilder& output)
+  Header Compress(Binary::View input, Binary::DataBuilder& output)
   {
     const auto inSize = input.Size();
     const std::size_t prevOutputSize = output.Size();
     {
-      Binary::DataInputStream inputStream(input.Start(), inSize);
+      Binary::DataInputStream inputStream(input);
       Binary::Compression::Zlib::Compress(inputStream, output);
     }
     const auto packedSize = output.Size() - prevOutputSize;
-    return Header(Crc32(static_cast<const uint8_t*>(input.Start()), inSize), inSize, packedSize);
+    return Header(Binary::Crc32(input), inSize, packedSize);
   }
 
   Binary::Container::Ptr Convert(const void* input, std::size_t inputSize)
@@ -253,7 +254,7 @@ namespace Zdata
 
 namespace ZXTune
 {
-  DataLocation::Ptr BuildZdataContainer(const Binary::Data& input)
+  DataLocation::Ptr BuildZdataContainer(Binary::View input)
   {
     Binary::DataBuilder builder(input.Size());
     builder.Add<Zdata::RawHeader>();

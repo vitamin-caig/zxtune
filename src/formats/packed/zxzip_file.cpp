@@ -16,10 +16,10 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
@@ -625,7 +625,7 @@ namespace Packed
           {
             break;
           }
-          const uint32_t realCRC = Crc32(result->data(), result->size());
+          const uint32_t realCRC = Binary::Crc32(*result);
           //ZXZip CRC32 calculation does not invert result
           if (realCRC != ~fromLE(Header.SourceCRC))
           {

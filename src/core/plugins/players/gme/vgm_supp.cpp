@@ -408,11 +408,11 @@ namespace Module
     class PlatformDetector
     {
     public:
-      explicit PlatformDetector(const Dump& data)
-        : Input(data.data(), data.size())
+      explicit PlatformDetector(Binary::View data)
+        : Input(data)
       {
         Input.Seek(0x8);
-        const auto vers = Input.ReadRawData(4);
+        const auto vers = Input.PeekRawData(4);
         Version = (vers[0] & 15) + 10 *(vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
 
         {
@@ -505,13 +505,12 @@ namespace Module
       
       basic_string_view<uint16_t> ReadUtf16()
       {
-        const auto begin = Input.ReadRawData(sizeof(uint16_t));
-        auto end = begin;
-        while (*end)
-        {
-          end = Input.ReadRawData(sizeof(uint16_t));
-        }
-        return basic_string_view<uint16_t>(safe_ptr_cast<const uint16_t*>(begin), safe_ptr_cast<const uint16_t*>(end));
+        const auto symbolsAvailable = Input.GetRestSize() / sizeof(uint16_t);
+        const auto begin = safe_ptr_cast<const uint16_t*>(Input.PeekRawData(symbolsAvailable * sizeof(uint16_t)));
+        auto end = std::find(begin, begin + symbolsAvailable, 0);
+        Require(end != begin + symbolsAvailable);
+        Input.Skip((end + 1 - begin) * sizeof(uint16_t));
+        return basic_string_view<uint16_t>(begin, end);
       }
       
       static const Char* ConvertPlatform(const String& str)

@@ -11,11 +11,12 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/multitrack.h>
@@ -83,33 +84,16 @@ namespace Multitrack
      
     const std::size_t MIN_SIZE = 256;
 
-    class Container : public Formats::Multitrack::Container
+    class Container : public Binary::BaseContainer<Multitrack::Container>
     {
     public:
       Container(const InfoChunkFull* info, uint32_t fixedCrc, Binary::Container::Ptr data)
-        : Info(info)
+        : BaseContainer(std::move(data))
+        , Info(info)
         , FixedCrc(fixedCrc)
-        , Delegate(std::move(data))
       {
       }
       
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-      
-      //Formats::Multitrack::Container
       uint_t FixedChecksum() const override
       {
         return FixedCrc;
@@ -128,9 +112,10 @@ namespace Multitrack
       Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
         Require(Info != nullptr);
-        const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - static_cast<const uint8_t*>(Delegate->Start());
-        std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
-        std::memcpy(content->data(), Delegate->Start(), content->size());
+        const Binary::View data(*Delegate);
+        const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - data.As<uint8_t>();
+        std::unique_ptr<Dump> content(new Dump(data.Size()));
+        std::memcpy(content->data(), data.Start(), data.Size());
         InfoChunkFull* const info = safe_ptr_cast<InfoChunkFull*>(content->data() + infoOffset);
         Require(idx < info->TracksCount);
         info->StartTrack = idx;
@@ -139,7 +124,6 @@ namespace Multitrack
     private:
       const InfoChunkFull* const Info;
       const uint32_t FixedCrc;
-      const Binary::Container::Ptr Delegate;
     };
 
     class Decoder : public Formats::Multitrack::Decoder
@@ -181,21 +165,21 @@ namespace Multitrack
               Require(size == 0);
               break;
             }
-            const auto data = input.ReadRawData(size);
+            const auto data = input.ReadData(size);
             if (hdr.Id == INFO)
             {
-              fixedCrc = Crc32(data, sizeof(InfoChunk), fixedCrc);
+              fixedCrc = Binary::Crc32(data.SubView(0, sizeof(InfoChunk)), fixedCrc);
               if (size >= sizeof(InfoChunkFull))
               {
-                info = safe_ptr_cast<const InfoChunkFull*>(data);
+                info = safe_ptr_cast<const InfoChunkFull*>(data.Start());
               }
             }
             else if (hdr.Id == DATA)
             {
-              fixedCrc = Crc32(data, size, fixedCrc);
+              fixedCrc = Binary::Crc32(data, fixedCrc);
             }
           }
-          return MakePtr<Container>(info, fixedCrc, input.GetReadData());
+          return MakePtr<Container>(info, fixedCrc, input.GetReadContainer());
         }
         catch (const std::exception&)
         {

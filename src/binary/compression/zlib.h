@@ -10,8 +10,8 @@
 
 #pragma once
 
-//common includes
-#include <types.h>
+//library includes
+#include <binary/view.h>
 
 namespace Binary
 {
@@ -21,11 +21,11 @@ namespace Binary
     {
       //! @throws Error
       //! @return real output size
-      std::size_t DecompressRaw(const void* input, std::size_t inputSize, void* output, std::size_t maxOutputSize);
+      std::size_t DecompressRaw(View input, void* output, std::size_t maxOutputSize);
       
       //! @throws Error
       //! @return real output size
-      std::size_t Decompress(const void* input, std::size_t inputSize, void* output, std::size_t maxOutputSize);
+      std::size_t Decompress(View input, void* output, std::size_t maxOutputSize);
     }
   }
 }

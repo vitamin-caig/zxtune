@@ -75,18 +75,18 @@ namespace Chiptune
         const auto avail = stream.GetRestSize();
         if (avail >= size)
         {
-          if (visitor.OnChunk(id, stream.ReadData(size)))
+          if (visitor.OnChunk(id, stream.ReadContainer(size)))
           {
             continue;
           }
         }
         else if (avail != 0)
         {
-          visitor.OnTruncatedChunk(id, size, stream.ReadData(avail));
+          visitor.OnTruncatedChunk(id, size, stream.ReadContainer(avail));
         }
         break;
       }
-      return stream.GetReadData();
+      return stream.GetReadContainer();
     }
     
     class Parser : public ChunksVisitor
@@ -134,13 +134,13 @@ namespace Chiptune
       void ParseRiff(const Binary::Container& data)
       {
         Binary::InputStream stream(data);
-        Require(0 == std::memcmp(stream.ReadRawData(sizeof(Headers::WAVE)), Headers::WAVE.data(), sizeof(Headers::WAVE)));
-        ParseChunks(*stream.ReadRestData(), *this);
+        Require(0 == std::memcmp(stream.ReadData(sizeof(Headers::WAVE)).Start(), Headers::WAVE.data(), sizeof(Headers::WAVE)));
+        ParseChunks(*stream.ReadRestContainer(), *this);
       }
       
-      void ParseFormatChunk(const Binary::Container& data)
+      void ParseFormatChunk(Binary::View data)
       {
-        Binary::InputStream stream(data);
+        Binary::DataInputStream stream(data);
         auto formatTag = stream.ReadLE<uint16_t>();
         const auto channels = stream.ReadLE<uint16_t>();
         const auto frequency = stream.ReadLE<uint32_t>();
@@ -158,10 +158,10 @@ namespace Chiptune
         Target.SetProperties(formatTag, frequency, channels, bits, blockSize);
       }
       
-      void ParseSamplesCountHint(const Binary::Container& data)
+      void ParseSamplesCountHint(Binary::View data)
       {
         Require(data.Size() == 4);
-        Target.SetSamplesCountHint(ReadLE<uint32_t>(static_cast<const uint8_t*>(data.Start())));
+        Target.SetSamplesCountHint(ReadLE<uint32_t>(data.As<uint8_t>()));
       }
       
       void ParseList(const Binary::Container& data)
@@ -209,9 +209,9 @@ namespace Chiptune
           OnChunk(id, std::move(data));
         }
       private:
-        static String ReadString(const Binary::Data& data)
+        static String ReadString(Binary::View data)
         {
-          const StringView view(static_cast<const char*>(data.Start()), data.Size());
+          const StringView view(data.As<char>(), data.Size());
           return Strings::ToAutoUtf8(Strings::TrimSpaces(view));
         }
       private:
@@ -226,9 +226,10 @@ namespace Chiptune
       try
       {
         Parser parser(target);
-        if (const auto subData = ParseChunks(data, parser))
+        if (auto subData = ParseChunks(data, parser))
         {
-          return CreateCalculatingCrcContainer(subData, 0, subData->Size());
+          const auto totalSize = subData->Size();
+          return CreateCalculatingCrcContainer(std::move(subData), 0, totalSize);
         }
       }
       catch (const std::exception&)
@@ -288,7 +289,7 @@ namespace Chiptune
       {
         Storage.Add(Chunks::DATA);
         Storage.Add(fromLE<uint32_t>(data->Size()));
-        Storage.Add(data->Start(), data->Size());
+        Storage.Add(*data);
       }
 
       void SetSamplesCountHint(uint_t count) override

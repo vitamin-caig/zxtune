@@ -32,7 +32,7 @@ namespace Chiptune
     class SectionFormat
     {
     public:
-      explicit SectionFormat(const Binary::Container& data)
+      explicit SectionFormat(const Binary::View& data)
         : Stream(data)
       {
       }
@@ -60,7 +60,7 @@ namespace Chiptune
         while (const auto size = Stream.ReadLE<uint32_t>())
         {
           const auto offset = Stream.ReadLE<uint32_t>();
-          target.SetRom(offset, *Stream.ReadData(size));
+          target.SetRom(offset, Stream.ReadData(size));
         }
       }
       
@@ -69,7 +69,7 @@ namespace Chiptune
         while (const auto size = Stream.ReadLE<uint32_t>())
         {
           const auto offset = Stream.ReadLE<uint32_t>();
-          target.SetSaveState(offset, *Stream.ReadData(size));
+          target.SetSaveState(offset, Stream.ReadData(size));
         }
         /*
         const auto offset = Stream.GetPosition();
@@ -82,10 +82,10 @@ namespace Chiptune
         */
       }
     private:
-      Binary::InputStream Stream;
+      Binary::DataInputStream Stream;
     };
     
-    void ParseSection(const Binary::Container& data, Builder& target)
+    void ParseSection(Binary::View data, Builder& target)
     {
       SectionFormat format(data);
       if (format.HasSection())

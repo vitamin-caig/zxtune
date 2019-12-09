@@ -18,9 +18,7 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
@@ -120,9 +118,9 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& rawData)
+      explicit Format(Binary::View rawData)
         : RawData(rawData)
-        , Source(*static_cast<const Header*>(RawData.Start()))
+        , Source(*RawData.As<Header>())
         , Ranges(RangeChecker::Create(rawData.Size()))
         , FixedRanges(RangeChecker::Create(rawData.Size()))
       {
@@ -181,15 +179,14 @@ namespace Chiptune
           const uint_t samIdx = *it;
           if (const auto content = GetSample(samIdx))
           {
-            const auto loop = content->Size();
-            target.SetSample(samIdx, loop, *content, false);
+            target.SetSample(samIdx, content.Size(), content, false);
             ++validSamples;
           }
           else
           {
             Dbg(" Stub sample %1%", samIdx);
-            const uint8_t dummy = 128;
-            target.SetSample(samIdx, 0, Binary::DataAdapter(&dummy, sizeof(dummy)), false);
+            const uint8_t dummy[] = {128};
+            target.SetSample(samIdx, 0, dummy, false);
           }
         }
         if (sams.Maximum() != SAMPLES_COUNT - 1)
@@ -270,19 +267,19 @@ namespace Chiptune
         return srcLine.Note[chan] == NOTE_EMPTY && (srcLine.Sample[chan] == SAMPLE_EMPTY || srcLine.Sample[chan] >= SAMPLE_BASE + SAMPLES_COUNT);
       }
 
-      Binary::Data::Ptr GetSample(uint_t samIdx) const
+      Binary::View GetSample(uint_t samIdx) const
       {
         const SampleInfo& info = Source.SampleDescriptions[samIdx];
         const std::size_t absAddr = 256 * info.AddrHi;
         const std::size_t maxSize = 128 * info.SizeHiDoubled;
         if (!absAddr || absAddr < SAMPLES_ADDR || absAddr + maxSize > SAMPLES_LIMIT_ADDR)
         {
-          return Binary::Data::Ptr();
+          return Binary::View(nullptr, 0);
         }
         const std::size_t sampleOffset = offsetof(Header, Samples) + (absAddr - SAMPLES_ADDR);
         if (sampleOffset >= RawData.Size())
         {
-          return Binary::Data::Ptr();
+          return Binary::View(nullptr, 0);
         }
         const std::size_t sampleAvail = std::min(maxSize, RawData.Size() - sampleOffset);
         Dbg("Sample %1%: start=#%2$04x size=#%3$04x (avail=#%4$04x)", 
@@ -291,7 +288,7 @@ namespace Chiptune
         const uint8_t* const sampleEnd = std::find(sampleStart, sampleStart + sampleAvail, 0);
         const std::size_t sampleSize = sampleEnd - sampleStart;
         AddRange(sampleOffset, sampleAvail);
-        return RawData.GetSubcontainer(sampleOffset, sampleSize);
+        return RawData.SubView(sampleOffset, sampleSize);
       }
 
       void AddRange(std::size_t start, std::size_t size) const
@@ -304,23 +301,19 @@ namespace Chiptune
         Require(FixedRanges->AddRange(start, size));
       }
     private:
-      const Binary::Container& RawData;
+      const Binary::View RawData;
       const Header& Source;
       const RangeChecker::Ptr Ranges;
       const RangeChecker::Ptr FixedRanges;
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View rawData)
     {
-      const std::size_t size = rawData.Size();
-      if (size < sizeof(Header))
-      {
-        return false;
-      }
-      const Header& header = *static_cast<const Header*>(rawData.Start());
-      return header.LastPositionDoubled >= 2
-          && header.LastPositionDoubled <= 128
-          && 0 == (header.LastPositionDoubled & 1)
+      const auto* header = rawData.As<Header>();
+      return header 
+          && header->LastPositionDoubled >= 2
+          && header->LastPositionDoubled <= 128
+          && 0 == (header->LastPositionDoubled & 1)
       ;
     }
 
@@ -369,8 +362,9 @@ namespace Chiptune
       const Binary::Format::Ptr Format;
     };
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
+      const Binary::View data(rawData);
       if (!FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
@@ -390,9 +384,9 @@ namespace Chiptune
         format.ParseSamples(usedSamples, target);
 
         Require(format.GetSize() >= MIN_SIZE);
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+        auto subData = rawData.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {

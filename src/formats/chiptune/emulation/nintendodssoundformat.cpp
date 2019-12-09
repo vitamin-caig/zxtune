@@ -29,18 +29,18 @@ namespace Chiptune
     typedef std::array<uint8_t, 4> SignatureType;
     const SignatureType SAVESTATE_SIGNATURE = {{'S', 'A', 'V', 'E'}};
   
-    void ParseRom(const Binary::Container& data, Builder& target)
+    void ParseRom(Binary::View data, Builder& target)
     {
-      Binary::InputStream stream(data);
+      Binary::DataInputStream stream(data);
       const auto offset = stream.ReadLE<uint32_t>();
       const auto size = stream.ReadLE<uint32_t>();
-      target.SetChunk(offset, *stream.ReadData(size));
+      target.SetChunk(offset, stream.ReadData(size));
       Require(0 == stream.GetRestSize());
     }
     
-    void ParseState(const Binary::Container& data, Builder& target)
+    void ParseState(Binary::View data, Builder& target)
     {
-      Binary::InputStream stream(data);
+      Binary::DataInputStream stream(data);
       while (stream.GetRestSize() >= sizeof(SignatureType) + sizeof(uint32_t) + sizeof(uint32_t))
       {
         const auto signature = stream.ReadField<SignatureType>();
@@ -49,7 +49,7 @@ namespace Chiptune
         if (signature == SAVESTATE_SIGNATURE)
         {
           auto packedData = stream.ReadData(packedSize);
-          const auto unpackedPart = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packedData));
+          const auto unpackedPart = Binary::Compression::Zlib::Decompress(packedData);
           //do not check crc32
           ParseRom(*unpackedPart, target);
         }

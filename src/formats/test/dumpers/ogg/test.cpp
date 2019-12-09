@@ -60,12 +60,12 @@ namespace
                 << "BlockSizeHi: " << blockSizeHi << std::endl;
     }
     
-    void SetSetup(const Binary::Data& data) override
+    void SetSetup(Binary::View data) override
     {
       std::cout << "Setup: " << data.Size() << " bytes" << std::endl;
     }
     
-    void AddFrame(std::size_t offset, uint_t samplesCount, const Binary::Data& data) override
+    void AddFrame(std::size_t offset, uint_t samplesCount, Binary::View data) override
     {
       std::cout << Strings::Format("Frame: @%1%(0x%1$08x) %2% samples, %3% bytes\n", offset, samplesCount, data.Size());
     }

@@ -50,7 +50,7 @@ namespace Module
         Properties.SetSamplesFrequency(freq);
       }
 
-      void SetSample(uint_t index, std::size_t loop, const Binary::Data& content, bool is4Bit) override
+      void SetSample(uint_t index, std::size_t loop, Binary::View content, bool is4Bit) override
       {
         Data->Samples.Add(index, is4Bit
           ? Devices::DAC::CreateU4Sample(content, loop)

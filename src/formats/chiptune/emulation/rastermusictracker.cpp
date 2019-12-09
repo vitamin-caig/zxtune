@@ -89,8 +89,7 @@ namespace Chiptune
             const auto infoSize = infoLast + 1 - infoFirst;
             stream.Skip(infoSize);
           }
-          const Binary::Container::Ptr data = stream.GetReadData();
-          return CreateCalculatingCrcContainer(data, 0, fixedSize);
+          return CreateCalculatingCrcContainer(stream.GetReadContainer(), 0, fixedSize);
         }
         catch (const std::exception&)
         {

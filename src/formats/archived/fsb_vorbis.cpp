@@ -11,7 +11,6 @@
 //local includes
 #include "formats/archived/fsb_formats.h"
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/input_stream.h>
 #include <formats/chiptune/music/oggvorbis.h>
 //common includes
@@ -115,7 +114,7 @@ namespace FSB
         builder->SetStreamId(Properties.Setup->Crc32);
         builder->SetProperties(Properties.Channels, Properties.Frequency,
           Properties.Setup->BlocksizeShort, Properties.Setup->BlocksizeLong);
-        builder->SetSetup(Binary::DataAdapter(Properties.Setup->Data, Properties.Setup->Size));
+        builder->SetSetup(Binary::View(Properties.Setup->Data, Properties.Setup->Size));
         DumpFrames(*builder);
         Properties.Data = {};
         Properties.Lookup = {};
@@ -140,7 +139,7 @@ namespace FSB
           {
             const auto totalSize = size + sizeof(uint16_t);
             const auto samples = totalSize * delta.Position / delta.Offset;
-            builder.AddFrame(0, samples, Binary::DataAdapter(data, size));
+            builder.AddFrame(0, samples, Binary::View(data, size));
             stream.Skip(size);
             delta.Offset -= totalSize;
             delta.Position -= samples;
@@ -185,13 +184,13 @@ namespace FSB
         Samples[CurSample].Name = std::move(name);
       }
       
-      void AddMetaChunk(uint_t type, const Binary::Data& chunk) override
+      void AddMetaChunk(uint_t type, Binary::View chunk) override
       {
         if (type != Fmod::ChunkType::VORBISDATA)
         {
           return;
         }
-        Binary::DataInputStream stream(chunk.Start(), chunk.Size());
+        Binary::DataInputStream stream(chunk);
         auto& dst = Samples[CurSample];
         dst.Setup = GetSetup(stream.ReadLE<uint32_t>());
         dst.Lookup.emplace_back(0, 0);

@@ -129,7 +129,7 @@ namespace Packed
       {
       }
       
-      std::size_t Parse(const Binary::Container& diskData)
+      std::size_t Parse(Binary::View diskData)
       {
         Require(diskData.Size() > sizeof(DiskSignatureType));
         const DiskSignatureType& signature = *safe_ptr_cast<const DiskSignatureType*>(diskData.Start());
@@ -147,9 +147,9 @@ namespace Packed
         }
       }
       
-      std::size_t ParseBase(const Binary::Container& diskData)
+      std::size_t ParseBase(Binary::View diskData)
       {
-        Binary::InputStream diskStream(diskData);
+        Binary::DataInputStream diskStream(diskData);
         const DiskInformationBlock& diskInfo = diskStream.ReadField<DiskInformationBlock>();
         Require(diskInfo.Signature == DISK_SIGNATURE);
         for (uint_t track = 0; track != diskInfo.Tracks; ++track)
@@ -158,15 +158,15 @@ namespace Packed
           {
             const std::size_t trackSize = diskInfo.GetTrackSize();
             const auto trackData = diskStream.ReadData(trackSize);
-            ParseTrack(*trackData);
+            ParseTrack(trackData);
           }
         }
         return diskStream.GetPosition();
       }
       
-      std::size_t ParseExtended(const Binary::Container& diskData)
+      std::size_t ParseExtended(Binary::View diskData)
       {
-        Binary::InputStream diskStream(diskData);
+        Binary::DataInputStream diskStream(diskData);
         const ExtendedDiskInformationBlock& diskInfo = diskStream.ReadField<ExtendedDiskInformationBlock>();
         Require(diskInfo.Signature == EXTENDED_DISK_SIGNATURE);
         for (uint_t track = 0, cylinder = 0; track != diskInfo.Tracks; ++track)
@@ -176,16 +176,16 @@ namespace Packed
             if (const std::size_t trackSize = diskInfo.GetTrackSize(cylinder))
             {
               const auto trackData = diskStream.ReadData(trackSize);
-              ParseExtendedTrack(*trackData);
+              ParseExtendedTrack(trackData);
             }
           }
         }
         return diskStream.GetPosition();
       }
     private:
-      void ParseTrack(const Binary::Container& trackData)
+      void ParseTrack(Binary::View trackData)
       {
-        Binary::InputStream trackStream(trackData);
+        Binary::DataInputStream trackStream(trackData);
         const TrackInformationBlock& trackInfo = trackStream.ReadField<TrackInformationBlock>();
         Require(trackInfo.Signature == TRACK_SIGNATURE);
         Require(trackInfo.SectorsCount <= trackInfo.Sectors.size());
@@ -195,14 +195,14 @@ namespace Packed
           const std::size_t rawSectorSize = GetSectorDataSize(trackInfo.SectorSize);
           const std::size_t usedSectorSize = GetSectorDataSize(sectorInfo.Size);
           Require(rawSectorSize >= usedSectorSize);
-          const auto sectorData = trackStream.ReadRawData(rawSectorSize);
+          const auto sectorData = trackStream.ReadData(rawSectorSize).As<uint8_t>();
           Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector), Dump(sectorData, sectorData + usedSectorSize));
         }
       }
       
-      void ParseExtendedTrack(const Binary::Container& trackData)
+      void ParseExtendedTrack(Binary::View trackData)
       {
-        Binary::InputStream trackStream(trackData);
+        Binary::DataInputStream trackStream(trackData);
         const TrackInformationBlock& trackInfo = trackStream.ReadField<TrackInformationBlock>();
         Require(trackInfo.Signature == TRACK_SIGNATURE);
         Require(trackInfo.SectorsCount <= trackInfo.Sectors.size());
@@ -211,7 +211,7 @@ namespace Packed
           const TrackInformationBlock::SectorInfo& sectorInfo = trackInfo.Sectors[sector];
           if (const std::size_t sectorSize = fromLE(sectorInfo.ActualDataSize))
           {
-            const auto sectorData = trackStream.ReadRawData(sectorSize);
+            const auto sectorData = trackStream.ReadData(sectorSize).As<uint8_t>();
             Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector), Dump(sectorData, sectorData + sectorSize));
           }
         }

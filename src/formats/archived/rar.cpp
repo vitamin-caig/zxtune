@@ -11,8 +11,9 @@
 //common includes
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <formats/packed/decoders.h>
@@ -71,60 +72,55 @@ namespace Archived
     class BlocksIterator
     {
     public:
-      explicit BlocksIterator(const Binary::Container& data)
-        : Container(data)
-        , Limit(data.Size())
-        , Offset(0)
+      explicit BlocksIterator(Binary::View data)
+        : Stream(data)
       {
       }
 
       bool IsEof() const
       {
         const uint64_t curBlockSize = GetBlockSize();
-        return !curBlockSize || uint64_t(Offset) + curBlockSize > uint64_t(Limit);
+        return !curBlockSize || curBlockSize > Stream.GetRestSize();
       }
 
       const Packed::Rar::ArchiveBlockHeader* GetArchiveHeader() const
       {
         assert(!IsEof());
-        const Packed::Rar::ArchiveBlockHeader& block = *Container.GetField<Packed::Rar::ArchiveBlockHeader>(Offset);
-        return !block.IsExtended() && Packed::Rar::ArchiveBlockHeader::TYPE == block.Type
-          ? &block
+        const auto* block = Stream.PeekField<Packed::Rar::ArchiveBlockHeader>();
+        return block && !block->Block.IsExtended() && Packed::Rar::ArchiveBlockHeader::TYPE == block->Block.Type
+          ? block
           : nullptr;
       }
     
       const Packed::Rar::FileBlockHeader* GetFileHeader() const
       {
         assert(!IsEof());
-        if (const Packed::Rar::FileBlockHeader* const block = Container.GetField<Packed::Rar::FileBlockHeader>(Offset))
-        {
-          return block->IsValid()
-            ? block
-            : nullptr;
-        }
-        return nullptr;
+        const auto* block = Stream.PeekField<Packed::Rar::FileBlockHeader>();
+        return block && block->IsValid()
+          ? block
+          : nullptr;
       }
 
       std::size_t GetOffset() const
       {
-        return Offset;
+        return Stream.GetPosition();
       }
 
       uint64_t GetBlockSize() const
       {
-        if (const Packed::Rar::BlockHeader* const block = Container.GetField<Packed::Rar::BlockHeader>(Offset))
+        if (const auto* block = Stream.PeekField<Packed::Rar::BlockHeader>())
         {
           uint64_t res = fromLE(block->Size);
           if (block->IsExtended())
           {
-            if (const Packed::Rar::ExtendedBlockHeader* const extBlock = Container.GetField<Packed::Rar::ExtendedBlockHeader>(Offset))
+            if (const auto* extBlock = Stream.PeekField<Packed::Rar::ExtendedBlockHeader>())
             {
               res += fromLE(extBlock->AdditionalSize);
               //Even if big files are not supported, we should properly skip them in stream
-              if (Packed::Rar::FileBlockHeader::TYPE == extBlock->Type && 
-                  Packed::Rar::FileBlockHeader::FLAG_BIG_FILE & fromLE(extBlock->Flags))
+              if (Packed::Rar::FileBlockHeader::TYPE == extBlock->Block.Type && 
+                  Packed::Rar::FileBlockHeader::FLAG_BIG_FILE & fromLE(extBlock->Block.Flags))
               {
-                if (const Packed::Rar::BigFileBlockHeader* const bigFile = Container.GetField<Packed::Rar::BigFileBlockHeader>(Offset))
+                if (const auto* bigFile = Stream.PeekField<Packed::Rar::BigFileBlockHeader>())
                 {
                   res += uint64_t(fromLE(bigFile->PackedSizeHi)) << (8 * sizeof(uint32_t));
                 }
@@ -150,20 +146,18 @@ namespace Archived
       void Next()
       {
         assert(!IsEof());
-        Offset += GetBlockSize();
-        if (const Packed::Rar::BlockHeader* block = Container.GetField<Packed::Rar::BlockHeader>(Offset))
+        Stream.Skip(GetBlockSize());
+        if (const auto* block = Stream.PeekField<Packed::Rar::BlockHeader>())
         {
           //finish block
           if (block->Type == 0x7b && 7 == fromLE(block->Size))
           {
-            Offset += sizeof(*block);
+            Stream.Skip(sizeof(*block));
           }
         }
       }
     private:
-      const Binary::TypedContainer Container;
-      const std::size_t Limit;
-      std::size_t Offset;
+      Binary::DataInputStream Stream;
     };
 
     class ChainDecoder
@@ -342,31 +336,15 @@ namespace Archived
       mutable File::Ptr Current;
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       Container(Binary::Container::Ptr data, uint_t filesCount)
-        : Decoder(MakePtr<ChainDecoder>(data))
-        , Delegate(data)
+        : BaseContainer(std::move(data))
+        , Decoder(MakePtr<ChainDecoder>(Delegate))
         , FilesCount(filesCount)
       {
         Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());
-      }
-
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
       }
 
       //Archive::Container
@@ -401,7 +379,6 @@ namespace Archived
       }
     private:
       const ChainDecoder::Ptr Decoder;
-      const Binary::Container::Ptr Delegate;
       const uint_t FilesCount;
     };
 

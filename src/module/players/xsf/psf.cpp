@@ -436,14 +436,14 @@ namespace PSF
   class ModuleDataBuilder
   {
   public:
-    void AddExe(Binary::Data::Ptr packedSection)
+    void AddExe(Binary::View packedSection)
     {
       Require(!Vfs);
       if (!Exe)
       {
         Exe = MakeRWPtr<PsxExe>();
       }
-      const auto unpackedSection = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packedSection));
+      const auto unpackedSection = Binary::Compression::Zlib::Decompress(packedSection);
       PsxExe::Parse(*unpackedSection, *Exe);
     }
     
@@ -492,7 +492,7 @@ namespace PSF
       ModuleDataBuilder builder;
       if (file.PackedProgramSection)
       {
-        builder.AddExe(file.PackedProgramSection);
+        builder.AddExe(*file.PackedProgramSection);
       }
       if (file.ReservedSection)
       {
@@ -544,7 +544,7 @@ namespace PSF
       {
         MergeExe(additionalFiles.at(*it), additionalFiles, dst, level + 1);
       }
-      dst.AddExe(data.PackedProgramSection);
+      dst.AddExe(*data.PackedProgramSection);
       if (it != lim && level < MAX_LEVEL)
       {
         for (++it; it != lim; ++it)

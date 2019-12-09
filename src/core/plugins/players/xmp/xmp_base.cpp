@@ -386,21 +386,6 @@ namespace Xmp
     const Parameters::Accessor::Ptr Properties;
   };
 
-
-  class Format : public Binary::Format
-  {
-  public:
-    bool Match(const Binary::Data& /*data*/) const override
-    {
-      return true;
-    }
-
-    std::size_t NextMatchOffset(const Binary::Data& data) const override
-    {
-      return data.Size();
-    }
-  };
-
   struct PluginDescription
   {
     const char* const Id;
@@ -413,7 +398,7 @@ namespace Xmp
   public:
     explicit Decoder(const PluginDescription& desc)
       : Desc(desc)
-      , Fmt(Desc.Format ? Binary::CreateMatchOnlyFormat(Desc.Format) : MakePtr<Format>())
+      , Fmt(Binary::CreateMatchOnlyFormat(Desc.Format))
     {
     }
 

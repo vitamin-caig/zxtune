@@ -18,7 +18,7 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed.h>
 #include <formats/packed/lha_supp.h>
@@ -258,38 +258,29 @@ namespace Packed
     class SourceStream
     {
     public:
-      explicit SourceStream(const Binary::Container& rawData)
-        : Data(rawData)
-        , Offset(0)
+      explicit SourceStream(Binary::View rawData)
+        : Stream(rawData)
       {
       }
 
       template<class T>
       const T& Get()
       {
-        const T* const res = Data.GetField<T>(Offset);
-        Require(res != nullptr);
-        Offset += sizeof(*res);
-        return *res;
+        return Stream.ReadField<T>();
       }
 
       const uint8_t* GetData(std::size_t size)
       {
         Require(size != 0);
-        const uint8_t* const first = Data.GetField<uint8_t>(Offset);
-        const uint8_t* const last = Data.GetField<uint8_t>(Offset + size - 1);
-        Require(first != nullptr && last != nullptr);
-        Offset += size;
-        return first;
+        return Stream.ReadData(size).As<uint8_t>();
       }
 
       std::size_t GetOffset() const
       {
-        return Offset;
+        return Stream.GetPosition();
       }
     private:
-      const Binary::TypedContainer Data;
-      std::size_t Offset;
+      Binary::DataInputStream Stream;
     };
 
     void ParseSectors(SourceStream& stream, ImageVisitor& visitor)

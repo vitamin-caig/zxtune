@@ -280,10 +280,9 @@ namespace Packed
 
     void DecodeBlock(Binary::InputStream& stream, std::size_t srcSize, Dump& dst)
     {
-      const std::size_t LOOKUP = 1;
-      const auto src = stream.ReadRawData(LOOKUP);
+      const auto src = stream.PeekRawData(srcSize);
       const auto used = DecodeBlock(src, srcSize, dst.data(), dst.size());
-      stream.Skip(used - LOOKUP);
+      stream.Skip(used);
     }
 
     Formats::Packed::Container::Ptr Version1_45::Decode(Binary::InputStream& stream)
@@ -295,7 +294,7 @@ namespace Packed
       if (0 == (hdr.Flag1 & hdr.COMPRESSED))
       {
         Require(restSize >= TARGET_SIZE);
-        const Binary::Container::Ptr rest = stream.ReadRestData();
+        const auto rest = stream.ReadRestContainer();
         return CreateContainer(rest->GetSubcontainer(0, TARGET_SIZE), sizeof(hdr) + TARGET_SIZE);
       }
       Require(restSize > sizeof(FOOTER));
@@ -518,7 +517,8 @@ namespace Packed
         const uint8_t* pageSource = nullptr;
         if (pageSize == page.UNCOMPRESSED)
         {
-          pageSource = stream.ReadRawData(ZX_PAGE_SIZE);
+          pageSource = stream.PeekRawData(ZX_PAGE_SIZE);
+          stream.Skip(ZX_PAGE_SIZE);
         }
         else
         {

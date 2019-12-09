@@ -158,7 +158,7 @@ namespace SDSF
     {
       for (const auto& packed : sections)
       {
-        const auto unpackedSection = Binary::Compression::Zlib::CreateDeferredDecompressContainer(packed);
+        const auto unpackedSection = Binary::Compression::Zlib::Decompress(*packed);
         const auto rawSize = unpackedSection->Size();
         Require(rawSize > sizeof(uint32_t));
         const auto rawStart = static_cast<uint32_t*>(const_cast<void*>(unpackedSection->Start()));

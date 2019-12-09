@@ -151,7 +151,7 @@ namespace
         Write(3, "Region: %1% (%2% fps)", region, fps);
       }
 
-      void SetTextSection(uint32_t address, const Binary::Data& content)
+      void SetTextSection(uint32_t address, Binary::View content)
       {
         Write(3, "Text section: %1% (0x%1$08x) bytes at 0x%2$08x", content.Size(), address);
         DumpHex(4, content.Start(), content.Size());
@@ -224,12 +224,12 @@ namespace
     class USFStateDumper : public Formats::Chiptune::Ultra64SoundFormat::Builder
     {
     public:
-      void SetRom(uint32_t offset, const Binary::Data& content) override
+      void SetRom(uint32_t offset, Binary::View content) override
       {
         Rom.Account(offset, content);
       }
       
-      void SetSaveState(uint32_t offset, const Binary::Data& content) override
+      void SetSaveState(uint32_t offset, Binary::View content) override
       {
         SaveState.Account(offset, content);
       }
@@ -246,7 +246,7 @@ namespace
         std::size_t ChunksSize = 0;
         uint_t End = 0;
         
-        void Account(uint32_t offset, const Binary::Data& content)
+        void Account(uint32_t offset, Binary::View content)
         {
           ++ChunksCount;
           const auto size = content.Size();
@@ -292,7 +292,7 @@ namespace
         Write(3, "EntryPoint: 0x%1$08x", addr);
       }
       
-      void SetRom(uint32_t addr, const Binary::Data& content) override
+      void SetRom(uint32_t addr, Binary::View content) override
       {
         Write(3, "ROM: %1% (0x%1$08x) bytes at 0x%2$08x", content.Size(), addr);
         DumpHex(4, content.Start(), content.Size());
@@ -334,7 +334,7 @@ namespace
     class ChunkDumper : public Formats::Chiptune::NintendoDSSoundFormat::Builder
     {
     public:
-      void SetChunk(uint32_t offset, const Binary::Data& content) override
+      void SetChunk(uint32_t offset, Binary::View content) override
       {
         Write(3, "%1% (0x%1$08x) bytes at 0x%2$08x", content.Size(), offset);
         DumpHex(4, content.Start(), content.Size());

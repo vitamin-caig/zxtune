@@ -43,7 +43,7 @@ namespace Chiptune
         Id3::Parse(Stream, target.GetMetaBuilder());
         if (ParseSignature() && ParseMetadata(target) && ParseFrames(target))
         {
-          if (const auto subData = Stream.GetReadData())
+          if (const auto subData = Stream.GetReadContainer())
           {
             return CreateCalculatingCrcContainer(subData, 0, subData->Size());
           }
@@ -69,13 +69,13 @@ namespace Chiptune
         {
           const bool isLast = hdr[0] & 128;
           const auto type = hdr[0] & 127;
-          const auto payloadSize = fromBE24(hdr + 1);
-          const auto blockSize = HEADER_SIZE + payloadSize;
-          if (type == 127 || Stream.GetRestSize() < blockSize)
+          const auto payloadSize = Byteorder<3>::ReadBE(hdr + 1);
+          if (type == 127 || Stream.GetRestSize() < HEADER_SIZE + payloadSize)
           {
             break;
           }
-          Binary::DataInputStream payload(hdr + HEADER_SIZE, payloadSize);
+          Stream.Skip(HEADER_SIZE);
+          Binary::DataInputStream payload(Stream.ReadData(payloadSize));
           if (type == 0)
           {
             ParseStreamInfo(payload, target);
@@ -84,7 +84,6 @@ namespace Chiptune
           {
             Vorbis::ParseComment(payload, target.GetMetaBuilder());
           }
-          Stream.Skip(blockSize);
           if (isLast)
           {
             return true;
@@ -98,22 +97,23 @@ namespace Chiptune
         const auto minBlockSize = input.ReadBE<uint16_t>();
         const auto maxBlockSize = input.ReadBE<uint16_t>();
         target.SetBlockSize(minBlockSize, maxBlockSize);
-        const auto minFrameSize = fromBE24(input.ReadRawData(3));
-        const auto maxFrameSize = fromBE24(input.ReadRawData(3));
+        const auto minFrameSize = fromBE24(input.ReadData(3));
+        const auto maxFrameSize = fromBE24(input.ReadData(3));
         target.SetFrameSize(minFrameSize, maxFrameSize);
-        const auto params = input.ReadRawData(8);
+        //TODO: operate with uint64_t
+        const auto params = input.ReadData(8).As<uint8_t>();
         const auto sampleRate = (uint_t(params[0]) << 12) | (uint_t(params[1]) << 4) | (params[2] >> 4);
         Require(sampleRate != 0);
         const auto channels = 1 + ((params[2] >> 1) & 7);
         const auto bitsPerSample = 1 + (((params[2] & 1) << 4) | (params[3] >> 4));
         target.SetStreamParameters(sampleRate, channels, bitsPerSample);
-        const auto totalSamples = (uint64_t(params[3] & 15) << 32) | (uint64_t(params[4]) << 24) | fromBE24(params + 5);
+        const auto totalSamples = (uint64_t(params[3] & 15) << 32) | (uint64_t(params[4]) << 24) | Byteorder<3>::ReadBE(params + 5);
         target.SetTotalSamples(totalSamples);
       }
 
-      static inline uint_t fromBE24(const uint8_t* data)
+      static inline uint_t fromBE24(Binary::View data)
       {
-        return (uint_t(data[0]) << 16) | (uint_t(data[1] << 8)) | data[2];
+        return Byteorder<3>::ReadBE(data.As<uint8_t>());
       }
 
       bool ParseFrames(Builder& target)

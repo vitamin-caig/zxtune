@@ -11,6 +11,7 @@
 #pragma once
 
 //library includes
+#include <binary/view.h>
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -26,11 +27,11 @@ namespace Formats
       public:
         virtual ~Builder() = default;
         
-        virtual void SetRom(uint32_t offset, const Binary::Data& content) = 0;
-        virtual void SetSaveState(uint32_t offset, const Binary::Data& content) = 0;
+        virtual void SetRom(uint32_t offset, Binary::View content) = 0;
+        virtual void SetSaveState(uint32_t offset, Binary::View content) = 0;
       };
 
-      void ParseSection(const Binary::Container& data, Builder& target);
+      void ParseSection(Binary::View data, Builder& target);
     }
 
     Decoder::Ptr CreateUSFDecoder();

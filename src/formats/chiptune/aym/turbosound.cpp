@@ -16,7 +16,6 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <math/numeric.h>
 //text includes
 #include <formats/text/chiptune.h>
@@ -66,9 +65,9 @@ namespace Chiptune
     class ModuleTraits
     {
     public:
-      ModuleTraits(const Binary::Data& data, std::size_t footerOffset)
+      ModuleTraits(Binary::View data, std::size_t footerOffset)
         : FooterOffset(footerOffset)
-        , Foot(footerOffset != data.Size() ? safe_ptr_cast<const Footer*>(static_cast<const uint8_t*>(data.Start()) + footerOffset) : nullptr)
+        , Foot(data.SubView(footerOffset).As<Footer>())
         , FirstSize(Foot ? fromLE(Foot->Size1) : 0)
         , SecondSize(Foot ? fromLE(Foot->Size2) : 0)
       {
@@ -127,19 +126,19 @@ namespace Chiptune
       {
       }
 
-      bool Match(const Binary::Data& data) const override
+      bool Match(Binary::View data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.Matched();
       }
 
-      std::size_t NextMatchOffset(const Binary::Data& data) const override
+      std::size_t NextMatchOffset(Binary::View data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.NextOffset();
       }
 
-      ModuleTraits GetTraits(const Binary::Data& data) const
+      ModuleTraits GetTraits(Binary::View data) const
       {
         return ModuleTraits(data, Delegate->NextMatchOffset(data));
       }
@@ -182,16 +181,16 @@ namespace Chiptune
 
         if (!traits.Matched())
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
 
         target.SetFirstSubmoduleLocation(0, traits.GetFirstModuleSize());
         target.SetSecondSubmoduleLocation(traits.GetFirstModuleSize(), traits.GetSecondModuleSize());
 
         const std::size_t usedSize = traits.GetTotalSize();
-        const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, usedSize);
+        auto subData = rawData.GetSubcontainer(0, usedSize);
         //use whole container as a fixed data
-        return CreateCalculatingCrcContainer(subData, 0, usedSize);
+        return CreateCalculatingCrcContainer(std::move(subData), 0, usedSize);
       }
     private:
       const FooterFormat::Ptr Format;

@@ -103,7 +103,7 @@ namespace Chiptune
       const Binary::Format::Ptr Format;
     };
 
-    const RawHeader* GetHeader(const Binary::Data& rawData)
+    const RawHeader* GetHeader(Binary::View rawData)
     {
       if (rawData.Size() < sizeof(RawHeader))
       {
@@ -121,7 +121,7 @@ namespace Chiptune
       return hdr;
     }
 
-    uint_t GetModulesCount(const Binary::Container& rawData)
+    uint_t GetModulesCount(Binary::View rawData)
     {
       if (const RawHeader* hdr = GetHeader(rawData))
       {
@@ -133,7 +133,7 @@ namespace Chiptune
       }
     }
 
-    Binary::Container::Ptr FixStartSong(const Binary::Data& data, uint_t idx)
+    Binary::Container::Ptr FixStartSong(Binary::View data, uint_t idx)
     {
       Require(GetHeader(data));
       std::unique_ptr<Dump> content(new Dump(data.Size()));

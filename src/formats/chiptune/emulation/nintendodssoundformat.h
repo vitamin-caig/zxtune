@@ -11,6 +11,7 @@
 #pragma once
 
 //library includes
+#include <binary/view.h>
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -26,11 +27,11 @@ namespace Formats
       public:
         virtual ~Builder() = default;
         
-        virtual void SetChunk(uint32_t offset, const Binary::Data& content) = 0;
+        virtual void SetChunk(uint32_t offset, Binary::View content) = 0;
       };
 
-      void ParseRom(const Binary::Container& data, Builder& target);
-      void ParseState(const Binary::Container& data, Builder& target);
+      void ParseRom(Binary::View data, Builder& target);
+      void ParseState(Binary::View data, Builder& target);
     }
 
     Decoder::Ptr Create2SFDecoder();

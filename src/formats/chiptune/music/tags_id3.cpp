@@ -40,8 +40,8 @@ namespace Chiptune
     class V2Format
     {
     public:
-      V2Format(const void* data, std::size_t size)
-        : Stream(data, size)
+      explicit V2Format(Binary::View data)
+        : Stream(data)
       {
       }
       
@@ -50,23 +50,23 @@ namespace Chiptune
         static const size_t HEADER_SIZE = 10;
         while (Stream.GetRestSize() >= HEADER_SIZE)
         {
-          const auto header = Stream.ReadRawData(HEADER_SIZE);
-          const auto id = ReadBE<uint32_t>(header);
-          const std::size_t chunkize = ReadBE<uint32_t>(header + 4);
-          const bool compressed = header[9] & 0x80;
-          const bool encrypted = header[9] & 0x40;
-          const auto body = Stream.ReadRawData(chunkize);
+          const auto id = Stream.ReadBE<uint32_t>();
+          const std::size_t chunkize = Stream.ReadBE<uint32_t>();
+          const auto flags = Stream.ReadBE<uint16_t>();
+          const bool compressed = flags & 0x80;
+          const bool encrypted = flags & 0x40;
+          const auto body = Stream.ReadData(chunkize);
           if (!compressed && !encrypted && chunkize > 0)
           {
-            ParseTag(id, body, chunkize, target);
+            ParseTag(id, body, target);
           }
         }
       }
     private:
-      static void ParseTag(uint32_t id, const void* data, std::size_t size, MetaBuilder& target)
+      static void ParseTag(uint32_t id, Binary::View data, MetaBuilder& target)
       {
         // http://id3.org/id3v2.3.0#Text_information_frames
-        StringView encodedString(static_cast<const char*>(data) + 1, size - 1);
+        StringView encodedString(data.As<char>() + 1, data.Size() - 1);
         switch (id)
         {
         case 0x54495432://'TIT2'
@@ -167,7 +167,7 @@ namespace Chiptune
     {
       try
       {
-        const Tag* tag = safe_ptr_cast<const Tag*>(stream.ReadRawData(sizeof(Tag)));
+        const Tag* tag = safe_ptr_cast<const Tag*>(stream.ReadData(sizeof(Tag)).Start());
         const EnhancedTag* enhancedTag = nullptr;
         if (tag->Title[0] == '+')
         {
@@ -214,13 +214,13 @@ namespace Chiptune
     {
       const auto& header = stream.ReadField<Header>();
       const uint_t tagSize = ((header.Size[0] & 0x7f) << 21) | ((header.Size[1] & 0x7f) << 14) | ((header.Size[2] & 0x7f) << 7) | (header.Size[3] & 0x7f);
-      const auto content = stream.ReadRawData(tagSize);
+      const auto content = stream.ReadData(tagSize);
       const bool hasExtendedHeader = header.Flags & 0x40;
       try
       {
         if (header.Major >= 3 && !hasExtendedHeader)
         {
-          V2Format(content, tagSize).Parse(target);
+          V2Format(content).Parse(target);
         }
       }
       catch (const std::exception&)

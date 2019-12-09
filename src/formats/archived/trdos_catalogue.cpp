@@ -13,6 +13,7 @@
 //common includes
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <strings/format.h>
 //std includes
@@ -142,34 +143,16 @@ namespace TRDos
     unsigned Idx;
   };
 
-  class CommonCatalogue : public Formats::Archived::Container
+  class CommonCatalogue : public Binary::BaseContainer<Formats::Archived::Container>
   {
   public:
     template<class T>
     CommonCatalogue(Binary::Container::Ptr data, T from, T to)
-      : Delegate(std::move(data))
+      : BaseContainer(std::move(data))
       , Files(from, to)
     {
-      assert(Delegate);
     }
 
-    //Binary::Container
-    const void* Start() const override
-    {
-      return Delegate->Start();
-    }
-
-    std::size_t Size() const override
-    {
-      return Delegate->Size();
-    }
-
-    Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-    {
-      return Delegate->GetSubcontainer(offset, size);
-    }
-
-    //Archive::Container
     void ExploreFiles(const Formats::Archived::Container::Walker& walker) const override
     {
       for (const auto& file : Files)
@@ -193,7 +176,6 @@ namespace TRDos
       return static_cast<uint_t>(Files.size());
     }
   private:
-    const Binary::Container::Ptr Delegate;
     const FilesList Files;
   };
 

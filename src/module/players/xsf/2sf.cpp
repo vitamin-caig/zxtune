@@ -201,7 +201,7 @@ namespace TwoSF
       ChunkBuilder builder;
       for (const auto& block : blocks)
       {
-        const auto unpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(block);
+        const auto unpacked = Binary::Compression::Zlib::Decompress(*block);
         Formats::Chiptune::NintendoDSSoundFormat::ParseRom(*unpacked, builder);
       }
       //possibly, emulation writes to ROM are, so copy it
@@ -226,9 +226,9 @@ namespace TwoSF
     class ChunkBuilder : public Formats::Chiptune::NintendoDSSoundFormat::Builder
     {
     public:
-      void SetChunk(uint32_t offset, const Binary::Data& content) override
+      void SetChunk(uint32_t offset, Binary::View content) override
       {
-        Result.Update(offset, content.Start(), content.Size());
+        Result.Update(offset, content);
       }
       
       MemoryRegion CaptureResult()

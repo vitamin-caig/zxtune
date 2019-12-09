@@ -70,8 +70,8 @@ namespace Chiptune
             const auto avail = stream.GetRestSize();
             Require(avail >= dataSize);
             const auto key = stream.ReadCString(avail - dataSize);
-            const auto data = stream.ReadRawData(dataSize);
-            ParseKey(key, StringView(safe_ptr_cast<const char*>(data), dataSize), target);
+            const auto data = stream.ReadData(dataSize);
+            ParseKey(key, StringView(data.As<char>(), data.Size()), target);
           }
         }
         catch (const std::exception&)
@@ -79,7 +79,7 @@ namespace Chiptune
         }
       }
       
-      bool Parse(Binary::InputStream& stream, MetaBuilder& target)
+      bool Parse(Binary::DataInputStream& stream, MetaBuilder& target)
       {
         static const std::size_t HEADER_SIZE = 32;
         static const uint8_t SIGNATURE[] = {'A', 'P', 'E', 'T', 'A', 'G', 'E', 'X'};
@@ -92,12 +92,13 @@ namespace Chiptune
         const auto restSize = ReadLE<uint32_t>(hdr + 12);
         const auto itemsCount = ReadLE<uint32_t>(hdr + 16);
         //const auto globalFlags = ReadLE<uint32_t>(hdr + 20);
-        if (const auto subData = stream.PeekRawData(HEADER_SIZE + restSize))
+        if (stream.PeekRawData(HEADER_SIZE + restSize))
         {
-          stream.Skip(HEADER_SIZE + restSize);
+          stream.Skip(HEADER_SIZE);
+          const auto subData = stream.ReadData(restSize);
           if (version == 2000)
           {
-            Binary::DataInputStream subStream(subData + HEADER_SIZE, restSize);
+            Binary::DataInputStream subStream(subData);
             ParseV2(itemsCount, subStream, target);
           }
           return true;
@@ -344,7 +345,7 @@ namespace Chiptune
             }
           }
         }
-        if (const auto subData = Stream.GetReadData())
+        if (const auto subData = Stream.GetReadContainer())
         {
           return CreateCalculatingCrcContainer(subData, 0, subData->Size());
         }

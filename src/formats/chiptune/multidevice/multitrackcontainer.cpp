@@ -82,8 +82,8 @@ namespace IFF
       {
         break;
       }
-      const Binary::Container::Ptr data = input.GetSubcontainer(pos + sizeof(header), dataSize);
-      target.OnChunk(header.Id, data);
+      auto data = input.GetSubcontainer(pos + sizeof(header), dataSize);
+      target.OnChunk(header.Id, std::move(data));
       stream.Skip(Math::Align(dataSize, ALIGNMENT));
     }
     return input.GetSubcontainer(0, pos);
@@ -100,9 +100,9 @@ namespace IFF
   };
   
   //Store in plain string, possibly UTF-8
-  String GetString(const Binary::Data& data)
+  String GetString(Binary::View data)
   {
-    const StringView str(static_cast<const char*>(data.Start()), data.Size());
+    const StringView str(data.As<char>(), data.Size());
     return Strings::ToAutoUtf8(str);
   }
   
@@ -236,7 +236,7 @@ namespace IFF
     
     void OnChunk(const Identifier::Type& id, Binary::Container::Ptr content) override
     {
-      AddSubSource(MakePtr<DataChunkSource>(id, content));
+      AddSubSource(MakePtr<DataChunkSource>(id, std::move(content)));
     }
   };
 }
@@ -259,14 +259,10 @@ namespace Chiptune
       void SetData(Binary::Container::Ptr /*data*/) override {}
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View rawData)
     {
-      if (rawData.Size() <= sizeof(IFF::ChunkHeader))
-      {
-        return false;
-      }
-      const IFF::ChunkHeader& header = *static_cast<const IFF::ChunkHeader*>(rawData.Start());
-      return header.Id == IFF::Identifier::MTC1;
+      const auto* header = rawData.As<IFF::ChunkHeader>();
+      return header && header->Id == IFF::Identifier::MTC1;
     }
 
     const std::size_t MIN_SIZE = sizeof(IFF::ChunkHeader) * 3 + 256;
@@ -366,7 +362,7 @@ namespace Chiptune
       void SetData(Binary::Container::Ptr data) override
       {
         Require(Context == Track);
-        Track->OnChunk(IFF::Identifier::DATA, data);
+        Track->OnChunk(IFF::Identifier::DATA, std::move(data));
       }
         
       Binary::Data::Ptr GetResult() override
@@ -450,11 +446,11 @@ namespace Chiptune
         if (id == IFF::Identifier::DATA)
         {
           Require(!!content);
-          Delegate.SetData(content);
+          Delegate.SetData(std::move(content));
         }
         else
         {
-          Metadata.OnChunk(id, content);
+          Metadata.OnChunk(id, std::move(content));
         }
       }
     private:
@@ -481,7 +477,7 @@ namespace Chiptune
         }
         else
         {
-          Metadata.OnChunk(id, content);
+          Metadata.OnChunk(id, std::move(content));
         }
       }
     private:
@@ -534,9 +530,10 @@ namespace Chiptune
       try
       {
         FileParser file(target);
-        if (const Binary::Container::Ptr result = IFF::Parse(data, file))
+        if (auto result = IFF::Parse(data, file))
         {
-          return CreateCalculatingCrcContainer(result, 0, result->Size());
+          const auto totalSize = result->Size();
+          return CreateCalculatingCrcContainer(std::move(result), 0, totalSize);
         }
       }
       catch (const std::exception& /*e*/)

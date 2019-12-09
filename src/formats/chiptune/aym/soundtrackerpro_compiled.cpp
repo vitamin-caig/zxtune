@@ -20,7 +20,6 @@
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
@@ -322,9 +321,9 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(Binary::TypedContainer data)
-        : Delegate(std::move(data))
-        , Ranges(Delegate.GetSize())
+      explicit Format(Binary::View data)
+        : Data(data)
+        , Ranges(Data.Size())
         , Source(GetServiceObject<RawHeader>(0, 0))
         , Id(GetObject<RawId>(sizeof(Source)))
         , UnfixDelta(GetUnfixDelta(Source, Id, GetPattern(0)))
@@ -397,7 +396,7 @@ namespace Chiptune
         }
         //mark possible samples offsets as used
         const std::size_t samplesOffsets = fromLE(Source.SamplesOffset);
-        Ranges.Add(samplesOffsets, std::min(sizeof(RawSamples), Delegate.GetSize() - samplesOffsets));
+        Ranges.Add(samplesOffsets, std::min(sizeof(RawSamples), Data.Size() - samplesOffsets));
       }
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
@@ -427,7 +426,7 @@ namespace Chiptune
       RangeIterator<const RawPositions::PosEntry*> GetPositions() const
       {
         const std::size_t offset = fromLE(Source.PositionsOffset);
-        const RawPositions* const positions = Delegate.GetField<RawPositions>(offset);
+        const auto* positions = PeekObject<RawPositions>(offset);
         Require(positions != nullptr);
         const uint_t length = positions->Length;
         Require(length != 0);
@@ -445,9 +444,9 @@ namespace Chiptune
       const RawSample& GetSample(uint_t index) const
       {
         const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.SamplesOffset))) - UnfixDelta;
-        const RawObject* const obj = Delegate.GetField<RawObject>(offset);
+        const auto* obj = PeekObject<RawObject>(offset);
         Require(obj != nullptr);
-        const RawSample* const res = safe_ptr_cast<const RawSample*>(obj);
+        const auto* res = safe_ptr_cast<const RawSample*>(obj);
         Ranges.Add(offset, res->GetUsedSize());
         return *res;
       }
@@ -455,17 +454,23 @@ namespace Chiptune
       const RawOrnament& GetOrnament(uint_t index) const
       {
         const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.OrnamentsOffset))) - UnfixDelta;
-        const RawObject* const obj = Delegate.GetField<RawObject>(offset);
+        const auto* obj = PeekObject<RawObject>(offset);
         Require(obj != nullptr);
-        const RawOrnament* const res = safe_ptr_cast<const RawOrnament*>(obj);
+        const auto* res = safe_ptr_cast<const RawOrnament*>(obj);
         Ranges.Add(offset, res->GetUsedSize());
         return *res;
       }
 
       template<class T>
+      const T* PeekObject(std::size_t offset) const
+      {
+        return Data.SubView(offset).As<T>();
+      }
+
+      template<class T>
       const T& GetObject(uint_t offset) const
       {
-        const T* const src = Delegate.GetField<T>(offset);
+        const auto* src = PeekObject<T>(offset);
         Require(src != nullptr);
         Ranges.Add(offset, sizeof(T));
         return *src;
@@ -475,7 +480,7 @@ namespace Chiptune
       const T& GetServiceObject(std::size_t index, std::size_t baseOffset) const
       {
         const std::size_t offset = baseOffset + index * sizeof(T);
-        const T* const src = Delegate.GetField<T>(offset);
+        const auto* src = PeekObject<T>(offset);
         Require(src != nullptr);
         Ranges.AddService(offset, sizeof(T));
         return *src;
@@ -483,7 +488,7 @@ namespace Chiptune
 
       uint8_t PeekByte(std::size_t offset) const
       {
-        const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
+        const auto* data = PeekObject<uint8_t>(offset);
         Require(data != nullptr);
         return *data;
       }
@@ -579,13 +584,13 @@ namespace Chiptune
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
           const std::size_t start = rangesStarts[chanNum];
-          if (start >= Delegate.GetSize())
+          if (start >= Data.Size())
           {
             Dbg("Invalid offset (%1%)", start);
           }
           else
           {
-            const std::size_t stop = std::min(Delegate.GetSize(), state.Channels[chanNum].Offset + 1);
+            const std::size_t stop = std::min(Data.Size(), state.Channels[chanNum].Offset + 1);
             Ranges.AddFixed(start, stop - start);
           }
         }
@@ -601,7 +606,7 @@ namespace Chiptune
           {
             continue;
           }
-          if (state.Offset >= Delegate.GetSize())
+          if (state.Offset >= Data.Size())
           {
             return false;
           }
@@ -631,7 +636,7 @@ namespace Chiptune
 
       void ParseChannel(ParserState::ChannelState& state, Builder& builder) const
       {
-        while (state.Offset < Delegate.GetSize())
+        while (state.Offset < Data.Size())
         {
           const uint_t cmd = PeekByte(state.Offset++);
           if (cmd == 0)
@@ -723,7 +728,7 @@ namespace Chiptune
         return dst;
       }
     private:
-      const Binary::TypedContainer Delegate;
+      const Binary::View Data;
       RangesMap Ranges;
       const RawHeader& Source;
       const RawId& Id;
@@ -819,10 +824,9 @@ namespace Chiptune
       }
     };
 
-    Binary::TypedContainer CreateContainer(const Binary::Container& rawData)
+    Binary::View MakeContainer(Binary::View rawData)
     {
-      const std::size_t size = std::min(rawData.Size(), MAX_SIZE);
-      return Binary::TypedContainer(rawData, size);
+      return rawData.SubView(0, MAX_SIZE);
     }
     
     bool CheckHeader(const RawHeader& hdr)
@@ -835,9 +839,9 @@ namespace Chiptune
       ;
     }
 
-    bool Check(const Binary::TypedContainer& data)
+    bool Check(Binary::View data)
     {
-      const RawHeader* const hdr = data.GetField<RawHeader>(0);
+      const auto* hdr = data.As<RawHeader>();
       if (nullptr == hdr)
       {
         return false;
@@ -846,7 +850,7 @@ namespace Chiptune
       {
         return false;
       }
-      const Areas areas(*hdr, std::min(data.GetSize(), GetMaxSize(*hdr)));
+      const Areas areas(*hdr, std::min(data.Size(), GetMaxSize(*hdr)));
       if (!areas.CheckHeader())
       {
         return false;
@@ -859,7 +863,7 @@ namespace Chiptune
       {
         return false;
       }
-      if (const RawPositions* positions = data.GetField<RawPositions>(areas.GetAreaAddress(POSITIONS)))
+      if (const auto* positions = data.SubView(areas.GetAreaAddress(POSITIONS)).As<RawPositions>())
       {
         if (!areas.CheckPositions(positions->Length))
         {
@@ -871,12 +875,6 @@ namespace Chiptune
         return false;
       }
       return true;
-    }
-
-    bool Check(const Binary::Container& rawData)
-    {
-      const Binary::TypedContainer data(CreateContainer(rawData));
-      return Check(data);
     }
 
     const std::string FORMAT(
@@ -941,15 +939,15 @@ namespace Chiptune
     Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& rawData, Builder& target)
     {
       using namespace SoundTrackerProCompiled;
-      if (!Check(rawData))
+      const auto totalData = MakeContainer(rawData);
+      if (!Check(totalData))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
       try
       {
-        const Binary::TypedContainer totalData(rawData);
-        const std::size_t maxSize = GetMaxSize(*totalData.GetField<RawHeader>(0));
-        const Binary::TypedContainer data(rawData, std::min(rawData.Size(), maxSize));
+        const std::size_t maxSize = GetMaxSize(*totalData.As<RawHeader>());
+        const auto data = totalData.SubView(0, maxSize);
         const Format format(data);
 
         format.ParseCommonProperties(target);
@@ -964,29 +962,29 @@ namespace Chiptune
         format.ParseOrnaments(usedOrnaments, target);
 
         Require(format.GetSize() >= MIN_SIZE);
-        const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+        auto subData = rawData.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
-    Binary::Container::Ptr InsertMetaInformation(const Binary::Container& rawData, const Dump& info)
+    Binary::Container::Ptr InsertMetaInformation(const Binary::Container& rawData, Binary::View info)
     {
       using namespace SoundTrackerProCompiled;
       StatisticCollectingBuilder statistic(GetStubBuilder());
-      if (Binary::Container::Ptr parsed = ParseCompiled(rawData, statistic))
+      if (const auto parsed = ParseCompiled(rawData, statistic))
       {
-        const Binary::TypedContainer typedHelper(CreateContainer(*parsed));
-        const RawHeader& header = *typedHelper.GetField<RawHeader>(0);
+        const auto parsedData = MakeContainer(*parsed);
+        const auto& header = *parsedData.As<RawHeader>();
         const std::size_t headerSize = sizeof(header);
-        const std::size_t infoSize = info.size();
-        const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
-        const RawId* const id = typedHelper.GetField<RawId>(headerSize);
+        const std::size_t infoSize = info.Size();
+        const auto patch = PatchedDataBuilder::Create(*parsed);
+        const auto* id = parsedData.SubView(headerSize).As<RawId>();
         if (id && id->Check())
         {
           patch->OverwriteData(headerSize, info);
@@ -1027,7 +1025,7 @@ namespace Chiptune
         }
         return patch->GetResult();
       }
-      return Binary::Container::Ptr();
+      return {};
     }
   }// namespace SoundTrackerPro
 

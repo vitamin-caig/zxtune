@@ -82,9 +82,10 @@ namespace Binary
 {
   static_assert(sizeof(Dump::value_type) == 1, "Invalid size for Dump::value_type");
 
-  Container::Ptr CreateContainer(const void* data, std::size_t size)
+  Container::Ptr CreateContainer(View data)
   {
-    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : nullptr)
+    const auto size = data.Size();
+    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data.Start()) : nullptr)
     {
       std::shared_ptr<const Dump> buffer(new Dump(byteData, byteData + size));
       return CreateContainer(std::move(buffer), 0, size);

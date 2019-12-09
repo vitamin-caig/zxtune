@@ -18,10 +18,7 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
-#include <binary/container_factories.h>
-#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
@@ -110,8 +107,6 @@ namespace Chiptune
 
     static_assert(sizeof(Header) == 0x7200, "Invalid layout");
 
-    const std::size_t MIN_SIZE = sizeof(Header);
-
     const uint_t NOTE_EMPTY = 0;
     const uint_t NOTE_BASE = 1;
     const uint_t NOTE_PAUSE = 0x80;
@@ -126,12 +121,22 @@ namespace Chiptune
         , Samples4Bit()
       {
       }
-      
-      void Add(uint_t idx, std::size_t loop, Binary::Data::Ptr data)
+
+      void Add(uint_t idx, std::size_t loop, Binary::View data1, Binary::View data2 = Binary::View(nullptr, 0))
+      {
+        const std::size_t size1 = data1.Size();
+        const std::size_t size2 = data2.Size();
+        Dump res(size1 + size2);
+        std::memcpy(res.data(), data1.Start(), size1);
+        std::memcpy(res.data() + size1, data2.Start(), size2);
+        Add(idx, loop, res);
+      }
+
+      void Add(uint_t idx, std::size_t loop, Dump data)
       {
         Description& desc = Samples[idx];
-        desc = Description(loop, data);
-        Dbg(" size #%1$05x, loop #%2$04x%3%", data->Size(), loop, desc.Is4Bit ? " 4bit" : "");
+        desc = Description(loop, std::move(data));
+        Dbg(" size #%1$05x, loop #%2$04x%3%", desc.Content.size(), loop, desc.Is4Bit ? " 4bit" : "");
         ++SamplesTotal;
         Samples4Bit += desc.Is4Bit;
       }
@@ -148,9 +153,9 @@ namespace Chiptune
         for (uint_t idx = 0; idx != Samples.size(); ++idx)
         {
           const Description& desc = Samples[idx];
-          if (desc.Content)
+          if (!desc.Content.empty())
           {
-            builder.SetSample(idx, desc.Loop, *desc.Content, is4Bit && desc.Is4Bit);
+            builder.SetSample(idx, desc.Loop, desc.Content, is4Bit && desc.Is4Bit);
           }
         }
       }
@@ -165,11 +170,11 @@ namespace Chiptune
       {
         return (val & 0xf0) == 0xa0;
       }
-      
+
       struct Description
       {
         std::size_t Loop;
-        Binary::Data::Ptr Content;
+        Dump Content;
         bool Is4Bit;
 
         Description()
@@ -179,10 +184,10 @@ namespace Chiptune
         {
         }
 
-        Description(std::size_t loop, Binary::Data::Ptr content)
+        Description(std::size_t loop, Dump content)
           : Loop(loop)
-          , Content(content)
-          , Is4Bit(CheckIfSample4Bit(static_cast<const uint8_t*>(content->Start()), content->Size()))
+          , Content(std::move(content))
+          , Is4Bit(CheckIfSample4Bit(Content.data(), Content.size()))
         {
         }
       };
@@ -191,23 +196,12 @@ namespace Chiptune
       uint_t Samples4Bit;
     };
 
-    //TODO: extract
-    Binary::Data::Ptr CreateCompositeData(const Binary::Data& lh, const Binary::Data& rh)
-    {
-      const std::size_t size1 = lh.Size();
-      const std::size_t size2 = rh.Size();
-      std::unique_ptr<Dump> res(new Dump(size1 + size2));
-      std::memcpy(res->data(), lh.Start(), size1);
-      std::memcpy(res->data() + size1, rh.Start(), size2);
-      return Binary::CreateContainer(std::move(res));
-    }
-
     class Format
     {
     public:
-      explicit Format(const Binary::Container& rawData)
+      explicit Format(Binary::View rawData)
         : RawData(rawData)
-        , Source(*static_cast<const Header*>(RawData.Start()))
+        , Source(*RawData.As<Header>())
         , IsCompiled(Source.Zeroes != ZeroesArray())
         , Ranges(RangeChecker::Create(GetSize()))
       {
@@ -259,16 +253,11 @@ namespace Chiptune
           const SampleInfo& info = Source.Samples[samIdx];
           Dbg("Sample %1%: start=#%2$04x loop=#%3$04x page=#%4$02x size=#%5$04x", 
             samIdx, fromLE(info.Start), fromLE(info.Loop), unsigned(info.Page), fromLE(info.Size));
-          std::size_t loop = 0;
-          if (const Binary::Data::Ptr sam = ParseSample(info, loop))
-          {
-            samples.Add(samIdx, loop, sam);
-          }
-          else
+          if (!ParseSample(samIdx, info, samples))
           {
             Dbg(" Stub sample");
-            const uint8_t dummy = 128;
-            samples.Add(samIdx, 0, Binary::CreateContainer(&dummy, 1));
+            static const uint8_t dummy[1] = {128};
+            samples.Add(samIdx, 0, dummy);
           }
         }
       }
@@ -279,20 +268,20 @@ namespace Chiptune
       }
     private:
       //truncate samples here due to possible samples overlap in descriptions
-      Binary::Data::Ptr GetSampleData(std::size_t offset, std::size_t size) const
+      Binary::View GetSampleData(std::size_t offset, std::size_t size) const
       {
-        const Binary::Data::Ptr total = RawData.GetSubcontainer(offset, size);
-        const uint8_t* const start = static_cast<const uint8_t*>(total->Start());
-        const uint8_t* const end = start + total->Size();
+        const auto total = RawData.SubView(offset, size);
+        const uint8_t* const start = total.As<uint8_t>();
+        const uint8_t* const end = start + total.Size();
         const uint8_t* const sampleEnd = std::find(start, end, 0xff);
         if (const std::size_t newSize = sampleEnd - start)
         {
           Require(Ranges->AddRange(offset, newSize));
-          return RawData.GetSubcontainer(offset, newSize);
+          return RawData.SubView(offset, newSize);
         }
         else
         {
-          return Binary::Data::Ptr();
+          return Binary::View(nullptr, 0);
         }
       }
 
@@ -359,7 +348,7 @@ namespace Chiptune
             && srcLine.Channels[2].Note == NOTE_EMPTY;
       }
 
-      Binary::Data::Ptr ParseSample(const SampleInfo& info, std::size_t& loop) const
+      bool ParseSample(uint_t samIdx, const SampleInfo& info, SamplesSet& out) const
       {
         const std::size_t ZX_PAGE_SIZE = 0x4000;
         const std::size_t LO_MEM_ADDR = 0x8000;
@@ -370,7 +359,7 @@ namespace Chiptune
         if (info.Size == 0)
         {
           Dbg(" Empty sample");
-          return Binary::Data::Ptr();
+          return false;
         }
         //assume normal 128k machine: normal screen, basic48, nolock
         Require((info.Page & 0x38) == 0x10);
@@ -392,7 +381,7 @@ namespace Chiptune
         Require(sampleSize <= MAX_SIZE);
         Require(Math::InRange(sampleLoop, sampleStart, sampleStart + sampleSize));
 
-        loop = sampleLoop - sampleStart;
+        const auto loop = sampleLoop - sampleStart;
         const std::size_t sampleOffsetInPage = sampleStart - BASE_ADDR;
         if (isLoMemSample)
         {
@@ -403,20 +392,22 @@ namespace Chiptune
             const std::size_t firstOffset = offsets[0] + sampleOffsetInPage;
             const std::size_t firstSize = ZX_PAGE_SIZE - sampleOffsetInPage;
             Require(Ranges->AddRange(firstOffset, firstSize));
-            const Binary::Data::Ptr part1 = RawData.GetSubcontainer(firstOffset, firstSize);
+            const auto part1 = RawData.SubView(firstOffset, firstSize);
             const std::size_t secondOffset = offsets[pageNumber];
             const std::size_t secondSize = sampleOffsetInPage + sampleSize - ZX_PAGE_SIZE;
             Dbg(" Two parts in low memory: #%1$05x..#%2$05x + #%3$05x..#%4$05x", 
               firstOffset, firstOffset + firstSize, secondOffset, secondOffset + secondSize);
-            if (const Binary::Data::Ptr part2 = GetSampleData(secondOffset, secondSize))
+            if (const auto part2 = GetSampleData(secondOffset, secondSize))
             {
-              Dbg(" Using two parts with sizes #%1$05x + #%2$05x", part1->Size(), part2->Size());
-              return CreateCompositeData(*part1, *part2);
+              Dbg(" Using two parts with sizes #%1$05x + #%2$05x", part1.Size(), part2.Size());
+              out.Add(samIdx, loop, part1, part2);
+              return true;
             }
             else
             {
               Dbg(" Using first part");
-              return part1;
+              out.Add(samIdx, loop, part1);
+              return true;
             }
           }
           else
@@ -424,7 +415,11 @@ namespace Chiptune
             const std::size_t dataOffset = offsets[0] + sampleOffsetInPage;
             Dbg(" One part in low memory: #%1$05x..#%2$05x", 
               dataOffset, dataOffset + sampleSize);
-            return GetSampleData(dataOffset, sampleSize);
+            if (const auto data = GetSampleData(dataOffset, sampleSize))
+            {
+              out.Add(samIdx, loop, data);
+              return true;
+            }
           }
         }
         else
@@ -432,17 +427,22 @@ namespace Chiptune
           const std::size_t dataOffset = offsets[pageNumber] + sampleOffsetInPage;
           Dbg(" Hi memory: #%1$05x..#%2$05x", 
             dataOffset, dataOffset + sampleSize);
-          return GetSampleData(dataOffset, sampleSize);
+            if (const auto data = GetSampleData(dataOffset, sampleSize))
+            {
+              out.Add(samIdx, loop, data);
+              return true;
+            }
         }
+        return false;
       }
     private:
-      const Binary::Container& RawData;
+      const Binary::View RawData;
       const Header& Source;
       const bool IsCompiled;
       const RangeChecker::Ptr Ranges;
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View rawData)
     {
       //at least
       return rawData.Size() >= MODULE_SIZE;
@@ -471,7 +471,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
+        : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
       {
       }
 
@@ -487,7 +487,8 @@ namespace Chiptune
 
       bool Check(const Binary::Container& rawData) const override
       {
-        return FastCheck(rawData) && Format->Match(rawData);
+        const Binary::View data(rawData);
+        return FastCheck(data) && Format->Match(data);
       }
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
@@ -503,8 +504,9 @@ namespace Chiptune
       const Binary::Format::Ptr Format;
     };
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
+      const Binary::View data(rawData);
       if (!FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
@@ -524,7 +526,6 @@ namespace Chiptune
         SamplesSet samples;
         format.ParseSamples(usedSamples, samples);
 
-        Require(format.GetSize() >= MIN_SIZE);
         const uint_t cycleTicks = samples.Is4Bit() ? AY_TICKS_PER_CYCLE : SD_TICKS_PER_CYCLE;
         target.SetSamplesFrequency(Z80_FREQ * C_1_STEP / cycleTicks / 256);
 
@@ -532,9 +533,9 @@ namespace Chiptune
           (samples.Is4Bit() ? Text::DIGITALSTUDIO_VERSION_AY : Text::DIGITALSTUDIO_VERSION_DAC);
         target.GetMetaBuilder().SetProgram(program);
         samples.Apply(target);
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
+        auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const std::size_t patternsOffset = offsetof(Header, Patterns);
-        return CreateCalculatingCrcContainer(subData, patternsOffset, format.GetSize() - patternsOffset);
+        return CreateCalculatingCrcContainer(std::move(subData), patternsOffset, format.GetSize() - patternsOffset);
       }
       catch (const std::exception&)
       {

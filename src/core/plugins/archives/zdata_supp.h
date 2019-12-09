@@ -11,9 +11,10 @@
 #pragma once
 
 //library includes
+#include <binary/view.h>
 #include <core/data_location.h>
 
 namespace ZXTune
 {
-  DataLocation::Ptr BuildZdataContainer(const Binary::Data& content);
+  DataLocation::Ptr BuildZdataContainer(Binary::View content);
 }

@@ -310,7 +310,7 @@ namespace GME
   };
   
   //TODO: rework, extract GYM parsing code to Formats library
-  Dump DefaultDataCreator(const Binary::Data& data)
+  Dump DefaultDataCreator(Binary::View data)
   {
     return Dump(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size());
   }
@@ -328,12 +328,12 @@ namespace GME
   
   namespace GYM
   {
-    Dump CreateData(const Binary::Data& data)
+    Dump CreateData(Binary::View data)
     {
-      Binary::DataInputStream input(data.Start(), data.Size());
+      Binary::DataInputStream input(data);
       Binary::DataBuilder output(data.Size());
       const std::size_t packedSizeOffset = 424;
-      output.Add(input.ReadRawData(packedSizeOffset), packedSizeOffset);
+      output.Add(input.ReadData(packedSizeOffset));
       if (const auto packedSize = input.ReadLE<uint32_t>())
       {
         output.Add(uint32_t(0));
@@ -342,8 +342,7 @@ namespace GME
       else
       {
         output.Add(packedSize);
-        const auto rest = input.GetRestSize();
-        output.Add(input.ReadRawData(rest), rest);
+        output.Add(input.ReadRestData());
       }
       Dump result;
       output.CaptureResult(result);

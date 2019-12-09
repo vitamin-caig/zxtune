@@ -13,7 +13,6 @@
 #include "formats/chiptune/container.h"
 //common includes
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
@@ -1289,13 +1288,13 @@ namespace ProTracker3
         stat.SetOrnament(DEFAULT_ORNAMENT, Ornament());
         CheckIsSubset(stat.GetUsedOrnaments(), stat.GetAvailableOrnaments());
 
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, limit);
-        return CreateCalculatingCrcContainer(subData, 0, limit);
+        auto subData = data.GetSubcontainer(0, limit);
+        return CreateCalculatingCrcContainer(std::move(subData), 0, limit);
       }
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
@@ -1326,7 +1325,7 @@ namespace ProTracker3
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return ParseText(rawData, stub);
@@ -1557,7 +1556,7 @@ namespace ProTracker3
           pattern.Dump(str);
         }
         const auto& res = str.str();
-        return Binary::CreateContainer(res.data(), res.size());
+        return Binary::CreateContainer(Binary::View(res.data(), res.size()));
       }
     private:
       struct BuildContext

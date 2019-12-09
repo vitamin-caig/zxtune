@@ -19,7 +19,6 @@
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
@@ -158,7 +157,7 @@ namespace Chiptune
       }
 
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*content*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::View /*content*/) override {}
       void SetPositions(Positions /*positions*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
@@ -194,7 +193,7 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, std::size_t loop, const Binary::Data& data) override
+      void SetSample(uint_t index, std::size_t loop, Binary::View data) override
       {
         return Delegate.SetSample(index, loop, data);
       }
@@ -261,9 +260,9 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& rawData)
-        : RawData(rawData)
-        , Source(*static_cast<const Header*>(RawData.Start()))
+      explicit Format(Binary::View data)
+        : RawData(data)
+        , Source(*RawData.As<Header>())
         , Ranges(RangeChecker::Create(RawData.Size()))
         , FixedRanges(RangeChecker::Create(RawData.Size()))
       {
@@ -325,7 +324,7 @@ namespace Chiptune
               Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x (avail=#%5$04x)", 
                 samIdx, sampleStart, loop, size, availSize);
               AddRange(sampleStart, availSize);
-              target.SetSample(samIdx, loop, *RawData.GetSubcontainer(sampleStart, availSize));
+              target.SetSample(samIdx, loop, RawData.SubView(sampleStart, availSize));
             }
             if (size != availSize)
             {
@@ -351,8 +350,7 @@ namespace Chiptune
       void ParsePattern(uint_t idx, PatternBuilder& patBuilder, Builder& target) const
       {
         const std::size_t patStart = sizeof(Header) + idx * sizeof(Pattern);
-        const Binary::TypedContainer data(RawData);
-        const Pattern* const src = data.GetField<Pattern>(patStart);
+        const auto* src = RawData.SubView(patStart).As<Pattern>();
         Require(src != nullptr);
         //due to quite complex structure, patter lines are not optimized
         uint_t lineNum = 0;
@@ -437,26 +435,21 @@ namespace Chiptune
         Require(Ranges->AddRange(start, size));
       }
     private:
-      const Binary::Container& RawData;
+      const Binary::View RawData;
       const Header& Source;
       const RangeChecker::Ptr Ranges;
       const RangeChecker::Ptr FixedRanges;
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View data)
     {
-      const std::size_t size(rawData.Size());
-      if (sizeof(Header) > size)
-      {
-        return false;
-      }
-      const Header* const header(static_cast<const Header*>(rawData.Start()));
-      if (0 != std::memcmp(header->Signature, SIGNATURE, sizeof(SIGNATURE)))
+      const auto* header = data.As<Header>();
+      if (!header || 0 != std::memcmp(header->Signature, SIGNATURE, sizeof(SIGNATURE)))
       {
         return false;
       }
       const uint_t patternsCount = 1 + *std::max_element(header->Positions.begin(), header->Positions.begin() + header->Length + 1);
-      if (sizeof(*header) + patternsCount * sizeof(Pattern) > size)
+      if (sizeof(*header) + patternsCount * sizeof(Pattern) > data.Size())
       {
         return false;
       }
@@ -510,8 +503,9 @@ namespace Chiptune
       const Binary::Format::Ptr Format;
     };
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
+      const Binary::View data(rawData);
       if (!FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
@@ -531,9 +525,9 @@ namespace Chiptune
         format.ParseSamples(usedSamples, target);
 
         Require(format.GetSize() >= MIN_SIZE);
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+        auto subData = rawData.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {

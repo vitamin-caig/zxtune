@@ -15,24 +15,24 @@
 
 namespace Module
 {
-  void MemoryRegion::Update(uint_t addr, const void* data, std::size_t size)
+  void MemoryRegion::Update(uint_t addr, Binary::View data)
   {
     if (const auto oldSize = Data.size())
     {
       const auto newAddr = std::min(addr, Start);
-      const auto newEnd = std::max(addr + size, Start + oldSize);
+      const auto newEnd = std::max(addr + data.Size(), Start + oldSize);
       Data.resize(newEnd - newAddr);
       if (newAddr < Start)
       {
         std::memmove(Data.data() + (Start - newAddr), Data.data(), oldSize);
         Start = newAddr;
       }
-      std::memcpy(Data.data() + (addr - newAddr), data, size);
+      std::memcpy(Data.data() + (addr - newAddr), data.Start(), data.Size());
     }
     else
     {
-      const auto src = static_cast<const uint8_t*>(data);
-      Data.assign(src, src + size);
+      const auto src = static_cast<const uint8_t*>(data.Start());
+      Data.assign(src, src + data.Size());
       Start = addr;
     }
   }

@@ -39,7 +39,7 @@ namespace Chiptune
       {
         if (ParseHeader(target) && ParseChannels() && ParseData())
         {
-          if (const auto subData = Stream.GetReadData())
+          if (const auto subData = Stream.GetReadContainer())
           {
             return CreateCalculatingCrcContainer(subData, 0, subData->Size());
           }
@@ -97,7 +97,7 @@ namespace Chiptune
            if (Math::InRange<uint_t>(speechSize, 4, 8191))
            {
               const auto realSpeechSize = std::min<uint_t>(speechSize, Stream.GetRestSize());
-              Binary::DataInputStream payload(Stream.ReadRawData(realSpeechSize), realSpeechSize);
+              Binary::DataInputStream payload(Stream.ReadData(realSpeechSize));
               if (ParseSpeechData(payload))
               {
                 return true;
@@ -154,7 +154,7 @@ namespace Chiptune
             && Math::InRange<uint_t>(MaxTime, MIN_MAXTIME, MAX_MAXTIME)
             && Math::InRange<uint_t>(GdNum, MIN_GDNUM, MAX_GDNUM))
           {
-            Delays = stream.ReadRawData(10 * GdNum);
+            Delays = stream.ReadData(10 * GdNum).As<uint8_t>();
             return true;
           }
           return false;

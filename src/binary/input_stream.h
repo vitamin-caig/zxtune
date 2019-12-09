@@ -12,6 +12,7 @@
 
 //library includes
 #include <binary/container.h>
+#include <binary/view.h>
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -27,9 +28,9 @@ namespace Binary
   class DataInputStream
   {
   public:
-    DataInputStream(const void* data, std::size_t size)
-      : Start(static_cast<const uint8_t*>(data))
-      , Finish(Start + size)
+    explicit DataInputStream(Binary::View data)
+      : Start(static_cast<const uint8_t*>(data.Start()))
+      , Finish(Start + data.Size())
       , Cursor(Start)
     {
     }
@@ -94,16 +95,13 @@ namespace Binary
       return result;
     }
 
-    //! @brief Read raw data
-    const uint8_t* ReadRawData(std::size_t size)
+    template<class T>
+    const T* PeekField() const
     {
-      Require(Cursor + size <= Finish);
-      const uint8_t* const res = Cursor;
-      Cursor += size;
-      return res;
+      return safe_ptr_cast<const T*>(PeekRawData(sizeof(T)));
     }
-    
-    const uint8_t* PeekRawData(std::size_t size)
+
+    const uint8_t* PeekRawData(std::size_t size) const
     {
       if (Cursor + size <= Finish)
       {
@@ -122,7 +120,18 @@ namespace Binary
       std::memcpy(buf, ReadRawData(res), res);
       return res;
     }
-    
+
+    View ReadData(std::size_t size)
+    {
+      return View(ReadRawData(size), size);
+    }
+
+    View ReadRestData()
+    {
+      Require(Cursor < Finish);
+      return ReadData(GetRestSize());
+    }
+
     void Skip(std::size_t size)
     {
       Require(Cursor + size <= Finish);
@@ -146,6 +155,15 @@ namespace Binary
     {
       return Finish - Cursor;
     }
+  private:
+    const uint8_t* ReadRawData(std::size_t size)
+    {
+      Require(Cursor + size <= Finish);
+      const uint8_t* const res = Cursor;
+      Cursor += size;
+      return res;
+    }
+    
   protected:
     const uint8_t* const Start;
     const uint8_t* const Finish;
@@ -157,12 +175,12 @@ namespace Binary
   {
   public:
     explicit InputStream(const Container& rawData)
-      : DataInputStream(rawData.Start(), rawData.Size())
+      : DataInputStream(rawData)
       , Data(rawData)
     {
     }
     
-    Container::Ptr ReadData(std::size_t size)
+    Container::Ptr ReadContainer(std::size_t size)
     {
       Require(Cursor + size <= Finish);
       const std::size_t offset = GetPosition();
@@ -171,7 +189,7 @@ namespace Binary
     }
 
     //! @brief Read rest data in source container
-    Container::Ptr ReadRestData()
+    Container::Ptr ReadRestContainer()
     {
       Require(Cursor < Finish);
       const std::size_t offset = GetPosition();
@@ -181,7 +199,7 @@ namespace Binary
     }
 
     //! @brief Return data that is already read
-    Container::Ptr GetReadData() const
+    Container::Ptr GetReadContainer() const
     {
       return Data.GetSubcontainer(0, GetPosition());
     }

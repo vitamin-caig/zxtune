@@ -12,10 +12,10 @@
 #include "formats/chiptune/fm/tfmmusicmaker.h"
 #include "formats/chiptune/container.h"
 //common includes
-#include <crc.h>
 #include <indices.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -692,21 +692,14 @@ namespace Chiptune
     class ByteStream
     {
     public:
-      ByteStream(const uint8_t* data, std::size_t size)
-        : Data(data), End(Data + size)
-        , Size(size)
+      explicit ByteStream(Binary::View data)
+        : Stream(data)
       {
-      }
-
-      bool Eof() const
-      {
-        return Data >= End;
       }
 
       uint8_t GetByte()
       {
-        Require(!Eof());
-        return *Data++;
+        return Stream.ReadByte();
       }
 
       uint_t GetCounter()
@@ -726,21 +719,18 @@ namespace Chiptune
 
       std::size_t GetProcessedBytes() const
       {
-        return Size - (End - Data);
+        return Stream.GetPosition();
       }
     private:
-      const uint8_t* Data;
-      const uint8_t* const End;
-      const std::size_t Size;
+      Binary::DataInputStream Stream;
     };
 
     class Decompressor
     {
     public:
-      Decompressor(const Binary::Container& data, std::size_t offset, std::size_t targetSize)
-        : Stream(static_cast<const uint8_t*>(data.Start()), data.Size())
-        , Result(new Dump())
-        , Decoded(*Result)
+      Decompressor(Binary::View data, std::size_t offset, std::size_t targetSize)
+        : Stream(data)
+        , Decoded()
       {
         Decoded.reserve(targetSize);
         for (; offset; --offset)
@@ -750,10 +740,9 @@ namespace Chiptune
         DecodeData(targetSize);
       }
 
-      template<class T>
-      const T* GetResult() const
+      Binary::View GetResult() const
       {
-        return safe_ptr_cast<const T*>(Decoded.data());
+        return Decoded;
       }
 
       std::size_t GetUsedSize() const
@@ -796,8 +785,7 @@ namespace Chiptune
       }
     private:
       ByteStream Stream;
-      std::unique_ptr<Dump> Result;
-      Dump& Decoded;
+      Dump Decoded;
     };
     
     StringView Trim(StringView str)
@@ -1111,8 +1099,9 @@ namespace Chiptune
         try
         {
           const Decompressor decompressor(data, Version::SIGNATURE_SIZE, sizeof(typename Version::RawHeader));
+          const auto decoded = decompressor.GetResult();
 
-          const VersionedFormat<Version> format(*decompressor.GetResult<typename Version::RawHeader>());
+          const VersionedFormat<Version> format(*decoded.As<typename Version::RawHeader>());
           format.ParseCommonProperties(target);
 
           StatisticCollectingBuilder statistic(target);
@@ -1122,11 +1111,11 @@ namespace Chiptune
           const Indices& usedInstruments = statistic.GetUsedInstruments();
           format.ParseInstruments(usedInstruments, target);
 
-          const Binary::Container::Ptr subData = data.GetSubcontainer(0, decompressor.GetUsedSize());
+          auto subData = data.GetSubcontainer(0, decompressor.GetUsedSize());
           const std::size_t fixStart = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * usedPatterns.Minimum();
           const std::size_t fixEnd = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * (1 + usedPatterns.Maximum());
-          const uint_t crc = Crc32(decompressor.GetResult<uint8_t>() + fixStart, fixEnd - fixStart);
-          return CreateKnownCrcContainer(subData, crc);
+          const uint_t crc = Binary::Crc32(decoded.SubView(fixStart, fixEnd - fixStart));
+          return CreateKnownCrcContainer(std::move(subData), crc);
         }
         catch (const std::exception&)
         {

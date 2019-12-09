@@ -359,14 +359,14 @@ namespace GSF
   class ModuleDataBuilder
   {
   public:
-    void AddRom(Binary::Data::Ptr packedSection)
+    void AddRom(Binary::View packedSection)
     {
       Require(!!packedSection);
       if (!Rom)
       {
         Rom = MakeRWPtr<GbaRom>();
       }
-      const auto unpackedSection = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packedSection));
+      const auto unpackedSection = Binary::Compression::Zlib::Decompress(packedSection);
       GbaRom::Parse(*unpackedSection, *Rom);
     }
 
@@ -404,7 +404,7 @@ namespace GSF
       {
         builder.AddMeta(*file.Meta);
       }
-      builder.AddRom(file.PackedProgramSection);
+      builder.AddRom(*file.PackedProgramSection);
       //don't know anything about reserved section state
       return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
@@ -433,7 +433,7 @@ namespace GSF
       {
         MergeRom(additionalFiles.at(*it), additionalFiles, dst, level + 1);
       }
-      dst.AddRom(data.PackedProgramSection);
+      dst.AddRom(*data.PackedProgramSection);
       if (it != lim && level < MAX_LEVEL)
       {
         for (++it; it != lim; ++it)

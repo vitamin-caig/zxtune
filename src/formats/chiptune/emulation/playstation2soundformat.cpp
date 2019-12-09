@@ -43,9 +43,10 @@ namespace Chiptune
       
       explicit DirectoryEntry(Binary::InputStream& stream)
       {
-        const auto nameBegin = stream.ReadRawData(36);
+        const auto nameBegin = stream.PeekRawData(36);
         const auto nameEnd = std::find(nameBegin, nameBegin + 36, 0);
         Name.assign(nameBegin, nameEnd);
+        stream.Skip(36);
         Offset = stream.ReadLE<uint32_t>();
         Size = stream.ReadLE<uint32_t>();
         BlockSize = stream.ReadLE<uint32_t>();
@@ -198,7 +199,7 @@ namespace Chiptune
         {
           const auto unpackedSize = std::min(blockSize, fileSize - offset);
           Dbg(" @%1%: %2% -> %3%", offset, size, unpackedSize);
-          auto packed = Stream.ReadData(size);
+          auto packed = Stream.ReadContainer(size);
           auto unpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packed), unpackedSize);
           result.emplace(offset, std::move(unpacked));
           offset += unpackedSize;

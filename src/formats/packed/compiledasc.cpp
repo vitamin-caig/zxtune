@@ -17,7 +17,6 @@
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 //std includes
 #include <array>
@@ -102,17 +101,17 @@ namespace Packed
       }
 
       template<class Player>
-      static PlayerTraits Create(const Binary::TypedContainer& data)
+      static PlayerTraits Create(Binary::View data)
       {
-        const Player* const pl = data.GetField<Player>(0);
-        Require(pl != nullptr);
+        Require(data.Size() >= sizeof(Player));
+        const auto* const pl = data.As<Player>();
         return PlayerTraits(*pl);
       }
     };
     
-    typedef PlayerTraits (*CreatePlayerFunc)(const Binary::TypedContainer&);
+    typedef PlayerTraits (*CreatePlayerFunc)(Binary::View);
     typedef Formats::Chiptune::Container::Ptr (*ParseFunc)(const Binary::Container&, Formats::Chiptune::ASCSoundMaster::Builder&);
-    typedef Binary::Container::Ptr (*InsertMetaInfoFunc)(const Binary::Container&, const Dump&);
+    typedef Binary::Container::Ptr (*InsertMetaInfoFunc)(const Binary::Container&, Binary::View);
     
     struct VersionTraits
     {
@@ -203,17 +202,18 @@ namespace Packed
       &Formats::Chiptune::ASCSoundMaster::Ver1::InsertMetaInformation,
     };
 
-    bool IsInfoEmpty(const InfoData& info)
+    bool IsInfoEmpty(Binary::View info)
     {
       //19 - fixed
       //20 - author
       //4  - ignore
       //20 - title
-      const auto authorStart = info.begin() + 19;
+      const auto authorStart = info.As<char>() + 19;
       const auto ignoreStart = authorStart + 20;
       const auto titleStart = ignoreStart + 4;
+      const auto end = titleStart + 20;
       return ignoreStart == std::find_if(authorStart, ignoreStart, std::bind2nd(std::greater<Char>(), Char(' ')))
-          && info.end() == std::find_if(titleStart, info.end(), std::bind2nd(std::greater<Char>(), Char(' ')));
+          && end == std::find_if(titleStart, end, std::bind2nd(std::greater<Char>(), Char(' ')));
     }
   }//CompiledASC
 
@@ -239,38 +239,36 @@ namespace Packed
     Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       using namespace CompiledASC;
-      if (!Player->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Player->Match(data))
       {
         return Container::Ptr();
       }
-      const Binary::TypedContainer typedData(rawData);
-      const std::size_t availSize = rawData.Size();
-      const PlayerTraits rawPlayer = Version.CreatePlayer(typedData);
-      if (rawPlayer.Size >= std::min(availSize, MAX_PLAYER_SIZE))
+      const auto rawPlayer = Version.CreatePlayer(data);
+      if (rawPlayer.Size >= std::min(data.Size(), MAX_PLAYER_SIZE))
       {
         Dbg("Invalid player");
         return Container::Ptr();
       }
       Dbg("Detected player in first %1% bytes", rawPlayer.Size);
-      const std::size_t modDataSize = std::min(MAX_MODULE_SIZE, availSize - rawPlayer.Size);
-      const Binary::Container::Ptr modData = rawData.GetSubcontainer(rawPlayer.Size, modDataSize);
-      const InfoData& rawInfo = *typedData.GetField<InfoData>(rawPlayer.InfoOffset);
-      const Dump metainfo(rawInfo.begin(), rawInfo.end());
+      const auto modData = rawData.GetSubcontainer(rawPlayer.Size, MAX_MODULE_SIZE);
+      const auto rawInfo = data.SubView(rawPlayer.InfoOffset, sizeof(InfoData));
+      auto& stub = Formats::Chiptune::ASCSoundMaster::GetStubBuilder();
       if (IsInfoEmpty(rawInfo))
       {
         Dbg("Player has empty metainfo");
-        if (const Binary::Container::Ptr originalModule = Version.Parse(*modData, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
+        if (auto originalModule = Version.Parse(*modData, stub))
         {
           const std::size_t originalSize = originalModule->Size();
-          return CreateContainer(originalModule, rawPlayer.Size + originalSize);
+          return CreateContainer(std::move(originalModule), rawPlayer.Size + originalSize);
         }
       }
-      else if (const Binary::Container::Ptr fixedModule = Version.InsertMetaInformation(*modData, metainfo))
+      else if (auto fixedModule = Version.InsertMetaInformation(*modData, rawInfo))
       {
-        if (Version.Parse(*fixedModule, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
+        if (Version.Parse(*fixedModule, stub))
         {
-          const std::size_t originalSize = fixedModule->Size() - metainfo.size();
-          return CreateContainer(fixedModule, rawPlayer.Size + originalSize);
+          const std::size_t originalSize = fixedModule->Size() - rawInfo.Size();
+          return CreateContainer(std::move(fixedModule), rawPlayer.Size + originalSize);
         }
         Dbg("Failed to parse fixed module");
       }

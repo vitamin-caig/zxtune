@@ -61,7 +61,7 @@ namespace Binary
         {
           if (!Unpacked)
           {
-            Binary::DataInputStream in(Packed->Start(), Packed->Size());
+            Binary::DataInputStream in(*Packed);
             Binary::DataBuilder out(UnpackedSize);
             Binary::Compression::Zlib::Decompress(in, out, UnpackedSize);
             Require(!UnpackedSize || UnpackedSize == out.Size());
@@ -80,6 +80,15 @@ namespace Binary
       Container::Ptr CreateDeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint)
       {
         return MakePtr<DeferredDecompressContainer>(std::move(packed), unpackedSizeHint);
+      }
+
+      Container::Ptr Decompress(View packed, std::size_t unpackedSizeHint)
+      {
+        Binary::DataInputStream in(packed);
+        Binary::DataBuilder out(unpackedSizeHint);
+        Binary::Compression::Zlib::Decompress(in, out, unpackedSizeHint);
+        Require(!unpackedSizeHint || unpackedSizeHint == out.Size());
+        return out.CaptureResult();
       }
     }
   }

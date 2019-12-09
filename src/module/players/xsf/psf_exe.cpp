@@ -52,19 +52,19 @@ namespace Module
         }
       }
       
-      void SetTextSection(uint32_t address, const Binary::Data& content) override
+      void SetTextSection(uint32_t address, Binary::View content) override
       {
         const auto addr = address & 0x1fffff;
         const auto size = content.Size();
         Require(addr >= 0x10000 && size <= 0x1f0000 && addr + size <= 0x200000);
         
-        Exe.RAM.Update(addr, content.Start(), size);
+        Exe.RAM.Update(addr, content);
       }
     private:
       PsxExe& Exe;
     };
     
-    void PsxExe::Parse(const Binary::Container& data, PsxExe& exe)
+    void PsxExe::Parse(Binary::View data, PsxExe& exe)
     {
       ExeParser parser(exe);
       Formats::Chiptune::PlaystationSoundFormat::ParsePSXExe(data, parser);

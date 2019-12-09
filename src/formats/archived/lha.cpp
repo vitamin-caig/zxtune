@@ -12,6 +12,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -191,12 +192,12 @@ namespace Archived
       std::size_t Position;
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       template<class It>
       Container(Binary::Container::Ptr data, It begin, It end)
-        : Delegate(std::move(data))
+        : BaseContainer(std::move(data))
       {
         for (It it = begin; it != end; ++it)
         {
@@ -205,23 +206,6 @@ namespace Archived
         }
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         for (const auto& file : Files)
@@ -243,7 +227,6 @@ namespace Archived
         return static_cast<uint_t>(Files.size());
       }
     private:
-      const Binary::Container::Ptr Delegate;
       typedef std::map<String, File::Ptr> FilesMap;
       FilesMap Files;
     };

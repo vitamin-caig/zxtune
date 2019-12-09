@@ -16,13 +16,13 @@
 #include "sound.h"
 #include "source.h"
 //common includes
-#include <crc.h>
 #include <error_tools.h>
 #include <progress_callback.h>
 //library includes
 #include <async/data_receiver.h>
 #include <async/src/event.h>
 #include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <core/core_parameters.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
@@ -299,7 +299,7 @@ namespace
     public:
       void ApplyData(Sound::Chunk data) override
       {
-          Crc32 = ::Crc32(safe_ptr_cast<const uint8_t*>(data.data()), data.size() * sizeof(data.front()), Crc32);
+        Crc32 = Binary::Crc32(data, Crc32);
       }
 
       void Flush() override

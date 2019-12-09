@@ -60,7 +60,7 @@ namespace AYM
       GetUnpackedResult(unpacked);
       Binary::DataBuilder output;
       {
-        Binary::DataInputStream input(unpacked.data(), unpacked.size());
+        Binary::DataInputStream input(unpacked);
         Binary::Compression::Zlib::Compress(input, output);
       }
       output.CaptureResult(data);

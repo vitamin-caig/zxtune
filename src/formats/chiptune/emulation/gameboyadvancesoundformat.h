@@ -11,6 +11,7 @@
 #pragma once
 
 //library includes
+#include <binary/view.h>
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -27,10 +28,10 @@ namespace Formats
         virtual ~Builder() = default;
         
         virtual void SetEntryPoint(uint32_t addr) = 0;
-        virtual void SetRom(uint32_t addr, const Binary::Data& content) = 0;
+        virtual void SetRom(uint32_t addr, Binary::View content) = 0;
       };
 
-      void ParseRom(const Binary::Container& data, Builder& target);
+      void ParseRom(Binary::View data, Builder& target);
     }
 
     Decoder::Ptr CreateGSFDecoder();

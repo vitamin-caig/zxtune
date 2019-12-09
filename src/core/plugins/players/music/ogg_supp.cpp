@@ -235,9 +235,9 @@ namespace Ogg
       Data->Frequency = frequency;
     }
 
-    void SetSetup(const Binary::Data& /*data*/) override {}
+    void SetSetup(Binary::View /*data*/) override {}
     
-    void AddFrame(std::size_t /*offset*/, uint_t samples, const Binary::Data& /*data*/) override
+    void AddFrame(std::size_t /*offset*/, uint_t samples, Binary::View /*data*/) override
     {
       Data->TotalSamples += samples;
     }

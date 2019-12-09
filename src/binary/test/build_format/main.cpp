@@ -1,7 +1,6 @@
 #include <pointers.h>
 #include <types.h>
 #include <binary/format_factories.h>
-#include <binary/data_adapter.h>
 #include <debug/log.h>
 #include <strings/format.h>
 #include <iostream>
@@ -358,8 +357,7 @@ int main(int argc, char* argv[])
       {
         const std::string filename = argv[idx];
         const Dump& data = Read(filename);
-        const Binary::DataAdapter adapter(data.data(), data.size());
-        if (!check->Match(adapter))
+        if (!check->Match(data))
         {
           throw std::runtime_error(Strings::Format("Not matched for %1%", filename));
         }

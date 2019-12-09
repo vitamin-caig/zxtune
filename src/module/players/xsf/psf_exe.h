@@ -12,13 +12,10 @@
 
 //local includes
 #include "module/players/xsf/memory_region.h"
+//library includes
+#include <binary/view.h>
 //std includes
 #include <memory>
-
-namespace Binary
-{
-  class Container;
-}
 
 namespace Module
 {
@@ -38,7 +35,7 @@ namespace Module
       uint32_t SP = 0;
       MemoryRegion RAM;
       
-      static void Parse(const Binary::Container& data, PsxExe& exe);
+      static void Parse(Binary::View data, PsxExe& exe);
     };
   }
 }

@@ -20,7 +20,6 @@
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
@@ -181,12 +180,12 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(Binary::TypedContainer data)
-        : Delegate(std::move(data))
-        , Source(*Delegate.GetField<RawHeader>(0))
-        , Id(*Delegate.GetField<RawId>(sizeof(Source)))
-        , TotalRanges(RangeChecker::CreateSimple(Delegate.GetSize()))
-        , FixedRanges(RangeChecker::CreateSimple(Delegate.GetSize()))
+      explicit Format(Binary::View data)
+        : Data(data)
+        , Source(*Data.As<RawHeader>())
+        , Id(*PeekObject<RawId>(sizeof(Source)))
+        , TotalRanges(RangeChecker::CreateSimple(Data.Size()))
+        , FixedRanges(RangeChecker::CreateSimple(Data.Size()))
       {
         AddRange(0, sizeof(Source));
         if (Id.Check())
@@ -272,10 +271,16 @@ namespace Chiptune
         return FixedRanges->GetAffectedRange();
       }
     private:
+      template<class T>
+      const T* PeekObject(std::size_t offset) const
+      {
+        return Data.SubView(offset).As<T>();
+      }
+
       RangeIterator<const RawPositions::PosEntry*> GetPositions() const
       {
         const std::size_t offset = fromLE(Source.PositionsOffset);
-        const RawPositions* const positions = Delegate.GetField<RawPositions>(offset);
+        const auto* positions = PeekObject<RawPositions>(offset);
         Require(positions != nullptr);
         const uint_t length = positions->Length;
         AddRange(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
@@ -287,7 +292,7 @@ namespace Chiptune
       template<class T>
       const T& GetObject(std::size_t offset) const
       {
-        const T* const src = Delegate.GetField<T>(offset);
+        const auto* src = PeekObject<T>(offset);
         Require(src != nullptr);
         AddRange(offset, sizeof(T));
         return *src;
@@ -301,7 +306,7 @@ namespace Chiptune
 
       uint8_t PeekByte(std::size_t offset) const
       {
-        const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
+        const auto* data = PeekObject<uint8_t>(offset);
         Require(data != nullptr);
         return *data;
       }
@@ -392,13 +397,13 @@ namespace Chiptune
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
           const std::size_t start = rangesStarts[chanNum];
-          if (start >= Delegate.GetSize())
+          if (start >= Data.Size())
           {
             Dbg("Invalid offset (%1%)", start);
           }
           else
           {
-            const std::size_t stop = std::min(Delegate.GetSize(), state.Channels[chanNum].Offset + 1);
+            const std::size_t stop = std::min(Data.Size(), state.Channels[chanNum].Offset + 1);
             Dbg("Affected ranges %1%..%2%", start, stop);
             AddFixedRange(start, stop - start);
           }
@@ -414,7 +419,7 @@ namespace Chiptune
           {
             continue;
           }
-          if (state.Offset >= Delegate.GetSize())
+          if (state.Offset >= Data.Size())
           {
             return false;
           }
@@ -444,7 +449,7 @@ namespace Chiptune
 
       void ParseChannel(ParserState::ChannelState& state, Builder& builder) const
       {
-        while (state.Offset < Delegate.GetSize())
+        while (state.Offset < Data.Size())
         {
           const uint_t cmd = PeekByte(state.Offset++);
           if (cmd <= 0x5f)//note
@@ -525,7 +530,7 @@ namespace Chiptune
         Require(FixedRanges->AddRange(offset, size));
       }
     private:
-      const Binary::TypedContainer Delegate;
+      const Binary::View Data;
       const RawHeader& Source;
       const RawId& Id;
       const RangeChecker::Ptr TotalRanges;
@@ -625,10 +630,9 @@ namespace Chiptune
       }
     };
 
-    Binary::TypedContainer CreateContainer(const Binary::Container& rawData)
+    Binary::View MakeContainer(Binary::View rawData)
     {
-      const std::size_t size = std::min(rawData.Size(), MAX_SIZE);
-      return Binary::TypedContainer(rawData, size);
+      return rawData.SubView(0, MAX_SIZE);
     }
 
     bool IsInvalidPosEntry(const RawPositions::PosEntry& entry)
@@ -651,16 +655,16 @@ namespace Chiptune
       return true;
     }
 
-    bool FastCheck(const Binary::TypedContainer& data)
+    bool FastCheck(Binary::View data)
     {
-      const RawHeader* const hdr = data.GetField<RawHeader>(0);
+      const auto* hdr = data.As<RawHeader>();
       if (nullptr == hdr)
       {
         return false;
       }
-      Areas areas(*hdr, data.GetSize());
-      const RawSamples* const samples = data.GetField<RawSamples>(areas.GetAreaAddress(SAMPLES_INFO));
-      const RawOrnaments* const ornaments = data.GetField<RawOrnaments>(areas.GetAreaAddress(ORNAMENTS_INFO));
+      Areas areas(*hdr, data.Size());
+      const auto* samples = data.SubView(areas.GetAreaAddress(SAMPLES_INFO)).As<RawSamples>();
+      const auto* ornaments = data.SubView(areas.GetAreaAddress(ORNAMENTS_INFO)).As<RawOrnaments>();
       if (!samples || !ornaments)
       {
         return false;
@@ -690,7 +694,7 @@ namespace Chiptune
       {
         return false;
       }
-      if (const RawPositions* positions = data.GetField<RawPositions>(areas.GetAreaAddress(POSITIONS_INFO)))
+      if (const auto* positions = data.SubView(areas.GetAreaAddress(POSITIONS_INFO)).As<RawPositions>())
       {
         const uint_t count = positions->Length;
         if (!areas.CheckPositions(count))
@@ -707,12 +711,6 @@ namespace Chiptune
         return false;
       }
       return true;
-    }
-
-    bool FastCheck(const Binary::Container& rawData)
-    {
-      const Binary::TypedContainer data(CreateContainer(rawData));
-      return FastCheck(data);
     }
 
     const std::string FORMAT(
@@ -743,14 +741,15 @@ namespace Chiptune
 
       bool Check(const Binary::Container& rawData) const override
       {
-        return Format->Match(rawData) && FastCheck(rawData);
+        const auto data = MakeContainer(rawData);
+        return Format->Match(data) && FastCheck(data);
       }
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return SoundTracker::Ver3::Parse(rawData, stub);
@@ -778,11 +777,11 @@ namespace Chiptune
       {
         using namespace SoundTracker3;
 
-        const Binary::TypedContainer data(CreateContainer(rawData));
+        const auto data = MakeContainer(rawData);
 
         if (!FastCheck(data))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
 
         try
@@ -803,29 +802,29 @@ namespace Chiptune
           format.ParseOrnaments(usedOrnaments, target);
 
           Require(format.GetSize() >= MIN_SIZE);
-          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
-          const RangeChecker::Range fixedRange = format.GetFixedArea();
-          return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+          auto subData = rawData.GetSubcontainer(0, format.GetSize());
+          const auto fixedRange = format.GetFixedArea();
+          return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
         }
         catch (const std::exception&)
         {
           Dbg("Failed to create");
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
       }
 
-      Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, const Dump& info)
+      Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, Binary::View info)
       {
         using namespace SoundTracker3;
         StatisticCollectingBuilder statistic(GetStubBuilder());
-        if (Binary::Container::Ptr parsed = Parse(rawData, statistic))
+        if (const auto parsed = Parse(rawData, statistic))
         {
-          const Binary::TypedContainer typedHelper(CreateContainer(*parsed));
-          const RawHeader& header = *typedHelper.GetField<RawHeader>(0);
+          const auto parsedData = MakeContainer(*parsed);
+          const auto& header = *parsedData.As<RawHeader>();
           const std::size_t headerSize = sizeof(header);
-          const std::size_t infoSize = info.size();
-          const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
-          const RawId* const id = typedHelper.GetField<RawId>(headerSize);
+          const std::size_t infoSize = info.Size();
+          const auto patch = PatchedDataBuilder::Create(*parsed);
+          const auto* id = parsedData.SubView(headerSize).As<RawId>();
           if (id && id->Check())
           {
             patch->OverwriteData(headerSize, info);
@@ -849,14 +848,14 @@ namespace Chiptune
             }
             //fix all samples and ornaments
             const std::size_t ornamentsStart = fromLE(header.OrnamentsOffset);
-            const RawOrnaments& orns = *typedHelper.GetField<RawOrnaments>(ornamentsStart);
+            const auto& orns = *parsedData.SubView(ornamentsStart).As<RawOrnaments>();
             for (uint_t idx = 0; idx != orns.Count; ++idx)
             {
               const std::size_t ornOffset = ornamentsStart + offsetof(RawOrnaments, Offsets) + idx * sizeof(uint16_t);
               patch->FixLEWord(ornOffset, delta);
             }
             const std::size_t samplesStart = fromLE(header.SamplesOffset);
-            const RawSamples& sams = *typedHelper.GetField<RawSamples>(samplesStart);
+            const auto& sams = *parsedData.SubView(samplesStart).As<RawSamples>();
             for (uint_t idx = 0; idx != sams.Count; ++idx)
             {
               const std::size_t samOffset = samplesStart + offsetof(RawSamples, Offsets) + idx * sizeof(uint16_t);
@@ -865,7 +864,7 @@ namespace Chiptune
           }
           return patch->GetResult();
         }
-        return Binary::Container::Ptr();
+        return {};
       }
     }
   }

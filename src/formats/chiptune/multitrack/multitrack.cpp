@@ -11,8 +11,10 @@
 //local includes
 #include "formats/chiptune/multitrack/multitrack.h"
 //common includes
-#include <crc.h>
 #include <make_ptr.h>
+//library includes
+#include <binary/container_base.h>
+#include <binary/crc.h>
 //std includes
 #include <utility>
 
@@ -20,42 +22,23 @@ namespace Formats
 {
 namespace Chiptune
 {
-  class MultitrackContainer : public Container
+  class MultitrackContainer : public Binary::BaseContainer<Container, Multitrack::Container>
   {
   public:
-    explicit MultitrackContainer(Formats::Multitrack::Container::Ptr data)
-      : Delegate(std::move(data))
+    explicit MultitrackContainer(Multitrack::Container::Ptr data)
+      : BaseContainer(std::move(data))
     {
     }
 
-    //Binary::Container
-    const void* Start() const override
-    {
-      return Delegate->Start();
-    }
-
-    std::size_t Size() const override
-    {
-      return Delegate->Size();
-    }
-
-    Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-    {
-      return Delegate->GetSubcontainer(offset, size);
-    }
-
-    //Formats::Chiptune::Container
     uint_t Checksum() const override
     {
-      return Crc32(static_cast<const uint8_t*>(Delegate->Start()), Delegate->Size());
+      return Binary::Crc32(*Delegate);
     }
 
     uint_t FixedChecksum() const override
     {
       return Delegate->FixedChecksum();
     }
-  private:
-    const Formats::Multitrack::Container::Ptr Delegate;
   };
 
   class MultitrackDecoder : public Decoder

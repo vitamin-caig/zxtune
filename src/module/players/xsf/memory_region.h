@@ -12,6 +12,8 @@
 
 //common includes
 #include <types.h>
+//library includes
+#include <binary/view.h>
 
 namespace Module
 {
@@ -32,7 +34,7 @@ namespace Module
       return *this;
     }
     
-    void Update(uint_t addr, const void* data, std::size_t size);
+    void Update(uint_t addr, Binary::View data);
 
     uint_t Start = 0;
     Dump Data;

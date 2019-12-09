@@ -14,7 +14,6 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <binary/input_stream.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
@@ -83,7 +82,7 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& data)
+      explicit Format(const Binary::View& data)
         : Stream(data)
       {
       }
@@ -101,7 +100,7 @@ namespace Chiptune
       {
         static const char IDENTIFIER[8] = {'P', 'S', '-', 'X', ' ', 'E', 'X', 'E'};
         Stream.Seek(0);
-        Require(0 == std::memcmp(Stream.ReadRawData(sizeof(IDENTIFIER)), IDENTIFIER, sizeof(IDENTIFIER)));
+        Require(0 == std::memcmp(Stream.ReadData(sizeof(IDENTIFIER)).Start(), IDENTIFIER, sizeof(IDENTIFIER)));
       }
       
       void ParseRegisters(Builder& target)
@@ -122,12 +121,7 @@ namespace Chiptune
         if (size)
         {
           Stream.Seek(HEADER_SIZE);
-          target.SetTextSection(startAddress, *Stream.ReadRestData());
-        }
-        else
-        {
-          static const Binary::DataAdapter EMPTY(nullptr, 0);
-          target.SetTextSection(startAddress, EMPTY);
+          target.SetTextSection(startAddress, Stream.ReadRestData());
         }
       }
       
@@ -166,10 +160,10 @@ namespace Chiptune
         Dbg("Marker: %s", marker);
       }
     private:
-      Binary::InputStream Stream;
+      Binary::DataInputStream Stream;
     };
 
-    void ParsePSXExe(const Binary::Container& data, Builder& target)
+    void ParsePSXExe(Binary::View data, Builder& target)
     {
       Format(data).Parse(target);
     }

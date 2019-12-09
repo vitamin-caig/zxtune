@@ -16,6 +16,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -506,32 +507,15 @@ namespace Archived
 
     typedef std::map<String, Binary::Container::Ptr> NamedDataMap;
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       Container(Binary::Container::Ptr delegate, NamedDataMap files)
-        : Delegate(std::move(delegate))
+        : BaseContainer(std::move(delegate))
         , Files(std::move(files))
       {
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         for (const auto& it : Files)
@@ -554,7 +538,6 @@ namespace Archived
         return static_cast<uint_t>(Files.size());
       }
     private:
-      const Binary::Container::Ptr Delegate;
       NamedDataMap Files;
     };
   }//namespace UMX
