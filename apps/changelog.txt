@@ -5,6 +5,13 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4830 from 09.12.2019
+
+[*] Optimized memory usage
+[+] zxtune-android: pause playback on headset disconnection
+[*] zxtune-android: reworked playlist
+[*] zxtune-android: fixed found and reported crashes and hangups
+
 --- Rev4770 from 25.11.2019
 
 [+] Supported vorbis streams in Fmod Sound Bank containers
