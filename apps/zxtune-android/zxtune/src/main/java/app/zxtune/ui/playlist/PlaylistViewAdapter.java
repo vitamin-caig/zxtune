@@ -160,7 +160,11 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
   @Override
   public void onBindViewHolder(@NonNull final EntryViewHolder holder, int position) {
     final PlaylistEntry entry = getItem(position);
-    holder.bind(entry, isPlaying && nowPlaying == entry.id, isSelected(entry.id));
+    holder.bind(entry, isPlaying && isNowPlaying(entry.id), isSelected(entry.id));
+  }
+
+  private boolean isNowPlaying(long id) {
+    return nowPlaying != null && nowPlaying == id;
   }
 
   private boolean isSelected(long id) {
@@ -190,7 +194,6 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
   @Override
   public void onViewDetachedFromWindow(@NonNull EntryViewHolder holder) {
     holder.itemView.setOnClickListener(null);
-    holder.itemView.setOnLongClickListener(null);
     holder.binding.playlistEntryState.setOnTouchListener(null);
   }
 
