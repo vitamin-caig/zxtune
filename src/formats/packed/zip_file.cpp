@@ -75,8 +75,8 @@ namespace Packed
 
       const LocalFileHeader& GetHeader() const
       {
-        assert(Size >= sizeof(LocalFileHeader));
-        return *safe_ptr_cast<const LocalFileHeader*>(View.Start());
+        assert(View.Size() >= sizeof(LocalFileHeader));
+        return *View.As<LocalFileHeader>();
       }
 
       const CompressedFile& GetFile() const

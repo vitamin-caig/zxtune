@@ -446,6 +446,7 @@ namespace Chiptune
         builder.Allocate(3 * sizeof(uint32_t));
         builder.Add(blockSizes);
         builder.Add(uint8_t(1));
+        assert(builder.Size() == 30);
         Storage.AddData(0, static_cast<const uint8_t*>(builder.Get(0)), builder.Size());
       }
 

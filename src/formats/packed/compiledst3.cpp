@@ -95,7 +95,7 @@ namespace Packed
 
     bool IsInfoEmpty(Binary::View info)
     {
-      assert(info.size() == 55);
+      assert(info.Size() == 55);
       //28 is fixed
       //27 is title
       const auto start = info.As<Char>();
