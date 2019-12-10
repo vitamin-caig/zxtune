@@ -11,6 +11,7 @@ using jarray = void*;
 using jobjectArray = void*;
 using jshortArray = void*;
 using jintArray = void*;
+using jbyteArray = void*;
 using jboolean = bool;
 using jmethodID = int;
 using jfieldID = int;
@@ -28,6 +29,8 @@ struct JavaVM
 
 struct JNIEnv
 {
+  jint GetJavaVM(JavaVM**) const;
+
   jobject NewObject(jclass, jmethodID, ...) const;
   jobject NewGlobalRef(jobject) const;
   void DeleteGlobalRef(jobject) const;
