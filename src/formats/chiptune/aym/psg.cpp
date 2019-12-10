@@ -16,6 +16,7 @@
 //library includes
 #include <binary/format_factories.h>
 //std includes
+#include <cstddef>
 #include <cstring>
 //text includes
 #include <formats/text/chiptune.h>
