@@ -26,7 +26,6 @@
 #include <array>
 #include <cstring>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -780,7 +779,7 @@ namespace Chiptune
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         const DataCursors rangesStarts(pat, BaseAddr);
         Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(),
-          !boost::bind(&Math::InRange<std::size_t>, _1, minOffset, Data.Size() - 1)));
+          Math::NotInRange(minOffset, Data.Size() - 1)));
 
         ParserState state(rangesStarts);
         uint_t lineIdx = 0;

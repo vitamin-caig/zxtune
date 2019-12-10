@@ -21,8 +21,6 @@
 #include <strings/trim.h>
 //std includes
 #include <array>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -83,7 +81,8 @@ namespace Chiptune
       }
       const auto& hdr = *rawData.As<RawHeader>();
       return hdr.Sign == SIGNATURE
-        && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(), boost::bind(&fromLE<uint16_t>, _1) >= size);
+        && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(),
+             [size](uint16_t o) {return fromLE(o) >= size;});
     }
 
     const std::string FORMAT(

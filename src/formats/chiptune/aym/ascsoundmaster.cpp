@@ -27,7 +27,6 @@
 #include <array>
 #include <cstring>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -294,7 +293,8 @@ namespace Chiptune
         return Math::InRange<uint_t>(Tempo, 0x03, 0x32)
             && Math::InRange<uint_t>(Loop, 0x00, 0x63)
             && Math::InRange<uint_t>(Length, 0x01, 0x64)
-            && Positions + Length == std::find_if(Positions, Positions + Length, std::bind2nd(std::greater_equal<uint_t>(), uint_t(MAX_PATTERNS_COUNT)))
+            && Positions + Length == std::find_if(Positions, Positions + Length,
+              [](uint_t pos) {return pos >= MAX_PATTERNS_COUNT;})
         ;
       }
       
@@ -749,7 +749,7 @@ namespace Chiptune
         DataCursors(const RawPattern& src, std::size_t baseOffset)
         {
           std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), 
-            boost::bind(std::plus<uint_t>(), boost::bind(&fromLE<uint16_t>, _1), baseOffset));
+            [baseOffset](uint16_t o) {return baseOffset + fromLE(o);});
         }
       };
 

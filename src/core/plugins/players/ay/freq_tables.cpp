@@ -14,8 +14,6 @@
 #include <error_tools.h>
 //library includes
 #include <l10n/api.h>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -267,8 +265,8 @@ namespace Module
     const bool doRevert = !id.empty() && *id.begin() == REVERT_TABLE_MARK;
     const String idNormal = doRevert ? id.substr(1) : id;
     //find if table is supported
-    const FreqTableEntry* const entry = std::find_if(TABLES, std::end(TABLES),
-      boost::bind(&FreqTableEntry::Name, _1) == idNormal);
+    const auto* entry = std::find_if(TABLES, std::end(TABLES),
+      [&idNormal](const FreqTableEntry& entry) {return entry.Name == idNormal;});
     if (entry == std::end(TABLES))
     {
       throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table '%1%'."), id);

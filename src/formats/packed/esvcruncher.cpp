@@ -23,10 +23,9 @@
 #include <math/numeric.h>
 //std includes
 #include <algorithm>
+#include <functional>
 #include <iterator>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -398,7 +397,7 @@ namespace Packed
             return 0x221 + Stream.GetBits(Header.WindowSize);
           }
           const uint_t size = 0x0a + Stream.GetBits(5);
-          std::generate_n(std::back_inserter(Decoded), size, boost::bind(&Bitstream::GetByte, &Stream));
+          std::generate_n(std::back_inserter(Decoded), size, std::bind(&Bitstream::GetByte, &Stream));
           return 0;
         }
         //%0

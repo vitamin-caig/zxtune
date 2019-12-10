@@ -28,7 +28,6 @@
 #include <cctype>
 #include <cstring>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -561,9 +560,9 @@ namespace Chiptune
     public:
       uint_t Add(const RawPattern& pat)
       {
-        const ContainerType::const_iterator begin = Container.begin(), end = Container.end();
-        const ContainerType::const_iterator it = std::find_if(begin, end,
-          boost::bind(&ArePatternsEqual, pat, _1));
+        const auto begin = Container.begin(), end = Container.end();
+        const auto it = std::find_if(begin, end,
+          [&pat](const RawPattern& rh) {return pat.Size == rh.Size && pat.Offsets == rh.Offsets;});
         if (it != end)
         {
           return std::distance(begin, it);
@@ -584,14 +583,6 @@ namespace Chiptune
         return Iterator(Container.begin(), Container.end());
       }
     private:
-      static bool ArePatternsEqual(const RawPattern& lh, const RawPattern& rh)
-      {
-        return lh.Size == rh.Size
-            && lh.Offsets[0] == rh.Offsets[0]
-            && lh.Offsets[1] == rh.Offsets[1]
-            && lh.Offsets[2] == rh.Offsets[2]
-            ;
-      }
       ContainerType Container;
     };
 

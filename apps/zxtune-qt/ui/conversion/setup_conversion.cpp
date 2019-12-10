@@ -29,8 +29,6 @@
 #include <io/providers_parameters.h>
 #include <parameters/merged_accessor.h>
 #include <sound/backends_parameters.h>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QThread>
 #include <QtGui/QCloseEvent>
@@ -144,9 +142,11 @@ namespace
     void UpdateSettingsDescription()
     {
       const String type = TargetFormat->GetSelectedId();
-      std::for_each(BackendSettings.begin(), BackendSettings.end(),
-        boost::bind(&QWidget::setVisible, boost::bind(&BackendIdToSettings::value_type::second, _1), false));
-      const BackendIdToSettings::const_iterator it = BackendSettings.find(type);
+      for (auto& wid : BackendSettings)
+      {
+        wid.second->setVisible(false);
+      }
+      const auto it = BackendSettings.find(type);
       if (it != BackendSettings.end())
       {
         it->second->setVisible(true);

@@ -27,10 +27,11 @@
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+//std includes
+#include <functional>
 //boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/bind.hpp>
 //text includes
 #include <sound/backends/text/backends.h>
 
@@ -287,7 +288,7 @@ namespace Alsa
     T* res = nullptr;
     CheckResult(*api, ((*api).*allocFunc)(&res), THIS_LINE);
     return res
-      ? std::shared_ptr<T>(res, boost::bind(freeFunc, api, _1))
+      ? std::shared_ptr<T>(res, std::bind(freeFunc, api, std::placeholders::_1))
       : std::shared_ptr<T>();
   }
 
@@ -797,7 +798,7 @@ namespace Alsa
   {
     snd_ctl_t* ctl = nullptr;
     return api->snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
-      ? std::shared_ptr<snd_ctl_t>(ctl, boost::bind(&Api::snd_ctl_close, api, _1))
+      ? std::shared_ptr<snd_ctl_t>(ctl, std::bind(&Api::snd_ctl_close, api, std::placeholders::_1))
       : std::shared_ptr<snd_ctl_t>();
   }
 

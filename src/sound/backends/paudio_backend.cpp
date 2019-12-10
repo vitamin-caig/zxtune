@@ -24,8 +24,8 @@
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
-//boost includes
-#include <boost/bind.hpp>
+//std includes
+#include <functional>
 //text includes
 #include <sound/backends/text/backends.h>
 
@@ -104,7 +104,7 @@ namespace PulseAudio
       int error = 0;
       if (pa_simple* result = PaApi->pa_simple_new(nullptr, Client.c_str(), PA_STREAM_PLAYBACK, nullptr, Stream.c_str(), &format, nullptr, nullptr, &error))
       {
-        return std::shared_ptr<pa_simple>(result, boost::bind(&Api::pa_simple_free, PaApi, _1));
+        return std::shared_ptr<pa_simple>(result, std::bind(&Api::pa_simple_free, PaApi, std::placeholders::_1));
       }
       throw MakeError(error, THIS_LINE);
     }

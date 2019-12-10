@@ -20,8 +20,6 @@
 #include <debug/log.h>
 #include <sound/backends_parameters.h>
 #include <sound/backends/win32.h>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include "text/text.h"
 
@@ -82,7 +80,7 @@ namespace
     void DeviceChanged(const QString& name) override
     {
       Dbg("Selecting device '%1%'", FromQString(name));
-      DeviceChanged(boost::bind(&Device::Name, _1) == name);
+      DeviceChanged([&name](const Device& dev) {return dev.Name == name;});
     }
 
     //QWidget
@@ -100,7 +98,7 @@ namespace
       using namespace Parameters::ZXTune::Sound::Backends::Win32;
       Parameters::IntType curDevice = DEVICE_DEFAULT;
       Options->FindValue(DEVICE, curDevice);
-      DeviceChanged(boost::bind(&Device::Id, _1) == curDevice);
+      DeviceChanged([curDevice](const Device& dev) {return dev.Id == curDevice;});
     }
 
     template<class F>

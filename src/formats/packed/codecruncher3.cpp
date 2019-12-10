@@ -21,9 +21,8 @@
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
+#include <functional>
 #include <iterator>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -316,7 +315,7 @@ namespace Packed
           return true;
         //case 0x03://exit
         case 0x05://short copy
-          std::generate_n(dst, hiNibble + 1, boost::bind(&ByteStream::GetByte, &Stream));
+          std::generate_n(dst, hiNibble + 1, std::bind(&ByteStream::GetByte, &Stream));
           return true;
         case 0x09://short RLE
           std::fill_n(dst, hiNibble + 3, Stream.GetByte());
@@ -327,7 +326,7 @@ namespace Packed
         case 0x0d://long copy
           {
             const uint_t len = 256 * hiNibble + Stream.GetByte() + 1;
-            std::generate_n(dst, len, boost::bind(&ByteStream::GetByte, &Stream));
+            std::generate_n(dst, len, std::bind(&ByteStream::GetByte, &Stream));
           }
           return true;
         default://short backref

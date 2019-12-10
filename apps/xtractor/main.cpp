@@ -40,7 +40,6 @@
 #include <numeric>
 #include <set>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -1117,7 +1116,10 @@ public:
     input->SetTarget(analyse);
     analyse->SetTarget(result);
 
-    std::for_each(paths.begin(), paths.end(), boost::bind(&StringsReceiver::ApplyData, input.get(), _1));
+    for (const auto& p : paths)
+    {
+      input->ApplyData(p);
+    }
     input->Flush();
     return 0;
   }

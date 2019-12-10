@@ -21,10 +21,9 @@
 #include <parameters/tools.h>
 #include <parameters/tracking.h>
 //std includes
+#include <functional>
 #include <mutex>
 #include <set>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QSettings>
 //text includes
@@ -334,7 +333,7 @@ namespace
     {
       const std::lock_guard<std::mutex> lock(Guard);
       Delegates.insert(delegate);
-      return Subscription(this, boost::bind(&CompositeModifier::Unsubscribe, _1, delegate));
+      return Subscription(this, std::bind(&CompositeModifier::Unsubscribe, std::placeholders::_1, delegate));
     }
 
     void SetValue(const NameType& name, IntType val) override

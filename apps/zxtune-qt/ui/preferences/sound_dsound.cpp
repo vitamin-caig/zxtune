@@ -20,8 +20,6 @@
 #include <debug/log.h>
 #include <sound/backends_parameters.h>
 #include <sound/backends/dsound.h>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include "text/text.h"
 
@@ -66,8 +64,8 @@ namespace
     {
       const String& id = FromQString(name);
       Dbg("Selecting device '%1%'", id);
-      const DevicesArray::const_iterator it = std::find_if(Devices.begin(), Devices.end(),
-        boost::bind(&Device::Name, _1) == name || boost::bind(&Device::Id, _1) == id);
+      const auto it = std::find_if(Devices.begin(), Devices.end(),
+        [&name, &id](const Device& dev) {return dev.Name == name || dev.Id == id;});
       if (it != Devices.end())
       {
         devices->setCurrentIndex(it - Devices.begin());

@@ -19,8 +19,6 @@
 //std includes
 #include <cstring>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace TRDos
 {
@@ -163,12 +161,14 @@ namespace TRDos
 
     Formats::Archived::File::Ptr FindFile(const String& name) const override
     {
-      const FilesList::const_iterator it = std::find_if(Files.begin(), Files.end(), boost::bind(&File::GetName, _1) == name);
-      if (it == Files.end())
+      for (const auto& file : Files)
       {
-        return Formats::Archived::File::Ptr();
+        if (file->GetName() == name)
+        {
+          return file;
+        }
       }
-      return *it;
+      return {};
     }
 
     uint_t CountFiles() const override
@@ -186,8 +186,11 @@ namespace TRDos
   public:
     void SetRawData(Binary::Container::Ptr data) override
     {
-      Data = data;
-      std::for_each(Files.begin(), Files.end(), boost::bind(&MultiFile::SetContainer, _1, Data));
+      for (auto& file : Files)
+      {
+        file->SetContainer(data);
+      }
+      Data = std::move(data);
     }
 
     void AddFile(File::Ptr newOne) override
@@ -245,8 +248,14 @@ namespace TRDos
 
     bool HasFile(const String& name) const
     {
-      const MultiFilesList::const_iterator it = std::find_if(Files.begin(), Files.end(), boost::bind(&File::GetName, _1) == name);
-      return it != Files.end();
+      for (const auto& file : Files)
+      {
+        if (file->GetName() == name)
+        {
+          return true;
+        }
+      }
+      return false;
     }
   private:
     Binary::Container::Ptr Data;
@@ -309,7 +318,7 @@ namespace TRDos
       return 1 == Subfiles.size()
         ? Subfiles.front()->GetSize()
         : std::accumulate(Subfiles.begin(), Subfiles.end(), std::size_t(0), 
-          boost::bind(std::plus<std::size_t>(), _1, boost::bind(&File::GetSize, _2)));
+          [](std::size_t sum, const File::Ptr& file) {return sum + file->GetSize();});
     }
 
     Binary::Container::Ptr GetData() const override

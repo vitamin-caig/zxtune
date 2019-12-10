@@ -27,8 +27,6 @@
 #include <cstring>
 #include <functional>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -482,8 +480,7 @@ namespace Packed
             return Blocks.front();
           }
           const std::size_t totalSize = std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), 
-            boost::bind(std::plus<std::size_t>(), _1,
-              boost::bind(&Binary::Container::Size, _2)));
+            [](std::size_t size, const Binary::Container::Ptr& data) {return size + data->Size();});
           std::unique_ptr<Dump> result(new Dump(totalSize));
           auto* target = result->data();
           for (const auto& block : Blocks)

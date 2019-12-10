@@ -26,8 +26,6 @@
 //std includes
 #include <array>
 #include <cstring>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -685,12 +683,12 @@ namespace Chiptune
         return false;
       }
       if (samples->Offsets + samples->Count != std::adjacent_find(samples->Offsets, samples->Offsets + samples->Count,
-          !boost::bind(&AreSequenced, _1, _2, sizeof(RawSample))))
+          [](uint16_t lh, uint16_t rh) {return !AreSequenced(lh, rh, sizeof(RawSample));}))
       {
         return false;
       }
       if (ornaments->Offsets + ornaments->Count != std::adjacent_find(ornaments->Offsets, ornaments->Offsets + ornaments->Count,
-          !boost::bind(&AreSequenced, _1, _2, sizeof(RawOrnament))))
+          [](uint16_t lh, uint16_t rh) {return !AreSequenced(lh, rh, sizeof(RawOrnament));}))
       {
         return false;
       }

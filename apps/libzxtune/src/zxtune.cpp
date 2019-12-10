@@ -28,8 +28,6 @@
 #include <sound/sound_parameters.h>
 //std includes
 #include <map>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Text
 {
@@ -237,13 +235,15 @@ namespace
       Name2Val(Parameters::ZXTune::Core::AYM::CLOCKRATE, Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
       Name2Val(Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT),
     };
-    const Name2Val* const defVal = std::find_if(DEFAULTS, std::end(DEFAULTS), boost::bind(&Name2Val::first, _1) == name);
-    if (std::end(DEFAULTS) == defVal)
+    for (const auto& def : DEFAULTS)
     {
-      return false;
+      if (def.first == name)
+      {
+        value = def.second;
+        return true;
+      }
     }
-    value = defVal->second;
-    return true;
+    return false;
   }
 }
 

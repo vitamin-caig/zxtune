@@ -24,8 +24,7 @@
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
-//boost includes
-#include <boost/bind.hpp>
+#include <functional>
 //text includes
 #include <sound/backends/text/backends.h>
 
@@ -265,7 +264,7 @@ namespace Mp3
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
-      const LameContextPtr context = LameContextPtr(LameApi->lame_init(), boost::bind(&Api::lame_close, LameApi, _1));
+      const LameContextPtr context = LameContextPtr(LameApi->lame_init(), std::bind(&Api::lame_close, LameApi, std::placeholders::_1));
       SetupContext(*context);
       return MakePtr<FileStream>(LameApi, context, stream);
     }

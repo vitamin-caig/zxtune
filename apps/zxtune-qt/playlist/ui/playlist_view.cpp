@@ -35,7 +35,6 @@
 #include <parameters/template.h>
 #include <strings/template.h>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/algorithm/string/find.hpp>
 #include <boost/algorithm/string/replace.hpp>
 //qt includes
@@ -646,9 +645,10 @@ namespace
       {
         const QList<QUrl>& urls = data.urls();
         QStringList files;
-        std::for_each(urls.begin(), urls.end(),
-          boost::bind(&QStringList::push_back, &files,
-            boost::bind(&QUrl::toLocalFile, _1)));
+        for (const auto& url : data.urls())
+        {
+          files.push_back(url.toLocalFile());
+        }
         AddItems(files);
       }
       else if (data.hasFormat(ITEMS_MIMETYPE))

@@ -34,7 +34,6 @@
 #include <list>
 #include <map>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 //text includes
 #include <core/text/plugins.h>
@@ -538,8 +537,8 @@ namespace Raw
 
     std::size_t GetMinimalPluginLookahead() const
     {
-      const typename PluginsList::const_iterator it = std::min_element(Plugins.begin(), Plugins.end(), 
-        boost::bind(&PluginEntry::Offset, _1) < boost::bind(&PluginEntry::Offset, _2));
+      const auto it = std::min_element(Plugins.begin(), Plugins.end(), 
+        [](const PluginEntry& lh, const PluginEntry& rh) {return lh.Offset < rh.Offset;});
       return it->Offset >= Offset ? it->Offset - Offset : 0;
     }
     
@@ -550,8 +549,8 @@ namespace Raw
 
     void SetPluginLookahead(const P& plug, const String& id, std::size_t lookahead)
     {
-      const typename PluginsList::iterator it = std::find_if(Plugins.begin(), Plugins.end(),
-        boost::bind(&P::Ptr::get, boost::bind(&PluginEntry::Plugin, _1)) == &plug);
+      const auto it = std::find_if(Plugins.begin(), Plugins.end(),
+        [&plug](const PluginEntry& entry) {return entry.Plugin.get() == &plug;});
       if (it != Plugins.end())
       {
         Dbg("Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);

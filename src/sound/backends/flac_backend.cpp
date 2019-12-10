@@ -23,8 +23,7 @@
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
-//boost includes
-#include <boost/bind.hpp>
+#include <functional>
 //text includes
 #include <sound/backends/text/backends.h>
 
@@ -70,7 +69,8 @@ namespace Flac
   public:
     explicit MetaData(Api::Ptr api)
       : FlacApi(std::move(api))
-      , Tags(FlacApi->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT), boost::bind(&Api::FLAC__metadata_object_delete, FlacApi, _1))
+      , Tags(FlacApi->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT),
+        std::bind(&Api::FLAC__metadata_object_delete, FlacApi, std::placeholders::_1))
     {
     }
 
@@ -242,7 +242,8 @@ namespace Flac
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
-      const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(), boost::bind(&Api::FLAC__stream_encoder_delete, FlacApi, _1));
+      const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(),
+        std::bind(&Api::FLAC__stream_encoder_delete, FlacApi, std::placeholders::_1));
       SetupEncoder(*encoder);
       return MakePtr<FileStream>(FlacApi, encoder, stream);
     }

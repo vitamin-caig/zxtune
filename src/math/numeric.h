@@ -33,6 +33,56 @@ namespace Math
     return val >= min && val <= max;
   }
 
+  template<class T>
+  class InRangeFunctor
+  {
+  public:
+    InRangeFunctor(T min, T max)
+      : Min(min)
+      , Max(max)
+    {
+    }
+
+    bool operator()(T val) const
+    {
+      return InRange(val, Min, Max);
+    }
+  private:
+    const T Min;
+    const T Max;
+  };
+
+  template<class T>
+  InRangeFunctor<T> InRange(T min, T max)
+  {
+    return InRangeFunctor<T>(min, max);
+  }
+
+  template<class T>
+  class NotInRangeFunctor
+  {
+  public:
+    NotInRangeFunctor(T min, T max)
+      : Min(min)
+      , Max(max)
+    {
+    }
+
+    bool operator()(T val) const
+    {
+      return !InRange(val, Min, Max);
+    }
+  private:
+    const T Min;
+    const T Max;
+  };
+
+  template<class T>
+  NotInRangeFunctor<T> NotInRange(T min, T max)
+  {
+    return NotInRangeFunctor<T>(min, max);
+  }
+
   //! @brief Align numeric with specified alignment
   template<class T>
   inline T Align(T val, T alignment)

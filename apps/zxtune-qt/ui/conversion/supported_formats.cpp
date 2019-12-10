@@ -22,8 +22,6 @@
 //std includes
 #include <functional>
 #include <set>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtGui/QRadioButton>
 
@@ -92,42 +90,39 @@ namespace
       std::for_each(Buttons.begin(), Buttons.end(),
         std::bind1st(std::mem_fun(&SupportedFormats::SetupButton), this));
       //fixup
-      const IdToButton::const_iterator butIt = std::find_if(Buttons.begin(), Buttons.end(),
-        boost::bind(&QRadioButton::isChecked, boost::bind(&IdToButton::value_type::second, _1)));
-      if (butIt == Buttons.end() || !butIt->second->isEnabled())
+      for (const auto& id2b : Buttons)
       {
-        selectWAV->setChecked(true);
+        if (id2b.second->isChecked())
+        {
+          selectWAV->setChecked(!id2b.second->isEnabled());
+          return;
+        }
       }
+      selectWAV->setChecked(true);
     }
 
     String GetSelectedId() const override
     {
-      const IdToButton::const_iterator it =
-        std::find_if(Buttons.begin(), Buttons.end(),
-          boost::bind(&QRadioButton::isChecked, boost::bind(&IdToButton::value_type::second, _1)));
-      if (it != Buttons.end())
+      for (const auto& id2b : Buttons)
       {
-        return it->first;
+        if (id2b.second->isChecked())
+        {
+          return id2b.first;
+        }
       }
-      else
-      {
-        return String();
-      }
+      return {};
     }
 
     QString GetDescription() const override
     {
-      const IdToButton::const_iterator it =
-        std::find_if(Buttons.begin(), Buttons.end(),
-          boost::bind(&QRadioButton::isChecked, boost::bind(&IdToButton::value_type::second, _1)));
-      if (it != Buttons.end())
+      for (const auto& id2b : Buttons)
       {
-        return it->second->text();
+        if (id2b.second->isChecked())
+        {
+          return id2b.second->text();
+        }
       }
-      else
-      {
-        return QString();
-      }
+      return {};
     }
   private:
     typedef std::map<String, QRadioButton*> IdToButton;

@@ -39,8 +39,6 @@
 //std includes
 #include <deque>
 #include <mutex>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include "text/text.h"
 
@@ -157,12 +155,14 @@ namespace
 
     void Del(const String& id)
     {
-      const typename ItemsList::iterator it = std::find_if(Items.begin(), Items.end(),
-        boost::bind(&Item::Id, _1) == id);
-      if (it != Items.end())
+      for (auto it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
-        TotalWeight -= ObjectTraits<T>::Weight(it->Value);
-        Items.erase(it);
+        if (it->Id == id)
+        {
+          TotalWeight -= ObjectTraits<T>::Weight(it->Value);
+          Items.erase(it);
+          break;
+        }
       }
     }
 
@@ -195,15 +195,16 @@ namespace
   private:
     Item* FindItem(const String& id)
     {
-      const typename ItemsList::iterator it = std::find_if(Items.begin(), Items.end(),
-        boost::bind(&Item::Id, _1) == id);
-      if (it != Items.end())
+      for (auto it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
-        if (Items.size() > 1)
+        if (it->Id == id)
         {
-          std::iter_swap(it, Items.begin());
+          if (it != Items.begin() && Items.size() > 1)
+          {
+            std::iter_swap(it, Items.begin());
+          }
+          return &Items.front();
         }
-        return &Items.front();
       }
       return nullptr;
     }

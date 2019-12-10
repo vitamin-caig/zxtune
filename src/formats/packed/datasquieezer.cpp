@@ -24,10 +24,9 @@
 #include <math/numeric.h>
 //std includes
 #include <algorithm>
+#include <functional>
 #include <iterator>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -426,7 +425,7 @@ namespace Packed
       void CopySingleBytes()
       {
         const uint_t count = 14 + Stream.GetBits(5);
-        std::generate_n(std::back_inserter(Decoded), count, boost::bind(&Bitstream::Get8Bits, &Stream));
+        std::generate_n(std::back_inserter(Decoded), count, std::bind(&Bitstream::Get8Bits, &Stream));
       }
     private:
       bool IsValid;

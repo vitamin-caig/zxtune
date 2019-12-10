@@ -20,8 +20,6 @@
 #include <debug/log.h>
 #include <sound/backends_parameters.h>
 #include <sound/backends/alsa.h>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include "text/text.h"
 
@@ -36,9 +34,10 @@ namespace
   QStringList ToStringList(const T& input)
   {
     QStringList result;
-    void (QStringList::*add)(const QString&) = &QStringList::append;
-    std::for_each(input.begin(), input.end(),
-      boost::bind(add, &result, boost::bind(&ToQString, _1)));
+    for (const auto& item : input)
+    {
+      result.append(ToQString(item));
+    }
     return result;
   }
 
@@ -93,8 +92,8 @@ namespace
     {
       const String& id = FromQString(name);
       Dbg("Selecting device '%1%'", id);
-      const DevicesArray::const_iterator it = std::find_if(Devices.begin(), Devices.end(),
-        boost::bind(&Device::Name, _1) == name || boost::bind(&Device::Id, _1) == id);
+      const auto it = std::find_if(Devices.begin(), Devices.end(),
+        [&name, &id](const Device& dev) {return dev.Name == name || dev.Id == id;});
       if (it != Devices.end())
       {
         devices->setCurrentIndex(it - Devices.begin());

@@ -23,7 +23,6 @@
 //std includes
 #include <thread>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/program_options.hpp>
 //text includes
 #include "text/text.h"
@@ -57,11 +56,6 @@ namespace
     default:
       return '\?';
     }
-  }
-
-  inline char SymIfGreater(int_t val, int_t limit)
-  {
-    return val > limit ? '#' : ' ';
   }
 
   class DisplayComponentImpl : public DisplayComponent
@@ -201,7 +195,8 @@ namespace
       for (int_t y = high; y; --y)
       {
         const int_t limit = (y - 1) * 100 / high;
-        std::transform(AnalyzerData.begin(), AnalyzerData.end(), buffer.begin(), boost::bind(&SymIfGreater, _1, limit));
+        std::transform(AnalyzerData.begin(), AnalyzerData.end(), buffer.begin(),
+          [limit](const int_t val) {return val > limit ? '#' : ' ';});
         StdOut << buffer << '\n';
       }
       StdOut << std::flush;

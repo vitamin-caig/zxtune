@@ -29,7 +29,6 @@
 #include <sound/sound_parameters.h>
 #include <strings/array.h>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/algorithm/string/join.hpp>
 //std includes
 #include <utility>
@@ -129,17 +128,18 @@ namespace
   private:
     void FillFrequences()
     {
-      std::for_each(FREQUENCES, std::end(FREQUENCES), boost::bind(&SoundOptionsWidget::AddFrequency, this, _1));
-    }
-
-    void AddFrequency(uint_t freq)
-    {
-      soundFrequencyValue->addItem(QString::number(freq));
+      for (const auto freq : FREQUENCES)
+      {
+        soundFrequencyValue->addItem(QString::number(freq));
+      }
     }
 
     void FillBackends()
     {
-      std::for_each(Backends.begin(), Backends.end(), boost::bind(&SoundOptionsWidget::AddBackend, this, _1));
+      for (const auto& id : Backends)
+      {
+        backendsList->addItem(ToQString(id));
+      }
       AddPage(&UI::AlsaSettingsWidget::Create);
       AddPage(&UI::DirectSoundSettingsWidget::Create);
       AddPage(&UI::OssSettingsWidget::Create);
@@ -157,11 +157,6 @@ namespace
         backendGroupLayout->addWidget(wid.get());
         SetupPages[id] = wid.release();
       }
-    }
-    
-    void AddBackend(const String& id)
-    {
-      backendsList->addItem(ToQString(id));
     }
     
     void SetFrequency(uint_t val)

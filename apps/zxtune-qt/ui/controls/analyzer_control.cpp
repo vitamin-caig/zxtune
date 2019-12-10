@@ -19,8 +19,6 @@
 #include <algorithm>
 #include <array>
 #include <limits>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QEvent>
 #include <QtCore/QTimer>

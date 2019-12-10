@@ -25,8 +25,6 @@
 #include <strings/optimize.h>
 //std includes
 #include <array>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -709,7 +707,7 @@ namespace Chiptune
         uint_t GetMinCounter() const
         {
           return std::min_element(Channels.begin(), Channels.end(),
-            boost::bind(&ChannelState::Counter, _1) < boost::bind(&ChannelState::Counter, _2))->Counter;
+            [](const ChannelState& lh, const ChannelState& rh) {return lh.Counter < rh.Counter;})->Counter;
         }
 
         void SkipLines(uint_t toSkip)
