@@ -1,6 +1,6 @@
 FROM debian:stretch-slim
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates debhelper build-essential git zip python3-minimal \
+    apt-get install -y --no-install-recommends apt-transport-https ca-certificates debhelper build-essential git zip python3-minimal \
       wget gnupg2 strace \
       libpulse-dev libclalsadrv-dev \
       libboost-filesystem-dev libboost-locale-dev libboost-program-options-dev libboost-system-dev libicu-dev libicu57 \
