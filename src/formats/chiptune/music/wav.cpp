@@ -336,7 +336,7 @@ namespace Chiptune
       "?? 00-01 00"     //up to 96kHz
       "????"            //data rate
       "??"              //arbitraty block size
-      "01-20 00"        //1-32 bits per sample
+      "00|01-20 00"     //1-32 bits per sample and 0 for special formats
     ;
     
     class Decoder : public Formats::Chiptune::Decoder

@@ -12,6 +12,7 @@
 
 //library includes
 #include <binary/data.h>
+#include <binary/view.h>
 #include <sound/chunk.h>
 #include <time/stamp.h>
 
@@ -29,7 +30,7 @@ namespace Wav
     Time::Microseconds FrameDuration;
     Binary::Data::Ptr Data;
   };
-  
+
   class Model
   {
   public:
@@ -46,5 +47,6 @@ namespace Wav
   Model::Ptr CreateFloatPcmModel(const Properties& props);
   Model::Ptr CreateAdpcmModel(const Properties& props);
   Model::Ptr CreateImaAdpcmModel(const Properties& props);
+  Model::Ptr CreateAtrac9Model(const Properties& props, Binary::View extraData);
 }
 }
