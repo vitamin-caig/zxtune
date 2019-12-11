@@ -9,7 +9,7 @@
 #include <math.h>
 #include <string.h>
 
-static At9Status InitConfigData(ConfigData* config, unsigned char * configData);
+static At9Status InitConfigData(ConfigData* config, const unsigned char * configData);
 static At9Status ReadConfigData(ConfigData* config);
 static At9Status InitFrame(Atrac9Handle* handle);
 static At9Status InitBlock(Block* block, Frame* parentFrame, int blockIndex);
@@ -24,7 +24,7 @@ static void GenerateImdctWindow(int frameSizePower);
 
 static int BlockTypeToChannelCount(BlockType blockType);
 
-At9Status InitDecoder(Atrac9Handle* handle, unsigned char* configData, int wlength)
+At9Status InitDecoder(Atrac9Handle* handle, const unsigned char* configData, int wlength)
 {
 	ERROR_CHECK(InitConfigData(&handle->Config, configData));
 	ERROR_CHECK(InitFrame(handle));
@@ -36,7 +36,7 @@ At9Status InitDecoder(Atrac9Handle* handle, unsigned char* configData, int wleng
 	return ERR_SUCCESS;
 }
 
-static At9Status InitConfigData(ConfigData* config, unsigned char* configData)
+static At9Status InitConfigData(ConfigData* config, const unsigned char* configData)
 {
 	memcpy(config->ConfigData, configData, CONFIG_DATA_SIZE);
 	ERROR_CHECK(ReadConfigData(config));

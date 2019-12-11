@@ -15,7 +15,7 @@ void Atrac9ReleaseHandle(void* handle)
 	free(handle);
 }
 
-int Atrac9InitDecoder(void* handle, unsigned char * pConfigData)
+int Atrac9InitDecoder(void* handle, const unsigned char * pConfigData)
 {
 	return InitDecoder(handle, pConfigData, 16);
 }
