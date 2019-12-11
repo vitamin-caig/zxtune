@@ -26,9 +26,7 @@
 #include <array>
 #include <cctype>
 //boost includes
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -59,7 +57,8 @@ namespace Chiptune
           'B', 'Y', 0
         };
 
-        return boost::algorithm::iequals(Strings::TrimSpaces(Optional2), BY_DELIMITER);
+        const auto trimId = Strings::TrimSpaces(Optional2);
+        return boost::algorithm::iequals(trimId, BY_DELIMITER);
       }
     } PACK_POST;
 

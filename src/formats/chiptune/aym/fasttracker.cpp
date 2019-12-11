@@ -25,10 +25,6 @@
 //std includes
 #include <array>
 #include <cstring>
-//boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 

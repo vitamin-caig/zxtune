@@ -23,13 +23,12 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
+#include <strings/trim.h>
 //std includes
 #include <array>
 #include <cstring>
 //boost includes
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -116,7 +115,7 @@ namespace Chiptune
 
       bool HasAuthor() const
       {
-        const auto trimId = boost::algorithm::trim_copy_if(StringView(Identifier2), boost::algorithm::is_from_range(' ', ' '));
+        const auto trimId = Strings::TrimSpaces(Identifier2);
         return boost::algorithm::iequals(trimId, BY_DELIMITER);
       }
     } PACK_POST;

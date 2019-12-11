@@ -31,7 +31,6 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -550,8 +549,8 @@ namespace ProTracker3
           Require(sepPos != str.npos);
           const auto first = str.substr(0, sepPos);
           const auto second = str.substr(sepPos + 1);
-          Name = boost::algorithm::trim_copy(first).to_string();
-          Value = boost::algorithm::trim_copy(second).to_string();
+          Name = Strings::TrimSpaces(first).to_string();
+          Value = Strings::TrimSpaces(second).to_string();
         }
 
         Entry(std::string name, std::string value)
