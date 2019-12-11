@@ -16,6 +16,23 @@ namespace
 {
   using namespace Formats::Chiptune;
 
+  Char ToHex(uint_t val)
+  {
+    return val >= 10 ? val - 10 + 'A' : val + '0';
+  }
+
+  String ToHex(Binary::View data)
+  {
+    String result;
+    result.reserve(data.Size() * 2);
+    for (const auto* p = data.As<uint8_t>(), *lim = p + data.Size(); p != lim; ++p)
+    {
+      result += ToHex(*p >> 4);
+      result += ToHex(*p & 15);
+    }
+    return result;
+  }
+
   class WavBuilder : public Wav::Builder, public MetaBuilder
   {
   public:
@@ -56,7 +73,17 @@ namespace
       "\nBits: " << bits <<
       "\nBlocksize: " << blocksize << std::endl;
     }
-    
+
+    void SetExtendedProperties(uint_t validBitsOrBlockSize, uint_t channelsMask,
+      const Wav::Guid& formatId, Binary::View restData) override
+    {
+      std::cout <<
+      "Extdended format: {" << ToHex(formatId) << "}"
+      "\nValid bits or block size: " << validBitsOrBlockSize <<
+      "\nChannels mask: " << channelsMask <<
+      "\nExtra data: (" << restData.Size() << " bytes) " << ToHex(restData) << std::endl; 
+    }
+
     void SetSamplesData(Binary::Container::Ptr data) override
     {
       std::cout << "Samples data: " << data->Size() << " bytes" << std::endl;
@@ -73,8 +100,12 @@ namespace
       {
       case Wav::Format::PCM:
         return "pcm";
+      case Wav::Format::ADPCM:
+        return "pcm";
       case Wav::Format::IEEE_FLOAT:
         return "float32";
+      case Wav::Format::EXTENDED:
+        return "extended";
       default:
         return "other";
       }

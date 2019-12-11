@@ -14,6 +14,8 @@
 #include "formats/chiptune/builder_meta.h"
 //library includes
 #include <formats/chiptune.h>
+//std includes
+#include <array>
 
 namespace Formats
 {
@@ -29,8 +31,12 @@ namespace Formats
         IEEE_FLOAT = 3,
         ALAW = 6,
         MULAW = 7,
-        IMA_ADPCM = 17 //same as DVI_ADPCM
+        IMA_ADPCM = 17, //same as DVI_ADPCM
+
+        EXTENDED = 0xfffe
       };
+
+      using Guid = std::array<uint8_t, 16>;
       
       class Builder
       {
@@ -40,6 +46,8 @@ namespace Formats
         virtual MetaBuilder& GetMetaBuilder() = 0;
         
         virtual void SetProperties(uint_t format, uint_t frequency, uint_t channels, uint_t bits, uint_t blockSize) = 0;
+        // Called when format is Format::EXTENDED
+        virtual void SetExtendedProperties(uint_t validBitsOrBlockSize, uint_t channelsMask, const Guid& formatId, Binary::View restData) = 0;
         virtual void SetSamplesData(Binary::Container::Ptr data) = 0;
         virtual void SetSamplesCountHint(uint_t count) = 0;
       };

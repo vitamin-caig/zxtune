@@ -163,6 +163,11 @@ namespace Wav
       WavProperties.Bits = bits;
       WavProperties.BlockSize = blockSize;
     }
+
+    void SetExtendedProperties(uint_t /*validBitsOrBlockSize*/, uint_t /*channelsMask*/,
+      const Formats::Chiptune::Wav::Guid& /*formatId*/, Binary::View /*restData*/) override
+    {
+    }
     
     void SetSamplesData(Binary::Container::Ptr data) override
     {
