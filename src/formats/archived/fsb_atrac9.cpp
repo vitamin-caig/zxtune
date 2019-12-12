@@ -35,9 +35,12 @@ namespace FSB
 
       void Set(Binary::View chunk)
       {
-        const auto config = chunk.SubView(4, 4);
-        Require(config.Size() >= 4);
-        std::memcpy(&Data[4], config.Start(), 4);
+        const std::size_t CONFIG_SIZE = 4;
+        const auto* begin = chunk.As<uint8_t>();
+        const auto* end = begin + chunk.Size();
+        const auto* sign = std::find(begin, end, 0xfe);
+        Require(sign + CONFIG_SIZE <= end);
+        std::memcpy(&Data[4], sign, CONFIG_SIZE);
       }
 
       uint_t GetSamplerate() const
