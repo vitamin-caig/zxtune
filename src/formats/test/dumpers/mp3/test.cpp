@@ -67,8 +67,14 @@ int main(int argc, char* argv[])
     Test::OpenFile(argv[1], *rawData);
     const Binary::Container::Ptr data = Binary::CreateContainer(std::move(rawData));
     Mp3Builder builder;
-    const auto result = Formats::Chiptune::Mp3::Parse(*data, builder);
-    std::cout << result->Size() << " bytes total" << std::endl;
+    if (const auto result = Formats::Chiptune::Mp3::Parse(*data, builder))
+    {
+      std::cout << result->Size() << " bytes total" << std::endl;
+    }
+    else
+    {
+      std::cout << "Failed to parse" << std::endl;
+    }
     return 0;
   }
   catch (const std::exception& e)
