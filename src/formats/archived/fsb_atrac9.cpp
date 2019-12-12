@@ -41,6 +41,10 @@ namespace FSB
         const auto* sign = std::find(begin, end, 0xfe);
         Require(sign + CONFIG_SIZE <= end);
         std::memcpy(&Data[4], sign, CONFIG_SIZE);
+        // check data here
+        Require(GetChannelsCount() <= 2);
+        //verification bit
+        Require((Data[5] & 1) == 0);
       }
 
       uint_t GetSamplerate() const
@@ -63,8 +67,7 @@ namespace FSB
         case 2://stereo
           return 2;
         default:
-          Require(false);
-          return 0;
+          return 6;
         }
       }
 
@@ -79,8 +82,6 @@ namespace FSB
       {
         //marker
         Require(Data[4] == 0xfe);
-        //verification bit
-        Require((Data[5] & 1) == 0);
         return Data;
       }
    private:
