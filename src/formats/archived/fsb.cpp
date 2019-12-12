@@ -32,7 +32,7 @@ namespace Archived
     const std::string FORMAT(
       "'F'S'B'5"
       "?{20}"
-      "01-05|07|0b|0f 000000" //pcm+imaadpcm+mpeg+vorbis
+      "01-05|07|0b|0d|0f 000000" //pcm+imaadpcm+mpeg+at9+vorbis
     );
 
     class File : public Archived::File
@@ -122,6 +122,9 @@ namespace Archived
           break;
         case Fmod::Format::VORBIS:
           Delegate = CreateOggVorbisBuilder();
+          break;
+        case Fmod::Format::AT9:
+          Delegate = CreateAtrac9Builder();
           break;
         default:
           Require(false);

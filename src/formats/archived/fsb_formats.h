@@ -34,6 +34,7 @@ namespace Archived
     FormatBuilder::Ptr CreateMpegBuilder();
     FormatBuilder::Ptr CreatePcmBuilder();
     FormatBuilder::Ptr CreateOggVorbisBuilder();
+    FormatBuilder::Ptr CreateAtrac9Builder();
   }
 }
 }
