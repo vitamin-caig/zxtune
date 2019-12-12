@@ -295,6 +295,7 @@ namespace Chiptune
         Storage.Add(fromLE<uint32_t>(channelsMask));
         Storage.Add(formatId);
         Storage.Add(restData);
+        Storage.Get<uint32_t>(16) = fromLE<uint32_t>(Storage.Size() - 20);
       }
       
       void SetSamplesData(Binary::Container::Ptr data) override
@@ -313,7 +314,7 @@ namespace Chiptune
       
       Binary::Container::Ptr GetDump() override
       {
-        Storage.Get<uint32_t>(4) = fromLE(Storage.Size() - 8);
+        Storage.Get<uint32_t>(4) = fromLE<uint32_t>(Storage.Size() - 8);
         return Storage.CaptureResult();
       }
     private:
