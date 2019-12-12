@@ -77,7 +77,7 @@ namespace
   public:
     void Setup(uint_t samplesCount, uint_t format) override
     {
-      Write(0, "%1% samples %2%", samplesCount, FormatString(format));
+      Write(0, "%1% samples type %2% (%3%)", samplesCount, format, FormatString(format));
     }
     
     void StartSample(uint_t idx) override
@@ -142,13 +142,13 @@ namespace
       case Format::CELT:
         return "celt";
       case Format::AT9:
-        return "at9";
+        return "atrac9";
       case Format::XWMA:
         return "xwma";
       case Format::VORBIS:
         return "vorbis";
       default:
-        return "invalid";
+        return "unknown";
       }
     }
     
@@ -168,6 +168,8 @@ namespace
         return "dspcoeff";
       case ChunkType::XWMADATA:
         return "xwmadata";
+      case ChunkType::ATRAC9DATA:
+        return "atrac9data";
       case ChunkType::VORBISDATA:
         return "vorbisdata";
       default:

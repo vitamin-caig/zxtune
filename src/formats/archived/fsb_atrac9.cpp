@@ -55,7 +55,7 @@ namespace FSB
 
       uint_t GetChannelsCount() const
       {
-        switch (const auto idx = (Data[5] >> 1) & 7)
+        switch ((Data[5] >> 1) & 7)
         {
         case 0://mono
           return 1;
