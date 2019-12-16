@@ -5,6 +5,11 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4850 fro 16.12.2019
+
+[+] Supported ATRAC9 streams in WAV and FSB containers.
+[+] zxtune-android: added PlayStation Vita and PlayStation 4 archives to joshw.info catalogues
+
 --- Rev4830 from 09.12.2019
 
 [*] Optimized memory usage
