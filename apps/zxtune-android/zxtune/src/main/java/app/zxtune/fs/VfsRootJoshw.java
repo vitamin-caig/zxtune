@@ -46,7 +46,9 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
             new AudiobaseDir("ncd", R.string.vfs_joshw_ncd_name, R.string.vfs_joshw_ncd_description),
             new AudiobaseDir("pc", R.string.vfs_joshw_pc_name, R.string.vfs_joshw_pc_description),
             new AudiobaseDir("mobile", R.string.vfs_joshw_mobile_name, R.string.vfs_joshw_mobile_description),
-            new AudiobaseDir("switch", R.string.vfs_joshw_switch_name, R.string.vfs_joshw_switch_description)
+            new AudiobaseDir("switch", R.string.vfs_joshw_switch_name, R.string.vfs_joshw_switch_description),
+            new AudiobaseDir("vita", R.string.vfs_joshw_vita_name, R.string.vfs_joshw_vita_description),
+            new AudiobaseDir("psf4", R.string.vfs_joshw_psf4_name, R.string.vfs_joshw_psf4_description)
     };
   }
 
