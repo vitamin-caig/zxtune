@@ -25,9 +25,7 @@ import app.zxtune.databinding.PlaylistEntryBinding;
 public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistViewAdapter.EntryViewHolder> {
 
   public interface Client {
-    void onClick(long id);
-
-    void onDrag(@NonNull RecyclerView.ViewHolder holder);
+    boolean onDrag(@NonNull RecyclerView.ViewHolder holder);
   }
 
   private final Client client;
@@ -173,18 +171,11 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
 
   @Override
   public void onViewAttachedToWindow(@NonNull final EntryViewHolder holder) {
-    holder.itemView.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        client.onClick(holder.getItemId());
-      }
-    });
     holder.binding.playlistEntryState.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-          client.onDrag(holder);
-          return true;
+          return client.onDrag(holder);
         }
         return false;
       }
@@ -193,7 +184,6 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
 
   @Override
   public void onViewDetachedFromWindow(@NonNull EntryViewHolder holder) {
-    holder.itemView.setOnClickListener(null);
     holder.binding.playlistEntryState.setOnTouchListener(null);
   }
 
@@ -209,7 +199,7 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
       binding.setEntry(entry);
       binding.setIsPlaying(isPlaying);
       binding.executePendingBindings();
-      itemView.setActivated(isSelected);
+      itemView.setSelected(isSelected);
     }
   }
 

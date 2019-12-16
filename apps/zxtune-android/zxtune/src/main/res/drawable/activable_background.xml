@@ -2,5 +2,6 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android"
   android:constantSize="true"
   >
-  <item android:drawable="@android:drawable/screen_background_light_transparent" android:state_activated="true" />
+  <item android:drawable="@android:drawable/screen_background_light_transparent" android:state_selected="true" />
+  <item android:drawable="@android:drawable/screen_background_dark" android:state_activated="true" />
 </selector>

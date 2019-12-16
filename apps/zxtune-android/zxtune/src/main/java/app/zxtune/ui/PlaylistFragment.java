@@ -7,7 +7,6 @@
 package app.zxtune.ui;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaMetadataCompat;
@@ -17,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +27,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.selection.ItemDetailsLookup;
+import androidx.recyclerview.selection.OnItemActivatedListener;
 import androidx.recyclerview.selection.Selection;
 import androidx.recyclerview.selection.SelectionPredicates;
 import androidx.recyclerview.selection.SelectionTracker;
@@ -150,6 +152,7 @@ public class PlaylistFragment extends Fragment {
         new PlaylistViewAdapter.DetailsLookup(listing),
         StorageStrategy.createLongStorage())
                            .withSelectionPredicate(SelectionPredicates.<Long>createSelectAnything())
+                           .withOnItemActivatedListener(new ItemActivatedListener())
                            .build();
     adapter.setSelection(selectionTracker.getSelection());
 
@@ -160,7 +163,8 @@ public class PlaylistFragment extends Fragment {
       selectionTracker.onRestoreInstanceState(savedInstanceState);
     }
 
-    touchHelper = new ItemTouchHelper(new TouchHelperCallback());
+    final TouchHelperCallback touchHelperCallback = new TouchHelperCallback();
+    touchHelper = new ItemTouchHelper(touchHelperCallback);
     touchHelper.attachToRecyclerView(listing);
 
     stub = view.findViewById(R.id.playlist_stub);
@@ -169,6 +173,9 @@ public class PlaylistFragment extends Fragment {
     playlistModel.getItems().observe(this, new Observer<List<PlaylistEntry>>() {
       @Override
       public void onChanged(@NonNull List<PlaylistEntry> entries) {
+        if (touchHelperCallback.isDragging()) {
+          return;
+        }
         adapter.submitList(entries);
         if (entries.isEmpty()) {
           listing.setVisibility(View.GONE);
@@ -203,28 +210,43 @@ public class PlaylistFragment extends Fragment {
     selectionTracker.onSaveInstanceState(outState);
   }
 
-  // Client for adapter
-  class AdapterClient implements PlaylistViewAdapter.Client {
+  private class ItemActivatedListener implements OnItemActivatedListener<Long> {
     @Override
-    public void onClick(long id) {
-      final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
-      final MediaControllerCompat ctrl = model.getMediaController().getValue();
-      if (ctrl != null) {
-        final Uri toPlay = ProviderClient.createUri(id);
-        ctrl.getTransportControls().playFromUri(toPlay, null);
-      }
+    public boolean onItemActivated(@NonNull ItemDetailsLookup.ItemDetails<Long> item, @NonNull MotionEvent e) {
+      return onItemClick(item.getSelectionKey());
     }
+  }
 
+  private class AdapterClient implements PlaylistViewAdapter.Client {
     @Override
-    public void onDrag(@NonNull RecyclerView.ViewHolder holder) {
-      if (!selectionTracker.hasSelection()) {
-        touchHelper.startDrag(holder);
-      }
+    public boolean onDrag(@NonNull RecyclerView.ViewHolder holder) {
+      return onItemDrag(holder);
+    }
+  }
+
+  private boolean onItemClick(@Nullable Long id) {
+    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+    final MediaControllerCompat ctrl = model.getMediaController().getValue();
+    if (ctrl != null && id != null) {
+      final Uri toPlay = ProviderClient.createUri(id);
+      ctrl.getTransportControls().playFromUri(toPlay, null);
+      return true;
+    }
+    return false;
+  }
+
+  private boolean onItemDrag(@NonNull RecyclerView.ViewHolder holder) {
+    // Disable dragging in selection mode
+    if (!selectionTracker.hasSelection()) {
+      touchHelper.startDrag(holder);
+      return true;
+    } else {
+      return false;
     }
   }
 
   // Client for selection
-  class SelectionClient implements SelectionUtils.Client {
+  private class SelectionClient implements SelectionUtils.Client {
     @NonNull
     @Override
     public String getTitle(int count) {
@@ -301,11 +323,16 @@ public class PlaylistFragment extends Fragment {
 
   private class TouchHelperCallback extends ItemTouchHelper.SimpleCallback {
 
+    boolean isActive = false;
     long draggedItem = -1;
     int dragDelta = 0;
 
     TouchHelperCallback() {
       super(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0);
+    }
+
+    final boolean isDragging() {
+      return isActive;
     }
 
     @Override
@@ -321,7 +348,7 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
       if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
-        viewHolder.itemView.setBackgroundColor(Color.BLACK);
+        viewHolder.itemView.setActivated(isActive = true);
       }
       super.onSelectedChanged(viewHolder, actionState);
     }
@@ -329,7 +356,7 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void clearView(@NonNull RecyclerView view, @NonNull RecyclerView.ViewHolder viewHolder) {
       super.clearView(view, viewHolder);
-      viewHolder.itemView.setBackgroundColor(Color.TRANSPARENT);
+      viewHolder.itemView.setActivated(isActive = false);
 
       if (draggedItem != -1 && dragDelta != 0) {
         ctrl.move(draggedItem, dragDelta);
