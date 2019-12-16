@@ -63,4 +63,5 @@ dependencies {
     //manual deps
     implementation 'androidx.databinding:databinding-runtime:3.2.0'
     implementation 'androidx.databinding:databinding-compiler:3.2.0'
+    implementation 'androidx.databinding:databinding-adapters:3.2.0'
 }
