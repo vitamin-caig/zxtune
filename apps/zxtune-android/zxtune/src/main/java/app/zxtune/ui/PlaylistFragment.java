@@ -151,14 +151,14 @@ public class PlaylistFragment extends Fragment {
         StorageStrategy.createLongStorage())
                            .withSelectionPredicate(SelectionPredicates.<Long>createSelectAnything())
                            .build();
-    if (savedInstanceState != null) {
-      selectionTracker.onRestoreInstanceState(savedInstanceState);
-    }
-
     adapter.setSelection(selectionTracker.getSelection());
 
     SelectionUtils.install((AppCompatActivity) getActivity(), selectionTracker,
         new SelectionClient());
+
+    if (savedInstanceState != null) {
+      selectionTracker.onRestoreInstanceState(savedInstanceState);
+    }
 
     touchHelper = new ItemTouchHelper(new TouchHelperCallback());
     touchHelper.attachToRecyclerView(listing);

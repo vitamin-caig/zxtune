@@ -64,6 +64,11 @@ final class SelectionUtils<T> extends SelectionTracker.SelectionObserver<T> {
     }
   }
 
+  @Override
+  public void onSelectionRestored() {
+    onSelectionChanged();
+  }
+
   private class ActionModeCallback implements ActionMode.Callback {
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
