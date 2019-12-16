@@ -300,6 +300,7 @@ namespace Chiptune
     static_assert(sizeof(FrameHeader) == 4, "Invalid layout");
     static const std::size_t MIN_FREEFORMAT_FRAME_SIZE = 16;
     static const std::size_t MAX_FREEFORMAT_FRAME_SIZE = 2304;
+    static const uint_t MAX_SYNC_GAP_NOTLOST = 3;
     static const uint_t MAX_SYNC_LOSTS_COUNT = 3;
     
     class Format
@@ -335,11 +336,13 @@ namespace Chiptune
           else
           {
             freeFormatFrameSize = Synchronize();
-            if (Stream.GetPosition() == offset)
+            const auto skip = Stream.GetPosition() - offset;
+            if (!skip)
             {
+              //nothing found
               break;
             }
-            if (++syncLostsCount > MAX_SYNC_LOSTS_COUNT)
+            if (skip > MAX_SYNC_GAP_NOTLOST && ++syncLostsCount > MAX_SYNC_LOSTS_COUNT)
             {
               return Container::Ptr();
             }

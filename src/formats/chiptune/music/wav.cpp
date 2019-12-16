@@ -147,20 +147,22 @@ namespace Chiptune
         /*const auto dataRate = */stream.ReadLE<uint32_t>();
         const auto blockSize = stream.ReadLE<uint16_t>();
         const auto bits = stream.ReadLE<uint16_t>();
-        if (formatTag == 0xfffe)
+        Target.SetProperties(formatTag, frequency, channels, bits, blockSize);
+        if (formatTag == Format::EXTENDED && stream.GetRestSize() >= 22)
         {
           const auto extensionSize = stream.ReadLE<uint16_t>();
           Require(extensionSize == stream.GetRestSize());
-          Require(extensionSize == 22);
-          stream.Skip(6);
-          formatTag = stream.ReadLE<uint16_t>();
+          const auto bitsOrBlockSize = stream.ReadLE<uint16_t>();
+          const auto channelsMask = stream.ReadLE<uint32_t>();
+          const auto formatId = stream.ReadField<Guid>();
+          const auto rest = stream.ReadRestData();
+          Target.SetExtendedProperties(bitsOrBlockSize, channelsMask, formatId, rest);
         }
-        Target.SetProperties(formatTag, frequency, channels, bits, blockSize);
       }
       
       void ParseSamplesCountHint(Binary::View data)
       {
-        Require(data.Size() == 4);
+        Require(data.Size() >= 4);
         Target.SetSamplesCountHint(ReadLE<uint32_t>(data.As<uint8_t>()));
       }
       
@@ -247,6 +249,7 @@ namespace Chiptune
       }
 
       void SetProperties(uint_t /*formatCode*/, uint_t /*frequency*/, uint_t /*channels*/, uint_t /*bits*/, uint_t /*blocksize*/) override {}
+      void SetExtendedProperties(uint_t /*validBitsOrBlockSize*/, uint_t /*channelsMask*/, const Guid& /*formatId*/, Binary::View /*restData*/) override {}
       void SetSamplesData(Binary::Container::Ptr /*data*/) override {}
       void SetSamplesCountHint(uint_t /*count*/) override {}
     };
@@ -284,6 +287,16 @@ namespace Chiptune
         Storage.Add(fromLE<uint16_t>(blockSize));
         Storage.Add(fromLE<uint16_t>(bits));
       }
+
+      void SetExtendedProperties(uint_t validBitsOrBlockSize, uint_t channelsMask, const Guid& formatId, Binary::View restData) override
+      {
+        Storage.Add(fromLE<uint16_t>(6 + sizeof(formatId) + restData.Size()));
+        Storage.Add(fromLE<uint16_t>(validBitsOrBlockSize));
+        Storage.Add(fromLE<uint32_t>(channelsMask));
+        Storage.Add(formatId);
+        Storage.Add(restData);
+        Storage.Get<uint32_t>(16) = fromLE<uint32_t>(Storage.Size() - 20);
+      }
       
       void SetSamplesData(Binary::Container::Ptr data) override
       {
@@ -301,7 +314,7 @@ namespace Chiptune
       
       Binary::Container::Ptr GetDump() override
       {
-        Storage.Get<uint32_t>(4) = fromLE(Storage.Size() - 8);
+        Storage.Get<uint32_t>(4) = fromLE<uint32_t>(Storage.Size() - 8);
         return Storage.CaptureResult();
       }
     private:
@@ -324,7 +337,7 @@ namespace Chiptune
       "?? 00-01 00"     //up to 96kHz
       "????"            //data rate
       "??"              //arbitraty block size
-      "01-20 00"        //1-32 bits per sample
+      "00|01-20 00"     //1-32 bits per sample and 0 for special formats
     ;
     
     class Decoder : public Formats::Chiptune::Decoder

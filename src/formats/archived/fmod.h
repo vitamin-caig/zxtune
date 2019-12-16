@@ -49,6 +49,7 @@ namespace Archived
       LOOP = 3,
       XMASEEK = 6,
       DSPCOEFF = 7,
+      ATRAC9DATA = 9,
       XWMADATA = 10,
       VORBISDATA = 11
     };

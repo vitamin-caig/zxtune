@@ -86,6 +86,10 @@
     <string name="vfs_joshw_mobile_description" translatable="false">http://mobile.joshw.info</string>
     <string name="vfs_joshw_switch_name" translatable="false">Nintendo Switch</string>
     <string name="vfs_joshw_switch_description" translatable="false">http://switch.joshw.info</string>
+    <string name="vfs_joshw_vita_name" translatable="false">Sony Playstation Vita</string>
+    <string name="vfs_joshw_vita_description" translatable="false">http://vita.joshw.info</string>
+    <string name="vfs_joshw_psf4_name" translatable="false">Sony Playstation 4</string>
+    <string name="vfs_joshw_psf4_description" translatable="false">http://psf4.joshw.info</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_root_name" translatable="false">Amiga Music Preservation</string>
     <string name="vfs_amp_root_description" translatable="false">http://amp.dascene.net</string>
