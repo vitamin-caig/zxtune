@@ -268,7 +268,7 @@ namespace
       try
       {
         Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
-        HashSumSoundReceiver receiver;
+        BenchmarkSoundReceiver receiver;
         const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), MakeSingletonPointer(receiver));
         const Time::Timer timer;
         for (unsigned i = 0; i != Iterations; ++i)
@@ -278,7 +278,8 @@ namespace
         }
         const Time::Microseconds real = timer.Elapsed();
         const double relSpeed = double(total.Get()) / real.Get();
-        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed, receiver.GetHash()));
+        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed,
+          receiver.GetHash(), receiver.GetMinSample(), receiver.GetMaxSample()));
       }
       catch (const std::exception& e)
       {
@@ -294,12 +295,17 @@ namespace
       }
     }
   private:
-    class HashSumSoundReceiver : public Sound::Receiver
+    class BenchmarkSoundReceiver : public Sound::Receiver
     {
     public:
       void ApplyData(Sound::Chunk data) override
       {
         Crc32 = Binary::Crc32(data, Crc32);
+        for (const auto smp : data)
+        {
+          MinMax(smp.Left());
+          MinMax(smp.Right());
+        }
       }
 
       void Flush() override
@@ -310,8 +316,26 @@ namespace
       {
         return Crc32;
       }
+
+      Sound::Sample::Type GetMinSample() const
+      {
+        return MinSample;
+      }
+
+      Sound::Sample::Type GetMaxSample() const
+      {
+        return MaxSample;
+      }
+    private:
+      void MinMax(Sound::Sample::Type val)
+      {
+        MinSample = std::min(MinSample, val);
+        MaxSample = std::max(MaxSample, val);
+      }
     private:
       uint32_t Crc32 = 0;
+      Sound::Sample::Type MinSample = Sound::Sample::MAX;
+      Sound::Sample::Type MaxSample = Sound::Sample::MIN;
     };
   private:
     const unsigned Iterations;
