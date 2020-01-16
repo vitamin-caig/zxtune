@@ -30,7 +30,7 @@ endif
 
 #specific
 DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch)) _SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS
-INCLUDES_DIRS = $(includes.dirs) $(includes.dirs.$(platform))
+INCLUDES_DIRS = $(includes.dirs) $(includes.dirs.$(platform) $(includes.dirs.$(notdir $1)))
 INCLUDES_FILES = $(includes.files) $(includes.files.$(platform))
 libraries.windows += kernel32
 

@@ -1,8 +1,7 @@
 library_name := sidplayfp
 dirs.root := ../..
-include defines.mak
 
-includes.dirs += $(dirs.root)/3rdparty/sidplayfp/sidplayfp
+includes.dirs += $(dirs.root)/3rdparty/sidplayfp/sidplayfp $(dirs.root)/3rdparty/sidplayfp
 
 source_dirs = sidplayfp \
               sidplayfp/c64 \

@@ -4,10 +4,10 @@ source_dirs := . asap ay dac gme multi music saa sid tfm xmp xsf
 
 po_files := core_players
 
-include $(dirs.root)/3rdparty/sidplayfp/defines.mak
+includes.dirs.sid_base.cpp = $(dirs.root)/3rdparty/sidplayfp
 
 jumbo.name := $(library_name)
-jumbo.excludes := gme/spc_supp.cpp gme/gme_base.cpp
+jumbo.excludes := gme/spc_supp.cpp gme/gme_base.cpp sid/sid_base.cpp
 
 include $(dirs.root)/makefile.mak
 
