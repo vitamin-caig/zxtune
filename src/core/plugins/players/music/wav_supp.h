@@ -26,6 +26,7 @@ namespace Wav
     uint_t Channels = 0;
     uint_t Bits = 0;
     uint_t BlockSize = 0;
+    uint_t BlockSizeSamples = 0;
     uint_t SamplesCountHint = 0;
     Time::Microseconds FrameDuration;
     Binary::Data::Ptr Data;

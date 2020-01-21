@@ -168,7 +168,7 @@ namespace Wav
       const Formats::Chiptune::Wav::Guid& formatId, Binary::View restData) override
     {
       FormatId = formatId;
-      WavProperties.BlockSize = validBitsOrBlockSize;
+      WavProperties.BlockSizeSamples = validBitsOrBlockSize;
       ExtraData.resize(restData.Size());
       std::memcpy(ExtraData.data(), restData.Start(), restData.Size());
     }
