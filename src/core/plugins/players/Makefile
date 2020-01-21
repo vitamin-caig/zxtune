@@ -5,9 +5,10 @@ source_dirs := . asap ay dac gme multi music saa sid tfm xmp xsf
 po_files := core_players
 
 includes.dirs.sid_base.cpp = $(dirs.root)/3rdparty/sidplayfp
+includes.dirs.ffmpeg_decoder.cpp = $(dirs.root)/3rdparty/ffmpeg
 
 jumbo.name := $(library_name)
-jumbo.excludes := gme/spc_supp.cpp gme/gme_base.cpp sid/sid_base.cpp
+jumbo.excludes := gme/spc_supp.cpp gme/gme_base.cpp sid/sid_base.cpp music/ffmpeg_decoder.cpp
 
 include $(dirs.root)/makefile.mak
 
