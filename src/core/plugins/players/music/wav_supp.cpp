@@ -210,6 +210,8 @@ namespace Wav
         return CreateAdpcmModel(WavProperties);
       case Formats::Chiptune::Wav::Format::IMA_ADPCM:
         return CreateImaAdpcmModel(WavProperties);
+      case Formats::Chiptune::Wav::Format::ATRAC3:
+        return CreateAtrac3Model(WavProperties, ExtraData);
       case Formats::Chiptune::Wav::Format::EXTENDED:
         return CreateExtendedModel();
       default:
@@ -221,7 +223,11 @@ namespace Wav
     {
       Require(FormatCode == Formats::Chiptune::Wav::Format::EXTENDED);
       Require(FormatId != Formats::Chiptune::Wav::Guid());
-      if (FormatId == Formats::Chiptune::Wav::ATRAC9)
+      if (FormatId == Formats::Chiptune::Wav::ATRAC3PLUS)
+      {
+        return CreateAtrac3PlusModel(WavProperties);
+      }
+      else if (FormatId == Formats::Chiptune::Wav::ATRAC9)
       {
         return CreateAtrac9Model(WavProperties, ExtraData);
       }

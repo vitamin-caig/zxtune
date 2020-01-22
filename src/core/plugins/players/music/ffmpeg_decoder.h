@@ -28,5 +28,8 @@ namespace FFmpeg
 
     virtual void Decode(Binary::View frame, Sound::Chunk* output = nullptr) = 0;
   };
+
+  Decoder::Ptr CreateAtrac3Decoder(uint_t channels, uint_t blockSize, Binary::View config);
+  Decoder::Ptr CreateAtrac3PlusDecoder(uint_t channels, uint_t blockSize);
 }
 }

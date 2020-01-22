@@ -110,6 +110,8 @@ namespace
         return "pcm";
       case Wav::Format::IEEE_FLOAT:
         return "float32";
+      case Wav::Format::ATRAC3:
+        return "atrac3";
       case Wav::Format::EXTENDED:
         return "extended";
       default:

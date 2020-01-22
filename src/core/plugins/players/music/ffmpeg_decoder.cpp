@@ -19,6 +19,9 @@ extern "C" {
 #include "3rdparty/ffmpeg/libavcodec/avcodec.h"
 }
 
+extern AVCodec ff_atrac3_decoder;
+extern AVCodec ff_atrac3p_decoder;
+
 namespace Module
 {
 namespace FFmpeg
@@ -26,13 +29,32 @@ namespace FFmpeg
   class DecoderImpl : public Decoder
   {
   public:
-    DecoderImpl(const AVCodec& codec, Binary::View extradata = Binary::View(nullptr, 0), uint_t blockAlign = 0)
+    using Ptr = std::unique_ptr<DecoderImpl>;
+
+    explicit DecoderImpl(const AVCodec& codec)
       : Context(::avcodec_alloc_context3(&codec))
       , Frame(::av_frame_alloc())
     {
-      Context->block_align = static_cast<int>(blockAlign);
+    }
+
+    void SetBlockSize(uint_t blockSize)
+    {
+      Context->block_align = static_cast<int>(blockSize);
+    }
+
+    void SetChannels(uint_t channels)
+    {
+      Context->channels = static_cast<int>(channels);
+    }
+
+    void SetExtraData(Binary::View extradata)
+    {
       Context->extradata = const_cast<uint8_t*>(extradata.As<uint8_t>());
       Context->extradata_size = static_cast<int>(extradata.Size());
+    }
+
+    void Init()
+    {
       CheckError(::avcodec_open2(Context, Context->codec, nullptr));
     }
 
@@ -204,5 +226,24 @@ namespace FFmpeg
     AVFrame* Frame;
     AVPacket* Packet = nullptr;
   };
+
+  Decoder::Ptr CreateAtrac3Decoder(uint_t channels, uint_t blockSize, Binary::View config)
+  {
+    auto decoder = MakePtr<DecoderImpl>(ff_atrac3_decoder);
+    decoder->SetChannels(channels);
+    decoder->SetBlockSize(blockSize);
+    decoder->SetExtraData(config);
+    decoder->Init();
+    return decoder;
+  }
+
+  Decoder::Ptr CreateAtrac3PlusDecoder(uint_t channels, uint_t blockSize)
+  {
+    auto decoder = MakePtr<DecoderImpl>(ff_atrac3p_decoder);
+    decoder->SetChannels(channels);
+    decoder->SetBlockSize(blockSize);
+    decoder->Init();
+    return decoder;
+  }
 }
 }

@@ -49,5 +49,7 @@ namespace Wav
   Model::Ptr CreateAdpcmModel(const Properties& props);
   Model::Ptr CreateImaAdpcmModel(const Properties& props);
   Model::Ptr CreateAtrac9Model(const Properties& props, Binary::View extraData);
+  Model::Ptr CreateAtrac3Model(const Properties& props, Binary::View extraData);
+  Model::Ptr CreateAtrac3PlusModel(const Properties& props);
 }
 }
