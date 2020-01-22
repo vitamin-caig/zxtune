@@ -9,3 +9,6 @@ void av_log(void* avcl, int level, const char *fmt, ...) {
 
 void avpriv_request_sample(void *avc, const char *msg, ...) {
 }
+
+void avpriv_report_missing_feature(void *avc, const char *msg, ...) {
+}

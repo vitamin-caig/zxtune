@@ -568,7 +568,7 @@
 #define CONFIG_FFT 0
 #define CONFIG_LSP 0
 #define CONFIG_LZO 0
-#define CONFIG_MDCT 0
+#define CONFIG_MDCT 1
 #define CONFIG_PIXELUTILS 0
 #define CONFIG_NETWORK 0
 #define CONFIG_RDFT 0
