@@ -172,6 +172,12 @@ namespace Wav
       ExtraData.resize(restData.Size());
       std::memcpy(ExtraData.data(), restData.Start(), restData.Size());
     }
+
+    void SetExtraData(Binary::View data) override
+    {
+      ExtraData.resize(data.Size());
+      std::memcpy(ExtraData.data(), data.Start(), data.Size());
+    }
     
     void SetSamplesData(Binary::Container::Ptr data) override
     {

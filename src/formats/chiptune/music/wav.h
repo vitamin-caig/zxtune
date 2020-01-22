@@ -50,6 +50,7 @@ namespace Formats
         virtual void SetProperties(uint_t format, uint_t frequency, uint_t channels, uint_t bits, uint_t blockSize) = 0;
         // Called when format is Format::EXTENDED
         virtual void SetExtendedProperties(uint_t validBitsOrBlockSize, uint_t channelsMask, const Guid& formatId, Binary::View restData) = 0;
+        virtual void SetExtraData(Binary::View data) = 0;
         virtual void SetSamplesData(Binary::Container::Ptr data) = 0;
         virtual void SetSamplesCountHint(uint_t count) = 0;
       };
