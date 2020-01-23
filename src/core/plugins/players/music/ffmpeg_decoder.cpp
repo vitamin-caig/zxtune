@@ -256,7 +256,7 @@ namespace FFmpeg
     decoder->SetBlockSize(blockSize);
     decoder->SetExtraData(config);
     decoder->Init();
-    return decoder;
+    return Decoder::Ptr(std::move(decoder));
   }
 }
 }
