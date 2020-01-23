@@ -14,6 +14,8 @@
 #include <contract.h>
 #include <pointers.h>
 #include <make_ptr.h>
+//library includes
+#include <math/numeric.h>
 //3rdparty
 extern "C" {
 #include "3rdparty/ffmpeg/libavcodec/avcodec.h"
@@ -200,7 +202,8 @@ namespace FFmpeg
 
     inline static Sound::Sample::Type DecodeSample(float s)
     {
-      return static_cast<Sound::Sample::Type>(s * Sound::Sample::MAX);
+      const auto wide = static_cast<Sound::Sample::WideType>(s * Sound::Sample::MAX);
+      return Math::Clamp<Sound::Sample::WideType>(wide, Sound::Sample::MIN, Sound::Sample::MAX);
     }
 
     template<class T>
@@ -234,7 +237,7 @@ namespace FFmpeg
     decoder->SetBlockSize(blockSize);
     decoder->SetExtraData(config);
     decoder->Init();
-    return decoder;
+    return Decoder::Ptr(std::move(decoder));
   }
 
   Decoder::Ptr CreateAtrac3PlusDecoder(uint_t channels, uint_t blockSize)
@@ -243,7 +246,7 @@ namespace FFmpeg
     decoder->SetChannels(channels);
     decoder->SetBlockSize(blockSize);
     decoder->Init();
-    return decoder;
+    return Decoder::Ptr(std::move(decoder));
   }
 }
 }
