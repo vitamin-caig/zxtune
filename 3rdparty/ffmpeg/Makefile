@@ -6,7 +6,7 @@ source_files = $(addprefix libavcodec/, \
                $(addprefix libavutil/, avstring bprint bsf buffer channel_layout dict error eval file_open float_dsp frame lfg log2_tab \
                mathematics mem md5 parseutils random_seed rational reverse samplefmt sha sinewin time opt \
                imgutils hwcontext pixdesc)\
-               $(addprefix stubs/, codec_desc_stub log_stub)
+               $(addprefix stubs/, codec_desc_stub log_stub util_stub)
 
 includes.dirs = . compat/atomics/dummy
 
