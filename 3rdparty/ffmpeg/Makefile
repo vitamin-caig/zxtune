@@ -14,6 +14,10 @@ includes.dirs = . compat/atomics/dummy
 source_files += $(addprefix libavcodec/, \
                atrac atrac3 atrac3plus atrac3plusdec atrac3plusdsp)
 
+#atrac9
+source_files += $(addprefix libavcodec/, \
+                atrac9dec)
+
 source_files := $(addsuffix .c,$(source_files))
 
 defines += av_restrict=restrict HAVE_AV_CONFIG_H
