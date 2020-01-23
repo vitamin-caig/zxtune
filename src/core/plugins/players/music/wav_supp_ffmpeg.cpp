@@ -76,5 +76,15 @@ namespace Wav
     auto decoder = FFmpeg::CreateAtrac3PlusDecoder(props.Channels, props.BlockSize);
     return MakePtr<FFmpegModel>(props, std::move(decoder));
   }
+
+  Model::Ptr CreateAtrac9Model(const Properties& props, Binary::View extraData)
+  {
+    Require(props.Channels <= Sound::Sample::CHANNELS);
+    Require(props.SamplesCountHint != 0);
+    Require(props.BlockSizeSamples != 0);
+    Require(props.BlockSize != 0);
+    auto decoder = FFmpeg::CreateAtrac9Decoder(props.BlockSize, extraData);
+    return MakePtr<FFmpegModel>(props, std::move(decoder));
+  }
 }
 }

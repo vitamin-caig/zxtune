@@ -23,6 +23,7 @@ extern "C" {
 
 extern AVCodec ff_atrac3_decoder;
 extern AVCodec ff_atrac3p_decoder;
+extern AVCodec ff_atrac9_decoder;
 
 namespace Module
 {
@@ -247,6 +248,15 @@ namespace FFmpeg
     decoder->SetBlockSize(blockSize);
     decoder->Init();
     return Decoder::Ptr(std::move(decoder));
+  }
+
+  Decoder::Ptr CreateAtrac9Decoder(uint_t blockSize, Binary::View config)
+  {
+    auto decoder = MakePtr<DecoderImpl>(ff_atrac9_decoder);
+    decoder->SetBlockSize(blockSize);
+    decoder->SetExtraData(config);
+    decoder->Init();
+    return decoder;
   }
 }
 }
