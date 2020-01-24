@@ -32,7 +32,7 @@ public final class Provider extends ContentProvider {
                              .authority("app.zxtune.analytics.internal")
                              .build();
 
-  private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(1048576);
+  private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(1024);
   private UrlsSink delegate;
 
   @Override
