@@ -303,6 +303,7 @@ namespace
   Player::Control::Ptr CreateControl(Module::Holder::Ptr module)
   {
     const auto frames = module->GetModuleInformation()->FramesCount();
+    Require(frames != 0);
     auto globalParameters = MakeSingletonPointer(Parameters::GlobalOptions());
     auto localParameters = Parameters::Container::Create();
     auto internalProperties = module->GetModuleProperties();
