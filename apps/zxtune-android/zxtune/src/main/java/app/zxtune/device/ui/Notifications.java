@@ -83,6 +83,7 @@ public final class Notifications {
     final String name = ctx.getString(R.string.notification_channel_name_services);
     final NotificationChannel res = new NotificationChannel(SERVICES_CHANNEL_ID, name, NotificationManager.IMPORTANCE_LOW);
     res.setShowBadge(false);
+    res.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
     return res;
   }
 
