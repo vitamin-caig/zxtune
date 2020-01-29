@@ -22,6 +22,7 @@ import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.playback.stubs.PlayableItemStub;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -83,6 +84,9 @@ public class FileIterator implements Iterator {
 
   public static FileIterator create(Context ctx, Uri uri) throws Exception {
     final java.util.Iterator<VfsFile> filesIterator = creatDirFilesIterator(uri);
+    if (!filesIterator.hasNext()) {
+      throw new Exception(ctx.getString(R.string.failed_resolve, uri.toString()));
+    }
     return new FileIterator(ctx, filesIterator);
   }
 
@@ -213,10 +217,13 @@ public class FileIterator implements Iterator {
   @NonNull
   private static java.util.Iterator<VfsFile> creatDirFilesIterator(Uri start) throws Exception {
     final ArrayList<VfsFile> result = new ArrayList<>();
-    final VfsFile file = (VfsFile) VfsArchive.resolveForced(start);
-    final VfsObject parent = file.getParent();
+    final VfsObject obj = VfsArchive.resolveForced(start);
+    if (obj == null || !(obj instanceof VfsFile)) {
+      return result.listIterator();
+    }
+    final VfsObject parent = obj.getParent();
     if (parent == null) {
-      result.add(file);
+      result.add((VfsFile)obj);
       return result.listIterator();
     }
     final VfsFile parentFile = parent instanceof VfsFile ? (VfsFile) parent : null;
@@ -244,7 +251,7 @@ public class FileIterator implements Iterator {
     // Resolved file may be incomparable with dir content due to lack of some properties
     // E.g. track from zxart/Top doesn't have rating info
     // So use plain linear search by uri
-    final Uri normalizedUri = file.getUri();
+    final Uri normalizedUri = obj.getUri();
     final Uri parentFileUri = parentFile != null ? parentFile.getUri() : null;
     for (int idx = 0, lim = result.size(); idx < lim; ++idx) {
       final VfsFile cur = result.get(idx);
