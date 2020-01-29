@@ -87,13 +87,20 @@ class StatusCallback implements Callback {
     try {
       final Identifier dataId = item.getDataId();
       final MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
-      final String title = item.getTitle();
-      if (title.length() != 0) {
-        putString(builder, MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title);
-      } else {
-        builder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, dataId.getDisplayFilename());
+      String title = item.getTitle();
+      if (title.isEmpty()) {
+        title = dataId.getDisplayFilename();
       }
-      putString(builder, MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, item.getAuthor());
+      builder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title);
+      builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
+      final String author = item.getAuthor();
+      if (!author.isEmpty()) {
+        builder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, author);
+        builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, author);
+      } else {
+        // Do not localize
+        builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "Unknown artist");
+      }
       putString(builder, MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, item.getComment());
       putString(builder, ModuleAttributes.PROGRAM, item.getProgram());
       putString(builder, ModuleAttributes.STRINGS, item.getStrings());
