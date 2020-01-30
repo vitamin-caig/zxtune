@@ -9,6 +9,7 @@ package app.zxtune.ui;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -51,6 +52,9 @@ import app.zxtune.ui.playlist.PlaylistViewModel;
 public class PlaylistFragment extends Fragment {
 
   private static final String TAG = PlaylistFragment.class.getName();
+
+  private static final String LISTING_STATE_KEY = "listing_state";
+
   private ProviderClient ctrl;
   private RecyclerView listing;
   private ItemTouchHelper touchHelper;
@@ -160,7 +164,7 @@ public class PlaylistFragment extends Fragment {
         new SelectionClient());
 
     if (savedInstanceState != null) {
-      selectionTracker.onRestoreInstanceState(savedInstanceState);
+      restoreState(savedInstanceState);
     }
 
     final TouchHelperCallback touchHelperCallback = new TouchHelperCallback();
@@ -205,9 +209,18 @@ public class PlaylistFragment extends Fragment {
     });
   }
 
+  private void restoreState(@NonNull Bundle savedInstanceState) {
+    selectionTracker.onRestoreInstanceState(savedInstanceState);
+    final Parcelable listingState = savedInstanceState.getParcelable(LISTING_STATE_KEY);
+    if (listingState != null) {
+      listing.getLayoutManager().onRestoreInstanceState(listingState);
+    }
+  }
+
   @Override
   public void onSaveInstanceState(@NonNull Bundle outState) {
     selectionTracker.onSaveInstanceState(outState);
+    outState.putParcelable(LISTING_STATE_KEY, listing.getLayoutManager().onSaveInstanceState());
   }
 
   private class ItemActivatedListener implements OnItemActivatedListener<Long> {
