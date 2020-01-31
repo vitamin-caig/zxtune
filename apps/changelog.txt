@@ -5,7 +5,16 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
---- Rev4850 fro 16.12.2019
+--- Rev4880 from 31.01.2020
+
+[+] Supported ATRAC3 and ATRAC3+ streams in WAV
+[+] zxtune-android: added PlayStation Portable and PlayStation 3 archives to joshw.info catalogues
+[*] zxtune-android: fixed playlist problems with selection and drag'n'drop
+[*] zxtune-android: fixed integration with scrobblers
+[*] zxtune-android: fixed notification lockscreen visibility
+[*] zxtune-android: fixed found and reported crashes and hangups
+
+--- Rev4850 from 16.12.2019
 
 [+] Supported ATRAC9 streams in WAV and FSB containers.
 [+] zxtune-android: added PlayStation Vita and PlayStation 4 archives to joshw.info catalogues
