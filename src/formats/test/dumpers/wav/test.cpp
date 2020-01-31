@@ -84,6 +84,12 @@ namespace
       "\nExtra data: (" << restData.Size() << " bytes) " << ToHex(restData) << std::endl; 
     }
 
+    void SetExtraData(Binary::View data) override
+    {
+      std::cout <<
+      "\nExtra data: (" << data.Size() << " bytes) " << ToHex(data) << std::endl;
+    }
+
     void SetSamplesData(Binary::Container::Ptr data) override
     {
       std::cout << "Samples data: " << data->Size() << " bytes" << std::endl;
@@ -104,6 +110,8 @@ namespace
         return "pcm";
       case Wav::Format::IEEE_FLOAT:
         return "float32";
+      case Wav::Format::ATRAC3:
+        return "atrac3";
       case Wav::Format::EXTENDED:
         return "extended";
       default:

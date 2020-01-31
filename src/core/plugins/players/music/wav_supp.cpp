@@ -168,9 +168,15 @@ namespace Wav
       const Formats::Chiptune::Wav::Guid& formatId, Binary::View restData) override
     {
       FormatId = formatId;
-      WavProperties.BlockSize = validBitsOrBlockSize;
+      WavProperties.BlockSizeSamples = validBitsOrBlockSize;
       ExtraData.resize(restData.Size());
       std::memcpy(ExtraData.data(), restData.Start(), restData.Size());
+    }
+
+    void SetExtraData(Binary::View data) override
+    {
+      ExtraData.resize(data.Size());
+      std::memcpy(ExtraData.data(), data.Start(), data.Size());
     }
     
     void SetSamplesData(Binary::Container::Ptr data) override
@@ -204,6 +210,8 @@ namespace Wav
         return CreateAdpcmModel(WavProperties);
       case Formats::Chiptune::Wav::Format::IMA_ADPCM:
         return CreateImaAdpcmModel(WavProperties);
+      case Formats::Chiptune::Wav::Format::ATRAC3:
+        return CreateAtrac3Model(WavProperties, ExtraData);
       case Formats::Chiptune::Wav::Format::EXTENDED:
         return CreateExtendedModel();
       default:
@@ -215,7 +223,11 @@ namespace Wav
     {
       Require(FormatCode == Formats::Chiptune::Wav::Format::EXTENDED);
       Require(FormatId != Formats::Chiptune::Wav::Guid());
-      if (FormatId == Formats::Chiptune::Wav::ATRAC9)
+      if (FormatId == Formats::Chiptune::Wav::ATRAC3PLUS)
+      {
+        return CreateAtrac3PlusModel(WavProperties);
+      }
+      else if (FormatId == Formats::Chiptune::Wav::ATRAC9)
       {
         return CreateAtrac9Model(WavProperties, ExtraData);
       }

@@ -46,7 +46,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://github.com/lieff/minimp3&quot;&gt;minimp3&lt;/a&gt; library by &lt;b&gt;lieff&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://github.com/nothings/stb&quot;&gt;stb-vorbis&lt;/a&gt; library by &lt;b&gt;Sean Barrett&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://github.com/jgilje/v2m-player&quot;&gt;v2m-player&lt;/a&gt; library by &lt;b&gt;Farbrausch&lt;/b&gt; and &lt;b&gt;Joakim L. Gilje&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Used &lt;a href=&quot;https://github.com/Thealexbarney/LibAtrac9&quot;&gt;LibAtrac9&lt;/a&gt; library by &lt;b&gt;Alex Barney&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://ffmpeg.org/&quot;&gt;FFmpeg&lt;/a&gt; library&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
@@ -87,7 +87,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/lieff/minimp3&quot;&gt;minimp3&lt;/a&gt; от &lt;b&gt;lieff&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/nothings/stb&quot;&gt;stb-vorbis&lt;/a&gt; от &lt;b&gt;Sean Barrett&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/jgilje/v2m-player&quot;&gt;v2m-player&lt;/a&gt; от &lt;b&gt;Farbrausch&lt;/b&gt; и &lt;b&gt;Joakim L. Gilje&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/Thealexbarney/LibAtrac9&quot;&gt;LibAtrac9&lt;/a&gt; от &lt;b&gt;Alex Barney&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://ffmpeg.org/&quot;&gt;FFmpeg&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Посвящается &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;

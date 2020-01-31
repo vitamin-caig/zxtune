@@ -1,0 +1,1 @@
+Minimal set of ffmpeg libraries and stubs required to build under zxtune infrastructure.
