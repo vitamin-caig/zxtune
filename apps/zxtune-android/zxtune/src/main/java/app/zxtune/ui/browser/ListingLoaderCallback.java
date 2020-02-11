@@ -46,7 +46,6 @@ class ListingLoaderCallback implements LoaderManager.LoaderCallbacks<Object>, Li
     if (loader.isStarted()) {
       ctrl.listingStarted();
     }
-    ctrl.position.setDir(cb.dir);
     return cb;
   }
   

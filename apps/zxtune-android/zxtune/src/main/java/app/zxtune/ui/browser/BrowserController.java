@@ -34,19 +34,19 @@ public class BrowserController {
   
   private final LoaderManager loaderManager;
   private final BrowserState state;
-  BreadCrumbsView position;
+  private final BrowserModel model;
   ProgressBar progress;
   ListView listing;
   VfsDir currentDir = null;
 
   public BrowserController(Fragment fragment) {
     this.loaderManager = fragment.getLoaderManager();
-    this.state = new BrowserState(Preferences.getDefaultSharedPreferences(fragment.getActivity()));
+    this.state = new BrowserState(fragment);
+    this.model = BrowserModel.of(fragment);
   }
 
   // onViewCreated
-  public final void setViews(BreadCrumbsView position, ProgressBar progress, ListView listing) {
-    this.position = position;
+  public final void setViews(ProgressBar progress, ListView listing) {
     this.progress = progress;
     this.listing = listing;
     listing.setAdapter(new BrowserViewAdapter());
@@ -190,7 +190,9 @@ public class BrowserController {
 
   private void setDirectory(@Nullable VfsDir dir) {
     currentDir = dir;
-    position.setDir(dir);
+    if (dir != null) {
+      model.browse(dir.getUri());
+    }
     loadListing(dir, state.getCurrentViewPosition());
   }
   

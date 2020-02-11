@@ -9,60 +9,70 @@ package app.zxtune.ui;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import android.support.v4.media.session.MediaControllerCompat;
-import android.util.SparseBooleanArray;
-import android.view.ActionMode;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.OnLifecycleEvent;
+import androidx.recyclerview.selection.ItemDetailsLookup;
+import androidx.recyclerview.selection.OnItemActivatedListener;
+import androidx.recyclerview.selection.Selection;
+import androidx.recyclerview.selection.SelectionPredicates;
+import androidx.recyclerview.selection.SelectionTracker;
+import androidx.recyclerview.selection.StorageStrategy;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import app.zxtune.Log;
 import app.zxtune.MainService;
 import app.zxtune.R;
-import app.zxtune.fs.VfsDir;
-import app.zxtune.fs.VfsExtensions;
-import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.VfsObject;
-import app.zxtune.ui.browser.BreadCrumbsView;
-import app.zxtune.ui.browser.BrowserController;
-import app.zxtune.ui.utils.ListViewTools;
-import app.zxtune.ui.utils.UiUtils;
+import app.zxtune.ui.browser.BreadcrumbsViewAdapter;
+import app.zxtune.ui.browser.BrowserEntrySimple;
+import app.zxtune.ui.browser.BrowserModel;
+import app.zxtune.ui.browser.BrowserState;
+import app.zxtune.ui.browser.ListingViewAdapter;
 
 public class BrowserFragment extends Fragment {
 
   private static final String TAG = BrowserFragment.class.getName();
   private static final String SEARCH_QUERY_KEY = "search_query";
-  private static final String SEARCH_FOCUSED_KEY = "search_focused";
 
-  private BrowserController controller;
-  private View sources;
   private SearchView search;
-  private ListView listing;
+  private BrowserState stateStorage;
+  private SelectionTracker<Uri> selectionTracker;
 
   public static BrowserFragment createInstance() {
     return new BrowserFragment();
   }
 
   @Override
-  public void onAttach(Context ctx) {
+  public void onAttach(@NonNull Context ctx) {
     super.onAttach(ctx);
 
-    this.controller = new BrowserController(this);
+    this.stateStorage = new BrowserState(this);
   }
 
   @Override
@@ -75,58 +85,160 @@ public class BrowserFragment extends Fragment {
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    sources = view.findViewById(R.id.browser_sources);
-    search = setupSearchView(view);
+    final BrowserModel model = BrowserModel.of(this);
     setupRootsView(view);
-    final BreadCrumbsView position = setupPositionView(view);
-    final ProgressBar progress = view.findViewById(R.id.browser_loading);
-    listing = setupListing(view);
+    setupBreadcrumbs(model, view);
+    setupListing(model, view);
+    search = setupSearchView(model, view);
 
-    controller.setViews(position, progress, listing);
-
-    controller.loadState();
+    if (model.getState().getValue() == null) {
+      browse(stateStorage.getCurrentPath());
+    }
   }
 
-  @Override
-  public void onDestroyView() {
-    super.onDestroyView();
-
-    Log.d(TAG, "Saving persistent state");
-    controller.storeCurrentViewPosition();
-    controller.resetViews();
-  }
-
-  private ListView setupListing(View view) {
-    final ListView listing = view.findViewById(R.id.browser_content);
-    listing.setOnItemClickListener(new OnItemClickListener());
-    listing.setEmptyView(view.findViewById(R.id.browser_stub));
-    listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
-    listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
-    return listing;
-  }
-
-  private BreadCrumbsView setupPositionView(View view) {
-    final BreadCrumbsView position = view.findViewById(R.id.browser_breadcrumb);
-    position.setDirSelectionListener(new BreadCrumbsView.DirSelectionListener() {
-      @Override
-      public void onDirSelection(VfsDir dir) {
-        controller.browseDir(dir);
-      }
-    });
-    return position;
-  }
-
-  private void setupRootsView(View view) {
+  private void setupRootsView(@NonNull View view) {
     final View roots = view.findViewById(R.id.browser_roots);
     roots.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        controller.browseRoot();
+        browse(Uri.EMPTY);
       }
     });
   }
 
-  private SearchView setupSearchView(View view) {
+  private void setupBreadcrumbs(@NonNull BrowserModel model, @NonNull View view) {
+    final RecyclerView listing = view.findViewById(R.id.browser_breadcrumb);
+    final BreadcrumbsViewAdapter adapter = new BreadcrumbsViewAdapter();
+    listing.setAdapter(adapter);
+    model.getState().observe(this, new Observer<BrowserModel.State>() {
+      @Override
+      public void onChanged(BrowserModel.State state) {
+        adapter.submitList(state.breadcrumbs);
+        listing.smoothScrollToPosition(state.breadcrumbs.size());
+      }
+    });
+    final View.OnClickListener onClick = new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        final int pos = listing.getChildAdapterPosition(v);
+        final BrowserEntrySimple entry = adapter.getCurrentList().get(pos);
+        browse(entry.uri);
+      }
+    };
+    listing.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
+      @Override
+      public void onChildViewAttachedToWindow(@NonNull View view) {
+        view.setOnClickListener(onClick);
+      }
+
+      @Override
+      public void onChildViewDetachedFromWindow(@NonNull View view) {
+        view.setOnClickListener(null);
+      }
+    });
+  }
+
+  private void setupListing(@NonNull BrowserModel model, @NonNull View view) {
+    final RecyclerView listing = view.findViewById(R.id.browser_content);
+    listing.setHasFixedSize(true);
+
+    final ListingViewAdapter adapter = new ListingViewAdapter();
+    listing.setAdapter(adapter);
+
+    selectionTracker = new SelectionTracker.Builder<>("browser_selection",
+        listing, new ListingViewAdapter.KeyProvider(adapter),
+        new ListingViewAdapter.DetailsLookup(listing),
+        StorageStrategy.createParcelableStorage(Uri.class))
+                           .withSelectionPredicate(SelectionPredicates.<Uri>createSelectAnything())
+                           .withOnItemActivatedListener(new ItemActivatedListener())
+                           .build();
+    adapter.setSelection(selectionTracker.getSelection());
+
+    SelectionUtils.install((AppCompatActivity) getActivity(), selectionTracker,
+        new SelectionClient(adapter));
+
+    final TextView stub = view.findViewById(R.id.browser_stub);
+    model.getState().observe(this, new Observer<BrowserModel.State>() {
+      @Override
+      public void onChanged(final BrowserModel.State state) {
+        storeCurrentViewPosition(listing);
+        adapter.submitList(state.entries, new Runnable() {
+          @Override
+          public void run() {
+            stateStorage.setCurrentPath(state.uri);
+            restoreCurrentViewPosition(listing);
+          }
+        });
+        if (state.entries.isEmpty()) {
+          listing.setVisibility(View.GONE);
+          stub.setVisibility(View.VISIBLE);
+        } else {
+          listing.setVisibility(View.VISIBLE);
+          stub.setVisibility(View.GONE);
+        }
+      }
+    });
+    final ProgressBar progress = view.findViewById(R.id.browser_loading);
+    model.getProgress().observe(this, new Observer<Integer>() {
+      @Override
+      public void onChanged(Integer prg) {
+        if (prg == null) {
+          progress.setIndeterminate(false);
+          progress.setProgress(0);
+        } else if (prg == -1) {
+          progress.setIndeterminate(true);
+        } else {
+          progress.setIndeterminate(false);
+          progress.setProgress(prg);
+        }
+      }
+    });
+    model.setClient(new BrowserModel.Client() {
+      @Override
+      public void onFileBrowse(Uri uri) {
+        final MediaControllerCompat ctrl = getController();
+        if (ctrl != null) {
+          ctrl.getTransportControls().playFromUri(uri, null);
+        }
+      }
+
+      @Override
+      public void onError(final String msg) {
+        listing.post(new Runnable() {
+          @Override
+          public void run() {
+            Toast.makeText(getActivity(), msg, Toast.LENGTH_LONG).show();
+          }
+        });
+      }
+    });
+    getLifecycle().addObserver(new LifecycleObserver() {
+      @SuppressWarnings("unused")
+      @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+      void onStop() {
+        storeCurrentViewPosition(listing);
+        getLifecycle().removeObserver(this);
+      }
+    });
+  }
+
+  private void storeCurrentViewPosition(RecyclerView listing) {
+    final LinearLayoutManager layout = ((LinearLayoutManager) listing.getLayoutManager());
+    final int pos = layout != null ? layout.findFirstVisibleItemPosition() : -1;
+    if (pos != -1) {
+      stateStorage.setCurrentViewPosition(pos);
+    }
+  }
+
+  private void restoreCurrentViewPosition(RecyclerView listing) {
+    final LinearLayoutManager layout = ((LinearLayoutManager) listing.getLayoutManager());
+    if (layout != null) {
+      layout.scrollToPositionWithOffset(stateStorage.getCurrentViewPosition()
+          , 0);
+    }
+  }
+
+  private SearchView setupSearchView(@NonNull final BrowserModel model, @NonNull View view) {
     final SearchView search = view.findViewById(R.id.browser_search);
 
     search.setOnSearchClickListener(new SearchView.OnClickListener() {
@@ -140,7 +252,7 @@ public class BrowserFragment extends Fragment {
     search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
       @Override
       public boolean onQueryTextSubmit(String query) {
-        controller.search(query);
+        model.search(query);
         search.clearFocus();
         return true;
       }
@@ -160,9 +272,7 @@ public class BrowserFragment extends Fragment {
           @Override
           public void run() {
             search.clearFocus();
-            if (controller.isInSearch()) {
-              controller.loadCurrentDir();
-            }
+            model.reload();
           }
         });
         return false;
@@ -180,46 +290,133 @@ public class BrowserFragment extends Fragment {
   }
 
   @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+
+    Log.d(TAG, "Saving persistent stateStorage");
+    //controller.storeCurrentViewPosition();
+    //controller.resetViews();
+  }
+
+  private class ItemActivatedListener implements OnItemActivatedListener<Uri> {
+    @Override
+    public boolean onItemActivated(@NonNull ItemDetailsLookup.ItemDetails<Uri> item,
+                                   @NonNull MotionEvent e) {
+      final Uri uri = item.getSelectionKey();
+      if (uri != null) {
+        browse(uri);
+      }
+      return true;
+    }
+  }
+
+  // Client for selection
+  private class SelectionClient implements SelectionUtils.Client<Uri> {
+
+    private final ListingViewAdapter adapter;
+
+    SelectionClient(ListingViewAdapter adapter) {
+      this.adapter = adapter;
+    }
+
+    @NonNull
+    @Override
+    public String getTitle(int count) {
+      return getResources().getQuantityString(R.plurals.items,
+          count, count);
+    }
+
+    @NonNull
+    @Override
+    public List<Uri> getAllItems() {
+      final int size = adapter.getItemCount();
+      final ArrayList<Uri> res = new ArrayList<>(size);
+      for (int i = 0; i < size; ++i) {
+        res.add(adapter.getItemUri(i));
+      }
+      return res;
+    }
+
+    @Override
+    public void fillMenu(MenuInflater inflater, Menu menu) {
+      inflater.inflate(R.menu.browser, menu);
+    }
+
+    @Override
+    public boolean processMenu(int itemId, Selection<Uri> selection) {
+      switch (itemId) {
+        case R.id.action_add:
+          addToPlaylist(selection);
+          break;
+        default:
+          break;
+      }
+      return true;
+    }
+
+    private void addToPlaylist(Selection<Uri> selection) {
+      //TODO: rework for PlaylistControl usage as a local iface
+      final MediaControllerCompat ctrl = getController();
+      if (ctrl != null) {
+        final Bundle params = new Bundle();
+        params.putParcelableArray("uris", convertSelection(selection));
+        ctrl.getTransportControls().sendCustomAction(MainService.CUSTOM_ACTION_ADD, params);
+      }
+    }
+  }
+
+  private static Uri[] convertSelection(Selection<Uri> selection) {
+    final Uri[] result = new Uri[selection.size()];
+    final Iterator<Uri> iter = selection.iterator();
+    for (int idx = 0; idx < result.length; ++idx) {
+      result[idx] = iter.next();
+    }
+    return result;
+  }
+
+
+  @Override
   public void onSaveInstanceState(@NonNull Bundle state) {
     super.onSaveInstanceState(state);
+    selectionTracker.onSaveInstanceState(state);
     if (!search.isIconified()) {
       final String query = search.getQuery().toString();
       state.putString(SEARCH_QUERY_KEY, query);
-      state.putBoolean(SEARCH_FOCUSED_KEY, search.hasFocus());
     }
   }
 
   @Override
   public void onViewStateRestored(Bundle state) {
     super.onViewStateRestored(state);
-    if (state == null || !state.containsKey(SEARCH_QUERY_KEY)) {
-      return;
-    }
-    final String query = state.getString(SEARCH_QUERY_KEY);
-    final boolean isFocused = state.getBoolean(SEARCH_FOCUSED_KEY);
-    search.post(new Runnable() {
-      @Override
-      public void run() {
-        search.setIconified(false);
-        search.setQuery(query, false);
-        if (!isFocused) {
-          search.clearFocus();
+    selectionTracker.onRestoreInstanceState(state);
+    final String query = state != null ? state.getString(SEARCH_QUERY_KEY) : null;
+    if (!TextUtils.isEmpty(query)) {
+      search.post(new Runnable() {
+        @Override
+        public void run() {
+          search.setIconified(false);
+          search.setQuery(query, false);
         }
-      }
-    });
+      });
+    }
+  }
+
+  private void browse(@NonNull Uri uri) {
+    final BrowserModel model = BrowserModel.of(this);
+    model.browse(uri);
   }
 
   public final void moveUp() {
     if (!search.isIconified()) {
       search.setIconified(true);
     } else {
-      controller.moveToParent();
+      browseParent();
     }
   }
 
-  private String getActionModeTitle() {
-    final int count = listing.getCheckedItemCount();
-    return getResources().getQuantityString(R.plurals.items, count, count);
+  private void browseParent() {
+    final BrowserModel model = BrowserModel.of(this);
+    model.browseParent();
   }
 
   @Nullable
@@ -228,114 +425,5 @@ public class BrowserFragment extends Fragment {
     return activity != null
                ? MediaControllerCompat.getMediaController(activity)
                : null;
-  }
-
-  class OnItemClickListener implements AdapterView.OnItemClickListener {
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-      final Runnable playCmd = new Runnable() {
-        final Uri toPlay = getUriFrom(position);
-
-        @Override
-        public void run() {
-          final MediaControllerCompat ctrl = getController();
-          if (ctrl != null) {
-            ctrl.getTransportControls().playFromUri(toPlay, null);
-          }
-        }
-      };
-      final Object obj = parent.getItemAtPosition(position);
-      if (obj instanceof VfsDir) {
-        final Object feed = ((VfsDir) obj).getExtension(VfsExtensions.FEED);
-        if (feed != null) {
-          playCmd.run();
-        } else {
-          controller.browseDir((VfsDir) obj);
-        }
-      } else if (obj instanceof VfsFile) {
-        if (controller.isInSearch()) {
-          playCmd.run();
-        } else {
-          controller.browseArchive((VfsFile) obj, playCmd);
-        }
-      }
-    }
-
-    private Uri getUriFrom(int position) {
-      final ListAdapter adapter = listing.getAdapter();
-      final VfsObject obj = (VfsObject) adapter.getItem(position);
-      return obj.getUri();
-    }
-  }
-
-  private class MultiChoiceModeListener implements ListView.MultiChoiceModeListener {
-
-    @Override
-    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-      UiUtils.setViewEnabled(sources, false);
-      final MenuInflater inflater = mode.getMenuInflater();
-      inflater.inflate(R.menu.selection, menu);
-      inflater.inflate(R.menu.browser, menu);
-      mode.setTitle(getActionModeTitle());
-      return true;
-    }
-
-    @Override
-    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-      return false;
-    }
-
-    @Override
-    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-      if (ListViewTools.processActionItemClick(listing, item.getItemId())) {
-        return true;
-      } else {
-        switch (item.getItemId()) {
-          case R.id.action_add:
-            addSelectedToPlaylist();
-            break;
-          default:
-            return false;
-        }
-        mode.finish();
-        return true;
-      }
-    }
-
-    @Override
-    public void onDestroyActionMode(ActionMode mode) {
-      UiUtils.setViewEnabled(sources, true);
-    }
-
-    @Override
-    public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
-      mode.setTitle(getActionModeTitle());
-    }
-
-    private void addSelectedToPlaylist() {
-      //TODO: rework for PlaylistControl usage as a local iface
-      final MediaControllerCompat ctrl = getController();
-      if (ctrl != null) {
-        final Uri[] items = getSelectedItemsUris();
-        final Bundle params = new Bundle();
-        params.putParcelableArray("uris", items);
-        ctrl.getTransportControls().sendCustomAction(MainService.CUSTOM_ACTION_ADD, params);
-      }
-    }
-
-    private Uri[] getSelectedItemsUris() {
-      final Uri[] result = new Uri[listing.getCheckedItemCount()];
-      final SparseBooleanArray selected = listing.getCheckedItemPositions();
-      final ListAdapter adapter = listing.getAdapter();
-      int pos = 0;
-      for (int i = 0, lim = selected.size(); i != lim; ++i) {
-        if (selected.valueAt(i)) {
-          final VfsObject obj = (VfsObject) adapter.getItem(selected.keyAt(i));
-          result[pos++] = obj.getUri();
-        }
-      }
-      return result;
-    }
   }
 }

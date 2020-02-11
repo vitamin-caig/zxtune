@@ -50,7 +50,6 @@ class SearchingLoaderCallback implements LoaderManager.LoaderCallbacks<Void>, Se
     if (loader.isStarted()) {
       ctrl.searchingStarted();
     }
-    ctrl.position.setDir(cb.dir);
     return cb;
   }
   

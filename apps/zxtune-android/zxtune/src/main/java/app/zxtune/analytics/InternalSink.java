@@ -69,6 +69,8 @@ final class InternalSink implements Sink {
     switch (action) {
       case Analytics.BROWSER_ACTION_BROWSE:
         return "browse";
+      case Analytics.BROWSER_ACTION_BROWSE_PARENT:
+        return "up";
       case Analytics.BROWSER_ACTION_SEARCH:
         return "search";
       default:

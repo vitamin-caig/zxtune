@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <import type="android.view.View"/>
+        <variable name="entry" type="app.zxtune.ui.browser.BrowserEntrySimple"/>
+        <variable name="isPlaying" type="boolean"/>
+    </data>
+    <Button
+      style="@style/Button.Breadcrumbs"
+      android:text="@{entry.icon == 0 ? entry.title : null}"
+      android:drawableLeft="@{entry.icon != 0 ? context.getResources().getDrawable(entry.icon) : null}"
+    />
+</layout>
