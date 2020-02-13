@@ -143,8 +143,7 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
 
   @Override
   public long getItemId(int position) {
-    final PlaylistEntry entry = getItem(position);
-    return entry != null ? entry.id : RecyclerView.NO_ID;
+    return getItem(position).id;
   }
 
   @NonNull
@@ -236,8 +235,7 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
     @Nullable
     @Override
     public Long getKey(int position) {
-      final PlaylistEntry entry = adapter.getItem(position);
-      return entry != null ? entry.id : null;
+      return adapter.getItem(position).id;
     }
 
     @Override

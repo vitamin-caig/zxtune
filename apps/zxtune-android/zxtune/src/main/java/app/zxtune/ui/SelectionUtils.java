@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
+import androidx.recyclerview.selection.Selection;
 import androidx.recyclerview.selection.SelectionTracker;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ final class SelectionUtils<T> extends SelectionTracker.SelectionObserver<T> {
 
     void fillMenu(MenuInflater inflater, Menu menu);
 
-    boolean processMenu(int itemId);
+    boolean processMenu(int itemId, Selection<T> selection);
   }
 
   private final AppCompatActivity activity;
@@ -87,7 +88,7 @@ final class SelectionUtils<T> extends SelectionTracker.SelectionObserver<T> {
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
       if (processActionItemClick(item.getItemId())) {
         return true;
-      } else if (client.processMenu(item.getItemId())) {
+      } else if (client.processMenu(item.getItemId(), selectionTracker.getSelection())) {
         mode.finish();
         return true;
       } else {

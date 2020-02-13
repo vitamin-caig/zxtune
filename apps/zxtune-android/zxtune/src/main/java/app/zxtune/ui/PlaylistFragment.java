@@ -131,7 +131,7 @@ public class PlaylistFragment extends Fragment {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    return processMenu(item.getItemId()) || super.onOptionsItemSelected(item);
+    return processMenu(item.getItemId(), selectionTracker.getSelection()) || super.onOptionsItemSelected(item);
   }
 
   @Override
@@ -259,7 +259,7 @@ public class PlaylistFragment extends Fragment {
   }
 
   // Client for selection
-  private class SelectionClient implements SelectionUtils.Client {
+  private class SelectionClient implements SelectionUtils.Client<Long> {
     @NonNull
     @Override
     public String getTitle(int count) {
@@ -288,24 +288,24 @@ public class PlaylistFragment extends Fragment {
     }
 
     @Override
-    public boolean processMenu(int itemId) {
-      return PlaylistFragment.this.processMenu(itemId);
+    public boolean processMenu(int itemId, Selection<Long> selection) {
+      return PlaylistFragment.this.processMenu(itemId, selection);
     }
   }
 
-  private boolean processMenu(int itemId) {
+  private boolean processMenu(int itemId, Selection<Long> selection) {
     switch (itemId) {
       case R.id.action_clear:
         ctrl.deleteAll();
         break;
       case R.id.action_delete:
-        ctrl.delete(getSelection());
+        ctrl.delete(convertSelection(selection));
         break;
       case R.id.action_save:
-        savePlaylist(getSelection());
+        savePlaylist(convertSelection(selection));
         break;
       case R.id.action_statistics:
-        showStatistics(getSelection());
+        showStatistics(convertSelection(selection));
         break;
       default:
         return false;
@@ -313,8 +313,7 @@ public class PlaylistFragment extends Fragment {
     return true;
   }
 
-  private long[] getSelection() {
-    final Selection<Long> selection = selectionTracker.getSelection();
+  private static long[] convertSelection(@Nullable Selection<Long> selection) {
     if (selection == null || selection.size() == 0) {
       return null;
     }
