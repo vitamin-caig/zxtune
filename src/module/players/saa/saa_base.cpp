@@ -132,8 +132,8 @@ namespace Module
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      LastChunk.TimeStamp = Devices::SAA::Stamp();
-      FrameDuration = Devices::SAA::Stamp();
+      LastChunk.TimeStamp = {};
+      FrameDuration = {};
       Looped = {};
     }
 
@@ -174,7 +174,7 @@ namespace Module
     const SAA::DataIterator::Ptr Iterator;
     const Devices::SAA::Device::Ptr Device;
     Devices::SAA::DataChunk LastChunk;
-    Devices::SAA::Stamp FrameDuration;
+    Time::Duration<Devices::SAA::TimeUnit> FrameDuration;
     Sound::LoopParameters Looped;
   };
 

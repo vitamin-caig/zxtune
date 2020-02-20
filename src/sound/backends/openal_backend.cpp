@@ -173,10 +173,10 @@ namespace OpenAl
   class Source : private ApiRef
   {
   public:
-    explicit Source(Api& api, uint_t freq, uint_t buffersCount, Time::Milliseconds sleepPeriod)
+    explicit Source(Api& api, uint_t freq, uint_t buffersCount, Time::Microseconds sleepPeriod)
       : ApiRef(api)
       , Freq(freq)
-      , SleepPeriod(std::chrono::milliseconds(sleepPeriod.Get()))
+      , SleepPeriod(std::chrono::milliseconds(sleepPeriod.CastTo<Time::Millisecond>().Get()))
     {
       Dbg("Create source");
       OalApi.alGetError();

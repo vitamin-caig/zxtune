@@ -350,7 +350,7 @@ namespace GME
     }
   }
  
-  const Time::Milliseconds PERIOD(20);
+  const auto PERIOD = Time::Milliseconds(20);
   
   Time::Milliseconds GetProperties(::track_info_t info, PropertiesHelper& props)
   {
@@ -370,7 +370,7 @@ namespace GME
     props.SetAuthor(author);
     props.SetComment(copyright);
     props.SetComment(comment);
-    props.SetFramesFrequency(Time::GetFrequencyForPeriod(PERIOD));
+    props.SetFramesFrequency(PERIOD.ToFrequency());
 
     if (info.length > 0)
     {
@@ -410,9 +410,9 @@ namespace GME
           auto data = Desc.CreateData(*container);
           props.SetPlatform(Desc.DetectPlatform(data));
           const GMETune::Ptr tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), container->StartTrackIndex());
-          const Time::Milliseconds storedDuration = GetProperties(tune->GetInfo(), props);
-          const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
-          const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
+          const auto storedDuration = GetProperties(tune->GetInfo(), props);
+          const auto duration = storedDuration == Time::Milliseconds(0) ? Time::Milliseconds(GetDuration(params)) : storedDuration;
+          const Information::Ptr info = CreateStreamInfo(duration.Divide<uint_t>(PERIOD));
         
           props.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
         
@@ -456,9 +456,9 @@ namespace GME
           auto data = Desc.CreateData(*container);
           props.SetPlatform(Desc.DetectPlatform(data));
           const GMETune::Ptr tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), 0);
-          const Time::Milliseconds storedDuration = GetProperties(tune->GetInfo(), props);
-          const Time::Milliseconds duration = storedDuration == Time::Milliseconds() ? Time::Milliseconds(GetDuration(params)) : storedDuration;
-          const Information::Ptr info = CreateStreamInfo(duration.Get() / PERIOD.Get());
+          const auto storedDuration = GetProperties(tune->GetInfo(), props);
+          const auto duration = storedDuration == Time::Milliseconds(0) ? Time::Milliseconds(GetDuration(params)) : storedDuration;
+          const Information::Ptr info = CreateStreamInfo(duration.Divide<uint_t>(PERIOD));
         
           props.SetSource(*container);
         

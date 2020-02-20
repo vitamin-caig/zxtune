@@ -12,7 +12,7 @@
 
 //library includes
 #include <devices/z80.h>
-#include <time/stamp.h>
+#include <time/duration.h>
 
 namespace Benchmark
 {

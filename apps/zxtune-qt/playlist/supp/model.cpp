@@ -19,6 +19,7 @@
 #include <debug/log.h>
 #include <math/bitops.h>
 #include <parameters/template.h>
+#include <time/serialize.h>
 //std includes
 #include <atomic>
 #include <mutex>
@@ -70,7 +71,7 @@ namespace
       case Playlist::Model::COLUMN_DISPLAY_NAME:
         return ToQString(item.GetDisplayName());
       case Playlist::Model::COLUMN_DURATION:
-        return ToQString(item.GetDuration().ToString());
+        return ToQString(Time::ToString(item.GetDuration()));
       case Playlist::Model::COLUMN_AUTHOR:
         return ToQString(item.GetAuthor());
       case Playlist::Model::COLUMN_TITLE:

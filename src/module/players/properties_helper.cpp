@@ -12,8 +12,8 @@
 #include "module/players/properties_helper.h"
 //library includes
 #include <module/attributes.h>
-#include <sound/sound_parameters.h>
-#include <time/stamp.h>
+#include <sound/render_params.h>
+#include <time/duration.h>
 //boost includes
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
@@ -101,13 +101,11 @@ namespace Module
   
   void PropertiesHelper::SetFramesFrequency(uint_t freq)
   {
-    static_assert(Parameters::ZXTune::Sound::FRAMEDURATION_PRECISION == Time::Microseconds::PER_SECOND, "Invalid frameduration traits");
-    Delegate.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
+    Sound::SetFrameDuration(Delegate, Time::Microseconds::FromFrequency(freq));
   }
 
   void PropertiesHelper::SetFramesParameters(uint_t samplesCount, uint_t sampleRate)
   {
-    const auto period = Parameters::ZXTune::Sound::FRAMEDURATION_PRECISION * samplesCount / sampleRate;
-    Delegate.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, period);
+    Sound::SetFrameDuration(Delegate, Time::Microseconds::FromRatio(samplesCount, sampleRate));
   }
 }

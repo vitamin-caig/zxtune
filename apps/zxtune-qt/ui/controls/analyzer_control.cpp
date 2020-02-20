@@ -118,7 +118,7 @@ namespace
 
     void CloseState() override
     {
-      std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Set), 0));
+      std::for_each(Levels.begin(), Levels.end(), [](BandLevel& level) {level.Set(0);});
       DoRepaint();
       Timer.stop();
     }

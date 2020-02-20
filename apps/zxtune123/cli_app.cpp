@@ -267,7 +267,7 @@ namespace
 
       try
       {
-        Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
+        const auto total = Sounder.GetFrameDuration() * info->FramesCount() * Iterations;
         BenchmarkSoundReceiver receiver;
         const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), MakeSingletonPointer(receiver));
         const Time::Timer timer;
@@ -276,8 +276,8 @@ namespace
           renderer->SetPosition(0);
           while (renderer->RenderFrame()) {}
         }
-        const Time::Microseconds real = timer.Elapsed();
-        const double relSpeed = double(total.Get()) / real.Get();
+        const auto real = timer.Elapsed<>();
+        const auto relSpeed = total.Divide<double>(real);
         Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed,
           receiver.GetHash(), receiver.GetMinSample(), receiver.GetMaxSample()));
       }

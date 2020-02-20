@@ -216,7 +216,7 @@ namespace AYEMUL
 
     bool SetAyValue(const Devices::Z80::Stamp& timeStamp, uint8_t val)
     {
-      return Ay.SetValue(timeStamp, val);
+      return Ay.SetValue(timeStamp.CastTo<Devices::AYM::TimeUnit>(), val);
     }
     
     uint8_t GetAyValue() const
@@ -226,13 +226,13 @@ namespace AYEMUL
     
     void SetBeeperValue(const Devices::Z80::Stamp& timeStamp, bool val)
     {
-      Beeper.SetLevel(timeStamp, val);
+      Beeper.SetLevel(timeStamp.CastTo<Devices::Beeper::TimeUnit>(), val);
     }
 
     void RenderFrame(const Devices::Z80::Stamp& till)
     {
-      Ay.RenderFrame(till);
-      Beeper.RenderFrame(till);
+      Ay.RenderFrame(till.CastTo<Devices::AYM::TimeUnit>());
+      Beeper.RenderFrame(till.CastTo<Devices::Beeper::TimeUnit>());
     }
 
     Analyzer::Ptr GetAnalyzer() const
@@ -527,11 +527,11 @@ namespace AYEMUL
       CPU->Execute(til);
     }
 
-    void SkipFrames(uint_t count, const Devices::Z80::Stamp& frameStep)
+    void SkipFrames(uint_t count, Time::Duration<Devices::Z80::TimeUnit> frameStep)
     {
-      const Devices::Z80::Stamp curTime = CPU->GetTime();
+      const auto curTime = CPU->GetTime();
       CPUPorts->SetBlocked(true);
-      Devices::Z80::Stamp pos = curTime;
+      auto pos = curTime;
       for (uint_t frame = 0; frame < count; ++frame)
       {
         pos += frameStep;
@@ -596,7 +596,8 @@ namespace AYEMUL
       Iterator->Reset();
       Comp->Reset();
       Device->Reset();
-      FrameDuration = LastTime = Devices::Z80::Stamp();
+      FrameDuration = {};
+      LastTime = {};
       Looped = {};
     }
 
@@ -609,7 +610,7 @@ namespace AYEMUL
         Iterator->Reset();
         Comp->Reset();
         Device->Reset();
-        LastTime = Devices::Z80::Stamp();
+        LastTime = {};
         curFrame = 0;
       }
       SynchronizeParameters();
@@ -637,7 +638,7 @@ namespace AYEMUL
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;
     Devices::Z80::Stamp LastTime;
-    Devices::Z80::Stamp FrameDuration;
+    Time::Duration<Devices::Z80::TimeUnit> FrameDuration;
     Sound::LoopParameters Looped;
   };
 

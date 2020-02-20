@@ -16,12 +16,56 @@
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
+//library includes
+#include <time/serialize.h>
 //qt includes
 #include <QtGui/QCursor>
 #include <QtGui/QToolTip>
 
 namespace
 {
+  // Time/Frames/Slider logic
+  class ScaledTime
+  {
+  public:
+    ScaledTime(const Playlist::Item::Data& data, Module::State::Ptr state)
+      : Frames(data.GetModule()->GetModuleInformation()->FramesCount())
+      , Duration(data.GetDuration())
+      , State(std::move(state))
+    {
+    }
+
+    int GetSliderRange() const
+    {
+      return Frames;
+    }
+
+    int GetSliderPosition() const
+    {
+      return State->Frame();
+    }
+
+    uint_t SliderPositionToSeekPosition(int pos) const
+    {
+      return pos;
+    }
+
+    Time::Milliseconds SliderPositionToTime(int pos) const
+    {
+      const uint64_t frame = pos;
+      return decltype(Duration)(frame * Duration.Get() / Frames);
+    }
+
+    Time::Milliseconds GetPosition() const
+    {
+      return SliderPositionToTime(State->Frame());
+    }
+  private:
+    const uint_t Frames;
+    const Time::Milliseconds Duration;
+    const Module::State::Ptr State;
+  };
+
   class SeekControlsImpl : public SeekControls
                          , private Ui::SeekControls
   {
@@ -44,9 +88,8 @@ namespace
 
     void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item) override
     {
-      Item = item;
-      State = player->GetState();
-      timePosition->setRange(0, Item->GetDuration().GetCount());
+      Scaler.reset(new ScaledTime(*item, player->GetState()));
+      timePosition->setRange(0, Scaler->GetSliderRange());
     }
 
     void UpdateState() override
@@ -55,16 +98,15 @@ namespace
       {
         return;
       }
-      const uint_t curFrame = State->Frame();
       if (timePosition->isSliderDown())
       {
         ShowTooltip();
       }
       else
       {
-        timePosition->setSliderPosition(curFrame);
+        timePosition->setSliderPosition(Scaler->GetSliderPosition());
       }
-      timeDisplay->setText(ToQString(GetTimeString(curFrame)));
+      timeDisplay->setText(ToQString(Time::ToString(Scaler->GetPosition())));
     }
 
     void CloseState() override
@@ -75,7 +117,7 @@ namespace
 
     void EndSeeking() override
     {
-      OnSeeking(timePosition->value());
+      OnSeeking(Scaler->SliderPositionToSeekPosition(timePosition->value()));
     }
 
     //QWidget
@@ -91,20 +133,12 @@ namespace
     void ShowTooltip()
     {
       const uint_t sliderPos = timePosition->value();
-      const QString text = ToQString(GetTimeString(sliderPos));
+      const QString text = ToQString(Time::ToString(Scaler->SliderPositionToTime(sliderPos)));
       const QPoint& mousePos = QCursor::pos();
       QToolTip::showText(mousePos, text, timePosition, QRect());
     }
-
-    String GetTimeString(uint_t frame) const
-    {
-      Time::MillisecondsDuration duration = Item->GetDuration();
-      duration.SetCount(frame);
-      return duration.ToString();
-    }
   private:
-    Playlist::Item::Data::Ptr Item;
-    Module::State::Ptr State;
+    std::unique_ptr<ScaledTime> Scaler;
   };
 }
 

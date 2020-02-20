@@ -344,7 +344,7 @@ namespace Mp3
     const Parameters::Accessor::Ptr Properties;
   };
   
-  static const Time::Seconds MIN_DURATION(1);
+  static const auto MIN_DURATION = Time::Seconds(1);
   
   class DataBuilder : public Formats::Chiptune::Mp3::Builder
   {
@@ -366,7 +366,7 @@ namespace Mp3
       Data->Frames.push_back(frame.Location);
       Data->Frequency.Add(frame.Properties.Samplerate);
       Data->Samples.Add(frame.Properties.SamplesCount);
-      Data->Duration += Time::Microseconds(frame.Properties.SamplesCount * Time::Microseconds::PER_SECOND / frame.Properties.Samplerate);
+      Data->Duration += Time::Microseconds::FromRatio(frame.Properties.SamplesCount, frame.Properties.Samplerate);
     }
     
     void SetContent(Binary::Data::Ptr data)

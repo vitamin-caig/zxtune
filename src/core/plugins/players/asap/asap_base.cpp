@@ -143,9 +143,9 @@ namespace ASAP
       }
     }
     
-    void Seek(Time::Milliseconds frameDuration, uint_t framesCount)
+    void Seek(Time::Microseconds frameDuration, uint_t framesCount)
     {
-      CheckError(::ASAP_Seek(Module, frameDuration.Get() * framesCount), "ASAP_Seek");
+      CheckError(::ASAP_Seek(Module, frameDuration.Get() * framesCount / 1000), "ASAP_Seek");
     }
   private:
     void CheckError(bool ok, const char* msg)
@@ -241,7 +241,7 @@ namespace ASAP
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
-        const Time::Microseconds frameDuration = SoundParams->FrameDuration();
+        const auto frameDuration = SoundParams->FrameDuration();
         SamplesPerFrame = static_cast<uint_t>(frameDuration.Get() * ASAP_SAMPLE_RATE / frameDuration.PER_SECOND);
         Resampler = Sound::CreateResampler(ASAP_SAMPLE_RATE, SoundParams->SoundFreq(), Target);
       }
@@ -327,8 +327,8 @@ namespace ASAP
           tune->GetProperties(rawData, props);
           const auto defaultDuration = GetDuration(params);
           const auto duration = tune->GetDuration(defaultDuration);
-          const decltype(duration) frameDuration = Sound::GetFrameDuration(*properties);
-          const Information::Ptr info = CreateStreamInfo(duration.Get() / frameDuration.Get());
+          const auto frameDuration = Sound::GetFrameDuration(*properties);
+          const Information::Ptr info = CreateStreamInfo(duration.Divide<uint_t>(frameDuration));
         
           props.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
         
@@ -400,8 +400,8 @@ namespace ASAP
           tune->GetProperties(rawData, props);
           const auto defaultDuration = GetDuration(params);
           const auto duration = tune->GetDuration(defaultDuration);
-          const decltype(duration) frameDuration = Sound::GetFrameDuration(*properties);
-          const Information::Ptr info = CreateStreamInfo(duration.Get() / frameDuration.Get());
+          const auto frameDuration = Sound::GetFrameDuration(*properties);
+          const Information::Ptr info = CreateStreamInfo(duration.Divide<uint_t>(frameDuration));
         
           props.SetSource(*container);
         

@@ -90,7 +90,7 @@ namespace AYM
       header.FramesCount = fromLE(framesCount);
       header.LoopFrame = fromLE(static_cast<uint32_t>(Params->LoopFrame()));
       header.PSGFreq = fromLE(static_cast<uint32_t>(Params->ClockFreq()));
-      header.IntFreq = fromLE(static_cast<uint32_t>(Time::GetFrequencyForPeriod(Params->FrameDuration())));
+      header.IntFreq = fromLE(static_cast<uint32_t>(Params->FrameDuration().ToFrequency()));
       builder.AddCString(title);
       builder.AddCString(author);
 

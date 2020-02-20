@@ -13,7 +13,7 @@
 //library includes
 #include <module/holder.h>
 #include <sound/backend.h>
-#include <time/stamp.h>
+#include <time/duration.h>
 //std includes
 #include <memory>
 

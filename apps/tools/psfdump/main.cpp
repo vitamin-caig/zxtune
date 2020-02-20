@@ -20,7 +20,7 @@
 #include <formats/chiptune/emulation/portablesoundformat.h>
 #include <formats/chiptune/emulation/ultra64soundformat.h>
 #include <strings/format.h>
-#include <time/duration.h>
+#include <time/serialize.h>
 //std includes
 #include <iomanip>
 #include <iostream>
@@ -407,12 +407,12 @@ namespace
     
     void SetLength(Time::Milliseconds duration) override
     {
-      Write(1, "Length: %1%", Time::MillisecondsDuration(duration.Get(), Time::Milliseconds(1)).ToString());
+      Write(1, "Length: %1%", Time::ToString(duration));
     }
     
     void SetFade(Time::Milliseconds fade) override
     {
-      Write(1, "Fade: %1%", Time::MillisecondsDuration(fade.Get(), Time::Milliseconds(1)).ToString());
+      Write(1, "Fade: %1%", Time::ToString(fade));
     }
     
     void SetVolume(float vol) override

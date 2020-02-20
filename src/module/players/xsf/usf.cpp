@@ -301,8 +301,8 @@ namespace USF
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
       const auto period = Sound::GetFrameDuration(*properties);
-      const decltype(period) duration = tune->Meta->Duration;
-      const uint_t frames = duration.Get() / period.Get();
+      const auto duration = tune->Meta->Duration;
+      const auto frames = duration.Divide<uint_t>(period);
       Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
       {

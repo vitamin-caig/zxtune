@@ -134,8 +134,8 @@ namespace Module
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      LastChunk.TimeStamp = Devices::DAC::Stamp();
-      FrameDuration = Devices::DAC::Stamp();
+      LastChunk.TimeStamp = {};
+      FrameDuration = {};
       Looped = {};
     }
 
@@ -146,7 +146,7 @@ namespace Module
       {
         Iterator->Reset();
         Device->Reset();
-        LastChunk.TimeStamp = Devices::DAC::Stamp();
+        LastChunk.TimeStamp = {};
         curFrame = 0;
       }
       if (LastChunk.TimeStamp == Devices::DAC::Stamp())
@@ -183,7 +183,7 @@ namespace Module
     const DAC::DataIterator::Ptr Iterator;
     const Devices::DAC::Chip::Ptr Device;
     Devices::DAC::DataChunk LastChunk;
-    Devices::DAC::Stamp FrameDuration;
+    Time::Duration<Devices::DAC::TimeUnit> FrameDuration;
     Sound::LoopParameters Looped;
   };
 }

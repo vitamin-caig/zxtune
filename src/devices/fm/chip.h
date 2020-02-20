@@ -18,7 +18,7 @@
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
-#include <time/oscillator.h>
+#include <time/duration.h>
 
 namespace Devices
 {
@@ -55,7 +55,7 @@ namespace FM
         }
         const uint64_t delta = stamp.Get() - LastTime.Get();
         const uint64_t res = (Frequency * delta).Integer();
-        LastTime += Stamp((FixedPoint(res) / Frequency).Integer());
+        LastTime += Time::Duration<TimeUnit>((FixedPoint(res) / Frequency).Integer());
         return res;
       }
     private:

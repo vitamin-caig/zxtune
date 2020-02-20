@@ -20,6 +20,7 @@
 #include <strings/format.h>
 #include <strings/template.h>
 #include <time/duration.h>
+#include <time/serialize.h>
 //std includes
 #include <thread>
 //boost includes
@@ -117,8 +118,7 @@ namespace
         return;
       }
       Message(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
-      Message(Strings::Format(Text::ITEM_INFO_ADDON,
-          Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(), info->ChannelsCount()));
+      Message(Strings::Format(Text::ITEM_INFO_ADDON, Time::ToString(FrameDuration * info->FramesCount()), info->ChannelsCount()));
     }
 
     uint_t BeginFrame(Sound::PlaybackControl::State state) override
@@ -176,7 +176,7 @@ namespace
     void ShowPlaybackStatus(uint_t frame, Sound::PlaybackControl::State state) const
     {
       const Char MARKER = '\x1';
-      String data = Strings::Format(Text::PLAYBACK_STATUS, Time::MicrosecondsDuration(frame, FrameDuration).ToString(), MARKER);
+      String data = Strings::Format(Text::PLAYBACK_STATUS, Time::ToString(FrameDuration * frame), MARKER);
       const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
       const String::size_type markerPos = data.find(MARKER);
 

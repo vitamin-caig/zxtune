@@ -14,7 +14,7 @@
 #include <binary/data.h>
 #include <binary/view.h>
 #include <sound/chunk.h>
-#include <time/stamp.h>
+#include <time/duration.h>
 
 namespace Module
 {

@@ -12,8 +12,9 @@
 
 //library includes
 #include <parameters/accessor.h>
+#include <parameters/modifier.h>
 #include <sound/loop.h>
-#include <time/stamp.h>
+#include <time/duration.h>
 
 namespace Sound
 {
@@ -40,4 +41,5 @@ namespace Sound
   };
   
   Time::Microseconds GetFrameDuration(const Parameters::Accessor& params);
+  void SetFrameDuration(Parameters::Modifier& params, Time::Microseconds duration);
 }

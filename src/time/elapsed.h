@@ -11,18 +11,21 @@
 #pragma once
 
 //library includes
-#include <time/stamp.h>
+#include <time/duration.h>
 //std includes
 #include <ctime>
+#include <type_traits>
 
 namespace Time
 {
   class Elapsed
   {
   public:
-    template<class StampType>
-    explicit Elapsed(const StampType& period)
-      : Period(Stamp<typename StampType::ValueType, CLOCKS_PER_SEC>(period).Get())
+    using NativeUnit = BaseUnit<std::conditional<sizeof(std::clock_t) == sizeof(uint64_t), uint64_t, uint_t>::type, CLOCKS_PER_SEC>;
+
+    template<class DurationType>
+    explicit Elapsed(const DurationType& period)
+      : Period(Duration<NativeUnit>(period).Get())
       , Next()
     {
     }

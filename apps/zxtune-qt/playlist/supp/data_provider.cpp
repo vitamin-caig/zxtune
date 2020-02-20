@@ -458,11 +458,11 @@ namespace
       , Source(std::move(source))
       , AdjustedParams(std::move(adjustedParams))
       , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
+      , Frames(frames)
       , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
       , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
       , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, Module::ATTR_SIZE)))
     {
-      Duration.SetCount(frames);
       LoadProperties(moduleProps);
     }
 
@@ -522,9 +522,9 @@ namespace
       return DisplayName;
     }
 
-    Time::MillisecondsDuration GetDuration() const override
+    Time::Milliseconds GetDuration() const override
     {
-      return Duration;
+      return (FrameDuration * Frames).CastTo<Time::Millisecond>();
     }
 
     String GetAuthor() const override
@@ -598,7 +598,7 @@ namespace
         Author.clear();
         Title.clear();
         Comment.clear();
-        Duration.SetCount(0);
+        FrameDuration = {};
       }
     }
 
@@ -608,8 +608,7 @@ namespace
       Author = GetStringProperty(props, Module::ATTR_AUTHOR);
       Title = GetStringProperty(props, Module::ATTR_TITLE);
       Comment = GetStringProperty(props, Module::ATTR_COMMENT);
-      const Time::Microseconds period(GetIntProperty(props, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT));
-      Duration.SetPeriod(period);
+      FrameDuration = Time::Microseconds(GetIntProperty(props, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT));
     }
   private:
     const Playlist::Item::Capabilities Caps;
@@ -617,6 +616,7 @@ namespace
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
     const String Type;
+    const uint_t Frames;
     const uint32_t Checksum;
     const uint32_t CoreChecksum;
     const std::size_t Size;
@@ -624,7 +624,7 @@ namespace
     String Author;
     String Title;
     String Comment;
-    Time::MillisecondsDuration Duration;
+    Time::Microseconds FrameDuration;
     mutable Error State;
   };
   

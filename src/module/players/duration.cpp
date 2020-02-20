@@ -19,9 +19,9 @@ namespace Module
 {
   uint_t GetDurationInFrames(const Parameters::Accessor& params)
   {
-    const Time::Microseconds duration = GetDuration(params);
-    const Time::Microseconds frameDuration = Sound::GetFrameDuration(params);
-    return duration.Get() / frameDuration.Get();
+    const auto frameDuration = Sound::GetFrameDuration(params);
+    const auto duration = GetDuration(params);
+    return duration.Divide<uint_t>(frameDuration);
   }
   
   Time::Seconds GetDuration(const Parameters::Accessor& params)

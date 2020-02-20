@@ -116,9 +116,9 @@ namespace
       return Path;
     }
 
-    Time::MillisecondsDuration GetDuration() const override
+    Time::Milliseconds GetDuration() const override
     {
-      return Time::MillisecondsDuration();
+      return {};
     }
 
     String GetAuthor() const override
@@ -261,7 +261,7 @@ namespace
       return Delegate->GetDisplayName();
     }
 
-    Time::MillisecondsDuration GetDuration() const override
+    Time::Milliseconds GetDuration() const override
     {
       AcquireDelegate();
       return Delegate->GetDuration();

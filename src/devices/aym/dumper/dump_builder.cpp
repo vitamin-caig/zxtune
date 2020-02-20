@@ -124,7 +124,7 @@ namespace AYM
   class FrameDumper : public Dumper
   {
   public:
-    FrameDumper(const Time::Microseconds& frameDuration, FramedDumpBuilder::Ptr builder, RenderState::Ptr state)
+    FrameDumper(Time::Microseconds frameDuration, FramedDumpBuilder::Ptr builder, RenderState::Ptr state)
       : FrameDuration(frameDuration)
       , Builder(std::move(builder))
       , State(std::move(state))
@@ -156,7 +156,8 @@ namespace AYM
       Builder->Initialize();
       State->Reset();
       FramesToSkip = 0;
-      NextFrame = FrameDuration;
+      NextFrame = {};
+      NextFrame += FrameDuration;
     }
 
     void GetDump(Dump& result) const override
@@ -185,7 +186,7 @@ namespace AYM
       NextFrame += FrameDuration;
     }
   private:
-    const Stamp FrameDuration;
+    const Time::Duration<TimeUnit> FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
     const RenderState::Ptr State;
     mutable uint_t FramesToSkip;

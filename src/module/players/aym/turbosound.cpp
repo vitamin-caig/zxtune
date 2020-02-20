@@ -398,8 +398,8 @@ namespace TurboSound
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      LastChunk.TimeStamp = Devices::TurboSound::Stamp();
-      FrameDuration = Devices::TurboSound::Stamp();
+      LastChunk.TimeStamp = {};
+      FrameDuration = {};
       Looped = {};
     }
 
@@ -410,7 +410,7 @@ namespace TurboSound
       {
         Iterator->Reset();
         Device->Reset();
-        LastChunk.TimeStamp = Devices::TurboSound::Stamp();
+        LastChunk.TimeStamp = {};
         curFrame = 0;
       }
       while (curFrame < frameNum && Iterator->IsValid())
@@ -440,7 +440,7 @@ namespace TurboSound
     const TurboSound::DataIterator::Ptr Iterator;
     const Devices::TurboSound::Device::Ptr Device;
     Devices::TurboSound::DataChunk LastChunk;
-    Devices::TurboSound::Stamp FrameDuration;
+    Time::Duration<Devices::TurboSound::TimeUnit> FrameDuration;
     Sound::LoopParameters Looped;
   };
 

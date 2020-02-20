@@ -90,10 +90,10 @@ namespace Chiptune
         return ~uint_t(0);
       }
     }
-       
-    typedef Time::Stamp<uint_t, 64000> Ticks;
     
-    const Time::Seconds MAX_DURATION(3600);
+    using Tick = Time::BaseUnit<uint_t, 64000>;
+    
+    const auto MAX_DURATION = Time::Seconds(3600);
     
     template<class T>
     inline bool IsValidTime(T t)
@@ -286,9 +286,9 @@ namespace Chiptune
         }
       }
       
-      Ticks GetTicks() const
+      Time::Milliseconds GetTicks() const
       {
-        return Ticks(GetInteger());
+        return Time::Duration<Tick>(GetInteger()).CastTo<Time::Millisecond>();
       }
       
       String GetString() const

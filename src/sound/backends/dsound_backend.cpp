@@ -494,7 +494,7 @@ namespace DirectSound
       res.Device = OpenDevice(*DsApi, device);
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
-      const Time::Milliseconds frameDuration = RenderingParameters->FrameDuration();
+      const auto frameDuration = RenderingParameters->FrameDuration().CastTo<Time::Millisecond>();
       res.Stream = MakePtr<StreamBuffer>(buffer, std::chrono::milliseconds(frameDuration.Get()));
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
       res.Volume = MakePtr<VolumeControl>(res.Device, primary);

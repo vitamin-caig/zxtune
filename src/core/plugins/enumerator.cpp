@@ -66,7 +66,7 @@ namespace ZXTune
     {
       const Time::Timer timer;
       RegisterArchivePlugins(*this);
-      EnumeratorDbg("Registered %1% archive plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
+      EnumeratorDbg("Registered %1% archive plugins for %2%ms", Plugins.size(), timer.Elapsed<Time::Millisecond>().Get());
     }
   };
 
@@ -77,7 +77,7 @@ namespace ZXTune
     {
       const Time::Timer timer;
       RegisterPlayerPlugins(*this);
-      EnumeratorDbg("Registered %1% player plugins for %2%ms", Plugins.size(), Time::Milliseconds(timer.Elapsed()).Get());
+      EnumeratorDbg("Registered %1% player plugins for %2%ms", Plugins.size(), timer.Elapsed<Time::Millisecond>().Get());
     }
   };
 

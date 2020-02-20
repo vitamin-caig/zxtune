@@ -12,7 +12,7 @@
 
 //library includes
 #include <devices/aym/chip.h>
-#include <time/stamp.h>
+#include <time/duration.h>
 
 namespace Benchmark
 {

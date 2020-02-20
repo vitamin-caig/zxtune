@@ -159,8 +159,8 @@ namespace Wav
       , Data(props.Data)
       , Frequency(props.Frequency)
       , TotalSamples(Data->Size() / props.BlockSize)
-      , TotalDuration(TotalSamples * TotalDuration.PER_SECOND / Frequency)
-      , TotalFrames(std::max<uint_t>(1, static_cast<uint_t>(TotalDuration.Get() / props.FrameDuration.Get())))
+      , TotalDuration(Time::Microseconds::FromRatio(TotalSamples, Frequency))
+      , TotalFrames(std::max<uint_t>(1, TotalDuration.Divide<uint_t>(props.FrameDuration)))
       , SamplesPerFrame(TotalSamples / TotalFrames)
       , BytesPerFrame(props.BlockSize * SamplesPerFrame)
     {

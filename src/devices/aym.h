@@ -13,7 +13,7 @@
 //common includes
 #include <types.h>
 //library includes
-#include <time/stamp.h>
+#include <time/instant.h>
 //std includes
 #include <array>
 #include <memory>
@@ -25,7 +25,8 @@ namespace Devices
   {
     const uint_t VOICES = 5;
 
-    typedef Time::Microseconds Stamp;
+    using TimeUnit = Time::Microsecond;
+    using Stamp = Time::Instant<TimeUnit>;
 
     class Registers
     {

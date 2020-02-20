@@ -20,6 +20,7 @@ namespace Devices
     const uint_t CHIPS = 2;
     const uint_t VOICES = FM::VOICES * CHIPS;
 
+    using Devices::FM::TimeUnit;
     using Devices::FM::Stamp;
 
     class Register : public FM::Register

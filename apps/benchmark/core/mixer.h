@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <time/stamp.h>
+#include <time/duration.h>
 
 namespace Benchmark
 {

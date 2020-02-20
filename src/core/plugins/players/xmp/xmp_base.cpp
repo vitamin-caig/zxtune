@@ -27,7 +27,7 @@
 #include <sound/sound_parameters.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
-#include <time/stamp.h>
+#include <time/duration.h>
 //std includes
 #include <utility>
 //3rdparty includes
@@ -114,16 +114,16 @@ namespace Xmp
     }
   };
 
-  typedef Time::Milliseconds TimeType;
+  using DurationType = Time::Milliseconds;
 
   class Information : public Module::TrackInformation
   {
   public:
     typedef std::shared_ptr<const Information> Ptr;
 
-    Information(xmp_module module, TimeType duration)
+    Information(xmp_module module, DurationType duration)
       : Info(std::move(module))
-      , Frames(duration.Get() / GetFrameDuration().Get())
+      , Frames(duration.Divide<uint_t>(GetFrameDuration()))
     {
     }
 
@@ -157,10 +157,10 @@ namespace Xmp
       return Info.spd;
     }
 
-    TimeType GetFrameDuration() const
+    DurationType GetFrameDuration() const
     {
       //fps = 50 * bpm / 125
-      return TimeType(TimeType::PER_SECOND * 125 / (50 * Info.bpm));
+      return DurationType(DurationType::PER_SECOND * 125 / (50 * Info.bpm));
     }
   private:
     const xmp_module Info;
@@ -180,7 +180,7 @@ namespace Xmp
 
     uint_t Frame() const override
     {
-      return TimeType(State->time).Get() / FrameDuration.Get();
+      return DurationType(State->time).Divide<uint_t>(FrameDuration);
     }
 
     uint_t LoopCount() const override
@@ -218,7 +218,7 @@ namespace Xmp
       return State->virt_used;//????
     }
   private:
-    const TimeType FrameDuration;
+    const DurationType FrameDuration;
     const StatePtr State;
   };
 
@@ -351,7 +351,7 @@ namespace Xmp
     const Sound::RenderParameters::Ptr SoundParams;
     const TrackState::Ptr Track;
     const Analyzer::Ptr Analysis;
-    const TimeType FrameDuration;
+    const DurationType FrameDuration;
     uint_t SoundFreq;
     Sound::LoopParameters Looped;
   };
@@ -359,7 +359,7 @@ namespace Xmp
   class Holder : public Module::Holder
   {
   public:
-    explicit Holder(Context::Ptr ctx, const xmp_module_info& modInfo, TimeType duration, Parameters::Accessor::Ptr props)
+    explicit Holder(Context::Ptr ctx, const xmp_module_info& modInfo, DurationType duration, Parameters::Accessor::Ptr props)
       : Ctx(std::move(ctx))
       , Info(MakePtr<Information>(*modInfo.mod, duration))
       , Properties(std::move(props))
@@ -477,7 +477,7 @@ namespace Xmp
         const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, modInfo.size);
         props.SetSource(*source);
 
-        return MakePtr<Holder>(ctx, modInfo, TimeType(frmInfo.total_time), properties);
+        return MakePtr<Holder>(ctx, modInfo, DurationType(frmInfo.total_time), properties);
       }
       catch (const std::exception&)
       {

@@ -257,16 +257,16 @@ namespace PortableSoundFormat
     static Time::Milliseconds ParseTime(String val)
     {
       //[[hours:]minutes:]seconds.decimal
-      Time::Milliseconds result;
+      uint_t result = 0;
       String::size_type start = 0;
       auto end = val.find_first_of(':', start);
       while (end != String::npos)
       {
         val[end] = 0;
-        result = Time::Milliseconds(result.Get() * 60 + result.PER_SECOND * std::atoi(val.c_str()  + start));
+        result = result * 60 + 1000 * std::atoi(val.c_str()  + start);
         end = val.find_first_of(':', start = end + 1);
       }
-      return Time::Milliseconds(result.Get() * 60 + result.PER_SECOND * std::atof(val.c_str() + start));
+      return Time::Milliseconds(result * 60 + 1000 * std::atof(val.c_str() + start));
     }
     
     static float ParseVolume(String val)

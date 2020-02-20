@@ -105,9 +105,7 @@ namespace
 
     Time::Microseconds GetFrameDuration() const
     {
-      Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
-      return Time::Microseconds(static_cast<Time::Microseconds::ValueType>(frameDuration));
+      return Sound::GetFrameDuration(*Params);
     }
   private:
     const Parameters::Container::Ptr Params;

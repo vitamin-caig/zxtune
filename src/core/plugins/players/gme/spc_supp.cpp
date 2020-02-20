@@ -241,7 +241,7 @@ namespace SPC
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
-        const Time::Microseconds frameDuration = SoundParams->FrameDuration();
+        const auto frameDuration = SoundParams->FrameDuration();
         SamplesPerFrame = static_cast<uint_t>(frameDuration.Get() * ::SNES_SPC::sample_rate / frameDuration.PER_SECOND);
         Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, SoundParams->SoundFreq(), Target);
       }
@@ -383,7 +383,7 @@ namespace SPC
     
     Time::Milliseconds GetDuration(const Parameters::Accessor& params) const
     {
-      Time::Milliseconds total = Intro;
+      auto total = Intro;
       total += Loop;
       total += Fade;
       return total.Get() ? total : Time::Milliseconds(Module::GetDuration(params));
@@ -411,12 +411,12 @@ namespace SPC
         if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SPC::Parse(rawData, dataBuilder))
         {
           const SPC::Ptr tune = MakePtr<SPC>(rawData);
+          const auto period = Time::Milliseconds(20);
           props.SetSource(*container);
-          props.SetFramesFrequency(50);
+          props.SetFramesFrequency(period.ToFrequency<uint_t>());
           props.SetPlatform(Platforms::SUPER_NINTENDO_ENTERTAINMENT_SYSTEM);
-          const Time::Milliseconds duration = dataBuilder.GetDuration(params);
-          const Time::Milliseconds period = Time::Milliseconds(20);
-          const uint_t frames = duration.Get() / period.Get();
+          const auto duration = Time::Milliseconds(dataBuilder.GetDuration(params));
+          const auto frames = duration.Divide<uint_t>(period);
           const Information::Ptr info = CreateStreamInfo(frames);
           return MakePtr<Holder>(tune, info, properties);
         }

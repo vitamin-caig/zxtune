@@ -29,6 +29,8 @@
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
+//library includes
+#include <time/serialize.h>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QClipboard>
@@ -159,7 +161,6 @@ namespace
       , Duration()
       , Size()
     {
-      Duration.SetPeriod(Time::Milliseconds(1));
     }
 
     QString Category() const override
@@ -172,7 +173,7 @@ namespace
       QStringList result;
       result.append(Playlist::UI::ItemsContextMenu::tr("Total: %1").arg(ModulesCount(Processed)));
       result.append(Playlist::UI::ItemsContextMenu::tr("Invalid: %1").arg(ModulesCount(Invalids)));
-      result.append(Playlist::UI::ItemsContextMenu::tr("Total duration: %1").arg(ToQString(Duration.ToString())));
+      result.append(Playlist::UI::ItemsContextMenu::tr("Total duration: %1").arg(ToQString(Time::ToString(Duration))));
       result.append(Playlist::UI::ItemsContextMenu::tr("Total size: %1").arg(MemorySize(Size)));
       result.append(Playlist::UI::ItemsContextMenu::tr("%n different modules' type(s)", nullptr, Types.size()));
       result.append(Playlist::UI::ItemsContextMenu::tr("%n files referenced", nullptr, Paths.size()));
@@ -205,7 +206,7 @@ namespace
       ++Types[type];
     }
 
-    void AddDuration(const Time::MillisecondsDuration& duration) override
+    void AddDuration(const Time::Milliseconds& duration) override
     {
       Duration += duration;
     }
@@ -222,7 +223,7 @@ namespace
   private:
     std::size_t Processed;
     std::size_t Invalids;
-    Time::Duration<uint64_t, Time::Milliseconds> Duration;
+    Time::Duration<Time::BaseUnit<uint64_t, 1000>> Duration;
     uint64_t Size;
     std::map<String, std::size_t> Types;
     std::set<String> Paths;

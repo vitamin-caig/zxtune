@@ -12,6 +12,7 @@
 
 //library includes
 #include <devices/aym.h>
+#include <time/duration.h>
 
 //supporting for AY/YM-based modules
 namespace Devices

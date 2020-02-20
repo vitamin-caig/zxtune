@@ -15,7 +15,7 @@
 //library includes
 #include <binary/view.h>
 #include <formats/chiptune.h>
-#include <time/stamp.h>
+#include <time/duration.h>
 
 namespace Formats
 {

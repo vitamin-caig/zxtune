@@ -11,6 +11,7 @@
 #include "../../utils.h"
 #include <formats/chiptune/emulation/spc.h>
 #include <strings/format.h>
+#include <time/serialize.h>
 
 namespace
 {
@@ -52,17 +53,17 @@ namespace
 
      void SetIntro(Time::Milliseconds duration) override
      {
-       std::cout << "Intro,ms: " << duration.Get() << std::endl;
+       std::cout << "Intro: " << Time::ToString(duration) << std::endl;
      }
 
      void SetLoop(Time::Milliseconds duration) override
      {
-       std::cout << "Duration,ms: " << duration.Get() << std::endl;
+       std::cout << "Duration: " << Time::ToString(duration) << std::endl;
      }
 
      void SetFade(Time::Milliseconds duration) override
      {
-       std::cout << "Fade,ms: " << duration.Get() << std::endl;
+       std::cout << "Fade: " << Time::ToString(duration) << std::endl;
      }
 
      void SetArtist(String artist) override

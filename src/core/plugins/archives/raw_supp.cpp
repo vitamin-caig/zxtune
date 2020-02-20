@@ -28,6 +28,7 @@
 #include <debug/log.h>
 #include <strings/prefixed_index.h>
 #include <time/duration.h>
+#include <time/serialize.h>
 #include <time/timer.h>
 //std includes
 #include <array>
@@ -105,7 +106,7 @@ namespace ZXTune
 
   class Statistic
   {
-    typedef Time::Timer::NativeStamp Stamp;
+    using TimeUnit = Time::Timer::NativeUnit;
   public:
     Statistic()
       : TotalData(0)
@@ -117,13 +118,13 @@ namespace ZXTune
     ~Statistic()
     {
       const Debug::Stream Dbg("Core::RawScaner::Statistic");
-      const Stamp spent = Timer.Elapsed();
+      const auto spent = Timer.Elapsed();
       Dbg("Total processed: %1%", TotalData);
-      Dbg("Time spent: %1%", Time::Duration<Stamp::ValueType, Stamp>(1, spent).ToString());
+      Dbg("Time spent: %1%", Time::ToString(spent));
       const uint64_t useful = ArchivedData + ModulesData;
       Dbg("Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
       Dbg("Coverage: %1%%%", useful * 100 / TotalData);
-      Dbg("Speed: %1% b/s", spent.Get() ? (TotalData * Stamp::PER_SECOND / spent.Get()) : TotalData);
+      Dbg("Speed: %1% b/s", spent.Get() ? (TotalData * spent.PER_SECOND / spent.Get()) : TotalData);
       StatisticBuilder<7> builder;
       builder.Add(MakeStatLine(), 0);
       StatItem total;
@@ -158,7 +159,7 @@ namespace ZXTune
       StatItem& item = GetStat(plug);
       ++item.Aimed;
       item.AimedTime += scanTimer.Elapsed() + item.ScanTime;
-      item.ScanTime = Stamp(0);
+      item.ScanTime = {};
     }
 
     template<class PluginType>
@@ -167,7 +168,7 @@ namespace ZXTune
       StatItem& item = GetStat(plug);
       ++item.Missed;
       item.MissedTime += scanTimer.Elapsed() + item.ScanTime;
-      item.ScanTime = Stamp(0);
+      item.ScanTime = {};
     }
 
     template<class PluginType>
@@ -189,9 +190,9 @@ namespace ZXTune
       std::size_t Index;
       std::size_t Aimed;
       std::size_t Missed;
-      Stamp AimedTime;
-      Stamp MissedTime;
-      Stamp ScanTime;
+      Time::Duration<TimeUnit> AimedTime;
+      Time::Duration<TimeUnit> MissedTime;
+      Time::Duration<TimeUnit> ScanTime;
 
       StatItem()
         : Index()
@@ -233,8 +234,8 @@ namespace ZXTune
       res[1] = boost::lexical_cast<std::string>(item.Missed);
       res[2] = boost::lexical_cast<std::string>(item.Aimed + item.Missed);
       res[3] = boost::lexical_cast<std::string>(Percent(item.Aimed, item.Missed));
-      res[4] = boost::lexical_cast<std::string>(Time::Milliseconds(item.MissedTime).Get());
-      res[5] = boost::lexical_cast<std::string>(Time::Milliseconds(item.MissedTime + item.AimedTime).Get());
+      res[4] = boost::lexical_cast<std::string>(item.MissedTime.CastTo<Time::Millisecond>().Get());
+      res[5] = boost::lexical_cast<std::string>((item.MissedTime + item.AimedTime).CastTo<Time::Millisecond>().Get());
       res[6] = boost::lexical_cast<std::string>(Percent(item.AimedTime.Get(), item.MissedTime.Get()));
       return res;
     }

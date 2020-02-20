@@ -302,16 +302,16 @@ namespace SDSF
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
-      const auto period = Time::GetPeriodForFrequency<Time::Milliseconds>(tune->GetRefreshRate());
-      const decltype(period) duration = tune->Meta->Duration;
-      const uint_t frames = duration.Get() / period.Get();
+      const auto period = Time::Milliseconds::FromFrequency(tune->GetRefreshRate());
+      const auto duration = tune->Meta->Duration;
+      const auto frames = duration.Divide<uint_t>(period);
       Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
       {
         tune->Meta->Dump(*properties);
       }
       properties->SetValue(ATTR_PLATFORM, tune->Version == 0x11 ? Platforms::SEGA_SATURN : Platforms::DREAMCAST);
-      properties->SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::Stamp<uint64_t, Parameters::ZXTune::Sound::FRAMEDURATION_PRECISION>(period).Get());
+      Sound::SetFrameDuration(*properties, period);
       return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
     }
   private:

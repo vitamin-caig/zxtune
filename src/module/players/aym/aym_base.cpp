@@ -118,8 +118,8 @@ namespace Module
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      LastChunk.TimeStamp = Devices::AYM::Stamp();
-      FrameDuration = Devices::AYM::Stamp();
+      LastChunk.TimeStamp = {};
+      FrameDuration = {};
       Looped = {};
     }
 
@@ -160,7 +160,7 @@ namespace Module
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Device::Ptr Device;
     Devices::AYM::DataChunk LastChunk;
-    Devices::AYM::Stamp FrameDuration;
+    Time::Duration<Devices::AYM::TimeUnit> FrameDuration;
     Sound::LoopParameters Looped;
   };
 }

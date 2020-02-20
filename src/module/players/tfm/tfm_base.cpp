@@ -76,8 +76,8 @@ namespace Module
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      LastChunk.TimeStamp = Devices::TFM::Stamp();
-      FrameDuration = Devices::TFM::Stamp();
+      LastChunk.TimeStamp = {};
+      FrameDuration = {};
       Looped = {};
     }
 
@@ -88,7 +88,7 @@ namespace Module
       {
         Iterator->Reset();
         Device->Reset();
-        LastChunk.TimeStamp = Devices::TFM::Stamp();
+        LastChunk.TimeStamp = {};
         curFrame = 0;
       }
       while (curFrame < frameNum && Iterator->IsValid())
@@ -118,7 +118,7 @@ namespace Module
     const TFM::DataIterator::Ptr Iterator;
     const Devices::TFM::Device::Ptr Device;
     Devices::TFM::DataChunk LastChunk;
-    Devices::TFM::Stamp FrameDuration;
+    Time::Duration<Devices::TFM::TimeUnit> FrameDuration;
     Sound::LoopParameters Looped;
   };
 }

@@ -30,9 +30,8 @@ namespace Benchmark
       {
         mixer->ApplyData(input);
       }
-      const Time::Nanoseconds elapsed = timer.Elapsed();
-      const Time::Nanoseconds emulated(duration);
-      return double(emulated.Get()) / elapsed.Get();
+      const auto elapsed = timer.Elapsed();
+      return duration.Divide<double>(elapsed);
     }
 
     double Test(uint_t channels, const Time::Milliseconds& duration, uint_t soundFreq)

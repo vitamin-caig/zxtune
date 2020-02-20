@@ -267,8 +267,7 @@ namespace V2M
 
     void SetTotalDuration(Time::Milliseconds duration) override
     {
-      const decltype(FRAME_DURATION) scaledDuration = duration;
-      FramesCount = scaledDuration.Get() / FRAME_DURATION.Get();
+      FramesCount = duration.Divide<uint_t>(FRAME_DURATION);
     }
 
     uint_t GetFramesCount() const
