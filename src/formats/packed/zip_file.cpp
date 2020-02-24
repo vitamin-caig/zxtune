@@ -169,6 +169,10 @@ namespace Packed
       const auto& header = container.GetHeader();
       const auto& file = container.GetFile();
       auto input = container.GetPackedData();
+      if (!input)
+      {
+        return {};
+      }
       const std::size_t outSize = file.GetUnpackedSize();
       switch (fromLE(header.CompressionMethod))
       {
