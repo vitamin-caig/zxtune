@@ -64,7 +64,7 @@
     <string name="vfs_joshw_spc_description" translatable="false">http://spc.joshw.info</string>
     <string name="vfs_joshw_kss_name" translatable="false">MSX/Game Gear</string>
     <string name="vfs_joshw_kss_description" translatable="false">http://kss.joshw.info</string>
-    <string name="vfs_joshw_psf_name" translatable="false">Sony Playstation 1/2</string>
+    <string name="vfs_joshw_psf_name" translatable="false">Sony Playstation 1</string>
     <string name="vfs_joshw_psf_description" translatable="false">http://psf.joshw.info</string>
     <string name="vfs_joshw_usf_name" translatable="false">Nintendo Ultra64</string>
     <string name="vfs_joshw_usf_description" translatable="false">http://usf.joshw.info</string>
