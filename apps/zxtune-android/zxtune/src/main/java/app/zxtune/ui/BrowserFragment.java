@@ -35,6 +35,7 @@ import app.zxtune.Log;
 import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.ui.browser.BreadCrumbsView;
@@ -233,21 +234,26 @@ public class BrowserFragment extends Fragment {
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+      final Runnable playCmd = new Runnable() {
+        final Uri toPlay = getUriFrom(position);
+
+        @Override
+        public void run() {
+          final MediaControllerCompat ctrl = getController();
+          if (ctrl != null) {
+            ctrl.getTransportControls().playFromUri(toPlay, null);
+          }
+        }
+      };
       final Object obj = parent.getItemAtPosition(position);
       if (obj instanceof VfsDir) {
-        controller.browseDir((VfsDir) obj);
+        final Object feed = ((VfsDir) obj).getExtension(VfsExtensions.FEED);
+        if (feed != null) {
+          playCmd.run();
+        } else {
+          controller.browseDir((VfsDir) obj);
+        }
       } else if (obj instanceof VfsFile) {
-        final Runnable playCmd = new Runnable() {
-          final Uri toPlay = getUriFrom(position);
-
-          @Override
-          public void run() {
-            final MediaControllerCompat ctrl = getController();
-            if (ctrl != null) {
-              ctrl.getTransportControls().playFromUri(toPlay, null);
-            }
-          }
-        };
         if (controller.isInSearch()) {
           playCmd.run();
         } else {
