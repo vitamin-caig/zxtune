@@ -187,6 +187,7 @@
     <string name="vfs_modarchive_authors_description">Procházet podle umělců</string>
     <string name="vfs_modarchive_genres_name">Žánry</string>
     <string name="vfs_modarchive_genres_description">Procházet podle žánrů</string>
+    <string name="vfs_modarchive_random_description">Náhodné melodie</string>
     <!-- errors -->
     <string name="network_inaccessible">Síť není dostupná</string>
     <string name="failed_resolve">Podařilo se zrušit %s</string>

@@ -203,6 +203,16 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
+  public void findRandomTracks(TracksVisitor visitor) throws IOException {
+    //TODO: another method?
+    if (remote.searchSupported()) {
+      remote.findRandomTracks(new TracksCacher(visitor));
+    } else {
+      db.queryRandomTracks(visitor);
+    }
+  }
+
+  @Override
   @NonNull
   public ByteBuffer getTrackContent(final int id) throws IOException {
     return executor.executeDownloadCommand(new DownloadCommand() {
@@ -218,5 +228,20 @@ final class CachingCatalog extends Catalog {
         return remote.getTrackObject(id);
       }
     });
+  }
+
+  private class TracksCacher extends TracksVisitor {
+
+    private final TracksVisitor delegate;
+
+    TracksCacher(TracksVisitor delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public void accept(Track obj) {
+      db.addTrack(obj);
+      delegate.accept(obj);
+    }
   }
 }

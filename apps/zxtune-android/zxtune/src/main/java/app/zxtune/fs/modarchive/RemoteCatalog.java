@@ -181,6 +181,15 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
+  @Nullable
+  public void findRandomTracks(TracksVisitor visitor) throws IOException {
+    Log.d(TAG, "findRandomTracks()");
+    final String uri = ApiUriBuilder.forQuery(key).setRequest("random").build();
+    final RootElement root = createTracksParserRoot(visitor);
+    loadSinglePage(uri, root);
+  }
+
+  @Override
   @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);

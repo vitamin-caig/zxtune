@@ -8,14 +8,17 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.text.format.Formatter;
+
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Locale;
 
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.HttpProvider;
@@ -39,6 +42,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     this.groupings = new GroupingDir[]{
             new AuthorsDir(),
             new GenresDir(),
+            new RandomDir(),
     };
   }
 
@@ -221,6 +225,92 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     @Override
     public String getPath() {
       return Identifier.CATEGORY_GENRE;
+    }
+  }
+
+  private final class RandomDir extends GroupingDir {
+
+    @Override
+    public String getName() {
+      return context.getString(R.string.vfs_modarchive_random_name);
+    }
+
+    @Override
+    public String getDescription() {
+      return context.getString(R.string.vfs_modarchive_random_description);
+    }
+
+    @Override
+    public VfsObject getParent() {
+      return VfsRootModarchive.this;
+    }
+
+    @Override
+    public String getPath() {
+      return Identifier.CATEGORY_RANDOM;
+    }
+
+    @Override
+    public void enumerate(Visitor visitor) {}
+
+    @Override
+    @Nullable
+    public Object getExtension(String id) {
+      if (VfsExtensions.FEED.equals(id)) {
+        return new FeedIterator();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+  }
+
+  private class FeedIterator implements java.util.Iterator<VfsFile> {
+
+    // To avoid enless loop in case of fail, limit it by full cycles count
+    private static final int MAX_REPEATS = 5;
+
+    private final ArrayDeque<Track> tracks = new ArrayDeque<>();
+    private int hash = 0;
+    private int count = 0;
+
+    @Override
+    public boolean hasNext() {
+      if (tracks.isEmpty()) {
+        loadRandomTracks();
+      }
+      return !tracks.isEmpty();
+    }
+
+    @Override
+    public VfsFile next() {
+      final Track obj = tracks.removeFirst();
+      final Uri fileUri = Identifier.forTrack(Identifier.forCategory(Identifier.CATEGORY_RANDOM), obj).build();
+      return new TrackFile(fileUri, obj);
+    }
+
+    private void loadRandomTracks() {
+      final int[] newHash = new int[1];
+      try {
+        catalog.findRandomTracks(new Catalog.TracksVisitor() {
+          @Override
+          public void accept(Track obj) {
+            tracks.addLast(obj);
+            // use associative hashing to cover random ordered result
+            newHash[0] += obj.id;
+          }
+        });
+      } catch (IOException e) {
+        Log.w(TAG, e,"Failed to load random tracks");
+      }
+      if (hash == newHash[0]) {
+        if (++count > MAX_REPEATS) {
+          Log.d(TAG, "Break feed loop");
+          tracks.clear();
+        }
+      } else {
+        hash = newHash[0];
+        count = 1;
+      }
     }
   }
 

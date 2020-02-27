@@ -8,6 +8,7 @@ package app.zxtune.fs.modarchive;
 
 import android.content.Context;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -86,6 +87,13 @@ public abstract class Catalog {
    * @param visitor result receiver
    */
   public abstract void findTracks(String query, FoundTracksVisitor visitor) throws IOException;
+
+  /**
+   * Queries next random track
+   * @throws IOException
+   */
+  @Nullable
+  public abstract void findRandomTracks(TracksVisitor visitor) throws IOException;
 
   /**
    * Get track file content
