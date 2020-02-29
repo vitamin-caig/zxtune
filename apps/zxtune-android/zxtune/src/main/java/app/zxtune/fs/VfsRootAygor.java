@@ -24,8 +24,8 @@ final class VfsRootAygor extends HttpRootBase implements VfsRoot {
 
   private final Context context;
 
-  VfsRootAygor(Context context, HttpProvider http, CacheDir cache) throws IOException {
-    super(Catalog.create(context, http, cache, "aygor"), Path.create());
+  VfsRootAygor(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    super(parent, Catalog.create(context, http, cache, "aygor"), Path.create());
     this.context = context;
   }
 

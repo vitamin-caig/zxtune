@@ -26,8 +26,8 @@ final class VfsRootHvsc extends HttpRootBase implements VfsRoot {
 
   private final Context context;
 
-  VfsRootHvsc(Context context, HttpProvider http, CacheDir cache) throws IOException {
-    super(Catalog.create(context, http, cache, "hvsc"), Path.create());
+  VfsRootHvsc(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    super(parent, Catalog.create(context, http, cache, "hvsc"), Path.create());
     this.context = context;
   }
 

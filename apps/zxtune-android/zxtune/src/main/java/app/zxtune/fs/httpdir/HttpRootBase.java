@@ -19,10 +19,12 @@ import app.zxtune.fs.VfsObject;
 
 public abstract class HttpRootBase extends StubObject implements VfsDir {
 
+  private final VfsObject parent;
   private final Catalog catalog;
   protected final Path rootPath;
 
-  protected HttpRootBase(Catalog catalog, Path path) {
+  protected HttpRootBase(VfsObject parent, Catalog catalog, Path path) {
+    this.parent = parent;
     this.catalog = catalog;
     this.rootPath = path;
   }
@@ -35,7 +37,7 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
   @Override
   @Nullable
   public VfsObject getParent() {
-    return null;
+    return parent;
   }
 
   @Override

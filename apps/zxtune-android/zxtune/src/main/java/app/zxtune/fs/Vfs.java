@@ -12,10 +12,6 @@ import android.net.Uri;
 import java.io.IOException;
 
 import app.zxtune.MainApplication;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.cache.CacheFactory;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.fs.http.HttpProviderFactory;
 
 public final class Vfs {
 
@@ -40,20 +36,9 @@ public final class Vfs {
     if (rootSingleton == null) {
       final VfsRootComposite composite = new VfsRootComposite();
       final Context appContext = MainApplication.getInstance();
-      final HttpProvider http = HttpProviderFactory.createProvider(appContext);
-      final CacheDir cache = CacheFactory.create(appContext);
       composite.addSubroot(new VfsRootLocal(appContext));
-      composite.addSubroot(new VfsRootZxtunes(appContext, http, cache));
+      composite.addSubroot(new VfsRootNetwork(appContext));
       composite.addSubroot(new VfsRootPlaylists(appContext));
-      composite.addSubroot(new VfsRootModland(appContext, http, cache));
-      composite.addSubroot(new VfsRootHvsc(appContext, http, cache));
-      composite.addSubroot(new VfsRootZxart(appContext, http, cache));
-      composite.addSubroot(new VfsRootJoshw(appContext, http, cache));
-      composite.addSubroot(new VfsRootAmp(appContext, http, cache));
-      composite.addSubroot(new VfsRootAygor(appContext, http, cache));
-      composite.addSubroot(new VfsRootModarchive(appContext, http, cache));
-      composite.addSubroot(new VfsRootAsma(appContext, http, cache));
-      composite.addSubroot(new VfsRootAminet(appContext, http, cache));
       rootSingleton = composite;
     }
     return rootSingleton;

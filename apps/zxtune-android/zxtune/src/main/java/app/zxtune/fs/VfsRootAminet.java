@@ -19,12 +19,12 @@ final class VfsRootAminet extends HttpRootBase implements VfsRoot {
   private final Context context;
   private final RemoteCatalog remote;
 
-  VfsRootAminet(Context context, HttpProvider http, CacheDir cache) throws IOException {
-    this(context, new RemoteCatalog(http), cache);
+  VfsRootAminet(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    this(parent, context, new RemoteCatalog(http), cache);
   }
 
-  private VfsRootAminet(Context context, RemoteCatalog remote, CacheDir cache) throws IOException {
-    super(Catalog.create(context, remote, cache, "aminet"), Path.create());
+  private VfsRootAminet(VfsObject parent, Context context, RemoteCatalog remote, CacheDir cache) throws IOException {
+    super(parent, Catalog.create(context, remote, cache, "aminet"), Path.create());
     this.context = context;
     this.remote = remote;
   }

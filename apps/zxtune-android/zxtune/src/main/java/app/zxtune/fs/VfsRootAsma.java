@@ -24,8 +24,8 @@ final class VfsRootAsma extends HttpRootBase implements VfsRoot {
 
   private final Context context;
 
-  VfsRootAsma(Context context, HttpProvider http, CacheDir cache) throws IOException {
-    super(Catalog.create(context, http, cache, "asma"), Path.create());
+  VfsRootAsma(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    super(parent, Catalog.create(context, http, cache, "asma"), Path.create());
     this.context = context;
   }
 

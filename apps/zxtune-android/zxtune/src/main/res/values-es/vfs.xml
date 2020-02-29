@@ -187,7 +187,9 @@
     <string name="vfs_modarchive_genres_name">Géneros</string>
     <string name="vfs_modarchive_genres_description">Búsqueda por género</string>
     <string name="vfs_modarchive_random_description">Melodías aleatorias</string>
-  <!--errors-->
+    <!-- network -->
+    <string name="vfs_network_root_name">Catálogos en línea</string>
+    <!--errors-->
   <string name="network_inaccessible">La red no es accesible</string>
   <string name="failed_resolve">No se pudo resolver %s</string>
   <string name="file_too_big">El archivo es demasiado grande</string>

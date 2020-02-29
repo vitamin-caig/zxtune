@@ -33,11 +33,13 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootZxart.class.getName();
 
+  private final VfsObject parent;
   private final Context context;
   private final Catalog catalog;
   private final GroupingDir groups[];
 
-  public VfsRootZxart(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public VfsRootZxart(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groups = new GroupingDir[]{
@@ -65,7 +67,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   @Override
   @Nullable
   public VfsObject getParent() {
-    return null;
+    return parent;
   }
 
   @Override

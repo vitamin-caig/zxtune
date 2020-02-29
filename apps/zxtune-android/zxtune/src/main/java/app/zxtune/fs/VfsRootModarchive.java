@@ -33,11 +33,13 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootModarchive.class.getName();
 
+  private VfsObject parent;
   private final Context context;
   private final Catalog catalog;
   private final GroupingDir groupings[];
 
-  VfsRootModarchive(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootModarchive(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groupings = new GroupingDir[]{
@@ -65,7 +67,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   @Override
   @Nullable
   public VfsObject getParent() {
-    return null;
+    return parent;
   }
 
   @Override

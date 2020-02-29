@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 import app.zxtune.Log;
 
-final class VfsRootComposite extends StubObject implements VfsRoot {
+class VfsRootComposite extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootComposite.class.getName();
 

@@ -186,6 +186,8 @@
     <string name="vfs_modarchive_genres_name">Genre</string>
     <string name="vfs_modarchive_genres_description">Browse nach Genre</string>
     <string name="vfs_modarchive_random_description">Zufällige Melodien</string>
+    <!-- network -->
+    <string name="vfs_network_root_name">Onlinekatalog</string>
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>
