@@ -29,6 +29,7 @@ import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.io.Io;
 
+@Icon(R.drawable.ic_browser_vfs_local)
 final class VfsRootLocal extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootLocal.class.getName();
@@ -59,15 +60,6 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
   @Nullable
   public VfsObject getParent() {
     return null;
-  }
-
-  @Override
-  public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_local;
-    } else {
-      return super.getExtension(id);
-    }
   }
 
   @Override

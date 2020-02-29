@@ -36,6 +36,7 @@ import app.zxtune.fs.modland.Catalog;
 import app.zxtune.fs.modland.Group;
 import app.zxtune.fs.modland.Track;
 
+@Icon(R.drawable.ic_browser_vfs_modland)
 final class VfsRootModland extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootModland.class.getName();
@@ -104,15 +105,6 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   @Nullable
   public VfsObject getParent() {
     return null;
-  }
-
-  @Override
-  public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_modland;
-    } else {
-      return super.getExtension(id);
-    }
   }
 
   @Override

@@ -28,6 +28,7 @@ import java.util.Collections;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
+import app.zxtune.fs.VfsUtils;
 
 public class BreadCrumbsView extends HorizontalScrollView {
 
@@ -139,10 +140,9 @@ public class BreadCrumbsView extends HorizontalScrollView {
 
   @Nullable
   private Drawable getIcon(VfsDir dir) {
-    final Object icon = dir.getExtension(VfsExtensions.ICON_RESOURCE);
-    return icon != null
-            ? getResources().getDrawable((Integer) icon)
-            : null;
+    final int icon = VfsUtils.getObjectIcon(dir);
+    return icon != 0
+        ? getResources().getDrawable(icon) : null;
   }
   
   private void hideButtons(int startId, int endId) {

@@ -26,6 +26,7 @@ import app.zxtune.fs.amp.Track;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.HttpProvider;
 
+@Icon(R.drawable.ic_browser_vfs_amp)
 final class VfsRootAmp extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootAmp.class.getName();
@@ -67,9 +68,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_amp;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {

@@ -28,6 +28,7 @@ import app.zxtune.fs.zxart.Identifier;
 import app.zxtune.fs.zxart.Party;
 import app.zxtune.fs.zxart.Track;
 
+@Icon(R.drawable.ic_browser_vfs_zxart)
 public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootZxart.class.getName();
@@ -69,9 +70,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_zxart;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
       //assume search by authors from root
       return new AuthorsSearchEngine();
     } else {

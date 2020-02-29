@@ -28,6 +28,7 @@ import app.zxtune.fs.modarchive.Genre;
 import app.zxtune.fs.modarchive.Identifier;
 import app.zxtune.fs.modarchive.Track;
 
+@Icon(R.drawable.ic_browser_vfs_modarchive)
 final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootModarchive.class.getName();
@@ -69,9 +70,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_modarchive;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {

@@ -26,6 +26,7 @@ import app.zxtune.fs.zxtunes.Catalog;
 import app.zxtune.fs.zxtunes.Identifier;
 import app.zxtune.fs.zxtunes.Track;
 
+@Icon(R.drawable.ic_browser_vfs_zxtunes)
 final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootZxtunes.class.getName();
@@ -65,9 +66,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_zxtunes;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {

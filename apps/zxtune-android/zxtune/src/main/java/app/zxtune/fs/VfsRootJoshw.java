@@ -21,6 +21,7 @@ import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
 import app.zxtune.fs.joshw.Path;
 
+@Icon(R.drawable.ic_browser_vfs_joshw)
 final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
 
   private final Context context;
@@ -62,15 +63,6 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
   @Override
   public String getDescription() {
     return context.getString(R.string.vfs_joshw_root_description);
-  }
-
-  @Override
-  public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_joshw;
-    } else {
-      return super.getExtension(id);
-    }
   }
 
   @Override

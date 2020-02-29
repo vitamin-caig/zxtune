@@ -13,6 +13,7 @@ import app.zxtune.fs.httpdir.HttpRootBase;
 
 import java.io.IOException;
 
+@Icon(R.drawable.ic_browser_vfs_aminet)
 final class VfsRootAminet extends HttpRootBase implements VfsRoot {
 
   private final Context context;
@@ -40,9 +41,7 @@ final class VfsRootAminet extends HttpRootBase implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_aminet;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && remote.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id) && remote.searchSupported()) {
       return new SearchEngine();
     } else {
       return super.getExtension(id);
