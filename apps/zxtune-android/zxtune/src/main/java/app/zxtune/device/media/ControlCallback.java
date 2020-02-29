@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.media.session.MediaSessionCompat;
 
+import androidx.annotation.NonNull;
+
 import app.zxtune.BroadcastReceiverConnection;
 import app.zxtune.Log;
 import app.zxtune.MainService;
@@ -18,9 +20,11 @@ import app.zxtune.ReleaseableStub;
 import app.zxtune.ScanService;
 import app.zxtune.TimeStamp;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
+import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.service.PlaybackServiceLocal;
+import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.stubs.PlayableItemStub;
 import app.zxtune.playback.SeekControl;
 
@@ -28,8 +32,6 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-//! Handle focus only for explicit start/stop calls
-// TODO: handle implicit start/stop calls
 class ControlCallback extends MediaSessionCompat.Callback {
 
   private static final String TAG = ControlCallback.class.getName();
@@ -43,6 +45,13 @@ class ControlCallback extends MediaSessionCompat.Callback {
   private final SeekControl seek;
   private final MediaSessionCompat session;
 
+  private enum FocusState {
+    RELEASED,
+    CAPTURED,
+    LOST
+  }
+  private FocusState focusState = FocusState.RELEASED;
+
   ControlCallback(Context ctx, PlaybackServiceLocal svc, MediaSessionCompat session) {
     this.ctx = ctx;
     this.manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
@@ -52,15 +61,24 @@ class ControlCallback extends MediaSessionCompat.Callback {
     this.ctrl = svc.getPlaybackControl();
     this.seek = svc.getSeekControl();
     this.session = session;
+    svc.subscribe(new CallbackStub() {
+      @Override
+      public void onStateChanged(@NonNull PlaybackControl.State state, @NonNull TimeStamp pos) {
+        if (focusState == FocusState.RELEASED && state == PlaybackControl.State.PLAYING) {
+          if (!connectToAudioSystem()) {
+            Log.d(TAG, "Failed to gain focus");
+            ctrl.stop();
+          }
+        } else if (focusState == FocusState.CAPTURED && state == PlaybackControl.State.STOPPED) {
+          disconnectFromAudioSystem();
+        }
+      }
+    });
   }
 
   @Override
   public void onPlay() {
-    if (connectToAudioSystem()) {
-      ctrl.play();
-    } else {
-      Log.d(TAG, "Failed to gain focus");
-    }
+    ctrl.play();
   }
 
   @Override
@@ -70,7 +88,6 @@ class ControlCallback extends MediaSessionCompat.Callback {
 
   @Override
   public void onStop() {
-    disconnectFromAudioSystem();
     ctrl.stop();
   }
 
@@ -148,12 +165,18 @@ class ControlCallback extends MediaSessionCompat.Callback {
   }
 
   private boolean gainFocus() {
-    return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == manager.requestAudioFocus(focusListener,
-        SoundOutputSamplesTarget.STREAM, AudioManager.AUDIOFOCUS_GAIN);
+    if (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == manager.requestAudioFocus(focusListener,
+        SoundOutputSamplesTarget.STREAM, AudioManager.AUDIOFOCUS_GAIN)) {
+      focusState = FocusState.CAPTURED;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   private void releaseFocus() {
     manager.abandonAudioFocus(focusListener);
+    focusState = FocusState.RELEASED;
   }
 
   private class AudioFocusChangeListener implements AudioManager.OnAudioFocusChangeListener {
@@ -177,10 +200,12 @@ class ControlCallback extends MediaSessionCompat.Callback {
   }
 
   private void onFocusLost() {
+    focusState = FocusState.LOST;
     ctrl.stop();
   }
 
   private void onFocusRestore() {
+    focusState = FocusState.CAPTURED;
     ctrl.play();
   }
 
