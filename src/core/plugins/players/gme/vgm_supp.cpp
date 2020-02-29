@@ -957,7 +957,7 @@ namespace Module
       std::map<uint_t, DeviceTraits> Traits;
     };
     
-    String DetectPlatform(const Dump& data)
+    String DetectPlatform(Binary::View data)
     {
       PlatformDetector detector(data);
       return detector.GetResult();

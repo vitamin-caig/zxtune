@@ -8,6 +8,8 @@
 *
 **/
 
+//library includes
+#include <contract.h>
 //local includes
 #include "core/plugins/players/gme/kss_supp.h"
 //text includes
@@ -17,10 +19,11 @@ namespace Module
 {
   namespace KSS
   {
-    String DetectPlatform(const Dump& data)
+    String DetectPlatform(Binary::View data)
     {
+      Require(data.Size() >= 16);
       //do not check signatures or other
-      const auto deviceFlag = data.at(0x0f);
+      const auto deviceFlag = data.As<uint8_t>()[0x0f];
       const bool sn76489 = deviceFlag & 2;
       if (sn76489)
       {

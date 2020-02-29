@@ -10,13 +10,13 @@
 
 #pragma once
 
-//common includes
-#include <types.h>
+//library includes
+#include <binary/view.h>
 
 namespace Module
 {
   namespace VGM
   {
-    String DetectPlatform(const Dump& blob);
+    String DetectPlatform(Binary::View blob);
   }
 }
