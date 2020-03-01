@@ -30,4 +30,7 @@ public final class VfsExtensions {
 
   // Comparator<VfsObject>
   public static final String COMPARATOR = "COMPARATOR";
+
+  // java.util.Iterator<VfsFile>
+  public static final String FEED = "FEED";
 }

@@ -187,6 +187,7 @@
     <string name="vfs_modarchive_authors_description">按艺术家浏览</string>
     <string name="vfs_modarchive_genres_name">类型</string>
     <string name="vfs_modarchive_genres_description">按流派浏览</string>
+    <string name="vfs_modarchive_random_description">随机曲调</string>
     <!-- errors -->
     <string name="network_inaccessible">无法访问网络</string>
     <string name="failed_resolve">无法解析 %s</string>

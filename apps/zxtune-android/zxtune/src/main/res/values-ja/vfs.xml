@@ -187,6 +187,7 @@
     <string name="vfs_modarchive_authors_description">著者による閲覧</string>
     <string name="vfs_modarchive_genres_name">ジャンル</string>
     <string name="vfs_modarchive_genres_description">ジャンル別ブラウズ</string>
+    <string name="vfs_modarchive_random_description">ランダム曲</string>
     <!-- errors -->
     <string name="network_inaccessible">ネットワー</string>
     <string name="failed_resolve">解決に失敗しました %s</string>

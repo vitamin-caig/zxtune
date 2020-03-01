@@ -218,8 +218,11 @@ public class FileIterator implements Iterator {
   private static java.util.Iterator<VfsFile> creatDirFilesIterator(Uri start) throws Exception {
     final ArrayList<VfsFile> result = new ArrayList<>();
     final VfsObject obj = VfsArchive.resolveForced(start);
-    if (obj == null || !(obj instanceof VfsFile)) {
+    if (obj == null) {
       return result.listIterator();
+    } else if (!(obj instanceof VfsFile)) {
+      final Object feed = obj.getExtension(VfsExtensions.FEED);
+      return feed != null ? (java.util.Iterator<VfsFile>) feed : result.listIterator();
     }
     final VfsObject parent = obj.getParent();
     if (parent == null) {
@@ -228,6 +231,12 @@ public class FileIterator implements Iterator {
     }
     final VfsFile parentFile = parent instanceof VfsFile ? (VfsFile) parent : null;
     final VfsDir parentDir = parent instanceof VfsDir ? (VfsDir) parent : (VfsDir) parentFile.getParent();
+    {
+      final Object feed = parentDir.getExtension(VfsExtensions.FEED);
+      if (feed != null) {
+        return new FeedIterator((VfsFile) obj, (java.util.Iterator<VfsFile>) feed);
+      }
+    }
     parentDir.enumerate(new VfsDir.Visitor() {
       @Override
       public void onItemsCount(int count) {
@@ -261,5 +270,33 @@ public class FileIterator implements Iterator {
       }
     }
     return result.listIterator();
+  }
+
+  // Adapter to prepend feed with already known item
+  private static class FeedIterator implements java.util.Iterator<VfsFile> {
+
+    final private java.util.Iterator<VfsFile> delegate;
+    private VfsFile first;
+
+    FeedIterator(VfsFile first, java.util.Iterator<VfsFile> delegate) {
+      this.first = first;
+      this.delegate = delegate;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return first != null || delegate.hasNext();
+    }
+
+    @Override
+    public VfsFile next() {
+      if (first != null) {
+        final VfsFile res = first;
+        first = null;
+        return res;
+      } else {
+        return delegate.next();
+      }
+    }
   }
 }

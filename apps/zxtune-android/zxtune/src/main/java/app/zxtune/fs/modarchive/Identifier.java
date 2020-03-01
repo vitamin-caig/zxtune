@@ -20,6 +20,7 @@ import java.util.List;
  * 3) modarchive:/Author/${author_name}?author=${author_id}
  * 4) modarchive:/Genre
  * 5) modarchive:/Genre/${genre_name}?genre=${genre_id}
+ * 6) modarchive:/Random
  */
 
 public class Identifier {
@@ -37,6 +38,7 @@ public class Identifier {
 
   public static final String CATEGORY_AUTHOR = "Author";
   public static final String CATEGORY_GENRE = "Genre";
+  public static final String CATEGORY_RANDOM = "Random";
 
   // Root
   public static Uri.Builder forRoot() {
@@ -102,10 +104,12 @@ public class Identifier {
 
   @Nullable
   public static Track findTrack(Uri uri, List<String> path) {
-    if (path.size() > POS_TRACK_FILENAME) {
+    final int elements = path.size();
+    if (elements >= 2) {
+      // do not allow files on root
       final String id = uri.getQueryParameter(PARAM_TRACK);
       if (id != null) {
-        final String name = path.get(POS_TRACK_FILENAME);
+        final String name = path.get(elements - 1);
         return new Track(Integer.valueOf(id), name, ""/*fake*/, 0/*fake*/);
       }
     }

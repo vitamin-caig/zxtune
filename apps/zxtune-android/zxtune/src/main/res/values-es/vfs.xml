@@ -186,6 +186,7 @@
     <string name="vfs_modarchive_authors_description">Búsqueda por artista</string>
     <string name="vfs_modarchive_genres_name">Géneros</string>
     <string name="vfs_modarchive_genres_description">Búsqueda por género</string>
+    <string name="vfs_modarchive_random_description">Melodías aleatorias</string>
   <!--errors-->
   <string name="network_inaccessible">La red no es accesible</string>
   <string name="failed_resolve">No se pudo resolver %s</string>

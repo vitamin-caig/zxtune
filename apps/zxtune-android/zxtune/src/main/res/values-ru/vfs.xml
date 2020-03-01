@@ -189,6 +189,7 @@
     <string name="vfs_modarchive_authors_description">Навигация по авторам</string>
     <string name="vfs_modarchive_genres_name">Жанры</string>
     <string name="vfs_modarchive_genres_description">Навигация по жанрам</string>
+    <string name="vfs_modarchive_random_description">Случайные треки</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>

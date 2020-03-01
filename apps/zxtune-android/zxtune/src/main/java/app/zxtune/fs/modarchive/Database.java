@@ -276,9 +276,18 @@ final class Database {
     return queryTracksInternal(selection, visitor);
   }
 
+  final boolean queryRandomTracks(Catalog.TracksVisitor visitor) {
+    return queryTracksInternal(null, "RANDOM() LIMIT 100", visitor);
+  }
+
   private boolean queryTracksInternal(String selection, Catalog.TracksVisitor visitor) {
+    return queryTracksInternal(selection, null, visitor);
+  }
+
+  private boolean queryTracksInternal(String selection, String order,
+                                      Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
+    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, order);
     try {
       final int count = cursor.getCount();
       if (count != 0) {
