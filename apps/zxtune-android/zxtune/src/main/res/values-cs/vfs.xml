@@ -188,6 +188,11 @@
     <string name="vfs_modarchive_genres_name">Žánry</string>
     <string name="vfs_modarchive_genres_description">Procházet podle žánrů</string>
     <string name="vfs_modarchive_random_description">Náhodné melodie</string>
+    <!-- network -->
+    <string name="vfs_network_root_name">Katalog</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">Rádio</string>
+    <string name="vfs_radio_root_description">Náhodné melodie a kompilace</string>
     <!-- errors -->
     <string name="network_inaccessible">Síť není dostupná</string>
     <string name="failed_resolve">Podařilo se zrušit %s</string>

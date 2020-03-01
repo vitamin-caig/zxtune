@@ -246,6 +246,11 @@
     <!-- aminet -->
     <string name="vfs_aminet_root_name" translatable="false">Aminet music modules</string>
     <string name="vfs_aminet_root_description" translatable="false">http://aminet.net</string>
+    <!-- network -->
+    <string name="vfs_network_root_name">Online catalogues</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">Radio</string>
+    <string name="vfs_radio_root_description">Random tunes and compilations</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>

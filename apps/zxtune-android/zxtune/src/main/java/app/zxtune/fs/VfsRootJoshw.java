@@ -21,13 +21,14 @@ import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
 import app.zxtune.fs.joshw.Path;
 
+@Icon(R.drawable.ic_browser_vfs_joshw)
 final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
 
   private final Context context;
   private final AudiobaseDir bases[];
 
-  VfsRootJoshw(Context context, HttpProvider http, CacheDir cache) throws IOException {
-    super(Catalog.create(context, http, cache, "joshw"), Path.create());
+  VfsRootJoshw(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    super(parent, Catalog.create(context, http, cache, "joshw"), Path.create());
     this.context = context;
     this.bases = new AudiobaseDir[]{
             new AudiobaseDir("gbs", R.string.vfs_joshw_gbs_name, R.string.vfs_joshw_gbs_description),
@@ -62,15 +63,6 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
   @Override
   public String getDescription() {
     return context.getString(R.string.vfs_joshw_root_description);
-  }
-
-  @Override
-  public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_joshw;
-    } else {
-      return super.getExtension(id);
-    }
   }
 
   @Override

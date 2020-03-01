@@ -28,15 +28,18 @@ import app.zxtune.fs.modarchive.Genre;
 import app.zxtune.fs.modarchive.Identifier;
 import app.zxtune.fs.modarchive.Track;
 
+@Icon(R.drawable.ic_browser_vfs_modarchive)
 final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootModarchive.class.getName();
 
+  private VfsObject parent;
   private final Context context;
   private final Catalog catalog;
   private final GroupingDir groupings[];
 
-  VfsRootModarchive(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootModarchive(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groupings = new GroupingDir[]{
@@ -64,14 +67,12 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   @Override
   @Nullable
   public VfsObject getParent() {
-    return null;
+    return parent;
   }
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_modarchive;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {
@@ -228,6 +229,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     }
   }
 
+  @Icon(R.drawable.ic_browser_vfs_radio)
   private final class RandomDir extends GroupingDir {
 
     @Override

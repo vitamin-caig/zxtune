@@ -19,14 +19,15 @@ import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
 import app.zxtune.fs.hvsc.Path;
 
+@Icon(R.drawable.ic_browser_vfs_hvsc)
 final class VfsRootHvsc extends HttpRootBase implements VfsRoot {
 
   private static final String[] SUBDIRS = {"DEMOS", "GAMES", "MUSICIANS"};
 
   private final Context context;
 
-  VfsRootHvsc(Context context, HttpProvider http, CacheDir cache) throws IOException {
-    super(Catalog.create(context, http, cache, "hvsc"), Path.create());
+  VfsRootHvsc(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    super(parent, Catalog.create(context, http, cache, "hvsc"), Path.create());
     this.context = context;
   }
 
@@ -38,16 +39,6 @@ final class VfsRootHvsc extends HttpRootBase implements VfsRoot {
   @Override
   public String getDescription() {
     return context.getString(R.string.vfs_hvsc_root_description);
-  }
-
-  @Override
-  @Nullable
-  public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_hvsc;
-    } else {
-      return super.getExtension(id);
-    }
   }
 
   @Override

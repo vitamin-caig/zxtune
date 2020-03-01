@@ -26,15 +26,18 @@ import app.zxtune.fs.amp.Track;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.HttpProvider;
 
+@Icon(R.drawable.ic_browser_vfs_amp)
 final class VfsRootAmp extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootAmp.class.getName();
 
+  private final VfsObject parent;
   private final Context context;
   private final Catalog catalog;
   private final GroupingDir groupings[];
 
-  VfsRootAmp(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootAmp(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groupings = new GroupingDir[]{
@@ -62,14 +65,12 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   @Override
   @Nullable
   public VfsObject getParent() {
-    return null;
+    return parent;
   }
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_amp;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {

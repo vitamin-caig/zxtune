@@ -188,6 +188,11 @@
     <string name="vfs_modarchive_genres_name">类型</string>
     <string name="vfs_modarchive_genres_description">按流派浏览</string>
     <string name="vfs_modarchive_random_description">随机曲调</string>
+    <!-- network -->
+    <string name="vfs_network_root_name">在线目录</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">收音机</string>
+    <string name="vfs_radio_root_description">随机曲调和汇编</string>
     <!-- errors -->
     <string name="network_inaccessible">无法访问网络</string>
     <string name="failed_resolve">无法解析 %s</string>

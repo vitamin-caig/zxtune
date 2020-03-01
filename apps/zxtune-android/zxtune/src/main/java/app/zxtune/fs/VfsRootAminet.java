@@ -13,17 +13,18 @@ import app.zxtune.fs.httpdir.HttpRootBase;
 
 import java.io.IOException;
 
+@Icon(R.drawable.ic_browser_vfs_aminet)
 final class VfsRootAminet extends HttpRootBase implements VfsRoot {
 
   private final Context context;
   private final RemoteCatalog remote;
 
-  VfsRootAminet(Context context, HttpProvider http, CacheDir cache) throws IOException {
-    this(context, new RemoteCatalog(http), cache);
+  VfsRootAminet(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    this(parent, context, new RemoteCatalog(http), cache);
   }
 
-  private VfsRootAminet(Context context, RemoteCatalog remote, CacheDir cache) throws IOException {
-    super(Catalog.create(context, remote, cache, "aminet"), Path.create());
+  private VfsRootAminet(VfsObject parent, Context context, RemoteCatalog remote, CacheDir cache) throws IOException {
+    super(parent, Catalog.create(context, remote, cache, "aminet"), Path.create());
     this.context = context;
     this.remote = remote;
   }
@@ -40,9 +41,7 @@ final class VfsRootAminet extends HttpRootBase implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_aminet;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && remote.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id) && remote.searchSupported()) {
       return new SearchEngine();
     } else {
       return super.getExtension(id);

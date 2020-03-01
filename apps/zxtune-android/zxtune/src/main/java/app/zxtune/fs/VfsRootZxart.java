@@ -28,15 +28,18 @@ import app.zxtune.fs.zxart.Identifier;
 import app.zxtune.fs.zxart.Party;
 import app.zxtune.fs.zxart.Track;
 
+@Icon(R.drawable.ic_browser_vfs_zxart)
 public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootZxart.class.getName();
 
+  private final VfsObject parent;
   private final Context context;
   private final Catalog catalog;
   private final GroupingDir groups[];
 
-  public VfsRootZxart(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public VfsRootZxart(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+    this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
     this.groups = new GroupingDir[]{
@@ -64,14 +67,12 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   @Override
   @Nullable
   public VfsObject getParent() {
-    return null;
+    return parent;
   }
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_zxart;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
       //assume search by authors from root
       return new AuthorsSearchEngine();
     } else {
