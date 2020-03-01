@@ -192,6 +192,9 @@
     <string name="vfs_modarchive_random_description">Случайные треки</string>
     <!-- network -->
     <string name="vfs_network_root_name">Онлайн-каталоги</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">Радио</string>
+    <string name="vfs_radio_root_description">Случайные треки и подборки</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>

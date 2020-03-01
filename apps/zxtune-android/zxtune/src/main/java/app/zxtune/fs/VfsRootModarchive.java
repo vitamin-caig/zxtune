@@ -229,6 +229,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     }
   }
 
+  @Icon(R.drawable.ic_browser_vfs_radio)
   private final class RandomDir extends GroupingDir {
 
     @Override

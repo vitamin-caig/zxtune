@@ -190,6 +190,9 @@
     <string name="vfs_modarchive_random_description">ランダム曲</string>
     <!-- network -->
     <string name="vfs_network_root_name">オンラインカタログ</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">ラジオ</string>
+    <string name="vfs_radio_root_description">ランダム曲とコンパイル</string>
     <!-- errors -->
     <string name="network_inaccessible">ネットワー</string>
     <string name="failed_resolve">解決に失敗しました %s</string>
