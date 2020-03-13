@@ -34,7 +34,7 @@ public final class Vfs {
 
   private static synchronized VfsRoot getRootInternal() throws IOException {
     if (rootSingleton == null) {
-      final VfsRootComposite composite = new VfsRootComposite();
+      final VfsRootComposite composite = new VfsRootComposite("");
       final Context appContext = MainApplication.getInstance();
       composite.addSubroot(new VfsRootLocal(appContext));
       composite.addSubroot(new VfsRootNetwork(appContext));

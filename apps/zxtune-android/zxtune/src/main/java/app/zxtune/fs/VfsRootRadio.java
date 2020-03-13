@@ -25,7 +25,11 @@ final class VfsRootRadio extends StubObject implements VfsRoot {
   @Nullable
   @Override
   public VfsObject resolve(Uri uri) {
-    return null;
+    if (URI.equals(uri)) {
+      return this;
+    } else {
+      return null;
+    }
   }
 
   @Override

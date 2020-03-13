@@ -14,11 +14,10 @@ import app.zxtune.fs.http.HttpProviderFactory;
 @Icon(R.drawable.ic_browser_vfs_network)
 class VfsRootNetwork extends VfsRootComposite {
 
-  private static final Uri uri = Uri.fromParts("online", "", "");
-
   private final Context ctx;
 
   VfsRootNetwork(Context appContext) throws IOException {
+    super("online");
     this.ctx = appContext;
     final HttpProvider http = HttpProviderFactory.createProvider(appContext);
     final CacheDir cache = CacheFactory.create(appContext);
@@ -32,11 +31,6 @@ class VfsRootNetwork extends VfsRootComposite {
     addSubroot(new VfsRootModarchive(this, appContext, http, cache));
     addSubroot(new VfsRootAsma(this, appContext, http, cache));
     addSubroot(new VfsRootAminet(this, appContext, http, cache));
-  }
-
-  @Override
-  public Uri getUri() {
-    return uri;
   }
 
   @Override
