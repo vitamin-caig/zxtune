@@ -72,10 +72,13 @@ public class MainActivity extends AppCompatActivity {
     return PendingIntent.getActivity(ctx, 0, intent, 0);
   }
 
+  public MainActivity() {
+    super(R.layout.main_activity);
+  }
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.main_activity);
 
     fillPages();
     if (Build.VERSION.SDK_INT >= 16) {
