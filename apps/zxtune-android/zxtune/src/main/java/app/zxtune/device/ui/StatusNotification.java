@@ -41,6 +41,7 @@ public class StatusNotification extends MediaControllerCompat.Callback {
     this.service = service;
     this.notification = Notifications.createForService(service, R.drawable.ic_stat_notify_play);
     notification.getBuilder()
+        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         .setContentIntent(session.getController().getSessionActivity())
         .addAction(R.drawable.ic_prev, "", MediaButtonReceiver.buildMediaButtonPendingIntent(service,
             PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS))
