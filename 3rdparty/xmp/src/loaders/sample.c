@@ -195,6 +195,7 @@ static void unroll_loop(struct xmp_sample *xxs)
 	}
 }
 
+#define MAX_SAMPLE_SIZE (16 * 1048576)
 
 int load_sample(struct module_data *m, HIO_HANDLE *f, int flags, struct xmp_sample *xxs, void *buffer)
 {
@@ -202,7 +203,7 @@ int load_sample(struct module_data *m, HIO_HANDLE *f, int flags, struct xmp_samp
 
 	/* Empty samples
 	 */
-	if (xxs->len == 0) {
+	if (xxs->len == 0 || xxs->len > MAX_SAMPLE_SIZE) {
 		return 0;
 	}
 
