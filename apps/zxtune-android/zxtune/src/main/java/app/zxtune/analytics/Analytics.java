@@ -30,6 +30,12 @@ public class Analytics {
     }
   }
 
+  public static void logMessage(String msg) {
+    for (Sink s : sinks) {
+      s.logMessage(msg);
+    }
+  }
+
   public static void sendPlayEvent(PlayableItem item, Player player) {
     for (Sink s : sinks) {
       s.sendPlayEvent(item, player);
@@ -124,27 +130,6 @@ public class Analytics {
   public static void sendHostUnavailableEvent(String host) {
     for (Sink s : sinks) {
       s.sendHostUnavailableEvent(host);
-    }
-  }
-
-  public static class JniLog {
-    private final String prefix;
-
-    public JniLog(Uri uri, String subpath, int size) {
-      this.prefix = String.format(Locale.US, "%d: ", uri.hashCode() ^ subpath.hashCode());
-      logMessage(prefix + String.format(Locale.US, "file=%s subpath=%s size=%d",
-          "file".equals(uri.getScheme()) ? uri.getLastPathSegment() : uri.toString(),
-          subpath, size));
-    }
-
-    public final void action(String action) {
-      logMessage(prefix + action);
-    }
-  }
-
-  private static void logMessage(String msg) {
-    for (Sink s : sinks) {
-      s.logMessage(msg);
     }
   }
 }

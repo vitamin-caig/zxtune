@@ -23,7 +23,7 @@ public class Core {
   @NonNull
   public static Module loadModule(@NonNull VfsFile file, @NonNull String subpath) throws IOException, ResolvingException {
     final ByteBuffer content = file.getContent();
-    final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), subpath, content.limit());
+    final LogContext log = new LogContext(file.getUri(), subpath, content.limit());
     log.action("loadModule begin");
     final Module obj = JniModule.load(makeDirectBuffer(content), subpath);
     log.action("loadModule end");
@@ -41,7 +41,7 @@ public class Core {
 
   public static void detectModules(@NonNull VfsFile file, @NonNull ModuleDetectCallback callback) throws IOException {
     final ByteBuffer content = file.getContent();
-    final Analytics.JniLog log = new Analytics.JniLog(file.getUri(), "*", content.limit());
+    final LogContext log = new LogContext(file.getUri(), "*", content.limit());
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback, log);
     log.action("detectModules begin");
     JniModule.detect(makeDirectBuffer(content), adapter);
@@ -71,11 +71,11 @@ public class Core {
 
     private final VfsFile location;
     private final ModuleDetectCallback delegate;
-    private final Analytics.JniLog log;
+    private final LogContext log;
     private Resolver resolver;
     private int modulesCount = 0;
 
-    ModuleDetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate, Analytics.JniLog log) {
+    ModuleDetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate, LogContext log) {
       this.location = location;
       this.delegate = delegate;
       this.log = log;
@@ -121,11 +121,11 @@ public class Core {
 
     @Nullable
     private VfsDir parent;
-    private final Analytics.JniLog log;
+    private final LogContext log;
     private final HashMap<String, VfsFile> files = new HashMap<>();
     private final HashMap<String, VfsDir> dirs = new HashMap<>();
 
-    Resolver(@NonNull VfsFile content, @NonNull Analytics.JniLog log) {
+    Resolver(@NonNull VfsFile content, @NonNull LogContext log) {
       final VfsObject parent = content.getParent();
       if (parent instanceof VfsDir) {
         this.parent = (VfsDir) parent;
