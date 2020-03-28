@@ -7,6 +7,7 @@
 package app.zxtune.fs;
 
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ class VfsRootComposite extends StubObject implements VfsRoot {
 
   VfsRootComposite(String scheme) {
     this.scheme = scheme;
-    this.uri = Uri.fromParts(scheme, "", "");
+    this.uri = scheme != null ? Uri.fromParts(scheme, "", "") : Uri.EMPTY;
     this.subRoots = new ArrayList<>();
   }
 
@@ -40,7 +41,7 @@ class VfsRootComposite extends StubObject implements VfsRoot {
   @Override
   @Nullable
   public VfsObject resolve(Uri uri) {
-    if (scheme.equals(uri.getScheme())) {
+    if (matchScheme(uri.getScheme())) {
       return this;
     }
     for (VfsRoot root : subRoots) {
@@ -54,6 +55,12 @@ class VfsRootComposite extends StubObject implements VfsRoot {
       }
     }
     return null;
+  }
+
+  private boolean matchScheme(String scheme) {
+    return this.scheme != null
+               ? this.scheme.equals(scheme)
+               : scheme == null;
   }
 
   @Override
