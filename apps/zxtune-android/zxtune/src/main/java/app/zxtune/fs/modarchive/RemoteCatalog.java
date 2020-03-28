@@ -21,6 +21,8 @@ import androidx.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
 
+import app.zxtune.StubProgressCallback;
+import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.HttpObject;
 import app.zxtune.fs.http.MultisourceHttpProvider;
@@ -31,7 +33,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import app.zxtune.Log;
 import app.zxtune.fs.http.HttpProvider;
@@ -135,11 +136,11 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthors(AuthorsVisitor visitor) throws IOException {
+  public void queryAuthors(AuthorsVisitor visitor, ProgressCallback progress) throws IOException {
     Log.d(TAG, "queryAuthors()");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search_artist").build();
     final RootElement root = createAuthorsParserRoot(visitor);
-    loadPages(uri, root);
+    loadPages(uri, root, progress);
     visitor.accept(Author.UNKNOWN);
   }
 
@@ -152,19 +153,19 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
+  public void queryTracks(Author author, TracksVisitor visitor, ProgressCallback progress) throws IOException {
     Log.d(TAG, "queryTracks(author=%d)", author.id);
     final String uri = ApiUriBuilder.forQuery(key).setRequest("view_modules_by_artistid").setQuery(author.id).build();
     final RootElement root = createTracksParserRoot(visitor);
-    loadPages(uri, root);
+    loadPages(uri, root, progress);
   }
 
   @Override
-  public void queryTracks(Genre genre, TracksVisitor visitor) throws IOException {
+  public void queryTracks(Genre genre, TracksVisitor visitor, ProgressCallback progress) throws IOException {
     Log.d(TAG, "queryTracks(genre=%d)", genre.id);
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("genre").setQuery(genre.id).build();
     final RootElement root = createTracksParserRoot(visitor);
-    loadPages(uri, root);
+    loadPages(uri, root, progress);
   }
 
   @Override
@@ -177,11 +178,10 @@ class RemoteCatalog extends Catalog {
     Log.d(TAG, "findTracks(query=%s)", query);
     final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("filename_or_songtitle").setQuery("*" + query + "*").build();
     final RootElement root = createFoundTracksParserRoot(visitor);
-    loadPages(uri, root);
+    loadPages(uri, root, StubProgressCallback.instance());
   }
 
   @Override
-  @Nullable
   public void findRandomTracks(TracksVisitor visitor) throws IOException {
     Log.d(TAG, "findRandomTracks()");
     final String uri = ApiUriBuilder.forQuery(key).setRequest("random").build();
@@ -465,21 +465,22 @@ class RemoteCatalog extends Catalog {
     });
   }
 
-  private void loadPages(String baseUri, RootElement root) throws IOException {
-    final AtomicInteger totalPages = new AtomicInteger(1);
+  private void loadPages(String baseUri, RootElement root, final ProgressCallback progress) throws IOException {
+    final int totalPages[] = new int[]{1};
     root.getChild("totalpages").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
         final Integer result = asInt(body);
-        if (totalPages.get() == 1 && result != null) {
+        if (totalPages[0] == 1 && result != null) {
           Log.d(TAG, "Loading %d pages", result);
-          totalPages.set(result);
+          totalPages[0] = result;
         }
       }
     });
-    for (int page = 1; page <= totalPages.get(); ++page) {
-      final String pageUri = baseUri + "&page=" + Integer.toString(page);
+    for (int page = 1; page <= totalPages[0]; ++page) {
+      final String pageUri = baseUri + "&page=" + page;
       loadSinglePage(pageUri, root);
+      progress.onProgressUpdate(page - 1, totalPages[0]);
     }
   }
 

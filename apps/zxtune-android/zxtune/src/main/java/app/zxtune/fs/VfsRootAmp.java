@@ -232,11 +232,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(letter, new Catalog.AuthorsVisitor() {
         @Override
-        public void setCountHint(int count) {
-          visitor.onItemsCount(count);
-        }
-
-        @Override
         public void accept(Author obj) {
           visitor.onDir(makeSubdir(obj));
         }

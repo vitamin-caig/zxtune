@@ -90,10 +90,6 @@ public final class VfsIterator {
     try {
       root.enumerate(new VfsDir.Visitor() {
         @Override
-        public void onItemsCount(int count) {
-        }
-
-        @Override
         public void onDir(VfsDir dir) {
           //move to depth first
           //assume that sorting is not sensitive

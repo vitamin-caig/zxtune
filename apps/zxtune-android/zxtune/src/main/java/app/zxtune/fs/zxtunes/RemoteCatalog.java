@@ -39,7 +39,7 @@ final class RemoteCatalog extends Catalog {
 
   private final HttpProvider http;
 
-  public RemoteCatalog(HttpProvider http) {
+  RemoteCatalog(HttpProvider http) {
     this.http = http;
   }
 

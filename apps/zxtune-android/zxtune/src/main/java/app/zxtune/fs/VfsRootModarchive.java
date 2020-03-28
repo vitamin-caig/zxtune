@@ -181,7 +181,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
         public void accept(Author obj) {
           visitor.onDir(new AuthorDir(obj));
         }
-      });
+      }, visitor);
     }
 
     @Override
@@ -352,7 +352,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
           final Uri fileUri = Identifier.forTrack(Identifier.forAuthor(author), obj).build();
           visitor.onFile(new TrackFile(fileUri, obj));
         }
-      });
+      }, visitor);
     }
   }
 
@@ -397,7 +397,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
           final Uri fileUri = Identifier.forTrack(Identifier.forGenre(genre), obj).build();
           visitor.onFile(new TrackFile(fileUri, obj));
         }
-      });
+      }, visitor);
     }
   }
 

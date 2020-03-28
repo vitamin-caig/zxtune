@@ -7,7 +7,10 @@
 package app.zxtune.fs.modland;
 
 import androidx.annotation.NonNull;
+
+import app.zxtune.StubProgressCallback;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.*;
 import app.zxtune.fs.http.HttpObject;
@@ -73,7 +76,8 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
-    public void queryGroups(final String filter, final GroupsVisitor visitor) throws IOException {
+    public void queryGroups(final String filter, final GroupsVisitor visitor,
+                            final ProgressCallback progress) throws IOException {
       executor.executeQuery(new QueryCommand() {
 
         @Override
@@ -98,7 +102,7 @@ final class CachingCatalog extends Catalog {
             public void accept(Group obj) {
               db.addGroup(category, obj);
             }
-          });
+          }, progress);
         }
 
         @Override
@@ -135,7 +139,8 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
-    public void queryTracks(final int id, final TracksVisitor visitor) throws IOException {
+    public void queryTracks(final int id, final TracksVisitor visitor,
+                            final ProgressCallback progress) throws IOException {
       executor.executeQuery(new QueryCommand() {
 
         @Override
@@ -162,7 +167,7 @@ final class CachingCatalog extends Catalog {
               db.addGroupTrack(category, id, obj);
               return true;
             }
-          });
+          }, progress);
         }
 
         @Override
@@ -199,7 +204,7 @@ final class CachingCatalog extends Catalog {
               }
               return true;
             }
-          });
+          }, StubProgressCallback.instance());
           final Track result = resultRef[0];
           if (result != null) {
             return result;

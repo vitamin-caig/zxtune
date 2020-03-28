@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.*;
 import app.zxtune.fs.http.HttpObject;
@@ -43,7 +44,7 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
+  public void queryAuthors(final AuthorsVisitor visitor, final ProgressCallback progress) throws IOException {
     executor.executeQuery(new QueryCommand() {
 
       @Override
@@ -68,7 +69,7 @@ final class CachingCatalog extends Catalog {
           public void accept(Author obj) {
             db.addAuthor(obj);
           }
-        });
+        }, progress);
       }
 
       @Override
@@ -115,7 +116,8 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public void queryTracks(final Author author, final TracksVisitor visitor) throws IOException {
+  public void queryTracks(final Author author, final TracksVisitor visitor,
+                          final ProgressCallback progress) throws IOException {
     executor.executeQuery(new QueryCommand() {
 
       @Override
@@ -141,7 +143,7 @@ final class CachingCatalog extends Catalog {
             db.addTrack(obj);
             db.addAuthorTrack(author, obj);
           }
-        });
+        }, progress);
       }
 
       @Override
@@ -152,7 +154,8 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public void queryTracks(final Genre genre, final TracksVisitor visitor) throws IOException {
+  public void queryTracks(final Genre genre, final TracksVisitor visitor,
+                          final ProgressCallback progress) throws IOException {
     executor.executeQuery(new QueryCommand() {
 
       @Override
@@ -178,7 +181,7 @@ final class CachingCatalog extends Catalog {
             db.addTrack(obj);
             db.addGenreTrack(genre, obj);
           }
-        });
+        }, progress);
       }
 
       @Override

@@ -34,7 +34,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   private final VfsObject parent;
   private final Context context;
   private final Catalog catalog;
-  private final GroupingDir groups[];
+  private final GroupingDir[] groups;
 
   VfsRootZxtunes(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
     this.parent = parent;

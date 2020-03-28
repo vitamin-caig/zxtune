@@ -10,6 +10,8 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import android.text.Html;
 import app.zxtune.Log;
+import app.zxtune.StubProgressCallback;
+import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.HttpObject;
 import app.zxtune.fs.http.HttpProvider;
@@ -94,32 +96,38 @@ class RemoteCatalog extends Catalog {
     }
 
     @Override
-    public void queryGroups(String filter, final GroupsVisitor visitor) throws IOException {
+    public void queryGroups(String filter, final GroupsVisitor visitor,
+                            final ProgressCallback progress) throws IOException {
       Log.d(TAG, "queryGroups(type=%s, filter=%s)", getCategoryTag(), filter);
       loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
 
-        private boolean countReported;
+        private int total = 0;
+        private int done = 0;
 
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
-          if (!countReported) {
-            visitor.setCountHint(results);
-            countReported = true;
+          if (total == 0) {
+            total = results;
+            visitor.setCountHint(total);
           }
-          parseAuthors(content, visitor);
+          done += parseAuthors(content, visitor);
+          progress.onProgressUpdate(done, total);
           return true;
         }
       });
     }
 
-    private void parseAuthors(CharSequence content, GroupsVisitor visitor) {
+    private int parseAuthors(CharSequence content, GroupsVisitor visitor) {
+      int result = 0;
       final Matcher matcher = entries.matcher(content);
       while (matcher.find()) {
         final String id = matcher.group(1);
         final String name = decodeHtml(matcher.group(2));
         final String tracks = matcher.group(3);
         visitor.accept(new Group(Integer.valueOf(id), name, Integer.valueOf(tracks)));
+        ++result;
       }
+      return result;
     }
 
     @Override
@@ -145,19 +153,23 @@ class RemoteCatalog extends Catalog {
     }
 
     @Override
-    public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
+    public void queryTracks(int id, final TracksVisitor visitor, final ProgressCallback progress) throws IOException {
       Log.d(TAG, "queryGroupTracks(type=%s, id=%d)", getCategoryTag(), id);
       loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
 
-        private boolean countReported;
+        private int total = 0;
+        private int done = 0;
 
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
-          if (!countReported) {
-            visitor.setCountHint(results);
-            countReported = true;
+          if (total == 0) {
+            total = results;
+            visitor.setCountHint(total);
           }
-          return parseTracks(content, visitor);
+          final int tracks = parseTracks(content, visitor);
+          done += tracks;
+          progress.onProgressUpdate(done, total);
+          return tracks != 0;
         }
       });
     }
@@ -176,7 +188,7 @@ class RemoteCatalog extends Catalog {
             return true;
           }
         }
-      });
+      }, StubProgressCallback.instance());
       final Track result = resultRef[0];
       if (result != null) {
         return result;
@@ -228,16 +240,18 @@ class RemoteCatalog extends Catalog {
     }
   }
 
-  private static boolean parseTracks(CharSequence content, TracksVisitor visitor) {
+  private static int parseTracks(CharSequence content, TracksVisitor visitor) {
+    int result = 0;
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
       final String path = "/" + matcher.group(1);
       final String size = matcher.group(2);
       if (!visitor.accept(new Track(path, Integer.valueOf(size)))) {
-        return false;
+        return 0;
       }
+      ++result;
     }
-    return true;
+    return result;
   }
 
   @Override

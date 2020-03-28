@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.HttpProvider;
 
@@ -41,7 +42,7 @@ public abstract class Catalog {
      * @param filter letter(s) or '#' for non-letter entries
      * @param visitor result receiver
      */
-    void queryGroups(String filter, GroupsVisitor visitor) throws IOException;
+    void queryGroups(String filter, GroupsVisitor visitor, ProgressCallback progress) throws IOException;
 
     /**
      * Query single group object
@@ -55,7 +56,7 @@ public abstract class Catalog {
      * @param id object identifier
      * @param visitor result receiver
      */
-    void queryTracks(int id, TracksVisitor visitor) throws IOException;
+    void queryTracks(int id, TracksVisitor visitor, ProgressCallback progress) throws IOException;
 
     /**
      * Query track by name

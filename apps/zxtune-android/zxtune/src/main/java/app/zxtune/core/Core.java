@@ -211,11 +211,6 @@ public class Core {
     private void preloadDir(@NonNull VfsDir dir, @NonNull final String relPath) throws IOException {
       Log.d(TAG, "Preload content of %s as '%s'", dir.getUri(), relPath);
       dir.enumerate(new VfsDir.Visitor() {
-
-        @Override
-        public void onItemsCount(int count) {
-        }
-
         @Override
         public void onDir(@NonNull VfsDir dir) {
           final String name = relPath + dir.getName();

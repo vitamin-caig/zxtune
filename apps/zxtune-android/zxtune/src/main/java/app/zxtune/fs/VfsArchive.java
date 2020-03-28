@@ -307,7 +307,7 @@ public final class VfsArchive {
     }
   }
 
-  public static boolean checkIfArchive(VfsDir dir) {
+  static boolean checkIfArchive(VfsDir dir) {
     return dir instanceof ArchiveRoot || dir instanceof ArchiveDir;
   }
 

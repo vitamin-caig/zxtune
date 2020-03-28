@@ -13,22 +13,25 @@ public interface VfsDir extends VfsObject {
   /**
    * Directory content enumerating callback
    */
-  interface Visitor {
-
-    /**
-     * Called when items count is known (at any moment, maybe approximate)
-     */
-    void onItemsCount(int count);
+  abstract class Visitor implements ProgressCallback {
 
     /**
      * Called on visited directory
      */
-    void onDir(VfsDir dir);
+    public abstract void onDir(VfsDir dir);
 
     /**
      * Called on visited file
      */
-    void onFile(VfsFile file);
+    public abstract void onFile(VfsFile file);
+
+    /**
+     * Called when items count is known (at any moment, maybe approximate)
+     */
+    public void onItemsCount(int count) {}
+
+    @Override
+    public void onProgressUpdate(int done, int total) {}
   }
 
   /**
@@ -37,12 +40,4 @@ public interface VfsDir extends VfsObject {
    * @param visitor Callback
    */
   void enumerate(Visitor visitor) throws IOException;
-
-  /**
-   * Find child with specified filename
-   * @param name
-   * @return null if nothing found
-   */
-  //@Nullable
-  //VfsObject find( String name) throws IOException;
 }

@@ -18,29 +18,34 @@ import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsUtils;
 
-class ListingCursorBuilder implements VfsDir.Visitor {
+class ListingCursorBuilder extends VfsDir.Visitor {
 
   private final ArrayList<VfsDir> dirs = new ArrayList<>();
   private final ArrayList<VfsFile> files = new ArrayList<>();
-  private int total = 0;
+  private int total = -1;
+  private int done = -1;
 
   @Override
   public void onItemsCount(int count) {
     dirs.ensureCapacity(count);
     files.ensureCapacity(count);
-    total = count;
   }
 
   @Override
   public void onDir(VfsDir dir) {
-    checkForCancel();
     dirs.add(dir);
   }
 
   @Override
   public void onFile(VfsFile file) {
-    checkForCancel();
     files.add(file);
+  }
+
+  @Override
+  public void onProgressUpdate(int done, int total) {
+    checkForCancel();
+    this.done = done;
+    this.total = total;
   }
 
   private static void checkForCancel() {
@@ -85,7 +90,7 @@ class ListingCursorBuilder implements VfsDir.Visitor {
   final Cursor getStatus() {
     final MatrixCursor cursor = new MatrixCursor(Schema.Status.COLUMNS, 1);
     if (total != 0) {
-      cursor.addRow(Schema.Status.makeProgress(dirs.size() + files.size(), total));
+      cursor.addRow(Schema.Status.makeProgress(done, total));
     } else {
       cursor.addRow(Schema.Status.makeIntermediateProgress());
     }
