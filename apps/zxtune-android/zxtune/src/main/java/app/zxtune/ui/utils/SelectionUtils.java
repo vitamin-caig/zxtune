@@ -1,4 +1,4 @@
-package app.zxtune.ui;
+package app.zxtune.ui.utils;
 
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,9 +15,9 @@ import java.util.List;
 
 import app.zxtune.R;
 
-final class SelectionUtils<T> extends SelectionTracker.SelectionObserver<T> {
+final public class SelectionUtils<T> extends SelectionTracker.SelectionObserver<T> {
 
-  interface Client<T> {
+  public interface Client<T> {
     @NonNull
     String getTitle(int count);
 
@@ -34,7 +34,7 @@ final class SelectionUtils<T> extends SelectionTracker.SelectionObserver<T> {
   private final Client client;
   private ActionMode action;
 
-  static <T> void install(AppCompatActivity activity, SelectionTracker<T> selectionTracker,
+  public static <T> void install(AppCompatActivity activity, SelectionTracker<T> selectionTracker,
                       Client client) {
     final SelectionTracker.SelectionObserver<T> observer = new SelectionUtils<>(activity,
                                                                              selectionTracker,

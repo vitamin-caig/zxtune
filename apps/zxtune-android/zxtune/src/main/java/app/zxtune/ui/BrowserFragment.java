@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import app.zxtune.Log;
 import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.ui.browser.BreadcrumbsViewAdapter;
@@ -54,10 +53,11 @@ import app.zxtune.ui.browser.BrowserEntrySimple;
 import app.zxtune.ui.browser.BrowserModel;
 import app.zxtune.ui.browser.BrowserState;
 import app.zxtune.ui.browser.ListingViewAdapter;
+import app.zxtune.ui.utils.SelectionUtils;
 
 public class BrowserFragment extends Fragment {
 
-  private static final String TAG = BrowserFragment.class.getName();
+  //private static final String TAG = BrowserFragment.class.getName();
   private static final String SEARCH_QUERY_KEY = "search_query";
 
   private SearchView search;
@@ -287,15 +287,6 @@ public class BrowserFragment extends Fragment {
       }
     });
     return search;
-  }
-
-  @Override
-  public void onDestroyView() {
-    super.onDestroyView();
-
-    Log.d(TAG, "Saving persistent stateStorage");
-    //controller.storeCurrentViewPosition();
-    //controller.resetViews();
   }
 
   private class ItemActivatedListener implements OnItemActivatedListener<Uri> {
