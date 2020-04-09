@@ -301,7 +301,7 @@ public class BrowserFragment extends Fragment {
     }
   }
 
-  // Client for selection
+  // ArchivesService for selection
   private class SelectionClient implements SelectionUtils.Client<Uri> {
 
     private final ListingViewAdapter adapter;

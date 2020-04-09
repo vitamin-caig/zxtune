@@ -259,7 +259,7 @@ public class PlaylistFragment extends Fragment {
     }
   }
 
-  // Client for selection
+  // ArchivesService for selection
   private class SelectionClient implements SelectionUtils.Client<Long> {
     @NonNull
     @Override

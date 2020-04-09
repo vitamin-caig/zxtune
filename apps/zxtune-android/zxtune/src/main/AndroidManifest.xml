@@ -181,7 +181,6 @@
     <service android:name=".RingtoneService" android:process=":service"/>
     <provider android:name="app.zxtune.playlist.Provider" android:authorities="app.zxtune.playlist" android:exported="false"/>
     <provider android:name="app.zxtune.PluginsProvider" android:authorities="app.zxtune.plugins" android:process=":service" android:exported="false"/>
-    <provider android:name="app.zxtune.fs.archives.Provider" android:authorities="app.zxtune.archive" android:process=":service" android:exported="false"/>
     <provider android:name="app.zxtune.analytics.internal.Provider"
               android:authorities="app.zxtune.analytics.internal" android:process=":analytics"
               android:exported="false"/>

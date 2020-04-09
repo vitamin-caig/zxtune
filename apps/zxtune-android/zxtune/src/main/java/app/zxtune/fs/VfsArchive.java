@@ -6,34 +6,33 @@
 
 package app.zxtune.fs;
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.database.Cursor;
 import android.net.Uri;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.text.TextUtils;
-import app.zxtune.core.Identifier;
-import app.zxtune.Log;
-import app.zxtune.MainApplication;
-import app.zxtune.fs.VfsDir.Visitor;
-import app.zxtune.fs.archives.Archive;
-import app.zxtune.fs.archives.DirEntry;
-import app.zxtune.fs.archives.Entry;
-import app.zxtune.fs.archives.Query;
-import app.zxtune.fs.archives.Track;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import app.zxtune.Log;
+import app.zxtune.MainApplication;
+import app.zxtune.core.Identifier;
+import app.zxtune.fs.VfsDir.Visitor;
+import app.zxtune.fs.archives.Archive;
+import app.zxtune.fs.archives.ArchivesService;
+import app.zxtune.fs.archives.DirEntry;
+import app.zxtune.fs.archives.Entry;
+import app.zxtune.fs.archives.Track;
 
 public final class VfsArchive {
 
   private static final String TAG = VfsArchive.class.getName();
 
-  private final ContentResolver resolver;
+  private final ArchivesService service;
 
   private VfsArchive() {
-    this.resolver = MainApplication.getInstance().getContentResolver();
+    this.service = new ArchivesService(MainApplication.getInstance());
   }
 
   /*
@@ -44,7 +43,7 @@ public final class VfsArchive {
    * null - unknown status
    */
   @Nullable
-  public static VfsObject browseCached(VfsFile file) {
+  static VfsObject browseCached(@NonNull VfsFile file) {
     if (file instanceof ArchiveFile) {
       return file;
     }
@@ -52,38 +51,25 @@ public final class VfsArchive {
   }
 
   @Nullable
-  private VfsObject browseCachedFile(VfsFile file) {
+  private VfsObject browseCachedFile(@NonNull VfsFile file) {
     final VfsDir asPlaylist = VfsPlaylistDir.resolveAsPlaylist(file);
     if (asPlaylist != null) {
       return asPlaylist;
     }
-    final Uri uri = file.getUri();
-    final Integer modulesInArchive = getModulesInArchive(uri);
-    if (modulesInArchive == null) {
-      Log.d(TAG, "Unknown archive %s", uri);
-      return null;
-    } else if (modulesInArchive < 2) {
-      Log.d(TAG, "Too few modules in archive %s", uri);
-      return file;
-    }
-    return new ArchiveRoot(file);
+    final Archive arc = service.findArchive(file.getUri());
+    return browseCachedFile(file, arc);
   }
 
   @Nullable
-  private Integer getModulesInArchive(@NonNull Uri uri) {
-    final Cursor cursor = resolver.query(Query.archiveUriFor(uri), null, null, null, null);
-    if (cursor == null) {
+  private VfsObject browseCachedFile(@NonNull VfsFile file, @Nullable Archive arc) {
+    if (arc == null) {
+      Log.d(TAG, "Unknown archive %s", file.getUri());
       return null;
+    } else if (arc.modules < 2) {
+      Log.d(TAG, "Too few modules in archive %s", file.getUri());
+      return file;
     }
-    try {
-      if (cursor.moveToFirst()) {
-        final Archive arch = Archive.fromCursor(cursor);
-        return arch.modules;
-      }
-    } finally {
-      cursor.close();
-    }
-    return null;
+    return new ArchiveRoot(file);
   }
 
   /*
@@ -98,17 +84,18 @@ public final class VfsArchive {
     return Holder.INSTANCE.browseFile(file);
   }
 
-  private VfsObject browseFile(VfsFile file) {
+  @Nullable
+  private VfsObject browseFile(@NonNull VfsFile file) {
     final VfsDir asPlaylist = VfsPlaylistDir.resolveAsPlaylist(file);
     if (asPlaylist != null) {
       return asPlaylist;
     }
-    final Uri uri = file.getUri();
-    final Uri newUri = resolver.insert(Query.archiveUriFor(uri), new ContentValues());
-    if (newUri == null) {
+    try {
+      final Archive arc = service.analyzeArchive(file);
+      return browseCachedFile(file, arc);
+    } catch (IOException e) {
+      Log.w(TAG, e, "Failed to analyze archive");
       return null;
-    } else {
-      return browseCachedFile(file);
     }
   }
 
@@ -134,7 +121,7 @@ public final class VfsArchive {
   }
 
   @Nullable
-  private VfsObject resolveFileUri(Uri uri, boolean forceAnalyze) throws IOException {
+  private VfsObject resolveFileUri(@NonNull Uri uri, boolean forceAnalyze) throws IOException {
     final VfsObject obj = Vfs.resolve(uri);
     if (obj instanceof VfsFile) {
       final VfsObject cached = browseCachedFile((VfsFile) obj);
@@ -148,21 +135,13 @@ public final class VfsArchive {
   }
 
   private VfsObject resolveArchiveUri(@NonNull Uri uri, boolean forceAnalyze) throws IOException {
-    final Cursor cursor = resolver.query(Query.infoUriFor(uri), null, null, null, null);
-    if (cursor == null) {
-      throw new IOException("Failed to query archive info");
-    }
-    try {
-      if (cursor.moveToFirst()) {
-        final Entry entry = Entry.fromCursor(cursor);
-        if (entry.track != null) {
-          return new ArchiveFile(null, entry.dirEntry, entry.track);
-        } else {
-          return new ArchiveDir(null, entry.dirEntry);
-        }
+    final Entry entry = service.resolve(uri);
+    if (entry != null) {
+      if (entry.track != null) {
+        return new ArchiveFile(null, entry.dirEntry, entry.track);
+      } else {
+        return new ArchiveDir(null, entry.dirEntry);
       }
-    } finally {
-      cursor.close();
     }
     if (forceAnalyze) {
       final VfsObject real = Vfs.resolve(uri.buildUpon().fragment("").build());
@@ -175,24 +154,22 @@ public final class VfsArchive {
     throw new IOException("No archive found");
   }
 
-  private void listArchive(VfsObject parent, @NonNull Visitor visitor) throws IOException {
-    final Cursor cursor = resolver.query(Query.listDirUriFor(parent.getUri()), null, null, null, null);
-    if (cursor == null) {
-      throw new IOException("Failed query");
-    }
-    try {
-      visitor.onItemsCount(cursor.getCount());
-      while (cursor.moveToNext()) {
-        final Entry entry = Entry.fromCursor(cursor);
+  private void listArchive(@NonNull final VfsObject parent, @NonNull final Visitor visitor) {
+    service.listDir(parent.getUri(), new ArchivesService.ListingCallback() {
+      @Override
+      public void onItemsCount(int hint) {
+        visitor.onItemsCount(hint);
+      }
+
+      @Override
+      public void onEntry(Entry entry) {
         if (entry.track != null) {
           visitor.onFile(new ArchiveFile(parent, entry.dirEntry, entry.track));
         } else {
           visitor.onDir(new ArchiveDir(parent, entry.dirEntry));
         }
       }
-    } finally {
-      cursor.close();
-    }
+    });
   }
 
   private class ArchiveRoot extends StubObject implements VfsDir {

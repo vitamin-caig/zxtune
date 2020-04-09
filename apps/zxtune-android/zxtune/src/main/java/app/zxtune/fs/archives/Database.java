@@ -12,7 +12,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.BuildConfig;
@@ -106,7 +105,7 @@ class Database {
   static final class Tables {
 
     static final class Paths {
-      static enum Fields {
+      enum Fields {
         path
       }
 
@@ -116,7 +115,7 @@ class Database {
     }
 
     static final class ArchivesInternal {
-      static enum Fields {
+      enum Fields {
         path_id, modules
       }
 
@@ -132,7 +131,7 @@ class Database {
      */
 
     static final class Archives extends Objects {
-      static enum Fields {
+      enum Fields {
         path, modules
       }
 
@@ -153,9 +152,7 @@ class Database {
                         "END;";
       }
 
-      ;
-
-      Archives(DBProvider helper) throws IOException {
+      Archives(DBProvider helper) {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
 
@@ -165,7 +162,7 @@ class Database {
     }
 
     static final class TracksInternal {
-      static enum Fields {
+      enum Fields {
         path_id, description, duration
       }
 
@@ -177,7 +174,7 @@ class Database {
     }
 
     static final class Tracks extends Objects {
-      static enum Fields {
+      enum Fields {
         path, description, duration
       }
 
@@ -198,7 +195,7 @@ class Database {
                         "END;";
       }
 
-      Tracks(DBProvider helper) throws IOException {
+      Tracks(DBProvider helper) {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
 
@@ -208,7 +205,7 @@ class Database {
     }
 
     static final class DirsInternal {
-      static enum Fields {
+      enum Fields {
         path_id, parent_id
       }
 
@@ -224,7 +221,7 @@ class Database {
     }
 
     static final class Dirs extends Objects {
-      static enum Fields {
+      enum Fields {
         path, parent
       }
 
@@ -251,7 +248,7 @@ class Database {
                         "END;";
       }
 
-      Dirs(DBProvider helper) throws IOException {
+      Dirs(DBProvider helper) {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
 
@@ -262,7 +259,7 @@ class Database {
 
     // tracks should be joined instead of intersection
     static final class Entries {
-      static enum Fields {
+      enum Fields {
         path, parent, description, duration
       }
 
@@ -282,14 +279,14 @@ class Database {
   private final Tables.Dirs dirs;
   private final Tables.Tracks tracks;
 
-  Database(Context context) throws IOException {
+  Database(Context context) {
     this.dbHelper = new DBProvider(new DBHelper(context));
     this.archives = new Tables.Archives(dbHelper);
     this.dirs = new Tables.Dirs(dbHelper);
     this.tracks = new Tables.Tracks(dbHelper);
   }
 
-  final Transaction startTransaction() throws IOException {
+  final Transaction startTransaction() {
     return new Transaction(dbHelper.getWritableDatabase());
   }
 
@@ -342,7 +339,7 @@ class Database {
     @Override
     public void onCreate(SQLiteDatabase db) {
       Log.d(TAG, "Creating database");
-      final String QUERIES[] = {
+      final String[] QUERIES = {
               Tables.Paths.CREATE_QUERY,
               Tables.ArchivesInternal.CREATE_QUERY,
               Tables.Archives.CREATE_QUERY, Tables.Archives.InsertTrigger.CREATE_QUERY,

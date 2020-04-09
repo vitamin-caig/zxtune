@@ -26,7 +26,7 @@ public class DirEntry {
     return filename.isEmpty();
   }
 
-  public static DirEntry create(Identifier id) {
+  static DirEntry create(Identifier id) {
     final String subpath = id.getSubpath();
     if (TextUtils.isEmpty(subpath)) {
       /*
