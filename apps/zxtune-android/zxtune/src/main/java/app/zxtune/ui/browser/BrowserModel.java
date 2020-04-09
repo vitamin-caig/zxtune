@@ -4,33 +4,22 @@ import android.app.Application;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
-import androidx.core.os.CancellationSignal;
-import androidx.core.os.OperationCanceledException;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProviders;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.zxtune.Log;
 import app.zxtune.analytics.Analytics;
-import app.zxtune.fs.DefaultComparator;
-import app.zxtune.fs.VfsArchive;
-import app.zxtune.fs.VfsDir;
-import app.zxtune.fs.VfsExtensions;
-import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.VfsIterator;
-import app.zxtune.fs.VfsObject;
-import app.zxtune.fs.VfsUtils;
+import app.zxtune.fs.provider.VfsProviderClient;
 
 /*
 TODO:
@@ -50,32 +39,16 @@ public class BrowserModel extends AndroidViewModel {
   }
 
   public class State {
-    @NonNull
     public Uri uri;
     public String query = null;
-    @NonNull
     public List<BrowserEntrySimple> breadcrumbs;
-    @NonNull
     public List<BrowserEntry> entries;
-  }
-
-  private abstract class AsyncTask implements Runnable {
-
-    protected final CancellationSignal signal = new CancellationSignal();
-
-    void checkForCancel() {
-      signal.throwIfCanceled();
-    }
-
-    final void cancel() {
-      signal.cancel();
-    }
   }
 
   private final ExecutorService async = Executors.newSingleThreadExecutor();
   private final MutableLiveData<State> state = new MutableLiveData<>();
   private final MutableLiveData<Integer> progress = new MutableLiveData<>();
-  private final AtomicReference<AsyncTask> lastTask = new AtomicReference<>();
+  private final AtomicReference<Future<?>> lastTask = new AtomicReference<>();
   private Client client = new Client() {
     @Override
     public void onFileBrowse(Uri uri) {}
@@ -83,6 +56,7 @@ public class BrowserModel extends AndroidViewModel {
     @Override
     public void onError(String msg) {}
   };
+  private final VfsProviderClient providerClient;
 
   public static BrowserModel of(Fragment owner) {
     return ViewModelProviders.of(owner).get(BrowserModel.class);
@@ -90,6 +64,7 @@ public class BrowserModel extends AndroidViewModel {
 
   public BrowserModel(@NonNull Application application) {
     super(application);
+    providerClient = new VfsProviderClient(application);
   }
 
   public final LiveData<State> getState() {
@@ -106,17 +81,17 @@ public class BrowserModel extends AndroidViewModel {
 
   public final void browse(@NonNull Uri uri) {
     Analytics.sendBrowserEvent(uri, Analytics.BROWSER_ACTION_BROWSE);
-    executeAsync(new BrowseTask(uri));
+    executeAsync(new BrowseTask(uri), "browse " + uri);
   }
 
   public final void browseParent() {
     final State currentState = state.getValue();
     if (currentState != null && currentState.breadcrumbs.size() > 1) {
       Analytics.sendBrowserEvent(currentState.uri, Analytics.BROWSER_ACTION_BROWSE_PARENT);
-      executeAsync(new BrowseParentTask(currentState.breadcrumbs));
+      executeAsync(new BrowseParentTask(currentState.breadcrumbs), "browse parent");
     } else {
       Analytics.sendBrowserEvent(Uri.EMPTY, Analytics.BROWSER_ACTION_BROWSE_PARENT);
-      executeAsync(new BrowseTask(Uri.EMPTY));
+      executeAsync(new BrowseTask(Uri.EMPTY), "browse root");
     }
   }
 
@@ -131,19 +106,57 @@ public class BrowserModel extends AndroidViewModel {
     final State currentState = state.getValue();
     if (currentState != null) {
       Analytics.sendBrowserEvent(currentState.uri, Analytics.BROWSER_ACTION_SEARCH);
-      executeAsync(new SearchTask(currentState, query));
+      executeAsync(new SearchTask(currentState, query),
+          "search for " + query + " in " + currentState.uri);
     }
   }
 
-  private void executeAsync(@NonNull AsyncTask task) {
-    final AsyncTask prev = lastTask.getAndSet(task);
+  private interface AsyncOperation {
+    void execute() throws Exception;
+  }
+
+  private class AsyncOperationWrapper implements Runnable {
+
+    private final AsyncOperation op;
+    private final String descr;
+
+    AsyncOperationWrapper(AsyncOperation op, String descr) {
+      this.op = op;
+      this.descr = descr;
+    }
+
+    @Override
+    public void run() {
+      try {
+        Log.d(TAG, "Started %s", descr);
+        progress.postValue(-1);
+        op.execute();
+      } catch (InterruptedException e) {
+        Log.d(TAG, "Cancelled %s", descr);
+      } catch (Exception e) {
+        reportError(e);
+      } finally {
+        progress.postValue(null);
+        Log.d(TAG, "Finished %s", descr);
+      }
+    }
+  }
+
+  private void executeAsync(@NonNull AsyncOperation op, String descr) {
+    Future<?> prev;
+    synchronized(lastTask) {
+      prev = lastTask.getAndSet(async.submit(new AsyncOperationWrapper(op, descr)));
+    }
     if (prev != null) {
-      prev.cancel();
+      prev.cancel(true);
     }
-    async.execute(task);
   }
 
-  private class BrowseTask extends AsyncTask {
+  private void updateProgress(int done, int total) {
+    progress.postValue(done == -1 || total == 0 ? done : 100 * done / total);
+  }
+
+  private class BrowseTask implements AsyncOperation {
 
     private final Uri uri;
 
@@ -152,29 +165,41 @@ public class BrowserModel extends AndroidViewModel {
     }
 
     @Override
-    public void run() {
-      try {
-        progress.postValue(-1);
-        final VfsDir dir = resolveDirOrFile(uri, client);
-        if (dir != null) {
-          checkForCancel();
-          final State newState = new State();
-          newState.uri = uri;
-          newState.entries = getEntries(dir, signal);
-          newState.breadcrumbs = getBreadcrumbs(dir);
-          state.postValue(newState);
-        }
-      } catch (OperationCanceledException e) {
-        Log.d(TAG, "Canceled browse");
-      } catch (Exception e) {
-        reportError(e);
-      } finally {
-        progress.postValue(null);
+    public void execute() throws Exception {
+      final ObjectType type = resolve(uri);
+      if (ObjectType.FILE == type || ObjectType.DIR_WITH_FEED == type) {
+        client.onFileBrowse(uri);
+      } else if (ObjectType.DIR == type) {
+        final State newState = new State();
+        newState.uri = uri;
+        newState.entries = getEntries(uri);
+        newState.breadcrumbs = getParents();
+        state.postValue(newState);
       }
+    }
+
+    private List<BrowserEntrySimple> getParents() throws Exception {
+      final ArrayList<BrowserEntrySimple> result = new ArrayList<>();
+      providerClient.parents(uri, new VfsProviderClient.ParentsCallback() {
+        @Override
+        public void onObject(Uri uri, String name, int icon) {
+          final BrowserEntrySimple entry = new BrowserEntrySimple();
+          entry.uri = uri;
+          entry.title = name;
+          entry.icon = icon;
+          result.add(entry);
+        }
+
+        @Override
+        public void onProgress(int done, int total) {
+          updateProgress(done, total);
+        }
+      });
+      return result;
     }
   }
 
-  class BrowseParentTask extends AsyncTask {
+  class BrowseParentTask implements AsyncOperation {
 
     private final List<BrowserEntrySimple> items;
 
@@ -183,41 +208,36 @@ public class BrowserModel extends AndroidViewModel {
     }
 
     @Override
-    public void run() {
-      try {
-        progress.postValue(-1);
-        for (int idx = items.size() - 2; idx >= 0; --idx) {
-          if (tryBrowseAt(idx)) {
-            break;
-          }
+    public void execute() throws Exception {
+      for (int idx = items.size() - 2; idx >= 0; --idx) {
+        if (tryBrowseAt(idx)) {
+          break;
         }
-      } catch (OperationCanceledException e) {
-        Log.d(TAG, "Canceled browse");
-      } finally {
-        progress.postValue(null);
       }
     }
 
-    private boolean tryBrowseAt(int idx) {
+    private boolean tryBrowseAt(int idx) throws InterruptedException {
+      final Uri uri = items.get(idx).uri;
       try {
-        final Uri uri = items.get(idx).uri;
-        final VfsDir dir = resolveDir(uri);
-        if (dir != null) {
-          checkForCancel();
+        final ObjectType type = resolve(uri);
+        if (ObjectType.DIR == type || ObjectType.DIR_WITH_FEED == type) {
           final State newState = new State();
           newState.uri = uri;
-          newState.entries = getEntries(dir, signal);
+          newState.entries = getEntries(uri);
           newState.breadcrumbs = items.subList(0, idx + 1);
           state.postValue(newState);
           return true;
         }
+      } catch (InterruptedException e) {
+        throw e;
       } catch (Exception e) {
+        Log.d(TAG, "Skipping " + uri + " while navigating up");
       }
       return false;
     }
   }
 
-  private class SearchTask extends AsyncTask {
+  private class SearchTask implements AsyncOperation {
 
     private final State newState = new State();
 
@@ -229,54 +249,28 @@ public class BrowserModel extends AndroidViewModel {
     }
 
     @Override
-    public void run() {
-      try {
-        progress.postValue(-1);
-        final VfsDir dir = resolveDir(newState.uri);
-        if (dir != null) {
-          search(dir);
-        }
-      } catch (OperationCanceledException e) {
-        Log.d(TAG, "Cancelled search");
-      } catch (Exception e) {
-        reportError(e);
-      } finally {
-        progress.postValue(null);
-      }
-    }
-
-    private void search(@NonNull VfsDir dir) throws IOException {
+    public void execute() throws Exception {
       state.postValue(newState);
-      final VfsExtensions.SearchEngine.Visitor visitor = new VfsExtensions.SearchEngine.Visitor() {
+      // assume already resolved
+      providerClient.search(newState.uri, newState.query, new VfsProviderClient.ListingCallback() {
+        @Override
+        public void onDir(Uri uri, String name, String description, int icon, boolean hasFeed) {
+
+        }
 
         @Override
-        public void onFile(VfsFile file) {
-          checkForCancel();
-          newState.entries.add(createEntry(file));
+        public void onFile(Uri uri, String name, String description, String size) {
+          final BrowserEntry entry = createEntry(uri, name, description);
+          entry.type = BrowserEntry.FILE;
+          entry.details = size;
+          newState.entries.add(entry);
           state.postValue(newState);
         }
-      };
-      search(dir, visitor);
-    }
 
-    private void search(@NonNull VfsDir dir, @NonNull VfsExtensions.SearchEngine.Visitor visitor) throws IOException {
-      final VfsExtensions.SearchEngine engine =
-          (VfsExtensions.SearchEngine) dir.getExtension(VfsExtensions.SEARCH_ENGINE);
-      if (engine != null) {
-        engine.find(newState.query, visitor);
-      } else {
-        for (final VfsIterator iter = new VfsIterator(new Uri[]{dir.getUri()}); iter.isValid(); iter.next()) {
-          checkForCancel();
-          final VfsFile file = iter.getFile();
-          if (match(file.getName()) || match(file.getDescription())) {
-            visitor.onFile(file);
-          }
+        @Override
+        public void onProgress(int done, int total) {
         }
-      }
-    }
-
-    private boolean match(@NonNull String txt) {
-      return txt.toLowerCase().contains(newState.query);
+      });
     }
   }
 
@@ -286,142 +280,65 @@ public class BrowserModel extends AndroidViewModel {
     client.onError(msg);
   }
 
-  private static VfsDir resolveDirOrFile(Uri uri, Client client) throws IOException {
-    final VfsObject obj = VfsArchive.resolveForced(uri);
-    if (obj == null) {
-      return null;
-    }
-    if (obj instanceof VfsDir) {
-      final VfsDir dir = (VfsDir) obj;
-      if (null == dir.getExtension(VfsExtensions.FEED)) {
-        return dir;
+  enum ObjectType {
+    DIR,
+    DIR_WITH_FEED,
+    FILE
+  }
+
+  private ObjectType resolve(@NonNull Uri uri) throws Exception {
+    final ObjectType[] result = new ObjectType[]{null};
+    providerClient.resolve(uri, new VfsProviderClient.ListingCallback() {
+      @Override
+      public void onDir(Uri uri, String name, String description, int icon, boolean hasFeed) {
+        result[0] = hasFeed ? ObjectType.DIR_WITH_FEED : ObjectType.DIR;
       }
-      client.onFileBrowse(uri);
-    } else if (obj instanceof VfsFile) {
-      client.onFileBrowse(uri);
-    }
-    return null;
-  }
 
-  private static VfsDir resolveDir(Uri uri) throws IOException {
-    final VfsObject obj = VfsArchive.resolveForced(uri);
-    if (obj instanceof VfsDir) {
-      return (VfsDir) obj;
-    } else {
-      return null;
-    }
-  }
-
-  private static List<BrowserEntry> getEntries(@NonNull VfsDir dir, CancellationSignal signal) throws IOException {
-    final ObjectsCollector collector = new ObjectsCollector(signal);
-    collector.fill(dir);
-    final ArrayList<BrowserEntry> entries = new ArrayList<>(collector.getTotalEntries());
-    for (VfsDir d : collector.getDirs()) {
-      entries.add(createEntry(d));
-    }
-    for (VfsFile f : collector.getFiles()) {
-      entries.add(createEntry(f));
-    }
-    return entries;
-  }
-
-  private static class ObjectsCollector implements VfsDir.Visitor {
-
-    private final CancellationSignal signal;
-    private final ArrayList<VfsDir> dirs = new ArrayList<>();
-    private final ArrayList<VfsFile> files = new ArrayList<>();
-
-    ObjectsCollector(CancellationSignal signal) {
-      this.signal = signal;
-    }
-
-    final void fill(VfsDir dir) throws IOException {
-      dir.enumerate(this);
-      sort((Comparator<VfsObject>) dir.getExtension(VfsExtensions.COMPARATOR));
-    }
-
-    final int getTotalEntries() {
-      return dirs.size() + files.size();
-    }
-
-    final ArrayList<VfsDir> getDirs() {
-      return dirs;
-    }
-
-    final ArrayList<VfsFile> getFiles() {
-      return files;
-    }
-
-    @Override
-    public void onItemsCount(int count) {
-      signal.throwIfCanceled();
-      dirs.ensureCapacity(count);
-      files.ensureCapacity(count);
-    }
-
-    @Override
-    public void onDir(VfsDir dir) {
-      signal.throwIfCanceled();
-      dirs.add(dir);
-    }
-
-    @Override
-    public void onFile(VfsFile file) {
-      signal.throwIfCanceled();
-      files.add(file);
-    }
-
-    private void sort(Comparator<VfsObject> cmp) {
-      if (cmp == null) {
-        sort(DefaultComparator.instance());
-      } else {
-        Collections.sort(dirs, cmp);
-        Collections.sort(files, cmp);
+      @Override
+      public void onFile(Uri uri, String name, String description, String size) {
+        result[0] = ObjectType.FILE;
       }
-    }
-  }
 
-  private static List<BrowserEntrySimple> getBreadcrumbs(@NonNull VfsDir dir) {
-    if (Uri.EMPTY.equals(dir.getUri())) {
-      return Collections.<BrowserEntrySimple>emptyList();
-    } else {
-      final ArrayList<BrowserEntrySimple> breadcrumbs = new ArrayList<>();
-      for (VfsObject obj = dir; obj != null; obj = obj.getParent()) {
-        breadcrumbs.add(createBreadcrumb(obj));
+      @Override
+      public void onProgress(int done, int total) {
+        updateProgress(done, total);
       }
-      Collections.reverse(breadcrumbs);
-      return breadcrumbs;
-    }
+    });
+    return result[0];
   }
 
-  private static BrowserEntrySimple createBreadcrumb(@NonNull VfsObject obj) {
-    final BrowserEntrySimple result = new BrowserEntrySimple();
-    result.uri = obj.getUri();
-    result.title = obj.getName();
-    result.icon = VfsUtils.getObjectIcon(obj);
+  private List<BrowserEntry> getEntries(@NonNull Uri uri) throws Exception {
+    final ArrayList<BrowserEntry> result = new ArrayList<>();
+    providerClient.list(uri, new VfsProviderClient.ListingCallback() {
+      @Override
+      public void onDir(Uri uri, String name, String description, int icon, boolean hasFeed) {
+        final BrowserEntry entry = createEntry(uri, name, description);
+        entry.type = BrowserEntry.FOLDER;
+        entry.icon = icon;
+        result.add(entry);
+      }
+
+      @Override
+      public void onFile(Uri uri, String name, String description, String size) {
+        final BrowserEntry entry = createEntry(uri, name, description);
+        entry.type = BrowserEntry.FILE;
+        entry.details = size;
+        result.add(entry);
+      }
+
+      @Override
+      public void onProgress(int done, int total) {
+        updateProgress(done, total);
+      }
+    });
     return result;
   }
 
-  private static BrowserEntry createEntry(@NonNull VfsDir dir) {
-    final BrowserEntry result = createEntry((VfsObject) dir);
-    result.type = BrowserEntry.FOLDER;
-    result.details = "";
-    return result;
-  }
-
-  private static BrowserEntry createEntry(@NonNull VfsFile file) {
-    final BrowserEntry result = createEntry((VfsObject) file);
-    result.type = BrowserEntry.FILE;
-    result.details = file.getSize();
-    return result;
-  }
-
-  private static BrowserEntry createEntry(@NonNull VfsObject obj) {
+  private static BrowserEntry createEntry(Uri uri, String name, String description) {
     final BrowserEntry result = new BrowserEntry();
-    result.uri = obj.getUri();
-    result.title = obj.getName();
-    result.description = obj.getDescription();
-    result.icon = VfsUtils.getObjectIcon(obj);
+    result.uri = uri;
+    result.title = name;
+    result.description = description;
     return result;
   }
 }

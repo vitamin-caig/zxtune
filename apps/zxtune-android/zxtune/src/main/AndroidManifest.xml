@@ -185,6 +185,9 @@
     <provider android:name="app.zxtune.analytics.internal.Provider"
               android:authorities="app.zxtune.analytics.internal" android:process=":analytics"
               android:exported="false"/>
+    <provider android:name="app.zxtune.fs.provider.Provider"
+            android:authorities="app.zxtune.vfs" android:process=":service"
+            android:exported="false"/>
     <receiver android:name=".device.ui.WidgetHandler">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>

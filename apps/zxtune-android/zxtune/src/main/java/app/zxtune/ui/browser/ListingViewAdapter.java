@@ -1,6 +1,7 @@
 package app.zxtune.ui.browser;
 
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -41,9 +42,9 @@ public class ListingViewAdapter extends ListAdapter<BrowserEntry,
       public boolean areContentsTheSame(@NonNull BrowserEntry oldItem, @NonNull BrowserEntry newItem) {
         return oldItem.type == newItem.type
                    && oldItem.icon == newItem.icon
-                   && oldItem.title.equals(newItem.title)
-                   && oldItem.description.equals(newItem.description)
-                   && oldItem.details.equals(newItem.details);
+                   && TextUtils.equals(oldItem.title, newItem.title)
+                   && TextUtils.equals(oldItem.description, newItem.description)
+                   && TextUtils.equals(oldItem.details, newItem.details);
       }
     });
     positionsCache = new SparseIntArray();
