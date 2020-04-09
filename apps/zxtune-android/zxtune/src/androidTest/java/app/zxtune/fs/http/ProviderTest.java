@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +22,7 @@ public class ProviderTest {
 
     @Before
     public void setUp() {
-        final Context ctx = InstrumentationRegistry.getTargetContext();
+        final Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         provider = HttpProviderFactory.createProvider(ctx);
     }
 

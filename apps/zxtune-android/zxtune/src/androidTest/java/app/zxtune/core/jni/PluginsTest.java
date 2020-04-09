@@ -33,7 +33,7 @@ public class PluginsTest {
 
     assertEquals(0b0011_1111_1111_0111, flags[0]);
     assertEquals(0b0011_0001, flags[1]);
-    assertEquals(104, counts[0]);
+    assertEquals(105, counts[0]);
     assertEquals(23, counts[1]);
   }
 }

@@ -1,10 +1,11 @@
 package app.zxtune.playback;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
 import androidx.annotation.RawRes;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import app.zxtune.fs.Vfs;
 import app.zxtune.io.Io;
 import app.zxtune.io.TransactionalOutputStream;
@@ -39,9 +40,13 @@ public class FileIteratorTest {
     return Vfs.resolve(Uri.fromFile(result)).getUri();
   }
 
+  private Context getContext() {
+    return InstrumentationRegistry.getInstrumentation().getContext();
+  }
+
   @Before
   public void setUp() {
-    resources = InstrumentationRegistry.getContext().getResources();
+    resources = getContext().getResources();
     tmpDir = new File(System.getProperty("java.io.tmpdir", "."), String.format("VfsArchiveTest/%d",
         System.currentTimeMillis()));
   }
@@ -60,7 +65,7 @@ public class FileIteratorTest {
     final Uri track = getFile(app.zxtune.test.R.raw.track, "1");
     getFile(app.zxtune.test.R.raw.gzipped, "2");
 
-    final FileIterator iter = FileIterator.create(InstrumentationRegistry.getContext(), track);
+    final FileIterator iter = FileIterator.create(getContext(), track);
     final ArrayList<PlayableItem> items = new ArrayList<>();
     do {
       items.add(iter.getItem());
@@ -77,7 +82,7 @@ public class FileIteratorTest {
     final Uri gzipped = getFile(app.zxtune.test.R.raw.gzipped, "1");
     getFile(app.zxtune.test.R.raw.track, "2");
 
-    final FileIterator iter = FileIterator.create(InstrumentationRegistry.getContext(), gzipped.buildUpon().fragment(
+    final FileIterator iter = FileIterator.create(getContext(), gzipped.buildUpon().fragment(
         "+unGZIP").build());
     final ArrayList<PlayableItem> items = new ArrayList<>();
     do {
@@ -95,7 +100,7 @@ public class FileIteratorTest {
     final Uri archived = getFile(app.zxtune.test.R.raw.archive, "1");
     getFile(app.zxtune.test.R.raw.track, "2");
 
-    final FileIterator iter = FileIterator.create(InstrumentationRegistry.getContext(), archived.buildUpon().fragment(
+    final FileIterator iter = FileIterator.create(getContext(), archived.buildUpon().fragment(
         "coop-Jeffie/bass sorrow.pt3").build());
     final ArrayList<PlayableItem> items = new ArrayList<>();
     do {
@@ -112,7 +117,7 @@ public class FileIteratorTest {
     final Uri multitrack = getFile(app.zxtune.test.R.raw.multitrack, "1");
     getFile(app.zxtune.test.R.raw.track, "2");
 
-    final FileIterator iter = FileIterator.create(InstrumentationRegistry.getContext(), multitrack.buildUpon().fragment(
+    final FileIterator iter = FileIterator.create(getContext(), multitrack.buildUpon().fragment(
         "#2").build());
     final ArrayList<PlayableItem> items = new ArrayList<>();
     do {

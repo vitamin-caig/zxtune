@@ -3,8 +3,8 @@ package app.zxtune.fs;
 import android.content.res.Resources;
 import android.net.Uri;
 import androidx.annotation.RawRes;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import app.zxtune.io.Io;
 import app.zxtune.io.TransactionalOutputStream;
 import org.junit.After;
@@ -39,7 +39,7 @@ public class VfsArchiveTest {
 
   @Before
   public void setUp() {
-    resources = InstrumentationRegistry.getContext().getResources();
+    resources = InstrumentationRegistry.getInstrumentation().getContext().getResources();
     tmpDir = new File(System.getProperty("java.io.tmpdir", "."), String.format("VfsArchiveTest/%d",
         System.currentTimeMillis()));
 

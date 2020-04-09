@@ -3,7 +3,7 @@ package app.zxtune.fs.httpdir;
 import static org.junit.Assert.*;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Before;
 
@@ -28,7 +28,7 @@ public class RemoteCatalogTest {
 
   @Before
   public void setUp() {
-    final Context ctx = InstrumentationRegistry.getTargetContext();
+    final Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
     final HttpProvider http = HttpProviderFactory.createProvider(ctx);
     catalog = new RemoteCatalog(http);
   }
