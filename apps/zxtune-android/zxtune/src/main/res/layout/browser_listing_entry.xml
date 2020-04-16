@@ -3,7 +3,7 @@
     <data>
         <import type="android.view.View"/>
         <import type="android.text.TextUtils"/>
-        <variable name="entry" type="app.zxtune.ui.browser.BrowserEntry"/>
+        <variable name="entry" type="app.zxtune.ui.browser.ListingEntry"/>
     </data>
     <RelativeLayout
             style="@style/block"

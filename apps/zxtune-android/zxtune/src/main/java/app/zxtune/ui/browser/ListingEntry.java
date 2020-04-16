@@ -9,7 +9,8 @@ import java.lang.annotation.Retention;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
-public class BrowserEntry {
+// public for binding
+public class ListingEntry {
   @Retention(SOURCE)
   @IntDef({FOLDER, FILE})
   @interface Type {}
@@ -17,7 +18,7 @@ public class BrowserEntry {
   public static final int FOLDER = 0;
   public static final int FILE = 1;
 
-  public Uri uri;
+  Uri uri;
   @Type
   public int type;
   @DrawableRes

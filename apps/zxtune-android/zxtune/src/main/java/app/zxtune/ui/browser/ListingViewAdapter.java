@@ -22,29 +22,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.zxtune.R;
-import app.zxtune.databinding.BrowserEntryBinding;
+import app.zxtune.databinding.BrowserListingEntryBinding;
 
-public class ListingViewAdapter extends ListAdapter<BrowserEntry,
-                                                       ListingViewAdapter.ViewHolder> {
+class ListingViewAdapter extends ListAdapter<ListingEntry,
+    ListingViewAdapter.ViewHolder> {
 
   private final SparseIntArray positionsCache;
   private Selection<Uri> selection;
-  private List<BrowserEntry> lastContent;
+  private List<ListingEntry> lastContent;
 
-  public ListingViewAdapter() {
-    super(new DiffUtil.ItemCallback<BrowserEntry>() {
+  ListingViewAdapter() {
+    super(new DiffUtil.ItemCallback<ListingEntry>() {
       @Override
-      public boolean areItemsTheSame(@NonNull BrowserEntry oldItem, @NonNull BrowserEntry newItem) {
+      public boolean areItemsTheSame(@NonNull ListingEntry oldItem, @NonNull ListingEntry newItem) {
         return oldItem.uri.equals(newItem.uri);
       }
 
       @Override
-      public boolean areContentsTheSame(@NonNull BrowserEntry oldItem, @NonNull BrowserEntry newItem) {
+      public boolean areContentsTheSame(@NonNull ListingEntry oldItem, @NonNull ListingEntry newItem) {
         return oldItem.type == newItem.type
-                   && oldItem.icon == newItem.icon
-                   && TextUtils.equals(oldItem.title, newItem.title)
-                   && TextUtils.equals(oldItem.description, newItem.description)
-                   && TextUtils.equals(oldItem.details, newItem.details);
+            && oldItem.icon == newItem.icon
+            && TextUtils.equals(oldItem.title, newItem.title)
+            && TextUtils.equals(oldItem.description, newItem.description)
+            && TextUtils.equals(oldItem.details, newItem.details);
       }
     });
     positionsCache = new SparseIntArray();
@@ -55,19 +55,19 @@ public class ListingViewAdapter extends ListAdapter<BrowserEntry,
   @Override
   public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
     final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-    final BrowserEntryBinding binding = DataBindingUtil.inflate(inflater,
-        R.layout.browser_entry,
+    final BrowserListingEntryBinding binding = DataBindingUtil.inflate(inflater,
+        R.layout.browser_listing_entry,
         parent, false);
     return new ViewHolder(binding);
   }
 
   @Override
   public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-    final BrowserEntry entry = getItem(position);
+    final ListingEntry entry = getItem(position);
     holder.bind(entry, isSelected(entry.uri));
   }
 
-  public final void setSelection(Selection<Uri> selection) {
+  final void setSelection(Selection<Uri> selection) {
     this.selection = selection;
   }
 
@@ -76,7 +76,7 @@ public class ListingViewAdapter extends ListAdapter<BrowserEntry,
   }
 
   @Override
-  public void submitList(List<BrowserEntry> entries, Runnable cb) {
+  public void submitList(List<ListingEntry> entries, Runnable cb) {
     positionsCache.clear();
     lastContent = entries == lastContent ? new ArrayList<>(entries) : entries;
     super.submitList(lastContent, cb);
@@ -87,8 +87,8 @@ public class ListingViewAdapter extends ListAdapter<BrowserEntry,
     return getItemInternalId(position);
   }
 
-  public final Uri getItemUri(int position) {
-    final BrowserEntry entry = getItem(position);
+  final Uri getItemUri(int position) {
+    final ListingEntry entry = getItem(position);
     return entry.uri;
   }
 
@@ -117,25 +117,25 @@ public class ListingViewAdapter extends ListAdapter<BrowserEntry,
 
   static class ViewHolder extends RecyclerView.ViewHolder {
 
-    private final BrowserEntryBinding binding;
+    private final BrowserListingEntryBinding binding;
 
-    ViewHolder(BrowserEntryBinding binding) {
+    ViewHolder(BrowserListingEntryBinding binding) {
       super(binding.getRoot());
       this.binding = binding;
     }
 
-    final void bind(@NonNull BrowserEntry entry, boolean isSelected) {
+    final void bind(@NonNull ListingEntry entry, boolean isSelected) {
       binding.setEntry(entry);
       binding.executePendingBindings();
       itemView.setSelected(isSelected);
     }
   }
 
-  public static class KeyProvider extends ItemKeyProvider<Uri> {
+  static class KeyProvider extends ItemKeyProvider<Uri> {
 
     private final ListingViewAdapter adapter;
 
-    public KeyProvider(ListingViewAdapter adapter) {
+    KeyProvider(ListingViewAdapter adapter) {
       super(SCOPE_MAPPED);
       this.adapter = adapter;
     }
@@ -173,11 +173,11 @@ public class ListingViewAdapter extends ListAdapter<BrowserEntry,
     }
   }
 
-  public static class DetailsLookup extends ItemDetailsLookup<Uri> {
+  static class DetailsLookup extends ItemDetailsLookup<Uri> {
 
     private final RecyclerView listing;
 
-    public DetailsLookup(RecyclerView view) {
+    DetailsLookup(RecyclerView view) {
       this.listing = view;
     }
 

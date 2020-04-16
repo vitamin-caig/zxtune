@@ -20,7 +20,7 @@ import java.util.Locale;
 
 import app.zxtune.Preferences;
 
-public class BrowserState {
+class State {
   
   private static final String PREF_BROWSER = "browser_";
   private static final String PREF_BROWSER_CURRENT = PREF_BROWSER + "current";
@@ -29,16 +29,16 @@ public class BrowserState {
   private final SharedPreferences prefs;
   private PathAndPosition current;
   
-  public BrowserState(Fragment fragment) {
+  State(Fragment fragment) {
     this.prefs = Preferences.getDefaultSharedPreferences(fragment.getActivity());
     this.current = new PathAndPosition();
   }
   
-  public final Uri getCurrentPath() {
+  final Uri getCurrentPath() {
     return current.getPath();
   }
   
-  public final void setCurrentPath(Uri uri) {
+  final void setCurrentPath(Uri uri) {
     final Uri curPath = current.getPath();
 
     if (curPath.equals(uri)) {
@@ -53,11 +53,11 @@ public class BrowserState {
     current.store();
   }
   
-  public final int getCurrentViewPosition() {
+  final int getCurrentViewPosition() {
     return current.getViewPosition();
   }
   
-  public final void setCurrentViewPosition(int pos) {
+  final void setCurrentViewPosition(int pos) {
     current.setViewPosition(pos);
   }
   

@@ -28,21 +28,22 @@ TODO:
  - parallel browsing
 */
 
-public class BrowserModel extends AndroidViewModel {
+// public for provider
+public class Model extends AndroidViewModel {
 
-  private static final String TAG = BrowserModel.class.getName();
+  private static final String TAG = Model.class.getName();
 
-  public interface Client {
+  interface Client {
     void onFileBrowse(Uri uri);
 
     void onError(String msg);
   }
 
-  public class State {
-    public Uri uri;
-    public String query = null;
-    public List<BrowserEntrySimple> breadcrumbs;
-    public List<BrowserEntry> entries;
+  class State {
+    Uri uri;
+    String query;
+    List<BreadcrumbsEntry> breadcrumbs;
+    List<ListingEntry> entries;
   }
 
   private final ExecutorService async = Executors.newSingleThreadExecutor();
@@ -58,33 +59,33 @@ public class BrowserModel extends AndroidViewModel {
   };
   private final VfsProviderClient providerClient;
 
-  public static BrowserModel of(Fragment owner) {
-    return ViewModelProviders.of(owner).get(BrowserModel.class);
+  static Model of(Fragment owner) {
+    return ViewModelProviders.of(owner).get(Model.class);
   }
 
-  public BrowserModel(@NonNull Application application) {
+  public Model(@NonNull Application application) {
     super(application);
     providerClient = new VfsProviderClient(application);
   }
 
-  public final LiveData<State> getState() {
+  final LiveData<State> getState() {
     return state;
   }
 
-  public final LiveData<Integer> getProgress() {
+  final LiveData<Integer> getProgress() {
     return progress;
   }
 
-  public final void setClient(@NonNull Client client) {
+  final void setClient(@NonNull Client client) {
     this.client = client;
   }
 
-  public final void browse(@NonNull Uri uri) {
+  final void browse(@NonNull Uri uri) {
     Analytics.sendBrowserEvent(uri, Analytics.BROWSER_ACTION_BROWSE);
     executeAsync(new BrowseTask(uri), "browse " + uri);
   }
 
-  public final void browseParent() {
+  final void browseParent() {
     final State currentState = state.getValue();
     if (currentState != null && currentState.breadcrumbs.size() > 1) {
       Analytics.sendBrowserEvent(currentState.uri, Analytics.BROWSER_ACTION_BROWSE_PARENT);
@@ -95,14 +96,14 @@ public class BrowserModel extends AndroidViewModel {
     }
   }
 
-  public final void reload() {
+  final void reload() {
     final State currentState = state.getValue();
     if (currentState != null) {
       browse(currentState.uri);
     }
   }
 
-  public final void search(@NonNull String query) {
+  final void search(@NonNull String query) {
     final State currentState = state.getValue();
     if (currentState != null) {
       Analytics.sendBrowserEvent(currentState.uri, Analytics.BROWSER_ACTION_SEARCH);
@@ -178,12 +179,12 @@ public class BrowserModel extends AndroidViewModel {
       }
     }
 
-    private List<BrowserEntrySimple> getParents() throws Exception {
-      final ArrayList<BrowserEntrySimple> result = new ArrayList<>();
+    private List<BreadcrumbsEntry> getParents() throws Exception {
+      final ArrayList<BreadcrumbsEntry> result = new ArrayList<>();
       providerClient.parents(uri, new VfsProviderClient.ParentsCallback() {
         @Override
         public void onObject(Uri uri, String name, int icon) {
-          final BrowserEntrySimple entry = new BrowserEntrySimple();
+          final BreadcrumbsEntry entry = new BreadcrumbsEntry();
           entry.uri = uri;
           entry.title = name;
           entry.icon = icon;
@@ -201,9 +202,9 @@ public class BrowserModel extends AndroidViewModel {
 
   class BrowseParentTask implements AsyncOperation {
 
-    private final List<BrowserEntrySimple> items;
+    private final List<BreadcrumbsEntry> items;
 
-    BrowseParentTask(List<BrowserEntrySimple> items) {
+    BrowseParentTask(List<BreadcrumbsEntry> items) {
       this.items = items;
     }
 
@@ -260,8 +261,8 @@ public class BrowserModel extends AndroidViewModel {
 
         @Override
         public void onFile(Uri uri, String name, String description, String size) {
-          final BrowserEntry entry = createEntry(uri, name, description);
-          entry.type = BrowserEntry.FILE;
+          final ListingEntry entry = createEntry(uri, name, description);
+          entry.type = ListingEntry.FILE;
           entry.details = size;
           newState.entries.add(entry);
           state.postValue(newState);
@@ -307,21 +308,21 @@ public class BrowserModel extends AndroidViewModel {
     return result[0];
   }
 
-  private List<BrowserEntry> getEntries(@NonNull Uri uri) throws Exception {
-    final ArrayList<BrowserEntry> result = new ArrayList<>();
+  private List<ListingEntry> getEntries(@NonNull Uri uri) throws Exception {
+    final ArrayList<ListingEntry> result = new ArrayList<>();
     providerClient.list(uri, new VfsProviderClient.ListingCallback() {
       @Override
       public void onDir(Uri uri, String name, String description, int icon, boolean hasFeed) {
-        final BrowserEntry entry = createEntry(uri, name, description);
-        entry.type = BrowserEntry.FOLDER;
+        final ListingEntry entry = createEntry(uri, name, description);
+        entry.type = ListingEntry.FOLDER;
         entry.icon = icon;
         result.add(entry);
       }
 
       @Override
       public void onFile(Uri uri, String name, String description, String size) {
-        final BrowserEntry entry = createEntry(uri, name, description);
-        entry.type = BrowserEntry.FILE;
+        final ListingEntry entry = createEntry(uri, name, description);
+        entry.type = ListingEntry.FILE;
         entry.details = size;
         result.add(entry);
       }
@@ -334,8 +335,8 @@ public class BrowserModel extends AndroidViewModel {
     return result;
   }
 
-  private static BrowserEntry createEntry(Uri uri, String name, String description) {
-    final BrowserEntry result = new BrowserEntry();
+  private static ListingEntry createEntry(Uri uri, String name, String description) {
+    final ListingEntry result = new ListingEntry();
     result.uri = uri;
     result.title = name;
     result.description = description;

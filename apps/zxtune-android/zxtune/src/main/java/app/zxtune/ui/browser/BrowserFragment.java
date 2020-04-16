@@ -4,7 +4,7 @@
  * @author vitamin.caig@gmail.com
  */
 
-package app.zxtune.ui;
+package app.zxtune.ui.browser;
 
 import android.content.Context;
 import android.net.Uri;
@@ -48,11 +48,6 @@ import java.util.List;
 
 import app.zxtune.MainService;
 import app.zxtune.R;
-import app.zxtune.ui.browser.BreadcrumbsViewAdapter;
-import app.zxtune.ui.browser.BrowserEntrySimple;
-import app.zxtune.ui.browser.BrowserModel;
-import app.zxtune.ui.browser.BrowserState;
-import app.zxtune.ui.browser.ListingViewAdapter;
 import app.zxtune.ui.utils.SelectionUtils;
 
 public class BrowserFragment extends Fragment {
@@ -61,7 +56,7 @@ public class BrowserFragment extends Fragment {
   private static final String SEARCH_QUERY_KEY = "search_query";
 
   private SearchView search;
-  private BrowserState stateStorage;
+  private State stateStorage;
   private SelectionTracker<Uri> selectionTracker;
 
   public static BrowserFragment createInstance() {
@@ -72,7 +67,7 @@ public class BrowserFragment extends Fragment {
   public void onAttach(@NonNull Context ctx) {
     super.onAttach(ctx);
 
-    this.stateStorage = new BrowserState(this);
+    this.stateStorage = new State(this);
   }
 
   @Override
@@ -85,7 +80,7 @@ public class BrowserFragment extends Fragment {
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    final BrowserModel model = BrowserModel.of(this);
+    final Model model = Model.of(this);
     setupRootsView(view);
     setupBreadcrumbs(model, view);
     setupListing(model, view);
@@ -106,13 +101,13 @@ public class BrowserFragment extends Fragment {
     });
   }
 
-  private void setupBreadcrumbs(@NonNull BrowserModel model, @NonNull View view) {
+  private void setupBreadcrumbs(@NonNull Model model, @NonNull View view) {
     final RecyclerView listing = view.findViewById(R.id.browser_breadcrumb);
     final BreadcrumbsViewAdapter adapter = new BreadcrumbsViewAdapter();
     listing.setAdapter(adapter);
-    model.getState().observe(this, new Observer<BrowserModel.State>() {
+    model.getState().observe(this, new Observer<Model.State>() {
       @Override
-      public void onChanged(BrowserModel.State state) {
+      public void onChanged(Model.State state) {
         adapter.submitList(state.breadcrumbs);
         listing.smoothScrollToPosition(state.breadcrumbs.size());
       }
@@ -121,7 +116,7 @@ public class BrowserFragment extends Fragment {
       @Override
       public void onClick(View v) {
         final int pos = listing.getChildAdapterPosition(v);
-        final BrowserEntrySimple entry = adapter.getCurrentList().get(pos);
+        final BreadcrumbsEntry entry = adapter.getCurrentList().get(pos);
         browse(entry.uri);
       }
     };
@@ -138,7 +133,7 @@ public class BrowserFragment extends Fragment {
     });
   }
 
-  private void setupListing(@NonNull BrowserModel model, @NonNull View view) {
+  private void setupListing(@NonNull Model model, @NonNull View view) {
     final RecyclerView listing = view.findViewById(R.id.browser_content);
     listing.setHasFixedSize(true);
 
@@ -149,18 +144,18 @@ public class BrowserFragment extends Fragment {
         listing, new ListingViewAdapter.KeyProvider(adapter),
         new ListingViewAdapter.DetailsLookup(listing),
         StorageStrategy.createParcelableStorage(Uri.class))
-                           .withSelectionPredicate(SelectionPredicates.<Uri>createSelectAnything())
-                           .withOnItemActivatedListener(new ItemActivatedListener())
-                           .build();
+        .withSelectionPredicate(SelectionPredicates.<Uri>createSelectAnything())
+        .withOnItemActivatedListener(new ItemActivatedListener())
+        .build();
     adapter.setSelection(selectionTracker.getSelection());
 
     SelectionUtils.install((AppCompatActivity) getActivity(), selectionTracker,
         new SelectionClient(adapter));
 
     final TextView stub = view.findViewById(R.id.browser_stub);
-    model.getState().observe(this, new Observer<BrowserModel.State>() {
+    model.getState().observe(this, new Observer<Model.State>() {
       @Override
-      public void onChanged(final BrowserModel.State state) {
+      public void onChanged(final Model.State state) {
         storeCurrentViewPosition(listing);
         adapter.submitList(state.entries, new Runnable() {
           @Override
@@ -193,7 +188,7 @@ public class BrowserFragment extends Fragment {
         }
       }
     });
-    model.setClient(new BrowserModel.Client() {
+    model.setClient(new Model.Client() {
       @Override
       public void onFileBrowse(Uri uri) {
         final MediaControllerCompat ctrl = getController();
@@ -238,7 +233,7 @@ public class BrowserFragment extends Fragment {
     }
   }
 
-  private SearchView setupSearchView(@NonNull final BrowserModel model, @NonNull View view) {
+  private SearchView setupSearchView(@NonNull final Model model, @NonNull View view) {
     final SearchView search = view.findViewById(R.id.browser_search);
 
     search.setOnSearchClickListener(new SearchView.OnClickListener() {
@@ -393,7 +388,7 @@ public class BrowserFragment extends Fragment {
   }
 
   private void browse(@NonNull Uri uri) {
-    final BrowserModel model = BrowserModel.of(this);
+    final Model model = Model.of(this);
     model.browse(uri);
   }
 
@@ -406,7 +401,7 @@ public class BrowserFragment extends Fragment {
   }
 
   private void browseParent() {
-    final BrowserModel model = BrowserModel.of(this);
+    final Model model = Model.of(this);
     model.browseParent();
   }
 
@@ -414,7 +409,7 @@ public class BrowserFragment extends Fragment {
   private MediaControllerCompat getController() {
     final FragmentActivity activity = getActivity();
     return activity != null
-               ? MediaControllerCompat.getMediaController(activity)
-               : null;
+        ? MediaControllerCompat.getMediaController(activity)
+        : null;
   }
 }

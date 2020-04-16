@@ -34,7 +34,7 @@ import app.zxtune.analytics.Analytics;
 import app.zxtune.models.MediaSessionConnection;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.ui.AboutFragment;
-import app.zxtune.ui.BrowserFragment;
+import app.zxtune.ui.browser.BrowserFragment;
 import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.PlaylistFragment;
 import app.zxtune.ui.ViewPagerAdapter;
