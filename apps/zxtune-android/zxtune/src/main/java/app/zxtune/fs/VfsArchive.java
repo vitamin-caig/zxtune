@@ -17,6 +17,7 @@ import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
+import app.zxtune.StubProgressCallback;
 import app.zxtune.core.Identifier;
 import app.zxtune.fs.VfsDir.Visitor;
 import app.zxtune.fs.archives.Archive;
@@ -81,17 +82,17 @@ public final class VfsArchive {
    */
   @Nullable
   public static VfsObject browse(@NonNull VfsFile file) {
-    return Holder.INSTANCE.browseFile(file);
+    return Holder.INSTANCE.browseFile(file, StubProgressCallback.instance());
   }
 
   @Nullable
-  private VfsObject browseFile(@NonNull VfsFile file) {
+  private VfsObject browseFile(@NonNull VfsFile file, @NonNull ProgressCallback cb) {
     final VfsDir asPlaylist = VfsPlaylistDir.resolveAsPlaylist(file);
     if (asPlaylist != null) {
       return asPlaylist;
     }
     try {
-      final Archive arc = service.analyzeArchive(file);
+      final Archive arc = service.analyzeArchive(file, cb);
       return browseCachedFile(file, arc);
     } catch (IOException e) {
       Log.w(TAG, e, "Failed to analyze archive");
@@ -101,40 +102,41 @@ public final class VfsArchive {
 
   @Nullable
   public static VfsObject resolve(@NonNull Uri uri) throws IOException {
-    return Holder.INSTANCE.resolveUri(uri, false);
+    return Holder.INSTANCE.resolveUri(uri, null);
   }
 
   @Nullable
-  public static VfsObject resolveForced(@NonNull Uri uri) throws IOException {
-    return Holder.INSTANCE.resolveUri(uri, true);
+  public static VfsObject resolveForced(@NonNull Uri uri, @NonNull ProgressCallback cb) throws IOException {
+    return Holder.INSTANCE.resolveUri(uri, cb);
   }
 
+  // TODO: clarify forced == cb != 0 semantic
   @Nullable
-  private VfsObject resolveUri(@NonNull Uri uri, boolean forceAnalyze) throws IOException {
+  private VfsObject resolveUri(@NonNull Uri uri, @Nullable ProgressCallback cb) throws IOException {
     final Identifier id = new Identifier(uri);
     final String subpath = id.getSubpath();
     if (TextUtils.isEmpty(subpath)) {
-      return resolveFileUri(uri, forceAnalyze);
+      return resolveFileUri(uri, cb);
     } else {
-      return resolveArchiveUri(uri, forceAnalyze);
+      return resolveArchiveUri(uri, cb);
     }
   }
 
   @Nullable
-  private VfsObject resolveFileUri(@NonNull Uri uri, boolean forceAnalyze) throws IOException {
+  private VfsObject resolveFileUri(@NonNull Uri uri, @Nullable ProgressCallback cb) throws IOException {
     final VfsObject obj = Vfs.resolve(uri);
     if (obj instanceof VfsFile) {
       final VfsObject cached = browseCachedFile((VfsFile) obj);
       if (cached != null) {
         return cached;
-      } else if (forceAnalyze) {
-        return browseFile((VfsFile) obj);
+      } else if (cb != null) {
+        return browseFile((VfsFile) obj, cb);
       }
     }
     return obj;
   }
 
-  private VfsObject resolveArchiveUri(@NonNull Uri uri, boolean forceAnalyze) throws IOException {
+  private VfsObject resolveArchiveUri(@NonNull Uri uri, @Nullable ProgressCallback cb) throws IOException {
     final Entry entry = service.resolve(uri);
     if (entry != null) {
       if (entry.track != null) {
@@ -143,11 +145,11 @@ public final class VfsArchive {
         return new ArchiveDir(null, entry.dirEntry);
       }
     }
-    if (forceAnalyze) {
+    if (cb != null) {
       final VfsObject real = Vfs.resolve(uri.buildUpon().fragment("").build());
       if (real instanceof VfsFile) {
-        if (browseFile((VfsFile) real) != null) {
-          return resolveArchiveUri(uri, false);
+        if (browseFile((VfsFile) real, cb) != null) {
+          return resolveArchiveUri(uri, null);
         }
       }
     }
@@ -216,7 +218,7 @@ public final class VfsArchive {
     public VfsObject getParent() {
       try {
         if (parent == null) {
-          parent = resolveUri(entry.parent.getFullLocation(), false);
+          parent = resolveUri(entry.parent.getFullLocation(), null);
         }
       } catch (IOException e) {
         Log.w(TAG, e, "Failed to resolve");

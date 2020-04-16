@@ -19,6 +19,7 @@ import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.ModuleDetectCallback;
+import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.dbhelpers.Transaction;
 
@@ -76,7 +77,7 @@ public class ArchivesService {
     }
   }
 
-  public final Archive analyzeArchive(@NonNull VfsFile file) throws IOException {
+  public final Archive analyzeArchive(@NonNull VfsFile file, @NonNull final ProgressCallback cb) throws IOException {
     //final Identifier fileId = new Identifier(uri);
     final Uri path = file.getUri();
     Log.d(TAG, "Add archive content of %s", path);
@@ -115,6 +116,11 @@ public class ArchivesService {
             db.addDirEntry(dirEntry);
             dirEntries.add(dirEntry.parent);
           }
+        }
+
+        @Override
+        public void onProgress(int done) {
+          cb.onProgressUpdate(done, 100);
         }
       });
       final Archive result = new Archive(path, report[0]);

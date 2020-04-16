@@ -104,6 +104,11 @@ public class Core {
       }
     }
 
+    @Override
+    public void onProgress(int done) {
+      delegate.onProgress(done);
+    }
+
     @NonNull
     private Module resolve(@NonNull Module obj, String[] files) throws ResolvingException {
       return getResolver().resolve(obj, files);

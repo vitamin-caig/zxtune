@@ -11,6 +11,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import app.zxtune.Log;
 import app.zxtune.R;
+import app.zxtune.StubProgressCallback;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.Scanner;
@@ -217,7 +218,7 @@ public class FileIterator implements Iterator {
   @NonNull
   private static java.util.Iterator<VfsFile> creatDirFilesIterator(Uri start) throws Exception {
     final ArrayList<VfsFile> result = new ArrayList<>();
-    final VfsObject obj = VfsArchive.resolveForced(start);
+    final VfsObject obj = VfsArchive.resolveForced(start, StubProgressCallback.instance());
     if (obj == null) {
       return result.listIterator();
     } else if (!(obj instanceof VfsFile)) {
