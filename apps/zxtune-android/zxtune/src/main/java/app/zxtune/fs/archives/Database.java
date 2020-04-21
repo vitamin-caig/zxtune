@@ -8,10 +8,12 @@ package app.zxtune.fs.archives;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.BuildConfig;
@@ -297,6 +299,23 @@ class Database {
     final String[] selectionArgs = {path.toString()};
     return db.query(Tables.Archives.NAME, null, selection, selectionArgs, null/* groupBy */,
             null/* having */, null/*orderBy*/);
+  }
+
+  final Cursor queryArchives(List<Uri> paths) {
+    Log.d(TAG, "queryArchives(%d items)", paths.size());
+    final SQLiteDatabase db = dbHelper.getReadableDatabase();
+    final StringBuilder builder = new StringBuilder(paths.size() * 50);
+    builder.append(Tables.Archives.Fields.path);
+    builder.append(" IN (");
+    for (int i = 0, lim = paths.size(); i != lim; ++i) {
+      if (i != 0) {
+        builder.append(',');
+      }
+      DatabaseUtils.appendEscapedSQLString(builder, paths.get(i).toString());
+    }
+    builder.append(")");
+    return db.query(Tables.Archives.NAME, null, builder.toString(), null, null/* groupBy */,
+        null/* having */, null/*orderBy*/);
   }
 
   final Cursor queryInfo(Uri path) {

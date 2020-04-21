@@ -14,6 +14,8 @@ import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
@@ -30,10 +32,43 @@ public final class VfsArchive {
 
   private static final String TAG = VfsArchive.class.getName();
 
+  private static final int ARCHIVE_ENTRY_TRACKS_COUNT = 1;
+  private static final int PLAYLIST_TRACKS_COUNT = 2;
+
   private final ArchivesService service;
 
   private VfsArchive() {
     this.service = new ArchivesService(MainApplication.getInstance());
+  }
+
+  @NonNull
+  public static Integer[] getModulesCount(@NonNull Uri[] uris) {
+    final Integer[] result = new Integer[uris.length];
+    final HashMap<Uri, Integer> positions = new HashMap<>();
+    final ArrayList<Uri> query = new ArrayList<>();
+    for (int i = 0; i < uris.length; ++i) {
+      final Uri uri = uris[i];
+      if (isArchived(uri)) {
+        result[i] = ARCHIVE_ENTRY_TRACKS_COUNT;
+      } else if (VfsPlaylistDir.maybePlaylist(uri)) {
+        result[i] = PLAYLIST_TRACKS_COUNT;
+      } else {
+        positions.put(uri, i);
+        query.add(uri);
+      }
+    }
+    for (Archive arch : Holder.INSTANCE.service.findArchives(query)) {
+      final Integer pos = positions.get(arch.path);
+      if (pos != null) {
+        result[pos] = arch.modules;
+      }
+    }
+    return result;
+  }
+
+  private static boolean isArchived(@NonNull Uri uri) {
+    final Identifier id = new Identifier(uri);
+    return !id.getSubpath().isEmpty();
   }
 
   /*

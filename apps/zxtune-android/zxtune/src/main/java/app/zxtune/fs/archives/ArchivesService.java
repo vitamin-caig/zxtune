@@ -8,7 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
@@ -50,6 +52,23 @@ public class ArchivesService {
       cursor.close();
     }
     return null;
+  }
+
+  // Order and size match is not guaranteed!!!!
+  @NonNull
+  public final ArrayList<Archive> findArchives(@NonNull List<Uri> uris) {
+    final ArrayList<Archive> result = new ArrayList<>(uris.size());
+    if (!uris.isEmpty()) {
+      final Cursor cursor = db.queryArchives(uris);
+      try {
+        while (cursor.moveToNext()) {
+          result.add(Archive.fromCursor(cursor));
+        }
+      } finally {
+        cursor.close();
+      }
+    }
+    return result;
   }
 
   @Nullable
