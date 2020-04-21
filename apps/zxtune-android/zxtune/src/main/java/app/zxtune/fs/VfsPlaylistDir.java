@@ -18,25 +18,37 @@ final class VfsPlaylistDir implements VfsDir {
 
   private final static String TAG = VfsPlaylistDir.class.getName();
 
+  private static final String TYPE_AYL = ".ayl";
+  private static final String TYPE_XSPF = ".xspf";
+
   private final VfsFile file;
   private final ArrayList<Entry> entries;
 
   @Nullable
-  public static VfsDir resolveAsPlaylist(@NonNull VfsFile file) {
+  static VfsDir resolveAsPlaylist(@NonNull VfsFile file) {
     final String filename = file.getUri().getLastPathSegment();
     if (filename == null) {
       return null;
     }
     try {
-      if (filename.endsWith(".ayl")) {
+      if (filename.endsWith(TYPE_AYL)) {
         return new VfsPlaylistDir(file, AylIterator.parse(file.getContent()));
-      } else if (filename.endsWith(".xspf")) {
+      } else if (filename.endsWith(TYPE_XSPF)) {
         return new VfsPlaylistDir(file, XspfIterator.parse(file.getContent()));
       }
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to parse playlist");
     }
     return null;
+  }
+
+  static boolean maybePlaylist(@NonNull Uri uri) {
+    final String filename = uri.getLastPathSegment();
+    if (filename == null) {
+      return false;
+    } else {
+      return filename.endsWith(TYPE_AYL) || filename.endsWith(TYPE_XSPF);
+    }
   }
 
   private VfsPlaylistDir(VfsFile file, ArrayList<Entry> entries) {
