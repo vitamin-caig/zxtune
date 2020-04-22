@@ -7,20 +7,22 @@
 package app.zxtune.fs.amp;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.text.Html;
-import app.zxtune.Log;
-import app.zxtune.fs.api.Cdn;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.fs.http.MultisourceHttpProvider;
-import app.zxtune.io.Io;
+
+import androidx.annotation.NonNull;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import app.zxtune.Log;
+import app.zxtune.fs.api.Cdn;
+import app.zxtune.fs.http.HttpObject;
+import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.io.Io;
 
 /**
  * Authors:
@@ -172,8 +174,7 @@ class RemoteCatalog extends Catalog {
     }
   }
 
-  @Override
-  public boolean searchSupported() {
+  final boolean searchSupported() {
     return http.hasConnection();
   }
 

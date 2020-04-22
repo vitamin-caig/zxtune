@@ -1,8 +1,7 @@
 package app.zxtune.fs.aminet;
 
 import android.net.Uri;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.fs.httpdir.Path;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -10,6 +9,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.httpdir.Path;
 
 public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
 

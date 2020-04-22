@@ -7,6 +7,7 @@
 package app.zxtune.fs.modland;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
@@ -81,7 +82,7 @@ public abstract class Catalog {
   @NonNull
   public abstract ByteBuffer getTrackContent(String path) throws IOException;
 
-  public static Catalog create(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public static CachingCatalog create(Context context, HttpProvider http, CacheDir cache) throws IOException {
     final RemoteCatalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
     return new CachingCatalog(remote, db, cache);

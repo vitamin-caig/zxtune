@@ -8,8 +8,9 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.util.SparseIntArray;
+
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -22,6 +23,7 @@ import app.zxtune.TimeStamp;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.zxtunes.Author;
+import app.zxtune.fs.zxtunes.CachingCatalog;
 import app.zxtune.fs.zxtunes.Catalog;
 import app.zxtune.fs.zxtunes.Identifier;
 import app.zxtune.fs.zxtunes.Track;
@@ -33,7 +35,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
   private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
+  private final CachingCatalog catalog;
   private final GroupingDir[] groups;
 
   VfsRootZxtunes(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
@@ -341,7 +343,9 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SHARE_URL.equals(id)) {
+      if (VfsExtensions.CACHE.equals(id)) {
+        return catalog.getTrackCache(module.id);
+      } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
         return super.getExtension(id);

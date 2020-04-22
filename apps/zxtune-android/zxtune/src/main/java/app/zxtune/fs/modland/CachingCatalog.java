@@ -7,13 +7,7 @@
 package app.zxtune.fs.modland;
 
 import androidx.annotation.NonNull;
-
-import app.zxtune.StubProgressCallback;
-import app.zxtune.TimeStamp;
-import app.zxtune.fs.ProgressCallback;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.dbhelpers.*;
-import app.zxtune.fs.http.HttpObject;
+import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +15,19 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-final class CachingCatalog extends Catalog {
+import app.zxtune.StubProgressCallback;
+import app.zxtune.TimeStamp;
+import app.zxtune.fs.ProgressCallback;
+import app.zxtune.fs.cache.CacheDir;
+import app.zxtune.fs.dbhelpers.CommandExecutor;
+import app.zxtune.fs.dbhelpers.DownloadCommand;
+import app.zxtune.fs.dbhelpers.FetchCommand;
+import app.zxtune.fs.dbhelpers.QueryCommand;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.fs.http.HttpObject;
+
+final public class CachingCatalog extends Catalog {
 
   private static final String TAG = CachingCatalog.class.getName();
 
@@ -40,7 +46,7 @@ final class CachingCatalog extends Catalog {
   private final Grouping formats;
   private final CommandExecutor executor;
 
-  public CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
+  CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
     this.remote = remote;
     this.db = db;
     this.cache = cache.createNested("ftp.modland.com");
@@ -231,5 +237,10 @@ final class CachingCatalog extends Catalog {
         return remote.getTrackObject(id);
       }
     });
+  }
+
+  @Nullable
+  public final File getTrackCache(String id) {
+    return cache.find(id);
   }
 }

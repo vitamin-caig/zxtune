@@ -14,6 +14,11 @@ final class StubCacheDir implements CacheDir {
   }
 
   @Override
+  public File find(String... ids) {
+    return null;
+  }
+
+  @Override
   public Uri createFile(String id, ByteBuffer data) {
     return Uri.EMPTY;
   }

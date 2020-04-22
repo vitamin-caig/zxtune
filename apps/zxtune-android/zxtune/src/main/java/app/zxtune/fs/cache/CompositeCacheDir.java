@@ -39,6 +39,22 @@ final class CompositeCacheDir implements CacheDir {
   }
 
   @Override
+  public File find(String... ids) {
+    File result = null;
+    for (CacheDir delegate : delegates) {
+      final File res = delegate.find(ids);
+      if (res != null) {
+        if (res.isFile()) {
+          return res;
+        } else if (result == null) {
+          result = res;
+        }
+      }
+    }
+    return result;
+  }
+
+  @Override
   public Uri createFile(String id, ByteBuffer data) {
     return getPrimary().createFile(id, data);
   }

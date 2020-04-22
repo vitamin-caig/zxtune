@@ -7,8 +7,16 @@
 package app.zxtune.fs.modland;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.text.Html;
+
+import androidx.annotation.NonNull;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import app.zxtune.Log;
 import app.zxtune.StubProgressCallback;
 import app.zxtune.fs.ProgressCallback;
@@ -17,12 +25,6 @@ import app.zxtune.fs.http.HttpObject;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Use pure http response parsing via regex in despite that page structure seems to be xml well formed.

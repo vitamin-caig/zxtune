@@ -7,6 +7,7 @@
 package app.zxtune.fs.modarchive;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,10 +17,14 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.dbhelpers.*;
+import app.zxtune.fs.dbhelpers.CommandExecutor;
+import app.zxtune.fs.dbhelpers.DownloadCommand;
+import app.zxtune.fs.dbhelpers.QueryCommand;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.http.HttpObject;
 
-final class CachingCatalog extends Catalog {
+final public class CachingCatalog extends Catalog {
 
   //private static final String TAG = CachingCatalog.class.getName();
 
@@ -192,11 +197,6 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public boolean searchSupported() {
-    return true;
-  }
-
-  @Override
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     if (remote.searchSupported()) {
       remote.findTracks(query, visitor);
@@ -231,6 +231,11 @@ final class CachingCatalog extends Catalog {
         return remote.getTrackObject(id);
       }
     });
+  }
+
+  @Nullable
+  public final File getTrackCache(int id) {
+    return cache.find(Integer.toString(id));
   }
 
   private class TracksCacher extends TracksVisitor {

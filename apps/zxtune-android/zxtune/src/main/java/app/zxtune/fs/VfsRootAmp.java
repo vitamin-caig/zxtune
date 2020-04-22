@@ -8,8 +8,9 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.text.format.Formatter;
+
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -17,6 +18,7 @@ import java.util.List;
 
 import app.zxtune.R;
 import app.zxtune.fs.amp.Author;
+import app.zxtune.fs.amp.CachingCatalog;
 import app.zxtune.fs.amp.Catalog;
 import app.zxtune.fs.amp.Catalog.GroupsVisitor;
 import app.zxtune.fs.amp.Country;
@@ -33,8 +35,8 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
   private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
-  private final GroupingDir groupings[];
+  private final CachingCatalog catalog;
+  private final GroupingDir[] groupings;
 
   VfsRootAmp(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
     this.parent = parent;
@@ -70,7 +72,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {
@@ -152,7 +154,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     @Nullable
     public Object getExtension(String id) {
-      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
         //assume all the groups will search by authors
         return new AuthorsSearchEngine();
       } else {
@@ -162,8 +164,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     abstract String getPath();
   }
-
-  ;
 
   private abstract class HandleByGroupingDir extends StubObject implements VfsDir {
 
@@ -493,6 +493,15 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(track.id);
+    }
+
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE.equals(id)) {
+        return catalog.getTrackCache(track.id);
+      } else {
+        return super.getExtension(id);
+      }
     }
   }
 

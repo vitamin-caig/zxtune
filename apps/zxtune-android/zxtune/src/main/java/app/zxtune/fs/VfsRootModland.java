@@ -22,10 +22,9 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+import android.text.format.Formatter;
 
 import androidx.annotation.Nullable;
-
-import android.text.format.Formatter;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -34,6 +33,7 @@ import java.util.List;
 import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.modland.CachingCatalog;
 import app.zxtune.fs.modland.Catalog;
 import app.zxtune.fs.modland.Group;
 import app.zxtune.fs.modland.Track;
@@ -70,7 +70,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
   private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
+  private final CachingCatalog catalog;
   private final GroupsDir[] groups;
 
   VfsRootModland(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
@@ -386,6 +386,15 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     @Override
     public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(track.path);
+    }
+
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE.equals(id)) {
+        return catalog.getTrackCache(track.path);
+      } else {
+        return super.getExtension(id);
+      }
     }
 
     Uri.Builder trackUri() {

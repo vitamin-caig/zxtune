@@ -7,14 +7,16 @@
 package app.zxtune.fs.zxtunes;
 
 import android.net.Uri;
-import android.sax.*;
+import android.sax.Element;
+import android.sax.EndElementListener;
+import android.sax.EndTextElementListener;
+import android.sax.RootElement;
+import android.sax.StartElementListener;
+import android.util.Xml;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Xml;
-import app.zxtune.Log;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.io.Io;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -23,6 +25,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+
+import app.zxtune.Log;
+import app.zxtune.fs.http.HttpObject;
+import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.io.Io;
 
 final class RemoteCatalog extends Catalog {
 

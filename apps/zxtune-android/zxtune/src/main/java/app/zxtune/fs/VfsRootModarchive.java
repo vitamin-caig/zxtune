@@ -23,6 +23,7 @@ import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.modarchive.Author;
+import app.zxtune.fs.modarchive.CachingCatalog;
 import app.zxtune.fs.modarchive.Catalog;
 import app.zxtune.fs.modarchive.Genre;
 import app.zxtune.fs.modarchive.Identifier;
@@ -35,8 +36,8 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   private VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
-  private final GroupingDir groupings[];
+  private final CachingCatalog catalog;
+  private final GroupingDir[] groupings;
 
   VfsRootModarchive(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
     this.parent = parent;
@@ -72,7 +73,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {
@@ -141,7 +142,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
         //assume all the groups will search by authors
         return new AuthorsSearchEngine();
       } else {
@@ -428,7 +429,9 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SHARE_URL.equals(id)) {
+      if (VfsExtensions.CACHE.equals(id)) {
+        return catalog.getTrackCache(track.id);
+      } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
         return super.getExtension(id);

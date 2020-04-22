@@ -9,8 +9,9 @@ package app.zxtune.fs;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.util.SparseIntArray;
+
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,6 +24,7 @@ import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.zxart.Author;
+import app.zxtune.fs.zxart.CachingCatalog;
 import app.zxtune.fs.zxart.Catalog;
 import app.zxtune.fs.zxart.Identifier;
 import app.zxtune.fs.zxart.Party;
@@ -35,7 +37,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
+  private final CachingCatalog catalog;
   private final GroupingDir groups[];
 
   public VfsRootZxart(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
@@ -72,7 +74,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume search by authors from root
       return new AuthorsSearchEngine();
     } else {
@@ -145,7 +147,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
         return new AuthorsSearchEngine();
       } else {
         return super.getExtension(id);
@@ -698,7 +700,9 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SHARE_URL.equals(id)) {
+      if (VfsExtensions.CACHE.equals(id)) {
+        return catalog.getTrackCache(module.id);
+      } if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
         return super.getExtension(id);

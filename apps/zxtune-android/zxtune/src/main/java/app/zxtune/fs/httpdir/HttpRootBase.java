@@ -7,6 +7,7 @@
 package app.zxtune.fs.httpdir;
 
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
@@ -14,16 +15,17 @@ import java.nio.ByteBuffer;
 
 import app.zxtune.fs.StubObject;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 
 public abstract class HttpRootBase extends StubObject implements VfsDir {
 
   private final VfsObject parent;
-  private final Catalog catalog;
+  private final CachingCatalog catalog;
   protected final Path rootPath;
 
-  protected HttpRootBase(VfsObject parent, Catalog catalog, Path path) {
+  protected HttpRootBase(VfsObject parent, CachingCatalog catalog, Path path) {
     this.parent = parent;
     this.catalog = catalog;
     this.rootPath = path;
@@ -142,6 +144,15 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
         content = catalog.getFileContent(path);
       }
       return content;
+    }
+
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE.equals(id)) {
+        return catalog.getFileCache(path);
+      } else {
+        return super.getExtension(id);
+      }
     }
   }
 }

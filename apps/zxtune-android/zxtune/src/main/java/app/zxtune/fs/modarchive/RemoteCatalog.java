@@ -16,17 +16,12 @@ import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
 
-import app.zxtune.StubProgressCallback;
-import app.zxtune.fs.ProgressCallback;
-import app.zxtune.fs.api.Cdn;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.MultisourceHttpProvider;
-import app.zxtune.io.Io;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
@@ -35,7 +30,13 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
+import app.zxtune.StubProgressCallback;
+import app.zxtune.fs.ProgressCallback;
+import app.zxtune.fs.api.Cdn;
+import app.zxtune.fs.http.HttpObject;
 import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.io.Io;
 
 /**
  * API entry point:
@@ -168,8 +169,7 @@ class RemoteCatalog extends Catalog {
     loadPages(uri, root, progress);
   }
 
-  @Override
-  public boolean searchSupported() {
+  final boolean searchSupported() {
     return http.hasConnection();
   }
 

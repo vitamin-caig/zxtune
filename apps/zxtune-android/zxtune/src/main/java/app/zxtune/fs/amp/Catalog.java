@@ -7,6 +7,7 @@
 package app.zxtune.fs.amp;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
@@ -86,11 +87,6 @@ public abstract class Catalog {
   public abstract void queryTracks(Author author, TracksVisitor visitor) throws IOException;
 
   /**
-   * Checks whether tracks can be found directly from catalogue instead of scanning
-   */
-  public abstract boolean searchSupported();
-
-  /**
    * Find tracks by query substring
    * @param query string to search in filename/title
    * @param visitor result receiver
@@ -105,7 +101,7 @@ public abstract class Catalog {
   @NonNull
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
 
-  public static Catalog create(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public static CachingCatalog create(Context context, HttpProvider http, CacheDir cache) throws IOException {
     final RemoteCatalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
     return new CachingCatalog(remote, db, cache);

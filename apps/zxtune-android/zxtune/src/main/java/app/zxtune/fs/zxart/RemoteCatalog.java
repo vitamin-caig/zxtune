@@ -11,15 +11,12 @@ import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
-import app.zxtune.Log;
-import app.zxtune.Util;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.io.Io;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
@@ -27,6 +24,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+
+import app.zxtune.Log;
+import app.zxtune.Util;
+import app.zxtune.fs.http.HttpObject;
+import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.io.Io;
 
 final class RemoteCatalog extends Catalog {
 
@@ -99,11 +102,11 @@ final class RemoteCatalog extends Catalog {
     performQuery(stream, root);
   }
 
-  @Override
-  public boolean searchSupported() {
+  final boolean searchSupported() {
     return http.hasConnection();
   }
 
+  @Override
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     Log.d(TAG, "findTracks(query=%s)", query);
     final String uri = String.format(Locale.US, FIND_TRACKS_QUERY, Uri.encode(query));

@@ -7,6 +7,7 @@
 package app.zxtune.fs.httpdir;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
@@ -38,12 +39,13 @@ public abstract class Catalog {
    */
   public abstract void parseDir(Path path, DirVisitor visitor) throws IOException;
 
-  public static Catalog create(Context ctx, HttpProvider http, CacheDir cache, String id) throws IOException {
+  public static CachingCatalog create(Context ctx, HttpProvider http, CacheDir cache, String id) throws IOException {
     final RemoteCatalog remote = new RemoteCatalog(http);
     return create(ctx, remote, cache, id);
   }
 
-  public static Catalog create(Context ctx, RemoteCatalog remote, CacheDir cache, String id) throws IOException {
+  public static CachingCatalog create(Context ctx, RemoteCatalog remote, CacheDir cache,
+                                     String id) throws IOException {
     return new CachingCatalog(ctx, remote, cache, id);
   }
 }

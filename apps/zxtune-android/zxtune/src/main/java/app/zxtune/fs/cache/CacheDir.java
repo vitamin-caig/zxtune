@@ -1,6 +1,7 @@
 package app.zxtune.fs.cache;
 
 import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -12,6 +13,9 @@ public interface CacheDir {
 
   @NonNull
   File findOrCreate(String... ids) throws IOException;
+
+  @Nullable
+  File find(String... ids);
 
   Uri createFile(String id, ByteBuffer data);
 
