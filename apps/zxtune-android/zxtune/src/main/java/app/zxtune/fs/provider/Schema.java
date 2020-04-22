@@ -17,10 +17,12 @@ class Schema {
   private static final String COLUMN_NAME = "name";
   // string
   private static final String COLUMN_DESCRIPTION = "description";
-  // int
+  // int - icon res or tracks count
   private static final String COLUMN_ICON = "icon";
   // string - size for file, not null if dir has feed
   private static final String COLUMN_DETAILS = "details";
+  // bool
+  private static final String COLUMN_CACHED = "cached";
 
   // int
   private static final String COLUMN_DONE = "done";
@@ -34,15 +36,18 @@ class Schema {
 
   static class Listing {
     static final String[] COLUMNS = {COLUMN_TYPE, COLUMN_URI, COLUMN_NAME, COLUMN_DESCRIPTION
-        , COLUMN_ICON, COLUMN_DETAILS};
+        , COLUMN_ICON, COLUMN_DETAILS, COLUMN_CACHED};
 
     static Object[] makeDirectory(Uri uri, String name, String description,
                                   int icon, boolean hasFeed) {
-      return new Object[]{TYPE_DIR, uri.toString(), name, description, icon, hasFeed ? "" : null};
+      return new Object[]{TYPE_DIR, uri.toString(), name, description, icon, hasFeed ? "" : null,
+          null};
     }
 
-    static Object[] makeFile(Uri uri, String name, String description, String size) {
-      return new Object[]{TYPE_FILE, uri.toString(), name, description, 0, size};
+    static Object[] makeFile(Uri uri, String name, String description, String details,
+                             Integer tracks, Boolean isCached) {
+      return new Object[]{TYPE_FILE, uri.toString(), name, description, tracks, details,
+          isCached != null ? (isCached ? 1 : 0) : null};
     }
 
     static Object[] makeLimiter() {
@@ -74,12 +79,20 @@ class Schema {
       return cursor.getInt(4);
     }
 
-    static String getSize(@NonNull Cursor cursor) {
+    static String getDetails(@NonNull Cursor cursor) {
       return cursor.getString(5);
     }
 
     static boolean hasFeed(@NonNull Cursor cursor) {
       return !cursor.isNull(5);
+    }
+
+    static Integer getTracks(@NonNull Cursor cursor) {
+      return cursor.isNull(4) ? null : cursor.getInt(4);
+    }
+
+    static Boolean isCached(@NonNull Cursor cursor) {
+      return cursor.isNull(6) ? null : (cursor.getInt(6) != 0);
     }
   }
 

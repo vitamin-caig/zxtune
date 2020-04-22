@@ -41,7 +41,7 @@ class SearchOperation implements AsyncQueryOperation {
   public Cursor call() throws Exception {
     maybeResolve();
     if (dir != null) {
-      result.set(new ListingCursorBuilder());
+      result.set(makeBuilder());
       search();
     }
     synchronized(result) {
@@ -106,8 +106,17 @@ class SearchOperation implements AsyncQueryOperation {
   public Cursor status() {
     synchronized(result) {
       return result.get() != null
-          ? result.getAndSet(new ListingCursorBuilder()).getResult()
+          ? result.getAndSet(makeBuilder()).getResult()
           : null;
     }
+  }
+
+  private static ListingCursorBuilder makeBuilder() {
+    return new ListingCursorBuilder(new ListingCursorBuilder.TracksCountSource() {
+      @Override
+      public Integer[] getTracksCount(Uri[] uris) {
+        return VfsArchive.getModulesCount(uris);
+      }
+    });
   }
 }

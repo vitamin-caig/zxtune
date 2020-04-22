@@ -2,10 +2,12 @@ package app.zxtune.fs.provider;
 
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,10 +22,20 @@ import app.zxtune.fs.VfsUtils;
 
 class ListingCursorBuilder extends VfsDir.Visitor {
 
+  interface TracksCountSource {
+    @NonNull
+    Integer[] getTracksCount(@NonNull Uri[] uris);
+  }
+
+  private final TracksCountSource tracksCountSource;
   private final ArrayList<VfsDir> dirs = new ArrayList<>();
   private final ArrayList<VfsFile> files = new ArrayList<>();
   private int total = -1;
   private int done = -1;
+
+  ListingCursorBuilder(TracksCountSource src) {
+    this.tracksCountSource = src;
+  }
 
   @Override
   public void onItemsCount(int count) {
@@ -68,10 +80,21 @@ class ListingCursorBuilder extends VfsDir.Visitor {
     for (VfsDir d : dirs) {
       cursor.addRow(makeRow(d));
     }
-    for (VfsFile f : files) {
-      cursor.addRow(makeRow(f));
+    final Uri[] uris = getFilesUris();
+    final Integer[] tracks = tracksCountSource.getTracksCount(uris);
+    for (int i = 0; i < uris.length; ++i) {
+      final VfsFile file = files.get(i);
+      cursor.addRow(makeRow(uris[i], file, tracks[i]));
     }
     return cursor;
+  }
+
+  private Uri[] getFilesUris() {
+    final Uri[] result = new Uri[files.size()];
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = files.get(i).getUri();
+    }
+    return result;
   }
 
   private static Object[] makeRow(@NonNull VfsDir d) {
@@ -79,12 +102,18 @@ class ListingCursorBuilder extends VfsDir.Visitor {
         d.getDescription(), VfsUtils.getObjectIcon(d), hasFeed(d));
   }
 
-  private static Object[] makeRow(@NonNull VfsFile f) {
-    return Schema.Listing.makeFile(f.getUri(), f.getName(), f.getDescription(), f.getSize());
+  private static Object[] makeRow(@NonNull Uri uri, @NonNull VfsFile f, Integer tracks) {
+    return Schema.Listing.makeFile(uri, f.getName(), f.getDescription(), f.getSize(), tracks,
+        isCached(f));
   }
 
   private static boolean hasFeed(@NonNull VfsObject obj) {
     return null != obj.getExtension(VfsExtensions.FEED);
+  }
+
+  private static Boolean isCached(@NonNull VfsObject obj) {
+    final File f = (File) obj.getExtension(VfsExtensions.CACHE);
+    return f != null ? f.isFile() : null;
   }
 
   final Cursor getStatus() {
@@ -103,7 +132,9 @@ class ListingCursorBuilder extends VfsDir.Visitor {
     if (obj instanceof VfsDir) {
       cursor.addRow(makeRow((VfsDir) obj));
     } else if (obj instanceof VfsFile) {
-      cursor.addRow(makeRow((VfsFile) obj));
+      final Uri uri = obj.getUri();
+      // don't care about real tracks count here
+      cursor.addRow(makeRow(uri, (VfsFile) obj, null));
     }
     return cursor;
   }

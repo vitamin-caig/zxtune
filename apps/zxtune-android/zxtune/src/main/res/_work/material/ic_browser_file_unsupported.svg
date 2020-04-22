@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   height="32"
+   viewBox="0 0 48 48"
+   width="32"
+   fill="#cfd8dc"
+   >
+  <path
+     style="fill:none;stroke:#607d8b;stroke-width:2px;"
+     d="M 12,44 H 36 V 6 H 18 l -6,6 z"
+     />
+</svg>

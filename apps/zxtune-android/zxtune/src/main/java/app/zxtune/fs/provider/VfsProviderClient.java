@@ -17,7 +17,8 @@ public class VfsProviderClient {
   public interface ListingCallback extends StatusCallback {
     void onDir(Uri uri, String name, String description, int icon, boolean hasFeed);
 
-    void onFile(Uri uri, String name, String description, String size);
+    void onFile(Uri uri, String name, String description, String details, Integer tracks,
+                Boolean cached);
   }
 
   public interface ParentsCallback extends StatusCallback {
@@ -163,7 +164,8 @@ public class VfsProviderClient {
         cb.onDir(uri, name, description, Schema.Listing.getIcon(cursor),
             Schema.Listing.hasFeed(cursor));
       } else {
-        cb.onFile(uri, name, description, Schema.Listing.getSize(cursor));
+        cb.onFile(uri, name, description, Schema.Listing.getDetails(cursor),
+            Schema.Listing.getTracks(cursor), Schema.Listing.isCached(cursor));
       }
     } while (cursor.moveToNext());
   }
