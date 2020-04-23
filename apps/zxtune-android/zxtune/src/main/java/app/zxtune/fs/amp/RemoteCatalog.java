@@ -49,7 +49,7 @@ import app.zxtune.io.Io;
  *   http://amp.dascene.net/newresult.php?request=module&search=${whatever}
  */
 
-class RemoteCatalog extends Catalog {
+public class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -204,15 +204,15 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(%d)", id);
-    return Io.readFrom(http.getInputStream(getContentUris(id)));
+    return Io.readFrom(http.getInputStream(getTrackUris(id)));
   }
 
   final HttpObject getTrackObject(int id) throws IOException {
     Log.d(TAG, "getTrackObject(%d)", id);
-    return http.getObject(getContentUris(id));
+    return http.getObject(getTrackUris(id));
   }
 
-  private static Uri[] getContentUris(int id) {
+  public static Uri[] getTrackUris(int id) {
     return new Uri[]{
       Cdn.amp(id),
       getMainUriBuilder().appendPath("downmod.php").appendQueryParameter("index", Integer.toString(id)).build()

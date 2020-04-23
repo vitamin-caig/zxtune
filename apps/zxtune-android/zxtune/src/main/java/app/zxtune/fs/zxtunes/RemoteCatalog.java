@@ -32,7 +32,7 @@ import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
 
-final class RemoteCatalog extends Catalog {
+public final class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -85,14 +85,17 @@ final class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
-    final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return Io.readFrom(http.getInputStream(Uri.parse(query)));
+    return Io.readFrom(http.getInputStream(getTrackUris(id)[0]));
   }
 
   final HttpObject getTrackObject(int id) throws IOException {
     Log.d(TAG, "getTrackObject(id=%d)", id);
+    return http.getObject(getTrackUris(id)[0]);
+  }
+
+  public static Uri[] getTrackUris(int id) {
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return http.getObject(Uri.parse(query));
+    return new Uri[]{Uri.parse(query)};
   }
 
   private void performQuery(InputStream httpStream, RootElement root)

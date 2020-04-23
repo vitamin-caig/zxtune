@@ -28,6 +28,7 @@ import app.zxtune.fs.zxart.CachingCatalog;
 import app.zxtune.fs.zxart.Catalog;
 import app.zxtune.fs.zxart.Identifier;
 import app.zxtune.fs.zxart.Party;
+import app.zxtune.fs.zxart.RemoteCatalog;
 import app.zxtune.fs.zxart.Track;
 
 @Icon(R.drawable.ic_browser_vfs_zxart)
@@ -702,7 +703,9 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE.equals(id)) {
         return catalog.getTrackCache(module.id);
-      } if (VfsExtensions.SHARE_URL.equals(id)) {
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(module.id);
+      } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
         return super.getExtension(id);

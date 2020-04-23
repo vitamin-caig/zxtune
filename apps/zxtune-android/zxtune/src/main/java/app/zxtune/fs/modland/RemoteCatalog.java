@@ -32,7 +32,7 @@ import app.zxtune.io.Io;
  * http://www.exotica.org.uk/mediawiki/extensions/ExoticASearch/Modland_xbmc.php
  * but it seems to be not working and has no such wide catalogue as http gate does.
  */
-class RemoteCatalog extends Catalog {
+public class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -259,15 +259,15 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(String id) throws IOException {
     Log.d(TAG, "getTrackContent(%s)", id);
-    return Io.readFrom(http.getInputStream(getContentUris(id)));
+    return Io.readFrom(http.getInputStream(getTrackUris(id)));
   }
 
   final HttpObject getTrackObject(String id) throws IOException {
     Log.d(TAG, "getTrackContent(%s)", id);
-    return http.getObject(getContentUris(id));
+    return http.getObject(getTrackUris(id));
   }
 
-  private static Uri[] getContentUris(String id) {
+  public static Uri[] getTrackUris(String id) {
     return new Uri[]{
         Cdn.modland(id),
         Uri.parse("http://ftp.amigascne.org/mirrors/ftp.modland.com" + id)

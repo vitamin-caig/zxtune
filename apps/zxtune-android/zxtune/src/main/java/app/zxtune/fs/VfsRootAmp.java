@@ -24,6 +24,7 @@ import app.zxtune.fs.amp.Catalog.GroupsVisitor;
 import app.zxtune.fs.amp.Country;
 import app.zxtune.fs.amp.Group;
 import app.zxtune.fs.amp.Identifier;
+import app.zxtune.fs.amp.RemoteCatalog;
 import app.zxtune.fs.amp.Track;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
@@ -499,6 +500,8 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE.equals(id)) {
         return catalog.getTrackCache(track.id);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(track.id);
       } else {
         return super.getExtension(id);
       }

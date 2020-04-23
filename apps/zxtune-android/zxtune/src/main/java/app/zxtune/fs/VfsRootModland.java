@@ -36,6 +36,7 @@ import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.modland.CachingCatalog;
 import app.zxtune.fs.modland.Catalog;
 import app.zxtune.fs.modland.Group;
+import app.zxtune.fs.modland.RemoteCatalog;
 import app.zxtune.fs.modland.Track;
 
 @Icon(R.drawable.ic_browser_vfs_modland)
@@ -392,6 +393,8 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE.equals(id)) {
         return catalog.getTrackCache(track.path);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(track.path);
       } else {
         return super.getExtension(id);
       }

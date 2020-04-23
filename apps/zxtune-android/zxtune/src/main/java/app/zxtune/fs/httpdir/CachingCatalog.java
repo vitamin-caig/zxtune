@@ -1,6 +1,7 @@
 package app.zxtune.fs.httpdir;
 
 import android.content.Context;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -59,7 +60,7 @@ final class CachingCatalog extends Catalog {
   }
 
   @Nullable
-  File getFileCache(Path path) {
+  final File getFileCache(Path path) {
     return cache.find(path.getLocalId());
   }
 

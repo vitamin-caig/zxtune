@@ -61,7 +61,7 @@ import app.zxtune.io.Io;
  *   ${API}/xml-tools.php?key=${key}&request=search&type=filename_or_songtitle&query=*${query}*&page=${page}
  */
 
-class RemoteCatalog extends Catalog {
+public class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -191,15 +191,15 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
-    return Io.readFrom(http.getInputStream(getContentUris(id)));
+    return Io.readFrom(http.getInputStream(getTrackUris(id)));
   }
 
   final HttpObject getTrackObject(int id) throws IOException {
     Log.d(TAG, "getTrackObject(id=%d)", id);
-    return http.getObject(getContentUris(id));
+    return http.getObject(getTrackUris(id));
   }
 
-  private static Uri[] getContentUris(int id) {
+  public static Uri[] getTrackUris(int id) {
     return new Uri[]{
         Cdn.modarchive(id),
         ApiUriBuilder.forDownload(id).buildUri()

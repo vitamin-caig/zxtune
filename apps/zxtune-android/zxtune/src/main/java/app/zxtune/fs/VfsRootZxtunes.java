@@ -26,6 +26,7 @@ import app.zxtune.fs.zxtunes.Author;
 import app.zxtune.fs.zxtunes.CachingCatalog;
 import app.zxtune.fs.zxtunes.Catalog;
 import app.zxtune.fs.zxtunes.Identifier;
+import app.zxtune.fs.zxtunes.RemoteCatalog;
 import app.zxtune.fs.zxtunes.Track;
 
 @Icon(R.drawable.ic_browser_vfs_zxtunes)
@@ -345,6 +346,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE.equals(id)) {
         return catalog.getTrackCache(module.id);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(module.id);
       } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {

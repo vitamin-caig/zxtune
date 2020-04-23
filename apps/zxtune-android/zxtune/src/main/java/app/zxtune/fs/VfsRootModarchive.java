@@ -27,6 +27,7 @@ import app.zxtune.fs.modarchive.CachingCatalog;
 import app.zxtune.fs.modarchive.Catalog;
 import app.zxtune.fs.modarchive.Genre;
 import app.zxtune.fs.modarchive.Identifier;
+import app.zxtune.fs.modarchive.RemoteCatalog;
 import app.zxtune.fs.modarchive.Track;
 
 @Icon(R.drawable.ic_browser_vfs_modarchive)
@@ -431,6 +432,8 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE.equals(id)) {
         return catalog.getTrackCache(track.id);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(track.id);
       } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {

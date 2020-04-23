@@ -36,4 +36,7 @@ public final class VfsExtensions {
 
   // File
   public static final String FILE = "FILE";
+
+  // Uri[]
+  public static final String DOWNLOAD_URIS = "DOWNLOAD_URIS";
 }
